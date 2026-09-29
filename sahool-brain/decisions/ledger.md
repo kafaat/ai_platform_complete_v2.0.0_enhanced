@@ -3340,3 +3340,25 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 محاولة التوليد **لم يُتحقَّق حيّاً** — `AI_GENERATION_ENABLED` على staging يُحَلّ `false`
 (مقيس من `/healthz/ai-provider`)، ولا Ollama على Railway. متغيّرُ `SAHOOL_V25_PROBE_RUN`
 باقٍ على الزراعيّ (لا أداةَ حذفٍ متاحة) — أثرٌ بلا أثر.
+
+## 2026-09-29 — معيارُ `fixed → verified` طُبِّق على فجوتَي SoilGrids: ترقيةُ واحدةٍ وإبقاءُ الأخرى بقيدٍ مُعلَن
+
+**السياق:** #1095 أضاف شاهدَ Railway staging الحيّ داخل خليّتَي الفجوتين، وبقيت الحالةُ
+الأولى `fixed`. و`gap_registry_measure.py` يقرأ **الكلمةَ الأولى وحدها** ولا يستنتج من السرد،
+فصار الدليلُ والحالةُ متعارضَين دلاليّاً (رصده المالك).
+
+**المعيار (من ترويسة `gaps/registry.md`):** `fixed` = عُولِج في الكود؛ `verified` = أُكِّد حيّاً.
+وstaging تشغيلٌ حيّ. فالسؤالُ ليس «هل staging يكفي؟» بل **«هل الشاهدُ الحيّ يغطّي ادّعاءَ الفجوة
+نفسَه؟»**.
+
+**القرار:**
+- `SOILGRIDS-NO-COVERAGE-REPORTED-AS-UNAVAILABLE-01` ⇒ **`verified`**. الادّعاءُ مقيسٌ طرفاً لطرف:
+  ISRIC مباشرةً `200` وكلُّ القيم `null` لصنعاء، والخدمةُ على `ede0d4e` ⇒ `404 soilgrids_no_coverage`.
+- `SOIL-PROVIDER-TIMEOUT-SHORTER-THAN-THE-PROVIDER-01` ⇒ **يبقى `fixed`**. ادّعاؤها مزوّدٌ **أبطأُ
+  من مهلة المستدعي**، وفي جولة التحقّق أجاب ISRIC في 5–6ث فالنظامُ الحرجُ لم يقع. واكتمالُ جلبٍ
+  أبطأَ من 15ث على العامل الآخر **استدلالٌ** (الردُّ لا يُسمّي العامل). شرطُ الترقية مكتوبٌ في الخليّة.
+
+**مقيسٌ بالأداة نفسِها:** `row_state_counts` على main `fixed 212 · open 65 · verified 2` ⇒
+`fixed 211 · open 65 · verified 3` — انتقالٌ واحدٌ بالضبط، وصفرُ أخطاء تحليلٍ جديدة.
+
+**حدٌّ مُعلَن:** `verified` هنا = staging، لا الإنتاج؛ و`production_certification` يبقى `NOT_GRANTED`.
