@@ -1,8 +1,10 @@
 """سجلّ محاصيل محاكاة WOFOST (SIM-PCSE-01) — المحاصيل المدعومة **بالاسم** + مصدر معاملاتها.
 
 **لا اختلاق معاملات:** هذا السجلّ يُعلن أيّ المحاصيل مدعومة وأين تأتي معاملاتها (parameter_source +
-parameter_version)، لا يخترع أرقام WOFOST. المعاملات الفعليّة تُحمَّل وقت التشغيل من ملفّات PCSE الرسميّة
-(``YAMLCropDataProvider``) حين تتوفّر التبعيّة — فالسجلّ يربط اسم SAHOOL بهويّة المحصول/الصنف في تلك الملفّات.
+parameter_version)، لا يخترع أرقام WOFOST. المعاملات الفعليّة تُقرأ من ملفّات WOFOST_crop_parameters
+**المحزومة** في ``pcse_data/wofost72_crop`` عند commit مثبَّت (كان ``YAMLCropDataProvider()`` يجلبها من GitHub
+وقت التشغيل فيسقط دون شبكة) — فالسجلّ يربط اسم SAHOOL بهويّة المحصول/الصنف في تلك الملفّات، ويطابق
+``parameter_version`` حقلَ ``commit`` في ``pcse_data/SOURCE.json`` (اختبارٌ يفرضه).
 
 **قائمة v1 (قرار المالك):** تقاطع «PCSE يشحن معاملاتها» × «سوق المنصّة»: wheat · barley · potato. المحاصيل
 اليمنيّة الحسّاسة (sorghum/onion/tomato) **لا تدخل v1** — لا ملفّات معاملات جاهزة؛ إدخالها بمعاملات مقترَضة
@@ -14,8 +16,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 # مصدر معاملات WOFOST الرسميّ (نفس انضباط مرجعيّة المصادر المُطبَّق على الحدود/التربة).
-_WOFOST_PARAM_SOURCE = "ajwdewit/WOFOST_crop_parameters (PCSE YAMLCropDataProvider)"
-_WOFOST_PARAM_VERSION = "2020-07"  # وسم مجموعة الملفّات المرجعيّة (يُثبَّت عند تركيب pcse في التكامل)
+_WOFOST_PARAM_SOURCE = (
+    "ajwdewit/WOFOST_crop_parameters@wofost72 (vendored in pcse_data/wofost72_crop, EUPL)"
+)
+# commit الفرع wofost72 المحزوم (كان «2020-07»: وسمٌ بلا مرجع يُثبَّت، والملفّات تُجلَب حيّةً).
+_WOFOST_PARAM_VERSION = "f0a6491f23685998fa2172b397ff959a3b5ea738"
 
 
 @dataclass(frozen=True)

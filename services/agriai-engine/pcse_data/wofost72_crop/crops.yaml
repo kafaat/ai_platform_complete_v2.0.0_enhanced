@@ -1,0 +1,8 @@
+# فهرسٌ محلّيّ كتبه SAHOOL — ليس ملفّاً من المصدر.
+# `crops.yaml` في فرع wofost72 يسرد ٢٣ محصولاً، و`YAMLCropDataProvider.read_local_repository`
+# يرفض الدليل إن غاب ملفُّ أيٍّ منها؛ ونحن نحزم محاصيل `sim_crop_registry` الثلاثة وحدها.
+# ملفّات المحاصيل بجواره منسوخةٌ حرفيّاً (انظر ../SOURCE.json و ../NOTICE.txt).
+available_crops:
+  - barley
+  - potato
+  - wheat

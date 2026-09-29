@@ -55,12 +55,18 @@ SIMULATION_CAPABILITY = SimulationCapability(
     model="pcse_wofost72_wlp_fd",  # WOFOST 7.2، Water-Limited Production, Free Drainage
     references=(
         "services/agriai-engine/wofost_adapter.py:_pcse_run",  # التوصيل الصحيح لموفِّرات PCSE
+        "services/agriai-engine/pcse_inputs.py:build_run_inputs",  # بُناة المدخلات (بلا شبكة)
         "services/agriai-engine/sim_crop_registry.py",  # المحاصيل المدعومة + مصدر معاملاتها
+        "services/agriai-engine/pcse_data/SOURCE.json",  # المعاملات والتربة المحزومة بمصدرها
     ),
     covers=(
         CapabilityClaim(
-            "الإنتاج المحدود بالمياه (WLP): غلّة/كتلة حيويّة/استهلاك ماء + مراحل نموّ",
+            "الإنتاج المحدود بالمياه (WLP): غلّة/كتلة حيويّة/استهلاك ماء (ملّيمتر) + مراحل نموّ",
             "services/agriai-engine/wofost_adapter.py:_pcse_run",
+        ),
+        CapabilityClaim(
+            "مدخلات PCSE دون شبكة: طقس/تربة/موقع/إدارة بوحدات PCSE، والنقص يُرفَض باسمه (422)",
+            "services/agriai-engine/pcse_inputs.py:build_run_inputs",
         ),
         CapabilityClaim(
             "المحاصيل المدعومة بالاسم من معاملات PCSE الرسميّة (لا معاملات مقترَضة)",
@@ -78,6 +84,16 @@ SIMULATION_CAPABILITY = SimulationCapability(
         "المعايرة غير مُثبَتة حتى SIM-GOLDEN-01 (بيانات حصاد حقيقيّة + عتبات خطأ)؛ المخرَج uncalibrated.",
         # مطفأة افتراضاً: بلا الراية لا محرّك علميّ (السلوك الصادق القائم: fallback تطويريّ / fail-closed إنتاجيّ).
         "مطفأة افتراضاً (SIM_PCSE_ENABLED=off): بلا الراية لا يُشغَّل PCSE — الأمانة القائمة تبقى.",
+        # الغلّة TWSO مادّة جافّة؛ تحويلها لوزن طازج يتطلّب رطوبة لا نملكها.
+        "الغلّة مادّة جافّة للأعضاء المخزِّنة (TWSO) لا وزن طازج أو تجاريّ — لا رطوبة مفترَضة.",
+        # الأصناف المحزومة معايَرة لأوروبا (Metadata.Coverage.Region في كلّ ملفّ).
+        "أصناف v1 معايَرة لأوروبا (wheat: Winter_wheat_101 لشمال بريطانيا/الدنمارك) — "
+        "تُسمّى في diagnostics.variety_calibration_region.",
+        # غياب تربة/رطوبة/ريّ في الطلب ⇒ افتراضٌ مُسمّى لا صامت.
+        "غياب معاملات التربة ⇒ تربة EC3-medium fine الافتراضيّة، وغياب الماء الابتدائيّ ⇒ السعة "
+        "الحقليّة — كلاهما في diagnostics.defaults_applied.",
+        # WOFOST 7.2 بلا استجابة CO2 (لا حدّ CO2 في التمثيل الضوئيّ ولا قيمة CO2 مُمرَّرة).
+        "لا استجابة لتركيز CO2 في WOFOST 7.2 كما هو مُهيّأ.",
     ),
     status_enum=(
         "pcse_wofost_uncalibrated",  # PCSE فعليّ لكن غير مُعايَر (قبل golden)

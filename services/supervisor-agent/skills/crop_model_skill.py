@@ -12,8 +12,10 @@ MCP ``wofost``. كانت المهارة تنادي أداة MCP ``run_wofost_sim
 ملاحظة صدق: المُخرَج يحمل ``provenance`` كما أعادها agriai حرفيّاً، ويُسمّي المحرّك منه:
 ``pcse_wofost_uncalibrated`` ⇒ PCSE/WOFOST 7.2 غير مُعايَر · ``deterministic_fallback`` ⇒
 بديل حتميّ (قانون الحدّ الأدنى) **ليس WOFOST**. وسمٌ غائب أو مجهول ⇒ لا رقم (``unavailable``)
-بدل التخمين. مقيس 2026-09-29: مسار PCSE لا يعمل بعدُ طرفاً لطرف (``wofost_adapter._pcse_run``)،
-فالمُجاب عملياً هو البديل الحتميّ — ويُقال ذلك للمستخدم في نصّ الردّ نفسه.
+بدل التخمين. مسار PCSE يعمل الآن دون شبكة طرفاً لطرف (``wofost_adapter._pcse_run`` +
+``pcse_inputs``)، لكنّ ``SIM_PCSE_ENABLED`` مطفأة افتراضاً (قرار المالك)، فالمُجاب في النشر ما زال
+البديل الحتميّ حتى تُشعَل — ويُقال المحرّك للمستخدم في نصّ الردّ نفسه، ومعه افتراضات PCSE المُعلَنة
+(تربة افتراضيّة، رطوبة ابتدائيّة، ريّ غير مُعلَن) من ``diagnostics.defaults_applied``.
 """
 
 import asyncio
@@ -111,10 +113,16 @@ class CropModelSkill:
                 out["structured"]["engine_reason"] = str(detail.get("reason") or "")[:200]
                 return out
             if resp.status_code == 422:
-                return _unavailable(
+                out = _unavailable(
                     "crop_model_inputs_rejected",
                     "رفض محرّك المحاكاة مدخلات الحقل (سياق زراعيّ ناقص أو غير صالح) — لا تقدير للغلّة.",
                 )
+                # بُناة PCSE يُسمّون النقص (``weather_day_missing:3:vapour_pressure_hpa|...``) — يُنقَل
+                # الرمز كما في 503، فلا يُختزَل «ما الذي ينقص» إلى «مرفوض» بلا سبب.
+                out["structured"]["engine_reason"] = str(detail.get("reason") or "")[:200]
+                if detail.get("detail"):
+                    out["structured"]["engine_detail"] = str(detail["detail"])[:200]
+                return out
         resp.raise_for_status()
         return _simulation_result(crop, resp.json())
 
@@ -224,21 +232,40 @@ def _unavailable(code: str, message: str) -> dict:
 
 # وسم agriai ⇒ هويّة المحرّك. المفاتيح هي ``status_enum`` في
 # ``services/agriai-engine/simulation_capability.py`` (عدا ``simulation_unavailable`` = 503).
-# وحدة الماء تتبع المحرّك: البديل يُعيد ملّيمتراً، و``_pcse_run`` يُعيد CTRAT بالسنتيمتر.
+# ``water_use`` بالملّيمتر في المحرّكين: كان ``_pcse_run`` يُعيد CTRAT بالسنتيمتر فيُضرَب هنا ×10؛
+# صار المُحوِّل يُحوّله (عقد المخطّط)، وضربٌ ثانٍ هنا كان سيُضخّم ماء PCSE عشرة أضعاف.
 _ENGINES: dict[str, dict[str, Any]] = {
     "pcse_wofost_uncalibrated": {
         "engine": "pcse_wofost72_wlp_fd",
         "label_ar": "PCSE/WOFOST 7.2 (إنتاج محدود بالمياه) — غير مُعايَر",
         "source": "PCSE Wofost72_WLP_FD (uncalibrated)",
-        "water_to_mm": 10.0,
+        "water_to_mm": 1.0,
+        "yield_basis_ar": " (مادّة جافّة للأعضاء المخزِّنة)",  # TWSO — لا رطوبة مفترَضة
     },
     "deterministic_fallback": {
         "engine": "deterministic_fallback",
         "label_ar": "بديل حتميّ (قانون الحدّ الأدنى: حرارة × ماء) — ليس WOFOST ولا PCSE",
         "source": "agriai deterministic fallback (not WOFOST)",
         "water_to_mm": 1.0,
+        "yield_basis_ar": "",
     },
 }
+
+# ``diagnostics.defaults_applied`` في مُخرَج PCSE ⇒ عبارة للمستخدم. ما لم يُسَمَّ هنا يبقى في
+# ``structured.defaults_applied`` كما هو (أنغستروم مثلاً: تقنيّ، أثره على تبخّر التربة وحده).
+_DEFAULT_LABELS_AR: tuple[tuple[str, str], ...] = (
+    ("soil.", "تربة افتراضيّة (EC3-medium fine) لا تربة الحقل"),
+    ("site.WAV", "رطوبة ابتدائيّة مُفترَضة عند السعة الحقليّة"),
+    ("irrigation.none_declared", "بلا ريّ مُعلَن (بعليّ)"),
+)
+
+
+def _declared_defaults(diagnostics: dict) -> tuple[list[str], str]:
+    applied = [str(d) for d in diagnostics.get("defaults_applied") or [] if isinstance(d, str)]
+    labels = [
+        label for prefix, label in _DEFAULT_LABELS_AR if any(d.startswith(prefix) for d in applied)
+    ]
+    return applied, (f" افتراضات مُعلَنة: {'، '.join(labels)}." if labels else "")
 
 
 def _simulation_result(crop: str, data: Any) -> dict:
@@ -260,6 +287,8 @@ def _simulation_result(crop: str, data: Any) -> dict:
     low, high = _finite(interval.get("low_kg_ha")), _finite(interval.get("high_kg_ha"))
     if low is not None and high is not None:
         band = f" (نطاق {low:,.0f}–{high:,.0f}، ثقة {interval.get('confidence', 'غير محدّدة')})"
+    diagnostics = _dict(data.get("diagnostics"))
+    defaults_applied, defaults_text = _declared_defaults(diagnostics)
     structured = {
         "status": "ok",
         "engine": engine["engine"],
@@ -267,12 +296,13 @@ def _simulation_result(crop: str, data: Any) -> dict:
         "calibrated": False,  # لا محرّك في agriai مُعايَر قبل SIM-GOLDEN-01
         "yield_kg_ha": yield_kg_ha,
         "yield_interval": interval or None,
+        "defaults_applied": defaults_applied,
     }
     return {
         "type": "crop_simulation",
         "response": (
-            f"محاكاة {crop}: غلّة تقديريّة {yield_kg_ha:,.0f} كغ/هكتار{band}. "
-            f"المحرّك: {engine['label_ar']}."
+            f"محاكاة {crop}: غلّة تقديريّة {yield_kg_ha:,.0f} كغ/هكتار"
+            f"{engine['yield_basis_ar']}{band}. المحرّك: {engine['label_ar']}.{defaults_text}"
         ),
         "crop": crop,
         "engine": engine["engine"],
@@ -284,7 +314,7 @@ def _simulation_result(crop: str, data: Any) -> dict:
         "total_water_mm": None if water is None else water * engine["water_to_mm"],
         "stages": data.get("stages") if isinstance(data.get("stages"), list) else [],
         "yield_interval": interval or None,
-        "diagnostics": _dict(data.get("diagnostics")),
+        "diagnostics": diagnostics,
         "actionable": False,
         "structured": structured,
         "sources": ["agriai-engine /v1/simulate", engine["source"]],
