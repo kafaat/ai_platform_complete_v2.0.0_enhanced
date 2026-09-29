@@ -147,6 +147,43 @@ def _service_block(source: str, service_name: str) -> str:
     return match.group("body")
 
 
+# nginx bundle -> (compose file that mounts it, nginx service name in that compose).
+_NGINX_BUNDLES = {
+    "nginx/nginx.v9.conf": ("docker-compose.v9.yml", "sahool-nginx"),
+    "nginx/nginx.fixed.conf": ("docker-compose.fixed.yml", "sahool-nginx"),
+    "nginx/nginx.unified.conf": ("docker-compose.unified.yml", "nginx"),
+    "nginx/nginx.light.conf": ("docker-compose.light.yml", "nginx"),
+}
+# Every nginx config that proxies browser/API traffic (the four bundles + the SPA container).
+_NGINX_CONFIGS = (*_NGINX_BUNDLES, "frontend/nginx.conf")
+
+
+def _nginx_live(text: str) -> str:
+    """Drop `#` comments so commented-out directives cannot satisfy or fail an assertion."""
+    return "\n".join(line.split("#", 1)[0] for line in text.splitlines())
+
+
+def _location_blocks(text: str) -> list[tuple[str, str]]:
+    """(selector, body) for each `location` block, brace-matched; quoted `${VAR}` is skipped."""
+    text = _nginx_live(text)
+    blocks = []
+    for match in re.finditer(r"\blocation\s+([^{;]+?)\s*\{", text):
+        depth, quote, i = 1, None, match.end()
+        while depth and i < len(text):
+            char = text[i]
+            if quote:
+                quote = None if char == quote else quote
+            elif char in "\"'":
+                quote = char
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+            i += 1
+        blocks.append((match.group(1).strip(), text[match.end() : i - 1]))
+    return blocks
+
+
 def test_v25_live_audit_wiring_regressions():
     variants = {
         "docker-compose.v9.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
@@ -182,20 +219,39 @@ def test_v25_live_audit_wiring_regressions():
         assert "JWT_SECRET:" in rag
         assert "JWT_PUBLIC_KEY:" in rag
 
-    v9_compose = _source("docker-compose.v9.yml")
-    nginx_service = _service_block(v9_compose, "sahool-nginx")
-    assert "image: nginx:1.27.5-alpine" in nginx_service
+    # Finding #1: every active upstream in **every** gateway bundle must be re-resolved
+    # after a container is replaced. The resolve parameter requires a shared-memory
+    # upstream zone and nginx >= 1.27.3. Previously only v9 was asserted, so fixed and
+    # unified (26 upstreams) and light (7) kept the audit's boot-time-pinned 502.
+    for conf, (compose, service) in _NGINX_BUNDLES.items():
+        nginx_service = _service_block(_source(compose), service)
+        assert f"./{conf}:" in nginx_service, (compose, conf)
+        image = re.search(r"image:\s*nginx:(\d+)\.(\d+)\.(\d+)-alpine\b", nginx_service)
+        assert image is not None, f"{compose}: nginx image must be a pinned version tag"
+        assert tuple(int(p) for p in image.groups()) >= (1, 27, 3), compose
+
+        nginx = _nginx_live(_source(conf))
+        assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx, conf
+        assert re.search(r"\bresolver_timeout\s+\d+s;", nginx), conf
+        upstreams = re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", nginx)
+        assert upstreams, conf
+        for name, body in upstreams:
+            assert re.search(r"\bzone\s+" + re.escape(name) + r"\s+64k;", body), (conf, name)
+            servers = re.findall(r"\bserver\s+([^;]+);", body)
+            assert servers, (conf, name)
+            for server in servers:
+                assert re.search(r"\sresolve\b", server), (conf, name, server)
+
+        # A literal `proxy_pass http://host:port` bypasses the upstream zone: it is
+        # resolved once at boot (and fails boot when the name is absent). Every
+        # proxy_pass must name a declared upstream.
+        names = {name for name, _ in upstreams}
+        for target in re.findall(r"\bproxy_pass\s+([^;]+);", nginx):
+            host = re.match(r"https?://([^/$;]+)", target.strip())
+            assert host is not None, (conf, target)
+            assert host.group(1) in names, (conf, target)
 
     nginx = _source("nginx/nginx.v9.conf")
-
-    # Finding #1: every active v9 upstream must be re-resolved after a container
-    # is replaced. The resolve parameter requires a shared-memory upstream zone.
-    assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx
-    upstreams = re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", nginx)
-    assert upstreams
-    for name, body in upstreams:
-        assert re.search(r"\bzone\s+" + re.escape(name) + r"\s+64k;", body), name
-        assert re.search(r"\bserver\s+[^;]+\s+resolve;", body), name
 
     # Finding #4, narrowed to the current trust model.
     agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
@@ -209,3 +265,49 @@ def test_v25_live_audit_wiring_regressions():
     assert "proxy_pass http://guardrails_backend/v1/;" not in guardrails
     assert "proxy_set_header X-Agent-Token" not in guardrails
     assert "/api/guardrails/v1/validate" in _source("frontend/src/hooks/useApi.ts")
+
+
+def test_service_token_is_injected_only_behind_auth_request():
+    """Finding #2 of the v25 review, measured with a real nginx: the agriai block injected
+    `X-Agent-Token` on network position alone. real_ip trusts X-Forwarded-For from the same
+    private ranges the allowlist admits, so a private peer without XFF, or with a forged
+    `X-Forwarded-For: 10.9.9.9`, received 200 with the token injected — i.e. any public client
+    arriving through a private hop (Docker Desktop port forwarding, an LB without XFF,
+    docker-proxy for IPv6). A location that injects a server-side service token must verify
+    the caller first; the private allowlist stays as defence in depth, not as identity."""
+    injecting = []
+    for conf in _NGINX_CONFIGS:
+        for selector, body in _location_blocks(_source(conf)):
+            if re.search(r'\bproxy_set_header\s+X-[A-Za-z-]*Token\s+"[^"]+"', body):
+                injecting.append((conf, selector))
+                assert re.search(r"\bauth_request\s+/", body), (conf, selector)
+    assert ("nginx/nginx.v9.conf", "/api/agriai/") in injecting, injecting
+
+    agriai = dict(_location_blocks(_source("nginx/nginx.v9.conf")))["/api/agriai/"]
+    assert "deny all;" in agriai
+    # identity reaches the service only from the verified auth response, never the client.
+    assert re.search(r"auth_request_set\s+\$tenant\s+\$upstream_http_x_tenant_id;", agriai)
+    assert re.search(r"proxy_set_header\s+X-Tenant-Id\s+\$tenant;", agriai)
+    assert re.search(r"proxy_set_header\s+X-User-Id\s+\$auth_uid;", agriai)
+
+
+def test_ai_agronomist_healthz_is_exact_matched_before_the_v1_prefix():
+    """M5 of the v25 review: `location /api/ai-agronomist/ { proxy_pass …/v1/; }` rewrote the
+    probe to /v1/healthz, but the service serves /healthz — every smoke/recovery probe
+    (scripts/runtime_smoke.sh, scripts/recovery/recovery_smoke.sh) got 401, and 404 with a
+    token. The exact match mirrors `location = /api/agent/health`: an unauthenticated liveness
+    probe, and only the exact path — /healthz/ai-provider and the rest stay behind auth_request."""
+    assert '@app.get("/healthz")' in _source("services/ai_agronomist/main.py")
+    routed = []
+    for conf in _NGINX_CONFIGS:
+        blocks = _location_blocks(_source(conf))
+        prefix = [b for sel, b in blocks if re.fullmatch(r"(\^~\s+)?/api/ai-agronomist/", sel)]
+        if not prefix:
+            continue
+        routed.append(conf)
+        assert re.search(r"\bauth_request\s+/", prefix[0]), conf
+        health = [b for sel, b in blocks if sel == "= /api/ai-agronomist/healthz"]
+        assert len(health) == 1, conf
+        assert re.search(r"\bproxy_pass\s+http://[A-Za-z0-9_]+/healthz;", health[0]), conf
+        assert "auth_request" not in health[0], conf
+    assert {"nginx/nginx.v9.conf", "frontend/nginx.conf"} <= set(routed), routed

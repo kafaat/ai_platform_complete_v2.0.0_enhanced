@@ -16,7 +16,10 @@ from typing import Any
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-UPSTREAM_RE = re.compile(r"server\s+([A-Za-z0-9_.-]+):(\d+)\s*;")
+# معاملات server اختياريّة (`resolve`، `max_fails=…`): كان النمط يشترط `;` بعد المنفذ مباشرةً،
+# فلمّا اكتسبت كلّ upstream في nginx.unified.conf `resolve` (Finding #1، مراجعة v25) صار الجرد
+# صفراً والحارس يطبع «PASS (0 upstreams)» — نجاحٌ فارغ لا يفحص اسماً واحداً. مقيس قبل الإصلاح.
+UPSTREAM_RE = re.compile(r"\bserver\s+([A-Za-z0-9_.-]+):(\d+)(?:\s+[^;{}]*)?;")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -40,7 +43,10 @@ def resolvable_names(compose: dict[str, Any]) -> set[str]:
 
 
 def upstream_hosts(nginx_conf: str) -> list[tuple[str, int]]:
-    return [(host, int(port)) for host, port in UPSTREAM_RE.findall(nginx_conf)]
+    # upstream مُعلَّقة (`# upstream soil_backend { server sahool-soil:8000; … }` في nginx.v9.conf)
+    # ليست إعداداً حيّاً — عدّها كان يُفشل الحارس على اسمٍ لا يطلبه nginx أصلاً.
+    live = "\n".join(line.split("#", 1)[0] for line in nginx_conf.splitlines())
+    return [(host, int(port)) for host, port in UPSTREAM_RE.findall(live)]
 
 
 def main() -> int:
@@ -56,6 +62,10 @@ def main() -> int:
     names = resolvable_names(compose)
     upstreams = upstream_hosts(nginx_path.read_text(encoding="utf-8"))
     missing = [f"{host}:{port}" for host, port in upstreams if host not in names]
+    if not upstreams:
+        # جردٌ فارغ يعني أنّ النمط لم يعد يقرأ الملفّ، لا أنّ كلّ الأسماء محلولة.
+        print(f"nginx-compose-dns-gate: FAIL (0 upstreams parsed from {args.nginx})")
+        return 1
     result = {
         "gate": "nginx-compose-dns-gate",
         "compose": args.compose,

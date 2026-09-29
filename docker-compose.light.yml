@@ -41,7 +41,9 @@ x-db-env: &db-env
 
 services:
   nginx:
-    image: nginx:alpine
+    # upstream `resolve` (nginx/nginx.*.conf) يتطلّب nginx ≥ 1.27.3؛ الوسم المتحرّك nginx:alpine
+    # قد يُسحَب نسخةً أقدم مخبّأة فيفشل nginx -t — التثبيت مطابق لـdocker-compose.v9.yml.
+    image: nginx:1.27.5-alpine
     container_name: sahool-nginx-light
     restart: unless-stopped
     ports: ["80:80", "443:443"]
