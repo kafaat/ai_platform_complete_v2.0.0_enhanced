@@ -14,7 +14,7 @@
 - Multi-dimensional mappings: **49**
 - Files scanned: **5431**
 - Ambiguous artifacts queued: **423**
-- Unmapped artifacts queued: **2201**
+- Unmapped artifacts queued: **2200**
 
 ## Capability coverage
 
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 28 | 100 | 10 | 51 | 12 | 0 | 38 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 74 | 0 | 0 | 13 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 76 | 0 | 0 | 14 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |

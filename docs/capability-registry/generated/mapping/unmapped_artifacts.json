@@ -7992,10 +7992,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_outbox_claim_lease.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_outcome_measurement.py",
     "kind": "tests"
   },

@@ -25,7 +25,7 @@
       "tests": 1842,
       "web": 458
     },
-    "unmapped_artifacts": 2201,
+    "unmapped_artifacts": 2200,
     "ambiguous_artifacts": 423
   },
   "capabilities": [
@@ -11756,7 +11756,15 @@
           "score": 11
         },
         {
+          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:211",
+          "score": 10
+        },
+        {
           "value": "field.created @ tests_v9/test_outbox_delivery_attempts_v19_5.py:107",
+          "score": 10
+        },
+        {
+          "value": "sahool.events.test @ tests_v9/test_outbox_claim_lease.py:209",
           "score": 10
         },
         {
@@ -11854,6 +11862,14 @@
         {
           "path": "tests_v9/test_runtime_behavioral_guards_v66.py",
           "score": 12,
+          "signals": [
+            "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_outbox_claim_lease.py",
+          "score": 10,
           "signals": [
             "content:event bus",
             "content:nats"
@@ -12137,10 +12153,10 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 74,
+        "events": 76,
         "web": 0,
         "mobile": 0,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 27
       },
@@ -43976,10 +43992,6 @@
     },
     {
       "path": "tests_v9/test_otp.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_outbox_claim_lease.py",
       "kind": "tests"
     },
     {
