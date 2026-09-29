@@ -8,6 +8,7 @@ Qdrant/Ollama ثوانيَ عند الإقلاع يترك الخدمة 503 إل�
 
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import sys
 from pathlib import Path
@@ -219,3 +220,257 @@ def test_readyz_reports_the_clamped_attempt_budget_not_the_raw_env():
     readyz = src[src.index('@app.get("/readyz")') :]
     assert '"init_max_attempts": INIT_MAX_ATTEMPTS' in readyz
     assert "_INIT_MAX_ATTEMPTS_RAW" not in readyz
+
+
+# ── تدقيقُ التشغيل الحيّ 2026-09-29: الاستسلامُ النهائيّ وسببُه المجهول ─────────────────
+#
+# على آلةٍ نظيفة استُنفِدت المحاولاتُ الستّ والنماذجُ لم تُسحَب بعد، فصارت الحالةُ `failed`
+# **إلى الأبد** (لا إعادةَ حتّى إعادةِ تشغيل الحاوية)، وآخرُ خطأٍ عامٌّ لا يقول أيُّ تبعيّةٍ غابت.
+# مقيسٌ بالشيفرة الأصليّة أمام Ollama بلا نماذج: `attempts=6 status=failed reason=None` ثمّ
+# تعود الدالّة، و`last_error='RuntimeError: Ollama not available — …'`.
+
+
+@pytest.mark.asyncio
+async def test_keep_retrying_outlives_the_budget_and_recovers_when_the_dependency_appears(retry):
+    """بعد الميزانية: `failed` صادقة **والإعادةُ مستمرّة** بفاصلٍ مسقوف، والتعافي بلا إعادة تشغيل."""
+    calls = {"n": 0}
+    seen: list[tuple[str, str | None, float | None]] = []
+    state = retry.new_state()
+
+    def dependency_appears_on_attempt_nine():
+        calls["n"] += 1
+        if calls["n"] < 9:
+            raise retry.InitNotReady("collection_missing", "sahool_agri_kb does not exist")
+
+    async def observe(delay):
+        seen.append((state["status"], state["reason"], state["next_retry_s"]))
+        assert delay == state["next_retry_s"]
+
+    out = await retry.run_init_with_retry(
+        dependency_appears_on_attempt_nine,
+        state,
+        max_attempts=6,
+        base=5,
+        cap=60,
+        sleep=observe,
+        keep_retrying=True,
+    )
+    assert out["status"] == "ready" and out["attempts"] == 9
+    assert out["reason"] is None and out["next_retry_s"] is None and out["last_error"] is None
+    assert [s for s, _, _ in seen] == ["retrying"] * 5 + ["failed"] * 3
+    assert {r for _, r, _ in seen} == {"collection_missing"}
+    assert [d for _, _, d in seen] == [5, 10, 20, 40, 60, 60, 60, 60], "الفاصلُ غيرُ مسقوف"
+
+
+@pytest.mark.asyncio
+async def test_keep_retrying_never_becomes_a_hot_loop(retry):
+    """تراجعٌ صفريّ مسموحٌ داخل الميزانية؛ بلا نهايةٍ للمحاولات يصير حلقةً ساخنة — فالأرضيّة."""
+    delays: list[float] = []
+
+    async def record(delay):
+        delays.append(delay)
+        if len(delays) >= 4:
+            raise asyncio.CancelledError
+
+    def always_down():
+        raise ConnectionError("qdrant down")
+
+    state = retry.new_state()
+    with pytest.raises(asyncio.CancelledError):
+        await retry.run_init_with_retry(
+            always_down, state, max_attempts=2, base=0, cap=0, sleep=record, keep_retrying=True
+        )
+    assert delays[0] == 0.0
+    assert all(d >= retry.PERSISTENT_RETRY_FLOOR_S for d in delays[1:])
+    assert state["status"] == "failed" and state["reason"] == "unclassified"
+
+
+@pytest.mark.asyncio
+async def test_the_default_still_ends_at_the_budget(retry):
+    """السلوكُ الافتراضيّ للوحدة لم يتبدّل: من لا يطلب الاستمرار يحصل على نهايةٍ مُعلَنة."""
+
+    async def no_sleep(_s):
+        return None
+
+    def down():
+        raise retry.InitNotReady("model_missing", "nomic-embed-text:latest")
+
+    state = retry.new_state()
+    out = await retry.run_init_with_retry(
+        down, state, max_attempts=2, base=1, cap=1, sleep=no_sleep
+    )
+    assert out["status"] == "failed" and out["attempts"] == 2
+    assert out["reason"] == "model_missing" and out["next_retry_s"] is None
+
+
+def test_only_init_not_ready_names_a_reason(retry):
+    """``URLError.reason`` نصٌّ حرّ — لا يُقرأ رمزاً؛ الرمزُ من ``InitNotReady`` وحدَه."""
+    import urllib.error
+
+    assert retry.reason_of(retry.InitNotReady("qdrant_unavailable", "x")) == "qdrant_unavailable"
+    assert retry.reason_of(urllib.error.URLError("timed out")) == "unclassified"
+    assert retry.reason_of(RuntimeError("boom")) == "unclassified"
+
+
+def test_main_keeps_retrying_and_readyz_names_the_reason():
+    """يُقرأ **النداءُ المُنفَّذ** بـast لا نصُّ الدالّة: docstring الدالّة نفسُه يذكر
+    ``keep_retrying=True``، فالفحصُ النصّيّ كان يمرّ على حذف الوسيط (كُذِّب فعلاً)."""
+    import ast
+
+    src = MAIN.read_text(encoding="utf-8")
+    tree = ast.parse(src)
+    background = next(
+        n
+        for n in tree.body
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_init_models_background"
+    )
+    calls = [
+        node
+        for node in ast.walk(background)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "run_init_with_retry"
+    ]
+    assert len(calls) == 1
+    keep = {k.arg: k.value for k in calls[0].keywords}.get("keep_retrying")
+    assert isinstance(keep, ast.Constant) and keep.value is True, (
+        "الخدمةُ تستسلم نهائيّاً بعد الميزانية"
+    )
+    readyz = src[src.index('@app.get("/readyz")') :]
+    assert '"reason": _init_state.get("reason")' in readyz
+    assert '"next_retry_s": _init_state.get("next_retry_s")' in readyz
+
+
+def _exec_main_functions(names: set[str], namespace: dict) -> dict:
+    """الدوالُّ الحقيقيّة من main.py بلا LangChain (نمطُ test_readiness_software_repairs)."""
+    import ast
+
+    tree = ast.parse(MAIN.read_text(encoding="utf-8"))
+    nodes = [
+        n
+        for n in tree.body
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name in names
+    ]
+    assert {n.name for n in nodes} == names
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), str(MAIN), "exec"), namespace)
+    return namespace
+
+
+class _Resp:
+    def __init__(self, status: int, payload: dict):
+        self.status_code = status
+        self._payload = payload
+        self.text = str(payload)
+
+    def json(self):
+        return self._payload
+
+
+class _Client:
+    def __init__(self, *, tags=None, tags_error=None, pull=None):
+        self._tags, self._tags_error, self._pull = tags, tags_error, pull
+        self.posts: list[str] = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_exc):
+        return None
+
+    async def get(self, url, **_kw):
+        if self._tags_error:
+            raise self._tags_error
+        return _Resp(200, {"models": [{"name": m} for m in self._tags]})
+
+    async def post(self, url, json=None, **_kw):  # noqa: A002 - شكلُ httpx
+        self.posts.append(json["name"])
+        return self._pull
+
+
+def _wait_for_ollama(retry, client):
+    import logging
+    import types
+
+    async def no_sleep(_s):
+        return None
+
+    loop_shim = types.SimpleNamespace(sleep=no_sleep, get_event_loop=asyncio.get_event_loop)
+    namespace = {
+        "asyncio": loop_shim,
+        "httpx": types.SimpleNamespace(AsyncClient=lambda **_kw: client),
+        "logger": logging.getLogger("test-local-ai-rag"),
+        "OLLAMA_BASE_URL": "http://sahool-ollama:11434",
+        "LLM_MODEL": "llama3.2:3b",
+        "EMBED_MODEL": "nomic-embed-text",
+        "init_retry": retry,
+    }
+    return _exec_main_functions({"_model_name", "wait_for_ollama"}, namespace)["wait_for_ollama"]
+
+
+@pytest.mark.asyncio
+async def test_wait_for_ollama_names_the_failed_pull_and_its_cause(retry):
+    client = _Client(
+        tags=[],
+        pull=_Resp(500, {"error": "pull model manifest: lookup registry.ollama.ai: no such host"}),
+    )
+    with pytest.raises(retry.InitNotReady) as info:
+        await _wait_for_ollama(retry, client)(timeout=0.05)
+    assert info.value.reason == "model_pull_failed"
+    assert "llama3.2:3b" in info.value.detail and "no such host" in info.value.detail
+
+
+@pytest.mark.asyncio
+async def test_wait_for_ollama_names_missing_models_while_a_pull_is_in_progress(retry):
+    client = _Client(tags=["llama3.2:3b"], pull=_Resp(200, {"status": "success"}))
+    with pytest.raises(retry.InitNotReady) as info:
+        await _wait_for_ollama(retry, client)(timeout=0.05)
+    assert info.value.reason == "model_missing"
+    assert "nomic-embed-text:latest" in info.value.detail
+    assert "llama3.2:3b" not in info.value.detail, "يُسمّي حاضراً غائباً"
+
+
+@pytest.mark.asyncio
+async def test_wait_for_ollama_names_an_unreachable_api(retry):
+    client = _Client(tags_error=ConnectionError("[Errno 111] Connection refused"))
+    with pytest.raises(retry.InitNotReady) as info:
+        await _wait_for_ollama(retry, client)(timeout=0.05)
+    assert info.value.reason == "ollama_unreachable"
+    assert "Connection refused" in info.value.detail
+    assert client.posts == []
+
+
+@pytest.mark.parametrize(
+    "exists, reason",
+    [(False, "collection_missing"), (ConnectionError("qdrant: refused"), "qdrant_unavailable")],
+)
+def test_init_vectorstore_names_a_missing_or_unreachable_collection(
+    retry, monkeypatch, exists, reason
+):
+    import types
+
+    class _Qdrant:
+        def __init__(self, **_kw):
+            return None
+
+        def collection_exists(self, _name):
+            if isinstance(exists, Exception):
+                raise exists
+            return exists
+
+    monkeypatch.setitem(sys.modules, "qdrant_client", types.SimpleNamespace(QdrantClient=_Qdrant))
+    namespace = {
+        "_vectorstore": None,
+        "OllamaEmbeddings": lambda **_kw: object(),
+        "QdrantVectorStore": None,
+        "EMBED_MODEL": "nomic-embed-text",
+        "OLLAMA_BASE_URL": "http://sahool-ollama:11434",
+        "QDRANT_URL": "http://sahool-qdrant:6333",
+        "QDRANT_API_KEY": None,
+        "COLLECTION_NAME": "sahool_agri_kb",
+        "init_retry": retry,
+        "logger": None,
+    }
+    init_vectorstore = _exec_main_functions({"init_vectorstore"}, namespace)["init_vectorstore"]
+    with pytest.raises(retry.InitNotReady) as info:
+        init_vectorstore()
+    assert info.value.reason == reason

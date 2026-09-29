@@ -122,12 +122,23 @@ def _model_name(name: str) -> str:
 
 
 async def wait_for_ollama(timeout: float = 120.0):
+    """ينتظر النموذجين في Ollama — ويرفع ``InitNotReady`` بسببٍ **مُسمّى** عند المهلة.
+
+    تدقيقُ التشغيل الحيّ 2026-09-29: كانت المهلةُ ترفع «Ollama not available» عامّةً، وفشلُ السحب
+    يُسجَّل باسم نوع الاستثناء وحدَه — فلا يُعرَف أغاب Ollama أم نموذجٌ بعينه أم فشل سحبُه ولماذا.
+    في v9 مالكُ السحب ``sahool-ollama-models`` (يسبق هذه الخدمة)، فالنموذجان حاضران عند الإقلاع؛
+    والسحبُ هنا احتياطٌ لمكدّساتٍ بلا تلك المهمّة (fixed/unified)، وتقدّمُه يُستأنَف عبر الإعادات.
+    """
     start = asyncio.get_event_loop().time()
+    problem = ("ollama_unreachable", f"no answer from {OLLAMA_BASE_URL}/api/tags yet")
     async with httpx.AsyncClient(timeout=60.0) as client:
         while asyncio.get_event_loop().time() - start < timeout:
+            stage = "tags"
             try:
                 r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5.0)
-                if r.status_code == 200:
+                if r.status_code != 200:
+                    problem = ("ollama_unreachable", f"/api/tags answered HTTP {r.status_code}")
+                else:
                     models = r.json().get("models", [])
                     model_names = {_model_name(m.get("name", "")) for m in models}
                     missing = [
@@ -136,21 +147,40 @@ async def wait_for_ollama(timeout: float = 120.0):
                     if not missing:
                         logger.info(f"Ollama ready. Models: {model_names}")
                         return True
+                    absent = ", ".join(dict.fromkeys(_model_name(m) for m in missing))
+                    problem = (
+                        "model_missing",
+                        f"{absent} not present in Ollama at {OLLAMA_BASE_URL}",
+                    )
                     # النماذج غير حاضرة بعد: نطلب السحب ثمّ **نعيد الفحص** في الدورة
                     # التالية. لا نُرجِع True هنا (كان يُعلِن الجاهزيّة زوراً قبل اكتمال
                     # السحب، فيفشل أوّل /query بـ500 بدل انتظار صادق).
                     logger.info(f"Ollama up. Pulling {LLM_MODEL} + {EMBED_MODEL}...")
                     for model in dict.fromkeys(missing):
+                        stage = f"pull {_model_name(model)}"
                         response = await client.post(
                             f"{OLLAMA_BASE_URL}/api/pull",
                             json={"name": model, "stream": False},
                             timeout=300.0,
                         )
-                        response.raise_for_status()
+                        if response.status_code != 200:
+                            try:
+                                detail = str(response.json().get("error") or "")
+                            except Exception:  # noqa: BLE001 — جسمٌ غير JSON لا يُخفي الرمز
+                                detail = response.text
+                            problem = (
+                                "model_pull_failed",
+                                f"{_model_name(model)}: HTTP {response.status_code} {detail[:200]}",
+                            )
+                            break
             except Exception as e:  # noqa: BLE001
-                logger.warning("تعذّر سحب نماذج Ollama (محاولة): %s", type(e).__name__)
+                if stage == "tags":
+                    problem = ("ollama_unreachable", f"{type(e).__name__}: {e}")
+                else:
+                    problem = ("model_pull_failed", f"{stage}: {type(e).__name__}: {e}")
+            logger.warning("Ollama غير جاهز [%s] %s", problem[0], problem[1])
             await asyncio.sleep(5)
-    raise RuntimeError("Ollama not available — النماذج لم تجهز ضمن المهلة")
+    raise init_retry.InitNotReady(problem[0], f"{problem[1]} (after {timeout:.0f}s)")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -168,11 +198,20 @@ def init_vectorstore() -> QdrantVectorStore:
     from qdrant_client import QdrantClient
 
     qclient = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, prefer_grpc=False)
-    if not qclient.collection_exists(COLLECTION_NAME):
+    try:
+        exists = qclient.collection_exists(COLLECTION_NAME)
+    except Exception as exc:  # noqa: BLE001 — يُسمّى ولا يُحوَّل إلى «إنشاء»؛ الأصلُ في __cause__
+        raise init_retry.InitNotReady(
+            "qdrant_unavailable", f"{QDRANT_URL}: {type(exc).__name__}: {exc}"
+        ) from exc
+    if not exists:
         # ARCH-S3 writer convergence: this runtime is now read-only against Qdrant.
         # Collection creation/initialization belongs to qdrant-seed or the canonical
         # rag-retrieval ingest authority; a query must never create storage as a side effect.
-        raise RuntimeError(f"Qdrant collection {COLLECTION_NAME!r} does not exist")
+        raise init_retry.InitNotReady(
+            "collection_missing",
+            f"Qdrant collection {COLLECTION_NAME!r} does not exist (created by sahool-qdrant-seed)",
+        )
     _vectorstore = QdrantVectorStore.from_existing_collection(
         embedding=embeddings,
         url=QDRANT_URL,
@@ -477,7 +516,11 @@ async def _init_models_once() -> None:
 async def _init_models_background() -> None:
     """يسحب النماذج ويهيّئ LLM + المتجهات دون حجب الإقلاع — كي تكون الحاوية
     حيّة فوراً للـhealthcheck. _llm/_vectorstore يصبحان غير None بعد الجاهزيّة.
-    المحاولات محدودة بتراجع (لا محاولة واحدة تترك الخدمة عالقة إن تأخّر Qdrant/Ollama)."""
+    المحاولات محدودة بتراجع (لا محاولة واحدة تترك الخدمة عالقة إن تأخّر Qdrant/Ollama).
+
+    ``keep_retrying=True`` (تدقيق 2026-09-29): استنفادُ الميزانية يُعلَن ``init_failed`` بسببه
+    المُسمّى، والإعادةُ تستمرّ بفاصلٍ مسقوف — بذرٌ يُعاد أو نموذجٌ يُسحَب لاحقاً تتعافى منه
+    الخدمةُ بلا إعادة تشغيل، بدل ``failed`` نهائيّةٍ فوق /healthz أخضر."""
     await init_retry.run_init_with_retry(
         _init_models_once,
         _init_state,
@@ -485,6 +528,7 @@ async def _init_models_background() -> None:
         base=INIT_BACKOFF_BASE_S,
         cap=INIT_BACKOFF_CAP_S,
         log=logger,
+        keep_retrying=True,
     )
 
 
@@ -680,8 +724,12 @@ async def legacy_health():
 
 @app.get("/readyz")
 async def readyz():
-    """يردّ 200 فقط بعد تحميل النماذج؛ 503 أثناء التهيئة الخلفيّة أو بعد فشلها النهائيّ
-    (مع تمييز الحالتين وذكر آخر خطأ وعدد المحاولات — لا «قيد التحميل» أبديّة)."""
+    """يردّ 200 فقط بعد تحميل النماذج؛ 503 أثناء التهيئة الخلفيّة أو بعد استنفاد ميزانيتها
+    (مع تمييز الحالتين وذكر آخر خطأ وعدد المحاولات — لا «قيد التحميل» أبديّة).
+
+    ``reason`` رمزُ التبعيّة الغائبة (``model_missing`` · ``collection_missing`` ·
+    ``ollama_unreachable`` · ``qdrant_unavailable`` · ``model_pull_failed`` · ``unclassified``)
+    و``next_retry_s`` موعدُ المحاولة التالية: بعد الاستنفاد لا تتوقّف الإعادة (تدقيق 2026-09-29)."""
     if _llm is None or _vectorstore is None:
         failed = _init_state.get("status") == "failed"
         raise HTTPException(
@@ -689,9 +737,13 @@ async def readyz():
             detail={
                 "status": "init_failed" if failed else "initialising",
                 "service": "local-ai-rag",
-                "message": "فشلت تهيئة النماذج نهائيّاً" if failed else "النماذج قيد التحميل",
+                "message": "استُنفِدت ميزانيةُ الإقلاع — الإعادةُ مستمرّة بتراجعٍ مسقوف"
+                if failed
+                else "النماذج قيد التحميل",
+                "reason": _init_state.get("reason"),
                 "init_attempts": _init_state.get("attempts", 0),
                 "init_max_attempts": INIT_MAX_ATTEMPTS,
+                "next_retry_s": _init_state.get("next_retry_s"),
                 "last_error": _init_state.get("last_error"),
             },
         )
