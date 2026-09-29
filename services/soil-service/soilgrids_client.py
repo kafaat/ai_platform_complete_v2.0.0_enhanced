@@ -22,13 +22,23 @@ SOILGRIDS_URL = os.getenv(
 ).rstrip("/")
 # **العطلُ الذي وُجِد هذا لأجله** (تدقيق v25، 2026-09-24): كان الافتراضُ `12` ثانيةً،
 # وزمنُ استجابة ISRIC الحقيقيُّ المقيس ~`41` ثانية. فكلُّ جلبٍ حيٍّ ينتهي بمهلةٍ ويُقرَأ
-# «لا بيانات تربة» بينما المزوّدُ يعمل — والمُدقِّق أعاد النداءَ بمهلة `40` فعادت
-# بياناتٌ حقيقيّة. فالافتراضُ كان يُحوِّل بطءَ مزوّدٍ إلى غيابِ بيانات.
+# «لا بيانات تربة» بينما المزوّدُ يعمل.
 #
-# رُفِع إلى `60` — أوسعَ من المقيس بهامشٍ معقول، ويبقى قابلاً للضبط بالبيئة.
-# **حدُّ صدقٍ مُعلَن:** هذا يرفع سقفَ الانتظار ولا يُخفي البطء. والعلاجُ الأتمّ نقلُ
-# الجلب إلى مهمّةٍ خلفيّةٍ بتخزينٍ مؤقّت — **لم تُنفّذه هذه الشريحة**.
-SOILGRIDS_TIMEOUT = float(os.getenv("SOILGRIDS_TIMEOUT", "60").strip() or "60")
+# **وقياسُ Railway staging (2026-09-29) أبطل `60` أيضاً:** نقطةٌ زراعيّة (وادي زبيد
+# 43.33,14.2) لم تُجِب ISRIC عنها في `90` ثانيةً مباشرةً، والخدمةُ أعادت 503 عند
+# `60.6`ث. فالزمنُ متغيّرٌ بعُرض (5ث–32ث لنقطةٍ مُقنَّعة، >90ث لنقطةٍ حقيقيّة).
+#
+# لذلك صار الجلبُ **خلفيّاً** (``soilgrids_cache``) لا يحجز طلباً، وصارت المهلةُ حدَّ
+# خيطٍ خلفيٍّ لا حدَّ انتظارِ مستدعٍ. `120` **حدٌّ لا قياس**: المقيسُ أنّ 90 لم تكفِ،
+# ولا يُعرَف أنّ 120 تكفي.
+SOILGRIDS_TIMEOUT = float(os.getenv("SOILGRIDS_TIMEOUT", "120").strip() or "120")
+
+# نتائجُ الاستعلام. «لا تغطية» ليست «تعذّراً»: ISRIC يُجيب 200 وكلُّ القيم ``null``
+# لأرضٍ مُقنَّعة (حضريّة/صخريّة/مائيّة) — قِيس حيّاً على صنعاء (44.2,15.35). وكانت
+# الخدمةُ تُبلِّغ عنها «تعذّر الوصول»، فيُقرَأ غيابُ تغطيةٍ دائمٌ عطلاً عابراً يُعاد.
+OK = "ok"
+NO_COVERAGE = "no_coverage"
+UNAVAILABLE = "unavailable"
 
 # خصائص SoilGrids المطلوبة ومعامل التحويل لوحدة مألوفة (القسمة).
 _PROPS = {
@@ -65,35 +75,74 @@ def _extract(payload: dict) -> dict | None:
     return out or None
 
 
-def fetch_soil_properties(lon: float, lat: float, *, client=None) -> dict | None:
-    """يجلب خصائص تربة الطبقة العلويّة عند (lon, lat). None عند أيّ فشل (صدق).
+def _is_masked(payload: dict) -> bool:
+    """ردٌّ سليمُ البنية يحمل طبقاتنا المطلوبة وكلُّ قِيَم الطبقة العلويّة فيه ``null``.
+
+    هذا شكلُ «لا تغطية» كما عاد حيّاً من ISRIC — لا ردٌّ شاذّ. طبقاتٌ غائبة أو بلا
+    عمقٍ علويّ ليست «لا تغطية» بل بنيةٌ لا نفهمها (``malformed``).
+    """
+    layers = (((payload or {}).get("properties") or {}).get("layers")) or []
+    seen = False
+    for layer in layers:
+        if layer.get("name") not in _PROPS:
+            continue
+        for depth in layer.get("depths") or []:
+            if depth.get("label") != _TOP_DEPTH:
+                continue
+            seen = True
+            if (depth.get("values") or {}).get("mean") is not None:
+                return False
+    return seen
+
+
+def query_soil_properties(lon: float, lat: float, *, client=None) -> dict:
+    """يستعلم SoilGrids ويُصنِّف النتيجة — لا يرمي، ولا يخلط بين الأصناف.
+
+    يُرجِع أحدَ ثلاثة:
+      • ``{"outcome": "ok", "data": {...}}``
+      • ``{"outcome": "no_coverage"}`` — ISRIC أجاب وليس لديه قيمٌ هنا (دائم).
+      • ``{"outcome": "unavailable", "reason": ...}`` — ``timeout`` · ``unreachable`` ·
+        ``http_<code>`` · ``malformed`` (عابرٌ غالباً). لا يُسرِّب العنوانَ ولا نصَّ الخطأ.
 
     ``client``: عميل httpx اختياريّ للحقن (اختبار). حين None نُنشئ عميلاً مؤقّتاً.
     """
     try:
         import httpx
     except ImportError:  # pragma: no cover — httpx تبعيّة الخدمة
-        return None
+        return {"outcome": UNAVAILABLE, "reason": "unreachable"}
 
     params = [("lon", lon), ("lat", lat), ("depth", _TOP_DEPTH), ("value", "mean")]
     params += [("property", p) for p in _PROPS]
 
-    def _do(cli) -> dict | None:
+    def _do(cli) -> dict:
         try:
             resp = cli.get(SOILGRIDS_URL, params=params)
-        except Exception:  # noqa: BLE001 — تعذّر وصول/مهلة ⇒ فشل ناعم
-            return None
+        except httpx.TimeoutException:
+            return {"outcome": UNAVAILABLE, "reason": "timeout"}
+        except Exception:  # noqa: BLE001 — تعذّر وصول ⇒ فشل ناعم مُصنَّف
+            return {"outcome": UNAVAILABLE, "reason": "unreachable"}
         if resp.status_code < 200 or resp.status_code >= 300:
-            return None
+            return {"outcome": UNAVAILABLE, "reason": f"http_{resp.status_code}"}
         try:
-            props = _extract(resp.json())
-        except Exception:  # noqa: BLE001 — JSON شاذّ ⇒ فشل ناعم
-            return None
-        if not props:
-            return None
-        return {"source": "soilgrids", "lon": lon, "lat": lat, "properties": props}
+            payload = resp.json()
+            props = _extract(payload)
+        except Exception:  # noqa: BLE001 — JSON شاذّ ⇒ فشل ناعم مُصنَّف
+            return {"outcome": UNAVAILABLE, "reason": "malformed"}
+        if props:
+            data = {"source": "soilgrids", "lon": lon, "lat": lat, "properties": props}
+            return {"outcome": OK, "data": data}
+        if _is_masked(payload):
+            return {"outcome": NO_COVERAGE}
+        return {"outcome": UNAVAILABLE, "reason": "malformed"}
 
     if client is not None:
         return _do(client)
     with httpx.Client(timeout=SOILGRIDS_TIMEOUT) as cli:
         return _do(cli)
+
+
+def fetch_soil_properties(lon: float, lat: float, *, client=None) -> dict | None:
+    """توافقٌ لمن يريد البيانات أو ``None`` فقط (صدق: لا اختراع). يُسقِط التصنيف —
+    فمن يحتاج التمييزَ بين «لا تغطية» و«متعذّر» يستعمل ``query_soil_properties``."""
+    result = query_soil_properties(lon, lat, client=client)
+    return result["data"] if result["outcome"] == OK else None

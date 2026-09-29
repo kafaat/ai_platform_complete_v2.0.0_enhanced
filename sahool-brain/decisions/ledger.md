@@ -3315,3 +3315,28 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 
 **وما لم يُمَسّ بقرارٍ قائم:** `FEATURE_NATS_PUBLISHERS` تبقى مُطفأة (قرارُ المالك،
 مربوطٌ بـ`JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`).
+
+## 2026-09-29 — Railway staging: خدمتا `ai-agronomist` و`soil-service` أُنشئتا، ثمّ جلبُ SoilGrids صار خلفيّاً (بتفويض المالك)
+
+**القرار (Railway، بكلمة المالك «نعم قوم بعمل ما يلزم»):** إنشاءُ `sahool-soil-service`
+(`b92d960f`) و`sahool-ai-agronomist` (`671188de`) في بيئة `staging` من `main` — لأنّ إصلاحَي
+#1093 لم يكونا منشورَين في أيّ بيئة (الخدمتان غائبتان، ونشرُ `94dc75c` عاد `SKIPPED` في
+الإحدى عشرة القائمة لأنّ أنماطَ مراقبتها لا تمسّ ما تغيّر). كلُّ سرٍّ **مرجعٌ** (`${{shared.*}}`
+أو `${{sahool-postgres.*}}`/`${{sahool-redis.*}}`) لا قيمةٌ ملصوقة، ولا `SAHOOL_GIT_SHA` مُثبَّت
+(صنفُ D0c). فحصُ صحّة الزراعيّ `/healthz` لأنّ `/readyz` يشترط RAG وknowledge-graph الغائبتين.
+
+**وفحصٌ سلوكيّ مؤقّت** (preDeploy على الزراعيّ، staging-only، على نمط فحص guardrails القائم)
+قاس داخل الشبكة الخاصّة ثمّ أُزيل. فكشف ما لم يكشفه أيُّ اختبار:
+
+- صنعاء (44.2,15.35): ISRIC **200** وكلُّ القيم `null` ⇒ الخدمةُ «متعذّر» ⇒
+  `SOILGRIDS-NO-COVERAGE-REPORTED-AS-UNAVAILABLE-01`.
+- زبيد (43.33,14.2): ISRIC >90ث، والخدمةُ 503 عند 60.6ث — والمنصّةُ تنتظر 20ث فقط.
+
+**فالقرارُ في الشيفرة:** تصنيفُ النتيجة (`ok`/`no_coverage`/`unavailable`+سبب) وجلبٌ خلفيّ
+بذاكرةٍ مؤقّتة (`soilgrids_cache`) بدل رفعٍ ثالثٍ للمهلة. **السبب:** كلُّ رفعٍ للمهلة يبقى خلف
+مهلة المستهلك (20ث)، فلا يصل إليه. الذاكرةُ وحدها تجعل النداءَ الثاني فوريّاً.
+
+**حدودٌ مُعلَنة:** الذاكرةُ داخل العمليّة (عاملان ⇒ قد يجلب كلٌّ منهما) · إصلاحُ إعادة
+محاولة التوليد **لم يُتحقَّق حيّاً** — `AI_GENERATION_ENABLED` على staging يُحَلّ `false`
+(مقيس من `/healthz/ai-provider`)، ولا Ollama على Railway. متغيّرُ `SAHOOL_V25_PROBE_RUN`
+باقٍ على الزراعيّ (لا أداةَ حذفٍ متاحة) — أثرٌ بلا أثر.

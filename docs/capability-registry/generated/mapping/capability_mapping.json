@@ -15,9 +15,9 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5430,
+    "files_scanned": 5431,
     "files_by_kind": {
-      "backend": 1211,
+      "backend": 1212,
       "database": 281,
       "governance": 64,
       "mobile": 55,
@@ -28018,11 +28018,11 @@
       ],
       "routes": [
         {
-          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:59",
+          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:75",
           "score": 22
         },
         {
-          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:48",
+          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:64",
           "score": 22
         },
         {
@@ -28606,6 +28606,10 @@
           "score": 8
         },
         {
+          "value": "routers.soil_profile @ tests_v9/test_soil_science_20260703.py:208",
+          "score": 8
+        },
+        {
           "value": "sahool.live_pg_schema_contract @ docs/architecture/live_pg_schema_contract.json:2",
           "score": 8
         },
@@ -28619,6 +28623,14 @@
         },
         {
           "value": "soil-service.projection-jobs @ services/soil-service/projection_jobs.py:18",
+          "score": 8
+        },
+        {
+          "value": "soil_science.py @ tests_v9/test_soil_science_20260703.py:34",
+          "score": 8
+        },
+        {
+          "value": "soilgrids_client.py @ tests_v9/test_soil_science_20260703.py:35",
           "score": 8
         },
         {
@@ -28782,6 +28794,14 @@
             "content:Soil profile",
             "content:soil profile"
           ]
+        },
+        {
+          "path": "tests_v9/test_soil_science_20260703.py",
+          "score": 8,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
         }
       ],
       "governance": [
@@ -28931,10 +28951,10 @@
         "backend": 13,
         "routes": 95,
         "database": 14,
-        "events": 40,
+        "events": 43,
         "web": 1,
         "mobile": 0,
-        "tests": 18,
+        "tests": 19,
         "governance": 1,
         "other_evidence": 15
       },
@@ -42155,6 +42175,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/soil-service/soilgrids_cache.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/soil-service/soilgrids_client.py",
       "kind": "backend"
     },
@@ -44500,10 +44524,6 @@
     },
     {
       "path": "tests_v9/test_soil_p4_multisource_e2e.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_soil_science_20260703.py",
       "kind": "tests"
     },
     {

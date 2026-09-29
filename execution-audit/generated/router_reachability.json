@@ -2206,7 +2206,7 @@
     },
     {
       "kind": "router",
-      "line": 24,
+      "line": 25,
       "module": "services.soil-service.routers.soil_profile",
       "node_id": "services.soil-service.routers.soil_profile:router",
       "route_count": 2,
@@ -2631,7 +2631,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f996f4fe04666152dfb5e90759f2f226b79ce346094692d6e0fe81d55e94fcae",
+  "inventory_sha256": "e05625943a50a83f89e4b7c588e7a8cffcb5f7019ea7981bb4b703f8a9588846",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4777,7 +4777,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 24,
+      "line": 25,
       "module": "services.soil-service.routers.soil_profile",
       "node_id": "services.soil-service.routers.soil_profile:router",
       "route_count": 2,

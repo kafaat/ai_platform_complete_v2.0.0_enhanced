@@ -33,9 +33,10 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 
-#: زمنُ استجابة ISRIC الذي قاسه التدقيقُ حيّاً (ثوانٍ). المهلةُ الافتراضيّة يجب أن
-#: تتجاوزه، وإلّا كان الفشلُ مضموناً على المسار الحيّ.
-_MEASURED_ISRIC_LATENCY_SECONDS = 41.0
+#: أطولُ زمنٍ مقيسٍ لـISRIC (ثوانٍ). كان ~41 في التدقيق؛ وقياسُ Railway staging
+#: (2026-09-29) على نقطةٍ زراعيّة (وادي زبيد) انقطع عند 90.57 **بلا جواب** — فهو حدٌّ
+#: أدنى لا زمنٌ مكتمل. المهلةُ الافتراضيّة (حدُّ الخيط الخلفيّ) يجب أن تتجاوزه.
+_MEASURED_ISRIC_LATENCY_SECONDS = 90.57
 
 
 def _soilgrids_default_timeout(monkeypatch: pytest.MonkeyPatch) -> float:
@@ -198,7 +199,9 @@ def test_the_retry_schedule_parser_rejects_what_would_recreate_the_fault(raw, ex
 # لم يَعُد.
 
 _SOIL_ROUTER = ROOT / "services/soil-service/routers/soil_profile.py"
-_BLOCKING_FETCH = "fetch_soil_properties"
+#: كلا المُجلِبَين متزامن. بعد نقل الجلب إلى الذاكرة المؤقّتة صار الموجِّه يُسمّي
+#: ``query_soil_properties`` — والفحصُ على ``fetch_soil_properties`` وحده كان سيمرّ فارغاً.
+_BLOCKING_FETCHES = frozenset({"fetch_soil_properties", "query_soil_properties"})
 
 
 def _direct_blocking_calls_inside_async_defs(source: str) -> list[str]:
@@ -212,7 +215,7 @@ def _direct_blocking_calls_inside_async_defs(source: str) -> list[str]:
                 continue
             func = inner.func
             name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
-            if name == _BLOCKING_FETCH:
+            if name in _BLOCKING_FETCHES:
                 found.append(f"{node.name}:{inner.lineno}")
     return found
 
@@ -232,3 +235,214 @@ def test_the_detector_flags_a_direct_call_and_accepts_the_thread_offload() -> No
     )
     assert _direct_blocking_calls_inside_async_defs(direct) == ["r:2"]
     assert _direct_blocking_calls_inside_async_defs(offloaded) == []
+
+
+# ── ٤) «لا تغطية» ليست «متعذّراً» — مقيسٌ حيّاً على Railway staging ─────────────────
+#
+# **العطلُ الذي وُجِد هذا لأجله** (2026-09-29): ISRIC أجاب صنعاء (44.2,15.35) بـ**200**
+# وكلُّ ``mean`` فيه ``null`` — أرضٌ حضريّةٌ مُقنَّعة. والخدمةُ أعادت 503
+# «تعذّر الوصول/تغطية»، فغيابُ تغطيةٍ **دائم** يُقرَأ عطلاً **عابراً** يُعاد إلى الأبد.
+# والحمولةُ أدناه بنيةُ الردّ الحيّ نفسُها (المفاتيح والطبقات كما عادت)، لا تخمين.
+
+
+def _load_soil_module(unique: str, filename: str):
+    spec = importlib.util.spec_from_file_location(unique, ROOT / "services/soil-service" / filename)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+SG = _load_soil_module("soilgrids_client_v25_live", "soilgrids_client.py")
+SC = _load_soil_module("soilgrids_cache_v25_live", "soilgrids_cache.py")
+
+
+def _live_shaped(mean_by_layer: dict[str, float | None]) -> dict:
+    """بنيةُ ردّ ISRIC كما عادت حيّاً: type/geometry/properties.layers/query_time_s."""
+    return {
+        "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [44.2, 15.35]},
+        "properties": {
+            "layers": [
+                {"name": name, "depths": [{"label": "0-5cm", "values": {"mean": mean}}]}
+                for name, mean in mean_by_layer.items()
+            ]
+        },
+        "query_time_s": 4.1,
+    }
+
+
+_ALL_NULL = dict.fromkeys(("cec", "clay", "phh2o", "sand", "silt", "soc"))
+
+
+class _Resp:
+    def __init__(self, status: int, payload=None, bad_json: bool = False) -> None:
+        self.status_code = status
+        self._payload = payload
+        self._bad = bad_json
+
+    def json(self):
+        if self._bad:
+            raise ValueError("not json")
+        return self._payload
+
+
+class _Client:
+    def __init__(self, resp=None, exc: Exception | None = None) -> None:
+        self._resp, self._exc = resp, exc
+
+    def get(self, url, params=None):
+        if self._exc:
+            raise self._exc
+        return self._resp
+
+
+def test_the_live_urban_payload_is_no_coverage_not_unavailable() -> None:
+    out = SG.query_soil_properties(44.2, 15.35, client=_Client(_Resp(200, _live_shaped(_ALL_NULL))))
+    assert out == {"outcome": "no_coverage"}, (
+        "ISRIC أجاب 200 بلا قيم (أرضٌ مُقنَّعة) — هذا غيابُ تغطيةٍ دائم، لا تعذّرٌ عابر"
+    )
+    # والتوافقُ القديم باقٍ: من يريد البيانات أو None يحصل على None.
+    assert (
+        SG.fetch_soil_properties(44.2, 15.35, client=_Client(_Resp(200, _live_shaped(_ALL_NULL))))
+        is None
+    )
+
+
+def test_a_partially_masked_point_keeps_the_values_it_has() -> None:
+    partial = dict(_ALL_NULL, clay=250, phh2o=78)
+    out = SG.query_soil_properties(43.3, 14.2, client=_Client(_Resp(200, _live_shaped(partial))))
+    assert out["outcome"] == "ok"
+    assert out["data"]["properties"] == {"clay_pct": 25.0, "ph": 7.8}
+
+
+@pytest.mark.parametrize(
+    ("client", "reason"),
+    [
+        pytest.param(_Client(exc=__import__("httpx").ReadTimeout("t")), "timeout", id="مهلة"),
+        pytest.param(_Client(exc=RuntimeError("dns")), "unreachable", id="تعذّر وصول"),
+        pytest.param(_Client(_Resp(429, {})), "http_429", id="حدّ الاستخدام"),
+        pytest.param(_Client(_Resp(200, bad_json=True)), "malformed", id="JSON شاذّ"),
+        pytest.param(
+            _Client(_Resp(200, {"properties": {}})), "malformed", id="بلا طبقات ≠ لا تغطية"
+        ),
+    ],
+)
+def test_transient_failures_are_classified_and_never_called_no_coverage(client, reason) -> None:
+    pytest.importorskip("httpx")
+    assert SG.query_soil_properties(1.0, 2.0, client=client) == {
+        "outcome": "unavailable",
+        "reason": reason,
+    }
+
+
+def test_the_cache_module_speaks_the_same_outcome_names_as_the_client() -> None:
+    assert (SC.OK, SC.NO_COVERAGE, SC.UNAVAILABLE) == (SG.OK, SG.NO_COVERAGE, SG.UNAVAILABLE)
+
+
+# ── ٥) الجلبُ خلفيّ: المستدعي لا ينتظر المزوّد ─────────────────────────────────────
+#
+# **العطلُ الذي وُجِد هذا لأجله:** نقطةٌ زراعيّةٌ لم تُجَب في 90ث، والمنصّةُ تنتظر
+# 20ث فقط (``ADAPTER_TIMEOUT``). فمهما رُفِعت مهلةُ الخدمة، كلُّ نقطةٍ حقيقيّةٍ تصل
+# البطاقةَ «مفقودة». الذاكرةُ المؤقّتة بجلبٍ خلفيّ هي ما يجعل النداءَ الثاني فوريّاً.
+
+
+class _GatedFetch:
+    """مُجلِبٌ متزامنٌ يُحبَس حتّى يُفتَح — ويُسجّل الخيطَ الذي جرى فيه."""
+
+    def __init__(self, result: dict) -> None:
+        import threading
+
+        self.result = result
+        self.gate = threading.Event()
+        self.calls = 0
+        self.threads: list[int] = []
+
+    def __call__(self, lon: float, lat: float) -> dict:
+        import threading
+
+        self.calls += 1
+        self.threads.append(threading.get_ident())
+        assert self.gate.wait(5), "لم يُفتَح المُجلِب"
+        return self.result
+
+
+_OK = {"outcome": "ok", "data": {"source": "soilgrids", "properties": {"clay_pct": 25.0}}}
+
+
+def test_a_slow_provider_answers_pending_then_the_next_call_is_served_from_cache() -> None:
+    import threading
+
+    fetch = _GatedFetch(_OK)
+    cache = SC.SoilGridsCache(fetch, ttl_s=3600)
+
+    async def scenario():
+        loop_thread = threading.get_ident()
+        first, second = await asyncio.gather(
+            cache.lookup(43.33, 14.2, wait_s=0.05), cache.lookup(43.33, 14.2, wait_s=0.05)
+        )
+        fetch.gate.set()
+        for _ in range(200):
+            if cache.cached(43.33, 14.2) is not None:
+                break
+            await asyncio.sleep(0.01)
+        third = await cache.lookup(43.33, 14.2, wait_s=0.05)
+        return loop_thread, first, second, third
+
+    loop_thread, first, second, third = asyncio.run(scenario())
+    assert first == second == {"outcome": "pending"}, "المستدعي كان سينتظر المزوّدَ كلَّه"
+    assert fetch.calls == 1, "نداءان متزامنان أطلقا جلبَين — لا single-flight"
+    assert third == _OK, "الجلبُ الخلفيّ لم يملأ الذاكرة بعد انقضاء انتظار المستدعي"
+    # الشاهدُ السلوكيّ الذي كان #1093 يُعلِن غيابَه: الجلبُ جرى في خيطٍ غيرِ خيط الحلقة.
+    assert fetch.threads and fetch.threads[0] != loop_thread
+
+
+@pytest.mark.parametrize(
+    ("result", "cached"),
+    [
+        pytest.param(_OK, True, id="ok يُخزَّن"),
+        pytest.param({"outcome": "no_coverage"}, True, id="لا تغطية دائمة ⇒ تُخزَّن"),
+        pytest.param({"outcome": "unavailable", "reason": "timeout"}, False, id="العابر لا يُخزَّن"),
+    ],
+)
+def test_only_durable_outcomes_are_cached(result, cached) -> None:
+    fetch = _GatedFetch(result)
+    fetch.gate.set()
+    cache = SC.SoilGridsCache(fetch, ttl_s=3600)
+
+    async def twice():
+        a = await cache.lookup(1.0, 2.0, wait_s=2)
+        b = await cache.lookup(1.0, 2.0, wait_s=2)
+        return a, b
+
+    a, b = asyncio.run(twice())
+    assert a == b == result
+    assert fetch.calls == (1 if cached else 2), (
+        "عطلُ دقيقةٍ خُزِّن فصار غياباً طويلاً" if not cached else "نتيجةٌ دائمةٌ لم تُخزَّن"
+    )
+
+
+def test_entries_expire_and_the_cache_is_bounded() -> None:
+    now = [0.0]
+    fetch = _GatedFetch(_OK)
+    fetch.gate.set()
+    cache = SC.SoilGridsCache(fetch, ttl_s=10, max_entries=2, clock=lambda: now[0])
+
+    async def run():
+        await cache.lookup(1.0, 1.0, wait_s=2)
+        now[0] = 11.0
+        assert cache.cached(1.0, 1.0) is None, "انقضت المدّةُ ولم تُمحَ"
+        for p in (1.0, 2.0, 3.0):
+            await cache.lookup(p, p, wait_s=2)
+        return len(cache._entries), cache.cached(1.0, 1.0)
+
+    size, oldest = asyncio.run(run())
+    assert size == 2 and oldest is None, "الذاكرةُ تجاوزت حدَّها أو أبقت الأقدم"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [("15", 15.0), ("", 7.0), ("inf", 7.0), ("-1", 7.0), ("x", 7.0), (None, 7.0)],
+)
+def test_env_seconds_rejects_what_would_hang_a_caller(raw, expected) -> None:
+    assert SC.env_seconds(raw, 7.0) == expected

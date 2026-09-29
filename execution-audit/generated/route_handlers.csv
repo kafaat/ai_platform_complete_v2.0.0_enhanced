@@ -1005,8 +1005,8 @@ soil-service,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certifi
 soil-service,GET,/v1/soil/runtime-certifications/{run_id},get_certification,services/soil-service/routers/p6_certification.py,60
 soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,23
 soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,38
-soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,49
-soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,60
+soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65
+soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,76
 supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,33
 supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,120
 supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,178

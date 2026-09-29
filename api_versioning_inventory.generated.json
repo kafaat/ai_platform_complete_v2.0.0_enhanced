@@ -9281,7 +9281,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
-    "line": 49,
+    "line": 65,
     "method": "POST",
     "path": "/v1/soil/suitability",
     "handler": "soil_suitability",
@@ -9290,7 +9290,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
-    "line": 60,
+    "line": 76,
     "method": "GET",
     "path": "/v1/soil/soilgrids",
     "handler": "soil_from_soilgrids",
