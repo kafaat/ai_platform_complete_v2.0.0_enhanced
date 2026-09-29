@@ -4,6 +4,14 @@ Both literal proxy_pass targets and the named-upstream DNS fix are supported.
 Route bodies, auth_request boundaries and URI replacement stay in nginx.conf.
 Only the two required upstreams must be selected by the operator; optional
 services can be deployed later without preventing local frontend liveness.
+
+An optional service that has no Railway service at all can be declared
+``SAHOOL_<SERVICE>_UPSTREAM=absent``. Measured on staging (2026-09-29): three
+undeployed hosts made nginx log "could not be resolved" every 10 s each, burying
+real errors, and their routes answered an opaque 502. An absent service is
+routed to a local stub that answers 503 ``service_not_deployed`` with no DNS
+lookup. It is an explicit declaration, never inferred from a failed lookup, so a
+service deployed later still needs only its variable removed.
 """
 
 from __future__ import annotations
@@ -16,6 +24,9 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 SERVICE = r"sahool-[a-z0-9-]+:[0-9]+"
+ABSENT = "absent"
+ABSENT_SOCKET = "/tmp/sahool-absent-upstream.sock"
+REQUIRED = ("sahool-auth:8000", "sahool-platform:8000")
 DIRECT_PROXY = re.compile(rf"(?m)^(\s*)proxy_pass\s+http://({SERVICE})([^;\s]*);")
 UPSTREAM = re.compile(r"(?ms)^upstream ([a-zA-Z0-9_]+) \{\n(.*?)^\}")
 LOCATION = re.compile(r"(?ms)^    location (?:= |\^~ |~\* )?(\S+) \{\n(.*?)^    \}")
@@ -69,14 +80,26 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
             raise ValueError(f"{key} must explicitly select the deployed service")
 
     services = set(re.findall(rf"(?:proxy_pass\s+http://|server\s+)({SERVICE})", source))
-    if not {"sahool-auth:8000", "sahool-platform:8000"}.issubset(services):
+    if not set(REQUIRED).issubset(services):
         raise ValueError("Canonical config is missing the expected auth/platform upstreams")
     addresses = {}
+    absent = set()
     for service in sorted(services):
         key = variable_name(service)
         host, upstream_port = service.split(":")
         default = f"{host}.railway.internal:{upstream_port}"
-        addresses[service] = authority(env.get(key, default), key)
+        value = env.get(key, default)
+        if value == ABSENT:
+            if service in REQUIRED:
+                raise ValueError(f"{key} cannot be absent: the frontend requires it")
+            absent.add(service)
+            value = default  # proxy_redirect/Host text only; the stub answers
+        addresses[service] = authority(value, key)
+
+    def server_line(service: str) -> str:
+        if service in absent:
+            return f"server unix:{ABSENT_SOCKET};"
+        return f"server {addresses[service]} resolve;"
 
     # Remove the Docker-only resolver if the canonical runtime DNS fix is present.
     config = re.sub(r"(?m)^resolver(?:_timeout)?\s+[^;]+;\n", "", source)
@@ -91,7 +114,7 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
         groups[service] = name
         body = re.sub(
             rf"server\s+{re.escape(service)}(?:\s+resolve)?;",
-            f"server {addresses[service]} resolve;",
+            server_line(service),
             body,
         )
         if not re.search(r"\bzone\s+", body):
@@ -105,8 +128,7 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
             name = "railway_" + service.split(":")[0].replace("-", "_")
             groups[service] = name
             added_groups.append(
-                f"upstream {name} {{\n    zone {name} 64k;\n"
-                f"    server {addresses[service]} resolve;\n}}\n"
+                f"upstream {name} {{\n    zone {name} 64k;\n    {server_line(service)}\n}}\n"
             )
 
     def location(match: re.Match) -> str:
@@ -140,7 +162,16 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
             raise ValueError("Canonical frontend listener contract changed")
         config = config.replace(original, replacement)
     resolver = f"resolver {' '.join(nameservers)} valid=10s ipv6={ipv6};\nresolver_timeout 5s;\n"
-    return resolver + "\n".join(added_groups) + "\n" + config
+    stub = ""
+    if absent:
+        names = ", ".join(sorted(s.split(":")[0] for s in absent))
+        stub = (
+            f"# Declared absent on this deployment: {names}\n"
+            f"server {{\n    listen unix:{ABSENT_SOCKET};\n"
+            "    default_type application/json;\n"
+            '    return 503 \'{"error":"service_not_deployed"}\';\n}\n'
+        )
+    return resolver + "\n".join(added_groups) + "\n" + stub + config
 
 
 def main() -> None:

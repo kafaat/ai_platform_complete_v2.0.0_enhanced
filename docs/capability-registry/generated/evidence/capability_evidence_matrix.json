@@ -3193,6 +3193,7 @@
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_notification_queue_rollout.py",
         "tests_v9/test_operational_evidence_artefacts.py",
+        "tests_v9/test_outbox_claim_lease.py",
         "tests_v9/test_outbox_delivery_attempts_v19_5.py",
         "tests_v9/test_outbox_idempotent_consumption.py",
         "tests_v9/test_outbox_requires_jetstream_ack.py",

@@ -1954,11 +1954,11 @@
       "$why_ar": "عاملُ الصندوق الصادر يحمل أحداثَ المنصّة إلى الوسيط؛ ومعاملةٌ مفتوحةٌ أثناء I/O أو إنهاءٌ بلا رمزٍ يُنتِجان تعطّلاً أو وسماً كاذباً. تُزرَع الطفرةُ في المنطق نفسِه لا في حارسٍ يصفه.",
       "mutations": [
         {
-          "expect": "test_an_expired_lease_is_recapturable_but_a_stale_finisher_cannot_write",
+          "expect": "test_the_success_path_sends_its_finishing_write_bound_to_the_attempt_token",
           "find": "WHERE outbox_id = $1 AND claim_token IS NOT DISTINCT FROM $2",
           "replace": "WHERE outbox_id = $1 AND $2::uuid IS NOT NULL  -- mutated: بلا CAS على الرمز",
           "test": "tests_v9/test_outbox_claim_lease.py",
-          "why": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01: إنهاءٌ بالحالة وحدَها يسم صفّاً صار لعاملٍ آخر. إجارةٌ تنقضي أثناء نشرٍ بطيء يلتقطها ثانٍ، فيعود الأوّلُ المتأخّر ليسم 'sent' صفّاً لم ينشره هو — وهو بعينه ما يقوله سجلّ الفجوة: «ولمَ رمزٌ ولا تكفي الحالة»."
+          "why": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01: إنهاءٌ بالحالة وحدَها يسم صفّاً صار لعاملٍ آخر. **والشاهدُ المُسمَّى سلوكيٌّ لا بنيويّ:** البنيويُّ يعدّ وروداتِ الشرط في نصّ الملفّ، وقد نجت هذه الطفرةُ مرّةً لأنّ نصّ الشرط كان في docstring فأبقى العدَّ صحيحاً. السلوكيُّ يقرأ ما يُمرَّر إلى `execute` ويتحقّق من ربط الوسائط بصفّ المحاولة ورمزِها، فلا يُبطِله نثر."
         },
         {
           "expect": "test_the_batch_closes_its_transaction_before_sending",
@@ -1980,6 +1980,13 @@
           "replace": "            if False:  # mutated: stale failure CAS result is ignored\n                return\n",
           "test": "tests_v9/test_outbox_idempotent_consumption.py",
           "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns."
+        },
+        {
+          "expect": "test_the_failure_path_sends_its_state_write_bound_to_the_attempt_token",
+          "find": "WHERE outbox_id = $4 AND claim_token IS NOT DISTINCT FROM $5",
+          "replace": "WHERE outbox_id = $4  -- mutated: مسارُ الفشل بلا CAS",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "مُكمِّلةٌ للطفرة [3] لا مكرِّرةٌ لها: [3] (#1076) تحرس **قراءةَ نتيجة** التحديث المشروط في مسار الفشل؛ وهذه تحرس **وجودَ الشرط** نفسِه مربوطاً بصفّ المحاولة ورمزِها. بلا الشرط يصير التحديثُ غيرَ مشروطٍ فيُرجِع `UPDATE 1` دائماً — فتمرّ قراءةُ النتيجة في [3] وهي لا تحمي شيئاً. والشاهدُ يقرأ ما يُمرَّر إلى `execute`، فلا يُبطِله تعليقٌ يذكر الشرط."
         }
       ],
       "test": "tests_v9/test_outbox_claim_lease.py"
