@@ -56,7 +56,15 @@ def test_no_waiver_has_real_ui_evidence() -> None:
         stem = _re.split(r"\{", path)[0].rstrip("/")
         alt = stem.replace("/api/v1/auth", "/auth")
         cands = {c for c in (stem, alt) if len(c) > len("/api/v1/") or c.startswith("/auth")}
+        # الجذعُ قبل أوّل `{` وحدَه يجعل كلَّ مسارٍ تحت `/api/v1/fields/{field_id}/…`
+        # «مربوطاً» بأيّ ملفٍّ يذكر حقلاً (قيس: `indicator-observations/{view}` ⇒
+        # `drawingFeatureApi.ts`). فالمقطعُ الحرفيُّ الأخير يجب أن يظهر في الملفّ نفسِه؛
+        # ومسارٌ بلا مقطعٍ بعد المعامِل (آخرُ مقاطعه في الجذع) يبقى كما كان حرفيّاً.
+        literal = [seg for seg in path.split("/") if seg and not seg.startswith("{")]
+        last = literal[-1] if literal else ""
         for rel, txt in fe:
+            if last and last not in stem and last not in txt:
+                continue
             for c in cands:
                 pat = _re.escape(c) + r"""(?:['"`?]|/\$\{|/[a-z]|$)"""
                 if _re.search(pat, txt) and any(

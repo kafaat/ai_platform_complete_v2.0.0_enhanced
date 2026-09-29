@@ -186,13 +186,15 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
-    العدد 52 (كان 51): أُضيف إعفاء `backlog-ui` لـ`POST /api/v1/scenario/economics`
+    العدد 53 (كان 52): إعفاء `backlog-ui` لـ`GET /api/v1/fields/{field_id}/indicator-observations/{view}`
+    (M4، مراجعة v25) — العقدُ كُشِف خادميّاً ولوحةُ المؤشّرات لم تُربَط به بعد.
+    وقبله 52 (كان 51): أُضيف إعفاء `backlog-ui` لـ`POST /api/v1/scenario/economics`
     — نقطة موجودة بلا شاشة بعد، فالدَّين مُعلَن بانتهاء صالح وتتبّع بدل ادّعاء تغطية.
     وقبله 51 (كان 49): إعفاءا PA-003 لمسارَي استيعاب/سجلّات خرائط الغلّة
     (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 52
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 53
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 

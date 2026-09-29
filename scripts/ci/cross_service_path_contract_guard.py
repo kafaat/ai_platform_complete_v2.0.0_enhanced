@@ -137,8 +137,22 @@ def requested_paths(source: str) -> set[str]:
             if _PATH_SHAPED.match(value.value):
                 found.add(normalise(value.value))
 
+    # مُزخرِفُ المسار (`@router.get("/api/v1/…")`) **إعلانٌ** على هذا الجانب لا طلبٌ
+    # إلى الخدمة — وشكلُه النحويُّ نداءٌ باسم `get`، فكان يُقرأ طلباً. وُجِد حين صار
+    # موجِّهُ المؤشّرات (M4، مراجعة v25) عميلاً لـindicators-service أيضاً: مساراتُه
+    # الأربعة `/api/v1/…` عُدَّت «تُطلَب ولا تُعلَن» فحمّر الحارسُ ما لا يُطلَب أصلاً،
+    # والبديلُ الوحيد كان إخفاءَ عنوان الخدمة عنه — أي إخراجَ العقد من نطاقه.
+    declarations = {
+        id(dec)
+        for fn in ast.walk(tree)
+        if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for dec in fn.decorator_list
+    }
+
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or not node.args:
+            continue
+        if id(node) in declarations:
             continue
         func = node.func
         name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")

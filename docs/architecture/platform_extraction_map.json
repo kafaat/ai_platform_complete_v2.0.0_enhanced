@@ -3830,10 +3830,20 @@
     },
     {
       "file": "api/routers/indicators.py",
+      "function": "field_indicator_observations",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+      "line": 167,
+      "target_owner": "indicators-service",
+      "owner_type": "bff-facade-to-indicators",
+      "route_key": "api/routers/indicators.py::GET /api/v1/fields/{field_id}/indicator-observations/{view}::field_indicator_observations"
+    },
+    {
+      "file": "api/routers/indicators.py",
       "function": "indicators_catalog",
       "method": "GET",
       "path": "/api/v1/indicators/catalog",
-      "line": 34,
+      "line": 40,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/indicators.py::GET /api/v1/indicators/catalog::indicators_catalog"
@@ -3843,7 +3853,7 @@
       "function": "indicators_dashboard",
       "method": "GET",
       "path": "/api/v1/indicators/dashboard",
-      "line": 59,
+      "line": 65,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/indicators.py::GET /api/v1/indicators/dashboard::indicators_dashboard"
@@ -3853,7 +3863,7 @@
       "function": "indicators_map_layers",
       "method": "GET",
       "path": "/api/v1/indicators/map-layers",
-      "line": 46,
+      "line": 52,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/indicators.py::GET /api/v1/indicators/map-layers::indicators_map_layers"

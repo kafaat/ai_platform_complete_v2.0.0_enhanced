@@ -657,6 +657,8 @@ services:
       COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+      # M4 (مراجعة v25): المشاهداتُ القانونيّة لكلّ حقل عبر `/api/v1/fields/{id}/indicator-observations/{view}`.
+      INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
