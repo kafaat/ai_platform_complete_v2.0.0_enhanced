@@ -326,6 +326,11 @@ def test_a_partially_masked_point_keeps_the_values_it_has() -> None:
         pytest.param(
             _Client(_Resp(200, {"properties": {}})), "malformed", id="بلا طبقات ≠ لا تغطية"
         ),
+        pytest.param(
+            _Client(_Resp(200, _live_shaped({"cec": None}))),
+            "malformed",
+            id="طبقةٌ واحدةٌ فارغةٌ والبقيّةُ غائبة ≠ لا تغطية (مراجعة #1094)",
+        ),
     ],
 )
 def test_transient_failures_are_classified_and_never_called_no_coverage(client, reason) -> None:
@@ -446,3 +451,18 @@ def test_entries_expire_and_the_cache_is_bounded() -> None:
 )
 def test_env_seconds_rejects_what_would_hang_a_caller(raw, expected) -> None:
     assert SC.env_seconds(raw, 7.0) == expected
+
+
+def test_two_nearby_points_never_share_a_cache_entry() -> None:
+    """التقريبُ كان يدمج (44.2001,15.3501) و(44.2004,15.3504) فتُجاب الثانيةُ ببيانات
+    الأولى وإحداثيّتها أسبوعاً — والنقطتان قد تقعان على جانبَي حدّ خليّة (مراجعة #1094)."""
+    fetch = _GatedFetch(_OK)
+    fetch.gate.set()
+    cache = SC.SoilGridsCache(fetch, ttl_s=3600)
+
+    async def run():
+        await cache.lookup(44.2001, 15.3501, wait_s=2)
+        await cache.lookup(44.2004, 15.3504, wait_s=2)
+
+    asyncio.run(run())
+    assert fetch.calls == 2, "نقطتان مختلفتان أُجيبتا من مدخلٍ واحد"

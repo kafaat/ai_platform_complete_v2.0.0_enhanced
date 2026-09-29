@@ -80,19 +80,23 @@ def _is_masked(payload: dict) -> bool:
 
     هذا شكلُ «لا تغطية» كما عاد حيّاً من ISRIC — لا ردٌّ شاذّ. طبقاتٌ غائبة أو بلا
     عمقٍ علويّ ليست «لا تغطية» بل بنيةٌ لا نفهمها (``malformed``).
+
+    **كلُّ** خاصّيّةٍ مطلوبةٍ يجب أن تحضر بعمقها العلويّ: ردٌّ جزئيٌّ (``cec: null`` وحدَها
+    والبقيّةُ غائبة) ليس «لا تغطية» — وإلّا خُزِّن غيابٌ عابرٌ أسبوعاً (رصده مراجعُ #1094).
     """
     layers = (((payload or {}).get("properties") or {}).get("layers")) or []
-    seen = False
+    masked: set[str] = set()
     for layer in layers:
-        if layer.get("name") not in _PROPS:
+        name = layer.get("name")
+        if name not in _PROPS:
             continue
         for depth in layer.get("depths") or []:
             if depth.get("label") != _TOP_DEPTH:
                 continue
-            seen = True
             if (depth.get("values") or {}).get("mean") is not None:
                 return False
-    return seen
+            masked.add(name)
+    return masked == set(_PROPS)
 
 
 def query_soil_properties(lon: float, lat: float, *, client=None) -> dict:

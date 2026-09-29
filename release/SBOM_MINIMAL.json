@@ -29055,7 +29055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c13b457021cbb6ba786f19a318b6ab90910a7378e01b8cfcc87d626951895fe"
+          "content": "02f1e635e49908a45af3d05d1b08e3c08dbde109cdfb9a7510af9a33fdc0b385"
         }
       ],
       "name": "services/soil-service/soilgrids_cache.py",
@@ -29065,7 +29065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd5b96547f51f6ca8440af413d19a75ccbb68dfd6293b4692ed3baf92611c748"
+          "content": "16ffb2d4c68bcc7e06b1887f2817458897fef3f82b3e8ef4c669a081b7cc7d4e"
         }
       ],
       "name": "services/soil-service/soilgrids_client.py",
