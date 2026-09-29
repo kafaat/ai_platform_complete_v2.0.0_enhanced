@@ -306,8 +306,14 @@ async def get_canonical_field_weather(
         return None
     state_id = current.get("canonical_state_id")
     state_version = current.get("canonical_state_version")
+    # هويّةُ المخطَّط يُعلنها المالكُ ولا تُشتقّ هنا. كان هذا الموضع يضع ``state_version`` مكانها،
+    # والمالكُ يُصدِره semver (``1.0.0`` — ``canonical_weather_state.STATE_VERSION``) لا اسمَ عائلة،
+    # فرفضت ``canonical_field_state`` كلَّ طقسٍ ``validated`` بوصفه ``weather_noncanonical_schema``
+    # (مقيسٌ حيّاً 2026-09-29). وشاهدُه القديم مرّ على قاموسٍ منسوخٍ باليد يضع اسمَ العائلة في
+    # ``canonical_state_version`` — قيمةٌ لم يُصدِرها المالكُ قطّ. غيابُ الإعلان ⇒ غيابٌ لا تخمين.
+    schema_version = current.get("canonical_schema_version")
     source_snapshot_id = current.get("source_snapshot_id") or current.get("weather_snapshot_id")
-    if not state_id or not state_version or not source_snapshot_id:
+    if not state_id or not state_version or not schema_version or not source_snapshot_id:
         return None
     quality = current.get("quality_status")
     limitations = list(current.get("limitations") or [])
@@ -315,7 +321,7 @@ async def get_canonical_field_weather(
         "product_id": "canonical_weather_state",
         "state_id": state_id,
         "state_version": state_version,
-        "schema_version": str(state_version),
+        "schema_version": str(schema_version),
         "owner": "weather-service",
         "source_snapshot_id": source_snapshot_id,
         "generated_at": current.get("observed_at")

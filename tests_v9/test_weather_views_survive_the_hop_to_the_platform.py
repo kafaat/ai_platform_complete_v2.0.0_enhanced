@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import sys
 from pathlib import Path
 from typing import Any
@@ -253,3 +254,40 @@ def test_a_malformed_envelope_yields_no_days_rather_than_raising(platform_adapte
     assert forecast_days({"days": ["not-a-day", {"date": "2026-08-27"}]}) == [
         {"date": "2026-08-27"}
     ]
+
+
+def test_a_validated_owner_reading_binds_into_the_canonical_field_state(
+    service_views, monkeypatch
+) -> None:
+    """القفزةُ الثالثة: مشاهدةُ «الآن» الحقيقيّة ⇒ مُحوِّلُ المنصّة ⇒ ``canonical_field_state``.
+
+    **المقيس حيّاً (2026-09-29):** الحالةُ القانونيّة للحقل رفضت طقساً ``validated`` بوصفه
+    ``weather_noncanonical_schema``. المالكُ يُصدِر ``canonical_state_version`` = semver
+    (``1.0.0``)، والمُحوِّلُ كان يضعه في ``schema_version`` بينما المُركِّبُ يقبل عائلةَ
+    المخطَّط (``wx10/canonical-weather-state/``). وشاهدُ المُحوِّل القديم مرّ لأنّ قاموسَه
+    المنسوخ باليد وضع اسمَ العائلة في ``canonical_state_version`` — قيمةٌ لا يُصدِرها المالك.
+    هنا لا قاموسَ منسوخاً: الاستجابةُ هي ناتجُ ``current_view`` نفسِه.
+    """
+    from api import weather_service_client as client
+    from canonical_weather_state import SCHEMA_VERSION, STATE_VERSION
+    from core.canonical_field_state import compose_canonical_field_state
+
+    view = service_views["current"](_PROVIDER_CURRENT)
+    assert view["quality_status"] == "validated", "المُنتِجُ لم يُصدِر مشاهدةً سليمة — الشاهدُ أعمى"
+
+    async def _owner_response(path, **_kwargs):
+        assert path == "/v1/weather/current"
+        return view
+
+    monkeypatch.setattr(client, "weather_get_json", _owner_response)
+    product = asyncio.run(client.get_canonical_field_weather(24.7, 46.7, tenant_id="t-1"))
+
+    assert product is not None, "المُحوِّلُ أسقط مشاهدةَ المالك الصالحة"
+    assert product["schema_version"] == SCHEMA_VERSION
+    assert product["state_version"] == STATE_VERSION
+    state = compose_canonical_field_state(
+        field_id="fld_1", season_id=None, as_of_time="2026-08-27T09:00:00Z", weather=product
+    )
+    assert state.availability["weather"] is True
+    assert "weather_noncanonical_schema" not in state.limitations
+    assert "required_weather_unavailable" not in state.limitations
