@@ -2467,8 +2467,8 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:60",
-        "POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:49"
+        "GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:76",
+        "POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:65"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

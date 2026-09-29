@@ -241,13 +241,64 @@ def test_soilgrids_endpoint_503_when_unavailable(monkeypatch):
     main = _load_soil_main(monkeypatch)
     import soilgrids_client as sgc
 
-    monkeypatch.setattr(sgc, "fetch_soil_properties", lambda lon, lat: None)
+    # الموجِّه يستعلم عبر ``query_soil_properties`` (نتيجةٌ مُصنَّفة) لا ``fetch_soil_properties``
+    # — فترقيعُ الأخيرة كان سيترك الاختبارَ يتّصل بـISRIC فعلاً.
+    monkeypatch.setattr(
+        sgc,
+        "query_soil_properties",
+        lambda lon, lat: {"outcome": "unavailable", "reason": "timeout"},
+    )
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
     r = client.get("/v1/soil/soilgrids?lon=46&lat=24", headers={"X-Agent-Token": "test-token"})
     assert r.status_code == 503
     assert r.json()["detail"]["error"] == "soilgrids_unavailable"
+    assert r.json()["detail"]["reason"] == "timeout"
+
+
+def test_soilgrids_endpoint_404_when_the_point_is_masked(monkeypatch):
+    """ISRIC أجاب 200 بلا قيم (قِيس حيّاً على صنعاء) ⇒ 404 «لا تغطية» لا 503 «متعذّر»."""
+    main = _load_soil_main(monkeypatch)
+    import soilgrids_client as sgc
+
+    monkeypatch.setattr(sgc, "query_soil_properties", lambda lon, lat: {"outcome": "no_coverage"})
+    from fastapi.testclient import TestClient
+
+    client = TestClient(main.app)
+    r = client.get("/v1/soil/soilgrids?lon=44.2&lat=15.35", headers={"X-Agent-Token": "test-token"})
+    assert r.status_code == 404
+    assert r.json()["detail"]["error"] == "soilgrids_no_coverage"
+
+
+def test_soilgrids_endpoint_answers_pending_instead_of_holding_the_caller(monkeypatch):
+    """مزوّدٌ بطيء ⇒ 503 ``soilgrids_pending`` + Retry-After ضمن انتظارٍ قصير، لا انتظارَ المزوّد."""
+    import threading
+
+    main = _load_soil_main(monkeypatch)
+    import routers.soil_profile as sp
+    import soilgrids_client as sgc
+
+    gate = threading.Event()
+
+    def slow(lon, lat):
+        gate.wait(5)
+        return {"outcome": "no_coverage"}
+
+    monkeypatch.setattr(sgc, "query_soil_properties", slow)
+    monkeypatch.setattr(sp, "_ROUTE_WAIT_S", 0.05)
+    from fastapi.testclient import TestClient
+
+    try:
+        client = TestClient(main.app)
+        r = client.get(
+            "/v1/soil/soilgrids?lon=43.33&lat=14.2", headers={"X-Agent-Token": "test-token"}
+        )
+        assert r.status_code == 503
+        assert r.json()["detail"]["error"] == "soilgrids_pending"
+        assert r.headers.get("retry-after") == "30"
+    finally:
+        gate.set()
 
 
 def test_soilgrids_endpoint_200_with_data(monkeypatch):
@@ -256,12 +307,15 @@ def test_soilgrids_endpoint_200_with_data(monkeypatch):
 
     monkeypatch.setattr(
         sgc,
-        "fetch_soil_properties",
+        "query_soil_properties",
         lambda lon, lat: {
-            "source": "soilgrids",
-            "lon": lon,
-            "lat": lat,
-            "properties": {"clay_pct": 25.0, "sand_pct": 40.0, "silt_pct": 35.0, "ph": 7.0},
+            "outcome": "ok",
+            "data": {
+                "source": "soilgrids",
+                "lon": lon,
+                "lat": lat,
+                "properties": {"clay_pct": 25.0, "sand_pct": 40.0, "silt_pct": 35.0, "ph": 7.0},
+            },
         },
     )
     from fastapi.testclient import TestClient

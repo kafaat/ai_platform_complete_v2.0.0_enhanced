@@ -29025,7 +29025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "658399473d5787df307b836bfaaa5b9d70e6f09bdb0aae020d66999a3b624da8"
+          "content": "3a01fae84818570f4ed7a28dee0c29615e448f298ba42748b71744ba0e99fbb9"
         }
       ],
       "name": "services/soil-service/routers/soil_profile.py",
@@ -29055,7 +29055,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a06f4f0395d20b711db924336e35cceca6e5521a669a4422782fe9b382bc573"
+          "content": "02f1e635e49908a45af3d05d1b08e3c08dbde109cdfb9a7510af9a33fdc0b385"
+        }
+      ],
+      "name": "services/soil-service/soilgrids_cache.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16ffb2d4c68bcc7e06b1887f2817458897fef3f82b3e8ef4c669a081b7cc7d4e"
         }
       ],
       "name": "services/soil-service/soilgrids_client.py",

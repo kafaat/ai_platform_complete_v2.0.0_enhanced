@@ -290,8 +290,8 @@
   {
     "service": "soil-service",
     "domain": "Soil Intelligence",
-    "python_files": 51,
-    "python_loc": 5764,
+    "python_files": 52,
+    "python_loc": 5941,
     "tests": 17,
     "routes": 60,
     "main": "services/soil-service/main.py",

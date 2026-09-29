@@ -6188,6 +6188,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/soil-service/soilgrids_cache.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/soil-service/soilgrids_client.py",
     "kind": "backend"
   },
@@ -8533,10 +8537,6 @@
   },
   {
     "path": "tests_v9/test_soil_p4_multisource_e2e.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_soil_science_20260703.py",
     "kind": "tests"
   },
   {
