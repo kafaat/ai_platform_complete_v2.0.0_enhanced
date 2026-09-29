@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5432,
+    "files_scanned": 5433,
     "files_by_kind": {
       "backend": 1212,
       "database": 281,
       "governance": 64,
       "mobile": 55,
-      "other": 1520,
+      "other": 1521,
       "tests": 1842,
       "web": 458
     },
@@ -10056,39 +10056,39 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5408",
           "score": 17
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5421",
           "score": 17
         },
         {
-          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3068",
+          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3069",
           "score": 17
         },
         {
-          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3282",
+          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3283",
           "score": 17
         },
         {
-          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3279",
+          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3280",
           "score": 17
         },
         {
-          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3095",
+          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3096",
           "score": 17
         },
         {
-          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2890",
+          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2891",
           "score": 17
         },
         {
-          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3022",
+          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3023",
           "score": 17
         },
         {
-          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3298",
+          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3299",
           "score": 17
         },
         {
@@ -10308,55 +10308,55 @@
           "score": 18
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1560",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1561",
           "score": 17
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1662",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1663",
           "score": 17
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1489",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1490",
           "score": 17
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1661",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1662",
           "score": 17
         },
         {
-          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1840",
+          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1841",
           "score": 17
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4036",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4037",
           "score": 17
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4128",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4129",
           "score": 17
         },
         {
-          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2687",
+          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2688",
           "score": 17
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2702",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2703",
           "score": 17
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2717",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2718",
           "score": 17
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2723",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2724",
           "score": 17
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2697",
+          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2698",
           "score": 17
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6165",
           "score": 17
         },
         {
@@ -16910,39 +16910,39 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5408",
           "score": 18
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5421",
           "score": 18
         },
         {
-          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3068",
+          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3069",
           "score": 18
         },
         {
-          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3282",
+          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3283",
           "score": 18
         },
         {
-          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3279",
+          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3280",
           "score": 18
         },
         {
-          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3095",
+          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3096",
           "score": 18
         },
         {
-          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2890",
+          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2891",
           "score": 18
         },
         {
-          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3022",
+          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3023",
           "score": 18
         },
         {
-          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3298",
+          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3299",
           "score": 18
         },
         {
@@ -17210,51 +17210,51 @@
           "score": 19
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1560",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1561",
           "score": 18
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1662",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1663",
           "score": 18
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1489",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1490",
           "score": 18
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1661",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1662",
           "score": 18
         },
         {
-          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1840",
+          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1841",
           "score": 18
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4036",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4037",
           "score": 18
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4128",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4129",
           "score": 18
         },
         {
-          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2687",
+          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2688",
           "score": 18
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2702",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2703",
           "score": 18
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2717",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2718",
           "score": 18
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2723",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2724",
           "score": 18
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2697",
+          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2698",
           "score": 18
         },
         {
@@ -17262,7 +17262,7 @@
           "score": 18
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6165",
           "score": 18
         },
         {
@@ -24121,39 +24121,39 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5408",
           "score": 15
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5421",
           "score": 15
         },
         {
-          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3068",
+          "value": "/cog/validate @ tests_v9/test_roadmap_phase23.py:3069",
           "score": 15
         },
         {
-          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3282",
+          "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3283",
           "score": 15
         },
         {
-          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3279",
+          "value": "/imagery/search/landsat @ tests_v9/test_roadmap_phase23.py:3280",
           "score": 15
         },
         {
-          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3095",
+          "value": "/imagery/timeseries/parallel @ tests_v9/test_roadmap_phase23.py:3096",
           "score": 15
         },
         {
-          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2890",
+          "value": "/metrics @ tests_v9/test_roadmap_phase23.py:2891",
           "score": 15
         },
         {
-          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3022",
+          "value": "/process/batch @ tests_v9/test_roadmap_phase23.py:3023",
           "score": 15
         },
         {
-          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3298",
+          "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3299",
           "score": 15
         },
         {
@@ -24774,55 +24774,55 @@
           "score": 17
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1560",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1561",
           "score": 15
         },
         {
-          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1662",
+          "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1663",
           "score": 15
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1489",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1490",
           "score": 15
         },
         {
-          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1661",
+          "value": "api.weather_automation @ tests_v9/test_roadmap_phase23.py:1662",
           "score": 15
         },
         {
-          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1840",
+          "value": "app.state.mqtt_task @ tests_v9/test_roadmap_phase23.py:1841",
           "score": 15
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4036",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4037",
           "score": 15
         },
         {
-          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4128",
+          "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4129",
           "score": 15
         },
         {
-          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2687",
+          "value": "field.created @ tests_v9/test_roadmap_phase23.py:2688",
           "score": 15
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2702",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2703",
           "score": 15
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2717",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2718",
           "score": 15
         },
         {
-          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2723",
+          "value": "field.updated @ tests_v9/test_roadmap_phase23.py:2724",
           "score": 15
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2697",
+          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2698",
           "score": 15
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6165",
           "score": 15
         },
         {

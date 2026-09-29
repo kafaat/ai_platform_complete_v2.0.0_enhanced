@@ -78,22 +78,50 @@ def test_every_landing_claim_names_a_commit_that_exists_and_precedes_head():
     # SHA **مختلقاً** (`deadbeef`) يُنتج نفس الإشارة بالضبط، فيُتخطّى بدل أن يُدان.
     # أي أنّ الاختبار كان أعمى عن **الحالة الأساسيّة التي بُني لها**، وأخضرَ عنها.
     shallow = _git("rev-parse", "--is-shallow-repository").stdout.strip() == "true"
+    # **ووجودُ الكائن في نسخةٍ ضحلة لا يعني أنّه داخل نافذة HEAD.** جلبُ فروعٍ أخرى يُحمِّل
+    # التزاماتٍ أقدمَ من حدّ القطع، فيُرجِع `--is-ancestor` 1 لسلفٍ حقيقيّ: قِيس على
+    # `0bf19688` (دمجُ #770 على main نفسِه) فاحمرّ الاختبارُ محلّيّاً كذباً. فالسلفيّةُ
+    # قابلةٌ للحسم فقط لالتزامٍ **ينحدر من حدٍّ يبلغه HEAD** — ما دونه غيرُ حاسم كالغائب.
+    # الحدّ: تاريخٌ بدمجاتٍ قد يقطع مساراً آخرَ إلى سلفٍ فوق الحدّ؛ main هنا خطّيّ بالسحق.
+    boundaries: list[str] = []
+    if shallow:
+        shallow_file = Path(_git("rev-parse", "--git-path", "shallow").stdout.strip())
+        shallow_file = shallow_file if shallow_file.is_absolute() else _ROOT / shallow_file
+        if shallow_file.exists():
+            boundaries = [
+                b
+                for b in shallow_file.read_text(encoding="utf-8").split()
+                if _git("merge-base", "--is-ancestor", b, "HEAD").returncode == 0
+            ]
 
+    decided = inconclusive = 0
     for gap_id, sha in _landing_claims():
         exists = _git("cat-file", "-e", f"{sha}^{{commit}}")
         if exists.returncode != 0:
             if shallow:
-                pytest.skip(f"استنساخ ضحل — تاريخ {sha} غير محمَّل")
+                inconclusive += 1
+                continue
             raise AssertionError(
                 f"{gap_id} يدّعي الهبوط في {sha}، ولا التزام بهذا المعرّف في مستودع كامل "
                 "— معرّف مختلق أو مطبعة"
             )
 
         ancestor = _git("merge-base", "--is-ancestor", sha, "HEAD")
+        if ancestor.returncode != 0 and shallow:
+            in_window = any(
+                _git("merge-base", "--is-ancestor", b, sha).returncode == 0 for b in boundaries
+            )
+            if not in_window:
+                inconclusive += 1
+                continue
         assert ancestor.returncode == 0, (
             f"{gap_id} يدّعي الهبوط في {sha}، وهو ليس سلفاً لـHEAD — "
             "أي أنّ الحالة كُتِبت قبل الهبوط أو على فرع آخر"
         )
+        decided += 1
+
+    if not decided and inconclusive:
+        pytest.skip(f"استنساخ ضحل — {inconclusive} ادّعاءً خارج النافذة المحمَّلة، ولا ادّعاءَ داخلها")
 
 
 def test_the_transient_candidate_status_is_not_left_on_a_landed_gap():
