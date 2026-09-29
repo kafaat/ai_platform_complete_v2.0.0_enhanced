@@ -5586,7 +5586,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 35,
+    "line": 41,
     "method": "GET",
     "path": "/api/v1/indicators/catalog",
     "function": "indicators_catalog"
@@ -5594,7 +5594,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 47,
+    "line": 53,
     "method": "GET",
     "path": "/api/v1/indicators/map-layers",
     "function": "indicators_map_layers"
@@ -5602,10 +5602,18 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 60,
+    "line": 66,
     "method": "GET",
     "path": "/api/v1/indicators/dashboard",
     "function": "indicators_dashboard"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/indicators.py",
+    "line": 168,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+    "function": "field_indicator_observations"
   },
   {
     "service": "sahool-platform",

@@ -1,13 +1,13 @@
 {
   "counts": {
     "api_route_declarations": 4,
-    "direct_routes": 632,
-    "mapped_routes": 636,
-    "surface_routes": 636
+    "direct_routes": 633,
+    "mapped_routes": 637,
+    "surface_routes": 637
   },
-  "inventory_sha256": "58beda6e1b732274b4771cda3436179d84e17e7b5b4fea0fa3ec9cbb7b284362",
+  "inventory_sha256": "93e7488027999dda341d9824f44c954bf79c8741a290f8369009dc188171da0a",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "afdc77503f06e13dc5af358f0636ed1bbdb8d226c364e439ecf21b772f49bf8d",
+  "map_sha256": "8f39ccdf164f777af60800ce506baf0b7d356e6658537911184f43cc1edbe54b",
   "routes": [
     {
       "classification": null,
@@ -2057,6 +2057,20 @@
       "classification": null,
       "declaration_kind": "direct",
       "domain_budget_counted": null,
+      "file": "api/routers/indicators.py",
+      "function": "field_indicator_observations",
+      "line": 167,
+      "method": "GET",
+      "owner": "indicators-service",
+      "owner_type": "bff-facade-to-indicators",
+      "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+      "route_key": "api/routers/indicators.py::GET /api/v1/fields/{field_id}/indicator-observations/{view}::field_indicator_observations",
+      "subclassification": null
+    },
+    {
+      "classification": null,
+      "declaration_kind": "direct",
+      "domain_budget_counted": null,
       "file": "api/routers/fields.py",
       "function": "field_input_traceability",
       "line": 3079,
@@ -2647,7 +2661,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/indicators.py",
       "function": "indicators_catalog",
-      "line": 34,
+      "line": 40,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -2661,7 +2675,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/indicators.py",
       "function": "indicators_dashboard",
-      "line": 59,
+      "line": 65,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -2675,7 +2689,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/indicators.py",
       "function": "indicators_map_layers",
-      "line": 46,
+      "line": 52,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

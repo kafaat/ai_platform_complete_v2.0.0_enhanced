@@ -76,6 +76,7 @@ platform,guardrails,code-reference,services/sahool-platform/api/routers/decision
 platform,guardrails,code-reference,services/sahool-platform/core/decision_dispatch.py
 platform,guardrails,code-reference,services/sahool-platform/core/field_intelligence_adapters.py
 platform,guardrails,code-reference,services/sahool-platform/core/internal_orchestrator.py
+platform,indicators-service,code-reference,services/sahool-platform/api/routers/indicators.py
 platform,raster-service,code-reference,services/sahool-platform/api/raster_service_client.py
 platform,raster-tiler-service,compose-depends-on,docker-compose.v9.yml
 platform,redis,code-reference,services/sahool-platform/api/main.py
@@ -215,6 +216,7 @@ sahool-notification-agent,sahool-tts-service,compose-depends-on,docker-compose.v
 sahool-odoo,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-odoo,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
 sahool-odoo,sahool-postgres,compose-depends-on,docker-compose.v9.yml
+sahool-pg-exporter,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-pg-exporter,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-phase-runtime-outbox-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-phase-runtime-outbox-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml

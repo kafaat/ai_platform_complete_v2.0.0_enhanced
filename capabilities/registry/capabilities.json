@@ -290,13 +290,13 @@
         "GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3737",
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
+        "GET /api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:168",
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080",
         "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
         "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
         "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333",
         "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
-        "GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117",
-        "GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56"
+        "GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117"
       ],
       "ui_consumers": [
         "frontend/e2e/field-context-flows.spec.ts",
@@ -386,7 +386,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "apis": 201,
+        "apis": 202,
         "tests": 102
       }
     },
@@ -1011,7 +1011,7 @@
         "GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88",
         "GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290",
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256",
-        "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
+        "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:53",
         "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2109",
         "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:267",
         "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:51",
@@ -5295,6 +5295,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "tests/architecture/test_execution_dependency_audit.py",
+        "tests/ci/test_security_audit_tls_exception_is_narrow.py",
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
         "tests_v9/test_calibration_audit_events.py",
@@ -5340,7 +5341,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=15, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=16, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

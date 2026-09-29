@@ -695,9 +695,10 @@ sahool-platform,services/sahool-platform/api/routers/harvest_traceability.py,200
 sahool-platform,services/sahool-platform/api/routers/harvest_traceability.py,295,GET,/api/v1/harvest-lots/{harvest_lot_id}/traceability,get_traceability,versioned
 sahool-platform,services/sahool-platform/api/routers/high_value_crops.py,24,GET,/api/v1/high-value-crops/list,high_value_crops_list_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/high_value_crops.py,30,GET,/api/v1/high-value-crops/detail,high_value_crops_detail_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/indicators.py,35,GET,/api/v1/indicators/catalog,indicators_catalog,versioned
-sahool-platform,services/sahool-platform/api/routers/indicators.py,47,GET,/api/v1/indicators/map-layers,indicators_map_layers,versioned
-sahool-platform,services/sahool-platform/api/routers/indicators.py,60,GET,/api/v1/indicators/dashboard,indicators_dashboard,versioned
+sahool-platform,services/sahool-platform/api/routers/indicators.py,41,GET,/api/v1/indicators/catalog,indicators_catalog,versioned
+sahool-platform,services/sahool-platform/api/routers/indicators.py,53,GET,/api/v1/indicators/map-layers,indicators_map_layers,versioned
+sahool-platform,services/sahool-platform/api/routers/indicators.py,66,GET,/api/v1/indicators/dashboard,indicators_dashboard,versioned
+sahool-platform,services/sahool-platform/api/routers/indicators.py,168,GET,/api/v1/fields/{field_id}/indicator-observations/{view},field_indicator_observations,versioned
 sahool-platform,services/sahool-platform/api/routers/indices.py,22,GET,/api/v1/indices/coverage-report,indices_coverage_report,versioned
 sahool-platform,services/sahool-platform/api/routers/internal_service.py,52,GET,/internal/fields/{field_id}/state,internal_field_state,internal_s2s
 sahool-platform,services/sahool-platform/api/routers/internal_service.py,181,POST,/internal/events/ai-advice,internal_ai_advice_event,internal_s2s

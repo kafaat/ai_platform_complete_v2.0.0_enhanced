@@ -1,12 +1,12 @@
 {
   "counts": {
-    "domain_budget_headroom": 1,
-    "domain_budget_routes": 628,
+    "domain_budget_headroom": 0,
+    "domain_budget_routes": 629,
     "domain_route_budget": 629,
     "infrastructure_routes": 4,
-    "raw_routes": 632
+    "raw_routes": 633
   },
-  "inventory_sha256": "da2cc01a4f16ff55e579560ed6bd4b803a89dfb5f55a432ea0ab6281f0e03604",
+  "inventory_sha256": "4441ccddada3802493fb2508e457877d23f0220819bdfa03c76cb6230ad1c991",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "afdc77503f06e13dc5af358f0636ed1bbdb8d226c364e439ecf21b772f49bf8d"
+    "policy_sha256": "8f39ccdf164f777af60800ce506baf0b7d356e6658537911184f43cc1edbe54b"
   },
   "routes": [
     {
@@ -1177,6 +1177,14 @@
     },
     {
       "classification": "domain",
+      "function": "field_indicator_observations",
+      "line": 167,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+      "source": "api/routers/indicators.py"
+    },
+    {
+      "classification": "domain",
       "function": "field_input_traceability",
       "line": 3079,
       "method": "GET",
@@ -1514,7 +1522,7 @@
     {
       "classification": "domain",
       "function": "indicators_catalog",
-      "line": 34,
+      "line": 40,
       "method": "GET",
       "path": "/api/v1/indicators/catalog",
       "source": "api/routers/indicators.py"
@@ -1522,7 +1530,7 @@
     {
       "classification": "domain",
       "function": "indicators_dashboard",
-      "line": 59,
+      "line": 65,
       "method": "GET",
       "path": "/api/v1/indicators/dashboard",
       "source": "api/routers/indicators.py"
@@ -1530,7 +1538,7 @@
     {
       "classification": "domain",
       "function": "indicators_map_layers",
-      "line": 46,
+      "line": 52,
       "method": "GET",
       "path": "/api/v1/indicators/map-layers",
       "source": "api/routers/indicators.py"

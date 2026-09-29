@@ -6624,6 +6624,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/routers/indicators.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "GIS-002",
+        "score": 12,
+        "signals": [
+          "content:Map layers",
+          "content:map layer"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/routers/irrigation_mpc.py",
     "kind": "backend",
     "candidates": [
@@ -8388,6 +8410,28 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_indicator_observations_route.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
         ]
       }
     ]
