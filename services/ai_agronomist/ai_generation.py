@@ -373,14 +373,94 @@ async def preload_with_retry(
     return receipt
 
 
+#: مهلةُ فحص vLLM عند الإقلاع. ``GET /models`` لا يُركّب نصّاً، فعشرُ ثوانٍ تكفي خادماً حيّاً.
+VLLM_PROBE_TIMEOUT_SECONDS = 10.0
+
+#: التلميحُ المُسمّى في الإيصال: الحاوي ``sahool-vllm-jais`` خلف ``profiles: [vllm]``.
+VLLM_PROFILE_HINT_AR = (
+    "AI_PROVIDER=vllm يتطلّب خادم vLLM حيّاً: الحاوي sahool-vllm-jais لا يعمل إلّا بالملفّ "
+    "الشخصيّ (docker compose --profile vllm)، أو اضبط VLLM_BASE_URL على خادمٍ قائم."
+)
+
+
+def _vllm_failure(reason: str, model: str, **extra: str) -> dict[str, str]:
+    receipt = {"status": "failed", "provider": "vllm", "reason": reason, "model": model}
+    receipt.update(extra)
+    return receipt
+
+
+async def probe_vllm_generation(cfg: GenConfig) -> dict[str, str]:
+    """فحصُ إقلاعٍ لـvLLM: الخادمُ يُجيب **ويخدم النموذجَ المُهيَّأ** — بلا بياناتِ مستخدم.
+
+    **العطلُ الذي وُجِد هذا لأجله** (مراجعة v25، مشتقٌّ من M7): ``AI_PROVIDER=vllm``
+    يوجّه التوليدَ إلى ``sahool-vllm-jais``، والحاوي لا يعمل إلّا تحت ``profiles: [vllm]``.
+    فاختيارُ vllm بلا الملفّ الشخصيّ كان يُعيد ``not_requested`` هنا — ``/readyz`` يقول
+    «لم يُطلَب توليد» — ثمّ يسقط كلُّ نداءٍ حيٍّ بـ``ConnectError`` إلى جواب الأدلّة
+    صامتاً. الاختيارُ المُعلَن يُخفى، والعطلُ يظهر متأخّراً وغامضاً.
+
+    الآن الإيصالُ يُسمّي السبب: ``vllm_unreachable`` (مع التلميح) · ``vllm_timeout`` ·
+    ``vllm_http_error`` · ``vllm_invalid_response`` · ``vllm_model_not_served``.
+
+    **لماذا إيصالٌ لا 503:** التوليدُ في هذه الخدمة **اختياريٌّ بعقد** (fail-safe إلى
+    RAG+KG — رأسُ هذه الوحدة). وجعلُ غيابه 503 يُخرج الخدمةَ كلّها من التوجيه بينما
+    جوابُ الأدلّة يعمل — فيصير عطلُ ميزةٍ اختياريّةٍ انقطاعاً كاملاً. فيُعلَن كما يُعلَن
+    فشلُ Ollama: في ``generation_startup`` داخل ``/readyz``، ويُعاد فحصُه بالجدول نفسِه.
+    """
+    base = cfg.endpoint.removesuffix("/chat/completions")
+    headers = {k: v for k, v in cfg.headers.items() if k.lower() != "content-type"}
+    try:
+        async with httpx.AsyncClient(timeout=VLLM_PROBE_TIMEOUT_SECONDS) as client:
+            response = await client.get(base + "/models", headers=headers)
+    except httpx.TimeoutException as exc:
+        logger.error(
+            "vLLM startup probe timed out (%s): %s", type(exc).__name__, VLLM_PROFILE_HINT_AR
+        )
+        return _vllm_failure(
+            "vllm_timeout", cfg.model, error=type(exc).__name__, hint_ar=VLLM_PROFILE_HINT_AR
+        )
+    except httpx.HTTPError as exc:
+        logger.error("vLLM unreachable (%s): %s", type(exc).__name__, VLLM_PROFILE_HINT_AR)
+        return _vllm_failure(
+            "vllm_unreachable", cfg.model, error=type(exc).__name__, hint_ar=VLLM_PROFILE_HINT_AR
+        )
+    if response.status_code != 200:
+        logger.error("vLLM startup probe HTTP %s", response.status_code)
+        return _vllm_failure("vllm_http_error", cfg.model, http_status=str(response.status_code))
+    try:
+        payload = response.json()
+        served = sorted(
+            str(item["id"]) for item in payload["data"] if isinstance(item, dict) and item.get("id")
+        )
+    except (ValueError, KeyError, TypeError):
+        return _vllm_failure("vllm_invalid_response", cfg.model)
+    if cfg.model not in served:
+        logger.error("vLLM does not serve the configured model %s (served: %s)", cfg.model, served)
+        return _vllm_failure(
+            "vllm_model_not_served", cfg.model, served_models=",".join(served)[:200]
+        )
+    return {"status": "completed", "provider": "vllm", "model": cfg.model}
+
+
 async def preload_local_generation() -> dict[str, str]:
     """Load the configured local model without user data or model downloads.
 
     Startup has its own bounded budget. Interactive generation keeps its shorter
     deadline, and the native request inherits the Ollama server's context/residency.
     This receipt describes startup only, not a guarantee of indefinite residency.
+
+    ``vllm`` (داخليٌّ لا خارجيّ — ``provider_is_external`` لا يعدّه سحابيّاً) لا يُحمَّل
+    هنا بل **يُفحَص** عبر ``probe_vllm_generation``: لا نموذجَ يُحمَّل عند الطلب في vLLM،
+    والسؤالُ الذي يستحقّ الإيصالَ هو «هل الخادمُ حيٌّ ويخدم النموذج».
     """
     cfg = resolve_generation() if generation_enabled() else None
+    if (
+        cfg is None
+        and generation_enabled()
+        and _normalize_provider(os.getenv("AI_PROVIDER")) == "vllm"
+    ):
+        return _vllm_failure("vllm_model_unresolved", "")
+    if cfg is not None and cfg.provider == "vllm":
+        return await probe_vllm_generation(cfg)
     if cfg is None or cfg.provider != "local":
         return {"status": "not_requested"}
     base = cfg.endpoint.removesuffix("/v1/chat/completions")

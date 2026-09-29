@@ -90,7 +90,10 @@ def test_grid_quality_requires_measured_positive_pixels(monkeypatch, ratio, expe
     [
         ("local", "true", "completed"),
         ("local", "false", "not_requested"),
-        ("vllm", "true", "not_requested"),
+        # vllm لم يَعُد ``not_requested``: كان ذلك يُخفي اختيارَ vllm في ``/readyz`` بينما
+        # الحاوي خلف ``profiles: [vllm]`` قد لا يعمل. صار **فحصاً** (GET /models بلا
+        # بيانات مستخدم) — خاصّيّتُه في ``test_ai_agronomist_vllm_startup_probe.py``.
+        ("vllm", "false", "not_requested"),
     ],
 )
 async def test_startup_preloads_only_enabled_local_model_without_user_data(
