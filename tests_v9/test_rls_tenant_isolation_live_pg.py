@@ -29,18 +29,24 @@
 التالي سلسلةً فارغة ويسقط `::uuid`. وذلك عطلُ `GUC-SCOPE-GUARD-SEES-ONE-FILE-01`
 بعينه. فهنا `false` (مستوى الجلسة) — والاتّصالُ يُغلَق بعد كلّ اختبار فلا يتسرّب.
 
-**وحدُّ صدقٍ يُقال صراحةً:** هذا الملفّ يُنشئ جدولَه وسياستَه بنفسه. فالمُثبَتُ هنا
-أنّ **المحرّكَ يعزل**، وأنّ **الدورَ مقيَّدٌ فعلاً**، وأنّ **مِقياسنا غيرُ فارغ** —
-لا أنّ سياسات RLS المُعلَنة في هجرات المنصّة صحيحة. تلك شهادةٌ أخرى تحتاج قياساً على
-جداول المنصّة نفسِها بعد تطبيق الهجرات، ولم تُدَّعَ هنا.
+**وحدُّ صدقٍ يُقال صراحةً:** الشهودُ الثلاثة الأولى تُنشئ جدولَها وسياستَها بنفسها. فالمُثبَتُ
+بها أنّ **المحرّكَ يعزل**، وأنّ **الدورَ مقيَّدٌ فعلاً**، وأنّ **مِقياسنا غيرُ فارغ** —
+لا أنّ سياسات RLS المُعلَنة في هجرات المنصّة صحيحة.
+
+**والقسمُ الأخير يقيس السياساتِ المُهاجَرة نفسَها** — عائلةً عائلةً باسم الـGUC الذي تقرؤه
+(``TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01``): جدولٌ ممثِّلٌ لكلّ اسمٍ من الثلاثة،
+والكاتبُ الحقيقيّ حيث يُستورَد بلا خدمة. وحدُّه: ثلاثةُ جداول من ٣٣٠، لا الشجرة كلّها.
 
 التشغيل: ``TEST_DATABASE_ADMIN_URL=… TEST_DATABASE_URL=… pytest -m integration``
 """
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import uuid
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -303,5 +309,317 @@ async def test_drawing_migration_reapplies_and_isolates_runtime_dml():
         await app.close()
         try:
             await admin.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
+        finally:
+            await admin.close()
+
+
+# ═══════════ عائلاتُ اسمِ الـGUC على الجداول المُهاجَرة — السياسةُ نفسُها لا نسخةٌ منها ═══════════
+#
+# TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01. مقيسٌ على قاعدةٍ طُبِّق عليها البيانُ
+# القانونيّ كاملاً (٢٣١ هجرة، PG16.13، `pg_policies` لا نصُّ الهجرات): ٣٣٠ جدولاً تحت
+# ENABLE+FORCE، وكلُّ سياسةٍ فعّالة تقرأ اسمَها بـ`missing_ok=true`، والأسماءُ ثلاثة:
+#
+#     app.current_tenant      ٢٨٧ جدولاً (منها ١٢٠ تقبل app.tenant_id أيضاً عبر
+#                             sahool_effective_tenant_id — ٩٤ منها في WITH CHECK وحدَه)
+#     app.tenant_id           ٢٦ جدولاً — كاتبُها الوحيد phase_runtime_store/workers
+#     app.current_tenant_id   ١٤ جدولاً — كاتبُها الوحيد soil p1/p2/p3_store
+#
+# وكلُّ كاتبٍ في الشجرة يضبط الاسمَ الذي تقرؤه سياسةُ جداوله (مصفوفةٌ مقيسة: صفرُ تباين).
+# **فالتباينُ كامنٌ لا جارٍ** — وشكلُ فشله إن وقع: الاسمُ الخاطئ ⇒ صفرُ صفوفٍ بلا استثناء
+# في القراءة، و42501 من WITH CHECK في الكتابة.
+#
+# وما يحمرّ هنا تسريبٌ أو عمًى: سياقٌ يعيش بعد معاملته، أو كاتبٌ حقيقيّ لا يرى صفَّه.
+
+#: (اسمُ الـGUC، الجدول، عمودُ الوسم، زرعُ صفٍّ بـ$1=المستأجِر و$2=الوسم). والعائلةُ
+#: الأولى مرّتين عمداً: شكلا مقارنةٍ مختلفا الأثر حين يرتدّ الـGUC إلى `''` بعد المعاملة
+#: (مقيس): `tenant_id::text = NULLIF(…, '')` ⇒ صفرٌ صامت، و`tenant_id = …::uuid` بلا
+#: NULLIF ⇒ **22P02 صاخب** (٢٩ جدولاً). والخاصّيّةُ المطلوبة من كليهما واحدة: لا صفوف.
+_GUC_FAMILIES = [
+    pytest.param(
+        "app.current_tenant",
+        "water_ledger",
+        "field_id",
+        "INSERT INTO water_ledger (tenant_id, field_id, ledger_date) "
+        "VALUES ($1::uuid, $2, date '2026-01-01')",
+        id="app.current_tenant:text-nullif:water_ledger",
+    ),
+    pytest.param(
+        "app.current_tenant",
+        "signal_anomalies",
+        "anomaly_ref",
+        "INSERT INTO signal_anomalies (anomaly_ref, tenant_id, field_id, season_id, status, "
+        "version, payload_json) VALUES ($2, $1::uuid, $2, 's', 'detected', 1, '{}'::jsonb)",
+        id="app.current_tenant:bare-uuid-cast:signal_anomalies",
+    ),
+    pytest.param(
+        "app.tenant_id",
+        "model_versions_runtime",
+        "model_id",
+        "INSERT INTO model_versions_runtime (tenant_id, model_id, model_name, version, task, "
+        "artifact_uri, artifact_hash) VALUES ($1::uuid, $2, 'm', '1', 't', 'u', 'h')",
+        id="app.tenant_id:model_versions_runtime",
+    ),
+    pytest.param(
+        "app.current_tenant_id",
+        "soil_spatial_products",
+        "product_id",
+        "INSERT INTO soil_spatial_products (product_id, tenant_id, field_id, product_type, "
+        "dataset_version, geometry_hash, payload) "
+        "VALUES ($2, $1, $2, 'soilgrids_polygon', 'v', 'g', '{}'::jsonb)",
+        id="app.current_tenant_id:soil_spatial_products",
+    ),
+]
+
+
+async def _tagged(conn, table: str, key: str, prefix: str) -> int:
+    return await conn.fetchval(f"SELECT count(*) FROM {table} WHERE {key} LIKE $1", prefix + "%")
+
+
+async def _rows_or_refusal(conn, table: str, key: str, prefix: str) -> int | str:
+    """عددُ الصفوف المرئيّة، أو SQLSTATE الرفض — **وكلاهما فشلٌ مغلق**، والمحظورُ صفٌّ واحد."""
+    try:
+        return await _tagged(conn, table, key, prefix)
+    except asyncpg.PostgresError as exc:
+        return exc.sqlstate
+
+
+async def _seed_pair(admin, table: str, key: str, seed: str, tag: str) -> None:
+    catalog = await admin.fetchrow(
+        "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid = $1::regclass", table
+    )
+    assert catalog is not None, f"{table} غائب — البيانُ لم يُطبَّق على هذه القاعدة"
+    assert catalog["relrowsecurity"] and catalog["relforcerowsecurity"], (
+        f"{table} بلا ENABLE+FORCE بعد الهجرات"
+    )
+    await admin.execute(seed, _TENANT_A, f"{tag}-a")
+    await admin.execute(seed, _TENANT_B, f"{tag}-b")
+    # الشاهدُ السالبُ للأداة: المُديرُ الخارق يرى الصفّين — فالمِقياسُ قادرٌ على رؤية تسريب.
+    assert await _tagged(admin, table, key, tag) == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("guc", "table", "key", "seed"), _GUC_FAMILIES)
+async def test_each_guc_family_isolates_its_migrated_table_only_inside_the_transaction(
+    guc, table, key, seed
+):
+    """(أ) داخل المعاملة: A يرى صفَّه ولا يرى صفَّ B. (ب) بعد الالتزام على الاتّصال نفسِه:
+    الـGUC `''` لا NULL، ولا صفّ. (د) جلسةٌ لم يُضبَط فيها قطّ: NULL وصفرٌ صامت — ثمنُ
+    `missing_ok`، وبدونه 42704 على كلّ استعلام. وكتابةٌ بلا سياق تُرفَض 42501 لا تُقبَل.
+    """
+    tag = f"gucfam-{uuid.uuid4().hex[:10]}"
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    app = await asyncpg.connect(_APP_DSN)
+    try:
+        await _assert_role_is_actually_restricted(app)
+        await _seed_pair(admin, table, key, seed, tag)
+
+        assert await app.fetchval("SELECT current_setting($1, true)", guc) is None
+        assert await _tagged(app, table, key, tag) == 0
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await app.execute(seed, _TENANT_A, f"{tag}-nocontext")
+
+        async with app.transaction():
+            await app.execute("SELECT set_config($1, $2, true)", guc, _TENANT_A)
+            assert await _tagged(app, table, key, f"{tag}-a") == 1, (
+                f"{guc} مضبوطٌ ولا يرى المستأجرُ صفَّه في {table} — عمًى لا عزل"
+            )
+            assert await _tagged(app, table, key, tag) == 1, f"تسريبٌ عبر المستأجرين في {table}"
+
+        assert await app.fetchval("SELECT current_setting($1, true)", guc) == ""
+        assert await _rows_or_refusal(app, table, key, tag) in (0, "22P02"), (
+            f"سياقُ {guc} عاش بعد معاملته على {table} — تسريبٌ إلى وحدة العمل التالية"
+        )
+    finally:
+        await app.close()
+        try:
+            await admin.execute(f"DELETE FROM {table} WHERE {key} LIKE $1", tag + "%")
+        finally:
+            await admin.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("guc", "table", "key", "seed"), _GUC_FAMILIES)
+async def test_a_tx_local_tenant_set_outside_any_transaction_reaches_no_later_statement(
+    guc, table, key, seed
+):
+    """العطلُ الذي يجعل موضعاً من أساس `tenant_guc_scope_guard` عطلاً حقيقيّاً.
+
+    asyncpg بلا معاملةٍ صريحة في autocommit: `set_config(…, true)` معاملةُ نفسِه. **يُعيد
+    القيمةَ كأنّه نجح**، والعبارةُ التالية تقرأ `''` — لا شيءَ ضُبِط. ومقيسٌ بالكاتب
+    الحقيقيّ: `phase_runtime_store.persist_runtime_event` يُرفَض 42501 لهذا السبب بعينه.
+    """
+    tag = f"gucauto-{uuid.uuid4().hex[:10]}"
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    app = await asyncpg.connect(_APP_DSN)
+    try:
+        await _assert_role_is_actually_restricted(app)
+        await _seed_pair(admin, table, key, seed, tag)
+        assert not app.is_in_transaction()
+        assert await app.fetchval("SELECT set_config($1, $2, true)", guc, _TENANT_A) == _TENANT_A
+        assert await app.fetchval("SELECT current_setting($1, true)", guc) == ""
+        assert await _rows_or_refusal(app, table, key, tag) in (0, "22P02")
+    finally:
+        await app.close()
+        try:
+            await admin.execute(f"DELETE FROM {table} WHERE {key} LIKE $1", tag + "%")
+        finally:
+            await admin.close()
+
+
+@pytest.mark.asyncio
+async def test_a_session_level_tenant_outlives_its_transaction_unless_the_pool_resets_it():
+    """(ج) التسريبُ الكامن: `set_config(…, false)` يعيش عبر المعاملات على اتّصالٍ مُعاد.
+
+    والشاهدُ ثلاثيّ كي يُقرَأ كلٌّ بمعناه:
+
+    1. اتّصالٌ خامٌ مُعاد: وحدةُ عملٍ لاحقة **لم تضبط شيئاً** ترى صفَّ A — التسريبُ نفسُه،
+       وهو الشاهدُ السالب الذي يُثبِت أنّ المِقياس يرى تسريباً.
+    2. مسبحُ asyncpg الافتراضيّ: التحريرُ يُنفِّذ `RESET ALL`، فالاكتسابُ التالي — على
+       **الخادم الخلفيّ نفسِه** (pid مطابق) — يقرأ `''` ولا صفّ. هذا ما يعتمد عليه تصميمُ
+       auth (يُعيد ضبطَ admin على كلّ اكتساب) ومخزنُ سير العمل غيرُ المتزامن.
+    3. مسبحٌ بلا إعادة ضبط — نموذجُ مُجمِّعٍ بلا `server_reset_query`/`DISCARD ALL` (مثل
+       PgBouncer بوضع المعاملة): التسريبُ يعود. **ولا مُجمِّعَ في أيّ حزمةٍ اليوم** — فهذا
+       شرطٌ مسبق لإدخاله لا عطلٌ جارٍ.
+    """
+    guc, table, key = "app.current_tenant", "water_ledger", "field_id"
+    seed = _GUC_FAMILIES[0].values[3]
+    tag = f"gucsess-{uuid.uuid4().hex[:10]}"
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    try:
+        await _seed_pair(admin, table, key, seed, tag)
+
+        raw = await asyncpg.connect(_APP_DSN)
+        try:
+            await _assert_role_is_actually_restricted(raw)
+            async with raw.transaction():
+                await raw.execute("SELECT set_config($1, $2, false)", guc, _TENANT_A)
+            async with raw.transaction():
+                assert await _tagged(raw, table, key, tag) == 1, (
+                    "مستوى الجلسة لم يعش عبر المعاملة — المِقياس لا يرى التسريب الذي يحرسه"
+                )
+        finally:
+            await raw.close()
+
+        async def _no_reset(_conn) -> None:
+            return None
+
+        for reset, expected_guc, expected_rows in ((None, "", 0), (_no_reset, _TENANT_A, 1)):
+            kwargs = {} if reset is None else {"reset": reset}
+            pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1, **kwargs)
+            try:
+                async with pool.acquire() as conn:
+                    first = conn.get_server_pid()
+                    await conn.execute("SELECT set_config($1, $2, false)", guc, _TENANT_A)
+                async with pool.acquire() as conn:
+                    assert conn.get_server_pid() == first, "المسبح لم يُعِد الخادم نفسَه"
+                    assert await conn.fetchval("SELECT current_setting($1, true)", guc) == (
+                        expected_guc
+                    )
+                    assert await _tagged(conn, table, key, tag) == expected_rows
+            finally:
+                await pool.close()
+    finally:
+        try:
+            await admin.execute(f"DELETE FROM {table} WHERE {key} LIKE $1", tag + "%")
+        finally:
+            await admin.close()
+
+
+def _load_service_module(name: str, rel: str):
+    """وحدةُ خدمةٍ بمجلّدٍ مُوصَّل (`soil-service`) — لا تُستورَد باسم حزمة."""
+    path = Path(__file__).resolve().parents[1] / rel
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.asyncio
+async def test_the_real_soil_p1_writer_sets_the_name_its_policy_reads():
+    """الكاتبُ الحقيقيّ لعائلة `app.current_tenant_id` — لا جملةٌ منسوخةٌ منه.
+
+    الإدراجُ تحت FORCE يمرّ من WITH CHECK **فقط** إن ضبط الكاتبُ الاسمَ الذي تقرؤه السياسة
+    وداخل المعاملة نفسِها؛ فنجاحُه شاهدٌ على الاسم والنطاق معاً. ثمّ القارئُ الحقيقيّ بسياق
+    B لا يرى الصفّ. (ولا يُقرأ صفُّ A عبر `get_latest`: يرمي على `jsonb` الذي يُعيده asyncpg
+    نصّاً بلا codec — عطلٌ آخر مقيس، خارج هذا الصنف.)
+    """
+    p1_store = _load_service_module("soil_p1_store_rls_probe", "services/soil-service/p1_store.py")
+    tag = f"gucp1-{uuid.uuid4().hex[:10]}"
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1)
+    product = SimpleNamespace(
+        product_id=tag,
+        tenant_id=_TENANT_A,
+        field_id=tag,
+        dataset_version="v1",
+        geometry_hash="g",
+        model_dump=lambda mode="json": {"probe": True},
+    )
+    try:
+        async with pool.acquire() as conn:
+            await _assert_role_is_actually_restricted(conn)
+        assert await p1_store.save_spatial(pool, product) == tag
+        assert await _tagged(admin, "soil_spatial_products", "product_id", tag) == 1
+        assert (
+            await p1_store.get_latest(pool, _TENANT_B, "soil_spatial_products", "field_id", tag)
+            is None
+        ), "القارئُ الحقيقيّ بسياق B رأى صفَّ A"
+    finally:
+        await pool.close()
+        try:
+            await admin.execute(
+                "DELETE FROM soil_spatial_products WHERE product_id LIKE $1", tag + "%"
+            )
+        finally:
+            await admin.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    raises=asyncpg.InsufficientPrivilegeError,
+    reason=(
+        "phase_runtime_store._set_rls_tenant يضبط الاسمين بـset_config(…, true) خارج أيّ معاملة "
+        "في مواضعه الأحد عشر ⇒ يضيعان قبل الإدراج ⇒ WITH CHECK يرفض (42501) تحت مسبح التطبيق "
+        "المقيَّد. الملفّ مجمَّدٌ بـGATE-01: المسموحُ الاختبارُ لا الإصلاح."
+    ),
+)
+async def test_phase_runtime_store_persists_under_the_restricted_app_role():
+    """**العيبُ قائم — والاختبارُ يوثّقه تنفيذيّاً لا نثراً** (سابقة `test_compensation_killswitch`).
+
+    `strict=True` يمنعه من أن يصير نسياناً: يوم يدخل الإصلاح (لفُّ `_set_rls_tenant` والكتابة
+    في `conn.transaction()`) ينجح الاختبارُ **على غير توقّع** فيحمرّ الجناح ويُطالِب بنزع
+    العلامة. و`raises` يحصر التوقّعَ في رفض RLS وحده: فشلُ استيرادٍ أو اتّصالٍ يبقى فشلاً.
+    """
+    from api import phase_runtime_store
+
+    tag = f"gucprs-{uuid.uuid4().hex[:10]}"
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    pool = await asyncpg.create_pool(_APP_DSN, min_size=1, max_size=1)
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(db_pool=pool)), headers={})
+    try:
+        async with pool.acquire() as conn:
+            await _assert_role_is_actually_restricted(conn)
+        result = await phase_runtime_store.persist_runtime_event(
+            request,
+            tenant=uuid.UUID(_TENANT_A),
+            field=None,
+            aggregate_type="rls-probe",
+            aggregate_id=tag,
+            event_type="rls.probe",
+            payload={},
+        )
+        assert result == {"persisted": True, "event_type": "rls.probe"}
+        assert (
+            await admin.fetchval(
+                "SELECT count(*) FROM runtime_event_outbox WHERE aggregate_id = $1", tag
+            )
+            == 1
+        )
+    finally:
+        await pool.close()
+        try:
+            await admin.execute("DELETE FROM runtime_event_outbox WHERE aggregate_id = $1", tag)
         finally:
             await admin.close()

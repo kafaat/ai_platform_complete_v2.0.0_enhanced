@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+from contextlib import asynccontextmanager
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -31,13 +32,22 @@ def _validate_tenant_id(tenant_id: str) -> str:
     return tenant_id
 
 
-async def set_tenant_context(conn, tenant_id: str) -> None:
+@asynccontextmanager
+async def tenant_transaction(conn, tenant_id: str):
+    """معاملةٌ مُنطّقةٌ بالمستأجِر — المُساعِدُ يملكها فلا يُستعمَل خارجها.
+
+    حلّت محلّ ``set_tenant_context``/``clear_tenant_context``، وكانتا تنفّذان
+    ``set_config(…, true)`` على الاتّصال كما هو. **مقيسٌ على PG16 بدورٍ مقيَّد:** خارج
+    معاملةٍ صريحة العبارةُ معاملةُ نفسِها، فيُعيد ``set_config`` القيمةَ ثمّ تقرأ العبارةُ
+    التالية ``''`` — ضبطٌ بلا أثر، وسياسةُ ``NULLIF`` تُعيد صفراً بلا استثناء. و«المسح»
+    بضبط ``''`` محلّيّاً لا يمسح شيئاً يبقى بعد المعاملة أصلاً، وداخلها يفتح سياساتِ
+    «فاشلٍ-مفتوحٍ عند الغياب» (``audit_log`` · ``invitations`` · ``break_glass_grants``)
+    على كلّ المستأجرين. ولم يكن لأيٍّ منهما مُستدعٍ: فخٌّ كامن أُغلق قبل أن يُستعمَل.
+    """
     safe = _validate_tenant_id(tenant_id)
-    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
-
-
-async def clear_tenant_context(conn) -> None:
-    await conn.execute("SELECT set_config('app.current_tenant', '', true)")
+    async with conn.transaction():
+        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
+        yield conn
 
 
 def _authenticate_token(token: str, required_scope: str) -> dict:
