@@ -1,6 +1,7 @@
 """اختبارات المرحلتَين ٢ و٣ (البنود ١١-١٦)."""
 
 import os
+import re
 import sys
 
 import pytest
@@ -5943,10 +5944,13 @@ def test_supply_chain_audit_gate():
         os.path.join(base, "services/sahool-platform/api/requirements.txt"), encoding="utf-8"
     ) as _f:
         api_req = _f.read()
-    if "PyJWT==2.13.0" in api_req or "PyJWT>=2.13" in api_req:
-        r.append(("✓", "سلسلة الإمداد: PyJWT≥2.13.0 مثبّت (ثغرة crit/HMAC مُغلقة)"))
+    # يُقرأ الإصدارُ ويُقارَن بالأرضيّة، لا يُطابَق نصّاً: المطابقةُ على `==2.13.0` كانت
+    # ستُبلِّغ «رُجِّع» عن ترقيةٍ أمنيّة (2.14.0 أغلق CVE-2026-102274).
+    m = re.search(r"^PyJWT(?:\[[^\]]*\])?\s*(?:==|>=)\s*(\d+)\.(\d+)", api_req, re.M)
+    if m and (int(m.group(1)), int(m.group(2))) >= (2, 14):
+        r.append(("✓", "سلسلة الإمداد: PyJWT≥2.14.0 مثبّت (crit/HMAC وCVE-2026-102274 مُغلقة)"))
     else:
-        r.append(("✗", "سلسلة الإمداد: PyJWT رُجِّع دون 2.13.0 (regression أمنيّ)"))
+        r.append(("✗", "سلسلة الإمداد: PyJWT دون 2.14.0 (regression أمنيّ)"))
     return r
 
 
