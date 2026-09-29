@@ -109,6 +109,8 @@ def test_named_upstream_source_is_adapted_without_duplicate_groups():
         ("PORT", "80"),
         ("PORT", "8080;"),
         ("SAHOOL_DNS_IPV6", "off; include /tmp/injected;"),
+        ("SAHOOL_AUTH_UPSTREAM", "absent"),
+        ("SAHOOL_PLATFORM_UPSTREAM", "absent"),
     ],
 )
 def test_invalid_environment_fails_before_writing_config(key, value):
@@ -135,3 +137,39 @@ def test_listener_and_upstream_drift_fail_explicitly():
         adapter.render(
             SOURCE.replace("sahool-auth:8000", "unexpected-auth:8000"), ENV, ["10.0.0.2"]
         )
+
+
+ABSENT_ENV = {
+    **ENV,
+    "SAHOOL_RAG_RETRIEVAL_UPSTREAM": "absent",
+    "SAHOOL_SUPERVISOR_AGENT_UPSTREAM": "absent",
+    "SAHOOL_REMOTE_SENSING_WORKSPACE_BFF_UPSTREAM": "absent",
+}
+
+
+def test_a_declared_absent_service_is_never_looked_up_and_answers_503():
+    """**العطلُ المقيس:** على staging (2026-09-29) لا خدمةَ Railway لثلاثة منابع، فكان nginx
+    يسجّل «could not be resolved» كلَّ 10ث لكلٍّ منها ويدفن الأخطاءَ الحقيقيّة، ومساراتُها
+    تُجيب 502 مُبهَماً. المُعلَنُ غائباً يُوجَّه إلى جذعٍ محلّيّ **بلا بحث DNS** يُجيب 503 صادقاً.
+    """
+    config = adapter.render(SOURCE, ABSENT_ENV, ["10.0.0.2"])
+    for host in ("sahool-rag-retrieval", "sahool-supervisor-agent"):
+        assert f"server {host}.railway.internal" not in config
+    assert config.count(f"server unix:{adapter.ABSENT_SOCKET};") == 3
+    assert f"listen unix:{adapter.ABSENT_SOCKET};" in config
+    assert 'return 503 \'{"error":"service_not_deployed"}\';' in config
+    # الحاضرُ لا يُمَسّ: يبقى يُحَلّ حيّاً فيُوجَّه إليه متى نُشِر بلا إعادة إقلاع.
+    assert "server sahool-tts-service.railway.internal:8000 resolve;" in config
+    assert "server sahool-auth-main.railway.internal:8000 resolve;" in config
+    # الغيابُ يُغيّر المنبعَ لا حدَّ المصادقة.
+    assert config.count("auth_request /_auth_verify;") == SOURCE.count(
+        "auth_request /_auth_verify;"
+    )
+
+
+def test_absence_is_declared_never_inferred():
+    """بلا إعلانٍ لا جذعَ: الناتجُ كما كان حرفيّاً، فخدمةٌ تُنشَر لاحقاً تُوجَّه بلا تغيير."""
+    config = adapter.render(SOURCE, ENV, ["10.0.0.2"])
+    assert "unix:" not in config
+    assert "service_not_deployed" not in config
+    assert "server sahool-rag-retrieval.railway.internal:8000 resolve;" in config
