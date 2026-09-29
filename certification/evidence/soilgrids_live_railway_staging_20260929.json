@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "soilgrids-live-railway-staging-20260929",
+  "verdict": "MEASURED",
+  "scope": "live_railway_staging_soilgrids_classification_and_cache",
+  "source": {
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "commit_sha": "ede0d4e1b726a113af736f962bf62acf5b855c5f",
+    "pull_request": 1094
+  },
+  "environment": {
+    "platform": "railway",
+    "project_id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "environment_name": "staging",
+    "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+    "soil_service_id": "b92d960f-c267-47d7-a730-5c542d41c791",
+    "soil_deployment_id": "51d9cda0-acac-4410-a517-476b4cd4e70b",
+    "soil_deployment_status": "SUCCESS",
+    "soil_runtime_identity": {
+      "git_sha": "ede0d4e1b726a113af736f962bf62acf5b855c5f",
+      "build_id": "railway-ede0d4e1b726"
+    }
+  },
+  "method": {
+    "probe_host": "sahool-ai-agronomist preDeploy command (staging-only, removed after the run)",
+    "network_path": "railway private network: http://sahool-soil-service.railway.internal:8000",
+    "auth": "X-Agent-Token from the shared variable reference; value never printed",
+    "uvicorn_workers_on_soil_service": 2
+  },
+  "provider_direct_measurement": {
+    "measured_at_utc": "2026-09-29T11:42:23Z",
+    "probe_deployment_id": "19be35d6-d77d-46cb-ad84-bdd9ff584313",
+    "target": "https://rest.isric.org/soilgrids/v2.0/properties/query",
+    "points": [
+      {
+        "name": "sanaa_urban",
+        "lon": 44.2,
+        "lat": 15.35,
+        "http_status": 200,
+        "elapsed_s": 5.35,
+        "top_keys": ["geometry", "properties", "query_time_s", "type"],
+        "layers_0_5cm_mean": {"cec": null, "clay": null, "phh2o": null, "sand": null, "silt": null, "soc": null}
+      },
+      {
+        "name": "zabid_agri",
+        "lon": 43.33,
+        "lat": 14.2,
+        "http_status": null,
+        "elapsed_s": 90.57,
+        "error": "TimeoutError"
+      }
+    ]
+  },
+  "service_measurement": {
+    "measured_at_utc": "2026-09-29T13:55:19Z",
+    "probe_deployment_id": "96a93c4b-19fc-4278-a2af-b3cb50ab4630",
+    "endpoint": "GET /v1/soil/soilgrids",
+    "calls": [
+      {"point": "sanaa_urban", "call": "first", "http_status": 404, "error": "soilgrids_no_coverage", "elapsed_s": 5.67},
+      {"point": "sanaa_urban", "call": "second", "http_status": 503, "error": "soilgrids_pending", "retry_after": "30", "elapsed_s": 15.02},
+      {"point": "zabid_agri", "call": "first", "http_status": 200, "source": "soilgrids", "texture": "loam", "property_keys": ["cec", "clay_pct", "ph", "sand_pct", "silt_pct", "soc_pct"], "elapsed_s": 5.97},
+      {"point": "zabid_agri", "call": "retry_1", "http_status": 503, "error": "soilgrids_pending", "retry_after": "30", "elapsed_s": 15.02},
+      {"point": "zabid_agri", "call": "retry_2", "http_status": 200, "texture": "loam", "elapsed_s": 0.01},
+      {"point": "zabid_agri", "call": "retry_3", "http_status": 200, "texture": "loam", "elapsed_s": 0.01},
+      {"point": "zabid_agri", "call": "retry_4", "http_status": 200, "texture": "loam", "elapsed_s": 0.01},
+      {"point": "zabid_agri", "call": "retry_5", "http_status": 200, "texture": "loam", "elapsed_s": 0.02},
+      {"point": "zabid_agri", "call": "retry_6", "http_status": 200, "texture": "loam", "elapsed_s": 0.03},
+      {"point": "zabid_agri", "call": "retry_7", "http_status": 200, "texture": "loam", "elapsed_s": 0.02},
+      {"point": "zabid_agri", "call": "retry_8", "http_status": 200, "texture": "loam", "elapsed_s": 0.02}
+    ]
+  },
+  "gap_mapping": {
+    "SOILGRIDS-NO-COVERAGE-REPORTED-AS-UNAVAILABLE-01": {
+      "state": "verified",
+      "basis": "The provider returned 200 with every requested top-layer mean null for sanaa_urban, and the service on ede0d4e returned 404 soilgrids_no_coverage for the same point. The gap's claim is measured end to end."
+    },
+    "SOIL-PROVIDER-TIMEOUT-SHORTER-THAN-THE-PROVIDER-01": {
+      "state": "fixed",
+      "basis": "The gap concerns a provider slower than the caller's timeout. During the service measurement the provider answered in about 6 s, so that regime did not occur. That a fetch slower than 15 s completed on the other worker and was then served from its cache is inferred, not measured: responses do not name the worker.",
+      "promotion_condition": "A live call that returns pending and is later served from cache on the same worker after a measured fetch longer than ADAPTER_TIMEOUT (20 s)."
+    }
+  },
+  "boundaries": {
+    "runtime_claims": true,
+    "runtime_scope": "railway staging only; two coordinates at one point in time",
+    "production_certification": "NOT_GRANTED",
+    "overall_runtime_acceptance": "NOT_ASSESSED",
+    "ai_agronomist_readiness_measured": false,
+    "generation_preload_retry_verified_live": false,
+    "railway_configuration_changed_by_this_evidence": false,
+    "notes": "The probe was a temporary preDeploy command on sahool-ai-agronomist and was removed after the run; its marker variable was later deleted. This file records measurements only."
+  }
+}
