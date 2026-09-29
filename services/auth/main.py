@@ -37,6 +37,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 from shared.runtime_identity import load_build_identity
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
+from shared.tracing import configure_tracing
 
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
 # fallback آمن لو لم تتوفّر الحزمة المشتركة (لا يكسر الخدمة).
@@ -1038,12 +1039,11 @@ from mfa_runtime import (  # noqa: E402
 INVITATION_EXPIRY_DAYS = 7
 
 
-# ══════════════════════════════════════════════════════════════
-# تسجيل الراوترات المفكَّكة (نمط تفكيك المنصّة — محفوظ السلوك)
-# يُستدعى في **نهاية** الملفّ بعد تعريف app وكلّ التبعيّات المشتركة (مساعِدات JWT،
-# مسبح DB، النماذج، الاعتماديّات) كي تُحلّ وحدات routers/ رموزها عبر main.X بلا
-# استيراد دائريّ. التسطيح (_include_flat) يُبقي عدّ المسارات والمسح الساكن صحيحَيْن.
-# ══════════════════════════════════════════════════════════════
+# ══ تجميع التطبيق في **نهاية** الملفّ: الراوترات المفكَّكة ثمّ تتبّع OTLP ══
+# بعد app وكلّ التبعيّات المشتركة كي تُحلّ وحدات routers/ رموزها عبر main.X بلا استيراد دائريّ
+# (والتسطيح يُبقي عدّ المسارات صحيحاً). AUTH-NO-TRACING-01: المنصّة وحدها كانت تستدعي
+# configure_tracing فغاب مسارُ الدخول عن كلّ أثر. بلا OTEL_EXPORTER_OTLP_ENDPOINT لا يفعل شيئاً.
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)
+configure_tracing(app, "sahool-auth")

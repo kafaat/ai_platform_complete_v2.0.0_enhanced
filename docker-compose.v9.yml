@@ -604,6 +604,9 @@ services:
       SMTP_FROM: ${SMTP_FROM:-noreply@sahool.ye}
       FRONTEND_URL: ${FRONTEND_URL:-https://app.sahool.ye}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      # AUTH-NO-TRACING-01: المُجمِّع نفسه الذي تُصدِّر إليه المنصّة (main.py → configure_tracing).
+      # فارغاً ⇒ no-op؛ ومُجمِّعٌ ساقط لا يُسقِط الدخول: التصدير دفعاتٌ في خيطٍ خلفيّ (BatchSpanProcessor).
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
     depends_on:
       sahool-postgres:
         condition: service_healthy
