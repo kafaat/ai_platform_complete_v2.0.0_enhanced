@@ -177,6 +177,7 @@
       },
       "configuration": [
         "AI_GENERATION_ENABLED",
+        "AI_GENERATION_PRELOAD_RETRY_DELAYS",
         "AI_GENERATION_TIMEOUT_SECONDS",
         "AI_MODEL",
         "AI_MODELS",

@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86dda9a31bcf81f8bacfc461792edd9927567bead5007028922d9b4d1a0f0a18"
+          "content": "bb30834cfe5c55b74c365eeed6f9c39e409765b117c54a80a0dcbbf4b20f752b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10855,7 +10855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bab1218a7abdf7b621143127100b12d32970256577c55b3e15a041d328088124"
+          "content": "7b838c721f50799627b4c4a98e995f41de6199479105e80c3e6b2d6f60502b85"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -11015,7 +11015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffd7c3e7e91573283d3bfe31de93d0624627436ac8a7dd7ec794f665acf271f9"
+          "content": "0bcc7ec42914fa8ad5e022ce989e09f5507316b9970aa2a099f3bf971a5d77fb"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -29025,7 +29025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "267080a8f98ede87a1af1a00bf2acceda0cc8d82ff3e8870e49fa742023cc6cc"
+          "content": "658399473d5787df307b836bfaaa5b9d70e6f09bdb0aae020d66999a3b624da8"
         }
       ],
       "name": "services/soil-service/routers/soil_profile.py",
@@ -29055,7 +29055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50be1709eb172375a34f211a014c3262e040827826e36aaf457812debd7fe4e5"
+          "content": "9a06f4f0395d20b711db924336e35cceca6e5521a669a4422782fe9b382bc573"
         }
       ],
       "name": "services/soil-service/soilgrids_client.py",

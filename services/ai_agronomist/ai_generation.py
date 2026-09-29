@@ -312,6 +312,67 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     )
 
 
+#: جدولُ إعادة فحص التوليد بعد فشل الإقلاع (ثوانٍ).
+DEFAULT_PRELOAD_RETRY_DELAYS: tuple[float, ...] = (15.0, 60.0, 300.0)
+
+
+def parse_preload_retry_delays(raw: str | None) -> tuple[float, ...]:
+    """يقرأ جدولَ الإعادة من نصّ البيئة — **ويرفض ما يُعيد العطلَ نفسَه**.
+
+    ``inf`` كان يُقبَل: بعد أوّل فشلٍ ينام ``asyncio.sleep(inf)`` إلى الأبد فيعود الإيصالُ
+    العالقُ الذي وُجِد هذا الإصلاحُ لإزالته. وقيمةٌ غيرُ رقميّةٍ كانت تُسقِط استيرادَ
+    الوحدة كلَّها (رصدهما مراجعُ #1093).
+
+    فالقاعدةُ: كلُّ عنصرٍ يجب أن يكون رقماً **منتهياً غيرَ سالب**. وأيُّ عنصرٍ مخالفٍ
+    يُبطِل الجدولَ **كلَّه** فيُعاد الافتراض — حتميّاً، بلا تخمينٍ لنيّةِ من كتبه. والنصُّ
+    الفارغُ أو الغائبُ يعني الافتراضَ أيضاً.
+    """
+    if raw is None or not raw.strip():
+        return DEFAULT_PRELOAD_RETRY_DELAYS
+    parsed: list[float] = []
+    for part in raw.split(","):
+        text = part.strip()
+        if not text:
+            continue
+        try:
+            value = float(text)
+        except ValueError:
+            logger.warning("AI_GENERATION_PRELOAD_RETRY_DELAYS غيرُ رقميّ؛ يُستعمَل الافتراض")
+            return DEFAULT_PRELOAD_RETRY_DELAYS
+        if value != value or value in (float("inf"), float("-inf")) or value < 0:
+            logger.warning("AI_GENERATION_PRELOAD_RETRY_DELAYS غيرُ منتهٍ أو سالب؛ يُستعمَل الافتراض")
+            return DEFAULT_PRELOAD_RETRY_DELAYS
+        parsed.append(value)
+    return tuple(parsed) if parsed else DEFAULT_PRELOAD_RETRY_DELAYS
+
+
+async def preload_with_retry(
+    probe: Callable[[], Any],
+    *,
+    delays: tuple[float, ...],
+    sleep: Callable[[float], Any],
+    on_receipt: Callable[[dict[str, str]], None],
+) -> dict[str, str]:
+    """حلقةُ فحص الإقلاع مع الإعادة — **الحلقةُ التي تُشغّلها الخدمةُ نفسُها**.
+
+    مُستخرَجةٌ من ``lifespan`` ومحقونةُ التبعيّات (الفحص · النوم · الكتابة) كي تُختبَر
+    **هي** لا نسخةٌ منها. الصيغةُ الأولى كانت تختبر نسخةً محلّيّةً في ملفّ الاختبار،
+    فيبقى الاختبارُ أخضرَ ولو كفّت الخدمةُ عن الإعادة أو عن الكتابة في ``app.state``
+    (رصده مراجعُ #1093) — الصنفُ نفسُه الذي أُغلِق في #1092.
+
+    كلُّ إيصالٍ يُكتَب فور وصوله، والإعادةُ تتوقّف عند أوّل حالةٍ غيرِ ``failed``.
+    """
+    receipt = await probe()
+    on_receipt(receipt)
+    for delay in delays:
+        if receipt.get("status") != "failed":
+            return receipt
+        await sleep(delay)
+        receipt = await probe()
+        on_receipt(receipt)
+    return receipt
+
+
 async def preload_local_generation() -> dict[str, str]:
     """Load the configured local model without user data or model downloads.
 

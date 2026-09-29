@@ -38,10 +38,39 @@ KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
 
 
+# جدولُ إعادة فحص التوليد بعد فشل الإقلاع. يُقرَأ ويُتحقَّق منه في `ai_generation`
+# (منتهٍ · غيرُ سالب · وإلّا الافتراض) كي لا يُعيد `inf` الإيصالَ العالقَ نفسَه.
+_GENERATION_RETRY_DELAYS: tuple[float, ...] = ai_generation.parse_preload_retry_delays(
+    os.getenv("AI_GENERATION_PRELOAD_RETRY_DELAYS")
+)
+
+
 @asynccontextmanager
 async def lifespan(app):
     async def preload():
-        app.state.generation_startup = await ai_generation.preload_local_generation()
+        """يفحص التوليدَ عند الإقلاع، **ويُعيد المحاولة** إن فشل.
+
+        **العطلُ الذي وُجِد هذا لأجله** (تدقيق v25، 2026-09-24): كان الفحصُ يجري
+        **مرّةً واحدةً** عند الإقلاع. وإقلاعُ الخدمة يسابق إقلاعَ Ollama، فيقع
+        `ConnectError` فيُخزَّن `{"status": "failed"}` ويبقى كذلك **إلى الأبد** —
+        فيُبلِّغ `/readyz` عن فشلِ توليدٍ بينما نداءاتُ النموذج الحيّةُ تنجح.
+
+        الحلقةُ نفسُها في `ai_generation.preload_with_retry` — مُستخرَجةٌ ومحقونةُ
+        التبعيّات كي يُختبَر **ما تُشغّله الخدمة** لا نسخةٌ منه.
+
+        **حدُّ صدقٍ مُعلَن:** هذا يُصلِح إيصالاً **عالقاً على فشلٍ قديم**. ولا يجعل
+        الإيصالَ مراقبةً مستمرّة: نجاحٌ مُسجَّلٌ يبقى مُسجَّلاً وإن سقط النموذجُ بعده.
+        """
+
+        def record(receipt: dict) -> None:
+            app.state.generation_startup = receipt
+
+        await ai_generation.preload_with_retry(
+            ai_generation.preload_local_generation,
+            delays=_GENERATION_RETRY_DELAYS,
+            sleep=asyncio.sleep,
+            on_receipt=record,
+        )
 
     app.state.generation_startup = {"status": "pending"}
     task = asyncio.create_task(preload())

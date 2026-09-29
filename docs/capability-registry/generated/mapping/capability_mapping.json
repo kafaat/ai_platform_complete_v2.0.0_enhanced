@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5429,
+    "files_scanned": 5430,
     "files_by_kind": {
       "backend": 1211,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1519,
-      "tests": 1841,
+      "tests": 1842,
       "web": 458
     },
-    "unmapped_artifacts": 2200,
+    "unmapped_artifacts": 2201,
     "ambiguous_artifacts": 423
   },
   "capabilities": [
@@ -28018,11 +28018,11 @@
       ],
       "routes": [
         {
-          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:57",
+          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:59",
           "score": 22
         },
         {
-          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:46",
+          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:48",
           "score": 22
         },
         {
@@ -44632,6 +44632,10 @@
     },
     {
       "path": "tests_v9/test_v25_advisory_publication.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v25_audit_followups.py",
       "kind": "tests"
     },
     {

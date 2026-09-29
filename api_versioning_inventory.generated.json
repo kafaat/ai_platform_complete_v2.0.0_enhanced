@@ -137,7 +137,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 190,
+    "line": 219,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 195,
+    "line": 224,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 203,
+    "line": 232,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 223,
+    "line": 252,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 275,
+    "line": 304,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 321,
+    "line": 350,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 367,
+    "line": 396,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 383,
+    "line": 412,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 402,
+    "line": 431,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 446,
+    "line": 475,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 457,
+    "line": 486,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 468,
+    "line": 497,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 479,
+    "line": 508,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -9281,7 +9281,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
-    "line": 47,
+    "line": 49,
     "method": "POST",
     "path": "/v1/soil/suitability",
     "handler": "soil_suitability",
@@ -9290,7 +9290,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
-    "line": 58,
+    "line": 60,
     "method": "GET",
     "path": "/v1/soil/soilgrids",
     "handler": "soil_from_soilgrids",
