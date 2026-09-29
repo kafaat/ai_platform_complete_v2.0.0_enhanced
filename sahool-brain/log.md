@@ -8796,3 +8796,7 @@ Railway بنى `sahool-soil-service` من `ede0d4e` تلقائيّاً (أنما
 `SOILGRIDS-NO-COVERAGE-…` ⇒ `verified` (مقيسٌ طرفاً لطرف)؛ `SOIL-PROVIDER-TIMEOUT-…` ⇒ يبقى `fixed`
 بقيدٍ صريحٍ أوّلَ الخليّة (المزوّدُ لم يكن بطيئاً أثناء القياس). الأداةُ: `fixed 212→211`،
 `verified 2→3`، `open` ثابت، صفرُ أخطاء تحليل.
+**تصحيحٌ قبل الدمج (#1096):** رفض CI الترقيةَ بـ`brain_state_transition_guard` — «انتقالُ تحقّقٍ في
+الدماغ وحده». وهو محقّ: ادّعاءُ `verified` يحتاج دليلاً **خارج** قاعدة المعرفة، ولم أُشغّل هذا الحارسَ
+محلّيّاً (شغّلتُ `no_report_only_change_guard` فقط، وهما خطوتان في المهمّة نفسِها). أُضيف الدليلُ
+الخامُ `certification/evidence/soilgrids_live_railway_staging_20260929.json` على نمط `bcd8_…` و`wc005_…`.
