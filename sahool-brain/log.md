@@ -8896,3 +8896,16 @@ Railway لأيٍّ منها (`list-services` على staging). السببُ `depl
 
 **وعلى Railway staging:** بعد دمج #1098 ونجاح نشر المُهيّئ الجديد، ضُبِطت المنابعُ الثلاثة الغائبة `absent` على
 الواجهة، فانعدم «could not be resolved» في النشر الجديد (`certification/evidence/frontend_absent_upstreams_railway_staging_20260929.json`).
+
+## [2026-09-29] observability | ثلاثةُ عيوب إعدادٍ من المراجعة الجنائيّة v25: PostgresDown الكاذب · دلاءُ MinIO الفارغة · auth بلا تتبّع
+
+**PG-EXPORTER-EMPTY-DSN-FALSE-POSTGRESDOWN-01** (`fdf63105`): المُصدِّر بلا مصدرٍ افتراضيّ ⇒ `pg_up 0` دائماً.
+صار يتّصل بدور `sahool_app` المقيَّد عبر `DATA_SOURCE_URI/USER/PASS` (المُصدِّر يُرمِّز كلمة السرّ)، و`sslmode=disable`،
+والتجاوزُ `POSTGRES_EXPORTER_DSN` يفوز. مقيسٌ على ثنائيّ postgres_exporter v0.20.1 (sha256 مطابق) ضدّ Postgres 16 محلّيّ:
+قديم 0 · جديد 1 · بلا sslmode 0 · عنوانٌ مُركَّب بكلمة سرٍّ فيها `@:/#` 0 · تجاوزٌ خاطئ 0 · Postgres ساقط 0.
+
+**S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01** (`fdf63105`): الافتراضُ دلوُ كلِّ مفتاحٍ كما يُنشئه `sahool-minio-init`
+(مفتاح ⇒ سياسة ⇒ دلو، مشتقٌّ في الاختبار لا منسوخ). MinIO الحيّ لم يُقَس (dl.min.io محجوب هنا).
+
+**AUTH-NO-TRACING-01** (`434e2596`): auth تُصدِّر امتداداتها باسم `sahool-auth`؛ بلا نقطة لا شيء، ومُجمِّعٌ مغلق/لا يُوجَّه
+لا يُبطئ الطلبات (≤7ms) وإغلاقُه ~6.7ث/~20ث بمهلة المُصدِّر الافتراضيّة. `main.py` بقي 1049 سطراً.

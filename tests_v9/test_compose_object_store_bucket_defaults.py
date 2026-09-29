@@ -83,7 +83,7 @@ def _bucket_for_credential(credential_var: str) -> str:
 
 
 def _created_buckets() -> set[str]:
-    made = re.search(r"^mc mb --ignore-existing (.+)$", PROVISION.read_text("utf-8"), re.M)
+    made = re.search(r"^mc mb --ignore-existing (.+)$", PROVISION.read_text(encoding="utf-8"), re.M)
     assert made, "provision.sh لم يعد يُنشئ الدلاء"
     return {target.split("/", 1)[1] for target in made.group(1).split()}
 
