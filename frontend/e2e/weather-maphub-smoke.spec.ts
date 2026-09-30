@@ -81,8 +81,9 @@ test.describe('MapHub weather runtime smoke', () => {
 
     // الجلسة مبذورة مسبقاً (seedAuthAndRoutes) فلا حاجة لزرّ الدخول — ننتقل مباشرةً
     // لمركز الخرائط بسياق الطقس.
-    await page.goto('/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1', { waitUntil: 'domcontentloaded' });
+    // MapLibre 6 may keep tile/network activity alive; networkidle is not an app-readiness contract.
+    // The assertions below prove the page and weather interaction contract instead.
     await expect(page.locator('body')).toContainText(/طقس|Weather|الخريطة/);
 
     // المحرّك MapLibre/WebGL (لا Leaflet) — بنية الـcanvas تتباين، فننقر قرب مركز الخريطة
