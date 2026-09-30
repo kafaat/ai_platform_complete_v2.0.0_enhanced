@@ -179,24 +179,12 @@ def test_the_fixture_distinguishes_the_measured_defect(status_servers):
     assert _run_probe(fixed, status_servers[503]).returncode != 0
 
 
-# صورةُ raster-service يبنيها Railway للإنتاج، فإصلاحُها في التزامٍ منفصل يُقرِّر المالكُ
-# توقيتَه بعد قياسٍ إنتاجيّ. حتى يهبط: xfail **صارم** — العطلُ معلَنٌ لا مخفيّ، وإصلاحُه
-# دون حذف هذا السطر يُحمِّر (XPASS) فلا يبقى استثناءٌ بائت.
-_PENDING_RELEASE = ("services/raster-service/Dockerfile:",)
-
-
 def _cases() -> list:
-    cases = []
-    for ident, code in _PYTHON_HTTP_MEMBERS:
-        for status in _STATUSES:
-            marks = ()
-            if status != 200 and ident.startswith(_PENDING_RELEASE):
-                marks = pytest.mark.xfail(
-                    strict=True,
-                    reason="HEALTHCHECK-ACCEPTS-ANY-HTTP-STATUS-01: Dockerfile fix held for release",
-                )
-            cases.append(pytest.param(ident, code, status, marks=marks, id=f"{ident}-{status}"))
-    return cases
+    return [
+        pytest.param(ident, code, status, id=f"{ident}-{status}")
+        for ident, code in _PYTHON_HTTP_MEMBERS
+        for status in _STATUSES
+    ]
 
 
 @pytest.mark.parametrize(("ident", "code", "status"), _cases())
@@ -224,16 +212,7 @@ def test_curl_healthcheck_fails_on_http_error(ident):
 
 
 def _bounds_cases() -> list:
-    cases = []
-    for ident, code in _PYTHON_HTTP_MEMBERS:
-        marks = ()
-        if ident.startswith(_PENDING_RELEASE):
-            marks = pytest.mark.xfail(
-                strict=True,
-                reason="HEALTHCHECK-ACCEPTS-ANY-HTTP-STATUS-01: Dockerfile fix held for release",
-            )
-        cases.append(pytest.param(ident, code, marks=marks, id=ident))
-    return cases
+    return [pytest.param(ident, code, id=ident) for ident, code in _PYTHON_HTTP_MEMBERS]
 
 
 @pytest.mark.parametrize(("ident", "code"), _bounds_cases())

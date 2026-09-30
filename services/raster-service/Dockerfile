@@ -49,5 +49,5 @@ RUN useradd -m -u 10001 appuser \
     && chown -R appuser:appuser /app /data/rasters
 USER appuser
 EXPOSE 8001
-HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import httpx; httpx.get('http://localhost:8001/healthz')"
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import httpx; httpx.get('http://localhost:8001/healthz', timeout=4).raise_for_status()"
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

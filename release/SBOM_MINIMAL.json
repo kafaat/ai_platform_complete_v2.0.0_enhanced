@@ -14125,7 +14125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c21adaa028ebdf8462eb9bbe0e27e6ebfa5f6ef72e8dec83145bc70bbad9a68a"
+          "content": "0a08f6d2ec1fb3097352f37bea98c020099a8d184f6a7a4a78c7b716f85c9eef"
         }
       ],
       "name": "services/raster-service/Dockerfile",
