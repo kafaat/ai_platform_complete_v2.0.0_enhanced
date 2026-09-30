@@ -45,20 +45,32 @@ PW_BACKOFF="${PW_BACKOFF:-10}"
 # shellcheck source=scripts/ci/apt_mirror_fallback.sh
 . "$(dirname "$0")/apt_mirror_fallback.sh"
 
+outcomes=""
 i=1
 while [ "$i" -le "$PW_ATTEMPTS" ]; do
-  if timeout -k 10 "$PW_TIMEOUT" npx playwright install --with-deps "$@"; then
+  timeout -k 10 "$PW_TIMEOUT" npx playwright install --with-deps "$@"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
     echo "playwright install نجح في المحاولة $i"
     exit 0
   fi
-  echo "playwright install تعثّر/تجمّد (محاولة $i من $PW_ATTEMPTS)"
+  # المهلةُ (124/137) غيرُ الفشل: سجلُّ 2026-09-30 قال «تجاوز مهلته ٣ مرّات» ومحاولتان
+  # منها سقطتا على قفل dpkg في ثوانٍ. الرسالةُ تقول ما وقع في كلّ محاولة.
+  case "$rc" in
+    124 | 137) outcomes="$outcomes $i:مهلة" ;;
+    *) outcomes="$outcomes $i:فشل($rc)" ;;
+  esac
+  echo "playwright install تعثّر/تجمّد (محاولة $i من $PW_ATTEMPTS، رمز $rc)"
   if [ "$i" -lt "$PW_ATTEMPTS" ]; then
     # التبديل **قبل** التراجع: النوم على مرآةٍ متعثّرة إنفاقُ وقتٍ على نفس الشرط.
     switch_apt_mirror
+    # ثمّ انتظارُ apt الذي تركته المحاولةُ المنتهية حيّاً — وإلّا فالمحاولةُ التالية
+    # تسقط على قفله في ثوانٍ (مقيسٌ، انظر apt_mirror_fallback.sh).
+    wait_for_apt_idle "$PW_TIMEOUT"
     sleep $((PW_BACKOFF * i))
   fi
   i=$((i + 1))
 done
 
-echo "::error::playwright install تجاوز مهلته $PW_ATTEMPTS مرّات (بما فيها مرآة APT بديلة؛ ولا مرآة بديلة لـCDN المتصفّحات)" >&2
+echo "::error::playwright install فشل في $PW_ATTEMPTS محاولات —$outcomes (بما فيها مرآة APT بديلة؛ ولا مرآة بديلة لـCDN المتصفّحات)" >&2
 exit 1
