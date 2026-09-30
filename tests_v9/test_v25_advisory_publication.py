@@ -86,6 +86,17 @@ async def test_chat_publication_requires_current_owner_facts_and_persisted_recei
     )
     assert "sahool.structured_advisory.v1" in generate.call_args.args[1]
     assert receipts
+    # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: المحاولةُ تُقاس دائماً؛ والنسبةُ
+    # (ما ترسمه الواجهةُ «المزوّد · النموذج») للجواب الظاهر وحده.
+    assert (result["generation_attempted_model"], result["generation_attempted_provider"]) == (
+        "fixture",
+        "local",
+    )
+    surfaced = case == "valid"
+    assert result["generation_surfaced"] is surfaced
+    assert (result["generation_model"], result["generation_provider"]) == (
+        ("fixture", "local") if surfaced else (None, None)
+    )
     if case == "valid":
         assert result["mode"] == "validated_field_facts"
         assert result["generation_status"] == "validated_structured_facts"
