@@ -1356,6 +1356,13 @@
           "find": "    \"runtime_certification_gate.py\": -1,",
           "replace": "    \"runtime_certification_gate.py\": 0,  # mutated: lexical order runs evidence consumer first",
           "why": "Evidence maturity يستهلك runtime_certification_summary؛ إعادة المنتج إلى tier الافتراضي تجعل capability_evidence_maturity_engine يسبقه أبجدياً في fix pass."
+        },
+        {
+          "expect": "test_my_own_commit_during_the_sweep_is_not_blamed_on_a_guard",
+          "find": "    moved = head_before != head_after\n",
+          "replace": "    moved = False\n",
+          "test": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+          "why": "تجاهلُ `HEAD` يُعيد نسبةَ إيداعِ المُشغِّل أثناء المكنسة إلى «حارس كتب أثناء الفحص» — الحادثةُ المقيسة: ملفّا release/ أُودِعا أثناء التشغيل فاتُّهِم حارسٌ لم يكتب، ورسالةٌ كاذبةٌ مرّةً تُقرأ ضجيجاً في المرّة التي يكتب فيها حارسٌ حقّاً"
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
