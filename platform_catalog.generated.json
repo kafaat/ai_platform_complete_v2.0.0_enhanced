@@ -16511,7 +16511,7 @@
           "sahool-raster-cache-invalidation-worker",
           "sahool-raster-service"
         ],
-        "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz')",
+        "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz', timeout=4).raise_for_status()",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -17841,7 +17841,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "cb6e8ed02719b0f13b758558a94c9b6e170e8c7cb50bb68be049653bf999c3ed",
+  "fingerprint": "8b1a2e7fae48e9ccf818f7c44ceb6ec90ed7734ae86d64f43facaabce6377d56",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

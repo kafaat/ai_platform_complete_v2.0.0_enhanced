@@ -680,7 +680,7 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8001/healthz')"]
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8001/healthz', timeout=4).raise_for_status()"]
       interval: 20s
       timeout: 5s
       retries: 6
