@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5459,
+    "files_scanned": 5462,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
-      "governance": 64,
+      "governance": 65,
       "mobile": 55,
-      "other": 1523,
-      "tests": 1859,
+      "other": 1524,
+      "tests": 1860,
       "web": 459
     },
-    "unmapped_artifacts": 2215,
+    "unmapped_artifacts": 2216,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -44527,6 +44527,10 @@
     },
     {
       "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_railway_dockerfile_pr_build_plan.py",
       "kind": "tests"
     },
     {
