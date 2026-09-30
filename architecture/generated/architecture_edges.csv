@@ -135,7 +135,7 @@ sahool-auth,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-auth,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
 sahool-auth,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-auth,sahool-redis,compose-depends-on,docker-compose.fixed.yml
-sahool-auth,sahool-redis,compose-depends-on,docker-compose.v9.yml
+sahool-auth,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
 sahool-canonical-execution-learning-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-canonical-execution-learning-worker,sahool-nats,compose-depends-on,docker-compose.v9.yml
 sahool-canonical-execution-learning-worker,sahool-notification-agent,compose-depends-on,docker-compose.v9.yml
@@ -154,7 +154,7 @@ sahool-guardrails-engine,sahool-migrate,compose-depends-on,docker-compose.fixed.
 sahool-guardrails-engine,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
 sahool-guardrails-engine,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-guardrails-engine,sahool-redis,compose-depends-on,docker-compose.fixed.yml
-sahool-guardrails-engine,sahool-redis,compose-depends-on,docker-compose.v9.yml
+sahool-guardrails-engine,sahool-redis-state,compose-depends-on,docker-compose.v9.yml
 sahool-indicators-service,sahool-migrate,compose-depends-on,docker-compose.fixed.yml
 sahool-indicators-service,sahool-nats,compose-depends-on,docker-compose.fixed.yml
 sahool-indicators-service,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
