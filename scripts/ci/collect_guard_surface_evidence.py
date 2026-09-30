@@ -185,11 +185,29 @@ def evaluate(sites: list[dict], runs: dict[str, dict]) -> dict:
         for guard in site["guards"]:
             per_guard.setdefault(guard, []).append(judged)
 
+    # **المُطالَبُ هو الحاجبُ بتعريف الكتالوج نفسِه، لا كلُّ مُستدعًى.** العقدُ في
+    # `certification_evidence_producers.json` يقول «قائمةُ الحاجبات المشتقّة من guard_catalogue»،
+    # و`discover_invocations` يُسقِط الموضعَ ذا `continue-on-error`؛ فحارسٌ **كلُّ** مواضعه كذلك
+    # ليس حاجباً هناك. وكان هذا الشاهدُ يُطالِب به رغم ذلك، وحالتُه `non_blocking_by_declaration`
+    # خاصّيّةٌ **لا يُزيلها أيُّ عدّاء** — فالفارقُ لا يخلو أبداً ولا يُنبعَث `GUARDS`.
+    # **مقيسٌ على bcb7f0ed بمحاكاة أفضل عالَمٍ ممكن** (كلُّ workflow شُغِّل وكلُّ خطوةٍ success،
+    # حتّى ذوات الإطلاق اليدويّ): ٢٧٧ مُطالَباً مقابل ٢٧٦ حاجباً في الكتالوج، وحارسٌ واحدٌ غيرُ
+    # مُثبَتٍ إلى الأبد: `gap_registry_measure.py` (وظيفةُ `gap-registry-report` المُعلَنة
+    # report-only). أي أنّ المسارَ الشرعيَّ كان **مستحيلاً بنيويّاً** لا متعذّراً بدليلٍ ناقص.
+    # والاستثناءُ لا يتسرّب: حارسٌ له موضعٌ حاجبٌ **واحدٌ** يبقى مُطالَباً كما كان، وغيرُ المُطالَب
+    # منشورٌ في الدليل بقائمته (`non_blocking_excluded`) لا مطويّ.
+    blocking = {g for site in sites if not site["continue_on_error"] for g in site["guards"]}
+
     guards: list[dict] = []
     unproven: list[dict] = []
     excluded: list[str] = []
+    non_blocking: list[str] = []
     for guard in sorted(per_guard):
         sites_judged = per_guard[guard]
+        if guard not in blocking:
+            guards.append({"guard": guard, "status": "non_blocking_by_declaration"})
+            non_blocking.append(guard)
+            continue
         ran = [s for s in sites_judged if s["status"] == "ran"]
         if not ran and all(s["status"] == "self_witnessing_excluded" for s in sites_judged):
             # يُستدعى في الـworkflow الحامل لهذا الشاهد **وحدَه** ⇒ دورٌ لا يتقارب.
@@ -215,12 +233,14 @@ def evaluate(sites: list[dict], runs: dict[str, dict]) -> dict:
         guards.append({"guard": guard, "status": "not_proven", "reasons": reasons})
         unproven.append({"guard": guard, "reasons": reasons, "sites": failed_sites})
 
+    declared = len(per_guard) - len(non_blocking)
     return {
         "guards": guards,
-        "guards_declared": len(per_guard),
-        "guards_proven_run": len(per_guard) - len(unproven) - len(excluded),
+        "guards_declared": declared,
+        "guards_proven_run": declared - len(unproven) - len(excluded),
         "guards_unproven": unproven,
         "self_witnessing_excluded": excluded,
+        "non_blocking_excluded": non_blocking,
         "workflows_measured": sorted(runs),
     }
 
@@ -334,6 +354,9 @@ def main(argv: list[str] | None = None) -> int:
 
     proven, declared = fields["guards_proven_run"], fields["guards_declared"]
     print(f"GUARDS witness: {proven}/{declared} حارساً حاجباً أُثبِت تشغيلُه → {out}")
+    # غيرُ المُطالَب يُطبَع كما يُكتَب: مرئيٌّ في السجلّ لا في الملفّ وحدَه.
+    for guard in fields.get("non_blocking_excluded") or []:
+        print(f"  ⊘ غيرُ مُطالَب — continue-on-error في كلّ مواضعه: {guard}")
     if fields["guards_unproven"]:
         # **الفارقُ يُطبَع لا يُختصَر عدداً.** قائمةٌ محدودةٌ في السطور وكاملةٌ في الملفّ:
         # العددُ وحدَه هو بعينه ما رفضه إعلانُ المُنتِجين.

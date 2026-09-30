@@ -155,11 +155,88 @@ def test_a_matrix_job_must_prove_every_leg():
 
 
 def test_continue_on_error_is_not_a_blocking_run():
-    """حارسٌ لا يُسقِط وظيفتَه حين يفشل ليس حاجباً — وعدُّه حاجباً يضخّم السطحَ كذباً."""
+    """حارسٌ لا يُسقِط وظيفتَه حين يفشل ليس حاجباً — وعدُّه حاجباً يضخّم السطحَ كذباً.
+
+    **وكان هذا الاختبارُ نفسُه يُثبّت العطل:** طالب بأن يقع الحارسُ في `guards_unproven`،
+    أي أن يُعَدّ حاجباً ويُطالَب بإثباتٍ **لا يمكن** أن يقع — فحالةُ الموضع خاصّيّةٌ مُعلَنة
+    لا يُزيلها عدّاء. صار: لا يُطالَب، ولا يدخل العددَ الحاجب، ويُنشَر مُستثنًى باسمه.
+    `PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01`.
+    """
     result = WITNESS.evaluate(
         [_site(continue_on_error=True)], {"ci.yml": _run(_job("Lint & Format"))}
     )
-    assert result["guards_unproven"][0]["reasons"] == ["non_blocking_by_declaration"]
+    assert result["guards_unproven"] == []
+    assert result["non_blocking_excluded"] == [GUARD]
+    assert result["guards_declared"] == 0 and result["guards_proven_run"] == 0
+    assert _status_of(result) == "non_blocking_by_declaration"
+
+    # والموضعُ غيرُ الحاجب **لا يشهد** لحارسٍ حاجبٍ في موضعٍ آخر: نجاحُه لا يُثبِت شيئاً.
+    # (هذا ما يُبقي طفرةَ `judge_site` المسجَّلة باسم هذا الاختبار مقتولةً.)
+    mixed = WITNESS.evaluate(
+        [_site(continue_on_error=True), _site(workflow="other.yml")],
+        {"ci.yml": _run(_job("Lint & Format"))},
+    )
+    assert [u["guard"] for u in mixed["guards_unproven"]] == [GUARD]
+    assert "non_blocking_by_declaration" in mixed["guards_unproven"][0]["reasons"]
+
+
+def test_one_blocking_site_keeps_the_guard_demanded():
+    """الاستثناءُ لا يتسرّب من موضعٍ إلى حارس: موضعٌ حاجبٌ واحدٌ يُبقي المطالبةَ كاملة."""
+    sites = [_site(continue_on_error=True), _site(workflow="other.yml")]
+    result = WITNESS.evaluate(sites, {"ci.yml": _run(_job("Lint & Format"))})
+    assert result["non_blocking_excluded"] == []
+    assert [u["guard"] for u in result["guards_unproven"]] == [GUARD]
+    assert "workflow_not_run_on_this_commit" in result["guards_unproven"][0]["reasons"]
+    assert result["guards_declared"] == 1
+
+
+def _best_world_runs(sites: list[dict]) -> dict[str, dict]:
+    """كلُّ workflow شُغِّل على البصمة، وكلُّ وظيفةٍ وخطوةٍ تستدعي حارساً انتهت `success`."""
+    runs: dict[str, dict] = {}
+    for site in sites:
+        run = runs.setdefault(site["workflow"], _run())
+        for job_name in site["job_names"]:
+            job = next((j for j in run["jobs"] if j["name"] == job_name), None)
+            if job is None:
+                job = _job(job_name, steps=[])
+                run["jobs"].append(job)
+            name = site["step_name"] or ("Run " + " ".join(site["guards"]))
+            job["steps"].append({"name": name, "conclusion": "success"})
+    return runs
+
+
+def test_the_demanded_set_is_the_catalogues_blocking_set():
+    """تعريفٌ واحدٌ للحاجب: ما يُطالِب به الشاهدُ هو بعينه ما يعدّه الكتالوجُ حاجباً.
+
+    مقيسٌ قبل الإصلاح على الشجرة: ٢٧٧ مُطالَباً مقابل ٢٧٦ في الكتالوج — قائمتان تختلفان،
+    وهو الصنفُ نفسُه الذي أُغلِق في نصف التزييف (`BLOCKERS` في موضعَين).
+    """
+    sites = CATALOGUE.discover_invocation_sites()
+    result = WITNESS.evaluate(sites, {})
+    demanded = {
+        g["guard"] for g in result["guards"] if g["status"] != "non_blocking_by_declaration"
+    }
+    assert demanded == set(CATALOGUE.discover_invocations())
+    assert result["guards_declared"] == len(demanded)
+
+
+def test_the_legitimate_path_is_reachable_in_the_best_possible_world():
+    """**نصفُ «تعذّرِ النجاح» بنيويّاً:** إن شُغِّل كلُّ شيءٍ ونجح، يخلو الفارق.
+
+    قبل الإصلاح بقي `scripts/ci/gap_registry_measure.py` غيرَ مُثبَتٍ في هذا العالَم نفسِه
+    (`non_blocking_by_declaration`)، فلا يُنبعَث `GUARDS` ولا يُعتمَد إنتاجٌ مهما صدق الدليل.
+    وهذا لا يُسهِّل النجاحَ بلا دليل: العالَمُ المُحاكى هو **كلُّ** حاجبٍ مُشغَّلاً ناجحاً،
+    والحالاتُ السالبة أعلاه (مُتخطّاة · غائبة · مُعاد تسميتُها · رِجلٌ ناقصة) ما تزال تسقط.
+    """
+    sites = CATALOGUE.discover_invocation_sites()
+    result = WITNESS.evaluate(sites, _best_world_runs(sites))
+    assert result["guards_unproven"] == [], [
+        (u["guard"], u["reasons"]) for u in result["guards_unproven"]
+    ]
+    assert (
+        result["guards_proven_run"] + len(result["self_witnessing_excluded"])
+        == (result["guards_declared"])
+    )
 
 
 def test_a_job_name_that_cannot_be_derived_is_a_gap_not_a_match():
