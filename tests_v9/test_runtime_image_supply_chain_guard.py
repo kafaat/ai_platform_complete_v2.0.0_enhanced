@@ -78,3 +78,20 @@ def test_security_mutations_are_killed(target: str, find: str, replace: str, exp
     values[target] = values[target].replace(find, replace, 1)
     errors = _module().evaluate(values["runtime"], values["matrix"], values["installer"])
     assert any(expected in error for error in errors), errors
+
+
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        "docker/build-push-action@v7.4.0",
+        "docker/build-push-action@" + "0" * 40,
+        "docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a",
+    ],
+)
+def test_unapproved_build_references_remain_rejected(replacement: str) -> None:
+    runtime, matrix, installer = _sources()
+    guard = _module()
+    assert runtime.count(guard.BUILD_PIN) == 1
+    mutated = runtime.replace(guard.BUILD_PIN, replacement, 1)
+    errors = guard.evaluate(mutated, matrix, installer)
+    assert "exactly one pinned Docker build step is required" in errors
