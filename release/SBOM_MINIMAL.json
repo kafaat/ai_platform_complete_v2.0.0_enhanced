@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5be30b6ada060ffd361b0682fc96e2cac3ca9d4be7ff3376eacd0f4bd5953568"
+          "content": "7c003841578e3b836e1a94d73d18c67cab7e0d875852558dc53c212365ed41b1"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cda08df69b6f99deb47477e5b48919dad84b293aa1a002f484a612692f19b2a6"
+          "content": "48c9727f5e08b4f89cec4d8b8f0a02236231d4cb5f9449df615206c83a9e6910"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "559c8f16abd90bda633c091d3aa367f5852ab1f027f082757152ac5919746873"
+          "content": "d75890aa1a9231ab29a7634c3f96499738a45605a31c18c05c327d08518d2117"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb30834cfe5c55b74c365eeed6f9c39e409765b117c54a80a0dcbbf4b20f752b"
+          "content": "5e607bb869c3b067044c87171af0765aadb5e083b88857d2cf89ed085f7f7372"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48d7c5ccd6a6aaf855a82e9c4b81cc027dc0e41d3a15bcea28d79783a3f70d8e"
+          "content": "b68f374518f7e83c2ddd5277cc50690ea43b4e419fb1f507364a7a02ae94559b"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f4dfb355cf91d27668791f0aadcf5baaa016cbb5e0e23052f5a1682ffb8db14"
+          "content": "fa669b5be247a3d536563e958d4b5f5e6015af570032f18e2786c1807799fe9a"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10665,7 +10665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8262ecc444f9e249d98c79dbdbb0a7c695c8b92fd48a7e67a8174b2bcffb8b20"
+          "content": "396fb291f17b13821355e5d6e5cacb7d10e9475d5ebde4ba38ec2135327197bd"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -10695,7 +10695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a3259e72d1386d94618d99b00aa51a20d50a5f5228f8173e7ed76f47b4f7088"
+          "content": "27cd19baf866e359d0c7456dc79409d74929d2df586c4c4218bc6817b6d8b03f"
         }
       ],
       "name": "services/agriai-engine/requirements.txt",
@@ -10785,7 +10785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40510bd7505d8996e1867538a568ad15c5d3e945477e5c3a1a8097f4ad82a4a9"
+          "content": "549b990500f9e741c28dad7f1cd5c4d251eb965ff1e5a4d6ca30072e1a25ca57"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
@@ -10855,7 +10855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b838c721f50799627b4c4a98e995f41de6199479105e80c3e6b2d6f60502b85"
+          "content": "ac46175c6b5a8cc699deb8e4103bc4aab7e4f9185f06d39567bb1ee9cb4263bb"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -11305,7 +11305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12afde7a8f991f27d9fd49a35a3747f0256b0482faa1ade84dbc09ebdb285f15"
+          "content": "c52c7598a7b5808b9e03acc2aa809b45c4629a13e16786ff05453e6a3422abec"
         }
       ],
       "name": "services/auth/main.py",
@@ -11355,7 +11355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3797087e4eb8da0a0851cf5ef098e836aca3a8595fda83d23f86b6ba230a47fb"
+          "content": "2a3928ac516c6e11df4505ef1f85fe677d93a04d5b367274494eca15180ad6ef"
         }
       ],
       "name": "services/auth/requirements.txt",
@@ -13665,7 +13665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f91bc65ea532ac5be990071d9f2b362ced70b76eda98369dc1dea06ed0244c33"
+          "content": "609fefa0d46d8b8252594baf327960765ee0ca3563280f4690afe3dddd89ceab"
         }
       ],
       "name": "services/mcp_servers/wofost_server.py",
@@ -18715,7 +18715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78a37ae114a9a4c91d2badb67881725c00ba760d81fbdc178c18a9ed0816d8bd"
+          "content": "c48dd9ebe4d7dd797c070ebbf58b28cc4c48a593359011be65b463f515890009"
         }
       ],
       "name": "services/sahool-platform/api/routers/indicators.py",
@@ -26135,6 +26135,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "821477969e942675689daa30896ad48c79a16d092759b8d8d5c98a25808dbb14"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_indicator_observations_route.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6b33c26a0a4874aada6b5b6c8ba30a1139fae92e3265af40ddcc4b72aeca6b4a"
         }
       ],
@@ -26865,7 +26875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a315145eca04bb2b94d1a68323ec19bbcf65e834fc2937d8c93b5f97e638305"
+          "content": "e02feedffc6fa6bd24579ea362c72c7ac4a1fac2579304e82d351267e39daa8a"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -29345,7 +29355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b76d1f50f602774c6407554b7c4fa2400ecd704ad35b30e5db383e4fa155775b"
+          "content": "3c49a1b65712f0bf7d6eebbc8bf413fb2a91889ce13e4b2098294692a05c4301"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -29385,7 +29395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64af2eb35dd5da397f3c7626e8f9404386de495754701b76f81e5abdcb087751"
+          "content": "cc16a8bc004d49deccc94f0f02ac3a68d1fde7049d267c61efe3a9851f79be5b"
         }
       ],
       "name": "services/supervisor-agent/skills/crop_model_skill.py",
@@ -29415,7 +29425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea17f7c6407086e0953c9df3697a760e583b99ae0ae037dd566627b6fae30d55"
+          "content": "5f2c9f214ed48aba03d65cd7aa4e146de1425ae664c78f6f5812e228892ea62d"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",
@@ -29535,7 +29545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e72676fd0510215b84b276cb7c968dcf7728833a6b3ff97d9273fa70b3d8a2f1"
+          "content": "57e7caf0b1c5fc0b243232e7e790fc936632b6e20f1af45be4fe7b4842015ef8"
         }
       ],
       "name": "services/tts-service/providers.py",

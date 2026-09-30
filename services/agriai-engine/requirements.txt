@@ -9,4 +9,7 @@ pydantic==2.13.4
 # تبعيّة ثقيلة اختياريّة (PCSE/WOFOST) — ليست تبعيّة صلبة ولا تدخل طبقة الوحدات/pip-audit.
 # wofost_adapter.py يحيطها بحارس استيراد ويلجأ لبديل حتميّ عند غيابها. للتفعيل:
 #   pip install pcse
+# مقيس 2026-09-29: pip-audit نظيف مع pcse==6.0.13 (+pandas/openpyxl/requests/traitlets-pcse
+# dev-release، ~٩٥ ميغابايت فوق numpy القائمة)، لكنّ المسار لا يعمل طرفاً لطرف: يجلب معاملات المحصول من GitHub
+# وقت التشغيل وبُناة الموفِّر ناقصة — التفصيل في wofost_adapter._pcse_run. لا تُفعَّل قبل إكمالها.
 # pcse>=5.5  # optional — real PCSE/WOFOST simulation path

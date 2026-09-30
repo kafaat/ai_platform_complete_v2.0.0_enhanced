@@ -604,6 +604,9 @@ services:
       SMTP_FROM: ${SMTP_FROM:-noreply@sahool.ye}
       FRONTEND_URL: ${FRONTEND_URL:-https://app.sahool.ye}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      # AUTH-NO-TRACING-01: المُجمِّع نفسه الذي تُصدِّر إليه المنصّة (main.py → configure_tracing).
+      # فارغاً ⇒ no-op؛ ومُجمِّعٌ ساقط لا يُسقِط الدخول: التصدير دفعاتٌ في خيطٍ خلفيّ (BatchSpanProcessor).
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -657,6 +660,8 @@ services:
       COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+      # M4 (مراجعة v25): المشاهداتُ القانونيّة لكلّ حقل عبر `/api/v1/fields/{id}/indicator-observations/{view}`.
+      INDICATORS_SERVICE_URL: ${INDICATORS_SERVICE_URL:-http://sahool-indicators-service:8000}
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
@@ -1134,9 +1139,14 @@ services:
       # خلف راية مستقلّة (off ⇒ 404) وتوكن قناة مخصّص يحقنه proxy المنصّة (§8.6).
       FIELD_FORMS_ENABLED: ${FIELD_FORMS_ENABLED:-0}
       FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
-      # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
+      # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/).
+      # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `blob_store.s3_enabled()` كاذب ⇒
+      # المرفقات تُكتَب `file://` تحت LOGBOOK_LOCAL_DIR (/tmp في الحاوية، بلا وحدة تخزين) فتضيع
+      # بإعادة الإنشاء، بلا تحذير. الدلوُ الذي يُنشئه `sahool-minio-init` لمفاتيح هذه الخدمة هو
+      # `sahool-scout-ingest` (سياسة `scout-ingest` تحصرها فيه). والتجاوزُ متغيّرٌ بنطاقها لا
+      # `S3_BUCKET` المشترك: ذاك مُوثَّقٌ دلواً للـCOG (`sahool-rasters`) ومفاتيحُ scout تُرفَض عليه.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
-      S3_BUCKET: ${S3_BUCKET:-}
+      S3_BUCKET: ${SCOUT_INGEST_S3_BUCKET:-sahool-scout-ingest}
       S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
       S3_USE_SSL: ${S3_USE_SSL:-false}
@@ -1258,7 +1268,11 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
-      S3_BUCKET: ${S3_BUCKET:-}
+      # S3-BUCKET-EMPTY-SILENT-FILE-STORAGE-01: كان `${S3_BUCKET:-}` ⇒ `object_store.enabled()`
+      # كاذب ⇒ كلّ COG يُكتَب `file://` على قرص الحاوية بلا تحذير، رغم أنّ النقطة والمفاتيح
+      # المقيَّدة ودلوَها موصولةٌ كلُّها: `sahool-minio-init` يُنشئ `sahool-rasters` ويربط سياسة
+      # `raster-service` (Get/Put/Delete عليه وحده) بـ`RASTER_S3_ACCESS_KEY`. `S3_BUCKET` يبقى تجاوزاً.
+      S3_BUCKET: ${S3_BUCKET:-sahool-rasters}
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
@@ -1334,7 +1348,7 @@ services:
     environment:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
-      S3_BUCKET: ${S3_BUCKET:-}
+      S3_BUCKET: ${S3_BUCKET:-sahool-rasters}
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
@@ -1385,7 +1399,7 @@ services:
     environment:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
-      S3_BUCKET: ${S3_BUCKET:-}
+      S3_BUCKET: ${S3_BUCKET:-sahool-rasters}
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
@@ -2883,7 +2897,20 @@ services:
   sahool-pg-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
     environment:
+      # PG-EXPORTER-EMPTY-DSN-FALSE-POSTGRESDOWN-01: كان هذا السطرَ الوحيد، و`.env.example` يترك
+      # `POSTGRES_EXPORTER_DSN` فارغاً ⇒ المُصدِّر بلا مصدر (`GetDataSources()` يُرجِع قائمةً فارغة
+      # حين يغيب `DATA_SOURCE_NAME` و`DATA_SOURCE_URI` معاً — exporter/datasource.go في v0.20.1)
+      # ⇒ `pg_up == 0` دائماً ⇒ `PostgresDown` (critical) يشتعل على مكدّسٍ سليم ويحجب انقطاعاً
+      # حقيقيّاً خلفه. التجاوزُ باقٍ كما هو: `DATA_SOURCE_NAME` غيرُ الفارغ يفوز دائماً عند المُصدِّر.
       DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DSN:-}
+      # والافتراضُ مُشتقٌّ من متغيّرات المكدّس نفسها لا من سرٍّ جديد: دورُ التطبيق المقيَّد
+      # `sahool_app` (NOSUPERUSER NOBYPASSRLS — لا دورَ مراقبةٍ مخصَّصاً في الشجرة) لا المالك
+      # `sahool_user`. ويُمرَّر بالحقول المنفصلة لا بعنوانٍ مُركَّب: المُصدِّر يُرمِّز كلمة السرّ
+      # (`url.UserPassword`) فلا يكسرها `@`/`:`/`/`. و`sslmode=disable` لأنّ `lib/pq` يعدّ الفارغ
+      # `require` و`postgis/postgis` هنا بلا TLS.
+      DATA_SOURCE_URI: sahool-postgres:5432/sahool?sslmode=disable
+      DATA_SOURCE_USER: ${APP_DB_ROLE:-sahool_app}
+      DATA_SOURCE_PASS: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
     mem_limit: 128m
     restart: unless-stopped
     security_opt: [no-new-privileges:true]
@@ -2894,6 +2921,9 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      # `sahool_app` يُنشئه `apply_in_compose.sh`؛ قبله يُرفَض الاتّصال فيقرأ `pg_up` صفراً كاذباً.
+      sahool-migrate:
+        condition: service_completed_successfully
   sahool-otel-collector:
     image: otel/opentelemetry-collector-contrib:0.160.0@sha256:799dc6cf12c96192af37b5bdba804da8c10b3bc563b43cb90c3f3c58d9572ad6
     command: ["--config=/etc/otelcol/config.yaml"]

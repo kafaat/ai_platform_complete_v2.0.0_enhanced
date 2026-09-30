@@ -1038,12 +1038,12 @@ from mfa_runtime import (  # noqa: E402
 INVITATION_EXPIRY_DAYS = 7
 
 
-# ══════════════════════════════════════════════════════════════
-# تسجيل الراوترات المفكَّكة (نمط تفكيك المنصّة — محفوظ السلوك)
-# يُستدعى في **نهاية** الملفّ بعد تعريف app وكلّ التبعيّات المشتركة (مساعِدات JWT،
-# مسبح DB، النماذج، الاعتماديّات) كي تُحلّ وحدات routers/ رموزها عبر main.X بلا
-# استيراد دائريّ. التسطيح (_include_flat) يُبقي عدّ المسارات والمسح الساكن صحيحَيْن.
-# ══════════════════════════════════════════════════════════════
+# ══ تجميع التطبيق في نهاية الملفّ (بعد app وكلّ التبعيّات كي تُحلّ routers/ عبر main.X بلا دورة؛
+# والتسطيح يُبقي عدّ المسارات): الراوترات ثمّ تتبّع OTLP. AUTH-NO-TRACING-01: المنصّة وحدها كانت
+# تستدعي configure_tracing فغاب مسارُ الدخول عن كلّ أثر. بلا OTEL_EXPORTER_OTLP_ENDPOINT: لا شيء.
 from router_registry import register_routers  # noqa: E402
 
+from shared.tracing import configure_tracing  # noqa: E402
+
 register_routers(app)
+configure_tracing(app, "sahool-auth")

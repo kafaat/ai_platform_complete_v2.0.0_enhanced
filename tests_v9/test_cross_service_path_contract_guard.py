@@ -182,6 +182,25 @@ def test_both_call_shapes_and_the_module_constant_are_read():
     assert guard.requested_paths('z = raster_get_json_sync("/v1/indices")') == {"/v1/indices"}
 
 
+def test_a_route_decorator_is_a_declaration_not_a_request():
+    """موجِّهٌ هو أيضاً عميل (M4 · `routers/indicators.py`): مُزخرِفُه يُعلن ولا يطلب.
+
+    والنداءُ نفسُه خارج موضع الزخرفة **يبقى طلباً** — فالاستثناءُ موضعيٌّ لا اسميّ،
+    وإلّا صار `client.get("/v1/…")` داخل دالّةٍ مُزخرَفةٍ يفلت معه.
+    """
+    source = (
+        'BASE = "http://sahool-indicators-service:8000"\n'
+        'PATH = "/v1/fields/{field_id}/observations"\n'
+        '@router.get("/api/v1/fields/{field_id}/indicator-observations/{view}")\n'
+        "async def route(field_id):\n"
+        '    return await client.get(f"{BASE}/v1/fields/{field_id}/observation-timeline")\n'
+    )
+    assert guard.requested_paths(source) == {
+        "/v1/fields/{}/observations",
+        "/v1/fields/{}/observation-timeline",
+    }
+
+
 def test_prose_and_error_messages_are_not_mistaken_for_requests():
     """سلسلةٌ في رسالةٍ أو تعليقٍ ليست طلباً — وإلّا امتلأ الجردُ بما لا يُطلَب."""
     assert guard.requested_paths('raise ValueError("تعذّر /v1/weather/current")') == set()

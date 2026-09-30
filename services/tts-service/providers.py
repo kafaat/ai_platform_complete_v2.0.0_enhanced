@@ -20,8 +20,12 @@
 from __future__ import annotations
 
 import abc
+import asyncio
 import io
+import logging
+import math
 import os
+from collections.abc import Awaitable, Callable
 
 # ── المحرّك الإلزاميّ الوحيد: edge_tts ─────────────────────────────────────────
 try:
@@ -68,21 +72,114 @@ class TTSProvider(abc.ABC):
         raise NotImplementedError
 
 
+# ── إعادة المحاولة حول edge-tts (M8، مراجعة v25) ──────────────────────────────
+#
+# **العطلُ الذي وُجِد هذا لأجله:** ``edge_tts.Communicate`` يفتح WebSocket نحو خدمة
+# Microsoft **مرّةً واحدة**؛ وأيُّ انقطاعٍ عابر (مهلةُ قراءة · قطعُ اتّصال · ردُّ 5xx ·
+# رسالةٌ غيرُ متوقَّعة من الخادم) كان يصير 500 «Speech synthesis failed» مباشرةً —
+# فعطلُ شبكةٍ لثانيةٍ يُقرَأ عجزاً عن التركيب.
+#
+# **ما يُعاد وما لا يُعاد:** يُعاد **العابرُ وحده**. المُدخَلُ الخاطئ (صوتٌ/معدّلٌ/نبرةٌ
+# بصيغةٍ مرفوضة ⇒ ``ValueError``/``TypeError`` من الباني) و``NoAudioReceived`` (الخادمُ
+# ردّ بلا صوت — المكتبةُ نفسُها تقول «تحقّق من المعاملات») و4xx غيرُ 408/429 **لا تُعاد**:
+# إعادتُها تُضاعف الكمونَ ولا تُغيّر النتيجة.
+#
+# **الصوتُ الجزئيّ لا يتسرّب:** كلُّ محاولةٍ تبني ``Communicate`` جديداً (``stream()``
+# لا يُنادى إلّا مرّةً لكلّ كائن) ومخزناً جديداً، ولا يُعاد إلّا مخزنُ محاولةٍ اكتملت.
+# فمحاولةٌ بثّت نصفَ الصوت ثمّ انقطعت لا تُلصَق بايتاتُها قبل المحاولة التالية.
+#
+# المتغيّران يُقرآن وقتَ النداء وبافتراضٍ صريح (فلا يُعدّان «مطلوبين» في حارس
+# انجراف env↔compose). وقيمةٌ غيرُ رقميّة أو غيرُ منتهية أو سالبة ⇒ الافتراض، والسقفُ
+# يمنع ضبطاً يُعلِّق الطلبَ دقائق (نمط ``parse_preload_retry_delays``).
+DEFAULT_EDGE_RETRY_ATTEMPTS = 3
+DEFAULT_EDGE_RETRY_BASE_DELAY_SECONDS = 0.5
+MAX_EDGE_RETRY_ATTEMPTS = 6
+MAX_EDGE_RETRY_BASE_DELAY_SECONDS = 5.0
+
+#: أسماءُ استثناءات ``edge_tts.exceptions`` العابرة (بروتوكول/قناة لا مُدخَل).
+_EDGE_TRANSIENT_NAMES = frozenset({"WebSocketError", "UnknownResponse", "UnexpectedResponse"})
+#: رموزُ HTTP من فئة 4xx التي تبقى عابرة (مهلة الطلب · تجاوز المعدّل).
+_TRANSIENT_4XX = frozenset({408, 429})
+
+logger = logging.getLogger("tts.providers")
+
+
+def edge_retry_attempts() -> int:
+    """عددُ المحاولات **الكلّيّ** (الأولى ضمنه) — ``1`` يعني بلا إعادة."""
+    raw = os.getenv("TTS_EDGE_RETRY_ATTEMPTS", str(DEFAULT_EDGE_RETRY_ATTEMPTS))
+    try:
+        value = float(raw.strip())
+    except (AttributeError, ValueError):
+        logger.warning("TTS_EDGE_RETRY_ATTEMPTS غيرُ رقميّ؛ يُستعمَل الافتراض")
+        return DEFAULT_EDGE_RETRY_ATTEMPTS
+    if not math.isfinite(value) or value < 1 or value != int(value):
+        logger.warning("TTS_EDGE_RETRY_ATTEMPTS ليس عدداً صحيحاً ≥ 1؛ يُستعمَل الافتراض")
+        return DEFAULT_EDGE_RETRY_ATTEMPTS
+    return min(int(value), MAX_EDGE_RETRY_ATTEMPTS)
+
+
+def edge_retry_base_delay() -> float:
+    """أساسُ التباعد بالثواني (يتضاعف بعد كلّ فشل) — ``0`` يعني إعادةً فوريّة."""
+    raw = os.getenv("TTS_EDGE_RETRY_BASE_DELAY_SECONDS", str(DEFAULT_EDGE_RETRY_BASE_DELAY_SECONDS))
+    try:
+        value = float(raw.strip())
+    except (AttributeError, ValueError):
+        logger.warning("TTS_EDGE_RETRY_BASE_DELAY_SECONDS غيرُ رقميّ؛ يُستعمَل الافتراض")
+        return DEFAULT_EDGE_RETRY_BASE_DELAY_SECONDS
+    if not math.isfinite(value) or value < 0:
+        logger.warning("TTS_EDGE_RETRY_BASE_DELAY_SECONDS غيرُ منتهٍ أو سالب؛ يُستعمَل الافتراض")
+        return DEFAULT_EDGE_RETRY_BASE_DELAY_SECONDS
+    return min(value, MAX_EDGE_RETRY_BASE_DELAY_SECONDS)
+
+
+def is_transient_edge_error(exc: BaseException) -> bool:
+    """هل الفشلُ عابرٌ تُجدي إعادتُه؟ المجهولُ ⇒ **لا** (لا نُعيد ما لا نفهمه).
+
+    تُفحَص الأصنافُ كسولاً وبالاسم لأنّ ``edge_tts``/``aiohttp`` قد يغيبان أو يُرقَّعان
+    بكعبٍ في طبقة الوحدات — فلا يُسقِط غيابُهما الاستيراد.
+    """
+    if isinstance(exc, (ValueError, TypeError)):
+        return False  # مُدخَلٌ مرفوض — الإعادةُ لا تُصلِحه
+    edge_exc = getattr(edge_tts, "exceptions", None)
+    if edge_exc is not None:
+        for name in _EDGE_TRANSIENT_NAMES:
+            cls = getattr(edge_exc, name, None)
+            if isinstance(cls, type) and isinstance(exc, cls):
+                return True
+    try:
+        import aiohttp
+    except ImportError:  # pragma: no cover - aiohttp تبعيّةُ edge_tts
+        aiohttp = None  # type: ignore[assignment]
+    if aiohttp is not None:
+        if isinstance(exc, aiohttp.ClientResponseError):
+            status = int(getattr(exc, "status", 0) or 0)
+            return status >= 500 or status in _TRANSIENT_4XX
+        if isinstance(exc, aiohttp.ClientError):
+            return True  # اتّصالٌ/انقطاعٌ/مهلةُ مقبس
+    return isinstance(exc, (TimeoutError, ConnectionError))
+
+
 class EdgeTTSProvider(TTSProvider):
     """المزوّد الافتراضيّ: Microsoft edge-tts (متّصل بالإنترنت، على المعالِج).
 
     سلوك التركيب مطابقٌ حرفيّاً لمسار ``main._generate_speech`` السابق (نفس نداء
-    ``edge_tts.Communicate`` ونفس تجميع البايتات) — فالمخرجات أمينةُ-البايت.
+    ``edge_tts.Communicate`` ونفس تجميع البايتات) — فالمخرجات أمينةُ-البايت. والفرقُ
+    الوحيد: فشلٌ **عابر** يُعاد بتباعدٍ أُسّيّ محدود (انظر الكتلة أعلاه).
+
+    ``sleep`` محقونٌ كي تُختبَر حلقةُ الإعادة **نفسُها** بلا انتظارٍ حقيقيّ.
     """
 
     name = "edge_tts"
 
+    def __init__(self, sleep: Callable[[float], Awaitable[object]] | None = None) -> None:
+        self._sleep = sleep or asyncio.sleep
+
     def available(self) -> bool:
         return _EDGE_AVAILABLE
 
-    async def synthesize(self, text: str, voice: str, rate: str, pitch: str, volume: str) -> bytes:
-        if not _EDGE_AVAILABLE:  # pragma: no cover - edge إلزاميّ في الخدمة
-            raise RuntimeError("edge_tts غير متوفّر")
+    async def _synthesize_once(
+        self, text: str, voice: str, rate: str, pitch: str, volume: str
+    ) -> bytes:
         communicate = edge_tts.Communicate(
             text=text,
             voice=voice,
@@ -95,6 +192,29 @@ class EdgeTTSProvider(TTSProvider):
             if chunk["type"] == "audio":
                 audio.write(chunk["data"])
         return audio.getvalue()
+
+    async def synthesize(self, text: str, voice: str, rate: str, pitch: str, volume: str) -> bytes:
+        if not _EDGE_AVAILABLE:  # pragma: no cover - edge إلزاميّ في الخدمة
+            raise RuntimeError("edge_tts غير متوفّر")
+        attempts = edge_retry_attempts()
+        base_delay = edge_retry_base_delay()
+        for attempt in range(1, attempts + 1):
+            try:
+                # مخزنٌ جديدٌ لكلّ محاولة: بايتاتُ محاولةٍ منقطعة لا تبلغ الناتج.
+                return await self._synthesize_once(text, voice, rate, pitch, volume)
+            except Exception as exc:
+                if attempt >= attempts or not is_transient_edge_error(exc):
+                    raise
+                delay = base_delay * (2 ** (attempt - 1))
+                logger.warning(
+                    "edge-tts فشلٌ عابر (%s) في المحاولة %d/%d؛ إعادةٌ بعد %.2fث",
+                    type(exc).__name__,
+                    attempt,
+                    attempts,
+                    delay,
+                )
+                await self._sleep(delay)
+        raise AssertionError("unreachable")  # pragma: no cover - الحلقة تُعيد أو ترمي
 
 
 class PiperProvider(TTSProvider):

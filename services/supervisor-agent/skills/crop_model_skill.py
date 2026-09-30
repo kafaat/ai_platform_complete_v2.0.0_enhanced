@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
 Crop Model Skill Library for SAHOOL Supervisor Agent
-Handles: تقدير الغلّة (RUE-based) · جدولة الريّ · توصيات التسميد
+Handles: محاكاة الغلّة (عبر agriai-engine) · جدولة الريّ · توصيات التسميد
 
-ملاحظة صدق: النموذج مقدّر غلّة قائم على RUE (biomass=ΣPAR×RUE×soil_factor،
-yield=biomass×HI) مع توازن ماء FAO-56 — ليس WOFOST يومي التكامل. لا يلتقط
-توقيت الإجهاد الطوْري (نافذة الإجهاد الحرجة)؛ الغلّة تقدير من الدرجة الأولى
-يُحسّن بالمعايرة (TrueUp k_factor).
+محاكاة الغلّة (``simulate_current``) تُفوَّض إلى مالكها ``agriai-engine`` عبر
+``POST {AGRIAI_ENGINE_URL}/v1/simulate`` بتوكن الخدمة ``X-Agent-Token`` — لا إلى خادم
+MCP ``wofost``. كانت المهارة تنادي أداة MCP ``run_wofost_simulation`` التي تردّ 501 بالتصميم
+(``services/mcp_servers/wofost_server.py``: لا محرّك حقيقيّ هناك)، فكان مسار «توقّع المحصول»
+ميتاً دائماً بينما المحرّك الحقيقيّ (PCSE) وبديله الحتميّ يعيشان في agriai.
+
+ملاحظة صدق: المُخرَج يحمل ``provenance`` كما أعادها agriai حرفيّاً، ويُسمّي المحرّك منه:
+``pcse_wofost_uncalibrated`` ⇒ PCSE/WOFOST 7.2 غير مُعايَر · ``deterministic_fallback`` ⇒
+بديل حتميّ (قانون الحدّ الأدنى) **ليس WOFOST**. وسمٌ غائب أو مجهول ⇒ لا رقم (``unavailable``)
+بدل التخمين. مقيس 2026-09-29: مسار PCSE لا يعمل بعدُ طرفاً لطرف (``wofost_adapter._pcse_run``)،
+فالمُجاب عملياً هو البديل الحتميّ — ويُقال ذلك للمستخدم في نصّ الردّ نفسه.
 """
 
 import asyncio
-import json
+import math
 import os
 from typing import Any
 from urllib.parse import quote
@@ -26,8 +33,8 @@ class CropModelSkill:
     """
 
     def __init__(self, mcp_client: MCPClient):
+        # يبقى العميل لتوقيع المُنشِئ الموحّد بين المهارات؛ المحاكاة لم تعد تمرّ عبر MCP.
         self.mcp = mcp_client
-        self.server = "wofost"
 
     async def execute(  # ✅ timeout + fallback added
         self,
@@ -41,38 +48,7 @@ class CropModelSkill:
     ) -> dict[str, Any]:
 
         if intent == "simulate_current":
-            crop = context.get("crop", "wheat") if context else "wheat"
-            planting_date = context.get("planting_date", "2026-01-15") if context else "2026-01-15"
-            soil = context.get("soil_type", "medium") if context else "medium"
-
-            result = await self.mcp.call_tool(
-                self.server,
-                "run_wofost_simulation",
-                {
-                    "crop": crop,
-                    "planting_date": planting_date,
-                    "soil_type": soil,
-                    "irrigation": True,
-                    "co2_ppm": 420,
-                },
-            )
-
-            content = result.get("content", [{}])[0].get("text", "{}")
-            sim_data = json.loads(content)
-            results = sim_data.get("results", {})
-
-            return {
-                "type": "rue_yield_estimate",  # RUE لا WOFOST يومي
-                "crop": crop,
-                "yield_kg_ha": results.get("yield_kg_ha", 0),
-                "biomass_kg_ha": results.get("biomass_kg_ha", 0),
-                "total_water_mm": results.get("total_water_mm", 0),
-                "harvest_date": results.get("harvest_date", "N/A"),
-                "phenology": results.get("phenology", {}),
-                "gdd_total": results.get("gdd_total", 0),
-                "stress_days": results.get("stress_days", 0),
-                "sources": ["RUE-Estimator (FAO-56)", "SAHOOL Crop Model"],
-            }
+            return await self._simulate_via_agriai(context or {})
 
         elif intent == "irrigation_advice":
             return await self._irrigation_advice(field_id, context or {})
@@ -90,6 +66,57 @@ class CropModelSkill:
                 "type": "error",
                 "response": f"نوعية استعلام نموذج المحصول غير معروفة: {intent}",
             }
+
+    async def _simulate_via_agriai(self, context: dict) -> dict:
+        crop = str(context.get("crop") or "").strip().lower()
+        if not crop:
+            # كان الافتراض الصامت "wheat" + تاريخ زرع 2026-01-15 + تربة medium: مدخلات مُختلَقة.
+            return _unavailable("crop_required", "لا يمكن محاكاة الغلّة دون تحديد المحصول صراحةً.")
+        weather = _dict(context.get("weather"))
+        agronomic_context = _dict(context.get("agronomic_context"))
+        if not (
+            _has_weather(weather) or _has_weather(_dict(agronomic_context.get("weather_snapshot")))
+        ):
+            # البديل الحتميّ يُعيد غلّة 0 من طقس غائب (GDD=0) — رقمٌ بلا دليل لا يُعرَض كتوقّع.
+            return _unavailable(
+                "crop_model_weather_required",
+                "لا يمكن محاكاة الغلّة دون بيانات طقس للموسم (درجات حراريّة تراكميّة أو سلسلة يوميّة).",
+            )
+        management = _dict(context.get("agromanagement"))
+        if context.get("planting_date") and "planting_date" not in management:
+            management["planting_date"] = context["planting_date"]
+        payload = {
+            "crop": {"name": crop},
+            "weather": weather,
+            "soil": _dict(context.get("soil")),
+            "agromanagement": management,
+            "agronomic_context": agronomic_context,
+        }
+        agriai = os.getenv("AGRIAI_ENGINE_URL", "http://sahool-agriai-engine:8000").rstrip("/")
+        # تعذّر الوصول/مهلة/5xx غير مُصنَّف ⇒ يُرفَع httpx.HTTPError فيُحوّله المسار إلى ردّ
+        # ``degraded`` (confidence=0، بلا أرقام) — نفس عقد الريّ أعلاه، لا رقم احتياطيّ.
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(
+                f"{agriai}/v1/simulate",
+                json=payload,
+                headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
+            )
+        if resp.status_code in (422, 503):
+            detail = _detail(resp)
+            if resp.status_code == 503 and detail.get("error") == "simulation_unavailable":
+                out = _unavailable(
+                    "crop_simulation_unavailable",
+                    "محرّك محاكاة المحصول غير متاح حالياً (فشل مُغلَق في agriai) — لا تقدير للغلّة.",
+                )
+                out["structured"]["engine_reason"] = str(detail.get("reason") or "")[:200]
+                return out
+            if resp.status_code == 422:
+                return _unavailable(
+                    "crop_model_inputs_rejected",
+                    "رفض محرّك المحاكاة مدخلات الحقل (سياق زراعيّ ناقص أو غير صالح) — لا تقدير للغلّة.",
+                )
+        resp.raise_for_status()
+        return _simulation_result(crop, resp.json())
 
     async def _irrigation_advice(self, field_id: str | None, context: dict) -> dict:
         state = context.get("field_state") or {}
@@ -193,3 +220,94 @@ def _unavailable(code: str, message: str) -> dict:
         "structured": {"status": "unavailable", "reason": code},
         "sources": [],
     }
+
+
+# وسم agriai ⇒ هويّة المحرّك. المفاتيح هي ``status_enum`` في
+# ``services/agriai-engine/simulation_capability.py`` (عدا ``simulation_unavailable`` = 503).
+# وحدة الماء تتبع المحرّك: البديل يُعيد ملّيمتراً، و``_pcse_run`` يُعيد CTRAT بالسنتيمتر.
+_ENGINES: dict[str, dict[str, Any]] = {
+    "pcse_wofost_uncalibrated": {
+        "engine": "pcse_wofost72_wlp_fd",
+        "label_ar": "PCSE/WOFOST 7.2 (إنتاج محدود بالمياه) — غير مُعايَر",
+        "source": "PCSE Wofost72_WLP_FD (uncalibrated)",
+        "water_to_mm": 10.0,
+    },
+    "deterministic_fallback": {
+        "engine": "deterministic_fallback",
+        "label_ar": "بديل حتميّ (قانون الحدّ الأدنى: حرارة × ماء) — ليس WOFOST ولا PCSE",
+        "source": "agriai deterministic fallback (not WOFOST)",
+        "water_to_mm": 1.0,
+    },
+}
+
+
+def _simulation_result(crop: str, data: Any) -> dict:
+    data = data if isinstance(data, dict) else {}
+    provenance = data.get("provenance")
+    engine = _ENGINES.get(provenance) if isinstance(provenance, str) else None
+    yield_kg_ha = _finite(data.get("yield_kg_ha"))
+    if engine is None or yield_kg_ha is None:
+        # لا تخمين للمحرّك في المهارة: رقم بلا وسم معروف لا يُعرَض.
+        out = _unavailable(
+            "crop_model_provenance_unrecognized",
+            "أعاد محرّك المحاكاة نتيجة بلا مصدر محرّك معروف — لا تُعرَض كتقدير.",
+        )
+        out["structured"]["provenance"] = provenance if isinstance(provenance, str) else None
+        return out
+    water = _finite(data.get("water_use"))
+    interval = _dict(data.get("yield_interval"))
+    band = ""
+    low, high = _finite(interval.get("low_kg_ha")), _finite(interval.get("high_kg_ha"))
+    if low is not None and high is not None:
+        band = f" (نطاق {low:,.0f}–{high:,.0f}، ثقة {interval.get('confidence', 'غير محدّدة')})"
+    structured = {
+        "status": "ok",
+        "engine": engine["engine"],
+        "provenance": provenance,
+        "calibrated": False,  # لا محرّك في agriai مُعايَر قبل SIM-GOLDEN-01
+        "yield_kg_ha": yield_kg_ha,
+        "yield_interval": interval or None,
+    }
+    return {
+        "type": "crop_simulation",
+        "response": (
+            f"محاكاة {crop}: غلّة تقديريّة {yield_kg_ha:,.0f} كغ/هكتار{band}. "
+            f"المحرّك: {engine['label_ar']}."
+        ),
+        "crop": crop,
+        "engine": engine["engine"],
+        "engine_label_ar": engine["label_ar"],
+        "provenance": provenance,
+        "calibrated": False,
+        "yield_kg_ha": yield_kg_ha,
+        "biomass_kg_ha": _finite(data.get("biomass")),
+        "total_water_mm": None if water is None else water * engine["water_to_mm"],
+        "stages": data.get("stages") if isinstance(data.get("stages"), list) else [],
+        "yield_interval": interval or None,
+        "diagnostics": _dict(data.get("diagnostics")),
+        "actionable": False,
+        "structured": structured,
+        "sources": ["agriai-engine /v1/simulate", engine["source"]],
+    }
+
+
+def _dict(value: Any) -> dict:
+    return dict(value) if isinstance(value, dict) else {}
+
+
+def _has_weather(weather: dict) -> bool:
+    return weather.get("gdd") is not None or bool(weather.get("daily"))
+
+
+def _finite(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return float(value) if math.isfinite(value) else None
+
+
+def _detail(resp: httpx.Response) -> dict:
+    try:
+        body = resp.json()
+    except ValueError:
+        return {}
+    return _dict(body.get("detail")) if isinstance(body, dict) else {}

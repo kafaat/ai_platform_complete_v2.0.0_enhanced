@@ -60,7 +60,7 @@ async def list_tools():
         "tools": [
             {
                 "name": "run_wofost_simulation",
-                "description": "شغّل محاكاة WOFOST-RUE للمحصول مع بيانات جوية",
+                "description": "غير مُنفَّذة هنا (501) — محاكاة المحصول يملكها agriai-engine POST /v1/simulate",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -173,12 +173,15 @@ async def _execute(name: str, args: dict) -> dict:
         # كان _simulate_wofost يُرجِع تقديراً بثوابت مكتوبة (avg_solar=20، et0=5،
         # kc=0.8، stress=10% ثابتة) ويتجاهل weather_data المُمرَّر، ثمّ يُوسَم
         # "model":"WOFOST-RUE" — تقديمٌ لتقريبٍ على أنّه مُخرَج نموذج عمليّاتيّ.
-        # أمانةً نردّ 501 حتّى يُدمَج محرّك حقيقيّ (مثل PCSE/WOFOST) بدل الاختلاق.
+        # أمانةً نردّ 501 بدل الاختلاق. ولا يُدمَج محرّك هنا: مالك محاكاة المحصول الوحيد هو
+        # agriai-engine (``POST /v1/simulate`` → ``wofost_adapter.simulate``: PCSE أو بديل حتميّ
+        # موسوم بـ``provenance``)، وsupervisor ``crop_model_skill`` يستهلكه مباشرةً منذ
+        # 2026-09-29. محرّك ثانٍ هنا = مصدرا حقيقة للغلّة. الـ501 إذن نهائيّ لا «مؤقّت».
         raise HTTPException(
             status_code=501,
             detail=(
-                "محاكاة WOFOST-RUE غير مُنفَّذة بمحرّك حقيقيّ على هذا الخادم — "
-                "معطّلة بأمانة بدل إرجاع تقديرٍ بثوابت مُوسَّمٍ كمُخرَج نموذج."
+                "محاكاة WOFOST غير مُنفَّذة على خادم MCP هذا — مالكها agriai-engine "
+                "(POST /v1/simulate، بتوكن خدمة) ويُعيد وسم المحرّك (provenance)."
             ),
         )
 

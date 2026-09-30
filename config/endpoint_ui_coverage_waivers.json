@@ -302,6 +302,26 @@
       "temporary": true
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/indicators.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "مشاهداتُ الحقل القانونيّة وخطُّها الزمنيّ من indicators-service (M4، مراجعة v25) — كُشِفت خادميّاً بمسارٍ واحدٍ بعرضٍ مغلق (observations · observation-timeline) مع فحص ملكيّة الحقل. الواجهةُ الطبيعيّةُ لوحةُ المؤشّرات في FieldView (FieldIndicatorMap) ولم تُربَط بعد: هذه الشريحةُ كشفت العقدَ فقط. الدَّينُ مُعلَنٌ هنا بدل ادّعاء تغطيةٍ غير موجودة.",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "decision-support",
+      "importance": 50,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "sahool-platform",
+      "tracking": "M4-INDICATOR-OBSERVATIONS-UI",
+      "expiry": "2026-12-31",
+      "temporary": true
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
       "audience": "farmer",
       "methods": [

@@ -6568,6 +6568,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/ci/test_security_audit_tls_exception_is_narrow.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/ci/test_tests_tree_coverage_guard.py",
     "kind": "tests"
   },
@@ -6801,6 +6805,10 @@
   },
   {
     "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_agronomist_vllm_startup_probe.py",
     "kind": "tests"
   },
   {
@@ -7169,6 +7177,10 @@
   },
   {
     "path": "tests_v9/test_compose_no_default_secrets_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_object_store_bucket_defaults.py",
     "kind": "tests"
   },
   {
@@ -8556,6 +8568,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_supervisor_crop_model_agriai_routing.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
     "kind": "tests"
   },
@@ -8605,6 +8621,10 @@
   },
   {
     "path": "tests_v9/test_tts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_edge_retry.py",
     "kind": "tests"
   },
   {

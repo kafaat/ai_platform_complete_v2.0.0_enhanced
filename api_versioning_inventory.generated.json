@@ -119,7 +119,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 323,
+    "line": 330,
     "method": "POST",
     "path": "/v1/plan",
     "handler": "plan",
@@ -128,7 +128,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 339,
+    "line": 346,
     "method": "POST",
     "path": "/v1/replay/verify",
     "handler": "replay_verify",
@@ -1874,7 +1874,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 316,
+    "line": 319,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1883,7 +1883,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 316,
+    "line": 319,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -1892,7 +1892,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 321,
+    "line": 324,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -6266,7 +6266,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 35,
+    "line": 41,
     "method": "GET",
     "path": "/api/v1/indicators/catalog",
     "handler": "indicators_catalog",
@@ -6275,7 +6275,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 47,
+    "line": 53,
     "method": "GET",
     "path": "/api/v1/indicators/map-layers",
     "handler": "indicators_map_layers",
@@ -6284,10 +6284,19 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 60,
+    "line": 66,
     "method": "GET",
     "path": "/api/v1/indicators/dashboard",
     "handler": "indicators_dashboard",
+    "classification": "versioned"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/indicators.py",
+    "line": 168,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
+    "handler": "field_indicator_observations",
     "classification": "versioned"
   },
   {
@@ -9317,7 +9326,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 178,
+    "line": 183,
     "method": "GET",
     "path": "/v1/agent/tools",
     "handler": "list_tools",
@@ -9326,7 +9335,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 200,
+    "line": 205,
     "method": "GET",
     "path": "/v1/agent/journal/{invocation_id}",
     "handler": "get_journal_replay",
@@ -9335,7 +9344,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 224,
+    "line": 229,
     "method": "GET",
     "path": "/v1/agent/actuator-audit",
     "handler": "get_actuator_audit",

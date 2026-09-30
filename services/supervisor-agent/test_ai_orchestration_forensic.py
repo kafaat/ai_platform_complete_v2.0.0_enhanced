@@ -510,3 +510,49 @@ def test_irrigation_requires_explicit_canonical_efficiency_for_gross_withdrawal(
             pass
         else:
             raise AssertionError("Nonfinite irrigation efficiency accepted")
+
+
+def test_optimize_degrades_instead_of_inventing_scenarios_without_crop_simulation(monkeypatch):
+    """_generate_scenarios يملأ الغائب بـyield=2000/water=400؛ محاكاة غير متاحة ⇒ degraded."""
+    from fastapi.testclient import TestClient
+
+    class Unavailable:
+        async def execute(self, **kwargs):
+            return {"type": "unavailable", "structured": {"reason": "crop_model_weather_required"}}
+
+    class Other:
+        async def execute(self, **kwargs):
+            return {"type": "ok"}
+
+    def never(*args, **kwargs):
+        raise AssertionError("scenarios generated from an unavailable crop simulation")
+
+    monkeypatch.setitem(main.skill_libraries, "crop_model", Unavailable())
+    monkeypatch.setitem(main.skill_libraries, "remote_sensing", Other())
+    monkeypatch.setitem(main.skill_libraries, "market", Other())
+    monkeypatch.setattr(main, "_generate_scenarios", never)
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    try:
+        response = TestClient(main.app).post(
+            "/v1/agent/optimize",
+            json={
+                "query": "حسّن الحقل",
+                "field_id": "field-1",
+                "user_id": "forged",
+                "tenant_id": "forged",
+            },
+        )
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["structured_data"] == {
+        "status": "degraded",
+        "reason": "crop_model_weather_required",
+        "domain": "optimization",
+    }
+    assert body["confidence"] == 0.0

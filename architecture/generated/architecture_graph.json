@@ -17,7 +17,7 @@
         "services/agriai-engine"
       ],
       "kind": "service",
-      "incoming": 1,
+      "incoming": 2,
       "outgoing": 2,
       "orphan": false
     },
@@ -243,7 +243,7 @@
         "services/indicators-service"
       ],
       "kind": "service",
-      "incoming": 4,
+      "incoming": 5,
       "outgoing": 2,
       "orphan": false
     },
@@ -318,7 +318,7 @@
       ],
       "kind": "service",
       "incoming": 5,
-      "outgoing": 31,
+      "outgoing": 32,
       "orphan": false
     },
     {
@@ -559,7 +559,7 @@
       "id": "sahool-migrate",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 27,
+      "incoming": 28,
       "outgoing": 2,
       "orphan": false
     },
@@ -648,7 +648,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -952,7 +952,7 @@
       ],
       "kind": "service",
       "incoming": 6,
-      "outgoing": 16,
+      "outgoing": 17,
       "orphan": false
     },
     {
@@ -1502,6 +1502,12 @@
       "target": "guardrails",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/core/internal_orchestrator.py"
+    },
+    {
+      "source": "platform",
+      "target": "indicators-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/routers/indicators.py"
     },
     {
       "source": "platform",
@@ -2339,6 +2345,12 @@
     },
     {
       "source": "sahool-pg-exporter",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-pg-exporter",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -2693,6 +2705,12 @@
     },
     {
       "source": "supervisor-agent",
+      "target": "agriai-engine",
+      "kind": "code-reference",
+      "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
+    },
+    {
+      "source": "supervisor-agent",
       "target": "guardrails",
       "kind": "code-reference",
       "evidence": "services/supervisor-agent/main.py"
@@ -2935,11 +2953,11 @@
   "cycles": [],
   "summary": {
     "nodes": 122,
-    "edges": 315,
+    "edges": 318,
     "orphans": 5,
     "cycles": 0,
-    "code_edges": 78,
-    "compose_edges": 237
+    "code_edges": 80,
+    "compose_edges": 238
   },
-  "content_sha256": "1abdae701f4c17fce1a6e296d8b8146225c8797dce072b55f0423f3c3363125c"
+  "content_sha256": "b27e7c52dee5c01e64d9bfa532e33146b3638a9aba681c44409b1ab7eb761ae5"
 }

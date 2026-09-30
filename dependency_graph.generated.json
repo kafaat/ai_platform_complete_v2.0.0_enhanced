@@ -1,5 +1,5 @@
 {
-  "edge_count": 836,
+  "edge_count": 838,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -299,6 +299,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "field-segmentation",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "indicators-service",
       "to_kind": "component"
     },
     {
@@ -4752,7 +4762,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:98",
+      "evidence": "nginx/nginx.unified.conf:95",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4762,7 +4772,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:113",
+      "evidence": "nginx/nginx.unified.conf:110",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4772,7 +4782,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:327",
+      "evidence": "nginx/nginx.v9.conf:332",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4782,7 +4792,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:36",
+      "evidence": "nginx/nginx.fixed.conf:37",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4792,7 +4802,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.light.conf:58",
+      "evidence": "nginx/nginx.light.conf:48",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4812,7 +4822,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:265",
+      "evidence": "nginx/nginx.v9.conf:269",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4832,7 +4842,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:85",
+      "evidence": "nginx/nginx.unified.conf:88",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4852,7 +4862,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:117",
+      "evidence": "nginx/nginx.unified.conf:118",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4872,7 +4882,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.light.conf:88",
+      "evidence": "nginx/nginx.light.conf:86",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4892,7 +4902,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:335",
+      "evidence": "nginx/nginx.v9.conf:348",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4902,7 +4912,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.light.conf:90",
+      "evidence": "nginx/nginx.light.conf:91",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4912,7 +4922,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:136",
+      "evidence": "nginx/nginx.unified.conf:138",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4922,7 +4932,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:338",
+      "evidence": "nginx/nginx.v9.conf:353",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4932,7 +4942,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:40",
+      "evidence": "nginx/nginx.fixed.conf:39",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4962,7 +4972,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:317",
+      "evidence": "nginx/nginx.v9.conf:323",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4992,7 +5002,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:105",
+      "evidence": "nginx/nginx.unified.conf:101",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5002,7 +5012,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:54",
+      "evidence": "nginx/nginx.fixed.conf:52",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5012,7 +5022,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:304",
+      "evidence": "nginx/nginx.v9.conf:308",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5032,7 +5042,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:43",
+      "evidence": "nginx/nginx.fixed.conf:46",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5062,7 +5072,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:62",
+      "evidence": "nginx/nginx.unified.conf:57",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5072,7 +5082,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:127",
+      "evidence": "nginx/nginx.unified.conf:126",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5082,7 +5092,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:83",
+      "evidence": "nginx/nginx.unified.conf:84",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5092,7 +5102,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.light.conf:73",
+      "evidence": "nginx/nginx.light.conf:75",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5102,7 +5112,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:248",
+      "evidence": "nginx/nginx.v9.conf:254",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5112,7 +5122,17 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.light.conf:77",
+      "evidence": "nginx/nginx.v9.conf:250",
+      "from": "gateway:nginx",
+      "from_kind": "gateway",
+      "protocol": "http",
+      "relation": "ROUTES_TO",
+      "resource": "= /api/ai-agronomist/healthz",
+      "to": "runtime-upstream://sahool-ai-agronomist",
+      "to_kind": "runtime_upstream"
+    },
+    {
+      "evidence": "nginx/nginx.light.conf:80",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5122,7 +5142,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:51",
+      "evidence": "nginx/nginx.fixed.conf:49",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5132,7 +5152,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:293",
+      "evidence": "nginx/nginx.v9.conf:295",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5142,7 +5162,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:274",
+      "evidence": "nginx/nginx.v9.conf:279",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5152,7 +5172,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.light.conf:66",
+      "evidence": "nginx/nginx.light.conf:58",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5162,7 +5182,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:41",
+      "evidence": "nginx/nginx.fixed.conf:45",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5202,7 +5222,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:76",
+      "evidence": "nginx/nginx.unified.conf:72",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5212,7 +5232,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:80",
+      "evidence": "nginx/nginx.unified.conf:79",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5222,7 +5242,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:81",
+      "evidence": "nginx/nginx.unified.conf:83",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5232,7 +5252,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:129",
+      "evidence": "nginx/nginx.unified.conf:128",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5292,7 +5312,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:52",
+      "evidence": "nginx/nginx.fixed.conf:50",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5312,7 +5332,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.fixed.conf:50",
+      "evidence": "nginx/nginx.fixed.conf:48",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5332,7 +5352,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:309",
+      "evidence": "nginx/nginx.v9.conf:311",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5342,7 +5362,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:311",
+      "evidence": "nginx/nginx.v9.conf:317",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5372,7 +5392,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.unified.conf:74",
+      "evidence": "nginx/nginx.unified.conf:64",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5442,7 +5462,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:321",
+      "evidence": "nginx/nginx.v9.conf:327",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -8377,19 +8397,19 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 44,
+    "CALLS": 45,
     "CONSUMES": 1,
     "EMITS": 1,
     "READS": 429,
-    "ROUTES_TO": 71,
+    "ROUTES_TO": 72,
     "WRITES": 290
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
     "gateway": {
       "component_targets": 53,
-      "observed": 71,
-      "runtime_upstream_targets": 18
+      "observed": 72,
+      "runtime_upstream_targets": 19
     },
     "nats": {
       "observed": 2,

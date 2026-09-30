@@ -314,7 +314,14 @@ async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     crop, weather, soil, management = _context_inputs(
         req.agronomic_context, req.crop, req.weather, req.soil, req.agromanagement
     )
-    result = wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=management)
+    try:
+        result = wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=management)
+    except RuntimeError as exc:
+        # المُحوِّل يفشل مُغلَقاً برموز مُصنَّفة (إنتاج بلا محرّك · راية مشعلة بلا pcse/مدخلات ·
+        # محصول خارج السجلّ · فشل PCSE). كانت تتسرّب 500 عارية بلا سبب، فلا يميّز المُنادي
+        # (supervisor) «المحرّك غير متاح» من عطل عابر. الرمز المُصنَّف وحده يُعاد (ثوابت المُحوِّل
+        # + اسم المحصول المُرسَل)؛ استثناء PCSE الداخليّ يبقى في ``__cause__`` لا في الجسم.
+        raise HTTPException(503, {"error": "simulation_unavailable", "reason": str(exc)}) from exc
     result["agronomic_context_validation"] = context_validation
     return result
 

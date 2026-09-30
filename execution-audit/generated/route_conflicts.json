@@ -174,7 +174,7 @@
         },
         {
           "function": "healthz",
-          "line": 316,
+          "line": 319,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/health",
@@ -373,7 +373,7 @@
         },
         {
           "function": "healthz",
-          "line": 316,
+          "line": 319,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/healthz",
@@ -739,7 +739,7 @@
         },
         {
           "function": "readyz",
-          "line": 321,
+          "line": 324,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/readyz",
@@ -1182,8 +1182,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1104,
-  "route_inventory_sha256": "c82007c5ac3af0813d6bcb881c5ceff91d55ea06d64b8b6edc16f2df2bf5a3b2",
+  "route_count": 1105,
+  "route_inventory_sha256": "f0ba7a1ff5c8e301dcd1f804fc226dbbde4310c902acf9ad22088015dc43b924",
   "runtime_verified": false,
   "schema_version": 1
 }
