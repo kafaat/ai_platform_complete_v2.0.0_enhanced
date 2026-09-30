@@ -229,8 +229,31 @@ def violations(
     return failures
 
 
+class BaselineWouldGrow(RuntimeError):
+    """إعادةُ التوليد كانت سترفع عدّاً مُعلَناً — الأساسُ يتقلّص ولا ينمو **بالبناء**."""
+
+    def __init__(self, grown: dict[str, tuple[int, int]]) -> None:
+        self.grown = grown
+        super().__init__(
+            " · ".join(f"{name}: {old}→{new}" for name, (old, new) in sorted(grown.items()))
+        )
+
+
 def generate(path: Path = BASELINE, root: Path = ROOT) -> dict:
     overrides, marks = scan(root)
+    # «يتقلّص ولا ينمو» كان وصفاً يقرؤه الفاحصُ وحده: `--generate` كان يكتب العدَّ
+    # الحاليّ أيّاً كان، فـ72→74 تمرّ بسطرٍ واحد. الآن التوليدُ يُخفِض ولا يرفع؛ وأوّلُ
+    # توليدٍ (لا أساسَ بعد) وحده يكتب ما يجده. التحريرُ اليدويّ للملفّ يبقى ممكناً
+    # ويظهر في المراجعة — حدٌّ مُعلَن لا يدّعي الحارسُ سدَّه.
+    if path.exists():
+        previous = load_baseline(path)
+        grown = {
+            name: (previous.get(name, 0), count)
+            for name, count in marks.items()
+            if count > previous.get(name, 0)
+        }
+        if grown:
+            raise BaselineWouldGrow(grown)
     data = {
         "$comment": (
             "أساسٌ مُعلَن لـBIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01 — **علاماتٌ "
@@ -282,7 +305,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.generate:
-        data = generate()
+        try:
+            data = generate()
+        except BaselineWouldGrow as exc:
+            print("bidi_control_char_guard_failed")
+            print(
+                f"- إعادةُ التوليد كانت سترفع الأساس ({exc}) — الأساسُ يتقلّص ولا ينمو. "
+                "احذف الزائد ثمّ أعِد التوليد: "
+                "`python3 scripts/ci/bidi_control_char_guard.py --strip-added`."
+            )
+            return 1
         print(
             f"bidi_control_char_guard: كُتِب الأساس — {data['totals']['files']} ملفّاً "
             f"· {data['totals']['marks']} محرفاً خفيّاً · "
