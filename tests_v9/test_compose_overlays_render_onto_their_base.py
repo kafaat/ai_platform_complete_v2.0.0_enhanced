@@ -192,3 +192,20 @@ def test_ci_fails_a_render_that_has_a_service_with_neither_image_nor_build(monke
         }
     }
     assert check(rendered) == ["sahool-raster"]
+
+
+# ── 3. the storage-env contract gate judges an overlay by its merge too ─────────
+
+
+def test_compose_env_contract_gate_reads_each_overlay_on_its_declared_base():
+    """Judged alone, the renamed ``sahool-raster-service`` in the production overlay
+    carries none of the storage env its v9 base provides — the gate must merge."""
+    import importlib.util
+
+    path = ROOT / "scripts" / "ci" / "compose_env_contract_gate.py"
+    spec = importlib.util.spec_from_file_location("compose_env_contract_gate", path)
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    for overlay, bases in _overlays().items():
+        assert gate.declared_bases(ROOT / overlay) == [ROOT / b for b in bases], overlay
+    assert gate.declared_bases(ROOT / BASE) == []

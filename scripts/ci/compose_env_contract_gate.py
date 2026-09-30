@@ -29,6 +29,29 @@ VAR_RE = re.compile(
     r"(?<!\$)\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(?::-|:-|\?|:\?|-)[^}]*)?\}|(?<!\$)\$([A-Za-z_][A-Za-z0-9_]*)"
 )
 
+# The header line an overlay carries to say which base it is deployed on, e.g.
+#   # docker compose -f docker-compose.v9.yml -f docker-compose.production.yml up -d
+USAGE_RE = re.compile(
+    r"^#.*?\bdocker compose((?:\s+(?:-f|--profile)\s+\S+)+)\s+(?:up|config)\b", re.M
+)
+
+
+def declared_bases(path: Path) -> list[Path]:
+    """Files an overlay is deployed on top of, from its own ``docker compose -f`` line.
+
+    An overlay's service carries only what it changes; judged alone it lacks everything
+    its base provides (OVERLAY-VALIDATION-SKIPPED-BY-FILENAME-LIST-01). Its service
+    contract is therefore checked on the merge it is deployed as.
+    """
+    match = USAGE_RE.search(path.read_text(encoding="utf-8"))
+    if match is None:
+        return []
+    args = match.group(1).split()
+    files = [args[i + 1] for i in range(0, len(args), 2) if args[i] == "-f"]
+    if path.name not in files:
+        return []
+    return [path.parent / name for name in files[: files.index(path.name)]]
+
 
 def parse_env(path: Path) -> tuple[dict[str, str], list[str]]:
     values: dict[str, str] = {}
@@ -113,8 +136,13 @@ def main() -> int:
     for path in COMPOSE_FILES:
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         services = data.get("services") or {}
+        base_env: dict[str, dict[str, str]] = defaultdict(dict)
+        for base in declared_bases(path):
+            base_data = yaml.safe_load(base.read_text(encoding="utf-8")) or {}
+            for base_name, base_service in (base_data.get("services") or {}).items():
+                base_env[base_name].update(compose_env_map(base_service or {}))
         for name, service in services.items():
-            env = compose_env_map(service)
+            env = {**base_env.get(name, {}), **compose_env_map(service)}
             if name == "sahool-minio":
                 root = env.get("MINIO_ROOT_USER", "")
                 if root and "${MINIO_ROOT_USER" not in root:
