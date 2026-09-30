@@ -169,11 +169,11 @@ knowledge-graph,POST,/v1/nodes,upsert_node,services/knowledge-graph/main.py,152
 knowledge-graph,POST,/v1/edges,upsert_edge,services/knowledge-graph/main.py,160
 knowledge-graph,GET,/v1/edges,edges,services/knowledge-graph/main.py,169
 knowledge-graph,POST,/graphql,graphql,services/knowledge-graph/main.py,183
-local-ai-rag,POST,/v1/query,query_endpoint,services/local-ai-rag/main.py,594
-local-ai-rag,POST,/v1/ingest,ingest_endpoint,services/local-ai-rag/main.py,604
-local-ai-rag,GET,/healthz,healthz,services/local-ai-rag/main.py,659
-local-ai-rag,GET,/health,legacy_health,services/local-ai-rag/main.py,677
-local-ai-rag,GET,/readyz,readyz,services/local-ai-rag/main.py,682
+local-ai-rag,POST,/v1/query,query_endpoint,services/local-ai-rag/main.py,638
+local-ai-rag,POST,/v1/ingest,ingest_endpoint,services/local-ai-rag/main.py,648
+local-ai-rag,GET,/healthz,healthz,services/local-ai-rag/main.py,703
+local-ai-rag,GET,/health,legacy_health,services/local-ai-rag/main.py,721
+local-ai-rag,GET,/readyz,readyz,services/local-ai-rag/main.py,726
 mcp-servers,GET,/healthz,healthz,services/mcp_servers/generic_context_server.py,144
 mcp-servers,GET,/readyz,readyz,services/mcp_servers/generic_context_server.py,149
 mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/generic_context_server.py,156
@@ -215,8 +215,8 @@ odoo-bridge,POST,/v1/webhook/odoo,odoo_webhook,services/odoo-bridge/routers/webh
 rag-retrieval,GET,/healthz,healthz,services/rag-retrieval/main.py,145
 rag-retrieval,GET,/metrics,metrics,services/rag-retrieval/main.py,150
 rag-retrieval,GET,/readyz,readyz,services/rag-retrieval/main.py,163
-rag-retrieval,POST,/v1/ingest,ingest,services/rag-retrieval/main.py,200
-rag-retrieval,POST,/v1/search,search,services/rag-retrieval/main.py,275
+rag-retrieval,POST,/v1/ingest,ingest,services/rag-retrieval/main.py,207
+rag-retrieval,POST,/v1/search,search,services/rag-retrieval/main.py,282
 raster-service,GET,/runtime-identity,runtime_evidence_identity,services/raster-service/main.py,64
 raster-service,POST,/v1/zones/classify,zones_classify,services/raster-service/routers/analysis.py,30
 raster-service,POST,/v1/change/detect,change_detect,services/raster-service/routers/analysis.py,48

@@ -21,6 +21,8 @@ playwright/.cache/
 *.key
 *.pem
 *.crt
+# مادّةُ TLS للبوّابة (شهادةُ تطويرٍ يولّدها sahool-nginx-tls-init، أو شهادةُ المشغِّل) — لا تُلتزَم أبداً.
+nginx/ssl/
 volumes/
 data/
 backups/

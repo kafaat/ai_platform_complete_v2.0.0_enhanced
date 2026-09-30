@@ -161,7 +161,7 @@ sahool-indicators-service,sahool-postgres,compose-depends-on,docker-compose.fixe
 sahool-indicators-service,sahool-redis,compose-depends-on,docker-compose.fixed.yml
 sahool-irrigation-reservation-lifecycle-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-ollama,compose-depends-on,docker-compose.fixed.yml
-sahool-local-ai-rag,sahool-ollama,compose-depends-on,docker-compose.v9.yml
+sahool-local-ai-rag,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-local-ai-rag,sahool-qdrant,compose-depends-on,docker-compose.fixed.yml
 sahool-local-ai-rag,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
 sahool-market-mcp,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
@@ -191,6 +191,7 @@ sahool-nginx,sahool-local-ai-rag,compose-depends-on,docker-compose.fixed.yml
 sahool-nginx,sahool-local-ai-rag,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-market-mcp,compose-depends-on,docker-compose.fixed.yml
 sahool-nginx,sahool-market-mcp,compose-depends-on,docker-compose.v9.yml
+sahool-nginx,sahool-nginx-tls-init,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-notification-agent,compose-depends-on,docker-compose.fixed.yml
 sahool-nginx,sahool-notification-agent,compose-depends-on,docker-compose.v9.yml
 sahool-nginx,sahool-rag-retrieval,compose-depends-on,docker-compose.v9.yml
@@ -216,6 +217,7 @@ sahool-notification-agent,sahool-tts-service,compose-depends-on,docker-compose.v
 sahool-odoo,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-odoo,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
 sahool-odoo,sahool-postgres,compose-depends-on,docker-compose.v9.yml
+sahool-ollama-models,sahool-ollama,compose-depends-on,docker-compose.v9.yml
 sahool-pg-exporter,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-pg-exporter,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-phase-runtime-outbox-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
@@ -223,10 +225,10 @@ sahool-phase-runtime-outbox-worker,sahool-postgres,compose-depends-on,docker-com
 sahool-plugin-runtime-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-plugin-runtime-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-qdrant-seed,sahool-ollama,compose-depends-on,docker-compose.fixed.yml
-sahool-qdrant-seed,sahool-ollama,compose-depends-on,docker-compose.v9.yml
+sahool-qdrant-seed,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-qdrant-seed,sahool-qdrant,compose-depends-on,docker-compose.fixed.yml
 sahool-qdrant-seed,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
-sahool-rag-retrieval,sahool-ollama,compose-depends-on,docker-compose.v9.yml
+sahool-rag-retrieval,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.rag-kg-mcp.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
 sahool-raster,production-preflight,compose-depends-on,docker-compose.production.yml

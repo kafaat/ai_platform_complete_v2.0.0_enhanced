@@ -161,19 +161,26 @@ async def metrics():
 
 @app.get("/readyz")
 async def readyz():
+    # **المرحلةُ تُسمّى في الـ503** (تدقيقُ التشغيل الحيّ 2026-09-29): نموذجُ تضمينٍ لم يُسحَب
+    # كان يُعيد `rag retrieval not ready: HTTP Error 404: Not Found` عارياً — لا يُسمّي Ollama ولا
+    # النموذج (مقيسٌ على Ollama بلا نماذج)، ومالكُه sahool-ollama-models لا sahool-qdrant-seed.
+    # والمجموعةُ الغائبة أو الفارغة كانت 503 صادقةً أصلاً؛ تُوسَم مرحلتُها للتمييز فقط.
+    stage = f"embedding[{EMBEDDING_MODEL}]"
     try:
         # Readiness proves the embedding contract against the *live* Qdrant schema.
         # A reachable Qdrant alone is insufficient: a different vector space makes
         # retrieval operationally wrong while all HTTP probes remain green.
         vector = _embedding_provider.embed("SAHOOL retrieval readiness probe")
+        stage = "collection"
         collection_dim = _qdrant.collection_vector_size()
         if len(vector) != collection_dim:
             raise ValueError(
                 f"embedding/Qdrant dimension mismatch: embedding={len(vector)} collection={collection_dim}"
             )
+        stage = "corpus"
         sparse = _ensure_sparse_index()
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(503, f"rag retrieval not ready: {exc}") from exc
+        raise HTTPException(503, f"rag retrieval not ready: {stage}: {exc}") from exc
     return {
         "status": "ready",
         "service": "rag-retrieval",

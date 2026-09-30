@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5441,
+    "files_scanned": 5444,
     "files_by_kind": {
       "backend": 1212,
       "database": 281,
       "governance": 64,
       "mobile": 55,
-      "other": 1522,
-      "tests": 1849,
+      "other": 1523,
+      "tests": 1851,
       "web": 458
     },
-    "unmapped_artifacts": 2205,
+    "unmapped_artifacts": 2207,
     "ambiguous_artifacts": 425
   },
   "capabilities": [
@@ -43633,6 +43633,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gateway_tls_init.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
       "kind": "tests"
     },
@@ -44038,6 +44042,10 @@
     },
     {
       "path": "tests_v9/test_offline_pending_queue.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ollama_model_provisioning.py",
       "kind": "tests"
     },
     {

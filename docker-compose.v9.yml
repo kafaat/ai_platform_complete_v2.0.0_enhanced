@@ -38,6 +38,33 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  sahool-nginx-tls-init:
+    # GATEWAY-TLS-ABSENT-ON-FRESH-CHECKOUT-01 (تدقيقُ التشغيل الحيّ 2026-09-29، آلةٌ نظيفة): nginx.v9.conf
+    # يُعلن `listen 443 ssl` بـ/etc/nginx/ssl/fullchain.pem، والمستودعُ بلا nginx/ssl ولا مولِّد — فأنشأ
+    # Docker مجلّدَ التركيب فارغاً، ومات nginx على `cannot load certificate` وأُعيد تشغيلُه 31 مرّة
+    # والبوّابةُ العامّة كلُّها ساقطة. هذه المهمّةُ تسبقه (service_completed_successfully أدناه):
+    # تُولِّد شهادةَ تطويرٍ ذاتيّة **فقط** حين يغيب الزوجُ وSAHOOL_ENV صريحةٌ غيرُ إنتاجيّة، وفي غير
+    # ذلك تفحص ما وضعه المشغِّل وترفض الغائبَ والذاتيَّ التوقيع خارج التطوير بفشلٍ مُسمّى — لا حلقةَ
+    # إعادةٍ صامتة. المنطقُ واختبارُه: scripts/nginx/ensure_gateway_tls.sh · tests_v9/test_gateway_tls_init.py.
+    # الصورةُ أساسُ خدمات بايثون في هذا الملفّ (لا سلسلةَ توريدٍ جديدة)، ويفشل السكربت مُسمّىً إن غاب openssl.
+    image: python:3.11-slim-bookworm
+    mem_limit: 64m
+    security_opt:
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
+    # لا شبكةَ لها: تقرأ وتكتب مجلّداً مُركَّباً فقط.
+    network_mode: none
+    environment:
+      # بلا افتراضٍ تطويريّ عمداً: الغيابُ ليس «تطويراً صريحاً» ⇒ تُطلَب شهادةٌ حقيقيّة.
+      SAHOOL_ENV: ${SAHOOL_ENV:-}
+      DOMAIN: ${DOMAIN:-localhost}
+    entrypoint:
+    - /bin/sh
+    - /ensure_gateway_tls.sh
+    volumes:
+    - ./nginx/ssl:/etc/nginx/ssl
+    - ./scripts/nginx/ensure_gateway_tls.sh:/ensure_gateway_tls.sh:ro
   sahool-nginx:
     # upstream `resolve` requires nginx >= 1.27.3; pin the patch level so cached older 1.27 images cannot break nginx -t.
     image: nginx:1.27.5-alpine
@@ -67,6 +94,9 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
+      # زوجُ TLS حاضرٌ وصالح قبل الإقلاع، أو لا إقلاع — بدل 31 إعادةَ تشغيلٍ على شهادةٍ غائبة.
+      sahool-nginx-tls-init:
+        condition: service_completed_successfully
       sahool-platform:
         condition: service_healthy
       sahool-raster-service:
@@ -436,6 +466,37 @@ services:
     # "unhealthy", cascading to every service_healthy dependent (RAG/seed). Dependents
     # gate on service_started; a real readiness probe belongs in a sidecar or the RAG
     # service's own retry/backoff — not a self-healthcheck in the distroless image.
+  sahool-ollama-models:
+    # AI-CHAIN-STARTS-BEFORE-ITS-MODELS-01 (تدقيقُ التشغيل الحيّ 2026-09-29، آلةٌ نظيفة): فحصُ صحّة
+    # sahool-ollama هو `ollama list` — ينجح وفي Ollama صفرُ نماذج. فأقلع qdrant-seed (restart: no)
+    # قبل أيّ نموذج وبقيت Qdrant بصفر مجموعات (والبذرُ يخرج بـ1 على 404 أوّلِ تضمين — مقيسٌ على
+    # Ollama بلا نماذج)، وسحبَ local-ai-rag النماذجَ بنفسه ثمّ استسلم؛ فأعاد rag-retrieval 503
+    # وai-agronomist 502 وDocker يُظهرها كلَّها healthy. هذه المهمّةُ مالكةُ السحب: تنتظر الـAPI، تسحب الغائبَ من النموذجين
+    # أدناه بإعادةٍ محدودة، تُثبِت أنّ نموذجَ التضمين يُضمِّن (البُعدُ يُقاس ويُطبَع)، وتخرج بـ0 — أو
+    # بسببٍ مُسمّى فلا يُقلِع مستهلكوها (service_completed_successfully): فشلٌ عند up لا خُضرةٌ فوق 503.
+    # الأسماءُ حرفيّةٌ بقصد: عقدُ التضمين المحكوم (docs/architecture/rag_embedding_contract.json)
+    # ونموذجُ التوليد الذي يقرؤه local-ai-rag وai-agronomist؛ تطابقُها مع كلّ مستهلكٍ يفرضه
+    # tests_v9/test_ai_chain_model_provisioning_contract.py. المنطق: scripts/ollama/provision_models.py.
+    image: python:3.11-slim-bookworm
+    mem_limit: 128m
+    security_opt:
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
+    environment:
+      OLLAMA_BASE_URL: http://sahool-ollama:11434
+      OLLAMA_REQUIRED_EMBED_MODEL: nomic-embed-text
+      OLLAMA_REQUIRED_GENERATION_MODEL: llama3.2:3b
+    entrypoint:
+    - python
+    - /provision_ollama_models.py
+    volumes:
+    - ./scripts/ollama/provision_models.py:/provision_ollama_models.py:ro
+    depends_on:
+      sahool-ollama:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-ollama:
     environment:
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
@@ -458,6 +519,9 @@ services:
     - ollama-models:/root/.ollama
     networks:
     - sahool-internal
+    # حيويّةُ الـAPI عمداً لا حضورُ النماذج: sahool-ollama-models يعتمد على هذا الفحص ليسحب، فاشتراطُ
+    # النماذج هنا يُقفِل السحبَ على نفسه (ويخالف عقدَ «فحصُ Docker حيويّةٌ لا جاهزيّة»). حضورُ النماذج
+    # بوّابتُه اكتمالُ تلك المهمّة، ولا يعتمد مستهلكٌ على هذا الفحص مباشرةً.
     healthcheck:
       test:
       - CMD
@@ -1826,8 +1890,9 @@ services:
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
-      sahool-ollama:
-        condition: service_healthy
+      # «الـAPI حيّ» ليس «النموذجُ حاضر»: البوّابةُ اكتمالُ التهيئة لا فحصُ `ollama list`.
+      sahool-ollama-models:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
     healthcheck:
@@ -1866,8 +1931,9 @@ services:
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
-      sahool-ollama:
-        condition: service_healthy
+      # «الـAPI حيّ» ليس «النموذجُ حاضر»: البوّابةُ اكتمالُ التهيئة لا فحصُ `ollama list`.
+      sahool-ollama-models:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
     healthcheck:
@@ -1993,8 +2059,11 @@ services:
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
-      sahool-ollama:
-        condition: service_healthy
+      # كان service_healthy على sahool-ollama فأقلع البذرُ وفي Ollama صفرُ نماذج: Qdrant بلا مجموعة
+      # (حيّاً 2026-09-29)، والبذرُ يخرج بـ1 على 404 أوّلِ تضمين (مقيسٌ على Ollama بلا نماذج).
+      # الآن لا يبدأ قبل حضورها.
+      sahool-ollama-models:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
   sahool-erp-bridge:

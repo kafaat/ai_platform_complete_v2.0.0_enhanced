@@ -4782,7 +4782,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:332",
+      "evidence": "nginx/nginx.v9.conf:331",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4902,7 +4902,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:348",
+      "evidence": "nginx/nginx.v9.conf:347",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4932,7 +4932,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:353",
+      "evidence": "nginx/nginx.v9.conf:350",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4972,7 +4972,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:323",
+      "evidence": "nginx/nginx.v9.conf:321",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4982,7 +4982,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:159",
+      "evidence": "nginx/nginx.v9.conf:161",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5022,7 +5022,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:308",
+      "evidence": "nginx/nginx.v9.conf:307",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5032,7 +5032,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:236",
+      "evidence": "nginx/nginx.v9.conf:235",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5052,7 +5052,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:178",
+      "evidence": "nginx/nginx.v9.conf:177",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5112,7 +5112,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:254",
+      "evidence": "nginx/nginx.v9.conf:252",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5122,7 +5122,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:250",
+      "evidence": "nginx/nginx.v9.conf:249",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5162,7 +5162,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:279",
+      "evidence": "nginx/nginx.v9.conf:277",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5192,7 +5192,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:167",
+      "evidence": "nginx/nginx.v9.conf:165",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5202,7 +5202,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:162",
+      "evidence": "nginx/nginx.v9.conf:161",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5262,7 +5262,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:200",
+      "evidence": "nginx/nginx.v9.conf:199",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5272,7 +5272,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:216",
+      "evidence": "nginx/nginx.v9.conf:215",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5292,7 +5292,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:219",
+      "evidence": "nginx/nginx.v9.conf:218",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5302,7 +5302,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:213",
+      "evidence": "nginx/nginx.v9.conf:208",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5322,7 +5322,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:158",
+      "evidence": "nginx/nginx.v9.conf:156",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5342,7 +5342,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:205",
+      "evidence": "nginx/nginx.v9.conf:204",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5352,7 +5352,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:311",
+      "evidence": "nginx/nginx.v9.conf:312",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5362,7 +5362,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:317",
+      "evidence": "nginx/nginx.v9.conf:316",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5422,7 +5422,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:227",
+      "evidence": "nginx/nginx.v9.conf:224",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5462,7 +5462,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:327",
+      "evidence": "nginx/nginx.v9.conf:324",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5472,7 +5472,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:160",
+      "evidence": "nginx/nginx.v9.conf:161",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",

@@ -5,6 +5,16 @@
 ``/readyz`` يقول «قيد التحميل». هذه الوحدة نقيّة (بلا FastAPI/LangChain) كي تُختبَر
 بحقن ``sleep`` ومُهيّئ صناعيّ، وتُحدِّث قاموسَ حالةٍ يقرؤه ``/readyz`` بصدق:
 ``pending`` → ``retrying`` → ``ready`` | ``failed`` (مع آخر خطأ وعدد المحاولات).
+
+تدقيقُ التشغيل الحيّ 2026-09-29 (آلةٌ نظيفة): استُنفِدت المحاولاتُ الستّ والنماذجُ لم تُسحَب
+بعد، فصارت ``failed`` **نهائيّةً** — لا إعادةَ حتّى إعادةِ تشغيل الحاوية — وآخرُ خطأٍ عامٌّ
+(«Ollama not available») لا يقول أيُّ تبعيّةٍ غابت. فصار أمران:
+
+* ``keep_retrying=True``: بعد ميزانية الإقلاع تبقى ``failed`` (صادقة: الميزانيةُ استُنفِدت) لكنّ
+  الإعادةَ تستمرّ بتراجعٍ **مسقوف** (``cap`` وأرضيّة ``PERSISTENT_RETRY_FLOOR_S``) فتتعافى الخدمةُ
+  حين تظهر التبعيّة (بذرٌ أُعيد، نموذجٌ سُحِب) بلا إعادة تشغيل.
+* ``InitNotReady(reason, detail)``: سببٌ **مُسمّى** (``model_missing`` · ``collection_missing`` …)
+  يُحفَظ في ``state["reason"]`` ويقرؤه ``/readyz`` كما هو.
 """
 
 from __future__ import annotations
@@ -18,9 +28,33 @@ from typing import Any
 
 _log = logging.getLogger("local-ai-rag")
 
+#: أدنى فاصلٍ بين محاولاتِ ما بعد الميزانية. تراجعٌ صفريّ مسموحٌ داخل الميزانية (``base=0``)،
+#: لكنّه بلا نهايةٍ للمحاولات يصير حلقةً ساخنةً أبديّة — فالأرضيّةُ تُفرَض هنا وحدَه.
+PERSISTENT_RETRY_FLOOR_S = 5.0
+
+
+class InitNotReady(RuntimeError):
+    """سببُ عدمِ الجاهزيّة **مُسمّى**: ``reason`` رمزٌ ثابت يقرؤه ``/readyz``، و``detail`` ما قِيس."""
+
+    def __init__(self, reason: str, detail: str) -> None:
+        super().__init__(f"{reason}: {detail}")
+        self.reason = reason
+        self.detail = detail
+
+
+def reason_of(exc: BaseException) -> str:
+    """الرمزُ من ``InitNotReady`` وحدَه — ``URLError.reason`` وأشباهُه نصٌّ حرّ لا رمز."""
+    return exc.reason if isinstance(exc, InitNotReady) else "unclassified"
+
 
 def new_state() -> dict[str, Any]:
-    return {"status": "pending", "attempts": 0, "last_error": None}
+    return {
+        "status": "pending",
+        "attempts": 0,
+        "last_error": None,
+        "reason": None,
+        "next_retry_s": None,
+    }
 
 
 def non_negative_float(
@@ -91,16 +125,23 @@ async def run_init_with_retry(
     cap: float,
     sleep: Callable[[float], Awaitable[None]] | None = None,
     log: logging.Logger | None = None,
+    keep_retrying: bool = False,
 ) -> dict[str, Any]:
     """يُشغّل ``init_fn`` (متزامنة أو async) حتّى تنجح أو تُستنفَد المحاولات.
 
     ``state`` يُحدَّث في مكانه (يقرؤه /readyz)؛ ``ready`` عند النجاح، ``retrying`` بين
-    المحاولات، ``failed`` بعد الاستنفاد مع آخر خطأ. ``sleep`` قابل للحقن للاختبار.
+    المحاولات، ``failed`` بعد الاستنفاد مع آخر خطأ وسببه المُسمّى. ``sleep`` قابل للحقن للاختبار.
+
+    ``keep_retrying=False`` (الافتراضيّ): الاستنفادُ نهاية. ``True``: الاستنفادُ يُعلَن ``failed`` ثمّ
+    تستمرّ الإعادةُ بفاصلٍ مسقوف (لا يقلّ عن ``PERSISTENT_RETRY_FLOOR_S``) حتّى تنجح أو تُلغى
+    المهمّة — ``next_retry_s`` يقول متى، فـ«فشلت» لا تعني «توقّفت عن المحاولة» ولا العكس.
     """
     logger = log or _log
     do_sleep = asyncio.sleep if sleep is None else sleep
     attempts = max(1, int(max_attempts))
-    for attempt in range(1, attempts + 1):
+    attempt = 0
+    while True:
+        attempt += 1
         state["attempts"] = attempt
         try:
             result = init_fn()
@@ -109,25 +150,39 @@ async def run_init_with_retry(
                 await result
             state["status"] = "ready"
             state["last_error"] = None
+            state["reason"] = None
+            state["next_retry_s"] = None
             return dict(state)
         except Exception as exc:  # noqa: BLE001 — الفشل يُسجَّل ويُعاد بحدود
             state["last_error"] = f"{type(exc).__name__}: {exc}"
+            state["reason"] = reason_of(exc)
             if attempt >= attempts:
                 state["status"] = "failed"
-                logger.error(
-                    "فشلت التهيئة الخلفيّة نهائيّاً بعد %d محاولات: %s",
-                    attempt,
+                if not keep_retrying:
+                    state["next_retry_s"] = None
+                    logger.error(
+                        "فشلت التهيئة الخلفيّة نهائيّاً بعد %d محاولات: %s",
+                        attempt,
+                        state["last_error"],
+                    )
+                    return dict(state)
+                delay = max(backoff_seconds(attempt, base=base, cap=cap), PERSISTENT_RETRY_FLOOR_S)
+                (logger.error if attempt == attempts else logger.warning)(
+                    "استُنفِدت ميزانيةُ الإقلاع (%d محاولات) [%s] %s — الإعادةُ مستمرّة كلّ %.0fث",
+                    attempts,
+                    state["reason"],
                     state["last_error"],
+                    delay,
                 )
-                return dict(state)
-            state["status"] = "retrying"
-            delay = backoff_seconds(attempt, base=base, cap=cap)
-            logger.warning(
-                "فشلت محاولة التهيئة %d/%d (%s) — إعادة بعد %.0fث",
-                attempt,
-                attempts,
-                state["last_error"],
-                delay,
-            )
+            else:
+                state["status"] = "retrying"
+                delay = backoff_seconds(attempt, base=base, cap=cap)
+                logger.warning(
+                    "فشلت محاولة التهيئة %d/%d (%s) — إعادة بعد %.0fث",
+                    attempt,
+                    attempts,
+                    state["last_error"],
+                    delay,
+                )
+            state["next_retry_s"] = delay
             await do_sleep(delay)
-    return dict(state)

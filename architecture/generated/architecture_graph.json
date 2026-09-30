@@ -616,7 +616,15 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 32,
+      "outgoing": 33,
+      "orphan": false
+    },
+    {
+      "id": "sahool-nginx-tls-init",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 1,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -639,8 +647,16 @@
       "id": "sahool-ollama",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 5,
+      "incoming": 3,
       "outgoing": 0,
+      "orphan": false
+    },
+    {
+      "id": "sahool-ollama-models",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 3,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -2015,7 +2031,7 @@
     },
     {
       "source": "sahool-local-ai-rag",
-      "target": "sahool-ollama",
+      "target": "sahool-ollama-models",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2195,6 +2211,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-nginx-tls-init",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-notification-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -2344,6 +2366,12 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
+      "source": "sahool-ollama-models",
+      "target": "sahool-ollama",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
       "source": "sahool-pg-exporter",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -2387,7 +2415,7 @@
     },
     {
       "source": "sahool-qdrant-seed",
-      "target": "sahool-ollama",
+      "target": "sahool-ollama-models",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2405,7 +2433,7 @@
     },
     {
       "source": "sahool-rag-retrieval",
-      "target": "sahool-ollama",
+      "target": "sahool-ollama-models",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2952,12 +2980,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 122,
-    "edges": 318,
+    "nodes": 124,
+    "edges": 320,
     "orphans": 5,
     "cycles": 0,
     "code_edges": 80,
-    "compose_edges": 238
+    "compose_edges": 240
   },
-  "content_sha256": "b27e7c52dee5c01e64d9bfa532e33146b3638a9aba681c44409b1ab7eb761ae5"
+  "content_sha256": "95a258879fa7b58a885c60a6ad79fc6ceead3fba9ea5613b37d5a6a889bd361a"
 }
