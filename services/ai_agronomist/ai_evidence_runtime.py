@@ -278,9 +278,19 @@ async def _record_ai_advice_event(
         if resp.status_code >= 400:
             return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
         payload = resp.json()
-        # المنصّة تُعيد ``persisted`` الحقيقيّة (P0): غيابُها (منصّة أقدم) يُقرأ تسجيلاً كما كان.
-        persisted = payload.get("persisted", payload.get("ok", True))
-        return {"status": "recorded" if persisted else "not_persisted", **payload}
+        # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01 (الصنفُ نفسُه: صمتٌ يُقرأ نجاحاً):
+        # ردٌّ بلا ``persisted`` كان يُقرأ «recorded» — منصّةٌ أقدم، أو ردٌّ مُشوَّه، يصير
+        # إيصالَ حفظٍ لم يُرَ. كلُّ فروع المنصّة المنشورة تُعيده اليوم (main وdeploy/*)،
+        # فالغيابُ لا يصف منصّةً قائمة: يُسمّى ``unconfirmed`` لا نجاحاً ولا فشلاً.
+        # والحكمُ يُكتَب **بعد** الحمولة كي لا يَغلِبه مفتاحُ ``status`` في الردّ.
+        persisted = payload.get("persisted")
+        if persisted is True:
+            status = "recorded"
+        elif persisted is False:
+            status = "not_persisted"
+        else:
+            status = "unconfirmed"
+        return {**payload, "status": status}
     except Exception as exc:  # noqa: BLE001
         return {"status": "failed", "reason": str(exc)}
 
