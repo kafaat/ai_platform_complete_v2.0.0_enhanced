@@ -1793,6 +1793,7 @@ SEC-001,test,tests_v9/test_rls_fk_isolated_tables.py,3,applied
 SEC-001,test,tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py,3,applied
 SEC-001,test,tests_v9/test_rls_isolation.py,3,applied
 SEC-001,test,tests_v9/test_rls_isolation_negative.py,3,applied
+SEC-001,test,tests_v9/test_rls_policy_missing_ok_discipline.py,3,applied
 SEC-001,test,tests_v9/test_rls_role_hardening_v66.py,3,applied
 SEC-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
 SEC-001,test,tests_v9/test_rls_tenant_isolation_live_pg.py,5,applied

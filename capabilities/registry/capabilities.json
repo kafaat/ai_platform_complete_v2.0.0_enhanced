@@ -5036,13 +5036,13 @@
         "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py",
         "tests_v9/test_rls_isolation.py",
         "tests_v9/test_rls_isolation_negative.py",
+        "tests_v9/test_rls_policy_missing_ok_discipline.py",
         "tests_v9/test_rls_role_hardening_v66.py",
         "tests_v9/test_rls_tenant_coverage.py",
         "tests_v9/test_rls_tenant_isolation_live_pg.py",
         "tests_v9/test_rls_write_isolation_integration.py",
         "tests_v9/test_v197_external_submissions_rls_live.py",
-        "tests_v9/test_v9_odoo_rls_hardening_static.py",
-        "tests_v9/test_weather_automation_rls.py"
+        "tests_v9/test_v9_odoo_rls_hardening_static.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5079,6 +5079,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {
