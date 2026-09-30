@@ -960,6 +960,10 @@ async def build_evidence_response(
             )
             # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
             generation_status = "succeeded" if gen is not None else "attempted_failed"
+            if _cfg is not None:
+                # المحاولةُ تُقاس ولو فشلت (مراجعةٌ مستقلّة): المُهيَّأ هنا، وما أجاب فعلاً يَغلِبه أدناه.
+                generation_attempted_provider = _cfg.provider
+                generation_attempted_model = _cfg.model
         if gen is not None:
             # Guardrails accepts typed proposals from the decision owner. A
             # retrieved paragraph does not prove that arbitrary model prose is

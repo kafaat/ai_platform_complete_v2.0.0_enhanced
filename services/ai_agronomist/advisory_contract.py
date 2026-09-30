@@ -67,7 +67,9 @@ def _limitations(
     if not response.get("generation_provider"):
         # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: «مُعطَّل» ادّعاءٌ عن المحاولة لا عن العرض —
         # نموذجٌ حاول فأُخمِد خرجُه ليس نموذجاً غيرَ مُفعَّل.
-        if response.get("generation_attempted_provider"):
+        if response.get("generation_status") == "attempted_failed":
+            lim.append("generation_failed_evidence_only")
+        elif response.get("generation_attempted_provider"):
             lim.append("generation_suppressed_evidence_only")
         else:
             lim.append("generation_disabled_evidence_only")  # لا نموذج مُفعَّل — جواب من الأدلّة.

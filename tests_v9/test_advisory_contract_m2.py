@@ -95,6 +95,19 @@ def test_a_suppressed_generation_is_not_labelled_disabled():
     assert "generation_disabled_evidence_only" not in env["limitations"]
 
 
+def test_a_failed_generation_is_labelled_failed_not_disabled():
+    env = build_advisory_envelope(
+        {
+            **_GOOD,
+            "generation_provider": None,
+            "generation_attempted_provider": "vllm",
+            "generation_status": "attempted_failed",
+        }
+    )
+    assert "generation_failed_evidence_only" in env["limitations"]
+    assert "generation_disabled_evidence_only" not in env["limitations"]
+
+
 def test_malformed_input_is_conservative():
     env = build_advisory_envelope(None)
     assert env["decision"] == "advisory_only" and env["requires_human_review"] is True
