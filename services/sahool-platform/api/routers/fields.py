@@ -2626,26 +2626,18 @@ async def field_disease_risk(
             detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
-    # مطرُ ثلاثةِ أيّام يدخل تهديفَ خطر الأمراض الفطريّة — والغيابُ المُصفَّر
-    # يُنقِص الخطرَ المُبلَّغ، أي ينحاز إلى **عدم** التحذير. نفسُ اتّجاه العطل أعلاه.
+    # مطرُ ٣ أيّام والحرارةُ والرطوبة تدخل التهديف، والغيابُ المُصفَّر سابقاً يُنقِص الخطرَ المُبلَّغ
+    # ⇒ ٥٠٣ يُسمّي الناقص، المطرُ أوّلاً (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01).
     rain_3d, missing_rain = complete_rain_total(
         [f.precipitation_mm for f in forecast[:3]], expected_count=3
     )
-    if missing_rain:
-        raise HTTPException(
-            status_code=503,
-            detail=precipitation_incomplete_detail(
+    if missing_rain or current.temperature_c is None or current.humidity_pct is None:
+        detail = "قياسات الطقس ناقصة (الحرارة/الرطوبة) — لا يمكن تقدير مخاطر الأمراض."
+        if missing_rain:
+            detail = precipitation_incomplete_detail(
                 context="field_disease_risk", missing_intervals=missing_rain
-            ),
-        )
-    # مُدخَلا الخطر الآخران إلزاميّان كالمطر: الحافّةُ لم تعد تختلق `0°م`/`0٪`
-    # (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01)، والغيابُ ٥٠٣ يُسمّيه —
-    # لا خطرٌ مُهدَّفٌ من لا بيانات، ولا `round(None)` يُسقط الطلبَ ٥٠٠.
-    if current.temperature_c is None or current.humidity_pct is None:
-        raise HTTPException(
-            status_code=503,
-            detail="قياسات الطقس ناقصة (الحرارة/الرطوبة) — لا يمكن تقدير مخاطر الأمراض.",
-        )
+            )
+        raise HTTPException(status_code=503, detail=detail)
     risk = disease_risk(
         temp_c=current.temperature_c,
         humidity_pct=current.humidity_pct,
