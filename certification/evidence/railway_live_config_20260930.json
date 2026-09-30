@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "railway-live-config-production-gate-20260930",
+  "verdict": "MEASURED",
+  "scope": "live_railway_config_read_only_plus_owner_approved_config_changes",
+  "method": "Railway MCP read-only tools (describe-service, get-service-config, describe-environment, environment-status, list-deployments); Docker Hub registry manifests; git on origin/main. No variable VALUES were read; names only.",
+  "measured_at_utc": "2026-09-30",
+  "environment": {
+    "platform": "railway",
+    "project_id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "staging_environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+    "production_environment_id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d"
+  },
+  "production_gate": {
+    "finding": "production services built from the repository deploy from branch main with source.checkSuites=false: Railway does not wait for GitHub CI, so a merge reaches production within seconds",
+    "observed": {
+      "sahool-frontend": {"branch": "main", "checkSuites": false},
+      "sahool-raster-service": {"branch": "main", "checkSuites": false},
+      "sahool-platform": {"branch": "deploy/sahool-staging-fa92a1f7", "checkSuites": false}
+    },
+    "example": "PR #1112 (166bdebf) reached the production frontend at 2026-09-30T14:38:45Z (deployment 3d04e090)",
+    "ci_on_main_push": "last two main commits: 32/32 and 28/28 workflow runs success (166bdebf, ff661935) - enabling Wait for CI would not silently block",
+    "pending_owner_dashboard": "Wait for CI (checkSuites) is a deployment-trigger setting; no MCP tool sets it without reconnecting the source (which rebuilds every environment)"
+  },
+  "platform_branch_drift": {
+    "staging": {"branch": "deploy/sahool-platform-db-ready-eb6da9df", "behind_main_in_watched_paths": 4, "pyjwt_pin": "2.13.0"},
+    "production": {"branch": "deploy/sahool-staging-fa92a1f7", "behind_main_in_watched_paths": 24, "pyjwt_pin": "2.13.0"},
+    "main_pyjwt_pin": "2.14.0 (CVE-2026-102274)"
+  },
+  "decision_service_staging": {
+    "latest_success_commit": "eff473aa (#1080), deployment c1acd33b, 2026-09-28T12:40:55Z",
+    "missing_from_main": ["7059d0dc (#1085 migration 033 compatibility)", "63727907 (#1086 canonical tenant boundary across legacy RLS)"]
+  },
+  "production_migrate_main": {"latest_deployment": "600fa8bb FAILED 2026-09-28T12:40:44Z", "state": "offline (environment-status warning)"},
+  "leftover_services": {
+    "production": ["wc005-postgres-live-proof (postgres:16-alpine, running)", "sahool-migrate (no source, europe-west4, never deployed)", "sahool-raster-main-candidate", "sahool-redis-state-0zaK (alongside sahool-redis-state)", "sahool-auth (legacy, alongside sahool-auth-main)"],
+    "staging": ["platform-db-proof-20260927", "wc005-postgres-live-proof", "sahool-raster-main-candidate", "sahool-redis-state-0zaK"]
+  },
+  "config_changes_applied_owner_approved": {
+    "healthcheck_path_production": {"services": ["sahool-platform", "sahool-auth-main", "sahool-auth"], "from": "/healthz", "to": "/readyz", "precondition": "/readyz exists on each deployed branch (git grep)"},
+    "draining_seconds": {"value": 20, "previous": "unset (Railway default 0: SIGTERM then SIGKILL immediately)", "services": ["sahool-platform", "sahool-auth-main", "sahool-auth", "sahool-frontend", "sahool-raster-service", "sahool-decision-service", "sahool-guardrails-engine", "sahool-field-management-service", "sahool-vegetation-analysis", "sahool-tts-service", "sahool-notification-agent"]},
+    "effect": "config only - applies at each service's next deployment; environment-status pendingWork=[] after the change (no deployment triggered)",
+    "rollback": "set healthcheckPath back to /healthz and drainingSeconds to null"
+  },
+  "frontend_healthcheck": {"kept": "/healthz", "reason": "frontend/nginx.conf `location = /readyz` proxies to platform /readyz - it measures platform readiness, not the frontend's"},
+  "postgres_image": {
+    "running": "postgis/postgis:15-3.4 (PG 15.8, PostGIS 3.4.3, Debian; tag last pushed 2024-10-14)",
+    "registry_measured_tags": {"15-3.5": "PG 15.13 / PostGIS 3.5.2", "15-3.5-alpine": "PG 15.19 / PostGIS 3.5.7 (musl)", "16-3.5": "PG 16.9", "17-3.5": "PG 17.5", "postgres:15.19-bookworm": "exists 2026-09-19 (glibc)"},
+    "railway_managed_features": "PITR, HA and one-click major upgrade apply to Railway's official Postgres images only (docs); volume backups apply to any volume"
+  }
+}
