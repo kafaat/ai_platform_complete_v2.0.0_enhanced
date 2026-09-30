@@ -316,6 +316,13 @@ async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     )
     try:
         result = wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=management)
+    except wa.SimulationInputError as exc:
+        # بُناة PCSE (``pcse_inputs``) يرفضون النقص باسمه: يومٌ بلا ضغط بخار، موقعٌ بلا ارتفاع،
+        # موسمٌ لا يغطّيه الطقس... خطأُ المُنادي لا عطلُ المحرّك ⇒ 422 برمزه، لا 503 ولا رقمٌ مُختلَق.
+        raise HTTPException(
+            422,
+            {"error": "simulation_inputs_invalid", "reason": exc.code, "detail": exc.detail},
+        ) from exc
     except RuntimeError as exc:
         # المُحوِّل يفشل مُغلَقاً برموز مُصنَّفة (إنتاج بلا محرّك · راية مشعلة بلا pcse/مدخلات ·
         # محصول خارج السجلّ · فشل PCSE). كانت تتسرّب 500 عارية بلا سبب، فلا يميّز المُنادي

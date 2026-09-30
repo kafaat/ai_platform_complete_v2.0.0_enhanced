@@ -99,10 +99,13 @@ def test_pcse_provenance_is_propagated_as_uncalibrated_pcse(monkeypatch):
     body = {
         "yield_kg_ha": 5400.0,
         "biomass": 12000.0,
-        "water_use": 30.0,  # CTRAT بالسنتيمتر في PCSE
-        "stages": [{"stage": "maturity", "reached": True, "at_fraction": 1.0}],
+        # ملّيمتر: المُحوِّل يُحوّل CTRAT (سم) ×10 بنفسه الآن. كانت المهارة تضرب ×10 هنا،
+        # فبقاء الضرب بعد إصلاح المُحوِّل كان سيُعيد 300 ملم لنتح 30 ملم.
+        "water_use": 30.0,
+        "stages": [{"stage": "maturity", "reached": True, "date": "2006-07-21", "at_dvs": 2.0}],
         "provenance": "pcse_wofost_uncalibrated",
         "yield_interval": {"low_kg_ha": 4700.0, "high_kg_ha": 6100.0, "confidence": "high"},
+        "diagnostics": {"defaults_applied": ["soil.SM0", "site.WAV", "weather.angstrom_ab"]},
     }
     _route_to(monkeypatch, httpx.MockTransport(lambda request: httpx.Response(200, json=body)))
     out = _simulate({"crop": "wheat", "weather": {"daily": [{"tmax": 25, "tmin": 10}]}})
@@ -112,8 +115,31 @@ def test_pcse_provenance_is_propagated_as_uncalibrated_pcse(monkeypatch):
     assert out["engine"] == "pcse_wofost72_wlp_fd"
     assert out["calibrated"] is False and "غير مُعايَر" in out["response"]
     assert out["structured"]["provenance"] == "pcse_wofost_uncalibrated"
-    assert out["total_water_mm"] == 300.0  # سم ⇒ ملم، لا خلط وحدات صامت
+    assert out["total_water_mm"] == 30.0  # عقد المخطّط ملّيمتر في المحرّكين — لا ضرب ثانٍ
     assert "PCSE Wofost72_WLP_FD (uncalibrated)" in out["sources"]
+    # الغلّة TWSO مادّة جافّة، والافتراضات المُعلَنة تُقال في النصّ وتُنقَل في structured.
+    assert "مادّة جافّة" in out["response"]
+    assert "تربة افتراضيّة" in out["response"] and "السعة الحقليّة" in out["response"]
+    assert out["structured"]["defaults_applied"] == ["soil.SM0", "site.WAV", "weather.angstrom_ab"]
+
+
+def test_pcse_input_rejection_422_carries_the_named_reason(monkeypatch):
+    """بُناة PCSE يُسمّون النقص؛ كانت المهارة تختزل 422 إلى «مرفوض» بلا سبب."""
+    detail = {
+        "error": "simulation_inputs_invalid",
+        "reason": "weather_day_missing",
+        "detail": "0:vapour_pressure_hpa|vapour_pressure_kpa",
+    }
+    _route_to(
+        monkeypatch,
+        httpx.MockTransport(lambda request: httpx.Response(422, json={"detail": detail})),
+    )
+    out = _simulate({"crop": "wheat", "weather": _WEATHER})
+    assert out["type"] == "unavailable"
+    assert out["structured"]["reason"] == "crop_model_inputs_rejected"
+    assert out["structured"]["engine_reason"] == "weather_day_missing"
+    assert out["structured"]["engine_detail"] == "0:vapour_pressure_hpa|vapour_pressure_kpa"
+    assert "yield_kg_ha" not in out
 
 
 @pytest.mark.parametrize("provenance", [None, "", "wofost_rue", "pcse_wofost"])

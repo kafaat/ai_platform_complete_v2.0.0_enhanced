@@ -1,12 +1,14 @@
 """SAHOOL agriai-engine — wofost_adapter.py (وحدة صرفة، بلا FastAPI).
 
 مُحوِّل محاكاة المحصول: ``simulate(crop, weather, soil, agromanagement)`` يُرجع دائماً
-مخطّطاً موحّداً: ``{yield_kg_ha, biomass, water_use, stages, provenance}``.
+مخطّطاً موحّداً: ``{yield_kg_ha, biomass, water_use, stages, provenance}`` — الغلّة والكتلة
+بـكغ/هـ، و``water_use`` **بالملّيمتر في المحرّكين** (``CTRAT`` في PCSE بالسنتيمتر ويُحوَّل هنا).
 
-- ``pcse`` تبعيّة ثقيلة اختياريّة، مُحاطة بحارس استيراد. عند توفّرها وكفاية المدخلات
-  نُشغّل تشغيل PCSE/WOFOST حقيقيّاً؛ عند غيابها نلجأ إلى بديل حتميّ (heuristic) موثّق
-  يُرجع نفس المخطّط بـ ``provenance="deterministic_fallback"``. في وضع الإنتاج
-  (`AGRIAI_PRODUCTION_MODE`) تصبح pcse مطلوبة: الغياب/النقص = فشل مُغلَق مُصنَّف
+- ``pcse`` تبعيّة ثقيلة اختياريّة. خلف ``SIM_PCSE_ENABLED`` يُشغَّل ``Wofost72_WLP_CWB`` حقيقيّاً
+  **بلا شبكة**: معاملات المحصول من ``pcse_data/`` المحزوم، والبُنى من ``pcse_inputs`` (نقصٌ ⇒
+  ``SimulationInputError`` ⇒ 422 باسمه). الراية مطفأة ⇒ بديل حتميّ (heuristic) موثّق يُرجع نفس
+  المخطّط بـ ``provenance="deterministic_fallback"``. في وضع الإنتاج (`AGRIAI_PRODUCTION_MODE`)
+  تصبح pcse مطلوبة: الغياب/النقص = فشل مُغلَق مُصنَّف
   (`agriai_production_simulation_unavailable`)، والبديل الحتميّ تطويريّ/اختباريّ فقط.
 
 بديل الغلّة الحتميّ (قانون الحدّ الأدنى — Liebig): الغلّة = أدنى قيد بين
@@ -18,18 +20,31 @@
 
 from __future__ import annotations
 
+import contextlib
+import importlib.util
+import io
+import logging
 import os
+import sys
+import types
 from typing import Any
 
+import pcse_inputs
 import sim_crop_registry
 
-# ── حارس استيراد pcse (تبعيّة ثقيلة اختياريّة — ليست تبعيّة صلبة) ──
-try:  # pragma: no cover - المسار الثقيل غير مُفعَّل في طبقة الوحدات/CI
-    import pcse  # type: ignore  # noqa: F401
+SimulationInputError = pcse_inputs.SimulationInputError  # main.py يُحوّله إلى 422
 
-    _PCSE_AVAILABLE = True
-except Exception:  # noqa: BLE001 - أيّ فشل استيراد ⇒ نلجأ للبديل الحتميّ بأمان
-    _PCSE_AVAILABLE = False
+logger = logging.getLogger("agriai-engine.wofost")
+
+# ── pcse: وجودُها يُفحَص هنا، واستيرادُها مؤجَّل حتى تنخرط الراية ──
+# مقيس (pcse 6.0.13): ``import pcse`` يستدعي ``logging.config.dictConfig`` بـ
+# ``disable_existing_loggers=True`` فيُعطِّل ``uvicorn.error``/``uvicorn.access`` وكلّ مُسجِّل سبقه،
+# ويستبدل معالجات الجذر بمعالجَي PCSE (شاشة ERROR + ملفّ INFO في ``~/.pcse/logs``)، ويبني
+# ``~/.pcse/pcse.db`` (2,744,320 بايت) ويُلحِق ``~/.pcse`` بـ``sys.path``. استيرادُها عند تحميل
+# الوحدة كان سيُصيب كلّ إقلاعٍ لـagriai بمجرّد تثبيتها — والراية مطفأة.
+_PCSE_AVAILABLE = importlib.util.find_spec("pcse") is not None
+_PCSE: types.SimpleNamespace | None = None
+_PCSE_IMPORT_ERROR: str | None = None
 
 
 def sim_pcse_enabled() -> bool:
@@ -55,17 +70,20 @@ _ROUND = 6
 
 
 def pcse_available() -> bool:
-    """هل تبعيّة pcse متاحة في هذه البيئة؟ (تُبقي الاختبارات صريحة)."""
-    return _PCSE_AVAILABLE
+    """هل pcse مثبَّتة ولم يفشل استيرادها في هذه العمليّة؟ (تُبقي الاختبارات صريحة).
+
+    الوجود يُقاس بـ``find_spec`` بلا استيراد (انظر أعلاه)؛ فشلُ أوّل استيراد فعليّ يُسقطها.
+    """
+    return _PCSE_AVAILABLE and _PCSE_IMPORT_ERROR is None
 
 
 def sim_pcse_integration_verified() -> bool:
-    """هل أُثبِت المسار العلميّ (PCSE/WOFOST) تكامليّاً حيّاً؟ (افتراضيّاً مُطفأ).
+    """هل قرّر المالك أنّ المسار العلميّ (PCSE/WOFOST) مُثبَتٌ لبيئته؟ (افتراضيّاً مُطفأ).
 
-    استيراد ``pcse`` شرط **لازم غير كافٍ**: بُناة الموفِّر (``_build_weather_provider`` /
-    ``_build_agromanagement``) يحتاجان إكمالاً في بيئة التكامل قبل أن يُنتِج WOFOST محاكاةً
-    علميّةً حقيقيّةً. تُرفَع هذه الراية يدويّاً **فقط بعد برهان حيّ**، فلا يدّعي ``/readyz``
-    جاهزيّةً علميّةً على مجرّد توفّر المكتبة.
+    توفّر ``pcse`` شرط **لازم غير كافٍ**. البُناة (``pcse_inputs``) مكتملة ومُشهَّدة دون شبكة
+    (``tests_v9/test_wofost_pcse_offline_integration.py``)، لكنّ المعاملات أوروبيّة المعايرة
+    والمخرَج غير مُعايَر حتى SIM-GOLDEN-01 — فرفع هذه الراية قرار مالكٍ **بعد برهان حيّ في
+    بيئته**، فلا يدّعي ``/readyz`` جاهزيّةً علميّةً على مجرّد توفّر المكتبة.
     """
     return os.getenv("SIM_PCSE_INTEGRATION_VERIFIED", "0").strip().lower() in {
         "1",
@@ -89,10 +107,12 @@ def scientific_path_status() -> dict[str, Any]:
         "pcse_enabled": enabled,
         "integration_verified": verified,
         "scientific_ready": bool(importable and enabled and verified),
+        "pcse_import_error": _PCSE_IMPORT_ERROR,
         "note": (
-            "pcse importable is necessary but NOT sufficient: the provider builders need "
-            "integration completion. Set SIM_PCSE_INTEGRATION_VERIFIED=1 only after a live "
-            "scientific proof; otherwise the deterministic fallback is used."
+            "pcse_importable = installed and not known to fail importing (the import itself is "
+            "deferred until SIM_PCSE_ENABLED engages). The offline PCSE path is implemented but "
+            "uncalibrated; set SIM_PCSE_INTEGRATION_VERIFIED=1 only after a live proof in this "
+            "environment; otherwise the deterministic fallback is used."
         ),
     }
 
@@ -233,15 +253,23 @@ def _yield_uncertainty(
     if w.get("gdd") is None and not has_daily:
         u += 0.08
         drivers.append("missing_daily_weather")
-    if w.get("total_rain_mm") is None:
+    # PCSE لا يبلغ هنا بلا ``rain_mm`` في كلّ يوم (``pcse_inputs`` يرفض اليوم الناقص)، فوسمُ
+    # ``missing_rainfall`` لغياب المجموع الموسميّ كان موجِّهاً كاذباً على مُخرَجه.
+    if not is_pcse and w.get("total_rain_mm") is None:
         u += 0.04
         drivers.append("missing_rainfall")
     if not (isinstance(soil, dict) and soil.get("available_water_mm") is not None):
         u += 0.05
         drivers.append("missing_soil_water")
-    if not (isinstance(agromanagement, dict) and agromanagement.get("irrigation_mm") is not None):
+    am = agromanagement if isinstance(agromanagement, dict) else {}
+    # خطّة PCSE أحداثٌ مؤرَّخة (``irrigation_events``)؛ البديل يقرأ المجموع ``irrigation_mm`` وحده.
+    if am.get("irrigation_mm") is None and not (is_pcse and am.get("irrigation_events")):
         u += 0.03
         drivers.append("missing_irrigation_plan")
+    # تربةُ PCSE الافتراضيّة (EC3) ليست تربة الحقل: وزنُها وزنُ موجِّه التربة القائم أعلاه.
+    if is_pcse and any(str(d).startswith("soil.") for d in diag.get("defaults_applied") or ()):
+        u += 0.05
+        drivers.append("default_soil_hydraulics")
     # ``{"name": "wheat"}`` ليس معاملات: البديل يقرأ مفاتيح ``_CROP_DEFAULTS`` وحدها، فمحصولٌ
     # مُسمّى بلا أيٍّ منها يُحسَب بالافتراضات نفسها ويجب أن يُسمّى كذلك (كان يُسقَط الموجِّه).
     # مسار PCSE يأخذ معاملاته من YAMLCropDataProvider بالاسم، فلا ينطبق عليه.
@@ -278,96 +306,287 @@ def _yield_uncertainty(
     }
 
 
-def _inputs_sufficient_for_pcse(
-    crop: dict[str, Any],
-    weather: dict[str, Any],
-    soil: dict[str, Any],
-    agromanagement: dict[str, Any],
-) -> bool:
-    """كفاية دنيا لتشغيل PCSE حقيقيّ: بيانات يوميّة + تربة + إدارة زراعيّة."""
-    return (
-        isinstance(weather, dict)
-        and isinstance(weather.get("daily"), list)
-        and bool(weather.get("daily"))
-        and isinstance(soil, dict)
-        and bool(soil)
-        and isinstance(agromanagement, dict)
-        and bool(agromanagement)
-        and isinstance(crop, dict)
-        and bool(crop)
-    )
+def _restore_host_logging(
+    root: logging.Logger,
+    handlers: list[logging.Handler],
+    level: int,
+    disabled: dict[str, bool],
+) -> None:
+    """يُعيد ما غيّره ``dictConfig`` في pcse: معالجات الجذر ومستواه وتعطيل المُسجِّلات السابقة."""
+    for handler in list(root.handlers):
+        if handler not in handlers:
+            root.removeHandler(handler)
+            handler.close()
+    for handler in handlers:
+        if handler not in root.handlers:
+            root.addHandler(handler)
+    root.setLevel(level)
+    for name, was_disabled in disabled.items():
+        existing = logging.Logger.manager.loggerDict.get(name)
+        if isinstance(existing, logging.Logger):
+            existing.disabled = was_disabled
 
 
-def _pcse_run(  # pragma: no cover - يتطلّب تبعيّة pcse الثقيلة (تُركَّب في بيئة التكامل، لا CI الوحدة)
-    crop: dict[str, Any],
-    weather: dict[str, Any],
-    soil: dict[str, Any],
-    agromanagement: dict[str, Any],
-) -> dict[str, Any]:
-    """تشغيل PCSE/WOFOST **موصَّل صحيحاً** (SIM-PCSE-01) — WLP فقط، محصول مدعوم بمعاملات PCSE الرسميّة.
+def _load_pcse() -> types.SimpleNamespace:  # pragma: no cover - يتطلّب pcse (اختبار التكامل)
+    """يستورد pcse مرّةً في العمليّة **دون** أن يُعيد تهيئة سجلّات المُضيف أو ``sys.path``.
 
-    **التوصيل الصحيح (تصحيح السقالة الساذجة):** لا يُمرَّر dict خامّاً كموفِّر؛ تُبنى موفِّرات PCSE الفعليّة:
-      • ``YAMLCropDataProvider`` + set_active_crop(pcse_crop, pcse_variety) من sim_crop_registry (لا معاملات مقترَضة).
-      • ``ParameterProvider(cropdata, soildata, sitedata)``.
-      • ``WeatherDataProvider`` من السلسلة اليوميّة (لا dict مباشر).
-      • ``AgroManagement`` (تقويم زراعيّ صحيح).
-    المخرَج ``provenance="pcse_wofost_uncalibrated"`` (فعليّ لكن غير مُعايَر حتى SIM-GOLDEN).
-
-    **مقيس لا مُفترَض (2026-09-29، pcse 6.0.13، SIM_PCSE_ENABLED=1، عيّنة قمح ١٥٠ يوماً):
-    هذا المسار لا يعمل طرفاً لطرف بعد** — «ثبّت pcse وأشعل الراية» لا يكفي:
-      • ``YAMLCropDataProvider()`` بلا ``fpath`` يجلب ``crops.yaml`` من raw.githubusercontent.com
-        **وقت التشغيل** (ذاكرة ``~/.pcse`` تنتهي بعد ٧ أيّام) ⇒ بلا شبكة: ``PCSEError``.
-      • مع الشبكة يسقط عند ``Wofost72_WLP_FD(...)``: ``_build_agromanagement`` يُعيد dict الإدارة
-        خامّاً ⇒ ``AgroManager.initialize``: ``'str' object has no attribute 'keys'``.
-      • ``_build_weather_provider`` يُعيد **الصنف** ``WeatherDataProvider`` لا نسخة مملوءة، و``sitedata={}``
-        و``soil`` خامّ بلا معاملات WLP_FD — كلّها تنتظر الإكمال بعد تجاوز الأوّل.
-      • ``CTRAT`` في PCSE بالسنتيمتر بينما ``water_use`` في البديل بالملّيمتر — لم يُوحَّد.
-    لذلك تبقى ``SIM_PCSE_INTEGRATION_VERIFIED`` مطفأة و``pcse`` خارج requirements.
+    يُعاد بعده: معالجات الجذر ومستواه، وعلم ``disabled`` لكلّ مُسجِّل سبق الاستيراد، و``sys.path``
+    (``setup()`` في pcse يُلحِق ``~/.pcse`` ثمّ يستورد منه ``user_settings.py``). ما طبعته pcse
+    على stdout (بناء قاعدة العرض) يُعاد عبر المُسجِّل كي لا يكسر سطرٌ خامّ سجلّاتِ JSON. ثرثرة
+    INFO من مُسجِّلات ``pcse.*`` (بدء المحصول، الأحداث المؤقّتة) تُرفَع إلى WARNING.
     """
-    from pcse.base import ParameterProvider  # type: ignore
-    from pcse.fileinput import YAMLCropDataProvider  # type: ignore
-    from pcse.models import Wofost72_WLP_FD  # type: ignore
+    global _PCSE, _PCSE_IMPORT_ERROR
+    if _PCSE is not None:
+        return _PCSE
+    root = logging.getLogger()
+    saved_handlers, saved_level = list(root.handlers), root.level
+    saved_disabled = {
+        name: lg.disabled
+        for name, lg in logging.Logger.manager.loggerDict.items()
+        if isinstance(lg, logging.Logger)
+    }
+    saved_path = list(sys.path)
+    captured = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(captured):
+            import pcse  # type: ignore
+            from pcse.base import (  # type: ignore
+                MultiCropDataProvider,
+                ParameterProvider,
+                WeatherDataContainer,
+                WeatherDataProvider,
+            )
+            from pcse.input import (  # type: ignore
+                NASAPowerWeatherDataProvider,
+                WOFOST72SiteDataProvider,
+                YAMLCropDataProvider,
+            )
+            from pcse.models import Wofost72_WLP_CWB  # type: ignore
+            from pcse.util import reference_ET, wind10to2  # type: ignore
+    except Exception as exc:
+        _PCSE_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"[:300]
+        raise
+    finally:
+        _restore_host_logging(root, saved_handlers, saved_level, saved_disabled)
+        sys.path[:] = saved_path
+    logging.getLogger("pcse").setLevel(logging.WARNING)
+    if captured.getvalue().strip():
+        logger.info("pcse import output: %s", captured.getvalue().strip()[:300])
 
-    sim_crop = sim_crop_registry.get(_crop_name(crop))
-    if sim_crop is None:  # لا يُفترَض؛ المُنادي يفرض الدعم — دفاع عمق.
-        raise RuntimeError("sim_pcse_unsupported_crop:" + _crop_name(crop))
+    class VendoredCropDataProvider(YAMLCropDataProvider):
+        """``YAMLCropDataProvider`` على ``pcse_data/wofost72_crop`` — بلا شبكة وبلا pickle.
 
-    cropd = YAMLCropDataProvider()
-    cropd.set_active_crop(sim_crop.pcse_crop, sim_crop.pcse_variety)
-    parameters = ParameterProvider(cropdata=cropd, soildata=soil, sitedata={})
+        بلا ``fpath`` يجلب المُنشئ الأصليّ ``crops.yaml`` من raw.githubusercontent.com وقت التشغيل
+        (مقيس: ``PCSEError`` دون شبكة). ومع ``fpath`` **يكتب** ``YAMLCropDataProvider.pkl`` داخل
+        الدليل المحزوم ثمّ يقرؤه بـ``pickle.load`` في الإقلاع التالي (مقيس: ملفّ جديد في الدليل)
+        — كتابةٌ تفشل على صورة للقراءة فقط وتُلوِّث الشجرة. فيُتجاوَز المُنشئ إلى
+        ``read_local_repository`` (قارئ PCSE نفسه + فحص النسخة)، ويُحلَّل الـYAML مرّةً في العمليّة
+        (~٩٠ ms مقيسة) ويُتشارك قراءةً فقط: ``set_active_crop`` يقرأ ``_store`` ولا يكتبه.
+        """
 
-    weather_provider = _build_weather_provider(weather)
-    agro = _build_agromanagement(agromanagement)
+        _parsed_store: dict[str, Any] | None = None
 
-    model = Wofost72_WLP_FD(parameters, weather_provider, agro)
+        def __init__(self) -> None:
+            MultiCropDataProvider.__init__(self)
+            self.repository = os.path.abspath(pcse_inputs.CROP_DIR)
+            if VendoredCropDataProvider._parsed_store is None:
+                self.read_local_repository(pcse_inputs.CROP_DIR)
+                VendoredCropDataProvider._parsed_store = self._store
+            else:
+                self._store = VendoredCropDataProvider._parsed_store
+
+        def variety_metadata(self, crop_name: str, variety_name: str) -> dict[str, Any]:
+            return dict(self._store[crop_name][variety_name].get("Metadata") or {})
+
+    class RequestWeatherDataProvider(WeatherDataProvider):
+        """موفِّر طقس **مملوء** من سلسلة الطلب (كان الباني يُعيد الصنف نفسه لا نسخة).
+
+        E0/ES0/ET0 من ``reference_ET`` (Penman لـE0/ES0، Penman-Monteith لـET0) بوحدة mm/يوم ثمّ
+        ÷10 إلى cm/يوم — نفس ما يفعله ``CSVWeatherDataProvider`` في PCSE. أنغستروم من الطلب، وإلّا
+        ثابتا PCSE الاحتياطيّان في موفِّرَي NASA POWER وOpen-Meteo (0.29/0.49) — يُسمّى افتراضاً.
+        """
+
+        def __init__(self, wx: dict[str, Any]) -> None:
+            WeatherDataProvider.__init__(self)
+            site = wx["site"]
+            self.latitude, self.longitude, self.elevation = site["LAT"], site["LON"], site["ELEV"]
+            if wx["angstrom"]["from"] == "request":
+                self.angstA, self.angstB = wx["angstrom"]["A"], wx["angstrom"]["B"]
+            else:
+                self.angstA = NASAPowerWeatherDataProvider.angstA
+                self.angstB = NASAPowerWeatherDataProvider.angstB
+            self.ETmodel = "PM"
+            self.description = ["SAHOOL agriai /v1/simulate request weather (daily series)"]
+            for rec in wx["days"]:
+                wind = rec["WIND"] if rec["WIND_HEIGHT_M"] == 2 else wind10to2(rec["WIND"])
+                e0, es0, et0 = reference_ET(
+                    DAY=rec["DAY"],
+                    LAT=self.latitude,
+                    ELEV=self.elevation,
+                    TMIN=rec["TMIN"],
+                    TMAX=rec["TMAX"],
+                    IRRAD=rec["IRRAD"],
+                    VAP=rec["VAP"],
+                    WIND=wind,
+                    ANGSTA=self.angstA,
+                    ANGSTB=self.angstB,
+                    ETMODEL=self.ETmodel,
+                )
+                container = WeatherDataContainer(
+                    LAT=self.latitude,
+                    LON=self.longitude,
+                    ELEV=self.elevation,
+                    DAY=rec["DAY"],
+                    IRRAD=rec["IRRAD"],
+                    TMIN=rec["TMIN"],
+                    TMAX=rec["TMAX"],
+                    VAP=rec["VAP"],
+                    RAIN=rec["RAIN"],
+                    WIND=wind,
+                    E0=e0 / 10.0,
+                    ES0=es0 / 10.0,
+                    ET0=et0 / 10.0,
+                )
+                self._store_WeatherDataContainer(container, rec["DAY"])
+
+    _PCSE = types.SimpleNamespace(
+        version=pcse.__version__,
+        ParameterProvider=ParameterProvider,
+        WOFOST72SiteDataProvider=WOFOST72SiteDataProvider,
+        Wofost72_WLP_CWB=Wofost72_WLP_CWB,
+        CropDataProvider=VendoredCropDataProvider,
+        WeatherDataProvider=RequestWeatherDataProvider,
+    )
+    return _PCSE
+
+
+# مراحل PCSE في مُخرَج الملخّص (تواريخ) ⇐ DVS: الإنبات 0 · الإزهار 1 · النضج 2.
+_PCSE_STAGES = (
+    ("sowing", "DOS", None),
+    ("emergence", "DOE", 0.0),
+    ("anthesis", "DOA", 1.0),
+    ("maturity", "DOM", 2.0),
+)
+_PCSE_SITE_DEFAULTS = ("IFUNRN", "NOTINF", "SSI", "SSMAX")
+# مجاميع توازن الماء (``TERMINAL_OUTPUT_VARS`` في Wofost72_WLP_CWB.conf) — كلّها سنتيمتر.
+_WATER_BALANCE_CM = {
+    "rain": "RAINT",
+    "irrigation_effective": "TOTIRR",
+    "infiltration": "TOTINF",
+    "surface_runoff": "TSR",
+    "percolation_root_zone": "PERCT",
+    "loss_below_root_zone": "LOSST",
+    "soil_evaporation": "EVST",
+    "transpiration": "WTRAT",
+}
+
+
+def _iso(value: Any) -> str | None:
+    return value.isoformat() if hasattr(value, "isoformat") else None
+
+
+def _pcse_stages(summary: dict[str, Any], plan: pcse_inputs.PcseRunInputs) -> list[dict[str, Any]]:
+    """مراحلٌ من تواريخ PCSE الفعليّة — كان الباني يُعلن ``maturity: reached`` دون فحص."""
+    wanted = [
+        s
+        for s in _PCSE_STAGES
+        if not (s[0] == "sowing" and plan.season["crop_start_type"] == "emergence")
+    ]
+    if plan.season["crop_end_type"] == "earliest":
+        wanted.append(("harvest", "DOH", None))
+    return [
+        {
+            "stage": name,
+            "reached": summary.get(key) is not None,
+            "date": _iso(summary.get(key)),
+            "at_dvs": dvs,
+        }
+        for name, key, dvs in wanted
+    ]
+
+
+def _pcse_run(  # غراؤه مغطّى بلا pcse (مساحة أسماء مزيّفة)؛ التشغيل الحقيقيّ: اختبار التكامل
+    pcse_ns: types.SimpleNamespace, plan: pcse_inputs.PcseRunInputs
+) -> dict[str, Any]:
+    """تشغيل ``Wofost72_WLP_CWB`` (الاسم الإرثيّ ``Wofost72_WLP_FD``) موصَّلاً ببنى PCSE الفعليّة.
+
+    مقيس قبل هذا الإصلاح (2026-09-29، pcse 6.0.13): ``YAMLCropDataProvider()`` بلا ``fpath`` يجلب
+    المعاملات من GitHub وقت التشغيل (``PCSEError`` دون شبكة)، ومع الشبكة يسقط ``AgroManager`` على
+    dict خامّ، والطقس صنفٌ لا نسخة، و``sitedata={}``، و``CTRAT`` بالسنتيمتر يُعاد كأنّه ملّيمتر.
+    الآن: معاملاتٌ محزومة · حملةٌ بشكل AgroManager · موفِّرٌ مملوء · موقعٌ بـ``WOFOST72SiteDataProvider``
+    · تربةٌ مُسمّاة المصدر · والماء بالملّيمتر. المخرَج ``pcse_wofost_uncalibrated`` حتى SIM-GOLDEN.
+    """
+    crop = plan.crop
+    cropdata = pcse_ns.CropDataProvider()
+    cropdata.set_active_crop(crop.pcse_crop, crop.pcse_variety)  # يفشل مبكراً إن غاب الصنف
+    variety_meta = cropdata.variety_metadata(crop.pcse_crop, crop.pcse_variety)
+    sitedata = pcse_ns.WOFOST72SiteDataProvider(WAV=plan.site["WAV"], SMLIM=plan.site["SMLIM"])
+    parameters = pcse_ns.ParameterProvider(
+        cropdata=cropdata, soildata=dict(plan.soil["params"]), sitedata=sitedata
+    )
+    weather = pcse_ns.WeatherDataProvider(plan.weather)
+    model = pcse_ns.Wofost72_WLP_CWB(parameters, weather, plan.agromanagement)
     model.run_till_terminate()
-    output = model.get_summary_output()[0]
+    summaries = model.get_summary_output()
+    if len(summaries) != 1:
+        raise RuntimeError(f"pcse_expected_one_crop_cycle:{len(summaries)}")
+    summary = summaries[0]
+    terminal = model.get_terminal_output() or {}  # dict (pcse/engine.py) لا قائمة كالملخّص
+
+    matured = summary.get("DOM") is not None
+    if matured:
+        cycle_end = "maturity"
+    elif summary.get("DOH") is not None:
+        cycle_end = "harvest_date"
+    else:
+        cycle_end = plan.season["end_limit_from"]  # weather_series_end | max_duration_days
+    twso, tagp = _num(summary.get("TWSO")), _num(summary.get("TAGP"))
+    ctrat_cm, cevst_cm = _num(summary.get("CTRAT")), _num(summary.get("CEVST"))
+    coverage = variety_meta.get("Coverage") or {}
     return {
-        "yield_kg_ha": round(_num(output.get("TWSO")), _ROUND),
-        "biomass": round(_num(output.get("TAGP")), _ROUND),
-        "water_use": round(_num(output.get("CTRAT")), _ROUND),
-        "stages": [{"stage": "maturity", "reached": True, "at_fraction": 1.0}],
+        "yield_kg_ha": round(twso, _ROUND),
+        "biomass": round(tagp, _ROUND),
+        "water_use": round(ctrat_cm * 10.0, _ROUND),  # CTRAT cm ⇒ mm (عقد المخطّط)
+        "stages": _pcse_stages(summary, plan),
         "provenance": "pcse_wofost_uncalibrated",
-        "state": {"TWSO": _num(output.get("TWSO")), "TAGP": _num(output.get("TAGP"))},
+        "state": {
+            "TWSO": twso,
+            "TAGP": tagp,
+            "DVS": _num(summary.get("DVS")),
+            "LAIMAX": _num(summary.get("LAIMAX")),
+            "CTRAT_cm": ctrat_cm,
+            "CEVST_cm": cevst_cm,
+            "RD_cm": _num(summary.get("RD")),
+        },
         "diagnostics": {
-            "crop": sim_crop.name,
-            "pcse_variety": sim_crop.pcse_variety,
-            "parameter_source": sim_crop.parameter_source,
-            "parameter_version": sim_crop.parameter_version,
+            "engine": f"pcse {pcse_ns.version} Wofost72_WLP_CWB (WOFOST 7.2, water-limited, free drainage)",
+            "crop": crop.name,
+            "pcse_variety": crop.pcse_variety,
+            "parameter_source": crop.parameter_source,
+            "parameter_version": crop.parameter_version,
+            "variety_calibration_region": coverage.get("Region"),
+            "calibrated_for_this_field": False,
+            "units": {
+                "yield_kg_ha": "kg/ha storage-organ dry matter (TWSO)",
+                "biomass": "kg/ha total above-ground dry matter (TAGP)",
+                "water_use": "mm crop transpiration over the crop cycle (CTRAT x 10)",
+            },
+            "soil_evaporation_mm": round(cevst_cm * 10.0, _ROUND),
+            "water_balance_mm": {
+                name: round(_num(terminal.get(var)) * 10.0, _ROUND)
+                for name, var in _WATER_BALANCE_CM.items()
+                if terminal.get(var) is not None
+            },
+            "crop_cycle_end": cycle_end,
+            "matured": matured,
+            "defaults_applied": list(plan.defaults_applied),
+            "inputs": plan.provenance(),
+            "pcse_site_defaults": {k: sitedata[k] for k in _PCSE_SITE_DEFAULTS},
+            "reference_et": "pcse.util.reference_ET (E0/ES0 Penman, ET0 Penman-Monteith)",
+            "angstrom": {"A": weather.angstA, "B": weather.angstB},
+            "co2_response": "none: WOFOST 7.2 assimilation has no CO2 term and no CO2 value is set",
         },
     }
-
-
-def _build_weather_provider(weather: dict[str, Any]):  # pragma: no cover - يتطلّب pcse
-    """موفِّر طقس PCSE من السلسلة اليوميّة (لا تمرير dict خامّ). التنفيذ الكامل في بيئة التكامل."""
-    from pcse.base import WeatherDataProvider  # type: ignore
-
-    return WeatherDataProvider  # البنية صريحة؛ يُملأ من weather['daily'] حين يُركَّب pcse.
-
-
-def _build_agromanagement(agromanagement: dict[str, Any]):  # pragma: no cover - يتطلّب pcse
-    """تقويم PCSE الزراعيّ من الإدارة (تاريخ زرع/حصاد + عمليّات). يُملأ حين يُركَّب pcse."""
-    return agromanagement
 
 
 def simulate(
@@ -376,10 +595,11 @@ def simulate(
     soil: dict[str, Any] | None = None,
     agromanagement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """يُحاكي المحصول ويُرجع المخطّط الموحّد. لا ينهار أبداً على غياب pcse.
+    """يُحاكي المحصول ويُرجع المخطّط الموحّد، أو يفشل فشلاً مُغلَقاً **مُسمّى**.
 
-    يختار PCSE حين يكون متاحاً والمدخلات كافية؛ وإلّا (أو عند فشل التشغيل الثقيل)
-    يلجأ إلى البديل الحتميّ الموثّق.
+    الراية مشعلة: محصول خارج السجلّ / pcse غائبة أو فشل استيرادها / فشل المحرّك ⇒ RuntimeError
+    (503 في main)؛ مدخلٌ ناقص ⇒ ``SimulationInputError`` (422). لا استبدال صامت بالبديل.
+    الراية مطفأة: إنتاج ⇒ فشل مُغلَق؛ تطوير ⇒ البديل الحتميّ الموثّق.
     """
     crop = crop or {}
     weather = weather or {}
@@ -387,24 +607,25 @@ def simulate(
     agromanagement = agromanagement or {}
 
     production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
-    sufficient = _inputs_sufficient_for_pcse(crop, weather, soil, agromanagement)
 
     # ── SIM-PCSE-01: الراية الحاكمة (default-off) هي بوّابة PCSE الوحيدة ──
     if sim_pcse_enabled():
         # المحرّك العلميّ مُنخرِط: المحصول المدعوم بالاسم **بوّابة صلبة** (لا معاملات مقترَضة) —
         # محصول خارج السجلّ ⇒ fail-closed دائماً (لا افتراض صامت، شرط المالك).
-        if not sim_crop_registry.is_supported(_crop_name(crop)):
+        sim_crop = sim_crop_registry.get(_crop_name(crop))
+        if sim_crop is None:
             raise RuntimeError("sim_pcse_unsupported_crop:" + _crop_name(crop))
-        if not _PCSE_AVAILABLE or not sufficient:
-            reasons = []
-            if not _PCSE_AVAILABLE:
-                reasons.append("pcse_unavailable")
-            if not sufficient:
-                reasons.append("scientific_inputs_incomplete")
-            # الراية مشعلة لكن شرط غائب ⇒ فشل مُغلَق مُصنَّف (لا استبدال صامت بالبديل).
-            raise RuntimeError("simulation_unavailable:" + ",".join(reasons))
-        try:  # pragma: no cover - يتطلّب pcse (بيئة التكامل)
-            result = _pcse_run(crop, weather, soil, agromanagement)
+        # المحرّك قبل المدخلات: غيابُه يحكم الجواب (503) أيّاً كانت المدخلات.
+        if not pcse_available():
+            raise RuntimeError("simulation_unavailable:pcse_unavailable")
+        try:
+            pcse_ns = _load_pcse()
+        except Exception as exc:  # noqa: BLE001 - مثبَّتة لكن لا تُستورَد ⇒ غير متاحة، باسمها
+            raise RuntimeError("simulation_unavailable:pcse_import_failed") from exc
+        # SimulationInputError يعبر كما هو (422): نقصُ المُنادي ليس عطلَ المحرّك.
+        plan = pcse_inputs.build_run_inputs(sim_crop, weather, soil, agromanagement)
+        try:
+            result = _pcse_run(pcse_ns, plan)
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError("pcse_simulation_failed") from exc
     else:

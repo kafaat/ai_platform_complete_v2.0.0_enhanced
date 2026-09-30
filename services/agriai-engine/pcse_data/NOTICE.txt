@@ -1,0 +1,34 @@
+Third-party data vendored for the PCSE/WOFOST path of services/agriai-engine
+===========================================================================
+
+This directory is NOT covered by the repository's MIT licence as a whole.
+Each file keeps the licence of its origin, and every copy is unmodified
+(byte-identical to the upstream git blob; hashes in SOURCE.json).
+
+1. wofost72_crop/barley.yaml, wofost72_crop/potato.yaml, wofost72_crop/wheat.yaml
+   Source : https://github.com/ajwdewit/WOFOST_crop_parameters
+            branch wofost72, commit f0a6491f23685998fa2172b397ff959a3b5ea738
+   Creator: Allard de Wit; contributors Kees van Diepen, Hendrik Boogaard,
+            Raymond van de Wijngaart (see each file's Metadata block)
+   Publisher: Wageningen Environmental Research
+   Rights : "European Union Public License (EUPL)" as declared in each file's
+            Metadata.Rights. The upstream repository ships no licence file and
+            names no version; the EUPL v1.2 text (the current version, and the
+            version line the same author uses for PCSE, "EUPL v1.1 or later")
+            is provided in LICENSE.EUPL-1.2.txt to meet EUPL Art. 5.
+   These files stay under the EUPL when redistributed (including inside the
+   agriai-engine container image). They are read as data by wofost_adapter.py;
+   the reading code is not derived from them. Do not edit them in place: to
+   update, re-copy from a newer upstream commit and update SOURCE.json.
+
+   wofost72_crop/crops.yaml is a SAHOOL-authored index of the three vendored
+   crops; it is not an upstream file.
+
+2. soil/ec3.soil  ("EC3-medium fine", WOFOST standard soil)
+   Source : https://github.com/ajwdewit/pcse_notebooks
+            commit 4719f3b931137135b79993ecbdf46c29cd3f53eb, data/soil/ec3.soil
+   Licence: MIT, Copyright (c) 2017 Allard de Wit
+            (LICENSE.pcse_notebooks.MIT.txt)
+   Used only as the documented default soil when a request carries no soil
+   hydraulics; every response built on it names it in
+   diagnostics.defaults_applied.

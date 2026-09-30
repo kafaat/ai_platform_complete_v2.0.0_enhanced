@@ -41,8 +41,10 @@ high,weather-service,function,_reset_breaker,services/weather-service/tests/test
 high,shared,function,_normalize_feature_vector,shared/precision_agriculture/phase6_intelligence.py,221,0,review_before_delete,False
 medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,56,0,review_before_delete,False
 medium,agriai-engine,function,aquacrop_salt_capability_report,services/agriai-engine/aquacrop_adapter.py,267,0,review_before_delete,False
+medium,agriai-engine,function,vendored_source_manifest,services/agriai-engine/pcse_inputs.py,559,0,review_before_delete,False
 medium,agriai-engine,function,canonicalize,services/agriai-engine/replay.py,70,0,review_before_delete,False
-medium,agriai-engine,function,simulation_capability_report,services/agriai-engine/simulation_capability.py,93,0,review_before_delete,False
+medium,agriai-engine,function,is_supported,services/agriai-engine/sim_crop_registry.py,57,0,review_before_delete,False
+medium,agriai-engine,function,simulation_capability_report,services/agriai-engine/simulation_capability.py,109,0,review_before_delete,False
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,161,0,review_before_delete,False

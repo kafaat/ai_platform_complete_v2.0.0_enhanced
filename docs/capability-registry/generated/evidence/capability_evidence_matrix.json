@@ -3940,6 +3940,7 @@
       },
       "integration_test_paths": [
         "tests_v9/test_e2e_offline_flow.py",
+        "tests_v9/test_wofost_pcse_offline_integration.py",
         "tests_v9/test_wofost_what_if_contract.py"
       ],
       "learning_linked": false,
@@ -9453,7 +9454,8 @@
       "title": "Soil water properties",
       "unit_test_paths": [
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
-        "services/soil-service/test_soil_p1_products.py"
+        "services/soil-service/test_soil_p1_products.py",
+        "tests_v9/test_wofost_pcse_input_builders.py"
       ]
     },
     {

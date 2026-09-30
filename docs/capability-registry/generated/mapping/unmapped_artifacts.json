@@ -2244,6 +2244,18 @@
     "kind": "backend"
   },
   {
+    "path": "services/agriai-engine/pcse_data/SOURCE.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/pcse_data/wofost72_crop/barley.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/pcse_data/wofost72_crop/crops.yaml",
+    "kind": "backend"
+  },
+  {
     "path": "services/agriai-engine/profit_planner.py",
     "kind": "backend"
   },

@@ -10665,10 +10665,110 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "396fb291f17b13821355e5d6e5cacb7d10e9475d5ebde4ba38ec2135327197bd"
+          "content": "da05e2db4d1911af5945d8e77d975571df7b356bc6d5bc60bb4674e084764c78"
         }
       ],
       "name": "services/agriai-engine/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57fb42fbcd0b037ce528ed8f72f1ec095d67bc6825ecf1448ff39be1fe68a4b4"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/LICENSE.EUPL-1.2.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd5098e5a9f0bf980a0622f82f537374e75ce478e9b4af42cddecc2b1e1cb086"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/LICENSE.pcse_notebooks.MIT.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9966c1828bc8edde9d3a54480788a480c39eec848ffcd132c70e0d52dd8a1771"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/NOTICE.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8d1b9573296422fb9db0b6fab2d72c51e94fe7724274a88fb3ab6e991296fcf"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/SOURCE.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "307d439082117af97da85665f11978d33691bfb399c2843d11b8c13e5321ba69"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/soil/ec3.soil",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a376ff6acff17fd8167dce85a399a9d1122ed1f98ff7ab78171c5875a276822b"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/wofost72_crop/barley.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6681748fa20f5280f30df9b9b859ce05db8d37afa3967b025cc9019460c65c69"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/wofost72_crop/crops.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff1240ed85021a82bbdb797b46d9e22da23e87764812175fde011a4b7a69baad"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/wofost72_crop/potato.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03b47ab0f4399551a1475f87090da7bae553caab47aa1a20010b7238c1cd8d87"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_data/wofost72_crop/wheat.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3fb18b895a790f4a4e96568c2c690431da0010f24b7c2934b22f28d24a90618a"
+        }
+      ],
+      "name": "services/agriai-engine/pcse_inputs.py",
       "type": "file"
     },
     {
@@ -10695,7 +10795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27cd19baf866e359d0c7456dc79409d74929d2df586c4c4218bc6817b6d8b03f"
+          "content": "aa823a0c5b75f0bf8c91d0e659a5aabb978edeffbcf50e332134013cc92136a8"
         }
       ],
       "name": "services/agriai-engine/requirements.txt",
@@ -10705,7 +10805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1ac8cd3360d997bb9d26dca67faf9f3ced51a324cf28fb59eb2356498abdcff"
+          "content": "3ed7eead709537138d0a52bbeb1325a979eff6cd30f8fe0b16974d704a532636"
         }
       ],
       "name": "services/agriai-engine/sim_crop_registry.py",
@@ -10715,7 +10815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec771d472f531b248c64bb275a168e09f5f5e23671742a073e1bca0db1fc0fe9"
+          "content": "d178094f1f848c61eb854f4d39473ecaee7ba190cc328546e43845e90dc29850"
         }
       ],
       "name": "services/agriai-engine/simulation_capability.py",
@@ -10785,7 +10885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "549b990500f9e741c28dad7f1cd5c4d251eb965ff1e5a4d6ca30072e1a25ca57"
+          "content": "93fc1244c0f183ad0a7d0bfc39ea24954dcfab8b930280945b232cd09b51e84f"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
@@ -29395,7 +29495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc16a8bc004d49deccc94f0f02ac3a68d1fde7049d267c61efe3a9851f79be5b"
+          "content": "bc1ab828ef026a7a23b9ce60ccf7259e3d8ccb08db4926735b4a22149122750d"
         }
       ],
       "name": "services/supervisor-agent/skills/crop_model_skill.py",

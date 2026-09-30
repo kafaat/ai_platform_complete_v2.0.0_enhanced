@@ -2055,7 +2055,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 293,
+      "evidence_count": 295,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2102,8 +2102,10 @@
         "services/actuator-service/actuator_runtime.py",
         "services/agriai-engine/aquacrop_adapter.py",
         "services/agriai-engine/main.py",
+        "services/agriai-engine/pcse_data/wofost72_crop/potato.yaml",
         "services/agriai-engine/replay.py",
         "services/agriai-engine/simulation_capability.py",
+        "services/agriai-engine/wofost_adapter.py",
         "services/ai_agronomist/agent_stores.py",
         "services/auth/main.py",
         "services/auth/mfa_crypto.py",
@@ -2853,7 +2855,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 293,
+      "target_evidence_count": 295,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2863,5 +2865,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b97f7fedbc034a39cae85dec2170f6310aba4837d25c80e6c463169dacc90823"
+  "content_sha256": "f91e9e5963713e0c1c76a421f9677df67adedda06962846364ca29d43fb298ee"
 }

@@ -1,0 +1,45 @@
+{
+  "schema": "sahool.agriai.vendored-pcse-data.v1",
+  "purpose": "Offline inputs for the PCSE/WOFOST 7.2 path of wofost_adapter: crop parameter files (no runtime fetch from GitHub) and one documented default soil. Every vendored file is byte-identical to its upstream blob; tests_v9/test_wofost_pcse_input_builders.py re-hashes them against this manifest.",
+  "crop_parameters": {
+    "directory": "wofost72_crop",
+    "upstream_repository": "https://github.com/ajwdewit/WOFOST_crop_parameters",
+    "branch": "wofost72",
+    "commit": "f0a6491f23685998fa2172b397ff959a3b5ea738",
+    "commit_date": "2026-08-17T16:45:31+02:00",
+    "commit_subject": "Fixed a bug in CO2TRATB parameter",
+    "pcse_model_branch_note": "pcse 6.0.13 YAMLCropDataProvider maps WOFOST 7.2 models (Wofost72_WLP_CWB, alias Wofost72_WLP_FD) to this branch.",
+    "rights_declared_in_files": "European Union Public License (EUPL)",
+    "licence_text": "LICENSE.EUPL-1.2.txt",
+    "modified": false,
+    "files": {
+      "barley.yaml": {
+        "git_blob_sha1": "95d49642389bbf119de5576a660d1d41d1e7a92b",
+        "sha256": "a376ff6acff17fd8167dce85a399a9d1122ed1f98ff7ab78171c5875a276822b"
+      },
+      "potato.yaml": {
+        "git_blob_sha1": "03bc8300ac16bf181bbc6059d36106996f48c205",
+        "sha256": "ff1240ed85021a82bbdb797b46d9e22da23e87764812175fde011a4b7a69baad"
+      },
+      "wheat.yaml": {
+        "git_blob_sha1": "9b2b5ffc76282aaf75617d38c2868c14f04ab4c2",
+        "sha256": "03b47ab0f4399551a1475f87090da7bae553caab47aa1a20010b7238c1cd8d87"
+      }
+    },
+    "local_files": {
+      "crops.yaml": "SAHOOL-authored index of the three vendored crops (upstream crops.yaml lists 23 and PCSE's local reader requires every listed file)."
+    }
+  },
+  "default_soil": {
+    "file": "soil/ec3.soil",
+    "soil_name": "EC3-medium fine",
+    "upstream_repository": "https://github.com/ajwdewit/pcse_notebooks",
+    "commit": "4719f3b931137135b79993ecbdf46c29cd3f53eb",
+    "path": "data/soil/ec3.soil",
+    "licence": "MIT, Copyright (c) 2017 Allard de Wit",
+    "licence_text": "LICENSE.pcse_notebooks.MIT.txt",
+    "modified": false,
+    "git_blob_sha1": "2f48e41abc0e4f9ebbf3a1cd154dbba1c3fb4276",
+    "sha256": "307d439082117af97da85665f11978d33691bfb399c2843d11b8c13e5321ba69"
+  }
+}

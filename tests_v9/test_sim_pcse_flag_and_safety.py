@@ -55,7 +55,11 @@ def test_flag_on_unsupported_crop_fails_closed_always(monkeypatch):
 
 
 def test_flag_on_supported_crop_without_pcse_fails_closed(monkeypatch):
-    """الراية مشعلة + محصول مدعوم لكن pcse غير مُركَّب (CI) ⇒ fail-closed مُصنَّف (لا بديل صامت)."""
+    """الراية مشعلة + محصول مدعوم لكن pcse غير مُركَّب (CI) ⇒ fail-closed مُصنَّف (لا بديل صامت).
+
+    الغياب يُحاكى صراحةً: في بيئةٍ فيها pcse كان الاختبار سيبلغ بُناة المدخلات فيقيس شيئاً آخر.
+    """
+    monkeypatch.setattr(wa, "_PCSE_AVAILABLE", False)
     with pytest.raises(RuntimeError) as e:
         _sim({"crop": "wheat"}, monkeypatch, flag=True, prod=False)
     msg = str(e.value)

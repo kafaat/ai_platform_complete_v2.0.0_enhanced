@@ -1318,6 +1318,7 @@ OPS-005,test,tests_v9/test_offline_dispatch_field_update.py,3,applied
 OPS-005,test,tests_v9/test_offline_first_behavior_v66.py,3,applied
 OPS-005,test,tests_v9/test_offline_pending_ops_terminal_v19_5.py,3,applied
 OPS-005,test,tests_v9/test_offline_pending_queue.py,3,applied
+OPS-005,test,tests_v9/test_wofost_pcse_offline_integration.py,3,applied
 OPS-006,api,GET /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:94,3,applied
 OPS-006,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:204,3,applied
 OPS-006,api,POST /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:39,3,applied

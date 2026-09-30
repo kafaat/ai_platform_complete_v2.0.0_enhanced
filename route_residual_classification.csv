@@ -6,8 +6,8 @@ agriai-engine,services/agriai-engine/main.py,93,GET,/metrics,metrics,metrics
 agriai-engine,services/agriai-engine/main.py,100,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 agriai-engine,services/agriai-engine/main.py,246,POST,/v1/recommend,recommend,business_endpoint
 agriai-engine,services/agriai-engine/main.py,310,POST,/v1/simulate,simulate,business_endpoint
-agriai-engine,services/agriai-engine/main.py,330,POST,/v1/plan,plan,business_endpoint
-agriai-engine,services/agriai-engine/main.py,346,POST,/v1/replay/verify,replay_verify,business_endpoint
+agriai-engine,services/agriai-engine/main.py,337,POST,/v1/plan,plan,business_endpoint
+agriai-engine,services/agriai-engine/main.py,353,POST,/v1/replay/verify,replay_verify,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,219,GET,/healthz,healthz,health
 ai_agronomist,services/ai_agronomist/main.py,224,GET,/healthz/ai-provider,ai_provider_snapshot,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,232,GET,/v1/approvals/pending,list_pending_approvals,business_endpoint

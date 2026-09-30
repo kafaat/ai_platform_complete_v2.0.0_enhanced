@@ -6,10 +6,13 @@ scikit-learn>=1.4.0
 numpy>=1.26.0
 opentelemetry-instrumentation-fastapi>=0.44b0
 pydantic==2.13.4
-# تبعيّة ثقيلة اختياريّة (PCSE/WOFOST) — ليست تبعيّة صلبة ولا تدخل طبقة الوحدات/pip-audit.
-# wofost_adapter.py يحيطها بحارس استيراد ويلجأ لبديل حتميّ عند غيابها. للتفعيل:
-#   pip install pcse
-# مقيس 2026-09-29: pip-audit نظيف مع pcse==6.0.13 (+pandas/openpyxl/requests/traitlets-pcse
-# dev-release، ~٩٥ ميغابايت فوق numpy القائمة)، لكنّ المسار لا يعمل طرفاً لطرف: يجلب معاملات المحصول من GitHub
-# وقت التشغيل وبُناة الموفِّر ناقصة — التفصيل في wofost_adapter._pcse_run. لا تُفعَّل قبل إكمالها.
-# pcse>=5.5  # optional — real PCSE/WOFOST simulation path
+# PCSE/WOFOST 7.2 — المسار العلميّ خلف SIM_PCSE_ENABLED، **مطفأة افتراضاً** (تفعيلها قرار المالك).
+# مقيس 2026-09-29 (pcse 6.0.13، Python 3.12):
+#   • pip-audit نظيف: هذا الملفّ مع pcse وحده، والملفّات الـ19 معاً كما في ci.yml (161 حزمة، 0 ثغرة).
+#   • 15 توزيعة (pcse + 14 عابرة) = +89,828 KiB فوق هذا الملفّ، أثقلها pandas 3.0.6 (73,464 KiB)؛
+#     ومنها traitlets_pcse==5.0.0.dev0 — إصدارها الوحيد على PyPI (2018)، تفريعُ traitlets يثبّته pcse بـ==.
+#   • موسمٌ كامل عبر /v1/simulate في عمليّة بلا شبكة (unshare -n) يطابق بتّاً تشغيلاً بقرّاء PCSE
+#     نفسها (tests_v9/test_wofost_pcse_offline_integration.py). المعاملات محزومة في pcse_data/.
+# الاستيراد مؤجَّل حتى تنخرط الراية (wofost_adapter._load_pcse): وجودها في الصورة لا يمسّ سجلّات
+# الخدمة ولا ~/.pcse ولا زمن الإقلاع ما دامت الراية مطفأة.
+pcse==6.0.13

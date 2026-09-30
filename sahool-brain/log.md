@@ -8950,3 +8950,6 @@ NDVI · `value`/`ndvi` مكان `mean` مع `scene_id` لا تحمله النق�
 ## [2026-09-30] gateway | `NGINX-LIGHT-AND-UNIFIED-FRONTEND-PORT-MISMATCH-01` open ⇒ fixed: الواجهةُ على 8080 في الحزمتين
 
 نُقل التزامُ الوكيل الوحيد في فرعه (`734a4ffc` ⇒ `f8c4e236`)؛ ما تحته من تاريخ v25 مدموجٌ سلفاً بـ#1099 فلم يُنقَل. مقيسٌ بـnginx حقيقيّ لا بمكدّس ⇒ `fixed` لا `verified`. لا نشرَ على Railway: `sahool-frontend` يراقب `/frontend/**` وحدها.
+## [2026-09-30] simulation | `WOFOST-PCSE-ADAPTER-BUILDERS-ARE-STUBS-01` open ⇒ fixed: PCSE يعمل دون شبكة، مقيساً بيدي
+
+نُقل التزاما الوكيل الخاصّان (`47bb556e`/`2926f6a8` ⇒ `86785305`/`ba6abbc5`) لا تاريخُ v25 تحتهما. أعدتُ `pip-audit` على متطلّبات agriai مع pcse (نظيف)، وشغّلتُ الاختبارات في venv معزولٍ بلا شبكة: 80 passed · 0 skipped — فاختباراتُ التكامل الثمانية التي تُتخطّى في CI **شغّلت المحرّك فعلاً** هنا. الراية مطفأة، ولا نشرَ على Railway (لا خدمةَ agriai ولا supervisor). معاملاتُ المحاصيل تحت EUPL-1.2 مرفقةٌ بترخيصها — مُعلَنٌ للمالك في الـPR.
