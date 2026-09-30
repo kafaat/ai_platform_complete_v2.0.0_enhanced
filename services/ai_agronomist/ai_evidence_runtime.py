@@ -889,8 +889,11 @@ async def build_evidence_response(
     # P1-8: يميّز «evidence-only لأنّ التوليد لم يُحاوَل» عن «حُوصِر بالسياسة» عن «حُوول وفشل» —
     # حتّى لا يبدو الجواب المُدهوَر (فشل مزوّد) كأنّه evidence-only بالتصميم. شفافيّة، لا تغيير سلوك.
     generation_status = "not_attempted"
-    generation_model: str | None = None
-    generation_provider: str | None = None
+    # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: ما **حُووِل** (قياس) منفصلٌ عمّا **عُرِض**
+    # (نسبة). النموذجُ الذي أُخمِد خرجُه لا يُنسَب إليه الجوابُ الظاهر — الواجهةُ ترسم
+    # «المزوّد · النموذج» على كلّ جوابٍ يحمل ``generation_provider``.
+    generation_attempted_model: str | None = None
+    generation_attempted_provider: str | None = None
     provider_tool_calls: list[dict[str, Any]] = []
     provider_pending_approvals: list[dict[str, Any]] = []
     provider_tool_truncated = False
@@ -957,7 +960,7 @@ async def build_evidence_response(
                 if _generation_is_grounded(annotations)
                 else "suppressed_ungrounded"
             )
-            generation_model = gen.model
+            generation_attempted_model = gen.model
             if selection is not None:
                 try:
                     parsed = parse_model_output(gen.text)
@@ -969,7 +972,7 @@ async def build_evidence_response(
                         model_output = gen.text
                 except AdvisoryRejected:
                     pass  # Unstructured or malformed output stays suppressed.
-            generation_provider = gen.provider
+            generation_attempted_provider = gen.provider
             provider_tool_calls = list(gen.tool_calls or [])
             provider_pending_approvals = list(gen.pending_approvals or [])
             provider_tool_truncated = bool(gen.tool_calls_truncated)
@@ -1059,6 +1062,7 @@ async def build_evidence_response(
         pending_approvals=all_pending_approvals,
     )
 
+    generation_surfaced = generation_status == "validated_structured_facts"
     response = {
         "status": "ok",
         "mode": mode,
@@ -1071,8 +1075,12 @@ async def build_evidence_response(
         "field_id": req.field_id,
         "selected_imagery_date": req.selected_imagery_date,
         "selected_model": req.model,
-        "generation_model": generation_model,
-        "generation_provider": generation_provider,
+        # النسبةُ للجواب الظاهر فقط؛ المحاولةُ تبقى مقيسةً في ``generation_attempted_*``.
+        "generation_surfaced": generation_surfaced,
+        "generation_model": generation_attempted_model if generation_surfaced else None,
+        "generation_provider": generation_attempted_provider if generation_surfaced else None,
+        "generation_attempted_model": generation_attempted_model,
+        "generation_attempted_provider": generation_attempted_provider,
         "language": req.language,
         "annotations": annotations,
         "evidence_ids": evidence_ids,
