@@ -146,8 +146,11 @@ def _params_for(crop_key: str) -> CropParams:
 class DayWeather:
     """طقس يوم واحد للمحاكاة. الإشعاع/ET₀ اختياريّان (يُقدَّران عند الغياب)."""
 
-    t_min_c: float
-    t_max_c: float
+    # الحرارتان تقبلان الغياب: تصلان من أرشيف ERA5 (متأخّرٌ ~٥ أيّام) `None` لا `0°م`،
+    # ومحرّكُ الطقس يُرجِع لليوم الناقص GDD/ET0 `None` فيُعَدّ ويُعلَن قيداً هنا — لا يُحسَب
+    # من `(0, 0)` صامتاً (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01).
+    t_min_c: float | None
+    t_max_c: float | None
     solar_mj_m2: float | None = None  # إشعاع كلّي MJ/m²/يوم
     et0_mm: float | None = None  # ET₀ مرجعي FAO-56 (mm/يوم)
     rain_mm: float = 0.0  # مطر اليوم (mm)

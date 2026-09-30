@@ -2638,6 +2638,14 @@ async def field_disease_risk(
                 context="field_disease_risk", missing_intervals=missing_rain
             ),
         )
+    # مُدخَلا الخطر الآخران إلزاميّان كالمطر: الحافّةُ لم تعد تختلق `0°م`/`0٪`
+    # (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01)، والغيابُ ٥٠٣ يُسمّيه —
+    # لا خطرٌ مُهدَّفٌ من لا بيانات، ولا `round(None)` يُسقط الطلبَ ٥٠٠.
+    if current.temperature_c is None or current.humidity_pct is None:
+        raise HTTPException(
+            status_code=503,
+            detail="قياسات الطقس ناقصة (الحرارة/الرطوبة) — لا يمكن تقدير مخاطر الأمراض.",
+        )
     risk = disease_risk(
         temp_c=current.temperature_c,
         humidity_pct=current.humidity_pct,

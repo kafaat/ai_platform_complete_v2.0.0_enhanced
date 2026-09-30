@@ -74,3 +74,51 @@ async def test_resolve_weather_autofetch_without_coords_raises_422():
     with pytest.raises(HTTPException) as ei:
         await _resolve_weather(req, field_lat=None, field_lon=None)
     assert ei.value.status_code == 422
+
+
+def _stub_openmeteo(monkeypatch, *, daily: dict, current: dict) -> None:
+    """الجلبُ الحيُّ عبر `_fetch_json` مُستبدَلاً — فتمرّ القراءةُ بموضع البناء الحقيقيّ
+    (`_build_daily`/`fetch_current`) لا بكائنٍ مصنوعٍ باليد يتجاوز الحافّة."""
+    from api.connectors import openmeteo
+
+    async def fake_fetch_json(url, params, timeout_s):
+        if "current" in params:
+            return {"current": {"wind_direction_10m": 90.0, "time": "t", **current}}
+        return {"daily": {"time": ["2026-03-01"], **daily}}
+
+    monkeypatch.setattr(openmeteo, "_fetch_json", fake_fetch_json)
+
+
+_FULL_DAILY = {
+    "temperature_2m_max": [34.0],
+    "temperature_2m_min": [18.0],
+    "wind_speed_10m_max": [2.0],
+    "shortwave_radiation_sum": [24.0],
+}
+
+
+async def test_live_fetch_refuses_to_build_weather_from_absent_temperatures(monkeypatch):
+    """TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01 — كان الإشعاعُ وحدَه محروساً.
+
+    قبل الإصلاح: يومٌ بلا حرارتين ورطوبة ⇒ `WeatherDay(0.0, 0.0, 0.0 …)` بمصدر `open-meteo`،
+    فيُحسَب ETc من طقسٍ لم يُرصَد. الآن ٥٠٣ يُسمّي كلَّ ناقص.
+    """
+    daily = {k: v for k, v in _FULL_DAILY.items() if not k.startswith("temperature")}
+    _stub_openmeteo(monkeypatch, daily=daily, current={})
+    with pytest.raises(HTTPException) as ei:
+        await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
+    assert ei.value.status_code == 503
+    for name in ("temp_max_c", "temp_min_c", "humidity_pct"):
+        assert name in str(ei.value.detail), f"الناقصُ {name} لم يُسمَّ"
+
+
+async def test_live_fetch_keeps_an_observed_zero_and_builds_weather(monkeypatch):
+    """النقيض: `0°م` و`0٪` قياسان مرصودان — يُبنى بهما الطقس ولا يُرفَضان غياباً."""
+    _stub_openmeteo(
+        monkeypatch,
+        daily={**_FULL_DAILY, "temperature_2m_min": [0.0]},
+        current={"relative_humidity_2m": 0.0},
+    )
+    weather, source = await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
+    assert source == "open-meteo"
+    assert (weather.temp_min_c, weather.humidity_pct) == (0.0, 0.0)
