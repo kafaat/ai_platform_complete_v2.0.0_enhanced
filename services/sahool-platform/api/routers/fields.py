@@ -1556,16 +1556,34 @@ async def field_geometry_history(
         "revisions": [
             {
                 "revision": int(r["revision"]),
-                "geometry": r["geometry"],
+                "geometry": _stored_jsonb(r["geometry"], field_id, "geometry"),
                 "changed_by": r["changed_by"],
                 "changed_at": r["changed_at"].isoformat() if r["changed_at"] else None,
                 "reason": r["reason"],
                 "source": r["source"],
-                "metadata": r["metadata"] or {},
+                "metadata": _stored_jsonb(r["metadata"], field_id, "metadata") or {},
             }
             for r in rows
         ],
     }
+
+
+def _stored_jsonb(value, field_id: str, column: str):
+    """JSONB من asyncpg بلا codec يصل **نصّاً** — فكُّه هنا كما يفكّه مسارُ الاستعادة أدناه.
+
+    GEOMETRY-HISTORY-RETURNS-JSONB-AS-STRING-01: كان السجلّ يُعيد ``geometry`` سلسلةَ JSON،
+    فتُسقِط الواجهةُ (``toTurfFeature``) كلَّ مراجعة ويتعطّل الـE2E بـ``AttributeError``.
+    المُخزَّنُ التالف ⇒ ``None`` مع تحذير (الواجهةُ تُسقِط الهندسةَ الفارغة) لا 500 للسجلّ كلّه.
+    """
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        logging.getLogger(__name__).warning(
+            "geometry history: malformed stored JSON field=%s column=%s", field_id, column
+        )
+        return None
 
 
 @router.post("/api/v1/fields/{field_id}/geometry/revert/{revision}", response_model=FieldDetail)

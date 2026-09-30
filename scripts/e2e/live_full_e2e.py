@@ -191,12 +191,20 @@ def main() -> int:
         pass_step("timeline.history", f"revisions={len(revisions)}")
         newest = revisions[0].get("geometry") if isinstance(revisions[0], dict) else None
         oldest = revisions[-1].get("geometry") if isinstance(revisions[-1], dict) else None
-        delta = area_degrees2(newest) - area_degrees2(oldest)
-        if not isfinite(delta):
-            fail_step("comparison.area_delta", "non-finite delta")
+        # العقدُ: الهندسةُ كائنُ GeoJSON. سلسلةٌ هنا (JSONB بلا فكّ) تُسقِط الواجهةُ مراجعاتِها،
+        # فتفشل خطوةٌ مسمّاة بدل ``AttributeError`` يُسقِط الحزمةَ كلّها — ولا نفكّها هنا فنُخفيه.
+        shapes = [type(g).__name__ for g in (newest, oldest)]
+        if not all(isinstance(g, dict) for g in (newest, oldest)):
+            fail_step("timeline.geometry_is_geojson_object", f"got {shapes}")
             ok = False
         else:
-            pass_step("comparison.area_delta", f"delta_degrees2={delta:.10f}")
+            pass_step("timeline.geometry_is_geojson_object")
+            delta = area_degrees2(newest) - area_degrees2(oldest)
+            if not isfinite(delta):
+                fail_step("comparison.area_delta", "non-finite delta")
+                ok = False
+            else:
+                pass_step("comparison.area_delta", f"delta_degrees2={delta:.10f}")
 
     status, payload = request(
         "PATCH",
