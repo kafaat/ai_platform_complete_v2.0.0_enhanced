@@ -65,6 +65,14 @@
       "positive_witness": "test_current_surface_claim_is_compared_with_inventory_artifact[8-0] accepts the correct current 8/10 artifact; test_historical_surface_claim_does_not_require_current_inventory preserves explicitly historical claims.",
       "impact": "merge",
       "$scope_limit_ar": "يربط الادعاءات الحالية ذات أسماء حقول الجرد القانونية بمصنوع الالتزام الحالي، ولا يرقّي الأسطح غير المقيسة ولا يغيّر ملكية قاعدة البيانات أو يطالب بإصلاح الدين التاريخي."
+    },
+    "scripts/ci/railway_dockerfile_pr_build_plan.py::railway-dockerfile-pr-build.yml::plan": {
+      "counterexample": "Measured on main 166bdebf (#1112) and b0c14b6d (#1114): docker-build-matrix-verifier.yml:58 `docker-build` runs only on workflow_dispatch, so it reports `skipped` on every PR and reads as passing; Railway production deploys from main with checkSuites:false, so no Dockerfile Railway builds is built before Railway builds it in production. The planner selects Railway Dockerfiles whose file or COPY context the PR touches.",
+      "mutation": "test_a_broken_matcher_is_caught_instead_of_reading_green",
+      "$mutation_ar": "ثلاثُ طفرات مسجَّلة: إسقاطُ الفحص المستقلّ · تضييقُ المُطابِق إلى المسار الحرفيّ · إسقاطُ قاعدة المُتحقِّق — يقتل كلّاً منها اختبارُه المسمّى.",
+      "positive_witness": "test_a_change_outside_every_build_context_builds_nothing and test_a_file_in_the_service_directory_that_is_not_copied_builds_nothing: a PR touching only brain/compose/tests plans zero builds and the verdict job passes with a named 'no Dockerfile or COPY context touched' result.",
+      "impact": "merge",
+      "$scope_limit_ar": "يبني ما يبنيه Railway (13 Dockerfile) حين يمسّ الـPR الملفَّ أو سياقَ COPY؛ لا يُشغّل الصورة ولا يختبر سلوكها، ولا يُغني عن «Wait for CI» على Railway."
     }
   }
 }

@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **276**
+- حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
 - إجماليّ الطفرات المُسجَّلة: **419**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **355** على 124 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **358** على 125 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **223** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **224** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1003,7 +1003,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (223)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (224)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1164,6 +1164,7 @@
 | `production_honesty_guard.py` | Production honesty guard. | `honesty` |
 | `production_truth_readiness_gate.py` | Production truth/readiness gate: no synthetic serving paths; honest readiness. | `structural-lint` · `contract` |
 | `provenance_receipt.py` | Create/validate the external provenance receipt required by the read-only bridge. | `verify-and-evaluate` |
+| `railway_dockerfile_pr_build_plan.py` | أيُّ ملفّات Dockerfile التي يبنيها Railway يمسّها هذا الـPR؟ — DOCKER-BUILD-VERIFIED-ONLY-ON-… | `plan` |
 | `raster_import_graph_gate.py` | Static import-graph gate for services/raster-service. | `structural-lint` |
 | `raster_main_decomposition_gate.py` | Raster-service main.py decomposition contract gate. | `structural-lint` |
 | `raster_pixel_qa_indicator_guard.py` | Guard: raster indicators must carry raw pixel QA/provenance. | `guard` |
