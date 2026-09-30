@@ -6,9 +6,10 @@ import ast
 import importlib
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
+import yaml
 from fastapi import HTTPException
 
 pytestmark = pytest.mark.unit
@@ -265,6 +266,65 @@ def test_v25_live_audit_wiring_regressions():
     assert "proxy_pass http://guardrails_backend/v1/;" not in guardrails
     assert "proxy_set_header X-Agent-Token" not in guardrails
     assert "/api/guardrails/v1/validate" in _source("frontend/src/hooks/useApi.ts")
+
+
+def _frontend_image_listen_ports() -> set[int]:
+    """Ports the frontend image listens on, derived the way `docker build` produces them:
+    frontend/nginx.conf is copied to conf.d/default.conf and the Dockerfile's own `sed -i`
+    edits are applied to it. Cross-checked against EXPOSE so neither side drifts alone."""
+    dockerfile = _source("frontend/Dockerfile")
+    assert "COPY nginx.conf /etc/nginx/conf.d/default.conf" in dockerfile
+    conf = _source("frontend/nginx.conf")
+    for old, new in re.findall(
+        r"sed -i 's/([^/]*)/([^/]*)/' /etc/nginx/conf\.d/default\.conf", dockerfile
+    ):
+        conf = conf.replace(old, new)
+    listens = {
+        int(port)
+        for port in re.findall(r"(?m)^\s*listen\s+(?:\S*:)?(\d+)(?=[\s;])", _nginx_live(conf))
+    }
+    exposed = {int(port) for port in re.findall(r"(?m)^EXPOSE\s+(\d+)", dockerfile)}
+    assert listens and listens == exposed, (listens, exposed)
+    return listens
+
+
+def test_every_bundle_routes_the_spa_to_the_port_the_frontend_image_listens_on():
+    """NGINX-LIGHT-AND-UNIFIED-FRONTEND-PORT-MISMATCH-01, measured with nginx 1.27.5 running the
+    real frontend image config: light and unified sent the SPA to :80 while the non-root image
+    listens on 8080 (`listen 8080;` — the Dockerfile's `sed 's/listen 80;/…/'` matches nothing),
+    so every SPA path through either gateway was 502 `connect() failed (111: Connection
+    refused)`; 200 after the fix. The Finding-#1 loop above asserts *how* each upstream is
+    resolved, never *where* it lands, and the older pin `"frontend:80" in src` is a substring
+    of both ports. The port is derived from the image build here, not typed."""
+    ports = _frontend_image_listen_ports()
+    for conf, (compose_file, _nginx_service) in _NGINX_BUNDLES.items():
+        services = yaml.safe_load(_source(compose_file))["services"]
+        frontends = {
+            name: svc
+            for name, svc in services.items()
+            if isinstance(svc.get("build"), dict)
+            and PurePosixPath(svc["build"].get("context", "")) == PurePosixPath("frontend")
+        }
+        assert len(frontends) == 1, (compose_file, sorted(frontends))
+        ((name, svc),) = frontends.items()
+        assert svc["build"].get("dockerfile", "Dockerfile") == "Dockerfile", compose_file
+
+        upstreams = dict(
+            re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", _nginx_live(_source(conf)))
+        )
+        servers = re.findall(r"\bserver\s+([A-Za-z0-9_.-]+):(\d+)\b", upstreams["frontend_backend"])
+        assert servers, conf
+        for host, port in servers:
+            assert host in {name, svc.get("container_name", name)}, (conf, host)
+            assert int(port) in ports, (conf, f"{host}:{port}", ports)
+
+        # The compose side must describe the same container port it exposes, publishes or probes.
+        declared = [str(p) for p in svc.get("expose") or []]
+        declared += [str(p).rsplit(":", 1)[-1] for p in svc.get("ports") or []]
+        declared += re.findall(r"localhost:(\d+)", str((svc.get("healthcheck") or {}).get("test")))
+        assert declared, compose_file
+        for port in declared:
+            assert int(port.split("/", 1)[0]) in ports, (compose_file, name, port, ports)
 
 
 def test_service_token_is_injected_only_behind_auth_request():

@@ -85,7 +85,7 @@ services:
       dockerfile: Dockerfile
     container_name: sahool-unified-frontend
     restart: unless-stopped
-    expose: ["80"]
+    expose: ["8080"]  # الصورة غيرُ الجذريّة تستمع 8080 (frontend/nginx.conf) — لا 80
     depends_on: [auth-service, supervisor-agent]
     networks: [sahool-net]
     <<: *logging

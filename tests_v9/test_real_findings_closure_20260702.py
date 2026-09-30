@@ -89,7 +89,8 @@ def test_nginx_unified_upstreams_match_compose_service_names():
     for expected in [
         "auth-service:8000",
         "supervisor-agent:8000",
-        "frontend:80",
+        # 8080 لا 80: الصورة غيرُ الجذريّة تستمع 8080؛ و"frontend:80" كان يطابق كِلا المنفذين نصّاً.
+        "frontend:8080",
         "local-ai-rag:8000",
         "agriai-engine:8000",
         "erp-bridge:8126",

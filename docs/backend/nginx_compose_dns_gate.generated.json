@@ -17,7 +17,7 @@
     "local-ai-rag:8000",
     "erp-bridge:8126",
     "agriai-engine:8000",
-    "frontend:80"
+    "frontend:8080"
   ],
   "missing": [],
   "passed": true
