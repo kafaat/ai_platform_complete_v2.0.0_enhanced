@@ -3008,6 +3008,32 @@
           "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
         }
       ]
+    },
+    "scripts/ci/railway_dockerfile_pr_build_plan.py": {
+      "$gap_ar": "DOCKER-BUILD-VERIFIED-ONLY-ON-MANUAL-DISPATCH-SKIP-READS-GREEN-01 — مُخطِّطُ بناء ملفّات Dockerfile التي يبنيها Railway في الـPR. ليس `*_guard.py` بل مُخطِّطٌ تقرأ خطّتَه وظيفةُ حكمٍ حاجبة؛ فيُكذَّب سلوكُه هنا: خطّةٌ فارغةٌ لـPR يمسّ Dockerfile يجب أن تُحمِّر.",
+      "mutations": [
+        {
+          "expect": "test_a_broken_matcher_is_caught_instead_of_reading_green",
+          "find": "        assert_plan_covers_touched_dockerfiles(changed, result)\n",
+          "replace": "        pass  # mutated: لا فحصَ مستقلّ للخطّة\n",
+          "why": "إسقاطُ الفحص المستقلّ ⇒ مُطابِقٌ معطوبٌ يُنتِج «لا شيءَ يُبنى» لـPR يمسّ Dockerfile فيُقرأ أخضر — الصنفُ نفسُه الذي وُجد المُخطِّطُ لإغلاقه (skipped يُقرأ نجاحاً).",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        },
+        {
+          "expect": "test_a_file_the_image_copies_selects_its_build_even_if_the_dockerfile_is_unchanged",
+          "find": "    return changed == source or changed.startswith(source + \"/\")\n",
+          "replace": "    return changed == source\n",
+          "why": "مطابقةُ المسار الحرفيّ وحده ⇒ ملفٌّ داخل مجلّدٍ يُنسَخ في الصورة لا يختار بناءها، فيكسر PR البناءَ في الإنتاج وخطّتُه فارغة.",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        },
+        {
+          "expect": "test_changing_the_verifier_rebuilds_everything_it_verifies",
+          "find": "        reasons += [f\"verifier_changed:{v}\" for v in VERIFIER_PATHS if v in changed_files]\n",
+          "replace": "        reasons += []\n",
+          "why": "الـPR الذي يُضيف المُتحقِّقَ أو يكسره لا يبني شيئاً ⇒ «لا شيءَ يُبنى» يُقرأ نجاحاً على التغيير الذي يمسّ المُتحقِّقَ نفسَه.",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
