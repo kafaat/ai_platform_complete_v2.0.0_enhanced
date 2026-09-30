@@ -968,6 +968,15 @@ services:
     environment:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
+      # SENTINEL-HUB-MCP-01: نقاط CDSE نفسها في sahool-raster-service (لا services.sentinel-hub.com
+      # التجاريّ الذي لا يعرف عميل CDSE)، والمستأجِر من JWT يُرسَل إلى raster-service مع توكن
+      # الخدمة (RASTER-TENANT-TRUST-01)، وحدودُ الحقل من مالكها بادّعاء مستأجِرٍ موقَّع.
+      SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
+      SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
@@ -1150,7 +1159,8 @@ services:
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
-      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service}
+      # sentinel-hub-mcp يحلّ حدود الحقل من هنا بعقد vegetation نفسه (SENTINEL-HUB-MCP-01).
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service,sentinel-hub-mcp}
       FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
