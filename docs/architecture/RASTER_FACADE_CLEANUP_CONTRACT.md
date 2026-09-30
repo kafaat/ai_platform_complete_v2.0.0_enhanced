@@ -112,9 +112,13 @@ This compatibility path is now also cleaned for raster transport:
 - the router must not read `RASTER_SERVICE_URL` directly;
 - the router must not hard-code `sahool-raster-service`;
 - the router must not open-code `httpx.AsyncClient` for raster passthrough;
-- tenant promotion from `tid`/`tenant_id` remains in the router because it is a
-  browser compatibility concern, while service URL, token/header construction,
-  HTTP transport, and response header filtering live in the facade client.
+- the tenant is the authenticated caller's JWT tenant (`get_current_user`), never
+  `tid`/`tenant_id` or a request `X-Tenant-Id` (RASTER-COMPAT-PASSTHROUGH-01). The
+  facade attaches the platform service token, and raster-service trusts the tenant
+  asserted beside that token. Promoting an unauthenticated `tid` therefore made this
+  route a credentialed proxy for any tenant (measured live 2026-09-30). Service URL,
+  token/header construction, HTTP transport, and response header filtering stay in
+  the facade client.
 
 This keeps the legacy raster route as a BFF/compatibility alias only, not a
 second raster transport implementation.

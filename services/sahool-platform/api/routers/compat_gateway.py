@@ -6,8 +6,10 @@
 أسماء بديلة لفحوص الصحّة (health aliases) + تمرير (passthrough) ضيّق إلى خدمات
 ``vegetation``/``raster`` حين تُمرّر بيئات nginx/compose قديمة مساراتها إلى المنصّة.
 
-سلوك محفوظ بالكامل: نُقلت الدوالّ حرفيّاً من ``main.py`` مع تغيير ``@app`` إلى
-``@router`` — لا تستورد من ``api.main`` (لا دورة استيراد) فتُضمَّن آليّاً.
+نُقلت الدوالّ حرفيّاً من ``main.py`` مع تغيير ``@app`` إلى ``@router``. الاستثناء الوحيد تمريرُ
+الراستر: صار يطلب هويّةً موثَّقة — انظر ``get_current_user`` أدناه. ولا تستورد الوحدة من
+``api.main`` على مستواها (لا دورة استيراد): مَن يستوردها قبل ``main`` كان سيجعل التسجيلَ
+التلقائيّ يجد وحدةً نصفَ مُهيّأةٍ بلا ``router`` فيتخطّاها صامتاً — مقيسٌ بحارس التفكيك.
 """
 
 from __future__ import annotations
@@ -15,11 +17,21 @@ from __future__ import annotations
 import os
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException, Request, Response
+from core.canonical_schemas import UserSchema
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 
 from api.raster_service_client import raster_get_raw
 
 router = APIRouter()
+
+
+def get_current_user(authorization: str | None = Header(None)) -> UserSchema:
+    """``api.main.get_current_user`` نفسه (JWT · المُصدِر · الإبطال · المطالبات)، مُستورَداً عند
+    النداء لا عند الاستيراد كي تبقى الوحدة بلا دورة. الاسمُ نفسُه عمداً: هو تلك التبعيّة لا
+    بديلٌ عنها، وحارس ``test_endpoint_auth_coverage`` يتعرّفها باسمها."""
+    from api.main import get_current_user as _platform_get_current_user
+
+    return _platform_get_current_user(authorization)
 
 
 # ─── P3 Compatibility aliases for legacy frontend/service health routes ───
@@ -114,23 +126,28 @@ async def vegetation_analyze_passthrough(
 async def raster_api_passthrough(
     path: str,
     request: Request,
-    x_tenant_id: str | None = Header(None),
+    user: UserSchema = Depends(get_current_user),
     authorization: str | None = Header(None),
 ):
     """Compatibility passthrough for misrouted raster GET requests.
 
-    Browsers load map tiles as <img>, so custom headers may be absent. Preserve
-    the original query string and promote ?tid=... to X-Tenant-Id for the
-    raster-service. Without this, /api/raster/.../tilejson?index=...&tid=...
-    can still return 404/403 when the request lands on sahool-platform instead
-    of nginx's raster upstream.
+    **المستأجِر مستأجِرُ المُنادي المُصادَق (JWT) — لا ``?tid=`` ولا ``X-Tenant-Id`` من الطلب.**
+    ``raster_get_raw`` يرفق توكن خدمة المنصّة، وraster-service يُصدّق المستأجِر الذي يُدَّعى
+    بجانب ذلك التوكن (RASTER-TENANT-TRUST-01). فكانت هذه النقطة — بلا مصادقة، تُرقّي ``?tid=``
+    أو الترويسة إلى ادّعاءٍ موقَّع — **نائباً مُعتمَداً**: مقيسٌ حيّاً، مُنادٍ بلا JWT قرأ حدود حقل
+    مستأجِرٍ آخر عبرها بينما النداء المباشر للراستر المُنفِّذ نفسه يأخذ 401. البوّابتان القانونيّتان
+    لا توجّهان ``/api/raster/`` إلى هنا أصلاً؛ ومن يصلها الآن يحتاج ``Authorization: Bearer``.
     """
-    tenant_from_query = request.query_params.get("tid") or request.query_params.get("tenant_id")
+    params = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in {"tid", "tenant_id"}  # لا تقرؤهما الخدمة؛ لا نُمرّر ادّعاءً ميّتاً
+    }
     content, status_code, media_type, forwarded_headers = await raster_get_raw(
         path,
-        tenant_id=x_tenant_id or tenant_from_query,
+        tenant_id=str(user.tenant_id),
         authorization=authorization,
-        params=dict(request.query_params),
+        params=params,
         timeout_s=30.0,
     )
     return Response(
