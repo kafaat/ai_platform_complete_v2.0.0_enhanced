@@ -469,7 +469,7 @@ FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/
 FM-003,api,GET /readyz @ services/field-management-service/main.py:221,3,applied
 FM-003,api,GET /readyz @ services/field-segmentation/main.py:385,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
-FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,4,applied
+FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1356,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,4,applied
@@ -502,9 +502,9 @@ FM-003,api,GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-serv
 FM-003,api,GET /v1/fields/{field_id}/soil/summary @ services/raster-service/routers/soil_tiles.py:144,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/texture-probability @ services/soil-service/routers/p2_products.py:153,4,applied
-FM-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1549,4,applied
-FM-003,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1615,4,applied
-FM-003,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1277,4,applied
+FM-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1554,4,applied
+FM-003,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1620,4,applied
+FM-003,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1282,4,applied
 FM-003,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1186,4,applied
 FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93,2,applied
 FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:307,2,applied
@@ -1064,7 +1064,7 @@ GIS-003,api,GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api
 GIS-003,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
 GIS-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,3,applied
 GIS-003,api,GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146,2,applied
-GIS-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1549,3,applied
+GIS-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1554,3,applied
 GIS-003,api,GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186,3,applied
 GIS-003,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87,5,applied
 GIS-003,api,GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45,3,applied
@@ -1561,7 +1561,7 @@ SAT-009,api,GET /runtime-identity @ services/raster-service/main.py:64,3,applied
 SAT-009,api,GET /runtime-identity @ services/raster-tiler-service/main.py:11,2,applied
 SAT-009,api,GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153,5,applied
 SAT-009,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
-SAT-009,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1356,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,5,applied
@@ -1573,9 +1573,9 @@ SAT-009,api,GET /v1/fields/{field_id}/pixel @ services/raster-service/routers/fi
 SAT-009,api,GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:193,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:166,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/soil/summary @ services/raster-service/routers/soil_tiles.py:144,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1549,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1615,5,applied
-SAT-009,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1277,5,applied
+SAT-009,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1554,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1620,5,applied
+SAT-009,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1282,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1186,3,applied
 SAT-009,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93,3,applied
 SAT-009,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,3,applied

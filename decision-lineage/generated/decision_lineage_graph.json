@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 603,
+      "evidence_count": 604,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -191,6 +191,7 @@
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
+        "services/raster-service/raster_cdse_processing.py",
         "services/raster-service/raster_indicator_product.py",
         "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/fields.py",
@@ -2481,7 +2482,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
-      "source_evidence_count": 603,
+      "source_evidence_count": 604,
       "target_evidence_count": 503,
       "static_supported": true,
       "runtime_verified": false
@@ -2862,5 +2863,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4fc329fbccf539da137ddb25365a31014cd46ebcab2f6ce11cda9d36c01f81bd"
+  "content_sha256": "b97f7fedbc034a39cae85dec2170f6310aba4837d25c80e6c463169dacc90823"
 }

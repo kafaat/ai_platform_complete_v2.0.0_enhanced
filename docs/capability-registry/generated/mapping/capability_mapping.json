@@ -25,8 +25,8 @@
       "tests": 1851,
       "web": 458
     },
-    "unmapped_artifacts": 2207,
-    "ambiguous_artifacts": 425
+    "unmapped_artifacts": 2206,
+    "ambiguous_artifacts": 426
   },
   "capabilities": [
     {
@@ -10100,7 +10100,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
           "score": 16
         },
         {
@@ -10148,15 +10148,15 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
           "score": 16
         },
         {
@@ -16970,7 +16970,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
           "score": 18
         },
         {
@@ -17018,15 +17018,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
           "score": 18
         },
         {
@@ -17314,7 +17314,39 @@
           "score": 12
         },
         {
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:449",
+          "score": 10
+        },
+        {
           "value": "field.created @ tests_v9/test_imagery_auto_process_real_activation.py:82",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:100",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:114",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:121",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:195",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:204",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:227",
+          "score": 10
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:534",
           "score": 10
         },
         {
@@ -17650,6 +17682,14 @@
         },
         {
           "path": "services/gis-workflow-service/tests/test_map_layout.py",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
+          "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
           "score": 10,
           "signals": [
             "content:cdse",
@@ -18039,10 +18079,10 @@
         "backend": 35,
         "routes": 65,
         "database": 3,
-        "events": 32,
+        "events": 40,
         "web": 5,
         "mobile": 0,
-        "tests": 44,
+        "tests": 45,
         "governance": 0,
         "other_evidence": 33
       },
@@ -19660,6 +19700,14 @@
           "score": 12
         },
         {
+          "value": "field.created @ tests_v9/test_cache_invalidation_worker_v30_0.py:195",
+          "score": 12
+        },
+        {
+          "value": "field.created @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:449",
+          "score": 12
+        },
+        {
           "value": "field.created @ tests_v9/test_event_replay.py:126",
           "score": 12
         },
@@ -19689,6 +19737,34 @@
         },
         {
           "value": "field.geometry.updated @ services/raster-service/test_registry_writes_owner_api.py:91",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:100",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:114",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:121",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:195",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:204",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:227",
+          "score": 12
+        },
+        {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_invalidation_owner_api_integration.py:534",
           "score": 12
         },
         {
@@ -19869,42 +19945,6 @@
         },
         {
           "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:185",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:207",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:235",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:246",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:285",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_replay.py:378",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/tests/test_event_replay.py:361",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/tests/test_event_replay.py:456",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/tests/test_event_replay.py:61",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/tests/test_event_replay.py:62",
           "score": 12
         }
       ],
@@ -21148,6 +21188,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_deferred_satellite_integration_v30_4.py",
           "score": 12,
           "signals": [
@@ -21165,14 +21213,6 @@
         },
         {
           "path": "tests_v9/test_event_replay.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_evidence_contract_v62_3.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21871,8 +21911,8 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 24,
-        "events": 48,
-        "tests": 76
+        "events": 57,
+        "tests": 77
       },
       "evidence_counts": {
         "backend": 100,
@@ -22538,7 +22578,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
           "score": 18
         },
         {
@@ -22586,15 +22626,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
           "score": 18
         },
         {
@@ -23434,7 +23474,7 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
           "score": 15
         },
         {
@@ -23482,15 +23522,15 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
           "score": 15
         },
         {
@@ -32494,7 +32534,7 @@
           "score": 8
         },
         {
-          "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:40",
+          "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:41",
           "score": 8
         },
         {
@@ -43306,10 +43346,6 @@
     },
     {
       "path": "tests_v9/test_d09_live_evidence_receipt.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
       "kind": "tests"
     },
     {
@@ -54636,6 +54672,28 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
           ]
         }
       ]

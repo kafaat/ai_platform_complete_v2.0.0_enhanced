@@ -243,10 +243,10 @@ raster-service,GET,/v1/fields/{field_id}/pixel,field_pixel_value,services/raster
 raster-service,POST,/v1/fields/{field_id}/prescription,field_prescription,services/raster-service/routers/fields.py,1050
 raster-service,POST,/v1/fields/{field_id}/change,field_change,services/raster-service/routers/fields.py,1129
 raster-service,GET,/v1/fields/{field_id}/timeseries,field_timeseries,services/raster-service/routers/fields.py,1186
-raster-service,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile,services/raster-service/routers/fields.py,1277
-raster-service,GET,/v1/fields/{field_id}/available-dates,field_available_dates,services/raster-service/routers/fields.py,1351
-raster-service,GET,/v1/fields/{field_id}/terrain,field_terrain,services/raster-service/routers/fields.py,1549
-raster-service,GET,/v1/fields/{field_id}/tilejson,field_tilejson,services/raster-service/routers/fields.py,1615
+raster-service,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile,services/raster-service/routers/fields.py,1282
+raster-service,GET,/v1/fields/{field_id}/available-dates,field_available_dates,services/raster-service/routers/fields.py,1356
+raster-service,GET,/v1/fields/{field_id}/terrain,field_terrain,services/raster-service/routers/fields.py,1554
+raster-service,GET,/v1/fields/{field_id}/tilejson,field_tilejson,services/raster-service/routers/fields.py,1620
 raster-service,GET,/v1/imagery/backfill/policy,historical_backfill_policy,services/raster-service/routers/imagery.py,22
 raster-service,GET,/v1/imagery/quality/policy,imagery_quality_policy,services/raster-service/routers/imagery.py,44
 raster-service,POST,/v1/imagery/scenes/rank,rank_imagery_scenes,services/raster-service/routers/imagery.py,78

@@ -7256,10 +7256,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_d1_raster_owner_write_commands.py",
     "kind": "tests"
   },
