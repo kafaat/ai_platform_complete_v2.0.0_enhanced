@@ -37,8 +37,13 @@ async def fetch_registered_cog_tile(
         for host in os.getenv("COG_TILE_ALLOWED_HOSTS", "").split(",")
         if host.strip()
     }
-    if not base_url or not allowed:
+    if not base_url:
         raise HTTPException(503, "cog_tile_backend_not_configured")
+    # سببٌ منفصل يُسمّي القائمةَ لا الخلفيّة: كانا سبباً واحداً، فبـ``.env.example`` كما هو
+    # (``TITILER_URL`` مضبوطٌ حيّ والقائمةُ فارغةٌ عمداً) أحالت كلُّ بلاطةٍ إلى الخلفيّة —
+    # وهو ما قرأه تدقيقٌ حيّ 2026-09-29 «انجرافَ TITILER_URL».
+    if not allowed:
+        raise HTTPException(503, "cog_tile_allowed_hosts_not_configured")
     try:
         source = urlsplit(cog_url)
         backend = urlsplit(base_url)

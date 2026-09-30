@@ -10,7 +10,8 @@ The platform resolves that record under tenant RLS before calling this service t
 same backend. Neither API exposes the internal host or accepts a browser-supplied COG URL.
 
 Set `COG_TILE_ALLOWED_HOSTS` to exact, trusted public HTTPS COG source hosts.
-An empty list returns `503 cog_tile_backend_not_configured`; disallowed or private
+An empty list returns `503 cog_tile_allowed_hosts_not_configured` (an empty `TITILER_URL`
+returns `503 cog_tile_backend_not_configured`); disallowed or private
 sources return `422 cog_tile_source_not_allowed`. Bucket-wide private object access
 is not authorized by this setting. Browser clients must send their existing API
 authentication on tile requests. No public `/tiler` catch-all is installed.

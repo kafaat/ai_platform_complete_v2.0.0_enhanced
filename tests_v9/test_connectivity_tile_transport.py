@@ -681,3 +681,31 @@ def test_tilejson_names_the_missing_input_instead_of_blaming_titiler_url(
     got, note = reason("", "cogs.example.test", public)
     assert got == "titiler_url_not_configured", note
     assert "TITILER_URL" in note, note
+
+
+@pytest.mark.parametrize(
+    "base_url,allowed,expected",
+    [
+        # .env.example كما هو: الخلفيّةُ مضبوطة والقائمةُ فارغة.
+        (_TITILER, "", "cog_tile_allowed_hosts_not_configured"),
+        ("", "cogs.example.test", "cog_tile_backend_not_configured"),
+        ("", "", "cog_tile_backend_not_configured"),
+    ],
+)
+async def test_the_transport_503_names_the_empty_input_not_always_the_backend(
+    transport, monkeypatch, base_url, allowed, expected
+):
+    """بلاطةُ المنصّة والراستر تُرفَض بسببٍ يُسمّي المُدخَلَ الفارغ فعلاً.
+
+    العطلُ المقيس: الشرطان (``base_url`` فارغ · القائمة فارغة) كانا سبباً واحداً
+    ``cog_tile_backend_not_configured`` — فبـ``.env.example`` كما هو، والخلفيّةُ مضبوطةٌ
+    حيّة، كانت **كلُّ** بلاطةٍ تُحيل إلى ``TITILER_URL``. ولا يبلغ الطلبُ الخلفيّةَ في أيّها.
+    """
+    requests, _ = transport
+    monkeypatch.setenv("COG_TILE_ALLOWED_HOSTS", allowed)
+    with pytest.raises(HTTPException) as caught:
+        await cog_tile_proxy.fetch_registered_cog_tile(
+            "https://cogs.example.test/a.tif", 2, 1, 1, base_url=base_url
+        )
+    assert (caught.value.status_code, caught.value.detail) == (503, expected)
+    assert requests == []
