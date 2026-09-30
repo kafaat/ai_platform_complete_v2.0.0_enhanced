@@ -209,6 +209,24 @@ async def _resolve_weather(
             detail="Open-Meteo لم يُرجِع إشعاعاً شمسيّاً لليوم — مرّر الطقس صراحةً.",
         )
     today = daily[0]
+    # الإشعاعُ وحدَه كان محروساً، والحرارتان والرطوبةُ تصل `WeatherDay` (`float`) صفراً من
+    # الحافّة فيُحسَب ETc من `(0°م، 0°م، 0٪)` صامتاً. صار الغيابُ `None` في العقد، فيُعامَل
+    # كالإشعاع: ٥٠٣ يُسمّي الناقص (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01).
+    # **الريحُ خارجه عمداً** — قرارُها مؤجَّلٌ للمالك، والحافّةُ ما تزال تُصفّرها.
+    missing = [
+        name
+        for name, value in (
+            ("temp_max_c", today.temp_max_c),
+            ("temp_min_c", today.temp_min_c),
+            ("humidity_pct", current.humidity_pct),
+        )
+        if value is None
+    ]
+    if missing:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Open-Meteo لم يُرجِع {', '.join(missing)} لليوم — مرّر الطقس صراحةً.",
+        )
     return (
         WeatherDay(
             temp_max_c=today.temp_max_c,

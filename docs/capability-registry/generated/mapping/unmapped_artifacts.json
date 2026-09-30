@@ -5052,6 +5052,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/tests/test_absent_reading_is_not_zero_at_the_edge.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_activity_log.py",
     "kind": "tests"
   },

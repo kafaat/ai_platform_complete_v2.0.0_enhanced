@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "4441ccddada3802493fb2508e457877d23f0220819bdfa03c76cb6230ad1c991",
+  "inventory_sha256": "ad9b139dd07ab9719c3844a1a0b1aada0d938e6cf8ea77c845f8056dd7613049",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "8f39ccdf164f777af60800ce506baf0b7d356e6658537911184f43cc1edbe54b"
+    "policy_sha256": "6253b06fb5f7d9758b2e70f9e8025b1f0f6bde93280d6228942fb878213e4fb5"
   },
   "routes": [
     {
@@ -3578,7 +3578,7 @@
     {
       "classification": "domain",
       "function": "field_etc_dual",
-      "line": 227,
+      "line": 245,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/etc-dual",
       "source": "api/routers/etc_dual.py"

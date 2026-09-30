@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "93e7488027999dda341d9824f44c954bf79c8741a290f8369009dc188171da0a",
+  "inventory_sha256": "133b2bd25e88a025101c6a00b1706c1a67bc029786a51f27bed39375bf9971de",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "8f39ccdf164f777af60800ce506baf0b7d356e6658537911184f43cc1edbe54b",
+  "map_sha256": "6253b06fb5f7d9758b2e70f9e8025b1f0f6bde93280d6228942fb878213e4fb5",
   "routes": [
     {
       "classification": null,
@@ -6273,7 +6273,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/etc_dual.py",
       "function": "field_etc_dual",
-      "line": 227,
+      "line": 245,
       "method": "POST",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

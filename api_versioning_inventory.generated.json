@@ -4979,7 +4979,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/etc_dual.py",
-    "line": 228,
+    "line": 246,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/etc-dual",
     "handler": "field_etc_dual",

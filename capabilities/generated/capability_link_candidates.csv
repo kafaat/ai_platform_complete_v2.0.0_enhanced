@@ -533,7 +533,7 @@ FM-003,api,POST /api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-plat
 FM-003,api,POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181,6,applied
 FM-003,api,POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79,6,applied
 FM-003,api,POST /api/v1/fields/{field_id}/daily-ai-brief @ services/sahool-platform/api/routers/productivity.py:107,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/etc-dual @ services/sahool-platform/api/routers/etc_dual.py:228,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/etc-dual @ services/sahool-platform/api/routers/etc_dual.py:246,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1572,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3185,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:926,4,applied
