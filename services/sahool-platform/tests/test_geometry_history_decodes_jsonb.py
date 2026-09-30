@@ -39,7 +39,7 @@ def _user() -> UserSchema:
     return UserSchema(user_id="u1", tenant_id=_TENANT, role=UserRole.MANAGER, name_ar="مدير")
 
 
-def _row(revision: int, metadata: dict) -> dict:
+def _row(revision: int, metadata: dict | None) -> dict:
     """صفٌّ كما يُعيده asyncpg بلا codec لـjsonb: العمودان نصّان."""
     return {
         "revision": revision,
@@ -80,3 +80,28 @@ def test_history_returns_geometry_and_metadata_as_objects_not_strings(monkeypatc
     assert oldest["geometry"] == _POLYGON
     assert newest["metadata"] == {"vertices": 4}
     assert oldest["metadata"] == {}
+
+
+def test_a_stored_json_null_metadata_is_an_empty_object_not_null(monkeypatch) -> None:
+    """العمودُ ``NOT NULL`` يمنع NULL الـSQL لا ``'null'::jsonb`` — فيصل ``"null"`` ويُفَكّ ``None``.
+
+    العقدُ كائن؛ ``decode_jsonb(..., {})`` وحده يُعيد ``None`` هنا (مراجعةٌ مستقلّة للشريحة).
+    """
+
+    class _NullMetadataConn(_Conn):
+        async def fetch(self, sql, *args):
+            return [_row(1, None)]
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield _NullMetadataConn()
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+
+    resp = TestClient(app).get("/api/v1/fields/fld-1/geometry/history")
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["revisions"][0]["metadata"] == {}

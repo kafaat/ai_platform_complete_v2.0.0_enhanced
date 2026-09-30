@@ -1562,7 +1562,7 @@ async def field_geometry_history(
                 "changed_at": r["changed_at"].isoformat() if r["changed_at"] else None,
                 "reason": r["reason"],
                 "source": r["source"],
-                "metadata": decode_jsonb(r["metadata"], {}),
+                "metadata": decode_jsonb(r["metadata"], {}) or {},
             }
             for r in rows
         ],
