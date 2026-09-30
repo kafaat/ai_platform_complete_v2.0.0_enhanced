@@ -65,7 +65,12 @@ def _limitations(
 ) -> list[str]:
     lim: list[str] = []
     if not response.get("generation_provider"):
-        lim.append("generation_disabled_evidence_only")  # لا نموذج مُفعَّل — جواب من الأدلّة.
+        # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: «مُعطَّل» ادّعاءٌ عن المحاولة لا عن العرض —
+        # نموذجٌ حاول فأُخمِد خرجُه ليس نموذجاً غيرَ مُفعَّل.
+        if response.get("generation_attempted_provider"):
+            lim.append("generation_suppressed_evidence_only")
+        else:
+            lim.append("generation_disabled_evidence_only")  # لا نموذج مُفعَّل — جواب من الأدلّة.
     if pending:
         lim.append("proposed_actions_await_human_approval")
     if conf is None:
