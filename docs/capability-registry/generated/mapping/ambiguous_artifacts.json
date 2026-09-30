@@ -9758,6 +9758,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_deferred_satellite_integration_v30_4.py",
     "kind": "tests",
     "candidates": [

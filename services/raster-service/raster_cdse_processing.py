@@ -133,7 +133,13 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 bands=ctx.BandMapping(),
                 precomputed_index=True,
                 provider="cdse",
-                scene_id=f"{scene_id}:{ind}",
+                # هويّةُ المشهد وحدَها — المؤشّرُ حقلٌ مستقلّ في الهويّة (``ImageryProductIdentity``:
+                # ``scene_id`` · ``product``) ومسارُ backfill CDSE يكتب المعرّفَ نفسَه بلا لاحقة.
+                # كان هنا ``f"{scene_id}:{ind}"``: مشهدٌ واحد صار خمسةَ مشاهد، فحزمةُ المشاهدة
+                # (``field_indicator_observation_bundle``) تحكم ``mixed_scene`` على كلّ حقلٍ
+                # عولِج هنا، ويرفضها النباتُ وindicators-service ⇒ ``/v1/analyze`` 424 (مقيسٌ
+                # على طبقاتٍ مُعاد ترطيبها من القاعدة، 2026-09-29).
+                scene_id=scene_id,
                 capture_datetime=capture_datetime,
                 clip_polygon_geojson=req.geometry,
                 apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)

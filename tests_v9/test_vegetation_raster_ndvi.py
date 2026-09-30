@@ -12,8 +12,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
+import subprocess
+import sys
 from unittest.mock import AsyncMock
 
 import pytest
@@ -202,3 +205,270 @@ async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch, canonical_u
         await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     assert exc.value.status_code == 424
     canonical_unavailable.assert_awaited_once()
+
+
+# ── القفزة indicators-service ⇒ vegetation: عقدُ Decimal يعبر الشبكة نصّاً ──────────────
+#
+# **المقيس حيّاً (2026-09-29):** ``/v1/analyze`` أجاب 424 «validated real NDVI is required from
+# raster-service» لكلّ حقل، ولـNDVI رصدٌ حقيقيّ (0.1243). ``CanonicalObservationV1`` يحمل
+# ``summary.mean`` وحقولَ الجودة ``Decimal``، وPydantic يُسلسِلها نصّاً (``"0.1243"``)، والمُحوِّلُ
+# يمرّرها كما هي، و``run_analysis`` يقبل ``int``/``float`` وحدهما ⇒ NDVI يُسقَط. الشاهدُ السابق
+# (``_bundle``) مرّ لأنّه قاموسٌ منسوخ بأرقام ``float``. هنا الردُّ ناتجُ مسار indicators-service
+# نفسِه: ``canonicalize_bundle`` ⇒ ``field_observations`` ⇒ ``model_dump(mode="json")``.
+
+_INDICATORS = os.path.join(ROOT, "services", "indicators-service", "main.py")
+_TENANT = "11111111-1111-4111-8111-111111111111"
+
+
+async def _indicators_service_response(field_id: str, season_id: str) -> dict:
+    """ما يُجيب به ``GET /v1/fields/{id}/observations`` فعلاً — بلا شبكة، بالمُنتِج الحقيقيّ."""
+    spec = importlib.util.spec_from_file_location("veg_test_indicators_main", _INDICATORS)
+    indicators = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(indicators)  # يُدرج دليلَه في sys.path ويستورد observation_runtime
+
+    import observation_runtime
+
+    # حزمةُ الراستر (مُدخَلُ المُنتِج) بشكل ``field_indicator_observation_bundle`` — رصدٌ واحد.
+    raster_bundle = {
+        "field_id": field_id,
+        "real_data": True,
+        "bundle_consistency": True,
+        "mixed_scene": False,
+        "observations": {
+            "ndvi": {
+                "real_data": True,
+                "date": "2026-09-25T07:46:00Z",
+                "stats": {"min": 0.1243, "max": 0.1243, "mean": 0.1243},
+                "valid_pixel_ratio": 1.0,
+                "coverage_ratio": 1.0,
+                "confidence": 0.9,
+                "indicator_product": {
+                    "provenance": {
+                        "scene_id": "S2B_MSIL2A_20260925T073609_N0511_R092_T38PNA",
+                        "acquisition_datetime": "2026-09-25T07:46:00Z",
+                        "algorithm_version": "sahool.band_math/1",
+                    }
+                },
+            }
+        },
+    }
+
+    async def _canonical(*, field_id, tenant_id, season_id, indicators):
+        return observation_runtime.canonicalize_bundle(
+            bundle=raster_bundle, tenant_id=tenant_id, season_id=season_id
+        )
+
+    indicators.fetch_canonical_observations = _canonical
+    body = await indicators.field_observations(
+        field_id, season_id=season_id, indicators="ndvi", x_tenant_id=_TENANT
+    )
+    assert body["observations"], "المُنتِجُ لم يُصدِر رصداً — الشاهدُ أعمى"
+    return body
+
+
+class _IndicatorsClient:
+    """يقوم مقام ``httpx.AsyncClient`` عند حدّ الشبكة وحدَه ويُعيد ردَّ المُنتِج كما هو."""
+
+    body: dict = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url, params=None, headers=None):
+        assert url.endswith("/observations"), url
+        body = type(self).body
+
+        class _Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return body
+
+        return _Response()
+
+
+async def test_canonical_decimals_reach_the_analysis_as_numbers(veg, monkeypatch):
+    from fastapi import HTTPException
+
+    season = "unscoped-2026-09-29"
+    _IndicatorsClient.body = await _indicators_service_response("fld_new", season)
+    wire_mean = _IndicatorsClient.body["observations"][0]["summary"]["mean"]
+    assert isinstance(wire_mean, str), "العقدُ لم يعد يُسلسِل Decimal نصّاً — راجع الشاهد"
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _IndicatorsClient)
+    monkeypatch.setattr(veg, "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", True)
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+
+    bundle = await veg._canonical_observation_bundle_from_indicators(
+        "fld_new", _TENANT, season, ["ndvi"]
+    )
+    ndvi = bundle["observations"]["ndvi"]
+    assert ndvi["stats"]["mean"] == pytest.approx(0.1243)
+    assert ndvi["indicator_product"]["quality_score"] == pytest.approx(0.9)
+    assert ndvi["indicator_product"]["valid_pixel_ratio"] == pytest.approx(1.0)
+
+    # التطوير: التحليلُ يعود بـNDVI الحقيقيّ بدل 424 «لا NDVI».
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", False)
+    res = await veg.run_analysis("fld_new", _TENANT, "2026-09-01", "2026-09-29", season_id=season)
+    assert res["indices"]["ndvi"]["value"] == pytest.approx(0.124)
+    # الإنتاج: 424 يبقى — لكنّه حكمُ بوّابة الجودة المُعلَن لا «NDVI غائب». الرقعةُ لا تُرخي البوّابة.
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", True)
+    with pytest.raises(HTTPException) as exc:
+        await veg.run_analysis("fld_new", _TENANT, "2026-09-01", "2026-09-29", season_id=season)
+    assert exc.value.status_code == 424
+    assert exc.value.detail == "validated real NDVI is required in production vegetation mode"
+
+
+# ── القفزة raster-service ⇒ vegetation لـ``/v1/ndvi/current`` ─────────────────────────────
+#
+# **المقيس حيّاً (2026-09-29):** ``/v1/ndvi/current`` أجاب 424 ``RASTER_RESPONSE_INVALID`` لكلّ
+# حقلٍ له NDVI حقيقيّ. المُستهلِك يقرأ ``value``/``ndvi`` والمالكُ يُصدِر ``mean``، ويشترط
+# ``scene_id`` والنقطةُ لا تحمله. ولمّا حُمِّلت النقطةُ نَسَبَها ظهر ما تحته: مسارُ CDSE كان
+# يكتب ``"<scene>:<index>"`` فتصير حزمةُ المشاهدة ``mixed_scene`` لكلّ حقلٍ عولِج به.
+#
+# المُنتِجُ هنا **مسارُ المالك الحقيقيّ كاملاً** في عمليّةٍ مستقلّة (``routers`` و``db_persist``
+# أسماءٌ تتنازعها الخدمات في جلسة pytest واحدة): ``_run_cdse_processing`` ⇒ المعالجةُ ⇒ الطبقة ⇒
+# ``field_timeseries`` و``field_indicator_observation_bundle``. المستبدَلُ حدُّ الشبكة وحدَه:
+# عميلُ CDSE يُعيد GeoTIFF حقيقيّاً لكلّ مؤشّر. بلا قاعدة (وضعٌ مُعلَن في ``field_owner_tenant``).
+
+_SCENE = "S2B_MSIL2A_20260925T073609_N0511_R092_T38PNA"
+_RASTER_PRODUCER = r"""
+import asyncio, json, os, sys
+from datetime import UTC, datetime, timedelta
+
+root, tenant, field, scene = sys.argv[1:5]
+sys.path.insert(0, os.path.join(root, "services", "raster-service"))
+sys.path.insert(0, root)
+import numpy as np
+import rasterio
+from rasterio.transform import from_bounds
+
+W, S, E, N = 44.20, 15.30, 44.21, 15.31
+GEOM = {"type": "Polygon", "coordinates": [[[W, S], [E, S], [E, N], [W, N], [W, S]]]}
+VALUES = {"ndvi": 0.1243, "ndmi": 0.05, "msi": 1.4}
+ACQUIRED = (datetime.now(UTC) - timedelta(days=3)).strftime("%Y-%m-%dT07:46:00Z")
+
+
+def geotiff(value):
+    with rasterio.MemoryFile() as mem:
+        with mem.open(driver="GTiff", height=32, width=32, count=1, dtype="float32",
+                      crs="EPSG:4326", transform=from_bounds(W, S, E, N, 32, 32),
+                      nodata=float("nan")) as dst:
+            dst.write(np.full((32, 32), value, dtype="float32"), 1)
+        return mem.read()
+
+
+class CdseNetworkBoundary:
+    def search_scenes(self, **_kw):
+        return [{"id": scene, "datetime": ACQUIRED, "cloud_cover_pct": 3.0}]
+
+    def process_index(self, *, index, **_kw):
+        return geotiff(VALUES[index])
+
+
+import cdse_client
+cdse_client.get_client = lambda: CdseNetworkBoundary()
+cdse_client.supported_indices = lambda: set(VALUES)
+import raster_api_models
+import raster_field_runtime
+from raster_security_context import REQ_TENANT
+from routers import fields
+
+raster_field_runtime._run_cdse_processing("job-producer", field, raster_api_models.ProcessCdseRequest(
+    tenant_id=tenant, indicators=list(VALUES), bbox=[W, S, E, N], geometry=GEOM))
+
+
+async def produce():
+    REQ_TENANT.set(tenant)
+    timeseries = await fields.field_timeseries(field, index="ndvi", dates="", grid=16)
+    bundle = await fields.field_indicator_observation_bundle(
+        field, indices="ndvi,moisture,msi", date="latest", grid=16,
+        x_agent_token=os.environ["SAHOOL_AGENT_TOKEN"])
+    return {"timeseries": timeseries, "bundle": bundle}
+
+
+print("PRODUCED " + json.dumps(asyncio.run(produce()), default=str))
+"""
+
+
+def _raster_owner_output(tmp_path, *, tenant: str, field: str) -> dict:
+    script = tmp_path / "raster_producer.py"
+    script.write_text(_RASTER_PRODUCER, encoding="utf-8")
+    uploads = tmp_path / "rasters"
+    uploads.mkdir()
+    env = {k: v for k, v in os.environ.items() if k not in ("DATABASE_URL", "JOBS_DATABASE_URL")}
+    env.update(RASTER_UPLOAD_DIR=str(uploads), SAHOOL_AGENT_TOKEN="producer-token")
+    run = subprocess.run(
+        [sys.executable, str(script), os.path.abspath(ROOT), tenant, field, _SCENE],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+        timeout=180,
+        check=False,
+    )
+    produced = [ln for ln in run.stdout.splitlines() if ln.startswith("PRODUCED ")]
+    assert produced, f"مُنتِجُ الراستر لم يُنتِج (rc={run.returncode}):\n{run.stderr[-3000:]}"
+    output = json.loads(produced[-1][len("PRODUCED ") :])
+    assert output["timeseries"].get("points"), (
+        "المالكُ لم يُنتِج رصداً — الشاهدُ لا يقيس شيئاً:\n"
+        f"{json.dumps(output['timeseries'], ensure_ascii=False)[:800]}\n{run.stdout[-3000:]}"
+    )
+    return output
+
+
+class _RasterClient:
+    """يقوم مقام ``httpx.AsyncClient`` عند حدّ الشبكة وحدَه — يُعيد ردَّ المالك كما أنتجه."""
+
+    timeseries: dict = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url, params=None, headers=None):
+        assert url.endswith("/timeseries") and (params or {}).get("index") == "ndvi", url
+        body = type(self).timeseries
+
+        class _Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return body
+
+        return _Response()
+
+
+async def test_current_ndvi_reads_the_point_the_raster_owner_produces(veg, monkeypatch, tmp_path):
+    pytest.importorskip("rasterio")
+    field = "fld_ndvi_current"
+    owner = _raster_owner_output(tmp_path, tenant=_TENANT, field=field)
+
+    # المالك: مشهدٌ واحد لكلّ المؤشّرات، ونَسَبُه على النقطة وفي الحزمة.
+    point = owner["timeseries"]["points"][-1]
+    assert point["mean"] == pytest.approx(0.1243)
+    assert point["scene_id"] == _SCENE, "النقطةُ لا تحمل نَسَبَ مشهدِها (أو تحمله بلاحقة المؤشّر)"
+    bundle = owner["bundle"]
+    assert bundle["scene_ids"] == [_SCENE] and bundle["mixed_scene"] is False, bundle["scene_ids"]
+
+    # المُستهلِك: ما أنتجه المالكُ نفسُه يصير NDVI الحاليّ — لا 424.
+    _RasterClient.timeseries = owner["timeseries"]
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _RasterClient)
+    observed, code = await veg._current_ndvi_from_raster(field, tenant_id=_TENANT)
+    assert code == "OK", code
+    assert observed["value"] == pytest.approx(0.1243)
+    assert observed["scene_id"] == _SCENE
+    assert observed["observed_at"] == point["datetime"]
+    assert observed["valid_pixel_pct"] == pytest.approx(100.0)

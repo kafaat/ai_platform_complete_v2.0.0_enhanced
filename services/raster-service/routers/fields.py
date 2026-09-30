@@ -1235,17 +1235,17 @@ async def field_timeseries(
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
+        provenance = (real.get("indicator_product") or {}).get("provenance") or {}
         points.append(
             {
                 "datetime": str(real.get("date") or date)[:10],
                 "mean": real["stats"]["mean"],
-                # Surface the real per-observation quality so canonical consumers
-                # (RS-4 observation timeline) carry measured quality instead of a
-                # fabricated 1.0. Keys may be None on legacy layers that predate
-                # quality capture — consumers must treat None as "not reported".
+                # Measured quality (RS-4) and the grid's own scene lineage (vegetation's
+                # /v1/ndvi/current needs it) — None = "not reported", never a fabricated value.
                 "valid_pixel_ratio": real.get("valid_pixel_ratio"),
                 "coverage_ratio": real.get("coverage_ratio"),
                 "cloud_pct": real.get("cloud_pct"),
+                "scene_id": provenance.get("scene_id"),
             }
         )
 

@@ -6494,6 +6494,7 @@
         "services/gis-workflow-service/tests/test_map_layout.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_landsat_thermal_unique_contract.py",
+        "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py"
       ],
@@ -6789,8 +6790,8 @@
         "services/gis-workflow-service/tests/test_run_bundle.py",
         "services/raster-service/test_landsat_thermal_unique_contract.py",
         "services/vegetation-analysis-service/test_vegetation_production_contract.py",
-        "tests_v9/test_deferred_satellite_integration_v30_4.py",
-        "tests_v9/test_evidence_contract_v62_3.py"
+        "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+        "tests_v9/test_deferred_satellite_integration_v30_4.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",

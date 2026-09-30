@@ -14025,7 +14025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94424bfc04ce8c61750a28c628f4755b71601da69ba8e88c7b514bd45f80688b"
+          "content": "c81676ee2861ba561b931dfe7e36dca218037c12010890eaa3f97c40780063b3"
         }
       ],
       "name": "services/raster-service/cache_invalidation_worker.py",
@@ -14325,7 +14325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d972773268b2f8b08cdd25edc88dbd526088ce44c498c0a6ef8b1b873f40892"
+          "content": "333c559eeec07ab2a2c6a095f2a44d31e91de1c6aeb4336aa26471d7a52f2021"
         }
       ],
       "name": "services/raster-service/raster_cdse_processing.py",
@@ -14385,7 +14385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b049b645208f2498332c2874fc5d849157665692678c7b0820487216cb1d778d"
+          "content": "d175553a459b798d75841c6f2855626256ff8408fe2c956e6f8662bc569ec529"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -14615,7 +14615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb37cfcdcfade5b4c7958b003b112329f717d058497417a27fefe3d25e1c6528"
+          "content": "adf8b63d5f54859ad58aebae34184aba2b055fbc073fd30023e22d49a9162faf"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -19795,7 +19795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ea84d1ae4eeb35cfec7ca749cec11a9402c31fbc13bd3c173cdb918a7781892"
+          "content": "6b579167f94a69d1355b3f57c261859808ab17d9a6efd109455a8dbbe7e4d483"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
@@ -20045,7 +20045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8baeaf263aa5c4724d0ad06dcc9ab2dff06df14ecb7bfbd3fbb75af77ea04b83"
+          "content": "2f0821b24e7047b8f4593f37f6c51ccc19e6142f5625b7ca397bbd6f93a98a57"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -24435,7 +24435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85c8b52b78ef1d8b5bf00bb8210e61b6726216e068632e0d8be21da2b783553e"
+          "content": "e3fb8a96d96dd3dc5a42f58901f738a05d1ebb07d00f1eadcf8cae6e3c836792"
         }
       ],
       "name": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
@@ -30045,7 +30045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0811e8d20b5bd0be4779ca1860e11b909b525cabc1ad15249f591420ebdac45"
+          "content": "9bbb3f49c9ec90be9d4b59ebbaf71a45fcdf27ed174c4571903a7674e752b7e3"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -30255,7 +30255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8f467ef81a738d37e7f49b99156ea4b63f46068253597e47936e3df3ed4cb36"
+          "content": "01eaf9ac39b65d99f18cbe50866c91b0343fb1ca82d908a3e9bebd7087975f06"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",

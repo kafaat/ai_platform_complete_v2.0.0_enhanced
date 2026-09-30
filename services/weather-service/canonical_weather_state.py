@@ -729,6 +729,11 @@ def current_view(state: dict) -> dict:
     current["derived_from"] = "canonical_weather_state"
     current["canonical_state_id"] = state.get("state_id")
     current["canonical_state_version"] = state.get("state_version")
+    # هويّةُ المخطَّط غيرُ إصدار الحالة: ``state_version`` semver (``1.0.0``)، و``schema_version``
+    # اسمُ العائلة والإصدار (``wx10/canonical-weather-state/1.0.0``). المقيس حيّاً (2026-09-29):
+    # المنصّةُ تربط هذه المشاهدة في ``canonical_field_state`` ولم تجد هويّةَ المخطَّط هنا فوضعت
+    # ``1.0.0`` مكانها، فرُفِض طقسٌ ``validated`` بوصفه ``weather_noncanonical_schema``.
+    current["canonical_schema_version"] = state.get("schema_version")
     current["source_snapshot_id"] = snap
     # المشاهدة لا تُنتِج بصمة لقطة في نواتها — تُضاف من لقطة الحالة (نَسَب موحَّد عبر Views).
     current["weather_snapshot_id"] = snap

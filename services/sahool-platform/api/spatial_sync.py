@@ -92,6 +92,13 @@ async def mark_raster_cache_stale(
     failure neither aborts the enclosing transaction nor breaks the field save — it is
     logged with the field and request id so the loss is visible. Returns the intent's
     job id (existing one when the same request id is already recorded in this tenant).
+
+    ``metadata.geometry_changed_at`` تكتبه القاعدةُ لا Python: ``now()`` معاملةِ الحقل نفسِها —
+    اللحظةُ ذاتُها التي يحملها ``field_geometry_history.changed_at`` للمراجعة المُسمّاة. المالكُ
+    يُبطِل به **ما سبق التغيير** وحدَه. المقيس حيّاً (2026-09-29): بدونه كان عاملُ الإبطال يَسِم
+    كلَّ أصلٍ ``ready`` للحقل ``stale`` — ومنها صورُ Sentinel-2 التي أُنتِجت **بعد** إنشاء الحقل
+    بثوانٍ — فتعود مصغّراتُها 404. وساعةُ القاعدة لا ساعةُ الحاوية: ``raster_assets.created_at``
+    تكتبه القاعدةُ نفسُها، فالمقارنةُ بلا انحراف ساعات.
     """
     request_id = invalidation_request_id(field_id=field_id, reason=reason, metadata=metadata)
     params = {"request_id": request_id, "reason": reason, "metadata": dict(metadata or {})}
@@ -116,7 +123,9 @@ async def mark_raster_cache_stale(
                 """
                 INSERT INTO processing_jobs
                     (tenant_id, field_id, job_type, status, priority, parameters, result)
-                VALUES ($1::uuid, $2, $3, 'pending', 3, $4::jsonb, '{}'::jsonb)
+                VALUES ($1::uuid, $2, $3, 'pending', 3,
+                        jsonb_set($4::jsonb, '{metadata,geometry_changed_at}', to_jsonb(now())),
+                        '{}'::jsonb)
                 RETURNING id
                 """,
                 tenant_id,

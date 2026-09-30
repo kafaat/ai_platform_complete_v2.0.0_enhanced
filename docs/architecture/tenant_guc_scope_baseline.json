@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "fcaece047cfa4ec948bb699c6fa8c3582a5fc719",
+  "measured_on": "8d6a9dada324688a3bb3b19639832bb347d2820a",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "15047a5d09565bc6e1f4ca1d1a0587433bcd60c36d737b01361e741bb6c1bfe6",
+  "measurement_input_digest": "84061319ee46e0bb0d60d146d17e28c4906ef8251f1c7087b500c8e156576b1b",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "cec70b681185fc458f461c2feb95f8191d14e474797ac59236fc3a2248948cda",
+  "measurement_basis_digest": "844463fc2f8c8e1a4d250b2155c8922f958ae68c0882a5905e3fdaf407e7b5f3",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -80,7 +80,7 @@
     },
     {
       "path": "services/raster-service/cache_invalidation_worker.py",
-      "sha256": "94424bfc04ce8c61750a28c628f4755b71601da69ba8e88c7b514bd45f80688b"
+      "sha256": "c81676ee2861ba561b931dfe7e36dca218037c12010890eaa3f97c40780063b3"
     },
     {
       "path": "services/raster-service/db_persist.py",
@@ -183,7 +183,7 @@
   "offenders": [
     "services/auth/main.py:993",
     "services/raster-service/backfill_scan_worker.py:101",
-    "services/raster-service/cache_invalidation_worker.py:87",
+    "services/raster-service/cache_invalidation_worker.py:90",
     "services/sahool-platform/api/imagery_automation.py:179",
     "services/sahool-platform/api/phase_runtime_store.py:98",
     "services/sahool-platform/api/phase_runtime_store.py:99",

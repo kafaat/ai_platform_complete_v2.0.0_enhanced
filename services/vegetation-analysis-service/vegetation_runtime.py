@@ -549,6 +549,25 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
+def _canonical_number(value) -> float | None:
+    """رقمٌ من عقد ``CanonicalObservationV1`` كما يعبر الشبكة — أو ``None``.
+
+    حقولُ العقد ``Decimal`` (``shared/contracts/remote_sensing/observation_v1.py``)، وPydantic
+    يُسلسِلها في JSON **نصّاً** (``"0.1243"``). المقيس حيّاً (2026-09-29): المُحوِّلُ كان يمرّر
+    النصَّ كما هو، و``run_analysis`` يقبل ``int``/``float`` وحدهما، فيُسقِط NDVI الحقيقيّ ويُجيب
+    424 «validated real NDVI is required from raster-service» — والرصدُ موجود. و``baseline_engine
+    ._value`` في هذه الخدمة نفسِها يقرأ الحقلَ نفسَه نصّاً منذ البداية. ``bool`` ليس رقماً،
+    وغيرُ المتناهي ليس قياساً.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        number = float(value) if isinstance(value, (int, float, str)) else None
+    except ValueError:
+        return None
+    return number if number is not None and math.isfinite(number) else None
+
+
 async def _canonical_observation_bundle_from_indicators(
     field_id: str, tenant_id: str, season_id: str, raster_indices: list[str]
 ) -> dict | None:
@@ -557,6 +576,8 @@ async def _canonical_observation_bundle_from_indicators(
     The adapter exists only during cutover so downstream vegetation logic remains
     behavior-compatible while the legal source moves from raster bundles to
     CanonicalObservationV1. It never accesses the indicators database directly.
+    Contract decimals arrive as JSON strings and are read as numbers here
+    (``_canonical_number``) — the raster bundle this replaces carries floats.
     """
     if not VEGETATION_PREFER_CANONICAL_OBSERVATIONS:
         return None
@@ -587,20 +608,20 @@ async def _canonical_observation_bundle_from_indicators(
                 "real_data": True,
                 "date": acquired_at,
                 "stats": {
-                    "mean": summary.get("mean"),
-                    "median": summary.get("median"),
-                    "p10": summary.get("p10"),
-                    "p90": summary.get("p90"),
-                    "std": summary.get("stddev"),
+                    "mean": _canonical_number(summary.get("mean")),
+                    "median": _canonical_number(summary.get("median")),
+                    "p10": _canonical_number(summary.get("p10")),
+                    "p90": _canonical_number(summary.get("p90")),
+                    "std": _canonical_number(summary.get("stddev")),
                 },
-                "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
-                "coverage_ratio": quality.get("field_coverage_ratio"),
-                "cloud_cover": quality.get("field_cloud_ratio"),
-                "confidence": quality.get("score"),
+                "valid_pixel_ratio": _canonical_number(quality.get("valid_pixel_ratio")),
+                "coverage_ratio": _canonical_number(quality.get("field_coverage_ratio")),
+                "cloud_cover": _canonical_number(quality.get("field_cloud_ratio")),
+                "confidence": _canonical_number(quality.get("score")),
                 "index_quality_flags": quality.get("reason_codes") or [],
                 "indicator_product": {
-                    "quality_score": quality.get("score"),
-                    "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
+                    "quality_score": _canonical_number(quality.get("score")),
+                    "valid_pixel_ratio": _canonical_number(quality.get("valid_pixel_ratio")),
                     "data_available_at": item.get("published_at"),
                     "provenance": {
                         "asset_ref": item.get("asset_ref"),
@@ -1004,7 +1025,14 @@ async def _current_ndvi_from_raster(
         return None, "NO_VALIDATED_NDVI_ASSET"
     points.sort(key=lambda p: str(p.get("datetime") or p.get("date") or ""))
     point = points[-1]
-    value = point.get("value", point.get("ndvi"))
+    # مفتاحُ القيمة كما يُصدِره المالك: ``mean`` (نقطةُ ``/v1/fields/{id}/timeseries`` —
+    # ``datetime``/``mean``/``valid_pixel_ratio``/``coverage_ratio``/``cloud_pct``، ويقرؤها
+    # كذلك ``api.raster_service_client`` وindicators-service). كان هنا ``value``/``ndvi`` —
+    # مفتاحان لم يُصدِرهما المالكُ قطّ — فأجاب ``/v1/ndvi/current`` بـ424
+    # ``RASTER_RESPONSE_INVALID`` لكلّ حقلٍ له NDVI حقيقيّ (مقيسٌ حيّاً 2026-09-29).
+    value = point.get("mean")
+    if isinstance(value, bool):
+        return None, "RASTER_RESPONSE_INVALID"
     try:
         value = float(value)
     except (TypeError, ValueError):
@@ -1015,13 +1043,18 @@ async def _current_ndvi_from_raster(
     scene_id = point.get("scene_id") or point.get("asset_id")
     if not observed_at or not scene_id:
         return None, "RASTER_RESPONSE_INVALID"
+    # المالكُ يُصدِر النسبةَ (0..1) لا المئويّة؛ غيابُها يبقى غياباً لا صفراً.
+    valid_pixel_pct = point.get("valid_pixel_pct")
+    ratio = point.get("valid_pixel_ratio")
+    if valid_pixel_pct is None and isinstance(ratio, (int, float)) and not isinstance(ratio, bool):
+        valid_pixel_pct = round(float(ratio) * 100.0, 3) if math.isfinite(ratio) else None
     return {
         "value": value,
         "observed_at": observed_at,
         "scene_id": scene_id,
         "data_available_at": point.get("data_available_at") or data.get("generated_at"),
         "quality_score": point.get("quality_score"),
-        "valid_pixel_pct": point.get("valid_pixel_pct"),
+        "valid_pixel_pct": valid_pixel_pct,
         "algorithm_version": point.get("algorithm_version") or data.get("algorithm_version"),
         "qa_mask_version": point.get("qa_mask_version") or data.get("qa_mask_version"),
         "source": "raster-service",
