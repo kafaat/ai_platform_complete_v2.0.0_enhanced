@@ -72,8 +72,9 @@ def build_proxy_request(
 # ── مثال FastAPI (يُفعّل عند بناء طبقة API) ──
 try:
     import httpx
-    import jwt  # PyJWT
     from fastapi import FastAPI, HTTPException, Request
+
+    import shared.security.access_tokens as _tokens
 
     app = FastAPI(title="SAHOOL Chat Proxy")
 
@@ -91,15 +92,14 @@ try:
         if not auth.startswith("Bearer "):
             raise HTTPException(401, "توكن مصادقة مفقود")
         token = auth[len("Bearer ") :]
-        # audience="sahool" يطابق عقد JWT عبر الخدمات (auth/platform يُصدران aud=sahool).
+        # الفكُّ في shared.security.access_tokens (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01): هذه
+        # النسخةُ فرضت الجمهورَ وحده — لا المُصدِر (فاتها تدقيق B) ولا exp.
+        key, alg = (_JWT_PUBLIC_KEY, "RS256") if _JWT_PUBLIC_KEY else (_JWT_SECRET, "HS256")
         try:
-            if _JWT_PUBLIC_KEY:
-                claims = jwt.decode(token, _JWT_PUBLIC_KEY, algorithms=["RS256"], audience="sahool")
-            elif _JWT_SECRET:
-                claims = jwt.decode(token, _JWT_SECRET, algorithms=["HS256"], audience="sahool")
-            else:
-                raise HTTPException(503, "تحقّق التوكن غير مُهيّأ")
-        except jwt.PyJWTError as e:
+            claims = _tokens.decode_access_token(token, key, alg, backend="pyjwt")
+        except _tokens.AccessTokenConfigurationError as e:
+            raise HTTPException(503, "تحقّق التوكن غير مُهيّأ") from e
+        except _tokens.InvalidAccessTokenError as e:
             raise HTTPException(401, "توكن غير صالح") from e
         tenant_id = claims.get("tenant_id")
         if not tenant_id:

@@ -22,8 +22,9 @@ token; token.decode(...)`` أو ``from jwt import decode`` كانا يمرّان
 نداؤها — **نداءً نداءً لا سطراً سطراً**، فنداءان في سطرٍ واحد اثنان.
 
 **حدُّ صدق:** ``services/auth/`` هو **المُصدِر** فيفكّ توكناته بحقّ (تحديث الجلسة ·
-التحقّق الذاتيّ) — يبقى في الأساس مُعلَناً لا مُعفىً، لأنّ الهدفَ النهائيّ أن يفكّ عبر
-الوحدة المشتركة أيضاً. ولا يُقاس ``jwt.encode`` ولا ``PyJWKClient`` ولا فكٌّ عبر متغيّرٍ
+التحقّق الذاتيّ) — وقد نُقِل آخِراً إلى الوحدة المشتركة كما خُطِّط، فلم يعد في الأساس. ولا
+تُنقَل هنا **سياسةُ اختيار المفتاح** (كلُّ خدمةٍ ما زالت تقرأ ``JWT_PUBLIC_KEY``/``JWT_SECRET``
+بنفسها)؛ الادّعاءُ أنّ **الفكّ** واحد. ولا يُقاس ``jwt.encode`` ولا ``PyJWKClient`` ولا فكٌّ عبر متغيّرٍ
 يحمل الوحدةَ ديناميكيّاً (``importlib``) — الادّعاءُ أضيق: **لا موضعَ فكٍّ جديد يُستورَد
 صراحةً خارج الوحدة المشتركة.**
 
@@ -48,23 +49,16 @@ JWT_MODULES = frozenset({"jwt", "jose.jwt"})
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بالكاشف الـAST. كلُّ مدخلٍ دَينٌ مُعلَن والقيمةُ
 #: سقفُه (عددُ النداءات). **يُخفَّض عند النقل إلى `shared.security` ولا يُرفَع.**
+#: خُفِّض ١٥ ملفّاً/١٨ نداءً ⇒ ملفّين/نداءين: ١٣ ملفّاً نُقِلت إلى
+#: ``shared.security.access_tokens.decode_access_token`` — auth (المُصدِر، آخِراً) · المنصّة ·
+#: الحواجز · RAG · MCP (market + oauth) · ERP · المشرف · TTS · الفيديو · chat_proxy_reference.
+#: الباقيان خارج يد هذه الشريحة لا خارج القاعدة:
 FROZEN_SITES: dict[str, int] = {
     # notification moved to shared/security/access_tokens.py in #997 (f7cd7848; local 1091c55).
+    # مسارٌ مُجمَّد في docs/architecture/gate01_policy.json (GATE-01) — لا يُحرَّر قبل رفعها.
     "services/actuator-service/actuator_runtime.py": 1,
-    "services/auth/main.py": 2,
-    "services/auth/routers/session.py": 1,
-    "services/guardrails-engine/main.py": 2,
-    "services/local-ai-rag/main.py": 1,
-    "services/mcp_servers/market_server.py": 1,
-    "services/mcp_servers/shared/oauth_middleware.py": 1,
-    "services/odoo-bridge/main.py": 1,
-    "services/sahool-platform/api/chat_proxy_reference.py": 2,
-    "services/sahool-platform/api/main.py": 1,
-    "services/sahool-platform/api/routers/auth.py": 1,
-    "services/supervisor-agent/main.py": 1,
-    "services/tts-service/main.py": 1,
+    # يعمل عليه وكيلٌ آخر بالتزامن (حالة الغطاء النباتيّ) — نقلُه شريحةٌ تالية.
     "services/vegetation-analysis-service/vegetation_runtime.py": 1,
-    "services/video-processor/main.py": 1,
 }
 
 

@@ -30,11 +30,12 @@ import bcrypt
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from jose import jwt
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from shared.runtime_identity import load_build_identity
+from shared.security import access_tokens as _tokens
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
 
@@ -67,8 +68,7 @@ except ValueError as exc:
 JWT_ALGORITHM = "RS256" if JWT_PRIVATE_KEY else "HS256"
 JWT_SIGNING_KEY = JWT_PRIVATE_KEY if JWT_PRIVATE_KEY else JWT_SECRET
 JWT_VERIFY_KEY = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# المُصدِرون المسموح بهم والجمهورُ والمطالباتُ تُفرَض في shared.security.access_tokens.
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))  # 1 hour
 REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 
@@ -420,12 +420,12 @@ async def tenant_header_middleware(request: Request, call_next):
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         try:
-            payload = jwt.decode(
-                auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM], audience="sahool"
+            payload = _tokens.decode_access_token(
+                auth[7:],
+                JWT_VERIFY_KEY,
+                JWT_ALGORITHM,
+                backend="jose",
             )
-            # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول لا يُشتقّ منه رأس tenant.
-            if payload.get("iss") not in _ALLOWED_ISS:
-                raise ValueError("Invalid token issuer")
             response.headers["X-Tenant-ID"] = payload.get("tenant_id", "")
             # SEC-3.1: surface the AUTHENTICATED user id + role as response headers so the
             # gateway (auth_request) can inject them downstream — enabling user/role authz on
@@ -712,19 +712,19 @@ async def get_current_user(
 ) -> dict:
     if not credentials:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No token")
+    # المُصدِرُ يفكّ توكناته بالوحدة نفسها التي يفكّ بها مستهلكوه: جمهور · مُصدِر (تدقيق B) ·
+    # exp/sub/aud/iss شرطُ وجود (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
     try:
-        payload = jwt.decode(
+        payload = _tokens.decode_access_token(
             credentials.credentials,
             JWT_VERIFY_KEY,
-            algorithms=[JWT_ALGORITHM],
-            audience="sahool",
+            JWT_ALGORITHM,
+            backend="jose",
         )
-    except JWTError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}") from e
-
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
+    except _tokens.AccessTokenConfigurationError as e:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "JWT not configured") from e
+    except _tokens.InvalidAccessTokenError as e:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
 
     jti = payload.get("jti")
     if jti and await is_jti_revoked(jti):

@@ -15,8 +15,9 @@ from typing import Annotated
 import main
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
-from jose import JWTError, jwt
 from session_tokens import consume_refresh_token
+
+from shared.security.access_tokens import decode_access_token
 
 router = APIRouter()
 
@@ -188,20 +189,16 @@ async def logout(
     ip = request.client.host if request.client else "unknown"
     if credentials:
         try:
-            payload = jwt.decode(
-                credentials.credentials,
-                main.JWT_VERIFY_KEY,
-                algorithms=[main.JWT_ALGORITHM],
-                audience="sahool",
+            # الفكُّ والمُصدِرُ (تدقيق B) في shared.security.access_tokens: توكنٌ من مُصدِرٍ
+            # مجهول يُعامَل كغير صالح — لا إبطال له (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
+            payload = decode_access_token(
+                credentials.credentials, main.JWT_VERIFY_KEY, main.JWT_ALGORITHM, backend="jose"
             )
-            # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
-            if payload.get("iss") not in main._ALLOWED_ISS:
-                raise JWTError("Invalid token issuer")
             jti = payload.get("jti")
             exp = payload.get("exp", 0)
             if jti:
                 await main.revoke_jti(jti, exp)
-        except JWTError:
+        except ValueError:  # InvalidAccessTokenError / AccessTokenConfigurationError
             # توكن غير صالح عند الخروج — لا شيء لإبطاله (نسجّل للتدقيق)
             main.logger.debug("logout: توكن غير صالح، لا jti لإبطاله")
 

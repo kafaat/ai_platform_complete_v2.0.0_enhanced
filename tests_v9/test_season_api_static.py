@@ -194,21 +194,25 @@ def test_endpoint_scheme_from_ssl_flag_no_silent_http(monkeypatch):
 
 
 # ── ③ برهان ترتيبيّ ضدّ الارتداد: تصادم اسم الحزمة shared لا يكسر تحميل blob_store ──
-def test_blob_store_immune_to_shared_package_shadow(monkeypatch):
-    """يحاكي الجريمة: حقن services/mcp_servers (حزمة shared بلا storage) في sys.path[0]
-    وربط shared عليها في sys.modules — ثمّ يجب أن يبقى تحميل blob_store عبر المسار ناجحاً.
+def test_blob_store_immune_to_shared_package_shadow(monkeypatch, tmp_path):
+    """يحاكي الجريمة: حزمة ``shared`` مُظلِّلة (بلا storage) في sys.path[0] مربوطة في
+    sys.modules — ثمّ يجب أن يبقى تحميل blob_store عبر المسار ناجحاً.
 
     توثيق: ``shared`` اسم حزمة عالي الاصطدام (repo-root + services/mcp_servers/shared)؛
     الحُرّاس التي تستورد ``shared.*`` يجب أن تحمّل عبر المسار المطلق لا عبر اسم الحزمة.
+    والمُظلِّل هنا حزمةٌ مصطنعة لا ``services/mcp_servers/shared``: الأخيرةُ صارت تُلحِق
+    مجلّد ``shared`` الجذريّ بمسارها كما تدمجهما الحاوية (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01)
+    فلم تعد تُظلِّل شيئاً — والحارسُ يجب أن يبقى منيعاً على **أيّ** ظلٍّ لا على ذاك وحده.
     """
-    mcp_dir = _ROOT / "services" / "mcp_servers"
-    monkeypatch.syspath_prepend(str(mcp_dir))  # auto-restored — لا يتسرّب للجيران
-    # اربط shared على نسخة mcp_servers (بلا storage) كما يفعل الملوِّث
+    shadow_dir = tmp_path / "shadow"
+    (shadow_dir / "shared").mkdir(parents=True)
+    (shadow_dir / "shared" / "__init__.py").write_text("# shadow\n", encoding="utf-8")
+    monkeypatch.syspath_prepend(str(shadow_dir))  # auto-restored — لا يتسرّب للجيران
     for name in [n for n in list(sys.modules) if n == "shared" or n.startswith("shared.")]:
         monkeypatch.delitem(sys.modules, name, raising=False)
-    import shared as _shadow  # noqa: PLC0415 — الآن shared = mcp_servers/shared (بلا storage)
+    import shared as _shadow  # noqa: PLC0415 — الآن shared = الحزمة المُظلِّلة (بلا storage)
 
-    assert "mcp_servers" in (getattr(_shadow, "__file__", "") or "")
+    assert str(shadow_dir) in (getattr(_shadow, "__file__", "") or "")
     with pytest.raises(ModuleNotFoundError):
         import shared.storage  # noqa: F401,PLC0415 — النسخة المظلِّلة لا تملك storage
     # ومع ذلك: التحميل عبر المسار المطلق يبقى ناجحاً (مناعة الحارس)

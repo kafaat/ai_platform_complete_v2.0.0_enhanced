@@ -25,9 +25,9 @@ from typing import Any  # noqa: F401 — إعادة تصدير (نمط main.X ل
 import asyncpg
 import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi import FastAPI, Header, HTTPException
-from jose import JWTError as _JE
-from jose import jwt as _jwt
 from pydantic import BaseModel, Field
+
+from shared.security.access_tokens import AccessTokenConfigurationError, decode_access_token
 
 try:
     from shared.logging_config import setup_logging
@@ -109,8 +109,6 @@ async def lifespan(app: FastAPI):
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -128,15 +126,12 @@ if (
 
 
 def verify_token(token: str) -> dict:
-    """Verify JWT with audience check."""
-    try:
-        payload = _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
-    except _JE as e:
-        raise ValueError(f"Invalid token: {e}") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise ValueError("Invalid token issuer")
-    return payload
+    """الفكُّ والجمهورُ والمُصدِرُ والمطالباتُ في ``shared.security.access_tokens``.
+
+    ``JWT-DECODE-OUTSIDE-SHARED-SECURITY-01``: كانت نسخةً محلّيّة تفرض الجمهورَ والمُصدِر
+    ولا تشترط ``exp``. ويبقى العقدُ كما هو: ``ValueError`` لكلّ رفضٍ (الخطآن فرعاه).
+    """
+    return decode_access_token(token, _JWT_SECRET, _JWT_ALG, backend="jose")
 
 
 def require_auth(authorization: str = Header(None)) -> dict:
@@ -153,6 +148,8 @@ def require_auth(authorization: str = Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب")
     try:
         return verify_token(authorization.split(" ", 1)[1])
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(503, "JWT غير مُهيّأ — الوصول معطّل بأمان") from e
     except ValueError as e:
         raise HTTPException(401, "توكن غير صالح") from e
 

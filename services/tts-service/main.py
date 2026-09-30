@@ -28,9 +28,14 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
 )
-from jose import JWTError, jwt
 from prometheus_client import Counter, Histogram
 from pydantic import BaseModel, Field, field_validator
+
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
 
 try:
     from shared.logging_config import setup_logging
@@ -47,8 +52,6 @@ VERSION = "9.1.0"
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -176,19 +179,14 @@ async def get_current_user(
         raise HTTPException(401, "Authentication required")
     if not JWT_SECRET:
         raise HTTPException(500, "JWT_SECRET not configured")
+    # الفكُّ والجمهورُ والمُصدِرُ والمطالباتُ في ``shared.security.access_tokens``
+    # (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
     try:
-        payload = jwt.decode(
-            creds.credentials,
-            JWT_SECRET,
-            algorithms=[_JWT_ALG],
-            audience="sahool",
-        )
-    except JWTError as e:
-        raise HTTPException(401, f"Invalid token: {e}") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
-    return payload
+        return decode_access_token(creds.credentials, JWT_SECRET, _JWT_ALG, backend="jose")
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(500, "JWT_SECRET not configured") from e
+    except InvalidAccessTokenError as e:
+        raise HTTPException(401, "Invalid token") from e
 
 
 # ── Models ───────────────────────────────────────────────────

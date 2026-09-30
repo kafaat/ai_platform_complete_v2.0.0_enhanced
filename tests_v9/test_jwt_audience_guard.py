@@ -60,7 +60,18 @@ def test_issuers_emit_aud_sahool():
 
 @pytest.mark.unit
 def test_supervisor_validates_audience():
+    # JWT-DECODE-OUTSIDE-SHARED-SECURITY-01: المشرفُ يفكّ الآن بالوحدة المشتركة، فالجمهورُ
+    # يُفرَض هناك مرّةً واحدة. الانتكاسةُ التي يحرسها هذا الاختبار (فكٌّ بلا جمهور) تعود إمّا
+    # بفكٍّ محلّيّ بلا audience (يلتقطه test_all_jwt_decoders_validate_audience) أو بوحدةٍ
+    # مشتركة لا تفرضه — فيُقاس الطرفان.
     sup = open(os.path.join(ROOT, "services/supervisor-agent/main.py"), encoding="utf-8").read()
-    assert re.search(r"""audience\s*=\s*['"]sahool['"]""", sup), (
-        "supervisor لا يتحقّق من aud=sahool (انتكاسة)"
+    shared = open(os.path.join(ROOT, "shared/security/access_tokens.py"), encoding="utf-8").read()
+    local = re.search(r"""audience\s*=\s*['"]sahool['"]""", sup)
+    delegated = "decode_access_token(" in sup and re.search(
+        r"""ACCESS_TOKEN_AUDIENCE\s*=\s*['"]sahool['"]""", shared
     )
+    assert local or delegated, "supervisor لا يتحقّق من aud=sahool (انتكاسة)"
+    if delegated:
+        assert shared.count("audience=ACCESS_TOKEN_AUDIENCE") == 2, (
+            "الوحدة المشتركة لا تمرّر الجمهور لكلتا الخلفيّتين"
+        )

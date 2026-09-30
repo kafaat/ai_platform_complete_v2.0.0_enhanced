@@ -19,7 +19,6 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-import jwt as _jwt
 from contracts import ECONOMIC_ACTIONS, contract_violations
 from diff_generator import ActionDiffGenerator
 from fastapi import FastAPI, HTTPException
@@ -33,6 +32,11 @@ from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
 from tiers.environmental_tier import EnvironmentalSafetyTier
 
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
 from shared.security.cors_policy import parse_cors_origins
 
 
@@ -389,8 +393,8 @@ app.add_middleware(
 _GR_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _GR_JWT_SECRET = _GR_JWT_PUBLIC if _GR_JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _GR_JWT_ALG = "RS256" if _GR_JWT_PUBLIC else "HS256"
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# الفكُّ والمُصدِرُ والجمهورُ والمطالباتُ المطلوبة في ``shared.security.access_tokens``
+# (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01) — كان هنا نسختان من الفكّ في الملفّ نفسه.
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -430,24 +434,23 @@ def _require_service_token(x_agent_token: str = _Header(None)):
     return True
 
 
+def _gr_decode(token: str) -> dict:
+    """فكٌّ واحدٌ للمسارَين (الموافقة والقراءة): توقيع · جمهور · مُصدِر · exp/sub/aud/iss."""
+    try:
+        return decode_access_token(token, _GR_JWT_SECRET, _GR_JWT_ALG, backend="pyjwt")
+    except AccessTokenConfigurationError:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط") from None
+    except InvalidAccessTokenError:
+        raise HTTPException(401, "توكن غير صالح") from None
+
+
 def _gr_verify(authorization: str = _Header(None)) -> dict:
     # افشل بأمان: لا سرّ → لا موافقات (منع تزوير بمفتاح فارغ)
     if not _GR_JWT_SECRET or len(_GR_JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط — بوابة الموافقة معطّلة بأمان")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "توكن مطلوب للموافقة")
-    try:
-        payload = _jwt.decode(
-            authorization.split(" ", 1)[1],
-            _GR_JWT_SECRET,
-            algorithms=[_GR_JWT_ALG],
-            audience="sahool",
-        )
-    except Exception:
-        raise HTTPException(401, "توكن غير صالح") from None
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    payload = _gr_decode(authorization.split(" ", 1)[1])
     # Authenticated specialist roles must match the workflow role at mutation time.
     if payload.get("role") not in APPROVER_ROLES:
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
@@ -472,18 +475,7 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
         raise HTTPException(503, "JWT_SECRET غير مضبوط")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "توكن مطلوب")
-    try:
-        payload = _jwt.decode(
-            authorization.split(" ", 1)[1],
-            _GR_JWT_SECRET,
-            algorithms=[_GR_JWT_ALG],
-            audience="sahool",
-        )
-    except Exception:
-        raise HTTPException(401, "توكن غير صالح") from None
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    payload = _gr_decode(authorization.split(" ", 1)[1])
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
     try:

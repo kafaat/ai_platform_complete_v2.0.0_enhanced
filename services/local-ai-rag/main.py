@@ -24,24 +24,6 @@ from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadF
 from fastapi.security import HTTPAuthorizationCredentials as _C
 from fastapi.security import HTTPBearer as _B
 
-# بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
-from shared.security.trusted_tenant import service_token_ok
-
-try:
-    from jose import JWTError as _JE
-    from jose import jwt as _jjwt
-except ModuleNotFoundError:  # pragma: no cover - offline tests / minimal env
-
-    class _JE(Exception):
-        pass
-
-    class _MissingJoseJWT:
-        @staticmethod
-        def decode(*args, **kwargs):
-            raise _JE("python-jose is required for JWT validation")
-
-    _jjwt = _MissingJoseJWT()
-
 # LangChain imports
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 
@@ -52,6 +34,14 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel, Field
+
+# بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
+from shared.security.trusted_tenant import service_token_ok
 
 try:
     from shared.logging_config import setup_logging
@@ -555,8 +545,6 @@ _rag_security = _B(auto_error=False)
 _RAG_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _RAG_SECRET = _RAG_PUBLIC if _RAG_PUBLIC else os.getenv("JWT_SECRET", "")
 _RAG_ALG = "RS256" if _RAG_PUBLIC else "HS256"
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -584,17 +572,16 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
         raise HTTPException(503, "JWT_SECRET ضعيف (<32 محرفاً) — المصادقة معطّلة بأمان")
     if not creds:
         raise HTTPException(401, "Authentication required")
+    # الفكُّ والمُصدِرُ والمطالباتُ في ``shared.security.access_tokens``
+    # (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01). غيابُ python-jose كان يُبتلَع هنا بصنفٍ
+    # بديل يرمي خطأ فكّ (401)؛ صار خطأَ تهيئةٍ صريحاً (503) — عطلُ صورةٍ لا توكنٌ مرفوض.
     try:
-        payload = _jjwt.decode(
-            creds.credentials, _RAG_SECRET, algorithms=[_RAG_ALG], audience="sahool"
-        )
-    except _JE as e:
-        logger.warning("RAG JWT validation failed: %s", type(e).__name__)
+        return decode_access_token(creds.credentials, _RAG_SECRET, _RAG_ALG, backend="jose")
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(503, "JWT غير مُهيّأ — المصادقة معطّلة بأمان") from e
+    except InvalidAccessTokenError as e:
+        logger.warning("RAG JWT validation failed: %s", type(e.__cause__ or e).__name__)
         raise HTTPException(401, "Invalid token") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
-    return payload
 
 
 app = FastAPI(title="SAHOOL Local AI RAG", version="9.1.0", lifespan=lifespan)

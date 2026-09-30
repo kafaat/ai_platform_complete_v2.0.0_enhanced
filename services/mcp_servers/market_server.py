@@ -14,13 +14,14 @@ from datetime import date, datetime
 from decimal import Decimal
 
 import asyncpg
-import jwt
 import market_db_authz  # FIX(أمان): تفويض ملكيّة field/batch (fail-closed)
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBearer
-from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope  # FIX(أمان): حارس نطاق لنقاط MCP
+from shared.oauth_middleware import (  # FIX(أمان): حارس نطاق لنقاط MCP
+    require_scope,
+    verify_sahool_bearer,
+)
 
 logger = logging.getLogger("market-mcp")
 logging.basicConfig(
@@ -28,7 +29,6 @@ logging.basicConfig(
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-JWT_SECRET = os.getenv("JWT_SECRET", "")
 ERP_BRIDGE_URL = os.getenv("ERP_BRIDGE_URL") or os.getenv("ODOO_BRIDGE_URL", "http://sahool-erp-bridge:8126")  # fmt: skip
 # Legacy constant kept for existing call sites; it now points at the generic ERP bridge.
 ODOO_BRIDGE_URL = ERP_BRIDGE_URL
@@ -36,21 +36,16 @@ SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 
 _pool: asyncpg.Pool | None = None
 security = HTTPBearer(auto_error=False)
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
-    if not JWT_SECRET or len(JWT_SECRET) < 32:
-        raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
-    except InvalidTokenError as e:
-        raise HTTPException(401, f"Invalid token: {e}") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "Invalid token issuer")
-    return payload
+    """مساراتُ REST بالمُتحقِّق نفسه الذي تمرّ به نقاطُ MCP في هذا الخادم.
+
+    ``JWT-DECODE-OUTSIDE-SHARED-SECURITY-01``: كانت نسخةً محلّيّة تفكّ بـHS256 و``JWT_SECRET``
+    وحدهما وتتجاهل ``JWT_PUBLIC_KEY`` — فتحت RS256 (الإنتاج) تُرفَض كلُّ توكنات auth هنا
+    (خوارزميّةٌ غير مسموحة) بينما تقبلها ``require_scope`` على النقاط المجاورة.
+    """
+    return verify_sahool_bearer(token)
 
 
 async def get_pool() -> asyncpg.Pool:

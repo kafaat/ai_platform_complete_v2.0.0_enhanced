@@ -133,8 +133,19 @@ def test_the_status_matrix_distinguishes_identity_from_permission(mcp_on_path):
     body = {"name": tool, "arguments": {"field_id": "f1", "tenant_id": "t1"}}
 
     def token(scope: str) -> str:
+        # ``sub``/``exp`` كما يُصدِرهما auth فعلاً: الفكُّ المشترك يشترطهما
+        # (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01) — توكنٌ بلا انتهاء كان يُقبَل هنا أبداً.
+        import time
+
         return jwt.encode(
-            {"iss": "sahool-auth", "aud": "sahool", "scope": scope, "tenant_id": "t1"},
+            {
+                "iss": "sahool-auth",
+                "aud": "sahool",
+                "sub": "42",
+                "exp": int(time.time()) + 300,
+                "scope": scope,
+                "tenant_id": "t1",
+            },
             secret,
             algorithm="HS256",
         )

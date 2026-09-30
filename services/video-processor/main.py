@@ -24,9 +24,13 @@ import numpy as np
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
-from jose import JWTError as _v_JE
-from jose import jwt as _v_jwt
 from pydantic import BaseModel, Field, field_validator
+
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
 
 # ── حارس SSRF لمصادر البثّ ────────────────────────────────────
 # الخدمة تتّصل بكاميرات ميدانيّة تعيش غالباً على شبكات LAN خاصّة، فلا نحظر
@@ -401,8 +405,6 @@ async def lifespan(app: FastAPI):
 
 # HIGH-VIDEO-01 FIX: JWT authentication
 _v_bearer = _Bearer(auto_error=False)
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -420,23 +422,27 @@ if (
 
 
 async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
-    """Verify JWT and return user payload."""
+    """Verify JWT and return user payload.
+
+    ``JWT-DECODE-OUTSIDE-SHARED-SECURITY-01``: كان يفكّ بـ``os.getenv("JWT_SECRET", "")`` بلا
+    حارس فراغ — وpython-jose **يقبل** توكناً موقَّعاً بمفتاح HMAC فارغ حين يكون مفتاحُ التحقّق
+    فارغاً (مقيس على 3.5.0). فبلا ``JWT_PUBLIC_KEY``/``JWT_SECRET`` كان أيُّ أحدٍ يسكّ توكناً
+    لأيّ مستأجِر ويقرأ بثّه. المفتاحُ الفارغ صار خطأَ تهيئةٍ (503) في الوحدة المشتركة.
+    """
     if not creds:
         raise HTTPException(401, "Authentication required")
+    _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
     try:
-        _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
-        payload = _v_jwt.decode(
+        return decode_access_token(
             creds.credentials,
             _v_pub or os.getenv("JWT_SECRET", ""),
-            algorithms=["RS256" if _v_pub else "HS256"],
-            audience="sahool",
+            "RS256" if _v_pub else "HS256",
+            backend="jose",
         )
-    except _v_JE as e:
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(503, "JWT verification is not configured") from e
+    except InvalidAccessTokenError as e:
         raise HTTPException(401, "Invalid token") from e
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(401, "Invalid token")
-    return payload
 
 
 def _token_tenant(user: dict) -> str:

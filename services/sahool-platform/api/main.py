@@ -72,9 +72,13 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
     JSONResponse,
     PlainTextResponse,
 )
-from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 
 logger = logging.getLogger("sahool.api")
@@ -87,9 +91,8 @@ JWT_EXPIRY_HOURS = 24
 # توكنات auth؛ وإلّا HS256 (سرّ مشترَك — تطوير). تطابق أسماء متغيّرات خدمة auth.
 JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY", "").strip()  # PEM للتحقّق (RS256)
 JWT_VERIFY_ALGORITHM = "RS256" if JWT_PUBLIC_KEY else "HS256"
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن لرفض توكن
-# من مُصدِر مجهول رغم صحّة التوقيع/الجمهور (تدقيق B: لم يكن iss يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# المُصدِرون المسموح بهم والجمهورُ والمطالباتُ المطلوبة تُفرَض في ``shared.security.access_tokens``
+# (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01) — لا نسخةَ محلّيّة منها هنا.
 
 
 # تحصين: RS256 إلزاميّ في الإنتاج (fail-closed) — يطابق سياسة خدمة auth
@@ -1183,16 +1186,12 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
 
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(
-            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
-        )
-    except InvalidTokenError as e:
-        logging.warning("JWT validation failed: %s", type(e).__name__)
+        payload = decode_access_token(token, JWT_VERIFY_KEY, JWT_VERIFY_ALGORITHM, backend="pyjwt")
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(status_code=503, detail="JWT verification is not configured") from e
+    except InvalidAccessTokenError as e:
+        logging.warning("JWT validation failed: %s", type(e.__cause__ or e).__name__)
         raise HTTPException(status_code=401, detail="Invalid token") from e
-
-    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — توكن من مُصدِر مجهول يُرفَض كتوكن غير صالح.
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(status_code=401, detail="Invalid token issuer")
 
     # إبطال التوكن (denylist): توكن مُبطَل (سُجّل خروجه/أُلغي) ⇒ 401 رغم سريانه.
     # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل is_token_revoked).

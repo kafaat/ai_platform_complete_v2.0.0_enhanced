@@ -49,8 +49,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="SAHOOL Supervisor Agent", version="2026.1", lifespan=lifespan)
 security = HTTPBearer(auto_error=False)
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
 # مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
@@ -155,7 +153,7 @@ class AgentResponse(BaseModel):
 async def _get_current_user(credentials: Optional = Depends(security)):
     if not credentials:
         raise HTTPException(401, "Authentication required")
-    import jwt
+    from shared.security.access_tokens import decode_access_token
 
     secret = os.getenv("JWT_SECRET", "")
     _pub = os.getenv("JWT_PUBLIC_KEY", "").strip()
@@ -166,17 +164,10 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         # RS256 (public key) لو مضبوط، وإلّا HS256 fallback
         _vkey = _pub if _pub else secret
         _valg = "RS256" if _pub else "HS256"
-        # FIX (اتّساق audience): auth/platform يُصدران aud="sahool" وmcp يتطلّبه.
-        # الفكّ بلا audience يرمي InvalidAudienceError ويرفض توكنات auth الصالحة.
-        payload = jwt.decode(
-            credentials.credentials,
-            _vkey,
-            algorithms=[_valg],
-            audience="sahool",
-        )
-        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
-        if payload.get("iss") not in _ALLOWED_ISS:
-            raise ValueError("Invalid token issuer")
+        # الجمهورُ (aud="sahool" — auth/platform يُصدِرانه وmcp يتطلّبه) والمُصدِرُ والمطالباتُ
+        # المطلوبة تُفرَض في ``shared.security.access_tokens``
+        # (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01) لا في نسخةٍ محلّيّة.
+        payload = decode_access_token(credentials.credentials, _vkey, _valg, backend="pyjwt")
         payload["_mcp_bearer"] = credentials.credentials
         return payload
     except Exception as e:

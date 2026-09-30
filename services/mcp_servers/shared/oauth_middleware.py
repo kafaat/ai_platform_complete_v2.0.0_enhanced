@@ -11,17 +11,21 @@ import os
 import re
 from contextlib import asynccontextmanager
 
-import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from shared.security.access_tokens import (
+    AccessTokenConfigurationError,
+    InvalidAccessTokenError,
+    decode_access_token,
+)
+
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ توكن sahool الداخليّ (تدقيق B).
-# هذا الوسيط يتحقّق من توكن sahool الداخليّ (نفس JWT_SECRET/HS256/aud=sahool)،
-# لا من توكن OAuth خارجيّ من مُصدِر مستقلّ، لذا فرض المُصدِر هنا آمن.
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# هذا الوسيط يتحقّق من توكن sahool الداخليّ (aud=sahool، مُصدِرٌ داخليّ) لا من توكن OAuth
+# خارجيّ، لذا يُفرَض المُصدِر — في ``shared.security.access_tokens`` مع الجمهور والمطالبات
+# المطلوبة (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
 
 security = HTTPBearer(auto_error=False)
 
@@ -50,8 +54,12 @@ async def tenant_transaction(conn, tenant_id: str):
         yield conn
 
 
-def _authenticate_token(token: str, required_scope: str) -> dict:
-    """Validate one bearer token; shared by dependency and pre-body middleware."""
+def verify_sahool_bearer(token: str) -> dict:
+    """المفتاحُ من البيئة (RS256 إن وُجد ``JWT_PUBLIC_KEY``، وإلّا HS256) ثمّ الفكُّ المشترك.
+
+    تستعمله نقاطُ MCP (``_authenticate_token``) ومساراتُ REST في market-mcp معاً — كانت
+    الأخيرةُ تفكّ بـHS256 و``JWT_SECRET`` وحدهما فترفض كلَّ توكن RS256 صادرٍ من auth.
+    """
     secret = os.getenv("JWT_SECRET", "")
     public_key = os.getenv("JWT_PUBLIC_KEY", "").strip()
     production = os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
@@ -69,16 +77,18 @@ def _authenticate_token(token: str, required_scope: str) -> dict:
             "JWT_SECRET not configured or too weak (min 32 chars)",
         )
     try:
-        payload = jwt.decode(
-            token,
-            public_key or secret,
-            algorithms=["RS256" if public_key else "HS256"],
-            audience="sahool",
+        return decode_access_token(
+            token, public_key or secret, "RS256" if public_key else "HS256", backend="pyjwt"
         )
-    except jwt.InvalidTokenError as e:
+    except AccessTokenConfigurationError as e:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "JWT not configured") from e
+    except InvalidAccessTokenError as e:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
-    if payload.get("iss") not in _ALLOWED_ISS:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
+
+
+def _authenticate_token(token: str, required_scope: str) -> dict:
+    """Validate one bearer token; shared by dependency and pre-body middleware."""
+    payload = verify_sahool_bearer(token)
     scope = payload.get("scope", "")
     if not isinstance(scope, str):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid token scope")
