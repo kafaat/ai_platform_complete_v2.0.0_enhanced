@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5453,
+    "files_scanned": 5458,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1523,
-      "tests": 1854,
-      "web": 458
+      "tests": 1858,
+      "web": 459
     },
-    "unmapped_artifacts": 2210,
+    "unmapped_artifacts": 2214,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -30899,11 +30899,11 @@
           "score": 16
         },
         {
-          "value": "field.create @ frontend/e2e/support/seed.ts:136",
+          "value": "field.create @ frontend/e2e/support/seed.ts:151",
           "score": 15
         },
         {
-          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:119",
+          "value": "field.geometry.patch @ frontend/e2e/support/seed.ts:134",
           "score": 15
         },
         {
@@ -35505,6 +35505,14 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_routes_witnessed_through_the_request_path.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests/test_real_data.py",
           "score": 12,
           "signals": [
@@ -35839,7 +35847,7 @@
         "events": 29,
         "web": 17,
         "mobile": 0,
-        "tests": 46,
+        "tests": 47,
         "governance": 0,
         "other_evidence": 22
       },
@@ -36908,6 +36916,10 @@
     {
       "path": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/weather/WeatherProbePopup.errorText.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
@@ -38023,6 +38035,14 @@
     },
     {
       "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/services/api/weatherMap.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/services/api/weatherMap.ts",
       "kind": "web"
     },
     {
@@ -42779,6 +42799,10 @@
     },
     {
       "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/weather-service/tests/test_every_registered_route_is_named_by_a_test.py",
       "kind": "tests"
     },
     {

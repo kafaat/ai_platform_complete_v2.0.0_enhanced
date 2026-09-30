@@ -335,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "163d4c69e0c909b0854776ee2cf271a1742f59ca7e489d2880ac1975ab380fda"
+          "content": "f43a98adc14023ecfa8ce57c116b64097aa145b2403dc7c91ec1ee39e77b6696"
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "752fcfecbc3602ab028351c4567f6fe0f6235ff87f73dd0f1c1df9f54e77ddf0"
+          "content": "1f9f25efce9d1d4b8437290dec145cc2d7f6a4616820b05be508fd174886401c"
         }
       ],
       "name": "frontend/e2e/support/seed.ts",
@@ -2365,7 +2365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "711a5b258c6c90719841f95579b95483688b33644b67da3abb7b671a12ad7151"
+          "content": "62e0b3538323c60a4b10ed5d586588cce77460ca9fdab70ddc7203ff9401ff28"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts",
@@ -2375,7 +2375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3601ed4d0476441747d692a269f78276867ae93bf3569740c1854aad414ac8d6"
+          "content": "e6e22c7fd675d1e9ed990f9d8eaa91d9bdd3a35c7a3e6c8cddbc7deeab413c38"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
@@ -2395,7 +2395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a5b5e239766ec687e4e1ce62a162bf9658352f32f91c815597cc804af583b17"
+          "content": "378f55526592ca78b43109fc6f2cf26d8e4fb206d4295e6b5782b94377b35829"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherHoverReadout.ts",
@@ -2415,7 +2415,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54acb73b4bc92d9a3274870f1a06b09001a1d4b980f492ddcf77f618b66cd0a8"
+          "content": "dd35fcadf4e59d0802acfe8f1bcdead9549c4644aed326fc960a67b165ac511f"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherProbePopup.errorText.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "338aac494dfa891ea877564aa2bdce028edec331839099ac3b000fca41f90349"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
@@ -2435,7 +2445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e04b37d4d8e719bbca6be5489b2af33149c93654e9af2c65a73b8b4001779e0"
+          "content": "0534792ead0f0515cf21d157c00b20033ead5896fc69de41967c4262162fd46d"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -2445,7 +2455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9f53383cdb2e65af51c60349b12af24d2bacecfc43c7bbe2d8b464837dd4a76"
+          "content": "d909a753e0e244526b212bc79cf09b3ea5988fe16b18bd2c96869f286ba6b80f"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -6559,6 +6569,26 @@
         }
       ],
       "name": "frontend/src/services/api/season.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43511ffcf330c13735ab8c239f97319313fa4edb4b7aa64548a3bedd5552d880"
+        }
+      ],
+      "name": "frontend/src/services/api/weatherMap.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45493d53a1ec972b227e17e273b013c183b9c2537c68f3daf38874a9b3c8d519"
+        }
+      ],
+      "name": "frontend/src/services/api/weatherMap.ts",
       "type": "file"
     },
     {
@@ -30585,6 +30615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "49d73b98ec66dbc222d5ec5654c42e8b62f57a7c77765df7f9b35027c3217dfb"
+        }
+      ],
+      "name": "services/weather-service/tests/test_every_registered_route_is_named_by_a_test.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "14e3bd9c12928bd919ca5f9520c2845b7e3b1d137dd8c1ec53fc08ba902d8e47"
         }
       ],
@@ -30699,6 +30739,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c2ba031d7b46875d65d71d3bb62e7d4c0e81de683f24bfed9fb6767d96a0442"
+        }
+      ],
+      "name": "services/weather-service/tests/test_routes_witnessed_through_the_request_path.py",
       "type": "file"
     },
     {

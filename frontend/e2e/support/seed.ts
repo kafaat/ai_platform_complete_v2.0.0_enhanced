@@ -91,6 +91,21 @@ export async function seedAuthAndRoutes(page: Page, role = 'farmer'): Promise<vo
     },
   );
 
+  // (2أ) كلُّ مضيفٍ خارجيّ يُلبّى هنا لا عبر الشبكة (MAPHUB-WEBGL-VISUAL-DEBT-01).
+  // الخريطةُ تطلب بلاطات أساسٍ من Esri/CARTO وخطوطاً من demotiles — وحدثُ `load` في
+  // MapLibre لا يُطلَق قبل أن تُحسَم، و`ready` (ومعه تهيئة Terra Draw و`data-draw-ready`
+  // وخطّاف __hubmap) معلَّقٌ عليه. مقيسٌ تحت SwiftShader headless: بلا هذا الاعتراض يبقى
+  // `data-draw-ready=false` وتسقط اختباراتُ __hubmap بمهلة حين تتأخّر الشبكة أو تُحجَب؛
+  // ومعه يُرفَع خلال ~1.6ث. فالعطلُ كان اعتماداً شبكيّاً مُخفىً لا عجزاً في SwiftShader.
+  // البلاطةُ PNG شفّافة، والخطوطُ 404 (يتجاهلها MapLibre بلا نصّ مُسمّى).
+  await page.route(
+    (url) => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
+    (route) =>
+      /\.pbf(\?|$)/.test(route.request().url())
+        ? route.fulfill({ status: 404, body: '' })
+        : route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_PNG }),
+  );
+
   // (2) اعتراض الشبكة — بلاطات الراستر أوّلاً (أكثر تحديداً).
   await page.route('**/api/raster/**', (route) =>
     route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_PNG }),

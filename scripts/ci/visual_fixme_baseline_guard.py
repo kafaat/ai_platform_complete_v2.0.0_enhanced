@@ -47,11 +47,14 @@ ROOT = Path(__file__).resolve().parents[2]
 #: **راتشِت:** يُخفَّض عند إغلاق دَين، ولا يُرفَع إلّا بمُحاكَمة مكتوبة في `why`.
 BASELINE: dict[str, dict] = {
     "frontend/e2e/maphub-webgl.spec.ts": {
-        "count": 2,
+        # خُفِّض 2 ⇒ 0: الاختباران صارا حاجزَين. العطلُ المقيس كان في الاختبار لا في
+        # SwiftShader — اعتمادٌ شبكيّ مُخفىً (بلاطات/خطوط خارجيّة تؤخّر `load`) ودقّةُ
+        # إحداثيّاتٍ يرفضها Terra Draw بصمت. والملفُّ يبقى مُراقَباً: fixme جديد يُحمِر.
+        "count": 0,
         "why": (
-            "رسم المضلّع (measure-area) ورسم الخطّ (measure-length) عبر مؤشّر حقيقيّ: "
-            "تهيئة Terra Draw لا تكتمل تحت SwiftShader headless (data-draw-ready لا يُرفَع). "
-            "مسار القيمة نفسه محروسٌ حتميّاً في frontend/src/lib/measureDrawWiring.test.ts."
+            "كان: رسم المضلّع/الخطّ عبر Terra Draw تحت SwiftShader headless. أُغلِق: "
+            "frontend/e2e/support/seed.ts يُلبّي المضيفين الخارجيّين محلّيّاً، والحقنُ يُقرِّب "
+            "الإحداثيّات إلى ٦ منازل ويؤكّد قبولها (maphub-webgl.spec.ts)."
         ),
         "gap": "MAPHUB-WEBGL-VISUAL-DEBT-01",
     },
