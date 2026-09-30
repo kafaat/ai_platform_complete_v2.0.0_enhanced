@@ -41,7 +41,7 @@ def forbid(text: str, needle: str, label: str) -> None:
 
 def main() -> int:
     weather = read("services/sahool-platform/api/routers/weather.py")
-    popup = read("frontend/src/components/maphub/weather/WeatherProbePopup.ts")
+    popup = read("frontend/src/services/api/weatherMap.ts")  # يُبنى رابطُ الإجراء هنا الآن
     taxonomy_raw = read("services/sahool-platform/tests/_public_read_taxonomy.json")
     taxonomy = json.loads(taxonomy_raw)
 

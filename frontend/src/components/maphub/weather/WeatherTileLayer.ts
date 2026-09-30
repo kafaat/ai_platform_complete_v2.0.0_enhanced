@@ -20,8 +20,8 @@ import {
   windDirection,
   windSpeed,
   safeMod,
-  weatherFetchHeaders,
 } from './weatherLayerDefinitions';
+import { getWeatherTileData, weatherTileDataUrl } from '../../../services/api/weatherMap';
 
 
 function interpolationColor(payload: WeatherTilePayload | undefined, cfg: ReturnType<typeof layerConfig>, id: string, fallback: number | null, palette: WeatherPalette = 'coldwarm'): string {
@@ -168,11 +168,14 @@ export function loadingTileSvg(layer: WeatherLayerKey): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" fill="rgba(15,23,42,.20)"/><text x="128" y="128" text-anchor="middle" fill="rgba(255,255,255,.75)" font-family="system-ui" font-size="14">${cfg.shortAr}…</text></svg>`;
 }
 
+// طبقةُ العمليّة تُطلَب من `operation-tile-data` باسم عمليّتها، وطبقةُ القياس من `tile-data`
+// باسمها — والرابطُ نفسُه يُبنى في طبقة الـAPI (`services/api/weatherMap.ts`).
+function tileTarget(layer: WeatherLayerKey) {
+  return isOperationLayer(layer) ? { operation: operationFromLayer(layer) } : { layer };
+}
+
 export function tileDataUrl(coords: L.Coords, layer: WeatherLayerKey, time: WeatherTimeKey, model: string): string {
-  if (isOperationLayer(layer)) {
-    return `/api/v1/weather/operation-tile-data/${coords.z}/${coords.x}/${coords.y}?operation=${encodeURIComponent(operationFromLayer(layer))}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}&interpolation=grid`;
-  }
-  return `/api/v1/weather/tile-data/${coords.z}/${coords.x}/${coords.y}?layer=${encodeURIComponent(layer)}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}&interpolation=grid`;
+  return weatherTileDataUrl(coords, tileTarget(layer), time, model);
 }
 
 export function createWeatherWindGridLayer(
@@ -195,9 +198,8 @@ export function createWeatherWindGridLayer(
       tile.style.overflow = 'hidden';
       tile.style.willChange = 'transform';
       tile.innerHTML = loadingTileSvg(layer);
-      fetch(tileDataUrl(coords, layer, time, model), { headers: weatherFetchHeaders() })
-        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((payload: WeatherTilePayload) => { tile.innerHTML = weatherTileSvg(marker, coords, layer, payload, showWind, windDensity, palette); })
+      getWeatherTileData<WeatherTilePayload>(coords, tileTarget(layer), time, model)
+        .then((payload) => { tile.innerHTML = weatherTileSvg(marker, coords, layer, payload, showWind, windDensity, palette); })
         .catch(() => { tile.innerHTML = weatherTileSvg(marker, coords, layer, undefined, showWind, windDensity, palette); });
       return tile;
     },

@@ -1,22 +1,10 @@
 import type { WeatherMarker } from '../OverlayMarkers';
-import { getAccessToken } from '../../../lib/authStorage';
 
 export const WEATHER_TILE_SIZE = 256;
 
-// ترويسات طلبات الطقس: تُرفِق رمز الوصول (Bearer) حين توفّره الجلسة. حاسم خلف بوّابة
-// الإنتاج (auth_request على /api/v1/) — وبالأخصّ نقاط POST (إنشاء مهمّة/توصية) المحميّة
-// بـrequire_permission: بدون الترويسة تُرجِع 401/403. الطلبات هنا عبر fetch فتقبلها مباشرةً.
-export function weatherFetchHeaders(): Record<string, string> {
-  const h: Record<string, string> = { Accept: 'application/json' };
-  const tok = getAccessToken();
-  if (tok) h.Authorization = `Bearer ${tok}`;
-  return h;
-}
-
-// ترويسات JSON لطلبات POST (تُضيف Content-Type فوق ترويسات المصادقة).
-export function weatherJsonHeaders(): Record<string, string> {
-  return { ...weatherFetchHeaders(), 'Content-Type': 'application/json' };
-}
+// ترويساتُ المصادقة لطلبات الطقس لم تعد تُركَّب هنا: كلُّ طلبٍ يمرّ عبر
+// `services/api/weatherMap.ts` ⇒ `kongApi`، واعتراضُه يُرفِق Bearer و`X-Tenant-ID` ويفحص
+// انتهاء التوكن في موضعٍ واحد (FRONTEND-FETCH-OUTSIDE-API-LAYER-01).
 
 export type WeatherLayerKey =
   | 'temperature'

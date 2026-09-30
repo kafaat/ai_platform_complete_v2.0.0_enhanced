@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL Weather Hover Readout (inspired by meteoblue)
 // Moving the mouse over the map shows the active layer's value at the
-// cursor in a subtle floating tooltip. Mirrors WeatherProbePopup auth,
-// but is a lightweight DOM element (NOT a Leaflet popup — popups are for click).
+// cursor in a subtle floating tooltip. It reads the probe through services/api/weatherMap.ts,
+// and is a lightweight DOM element (NOT a Leaflet popup — popups are for click).
 // ═══════════════════════════════════════════════════════════════
 import L from 'leaflet';
 import {
@@ -12,8 +12,8 @@ import {
   isOperationLayer,
   layerConfig,
   operationFromLayer,
-  weatherFetchHeaders,
 } from './weatherLayerDefinitions';
+import { getWeatherProbe } from '../../../services/api/weatherMap';
 
 const HOVER_DEBOUNCE_MS = 180;
 const CACHE_MAX = 256;
@@ -111,9 +111,7 @@ export function registerWeatherHoverReadout(
       render(lat, lng, cached);
       return;
     }
-    const url = `/api/v1/weather/probe?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}`;
-    fetch(url, { headers: weatherFetchHeaders() })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    getWeatherProbe<HoverProbeReadout>(lat, lng, time, model)
       .then((data) => {
         if (disposed) return;
         const line = formatReadout(layer, data);

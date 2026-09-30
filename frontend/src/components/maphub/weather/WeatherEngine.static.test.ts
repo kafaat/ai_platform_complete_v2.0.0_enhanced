@@ -8,6 +8,8 @@ const tile = readFileSync(join(weatherDir, 'WeatherTileLayer.ts'), 'utf8');
 const panel = readFileSync(join(weatherDir, 'WeatherLayerPanel.ts'), 'utf8');
 const probe = readFileSync(join(weatherDir, 'WeatherProbePopup.ts'), 'utf8');
 const preferences = readFileSync(join(weatherDir, 'weatherPreferences.ts'), 'utf8');
+// الروابطُ والنداءاتُ انتقلت إلى طبقة الـAPI (FRONTEND-FETCH-OUTSIDE-API-LAYER-01).
+const api = readFileSync(join(process.cwd(), 'src/services/api/weatherMap.ts'), 'utf8');
 
 describe('SAHOOL weather engine static architecture', () => {
   it('keeps weather rendering delegated to dedicated modules', () => {
@@ -20,9 +22,10 @@ describe('SAHOOL weather engine static architecture', () => {
   });
 
   it('uses SAHOOL weather APIs instead of external weather tiles', () => {
-    expect(tile).toContain('/api/v1/weather/tile-data/');
-    expect(tile).toContain('/api/v1/weather/operation-tile-data/');
-    expect(tile).toContain('interpolation=grid');
+    expect(tile).toContain('getWeatherTileData');
+    expect(api).toContain('/api/v1/weather/tile-data/');
+    expect(api).toContain('/api/v1/weather/operation-tile-data/');
+    expect(api).toContain('interpolation=grid');
     expect(defs).toContain('WeatherInterpolationPayload');
     expect(tile).not.toContain('tile.openweathermap');
     expect(tile).not.toContain('meteoblue');
@@ -55,39 +58,47 @@ describe('SAHOOL weather engine static architecture', () => {
   });
 
   it('supports probe, operation window, and operation plan popups', () => {
-    expect(probe).toContain('/api/v1/weather/probe');
-    expect(probe).toContain('/api/v1/weather/operation-window');
-    expect(probe).toContain('/api/v1/weather/operation-plan');
+    expect(probe).toContain('getWeatherProbe');
+    expect(probe).toContain('getWeatherOperationWindow');
+    expect(probe).toContain('getWeatherOperationPlan');
+    expect(api).toContain('/api/v1/weather/probe');
+    expect(api).toContain('/api/v1/weather/operation-window');
+    expect(api).toContain('/api/v1/weather/operation-plan');
   });
 
   it('supports action bridge buttons from weather decisions', () => {
-    expect(probe).toContain('/api/v1/weather/action-recommendation');
-    expect(probe).toContain('/api/v1/weather/tasks/from-operation-plan');
-    expect(probe).toContain('/api/v1/weather/recommendations/from-operation-plan');
+    expect(probe).toContain('getWeatherActionRecommendation');
+    expect(probe).toContain('createWeatherTaskFromOperationPlan');
+    expect(probe).toContain('createWeatherRecommendationFromOperationPlan');
+    expect(api).toContain('/api/v1/weather/action-recommendation');
+    expect(api).toContain('/api/v1/weather/tasks/from-operation-plan');
+    expect(api).toContain('/api/v1/weather/recommendations/from-operation-plan');
     expect(probe).toContain('إنشاء مهمة من أفضل نافذة');
     expect(probe).toContain('حفظ كتوصية طقس');
   });
 
-  it('attaches auth headers to every weather fetch (production auth_request + POST require_permission)', () => {
+  it('routes every weather request through the API layer (kongApi carries Bearer + tenant)', () => {
     // حارس انحدار: نقاط /api/v1/weather/* خلف auth_request؛ وبالأخصّ POST إنشاء
-    // المهمّة/التوصية محميّان بـrequire_permission. فكلّ طلب يجب أن يُرفِق Bearer عبر
-    // weatherFetchHeaders (GET) أو weatherJsonHeaders (POST) — وإلّا 401/403.
-    expect(defs).toContain('weatherFetchHeaders');
-    expect(defs).toContain('weatherJsonHeaders');
-    expect(defs).toContain('getAccessToken');
-    expect(tile).toContain('weatherFetchHeaders()');
-    expect(probe).toContain('weatherFetchHeaders()');
-    expect(probe).toContain('weatherJsonHeaders()');
-    // لا يبقى أيّ طلب طقس بترويسة Accept فقط بلا مصادقة.
-    expect(probe).not.toContain("{ 'Content-Type': 'application/json', Accept: 'application/json' }");
+    // المهمّة/التوصية محميّان بـrequire_permission. كانت كلُّ وحدةٍ تُركِّب Bearer بنفسها
+    // (weatherFetchHeaders) عبر fetch مباشر؛ الآن تمرّ كلُّها عبر kongApi الذي يُرفِقه في
+    // اعتراضٍ واحد — وأيُّ fetch مباشر يعود إلى مكوّنٍ هنا يُفلت من ذلك الاعتراض.
+    expect(api).toContain("import { kongApi } from './client'");
+    expect(api).not.toMatch(/(?<!\w)fetch\(/);
+    for (const [name, src] of [['tile', tile], ['probe', probe], ['defs', defs]] as const) {
+      expect(src, name).not.toMatch(/(?<!\w)fetch\(/);
+    }
+    expect(defs).not.toContain('weatherFetchHeaders');
+    expect(tile).toContain("from '../../../services/api/weatherMap'");
+    expect(probe).toContain("from '../../../services/api/weatherMap'");
   });
 
   it('supports hover-to-read-value readout (inspired by meteoblue)', () => {
     expect(existsSync(join(weatherDir, 'WeatherHoverReadout.ts'))).toBe(true);
     const hover = readFileSync(join(weatherDir, 'WeatherHoverReadout.ts'), 'utf8');
     expect(hover).toContain('mousemove');
-    expect(hover).toContain('weatherFetchHeaders');
-    expect(hover).toContain('/api/v1/weather/probe');
+    expect(hover).toContain('getWeatherProbe');
+    expect(hover).not.toMatch(/(?<!\w)fetch\(/);
+    expect(api).toContain('/api/v1/weather/probe');
     expect(overlay).toContain('registerWeatherHoverReadout');
   });
 
