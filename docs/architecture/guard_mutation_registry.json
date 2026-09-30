@@ -5041,6 +5041,12 @@
           "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
           "replace": "    inside = PLATFORM / tail\n    if False:",
           "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
+        },
+        {
+          "expect": "test_a_module_admitted_without_an_executable_root_blocks",
+          "find": "    if args.check and admitted_unreachable:\n",
+          "replace": "    if False:\n",
+          "why": "نزعُ حجبِ القبول ⇒ أرضيّةُ القبول تعود نثراً في ملفّ الأساس: وحدةٌ مستورِدُها الوحيدُ اختبارُها تدخل بتحرير ملفَّي JSON والحارسُ rc=0 قبلها وبعدها (ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01)"
         }
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"
