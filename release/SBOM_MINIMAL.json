@@ -18725,7 +18725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bd82dec6b388edadec0841438352eb38f76d3956d3b29a5b1f650f6a07176e1"
+          "content": "ab1c19fdc4b991f3cb2d2f97c5f6cc1ab75729aab5696c4a103fa7b40d4a2d6b"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

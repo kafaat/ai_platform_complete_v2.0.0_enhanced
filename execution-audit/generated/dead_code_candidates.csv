@@ -171,7 +171,7 @@ medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,796,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,832,0,review_before_delete,False
 medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2502,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3798,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3790,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,119,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
