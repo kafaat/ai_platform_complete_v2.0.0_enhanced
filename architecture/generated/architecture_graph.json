@@ -751,7 +751,15 @@
       "id": "sahool-redis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 17,
+      "incoming": 15,
+      "outgoing": 0,
+      "orphan": false
+    },
+    {
+      "id": "sahool-redis-state",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 2,
       "outgoing": 0,
       "orphan": false
     },
@@ -1875,7 +1883,7 @@
     },
     {
       "source": "sahool-auth",
-      "target": "sahool-redis",
+      "target": "sahool-redis-state",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -1989,7 +1997,7 @@
     },
     {
       "source": "sahool-guardrails-engine",
-      "target": "sahool-redis",
+      "target": "sahool-redis-state",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2980,12 +2988,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 124,
+    "nodes": 125,
     "edges": 320,
     "orphans": 5,
     "cycles": 0,
     "code_edges": 80,
     "compose_edges": 240
   },
-  "content_sha256": "95a258879fa7b58a885c60a6ad79fc6ceead3fba9ea5613b37d5a6a889bd361a"
+  "content_sha256": "de83b2482225a3457ef88d4cc83bc030d83beb38f018fd98b5db96bb4f9cb4d5"
 }

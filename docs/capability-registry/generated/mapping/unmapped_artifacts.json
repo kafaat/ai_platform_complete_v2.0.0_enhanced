@@ -8344,6 +8344,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_redis_password_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_report_index_guard.py",
     "kind": "tests"
   },
