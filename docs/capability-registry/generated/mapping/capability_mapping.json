@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5444,
+    "files_scanned": 5452,
     "files_by_kind": {
-      "backend": 1212,
+      "backend": 1218,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1523,
-      "tests": 1851,
+      "tests": 1853,
       "web": 458
     },
-    "unmapped_artifacts": 2206,
-    "ambiguous_artifacts": 426
+    "unmapped_artifacts": 2209,
+    "ambiguous_artifacts": 428
   },
   "capabilities": [
     {
@@ -8169,8 +8169,24 @@
           ]
         },
         {
+          "path": "services/agriai-engine/pcse_data/wofost72_crop/potato.yaml",
+          "score": 12,
+          "signals": [
+            "content:cultivar",
+            "content:variety"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/season_models.py",
           "score": 12,
+          "signals": [
+            "content:cultivar",
+            "content:variety"
+          ]
+        },
+        {
+          "path": "services/agriai-engine/pcse_data/wofost72_crop/wheat.yaml",
+          "score": 11,
           "signals": [
             "content:cultivar",
             "content:variety"
@@ -8335,7 +8351,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 6,
+        "backend": 8,
         "routes": 0,
         "database": 0,
         "events": 7,
@@ -12763,6 +12779,14 @@
           ]
         },
         {
+          "path": "services/agriai-engine/wofost_adapter.py",
+          "score": 10,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/root_zone_balance.py",
           "score": 10,
           "signals": [
@@ -12837,7 +12861,19 @@
           "score": 20
         },
         {
+          "value": "irrigation.none_declared @ tests_v9/test_wofost_pcse_offline_integration.py:296",
+          "score": 8
+        },
+        {
           "value": "sahool.simulate @ services/sahool-platform/api/routers/simulate.py:47",
+          "score": 8
+        },
+        {
+          "value": "soil.SM0 @ tests_v9/test_wofost_pcse_offline_integration.py:225",
+          "score": 8
+        },
+        {
+          "value": "synthetic_weather.csv @ tests_v9/test_wofost_pcse_offline_integration.py:162",
           "score": 8
         }
       ],
@@ -12920,6 +12956,14 @@
             "content:Water balance",
             "content:water balance"
           ]
+        },
+        {
+          "path": "tests_v9/test_wofost_pcse_offline_integration.py",
+          "score": 8,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
         }
       ],
       "governance": [],
@@ -12968,13 +13012,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 9,
+        "backend": 10,
         "routes": 2,
         "database": 3,
-        "events": 3,
+        "events": 6,
         "web": 2,
         "mobile": 0,
-        "tests": 7,
+        "tests": 8,
         "governance": 0,
         "other_evidence": 5
       },
@@ -19170,7 +19214,7 @@
           "score": 12
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:329",
+          "value": "/v1/plan @ services/agriai-engine/main.py:336",
           "score": 12
         },
         {
@@ -19178,7 +19222,7 @@
           "score": 12
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:345",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:352",
           "score": 12
         },
         {
@@ -30007,6 +30051,14 @@
           ]
         },
         {
+          "path": "services/agriai-engine/pcse_inputs.py",
+          "score": 9,
+          "signals": [
+            "content:field capacity",
+            "content:wilting point"
+          ]
+        },
+        {
           "path": "services/agriai-engine/agronomic_adapters.py",
           "score": 8,
           "signals": [
@@ -30019,17 +30071,97 @@
       "database": [],
       "events": [
         {
+          "value": "crops.yaml @ tests_v9/test_wofost_pcse_input_builders.py:486",
+          "score": 12
+        },
+        {
+          "value": "ec3.soil @ tests_v9/test_wofost_pcse_input_builders.py:187",
+          "score": 12
+        },
+        {
+          "value": "ec3.soil @ tests_v9/test_wofost_pcse_input_builders.py:203",
+          "score": 12
+        },
+        {
+          "value": "irrigation.none_declared @ tests_v9/test_wofost_pcse_input_builders.py:445",
+          "score": 12
+        },
+        {
+          "value": "sahool.test.pre_existing_logger @ tests_v9/test_wofost_pcse_input_builders.py:577",
+          "score": 12
+        },
+        {
           "value": "soil-profile-selection.v1 @ services/soil-service/profile_composer.py:21",
           "score": 12
         },
         {
           "value": "soil-profile.v1 @ services/soil-service/profile_composer.py:202",
           "score": 12
+        },
+        {
+          "value": "soil.CRAIRC @ tests_v9/test_wofost_pcse_input_builders.py:439",
+          "score": 12
+        },
+        {
+          "value": "soil.KSUB @ tests_v9/test_wofost_pcse_input_builders.py:442",
+          "score": 12
+        },
+        {
+          "value": "soil.RDMSOL @ tests_v9/test_wofost_pcse_input_builders.py:440",
+          "score": 12
+        },
+        {
+          "value": "soil.SM0 @ tests_v9/test_wofost_pcse_input_builders.py:438",
+          "score": 12
+        },
+        {
+          "value": "soil.SM0 @ tests_v9/test_wofost_pcse_input_builders.py:717",
+          "score": 12
+        },
+        {
+          "value": "soil.SMFCF @ tests_v9/test_wofost_pcse_input_builders.py:436",
+          "score": 12
+        },
+        {
+          "value": "soil.SMW @ tests_v9/test_wofost_pcse_input_builders.py:437",
+          "score": 12
+        },
+        {
+          "value": "soil.SOPE @ tests_v9/test_wofost_pcse_input_builders.py:441",
+          "score": 12
+        },
+        {
+          "value": "weather.angstrom_ab @ tests_v9/test_wofost_pcse_input_builders.py:444",
+          "score": 12
+        },
+        {
+          "value": "ec3.soil @ services/agriai-engine/pcse_inputs.py:53",
+          "score": 9
+        },
+        {
+          "value": "irrigation.none_declared @ services/agriai-engine/pcse_inputs.py:546",
+          "score": 9
+        },
+        {
+          "value": "soil.SMFCF @ services/agriai-engine/pcse_inputs.py:513",
+          "score": 9
+        },
+        {
+          "value": "weather.angstrom_ab @ services/agriai-engine/pcse_inputs.py:544",
+          "score": 9
         }
       ],
       "web": [],
       "mobile": [],
       "tests": [
+        {
+          "path": "tests_v9/test_wofost_pcse_input_builders.py",
+          "score": 12,
+          "signals": [
+            "content:field capacity",
+            "content:wilting point"
+          ]
+        },
         {
           "path": "services/soil-service/test_soil_evidence_adapters_and_policy.py",
           "score": 8,
@@ -30054,13 +30186,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 5,
+        "backend": 6,
         "routes": 0,
         "database": 0,
-        "events": 2,
+        "events": 20,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },
@@ -31649,6 +31781,14 @@
           ]
         },
         {
+          "path": "services/agriai-engine/wofost_adapter.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/mcp_servers/weather_server.py",
           "score": 12,
           "signals": [
@@ -32003,6 +32143,14 @@
         {
           "path": "services/sahool-platform/core/weather_overlay_pipeline.py",
           "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "services/agriai-engine/pcse_inputs.py",
+          "score": 8,
           "signals": [
             "content:ET0",
             "content:et0"
@@ -32534,6 +32682,10 @@
           "score": 8
         },
         {
+          "value": "ec3.soil @ services/agriai-engine/pcse_inputs.py:53",
+          "score": 8
+        },
+        {
           "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:41",
           "score": 8
         },
@@ -32543,6 +32695,10 @@
         },
         {
           "value": "irrigation.execute @ services/sahool-platform/api/workflow_definitions.py:532",
+          "score": 8
+        },
+        {
+          "value": "irrigation.none_declared @ services/agriai-engine/pcse_inputs.py:546",
           "score": 8
         },
         {
@@ -32631,6 +32787,14 @@
         },
         {
           "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:188",
+          "score": 8
+        },
+        {
+          "value": "soil.SMFCF @ services/agriai-engine/pcse_inputs.py:513",
+          "score": 8
+        },
+        {
+          "value": "weather.angstrom_ab @ services/agriai-engine/pcse_inputs.py:544",
           "score": 8
         }
       ],
@@ -33485,10 +33649,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 58,
+        "backend": 60,
         "routes": 48,
         "database": 0,
-        "events": 89,
+        "events": 93,
         "web": 18,
         "mobile": 0,
         "tests": 60,
@@ -34933,6 +35097,10 @@
         {
           "value": "crop_stress_memory.v2 @ services/sahool-platform/tests/test_crop_intelligence_phase5.py:84",
           "score": 8
+        },
+        {
+          "value": "irrigation.none_declared @ services/supervisor-agent/skills/crop_model_skill.py:259",
+          "score": 8
         }
       ],
       "web": [
@@ -35651,7 +35819,7 @@
         "backend": 85,
         "routes": 26,
         "database": 33,
-        "events": 28,
+        "events": 29,
         "web": 17,
         "mobile": 0,
         "tests": 46,
@@ -38334,6 +38502,18 @@
     },
     {
       "path": "services/agriai-engine/field_history.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/agriai-engine/pcse_data/SOURCE.json",
+      "kind": "backend"
+    },
+    {
+      "path": "services/agriai-engine/pcse_data/wofost72_crop/barley.yaml",
+      "kind": "backend"
+    },
+    {
+      "path": "services/agriai-engine/pcse_data/wofost72_crop/crops.yaml",
       "kind": "backend"
     },
     {
@@ -49310,6 +49490,58 @@
           "signals": [
             "content:field capacity",
             "content:wilting point"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/agriai-engine/pcse_inputs.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SOIL-005",
+          "score": 9,
+          "signals": [
+            "content:field capacity",
+            "content:wilting point"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/agriai-engine/wofost_adapter.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "capability_id": "IRR-004",
+          "score": 10,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
           ]
         }
       ]

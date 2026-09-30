@@ -604,6 +604,18 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/crop_decision_bridge.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/agriai-engine/pcse_data/wofost72_crop/barley.yaml"
+        },
+        {
+          "type": "repository",
+          "path": "services/agriai-engine/pcse_data/wofost72_crop/crops.yaml"
+        },
+        {
+          "type": "repository",
+          "path": "services/agriai-engine/pcse_data/wofost72_crop/potato.yaml"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=25, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
@@ -3996,7 +4008,8 @@
         "tests_v9/test_offline_dispatch_field_update.py",
         "tests_v9/test_offline_first_behavior_v66.py",
         "tests_v9/test_offline_pending_ops_terminal_v19_5.py",
-        "tests_v9/test_offline_pending_queue.py"
+        "tests_v9/test_offline_pending_queue.py",
+        "tests_v9/test_wofost_pcse_offline_integration.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4026,7 +4039,7 @@
           "path": "services/sahool-platform/api/offline_pending_db.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=9, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=10, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

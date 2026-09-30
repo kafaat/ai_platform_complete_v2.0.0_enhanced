@@ -4396,6 +4396,58 @@
     ]
   },
   {
+    "path": "services/agriai-engine/pcse_inputs.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SOIL-005",
+        "score": 9,
+        "signals": [
+          "content:field capacity",
+          "content:wilting point"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 8,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/agriai-engine/wofost_adapter.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 10,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/ai_agronomist/ai_evidence_runtime.py",
     "kind": "backend",
     "candidates": [
