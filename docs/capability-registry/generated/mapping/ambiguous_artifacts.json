@@ -4263,6 +4263,28 @@
     ]
   },
   {
+    "path": "scripts/ci/platform_module_reachability_guard.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-003",
+        "score": 8,
+        "signals": [
+          "content:field boundary",
+          "content:field workspace"
+        ]
+      },
+      {
+        "capability_id": "DEC-001",
+        "score": 8,
+        "signals": [
+          "content:Decision evidence",
+          "content:decision evidence"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/ci/raster_main_decomposition_gate.py",
     "kind": "other",
     "candidates": [

@@ -26,7 +26,7 @@
       "web": 458
     },
     "unmapped_artifacts": 2210,
-    "ambiguous_artifacts": 428
+    "ambiguous_artifacts": 429
   },
   "capabilities": [
     {
@@ -118,7 +118,16 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "scripts/ci/platform_module_reachability_guard.py",
+          "score": 8,
+          "signals": [
+            "content:Decision evidence",
+            "content:decision evidence"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -132,7 +141,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -6351,6 +6360,14 @@
             "content:field boundary",
             "content:field workspace"
           ]
+        },
+        {
+          "path": "scripts/ci/platform_module_reachability_guard.py",
+          "score": 8,
+          "signals": [
+            "content:field boundary",
+            "content:field workspace"
+          ]
         }
       ],
       "ambiguous": [],
@@ -6366,7 +6383,7 @@
         "mobile": 2,
         "tests": 12,
         "governance": 1,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -49361,6 +49378,28 @@
           "signals": [
             "content:Tenant RLS",
             "content:rls"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "scripts/ci/platform_module_reachability_guard.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-003",
+          "score": 8,
+          "signals": [
+            "content:field boundary",
+            "content:field workspace"
+          ]
+        },
+        {
+          "capability_id": "DEC-001",
+          "score": 8,
+          "signals": [
+            "content:Decision evidence",
+            "content:decision evidence"
           ]
         }
       ]
