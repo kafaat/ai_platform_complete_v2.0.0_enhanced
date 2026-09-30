@@ -131,15 +131,15 @@
       "mutations": [
         {
           "expect": "test_every_client_url_carries_the_credentials",
-          "find": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}",
-          "replace": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: nats://sahool-nats:4222",
+          "find": "NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222",
+          "replace": "NATS_URL: tls://sahool-nats:4222",
           "test": "tests_v9/test_nats_broker_authentication.py",
-          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (المرساةُ تشمل السطرَ السابق لأنّ العنوانَ نفسَه يتكرّر ١٣ مرّة.)"
+          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ التسعةَ الأخرى تعمل. (العنوانُ صار يحمل هويّةَ الخدمة، فالمرساةُ فريدةٌ بنفسها.)"
         },
         {
           "expect": "test_the_broker_service_inherits_the_credentials_and_refuses_a_published_default",
-          "find": "NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
-          "replace": "NATS_PASSWORD: ${NATS_PASSWORD:-changeme}",
+          "find": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
+          "replace": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:-changeme}",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ افتراضيّ للوسيط ⇒ كلُّ مكدّسٍ أُقلع بلا ضبطٍ صريح يعمل بكلمةٍ يعرفها كلُّ من قرأ المستودع، فتصير المصادقةُ زينةً"
         },
@@ -150,6 +150,20 @@
           "replace": "MCP_SERVER_MODULE: sentinel_hub_server",
           "test": "tests_v9/test_mcp_auth_first_contract.py",
           "why": "All MCP containers share one Dockerfile; compose must select each actual server module."
+        },
+        {
+          "expect": "test_every_connecting_service_has_its_own_identity_and_nothing_else_does",
+          "find": "tls://sahool-vegetation-analysis:${NATS_VEGETATION_PASSWORD:?",
+          "replace": "tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?",
+          "test": "tests_v9/test_nats_least_privilege.py",
+          "why": "خدمةٌ تستعير هويّةَ غيرها ⇒ تنشر باسمها على مواضيعها — وهو بعينه العطلُ الذي أُغلِق: اعتمادٌ مشتركٌ يُبطِل العزل."
+        },
+        {
+          "expect": "test_the_gate_never_defaults_to_a_development_environment",
+          "find": "      SAHOOL_ENV: ${SAHOOL_ENV:-}\n    entrypoint:\n    - /bin/sh\n    - /ensure_nats_tls.sh",
+          "replace": "      SAHOOL_ENV: ${SAHOOL_ENV:-development}\n    entrypoint:\n    - /bin/sh\n    - /ensure_nats_tls.sh",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "افتراضُ التطوير يجعل كلَّ نشرٍ بلا SAHOOL_ENV يولّد CA ذاتيّاً ويعمل به — إنتاجٌ بشهادةٍ ذاتيّةٍ بصمت."
         }
       ]
     },
@@ -243,7 +257,7 @@
       ]
     },
     "nats/nats.conf": {
-      "$why_ar": "NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان بلا `authorization` فمفتوحاً لكلّ من بلغ شبكةَ sahool-internal. والإغلاقُ ملفُّ إعدادٍ لا شيفرة، فلا يمسّه أيُّ اختبارٍ سلوكيّ إلّا بزرعٍ فيه — ومن غير ذلك يبقى «حارسٌ يمرّ على شجرةٍ سليمة».",
+      "$why_ar": "NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان بلا `authorization` فمفتوحاً لكلّ من بلغ شبكةَ sahool-internal. والإغلاقُ ملفُّ إعدادٍ لا شيفرة، فلا يمسّه أيُّ اختبارٍ سلوكيّ إلّا بزرعٍ فيه — ومن غير ذلك يبقى «حارسٌ يمرّ على شجرةٍ سليمة». ثمّ NATS-AUTHORIZATION-NOT-ENFORCED: هويّةٌ لكلّ خدمة بصلاحيّاتٍ مُشتقّةٍ من شيفرتها وTLS مُلزَم — وكلُّ حدٍّ منها سطرٌ في هذا الملفّ لا يمسّه اختبارٌ إلّا بزرع.",
       "mutations": [
         {
           "expect": "test_the_broker_config_demands_credentials",
@@ -254,10 +268,38 @@
         },
         {
           "expect": "test_no_credential_is_written_into_the_committed_config",
-          "find": "password: $NATS_PASSWORD",
+          "find": "password: $NATS_PLATFORM_PASSWORD",
           "replace": "password: hunter2",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ **منشور**: كلُّ من قرأ المستودع يعرفه وكلُّ بيئةٍ أُقلعت بلا ضبطٍ صريح تعمل به — نفسُ صنف COMPOSE-DEFAULT-SECRET-IS-A-PUBLISHED-SECRET-01"
+        },
+        {
+          "expect": "test_no_identity_publishes_or_subscribes_everything_or_administers_jetstream",
+          "find": "publish: { allow: [\"sahool.tenant.*.satellite.*.computed\"] }",
+          "replace": "publish: { allow: [\">\"] }",
+          "test": "tests_v9/test_nats_least_privilege.py",
+          "why": "هويّةٌ تنشر `>` تنتحل كلَّ خدمة — عادت الحالُ إلى الاعتماد الواحد بثوبٍ جديد."
+        },
+        {
+          "expect": "test_reply_inboxes_are_private_to_their_owner",
+          "find": "subscribe: { allow: [\"_INBOX_sahool-vegetation-analysis.>\"] }",
+          "replace": "subscribe: { allow: [\"_INBOX.>\"] }",
+          "test": "tests_v9/test_nats_least_privilege.py",
+          "why": "`_INBOX.>` يحمل تسليمَ مستهلكي وكيل الإشعارات — من اشترك فيه قرأ أحداثَ المنصّة كلَّها."
+        },
+        {
+          "expect": "test_frozen_phase_workers_may_publish_exactly_what_their_code_publishes",
+          "find": "            \"sahool.phase9.autonomy.cycle.completed\"\n",
+          "replace": "",
+          "test": "tests_v9/test_nats_least_privilege.py",
+          "why": "العاملُ المجمَّد ينشر Core NATS بلا إقرار: موضوعٌ ناقصٌ من القائمة يُرفَض **صامتاً** والصفُّ يُوسَم published."
+        },
+        {
+          "expect": "test_the_broker_config_requires_tls_from_the_mounted_pair",
+          "find": "tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "replace": "disabled_tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "بلا كتلة tls يعود 4222 نصّاً صريحاً: كلماتُ مرور الخدمات والأحداثُ مقروءةٌ لكلّ من يلتقط الحركة."
         }
       ]
     },
@@ -1453,6 +1495,25 @@
           "replace": "    for route in declarations:\n        key = route.key\n        if key not in owners:\n            continue  # mutated: يُسقَط ما لا تعرفه الخريطة\n",
           "test": "tests_v9/test_main_inventory_generator.py",
           "why": "إسقاطُ ما لا تعرفه الخريطةُ يجعل السطحَ يصف **الخريطةَ** لا الشجرة، فيُقرأ «كلُّ مسارٍ له مالك» وهو أثرُ حذفٍ لا قياس. والمسارُ المجهولُ مالكُه هو بالضبط ما يجب أن يُرى."
+        }
+      ]
+    },
+    "scripts/nats/ensure_nats_tls.sh": {
+      "$why_ar": "NATS-AUTHORIZATION-NOT-ENFORCED (TLS): مادّةُ الوسيط لا تُلتزَم؛ هذا السكربتُ يقرّر متى تُولَّد (تطويرٌ صريح فقط) ومتى يُرفَض الإقلاع (غيابٌ أو ذاتيٌّ أو مادّةُ تطويرٍ خارج التطوير). منطقُ صَدَفةٍ لا يمسّه اختبارٌ إلّا بزرع.",
+      "mutations": [
+        {
+          "expect": "test_production_refuses_a_self_signed_broker_certificate",
+          "find": "    [ \"$subject\" != \"$issuer\" ] ||",
+          "replace": "    true ||",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "خادمٌ بشهادةٍ ذاتيّةٍ في الإنتاج يُقبَل بصمت — ما مُنِع صراحةً بقرار المالك."
+        },
+        {
+          "expect": "test_missing_material_outside_explicit_development_fails_loudly_and_writes_nothing",
+          "find": "    development | dev | local | test) DEV=1 ;;\n    *) DEV=0 ;;",
+          "replace": "    *) DEV=1 ;;",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "التوليدُ في كلّ بيئة ⇒ إنتاجٌ بلا مادّةٍ يولّد CA ذاتيّاً ويعمل به بدل أن يفشل مُسمّىً."
         }
       ]
     },

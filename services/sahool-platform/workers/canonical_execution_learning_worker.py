@@ -255,6 +255,52 @@ async def handle_envelope(pool: Any, envelope: dict[str, Any]) -> dict[str, Any]
         await pool.release(conn)
 
 
+# Reply inbox under this worker's own identity in nats/nats.conf. The broker denies it
+# `_INBOX.>` (that namespace carries the notification agent's push deliveries), so without
+# the prefix every JetStream API reply is dropped and startup fails on a timeout.
+INBOX_PREFIX = "_INBOX_sahool-canonical-execution-learning-worker"
+
+
+async def retarget_foreign_deliveries(nc: Any, js: Any, *, durable_base: str) -> list[str]:
+    """Move this worker's existing durables onto its own reply inbox before binding.
+
+    Measured on nats-server 2.14.6 with a persisted store: durables created before the broker
+    had per-service identities deliver to ``_INBOX.<nuid>``. Under the least-privilege config
+    that subscription is refused, yet ``js.subscribe`` returns normally — the broker logs a
+    Subscription Violation and the worker sits idle while its healthcheck stays green.
+
+    The fix keeps the consumer (and its ack floor, measured unchanged) and changes only its
+    delivery target: ``DURABLE.CREATE`` on an existing push consumer is an in-place update.
+    A consumer still bound elsewhere is refused loudly rather than yanked from under it.
+    """
+    from nats.js.errors import NotFoundError
+
+    moved: list[str] = []
+    for subject in SUBJECTS:
+        durable = durable_for_subject(durable_base, subject)
+        try:
+            stream = await js.find_stream_name_by_subject(subject)
+            info = await js.consumer_info(stream, durable)
+        except NotFoundError:
+            continue
+        deliver = info.config.deliver_subject or ""
+        if not deliver or deliver.startswith(f"{INBOX_PREFIX}."):
+            continue
+        if info.push_bound:
+            raise RuntimeError(
+                f"durable {durable} delivers to {deliver} and is bound by another subscriber; "
+                "stop it before this worker can take the consumer over"
+            )
+        info.config.deliver_subject = nc.new_inbox()
+        # Without ``name`` nats-py sends the legacy ``CONSUMER.DURABLE.CREATE.<stream>.<durable>``
+        # — the one create form nats/nats.conf grants this identity, by durable name.
+        info.config.name = None
+        await js.add_consumer(stream, config=info.config)
+        moved.append(durable)
+        LOGGER.warning("retargeted durable %s from %s to this worker's inbox", durable, deliver)
+    return moved
+
+
 async def preflight() -> dict[str, Any]:
     """Fail-closed connectivity/schema check and return auditable facts."""
     import asyncpg
@@ -289,7 +335,7 @@ async def preflight() -> dict[str, Any]:
     finally:
         await conn.close()
 
-    nc = await nats.connect(nats_url, connect_timeout=5)
+    nc = await nats.connect(nats_url, connect_timeout=5, inbox_prefix=INBOX_PREFIX)
     try:
         js = nc.jetstream()
         await js.account_info()
@@ -322,7 +368,7 @@ async def run() -> None:
     nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
     durable = os.getenv("CANONICAL_LEARNING_DURABLE", "canonical-execution-learning-v1")
     pool = await asyncpg.create_pool(database_url, min_size=1, max_size=4)
-    nc = await nats.connect(nats_url)
+    nc = await nats.connect(nats_url, inbox_prefix=INBOX_PREFIX)
     js = nc.jetstream()
 
     async def callback(msg):
@@ -337,6 +383,7 @@ async def run() -> None:
             LOGGER.exception("transient event processing failure")
             await msg.nak(delay=5)
 
+    await retarget_foreign_deliveries(nc, js, durable_base=durable)
     await subscribe_subjects(js, durable_base=durable, callback=callback)
     try:
         while True:

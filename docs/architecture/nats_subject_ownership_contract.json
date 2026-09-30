@@ -13,19 +13,27 @@
     "sahool-platform",
     "sahool-plugin-runtime-worker",
     "sahool-reservation-dispatch-relay-worker",
-    "sahool-soil-service",
-    "sahool-telegram-bot",
     "sahool-vegetation-analysis",
-    "sahool-weather-polygon-worker",
-    "sahool-weather-service"
+    "sahool-weather-polygon-worker"
   ],
   "gaps": {
     "NATS-AUTHORIZATION-NOT-ENFORCED": {
-      "status": "OPEN",
-      "evidence": "أُغلِق نصفُه الأوّل (2026-09-08): nats/nats.conf صار يحمل authorization بـ$NATS_USER/$NATS_PASSWORD مُستوفَيَين من بيئة الوسيط، وcompose يُلزِمهما بـ:? فلا يُقلِع المكدّس بسرٍّ افتراضيّ منشور؛ وكلُّ عملاء NATS الثلاثةَ عشرَ يحملون الاعتمادَ في NATS_URL. والباقي: لا accounts ولا permissions ولا NKeys — أي **لا عزلَ مواضيعَ بين الخدمات**، ولا TLS على 4222. فخدمةٌ معتمَدةٌ تنشر على موضوع غيرها بلا مانع.",
+      "status": "CLOSED",
+      "evidence": "لكلّ عميلٍ من العشرة هويّةٌ في nats/nats.conf باسم خدمته، بكلمة مرورٍ من بيئة الوسيط (`:?`)، و`permissions` مُشتقّةٌ من شيفرته (لا publish/subscribe `>`؛ صندوقُ ردٍّ `_INBOX_<الهويّة>` لكلٍّ إلّا وكيلَ الإشعارات؛ default_permissions ترفض كلَّ شيء؛ لا no_auth_user). وTLS مُلزَمٌ على 4222 بمادّةٍ يفحصها sahool-nats-tls-init (تطويرٌ صريح فقط يولّد؛ الإنتاجُ بلا مادّةٍ أو بمادّةٍ ذاتيّة يفشل مُسمّىً). مُثبَتٌ حيّاً على nats-server 2.14.6 (صورة v9) و2.15.0 (Railway ومِرقاة CI) مع nats-py 2.10.0 و2.16.0: المجهولُ وكلمةُ المرور الخاطئة والنصُّ الصريح والعميلُ الذي لا يثق بـCA كلُّها تُرفَض؛ مِسبارٌ موجبٌ لكلّ موضوعٍ مأذون وسالبٌ لكلّ موضوعٍ لغيره؛ ومسارُ JetStream الحقيقيّ يعمل.",
       "closing_condition": "anonymous denied; per-service publish/subscribe allow-lists proven with negative and positive probes",
       "partially_closed_by": "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
-      "why_still_open": "شرطُ الإغلاق المكتوب يطلب أمرين: منعَ المجهول **وقوائمَ سماحٍ لكلّ خدمة مُثبَتةً بمِسبارٍ سالبٍ وموجبٍ حيَّين**. وقع الأوّلُ ساكناً فقط؛ ولم يقع الثاني ولا المِسباران."
+      "closed_on": "2026-09-30",
+      "verified_by": [
+        "tests_v9/test_nats_least_privilege.py",
+        "tests_v9/test_nats_tls_init.py"
+      ],
+      "residual": [
+        "إنشاءُ المستهلك الدائم يُحصَر بالاسم لا بموضوع التصفية: nats-py يُرسل CONSUMER.DURABLE.CREATE بلا الموضوع.",
+        "عمّالُ phase-runtime المجمَّدون ينشرون Core NATS بلا إقرار: رفضُ الإذن عندهم صامت (مُطابَقٌ بالعقد الساكن).",
+        "لا تثبيتَ للمصافحة أوّلاً (handshake_first): عميلٌ يُخدَع بوسيطٍ منتحَلٍ يُعلن tls_required=false يُرسل CONNECT نصّاً.",
+        "كلماتُ المرور نصٌّ صريحٌ في بيئة الوسيط (لا bcrypt/NKeys).",
+        "Railway staging خارج هذا الإغلاق: NATS-ON-RAILWAY-STAGING-HAS-NO-AUTH-AND-A-FLOATING-TAG-01."
+      ]
     },
     "AGENT-TO-ACTUATOR-ADAPTER-ABSENT": {
       "status": "OPEN",
@@ -47,5 +55,6 @@
       "canonical_consumer": "agents/notification/agent.py subscribes sahool.events.>",
       "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered"
     }
-  }
+  },
+  "connected_services_note": "كانت ثلاثَ عشرة؛ ثلاثٌ منها (sahool-soil-service · sahool-weather-service · sahool-telegram-bot) تحمل كلمةَ مرور الوسيط ولا عميلَ NATS فيها (مقيسٌ بـgrep على main@1cb6cd6c) فنُزِع عنها الاعتماد. كلُّ خدمةٍ هنا هويّةٌ باسمها في nats/nats.conf."
 }

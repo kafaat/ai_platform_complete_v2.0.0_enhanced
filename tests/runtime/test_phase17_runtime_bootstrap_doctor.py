@@ -61,11 +61,24 @@ def safe_env() -> dict[str, str]:
             "ADMIN_PASSWORD": "strong-admin-pass",
             "GRAFANA_PASSWORD": "strong-grafana-pass",
             "TELEGRAM_WEBHOOK_SECRET": "strong-telegram-secret",
-            # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: صار الوسيطُ يشترط اعتماداً،
-            # فأُلزِم المتغيّران بـ`:?` في compose — ومن غيرهما يسقط
+            # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01 ثمّ NATS-AUTHORIZATION-NOT-ENFORCED: لكلّ
+            # عميلٍ هويّةٌ بكلمة مرورٍ مُلزَمةٍ بـ`:?` في compose — ومن غيرها يسقط
             # `docker compose config` برسالةٍ عن الاستيفاء لا عن الإعداد.
-            "NATS_USER": "sahool-nats-user",
-            "NATS_PASSWORD": "strong-nats-password",
+            **{
+                f"NATS_{name}_PASSWORD": f"nstrong{name.lower()}"
+                for name in (
+                    "PLATFORM",
+                    "OUTBOX_WORKER",
+                    "PLUGIN_WORKER",
+                    "MODEL_WORKER",
+                    "ACTUATOR_WORKER",
+                    "RELAY_WORKER",
+                    "LEARNING_WORKER",
+                    "NOTIFICATION",
+                    "WEATHER_POLYGON",
+                    "VEGETATION",
+                )
+            },
         }
     )
     return env

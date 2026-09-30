@@ -23,6 +23,9 @@ playwright/.cache/
 *.crt
 # مادّةُ TLS للبوّابة (شهادةُ تطويرٍ يولّدها sahool-nginx-tls-init، أو شهادةُ المشغِّل) — لا تُلتزَم أبداً.
 nginx/ssl/
+# مادّةُ TLS لوسيط NATS (يولّدها sahool-nats-tls-init للتطوير، أو يضعها المشغِّل). المجلّدُ كلُّه لا
+# `*.pem` وحده: فهرسُ الثقة `ca/<hash>.0` لا يطابق `*.pem`، ومفتاحُ الخادم لا يُلتزَم أبداً.
+nats/tls/
 volumes/
 data/
 backups/

@@ -51,23 +51,26 @@ def test_the_broker_config_demands_credentials():
     assert re.search(r"^\s*authorization\s*\{", body, re.M), (
         "لا كتلةَ `authorization` في nats.conf — الوسيطُ مفتوحٌ لكلّ من بلغ الشبكة الداخليّة"
     )
-    assert "$NATS_USER" in body and "$NATS_PASSWORD" in body, (
-        "الاعتمادُ يجب أن يُورَث من البيئة (`$NATS_USER`/`$NATS_PASSWORD`) لا يُكتَب في الملفّ"
+    assert re.search(r"^\s*password\s*:\s*\$NATS_[A-Z_]+_PASSWORD\s*$", body, re.M), (
+        "الاعتمادُ يجب أن يُورَث من البيئة (`$NATS_<…>_PASSWORD`) لا يُكتَب في الملفّ"
     )
 
 
 def test_no_credential_is_written_into_the_committed_config():
-    """سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ منشور — نفسُ قاعدة `compose_no_default_secrets`."""
+    """سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ منشور — نفسُ قاعدة `compose_no_default_secrets`.
+
+    اسمُ المستخدم صار **هويّةَ الخدمة** (اسمُها في compose، ويبني منه صندوقَ ردّها) لا سرّاً؛
+    والسرُّ كلمةُ المرور وحدها — وهي من البيئة دائماً.
+    """
     body = "\n".join(
         line
         for line in CONF.read_text(encoding="utf-8").splitlines()
         if not line.lstrip().startswith("#")
     )
-    for field in ("user", "password"):
-        for match in re.finditer(rf"^\s*{field}\s*:\s*(\S+)", body, re.M):
-            assert match.group(1).startswith("$"), (
-                f"`{field}` بقيمةٍ حرفيّة في nats.conf: {match.group(1)!r} — سرٌّ منشور"
-            )
+    passwords = re.findall(r"^\s*password\s*:\s*(\S+)", body, re.M)
+    assert passwords, "لا كلمةَ مرورٍ في nats.conf — انهار الاستخراج"
+    for value in passwords:
+        assert value.startswith("$"), f"`password` بقيمةٍ حرفيّة في nats.conf: {value!r} — سرٌّ منشور"
 
 
 # ── ② والاعتمادُ يبلغ الوسيطَ وكلَّ عميل ────────────────────────────────────────
@@ -76,7 +79,9 @@ def test_no_credential_is_written_into_the_committed_config():
 def test_the_broker_service_inherits_the_credentials_and_refuses_a_published_default():
     nats = _services()["sahool-nats"]
     env = nats.get("environment") or {}
-    for var in ("NATS_USER", "NATS_PASSWORD"):
+    wanted = sorted(set(re.findall(r"\$(NATS_[A-Z_]+_PASSWORD)", CONF.read_text(encoding="utf-8"))))
+    assert wanted, "nats.conf لا يقرأ أيَّ كلمة مرورٍ من البيئة"
+    for var in wanted:
         value = str(env.get(var) or "")
         assert value, f"`sahool-nats` لا يرث {var} — الوسيطُ يقرأ `$" + var + "` من بيئته"
         assert ":?" in value, (
@@ -99,7 +104,9 @@ def test_every_client_url_carries_the_credentials():
         url = env.get("NATS_URL")
         if url is None:
             continue
-        if "${NATS_USER}" not in str(url) or "${NATS_PASSWORD}" not in str(url):
+        # هويّةُ الخدمة وكلمةُ مرورها المُلزَمة — التفصيلُ (أيُّ هويّةٍ لأيّ خدمة) في
+        # test_nats_least_privilege.py؛ هنا الشرطُ الأدنى: لا عنوانَ بلا اعتماد.
+        if not re.search(r"^tls://[a-z0-9-]+:\$\{NATS_[A-Z_]+_PASSWORD:\?[^}]+\}@", str(url)):
             offenders.append(f"{name}: {url}")
     assert not offenders, "خدماتٌ تتّصل بالوسيط بلا اعتماد:\n  " + "\n  ".join(offenders)
 
@@ -111,7 +118,8 @@ def test_the_measured_client_count_is_pinned_so_a_new_service_cannot_slip_in():
         for s in _services().values()
         if isinstance(s.get("environment"), dict)
     ]
-    assert len([u for u in urls if u]) == 13, (
+    # ١٣ ⇒ ١٠: ثلاثٌ (soil · weather-service · telegram-bot) حملت الاعتمادَ بلا عميلِ NATS فنُزِع عنها.
+    assert len([u for u in urls if u]) == 10, (
         "تغيّر عددُ عملاء NATS في المكدّس — راجِع أنّ الجديد يحمل الاعتماد ثمّ حدّث العدد"
     )
 

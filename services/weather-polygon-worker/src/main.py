@@ -158,7 +158,10 @@ async def run() -> None:
         log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — العامل معطّل")
         return
     pool = await asyncpg.create_pool(JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4)
-    nc = await nats.connect(NATS_URL, max_reconnect_attempts=-1)
+    # صندوقُ الردّ بهويّة العامل في nats/nats.conf — `_INBOX.>` محجوبٌ عنه.
+    nc = await nats.connect(
+        NATS_URL, max_reconnect_attempts=-1, inbox_prefix="_INBOX_sahool-weather-polygon-worker"
+    )
     _touch_worker_file(READY_FILE)
     _touch_worker_file(HEARTBEAT_FILE)
     js = nc.jetstream()

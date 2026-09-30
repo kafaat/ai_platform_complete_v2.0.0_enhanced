@@ -157,7 +157,16 @@ def test_the_real_measured_defect_is_caught():
     تغييرٍ صحيح. والمقيسُ هنا **أنّ الرسالة تُسمّي افتراضَ compose** — لا نصُّ
     الافتراض؛ فيُقرأ من `compose_defaults` نفسِها.
     """
-    defaults = guard.compose_defaults(guard._read(guard.COMPOSE))
+    # NATS-AUTHORIZATION-NOT-ENFORCED: compose **لم يعد يقرأ** `NATS_URL` — كلُّ خدمةٍ تبني
+    # عنوانَها بهويّتها، وعنوانٌ مشتركٌ كان سيجعلها هويّةً واحدة. فالحادثةُ لا تتكرّر عبر هذا
+    # المتغيّر في الشجرة، والمرساةُ تبقى على **صيغتها الحرفيّة كما كانت** (آخرُ صيغةٍ قبل الهويّات).
+    assert "NATS_URL" not in guard.compose_defaults(guard._read(guard.COMPOSE)), (
+        "compose عاد يستوفي `${NATS_URL:-…}` — عنوانٌ مشتركٌ يُبطِل هويّاتِ الخدمات في nats.conf"
+    )
+    historical = (
+        "      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}\n"
+    )
+    defaults = guard.compose_defaults(historical)
     problems = guard.violations(defaults, {"NATS_URL": "nats://localhost:4222"})
     assert len(problems) == 1, f"الحارس لا يرى العطل المقيس: {problems}"
     expected = defaults["NATS_URL"]

@@ -525,7 +525,9 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         if _nc is None:
             import nats
 
-            _nc = await nats.connect(NATS_URL)
+            # صندوقُ الردّ بهويّة الخدمة في nats/nats.conf: `_INBOX.>` محجوبٌ عنها، فبدونه
+            # لا يصل PubAck ويفشل كلُّ نشرٍ بمهلة.
+            _nc = await nats.connect(NATS_URL, inbox_prefix="_INBOX_sahool-vegetation-analysis")
         subject = f"sahool.tenant.{tenant_id}.satellite.{field_id}.computed"
         payload = json.dumps(
             {
