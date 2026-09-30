@@ -4,15 +4,18 @@ import { describe, expect, it } from 'vitest';
 
 const root = process.cwd();
 const popup = readFileSync(join(root, 'src/components/maphub/weather/WeatherProbePopup.ts'), 'utf8');
+// الترويسةُ تُضبَط في طبقة الـAPI، والمفتاحُ يُشتقّ في النافذة (FRONTEND-FETCH-OUTSIDE-API-LAYER-01).
+const weatherApi = readFileSync(join(root, 'src/services/api/weatherMap.ts'), 'utf8');
 const reports = readFileSync(join(root, 'src/sections/ReportsPage.tsx'), 'utf8');
 
 // F5-08: أزرار الطقس (إنشاء مهمّة/حفظ توصية) تحمل مفتاح idempotency ثابتاً فلا تُكرِّر عند إعادة المحاولة.
 describe('F5-08 — weather popup actions carry a deterministic idempotency key', () => {
   it('both weather POSTs send an Idempotency-Key header', () => {
-    const count = (popup.match(/'Idempotency-Key':/g) ?? []).length;
+    const count = (weatherApi.match(/'Idempotency-Key':/g) ?? []).length;
     expect(count).toBeGreaterThanOrEqual(2);
     expect(popup).toContain('wx-task:');
     expect(popup).toContain('wx-rec:');
+    expect(popup).toContain('idemKey,');
   });
 });
 

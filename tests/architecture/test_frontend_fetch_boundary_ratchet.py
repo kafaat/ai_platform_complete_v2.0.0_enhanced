@@ -30,12 +30,11 @@ API_LAYER = "frontend/src/services/api.ts"
 # على #995 أمسكت أنّ النسخةَ الأولى كانت تستثنيه فتُقنّن التفافاً).
 _FETCH = re.compile(r"(?<!\w)fetch\(")
 
-#: الأساسُ المُجمَّد — مقيسٌ على `9613db9a`. **يُخفَّض عند النقل إلى services/api.ts ولا يُرفَع.**
-FROZEN_SITES: dict[str, int] = {
-    "frontend/src/components/maphub/weather/WeatherProbePopup.ts": 6,
-    "frontend/src/components/maphub/weather/WeatherTileLayer.ts": 1,
-    "frontend/src/components/maphub/weather/WeatherHoverReadout.ts": 1,
-}
+#: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` (٨ مواضع في ٣ ملفّات، كلُّها وحدةُ الطقس على
+#: الخريطة). **يُخفَّض عند النقل إلى طبقة الـAPI ولا يُرفَع.** وقد صار **فارغاً**: الثمانيةُ
+#: نُقِلت إلى ``services/api/weatherMap.ts`` عبر ``kongApi`` (بلا ``fetch`` مباشر أصلاً)،
+#: فأيُّ موضعٍ يظهر بعد اليوم ملفٌّ جديد يسقط به البندُ الأوّل.
+FROZEN_SITES: dict[str, int] = {}
 
 
 def _is_test_path(rel: str) -> bool:
