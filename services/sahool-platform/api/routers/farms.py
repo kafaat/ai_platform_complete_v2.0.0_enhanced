@@ -141,13 +141,32 @@ async def list_farm_fields(
     farm_id: str,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """حقول مزرعة محدّدة (هرميّة المزرعة→الحقل)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT field_id, name, area_ha, crop, soil_type FROM fields "
-            "WHERE farm_id = $1 ORDER BY name",
-            farm_id,
-        )
+    """حقول مزرعة محدّدة (هرميّة المزرعة→الحقل).
+
+    الملكيّةُ صريحةٌ لا مُفوَّضةٌ إلى RLS وحده: مزرعةُ مستأجِرٍ آخر (أو غيرُ موجودة) ⇒ 404،
+    لا ``200 []`` يُساوي «مزرعتُك بلا حقول» بـ«ليست مزرعتَك»؛ والاستعلامان يحملان
+    ``tenant_id`` كي لا يتوقّف العزلُ على أنّ الدورَ لا يتجاوز RLS.
+    """
+    tenant_id = str(user.tenant_id)
+    try:
+        async with tenant_connection(user) as conn:
+            owned = await conn.fetchval(
+                "SELECT 1 FROM farms WHERE tenant_id = $1::uuid AND farm_id = $2",
+                tenant_id,
+                farm_id,
+            )
+            if owned != 1:
+                raise HTTPException(status_code=404, detail="farm_not_found_for_tenant")
+            rows = await conn.fetch(
+                "SELECT field_id, name, area_ha, crop, soil_type FROM fields "
+                "WHERE tenant_id = $1::uuid AND farm_id = $2 ORDER BY name",
+                tenant_id,
+                farm_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة حقول المزرعة", e) from e
     return [
         {
             "field_id": r["field_id"],
