@@ -24233,7 +24233,7 @@
           "score": 15
         },
         {
-          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:300",
+          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:360",
           "score": 10
         },
         {
@@ -26576,7 +26576,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:300",
+          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:360",
           "score": 12
         },
         {
