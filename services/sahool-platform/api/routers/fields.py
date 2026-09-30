@@ -107,6 +107,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.persisted_canonical_repositories import decode_jsonb
 from api.pivot_geometry import (
     PivotPolygonDriftError,
     maybe_canonicalize_pivot_geometry,
@@ -1556,12 +1557,12 @@ async def field_geometry_history(
         "revisions": [
             {
                 "revision": int(r["revision"]),
-                "geometry": r["geometry"],
+                "geometry": decode_jsonb(r["geometry"], None),
                 "changed_by": r["changed_by"],
                 "changed_at": r["changed_at"].isoformat() if r["changed_at"] else None,
                 "reason": r["reason"],
                 "source": r["source"],
-                "metadata": r["metadata"] or {},
+                "metadata": decode_jsonb(r["metadata"], {}),
             }
             for r in rows
         ],
@@ -3232,13 +3233,12 @@ async def create_soil_lab_test(
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """ينشئ فحص تربة (حالة requested) — بداية دورة الحياة المخبريّة. يُصدِر SOIL_SAMPLE_RECORDED."""
-    import json as _json
     import uuid as _uuid
 
     sampled = _parse_date(req.sampled_on, "تاريخ العيّنة")
     test_id = "soil_" + _uuid.uuid4().hex[:12]
     try:
-        result_json = _json.dumps(req.result or {})
+        result_json = json.dumps(req.result or {})
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=422, detail="نتيجة الفحص غير قابلة للتسلسل (JSON)") from e
     try:
