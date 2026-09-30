@@ -1253,6 +1253,13 @@
           "replace": "",
           "test": "tests_v9/test_brain_append_only_guard.py",
           "why": "AN-APPEND-ONLY-JOURNAL-OUTSIDE-THE-APPEND-ONLY-LIST-01: إسقاطُ المسار يُعيد الحالةَ التي سمحت لـ`b067f92c` (رأسُ #1061 المدموج) بحذف المدخلتين E-2026-09-21-06 وE-2026-09-21-07 (٣٦٣٧ بايت) من سجلّ الإثبات بكلّ بوّابةٍ خضراء، فلزمت شريحةُ استرجاع (#1062). و`brain_append_only_guard` يستورد هذه القائمةَ بعينها، فغيابُ الملفّ عنها كان غيابَ الحراسة عنه — حارسٌ قائمٌ يُقرَأ حمايةً ولا يحمي."
+        },
+        {
+          "expect": "test_every_tracked_self_declared_generated_file_is_classified_generated",
+          "find": "    \".generated.\",\n",
+          "replace": "    \".generated.json\",\n",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "why": "عودةُ العلامة إلى `.generated.json` وحدَها ⇒ ثمانيةُ مصنوعاتٍ مُعلَنة (csv/md/ts) تُقرأ مصدراً فتقف الأداةُ طالبةً دمجاً يدويّاً لمصنوعٍ مولَّد (LESSON-MERGED-GENERATED-ARTIFACTS-01)"
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"

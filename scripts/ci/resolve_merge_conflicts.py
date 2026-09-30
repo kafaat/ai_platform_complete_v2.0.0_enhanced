@@ -85,7 +85,19 @@ GENERATED_MARKERS = (
     "/generated/",
     "generated/",
     ".sha256",
-    ".generated.json",
+    # ── `LESSON-MERGED-GENERATED-ARTIFACTS-01` ─────────────────────────────────
+    # كانت `.generated.json` وحدَها، فثمانيةُ مصنوعاتٍ متعقَّبة تحمل اللاحقةَ نفسَها
+    # بامتدادٍ آخر صُنِّفت **مصدراً** (مقيسٌ على bcb7f0ed بـ`git ls-files`):
+    # `capability_inventory.generated.csv` · `component_inventory.generated.csv` ·
+    # `PLATFORM_CATALOG.generated.md` · `service_inventory.generated.md` ·
+    # `remaining_execution_gates.generated.md` · `service_feature_ui_contract_gate.
+    # generated.md` · `indicatorsRegistry.generated.ts` · `platformCatalog.generated.ts`.
+    # فعند تعارضها تقف الأداةُ طالبةً إنساناً — أي دمجاً يدويّاً لمصنوعٍ مولَّد، وهو
+    # العطلُ الذي وُجِدت لتمنعه. واشتقاقُ الكتّاب لا يراها (مساراتُها تُبنى وقتَ التشغيل
+    # في `build_platform_catalog.py` وأخواته — حدُّ الصدق المكتوب في بيانه).
+    # **واللاحقةُ ليست «ذِكراً في مولِّد»** (التوسيعُ المرفوض أدناه) بل **إعلانُ الملفّ
+    # عن نفسه**؛ و`HAND_WRITTEN_POLICY` يعلوها كما يعلو كلَّ علامة.
+    ".generated.",
     "release/FILE_CHECKSUMS",
     "release/SAHOOL_RELEASE_MANIFEST",
     "release/SBOM_MINIMAL",

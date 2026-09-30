@@ -422,6 +422,31 @@ def test_a_sweep_owned_artifact_outside_generated_dirs_is_not_read_as_source():
         )
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        "capability_inventory.generated.csv",
+        "docs/architecture/PLATFORM_CATALOG.generated.md",
+        "frontend/src/lib/platformCatalog.generated.ts",
+    ],
+)
+def test_a_self_declared_generated_artifact_is_not_read_as_source(path: str) -> None:
+    """`LESSON-MERGED-GENERATED-ARTIFACTS-01`: `.generated.json` وحدَها كانت علامة، فمصنوعٌ
+    يحمل اللاحقةَ بامتدادٍ آخر صُنِّف مصدراً ⇒ الأداةُ تقف ⇒ دمجٌ يدويّ لمصنوعٍ مولَّد."""
+    assert rmc.classify(path) == "generated"
+
+
+def test_every_tracked_self_declared_generated_file_is_classified_generated() -> None:
+    """الشجرةُ كلُّها لا عيّنة: مقيسٌ على bcb7f0ed — ٨ من ١٤٤ كانت تُقرأ مصدراً."""
+    tracked = subprocess.run(
+        ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", check=True
+    ).stdout.splitlines()
+    declared = [p for p in tracked if ".generated." in Path(p).name]
+    assert declared, "لا مصنوعَ مُعلَنٌ في الشجرة — القياسُ فارغ لا أخضر"
+    misread = sorted(p for p in declared if rmc.classify(p) != "generated")
+    assert not misread, misread
+
+
 def test_a_hand_written_policy_document_is_never_widened_into_generated():
     """الحدُّ الذي يمنع التوسيع من أن يصير إتلافاً.
 
