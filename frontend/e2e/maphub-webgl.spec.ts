@@ -8,9 +8,10 @@
 // صدق (مُوثَّق في رأس كلّ خطوة): SwiftShader headless يتحقّق من المنطق/الأسلاك/
 // سلامة سياق WebGL — لا من تطابق البكسل على GPU. الإزاحة الهندسيّة (خطوة ٧) واتّساق
 // الإسقاط (خطوة ٩) صارا حتميَّين رياضيّاً عبر خطّاف __hubmap (project/unproject)، والدبّوس
-// الفعليّ صار حتميّاً عبر مسار onAddPin الإنتاجيّ. يتبقّى مُخطَّطان (test.fixme @visual):
-// رسم المضلّع/الخطّ — لأنّ تهيئة Terra Draw لا تكتمل headless (data-draw-ready)، ودالّتا
-// القياس مُغطّاتان بـunit tests؛ يُنزَع fixme فور استقرار التهيئة headless.
+// الفعليّ صار حتميّاً عبر مسار onAddPin الإنتاجيّ. ورسمُ المضلّع/الخطّ (measure-area/length)
+// صار حاجزاً أيضاً (MAPHUB-WEBGL-VISUAL-DEBT-01): عُطِّلا بـtest.fixme بدعوى أنّ تهيئة Terra
+// Draw لا تكتمل headless، والمقيسُ غيرُ ذلك — عطلان في الاختبار لا في SwiftShader (انظر
+// شرحَ اختبار المضلّع أدناه).
 //
 // أيّ خطوة وظيفيّة تعذّر جعلها حتميّة تحت SwiftShader (مثل أحداث مؤشّر Terra Draw
 // التي قد لا تصل للـcanvas) لا تُزيَّف نجاحاً — تُعلَّم @visual/يدويّة بتعليق صريح.
@@ -97,22 +98,20 @@ test('الخطوة 2-3: لوحة الرسم وأزرار الوضع تظهر ع�
   await expect(page.getByTestId('btn-snap-toggle')).toBeVisible();
 });
 
-// رسم مضلّع فعليّ بنقرات canvas — @visual/يدويّ (صدق مُوثَّق برأس الملفّ). قياس المساحة
-// يتطلّب وصول أحداث مؤشّر Terra Draw إلى لوحة WebGL، وهو غير حتميّ تحت SwiftShader
-// headless (page.mouse.click قد لا تُسجَّل نقطةً في طبقة الرسم) — نفس قيد شقيقَيه:
-// رسم الخطّ (measure-length) والدبّوس (📍) المُعلَّمَين test.fixme أدناه. لا نُزيِّف نجاحاً
-// حاجزاً؛ التوقيع البصريّ اليدويّ على متصفّح حقيقيّ يبقى المرجع (يعمل التطبيق فعليّاً).
-// التسليك الوظيفيّ (لوحة الرسم + زرّ وضع المضلّع) مُغطّى حاجزاً في الاختبار أعلاه.
-// جاهز للتفعيل حتميّاً عبر خطّاف __hubmap (حقن هندسة حقيقيّة عبر Terra Draw ⇒ مسار
-// turf الإنتاجيّ)، لكنّ data-draw-ready لا يُرفَع تحت SwiftShader headless (تهيئة
-// Terra Draw + start() لا تكتمل) — فيبقى @visual. مسار القيمة (الرسم⇒القياس⇒العرض
-// بـ«م²») صار محروساً حتميّاً في src/lib/measureDrawWiring.test.ts (يُعيد إنتاج نفس
-// الهندسة المحقونة عبر areaSqMeters+formatArea الإنتاجيّتَين). يُنزَع fixme فور استقرار
-// تهيئة الرسم headless (يبقى هذا توقيعاً بصريّاً إضافيّاً على تفاعل Canvas الحقيقيّ).
-// دَينٌ مُعلَن ومحروس: MAPHUB-WEBGL-VISUAL-DEBT-01 — خطّ الأساس (٢) مفروضٌ في
-// scripts/ci/visual_fixme_baseline_guard.py؛ ثالثٌ لا يُضاف بلا مُحاكَمة، وإغلاقُ
-// أحدهما يوجب خفض الأساس فلا يبقى سقفٌ مُرتخٍ يبتلع عودته.
-test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة محقونة) ⇒ measure-area بـ«م²» @visual', async ({ page }) => {
+// رسم مضلّع ⇒ measure-area — حاجزٌ حتميّ (MAPHUB-WEBGL-VISUAL-DEBT-01 أُغلِق هنا).
+// كان test.fixme بدعوى أنّ `data-draw-ready` لا يُرفَع تحت SwiftShader headless. **مقيسٌ
+// (2026-09-30، Chromium 1194 + SwiftShader):** العطلُ اثنان، وكلاهما في الاختبار لا في المحرّك:
+//  ١. `ready` (ومعه تهيئة Terra Draw وخطّاف __hubmap) معلَّقٌ على حدث `load` في MapLibre،
+//     و`load` ينتظر بلاطاتِ الأساس الخارجيّة (Esri) وخطوطَ demotiles — والتمهيدُ الهرمسيّ
+//     كان يعترض /api/** وحده فتبقى الخريطةُ رهينةَ الشبكة. صار seed.ts يُلبّي كلَّ مضيفٍ
+//     خارجيّ محلّيّاً، فيُرفَع `data-draw-ready` خلال ~1.6ث.
+//  ٢. الهندسةُ المحقونة كانت تُرفَض بصمت: Terra Draw يتحقّق من دقّة الإحداثيّات
+//     (`valid:false, reason:"Feature has coordinates with excessive precision"`)، ومركزُ
+//     الخريطة يحمل ١٥ منزلة (44.200000000000045). فتُقرَّب إلى ٦ منازل (~١١سم) قبل الحقن،
+//     ويُؤكَّد أنّ الإضافة **قُبِلت** — كي لا يعود الرفضُ الصامت مهلةً غامضة.
+// الحقنُ عبر محرّك Terra Draw نفسه لا نقرات canvas عمياء؛ القياسُ يمرّ بمسار areaSqMeters/
+// turf الإنتاجيّ. ويبقى src/lib/measureDrawWiring.test.ts شاهدَ الوحدة على المسار نفسه.
+test('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة محقونة) ⇒ measure-area بـ«م²» @gating', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-polygon').click();
@@ -120,43 +119,40 @@ test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة مح�
   // نفسه — لا نقرات canvas عمياء (لا تصل لـMapLibre تحت SwiftShader). القياس يمرّ
   // بمسار areaSqMeters/turf الإنتاجيّ نفسه، فالنتيجة صدق لا تزييف.
   await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { getDraw: () => unknown } }).__hubmap?.getDraw(), null, { timeout: 20_000 });
-  await page.evaluate(() => {
-    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => unknown } } }).__hubmap;
-    const [lng, lat] = h.center();
+  const added = await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => Array<{ valid: boolean; reason?: string }> } } }).__hubmap;
+    const r6 = (x: number) => Math.round(x * 1e6) / 1e6; // Terra Draw يرفض دقّةً مفرطة
+    const [lng, lat] = h.center().map(r6);
     const d = 0.0015; // ~150م ⇒ مساحة بعشرات الآلاف م²
-    const ring = [[lng - d, lat - d], [lng + d, lat - d], [lng + d, lat + d], [lng - d, lat + d], [lng - d, lat - d]];
-    h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'polygon' }, geometry: { type: 'Polygon', coordinates: [ring] } }]);
+    const ring = [[lng - d, lat - d], [lng + d, lat - d], [lng + d, lat + d], [lng - d, lat + d], [lng - d, lat - d]].map(([a, b]) => [r6(a), r6(b)]);
+    return h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'polygon' }, geometry: { type: 'Polygon', coordinates: [ring] } }]);
   });
+  expect(added.map((r) => r.valid), JSON.stringify(added)).toEqual([true]);
   const area = page.getByTestId('measure-area');
   await expect(area).toBeVisible();
   await expect(area).toContainText('م²'); // قيمة مساحة حقيقيّة محسوبة (turf)
 });
 
-// رسم خطّ ⇒ قياس طول (@visual/يدويّ — صدق مُوثَّق برأس الملفّ). قياس المساحة (المضلّع)
-// أعلاه يغطّي بنية القياس حاجزاً؛ أمّا إنهاء الـLineString فيتطلّب **نقراً مزدوجاً**
-// (المضلّع يُغلَق بالنقر قرب البداية، فهو حتميّ). مع افتراضيّ TrueColor الجديد تُضاف
-// طبقة راستر نشطة تُصيّر بلاطات، وإعادة رسم الخريطة بينها تُقاطِع كشف MapLibre للنقر
-// المزدوج فلا يُطلَق حدث Terra Draw «finish» ⇒ measure.lines يبقى 0 (HubMapGL:625/887).
-// تعذّر جعله حتميّاً تحت SwiftShader headless (كما نصّ رأس الملفّ) — يُعلَّم @visual
-// (توقيع بصريّ يدويّ على متصفّح حقيقيّ)، ولا يُزيَّف نجاحاً. القياس صحيح للمستخدم الفعليّ.
-// نفس قيد المضلّع: جاهز حتميّاً عبر __hubmap، لكن Terra Draw لا يُهيَّأ headless
-// (data-draw-ready) — @visual حتى يُستقَرّ. مسار القيمة (الرسم⇒القياس⇒العرض بـ«كم»)
-// محروس حتميّاً في src/lib/measureDrawWiring.test.ts عبر lengthMeters+formatLength.
-// دَينٌ مُعلَن ومحروس: MAPHUB-WEBGL-VISUAL-DEBT-01 (خطّ الأساس ٢ — انظر
-// scripts/ci/visual_fixme_baseline_guard.py).
-test.fixme('الخطوة 2-3: رسم خطّ (هندسة حقيقيّة محقونة) ⇒ measure-length بـ«كم» @visual', async ({ page }) => {
+// رسم خطّ ⇒ measure-length — حاجزٌ حتميّ بالعلاجين نفسيهما (MAPHUB-WEBGL-VISUAL-DEBT-01):
+// اعتراضُ المضيفين الخارجيّين في seed.ts (فيُطلَق `load` ويُرفَع `data-draw-ready`)، وتقريبُ
+// الإحداثيّات إلى ٦ منازل مع تأكيد قبول Terra Draw للميزة. الحقنُ يتجاوز النقرَ المزدوج
+// الذي يُنهي LineString بالمؤشّر (غيرُ حتميّ مع إعادة رسم البلاطات)، والطولُ يمرّ بمسار
+// lengthMeters/turf الإنتاجيّ؛ وsrc/lib/measureDrawWiring.test.ts شاهدُ الوحدة عليه.
+test('الخطوة 2-3: رسم خطّ (هندسة حقيقيّة محقونة) ⇒ measure-length بـ«كم» @gating', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-line').click();
   // حتميّ: خطّ بطول ≥1كم بإحداثيات حقيقيّة عبر Terra Draw ⇒ lengthMeters/turf الحقيقيّ.
   await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { getDraw: () => unknown } }).__hubmap?.getDraw(), null, { timeout: 20_000 });
-  await page.evaluate(() => {
-    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => unknown } } }).__hubmap;
-    const [lng, lat] = h.center();
+  const added = await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => Array<{ valid: boolean; reason?: string }> } } }).__hubmap;
+    const r6 = (x: number) => Math.round(x * 1e6) / 1e6; // Terra Draw يرفض دقّةً مفرطة
+    const [lng, lat] = h.center().map(r6);
     const d = 0.02; // ~2كم ⇒ يظهر بوحدة «كم»
-    const coords = [[lng - d, lat], [lng, lat + d / 2], [lng + d, lat]];
-    h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'linestring' }, geometry: { type: 'LineString', coordinates: coords } }]);
+    const coords = [[lng - d, lat], [lng, lat + d / 2], [lng + d, lat]].map(([a, b]) => [r6(a), r6(b)]);
+    return h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'linestring' }, geometry: { type: 'LineString', coordinates: coords } }]);
   });
+  expect(added.map((r) => r.valid), JSON.stringify(added)).toEqual([true]);
   const len = page.getByTestId('measure-length');
   await expect(len).toBeVisible();
   await expect(len).toContainText('كم'); // قيمة طول حقيقيّة محسوبة (turf)

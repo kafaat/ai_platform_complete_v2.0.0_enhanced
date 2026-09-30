@@ -35,7 +35,10 @@ def _load():
 MOD = _load()
 
 WATCHED = "frontend/e2e/maphub-webgl.spec.ts"
-BASELINE_COUNT = MOD.BASELINE[WATCHED]["count"]
+#: الأساسُ الحقيقيّ صار 0 (أُغلِق MAPHUB-WEBGL-VISUAL-DEBT-01)، ولا يُقاس «النقصانُ بلا خفض»
+#: ولا «المرساة» على أساسٍ صفريّ (لا fixme يُنقَص ولا يُرسى). فالبنودُ تُقاس على أساسٍ
+#: مُركَّب ثابت في المعطيات المُركَّبة، والأساسُ الحقيقيّ يُقاس على الشجرة أدناه.
+BASELINE_COUNT = 2
 
 
 def _spec(count: int, *, anchor: bool = True) -> str:
@@ -52,7 +55,12 @@ def _spec(count: int, *, anchor: bool = True) -> str:
 
 
 def _run(text: str | None) -> list[str]:
-    return MOD.violations({WATCHED: text})
+    real = MOD.BASELINE
+    MOD.BASELINE = {WATCHED: {**real[WATCHED], "count": BASELINE_COUNT}}
+    try:
+        return MOD.violations({WATCHED: text})
+    finally:
+        MOD.BASELINE = real
 
 
 def test_the_declared_baseline_passes():
