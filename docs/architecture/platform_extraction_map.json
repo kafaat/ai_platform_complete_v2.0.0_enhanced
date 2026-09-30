@@ -1426,7 +1426,7 @@
       "function": "agent_health_alias",
       "method": "GET",
       "path": "/api/agent/health",
-      "line": 47,
+      "line": 59,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/compat_gateway.py::GET /api/agent/health::agent_health_alias"
@@ -1436,7 +1436,7 @@
       "function": "indicators_readyz_alias",
       "method": "GET",
       "path": "/api/indicators/readyz",
-      "line": 30,
+      "line": 42,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/compat_gateway.py::GET /api/indicators/readyz::indicators_readyz_alias"
@@ -1446,7 +1446,7 @@
       "function": "raster_api_passthrough",
       "method": "GET",
       "path": "/api/raster/{path:path}",
-      "line": 113,
+      "line": 125,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/compat_gateway.py::GET /api/raster/{path:path}::raster_api_passthrough"
@@ -1456,7 +1456,7 @@
       "function": "vegetation_readyz_alias",
       "method": "GET",
       "path": "/api/vegetation/readyz",
-      "line": 42,
+      "line": 54,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/compat_gateway.py::GET /api/vegetation/readyz::vegetation_readyz_alias"
@@ -1466,7 +1466,7 @@
       "function": "vegetation_all_fields_passthrough",
       "method": "GET",
       "path": "/api/vegetation/v1/all_fields",
-      "line": 52,
+      "line": 64,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/compat_gateway.py::GET /api/vegetation/v1/all_fields::vegetation_all_fields_passthrough"
@@ -1476,7 +1476,7 @@
       "function": "vegetation_analyze_passthrough",
       "method": "GET",
       "path": "/api/vegetation/v1/analyze",
-      "line": 79,
+      "line": 91,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/compat_gateway.py::GET /api/vegetation/v1/analyze::vegetation_analyze_passthrough"
@@ -1486,7 +1486,7 @@
       "function": "weather_readyz_alias",
       "method": "GET",
       "path": "/api/weather/readyz",
-      "line": 36,
+      "line": 48,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/compat_gateway.py::GET /api/weather/readyz::weather_readyz_alias"
