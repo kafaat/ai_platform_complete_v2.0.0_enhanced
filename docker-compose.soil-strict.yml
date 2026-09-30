@@ -1,5 +1,7 @@
 # Production cutover override for canonical soil truth.
 # Apply only after GET /v1/soil/cutover/readiness returns can_enable_strict_soil=true.
+# Usage (overlay on the v9 base; CI renders exactly this merge):
+#   docker compose -f docker-compose.v9.yml -f docker-compose.soil-strict.yml up -d
 services:
   sahool-agriai-engine:
     environment:

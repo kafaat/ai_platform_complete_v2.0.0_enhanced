@@ -19,10 +19,10 @@ services:
   sahool-field-management:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
-  vegetation-analysis-service:
+  sahool-vegetation-analysis:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
-  sahool-raster:
+  sahool-raster-service:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
 

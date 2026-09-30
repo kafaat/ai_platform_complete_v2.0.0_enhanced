@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5459,
+    "files_scanned": 5460,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1523,
-      "tests": 1859,
+      "tests": 1860,
       "web": 459
     },
-    "unmapped_artifacts": 2215,
+    "unmapped_artifacts": 2216,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -652,10 +652,6 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
@@ -998,7 +994,7 @@
         "backend": 9,
         "routes": 20,
         "database": 24,
-        "events": 30,
+        "events": 29,
         "web": 0,
         "mobile": 0,
         "tests": 16,
@@ -2367,10 +2363,6 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
@@ -2486,7 +2478,7 @@
         "backend": 5,
         "routes": 94,
         "database": 14,
-        "events": 5,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 4,
@@ -15096,10 +15088,6 @@
         {
           "value": "site.irrigated @ mobile/sahool_app/test/field_forms/condition_corpus_data.dart:14",
           "score": 16
-        },
-        {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
-          "score": 12
         }
       ],
       "web": [],
@@ -15501,7 +15489,7 @@
         "backend": 3,
         "routes": 12,
         "database": 14,
-        "events": 9,
+        "events": 8,
         "web": 0,
         "mobile": 12,
         "tests": 21,
@@ -28665,10 +28653,6 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
-          "score": 12
-        },
-        {
           "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:928",
           "score": 12
         },
@@ -29114,7 +29098,7 @@
         "backend": 13,
         "routes": 95,
         "database": 14,
-        "events": 43,
+        "events": 42,
         "web": 1,
         "mobile": 0,
         "tests": 19,
@@ -43503,6 +43487,10 @@
     },
     {
       "path": "tests_v9/test_compose_odoo_db_separation.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_compose_overlays_render_onto_their_base.py",
       "kind": "tests"
     },
     {

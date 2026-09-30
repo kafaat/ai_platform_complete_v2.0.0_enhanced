@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5fc116a534fff8f8f86c01d499d98c4da4aade7176a42b691ad5c5c97dc51d7"
+          "content": "80c011d185c5b8cf22dc83c11a5ebdece25ae4402ff2d98b849b9986f8c48fb7"
         }
       ],
       "name": "docker-compose.production.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dae5f2f4b36336b2f824f009e9e06695cdbed4104a0a5710f1feb61c34aa9285"
+          "content": "5a5d61bddca93cddaf423daacc488402f1a23dd986b6d239b7f32bbf2bb9b1d8"
         }
       ],
       "name": "docker-compose.soil-strict.yml",

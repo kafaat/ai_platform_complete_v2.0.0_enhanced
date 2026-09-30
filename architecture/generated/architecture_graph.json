@@ -716,14 +716,6 @@
       "orphan": false
     },
     {
-      "id": "sahool-raster",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 1,
-      "orphan": false
-    },
-    {
       "id": "sahool-raster-backfill-scan-worker",
       "paths": [],
       "kind": "compose-service",
@@ -744,7 +736,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 4,
+      "outgoing": 5,
       "orphan": false
     },
     {
@@ -856,7 +848,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 3,
-      "outgoing": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1004,7 +996,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 10,
+      "outgoing": 9,
       "orphan": false
     },
     {
@@ -2458,34 +2450,34 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-raster",
+      "source": "sahool-raster-backfill-scan-worker",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-backfill-scan-worker",
+      "target": "sahool-postgres",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-cache-invalidation-worker",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-cache-invalidation-worker",
+      "target": "sahool-postgres",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "production-preflight",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.production.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -2630,6 +2622,12 @@
       "target": "postgis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
+    },
+    {
+      "source": "sahool-vegetation-analysis",
+      "target": "production-preflight",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.production.yml"
     },
     {
       "source": "sahool-vegetation-analysis",
@@ -2903,12 +2901,6 @@
     },
     {
       "source": "vegetation-analysis-service",
-      "target": "production-preflight",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.production.yml"
-    },
-    {
-      "source": "vegetation-analysis-service",
       "target": "raster-service",
       "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/main.py"
@@ -2988,12 +2980,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 125,
+    "nodes": 124,
     "edges": 320,
     "orphans": 5,
     "cycles": 0,
     "code_edges": 80,
     "compose_edges": 240
   },
-  "content_sha256": "de83b2482225a3457ef88d4cc83bc030d83beb38f018fd98b5db96bb4f9cb4d5"
+  "content_sha256": "bb3052f5592c458280d03b666a5f81c617a4c59f41db99f1e19034b560921e22"
 }

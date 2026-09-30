@@ -571,45 +571,115 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - name: Validate all compose files
+      # OVERLAY-VALIDATION-SKIPPED-BY-FILENAME-LIST-01: كانت هذه الخطوة تتخطّى سبعة ملفّات
+      # بقائمة أسماء («fragment/overlay»)، فلم يُصيَّر تراكُبٌ منها فوق أساسه قطّ. مقيس على
+      # b0c14b6d: `docker compose -f docker-compose.v9.yml -f docker-compose.production.yml
+      # config` ⇒ `service "sahool-raster" has neither an image nor a build context
+      # specified: invalid compose project` — أمرُ الإنتاج القانونيّ نفسُه لا يُقلِع.
+      # القاعدة الآن: ما يُصيِّره compose، لا اسمُ الملفّ. كلّ docker-compose*.yml يُصيَّر
+      # بالأمر الذي يُعلنه في رأسه (`# … docker compose -f <أساس> -f <نفسه> … up`) وإلّا
+      # مستقلّاً؛ وتراكُبٌ بلا ذلك السطر يفشل مستقلّاً فيحمرّ هنا بدل أن يُتخطّى بصمت.
+      # وكلّ خدمةٍ في الناتج المُصيَّر بلا image ولا build تُسقِط الخطوة صراحةً (لا نعتمد
+      # على أنّ نسخة compose في المشغّل تفرضها). الاستثناء الوحيد مُعلَّل ومُتحقَّق منه.
+      - name: Validate all compose files (rendered as deployed — overlays merged onto their base)
         run: |
           set -e
-          # env وهمي حتى لا تفشل قراءة متغيّرات ${VAR:?required} أثناء التحقّق فقط
           python3 - <<'EOF'
-          import glob, re
-          vs = set()
-          for f in glob.glob("docker-compose*.yml"):
-              vs |= set(re.findall(r'\$\{([A-Z0-9_]+)', open(f).read()))
-          open(".ci.env", "w").write("\n".join(f"{v}=dummy_{v.lower()}_0123456789abcdef" for v in sorted(vs)) + "\n")
-          EOF
-          for f in docker-compose*.yml; do
-            echo "─── Validating $f ───"
-            # odoo-snippet مقتطف (fragment) يُلصق داخل compose آخر، وليس ملفّاً مستقلاً.
-            # rag-kg-mcp تراكُب (overlay) يُشغَّل مع v9 (يعتمد qdrant/ollama/الشبكة من الأساس)
-            # فلا يصحّ التحقّق منه مستقلّاً.
-            # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
-            # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
-            # dev تراكُب تطوير (overlay): environment فقط (soft-fail + كوكي HTTP) فوق v9 ⇒ لا يصحّ standalone.
-            # evidence-lab مكدّس معزول زائل يُعلمِن منافذ المضيف (${EVIDENCE_*_PORT}) —
-            # لا يتوافق مع env الوهميّ لهذه الحلقة (يجعل المنفذ سلسلة). يُتحقَّق منه في
-            # workflow المخصّص .github/workflows/evidence-lab.yml بـenv حقيقيّ.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ] || [ "$f" = "docker-compose.production.yml" ] || [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
-            # 1. YAML syntax
-            python3 -c "import yaml; yaml.safe_load(open('$f'))"
-            # 2. Compose schema (docker compose config) مع env وهمي
-            docker compose --env-file .ci.env -f "$f" config --quiet || {
-              echo "❌ $f failed compose schema validation"
-              exit 1
-            }
-            echo "✓ $f valid"
-          done
-          echo "─── Validating docker-compose.v9.yml + docker-compose.v9.gpu.yml overlay ───"
-          python3 -c "import yaml; yaml.safe_load(open('docker-compose.v9.gpu.yml'))"
-          docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu config --quiet || {
-            echo "❌ v9 GPU overlay failed compose schema validation"
-            exit 1
+          import glob, json, re, subprocess, sys
+
+          import yaml
+
+          # ليس مستندَ compose أصلاً: جذره مفتاحُ خدمة (erp-bridge) يُلصَق داخل services: في
+          # ملفّ آخر. compose يرفضه مستقلّاً ومدموجاً (`additional properties 'erp-bridge'
+          # not allowed`). يُتحقَّق أدناه أنّه ما زال بلا services: — وإلّا سقط الاستثناء.
+          NOT_A_COMPOSE_DOCUMENT = {
+              "docker-compose.odoo-snippet.yml": "fragment pasted inside another file's services:",
           }
-          echo "✓ v9 GPU overlay valid"
+          # سطر الاستخدام الذي يكتبه كلّ تراكُب في رأسه، مثل
+          #   # docker compose -f docker-compose.v9.yml -f docker-compose.production.yml up -d
+          USAGE = re.compile(
+              r"^#[^\n]*?\bdocker compose((?:\s+(?:-f|--profile)\s+\S+)+)\s+(?:up|config)\b",
+              re.M,
+          )
+          # قيم وهميّة للمتغيّرات التي لا افتراضيّ لها فقط (${VAR} · ${VAR:?…} · ${VAR?…}).
+          # ما له افتراضيّ (${VAR:-x}) يُصيَّر بافتراضيّه كما في النشر — قيمةٌ وهميّة نصّيّة
+          # فوق منفذٍ افتراضيّ كانت تُفسد التصيير (evidence-lab) فتُبرِّر تخطّيه.
+          REQUIRED = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?=\}|:?\?)")
+
+
+          def compose_files():
+              return sorted(glob.glob("docker-compose*.yml"))
+
+
+          def render_plan():
+              """ملفّ ← وسائط `docker compose` التي تُصيِّره كما يُنشَر."""
+              plan = {}
+              for f in compose_files():
+                  if f in NOT_A_COMPOSE_DOCUMENT:
+                      continue
+                  m = USAGE.search(open(f, encoding="utf-8").read())
+                  if m is None:
+                      plan[f] = ["-f", f]
+                      continue
+                  args = m.group(1).split()
+                  files = [args[i + 1] for i in range(0, len(args), 2) if args[i] == "-f"]
+                  if f not in files or len(files) < 2:
+                      raise ValueError(f"{f}: usage line must merge the file onto a base: {args}")
+                  plan[f] = args
+              return plan
+
+
+          def write_dummy_env(path=".ci.env"):
+              names = set()
+              for f in compose_files():
+                  names |= set(REQUIRED.findall(open(f, encoding="utf-8").read()))
+              with open(path, "w", encoding="utf-8") as out:
+                  out.write("".join(f"{n}=dummy_{n.lower()}_0123456789abcdef\n" for n in sorted(names)))
+              return path
+
+
+          def services_without_image_or_build(rendered):
+              return sorted(
+                  name
+                  for name, spec in (rendered.get("services") or {}).items()
+                  if not spec.get("image") and not spec.get("build")
+              )
+
+
+          if __name__ == "__main__":
+              env_file = write_dummy_env()
+              failed = []
+              for f, args in render_plan().items():
+                  print(f"─── Validating {f}: docker compose {' '.join(args)} config ───", flush=True)
+                  for part in args[1::2]:
+                      if part.endswith(".yml"):
+                          yaml.safe_load(open(part, encoding="utf-8"))  # 1. YAML syntax
+                  # 2. Compose schema + merge, كما يُنشَر
+                  r = subprocess.run(
+                      ["docker", "compose", "--env-file", env_file, *args, "config", "--format", "json"],
+                      capture_output=True, text=True,
+                  )
+                  if r.returncode != 0:
+                      print(r.stderr, end="")
+                      print(f"❌ {f} failed compose render")
+                      failed.append(f)
+                      continue
+                  # 3. خدمةٌ في الناتج بلا image ولا build = اسمٌ في التراكُب لا يطابق الأساس
+                  orphans = services_without_image_or_build(json.loads(r.stdout))
+                  if orphans:
+                      print(f"❌ {f}: rendered services with neither image nor build: {orphans}")
+                      failed.append(f)
+                      continue
+                  print(f"✓ {f} valid")
+              for f, why in NOT_A_COMPOSE_DOCUMENT.items():
+                  doc = yaml.safe_load(open(f, encoding="utf-8"))
+                  if isinstance(doc, dict) and "services" in doc:
+                      print(f"❌ {f} now has services: — it is a compose document; drop its exclusion")
+                      failed.append(f)
+                  else:
+                      print(f"↷ {f} not rendered: {why}")
+              sys.exit(1 if failed else 0)
+          EOF
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern

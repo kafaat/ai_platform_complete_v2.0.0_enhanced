@@ -231,11 +231,11 @@ sahool-qdrant-seed,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,sahool-ollama-models,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.rag-kg-mcp.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
-sahool-raster,production-preflight,compose-depends-on,docker-compose.production.yml
 sahool-raster-backfill-scan-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-raster-backfill-scan-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-raster-cache-invalidation-worker,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-raster-cache-invalidation-worker,sahool-postgres,compose-depends-on,docker-compose.v9.yml
+sahool-raster-service,production-preflight,compose-depends-on,docker-compose.production.yml
 sahool-raster-service,raster-tiler-service,compose-depends-on,docker-compose.v9.yml
 sahool-raster-service,sahool-migrate,compose-depends-on,docker-compose.fixed.yml
 sahool-raster-service,sahool-postgres,compose-depends-on,docker-compose.fixed.yml
@@ -260,6 +260,7 @@ sahool-telegram-bot,sahool-redis,compose-depends-on,docker-compose.fixed.yml
 sahool-telegram-bot,sahool-redis,compose-depends-on,docker-compose.v9.yml
 sahool-tts-service,sahool-redis,compose-depends-on,docker-compose.v9.yml
 sahool-unified-odoo,postgis,compose-depends-on,docker-compose.unified.yml
+sahool-vegetation-analysis,production-preflight,compose-depends-on,docker-compose.production.yml
 sahool-vegetation-analysis,sahool-nats,compose-depends-on,docker-compose.fixed.yml
 sahool-video-processor,sahool-edge,compose-depends-on,docker-compose.v9.gpu.yml
 sahool-video-processor,sahool-edge,compose-depends-on,docker-compose.v9.yml
@@ -305,7 +306,6 @@ vegetation-analysis-service,decision-service,code-reference,services/vegetation-
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/anomalies.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/baselines.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
-vegetation-analysis-service,production-preflight,compose-depends-on,docker-compose.production.yml
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/main.py
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/post_execution_bridge.py
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/routers/health.py

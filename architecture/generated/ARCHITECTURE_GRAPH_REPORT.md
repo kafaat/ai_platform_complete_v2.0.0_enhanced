@@ -4,7 +4,7 @@ Repository-derived evidence only; runtime activation is not implied.
 
 ## Summary
 
-- Nodes: 125
+- Nodes: 124
 - Edges: 320
 - Code-reference edges: 80
 - Compose dependency edges: 240

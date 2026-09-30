@@ -7220,6 +7220,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compose_overlays_render_onto_their_base.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_redis_health.py",
     "kind": "tests"
   },
