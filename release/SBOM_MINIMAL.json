@@ -13625,7 +13625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f987372cc4e5d195d4779771e969353b1c3e5a3280fcbdddd10d4e8b6e91069"
+          "content": "c4193c66176c67be6dfd1cd309203db89ae141245921efd26902a447fce8d4a9"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",
