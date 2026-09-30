@@ -449,7 +449,8 @@ def _run_shipped_step(tmp_path: Path, registry: str, *, with_guard: bool) -> tup
     )
     python_dir = str(Path(sys.executable).parent)
     proc = sp.run(
-        ["bash", "-c", script],
+        ["bash", "-s"],
+        input=script,
         cwd=root,
         capture_output=True,
         text=True,
@@ -548,6 +549,9 @@ def _run_pin_block(
         (tmp_path / "services/sahool-platform/api/requirements.txt").write_text(
             "\n".join(requirements) + "\n", encoding="utf-8"
         )
+    # The pin logic is under test, not the child's stderr encoding under C locale.
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "utf-8"
     return subprocess.run(
         [sys.executable, "-"],
         input=_extract_block("PINPY"),
@@ -555,6 +559,7 @@ def _run_pin_block(
         text=True,
         encoding="utf-8",
         cwd=tmp_path,
+        env=env,
         timeout=120,
     )
 
@@ -627,6 +632,8 @@ def _run_ruff_pin_block(
         empty.mkdir(parents=True, exist_ok=True)
         env["PATH"] = str(empty)
 
+    # Preserve Arabic error messages in the child even when the parent uses C locale.
+    env["PYTHONIOENCODING"] = "utf-8"
     return subprocess.run(
         [sys.executable, "-"],
         input=_extract_block("RUFFPINPY"),
