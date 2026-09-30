@@ -169,6 +169,51 @@ def test_predict_metadata_surfaces_verified_artifact_digest(monkeypatch):
     assert body["metadata"]["model"] == "sam2"
 
 
+@pytest.mark.parametrize(
+    "approved_digest,reason_code",
+    [
+        ("", "checkpoint_digest_missing_or_invalid"),  # .env.example وافتراضُ compose كما هما
+        ("a" * 64, "weights_missing"),  # بصمةٌ معتمدة والأوزانُ غائبة
+    ],
+    ids=["env_example_digest_empty", "digest_set_weights_absent"],
+)
+def test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason(
+    monkeypatch, tmp_path, approved_digest, reason_code
+):
+    """الأوزانُ غائبة (آلةُ التدقيق الحيّ 2026-09-29): التطبيقُ الحقيقيّ بحدث إقلاعه.
+
+    مقيسٌ 2026-09-30 بـTestClient: العمليّةُ لا تسقط (فلا حلقةَ إعادة تشغيل)، ``/healthz``
+    200 — وهو ما يسأله فحصُ Docker في v9 عمداً (حياةٌ لا جاهزيّة) — و``/readyz`` 503
+    بسببٍ مسمًّى، و``/v1/predict`` 503 ``model_not_loaded`` بلا هندسةٍ مختلَقة.
+    """
+    from fastapi.testclient import TestClient
+
+    token = "t" * 40
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", token)
+    monkeypatch.setenv("SAM2_CHECKPOINT", str(tmp_path / "sam2_hiera_large.pt"))
+    monkeypatch.setenv("SAM2_CHECKPOINT_SHA256", approved_digest)
+    main = _load_main(monkeypatch)
+
+    with TestClient(main.app) as client:  # يُشغِّل حدثَ الإقلاع ⇒ _load_model()
+        alive = client.get("/healthz")
+        ready = client.get("/readyz")
+        predict = client.post(
+            "/v1/predict",
+            json={"mode": "auto", "field_bbox": [44.1, 15.3, 44.2, 15.4]},
+            headers={"X-Agent-Token": token},
+        )
+
+    assert alive.status_code == 200
+    assert ready.status_code == 503
+    body = ready.json()
+    assert (body["status"], body["model_loaded"]) == ("degraded", False)
+    assert body["reason_code"] == reason_code
+    assert body["artifact_digest_verified"] is False
+    assert predict.status_code == 503
+    assert predict.json()["detail"]["error"] == "model_not_loaded"
+    assert "geometry" not in predict.json()
+
+
 def test_every_documented_sam2_compose_surface_wires_checkpoint_digest():
     for rel in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
         text = (ROOT / rel).read_text(encoding="utf-8")
