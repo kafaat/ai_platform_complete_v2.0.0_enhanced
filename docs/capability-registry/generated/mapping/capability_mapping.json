@@ -10100,7 +10100,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 16
         },
         {
@@ -10148,15 +10148,15 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
           "score": 16
         },
         {
@@ -16970,7 +16970,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 18
         },
         {
@@ -17018,15 +17018,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
           "score": 18
         },
         {
@@ -22578,7 +22578,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 18
         },
         {
@@ -22626,15 +22626,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
           "score": 18
         },
         {
@@ -23474,7 +23474,7 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1355",
+          "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 15
         },
         {
@@ -23522,15 +23522,15 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1553",
+          "value": "/v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1548",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1619",
+          "value": "/v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1614",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1281",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1276",
           "score": 15
         },
         {

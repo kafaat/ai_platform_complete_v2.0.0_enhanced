@@ -252,10 +252,10 @@ raster-service,services/raster-service/routers/fields.py,971,GET,/v1/fields/{fie
 raster-service,services/raster-service/routers/fields.py,1050,POST,/v1/fields/{field_id}/prescription,field_prescription,versioned
 raster-service,services/raster-service/routers/fields.py,1129,POST,/v1/fields/{field_id}/change,field_change,versioned
 raster-service,services/raster-service/routers/fields.py,1186,GET,/v1/fields/{field_id}/timeseries,field_timeseries,versioned
-raster-service,services/raster-service/routers/fields.py,1282,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile,versioned
-raster-service,services/raster-service/routers/fields.py,1356,GET,/v1/fields/{field_id}/available-dates,field_available_dates,versioned
-raster-service,services/raster-service/routers/fields.py,1554,GET,/v1/fields/{field_id}/terrain,field_terrain,versioned
-raster-service,services/raster-service/routers/fields.py,1620,GET,/v1/fields/{field_id}/tilejson,field_tilejson,versioned
+raster-service,services/raster-service/routers/fields.py,1277,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile,versioned
+raster-service,services/raster-service/routers/fields.py,1351,GET,/v1/fields/{field_id}/available-dates,field_available_dates,versioned
+raster-service,services/raster-service/routers/fields.py,1549,GET,/v1/fields/{field_id}/terrain,field_terrain,versioned
+raster-service,services/raster-service/routers/fields.py,1615,GET,/v1/fields/{field_id}/tilejson,field_tilejson,versioned
 raster-service,services/raster-service/routers/imagery.py,22,GET,/v1/imagery/backfill/policy,historical_backfill_policy,versioned
 raster-service,services/raster-service/routers/imagery.py,44,GET,/v1/imagery/quality/policy,imagery_quality_policy,versioned
 raster-service,services/raster-service/routers/imagery.py,78,POST,/v1/imagery/scenes/rank,rank_imagery_scenes,versioned
