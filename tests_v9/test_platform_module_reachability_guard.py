@@ -118,3 +118,54 @@ def test_the_container_path_maps_to_the_service_root_not_the_repository_root():
     path, platform_rel = resolved
     assert platform_rel == "workers/canonical_execution_learning_worker.py"
     assert path == ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+
+
+# ── ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01 ──────────────────────
+#
+# الأساسُ يشترط نثراً «مستهلكاً إنتاجيّاً يُبلَغ من جذرٍ تنفيذيّ»، والحارسُ كان يطبع
+# ``inherited (reported, not blocking)`` ويخرج بصفر قبل قبول وحدةٍ ميتة وبعده.
+
+
+def _run_check(guard, monkeypatch, verdict) -> int:
+    monkeypatch.setattr(guard, "classify", lambda: verdict)
+    monkeypatch.setattr("sys.argv", ["platform_module_reachability_guard.py", "--check"])
+    return guard.main()
+
+
+def test_a_module_admitted_without_an_executable_root_blocks(monkeypatch, capsys):
+    """الحادثةُ بشكلها: وحدةٌ في الأساس مستورِدُها اختبارٌ وحده ⇒ طرفيّة ⇒ ``--check`` يحمرّ
+    باسمها. تُحاكى بقلب وحدةٍ حيّةٍ في الأساس إلى طرفيّة — لا بتعديل الأساس."""
+    guard = _load()
+    verdict = guard.classify()
+    victim = "api/field_state_projection.py"
+    assert verdict[victim] in guard.COUNTABLE and victim not in guard.INHERITED_UNREACHABLE
+    assert _run_check(guard, monkeypatch, {**verdict, victim: guard.TERMINAL}) == 1
+    out = capsys.readouterr().out
+    assert "admitted to the platform baseline with no executable root" in out
+    assert victim in out
+
+
+def test_the_named_inherited_debt_does_not_block(monkeypatch, capsys):
+    """الموروثُ المُسمّى يبقى مُبلَّغاً لا حاجباً — وإلّا حُجِبت الشجرةُ كلُّها على دَينٍ قديم."""
+    guard = _load()
+    assert _run_check(guard, monkeypatch, guard.classify()) == 0
+    assert "inherited (reported, not blocking)" in capsys.readouterr().out
+
+
+def test_the_inherited_list_is_real_platform_modules_in_the_baseline():
+    """لا مدخلَ شبحاً: كلُّ اسمٍ موروث وحدةُ منصّةٍ على القرص وفي الأساس. وقائمةٌ تتّسع
+    بأسماءٍ لا وجود لها تصير باباً يُمرَّر منه اسمٌ مستقبليّ بلا قياس."""
+    import json
+
+    guard = _load()
+    files = guard.platform_modules()
+    baseline = set(
+        json.loads(
+            (ROOT / "docs/architecture/platform_python_module_baseline.json").read_text(
+                encoding="utf-8"
+            )
+        )["modules"]
+    )
+    ghosts = sorted(m for m in guard.INHERITED_UNREACHABLE if m not in files or m not in baseline)
+    assert not ghosts, ghosts
+    assert not guard.INHERITED_UNREACHABLE & guard.FROZEN_UNREACHABLE

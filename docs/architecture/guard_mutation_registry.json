@@ -1073,6 +1073,13 @@
           "replace": "(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+|[A-Z][A-Z0-9_.]*)(?=\\s|$)\"",
           "test": "tests_v9/test_gap_heading_state_guard.py",
           "why": "توسيعُ الشكل ليقبل الكلمة الكبيرة المفردة ⇒ `### HIL SQL follow-up` و`### MCP review follow-up` — عنوانا قسمٍ فوق جدولٍ تُقرأ صفوفُه أصلاً — يُبلَّغ عنهما عطلاً. وحقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ، فتصير الحمايةُ صفراً."
+        },
+        {
+          "expect": "test_an_alias_that_does_not_resolve_in_one_hop_is_reported",
+          "find": "        elif target in alias_ids:\n",
+          "replace": "        elif False:\n",
+          "test": "tests_v9/test_brain_annotated_supersession_guard.py",
+          "why": "قبولُ لقبٍ هدفُه لقبٌ بدوره ⇒ سلسلةٌ تُخفي أين تعيش الحالة، والمعرِّفان كلاهما خارج كلّ عدّ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
         }
       ]
     },
@@ -1183,6 +1190,13 @@
           "replace": "if False:  # mutated: ملفُّ القيود يُقبَل ولو هجرته CI\n",
           "test": "tests_v9/test_local_preflight_contract.py",
           "why": "ملفُّ قيودٍ لا تُحيل إليه CI إعلانٌ لا يحكم شيئاً: تُعدَّل الوظيفةُ إلى `pip install ruff` طليقاً ويبقى المحلّيُّ يقارن بملفٍّ **لا تقرؤه البوّابة** — أخضرُ عن سؤالٍ لم يعد مطروحاً. ويُقرأ البندُ من أسطر `run:` وحدَها لا من نصٍّ خام، وإلّا عُدَّ شرحُ الوظيفة أمراً — وقع ذلك فعلاً أثناء البناء (`SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01`)."
+        },
+        {
+          "expect": "test_the_tail_names_every_failure_and_ends_with_the_count",
+          "find": "    failed_steps+=(\"$label ($rc)\")\n",
+          "replace": "",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "بوّابةٌ تسقط ولا يُسجَّل اسمُها ⇒ الذيلُ يعود عدداً بلا أسماء، فقارئُ الذيل يرى «إخفاقٌ واحد» والخلاصةُ تقول اثنين (LESSON-READ-SUMMARY-NOT-TAIL-01)"
         }
       ]
     },
@@ -1239,6 +1253,13 @@
           "replace": "",
           "test": "tests_v9/test_brain_append_only_guard.py",
           "why": "AN-APPEND-ONLY-JOURNAL-OUTSIDE-THE-APPEND-ONLY-LIST-01: إسقاطُ المسار يُعيد الحالةَ التي سمحت لـ`b067f92c` (رأسُ #1061 المدموج) بحذف المدخلتين E-2026-09-21-06 وE-2026-09-21-07 (٣٦٣٧ بايت) من سجلّ الإثبات بكلّ بوّابةٍ خضراء، فلزمت شريحةُ استرجاع (#1062). و`brain_append_only_guard` يستورد هذه القائمةَ بعينها، فغيابُ الملفّ عنها كان غيابَ الحراسة عنه — حارسٌ قائمٌ يُقرَأ حمايةً ولا يحمي."
+        },
+        {
+          "expect": "test_every_tracked_self_declared_generated_file_is_classified_generated",
+          "find": "    \".generated.\",\n",
+          "replace": "    \".generated.json\",\n",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "why": "عودةُ العلامة إلى `.generated.json` وحدَها ⇒ ثمانيةُ مصنوعاتٍ مُعلَنة (csv/md/ts) تُقرأ مصدراً فتقف الأداةُ طالبةً دمجاً يدويّاً لمصنوعٍ مولَّد (LESSON-MERGED-GENERATED-ARTIFACTS-01)"
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
@@ -1356,6 +1377,13 @@
           "find": "    \"runtime_certification_gate.py\": -1,",
           "replace": "    \"runtime_certification_gate.py\": 0,  # mutated: lexical order runs evidence consumer first",
           "why": "Evidence maturity يستهلك runtime_certification_summary؛ إعادة المنتج إلى tier الافتراضي تجعل capability_evidence_maturity_engine يسبقه أبجدياً في fix pass."
+        },
+        {
+          "expect": "test_my_own_commit_during_the_sweep_is_not_blamed_on_a_guard",
+          "find": "    moved = head_before != head_after\n",
+          "replace": "    moved = False\n",
+          "test": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+          "why": "تجاهلُ `HEAD` يُعيد نسبةَ إيداعِ المُشغِّل أثناء المكنسة إلى «حارس كتب أثناء الفحص» — الحادثةُ المقيسة: ملفّا release/ أُودِعا أثناء التشغيل فاتُّهِم حارسٌ لم يكتب، ورسالةٌ كاذبةٌ مرّةً تُقرأ ضجيجاً في المرّة التي يكتب فيها حارسٌ حقّاً"
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
@@ -3109,6 +3137,12 @@
           "find": "    workflows = ROOT / \".github/workflows\"",
           "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
           "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
+        },
+        {
+          "expect": "test_an_alias_whose_target_is_not_registered_is_reported",
+          "find": "    for alias in report.get(\"unresolved_aliases\", []):\n",
+          "replace": "    for alias in []:\n",
+          "why": "نزعُ البند ③ ⇒ وسمُ `alias` نحو معرِّفٍ لا وجود له يُخرِج صفّاً `open` من كلّ عدّ بلا حارسٍ يحمرّ — مقيسٌ على السجلّ الحيّ ٧٣ ⇒ ٧٢ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
         }
       ],
       "test": "tests_v9/test_brain_annotated_supersession_guard.py"
@@ -4539,6 +4573,12 @@
           "replace": "    for key in sorted(set()):",
           "test": "tests_v9/test_blocking_surface_freeze.py",
           "why": "نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983"
+        },
+        {
+          "expect": "test_a_crashing_conftest_whose_message_says_failed_is_not_a_wrong_test",
+          "find": "    for match in _SUMMARY_LINE.finditer(_ANSI.sub(\"\", out)):\n",
+          "replace": "    if any(m in out for m in (\" passed\", \" failed\", \" error\")):\n        return True\n    for match in _SUMMARY_LINE.finditer(_ANSI.sub(\"\", out)):\n",
+          "why": "عودةُ المطابقة الحرّة على المخرَج كلِّه ⇒ انهيارُ conftest برسالةٍ آخرُها `failed` يُقرأ «pytest عمل» فتُبلَّغ كلُّ طفرةٍ «حمرّت بغير الاختبار المُتوقَّع» (٢٩ من ٢٩)"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
@@ -5015,6 +5055,12 @@
           "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
           "replace": "    inside = PLATFORM / tail\n    if False:",
           "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
+        },
+        {
+          "expect": "test_a_module_admitted_without_an_executable_root_blocks",
+          "find": "    if args.check and admitted_unreachable:\n",
+          "replace": "    if False:\n",
+          "why": "نزعُ حجبِ القبول ⇒ أرضيّةُ القبول تعود نثراً في ملفّ الأساس: وحدةٌ مستورِدُها الوحيدُ اختبارُها تدخل بتحرير ملفَّي JSON والحارسُ rc=0 قبلها وبعدها (ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01)"
         }
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"

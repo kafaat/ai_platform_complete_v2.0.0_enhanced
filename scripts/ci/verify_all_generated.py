@@ -551,6 +551,61 @@ def tree_state() -> str:
     return "\n".join(sorted(proc.stdout.splitlines()))
 
 
+def head_sha() -> str:
+    """``HEAD`` لحظةَ القياس — الطرفُ الثاني الذي لا يراه ``tree_state()``.
+
+    ``SWEEP-SELF-CHECK-CANNOT-TELL-A-GUARD-WRITE-FROM-MY-OWN-COMMIT-01``: حالةُ
+    ``--porcelain`` تتغيّر بكتابة حارس **وبإيداع المُشغِّل نفسِه** على حدٍّ سواء —
+    ملفّان مُعدَّلان عند البدء ونظيفان عند النهاية لأنّهما أُودِعا أثناء التشغيل. والفرقُ
+    بين الفاعلَين لا يُرى إلّا بـ``HEAD``. سلسلةٌ فارغة إن تعذّرت القراءة: ``tree_state()``
+    يرفع الاستثناء المفصَّل على غياب git، فلا يُكرَّر هنا.
+    """
+    proc = subprocess.run(  # noqa: S603 — أمر ثابت
+        ["git", "rev-parse", "--verify", "-q", "HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def tree_change_report(before: str, after: str, head_before: str, head_after: str) -> list[str]:
+    """سطورُ الإخفاق حين يتغيّر شيءٌ بين طرفَي الفحص — فارغةٌ إن سكنت الشجرة.
+
+    **الحجبُ باقٍ في الحالين؛ الذي يتغيّر النسبة.** المقيس في الحادثة: ٧٤ خطوة ✓ ثمّ
+    «حارس كتب أثناء الفحص» تُسمّي ملفَّي ``release/`` — ولم يكتبهما حارس: كانا مُعدَّلين
+    غيرَ مُودَعين عند البدء وأُودِعا أثناء التشغيل. وإعادةُ التشغيل على شجرةٍ ساكنة
+    ``rc=0``. رسالةٌ تتّهم حارساً لم يفعل تُدرِّب قارئها على تجاهلها في المرّة التي
+    يكون فيها الحارسُ يكتب حقّاً.
+
+    و``HEAD`` المتحرّك **وحده** يحجب أيضاً ولو تساوت الحالتان: ``checkout`` لفرعٍ آخر
+    نظيفٍ أثناء التشغيل يُبقي ``--porcelain`` فارغاً في الطرفين بينما قرأت الخطواتُ
+    شجرتين مختلفتين — فلا حكمَ واحدٌ يصف ما قِيس.
+    """
+    moved = head_before != head_after
+    if before == after and not moved:
+        return []
+    delta = sorted(set(after.splitlines()) ^ set(before.splitlines()))
+    if moved:
+        lines = [
+            "  ✗ الشجرةُ **و**`HEAD` تحرّكا أثناء الفحص — "
+            f"{head_before[:12] or '؟'} ⇒ {head_after[:12] or '؟'}.",
+            "      الأرجح إيداعٌ (أو checkout) منك أثناء التشغيل، لا حارسٌ كتب: ما قِيس",
+            "      خليطٌ من شجرتين فلا يصف أيّاً منهما. أعِد التشغيل على شجرةٍ ساكنة؛",
+            "      فإن تكرّر التغيُّر و`HEAD` ثابت فهو حارسٌ يكتب حقّاً.",
+        ]
+    else:
+        lines = [
+            "  ✗ حارس كتب أثناء الفحص — الشجرة تغيّرت بين بدايته ونهايته و`HEAD` ثابت:",
+        ]
+    lines += [f"      {line}" for line in delta]
+    if not moved:
+        lines.append("      انحراف أُصلِح صامتاً وضاع دليله قبل أن يُقرأ في git diff.")
+    return lines
+
+
 def unreferenced_generators() -> list[str]:
     """مولِّدات في الشجرة **لا يذكرها أيّ workflow** — عمياء عن الاكتشاف.
 
@@ -714,14 +769,12 @@ def main() -> int:
     else:
         # دفاع إضافي بعد إغلاق CHECK-STEPS-MUTATE-THE-TREE-01: الحرّاس المعروفة
         # صارت قراءة فقط، لكن مقارنة حالة الشجرة تمنع أي حارس مستقبلي من إعادة العيب.
-        before = tree_state()
+        before, head_before = tree_state(), head_sha()
         failed = bool(check_all(steps))
-        after = tree_state()
-        if before != after:
-            print("\n  ✗ حارس كتب أثناء الفحص — الشجرة تغيّرت بين بدايته ونهايته:")
-            for line in sorted(set(after.splitlines()) ^ set(before.splitlines())):
-                print(f"      {line}")
-            print("      انحراف أُصلِح صامتاً وضاع دليله قبل أن يُقرأ في git diff.")
+        after, head_after = tree_state(), head_sha()
+        changed = tree_change_report(before, after, head_before, head_after)
+        if changed:
+            print("\n" + "\n".join(changed))
             failed = True
         if failed:
             print("\nانحراف في المصنوعات المولَّدة — شغّل --fix ثمّ راجع الفرق قبل الالتزام.")

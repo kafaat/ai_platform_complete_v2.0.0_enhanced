@@ -95,6 +95,166 @@ FROZEN_UNREACHABLE = frozenset(
 )
 
 
+# ── `ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01` ───────────────────
+#
+# ملفُّ الأساس يشترط في نثره أرضيّةً واحدةً لقبول وحدة (``ci10_knowledge_layer_note``:
+# «admitted on ONE ground only - it has a production consumer» · ``persisted_agronomic_
+# sor_chain_note``: «REACHABLE FROM A MOUNTED ROUTE, measured»)، ولا يفرضها شيء: السطرُ
+# أدناه كان ``inherited (reported, not blocking)``، فشُغِّل الحارسُ قبل تسجيل
+# ``api/irrigation_decision_evidence_chain.py`` (مستورِدُه الوحيد ملفُّ اختباره) وبعده
+# فأعطى ``rc=0`` في الحالتين والفرقُ ``138 ⇐ 139``. والحاجبان الآخران عدديٌّ وهُويّاتيّ
+# يُرضَيان بتحرير ملفَّي JSON.
+#
+# **راتشِتٌ بالهُويّة لا بالعدد:** الموروثُ مُسمّى هنا كما قِيس (١٣٩ على ``bcb7f0ed``)
+# فلا يُحجَب عليه؛ ووحدةٌ **تدخل الأساسَ بلا جذرٍ تنفيذيّ** وليست في القائمة ⇒ ``--check``
+# يحمرّ باسمها. والهُويّة لأنّ العددَ وحده يُرضى بمبادلة: وحدةٌ تُشفى وأخرى تدخل ميتةً
+# والرقمُ ثابت. SHRINK-ONLY كـ``FROZEN_UNREACHABLE``: مدخلٌ يخرج حين تكسب وحدتُه جذراً
+# (يُبلَّغ أدناه)، ولا يُضاف شيءٌ بلا قرار مالكٍ صريح بقبول شيفرةٍ لا يبلغها شيء.
+INHERITED_UNREACHABLE = frozenset(
+    {
+        "api/agronomic_context_composer.py",
+        "api/chat_proxy_reference.py",
+        "api/command_dispatcher.py",
+        "api/controller_edge_adapter.py",
+        "api/crop_stress_ingestion.py",
+        "api/crop_stress_memory_service.py",
+        "api/crop_stress_store.py",
+        "api/evidence_policy.py",
+        "api/field_aggregate_ports.py",
+        "api/field_boundary_contracts.py",
+        "api/field_boundary_pipeline.py",
+        "api/field_runtime_cohesion.py",
+        "api/field_type_catalog.py",
+        "api/field_workspace_completion_contract.py",
+        "api/field_workspace_route_contract.py",
+        "api/gdd_shadow.py",
+        "api/gis_phase7_enterprise.py",
+        "api/gis_phase8_global_scale.py",
+        "api/irrigation_activation_gate.py",
+        "api/irrigation_authoritative_reservation.py",
+        "api/irrigation_authoritative_resolver.py",
+        "api/irrigation_capacity_reservation.py",
+        "api/irrigation_commissioning_certification.py",
+        "api/irrigation_decision_evidence_chain.py",
+        "api/irrigation_dispatch_relay.py",
+        "api/irrigation_engineering_contracts.py",
+        "api/irrigation_execution_request_port.py",
+        "api/irrigation_path_query.py",
+        "api/irrigation_reservation_adapter.py",
+        "api/trial_randomization.py",
+        "core/activity_log.py",
+        "core/agri_tools/__init__.py",
+        "core/agri_tools/registry.py",
+        "core/agri_tools/tools/__init__.py",
+        "core/agri_tools/tools/fertilizer.py",
+        "core/agri_tools/tools/index_explorer.py",
+        "core/agri_tools/tools/irrigation_volume.py",
+        "core/agri_tools/tools/pivot_coverage.py",
+        "core/agri_tools/tools/polygon_area.py",
+        "core/ai_artifacts.py",
+        "core/connectors/__init__.py",
+        "core/connectors/base.py",
+        "core/conversation_tree.py",
+        "core/crop_inference.py",
+        "core/crop_portfolio.py",
+        "core/daily_agronomist_full.py",
+        "core/daily_ai_brief.py",
+        "core/data_completeness.py",
+        "core/data_inventory.py",
+        "core/data_quality_guard.py",
+        "core/day_zero_advisory.py",
+        "core/decision_firewall.py",
+        "core/decision_regression.py",
+        "core/district_baseline.py",
+        "core/engines/__init__.py",
+        "core/engines/deficit_irrigation.py",
+        "core/engines/fertility.py",
+        "core/engines/fuzzy.py",
+        "core/engines/pesticide.py",
+        "core/engines/planting_window.py",
+        "core/engines/suitability.py",
+        "core/engines/supplemental_irrigation.py",
+        "core/engines/water_cost.py",
+        "core/evidence_class.py",
+        "core/execution_control_plane.py",
+        "core/farm_ledger.py",
+        "core/farm_memory.py",
+        "core/farmer_agency.py",
+        "core/feature_store.py",
+        "core/feedback_closure.py",
+        "core/field_context_coordinator.py",
+        "core/field_event_sourcing.py",
+        "core/field_lifecycle.py",
+        "core/field_state_replay_bridge.py",
+        "core/field_trial_design.py",
+        "core/harvest_feedback.py",
+        "core/historical_loader.py",
+        "core/historical_onboarding.py",
+        "core/human_feedback_learning.py",
+        "core/hybrid_rag_retrieval.py",
+        "core/identity.py",
+        "core/implementation_verification.py",
+        "core/kc_to_fao56_bridge.py",
+        "core/kg_autoseed.py",
+        "core/kg_graphql_readonly.py",
+        "core/knowledge_graph/__init__.py",
+        "core/learning/__init__.py",
+        "core/learning/calibration_loop.py",
+        "core/learning/model_selector.py",
+        "core/learning/recommendation_log.py",
+        "core/loop_referential_integrity.py",
+        "core/machinery_as_applied.py",
+        "core/mcp/__init__.py",
+        "core/mcp/independent_servers.py",
+        "core/mcp_service_servers.py",
+        "core/mcp_tool_registry.py",
+        "core/measurement.py",
+        "core/mlops_registry.py",
+        "core/mlops_runtime.py",
+        "core/multi_season_analytics.py",
+        "core/practice_promotion.py",
+        "core/prescription_exports.py",
+        "core/production_readiness_gate.py",
+        "core/provenance.py",
+        "core/rag/__init__.py",
+        "core/rag/production_qdrant.py",
+        "core/recommendation_ponytail.py",
+        "core/recommendation_replay.py",
+        "core/resumable_sse.py",
+        "core/resumable_stream.py",
+        "core/review_fork.py",
+        "core/salinity_capability.py",
+        "core/schema_factory.py",
+        "core/sensor_intake.py",
+        "core/sla_monitor.py",
+        "core/soil_climate_sources.py",
+        "core/soil_recommendations.py",
+        "core/source_of_truth.py",
+        "core/spatial/__init__.py",
+        "core/spatial/bivariate_raster.py",
+        "core/spatial/field_bundle.py",
+        "core/spatial/index_scheduler.py",
+        "core/spatial/indicators.py",
+        "core/spatial/map_layer.py",
+        "core/spatial/raster_export.py",
+        "core/spray_readiness.py",
+        "core/terroir_index.py",
+        "core/transfer_learning.py",
+        "core/vrt_manual_maps.py",
+        "core/weather_overlay_pipeline.py",
+        "core/weather_sources.py",
+        "knowledge/__init__.py",
+        "knowledge/conservative_rag.py",
+        "knowledge/farmer_knowledge.py",
+        "learn_from_harvest.py",
+        "smoke_e2e_test.py",
+        "storage/__init__.py",
+        "storage/lite_store.py",
+        "tools_check_doc_consistency.py",
+    }
+)
+
+
 def platform_modules() -> dict[str, Path]:
     out: dict[str, Path] = {}
     for path in sorted(PLATFORM.rglob("*.py")):
@@ -361,6 +521,25 @@ def main() -> int:
             "\n  ratchet: these are reachable now — remove them from FROZEN_UNREACHABLE:\n"
             + "\n".join(f"    {rel}" for rel in healed)
         )
+    # ── القبولُ يطلب أرضيّتَه: وحدةٌ في الأساس بلا جذرٍ تنفيذيّ وليست موروثةً مُسمّاة.
+    admitted_unreachable = sorted(set(unreachable_in_baseline) - INHERITED_UNREACHABLE)
+    healed_inherited = sorted(INHERITED_UNREACHABLE - set(unreachable_in_baseline))
+    if healed_inherited:
+        print(
+            "\n  ratchet: no longer inherited-unreachable — remove from INHERITED_UNREACHABLE:\n"
+            + "\n".join(f"    {rel}" for rel in healed_inherited)
+        )
+    if args.check and admitted_unreachable:
+        print(
+            "\n✗ modules admitted to the platform baseline with no executable root:\n"
+            + "\n".join(f"    {rel}" for rel in admitted_unreachable)
+            + "\n  the baseline admits a module on ONE ground — a production consumer reachable"
+            "\n  from a mounted route, a registered worker or an operator CLI. An importer that"
+            "\n  is a test (or is itself unreachable) is not that ground. Wire it, or leave it"
+            "\n  out of the baseline; inherited debt is named in INHERITED_UNREACHABLE and only"
+            "\n  shrinks."
+        )
+        return 1
     if args.check and offenders:
         print(
             "\n✗ canonical modules in the baseline with no executable root:\n"
@@ -369,9 +548,10 @@ def main() -> int:
             "unreachable does not wire anything."
         )
         return 1
-    # Reported, not blocking. The baseline carries inherited unreachable modules that
-    # predate this guard; failing on them would gate every change on debt it did not
-    # create. The blocking assertion above is scoped to the canonical-state class the
+    # Reported, not blocking — **for the named inherited set only** (INHERITED_UNREACHABLE
+    # above); a module outside it already failed ``--check``. The baseline carries inherited
+    # unreachable modules that predate this guard; failing on them would gate every change
+    # on debt it did not create. The blocking assertion above is scoped to the canonical-state class the
     # ownership rule actually governs. This number is printed so the debt stays visible
     # and can be driven down deliberately.
     if unreachable_in_baseline:

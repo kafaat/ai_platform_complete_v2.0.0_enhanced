@@ -273,3 +273,74 @@ def test_the_live_tree_has_exactly_one_closing_supersession_to_pay_for():
     ]
     assert closing == ["GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01"]
     assert report["contradictory_sections"] == {}
+
+
+# ── ③ اللقبُ يُحَلّ — BRAIN-HISTORICAL-GAP-ID-ALIAS-01 ─────────────────────────
+#
+# وسمُ `alias` يُخرِج المدخلَ من كلّ عدّ حالة. مقيسٌ على السجلّ الحيّ قبل هذا البند:
+# صفٌّ `open` يُوسَم لقباً نحو معرِّفٍ لا وجود له ⇒ `open` ٧٣ ⇒ ٧٢ والحارسُ أخضر.
+
+_TABLE = "| ID | الوصف | الحالة |\n|---|---|---|\n"
+
+
+def alias_registry(alias_state: str, extra_rows: str = "") -> str:
+    return (
+        "# سجلُّ الفجوات\n\n"
+        + _TABLE
+        + "| GAP-CANON-01 | الهويّةُ القانونيّة | **open** — تُتابَع هنا |\n"
+        + f"| OLD-NAME-01 | اسمٌ تاريخيّ | <!-- gap-registry: alias --> {alias_state} |\n"
+        + extra_rows
+    )
+
+
+def test_an_alias_whose_target_is_not_registered_is_reported():
+    """العطلُ بعينه: لقبٌ نحو معرِّفٍ لا وجود له يُخفي صفّاً بلا ثمن."""
+    out = run(alias_registry("**alias → `NO-SUCH-GAP-01`** — لا حالة"))
+    assert any("OLD-NAME-01" in f and "غيرُ مسجَّل" in f for f in out), out
+
+
+@pytest.mark.parametrize(
+    ("state", "extra", "reason"),
+    [
+        ("لقبٌ بلا هدفٍ مكتوب", "", "بلا هدف"),
+        ("**alias → `OLD-NAME-01`**", "", "هو نفسُه"),
+        (
+            "**alias → `OTHER-ALIAS-01`**",
+            "| OTHER-ALIAS-01 | لقبٌ آخر | <!-- gap-registry: alias --> "
+            "**alias → `GAP-CANON-01`** |\n",
+            "لقبٌ بدوره",
+        ),
+    ],
+    ids=["no-target", "self", "chain"],
+)
+def test_an_alias_that_does_not_resolve_in_one_hop_is_reported(state, extra, reason):
+    out = run(alias_registry(state, extra))
+    assert any("OLD-NAME-01" in f and reason in f for f in out), out
+
+
+def test_an_alias_to_a_registered_identity_passes():
+    """الحالةُ الصادقة تمرّ: لقبٌ إلى صفٍّ قائم — بالشكلين المكتوبين في السجلّ الحيّ."""
+    assert run(alias_registry("**alias → `GAP-CANON-01`** — حالتُه حالةُ الصفّ القانونيّ")) == []
+    assert run(alias_registry("alias_of: `GAP-CANON-01`")) == []
+
+
+def test_a_section_alias_to_a_heading_passes_and_to_nothing_is_reported():
+    """اللقبُ في سطر حالةِ قسمٍ (شكلُ `QDRANT-AUTH-EMPTY-SECRET-FAIL-OPEN-01`)."""
+    base = "# سجلّ\n\n## GAP-CANON-01 — قانونيّ\n\n- **الحالة:** open\n\n## OLD-NAME-01 — لقب\n\n"
+    ok = base + "- **الحالة:** <!-- gap-registry: alias --> لقبٌ للهويّة `GAP-CANON-01`.\n"
+    bad = base + "- **الحالة:** <!-- gap-registry: alias --> لقبٌ للهويّة `GAP-GONE-01`.\n"
+    assert run(ok) == []
+    assert any("OLD-NAME-01" in f for f in run(bad))
+
+
+def test_the_live_registry_aliases_all_resolve():
+    """البندُ يُدخَل عند أرضيّته: لقبا السجلّ الحيّ يُحَلّان، ولو زاد لقبٌ زاد معه ما يُقاس."""
+    text = (ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8")
+    report = MEASURE(text)
+    assert report["unresolved_aliases"] == []
+    aliases = sorted(
+        e["id"]
+        for e in report["non_state_rows"] + report["non_state_section_states"]
+        if e["kind"] == "alias"
+    )
+    assert aliases == ["QDRANT-AUTH-EMPTY-SECRET-FAIL-OPEN-01", "RAG-LIVE-01"]

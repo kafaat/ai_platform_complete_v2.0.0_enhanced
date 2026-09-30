@@ -309,8 +309,42 @@ def ran_at_all(out: str) -> bool:
     دليلاً في أيّ اتّجاه — والخلط بينهما وقع فعلاً: وُضِعت `--run` أوّلاً في وظيفة
     lint لا تُثبِّت pytest، فانهار المُشغِّل قبل جمع اختبار واحد وأُبلِغ عن ١٨
     «حمرّ بغير الاختبار المُتوقَّع». صحيحٌ حرفيّاً ويُرسِل قارئه إلى المكان الخطأ.
+
+    ── `RUNNER-CRASH-READS-AS-A-TEST-FAILURE-WHEN-ITS-MESSAGE-SAYS-FAILED-01` ──
+    **والصيغةُ الأولى لم تسدّ ما وُضِعت له.** كانت تطابق سلاسلَ حرّةً في المخرَج كلِّه
+    (``" passed"`` · ``" failed"`` · ``" error"``)، و``pyo3_runtime.PanicException: Python
+    API call failed`` تنتهي بـ``failed`` مسبوقةً بفراغ — فحُكِم على ٢٩ طفرةً من ٢٩ بأنّها
+    «حمرّت بغير الاختبار المُتوقَّع» وpytest لم يجمع اختباراً. مُعادٌ بـpytest حقيقيّ:
+    ``conftest`` ينهار بتلك الرسالة ⇒ ``rc=4`` بلا سطرِ خلاصة، والحكمُ القديم ``wrong_test``.
+
+    فالمرساةُ الآن **سطرُ الخلاصة الذي يطبعه pytest نفسُه** حين يبلغ نهاية جلسته: سطرٌ
+    كلُّه أعداد (``1 failed, 2 passed in 0.30s``)، محاطاً بـ``=`` أو عارياً (``-qq``).
+    ورسالةُ استثناءٍ ليست سطراً كهذا. **والدلالةُ لم تتغيّر:** ما كان يُعدّ «عمل» —
+    ``passed``/``failed``/``error(s)``/``no tests ran`` — هو ما يُعدّ الآن، على السطر لا المخرَج.
     """
-    return any(m in out for m in (" passed", " failed", " error", "no tests ran"))
+    for match in _SUMMARY_LINE.finditer(_ANSI.sub("", out)):
+        counts = match.group("counts")
+        if counts == "no tests ran":
+            return True
+        if {part.split(" ", 1)[1] for part in counts.split(", ")} & _RAN_OUTCOMES:
+            return True
+    return False
+
+
+#: رموزُ لون الطرفيّة تُنزَع قبل المطابقة: البيئةُ تُورَث إلى المُشغِّل (``FORCE_COLOR``
+#: مثلاً)، ومرساةُ شكل السطر لا تحتمل حشوها.
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+#: سطرُ خلاصة pytest كما قِيس على هذا الإصدار: ``==== 1 failed, 2 passed, 1 skipped,
+#: 1 xfailed, 1 warning, 1 error in 0.26s ====`` (``-q`` تحت ``-v`` في ``pytest.ini``) ·
+#: عارياً تحت ``-qq`` · ``no tests ran in 0.11s``. والمدّةُ اختياريّة.
+_SUMMARY_LINE = re.compile(
+    r"^=*[ \t]*(?P<counts>no tests ran|\d+ [a-z]+(?:, \d+ [a-z]+)*)"
+    r"(?: in [\d.]+s(?: \([\d:]+\))?)?[ \t]*=*[ \t]*$",
+    re.M,
+)
+#: نتائجُ تعني أنّ اختباراً جُمِع وبلغ التنفيذ. ``skipped``/``deselected``/``xfailed``
+#: وحدها لم تكن تُعدّ من قبل (``" failed"`` لا تطابق ``xfailed``) ولا تُعدّ الآن.
+_RAN_OUTCOMES = frozenset({"passed", "failed", "error", "errors"})
 
 
 _FAILED_RE = re.compile(r"^(?:FAILED|ERROR)\s+\S+::(\w+)", re.M)
