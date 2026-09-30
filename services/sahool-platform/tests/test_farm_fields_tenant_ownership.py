@@ -31,6 +31,15 @@ _TENANT = "00000000-0000-0000-0000-000000000001"
 _OTHER = "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
 
+_OWNED = "tenant_id = $1::uuid AND farm_id = $2"
+
+
+def _where(sql: str) -> str:
+    """مُسنَدُ WHERE مُطبَّعَ المسافات، بلا ORDER BY."""
+    clause = " ".join(sql.split()).split(" WHERE ", 1)[1]
+    return clause.split(" ORDER BY ", 1)[0]
+
+
 def _user() -> UserSchema:
     return UserSchema(user_id="u1", tenant_id=_TENANT, role=UserRole.MANAGER, name_ar="مدير")
 
@@ -83,7 +92,9 @@ def test_own_farm_lists_its_fields_with_the_authenticated_tenant(monkeypatch) ->
     assert resp.status_code == 200, resp.text
     assert [f["field_id"] for f in resp.json()] == ["fld-1"]
     assert [q[1] for q in conn.queries] == [(_TENANT, "frm_mine")] * 2
-    assert all("tenant_id = $1::uuid" in q[0] for q in conn.queries), conn.queries
+    # المُسنَد كاملاً لا وجودُ عبارةٍ فيه: ``farm_id = $2 OR tenant_id = $1::uuid`` يحمل العبارةَ
+    # نفسَها ويُسرِّب كلَّ المزارع حين لا يحجب RLS (مراجعةٌ مستقلّة: كان ينجو بالفحص النصّيّ).
+    assert [_where(q[0]) for q in conn.queries] == [_OWNED] * 2, conn.queries
 
 
 def test_another_tenants_farm_is_404_and_its_fields_are_never_queried(monkeypatch) -> None:
