@@ -146,20 +146,20 @@ async def test_the_batch_edge_is_held_to_the_same_contract(monkeypatch):
 # ── ③ المستهلك: خطرُ المرض يفشل مغلقاً لا يُهدِّف ────────────────────
 async def test_disease_risk_refuses_to_score_absent_temperature_and_humidity(monkeypatch):
     """قبل الإصلاح: ٢٠٠ بخطرٍ مُهدَّفٍ من `0°م`/`0٪`. الآن: ٥٠٣ يُسمّي الناقص."""
-    from contextlib import asynccontextmanager
+    from contextlib import nullcontext
 
     from api.routers import fields
     from fastapi import HTTPException
 
-    @asynccontextmanager
-    async def fake_conn(user):
-        yield None
-
-    async def fake_context(conn, field_id):
+    # **لا اتّصالَ هنا أصلاً — ولا وهميَّ يدّعي سلوكَ قاعدة.** القراءةُ الوحيدة من القاعدة
+    # (`_field_weather_context`) مُستبدَلةٌ بسياقٍ ثابت، فالسياقُ `nullcontext` يُعطي `None`
+    # ولا يُسأل شيئاً. ما يُقاس هو فرعُ الطقس بعد القاعدة، لا أيُّ دلالةٍ تفرضها القاعدة.
+    async def field_context_without_db(conn, field_id):
+        assert conn is None, "القراءةُ لم تعد مُستبدَلة — الاختبارُ صار يمسّ القاعدة"
         return 15.0, 44.0, "tomato", "mid", 60
 
-    monkeypatch.setattr(fields, "tenant_connection", fake_conn)
-    monkeypatch.setattr(fields, "_field_weather_context", fake_context)
+    monkeypatch.setattr(fields, "tenant_connection", lambda user: nullcontext())
+    monkeypatch.setattr(fields, "_field_weather_context", field_context_without_db)
     _stub_fetch(
         monkeypatch,
         current=_CURRENT_WITHOUT_READINGS,
