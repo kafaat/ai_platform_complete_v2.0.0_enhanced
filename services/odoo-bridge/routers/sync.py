@@ -26,7 +26,8 @@ async def _probe_erp_or_503(provider) -> None:
     يُستدعى بعد بوّابة 424 (provider.name != 'none') — أيّ استثناء يُحوَّل إلى
     503 Failed Service Dependency بدلاً من 500 الداخلي.
     يُثبت ضمن وثيقة إقفال ERP-BRIDGE-FIX-01 أنّ fail-closed يحدث عند مسار القدرة
-    لحظة استدعائها (لا عند إقلاع الحاوية، ولا في /readyz أو /healthz).
+    لحظة استدعائها (لا عند إقلاع الحاوية ولا في /healthz؛ و/readyz يُعلن غياب ERP بـ503
+    منذ قرار المالك §3.4 — إخراجٌ من التوجيه لا فشلُ مسار).
     """
     try:
         result = await asyncio.wait_for(provider.health(), timeout=_PROVIDER_PROBE_TIMEOUT)

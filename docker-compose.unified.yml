@@ -72,13 +72,16 @@ services:
     volumes:
       - ./nginx/nginx.unified.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+    # الصيغة الطويلة مكافئة للقائمة القصيرة (service_started)؛ لزمت لأنّ erp-bridge خلف profile odoo
+    # فيحتاج required: false وإلّا انكسر `config`/`up` بلا الـprofile. upstream الجسر في
+    # nginx.unified.conf يحمل `resolve` فيُقلع nginx بغيابه (/api/erp/ ⇒ 502 صادق).
     depends_on:
-      - auth-service
-      - supervisor-agent
-      - frontend
-      - local-ai-rag
-      - erp-bridge
-      - agriai-engine
+      auth-service: { condition: service_started }
+      supervisor-agent: { condition: service_started }
+      frontend: { condition: service_started }
+      local-ai-rag: { condition: service_started }
+      erp-bridge: { condition: service_started, required: false }
+      agriai-engine: { condition: service_started }
     networks: [sahool-net]
     <<: *logging
 
@@ -499,6 +502,8 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
+    # قرار المالك §3.4 (2026-09-30): لا يُشغَّل بلا ERP — خلف profile odoo (مطابق v9/fixed).
+    profiles: ["odoo"]
     container_name: sahool-unified-erp-bridge
     restart: unless-stopped
     ports: ["127.0.0.1:8126:8126"]  # loopback فقط — جسر odoo داخليّ (Dockerfile يستمع على 8126)

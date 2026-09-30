@@ -121,8 +121,11 @@ services:
         condition: service_healthy
       sahool-market-mcp:
         condition: service_healthy
+      # خلف profile odoo: required: false ⇒ بلا الـprofile يُتجاهَل (لا «undefined service»)،
+      # ومعه يبقى انتظارُ الصحّة كما كان. nginx.v9.conf لا upstream فيه للجسر (ترتيبٌ لا توجيه).
       sahool-erp-bridge:
         condition: service_healthy
+        required: false
       sahool-local-ai-rag:
         condition: service_healthy
       sahool-rag-retrieval:
@@ -2075,6 +2078,12 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
+    # ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 (قرار المالك §3.4، 2026-09-30):
+    # «خدمةٌ لا تعمل بلا تبعيّتها لا تُشغَّل بلا تبعيّتها» — الجسر بلا ERP لا يفعل شيئاً، فهو خلف
+    # profile odoo نفسه الذي يحمل sahool-odoo (يُرفَعان معاً: --profile odoo). ومن يعتمد عليه
+    # (sahool-nginx) يُعلنه required: false فلا ينكسر `config`/`up` حين يغيب الـprofile.
+    profiles:
+    - odoo
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true

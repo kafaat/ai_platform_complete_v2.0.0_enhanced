@@ -338,7 +338,9 @@ class OdooProvider(ERPProvider):
     async def authenticate(self) -> bool:
         try:
             await self.odoo.authenticate()
-            return self.odoo.uid is not None
+            # Odoo يُرجِع result=false (لا خطأ JSON-RPC) عند اعتمادٍ خاطئ ⇒ uid=False؛ و«is not
+            # None» كان يعدّه اتّصالاً فتُعلن /readyz الجاهزيّة باعتمادٍ مرفوض. uid صالح ≥ 1.
+            return bool(self.odoo.uid)
         except Exception as e:  # noqa: BLE001
             logger.warning("Odoo auth تعذّر: %s", type(e).__name__)
             return False

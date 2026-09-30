@@ -73,8 +73,11 @@ services:
       # upstream دون «host not found»، بلا انتظار صحّتها (نفس نمط frontend/notification).
       sahool-market-mcp:
         condition: service_started
+      # خلف profile odoo (ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01): required: false
+      # ⇒ غيابه بلا الـprofile لا يكسر `config`/`up`. nginx.fixed.conf لا upstream فيه للجسر.
       sahool-erp-bridge:
         condition: service_started
+        required: false
       sahool-local-ai-rag:
         condition: service_started
       # FIX: nginx.fixed.conf يوجّه إليهما، وnginx يحلّ أسماء upstream عند الإقلاع
@@ -924,6 +927,9 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
+    # قرار المالك §3.4 (2026-09-30): الجسر بلا ERP لا يعمل ⇒ لا يُشغَّل افتراضيّاً — خلف profile odoo
+    # (مطابق docker-compose.v9.yml). التشغيل: docker compose -f docker-compose.fixed.yml --profile odoo up -d
+    profiles: ["odoo"]
     restart: unless-stopped
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
