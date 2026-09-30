@@ -96,3 +96,32 @@ def test_blank_precedes_verified_injection(prefix):
     blank_at = block.index("/etc/nginx/proxy_params.conf")
     inject_at = block.index("proxy_set_header X-Tenant-Id $tenant;")
     assert blank_at < inject_at, f"{prefix}: يجب مسح رأس العميل أوّلاً ثمّ حقن المستأجِر الموثّق بعده"
+
+
+# ── RASTER-TENANT-TRUST-01: البوّابة تُرفق توكن الخدمة مع المستأجِر الموثَّق ──────────
+# raster-service يُصدّق X-Tenant-Id بجانب X-Agent-Token صالحٍ فقط (كان يثق بأيّ ترويسة أو ?tid=
+# فقرأ مُنادٍ داخليّ صور مستأجِرٍ آخر — التدقيق الحيّ 2026-09-29). كلُّ موقعٍ يوجّه إلى الراستر
+# ويحقن مستأجِراً موثَّقاً يجب أن يحقن التوكن أيضاً (وإلّا 401 تحت الإنفاذ)، وخلف auth_request
+# حصراً (توكنٌ بلا تحقّق هديّةٌ لكلّ طلبٍ مجهول). البوّابتان: v9 (compose) والواجهة (compose :3003
+# وهي البوّابة نفسها على Railway).
+_RASTER_GATEWAYS = {
+    NGINX_CONF: ("location /api/raster/", r"proxy_pass\s+http://raster_backend/;"),
+    os.path.join(BASE, "frontend", "nginx.conf"): (
+        "location ^~ /api/raster/",
+        r"proxy_pass\s+http://frontend_raster/;",
+    ),
+}
+
+
+@pytest.mark.parametrize("conf_path", sorted(_RASTER_GATEWAYS))
+def test_raster_gateway_injects_the_service_credential_behind_auth_request(conf_path):
+    selector, upstream = _RASTER_GATEWAYS[conf_path]
+    conf = _read(conf_path)
+    block = _location_block(conf, selector.removeprefix("location "))
+    live = "\n".join(line.split("#", 1)[0] for line in block.splitlines())
+    assert re.search(upstream, live), (conf_path, selector)
+    token = re.search(r'proxy_set_header\s+X-Agent-Token\s+"\$\{SAHOOL_AGENT_TOKEN\}"\s*;', live)
+    assert token, f"{conf_path} {selector}: يجب حقن X-Agent-Token من SAHOOL_AGENT_TOKEN"
+    verify = re.search(r"\bauth_request\s+/_auth_verify\s*;", live)
+    assert verify and verify.start() < token.start(), (conf_path, "auth_request قبل الحقن")
+    assert re.search(r"proxy_set_header\s+X-Tenant-Id\s+\$\w*tenant\s*;", live), conf_path

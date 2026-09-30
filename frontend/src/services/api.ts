@@ -2567,7 +2567,7 @@ export const fieldIndicatorTileUrl = (
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   appendTileAccessToken(params);
@@ -2614,7 +2614,7 @@ export const fieldCdseTileUrl = (
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   // عقد القصّ الموحَّد (poly/bbox) — نفس ما يفحصه cdse-tilejson (مصدر حقيقة واحد).
@@ -2638,7 +2638,7 @@ export const fieldCdseThumbnailUrl = (
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   params.set('size', String(size));
   // بطاقات السجلّ الزمنيّ تعرض أصلاً مُدَاماً مُعلَناً للتاريخ/المؤشّر، لا اكتشافاً حيّاً.
@@ -2699,7 +2699,7 @@ export const fetchTerrainTileJson = (
 export const hillshadeTileUrl = (tenantId?: string | null): string => {
   const params = new URLSearchParams();
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
@@ -2709,7 +2709,7 @@ export const hillshadeTileUrl = (tenantId?: string | null): string => {
 export const slopeTileUrl = (tenantId?: string | null): string => {
   const params = new URLSearchParams();
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
@@ -2828,7 +2828,7 @@ export const soilTileUrl = (
 ): string => {
   const params = new URLSearchParams();
   // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
-  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  // التطوير يُبقيه تلميحاً لا مصدراً: خدمة الراستر لا تقرأ tid (RASTER-TENANT-TRUST-01) — البوّابة تحقنه موثَّقاً.
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();

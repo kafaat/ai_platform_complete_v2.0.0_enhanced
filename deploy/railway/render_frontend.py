@@ -12,6 +12,17 @@ real errors, and their routes answered an opaque 502. An absent service is
 routed to a local stub that answers 503 ``service_not_deployed`` with no DNS
 lookup. It is an explicit declaration, never inferred from a failed lookup, so a
 service deployed later still needs only its variable removed.
+
+``/api/raster/`` forwards the service credential behind ``auth_request``: raster-service
+accepts ``X-Tenant-Id`` only beside a valid ``X-Agent-Token`` once
+``RASTER_TENANT_CREDENTIAL_ENFORCE`` is on (the 2026-09-29 audit read another tenant's
+imagery with a forged header). The canonical config carries the placeholder
+``${SAHOOL_AGENT_TOKEN}``, which the compose image fills with envsubst; this adapter fills
+it from the same environment variable. Unset renders an empty value, which nginx does not
+send, so staging keeps working until the operator sets the token here *before* enabling
+enforcement on raster-service (docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md). A value
+that could leave the quoted nginx string, or any other unfilled placeholder, is refused
+before a file is written.
 """
 
 from __future__ import annotations
@@ -30,6 +41,20 @@ REQUIRED = ("sahool-auth:8000", "sahool-platform:8000")
 DIRECT_PROXY = re.compile(rf"(?m)^(\s*)proxy_pass\s+http://({SERVICE})([^;\s]*);")
 UPSTREAM = re.compile(r"(?ms)^upstream ([a-zA-Z0-9_]+) \{\n(.*?)^\}")
 LOCATION = re.compile(r"(?ms)^    location (?:= |\^~ |~\* )?(\S+) \{\n(.*?)^    \}")
+SERVICE_TOKEN = "SAHOOL_AGENT_TOKEN"
+# Environment placeholders are upper case; nginx's own variables are lower case.
+PLACEHOLDER = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)\}")
+# URL-safe/base64/hex secrets only: no quote, backslash, `$` (nginx interpolation), `;`,
+# braces or whitespace that could end or reinterpret the quoted nginx value.
+TOKEN_VALUE = re.compile(r"[A-Za-z0-9._~+/=:@!*%,-]*")
+
+
+def service_token(env: Mapping[str, str]) -> str:
+    """The credential nginx forwards to raster-service; empty means "do not send"."""
+    value = env.get(SERVICE_TOKEN, "")
+    if not TOKEN_VALUE.fullmatch(value):
+        raise ValueError(f"{SERVICE_TOKEN} contains characters nginx cannot carry safely")
+    return value
 
 
 def variable_name(service: str) -> str:
@@ -78,6 +103,7 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
     for key in ("SAHOOL_AUTH_UPSTREAM", "SAHOOL_PLATFORM_UPSTREAM"):
         if not env.get(key):
             raise ValueError(f"{key} must explicitly select the deployed service")
+    token = service_token(env)
 
     services = set(re.findall(rf"(?:proxy_pass\s+http://|server\s+)({SERVICE})", source))
     if not set(REQUIRED).issubset(services):
@@ -161,6 +187,11 @@ def render(source: str, env: Mapping[str, str], nameservers: Sequence[str]) -> s
         if config.count(original) != 1:
             raise ValueError("Canonical frontend listener contract changed")
         config = config.replace(original, replacement)
+    # The substitution the compose image performs with envsubst, limited to one name.
+    config = config.replace("${" + SERVICE_TOKEN + "}", token)
+    unfilled = sorted(set(PLACEHOLDER.findall(config)))
+    if unfilled:
+        raise ValueError(f"Unfilled placeholder in canonical config: {unfilled}")
     resolver = f"resolver {' '.join(nameservers)} valid=10s ipv6={ipv6};\nresolver_timeout 5s;\n"
     stub = ""
     if absent:

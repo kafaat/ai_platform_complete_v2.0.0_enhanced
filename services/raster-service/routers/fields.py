@@ -1653,10 +1653,9 @@ async def field_tilejson(
     resolved_version = v or str(
         (layer or {}).get("created_at") or (layer or {}).get("cog_url") or "default"
     )
-    # TileJSON is fetched by JS, but the returned tiles are loaded later as <img>
-    # requests and cannot rely on axios headers. Propagate the tenant hint from the
-    # already-validated request into the tile URL so restart/DB rehydration keeps
-    # working for MapLibre/Leaflet consumers.
+    # بلاطات <img> لا تحمل ترويسات axios، لكنّها تمرّ بالبوّابة التي تتحقّق من الكوكي عبر
+    # auth_request وتحقن X-Tenant-Id الموثَّق مع توكن الخدمة. فلا ``tid`` في الرابط: كان يكفي
+    # ``?tid=<مستأجِرٌ آخر>`` لقراءة أصوله (التدقيق الحيّ 2026-09-29)، والخدمة لم تعد تقرؤه.
     # urlencode بدل التسلسل اليدويّ: ``v`` قد يُشتقّ من cog_url (قد يحوي & / مسافات)
     # فالتسلسل الخام يكسر سلسلة الاستعلام أو يحقن معاملات. urlencode يُرمِّز بأمان. v4-audit
     from urllib.parse import urlencode
@@ -1666,9 +1665,6 @@ async def field_tilejson(
         "date": date,
         "resolved_date": resolved_date,
     }
-    req_tenant = _REQ_TENANT.get()
-    if req_tenant:
-        qs_params["tid"] = req_tenant
     if resolved_version:
         qs_params["v"] = resolved_version
     qs = urlencode(qs_params)

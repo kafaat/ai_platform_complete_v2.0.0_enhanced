@@ -13,6 +13,7 @@ from typing import Any
 import raster_security_context
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from router_registry import register_routers
 
 
@@ -35,9 +36,18 @@ def create_raster_app(
 
     @app.middleware("http")
     async def tenant_context_middleware(request, call_next):
-        token = raster_security_context.REQ_TENANT.set(
-            raster_security_context.tenant_from_request(request)
+        # القرار هنا لا في كلّ راوتر: كلُّ ما يقرأ REQ_TENANT يرث القاعدة نفسها، فلا نقطةَ
+        # جديدةٌ تستطيع أن تنساها (raster_security_context: مَن يحقّ له أن يُسمّي المستأجِر).
+        decision = raster_security_context.tenant_assertion_for_request(request)
+        raster_security_context.record_tenant_assertion(
+            decision, method=request.method, path=request.url.path
         )
+        if decision.status is not None:
+            return JSONResponse(
+                status_code=decision.status,
+                content={"detail": decision.detail, "code": decision.outcome},
+            )
+        token = raster_security_context.REQ_TENANT.set(decision.tenant)
         try:
             return await call_next(request)
         finally:

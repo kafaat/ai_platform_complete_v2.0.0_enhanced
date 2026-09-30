@@ -27,6 +27,10 @@ import unittest
 from pathlib import Path
 
 FRONTEND = Path(__file__).resolve().parents[1]
+# The image fills this placeholder with envsubst at start (frontend/Dockerfile) and the
+# Railway adapter fills it from the same variable; the fixture does what both do.
+AGENT_TOKEN_PLACEHOLDER = "${SAHOOL_AGENT_TOKEN}"
+FIXTURE_AGENT_TOKEN = "fixture-agent-token-0123456789"
 SERVICES = {
     "sahool-rag-retrieval": 8000,
     "sahool-tts-service": 8000,
@@ -184,6 +188,7 @@ class RuntimeContract(unittest.TestCase):
             assets.mkdir()
             (assets / "index.html").write_text("frontend fixture shell")
             conf = self.config.read_text()
+            conf = conf.replace(AGENT_TOKEN_PLACEHOLDER, FIXTURE_AGENT_TOKEN)
             conf = conf.replace("127.0.0.11", f"127.0.0.1:{dns.server_address[1]}")
             conf = conf.replace("listen 8080;", f"listen 127.0.0.1:{self.port};")
             conf = conf.replace("listen [::]:8080;", "")
@@ -291,6 +296,14 @@ class RuntimeContract(unittest.TestCase):
                     if service == "sahool-ai-agronomist":
                         self.assertEqual(data["headers"]["x-user-id"], "verified-user")
                         self.assertNotIn("x-agent-token", data["headers"])
+                    # raster-service trusts X-Tenant-Id only beside the service credential
+                    # (RASTER-TENANT-TRUST-01): the gateway supplies it, replacing the client's.
+                    if service == "sahool-raster-service":
+                        self.assertEqual(data["headers"]["x-agent-token"], FIXTURE_AGENT_TOKEN)
+                    else:
+                        self.assertNotEqual(
+                            data["headers"].get("x-agent-token"), FIXTURE_AGENT_TOKEN
+                        )
 
             # Cookie auth survives query/header disagreement and the subrequest.
             cookie_headers = dict(headers, Cookie="sahool_at=fixture-valid-token")
@@ -312,6 +325,7 @@ class RuntimeContract(unittest.TestCase):
                 self.assertEqual(
                     request["headers"]["host"], f"sahool-auth:{backends['sahool-auth'].server_port}"
                 )
+            raster_seen = len(backends["sahool-raster-service"].snapshot())
             for path in (
                 "/api/rag/search",
                 "/tts/synthesize",
@@ -320,6 +334,8 @@ class RuntimeContract(unittest.TestCase):
                 "/api/remote-sensing-workspace/fields",
             ):
                 self.assertEqual(self.request(path)[0], 401)
+            # An unauthenticated caller never reaches raster, so never carries its credential.
+            self.assertEqual(len(backends["sahool-raster-service"].snapshot()), raster_seen)
             for path, service in (
                 ("/api/rag/search", "sahool-rag-retrieval"),
                 ("/tts/synthesize", "sahool-tts-service"),

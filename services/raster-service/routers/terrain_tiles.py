@@ -8,8 +8,9 @@ routers/terrain_tiles.py — طبقات التضاريس الثلاث كنقاط
   • TileJSON موحّد للطبقتين النقطيّتين: GET /v1/terrain/tilejson?layer=hillshade|slope
 
 صدق صارم: بلا ``FIELD_DEM_PATH`` مُهيّأ ⇒ بلاطة شفّافة / ``features: []`` +
-``available:false``/``computed:false`` — لا تلفيق تضاريس. auth كبلاطات CDSE: ``tid``
-في الرابط (``<img>`` بلا ترويسات) ⇒ سياق مستأجِر؛ بلا سياق ⇒ شفّاف (لا وصول مجهول).
+``available:false``/``computed:false`` — لا تلفيق تضاريس. auth كبلاطات CDSE: سياقُ مستأجِرٍ
+**مُصدَّق** (``<img>`` يحمل الكوكي، والبوّابة تحقن ``X-Tenant-Id`` مع توكن الخدمة خلف
+auth_request) ⇒ بلاطة؛ بلا سياق ⇒ شفّاف (لا وصول مجهول). ``?tid=`` لم يعد مصدراً.
 """
 
 from __future__ import annotations
@@ -37,7 +38,7 @@ def _dem_path() -> str | None:
 
 
 def _tenant_ctx_ok() -> bool:
-    # نفس عقد بلاطات CDSE: tid في الرابط ⇒ _REQ_TENANT مضبوط عبر الوسيط. بلا سياق ⇒ رفض.
+    # نفس عقد بلاطات CDSE: الوسيط يضبط REQ_TENANT من ادّعاءٍ مقبول. بلا سياق ⇒ رفض.
     return REQ_TENANT.get() is not None
 
 
@@ -70,7 +71,7 @@ async def terrain_status():
 
 
 @router.get("/v1/elevation/hillshade/{z}/{x}/{y}.png")
-async def hillshade_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
+async def hillshade_tile(z: int, x: int, y: int):
     """بلاطة Hillshade (شكل الأرض). شفّافة عند غياب DEM/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
         return Response(content=TRANSPARENT_PNG, media_type="image/png")
@@ -84,7 +85,7 @@ async def hillshade_tile(z: int, x: int, y: int, tid: Annotated[str | None, Quer
 
 
 @router.get("/v1/slope/{z}/{x}/{y}.png")
-async def slope_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
+async def slope_tile(z: int, x: int, y: int):
     """بلاطة Slope مُصنّفة بالألوان (الأهمّ زراعيّاً). شفّافة عند غياب DEM/السياق."""
     if not _tenant_ctx_ok():
         return Response(content=TRANSPARENT_PNG, media_type="image/png")
@@ -104,20 +105,18 @@ async def terrain_tilejson(layer: Annotated[str, Query()] = "hillshade"):
     صدق: ``available`` يعكس تهيئة DEM فعليّاً؛ بلا DEM ⇒ ``available:false`` + سبب
     كي تُظهر الواجهة حالة «التضاريس غير مُهيّأة» بدل طبقة فارغة صامتة.
 
-    ملاحظة مصادقة (v31.9): روابط ``tiles`` هنا **بيانات وصفيّة** (tid فقط)؛ خلف بوّابة
-    ``/api/raster/`` تحتاج بلاطة ``<img>`` توكناً — تبنيه الواجهة عبر ``hillshadeTileUrl``/
-    ``slopeTileUrl`` (تُضيف access_token). لا تُستهلَك ``tiles`` مباشرةً بلا حقن توكن.
+    ملاحظة مصادقة (v31.9): روابط ``tiles`` هنا **بيانات وصفيّة**؛ خلف بوّابة ``/api/raster/``
+    تحتاج بلاطة ``<img>`` جلسةً (كوكي ``sahool_at``، أو access_token تبنيه ``hillshadeTileUrl``/
+    ``slopeTileUrl``) تتحقّق منها البوّابة فتحقن المستأجِر الموثَّق. بلا ``tid`` في الرابط.
     """
     layer = "slope" if layer == "slope" else "hillshade"
     dem_configured = _dem_path() is not None
-    tenant = REQ_TENANT.get()
     path = "slope" if layer == "slope" else "elevation/hillshade"
-    tid_q = f"?tid={tenant}" if tenant else ""
     out: dict = {
         "tilejson": "2.2.0",
         "name": f"terrain-{layer}",
         "scheme": "xyz",
-        "tiles": [f"{_PUBLIC_PREFIX}/v1/{path}/{{z}}/{{x}}/{{y}}.png{tid_q}"],
+        "tiles": [f"{_PUBLIC_PREFIX}/v1/{path}/{{z}}/{{x}}/{{y}}.png"],
         "minzoom": 8,
         "maxzoom": 17,
         "bounds": [-180.0, -85.0, 180.0, 85.0],

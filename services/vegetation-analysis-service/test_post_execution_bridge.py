@@ -44,6 +44,38 @@ def test_follow_up_fails_closed(monkeypatch):
         )
 
 
+def test_follow_up_asserts_the_tenant_with_the_service_credential(monkeypatch):
+    """RASTER-TENANT-TRUST-01: raster-service يُصدّق X-Tenant-Id بجانب X-Agent-Token فقط."""
+    captured = {}
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def post(self, url, **kwargs):
+            captured["headers"] = kwargs["headers"]
+            return httpx.Response(202, json={}, request=httpx.Request("POST", url))
+
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "svc-token-fixture")
+    monkeypatch.setattr(mod.httpx, "AsyncClient", lambda **kwargs: Client())
+    asyncio.run(
+        mod.PostExecutionBridge().schedule_follow_up(
+            field_id="fld_x",
+            season_id="sea_x",
+            execution_request_id="exe_x",
+            authorization="Bearer x",
+            tenant_id="t-1",
+            days_after=5,
+            indicators=["ndvi"],
+        )
+    )
+    assert captured["headers"]["X-Tenant-Id"] == "t-1"
+    assert captured["headers"]["X-Agent-Token"] == "svc-token-fixture"
+
+
 def test_outcome_delegates_to_decision_service(monkeypatch):
     captured = {}
 

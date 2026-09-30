@@ -68,6 +68,58 @@ arguments still declared `15c9c7f1`. Align build identity with the selected sour
 revision before using `/runtime-identity` as release evidence. The adapter does
 not change auth, platform, database migrations, or the source branch they track.
 
+## Raster tenant credential (RASTER-TENANT-TRUST-01) — enablement order
+
+raster-service used to take the tenant from `X-Tenant-Id`, `?tid=` or `?tenant_id=`
+without asking who was calling. The 2026-09-29 runtime audit read another tenant's
+imagery that way from the internal network, and a local re-run against PostgreSQL
+with the `NOBYPASSRLS` application role returned the victim's TileJSON bounds and
+rendered tiles: row-level security held, but it was handed the forged tenant.
+
+The fix has two halves that must be switched on in order:
+
+- raster-service never reads the tenant from the query string, in any mode. It
+  accepts `X-Tenant-Id` only beside a valid `X-Agent-Token` once
+  `RASTER_TENANT_CREDENTIAL_ENFORCE=1`. Without that variable it runs in `observe`
+  mode: old header behaviour, but every assertion is counted in `/metrics`
+  (`sahool_raster_tenant_assertions_total{outcome=…}`) and shown in `/readyz`
+  (`tenant_credential`).
+- This frontend injects `X-Agent-Token` on `/api/raster/` behind `auth_request`.
+  The renderer fills `${SAHOOL_AGENT_TOKEN}` from this service's environment. If
+  the variable is unset, the header is not sent.
+
+Compose v9 and Helm enable enforcement by default. Railway deploys from `main`, and
+this service had no `SAHOOL_AGENT_TOKEN` when the change was written. Merging the
+change leaves staging in `observe` mode, so tiles keep working. The hole on Railway
+stays open until the operator completes these steps:
+
+1. **Frontend first.** On `sahool-frontend`, set
+   `SAHOOL_AGENT_TOKEN=${{shared.SAHOOL_AGENT_TOKEN}}`, which must be the same value
+   raster-service has, and redeploy. The value may contain only URL-safe characters
+   (`A–Z a–z 0–9 . _ ~ + / = : @ ! * % , -`). The renderer refuses anything else
+   before nginx starts.
+2. **Confirm every other caller carries the same token.** Check `sahool-platform`
+   (all raster calls go through `api/raster_service_client.py`),
+   `sahool-vegetation-analysis`, and indicators when it is deployed. Each must have
+   the same `SAHOOL_AGENT_TOKEN` as raster-service.
+3. **Measure; don't assume.** With real map traffic, check raster `/metrics`. The
+   `credentialed` count should rise, and the `uncredentialed` and
+   `invalid_credential` counts should stay flat. A rising `uncredentialed` count
+   points to a caller from step 2. Raster's log names the path on the first
+   occurrence and on every 1000th after it.
+4. **Then enforce.** On `sahool-raster-service`, set
+   `RASTER_TENANT_CREDENTIAL_ENFORCE=1` and redeploy. Check that `/readyz` reports
+   `"tenant_credential": {"mode": "enforce", …}`. Check that
+   `sahool_raster_tenant_credential_enforced` is `1`. Load a map tile and a history
+   thumbnail through the frontend. From another private service, send an internal
+   request with a forged `X-Tenant-Id` and no token. It should return `401`.
+5. **Rollback** is `RASTER_TENANT_CREDENTIAL_ENFORCE=0` on raster-service. It does
+   not bring back the `?tid=` fallback, which was removed on purpose.
+
+If raster-service itself has no `SAHOOL_AGENT_TOKEN`, enforcement answers `503`
+(`unconfigured`) to every tenant assertion. This is an operator fault, not a
+caller rejection.
+
 ## Verification boundaries
 
 ```bash

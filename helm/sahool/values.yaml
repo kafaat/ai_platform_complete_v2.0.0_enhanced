@@ -75,6 +75,10 @@ workloads:
     env:
       SERVICE_NAME: sahool-raster-service
       RUNTIME_ROLE_REQUIRED: "sahool_app"
+      # RASTER-TENANT-TRUST-01: الـIngress هنا يوجّه /api/raster إلى الخدمة مباشرةً بلا auth_request
+      # ولا مسح ترويسات، فكانت X-Tenant-Id من أيّ عميلٍ تكفي لتسمية مستأجِرٍ آخر. الإنفاذ يقصر الثقة
+      # على الحامل لـSAHOOL_AGENT_TOKEN — المنصّة وحدَها في هذا المخطّط.
+      RASTER_TENANT_CREDENTIAL_ENFORCE: "1"
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: "2.0"
       CDSE_PROCESS_MAX_RETRIES: "5"
       CDSE_PROCESS_RETRY_BASE_SECONDS: "5"

@@ -56,6 +56,9 @@ class PostExecutionBridge:
         headers = {
             "Authorization": authorization,
             "X-Tenant-Id": tenant_id,
+            # raster-service يُصدّق X-Tenant-Id بجانب توكن الخدمة فقط (RASTER-TENANT-TRUST-01)؛
+            # بدونه يُرفَض الادّعاء بـ401 تحت الإنفاذ قبل أن يبلغ المسار.
+            "X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", ""),
             "Idempotency-Key": self._idempotency(
                 tenant_id, field_id, execution_request_id, target_date
             ),

@@ -70,17 +70,23 @@ def test_cdse_has_no_hardcoded_yemen_bbox_fallback() -> None:
     assert "if not field_bbox:" in src, "يجب fail-closed حين غياب bbox الحقل"
 
 
-# ─── v3-Finding-8: cdse-tilejson tiles carry tid + urlencode ──────────────────
+# ─── v3-Finding-8: cdse-tilejson tiles urlencode — and no longer carry tid ─────
+# كان Finding-8 يطلب ``tid`` في رابط البلاطة «وإلّا تُرفَض <img>». لكنّ الخدمة كانت تقرأ
+# ذلك الـtid بلا سؤالٍ عمّن يُنادي، فقرأ مُنادٍ داخليّ صور مستأجِرٍ آخر به (التدقيق الحيّ
+# 2026-09-29، RASTER-TENANT-TRUST-01). اليوم تحقن البوّابة X-Tenant-Id الموثَّق مع توكن
+# الخدمة لبلاطات <img>، والخدمة لا تقرأ الاستعلام — فإصدار tid عقدٌ ميّت يُسرّب المعرّف.
 
 
-def test_cdse_tilejson_propagates_tid_and_urlencodes() -> None:
+def test_cdse_tilejson_urlencodes_and_does_not_emit_tid() -> None:
     src = CDSE_TILES.read_text(encoding="utf-8")
     idx = src.find("async def field_cdse_tilejson")
     # نقصّ حتّى مطلع الدالّة التالية (لا نافذة ثابتة هشّة تنكسر عند إضافة توثيق/منطق).
     nxt = src.find("\n@router", idx + 1)
     body = src[idx : nxt if nxt != -1 else idx + 3000]
     assert "urlencode(" in body, "روابط البلاطة يجب أن تُرمَّز بـurlencode لا تسلسل يدويّ"
-    assert 'tile_params["tid"]' in body, "رابط البلاطة يجب أن يحمل tid وإلّا تُرفَض <img>"
+    assert 'tile_params["tid"]' not in body, (
+        "tid في رابط البلاطة: الخدمة لا تقرؤه، فهو تسريبٌ بلا وظيفة"
+    )
     assert 'f"index={index}"' not in body, "بقي التسلسل اليدويّ للسلسلة — استبدله urlencode"
 
 

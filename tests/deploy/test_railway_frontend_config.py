@@ -173,3 +173,43 @@ def test_absence_is_declared_never_inferred():
     assert "unix:" not in config
     assert "service_not_deployed" not in config
     assert "server sahool-rag-retrieval.railway.internal:8000 resolve;" in config
+
+
+def _raster_block(config: str) -> str:
+    return config.split("location ^~ /api/raster/ {", 1)[1].split("\n    }", 1)[0]
+
+
+def test_raster_service_token_is_filled_only_where_the_canonical_config_asks():
+    """RASTER-TENANT-TRUST-01: raster-service يُصدّق ``X-Tenant-Id`` بجانب ``X-Agent-Token`` فقط
+    (التدقيق الحيّ 2026-09-29 قرأ صور مستأجِرٍ آخر بترويسةٍ مزوّرة). الواجهة على Railway هي البوّابة،
+    فيملأ المُهيّئ العنصرَ النائب من البيئة — في موقع الراستر وحدَه، خلف ``auth_request``."""
+    secret = "Zx9-fixture_token.0123456789abcdef"
+    config = adapter.render(SOURCE, {**ENV, "SAHOOL_AGENT_TOKEN": secret}, ["10.0.0.2"])
+    assert "${" not in config
+    assert config.count(secret) == 1
+    raster = _raster_block(config)
+    assert f'proxy_set_header   X-Agent-Token     "{secret}";' in raster
+    assert raster.index("auth_request /_auth_verify;") < raster.index(secret)
+
+
+def test_unset_service_token_renders_an_empty_header_so_staging_keeps_working():
+    """قبل خطوة المشغّل الأولى لا توكن على الواجهة: قيمة فارغة لا يُرسلها nginx، فيعمل
+    raster-service في observe كما كان — لا عنصرَ نائباً يُسقط ``nginx -t`` بمتغيّرٍ مجهول."""
+    config = adapter.render(SOURCE, ENV, ["10.0.0.2"])
+    assert "${" not in config
+    assert 'proxy_set_header   X-Agent-Token     "";' in _raster_block(config)
+
+
+@pytest.mark.parametrize(
+    "value",
+    ['tok"; include /tmp/x; #', "tok$host", "tok en", "tok;", "tok}", "tok\\", "tok\n"],
+)
+def test_a_service_token_that_could_leave_the_quoted_value_is_refused(value):
+    with pytest.raises(ValueError, match="SAHOOL_AGENT_TOKEN"):
+        adapter.render(SOURCE, {**ENV, "SAHOOL_AGENT_TOKEN": value}, ["10.0.0.2"])
+
+
+def test_an_unfilled_placeholder_fails_before_writing_config():
+    source = SOURCE.replace('"${SAHOOL_AGENT_TOKEN}"', '"${SAHOOL_OTHER_SECRET}"')
+    with pytest.raises(ValueError, match="SAHOOL_OTHER_SECRET"):
+        adapter.render(source, ENV, ["10.0.0.2"])

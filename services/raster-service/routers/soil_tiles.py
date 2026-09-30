@@ -7,7 +7,8 @@ routers/soil_tiles.py — طبقة تربة SoilGrids كبلاطات Raster (ت�
 
 صدق صارم: بلا ``SOILGRIDS_DIR`` مُهيّأ ⇒ بلاطة شفّافة + ``available:false`` + سبب. التحذير
 (SoilGrids تقديريّ ~250م، لا يُغني عن المختبر) يُرفَق دائماً كي لا تُستعمل الطبقة كبديل عن
-التحليل. auth كبلاطات CDSE: ``tid`` في الرابط ⇒ سياق مستأجِر؛ بلا سياق ⇒ شفّاف.
+التحليل. auth كبلاطات CDSE: سياقُ مستأجِرٍ **مُصدَّق** (البوّابة تحقن ``X-Tenant-Id`` مع توكن
+الخدمة خلف auth_request) ⇒ بلاطة؛ بلا سياق ⇒ شفّاف. ``?tid=`` لم يعد مصدراً (raster_security_context).
 """
 
 from __future__ import annotations
@@ -34,9 +35,7 @@ def _tenant_ctx_ok() -> bool:
 
 
 @router.get("/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png")
-async def soil_tile(
-    prop: str, depth: str, z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None
-):
+async def soil_tile(prop: str, depth: str, z: int, x: int, y: int):
     """بلاطة خاصّيّة تربة ملوّنة. شفّافة عند غياب المصدر/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
         return Response(content=TRANSPARENT_PNG, media_type="image/png")
@@ -57,21 +56,19 @@ async def soil_tilejson(
     ``available`` يعكس تهيئة المصدر لهذه (الخاصّيّة، العمق) فعليّاً. ``disclaimer`` إلزاميّ
     دائماً (الطبقة توجيهيّة لا بديلة عن المختبر).
 
-    ملاحظة مصادقة (v31.9): روابط ``tiles`` **بيانات وصفيّة** (tid فقط)؛ خلف بوّابة
-    ``/api/raster/`` تحتاج البلاطة توكناً — تبنيه الواجهة عبر ``soilTileUrl`` (تُضيف
-    access_token). لا تُستهلَك ``tiles`` مباشرةً بلا حقن توكن.
+    ملاحظة مصادقة (v31.9): روابط ``tiles`` **بيانات وصفيّة**؛ خلف بوّابة ``/api/raster/``
+    تحتاج البلاطة جلسةً (كوكي ``sahool_at``، أو access_token تبنيه ``soilTileUrl``) تتحقّق منها
+    البوّابة فتحقن المستأجِر الموثَّق. بلا ``tid``: الخدمة لا تقرأ المستأجِر من الاستعلام.
     """
     prop = property if property in _soil.SOIL_PROPERTIES else "phh2o"
     depth = _soil.normalize_depth(depth)
     meta = _soil.SOIL_PROPERTIES[prop]
     available = _soil.soil_raster_path(prop, depth) is not None
-    tenant = REQ_TENANT.get()
-    tid_q = f"?tid={tenant}" if tenant else ""
     out: dict = {
         "tilejson": "2.2.0",
         "name": f"soil-{prop}-{depth}",
         "scheme": "xyz",
-        "tiles": [f"{_PUBLIC_PREFIX}/v1/soil/tiles/{prop}/{depth}/{{z}}/{{x}}/{{y}}.png{tid_q}"],
+        "tiles": [f"{_PUBLIC_PREFIX}/v1/soil/tiles/{prop}/{depth}/{{z}}/{{x}}/{{y}}.png"],
         "minzoom": 6,
         "maxzoom": 15,
         "bounds": [-180.0, -85.0, 180.0, 85.0],

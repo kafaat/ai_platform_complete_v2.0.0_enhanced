@@ -51,17 +51,27 @@ FROM nginx:1.27.5-alpine
 # نسخ ملفّات البناء
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# إعداد Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# إعداد Nginx — **قالبٌ** لا ملفٌّ ساكن: `/api/raster/` يحقن توكن الخدمة `${SAHOOL_AGENT_TOKEN}`
+# خلف auth_request (raster-service يُصدّق X-Tenant-Id من مُنادٍ يحمله فقط)، فيستبدله مُدخِل صورة
+# nginx الرسميّة عند الإقلاع (/docker-entrypoint.d/20-envsubst-on-templates.sh). الفلتر
+# يقصر الاستبدال على هذا الاسم وحدَه — متغيّرات nginx ($host · $fwd_auth …) تبقى كما هي، نمطُ
+# sahool-nginx في compose نفسه. والافتراضيّ الفارغ مقصود: بلا سرٍّ لا تُرسَل الترويسة، فتقلع الصورة
+# في كلّ ملفّ compose لا يمرّره بدل أن تسقط بـ«unknown variable».
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+ENV NGINX_ENVSUBST_FILTER=SAHOOL_AGENT_TOKEN \
+    SAHOOL_AGENT_TOKEN=""
 
 # ── تشغيل non-root ──
 # nginx:alpine فيه مستخدم 'nginx' (uid 101). نهيّئ المجلّدات لتعمل بلا root،
-# ونستخدم منفذ 8080 (>1024 لا يحتاج صلاحيّات root).
-RUN sed -i 's/listen 80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
+# ونستخدم منفذ 8080 (>1024 لا يحتاج صلاحيّات root). conf.d مملوكٌ لـnginx لأنّ المُدخِل يكتب
+# فيه القالبَ المُستبدَل عند كلّ إقلاع؛ وإعدادُ الصورة الافتراضيّ (منفذ 80) يُحذَف كي لا يبقى
+# خادماً بديلاً صامتاً إن تعذّر الاستبدال — عندها لا مستمعَ على 8080 فيسقط فحص الصحّة علناً.
+RUN sed -i 's/listen 80;/listen 8080;/' /etc/nginx/templates/default.conf.template \
+ && rm -f /etc/nginx/conf.d/default.conf \
  && sed -i '/user  nginx;/d' /etc/nginx/nginx.conf \
  && sed -i 's#pid        /run/nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf \
  && touch /tmp/nginx.pid \
- && chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /tmp/nginx.pid \
+ && chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /tmp/nginx.pid /etc/nginx/conf.d \
  && chmod -R g+w /var/cache/nginx
 
 USER nginx

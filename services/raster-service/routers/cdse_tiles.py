@@ -282,9 +282,9 @@ async def field_cdse_tilejson(
     tile_params: dict[str, str] = {"index": index}
     if specific_date:
         tile_params["date"] = specific_date
-    req_tenant = REQ_TENANT.get()
-    if req_tenant:
-        tile_params["tid"] = req_tenant
+    # لا ``tid`` في رابط البلاطة: الخدمة لا تقرأ المستأجِر من الاستعلام (raster_security_context)،
+    # والبوّابة تحقن الموثَّق مع توكن الخدمة خلف auth_request. إبقاؤه كان يعد بعقدٍ ميّت ويكتب
+    # معرّف المستأجِر في سجلّات الوصول والـReferer.
     if poly:
         tile_params["poly"] = poly
     elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:

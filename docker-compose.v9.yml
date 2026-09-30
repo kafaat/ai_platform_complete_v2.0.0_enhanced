@@ -1354,6 +1354,12 @@ services:
         required}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # RASTER-TENANT-TRUST-01: X-Tenant-Id يُصدَّق بجانب X-Agent-Token صالحٍ فقط (كان أيُّ مُنادٍ
+      # داخليّ يقرأ صور مستأجِرٍ آخر بترويسةٍ أو ?tid= — التدقيق الحيّ 2026-09-29). مُفعَّلٌ هنا
+      # افتراضاً: البوّابتان (sahool-nginx وsahool-frontend) تحقنان التوكن خلف auth_request وكلُّ
+      # مُنادٍ داخليّ يحمله. الافتراضيّ في الشيفرة observe لأنّ Railway يُنشر من main — ترتيب
+      # تفعيله هناك في docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md.
+      RASTER_TENANT_CREDENTIAL_ENFORCE: ${RASTER_TENANT_CREDENTIAL_ENFORCE:-1}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
@@ -2262,6 +2268,9 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL:-/api}
       VITE_WS_URL: ${VITE_WS_URL:-/ws}
+      # بوّابة :3003 تحقن توكن الخدمة في /api/raster/ خلف auth_request (قالبُ frontend/Dockerfile
+      # يستبدله عند الإقلاع). بدونه يرفض raster-service المُنفِّذ بلاطاتِها بـ401 (RASTER-TENANT-TRUST-01).
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     networks:
     - sahool-internal
     healthcheck:

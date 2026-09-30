@@ -3,8 +3,8 @@
 //
 // الأمان: في الإنتاج لا JWT ولا tenant_id في رابط بلاطة <img> (البوّابة تشتقّ المستأجِر
 // من JWT الموثّق عبر auth_request، والمصادقة عبر كوكي HttpOnly `sahool_at`) — يمنع تسريب
-// JWT عبر سجلّ المتصفّح/Referrer (F-UI slice 3). التطوير يبقي tenant_id + access_token
-// كـfallback مباشر لخدمة الراستر بلا بوّابة/كوكي.
+// JWT عبر سجلّ المتصفّح/Referrer (F-UI slice 3). التطوير يبقي access_token (تتحقّق منه البوّابة)؛
+// وtenant_id تلميحٌ لا تقرؤه خدمة الراستر — المستأجِر من البوّابة وحدها (RASTER-TENANT-TRUST-01).
 //
 // المسار: preferPersistedCog=true (التاريخ has_cog) ⇒ `/tiles` (COG المحفوظ، مصدر الحقيقة
 // لـraster_assets)؛ وإلّا `/cdse-tiles` (المشهد الحيّ مقصوصاً على المضلّع بقناع rasterio).

@@ -270,13 +270,14 @@ def test_v25_live_audit_wiring_regressions():
 
 def _frontend_image_listen_ports() -> set[int]:
     """Ports the frontend image listens on, derived the way `docker build` produces them:
-    frontend/nginx.conf is copied to conf.d/default.conf and the Dockerfile's own `sed -i`
-    edits are applied to it. Cross-checked against EXPOSE so neither side drifts alone."""
+    frontend/nginx.conf is copied as the entrypoint's envsubst template (rendered into
+    conf.d/default.conf at start) and the Dockerfile's own `sed -i` edits are applied to it.
+    Cross-checked against EXPOSE so neither side drifts alone."""
     dockerfile = _source("frontend/Dockerfile")
-    assert "COPY nginx.conf /etc/nginx/conf.d/default.conf" in dockerfile
+    assert "COPY nginx.conf /etc/nginx/templates/default.conf.template" in dockerfile
     conf = _source("frontend/nginx.conf")
     for old, new in re.findall(
-        r"sed -i 's/([^/]*)/([^/]*)/' /etc/nginx/conf\.d/default\.conf", dockerfile
+        r"sed -i 's/([^/]*)/([^/]*)/' /etc/nginx/templates/default\.conf\.template", dockerfile
     ):
         conf = conf.replace(old, new)
     listens = {

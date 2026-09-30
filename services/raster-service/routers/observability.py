@@ -19,7 +19,14 @@ from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
 from layer_lookup import grid_from_cog, resolve_field_layer, rvi_from_sar_cog
 from raster_runtime_state import FIELD_LAYERS, JOBS, LAYERS
-from raster_security_context import REQ_TENANT, require_service_token
+from raster_security_context import (
+    ASSERTION_OUTCOMES,
+    REQ_TENANT,
+    TENANT_ASSERTION_COUNTS,
+    require_service_token,
+    tenant_credential_enforced,
+    tenant_credential_posture,
+)
 from raster_settings import AGENT_TOKEN, EARTH_SEARCH_URL, UPLOAD_DIR
 from tile_observability import TILE_OBS, TILE_OBS_BY_INDEX
 
@@ -106,6 +113,21 @@ async def metrics():
         "# HELP sahool_raster_tile_render_errors_total Tile rendering errors hidden behind transparent fallback",
         "# TYPE sahool_raster_tile_render_errors_total counter",
         f"sahool_raster_tile_render_errors_total {TILE_OBS['tile_render_errors_total']}",
+    ]
+    # شرطُ تفعيل الإنفاذ مقيسٌ هنا لا مفترَض: مع حركةٍ حقيقيّة يجب أن يصعد credentialed وأن
+    # يثبت uncredentialed/invalid_credential قبل ضبط RASTER_TENANT_CREDENTIAL_ENFORCE=1.
+    lines += [
+        "# HELP sahool_raster_tenant_assertions_total X-Tenant-Id assertions by credential outcome",
+        "# TYPE sahool_raster_tenant_assertions_total counter",
+    ]
+    lines += [
+        f'sahool_raster_tenant_assertions_total{{outcome="{o}"}} {TENANT_ASSERTION_COUNTS[o]}'
+        for o in ASSERTION_OUTCOMES
+    ]
+    lines += [
+        "# HELP sahool_raster_tenant_credential_enforced 1 when X-Tenant-Id requires X-Agent-Token",
+        "# TYPE sahool_raster_tenant_credential_enforced gauge",
+        f"sahool_raster_tenant_credential_enforced {int(tenant_credential_enforced())}",
     ]
     try:
         import raster_batch_observability as _batch_obs
@@ -224,6 +246,8 @@ async def readyz():
             "ready": ready,
             "earth_search": "reachable" if catalog else "unavailable",
             "dependencies": dependencies,
+            # إعلاميّ لا شرطَ جاهزيّة: يقول للمشغّل أيّ وضعٍ يعمل بعد خطوة التفعيل.
+            "tenant_credential": tenant_credential_posture(),
             **detail,
         },
     )
