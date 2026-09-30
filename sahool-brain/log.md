@@ -8957,3 +8957,7 @@ NDVI · `value`/`ndvi` مكان `mean` مع `scene_id` لا تحمله النق�
 ## [2026-09-30] security | المراجعة الرابعة تُسجَّل: Postgres 15.8 · دوالُّ SECURITY DEFINER · NATS على Railway بلا مصادقة
 
 ثلاثةُ صفوفٍ **open** من قياساتٍ قرائيّة (سجلّات إقلاع Railway، والهجرات): `POSTGRES-15-8-IS-STALE-MISSING-A-YEAR-OF-FIXES-01` · `SECURITY-DEFINER-FUNCTIONS-OWNED-BY-SUPERUSER-WITH-PUBLIC-EXECUTE-01` · `NATS-ON-RAILWAY-STAGING-HAS-NO-AUTH-AND-A-FLOATING-TAG-01`. وتصحيحان: شرطُ إغلاق `POSTGRES-V9-HAS-NO-TLS…` صار `hostssl` **و**`verify-full` بتحديد المالك، وحاشيةٌ على صفّ NATS التاريخيّ. الصياغةُ تتبع تصحيحات المالك الدقيقة (إعادةُ الفهرسة من ملاحظات الإصدار · لا «ثمانٍ آمنة» · EXECUTE لـPUBLIC وحده ليس نداءً). لا تغييرَ على Railway.
+
+## [2026-09-30] integration | إعادةُ تشغيل وكيل مسارات البيانات: ثلاثةُ إصلاحات، وصفّان متناقضان في السجلّ يُزامَنان
+
+أُعيد تشغيلُ الوكيل (فقد تقريرَه مع إعادة تشغيل الحاوية) من `main` بتعليماتٍ جديدة وتقريرٍ على القرص؛ أنهى `STATUS: COMPLETE`. ثلاثٌ **fixed**: `EDGE-MODEL-DIGEST-CONTRACT-UNENFORCED-01` · `TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01` (عدا الريح) · ونصفٌ بنيويٌّ من `PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01` (يبقى open). وصفّان كانت أقسامُهما `fixed` وجداولُهما `open` زُومِنا. راجعتُ الشيفرةَ مركزيّاً قبل النقل (مواضعُ القراءة الـ41 للحقول الصائرة اختياريّة؛ ومحمولُ الاستثناء في شاهد GUARDS). والسبعُ الباقية بلا تغيير: قفلُ GATE-01 (هجرةٌ لـCDSE/correlation) · قرارُ مالك · بيئةٌ حيّة.
