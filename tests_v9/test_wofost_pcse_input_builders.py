@@ -460,7 +460,7 @@ def test_run_inputs_name_every_default_and_serialise():
 
 
 def _lf_bytes(path: str) -> bytes:
-    with open(path, "rb") as fp:  # سحبٌ على Windows قد يُحوِّل ‎.soil‎ إلى CRLF
+    with open(path, "rb") as fp:  # سحبٌ على Windows قد يُحوِّل .soil إلى CRLF
         return fp.read().replace(b"\r\n", b"\n")
 
 
