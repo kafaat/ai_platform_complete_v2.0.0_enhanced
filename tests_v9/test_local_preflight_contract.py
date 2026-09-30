@@ -1116,3 +1116,61 @@ def test_a_second_preflight_in_the_same_worktree_exits_3_before_measuring_anythi
     # `--git-dir` من داخل الجذر يُرجِع `.git` نسبيّاً — يكفي اسمُ القفل لا مسارُه المطلق.
     assert "preflight.lock" in result.stderr, result.stderr
     assert "── " not in result.stdout, "لا بوّابة تُقاس بعد رفض القفل"
+
+
+# ── LESSON-READ-SUMMARY-NOT-TAIL-01 ─────────────────────────────────────────────
+#
+# المقيس: أُبلِغ «إخفاقٌ واحد» والخلاصةُ تقول ٢ — قُرِئ الذيلُ وفُلتِر باسمٍ متوقَّع، وكان
+# الذيلُ «أصلِح ما فوق» بلا أسماء. الخاصّيّة: **الذيلُ هو الخلاصة** — كلُّ ساقطٍ باسمه ثمّ
+# سطرُ العدد آخِراً، فلا يُرى واحدٌ من اثنين أيّاً كان طولُ الذيل المقروء.
+
+
+def _run_shipped_tail(tmp_path: Path, tier: str) -> list[str]:
+    import subprocess as sp
+
+    script = (
+        "set -uo pipefail\nfailures=0\nskipped=0\nfailed_steps=()\n"
+        + _shipped_function("require_file")
+        + _shipped_function("run")
+        + _shipped_function("print_tail_summary")
+        + 'run "٢أ) بوّابةٌ أولى تسقط" false\n'
+        + 'run "٣) بوّابةٌ تمرّ" true\n'
+        + 'require_file "scripts/ci/gone_guard.py" "٦ج) بوّابةٌ اختفى سكربتها"\n'
+        + 'run "٩) checksum mismatch" false\n'
+        + 'echo "سطرٌ طويلٌ من خطوةٍ لاحقة يدفع ما فوقه خارج الذيل"\n'
+        + f'print_tail_summary "{tier}"\n'
+    )
+    proc = sp.run(
+        ["bash", "-s"],
+        input=script,
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    return [line for line in proc.stdout.splitlines() if line.strip()]
+
+
+@pytest.mark.parametrize("tier", ["", "fast"])
+def test_the_tail_names_every_failure_and_ends_with_the_count(tmp_path, tier):
+    lines = _run_shipped_tail(tmp_path, tier)
+    assert lines[-1] == (
+        "═══ fast: إخفاقات=3 · متخطّاة=0 ═══" if tier else "═══ إخفاقات: 3 · متخطّاة: 0 ═══"
+    ), lines[-6:]
+    tail = lines[-4:-1]
+    assert tail == [
+        "   ✗ ٢أ) بوّابةٌ أولى تسقط (1)",
+        "   ✗ ٦ج) بوّابةٌ اختفى سكربتها — سكربت بوّابة مفقود",
+        "   ✗ ٩) checksum mismatch (1)",
+    ], lines[-6:]
+
+
+def test_every_failure_site_records_its_name():
+    """كلُّ موضعٍ يرفع العدّاد يُسجّل اسماً — وإلّا عاد العددُ يسبق الأسماء في الذيل."""
+    text = _text()
+    raises = text.count("failures=$((failures + 1))")
+    names = text.count("failed_steps+=(")
+    assert raises == names and raises >= 5, (raises, names)
+    assert text.rstrip().splitlines()[-2] == 'print_tail_summary ""'

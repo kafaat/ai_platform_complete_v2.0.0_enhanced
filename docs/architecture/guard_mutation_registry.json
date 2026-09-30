@@ -1190,6 +1190,13 @@
           "replace": "if False:  # mutated: ملفُّ القيود يُقبَل ولو هجرته CI\n",
           "test": "tests_v9/test_local_preflight_contract.py",
           "why": "ملفُّ قيودٍ لا تُحيل إليه CI إعلانٌ لا يحكم شيئاً: تُعدَّل الوظيفةُ إلى `pip install ruff` طليقاً ويبقى المحلّيُّ يقارن بملفٍّ **لا تقرؤه البوّابة** — أخضرُ عن سؤالٍ لم يعد مطروحاً. ويُقرأ البندُ من أسطر `run:` وحدَها لا من نصٍّ خام، وإلّا عُدَّ شرحُ الوظيفة أمراً — وقع ذلك فعلاً أثناء البناء (`SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01`)."
+        },
+        {
+          "expect": "test_the_tail_names_every_failure_and_ends_with_the_count",
+          "find": "    failed_steps+=(\"$label ($rc)\")\n",
+          "replace": "",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "بوّابةٌ تسقط ولا يُسجَّل اسمُها ⇒ الذيلُ يعود عدداً بلا أسماء، فقارئُ الذيل يرى «إخفاقٌ واحد» والخلاصةُ تقول اثنين (LESSON-READ-SUMMARY-NOT-TAIL-01)"
         }
       ]
     },

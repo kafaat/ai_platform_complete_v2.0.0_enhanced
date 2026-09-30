@@ -63,6 +63,13 @@ BASE="${BASE:-origin/main}"
 CONTRACT="docs/architecture/preflight_required.json"
 failures=0
 skipped=0
+# ── `LESSON-READ-SUMMARY-NOT-TAIL-01` ───────────────────────────────────────────
+# أسماءُ الساقطة تُجمَع وتُطبَع **في الذيل مع الخلاصة**، لا مبعثرةً فوقها. المقيس: أُبلِغ
+# «إخفاقٌ واحد» والخلاصةُ تقول ٢ — قُرِئ الذيلُ وفُلتِر باسمٍ متوقَّع، والثاني
+# (`checksum mismatch`) صنفٌ آخر. والذيلُ كان «أصلِح ما فوق»: عددٌ بلا أسماء، فالقراءةُ
+# الكسولة هي الأرخص. الآن آخرُ السطور **هي** الأسماءُ ثمّ سطرُ العدد — فما يُقرأ من الذيل
+# هو الخلاصة نفسُها، ولا يمكن رؤيةُ واحدٍ من اثنين.
+failed_steps=()
 
 # ── تشغيلةٌ واحدة لكلّ شجرة عمل (LESSON-CONCURRENT-PREFLIGHT-CONTAMINATION-01) ──
 # مقيس: تشغيلتان متزامنتان أفسدتا قياسَ بعضهما — مِسبارٌ في إحداهما كتب ملفّاً حقيقيّاً
@@ -86,6 +93,7 @@ fi
 require_file() {
   if [ ! -f "$1" ]; then
     failures=$((failures + 1))
+    failed_steps+=("$2 — سكربت بوّابة مفقود")
     echo "── $2"
     echo "   ✗ سكربت بوّابة مفقود: $1 — التغطية تقلّصت، لا اختبار فشل"
     return 1
@@ -109,6 +117,7 @@ run() {
   PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}" "$@" >/tmp/preflight_step.log 2>&1 || rc=$?
   if [ "$rc" -ne 0 ]; then
     failures=$((failures + 1))
+    failed_steps+=("$label ($rc)")
     echo "   ✗ فشل ($rc)"
     tail -15 /tmp/preflight_step.log | sed 's/^/     /'
   else
@@ -123,6 +132,25 @@ need() {  # يتخطّى بصوت عالٍ بدل أن يمرّ صامتاً —
   echo "   ⊘ متخطّاة: '$1' غير مثبَّت — هذه البوّابة **لم تُقَس**"
   skipped=$((skipped + 1))
   return 1
+}
+
+# الذيلُ هو الخلاصة: أسماءُ الساقطة ثمّ سطرُ العدد **آخِراً** — فـ`tail -1` يقول العدد،
+# و`tail -$((failures + 1))` يقول من سقط. `${arr[@]+…}` لأنّ `set -u` على مصفوفةٍ فارغة
+# يُسقِط bash < 4.4 (طرفيّات macOS الافتراضيّة).
+print_tail_summary() {  # $1 = fast أو فارغة — كلُّ طبقةٍ تحفظ شكلَ سطرها كما كان
+  local step
+  if [ "$failures" -gt 0 ]; then
+    echo "الساقطة ($failures) — بأسمائها:"
+    for step in ${failed_steps[@]+"${failed_steps[@]}"}; do
+      echo "   ✗ $step"
+    done
+  fi
+  if [ "$1" = fast ]; then
+    echo "═══ fast: إخفاقات=$failures · متخطّاة=$skipped ═══"
+  else
+    echo "═══ إخفاقات: $failures · متخطّاة: $skipped ═══"
+  fi
+  return 0
 }
 
 echo "═══ preflight ($TIER) — أساس المقارنة: $BASE ═══"
@@ -158,6 +186,7 @@ fi
 echo "── ٠أ) عقد المتطلّبات ($CONTRACT)"
 if [ ! -f "$CONTRACT" ]; then
   failures=$((failures + 1))
+  failed_steps+=("٠أ) عقد المتطلّبات مفقود")
   echo "   ✗ عقد المتطلّبات مفقود — لا يُعرَف ما الذي يجب أن يوجد"
 else
   missing=$(python3 - "$CONTRACT" <<'PY'
@@ -171,6 +200,7 @@ PY
 )
   if [ -n "$missing" ]; then
     failures=$((failures + 1))
+    failed_steps+=("٠أ) مسارات مُعلَنة في العقد وغير موجودة")
     echo "   ✗ مسارات مُعلَنة في العقد وغير موجودة — التغطية تقلّصت:"
     echo "$missing" | sed 's/^/     /'
   else
@@ -528,8 +558,8 @@ fi
 
 if [ "$TIER" = fast ]; then
   echo
-  echo "═══ fast: إخفاقات=$failures · متخطّاة=$skipped ═══"
   echo "الجناحان والمكنسة **لم يُشغَّلا**. لا تدفع على هذا وحده."
+  print_tail_summary fast
   [ "$failures" -eq 0 ] || exit 1
   exit 0
 fi
@@ -643,6 +673,7 @@ if [ -n "$PR_BODY_FILE" ]; then
   echo "── ١١أ) بوّابة Capability-Impact الحاجبة على متن الـPR"
   if [ ! -f "$PR_BODY_FILE" ]; then
     failures=$((failures + 1))
+    failed_steps+=("١١أ) ملفّ المتن غير موجود")
     echo "   ✗ ملفّ المتن غير موجود: $PR_BODY_FILE"
   else
     base_sha=$(git merge-base "$BASE" HEAD 2>/dev/null || echo "")
@@ -686,7 +717,6 @@ else
 fi
 
 echo
-echo "═══ إخفاقات: $failures · متخطّاة: $skipped ═══"
 if [ "$skipped" -gt 0 ]; then
   echo "⚠ $skipped بوّابة لم تُقَس — «لم أنظر» ليس «لا يوجد»."
 fi
@@ -694,6 +724,7 @@ if [ "$failures" -eq 0 ]; then
   echo "أخضر على ما قِيس — وهي أقلّيّةُ البوّابات (§٣.١٧؛ العددُ الحيّ في GUARD_CATALOGUE)."
   echo "اشتقّ عقود نطاقك من مساراتك المُعدَّلة قبل الدفع."
 else
-  echo "أصلِح ما فوق. كلّ فشل هنا كان سيكلّف جولة CI كاملة."
+  echo "أصلِح الساقطةَ أدناه. كلّ فشل هنا كان سيكلّف جولة CI كاملة."
 fi
+print_tail_summary ""
 [ "$failures" -eq 0 ]
