@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5460,
+    "files_scanned": 5461,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1523,
-      "tests": 1860,
+      "tests": 1861,
       "web": 459
     },
-    "unmapped_artifacts": 2216,
+    "unmapped_artifacts": 2217,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -19163,7 +19163,7 @@
           "score": 12
         },
         {
-          "value": "/metrics @ services/agriai-engine/main.py:92",
+          "value": "/metrics @ services/agriai-engine/main.py:95",
           "score": 12
         },
         {
@@ -19175,7 +19175,7 @@
           "score": 12
         },
         {
-          "value": "/runtime-identity @ services/agriai-engine/main.py:99",
+          "value": "/runtime-identity @ services/agriai-engine/main.py:102",
           "score": 12
         },
         {
@@ -19231,19 +19231,19 @@
           "score": 12
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:336",
+          "value": "/v1/plan @ services/agriai-engine/main.py:339",
           "score": 12
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:245",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:248",
           "score": 12
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:352",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:355",
           "score": 12
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:309",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:312",
           "score": 12
         },
         {
@@ -43115,6 +43115,10 @@
     },
     {
       "path": "tests_v9/test_agent_stores_v58_2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_agriai_readyz_status_code.py",
       "kind": "tests"
     },
     {

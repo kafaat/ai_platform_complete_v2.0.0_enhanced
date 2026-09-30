@@ -65,7 +65,7 @@ async def legacy_health():
 
 
 @app.get("/readyz")
-async def readyz():
+async def readyz(response: Response):
     # في وضع الإنتاج، الجاهزيّة العلميّة تتطلّب مساراً **مُثبَتاً تكامليّاً** لا مجرّد توفّر
     # مكتبة pcse (بُناة الموفِّر أقلّاب حتى إكمال التكامل — SIM_PCSE_INTEGRATION_VERIFIED).
     # خارج الإنتاج تبقى الخدمة حوسبةً صرفةً جاهزةً بصدق مع وسم حالة المسار العلميّ.
@@ -78,6 +78,9 @@ async def readyz():
         pcse_state = "verified_missing"  # مكتبة قد تكون متاحة لكن التكامل غير مُثبَت
     else:
         pcse_state = "optional_unverified"
+    if not ready:
+        # الموازِن والمُنسِّق يقرآن رمزَ الحالة لا الجسم: 200 مع ready=false جاهزيّةٌ كاذبة.
+        response.status_code = 503
     return {
         "status": "ready" if ready else "not_ready",
         "service": "agriai-engine",

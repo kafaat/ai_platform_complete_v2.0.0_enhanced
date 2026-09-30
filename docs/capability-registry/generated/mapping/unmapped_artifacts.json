@@ -6832,6 +6832,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_agriai_readyz_status_code.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
     "kind": "tests"
   },
