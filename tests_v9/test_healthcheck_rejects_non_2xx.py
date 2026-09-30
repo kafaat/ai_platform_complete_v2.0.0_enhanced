@@ -221,3 +221,28 @@ def test_curl_healthcheck_fails_on_http_error(ident):
         for t in flags
     )
     assert has_fail, f"{ident}: curl healthcheck without -f/--fail accepts any HTTP status: {toks}"
+
+
+def _bounds_cases() -> list:
+    cases = []
+    for ident, code in _PYTHON_HTTP_MEMBERS:
+        marks = ()
+        if ident.startswith(_PENDING_RELEASE):
+            marks = pytest.mark.xfail(
+                strict=True,
+                reason="HEALTHCHECK-ACCEPTS-ANY-HTTP-STATUS-01: Dockerfile fix held for release",
+            )
+        cases.append(pytest.param(ident, code, marks=marks, id=ident))
+    return cases
+
+
+@pytest.mark.parametrize(("ident", "code"), _bounds_cases())
+def test_python_healthcheck_bounds_its_own_wait(ident, code):
+    """الصنفُ نفسُه على محورٍ آخر (بقرار المالك يُدرَج مع F02): حارسٌ يقبل أيَّ ردٍّ أعمى،
+    وحارسٌ بلا مهلةٍ لا يردّ أبداً — ينتظر خادماً عالقاً حتّى يقتله Docker عند ``timeout:``
+    الحاوية، فتُقرأ المهلةُ «غيرَ سليمة» بلا سببٍ مسمًّى في سجلّ الفحص.
+    """
+    assert re.search(r"timeout\s*=", code), (
+        f"{ident}: the probe has no client timeout — it waits until Docker kills it. "
+        "Pass timeout=<seconds below the container's healthcheck timeout>."
+    )

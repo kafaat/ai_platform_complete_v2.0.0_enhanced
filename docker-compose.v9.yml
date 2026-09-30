@@ -1543,7 +1543,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=4)
       interval: 20s
       timeout: 5s
       retries: 6

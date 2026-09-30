@@ -58,7 +58,7 @@ EXPOSE 8100
 # الصورة الوحيدة التي كانت بلا HEALTHCHECK (للتشغيل المستقلّ؛ compose يوفّر مثله).
 # python بدل curl (غير مثبَّت) — /healthz موجود في الخدمة.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8100/healthz').status==200 else 1)" || exit 1
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8100/healthz', timeout=4).status==200 else 1)" || exit 1
 
 RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool
