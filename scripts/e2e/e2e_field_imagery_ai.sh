@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_URL="${BASE_URL:-http://localhost}"
 : "${SAHOOL_JWT:?Set SAHOOL_JWT for authenticated E2E runtime checks}"
 : "${TENANT_ID:?Set TENANT_ID}"
@@ -38,15 +39,8 @@ echo "==> AI agronomist evidence flow"
 curl -fsS --max-time 30 "${AUTH[@]}" -X POST "${BASE_URL}/api/ai-agronomist/chat" \
   -d "{\"tenant_id\":\"${TENANT_ID}\",\"field_id\":\"${FIELD_ID}\",\"question\":\"اشرح حالة هذا الحقل بناء على المؤشرات المتاحة\",\"selected_imagery_date\":\"${DATE}\"}" \
   | tee /tmp/sahool_ai.json >/dev/null
-python - <<'PY'
-import json
-from pathlib import Path
-j=json.loads(Path('/tmp/sahool_ai.json').read_text(encoding="utf-8"))
-assert j.get('mode') == 'evidence_only', 'AI must stay evidence_only'
-assert 'annotations' in j, 'AI missing evidence annotations'
-assert 'decision_authority' in j and j['decision_authority'] == 'field_intelligence_coordinator'
-assert 'audit_event' in j, 'AI response missing audit_event status'
-print('ai evidence flow ok')
-PY
+# القبول في وحدةٍ مُختبَرة لا في heredoc: النجاح = جوابٌ **و**أثرُ تدقيقٍ مُسجَّل
+# (audit_event.persisted)، والحالتان المقبولتان evidence_only وvalidated_field_facts.
+python "${SCRIPT_DIR}/ai_evidence_acceptance.py" /tmp/sahool_ai.json
 
 echo "field imagery AI E2E completed"

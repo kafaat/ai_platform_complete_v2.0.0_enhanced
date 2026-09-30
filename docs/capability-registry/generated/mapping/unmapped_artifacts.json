@@ -6856,6 +6856,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_evidence_acceptance.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_generation_gating.py",
     "kind": "tests"
   },

@@ -4258,12 +4258,12 @@
         "tests/architecture/test_capability_evidence_maturity_engine.py",
         "tests/architecture/test_runtime_evidence_ingestion.py",
         "tests/architecture/test_runtime_evidence_trust_hardening.py",
+        "tests_v9/test_ai_evidence_acceptance.py",
         "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
         "tests_v9/test_collect_guard_surface_evidence.py",
         "tests_v9/test_d09_live_evidence_receipt.py",
         "tests_v9/test_evidence_contract_v62_3.py",
-        "tests_v9/test_evidence_graph_nodes_migration_v149.py",
-        "tests_v9/test_evidence_lab_contract.py"
+        "tests_v9/test_evidence_graph_nodes_migration_v149.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4306,7 +4306,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 11
+        "tests": 12
       }
     },
     {
