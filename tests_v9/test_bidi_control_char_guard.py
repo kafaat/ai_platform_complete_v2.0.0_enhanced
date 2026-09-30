@@ -97,3 +97,43 @@ def test_the_real_tree_is_clean_of_overrides() -> None:
     overrides, _ = bidi.scan()
 
     assert overrides == {}, f"قلبُ اتّجاه في الشجرة: {sorted(overrides)}"
+
+
+def _git_tree(tmp_path: Path, text: str) -> Path:
+    import subprocess
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "a.md").write_text(text, encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "a.md"], check=True)
+    return tmp_path
+
+
+def test_regenerating_the_baseline_can_lower_it_but_never_raise_it(tmp_path: Path) -> None:
+    """«يتقلّص ولا ينمو» كان وصفاً: `--generate` كان يكتب 74 فوق 72 بلا اعتراض."""
+    root = _git_tree(tmp_path / "tree", f"x{RLM}{RLM}")
+    baseline = tmp_path / "baseline.json"
+    bidi.generate(baseline, root)  # أوّلُ توليد: لا أساسَ سابق
+    assert bidi.load_baseline(baseline) == {"a.md": 2}
+
+    (root / "a.md").write_text(f"x{RLM}{RLM}{RLM}", encoding="utf-8")
+    with pytest.raises(bidi.BaselineWouldGrow) as raised:
+        bidi.generate(baseline, root)
+    assert raised.value.grown == {"a.md": (2, 3)}
+    assert bidi.load_baseline(baseline) == {"a.md": 2}, "الرفضُ لا يكتب نصفَ أساس"
+
+    (root / "a.md").write_text(f"x{RLM}", encoding="utf-8")
+    bidi.generate(baseline, root)
+    assert bidi.load_baseline(baseline) == {"a.md": 1}
+
+
+def test_a_file_new_to_the_baseline_cannot_be_admitted_by_regeneration(tmp_path: Path) -> None:
+    """ملفٌّ بلا مدخلٍ أساسُه صفر؛ والتوليدُ لا يمنحه رخصةً."""
+    root = _git_tree(tmp_path / "tree", "clean")
+    baseline = tmp_path / "baseline.json"
+    bidi.generate(baseline, root)
+    (root / "b.md").write_text(f"y{LRM}", encoding="utf-8")
+    import subprocess
+
+    subprocess.run(["git", "-C", str(root), "add", "b.md"], check=True)
+    with pytest.raises(bidi.BaselineWouldGrow):
+        bidi.generate(baseline, root)
