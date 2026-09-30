@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import asyncpg
 
@@ -44,11 +45,27 @@ class BaseAgent:
         except Exception as e:
             logger.warning(f"[{self.service_name}] NATS unavailable: {e}")
 
-    async def set_tenant(self, conn, tenant_id: str):
-        """Set RLS tenant context for DB operations."""
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )
+    @asynccontextmanager
+    async def tenant_transaction(self, conn, tenant_id: str):
+        """معاملةٌ يحيا فيها سياقُ المستأجِر — **والسياقُ لا يُضبَط إلّا داخلها**.
+
+        كانت هنا ``set_tenant(conn, tenant_id)`` تنفّذ ``set_config(…, true)`` على الاتّصال
+        كما هو. و``true`` «محلّيٌّ للمعاملة»، وasyncpg بلا معاملةٍ صريحة في وضع autocommit:
+        العبارةُ معاملةُ نفسِها فيزول الضبطُ قبل الاستعلام التالي. **مقيسٌ على PG16 بدورٍ
+        مقيَّد (NOBYPASSRLS):** ``set_config`` يُعيد القيمةَ كأنّه نجح، والعبارةُ التالية
+        تقرأ ``current_setting('app.current_tenant', true) = ''`` فتُعيد السياسةُ صفرَ صفوف
+        بلا استثناء — ضبطٌ لا يضبط شيئاً. (ولم يكن لها مُستدعٍ واحد؛ فهي فخٌّ كامن لا عطلٌ
+        جارٍ.) والصيغةُ الآمنة الوحيدة أن يملك المُساعِدُ المعاملةَ نفسَها، على نمط
+        ``tenant_connection`` في المنصّة: فلا يمكن استعمالُه خارجها أصلاً.
+
+        ومستأجِرٌ فارغ يُرفَض بدل ضبطه ``''``: الفراغُ في سياسات ``NULLIF`` صفرٌ صامت،
+        وفي سياسات «فاشلٍ-مفتوحٍ عند الغياب» قراءةٌ عابرةٌ للمستأجرين.
+        """
+        if not tenant_id:
+            raise ValueError("tenant_transaction يتطلّب مستأجِراً غير فارغ")
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+            yield conn
 
     async def close(self):
         if self._pool:

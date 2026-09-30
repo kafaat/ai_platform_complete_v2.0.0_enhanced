@@ -1,14 +1,14 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "74e3aaa0388c15248c30b1ff9e0a8f5f49d7956a",
+  "measured_on": "6ec49649cd81bbe9a72ebd4d50738e4ba973473f",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "bd009c379c20d49a3dbc2a56cb10685d75422e285fc4de7ecd8263631fd40629",
+  "measurement_input_digest": "15047a5d09565bc6e1f4ca1d1a0587433bcd60c36d737b01361e741bb6c1bfe6",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "c51aae543b26dadf2338009f6303372f08deb2b899e267380d15a3dd17e6101b",
+  "measurement_basis_digest": "cec70b681185fc458f461c2feb95f8191d14e474797ac59236fc3a2248948cda",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
-      "sha256": "ea261e61b0f54747ffec2980a79d7609a994fda84470bdc11246e124c5aaa54a"
+      "sha256": "f74297131893e5ef1cb47ce2c4294b3ff7d67e49bffab4ece1fb7ecd0d64c1db"
     },
     {
       "path": "agents/notification/agent.py",
@@ -72,7 +72,7 @@
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
-      "sha256": "2f987372cc4e5d195d4779771e969353b1c3e5a3280fcbdddd10d4e8b6e91069"
+      "sha256": "c4193c66176c67be6dfd1cd309203db89ae141245921efd26902a447fce8d4a9"
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",
@@ -181,10 +181,7 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
-    "agents/base_agent.py:50",
     "services/auth/main.py:993",
-    "services/mcp_servers/shared/oauth_middleware.py:36",
-    "services/mcp_servers/shared/oauth_middleware.py:40",
     "services/raster-service/backfill_scan_worker.py:101",
     "services/raster-service/cache_invalidation_worker.py:87",
     "services/sahool-platform/api/imagery_automation.py:179",
