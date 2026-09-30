@@ -1,0 +1,102 @@
+name: Railway Dockerfile PR build
+
+# DOCKER-BUILD-VERIFIED-ONLY-ON-MANUAL-DISPATCH-SKIP-READS-GREEN-01:
+# Railway يبني ملفّات Dockerfile هذه في الإنتاج فور الدمج (checkSuites:false)، ووظيفةُ
+# docker-build في المصفوفة يدويّةٌ فتظهر «skipped» وتُقرأ نجاحاً. هنا تُبنى في الـPR
+# **حين يتغيّر الـDockerfile أو ما ينسخه**، من سياقٍ نظيف، بوسائط هويّةٍ من CI.
+# ووظيفةُ الحكم تعمل دائماً: «لا شيءَ يُبنى» نتيجةٌ مُعلَنة من المُخطِّط، لا تخطٍّ صامت.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: "Railway services to build regardless of changes (comma list, or all)"
+        required: true
+        default: "all"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-dockerfile-pr-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Plan Railway Dockerfile builds touched by this PR
+        id: plan
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+          FORCE_SERVICES: ${{ inputs.services }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$BASE_REF"
+          python scripts/ci/railway_dockerfile_pr_build_plan.py \
+            --base "origin/$BASE_REF" \
+            --force-services "${FORCE_SERVICES:-}" \
+            --github-output "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Build ${{ matrix.service }}
+        env:
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          SERVICE: ${{ matrix.service }}
+          GIT_SHA: ${{ github.sha }}
+          BUILD_ID: gha-${{ github.run_id }}-${{ github.run_attempt }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          docker build \
+            -f "$DOCKERFILE" \
+            --build-arg "SAHOOL_GIT_SHA=$GIT_SHA" \
+            --build-arg "SAHOOL_BUILD_ID=$BUILD_ID" \
+            --build-arg "SAHOOL_SOURCE_REPOSITORY=$SOURCE_REPOSITORY" \
+            --build-arg "SAHOOL_SOURCE_REF=$SOURCE_REF" \
+            -t "pr-build/$SERVICE:$GIT_SHA" \
+            .
+
+  verdict:
+    needs: [plan, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Planned builds all succeeded (or none were planned)
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          COUNT: ${{ needs.plan.outputs.count }}
+        run: |
+          set -euo pipefail
+          echo "plan=$PLAN_RESULT build=$BUILD_RESULT planned=$COUNT"
+          if [ "$PLAN_RESULT" != "success" ]; then
+            echo "::error::the build plan did not run successfully - no verdict"; exit 1
+          fi
+          if [ "$COUNT" = "0" ]; then
+            echo "no Railway Dockerfile or its COPY context is touched by this PR"; exit 0
+          fi
+          if [ "$BUILD_RESULT" != "success" ]; then
+            echo "::error::$COUNT planned Railway Dockerfile build(s) did not all succeed ($BUILD_RESULT)"; exit 1
+          fi
