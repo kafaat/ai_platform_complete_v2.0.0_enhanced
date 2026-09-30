@@ -8909,3 +8909,7 @@ Railway لأيٍّ منها (`list-services` على staging). السببُ `depl
 
 **AUTH-NO-TRACING-01** (`434e2596`): auth تُصدِّر امتداداتها باسم `sahool-auth`؛ بلا نقطة لا شيء، ومُجمِّعٌ مغلق/لا يُوجَّه
 لا يُبطئ الطلبات (≤7ms) وإغلاقُه ~6.7ث/~20ث بمهلة المُصدِّر الافتراضيّة. `main.py` بقي 1049 سطراً.
+
+## [2026-09-30] railway | وكيلُ الإشعارات: نشرٌ فاشل بعد #1102 — مستهلكو `legacy` يمنعون النشرَ المتداوِل
+
+قِستُ من سجلّات Railway (قراءةٌ فقط، لا إعادةَ نشرٍ ولا تغيير): #1102 مسّ `agents/base_agent.py` ⇒ النشرُ `34324a40` ⇒ التسعةُ `Subscription unavailable` و`/readyz` 503 حتّى المهلة ⇒ FAILED، والقديمُ `43af9d13` يخدم. الآليّةُ في nats-py 2.16.0 (`client.py:393-397`) والعلاجُ هجرةُ `queue_v1` في `RAILWAY_DEPENDENCY_RECOVERY.md`. سُجِّلت `NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01` **open**. تصحيحٌ لمسوّدتي: قلتُ «عشرة» مستهلكين والمصدرُ تسعة (`shared/notification_consumers.py:22-33`).
