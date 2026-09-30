@@ -40,7 +40,10 @@ x-db-env: &db-env
   # fail-closed: ارفض الإقلاع إن اتّصل التطبيق بدور يتجاوز RLS (superuser/BYPASSRLS) —
   # يحوّل لينشين العزل من «مفترَض» إلى «مُثبَت عند الإقلاع» (core/db_role_guard).
   SAHOOL_ENFORCE_RLS_ROLE: "1"
-  REDIS_URL: "redis://sahool-unified-redis:6379/0"
+  # REDIS-CLIENTS-WITHOUT-PASSWORD-01: redis هنا يُقلِع بـ`--requirepass`، وكانت روابطُ عملائه
+  # (هذه المرساةُ وثلاثةٌ حرفيّة أدناه) بلا كلمة سرّ ⇒ كلُّ عميلٍ `Authentication required`
+  # والخادمُ أخضر (مقيس 2026-09-30 بـredis-server 7 + redis-py 5.3؛ tests_v9/test_redis_password_wiring.py).
+  REDIS_URL: "redis://:${REDIS_PASSWORD:?must be set in .env}@sahool-unified-redis:6379/0"
   NATS_URL: "nats://sahool-unified-nats:4222"
   MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
 
@@ -128,7 +131,7 @@ services:
       MCP_MARKET_URL: "http://sahool-unified-market-mcp:8000/mcp/v1"
       GUARDRAILS_URL: "http://sahool-unified-guardrails:8000"
       LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"
-      REDIS_URL: "redis://sahool-unified-redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?must be set in .env}@sahool-unified-redis:6379/0"
       JWT_SECRET: "${JWT_SECRET}"
       JWT_PUBLIC_KEY: "${JWT_PUBLIC_KEY:-}"
     depends_on:
@@ -282,7 +285,7 @@ services:
       MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
       EDGE_INFERENCE_URL: "http://sahool-unified-edge:8100"
       ZLMEDIA_API_URL: "http://sahool-unified-zlmediakit:8080"
-      REDIS_URL: "redis://sahool-unified-redis:6379/3"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?must be set in .env}@sahool-unified-redis:6379/3"
     depends_on:
       - fastbee
       - edge-inference
@@ -542,7 +545,7 @@ services:
       SUPERVISOR_AGENT_URL: "http://sahool-unified-supervisor:8000"
       AUTH_SERVICE_URL: "http://sahool-unified-auth:8000"
       JWT_SECRET: "${JWT_SECRET}"
-      REDIS_URL: "redis://sahool-unified-redis:6379/2"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?must be set in .env}@sahool-unified-redis:6379/2"
     depends_on:
       supervisor-agent: { condition: service_healthy }
       redis:             { condition: service_healthy }
