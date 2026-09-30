@@ -28,7 +28,7 @@
 // دون تغيير؛ الالتقاط الحيّ هنا يخصّ أداة رسم محرّك GL وحدها.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint,
