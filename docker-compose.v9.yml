@@ -674,7 +674,11 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
-      sahool-redis:
+      # REDIS-STATE-NOT-A-DEPENDENCY-OF-ITS-CLIENTS-01: `REDIS_URL` أعلاه على `sahool-redis-state`،
+      # وكان الانتظارُ على `sahool-redis` (الكاش) — فلا خدمةَ تُقلِع redis-state ولا تنتظره، و auth
+      # يلتقط Redis مرّةً عند الإقلاع فيتنازل في التطوير إلى `_redis = None` طوال عمره (إبطالٌ
+      # وقفلُ حسابٍ معطَّلان بصمت). مقيسٌ على إغلاق depends_on؛ tests_v9/test_redis_password_wiring.py.
+      sahool-redis-state:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
@@ -942,7 +946,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
-      sahool-redis:
+      # الـRedis الذي يستهدفه `REDIS_URL` أعلاه (كما في sahool-auth)، لا الكاش.
+      sahool-redis-state:
         condition: service_healthy
     networks:
     - sahool-internal

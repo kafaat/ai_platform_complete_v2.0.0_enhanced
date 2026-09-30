@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import functools
 import re
 import shlex
 from pathlib import Path
@@ -44,7 +45,9 @@ _BUNDLES_WITH_CLIENTS = (
 )
 
 
+@functools.cache
 def _load(path: Path) -> dict:
+    """قراءةٌ فقط — مُخزَّنة لأنّ كلَّ حالةٍ مُعامَلة تقرأ ملفَّها."""
     return yaml.safe_load(_INTERP.sub(_PASSWORD, path.read_text(encoding="utf-8"))) or {}
 
 
@@ -124,3 +127,41 @@ def test_client_url_carries_the_password_its_server_requires(fname, service, key
         f"بكلمة سرّ {parsed.get('password')!r} ⇒ `Authentication required` عند كلّ اتّصال. "
         "اكتب الرابط `redis://:${REDIS_PASSWORD:?…}@<host>:6379/N` كما في docker-compose.v9.yml."
     )
+
+
+def _depends_on(path_name: str, service: str) -> dict:
+    svc = _load(ROOT / path_name)["services"][service]
+    deps = svc.get("depends_on") or {}
+    return {d: {} for d in deps} if isinstance(deps, list) else dict(deps)
+
+
+@pytest.mark.parametrize(
+    "fname,service,key,parsed,server",
+    _CLIENTS,
+    ids=[f"{r[0]}::{r[1]}::{r[2]}" for r in _CLIENTS],
+)
+def test_a_client_that_waits_for_redis_waits_for_the_one_it_talks_to(
+    fname, service, key, parsed, server
+):
+    """من ينتظر Redis ينتظر الذي يتّصل به — لا جارَه.
+
+    العطلُ المقيس في ``docker-compose.v9.yml``: ``sahool-auth`` و``sahool-guardrails-engine``
+    يتّصلان بـ``sahool-redis-state`` ويعتمدان (``service_healthy``) على ``sahool-redis``،
+    ولا خدمةَ واحدة تعتمد على ``sahool-redis-state``: فلا ``up sahool-nginx`` (39 خدمة في
+    إغلاق depends_on) ولا ``up sahool-auth`` يُقلِعه، ولا ترتيبَ يسبقه. و auth يلتقط Redis
+    **مرّةً عند الإقلاع**: في التطوير (``SAHOOL_ENV`` الافتراضيّ في v9 و``.env.example``)
+    يتنازل إلى ``_redis = None`` طوالَ عمر العمليّة — إبطالُ التوكنات وقفلُ الحساب معطَّلان
+    بصمت (``services/auth/main.py``)؛ وفي الإنتاج يرفض الإقلاع.
+    """
+    doc = _load(ROOT / fname)
+    redis_services = {name for name, _ in _servers(doc).values()}
+    deps = _depends_on(fname, service)
+    waits_for = sorted(d for d in deps if d in redis_services)
+    target, _ = server
+    if not waits_for:
+        return  # لا ينتظر أيَّ Redis — صنفٌ آخر خارج هذه الخاصّيّة
+    assert target in waits_for, (
+        f"{fname}: {service}.{key} يتّصل بـ{target} وينتظر {waits_for} — "
+        f"أضف `{target}: {{condition: service_healthy}}` إلى depends_on."
+    )
+    assert deps[target].get("condition", "service_healthy") == "service_healthy", deps[target]
