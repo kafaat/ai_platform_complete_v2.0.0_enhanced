@@ -1577,6 +1577,7 @@
         "services/sahool-platform/tests/test_district_baseline.py",
         "services/sahool-platform/tests/test_farm_closed_loop.py",
         "services/sahool-platform/tests/test_farm_costing.py",
+        "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
         "services/sahool-platform/tests/test_farm_full_season_forensic.py",
         "services/sahool-platform/tests/test_farm_ledger.py",
         "services/sahool-platform/tests/test_farm_memory.py",
