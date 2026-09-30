@@ -202,7 +202,9 @@ def test_a_hex_password_round_trips_through_every_client_url_and_base64_does_not
     """
     raw_urls = []
     for path in sorted(ROOT.glob("docker-compose*.yml")):
-        raw_urls += re.findall(r"redis://:\$\{REDIS_PASSWORD[^}]*\}@[^\s\"']+", path.read_text())
+        raw_urls += re.findall(
+            r"redis://:\$\{REDIS_PASSWORD[^}]*\}@[^\s\"']+", path.read_text(encoding="utf-8")
+        )
     assert len(raw_urls) >= 25, len(raw_urls)  # 29 موضعاً نصّيّاً مقيساً (المرساةُ مرّةً)
     hex_pw, b64_pw = "9c2e" * 16, "q0Zk/8Xr+Jm2Lw4="
     for url in raw_urls:
