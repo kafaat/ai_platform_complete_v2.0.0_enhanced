@@ -164,3 +164,50 @@ def test_a_client_that_waits_for_redis_waits_for_the_one_it_talks_to(
         f"أضف `{target}: {{condition: service_healthy}}` إلى depends_on."
     )
     assert deps[target].get("condition", "service_healthy") == "service_healthy", deps[target]
+
+
+# ── شكلُ كلمة السرّ: الرابطُ يحملها حرفيّاً بلا ترميز ────────────────────────────
+
+
+def _env_example_guidance(name: str) -> str:
+    """التعليقُ المتّصل فوق ``NAME=`` في ``.env.example``."""
+    lines = (ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+    idx = next(i for i, line in enumerate(lines) if line.startswith(f"{name}="))
+    block = []
+    for line in reversed(lines[:idx]):
+        if not line.startswith("#"):
+            break
+        block.append(line)
+    return "\n".join(reversed(block))
+
+
+def test_env_example_tells_the_operator_to_generate_a_url_safe_redis_password():
+    """``.env.example`` يسمّي مولِّداً ستّ‑عشريّاً لـ``REDIS_PASSWORD``.
+
+    العطلُ المقيس: كان التعليقُ «نفس كلمة السرّ تُستخدَم في requirepass وفي REDIS_URL»
+    — و``REDIS_URL`` في الملفّ نفسه ``localhost`` بلا كلمة سرّ — ولا مولِّدَ ولا قيدَ شكل،
+    بينما ``JWT_SECRET`` في رأس الملفّ يقول ``openssl rand -hex 32``. فالمُشغِّل يولِّد بما
+    اعتاد، و``openssl rand -base64 32`` يُنتِج ``/`` في قرابة نصف السحبات.
+    """
+    guidance = _env_example_guidance("REDIS_PASSWORD")
+    assert re.search(r"openssl rand -hex \d+", guidance), guidance
+
+
+def test_a_hex_password_round_trips_through_every_client_url_and_base64_does_not():
+    """لماذا الإرشادُ حاملٌ لا زينة: الشكلُ الستّ‑عشريّ يعبر الرابطَ حرفيّاً والآخرُ لا.
+
+    يُستوفى كلُّ رابط عميلٍ فعليّ بكلمتَي سرّ ويُفكّ بمحلِّل العميل. الستّ‑عشريّةُ تعود
+    كما هي في كلّ رابط؛ وسحبةُ base64 فيها ``/`` لا تعود في أيّ رابط.
+    """
+    raw_urls = []
+    for path in sorted(ROOT.glob("docker-compose*.yml")):
+        raw_urls += re.findall(r"redis://:\$\{REDIS_PASSWORD[^}]*\}@[^\s\"']+", path.read_text())
+    assert len(raw_urls) >= 25, len(raw_urls)  # 29 موضعاً نصّيّاً مقيساً (المرساةُ مرّةً)
+    hex_pw, b64_pw = "9c2e" * 16, "q0Zk/8Xr+Jm2Lw4="
+    for url in raw_urls:
+        assert parse_url(_INTERP.sub(hex_pw, url)).get("password") == hex_pw, url
+        try:
+            decoded = parse_url(_INTERP.sub(b64_pw, url)).get("password")
+        except ValueError:
+            decoded = None  # `Port could not be cast to integer` — العطلُ المقيس نفسه
+        assert decoded != b64_pw, url
