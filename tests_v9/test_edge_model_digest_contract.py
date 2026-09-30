@@ -210,6 +210,97 @@ def test_every_surface_that_ships_a_model_path_also_ships_its_digest() -> None:
     )
 
 
+DOWNLOADER = EDGE / "download_models.py"
+
+
+def _downloader_digest_envs() -> dict[str, str]:
+    """`REQUIRED_MODELS` في المُنزِّل من شجرة النحو: اسمُ الملفّ ⇐ متغيّرُ البصمة الذي يقرؤه فعلاً.
+
+    **الموضعُ الثالثُ للعقد، ولم يربطه #1022.** تعليقُه يقول «الاسمان نفسُهما اللذان يقرؤهما
+    `main.py`» — نثرٌ لا فحص. **مقيسٌ على `bcb7f0ed`:** إعادةُ تسمية `PEST_MODEL_SHA256` في
+    المُنزِّل وحدَه تُبقي الشواهدَ الاثنين والعشرين والحارسَين أخضرَ، والمُنزِّلُ يقرأ متغيّراً
+    لا يضبطه أحد فيرفض التنزيلَ (`download_models.py:62`) صامتاً، ويردّ كلُّ استدلالٍ 503.
+    """
+    tree = ast.parse(DOWNLOADER.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if not (
+            isinstance(node, ast.Assign)
+            and any(getattr(t, "id", "") == "REQUIRED_MODELS" for t in node.targets)
+        ):
+            continue
+        assert isinstance(node.value, ast.Dict), "`REQUIRED_MODELS` لم يعد قاموساً حرفيّاً"
+        out: dict[str, str] = {}
+        for key, entry in zip(node.value.keys, node.value.values, strict=True):
+            assert isinstance(key, ast.Constant) and isinstance(entry, ast.Dict), (
+                "مدخلٌ غيرُ حرفيّ في `REQUIRED_MODELS`"
+            )
+            fields = {
+                k.value: v
+                for k, v in zip(entry.keys, entry.values, strict=True)
+                if isinstance(k, ast.Constant)
+            }
+            sha = fields.get("sha256")
+            assert (
+                isinstance(sha, ast.Call)
+                and isinstance(sha.func, ast.Attribute)
+                and sha.func.attr == "getenv"
+                and sha.args
+                and isinstance(sha.args[0], ast.Constant)
+            ), f"{key.value}: البصمةُ لم تعد تُقرأ من متغيّر بيئةٍ مُسمّى"
+            out[str(key.value)] = str(sha.args[0].value)
+        return out
+    raise AssertionError("اختفت `REQUIRED_MODELS` من المُنزِّل — العقدُ فقد موضعاً")
+
+
+def test_the_downloader_reads_the_declared_digest_names_for_the_declared_models() -> None:
+    declared = {Path(m["default_path"]).name: m["sha256_env"] for m in _manifest()}
+    assert _downloader_digest_envs() == declared, (
+        "المُنزِّلُ يقرأ بصماتٍ بأسماءٍ غيرِ المُعلَنة، أو لنماذجَ غيرِ النماذج — يرفض التنزيلَ "
+        "صامتاً والقدرةُ تبقى مغلقةً إلى الأبد"
+    )
+
+
+def _literal_calls(name: str, arity: int) -> list[tuple[str, ...]]:
+    tree = ast.parse(EDGE_MAIN.read_text(encoding="utf-8"))
+    return [
+        tuple(a.value for a in node.args)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == name
+        and len(node.args) == arity
+        and all(isinstance(a, ast.Constant) for a in node.args)
+    ]
+
+
+def test_every_literal_model_call_in_main_names_the_path_the_gate_hashes() -> None:
+    """البوّابةُ والمُحمِّلُ يقرآن **الملفَّ نفسَه** — وإلّا صار التحقّقُ عن بايتاتٍ لا تُستعمَل.
+
+    `_require_approved_model` يُجزّئ الملفَّ من متغيّر `_MODEL_ENV`، بينما `get_pest_detector`
+    و`get_yield_estimator` يحمّلان من `_model_path("…_PATH", "…onnx")` **بحرفٍ مكرَّر**، ومثلُهما
+    `readiness`. **مقيسٌ على `bcb7f0ed`:** تغييرُ `"PEST_MODEL_PATH"` في مُحمِّل الكاشف وحدَه
+    (`main.py:63`) يُبقي الشواهدَ والحارسَ أخضرَ — فمشغّلٌ يضبط `PEST_MODEL_PATH` تُجزّئ البوّابةُ
+    ملفَّه وتقبله، والكاشفُ يحمّل الافتراضيَّ من `/models`. لا يُعاد تشكيلُ `main.py` هنا (جاهزيّةُ
+    الحافّة في يدٍ أخرى)؛ يُربَط كلُّ حرفٍ مكرَّر بالخريطة الواحدة، **ولكلّ نموذجٍ موضعُه**
+    فلا يمرّ الشاهدُ فارغاً إن تغيّر شكلُ النداء.
+    """
+    runtime = _model_env_map()
+    for fn in ("_model_path", "_model_capability"):
+        calls = _literal_calls(fn, 2)
+        for env, filename in calls:
+            assert filename in runtime, f"`{fn}`: ملفٌّ غيرُ معروفٍ للعقد: {filename}"
+            assert runtime[filename][0] == env, (
+                f'`{fn}("{env}", "{filename}")` يقرأ مساراً غيرَ الذي تُجزّئه البوّابة '
+                f"(`{runtime[filename][0]}`)"
+            )
+        assert {f for _, f in calls} == set(runtime), (
+            f"`{fn}` بحرفَين لم يعد يغطّي كلَّ نموذج ({sorted({f for _, f in calls})}) — "
+            "تغيّر شكلُ النداء، حدِّث الشاهدَ لا الادّعاء"
+        )
+    gated = {f for (f,) in _literal_calls("_require_approved_model", 1)}
+    assert gated == set(runtime), f"نماذجُ يُستدَلّ بها بلا بوّابة، أو بوّابةٌ لغير نموذج: {gated}"
+
+
 def test_no_declared_digest_value_is_committed_to_the_tree() -> None:
     """البيانُ يحمل **اسمَ** المتغيّر لا قيمته — قيمةٌ مُثبَتة تُجمّد وزناً لا يملكه المستودع."""
     raw = MANIFEST.read_text(encoding="utf-8")
