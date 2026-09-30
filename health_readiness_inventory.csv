@@ -15,8 +15,8 @@ services/indicators-service/main.py,healthz,/healthz,63,True,True,True,ok
 services/indicators-service/main.py,ready,/readyz,84,True,True,True,ok
 services/knowledge-graph/main.py,healthz,/healthz,116,True,True,True,ok
 services/knowledge-graph/main.py,readyz,/readyz,138,True,True,True,ok
-services/local-ai-rag/main.py,healthz,/healthz,659,True,True,True,ok
-services/local-ai-rag/main.py,readyz,/readyz,682,True,True,True,ok
+services/local-ai-rag/main.py,healthz,/healthz,703,True,True,True,ok
+services/local-ai-rag/main.py,readyz,/readyz,726,True,True,True,ok
 services/rag-retrieval/main.py,healthz,/healthz,145,True,True,True,ok
 services/rag-retrieval/main.py,readyz,/readyz,163,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,healthz,/healthz,39,True,True,True,ok

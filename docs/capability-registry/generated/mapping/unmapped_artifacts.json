@@ -7580,6 +7580,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gateway_tls_init.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
     "kind": "tests"
   },
@@ -7985,6 +7989,10 @@
   },
   {
     "path": "tests_v9/test_offline_pending_queue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ollama_model_provisioning.py",
     "kind": "tests"
   },
   {

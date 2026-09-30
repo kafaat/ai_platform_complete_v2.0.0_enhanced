@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 677,
+          "line": 721,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 659,
+          "line": 703,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 682,
+          "line": 726,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -1069,7 +1069,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 604,
+          "line": 648,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1077,7 +1077,7 @@
         },
         {
           "function": "ingest",
-          "line": 200,
+          "line": 207,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1147,7 +1147,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 594,
+          "line": 638,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1105,
-  "route_inventory_sha256": "f0ba7a1ff5c8e301dcd1f804fc226dbbde4310c902acf9ad22088015dc43b924",
+  "route_inventory_sha256": "0410eb2e32738b48c0d87d2cb2730b06f0b6d7a74fb36722672ac4aa786388e6",
   "runtime_verified": false,
   "schema_version": 1
 }
