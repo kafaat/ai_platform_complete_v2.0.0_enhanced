@@ -59,7 +59,7 @@ C-LOCALE-GUARD-SWEEPS · TEXT-GUARD-ANCHORED-WRONG-FILE · FROZEN-PATH-LIST-NAME
 | `UNRECORDED-IRRIGATION-READ-AS-ZERO…` | GATE-01 (phase_runtime_workers.py مجمَّد) |
 | `NATS-BROKER-HAS-NO-AUTHENTICATION…` (v9) + فرع `wip-agent-nats`@96f6a034 | v9 محلّيّ؛ Railway صفٌّ منفصل في الأسبوع/12 |
 | `POSTGRES-V9-HAS-NO-TLS…` | v9 محلّيّ على شبكةٍ داخليّة |
-| `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` + `wip-agent-ratchets-jwt-held` | يمسّ `shared/**` ⇒ محجوزٌ حتّى قرار queue_v1 |
+| `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` + `wip-agent-ratchets-jwt-held` | **السببُ القديم («حتّى قرار queue_v1») لم يعد السبب** — أُعيد فحصُه 2026-09-30: (١) **الخطرُ الحقيقيّ** تشديدُ التحقّق من المطالبات (aud/iss/sub/exp) في ١٣ خدمة دفعةً واحدة ⇒ توكنٌ مقبولٌ اليوم قد يُرفَض غداً، وqueue_v1 لا يمسّه؛ العلاجُ **وضعُ مراقبةٍ أوّلاً** (عدّادٌ لما كان سيُرفَض) ثمّ الفرض. (٢) **اقترانٌ مقيس لا مانع:** `sahool-notification-agent` يراقب `/shared/**` في البيئتين (إعدادُ Railway)، ويستورد `verify_access_token` من الملفّ نفسِه (`agents/notification/agent.py:39`) ⇒ الدمجُ يُعيد نشرَه ويُغيّر سلوكه — وآخرُ إعادة نشرٍ له في staging فشلت (`/readyz` 503). ⇒ يُحرَّر بشرط وضع المراقبة، لا بانتظار queue_v1. |
 
 ## ما يُغلَق بهذا الفرز
 
