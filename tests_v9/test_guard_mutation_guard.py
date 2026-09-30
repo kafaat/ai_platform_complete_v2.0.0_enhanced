@@ -345,10 +345,48 @@ def test_an_uncollected_narrow_node_falls_back_to_the_full_file(
         ("ERROR: file or directory not found: tests/nope.py", False),
         ("No module named pytest", False),
         ("", False),
+        # ── RUNNER-CRASH-READS-AS-A-TEST-FAILURE-WHEN-ITS-MESSAGE-SAYS-FAILED-01 ──
+        # رسالةُ انهيارٍ تنتهي بالكلمة ليست سطرَ خلاصة: هذا بالضبط ما أقنع الصيغةَ
+        # القديمة بأنّ pytest عمل في ٢٩ طفرةً من ٢٩.
+        ("E   pyo3_runtime.PanicException: Python API call failed", False),
+        ("RuntimeError: 3 tests failed upstream", False),
+        ("TypeError: an error occurred", False),
+        # أشكالٌ قِيست من pytest هذا الإصدار تحت `-v` + `-q` و`-qq`.
+        ("==== 1 failed, 2 passed, 1 skipped, 1 xfailed, 1 warning, 1 error in 0.26s ====", True),
+        ("=============================== 1 error in 0.23s ===============================", True),
+        ("1 failed, 2 passed, 1 skipped, 1 xfailed, 1 warning, 1 error in 0.24s", True),
+        ("============ no tests ran in 0.11s ============", True),
+        ("===== 3 failed in 65.23s (0:01:05) =====", True),
+        ("\x1b[31m===== \x1b[31m\x1b[1m1 failed\x1b[0m in 0.2s =====\x1b[0m", True),
+        # لم تكن تُعدّ «عمل» قبلُ ولا تُعدّ الآن — الإصلاحُ في المرساة لا في الدلالة.
+        ("============ 1 skipped in 0.17s ============", False),
+        ("============ 6 deselected in 0.12s ============", False),
     ],
 )
 def test_ran_at_all(out: str, expected: bool) -> None:
     assert gmg.ran_at_all(out) is expected
+
+
+def test_a_crashing_conftest_whose_message_says_failed_is_not_a_wrong_test(
+    tmp_path: Path,
+) -> None:
+    """pytest حقيقيّ، لا مخرَجٌ مُصطنَع: ``conftest`` ينهار قبل جمع اختبارٍ واحد برسالةٍ
+    آخرُها ``failed``. الحكمُ الصادق «المُشغِّل لم يُشغّل» — لا «حمرّ بغير المُتوقَّع»
+    الذي يُرسِل قارئه إلى حارسٍ سليم (``RUNNER-CRASH-…-SAYS-FAILED-01``)."""
+    ci = _fake_repo(tmp_path)
+    (tmp_path / "tests" / "conftest.py").write_text(
+        'raise RuntimeError("pyo3_runtime.PanicException: Python API call failed")\n',
+        encoding="utf-8",
+    )
+    code, out = gmg._run_tests_for_mutation(
+        "tests/test_fake.py", "test_negative_is_rejected", tmp_path
+    )
+    assert code != 0 and "Python API call failed" in out
+    assert gmg._outcome(code, out, "test_negative_is_rejected")[0] == "runner_did_not_run"
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert any("لم يُشغّل اختباراً" in f for f in failures), failures
+    assert not any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures), failures
 
 
 def test_the_guard_source_is_restored_after_every_mutation(tmp_path: Path) -> None:

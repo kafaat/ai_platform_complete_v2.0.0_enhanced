@@ -4539,6 +4539,12 @@
           "replace": "    for key in sorted(set()):",
           "test": "tests_v9/test_blocking_surface_freeze.py",
           "why": "نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983"
+        },
+        {
+          "expect": "test_a_crashing_conftest_whose_message_says_failed_is_not_a_wrong_test",
+          "find": "    for match in _SUMMARY_LINE.finditer(_ANSI.sub(\"\", out)):\n",
+          "replace": "    if any(m in out for m in (\" passed\", \" failed\", \" error\")):\n        return True\n    for match in _SUMMARY_LINE.finditer(_ANSI.sub(\"\", out)):\n",
+          "why": "عودةُ المطابقة الحرّة على المخرَج كلِّه ⇒ انهيارُ conftest برسالةٍ آخرُها `failed` يُقرأ «pytest عمل» فتُبلَّغ كلُّ طفرةٍ «حمرّت بغير الاختبار المُتوقَّع» (٢٩ من ٢٩)"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
