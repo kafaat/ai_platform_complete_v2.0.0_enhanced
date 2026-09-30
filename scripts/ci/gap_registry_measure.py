@@ -313,6 +313,7 @@ def measure(text: str) -> dict:
     # يمنع **النموّ** ولا يدّعي أنّ ما فيه سليم — نفسُ عقد `fake_connection_debt`.
     stated_ids = {item["id"] for item in section_states}
     row_ids = {row["id"] for row in rows if row.get("id")}
+    unresolved_aliases = resolve_aliases(rows, section_states, headings)
     orphans = [
         {"id": heading["id"], "line": heading["line"]}
         for heading in headings
@@ -354,7 +355,48 @@ def measure(text: str) -> dict:
         # القائمةُ مع العدد، كما في اليتامى: عددٌ بلا أسماء يرتفع بلا تشخيص.
         "noncanonical_heading_levels": noncanonical_headings,
         "noncanonical_heading_level_count": len(noncanonical_headings),
+        "unresolved_aliases": unresolved_aliases,
     }
+
+
+#: هدفُ اللقب: أوّلُ ``code span`` بشكل معرِّف في نصّ حالته بعد الوسم — وهو ما يكتبه
+#: المدخلان القائمان (``**alias → `SAHOOL-AI-RAG-LIVE-001`**`` و``لقبٌ (alias) للهويّة
+#: القانونيّة `SEC-QDRANT-AUTH-FAIL-CLOSED-01```)، و``alias_of: `X``` يستوفيه إن كُتِب أوّلاً.
+ALIAS_TARGET = re.compile(rf"`(?P<target>{ID})`")
+
+
+def resolve_aliases(rows: list[dict], section_states: list[dict], headings: list[dict]) -> list:
+    """لقبٌ لا يُحَلّ إلى هويّةٍ قانونيّة ⇒ سطرٌ في القائمة، بسببه.
+
+    ``BRAIN-HISTORICAL-GAP-ID-ALIAS-01``: وسمُ ``alias`` **يُخرِج المدخلَ من كلّ عدّ
+    حالة** (``kind != "gap"``)، وهدفُه كان نثراً لا يقرؤه شيء. مقيسٌ على السجلّ الحيّ:
+    صفٌّ ``open`` يُوسَم ``alias`` نحو معرِّفٍ لا وجود له ⇒ ``open`` ينزل ٧٣ ⇒ ٧٢ ولا
+    حارسَ يحمرّ — فالوسمُ طريقٌ لإخفاء فجوةٍ مفتوحةٍ بلا ثمن. والحلُّ **قفزةٌ واحدة إلى
+    هويّةٍ مُسجَّلة ليست لقباً**: لا هدف · هدفٌ هو نفسُه · هدفٌ غيرُ مسجَّل · هدفٌ لقبٌ
+    بدوره (سلسلةٌ تُخفي أين تعيش الحالة).
+    """
+    alias_ids = {e["id"] for e in rows + section_states if e.get("kind") == "alias"}
+    registered = {h["id"] for h in headings} | {
+        r["id"] for r in rows if r.get("id") and r.get("kind") != "alias"
+    }
+    out: list[dict] = []
+    for entry in [*rows, *section_states]:
+        if entry.get("kind") != "alias":
+            continue
+        match = ALIAS_TARGET.search(ANNOTATION.sub("", entry.get("raw_state", "")))
+        target = match.group("target") if match else None
+        if target is None:
+            reason = "no_target"
+        elif target == entry["id"]:
+            reason = "self"
+        elif target in alias_ids:
+            reason = "target_is_alias"
+        elif target not in registered:
+            reason = "target_not_registered"
+        else:
+            continue
+        out.append({"id": entry["id"], "line": entry["line"], "alias_of": target, "reason": reason})
+    return out
 
 
 def main() -> int:

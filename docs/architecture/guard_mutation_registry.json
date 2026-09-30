@@ -1073,6 +1073,13 @@
           "replace": "(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+|[A-Z][A-Z0-9_.]*)(?=\\s|$)\"",
           "test": "tests_v9/test_gap_heading_state_guard.py",
           "why": "توسيعُ الشكل ليقبل الكلمة الكبيرة المفردة ⇒ `### HIL SQL follow-up` و`### MCP review follow-up` — عنوانا قسمٍ فوق جدولٍ تُقرأ صفوفُه أصلاً — يُبلَّغ عنهما عطلاً. وحقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ، فتصير الحمايةُ صفراً."
+        },
+        {
+          "expect": "test_an_alias_that_does_not_resolve_in_one_hop_is_reported",
+          "find": "        elif target in alias_ids:\n",
+          "replace": "        elif False:\n",
+          "test": "tests_v9/test_brain_annotated_supersession_guard.py",
+          "why": "قبولُ لقبٍ هدفُه لقبٌ بدوره ⇒ سلسلةٌ تُخفي أين تعيش الحالة، والمعرِّفان كلاهما خارج كلّ عدّ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
         }
       ]
     },
@@ -3116,6 +3123,12 @@
           "find": "    workflows = ROOT / \".github/workflows\"",
           "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
           "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
+        },
+        {
+          "expect": "test_an_alias_whose_target_is_not_registered_is_reported",
+          "find": "    for alias in report.get(\"unresolved_aliases\", []):\n",
+          "replace": "    for alias in []:\n",
+          "why": "نزعُ البند ③ ⇒ وسمُ `alias` نحو معرِّفٍ لا وجود له يُخرِج صفّاً `open` من كلّ عدّ بلا حارسٍ يحمرّ — مقيسٌ على السجلّ الحيّ ٧٣ ⇒ ٧٢ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
         }
       ],
       "test": "tests_v9/test_brain_annotated_supersession_guard.py"
