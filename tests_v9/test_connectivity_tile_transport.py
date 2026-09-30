@@ -604,3 +604,80 @@ def test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed()
     ]
     assert len(verify) == 1
     assert _directives(verify[0].get("block") or [], "internal")
+
+
+# ── TITILER_URL: الإعلانُ عن بلاطاتٍ ديناميكيّة لا يَعِد بما يرفضه الناقل ─────────────
+#
+# العطلُ المقيس (2026-09-30، بعد أن أبلغ تدقيقٌ حيّ 2026-09-29 عن «انجراف TITILER_URL»):
+# ``TITILER_URL`` سليمٌ في كلّ طبقة — ``.env.example`` = افتراضُ v9 للمنصّة والراستر =
+# ``raster-tiler-service:8088`` = ``EXPOSE 8088`` — و``COG_TILE_ALLOWED_HOSTS`` فارغٌ عمداً.
+# فكان ``/v1/layers/{id}/tilejson`` يُعلِن ``titiler-dynamic`` لأنّه يسأل ``TITILER_URL``
+# وحدَه، ثمّ تعود **كلُّ** بلاطةٍ 503؛ ولطبقةٍ بلا COG عامّ كانت الملاحظةُ «TiTiler غير
+# مضبوط. اضبط TITILER_URL» والمتغيّرُ مضبوط. فالمُشغِّلُ يُحال إلى المتغيّر الخطأ.
+
+_TITILER = "http://raster-tiler-service:8088"
+_TILEJSON_MATRIX = [
+    (titiler, allowed)
+    for titiler in ("", _TITILER, "ftp://raster-tiler-service:8088")
+    for allowed in ("", "cogs.example.test", "other.example.test")
+]
+
+
+@pytest.mark.parametrize("titiler,allowed", _TILEJSON_MATRIX)
+async def test_tilejson_advertises_dynamic_tiles_exactly_when_the_transport_fetches(
+    layer_tile_router, transport, monkeypatch, titiler, allowed
+):
+    """الإعلانُ ⇔ الجلب، على مصفوفة (TITILER_URL × COG_TILE_ALLOWED_HOSTS × المصدر).
+
+    يُقاس الطرفان على الحالة نفسها: المسارُ المنشور يُسأل عن TileJSON، والناقلُ نفسُه
+    يُسأل عن البلاطة — لا تُعاد صياغةُ شرط أحدهما في تأكيد.
+    """
+    client, layers, _ = layer_tile_router
+    requests, _ = transport
+    tiles_module = sys.modules["connectivity_layer_tiles"]
+    monkeypatch.setattr(tiles_module, "TITILER_URL", titiler)
+    monkeypatch.setenv("COG_TILE_ALLOWED_HOSTS", allowed)
+    for source in _SOURCE_CORPUS:
+        layers["layer-1"] = {"tenant_id": "tenant-a", "cog_url": source}
+        body = client.get("/v1/layers/layer-1/tilejson").json()
+        before = len(requests)
+        try:
+            await cog_tile_proxy.fetch_registered_cog_tile(source, 2, 1, 1, base_url=titiler)
+        except HTTPException:
+            pass
+        fetched = len(requests) == before + 1
+        advertised = body["source"] == "titiler-dynamic"
+        assert advertised == fetched, (titiler, allowed, source, body)
+        if not advertised:
+            assert body["dynamic_unavailable_reason"], body
+
+
+def test_tilejson_names_the_missing_input_instead_of_blaming_titiler_url(
+    layer_tile_router, transport, monkeypatch
+):
+    """السببُ يُسمّي ما ينقص فعلاً — والإعدادُ الافتراضيّ (.env.example) أوّلُ الحالات."""
+    client, layers, _ = layer_tile_router
+    tiles_module = sys.modules["connectivity_layer_tiles"]
+    public = "https://cogs.example.test/a.tif"
+
+    def reason(titiler, allowed, source):
+        monkeypatch.setattr(tiles_module, "TITILER_URL", titiler)
+        monkeypatch.setenv("COG_TILE_ALLOWED_HOSTS", allowed)
+        layers["layer-1"] = {"tenant_id": "tenant-a", "cog_url": source}
+        body = client.get("/v1/layers/layer-1/tilejson").json()
+        return body.get("dynamic_unavailable_reason"), body["note"]
+
+    # .env.example كما هو: الخلفيّةُ مضبوطة والقائمةُ فارغة.
+    got, note = reason(_TITILER, "", public)
+    assert got == "cog_tile_allowed_hosts_not_configured", note
+    assert "TITILER_URL" not in note, note
+    # طبقةٌ بلا COG عامّ والخلفيّةُ مضبوطة: لا يُحال إلى TITILER_URL.
+    got, note = reason(_TITILER, "cogs.example.test", "")
+    assert got == "layer_has_no_public_cog", note
+    assert "TITILER_URL" not in note, note
+    got, _ = reason(_TITILER, "other.example.test", public)
+    assert got == "cog_tile_source_not_allowed"
+    # والمتغيّرُ الفارغ حقّاً يُسمّى باسمه.
+    got, note = reason("", "cogs.example.test", public)
+    assert got == "titiler_url_not_configured", note
+    assert "TITILER_URL" in note, note
