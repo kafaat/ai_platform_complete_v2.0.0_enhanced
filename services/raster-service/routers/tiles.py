@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 from raster_runtime_state import LAYERS
 from raster_security_context import (
+    dynamic_tile_refusal,
     public_cog_url,
     require_layer_tenant,
     require_layer_tenant_authorized,
@@ -20,6 +21,20 @@ from shared.gis.cog_tile_proxy import fetch_registered_cog_tile
 
 logger = logging.getLogger("raster-service")
 router = APIRouter()
+
+#: ملاحظةُ البديل الثابت تُسمّي المُدخَلَ الناقص فعلاً — كانت «TiTiler غير مضبوط. اضبط
+#: TITILER_URL» في كلّ حالة، والمتغيّرُ مضبوطٌ في ``.env.example`` وافتراض v9.
+_STATIC_NOTES = {
+    "layer_has_no_public_cog": "بلاطات ثابتة مُولَّدة مسبقاً: لا مصدر COG عامّاً (https) لهذه الطبقة.",
+    "titiler_url_not_configured": "بلاطات ثابتة مُولَّدة مسبقاً: TITILER_URL غير مضبوط.",
+    "titiler_url_invalid": "بلاطات ثابتة مُولَّدة مسبقاً: TITILER_URL ليس رابط http(s) صالحاً.",
+    "cog_tile_allowed_hosts_not_configured": (
+        "بلاطات ثابتة مُولَّدة مسبقاً: COG_TILE_ALLOWED_HOSTS فارغ — لا مضيفَ COG موثوقاً للبلاطات الديناميكيّة."
+    ),
+    "cog_tile_source_not_allowed": (
+        "بلاطات ثابتة مُولَّدة مسبقاً: مضيفُ COG هذه الطبقة ليس في COG_TILE_ALLOWED_HOSTS."
+    ),
+}
 
 
 @router.get("/v1/tiles/{layer_id}/{z}/{x}/{y}.png")
@@ -57,9 +72,11 @@ async def layer_tilejson(
     if layer_id not in LAYERS:
         raise HTTPException(404, "طبقة غير موجودة")
     layer = LAYERS[layer_id]
-    cog_url = public_cog_url(layer.get("cog_url") or layer.get("raster_url"))
+    # يُسأل كلُّ ما يسأله الناقل لا ``TITILER_URL`` وحدَه: بـ``.env.example`` كما هو
+    # (خلفيّةٌ مضبوطة وقائمةُ مصادر فارغة) كان القالبُ الديناميكيّ يُعلَن وكلُّ بلاطةٍ 503.
+    refusal = dynamic_tile_refusal(layer.get("cog_url") or layer.get("raster_url"), TITILER_URL)
 
-    if TITILER_URL and cog_url:
+    if refusal is None:
         options = {"colormap": colormap or "viridis"}
         if rescale:
             options["rescale"] = rescale
@@ -80,5 +97,6 @@ async def layer_tilejson(
         "tiles": [f"/api/raster/v1/tiles/{quote(layer_id, safe='')}/{{z}}/{{x}}/{{y}}.png"],
         "minzoom": 8,
         "maxzoom": 16,
-        "note": "بلاطات ثابتة مُولَّدة مسبقاً (TiTiler غير مضبوط). للديناميكي: اضبط TITILER_URL ووفّر cog_url للطبقة.",
+        "dynamic_unavailable_reason": refusal,
+        "note": _STATIC_NOTES.get(refusal, _STATIC_NOTES["layer_has_no_public_cog"]),
     }

@@ -202,6 +202,48 @@ def public_cog_url(cog_url: str | None) -> str | None:
     return cog_url
 
 
+def dynamic_tile_refusal(cog_url: str | None, titiler_url: str | None) -> str | None:
+    """Named reason the tile transport would refuse this layer, or ``None`` if it would fetch.
+
+    **الإعلانُ يسأل ما يسأله الناقل كلَّه، لا ``TITILER_URL`` وحدَه.** العطلُ المقيس على
+    ``.env`` منسوخٍ من ``.env.example`` (بعد أن أبلغ تدقيقٌ حيّ 2026-09-29 عن «انجراف
+    TITILER_URL»): الخلفيّةُ مضبوطةٌ سليمة و``COG_TILE_ALLOWED_HOSTS`` فارغٌ عمداً، فكان
+    TileJSON يُعلِن ``titiler-dynamic`` وكلُّ بلاطةٍ 503؛ ولطبقةٍ بلا COG عامّ كانت الملاحظةُ
+    «اضبط TITILER_URL» والمتغيّرُ مضبوط. والسببُ هنا يُسمّي المُدخَلَ الناقص فعلاً.
+    الاتّفاقُ مع ``fetch_registered_cog_tile`` مقيسٌ على مصفوفةٍ لا مُعادُ الصياغة
+    (``test_tilejson_advertises_dynamic_tiles_exactly_when_the_transport_fetches``).
+    """
+    source = public_cog_url(cog_url)
+    if not source:
+        return "layer_has_no_public_cog"
+    if not titiler_url:
+        return "titiler_url_not_configured"
+    try:
+        backend = urlparse(titiler_url)
+        backend_ok = (
+            backend.scheme in {"http", "https"}
+            and bool(backend.hostname)
+            and not backend.username
+            and not backend.password
+            and not backend.query
+            and not backend.fragment
+        )
+    except ValueError:
+        backend_ok = False
+    if not backend_ok:
+        return "titiler_url_invalid"
+    allowed = {
+        host.strip().lower()
+        for host in os.getenv("COG_TILE_ALLOWED_HOSTS", "").split(",")
+        if host.strip()
+    }
+    if not allowed:
+        return "cog_tile_allowed_hosts_not_configured"
+    if urlparse(source).hostname not in allowed:
+        return "cog_tile_source_not_allowed"
+    return None
+
+
 def safe_raster_source(url: str | None, upload_dir: str, blocked_hosts: set[str]) -> str:
     """Validate a raster source before rasterio.open; blocks path traversal and SSRF."""
     if not url or not isinstance(url, str):
