@@ -632,6 +632,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/weather/WeatherProbePopup.errorText.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
     "kind": "web"
   },
@@ -1745,6 +1749,14 @@
   },
   {
     "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/weatherMap.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/weatherMap.ts",
     "kind": "web"
   },
   {
@@ -6501,6 +6513,10 @@
   },
   {
     "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_every_registered_route_is_named_by_a_test.py",
     "kind": "tests"
   },
   {
