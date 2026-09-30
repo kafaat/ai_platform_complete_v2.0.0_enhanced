@@ -896,6 +896,9 @@ async def build_evidence_response(
     provider_tool_truncated = False
     provider_tool_rounds = 0
     model_output = None
+    # VLLM-JAIS-FALLBACK-UNPROVEN-01: حين تفشل المحاولة لا بديلَ (Ollama أو غيره) يُجيب —
+    # الجوابُ جوابُ الأدلّة. فالخلفيّةُ التي حُووِلت وفشلت تُسمّى **في الردّ نفسه** لا في سجلٍّ فقط.
+    generation_unavailable: dict[str, Any] | None = None
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
         selection = None
@@ -947,6 +950,10 @@ async def build_evidence_response(
             )
             # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
             generation_status = "succeeded" if gen is not None else "attempted_failed"
+            if gen is None and _cfg is not None:
+                generation_unavailable = {"provider": _cfg.provider, "model": _cfg.model}
+                if _cfg.provider == "vllm":
+                    generation_unavailable["runtime"] = ai_generation.vllm_runtime_state()
         if gen is not None:
             # Guardrails accepts typed proposals from the decision owner. A
             # retrieved paragraph does not prove that arbitrary model prose is
@@ -1064,6 +1071,7 @@ async def build_evidence_response(
         "mode": mode,
         # P1-8: تمييز صريح لسبب evidence-only (لم يُحاوَل/حُوصِر بالسياسة/حُوول وفشل/نجح).
         "generation_status": generation_status,
+        "generation_unavailable": generation_unavailable,
         "endpoint_mode": endpoint_mode,
         "answer_ar": answer_ar,
         "message": answer_ar,

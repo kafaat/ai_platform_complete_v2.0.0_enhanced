@@ -178,11 +178,19 @@ def public_provider_snapshot(requested_model: str | None = None) -> dict[str, An
     تدقيق V51 (لقطة مزوّد واحدة يستهلكها الـruntime/الواجهة)."""
     provider = _normalize_provider(os.getenv("AI_PROVIDER"))
     cfg = resolve_generation(requested_model)
+    available = cfg is not None
+    extra: dict[str, Any] = {}
+    if provider == "vllm":
+        # VLLM-JAIS-FALLBACK-UNPROVEN-01: لا بديلَ Ollama حين يغيب vllm-jais (مقيس) — فتهيئةٌ
+        # صحيحةٌ لا تكفي لادّعاء التوافر. ``available`` يتبع آخرَ ما **رُصِد** من الخادم.
+        extra["vllm_runtime"] = vllm_runtime_state()
+        available = available and extra["vllm_runtime"].get("status") == "completed"
     return {
         "generation_enabled": generation_enabled(),
         "provider": provider,
         "provider_class": "external" if provider_is_external(provider) else "local",
-        "available": cfg is not None,
+        "available": available,
+        **extra,
         "model": cfg.model if cfg else None,
         "wire_format": cfg.wire_format
         if cfg
@@ -389,6 +397,47 @@ def _vllm_failure(reason: str, model: str, **extra: str) -> dict[str, str]:
     return receipt
 
 
+#: VLLM-JAIS-FALLBACK-UNPROVEN-01 — آخرُ ما **رُصِد** من vllm-jais في هذه العمليّة: فحصُ
+#: الإقلاع وكلُّ محاولة توليد. لا بديلَ Ollama في الشيفرة حين يغيب الخادم (المحاولةُ تسقط
+#: إلى جواب الأدلّة)، فادّعاءُ التوافر في اللقطة لا يُبنى على التهيئة وحدها. «الأحدثُ يغلب»:
+#: خادمٌ يقوم لاحقاً يُثبته أوّلُ توليدٍ ناجح، فلا تعلق الحالةُ على فشلٍ قديم.
+_VLLM_OBSERVED: dict[str, str] = {"status": "unobserved", "provider": "vllm"}
+
+
+def _observe_vllm(receipt: dict[str, str]) -> dict[str, str]:
+    _VLLM_OBSERVED.clear()
+    _VLLM_OBSERVED.update(receipt)
+    return receipt
+
+
+def vllm_runtime_state() -> dict[str, str]:
+    """نسخةٌ من آخر رصدٍ لـvllm-jais (بلا أسرار)."""
+    return dict(_VLLM_OBSERVED)
+
+
+def _observe_vllm_attempt(
+    cfg: GenConfig, *, exc: BaseException | None = None, http_status: int | None = None
+) -> None:
+    """يسجّل نتيجةَ محاولة توليدٍ عبر vllm: وصولٌ أو فشلُ نقلٍ مُسمّى. غيرُ vllm ⇒ لا شيء."""
+    if cfg.provider != "vllm":
+        return
+    if http_status is not None:
+        receipt = _vllm_failure("vllm_http_error", cfg.model, http_status=str(http_status))
+    elif isinstance(exc, httpx.TimeoutException):
+        receipt = _vllm_failure(
+            "vllm_timeout", cfg.model, error=type(exc).__name__, hint_ar=VLLM_PROFILE_HINT_AR
+        )
+    elif isinstance(exc, httpx.TransportError):
+        receipt = _vllm_failure(
+            "vllm_unreachable", cfg.model, error=type(exc).__name__, hint_ar=VLLM_PROFILE_HINT_AR
+        )
+    elif exc is not None:
+        return  # فشلٌ بعد وصولٍ (تحليل/أدوات) ليس حقيقةً عن الوصول
+    else:
+        receipt = {"status": "completed", "provider": "vllm", "model": cfg.model}
+    _observe_vllm(receipt)
+
+
 async def probe_vllm_generation(cfg: GenConfig) -> dict[str, str]:
     """فحصُ إقلاعٍ لـvLLM: الخادمُ يُجيب **ويخدم النموذجَ المُهيَّأ** — بلا بياناتِ مستخدم.
 
@@ -458,9 +507,9 @@ async def preload_local_generation() -> dict[str, str]:
         and generation_enabled()
         and _normalize_provider(os.getenv("AI_PROVIDER")) == "vllm"
     ):
-        return _vllm_failure("vllm_model_unresolved", "")
+        return _observe_vllm(_vllm_failure("vllm_model_unresolved", ""))
     if cfg is not None and cfg.provider == "vllm":
-        return await probe_vllm_generation(cfg)
+        return _observe_vllm(await probe_vllm_generation(cfg))
     if cfg is None or cfg.provider != "local":
         return {"status": "not_requested"}
     base = cfg.endpoint.removesuffix("/v1/chat/completions")
@@ -820,7 +869,9 @@ async def generate(
             resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
             if resp.status_code >= 400:
                 logger.warning("توليد %s فشل: HTTP %s", cfg.provider, resp.status_code)
+                _observe_vllm_attempt(cfg, http_status=resp.status_code)
                 return None
+            _observe_vllm_attempt(cfg)
             data = resp.json()
             stop_reason = _extract_stop_reason(cfg, data)
 
@@ -902,6 +953,7 @@ async def generate(
                 text = _extract_text(cfg, data)
     except Exception as e:  # noqa: BLE001 — أيّ فشل ⇒ سقوط آمن إلى الأدلّة
         logger.warning("تعذّر التوليد عبر %s: %s", cfg.provider, type(e).__name__)
+        _observe_vllm_attempt(cfg, exc=e)
         return None
     if not text:
         return None
