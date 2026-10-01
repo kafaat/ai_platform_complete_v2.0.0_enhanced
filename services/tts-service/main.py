@@ -221,6 +221,16 @@ class TTSRequest(BaseModel):
             raise ValueError("rate/volume must be like '+10%' or '-20%'")
         return v
 
+    @field_validator("pitch")
+    @classmethod
+    def validate_pitch(cls, v: str) -> str:
+        # كان pitch الحقلَ الوحيدَ بلا فحص، فيبلغ ``edge_tts.Communicate`` ويُرفَض هناك
+        # (``TTSConfig``: ``^[+-]\d+Hz$`` ⇒ ValueError) فيعود 500 «فشل التركيب» بدل 422.
+        # والصيغةُ هنا هي صيغةُ edge-tts نفسِها، فلا يُرفَض ما كانت المكتبةُ تقبله.
+        if not re.fullmatch(r"[+-]\d+Hz", v):
+            raise ValueError("pitch must be like '+0Hz' or '-5Hz'")
+        return v
+
 
 class VoicesResponse(BaseModel):
     voices: dict

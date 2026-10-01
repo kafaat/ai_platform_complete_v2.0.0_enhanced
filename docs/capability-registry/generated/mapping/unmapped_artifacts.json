@@ -8696,6 +8696,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_request_pitch_validation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_undeclared_context_dependency_guard.py",
     "kind": "tests"
   },
