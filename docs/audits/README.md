@@ -36,6 +36,7 @@
 | [`FIXES_APPLIED.md`](./FIXES_APPLIED.md) | الإصلاحات المُطبَّقة — استجابة لتقرير المراجعة (SAHOOL v9) |
 | [`FOLLOWUP_FIXES.md`](./FOLLOWUP_FIXES.md) | الجولة الثالثة — إصلاح النتائج المتبقّية + الثغرات |
 | [`FOUR_PROPOSALS_COMPLETE.md`](./FOUR_PROPOSALS_COMPLETE.md) | تنفيذ المقترحات الأربعة (بالترتيب) |
+| [`GAP_TRIAGE_20260930.md`](./GAP_TRIAGE_20260930.md) | فرزُ دَين الفجوات (~٩٠) بثلاث درجات — لقطة main@a40f654b، بقرار المالك |
 | [`GOVERNANCE_EXPLAINABILITY_RESPONSE.md`](./GOVERNANCE_EXPLAINABILITY_RESPONSE.md) | الردّ على مراجعة الحوكمة والتفسير — تحقّق + جسر صغير |
 | [`IDEMPOTENCY_CHAIN_ANALYSIS.md`](./IDEMPOTENCY_CHAIN_ANALYSIS.md) | تتبّع idempotency عبر السلسلة كاملةً — فحص فعلي |
 | [`INVARIANT_MANIFEST.md`](./INVARIANT_MANIFEST.md) | Invariant Manifest — تنفيذ مكيّف (مراجعة 11/12) |

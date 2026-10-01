@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5462,
+    "files_scanned": 5463,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1524,
+      "other": 1525,
       "tests": 1860,
       "web": 459
     },
@@ -31499,6 +31499,15 @@
           ]
         },
         {
+          "path": "docs/audits/GAP_TRIAGE_20260930.md",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "docs/history/WEATHER_AUTOMATION_REVIEW.md",
           "score": 9,
           "signals": [
@@ -31548,7 +31557,7 @@
         "mobile": 0,
         "tests": 25,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 20
       },
       "coverage_dimensions": 6,
       "mapped": true

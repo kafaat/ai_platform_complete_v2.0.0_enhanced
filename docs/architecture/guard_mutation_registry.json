@@ -119,8 +119,8 @@
       "mutations": [
         {
           "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
-          "find": "      \"expiry\": \"2026-10-31\",\n",
-          "replace": "      \"expires\": \"2026-10-31\",\n",
+          "find": "      \"expiry\": \"2026-10-28\",\n",
+          "replace": "      \"expires\": \"2026-10-28\",\n",
           "test": "tests_v9/test_waiver_expiry_guard.py",
           "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
         }

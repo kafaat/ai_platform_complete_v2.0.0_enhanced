@@ -529,9 +529,9 @@
     {
       "endpoint": "/api/v1/learning/activation-requests",
       "method": "POST",
-      "reason": "WX-11.4 creates a pending model activation request for machine-learning governance; approval and registry activation UI are deferred to WX-11.5.",
+      "reason": "WX-11.4 creates a pending model activation request for machine-learning governance; approval and registry activation UI are deferred to WX-11.5. Renewed 2026-10-01 by owner decision to 2026-10-31, aligned with the sibling /review waiver whose operator UI lands in WX-11.6.",
       "owner": "decision-service",
-      "expiry": "2026-09-30",
+      "expiry": "2026-10-31",
       "tracking": "WX-11.5",
       "intended_consumer": "machine",
       "reason_category": "operational",
