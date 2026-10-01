@@ -10955,7 +10955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ddb434a0ddf4426ddf868aa61134c9dc14610853f9a068528f7c68f9f1cffe80"
+          "content": "a34812fb153f8b7155f7516cef4fe30e7eafb88ddce9b6ac468daa62aea37e09"
         }
       ],
       "name": "services/ai_agronomist/advisory_contract.py",
