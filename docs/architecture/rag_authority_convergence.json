@@ -10,7 +10,7 @@
     "component_id": "local-ai-rag",
     "owner": "architecture",
     "reason": "Existing direct retrieval remains primary only while canonical retrieval parity is measured. Removing it before embedding/collection parity would be an unproven cutover.",
-    "target_close_by": "2026-09-30"
+    "target_close_by": "2026-10-31"
   },
   "direct_qdrant_policy": {
     "scope": "runtime knowledge retrieval boundary; bootstrap init jobs are data writers, not response authority",

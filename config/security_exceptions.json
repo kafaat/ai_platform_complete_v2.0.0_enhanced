@@ -4,8 +4,8 @@
       "id": "PYSEC-2026-1325",
       "temporary": true,
       "owner": "platform-security",
-      "expiry": "2026-09-30",
-      "reason": "No fixed ecdsa release is available; JWT uses the cryptography backend. Remove when python-jose no longer resolves ecdsa or a fixed release exists.",
+      "expiry": "2026-10-31",
+      "reason": "No fixed ecdsa release is available; JWT uses the cryptography backend. Remove when python-jose no longer resolves ecdsa or a fixed release exists. Renewed 2026-10-01 by owner decision: pip-audit on ecdsa==0.19.2 (latest, 2026-03-26) still reports PYSEC-2026-1325 with no fix version; python-jose 3.5.0 (latest) still requires ecdsa!=0.15.",
       "scope": ".github/workflows/ci.yml:pip-audit-critical-path"
     }
   ]
