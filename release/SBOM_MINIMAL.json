@@ -18885,7 +18885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ea63d3788408a471cf2f9cb2bcd2c73af2eb089d596244a51796e2eae045f13"
+          "content": "76492f82e7cafd67b5a6edd25c0998221fe57d230fb053928c28a4e6de40e8e8"
         }
       ],
       "name": "services/sahool-platform/api/routers/me.py",
@@ -26459,6 +26459,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a6a5e1d917f23eab34901db16165708d4926c55e54fd35e64839d453cf18ef21"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "type": "file"
     },
     {

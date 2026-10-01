@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5423,
+    "files_scanned": 5424,
     "files_by_kind": {
       "backend": 1211,
       "database": 280,
       "governance": 64,
       "mobile": 55,
       "other": 1518,
-      "tests": 1837,
+      "tests": 1838,
       "web": 458
     },
-    "unmapped_artifacts": 2199,
+    "unmapped_artifacts": 2200,
     "ambiguous_artifacts": 422
   },
   "capabilities": [
@@ -41547,6 +41547,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "kind": "tests"
     },
     {

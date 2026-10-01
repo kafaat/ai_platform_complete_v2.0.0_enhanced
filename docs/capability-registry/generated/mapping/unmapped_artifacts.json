@@ -5640,6 +5640,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_measurement.py",
     "kind": "tests"
   },

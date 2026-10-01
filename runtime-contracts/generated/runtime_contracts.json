@@ -2176,6 +2176,7 @@
           "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
           "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
           "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
           "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
           "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",

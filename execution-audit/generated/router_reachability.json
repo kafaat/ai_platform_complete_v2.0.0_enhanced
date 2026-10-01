@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 29,
+  "include_edge_count": 30,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2523,6 +2523,15 @@
       "target": null
     },
     {
+      "expression": "mod.router",
+      "line": 55,
+      "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_me_ai_policy_envelope:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "router",
       "line": 13,
       "module": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
@@ -2631,7 +2640,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "77bafc9feb106004dce7125bd246ebbcb6d604822654434c110602213b50ceca",
+  "inventory_sha256": "277e75448a6c0a0159edc8348c77d2469c2cf95aa5f1765ce7f682514192389c",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4912,7 +4921,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 27,
+  "unresolved_include_count": 28,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5047,6 +5056,14 @@
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "line": 193,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "line": 55,
+      "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"
     },
