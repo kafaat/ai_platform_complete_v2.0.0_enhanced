@@ -2260,7 +2260,7 @@
     },
     {
       "kind": "router",
-      "line": 17,
+      "line": 19,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,
@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 33,
+  "include_edge_count": 34,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2559,6 +2559,15 @@
       "target": null
     },
     {
+      "expression": "mod.router",
+      "line": 55,
+      "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_me_ai_policy_envelope:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "router",
       "line": 13,
       "module": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
@@ -2667,7 +2676,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "c8cf1c1ef808692ef884d4229e8eff645fa1afcf515ff7431124dd3991ab2230",
+  "inventory_sha256": "91e8ee3466cacd0362c2019b1646780976088bbfb1ab7390832214707947df34",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4853,7 +4862,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 17,
+      "line": 19,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,
@@ -4948,7 +4957,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 31,
+  "unresolved_include_count": 32,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5115,6 +5124,14 @@
       "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
       "line": 193,
       "module": "services.sahool-platform.tests.test_lab_sampling_router",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "line": 55,
+      "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"
     },

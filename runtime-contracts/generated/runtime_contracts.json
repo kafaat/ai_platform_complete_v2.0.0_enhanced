@@ -2186,6 +2186,7 @@
           "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
           "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
           "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
           "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
           "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
@@ -2617,6 +2618,7 @@
       "configuration": [
         "JWT_PUBLIC_KEY",
         "PIPER_VOICE_PATH",
+        "PLATFORM_API_URL",
         "REDIS_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_ENV",
@@ -2650,7 +2652,8 @@
       "evidence_paths": {
         "configuration": [
           "services/tts-service/main.py",
-          "services/tts-service/providers.py"
+          "services/tts-service/providers.py",
+          "services/tts-service/tts_tenant_policy.py"
         ],
         "metrics": [
           "services/tts-service/main.py",
