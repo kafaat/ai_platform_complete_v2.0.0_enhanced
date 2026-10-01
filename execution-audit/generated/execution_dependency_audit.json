@@ -3,9 +3,9 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1893,
+  "python_files_parsed":1894,
   "route_handlers":1050,
-  "call_edges":78265,
+  "call_edges":78288,
   "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -276089,6 +276089,41 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/me.py",
+   "source":"me",
+   "target":"tenant_connection",
+   "line":41
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/me.py",
+   "source":"me",
+   "target":"load_tenant_ai_policy_row",
+   "line":42
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/me.py",
+   "source":"me",
+   "target":"str",
+   "line":42
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/me.py",
+   "source":"me",
+   "target":"build_ai_policy_envelope",
+   "line":50
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/me.py",
+   "source":"me",
+   "target":"str",
+   "line":50
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/ndvi_analysis.py",
    "source":"field_ndvi_analysis",
    "target":"post",
@@ -424822,6 +424857,132 @@
    "source":"test_sla_monitor_reports_violations",
    "target":"summary",
    "line":96
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_user",
+   "target":"UserSchema",
+   "line":31
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"fetchrow",
+   "target":"append",
+   "line":40
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"_Conn",
+   "line":45
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"ConnectionError",
+   "line":50
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"fake_tenant_connection",
+   "target":"ConnectionError",
+   "line":50
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"setattr",
+   "line":53
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"FastAPI",
+   "line":54
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"include_router",
+   "line":55
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"_client",
+   "target":"TestClient",
+   "line":57
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_an_explicit_policy_row_drives_the_envelope_for_the_authenticated_tenant",
+   "target":"_client",
+   "line":61
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_an_explicit_policy_row_drives_the_envelope_for_the_authenticated_tenant",
+   "target":"get",
+   "line":65
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_an_explicit_policy_row_drives_the_envelope_for_the_authenticated_tenant",
+   "target":"json",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_no_policy_row_is_the_most_restrictive_envelope",
+   "target":"_client",
+   "line":75
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_no_policy_row_is_the_most_restrictive_envelope",
+   "target":"get",
+   "line":76
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_no_policy_row_is_the_most_restrictive_envelope",
+   "target":"json",
+   "line":76
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_a_database_failure_keeps_identity_and_fails_the_envelope_closed",
+   "target":"_client",
+   "line":82
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_a_database_failure_keeps_identity_and_fails_the_envelope_closed",
+   "target":"get",
+   "line":83
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+   "source":"test_a_database_failure_keeps_identity_and_fails_the_envelope_closed",
+   "target":"json",
+   "line":85
   },
   {
    "owner":"sahool-platform",

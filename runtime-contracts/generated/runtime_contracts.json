@@ -2553,6 +2553,7 @@
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_learn_from_harvest.py",
           "services/sahool-platform/tests/test_machinery_export.py",
+          "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
           "services/sahool-platform/tests/test_orchestrator_and_api.py",
           "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
           "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
