@@ -1200,6 +1200,32 @@
         }
       ]
     },
+    "scripts/ci/railway_dockerfile_pr_build_plan.py": {
+      "$gap_ar": "DOCKER-BUILD-VERIFIED-ONLY-ON-MANUAL-DISPATCH-SKIP-READS-GREEN-01 — مُخطِّطُ بناء ملفّات Dockerfile التي يبنيها Railway في الـPR. ليس `*_guard.py` بل مُخطِّطٌ تقرأ خطّتَه وظيفةُ حكمٍ حاجبة؛ فيُكذَّب سلوكُه هنا: خطّةٌ فارغةٌ لـPR يمسّ Dockerfile يجب أن تُحمِّر.",
+      "mutations": [
+        {
+          "expect": "test_a_broken_matcher_is_caught_instead_of_reading_green",
+          "find": "        assert_plan_covers_touched_dockerfiles(changed, result)\n",
+          "replace": "        pass  # mutated: لا فحصَ مستقلّ للخطّة\n",
+          "why": "إسقاطُ الفحص المستقلّ ⇒ مُطابِقٌ معطوبٌ يُنتِج «لا شيءَ يُبنى» لـPR يمسّ Dockerfile فيُقرأ أخضر — الصنفُ نفسُه الذي وُجد المُخطِّطُ لإغلاقه (skipped يُقرأ نجاحاً).",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        },
+        {
+          "expect": "test_a_file_the_image_copies_selects_its_build_even_if_the_dockerfile_is_unchanged",
+          "find": "    return changed == source or changed.startswith(source + \"/\")\n",
+          "replace": "    return changed == source\n",
+          "why": "مطابقةُ المسار الحرفيّ وحده ⇒ ملفٌّ داخل مجلّدٍ يُنسَخ في الصورة لا يختار بناءها، فيكسر PR البناءَ في الإنتاج وخطّتُه فارغة.",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        },
+        {
+          "expect": "test_changing_the_verifier_rebuilds_everything_it_verifies",
+          "find": "        reasons += [f\"verifier_changed:{v}\" for v in VERIFIER_PATHS if v in changed_files]\n",
+          "replace": "        reasons += []\n",
+          "why": "الـPR الذي يُضيف المُتحقِّقَ أو يكسره لا يبني شيئاً ⇒ «لا شيءَ يُبنى» يُقرأ نجاحاً على التغيير الذي يمسّ المُتحقِّقَ نفسَه.",
+          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
+        }
+      ]
+    },
     "scripts/ci/regenerate_all_generated.sh": {
       "$why_ar": "منسّق نقطة الثبات الوحيد — نكوصه إلى سلسلة جزئيّة يعيد صنف الجولات الثلاث الضائعة (خضرة عن سؤال ناقص).",
       "mutations": [
@@ -2782,6 +2808,32 @@
         }
       ]
     },
+    "services/tts-service/main.py": {
+      "$why_ar": "TTSRequest يتحقّق من مُدخَلاته قبل التركيب؛ وكان pitch الحقلَ الوحيدَ بلا فحص فيبلغ edge-tts ويعود 500 بدل 422.",
+      "mutations": [
+        {
+          "expect": "test_malformed_pitch_is_rejected_before_synthesis",
+          "find": "        if not re.fullmatch(r\"[+-]\\d+Hz\", v):",
+          "replace": "        if False:  # mutated: pitch بلا فحص",
+          "test": "tests_v9/test_tts_request_pitch_validation.py",
+          "why": "إسقاطُ فحص pitch يُعيد مسارَ «القيمةُ المشوّهة تبلغ edge_tts.Communicate فيرفضها TTSConfig بـValueError داخل التركيب» ⇒ 500 «فشل التركيب» بدل 422 يسمّي الحقل."
+        }
+      ],
+      "test": "tests_v9/test_tts_request_pitch_validation.py"
+    },
+    "services/tts-service/providers.py": {
+      "$why_ar": "حلقةُ إعادة edge-tts تُعيد العابرَ وحده؛ وكان NoAudioReceived مُستثنى فأُعيد كلُّ عطلٍ إلّا الذي قاسه تدقيق v25. تُزرَع الطفرةُ في التصنيف نفسِه.",
+      "mutations": [
+        {
+          "expect": "test_no_audio_received_is_retried_because_it_is_the_failure_the_audit_measured",
+          "find": "\"UnexpectedResponse\", \"NoAudioReceived\"}",
+          "replace": "\"UnexpectedResponse\"}  # mutated: NoAudioReceived خارج العابر",
+          "test": "tests_v9/test_tts_edge_retry.py",
+          "why": "إخراجُ NoAudioReceived من العابر يُعيد الحالةَ التي سبقت هذا الإصلاح: «No audio was received» يصير 500 من المحاولة الأولى رغم أنّ التدقيق الحيّ قاس أنّ الإعادة تنجح، ومنبعُ edge-tts (#473) يوثّقه متقطّعاً بمعاملاتٍ صحيحة."
+        }
+      ],
+      "test": "tests_v9/test_tts_edge_retry.py"
+    },
     "services/weather-service/open_meteo.py": {
       "$gap_ar": "WEATHER-MODEL-IDENTITY-01 — رفضُ طلبنا كان يُحسَب عطلَ مزوّد، و`+Nh` كان فهرسَ مصفوفةٍ لا طابعاً.",
       "mutations": [
@@ -3006,32 +3058,6 @@
           "replace": "    pass  # mutated: الغيابُ يمضي نداءً عارياً بدل فشلٍ معلَن",
           "test": "tests_v9/test_decision_service_auth_is_activatable.py",
           "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
-        }
-      ]
-    },
-    "scripts/ci/railway_dockerfile_pr_build_plan.py": {
-      "$gap_ar": "DOCKER-BUILD-VERIFIED-ONLY-ON-MANUAL-DISPATCH-SKIP-READS-GREEN-01 — مُخطِّطُ بناء ملفّات Dockerfile التي يبنيها Railway في الـPR. ليس `*_guard.py` بل مُخطِّطٌ تقرأ خطّتَه وظيفةُ حكمٍ حاجبة؛ فيُكذَّب سلوكُه هنا: خطّةٌ فارغةٌ لـPR يمسّ Dockerfile يجب أن تُحمِّر.",
-      "mutations": [
-        {
-          "expect": "test_a_broken_matcher_is_caught_instead_of_reading_green",
-          "find": "        assert_plan_covers_touched_dockerfiles(changed, result)\n",
-          "replace": "        pass  # mutated: لا فحصَ مستقلّ للخطّة\n",
-          "why": "إسقاطُ الفحص المستقلّ ⇒ مُطابِقٌ معطوبٌ يُنتِج «لا شيءَ يُبنى» لـPR يمسّ Dockerfile فيُقرأ أخضر — الصنفُ نفسُه الذي وُجد المُخطِّطُ لإغلاقه (skipped يُقرأ نجاحاً).",
-          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
-        },
-        {
-          "expect": "test_a_file_the_image_copies_selects_its_build_even_if_the_dockerfile_is_unchanged",
-          "find": "    return changed == source or changed.startswith(source + \"/\")\n",
-          "replace": "    return changed == source\n",
-          "why": "مطابقةُ المسار الحرفيّ وحده ⇒ ملفٌّ داخل مجلّدٍ يُنسَخ في الصورة لا يختار بناءها، فيكسر PR البناءَ في الإنتاج وخطّتُه فارغة.",
-          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
-        },
-        {
-          "expect": "test_changing_the_verifier_rebuilds_everything_it_verifies",
-          "find": "        reasons += [f\"verifier_changed:{v}\" for v in VERIFIER_PATHS if v in changed_files]\n",
-          "replace": "        reasons += []\n",
-          "why": "الـPR الذي يُضيف المُتحقِّقَ أو يكسره لا يبني شيئاً ⇒ «لا شيءَ يُبنى» يُقرأ نجاحاً على التغيير الذي يمسّ المُتحقِّقَ نفسَه.",
-          "test": "tests_v9/test_railway_dockerfile_pr_build_plan.py"
         }
       ]
     }

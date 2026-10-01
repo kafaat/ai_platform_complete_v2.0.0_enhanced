@@ -29705,7 +29705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c4c0beab58227e020df204744103ac4e866b27935692ce0f2ff31e29c1e3e75"
+          "content": "2252395aaab47bc69773e08c1eac24ccba95e90adc9e27d5115dc6bf7887da32"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -29715,7 +29715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57e7caf0b1c5fc0b243232e7e790fc936632b6e20f1af45be4fe7b4842015ef8"
+          "content": "0629a673a30eb4816547beb3a1afbc32f4e926eca3cce392283ae1ccd59d973b"
         }
       ],
       "name": "services/tts-service/providers.py",

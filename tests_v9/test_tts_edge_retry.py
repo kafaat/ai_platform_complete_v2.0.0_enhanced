@@ -7,7 +7,9 @@
   • فشلٌ عابرٌ N مرّةً ثمّ نجاح ⇒ يُعاد النجاحُ بتباعدٍ أُسّيّ مُعلَن.
   • محاولةٌ بثّت صوتاً جزئيّاً ثمّ انقطعت ⇒ لا تتسرّب بايتاتُها إلى الناتج.
   • نفادُ المحاولات ⇒ يُرفَع **آخرُ** استثناءٍ مقيس (لا ابتلاع).
-  • المُدخَلُ المرفوض و``NoAudioReceived`` و4xx ⇒ **لا** إعادة.
+  • المُدخَلُ المرفوض و4xx ⇒ **لا** إعادة.
+  • ``NoAudioReceived`` ⇒ **يُعاد**: هو العطلُ الذي قاسه تدقيقُ v25 حيّاً («الإعادة تنجح»)،
+    ومنبعُ edge-tts يوثّقه متقطّعاً بمعاملاتٍ صحيحة (rany2/edge-tts#473).
   • قراءةُ البيئة آمنة: غيرُ الرقميّ/غيرُ المنتهي/السالب ⇒ الافتراض، والسقفُ يُحترَم.
 
 **ما لا يفحصه، صراحةً:** لا يتّصل بخدمة Microsoft. تصنيفُ «العابر» مبنيٌّ على أصناف
@@ -169,7 +171,6 @@ def test_invalid_input_raised_by_the_constructor_is_never_retried(monkeypatch, f
 @pytest.mark.parametrize(
     "failure",
     [
-        pytest.param(NoAudioReceived("verify parameters"), id="NoAudioReceived"),
         pytest.param(RuntimeError("unknown"), id="مجهول ⇒ لا إعادة"),
     ],
 )
@@ -179,6 +180,33 @@ def test_non_transient_stream_failures_are_not_retried(monkeypatch, failure) -> 
     with pytest.raises(type(failure)):
         _run(provider)
     assert len(constructed) == 1 and slept == []
+
+
+def test_no_audio_received_is_retried_because_it_is_the_failure_the_audit_measured(
+    monkeypatch,
+) -> None:
+    """**الشاهدُ على ما وُجِدت الحلقةُ لأجله.** كان ``NoAudioReceived`` في «لا إعادة»، فمرّت
+    الحلقةُ خضراءَ على كلّ عطلٍ إلّا الذي قاسه التدقيق: «No audio was received؛ الإعادة تنجح».
+
+    والمعاملاتُ هنا صحيحةٌ عمداً (صوتٌ من القائمة · ``+0%``/``+0Hz``): الحالةُ المقيسة هي
+    الخنقُ لا المُدخَل — المُدخَلُ الخاطئ يُرفَض قبل الشبكة (الشاهدُ المجاور).
+    """
+    constructed = _install(
+        monkeypatch, [([], NoAudioReceived("No audio was received.")), ([b"AUDIO"], None)]
+    )
+    provider, slept = _provider()
+    assert _run(provider) == b"AUDIO"
+    assert len(constructed) == 2, "محاولةٌ ثانيةٌ بعد NoAudioReceived"
+    assert slept == [0.5]
+
+
+def test_persistent_no_audio_received_is_bounded_and_surfaces_the_error(monkeypatch) -> None:
+    """حين يدوم الخنق (المنبعُ رأى المحاولات الثلاث تفشل) يُرفَع الخطأ بعد السقف، لا يُبتلَع."""
+    constructed = _install(monkeypatch, [([], NoAudioReceived(f"#{i}")) for i in range(3)])
+    provider, slept = _provider()
+    with pytest.raises(NoAudioReceived):
+        _run(provider)
+    assert len(constructed) == 3 and slept == [0.5, 1.0]
 
 
 def test_http_status_classification_retries_5xx_and_429_but_not_other_4xx() -> None:
