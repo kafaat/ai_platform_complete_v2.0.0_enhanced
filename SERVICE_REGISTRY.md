@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **32**
-- Python LOC discovered: **264,688**
+- Python LOC discovered: **264,696**
 - Routes discovered: **1122**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -41,7 +41,7 @@
 | `scout-ingest-service` | Unclassified / Support | 7 | 2463 | 3 | 22 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 52 | 5941 | 17 | 60 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |
 | `supervisor-agent` | Agent Orchestration | 22 | 3350 | 7 | 11 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
-| `tts-service` | Voice & Notifications | 8 | 868 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
+| `tts-service` | Voice & Notifications | 8 | 876 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
 | `vegetation-analysis-service` | Vegetation Analytics | 40 | 3886 | 17 | 21 | `services/vegetation-analysis-service/main.py` | `services/vegetation-analysis-service/Dockerfile` | `services/vegetation-analysis-service/requirements.txt` | `normal` |
 | `video-processor` | Video Processing | 9 | 1052 | 1 | 11 | `services/video-processor/main.py` | `services/video-processor/Dockerfile` | `services/video-processor/requirements.txt` | `normal` |
 | `weather-polygon-worker` | Weather Intelligence | 2 | 225 | 0 | 0 | `services/weather-polygon-worker/src/main.py` | `services/weather-polygon-worker/Dockerfile` | `services/weather-polygon-worker/requirements.txt` | `medium-runtime-contract-gap` |
