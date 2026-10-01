@@ -1207,7 +1207,7 @@
     },
     {
       "kind": "router",
-      "line": 144,
+      "line": 145,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -1702,7 +1702,7 @@
     },
     {
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.readiness",
       "node_id": "services.sahool-platform.api.routers.readiness:router",
       "route_count": 1,
@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 30,
+  "include_edge_count": 33,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2484,6 +2484,33 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_drawing_features_v38_static:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 84,
+      "module": "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_farm_fields_tenant_ownership:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 72,
+      "module": "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_geometry_history_decodes_jsonb:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 101,
+      "module": "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_geometry_history_decodes_jsonb:<dynamic-source>",
       "target": null
     },
     {
@@ -2640,7 +2667,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "6ce2f04e3c9411bd6919bfc80a85789f0ef7397160ae21e5db5e856b5fff0914",
+  "inventory_sha256": "c8cf1c1ef808692ef884d4229e8eff645fa1afcf515ff7431124dd3991ab2230",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -3736,7 +3763,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 144,
+      "line": 145,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -4286,7 +4313,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.sahool-platform.api.routers.readiness",
       "node_id": "services.sahool-platform.api.routers.readiness:router",
       "route_count": 1,
@@ -4921,7 +4948,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 28,
+  "unresolved_include_count": 31,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5026,6 +5053,30 @@
       "module": "services.sahool-platform.tests.test_drawing_features_v38_static",
       "source": null,
       "target_expression": "drawing.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
+      "line": 84,
+      "module": "services.sahool-platform.tests.test_farm_fields_tenant_ownership",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+      "line": 72,
+      "module": "services.sahool-platform.tests.test_geometry_history_decodes_jsonb",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+      "line": 101,
+      "module": "services.sahool-platform.tests.test_geometry_history_decodes_jsonb",
+      "source": null,
+      "target_expression": "mod.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

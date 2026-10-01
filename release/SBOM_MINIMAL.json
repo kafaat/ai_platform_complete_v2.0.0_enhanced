@@ -10955,7 +10955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4486d00f4090c5ef6a77101b54364dfcd8d256e2363d1867ec52c1cad9eda336"
+          "content": "ddb434a0ddf4426ddf868aa61134c9dc14610853f9a068528f7c68f9f1cffe80"
         }
       ],
       "name": "services/ai_agronomist/advisory_contract.py",
@@ -10975,7 +10975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f17cb8ede41a077f464128fd7847bd27a088938054392a8efeb6318fc5b5a63"
+          "content": "5930cf9352a32d77cce45557d969999e64afc06b2b13716cd3f810866b81215c"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -18625,7 +18625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1435eb87042a9698a707b58823cec7eaed0125d8ec1eea2cf9f66ddbd7029cec"
+          "content": "f491f5a611dd6fa6962dbb54ef9222ebf06c2e7ba12e39091bd32430a1d95443"
         }
       ],
       "name": "services/sahool-platform/api/routers/farms.py",
@@ -18755,7 +18755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab1c19fdc4b991f3cb2d2f97c5f6cc1ab75729aab5696c4a103fa7b40d4a2d6b"
+          "content": "8345cf8ebaea750a090124351460de063337acf5ec07b3ea2a17b1e560da4e3c"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -19305,7 +19305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "910316b2d851bd7ea922c2831a6badb5f6ef1e6cd337ade0007bdb015360b97c"
+          "content": "b2a41a4b600e937a229240c5c9a43bf23fd7cd621e415a887400375b5705ed8e"
         }
       ],
       "name": "services/sahool-platform/api/routers/readiness.py",
@@ -25065,6 +25065,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "79dc8d1e06eef8bb7701c00add506f0d78538d6eeebba76022aded9a24b25c77"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_debug_flag_startup_log.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "39eeb3783029533726c730e470c771e44f8d0786659162d552565c25a3b7c0d8"
         }
       ],
@@ -25585,6 +25595,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a1c811ede3b4d11205131f4d6f1e3e4967b4c5bb6ccc2529f50fa9fd1b8f2206"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "72e042bb61091d7e8d7d5986d3ca4b007feb4ba3f37dbb9216e0b607c7ce0e6c"
         }
       ],
@@ -26069,6 +26089,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_geo_import.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "593414e72efbb6dae678858a82de3c5d911f4b7f5297160b1e0753394c7a53c4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
       "type": "file"
     },
     {
