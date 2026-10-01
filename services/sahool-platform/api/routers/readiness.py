@@ -7,14 +7,22 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
-from core.prod_readiness import evaluate_readiness
+from core.prod_readiness import _truthy, evaluate_readiness
 from fastapi import APIRouter, Depends
 
 from api.main import Permission, UserSchema, require_permission
 
 router = APIRouter()
+
+# SAHOOL-DEBUG-FLAG-INVISIBLE-AT-RUNTIME-01: دخولُ dev يُسجِّل تحذيراً عند الإقلاع
+# (`main.py:165`) فتُقاس حالتُه من سجلّ Railway بلا قراءة القيم؛ و`SAHOOL_DEBUG` لم يكن
+# يُسجِّل شيئاً فلا تُقاس حالتُه إلّا من اللوحة. سطرٌ واحد عند الاستيراد (والموجِّهُ يُستورَد
+# عند الإقلاع) يُسجِّل **الحالةَ لا القيمة**. `main.py` عند سقف أسطره، فالسطرُ هنا.
+DEBUG_FLAG_STATE = "on" if _truthy(os.environ.get("SAHOOL_DEBUG")) else "off"
+logging.getLogger(__name__).warning("SAHOOL_DEBUG=%s", DEBUG_FLAG_STATE)
 
 
 @router.get("/api/v1/admin/readiness")
