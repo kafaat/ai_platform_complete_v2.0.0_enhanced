@@ -63,6 +63,9 @@ class TTSProvider(abc.ABC):
     #: هل يُرسِل المزوّدُ النصَّ خارج حدّ المستأجِر؟ (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01)
     #: الافتراضيّ محلّيّ؛ كلُّ مزوّدٍ شبكيٍّ يُعلنه صراحةً فيُحجَب حين لا تسمح السياسة.
     external: bool = False
+    #: نوعُ وعاء الصوت الذي يُرجِعه ``synthesize`` — تُعلِنه الاستجابةُ كما هو (مراجعة #1122:
+    #: Piper يكتب WAV؛ وسمُه ``audio/mpeg`` كان يكذب على المُشغِّل). الافتراضيّ لا يدّعي صيغة.
+    media_type: str = "application/octet-stream"
 
     @abc.abstractmethod
     def available(self) -> bool:
@@ -174,6 +177,7 @@ class EdgeTTSProvider(TTSProvider):
 
     name = "edge_tts"
     external = True  # يُرسِل النصَّ إلى خدمة Microsoft — خارج حدّ المستأجِر.
+    media_type = "audio/mpeg"
 
     def __init__(self, sleep: Callable[[float], Awaitable[object]] | None = None) -> None:
         self._sleep = sleep or asyncio.sleep
@@ -229,6 +233,7 @@ class PiperProvider(TTSProvider):
     """
 
     name = "piper"
+    media_type = "audio/wav"  # ``wave.open(buf, "wb")`` أدناه — وعاءُ RIFF/WAV.
 
     def __init__(self, voice_path: str | None = None) -> None:
         self._voice_path_override = voice_path

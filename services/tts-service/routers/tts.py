@@ -100,7 +100,7 @@ async def synthesize(
                 main.logger.info(f"Cache hit: tenant={tenant_id} voice={req.voice}")
                 return Response(
                     content=cached,
-                    media_type="audio/mpeg",
+                    media_type=chosen.media_type,
                     headers={
                         "X-Cache": "HIT",
                         # private: أصل TTS لكلّ مستأجِر يجب ألّا يُخزَّن في وسطاء/CDN
@@ -142,7 +142,7 @@ async def synthesize(
 
     return Response(
         content=audio,
-        media_type="audio/mpeg",
+        media_type=chosen.media_type,
         headers={
             "X-Cache": "MISS",
             # private: انظر مسار الـHIT أعلاه — عزل المستأجِر يمنع التخزين العامّ.
@@ -166,14 +166,20 @@ async def stream(
     if not chosen.external:
         # مزوّدٌ محلّيّ: لا بثَّ تدريجيّ عنده — يُركَّب كاملاً ويُبثّ دفعةً واحدة.
         audio = await main._generate_speech(
-            req.text, req.voice, req.rate, req.pitch, req.volume, chosen=chosen
+            req.text,
+            req.voice,
+            req.rate,
+            req.pitch,
+            req.volume,
+            normalize=req.normalize,
+            chosen=chosen,
         )
 
         async def local_stream():
             yield audio
 
         main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
-        return StreamingResponse(local_stream(), media_type="audio/mpeg")
+        return StreamingResponse(local_stream(), media_type=chosen.media_type)
 
     async def audio_stream():
         voice = main.VOICES[req.voice]
@@ -189,4 +195,4 @@ async def stream(
                 yield chunk["data"]
 
     main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
-    return StreamingResponse(audio_stream(), media_type="audio/mpeg")
+    return StreamingResponse(audio_stream(), media_type=chosen.media_type)

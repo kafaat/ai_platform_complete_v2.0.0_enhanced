@@ -20,13 +20,15 @@ from pathlib import Path
 
 import pytest
 
+# قيمةُ الاختبار المشتركة من conftest — لا حرفيّةَ سرٍّ جديدة في التاريخ (gitleaks على #1122).
+from conftest import TEST_JWT_SECRET as _JWT_SECRET
+
 pytest.importorskip("fastapi")
 
 pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 ROOT = Path(__file__).resolve().parents[1]
 _SVC_DIR = ROOT / "services" / "tts-service"
-_JWT_SECRET = "test_secret_min_32_chars_for_sahool_v9"
 _TENANT = "00000000-0000-0000-0000-0000000000a1"
 _SIBLINGS = (
     "main",
@@ -241,14 +243,26 @@ def test_local_only_uses_an_available_local_provider_and_never_edge(monkeypatch,
     _no_local_providers(monkeypatch, providers)
     monkeypatch.setattr(providers.PiperProvider, "available", lambda self: True)
 
+    spoken: list[str] = []
+
     async def piper(self, text, voice, rate, pitch, volume):
-        return b"LOCAL-AUDIO"
+        spoken.append(text)
+        return b"RIFF-LOCAL-WAV"
 
     monkeypatch.setattr(providers.PiperProvider, "synthesize", piper)
     _policy(monkeypatch, tts_policy, "local_only")
-    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    raw = "مـرحـبـاً بالمزارع"
+    resp = _client(main).post(
+        path, json={**_BODY, "text": raw, "normalize": True}, headers=_bearer(main)
+    )
     assert resp.status_code == 200, resp.text
-    assert resp.content == b"LOCAL-AUDIO" and ext.calls == 0
+    assert resp.content == b"RIFF-LOCAL-WAV" and ext.calls == 0
+    # مراجعة #1122: المسارُ المحلّيّ يحمل التطبيعَ في البثّ كما في التركيب، ويُعلِن وعاءَ
+    # المزوّد الفعليّ (Piper يكتب WAV) لا ``audio/mpeg`` ثابتاً.
+    expected = main.ArabicTextNormalizer().normalize(raw)
+    assert expected != raw, "نصُّ الاختبار يجب أن يتغيّر بالتطبيع كي يكون الفحصُ ذا معنى"
+    assert spoken == [expected]
+    assert resp.headers["content-type"].startswith("audio/wav")
 
 
 # ── المنطقُ النقيّ ────────────────────────────────────────────────────────────
