@@ -81,6 +81,10 @@
       "category": "B",
       "why": "مهرب تطوير محلّيّ فقط. enforcement_active fail-closed: غيابه ⇒ الفرض مُفعَّل ⇒ رفض الإقلاع على دور يتجاوز RLS (غيابه = لا تجاوز أبداً، الوضع الأصحّ). وجوده truthy في الإنتاج/compose ثغرة عزل مستأجرين؛ يجب ألّا يظهر في compose. يُسجَّل .critical دوماً؛ shared/db_role_guard.py:34-46."
     },
+    "SAHOOL_DEBUG": {
+      "category": "A",
+      "why": "غيابُها = off: _truthy(None) خطأ (services/sahool-platform/api/routers/readiness.py:24 · core/prod_readiness.py:85). غائبةٌ عن compose عمداً — التنقيحُ لا يُفعَّل في الإنتاج افتراضيّاً؛ يُسجَّل on/off عند الإقلاع لا القيمة (SAHOOL-DEBUG-FLAG-INVISIBLE-AT-RUNTIME-01)."
+    },
     "SAHOOL_FTW_WEIGHTS": {
       "category": "C",
       "why": "مسار أوزان نموذج حدود الحقل FTW؛ غيابه=استدلال حتميّ (fallback مُعلَن)؛ ai_agronomist/field_boundary_backends.py + core/capabilities.py (P1-9)."
