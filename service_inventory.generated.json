@@ -315,7 +315,7 @@
     "service": "tts-service",
     "domain": "Voice & Notifications",
     "python_files": 9,
-    "python_loc": 1003,
+    "python_loc": 1012,
     "tests": 1,
     "routes": 8,
     "main": "services/tts-service/main.py",

@@ -29725,7 +29725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3bf0118ff46c983bac7a48a4f8d87b22bca8c0d7c8835013178dd0c6333dd22e"
+          "content": "639b82eb277c8c16cff44a7b3a71ca344ebc445899cc64d69091cb18e56f4dac"
         }
       ],
       "name": "services/tts-service/providers.py",
@@ -29775,7 +29775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcf648132bd97db94214c8865ceece5cd867cff01480a5eabc6296a8a3a59ce7"
+          "content": "30850364ca7e3e184f9229e2f40ebc56bac93a12ac908376c45088d6aac7b274"
         }
       ],
       "name": "services/tts-service/routers/tts.py",
