@@ -278,9 +278,19 @@ async def _record_ai_advice_event(
         if resp.status_code >= 400:
             return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
         payload = resp.json()
-        # المنصّة تُعيد ``persisted`` الحقيقيّة (P0): غيابُها (منصّة أقدم) يُقرأ تسجيلاً كما كان.
-        persisted = payload.get("persisted", payload.get("ok", True))
-        return {"status": "recorded" if persisted else "not_persisted", **payload}
+        # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01 (الصنفُ نفسُه: صمتٌ يُقرأ نجاحاً):
+        # ردٌّ بلا ``persisted`` كان يُقرأ «recorded» — منصّةٌ أقدم، أو ردٌّ مُشوَّه، يصير
+        # إيصالَ حفظٍ لم يُرَ. كلُّ فروع المنصّة المنشورة تُعيده اليوم (main وdeploy/*)،
+        # فالغيابُ لا يصف منصّةً قائمة: يُسمّى ``unconfirmed`` لا نجاحاً ولا فشلاً.
+        # والحكمُ يُكتَب **بعد** الحمولة كي لا يَغلِبه مفتاحُ ``status`` في الردّ.
+        persisted = payload.get("persisted")
+        if persisted is True:
+            status = "recorded"
+        elif persisted is False:
+            status = "not_persisted"
+        else:
+            status = "unconfirmed"
+        return {**payload, "status": status}
     except Exception as exc:  # noqa: BLE001
         return {"status": "failed", "reason": str(exc)}
 
@@ -889,8 +899,11 @@ async def build_evidence_response(
     # P1-8: يميّز «evidence-only لأنّ التوليد لم يُحاوَل» عن «حُوصِر بالسياسة» عن «حُوول وفشل» —
     # حتّى لا يبدو الجواب المُدهوَر (فشل مزوّد) كأنّه evidence-only بالتصميم. شفافيّة، لا تغيير سلوك.
     generation_status = "not_attempted"
-    generation_model: str | None = None
-    generation_provider: str | None = None
+    # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: ما **حُووِل** (قياس) منفصلٌ عمّا **عُرِض**
+    # (نسبة). النموذجُ الذي أُخمِد خرجُه لا يُنسَب إليه الجوابُ الظاهر — الواجهةُ ترسم
+    # «المزوّد · النموذج» على كلّ جوابٍ يحمل ``generation_provider``.
+    generation_attempted_model: str | None = None
+    generation_attempted_provider: str | None = None
     provider_tool_calls: list[dict[str, Any]] = []
     provider_pending_approvals: list[dict[str, Any]] = []
     provider_tool_truncated = False
@@ -947,6 +960,10 @@ async def build_evidence_response(
             )
             # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
             generation_status = "succeeded" if gen is not None else "attempted_failed"
+            if _cfg is not None:
+                # المحاولةُ تُقاس ولو فشلت (مراجعةٌ مستقلّة): المُهيَّأ هنا، وما أجاب فعلاً يَغلِبه أدناه.
+                generation_attempted_provider = _cfg.provider
+                generation_attempted_model = _cfg.model
         if gen is not None:
             # Guardrails accepts typed proposals from the decision owner. A
             # retrieved paragraph does not prove that arbitrary model prose is
@@ -957,7 +974,7 @@ async def build_evidence_response(
                 if _generation_is_grounded(annotations)
                 else "suppressed_ungrounded"
             )
-            generation_model = gen.model
+            generation_attempted_model = gen.model
             if selection is not None:
                 try:
                     parsed = parse_model_output(gen.text)
@@ -969,7 +986,7 @@ async def build_evidence_response(
                         model_output = gen.text
                 except AdvisoryRejected:
                     pass  # Unstructured or malformed output stays suppressed.
-            generation_provider = gen.provider
+            generation_attempted_provider = gen.provider
             provider_tool_calls = list(gen.tool_calls or [])
             provider_pending_approvals = list(gen.pending_approvals or [])
             provider_tool_truncated = bool(gen.tool_calls_truncated)
@@ -1059,6 +1076,7 @@ async def build_evidence_response(
         pending_approvals=all_pending_approvals,
     )
 
+    generation_surfaced = generation_status == "validated_structured_facts"
     response = {
         "status": "ok",
         "mode": mode,
@@ -1071,8 +1089,12 @@ async def build_evidence_response(
         "field_id": req.field_id,
         "selected_imagery_date": req.selected_imagery_date,
         "selected_model": req.model,
-        "generation_model": generation_model,
-        "generation_provider": generation_provider,
+        # النسبةُ للجواب الظاهر فقط؛ المحاولةُ تبقى مقيسةً في ``generation_attempted_*``.
+        "generation_surfaced": generation_surfaced,
+        "generation_model": generation_attempted_model if generation_surfaced else None,
+        "generation_provider": generation_attempted_provider if generation_surfaced else None,
+        "generation_attempted_model": generation_attempted_model,
+        "generation_attempted_provider": generation_attempted_provider,
         "language": req.language,
         "annotations": annotations,
         "evidence_ids": evidence_ids,

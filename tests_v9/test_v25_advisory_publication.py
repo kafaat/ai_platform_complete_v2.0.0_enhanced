@@ -86,6 +86,17 @@ async def test_chat_publication_requires_current_owner_facts_and_persisted_recei
     )
     assert "sahool.structured_advisory.v1" in generate.call_args.args[1]
     assert receipts
+    # AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: المحاولةُ تُقاس دائماً؛ والنسبةُ
+    # (ما ترسمه الواجهةُ «المزوّد · النموذج») للجواب الظاهر وحده.
+    assert (result["generation_attempted_model"], result["generation_attempted_provider"]) == (
+        "fixture",
+        "local",
+    )
+    surfaced = case == "valid"
+    assert result["generation_surfaced"] is surfaced
+    assert (result["generation_model"], result["generation_provider"]) == (
+        ("fixture", "local") if surfaced else (None, None)
+    )
     if case == "valid":
         assert result["mode"] == "validated_field_facts"
         assert result["generation_status"] == "validated_structured_facts"
@@ -158,3 +169,41 @@ async def test_owner_records_only_validated_receipt_not_raw_model_prose(monkeypa
     assert payload["advisory_validation"] == result["advisory_validation"]
     assert "model_output" not in payload
     assert result["advisory_validation"]["executes_action"] is False
+
+
+async def test_a_failed_attempt_is_measured_not_attributed(monkeypatch):
+    """AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01 (مراجعةٌ مستقلّة): مزوّدٌ فشل يبقى مُسمّى
+    في ``generation_attempted_*`` — وإلّا وُسِم الجوابُ «لا نموذج مُفعَّل» وقد حُووِل فعلاً."""
+    from services.ai_agronomist.ai_generation import GenConfig
+
+    monkeypatch.setattr(runtime, "_fetch_canonical_field_state", AsyncMock(return_value=state()))
+    monkeypatch.setattr(runtime, "_generation_allowed", lambda _: True)
+    cfg = GenConfig(
+        provider="vllm", endpoint="http://x", headers={}, model="jais", wire_format="openai_chat"
+    )
+    monkeypatch.setattr(runtime.ai_generation, "resolve_generation", lambda _: cfg)
+    monkeypatch.setattr(
+        runtime.policy_envelope, "gate_generation", lambda *a, **k: {"decision": "allowed"}
+    )
+    monkeypatch.setattr(runtime.ai_generation, "generate", AsyncMock(return_value=None))
+    client = httpx.AsyncClient
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(200, json={"annotations": [], "edges": []})
+    )
+    monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: client(transport=transport, **kw))
+    monkeypatch.setattr(
+        runtime, "_record_ai_advice_event", AsyncMock(return_value={"persisted": True})
+    )
+    result = await runtime.build_evidence_response(
+        AdvisorQuery(question="ما قياسات الحقل؟", field_id=FIELD),
+        endpoint_mode="chat",
+        x_tenant_id=TENANT,
+        save_agent_tool_audit=lambda _: None,
+        save_pending_approval=lambda _: None,
+    )
+    assert result["generation_status"] == "attempted_failed"
+    assert (result["generation_attempted_provider"], result["generation_attempted_model"]) == (
+        "vllm",
+        "jais",
+    )
+    assert (result["generation_provider"], result["generation_model"]) == (None, None)

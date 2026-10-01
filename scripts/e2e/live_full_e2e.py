@@ -191,12 +191,19 @@ def main() -> int:
         pass_step("timeline.history", f"revisions={len(revisions)}")
         newest = revisions[0].get("geometry") if isinstance(revisions[0], dict) else None
         oldest = revisions[-1].get("geometry") if isinstance(revisions[-1], dict) else None
-        delta = area_degrees2(newest) - area_degrees2(oldest)
-        if not isfinite(delta):
-            fail_step("comparison.area_delta", "non-finite delta")
+        # jsonb يُعاد نصّاً بلا codec ⇒ خطوة مُسمّاة تفشل بدل AttributeError (لا فكّ هنا).
+        if not (isinstance(newest, dict) and isinstance(oldest, dict)):
+            kinds = f"newest={type(newest).__name__} oldest={type(oldest).__name__}"
+            fail_step("timeline.geometry_is_geojson_object", kinds)
             ok = False
         else:
-            pass_step("comparison.area_delta", f"delta_degrees2={delta:.10f}")
+            pass_step("timeline.geometry_is_geojson_object")
+            delta = area_degrees2(newest) - area_degrees2(oldest)
+            if not isfinite(delta):
+                fail_step("comparison.area_delta", "non-finite delta")
+                ok = False
+            else:
+                pass_step("comparison.area_delta", f"delta_degrees2={delta:.10f}")
 
     status, payload = request(
         "PATCH",

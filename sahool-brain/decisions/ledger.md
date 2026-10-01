@@ -3446,3 +3446,14 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 - `direct_qdrant_exception` (`docs/architecture/rag_authority_convergence.json`): تكافؤُ الاسترجاع لم يُقَس (`SAHOOL-AI-RAG-LIVE-001` مفتوح، `BLOCKED_BY_ENVIRONMENT`).
 
 **لماذا أفقٌ قصير:** شهرٌ يُجبر مراجعةً ثانية بدل تمديدٍ طويلٍ صامت؛ والتجديدُ يحمل دليلَه في حقل `reason`. **الشريحة:** #1118 (يُطوى فيه لأنّه شرطُ اخضراره، والفرعُ المأذون واحد).
+
+## 2026-10-01 — ثلاثةُ قراراتٍ للمالك بعد الفرز: قاعدةٌ واحدة لا تُقيَّد بملفّ · إلزامُ حارسٍ يستطيع الفشل · مراقبةٌ قبل الفرض
+
+**القرار ١:** `sahool-odoo` خلف profile `odoo` في `fixed`/`unified` كما في v9 — **السبب:** قاعدةُ §3.4 («خدمةٌ لا تعمل بلا تبعيّتها لا تُشغَّل بلاها») واحدةٌ لا تُقيَّد بملفّ؛ شريحةُ erp (`claude/wip-v25b-erp`) وضعت الجسرَ وحده خلفه فبقيت Odoo تقوم وحدها افتراضيّاً.
+**القرار ٢:** وظيفةُ `no-report-only-change` (وفيها `brain_duplicate_gap_identity_guard`) فحصٌ **إلزاميّ** — **السبب:** «حارسٌ يمكن أن يفشل، وهذا شرطُ الإلزام» (المالك)؛ مقيسٌ أنّه يُمسك الصفَّ المُكرَّر الذي يُنتجه `merge=union` بصمت (`UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01`). التنفيذ: `required_status_checks_contract.json` في المستودع + الـruleset بيد المالك.
+**القرار ٣:** `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` يُحرَّر بوضع مراقبةٍ قبل الفرض لا بانتظار queue_v1 — **السبب:** سببُ التعليق أُعيد فحصُه (#1118): الخطرُ تشديدُ المطالبات في ١٣ خدمة، وqueue_v1 لا يمسّه.
+**التسلسل:** بعد دمج integration/v25 يتوقّف العمل؛ الثلاثةُ تُنفَّذ في الجولة الثانية (مع tiler · erp · sam2 · vllm) لا قبلها.
+
+## 2026-10-01 — سلامةُ جدول السجلّ تحجب عبر اختبارٍ في فحصٍ مطلوب، والتقريرُ يبقى report-only
+
+**القرار:** `table_structure_errors` و`unclassified_rows` من `gap_registry_measure.py` راتشِتٌ عند الصفر على `sahool-brain/gaps/registry.md` الحقيقيّ، في `tests/architecture/test_gap_registry_measure.py` (يعمل تحت «Repository Tests (tests/)» المطلوب). **السبب:** المالك (مراجعة #1119): «إبقاء `gap_registry_measure.py` report-only وحده يسمح لسجلٍّ مكسور أن يظهر أخضر» — مقيسٌ: ٩ صفوفٍ بلا حالة على رأس `9148bf69` والفحوصُ خضراء. **لماذا اختبارٌ لا حارسٌ جديد ولا تحويلُ التقرير إلى حاجب:** وظيفةُ التقرير مُصمَّمةٌ مستقلّةً غيرَ حاجبة ومحروسةٌ بذلك (`test_workflow_report_is_independent_nonblocking_and_bound_to_head`)، وقاعدةُ «لا حرّاسَ عامّة جديدة» قائمة؛ الاختبارُ يُعيد استعمال `measure()` نفسه ويحجب عبر سياقٍ مطلوبٍ قائم. **الصفّ:** `GAP-REGISTRY-MEASURE-REPORT-ONLY-HIDES-A-BROKEN-TABLE-01`.

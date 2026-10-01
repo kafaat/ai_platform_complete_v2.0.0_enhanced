@@ -350,3 +350,16 @@ def test_no_heading_shape_can_smuggle_a_state_past_the_state_count(heading):
     report = mod().measure(heading + "\n\n- وصفٌ بلا سجلّ حالة.\n")
     assert report["section_state_count"] == 0
     assert report["orphan_gap_heading_count"] == 1
+
+
+def test_the_real_registry_has_no_broken_rows_and_no_unclassified_states():
+    """GAP-REGISTRY-MEASURE-REPORT-ONLY-HIDES-A-BROKEN-TABLE-01: الوظيفةُ ``gap-registry-report``
+    تقريرٌ لا يحجب عمداً (الاختبارُ أعلاه)، فسجلٌّ مكسورٌ كان يظهر أخضر: صفٌّ واحد كُتِب فيه
+    ``"\\n"`` سطراً جديداً حقيقيّاً (#1119) فأفقد المُحلِّلَ جدولَه وصار ٩ صفوفٍ بلا حالة.
+    الحجبُ هنا لا في التقرير: هذا الملفّ يعمل تحت «Repository Tests (tests/)» المطلوب.
+    راتشِت عند الصفر — main كان عند الصفر في الحقلين لحظةَ الإضافة."""
+    report = mod().measure((ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8"))
+    broken = [(row["id"], row["line"]) for row in report["table_structure_errors"]]
+    unclassified = [(row["id"], row["line"]) for row in report["unclassified_rows"]]
+    assert not broken, f"صفوفٌ كسرت جدولَ السجلّ (سطرٌ جديد داخل خليّة؟): {broken}"
+    assert not unclassified, f"صفوفُ فجوةٍ بلا حالةٍ قانونيّة: {unclassified}"
