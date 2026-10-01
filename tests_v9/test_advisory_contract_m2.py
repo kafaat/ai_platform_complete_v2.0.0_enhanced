@@ -86,6 +86,28 @@ def test_limitations_and_gaps_are_honest_not_fabricated():
     assert "gap:terrain" in env["evidence_missing"]
 
 
+def test_a_suppressed_generation_is_not_labelled_disabled():
+    """AI-GENERATION-ATTRIBUTED-TO-SUPPRESSED-OUTPUT-01: نموذجٌ حاول فأُخمِد خرجُه ليس «غيرَ مُفعَّل»."""
+    env = build_advisory_envelope(
+        {**_GOOD, "generation_provider": None, "generation_attempted_provider": "local"}
+    )
+    assert "generation_suppressed_evidence_only" in env["limitations"]
+    assert "generation_disabled_evidence_only" not in env["limitations"]
+
+
+def test_a_failed_generation_is_labelled_failed_not_disabled():
+    env = build_advisory_envelope(
+        {
+            **_GOOD,
+            "generation_provider": None,
+            "generation_attempted_provider": "vllm",
+            "generation_status": "attempted_failed",
+        }
+    )
+    assert "generation_failed_evidence_only" in env["limitations"]
+    assert "generation_disabled_evidence_only" not in env["limitations"]
+
+
 def test_malformed_input_is_conservative():
     env = build_advisory_envelope(None)
     assert env["decision"] == "advisory_only" and env["requires_human_review"] is True
