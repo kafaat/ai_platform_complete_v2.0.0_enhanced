@@ -69,6 +69,9 @@ def _limitations(
         # نموذجٌ حاول فأُخمِد خرجُه ليس نموذجاً غيرَ مُفعَّل.
         if response.get("generation_status") == "attempted_failed":
             lim.append("generation_failed_evidence_only")
+        elif response.get("generation_status") == "blocked_by_policy":
+            # بوّابةُ السياسة حجبت المزوِّد قبل المحاولة (ai_evidence_runtime.py:937) — ليس «غيرَ مُفعَّل».
+            lim.append("generation_blocked_by_policy_evidence_only")
         elif response.get("generation_attempted_provider"):
             lim.append("generation_suppressed_evidence_only")
         else:

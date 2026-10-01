@@ -108,6 +108,15 @@ def test_a_failed_generation_is_labelled_failed_not_disabled():
     assert "generation_disabled_evidence_only" not in env["limitations"]
 
 
+def test_a_policy_blocked_generation_is_labelled_blocked_not_disabled():
+    """الحجبُ بالسياسة يحدث قبل المحاولة فلا يحمل ``generation_attempted_provider`` — ويبقى ليس «غيرَ مُفعَّل»."""
+    env = build_advisory_envelope(
+        {**_GOOD, "generation_provider": None, "generation_status": "blocked_by_policy"}
+    )
+    assert "generation_blocked_by_policy_evidence_only" in env["limitations"]
+    assert "generation_disabled_evidence_only" not in env["limitations"]
+
+
 def test_malformed_input_is_conservative():
     env = build_advisory_envelope(None)
     assert env["decision"] == "advisory_only" and env["requires_human_review"] is True
