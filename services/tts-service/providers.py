@@ -60,6 +60,9 @@ class TTSProvider(abc.ABC):
     """عقد مزوّد TTS: اسمٌ، فحصُ توفّر، وتركيبٌ غير متزامن يُرجِع بايتات صوت."""
 
     name: str = "abstract"
+    #: هل يُرسِل المزوّدُ النصَّ خارج حدّ المستأجِر؟ (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01)
+    #: الافتراضيّ محلّيّ؛ كلُّ مزوّدٍ شبكيٍّ يُعلنه صراحةً فيُحجَب حين لا تسمح السياسة.
+    external: bool = False
 
     @abc.abstractmethod
     def available(self) -> bool:
@@ -170,6 +173,7 @@ class EdgeTTSProvider(TTSProvider):
     """
 
     name = "edge_tts"
+    external = True  # يُرسِل النصَّ إلى خدمة Microsoft — خارج حدّ المستأجِر.
 
     def __init__(self, sleep: Callable[[float], Awaitable[object]] | None = None) -> None:
         self._sleep = sleep or asyncio.sleep
@@ -327,3 +331,22 @@ def select_provider(requested: str | None, registry: list[TTSProvider]) -> TTSPr
     if chosen is not None and chosen.available():
         return chosen
     return default
+
+
+def select_provider_for_policy(
+    requested: str | None, registry: list[TTSProvider], external_allowed: bool
+) -> TTSProvider | None:
+    """يختار مزوّداً **تسمح به السياسة** أو ``None`` — لا سقوطَ صامتاً إلى مزوّدٍ خارجيّ.
+
+    TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01: ``select_provider`` يسقط إلى edge
+    حين يتعذّر المطلوب، وهذا صحيحٌ فقط حين يُسمَح بالإرسال الخارجيّ. حين لا يُسمَح:
+    مزوّدٌ محلّيٌّ متاح (المطلوبُ إن كان محلّيّاً متاحاً، وإلّا أوّلُ محلّيٍّ متاح)، وإلّا
+    ``None`` ليُعيد المُعالِج 503 مُسمّى بلا أيّ نداءٍ خارجيّ.
+    """
+    if external_allowed:
+        return select_provider(requested, registry)
+    local = [p for p in registry if not p.external and p.available()]
+    for p in local:
+        if p.name == requested:
+            return p
+    return local[0] if local else None

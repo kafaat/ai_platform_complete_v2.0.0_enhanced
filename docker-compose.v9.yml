@@ -271,6 +271,9 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       TTS_CACHE_TTL: ${TTS_CACHE_TTL:-86400}
       TTS_MAX_TEXT_LEN: ${TTS_MAX_TEXT_LEN:-1000}
+      # سلطةُ سياسة مشاركة البيانات (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01):
+      # tts يقرأ غلافَ المستأجِر من /api/v1/me؛ غيابُه ⇒ local_only (فشلٌ مغلق).
+      PLATFORM_API_URL: http://sahool-platform:8000
     depends_on:
       sahool-redis:
         condition: service_healthy
