@@ -308,6 +308,90 @@ def test_local_only_uses_an_available_local_provider_and_never_edge(monkeypatch,
     assert resp.headers["content-type"].startswith("audio/wav")
 
 
+def _valid_wav() -> bytes:
+    """ملفُّ WAV حقيقيّ (ربع ثانيةٍ صامتة، 16 بت أحاديّ) — لا بايتاتٍ وهميّة تبدأ بـRIFF."""
+    import io
+    import wave
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(b"\x00\x00" * 4000)
+    return buf.getvalue()
+
+
+def _piper_only(monkeypatch, providers, audio: bytes) -> list[str]:
+    _no_local_providers(monkeypatch, providers)
+    monkeypatch.setattr(providers.PiperProvider, "available", lambda self: True)
+    spoken: list[str] = []
+
+    async def piper(self, text, voice, rate, pitch, volume):
+        spoken.append(text)
+        return audio
+
+    monkeypatch.setattr(providers.PiperProvider, "synthesize", piper)
+    return spoken
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_normalize_false_reaches_the_local_provider_verbatim(monkeypatch, path):
+    """مراجعة #1122 (اختياريّ): ``normalize=False`` يُرسِل النصَّ كما أُرسل — في المسارين."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    spoken = _piper_only(monkeypatch, providers, _valid_wav())
+    _policy(monkeypatch, tts_policy, "local_only")
+    raw = "مـرحـبـاً بالمزارع"
+    assert main.ArabicTextNormalizer().normalize(raw) != raw
+    resp = _client(main).post(
+        path, json={**_BODY, "text": raw, "normalize": False}, headers=_bearer(main)
+    )
+    assert resp.status_code == 200, resp.text
+    assert spoken == [raw] and ext.calls == 0
+
+
+class _FakeRedis:
+    def __init__(self) -> None:
+        self.store: dict[str, bytes] = {}
+
+    async def get(self, key):
+        return self.store.get(key)
+
+    async def setex(self, key, ttl, value):
+        self.store[key] = value
+
+
+def test_piper_audio_is_a_playable_wav_on_miss_and_on_cache_hit(monkeypatch):
+    """مراجعة #1122 (اختياريّ): ما يصل العميلَ WAV يُفتح فعلاً ويُعلَن ``audio/wav``،
+    في الاستجابة المولَّدة **وفي استجابة الذاكرة المؤقّتة** — والإصابةُ لا تستدعي المزوّد ثانيةً.
+    """
+    import io
+    import wave
+
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    audio = _valid_wav()
+    spoken = _piper_only(monkeypatch, providers, audio)
+    _policy(monkeypatch, tts_policy, "local_only")
+    monkeypatch.setattr(main, "_redis", _FakeRedis())
+    client = _client(main)
+
+    miss = client.post("/v1/tts/synthesize", json=_BODY, headers=_bearer(main))
+    hit = client.post("/v1/tts/synthesize", json=_BODY, headers=_bearer(main))
+
+    assert (miss.status_code, hit.status_code) == (200, 200), (miss.text, hit.text)
+    assert (miss.headers["x-cache"], hit.headers["x-cache"]) == ("MISS", "HIT")
+    for resp in (miss, hit):
+        assert resp.headers["content-type"].startswith("audio/wav")
+        with wave.open(io.BytesIO(resp.content), "rb") as w:
+            assert (w.getnchannels(), w.getsampwidth(), w.getframerate()) == (1, 2, 16000)
+            assert w.getnframes() == 4000
+    assert len(spoken) == 1 and ext.calls == 0
+
+
 # ── المنطقُ النقيّ ────────────────────────────────────────────────────────────
 
 
