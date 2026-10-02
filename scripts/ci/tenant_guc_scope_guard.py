@@ -57,10 +57,27 @@ import re
 import subprocess
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from deterministic_time import with_carried_stamp  # noqa: E402
-
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+def with_carried_stamp(path, document: dict) -> dict:
+    """ختمُ ``measured_on`` يتبع الحمولة لا HEAD (``deterministic_time.with_carried_stamp``).
+
+    الاستيرادُ **كسولٌ عند الكتابة** لا عند التحميل: شواهدُ تنسخ هذا الملفّ وحده إلى شجرةٍ
+    مؤقّتة وتُحمّله محرّكاً للقراءة (``build_main_inventory``) — واستيرادٌ عند التحميل أسقطها
+    ``ENGINE_UNLOADABLE`` (CI على #1124). وفي نسخةٍ معزولةٍ بلا الوحدة يبقى السلوكُ السابق
+    (ختمٌ طازج)؛ في المستودع الوحدةُ موجودةٌ دائماً.
+    """
+    here = str(pathlib.Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        from deterministic_time import with_carried_stamp as carry
+    except ImportError:
+        return document
+    return carry(path, document)
+
+
 BASELINE = ROOT / "docs" / "architecture" / "tenant_guc_scope_baseline.json"
 
 # يستخرج (اسم الـGUC، is_local) من نصّ استدعاء set_config. يُطبَّق على مقطع المصدر
