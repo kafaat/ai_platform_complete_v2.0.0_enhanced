@@ -11,6 +11,7 @@ import {
   useHimyariteMonths,
   useCalendarContext,
 } from '../../hooks/useYemeniCalendars';
+import ReferenceQueryState from '../ReferenceQueryState';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -49,26 +50,29 @@ export default function YemeniCalendarPanel() {
           />
         </div>
 
-        {contextQuery.isLoading ? (
-          <div className="text-slate-400">جارٍ حساب السياق الزمنيّ…</div>
-        ) : contextQuery.isError ? (
-          <div className="text-red-400">تعذّر حساب السياق.</div>
-        ) : contextQuery.data ? (
-          <div className="grid gap-2 text-sm text-slate-200 sm:grid-cols-3">
-            <div>
-              <div className="text-xs text-slate-400">المنزلة النشطة</div>
-              {contextQuery.data.active_mansion?.name_ar ?? '—'}
+        <ReferenceQueryState
+          query={contextQuery}
+          loadingText="جارٍ حساب السياق الزمنيّ…"
+          errorText="تعذّر حساب السياق."
+          emptyText="لا سياق لهذا التاريخ."
+        >
+          {(ctx) => (
+            <div className="grid gap-2 text-sm text-slate-200 sm:grid-cols-3">
+              <div>
+                <div className="text-xs text-slate-400">المنزلة النشطة</div>
+                {ctx.active_mansion?.name_ar ?? '—'}
+              </div>
+              <div>
+                <div className="text-xs text-slate-400">الشهر الحميريّ</div>
+                {ctx.himyarite_month?.name_ar ?? '—'}
+              </div>
+              <div>
+                <div className="text-xs text-slate-400">المنطقة</div>
+                {ctx.regional_profile?.region_ar ?? '—'}
+              </div>
             </div>
-            <div>
-              <div className="text-xs text-slate-400">الشهر الحميريّ</div>
-              {contextQuery.data.himyarite_month?.name_ar ?? '—'}
-            </div>
-            <div>
-              <div className="text-xs text-slate-400">المنطقة</div>
-              {contextQuery.data.regional_profile?.region_ar ?? '—'}
-            </div>
-          </div>
-        ) : null}
+          )}
+        </ReferenceQueryState>
       </div>
 
       {/* المنازل القمريّة الـ٢٨ */}
@@ -76,22 +80,23 @@ export default function YemeniCalendarPanel() {
         <summary className="cursor-pointer text-sm text-emerald-300">
           المنازل القمريّة الـ٢٨ (نجوم الزراعة)
         </summary>
-        {mansionsQuery.isLoading ? (
-          <div className="mt-2 text-slate-400">جارٍ التحميل…</div>
-        ) : mansionsQuery.isError ? (
-          <div className="mt-2 text-red-400">تعذّر تحميل المنازل القمريّة.</div>
-        ) : !mansionsQuery.data?.length ? (
-          <div className="mt-2 text-slate-400">لا منازل متاحة.</div>
-        ) : (
-          <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-4">
-            {mansionsQuery.data.map((m, i) => (
-              <li key={m.order ?? i} className="text-xs text-slate-300">
-                {m.name_ar ?? `منزلة ${i + 1}`}
-                {m.approx_start_ar ? ` · ${m.approx_start_ar}` : ''}
-              </li>
-            ))}
-          </ul>
-        )}
+        <ReferenceQueryState
+          query={mansionsQuery}
+          loadingText="جارٍ التحميل…"
+          errorText="تعذّر تحميل المنازل القمريّة."
+          emptyText="لا منازل متاحة."
+        >
+          {(mansions) => (
+            <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-4">
+              {mansions.map((m, i) => (
+                <li key={m.order ?? i} className="text-xs text-slate-300">
+                  {m.name_ar ?? `منزلة ${i + 1}`}
+                  {m.approx_start_ar ? ` · ${m.approx_start_ar}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </ReferenceQueryState>
       </details>
 
       {/* الشهور الحميريّة */}
@@ -99,22 +104,23 @@ export default function YemeniCalendarPanel() {
         <summary className="cursor-pointer text-sm text-emerald-300">
           الشهور الحميريّة الـ١٢
         </summary>
-        {monthsQuery.isLoading ? (
-          <div className="mt-2 text-slate-400">جارٍ التحميل…</div>
-        ) : monthsQuery.isError ? (
-          <div className="mt-2 text-red-400">تعذّر تحميل الشهور الحميريّة.</div>
-        ) : !monthsQuery.data?.length ? (
-          <div className="mt-2 text-slate-400">لا شهور متاحة.</div>
-        ) : (
-          <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-3">
-            {monthsQuery.data.map((mo, i) => (
-              <li key={mo.order ?? i} className="text-xs text-slate-300">
-                {mo.name_ar ?? `شهر ${i + 1}`}
-                {mo.approx_gregorian_ar ? ` · ${mo.approx_gregorian_ar}` : ''}
-              </li>
-            ))}
-          </ul>
-        )}
+        <ReferenceQueryState
+          query={monthsQuery}
+          loadingText="جارٍ التحميل…"
+          errorText="تعذّر تحميل الشهور الحميريّة."
+          emptyText="لا شهور متاحة."
+        >
+          {(months) => (
+            <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-3">
+              {months.map((mo, i) => (
+                <li key={mo.order ?? i} className="text-xs text-slate-300">
+                  {mo.name_ar ?? `شهر ${i + 1}`}
+                  {mo.approx_gregorian_ar ? ` · ${mo.approx_gregorian_ar}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </ReferenceQueryState>
       </details>
     </div>
   );

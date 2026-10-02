@@ -11,6 +11,7 @@ import {
   useDesertCrops,
   useStrategicTiers,
 } from '../../hooks/useClimateAnalogs';
+import ReferenceQueryState from '../ReferenceQueryState';
 
 export default function ClimateAnalogsPanel() {
   const [region, setRegion] = useState<string>('');
@@ -29,47 +30,55 @@ export default function ClimateAnalogsPanel() {
       </p>
 
       {/* قائمة المناطق النظيرة */}
-      {listQuery.isLoading ? (
-        <div className="text-slate-400">جارٍ تحميل المناطق النظيرة…</div>
-      ) : listQuery.isError ? (
-        <div className="text-red-400">تعذّر تحميل النظائر المناخيّة.</div>
-      ) : !listQuery.data?.length ? (
-        <div className="text-slate-400">لا مناطق نظيرة متاحة.</div>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {listQuery.data.map((r) => (
-            <button
-              key={r.region}
-              onClick={() => setRegion(r.region)}
-              className={`rounded-lg px-3 py-2 text-sm transition ${
-                region === r.region
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-              }`}
-            >
-              {r.name_ar ?? r.region}
-              {typeof r.similarity === 'number' ? ` · ${Math.round(r.similarity * 100)}%` : ''}
-            </button>
-          ))}
-        </div>
-      )}
+      <ReferenceQueryState
+        query={listQuery}
+        loadingText="جارٍ تحميل المناطق النظيرة…"
+        errorText="تعذّر تحميل النظائر المناخيّة."
+        emptyText="لا مناطق نظيرة متاحة."
+      >
+        {(regions) => (
+          <div className="flex flex-wrap gap-2">
+            {regions.map((r) => (
+              <button
+                key={r.region}
+                onClick={() => setRegion(r.region)}
+                className={`rounded-lg px-3 py-2 text-sm transition ${
+                  region === r.region
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`}
+              >
+                {r.name_ar ?? r.region}
+                {typeof r.similarity === 'number' ? ` · ${Math.round(r.similarity * 100)}%` : ''}
+              </button>
+            ))}
+          </div>
+        )}
+      </ReferenceQueryState>
 
       {/* تفصيل المنطقة المختارة */}
-      {region && detailQuery.isError && (
-        <div className="text-red-400">تعذّر تحميل تفصيل المنطقة.</div>
-      )}
-      {region && detailQuery.data?.supported === false && (
-        <div className="text-amber-300">{detailQuery.data.message_ar ?? 'المنطقة غير معروفة.'}</div>
-      )}
-      {region && detailQuery.data && detailQuery.data.supported !== false && (
-        <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-200">
-          <h3 className="mb-2 text-base font-medium text-amber-300">
-            {detailQuery.data.region_ar ?? region}
-          </h3>
-          <pre className="whitespace-pre-wrap text-xs text-slate-300">
-            {JSON.stringify(detailQuery.data, null, 2)}
-          </pre>
-        </div>
+      {region && (
+        <ReferenceQueryState
+          query={detailQuery}
+          loadingText="جارٍ تحميل تفصيل المنطقة…"
+          errorText="تعذّر تحميل تفصيل المنطقة."
+          emptyText="لا تفصيل لهذه المنطقة."
+        >
+          {(detail) =>
+            detail.supported === false ? (
+              <div className="text-amber-300">{detail.message_ar ?? 'المنطقة غير معروفة.'}</div>
+            ) : (
+              <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-200">
+                <h3 className="mb-2 text-base font-medium text-amber-300">
+                  {detail.region_ar ?? region}
+                </h3>
+                <pre className="whitespace-pre-wrap text-xs text-slate-300">
+                  {JSON.stringify(detail, null, 2)}
+                </pre>
+              </div>
+            )
+          }
+        </ReferenceQueryState>
       )}
 
       {/* محاصيل صحراويّة */}
@@ -85,37 +94,43 @@ export default function ClimateAnalogsPanel() {
             onChange={(e) => setCategory(e.target.value)}
             className="mb-2 rounded bg-slate-800 px-2 py-1 text-sm text-slate-100"
           />
-          {cropsQuery.isLoading ? (
-            <div className="text-slate-400">جارٍ التحميل…</div>
-          ) : cropsQuery.isError ? (
-            <div className="text-red-400">تعذّر تحميل المحاصيل الصحراويّة.</div>
-          ) : !cropsQuery.data?.length ? (
-            <div className="text-slate-400">لا محاصيل لهذه الفئة.</div>
-          ) : (
-            <ul className="grid gap-1 sm:grid-cols-2 md:grid-cols-3">
-              {cropsQuery.data.map((c) => (
-                <li key={`${c.category ?? ''}:${c.crop}`} className="text-xs text-slate-300">
-                  {c.name_ar}
-                  {c.rating ? ` · ${c.rating}` : ''}
-                  {c.category ? ` (${c.category})` : ''}
-                </li>
-              ))}
-            </ul>
-          )}
+          <ReferenceQueryState
+            query={cropsQuery}
+            loadingText="جارٍ التحميل…"
+            errorText="تعذّر تحميل المحاصيل الصحراويّة."
+            emptyText="لا محاصيل لهذه الفئة."
+          >
+            {(crops) => (
+              <ul className="grid gap-1 sm:grid-cols-2 md:grid-cols-3">
+                {crops.map((c) => (
+                  <li key={`${c.category ?? ''}:${c.crop}`} className="text-xs text-slate-300">
+                    {c.name_ar}
+                    {c.rating ? ` · ${c.rating}` : ''}
+                    {c.category ? ` (${c.category})` : ''}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ReferenceQueryState>
         </div>
       </details>
 
       {/* الطبقات الاستراتيجيّة */}
-      {tiersQuery.data && (
-        <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
-          <summary className="cursor-pointer text-sm text-emerald-300">
-            الطبقات الاستراتيجيّة
-          </summary>
-          <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-300">
-            {JSON.stringify(tiersQuery.data, null, 2)}
-          </pre>
-        </details>
-      )}
+      <details className="rounded-xl border border-slate-700 bg-slate-900/40 p-3">
+        <summary className="cursor-pointer text-sm text-emerald-300">الطبقات الاستراتيجيّة</summary>
+        <ReferenceQueryState
+          query={tiersQuery}
+          loadingText="جارٍ التحميل…"
+          errorText="تعذّر تحميل الطبقات الاستراتيجيّة."
+          emptyText="لا طبقات متاحة."
+        >
+          {(tiers) => (
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-300">
+              {JSON.stringify(tiers, null, 2)}
+            </pre>
+          )}
+        </ReferenceQueryState>
+      </details>
     </div>
   );
 }
