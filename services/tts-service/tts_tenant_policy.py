@@ -13,6 +13,7 @@ TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01 · TTS-STREAM-BYPASSES-PROVIDE
   • تعذّر القراءة (شبكة/مهلة/رمز غير 200/JSON تالف) — **بلا رجوعٍ إلى قيمةٍ سابقة**:
     لا ذاكرةَ للسياسة هنا أصلاً، فلا نسخةَ قديمة تسمح بالإرسال حين يتعذّر التحديث.
   • مستأجِرُ الغلاف أو الهويّة يخالف مستأجِرَ التوكن، أو ``policy_mode`` غير قانونيّ.
+  • ``external_llm_allowed`` ليس ``true`` صراحةً — الوضعُ وحده لا يأذن (مراجعة Copilot).
 
 ولا يسمح بالإرسال الخارجيّ إلّا ``full_external``: ``redacted_external`` يسمح بسياقٍ
 منقّح، وTTS يُرسِل **النصَّ الخامَ كاملاً** فلا تنقيحَ ممكن.
@@ -65,7 +66,15 @@ def policy_mode_from_me(payload: Any, tenant_id: str) -> str:
     if str(envelope.get("tenant_id") or "") != tenant_id:
         return POLICY_LOCAL_ONLY
     mode = envelope.get("policy_mode")
-    return mode if mode in POLICY_MODES else POLICY_LOCAL_ONLY
+    if mode not in POLICY_MODES:
+        return POLICY_LOCAL_ONLY
+    # الوضعُ وحده لا يأذن: المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false``
+    # حين لا يقول الصفُّ ``ai_generation_allowed=true`` صراحةً (``core/ai_policy_envelope.py``)،
+    # والمستهلكُ القائم يرفض تلك الحالة (``services/ai_agronomist/policy_envelope.py``).
+    # فبلا إذنٍ صريح ⇒ الأشدّ، وإلّا خرج نصُّ مستأجِرٍ عطّل التوليد إلى مزوّدٍ خارجيّ.
+    if envelope.get("external_llm_allowed") is not True:
+        return POLICY_LOCAL_ONLY
+    return mode
 
 
 def _get_json(url: str, authorization: str) -> dict[str, Any]:

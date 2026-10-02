@@ -98,8 +98,16 @@ def _no_local_providers(monkeypatch, providers) -> None:
     monkeypatch.setattr(providers.XTTSProvider, "available", lambda self: False)
 
 
-def _policy(monkeypatch, tts_policy, mode=None, *, tenant=_TENANT, raises=False):
-    """يحقن ردَّ ``/api/v1/me`` بغلافٍ بالوضع المُعطى، ويُرجِع عدّادَ قراءات المنصّة."""
+def _policy(
+    monkeypatch, tts_policy, mode=None, *, tenant=_TENANT, raises=False, external_llm_allowed=None
+):
+    """يحقن ردَّ ``/api/v1/me`` بغلافٍ بالوضع المُعطى، ويُرجِع عدّادَ قراءات المنصّة.
+
+    ``external_llm_allowed`` افتراضاً كما تبنيه المنصّة لصفٍّ يأذن بالتوليد: صحيحٌ للوضعين
+    الخارجيّين وحدهما.
+    """
+    if external_llm_allowed is None:
+        external_llm_allowed = mode in ("full_external", "redacted_external")
     monkeypatch.setenv("PLATFORM_API_URL", "http://sahool-platform:8000")
     asked = {"n": 0}
 
@@ -111,7 +119,11 @@ def _policy(monkeypatch, tts_policy, mode=None, *, tenant=_TENANT, raises=False)
             raise TimeoutError("platform unreachable")
         return {
             "tenant_id": _TENANT,
-            "ai_policy_envelope": {"policy_mode": mode, "tenant_id": tenant},
+            "ai_policy_envelope": {
+                "policy_mode": mode,
+                "tenant_id": tenant,
+                "external_llm_allowed": external_llm_allowed,
+            },
         }
 
     monkeypatch.setattr(tts_policy, "_fetch_me", fake_fetch)
@@ -158,6 +170,19 @@ def test_a_policy_that_forbids_raw_text_out_makes_zero_external_calls(monkeypatc
     _policy(monkeypatch, tts_policy, mode)
     resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
     _assert_blocked(resp, "local_only" if mode == "local_only" else mode)
+    assert ext.calls == 0
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_full_external_without_explicit_permission_makes_zero_external_calls(monkeypatch, path):
+    """المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false`` لمستأجِرٍ عطّل التوليد."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    _policy(monkeypatch, tts_policy, "full_external", external_llm_allowed=False)
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    _assert_blocked(resp, "local_only")
     assert ext.calls == 0
 
 
@@ -280,9 +305,21 @@ def test_policy_mode_from_me_rejects_malformed_or_foreign_payloads(monkeypatch):
     _main, _providers, tts_policy = _load(monkeypatch)
     ok = {
         "tenant_id": "t",
-        "ai_policy_envelope": {"tenant_id": "t", "policy_mode": "full_external"},
+        "ai_policy_envelope": {
+            "tenant_id": "t",
+            "policy_mode": "full_external",
+            "external_llm_allowed": True,
+        },
     }
     assert tts_policy.policy_mode_from_me(ok, "t") == "full_external"
+    for flag in (False, None, "true", 1):
+        denied = {
+            **ok,
+            "ai_policy_envelope": {**ok["ai_policy_envelope"], "external_llm_allowed": flag},
+        }
+        assert tts_policy.policy_mode_from_me(denied, "t") == "local_only", flag
+    missing = {**ok, "ai_policy_envelope": {"tenant_id": "t", "policy_mode": "full_external"}}
+    assert tts_policy.policy_mode_from_me(missing, "t") == "local_only"
     assert tts_policy.policy_mode_from_me(ok, "other") == "local_only"
     assert tts_policy.policy_mode_from_me({"tenant_id": "t"}, "t") == "local_only"
     bad_mode = {"tenant_id": "t", "ai_policy_envelope": {"tenant_id": "t", "policy_mode": "x"}}
