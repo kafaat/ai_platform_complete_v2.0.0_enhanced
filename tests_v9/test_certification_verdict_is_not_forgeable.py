@@ -29,6 +29,7 @@ import io
 import json
 import os
 import tempfile
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -45,7 +46,9 @@ _BASE = {
     "workflow": "CI",
     "workflow_run_id": "1",
     "commit": "a" * 39 + "b",
-    "timestamp_utc": "2026-09-02T00:00:00+00:00",
+    # نسبيٌّ لا ثابت: الحارس يرفض الدليلَ «verified» الأقدمَ من ٣٠ يوماً، فالتاريخُ الثابت
+    # `2026-09-02` انفجر عند `2026-10-02T00:00Z` وأحمرَ كلَّ فرعٍ بسببٍ غير المقصود.
+    "timestamp_utc": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
 }
 #: كلُّ الحقول الدنيا لكلّ الحواجز — قيمٌ ذاتُ مضمون، لا مفاتيحُ حاضرة.
 _FIELDS = {
