@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5470,
+    "files_scanned": 5474,
     "files_by_kind": {
-      "backend": 1218,
+      "backend": 1219,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1526,
-      "tests": 1866,
+      "tests": 1869,
       "web": 459
     },
-    "unmapped_artifacts": 2221,
+    "unmapped_artifacts": 2223,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -3413,6 +3413,14 @@
           ]
         },
         {
+          "path": "services/tts-service/tts_tenant_policy.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/farm_map.yaml",
           "score": 13,
           "signals": [
@@ -3871,6 +3879,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tts_tenant_policy_gate.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_v87_audit_tenant.py",
           "score": 14,
           "signals": [
@@ -3999,13 +4015,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 15,
+        "backend": 16,
         "routes": 2,
         "database": 26,
         "events": 6,
         "web": 1,
         "mobile": 0,
-        "tests": 28,
+        "tests": 29,
         "governance": 0,
         "other_evidence": 13
       },
@@ -14012,7 +14028,7 @@
           "score": 9
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
           "score": 9
         }
       ],
@@ -30984,7 +31000,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
           "score": 12
         },
         {
@@ -41980,6 +41996,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_measurement.py",
       "kind": "tests"
     },
@@ -44953,6 +44973,10 @@
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
       "kind": "tests"
     },
     {
