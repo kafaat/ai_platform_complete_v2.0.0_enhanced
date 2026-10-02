@@ -25,8 +25,8 @@
       "tests": 1866,
       "web": 459
     },
-    "unmapped_artifacts": 2220,
-    "ambiguous_artifacts": 428
+    "unmapped_artifacts": 2221,
+    "ambiguous_artifacts": 429
   },
   "capabilities": [
     {
@@ -16850,15 +16850,6 @@
           ]
         },
         {
-          "path": "services/raster-service/routers/imagery_search.py",
-          "score": 14,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "services/raster-service/routers/stac.py",
           "score": 14,
           "signals": [
@@ -16912,6 +16903,14 @@
           "score": 12,
           "signals": [
             "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "services/raster-service/routers/imagery_search.py",
+          "score": 11,
+          "signals": [
             "content:sentinel",
             "content:stac"
           ]
@@ -17181,38 +17180,6 @@
           "score": 14
         },
         {
-          "value": "/v1/imagery/best @ services/raster-service/routers/imagery_search.py:70",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/dem @ services/raster-service/routers/imagery_search.py:203",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search @ services/raster-service/routers/imagery_search.py:137",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:173",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:174",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:149",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:29",
-          "score": 14
-        },
-        {
-          "value": "/v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:48",
-          "score": 14
-        },
-        {
           "value": "/v1/overview @ sentinel_hub/vegetation_real.py:111",
           "score": 14
         },
@@ -17235,6 +17202,38 @@
         {
           "value": "/v1/timeseries/{field_id} @ sentinel_hub/vegetation_real.py:83",
           "score": 14
+        },
+        {
+          "value": "/v1/imagery/best @ services/raster-service/routers/imagery_search.py:64",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search @ services/raster-service/routers/imagery_search.py:119",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
+          "score": 11
+        },
+        {
+          "value": "/v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
+          "score": 11
         },
         {
           "value": "/v1/cog/registry/preview @ services/raster-service/routers/imagery.py:129",
@@ -17503,15 +17502,6 @@
             "path:cdse",
             "content:cdse",
             "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "tests_v9/test_cdse_catalog_outage_is_not_no_scenes.py",
-          "score": 20,
-          "signals": [
-            "path:cdse",
-            "content:cdse",
             "content:stac"
           ]
         },
@@ -18162,7 +18152,7 @@
         "events": 40,
         "web": 5,
         "mobile": 0,
-        "tests": 46,
+        "tests": 45,
         "governance": 0,
         "other_evidence": 33
       },
@@ -18960,6 +18950,14 @@
           ]
         },
         {
+          "path": "services/raster-service/routers/imagery_search.py",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/report_builder.py",
           "score": 10,
           "signals": [
@@ -19057,14 +19055,6 @@
         },
         {
           "path": "services/decision-service/eligibility_policy.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/gis-workflow-service/bulletin_render.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -19291,6 +19281,38 @@
         },
         {
           "value": "/api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:52",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/best @ services/raster-service/routers/imagery_search.py:64",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search @ services/raster-service/routers/imagery_search.py:119",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
+          "score": 10
+        },
+        {
+          "value": "/v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
           "score": 10
         },
         {
@@ -21958,13 +21980,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "backend": 23,
+        "backend": 24,
         "events": 57,
         "tests": 77
       },
       "evidence_counts": {
         "backend": 100,
-        "routes": 84,
+        "routes": 92,
         "database": 42,
         "events": 100,
         "web": 49,
@@ -44202,6 +44224,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_measured_on_carried_stamp.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_measurement_basis_freshness.py",
       "kind": "tests"
     },
@@ -50539,6 +50565,28 @@
           "signals": [
             "content:cog",
             "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/raster-service/routers/imagery_search.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 11,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
