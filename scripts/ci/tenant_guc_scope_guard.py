@@ -58,6 +58,26 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+def with_carried_stamp(path, document: dict) -> dict:
+    """ختمُ ``measured_on`` يتبع الحمولة لا HEAD (``deterministic_time.with_carried_stamp``).
+
+    الاستيرادُ **كسولٌ عند الكتابة** لا عند التحميل: شواهدُ تنسخ هذا الملفّ وحده إلى شجرةٍ
+    مؤقّتة وتُحمّله محرّكاً للقراءة (``build_main_inventory``) — واستيرادٌ عند التحميل أسقطها
+    ``ENGINE_UNLOADABLE`` (CI على #1124). وفي نسخةٍ معزولةٍ بلا الوحدة يبقى السلوكُ السابق
+    (ختمٌ طازج)؛ في المستودع الوحدةُ موجودةٌ دائماً.
+    """
+    here = str(pathlib.Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        from deterministic_time import with_carried_stamp as carry
+    except ImportError:
+        return document
+    return carry(path, document)
+
+
 BASELINE = ROOT / "docs" / "architecture" / "tenant_guc_scope_baseline.json"
 
 # يستخرج (اسم الـGUC، is_local) من نصّ استدعاء set_config. يُطبَّق على مقطع المصدر
@@ -346,45 +366,48 @@ def main() -> int:
         BASELINE.parent.mkdir(parents=True, exist_ok=True)
         BASELINE.write_text(
             json.dumps(
-                {
-                    "$comment": (
-                        "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — "
-                        "`set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. "
-                        "**يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. "
-                        "**`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ "
-                        "`measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · "
-                        "بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. "
-                        "وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات "
-                        "RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله."
-                    ),
-                    # **عقدُ هذا الحقل، صريحاً حتّى لا يُقرأ شهادةً:**
-                    #
-                    #   measured_on is traceability metadata.
-                    #   It is NOT freshness authority.
-                    #
-                    # سلطةُ الطزاجة `measurement_basis_digest` مع إعادة الاشتقاق —
-                    # شرطان اقترانيّان. والاسم أُبقي على حاله لأنّ تغييره يكسر قرّاءً
-                    # قائمين، لا لأنّه دقيق: «قِيس على» يوحي لغةً بأنّ النتيجة تشهد
-                    # على ذلك الالتزام كلّه، وهي لا تفعل.
-                    #
-                    # **يكتبه المولّد لا اليد.** `claim_base_guard` يُلزِم كلّ أساسٍ
-                    # **مقيس** بـ`measured_on` — لأنّه يَبيت بحركة الشجرة، بخلاف قرارٍ
-                    # بشريّ لا يَبيت. وأضفتُه يدويّاً أوّل مرّة فمحته أوّل إعادة توليد
-                    # (الحارس صار في `_GENERATE_FLAG`)، فأحمرّ الجناح ثانيةً على العطل
-                    # نفسه. تعديلٌ يدويّ على مصنوعةٍ مولَّدة لا ينجو — والمصدر الوحيد
-                    # الذي ينجو هو المولّد.
-                    "measured_on": _head_sha(),
-                    # **إسنادٌ لا سلطةُ طزاجة** (GOV-01). السلطةُ أدناه:
-                    # `measurement_basis_digest` مع إعادة الاشتقاق.
-                    "measurement_contract_version": CONTRACT_VERSION,
-                    "measurement_input_digest": inputs_digest,
-                    "measurement_algorithm_digest": algo_digest,
-                    "measurement_basis_digest": basis_digest(inputs_digest, algo_digest),
-                    "measurement_inputs": manifest,
-                    "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
-                    "offenders": sorted(found),
-                    "guc_names": sorted(guc_names),
-                },
+                with_carried_stamp(
+                    document={
+                        "$comment": (
+                            "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — "
+                            "`set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. "
+                            "**يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. "
+                            "**`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ "
+                            "`measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · "
+                            "بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. "
+                            "وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات "
+                            "RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله."
+                        ),
+                        # **عقدُ هذا الحقل، صريحاً حتّى لا يُقرأ شهادةً:**
+                        #
+                        #   measured_on is traceability metadata.
+                        #   It is NOT freshness authority.
+                        #
+                        # سلطةُ الطزاجة `measurement_basis_digest` مع إعادة الاشتقاق —
+                        # شرطان اقترانيّان. والاسم أُبقي على حاله لأنّ تغييره يكسر قرّاءً
+                        # قائمين، لا لأنّه دقيق: «قِيس على» يوحي لغةً بأنّ النتيجة تشهد
+                        # على ذلك الالتزام كلّه، وهي لا تفعل.
+                        #
+                        # **يكتبه المولّد لا اليد.** `claim_base_guard` يُلزِم كلّ أساسٍ
+                        # **مقيس** بـ`measured_on` — لأنّه يَبيت بحركة الشجرة، بخلاف قرارٍ
+                        # بشريّ لا يَبيت. وأضفتُه يدويّاً أوّل مرّة فمحته أوّل إعادة توليد
+                        # (الحارس صار في `_GENERATE_FLAG`)، فأحمرّ الجناح ثانيةً على العطل
+                        # نفسه. تعديلٌ يدويّ على مصنوعةٍ مولَّدة لا ينجو — والمصدر الوحيد
+                        # الذي ينجو هو المولّد.
+                        "measured_on": _head_sha(),
+                        # **إسنادٌ لا سلطةُ طزاجة** (GOV-01). السلطةُ أدناه:
+                        # `measurement_basis_digest` مع إعادة الاشتقاق.
+                        "measurement_contract_version": CONTRACT_VERSION,
+                        "measurement_input_digest": inputs_digest,
+                        "measurement_algorithm_digest": algo_digest,
+                        "measurement_basis_digest": basis_digest(inputs_digest, algo_digest),
+                        "measurement_inputs": manifest,
+                        "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
+                        "offenders": sorted(found),
+                        "guc_names": sorted(guc_names),
+                    },
+                    path=BASELINE,
+                ),
                 ensure_ascii=False,
                 indent=2,
             )

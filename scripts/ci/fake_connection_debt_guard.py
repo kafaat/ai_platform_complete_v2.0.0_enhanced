@@ -41,6 +41,26 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def with_carried_stamp(path, document: dict) -> dict:
+    """ختمُ ``measured_on`` يتبع الحمولة لا HEAD (``deterministic_time.with_carried_stamp``).
+
+    الاستيرادُ **كسولٌ عند الكتابة** لا عند التحميل: شواهدُ تنسخ هذا الملفّ وحده إلى شجرةٍ
+    مؤقّتة وتُحمّله محرّكاً للقراءة (``build_main_inventory``) — واستيرادٌ عند التحميل أسقطها
+    ``ENGINE_UNLOADABLE`` (CI على #1124). وفي نسخةٍ معزولةٍ بلا الوحدة يبقى السلوكُ السابق
+    (ختمٌ طازج)؛ في المستودع الوحدةُ موجودةٌ دائماً.
+    """
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        from deterministic_time import with_carried_stamp as carry
+    except ImportError:
+        return document
+    return carry(path, document)
+
+
 BASELINE = ROOT / "docs" / "architecture" / "fake_connection_debt.json"
 
 # اتّصال/مسبح وهميّ: صنف يُعرَّف أو تجهيزة تُمرَّر. الأسماء مشتقّة من الاصطلاح
@@ -302,21 +322,24 @@ def _generate() -> None:
     carried = _load_baseline().get("proven_live", {}) if BASELINE.exists() else {}
     BASELINE.write_text(
         json.dumps(
-            {
-                "$comment": (
-                    "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا "
-                    "يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من "
-                    "النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة "
-                    "من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ "
-                    "لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب."
-                ),
-                # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
-                # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
-                "measured_on": _measured_on(),
-                "fake_connection_tests": found["fake"],
-                "claiming_db_enforced": found["claiming"],
-                "proven_live": carried,
-            },
+            with_carried_stamp(
+                document={
+                    "$comment": (
+                        "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا "
+                        "يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من "
+                        "النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة "
+                        "من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ "
+                        "لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب."
+                    ),
+                    # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
+                    # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
+                    "measured_on": _measured_on(),
+                    "fake_connection_tests": found["fake"],
+                    "claiming_db_enforced": found["claiming"],
+                    "proven_live": carried,
+                },
+                path=BASELINE,
+            ),
             ensure_ascii=False,
             indent=2,
             sort_keys=False,
