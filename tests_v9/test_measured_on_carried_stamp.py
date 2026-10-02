@@ -135,3 +135,71 @@ def test_a_real_generator_restamps_when_the_measurement_moves(tmp_path: Path, mo
     assert module.generate() == 0
 
     assert json.loads(manifest.read_text(encoding="utf-8"))["measured_on"] == NEW
+
+
+def _git(repo: Path, *args: str) -> None:
+    import subprocess
+
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+
+
+def _fake_debt_generator(monkeypatch, baseline: Path, stamp: str):
+    module = _load("fake_" + "connection_debt_guard")  # الاسمُ مُجزّأ: ماسحُ الدَّين يطابق النصَّ
+    monkeypatch.setattr(module, "BASELINE", baseline)
+    monkeypatch.setattr(
+        module, "survey", lambda: {"fake": ["tests_v9/t.py"], "claiming": ["tests_v9/t.py"]}
+    )
+    monkeypatch.setattr(module, "_measured_on", lambda: stamp)
+    return module
+
+
+def test_a_hand_edit_on_disk_to_a_carried_decision_takes_a_fresh_stamp(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """مراجعة Copilot على #1124: ``proven_live`` يُحمَل من الملفّ نفسه، فمقارنةٌ بالقرص وحده
+    تُطابِق التعديلَ اليدويّ بنفسه ويبقى الختمُ القديم. المرجعُ المستقلّ نسخةُ HEAD.
+
+    مولّدٌ حقيقيّ في مستودع git: يُولِّد ويُلتزَم، ثمّ يُعدَّل ``proven_live`` على القرص، ثمّ
+    يُعاد التوليد بـHEAD مختلف ⇒ ختمٌ جديد.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    baseline = repo / "debt_baseline.json"
+
+    _fake_debt_generator(monkeypatch, baseline, OLD)._generate()
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "baseline")
+
+    edited = json.loads(baseline.read_text(encoding="utf-8"))
+    edited["proven_live"] = {"tests_v9/t.py": {"receipt": "live"}}
+    baseline.write_text(json.dumps(edited, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    _fake_debt_generator(monkeypatch, baseline, NEW)._generate()
+
+    after = json.loads(baseline.read_text(encoding="utf-8"))
+    assert after["proven_live"] == {"tests_v9/t.py": {"receipt": "live"}}, "القرارُ اليدويّ لم يُحمَل"
+    assert after["measured_on"] == NEW, "تعديلٌ يدويّ على قرارٍ محمول أبقى الختمَ القديم"
+
+
+def test_a_committed_unchanged_baseline_keeps_its_stamp_under_a_new_head(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """الوجهُ الآخر في المستودع نفسه: لا تعديلَ ⇒ القرصُ = HEAD = الحمولة ⇒ الختمُ القديم."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    baseline = repo / "debt_baseline.json"
+
+    _fake_debt_generator(monkeypatch, baseline, OLD)._generate()
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "baseline")
+
+    _fake_debt_generator(monkeypatch, baseline, NEW)._generate()
+
+    assert json.loads(baseline.read_text(encoding="utf-8"))["measured_on"] == OLD

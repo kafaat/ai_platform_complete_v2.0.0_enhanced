@@ -183,9 +183,45 @@ def carried_stamp(
     stripped_old = {k: v for k, v in previous.items() if k != key}
     stripped_new = {k: v for k, v in document.items() if k != key}
     # الجولةُ عبر JSON تُوحِّد ما سيُكتَب فعلاً (tuple ⇒ list ...) قبل المقارنة.
-    if json.loads(json.dumps(stripped_new, ensure_ascii=False)) == stripped_old:
-        return old
-    return fresh
+    if json.loads(json.dumps(stripped_new, ensure_ascii=False)) != stripped_old:
+        return fresh
+    # **والمرجعُ المستقلّ: نسخةُ HEAD** (مراجعة Copilot على #1124). مولّدٌ يحمل حقلاً بخطّ
+    # اليد من الملفّ نفسه (``proven_live``) يُقارِن بملفٍّ عُدِّل يدويّاً فيتطابقان، فيبقى الختمُ
+    # القديم رغم تغيّرِ القرار. فالحملُ مشروطٌ أيضاً بأن تطابق النسخةُ المُلتزَمة: تعديلٌ يدويّ
+    # لم يُلتزَم بعد ⇒ القرصُ يختلف عن HEAD ⇒ ختمٌ طازج. وبلا تاريخ git (شجرةٌ معزولة،
+    # ملفٌّ غيرُ متتبَّع) يبقى القرصُ المرجعَ الوحيد.
+    committed = _committed_json(Path(path))
+    if committed is not None:
+        if not isinstance(committed, dict):
+            return fresh
+        if {k: v for k, v in committed.items() if k != key} != stripped_old:
+            return fresh
+    return old
+
+
+def _committed_json(path: Path) -> object | None:
+    """محتوى ``path`` كما في ``HEAD`` مُحلَّلاً، أو ``None`` إن تعذّر (لا git · غيرُ متتبَّع)."""
+    try:
+        root = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=path.parent,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.strip()
+        rel = path.resolve().relative_to(Path(root).resolve()).as_posix()
+        blob = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout
+        return json.loads(blob)
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return None
 
 
 def with_carried_stamp(path: Path, document: dict, *, key: str = "measured_on") -> dict:

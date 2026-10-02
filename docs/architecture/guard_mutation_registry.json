@@ -1107,9 +1107,9 @@
         {
           "expect": "test_a_real_generator_does_not_restamp_an_unchanged_measurement",
           "find": "with_carried_stamp(MANIFEST, document)",
-          "replace": "document  # mutated: المولّد يتجاوز الحمل",
+          "replace": "document",
           "test": "tests_v9/test_measured_on_carried_stamp.py",
-          "why": "مولّدٌ يكتب قاموسَه بلا الحمل يختم HEAD في كلّ تشغيل — الشاهدُ على المولّد الحقيقيّ لا على الدالّة وحدها."
+          "why": "مولّدٌ يكتب قاموسَه بلا الحمل يختم HEAD في كلّ تشغيل — الشاهدُ على المولّد الحقيقيّ لا على الدالّة وحدها. والاستبدالُ تعبيرٌ لا تعليق: تعليقٌ كان يبتلع بقيّةَ وسائط السطر فيسقط الملفُّ SyntaxError عند الاستيراد فيُعدّ «مقتولاً» بلا قياس (مراجعة Copilot على #1124)."
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
@@ -3073,10 +3073,17 @@
       "mutations": [
         {
           "expect": "test_an_unchanged_payload_keeps_the_previous_stamp",
-          "find": "        return old\n",
-          "replace": "        return fresh  # mutated: لا حملَ للختم\n",
+          "find": "\n    return old\n",
+          "replace": "\n    return fresh  # mutated: لا حملَ للختم\n",
           "test": "tests_v9/test_measured_on_carried_stamp.py",
           "why": "إسقاطُ الحمل يُعيد ختمَ HEAD على حمولةٍ ثابتة — العطلُ الذي أُمسِك على #1118 و#1123."
+        },
+        {
+          "expect": "test_a_hand_edit_on_disk_to_a_carried_decision_takes_a_fresh_stamp",
+          "find": "            return fresh\n    return old\n",
+          "replace": "            pass\n    return old\n",
+          "test": "tests_v9/test_measured_on_carried_stamp.py",
+          "why": "إسقاطُ مرجع HEAD يُعيد المقارنةَ بالقرص وحده، فتعديلٌ يدويّ على proven_live يُطابِق نفسَه ويبقى الختمُ القديم (مراجعة Copilot على #1124)."
         }
       ],
       "test": "tests_v9/test_measured_on_carried_stamp.py"
