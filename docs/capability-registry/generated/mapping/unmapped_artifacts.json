@@ -8768,6 +8768,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_vegetation_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_vegetation_real_only_posture_guard.py",
     "kind": "tests"
   },
