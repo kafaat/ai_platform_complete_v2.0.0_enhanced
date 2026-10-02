@@ -116,6 +116,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/ReferenceQueryState.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
     "kind": "tests"
   },
@@ -152,7 +156,15 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
     "kind": "web"
   },
   {
@@ -1213,6 +1225,14 @@
   },
   {
     "path": "frontend/src/lib/projectFile.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/queryView.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/queryView.ts",
     "kind": "web"
   },
   {

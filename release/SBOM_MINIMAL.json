@@ -685,6 +685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5d16c5f1e4cdc61a16d0e8b62157a42dc44565a6f4b73f203b9e16934b389105"
+        }
+      ],
+      "name": "frontend/src/components/ReferenceQueryState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f8767e46461e842f02e6d8cd6c4036fdb000c18b552f26f2fbcc0572479e181c"
         }
       ],
@@ -775,7 +785,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e11ba7f7fdf4d12e4f600e0cc009a82f41a09aab53807cc6edc12d7eac916f95"
+          "content": "ef199a96125e0618ad09412fb48f870ca138956960a9e79248ecff73ef39bf1a"
+        }
+      ],
+      "name": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c45754ac3be8c9d5f4dedf507c9a09e693b7278b27a7489048bcbe26325f9e0c"
         }
       ],
       "name": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
@@ -785,7 +805,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "adb1ddef98b8c8c4b241d0dce8de07deb1d6aeec22fc5dc2016c87af45da1ed0"
+          "content": "919002f6fb3672321627c768d6219aea84888a1df3e37aab317f0288c6fe5c70"
+        }
+      ],
+      "name": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b2f25e90d2d72892d5a63ec8015408b44837d785434fc1a8a1aba1e36b983f1"
         }
       ],
       "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
@@ -4425,7 +4455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1866256b1c6913bbb57bc1a7e8bd5c359377cc73f00216a525a06304b241efce"
+          "content": "3a60b7b6d3914223d5aac3994c56efccd506dabaa0150642a8739200c490ed64"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -4469,6 +4499,26 @@
         }
       ],
       "name": "frontend/src/lib/projectFile.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d4fa7b5120a4f054fb17d9aa1a2c3eff782fc36ed03f02e8689c254fc822b4f"
+        }
+      ],
+      "name": "frontend/src/lib/queryView.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ccc99ffe37e244c6c6d2ad5ee98eb93c1129000ebb517d3a623bb927afeb1342"
+        }
+      ],
+      "name": "frontend/src/lib/queryView.ts",
       "type": "file"
     },
     {

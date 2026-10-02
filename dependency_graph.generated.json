@@ -1,5 +1,5 @@
 {
-  "edge_count": 838,
+  "edge_count": 836,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -123,26 +123,6 @@
     },
     {
       "evidence": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx:20",
-      "from": "frontend",
-      "from_kind": "component",
-      "protocol": "ui",
-      "relation": "CALLS",
-      "resource": "/api/v1",
-      "to": "sahool-platform",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "frontend/src/components/fieldsetup/SeasonStep.tsx:6",
-      "from": "frontend",
-      "from_kind": "component",
-      "protocol": "ui",
-      "relation": "CALLS",
-      "resource": "/api/v1",
-      "to": "sahool-platform",
-      "to_kind": "component"
-    },
-    {
-      "evidence": "frontend/src/components/fieldsetup/SoilTestStep.tsx:5",
       "from": "frontend",
       "from_kind": "component",
       "protocol": "ui",
@@ -8397,7 +8377,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
     "READS": 429,
