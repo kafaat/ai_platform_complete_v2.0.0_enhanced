@@ -52,8 +52,13 @@ def test_platform_explicitly_pins_cryptography_for_rs256():
 
 
 def _rs256_pair():
-    rsa = pytest.importorskip("cryptography.hazmat.primitives.asymmetric.rsa")
-    serialization = pytest.importorskip("cryptography.hazmat.primitives.serialization")
+    # التخطّي على الحزمة العليا وحدها: ``cryptography`` تستبدل ``serialization`` في
+    # ``sys.modules`` بغلافِ إهمالٍ ``__spec__``ـه None، فيقرؤها حارسُ الخمول
+    # (``find_spec``) غائبةً وهي مثبَّتة. والوحدتان الفرعيّتان تُستورَدان عاديّاً بعدها.
+    pytest.importorskip("cryptography")
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     private_pem = key.private_bytes(
         serialization.Encoding.PEM,
