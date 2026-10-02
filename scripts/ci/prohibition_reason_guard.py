@@ -61,6 +61,26 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def with_carried_stamp(path, document: dict) -> dict:
+    """ختمُ ``measured_on`` يتبع الحمولة لا HEAD (``deterministic_time.with_carried_stamp``).
+
+    الاستيرادُ **كسولٌ عند الكتابة** لا عند التحميل: شواهدُ تنسخ هذا الملفّ وحده إلى شجرةٍ
+    مؤقّتة وتُحمّله محرّكاً للقراءة (``build_main_inventory``) — واستيرادٌ عند التحميل أسقطها
+    ``ENGINE_UNLOADABLE`` (CI على #1124). وفي نسخةٍ معزولةٍ بلا الوحدة يبقى السلوكُ السابق
+    (ختمٌ طازج)؛ في المستودع الوحدةُ موجودةٌ دائماً.
+    """
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        from deterministic_time import with_carried_stamp as carry
+    except ImportError:
+        return document
+    return carry(path, document)
+
+
 INVENTORY = ROOT / "docs" / "architecture" / "source_text_assertion_inventory.json"
 
 # قارئات الملفّات. المتغيّر يحمل «نصّ مصدر» إن أُسنِد من إحداها — بالبنية لا بالاسم،
@@ -253,7 +273,10 @@ def generate() -> int:
         ),
         **result,
     }
-    INVENTORY.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    INVENTORY.write_text(
+        json.dumps(with_carried_stamp(INVENTORY, payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"كُتِب {INVENTORY.relative_to(ROOT)} — {payload['totals']}")
     return 0
 

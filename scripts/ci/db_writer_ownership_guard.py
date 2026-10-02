@@ -38,12 +38,33 @@ import argparse
 import ast
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def with_carried_stamp(path, document: dict) -> dict:
+    """ختمُ ``measured_on`` يتبع الحمولة لا HEAD (``deterministic_time.with_carried_stamp``).
+
+    الاستيرادُ **كسولٌ عند الكتابة** لا عند التحميل: شواهدُ تنسخ هذا الملفّ وحده إلى شجرةٍ
+    مؤقّتة وتُحمّله محرّكاً للقراءة (``build_main_inventory``) — واستيرادٌ عند التحميل أسقطها
+    ``ENGINE_UNLOADABLE`` (CI على #1124). وفي نسخةٍ معزولةٍ بلا الوحدة يبقى السلوكُ السابق
+    (ختمٌ طازج)؛ في المستودع الوحدةُ موجودةٌ دائماً.
+    """
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        from deterministic_time import with_carried_stamp as carry
+    except ImportError:
+        return document
+    return carry(path, document)
+
+
 CONTRACT = ROOT / "docs" / "architecture" / "db_ownership.yml"
 BASELINE = ROOT / "docs" / "architecture" / "db_writer_ownership_baseline.json"
 # الفرزُ: لكلّ مخالفةٍ في الأساس أبعادٌ مقيسةٌ بالمحرّك نفسِه وصنفٌ مشتقٌّ بقاعدةٍ معلَنة —
@@ -592,7 +613,12 @@ def generate_triage() -> None:
     rows = triage_rows()
     excluded = excluded_write_sites()
     TRIAGE.write_text(
-        json.dumps(triage_document(rows, excluded), ensure_ascii=False, indent=1) + "\n",
+        json.dumps(
+            with_carried_stamp(TRIAGE, triage_document(rows, excluded)),
+            ensure_ascii=False,
+            indent=1,
+        )
+        + "\n",
         encoding="utf-8",
     )
     print(
@@ -604,18 +630,21 @@ def generate() -> None:
     current = survey()
     BASELINE.write_text(
         json.dumps(
-            {
-                "$comment": (
-                    "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — "
-                    "مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد "
-                    "يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: "
-                    "يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن."
-                ),
-                "contract": CONTRACT.relative_to(ROOT).as_posix(),
-                "measured_on": _head_sha(),
-                "violation_count": len(current),
-                "violations": current,
-            },
+            with_carried_stamp(
+                document={
+                    "$comment": (
+                        "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — "
+                        "مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد "
+                        "يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: "
+                        "يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن."
+                    ),
+                    "contract": CONTRACT.relative_to(ROOT).as_posix(),
+                    "measured_on": _head_sha(),
+                    "violation_count": len(current),
+                    "violations": current,
+                },
+                path=BASELINE,
+            ),
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
