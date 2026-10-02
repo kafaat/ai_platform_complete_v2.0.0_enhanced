@@ -37,6 +37,12 @@ import { useCropScoutingIssues, type ScoutingIssue } from '../hooks/useScouting'
 import { useSelectedField } from '../hooks/useSelectedField';
 import type { SeasonSummary, FieldReportSummary, DiseaseRisk } from '../services/api';
 import { fmtDateAr } from '../lib/dates';
+import SpeakButton from '../components/SpeakButton';
+import {
+  buildFieldHealthSpeech,
+  isFieldHealthSettled,
+  type FieldHealthInput,
+} from '../lib/fieldHealthSpeech';
 import {
   T, T_DARK, Card, Pill, Badge, SectionLabel, Row, StatGrid, ProgressBar,
   FieldCabin, ndviColor, severityTone,
@@ -247,6 +253,43 @@ export default function FarmAdvisoryReport() {
   const ndviScore = asNum(ndviData?.classification?.score);
   const report = reportQ.data as FieldReportSummary | undefined;
 
+  // ٥) الاستشارة الصوتيّة — ملخّصٌ مسموع من الأقسام الحاضرة وحدها (لا رقمَ يُختلَق).
+  // يمرّ بـ/tts/synthesize نفسه، فبوّابةُ سياسة مشاركة البيانات تسري عليه كما تسري على
+  // زرّ «استماع» في التوصيات؛ ورفضُها يُعرض سبباً لا يُبتلَع.
+  const healthSpeechInput = useMemo<FieldHealthInput | null>(() => {
+    if (!selectedField) return null;
+    return {
+      fieldName: selectedField.name,
+      crop: crop ?? null,
+      ndvi: ndviQ.isLoading
+        ? { state: 'loading' }
+        : ndviQ.isError
+          ? { state: 'error' }
+          : ndviVal != null
+            ? { state: 'ok', label: ndviLabel ?? null, value: ndviVal }
+            : { state: 'empty' },
+      disease: diseaseQ.isLoading
+        ? { state: 'loading' }
+        : diseaseQ.isError
+          ? { state: 'error' }
+          : disease?.risk_level
+            ? { state: 'ok', riskAr: riskAr(disease.risk_level), adviceAr: disease.advice_ar ?? null }
+            : { state: 'empty' },
+      nitrogen: soilDisabled
+        ? { state: 'disabled' }
+        : nRecLoading
+          ? { state: 'loading' }
+          : nRecError
+            ? { state: 'error' }
+            : nRate != null
+              ? { state: 'ok', kgHa: nRate }
+              : { state: 'empty' },
+    };
+  }, [selectedField, crop, ndviQ.isLoading, ndviQ.isError, ndviVal, ndviLabel,
+      diseaseQ.isLoading, diseaseQ.isError, disease, soilDisabled, nRecLoading, nRecError, nRate]);
+  const healthSpeech = healthSpeechInput ? buildFieldHealthSpeech(healthSpeechInput) : '';
+  const healthSettled = healthSpeechInput ? isFieldHealthSettled(healthSpeechInput) : false;
+
   const headerPill = (
     <Pill tone="info" icon={<Activity style={{ width: 12, height: 12 }} />}>
       تقرير حيّ
@@ -324,6 +367,16 @@ export default function FarmAdvisoryReport() {
                     {selectedField.area.toFixed(2)} هـ
                   </Pill>
                 )}
+              </div>
+            )}
+            {selectedField && (
+              <div style={{ marginTop: 12 }}>
+                <SpeakButton
+                  text={healthSpeech}
+                  label={healthSettled ? 'استمع لصحّة الحقل' : 'جارٍ تجهيز ملخّص صحّة الحقل…'}
+                  disabled={!healthSettled}
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
+                />
               </div>
             )}
           </>
