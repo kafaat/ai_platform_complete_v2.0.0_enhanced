@@ -27,6 +27,13 @@ LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}
 LANDSAT_DIRECT_RASTER_INDICES = {"lst"}
 LANDSAT_DERIVED_INDICES = {"cwsi", "tvdi", "tci", "vhi", "et_inputs"}
 LANDSAT_DUPLICATE_SENTINEL_INDICES = set()
+
+#: حالتا نتيجة بحث CDSE — CDSE-CATALOG-OUTAGE-READ-AS-NO-SCENES-01. كان أيُّ استثناءٍ في
+#: الفهرس يصير قائمةً فارغة بـ``warning: None``، فمهلةُ اتّصالٍ وبحثٌ ناجحٌ بلا مشاهد
+#: يُنتجان النتيجةَ نفسها. القائمةُ ما زالت تُفرَّغ عند الانقطاع (المستهلكون الداخليّون
+#: يتدهورون كما كانوا)، لكنّ الحالةَ صارت مُسمّاة فلا يُقرأ العطلُ «لا مشاهد».
+SEARCH_STATUS_OK = "ok"
+SEARCH_STATUS_CATALOG_UNAVAILABLE = "catalog_unavailable"
 LANDSAT_THERMAL_ASSET_CANDIDATES = (
     "lwir11",
     "surface_temperature",
@@ -213,10 +220,18 @@ async def stac_search_cdse(
 
     try:
         features = await asyncio.to_thread(_do)
-    except Exception as exc:  # noqa: BLE001 — catalog outage should degrade to empty list
+    except Exception as exc:  # noqa: BLE001 — انقطاعُ الفهرس: قائمةٌ فارغة بحالةٍ مُسمّاة لا «لا مشاهد»
         if _logger is not None:
             _logger.warning("CDSE catalog search failed: %s", exc)
-        features = []
+        return {
+            "count": 0,
+            "source": "cdse-catalog",
+            "cache": "miss",
+            "status": SEARCH_STATUS_CATALOG_UNAVAILABLE,
+            "warning": SEARCH_STATUS_CATALOG_UNAVAILABLE,
+            "error_type": type(exc).__name__,
+            "items": [],
+        }
 
     items = []
     for feat in features:
@@ -238,6 +253,7 @@ async def stac_search_cdse(
         "count": len(items),
         "source": "cdse-catalog",
         "cache": "miss",
+        "status": SEARCH_STATUS_OK,
         "warning": None,
         "items": items,
     }

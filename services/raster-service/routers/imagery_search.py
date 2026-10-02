@@ -15,7 +15,13 @@ import httpx
 from fastapi import APIRouter, Header, HTTPException, Query
 from raster_api_models import SearchRequest
 from raster_security_context import require_service_token
-from stac_search import stac_search, stac_search_dem, stac_search_landsat, stac_search_radar
+from stac_search import (
+    SEARCH_STATUS_CATALOG_UNAVAILABLE,
+    stac_search,
+    stac_search_dem,
+    stac_search_landsat,
+    stac_search_radar,
+)
 
 router = APIRouter()
 
@@ -91,6 +97,18 @@ async def imagery_best_scene(
         )
     except (httpx.HTTPError, RuntimeError) as e:
         raise HTTPException(502, f"Earth Search: {e}") from e
+
+    if result.get("status") == SEARCH_STATUS_CATALOG_UNAVAILABLE:
+        # CDSE-CATALOG-OUTAGE-READ-AS-NO-SCENES-01: الفهرسُ لم يُجب — لا يُقال «لا مشاهد».
+        raise HTTPException(
+            502,
+            detail={
+                "error": SEARCH_STATUS_CATALOG_UNAVAILABLE,
+                "source": result.get("source"),
+                "error_type": result.get("error_type"),
+                "message_ar": "تعذّر الوصول إلى فهرس المشاهد — حاول لاحقاً؛ هذا ليس «لا مشاهد».",
+            },
+        )
 
     items = result.get("items", [])
     if not items:
