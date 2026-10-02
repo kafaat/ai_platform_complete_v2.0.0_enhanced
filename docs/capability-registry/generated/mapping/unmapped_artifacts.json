@@ -5676,6 +5676,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_measurement.py",
     "kind": "tests"
   },
@@ -8092,6 +8096,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_platform_health_identity_readyz_separation.py",
     "kind": "tests"
   },
@@ -8649,6 +8657,10 @@
   },
   {
     "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
     "kind": "tests"
   },
   {

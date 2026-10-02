@@ -180,15 +180,22 @@ def _md2(text: str) -> str:
 
 # ── TTS Voice Helper (Yemeni Arabic) ────────────────────────────
 TTS_URL = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
-TTS_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")  # service-to-service token
 
 
-async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") -> bool:
+async def send_voice_alert(
+    chat_id: int, text: str, voice: str = "yemeni_male", *, user_id: int
+) -> bool:
     """
     Synthesize Arabic text via TTS service and send as voice to Telegram.
     Returns True on success, False on failure (caller may fallback to text).
+
+    TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01: يُرسَل توكنُ **المُرسِل** المربوط
+    (``user_id`` من ``from_user``، لا معرّفُ المحادثة) وحده، فتقرأ tts-service سياسةَ
+    مستأجِره. لا ``X-Agent-Token`` معه: توكنُ الخدمة يغلب في المصادقة فيصير الطلبُ
+    ``__service__`` بلا مستأجِر ⇒ الأشدّ. غيرُ مربوط ⇒ لا صوت (نصٌّ بديل).
     """
-    if not TTS_TOKEN:
+    token = await get_user_token(user_id)
+    if not token:
         return False
     import httpx
     from aiogram.types import BufferedInputFile
@@ -198,7 +205,7 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
             resp = await client.post(
                 f"{TTS_URL}/v1/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
-                headers={"X-Agent-Token": TTS_TOKEN},
+                headers={"Authorization": f"Bearer {token}"},
             )
         if resp.status_code != 200:
             logger.warning(f"TTS failed: {resp.status_code}")
@@ -927,7 +934,9 @@ async def cb_dismiss(callback: CallbackQuery):
 async def cmd_voice(message: Message):
     """Send a sample voice message in Yemeni Arabic."""
     text = "مرحباً بك في منصة سهول الزراعية الذكية. هذه رسالة صوتية تجريبية بصوت يمني أصيل."
-    sent = await send_voice_alert(message.chat.id, text, voice="yemeni_male")
+    sent = await send_voice_alert(
+        message.chat.id, text, voice="yemeni_male", user_id=message.from_user.id
+    )
     if not sent:
         await message.answer("تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\.")
 

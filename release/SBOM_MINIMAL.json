@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2b64dc159e84556c78ffb71ffc3fbe125abb1ad721783a0c80e65a43bd6a656a"
+          "content": "75b21665cfea259239c6d99a99a573fb6ad8c533f34719f64340a3a3b072a875"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1866256b1c6913bbb57bc1a7e8bd5c359377cc73f00216a525a06304b241efce"
+          "content": "5ee9b2250c0e45f39ddff89b1bccc743bb63c286ade4c13eeffba41f33acb44d"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17995,7 +17995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e3e562c4be0f876198c68282c52fb567a80c9cb2d92c24908e456be9dd85c11"
+          "content": "a1246f14a2197c45e65c807024b3a3354284820ae08ccda9af7e96af43f20c6d"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -19045,7 +19045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ea63d3788408a471cf2f9cb2bcd2c73af2eb089d596244a51796e2eae045f13"
+          "content": "76492f82e7cafd67b5a6edd25c0998221fe57d230fb053928c28a4e6de40e8e8"
         }
       ],
       "name": "services/sahool-platform/api/routers/me.py",
@@ -26675,6 +26675,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a6a5e1d917f23eab34901db16165708d4926c55e54fd35e64839d453cf18ef21"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1da6c6b1ab237baacefb81a4e0c0c3088966c403c51b2778d1a047092750eb24"
         }
       ],
@@ -29705,7 +29715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2252395aaab47bc69773e08c1eac24ccba95e90adc9e27d5115dc6bf7887da32"
+          "content": "afb8e99e687082ffaec08635dff6d03d0223f70ea3ce9cd6f5d4fa4991c54ea2"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -29715,7 +29725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0629a673a30eb4816547beb3a1afbc32f4e926eca3cce392283ae1ccd59d973b"
+          "content": "ed59e55e24e21a4843eddfbab524b140f9cd145f852e9b821284dacd7938ff34"
         }
       ],
       "name": "services/tts-service/providers.py",
@@ -29765,7 +29775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "760888b21eda3166e32f0a1d538484fae71df5ceec18f17ee8f4d4ae3670cdd8"
+          "content": "30850364ca7e3e184f9229e2f40ebc56bac93a12ac908376c45088d6aac7b274"
         }
       ],
       "name": "services/tts-service/routers/tts.py",
@@ -29779,6 +29789,16 @@
         }
       ],
       "name": "services/tts-service/test_tts_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "701b2234487fdcadc2543a771127087ce2ce4676d66a099a177dd226f00da7ce"
+        }
+      ],
+      "name": "services/tts-service/tts_tenant_policy.py",
       "type": "file"
     },
     {

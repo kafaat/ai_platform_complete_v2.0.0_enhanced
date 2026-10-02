@@ -1720,7 +1720,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 130,
+      "evidence_count": 132,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1856,6 +1856,8 @@
         "services/supervisor-agent/test_ai_orchestration_forensic.py",
         "services/supervisor-agent/test_graceful_degradation.py",
         "services/tts-service/main.py",
+        "services/tts-service/routers/tts.py",
+        "services/tts-service/tts_tenant_policy.py",
         "services/vegetation-analysis-service/decision_bridge.py",
         "services/vegetation-analysis-service/ground_verification_bridge.py",
         "services/vegetation-analysis-service/main.py",
@@ -2738,7 +2740,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 33,
-      "target_evidence_count": 130,
+      "target_evidence_count": 132,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2767,7 +2769,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 130,
+      "source_evidence_count": 132,
       "target_evidence_count": 30,
       "static_supported": true,
       "runtime_verified": false
@@ -2865,5 +2867,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f91e9e5963713e0c1c76a421f9677df67adedda06962846364ca29d43fb298ee"
+  "content_sha256": "5e06f887e135d521adedecb0a1b2ce461d08bae70d90c116e68ae61950c2eb61"
 }

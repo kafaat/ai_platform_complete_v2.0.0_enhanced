@@ -44,4 +44,10 @@ regexes = [
   # and rewriting that history would rewrite delivered handoff commits whose SHAs are
   # cited in their own reports. Narrow and literal: it matches this one dead string.
   '''s3rv1ce-t0ken-for-the-join''',
+  # The shared tests_v9 JWT fixture (`TEST_JWT_SECRET` in tests_v9/conftest.py, already
+  # repeated in several test modules on main). The PR-range history scan flagged its copy
+  # in `004874c3` (TTS tenant-policy gate test); the working tree now imports it from
+  # conftest, but that commit is immutable on a shared branch. Same reason as above:
+  # a self-describing test value, never a deployed secret. Narrow and literal.
+  '''test_secret_min_32_chars_for_sahool_v9''',
 ]

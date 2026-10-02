@@ -1056,10 +1056,10 @@ tts-service,services/tts-service/routers/health.py,22,GET,/healthz,health
 tts-service,services/tts-service/routers/health.py,22,GET,/health,health
 tts-service,services/tts-service/routers/health.py,27,GET,/readyz,readyz
 tts-service,services/tts-service/routers/health.py,43,GET,/metrics,metrics
-tts-service,services/tts-service/routers/tts.py,21,GET,/v1/tts/voices,list_voices
-tts-service,services/tts-service/routers/tts.py,31,GET,/v1/tts/status,tts_status
-tts-service,services/tts-service/routers/tts.py,44,POST,/v1/tts/synthesize,synthesize
-tts-service,services/tts-service/routers/tts.py,125,POST,/v1/tts/stream,stream
+tts-service,services/tts-service/routers/tts.py,46,GET,/v1/tts/voices,list_voices
+tts-service,services/tts-service/routers/tts.py,56,GET,/v1/tts/status,tts_status
+tts-service,services/tts-service/routers/tts.py,69,POST,/v1/tts/synthesize,synthesize
+tts-service,services/tts-service/routers/tts.py,155,POST,/v1/tts/stream,stream
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,22,GET,/v1/analyze,analyze
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,46,GET,/v1/timeseries/{field_id},timeseries
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,91,GET,/v1/ndvi/current/{field_id},current_ndvi
