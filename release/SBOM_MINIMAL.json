@@ -775,7 +775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "457f742f6069ea836f360fbcc56ba1a626a00cbe8bbd1755dfee73a358d3309c"
+          "content": "e11ba7f7fdf4d12e4f600e0cc009a82f41a09aab53807cc6edc12d7eac916f95"
         }
       ],
       "name": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
@@ -785,7 +785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a17d621f2fdf13ac819e287284d4800c9720b7c4a825fac2b745c4b21c2d6848"
+          "content": "adb1ddef98b8c8c4b241d0dce8de07deb1d6aeec22fc5dc2016c87af45da1ed0"
         }
       ],
       "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
@@ -2715,7 +2715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdf7e993cf9cc859ba7e8701bf1df7823bfff137f1c2d710cbe81c7e72b2d27b"
+          "content": "ea4a1202cbd96dfb3198a7c283b58d1393c8155141e1b6365188cbd4ee283960"
         }
       ],
       "name": "frontend/src/hooks/useClimateAnalogs.ts",
@@ -3025,7 +3025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "666b4b6dff683c3eacd5a305a1e8000ff1c2c2ab5f7703bb0d34a6998bf799d9"
+          "content": "3fa0aaa60704a6db9b22ac289299ca8eaf62e528746f94a2c798ebc31dd5d17c"
         }
       ],
       "name": "frontend/src/hooks/useYemeniCalendars.ts",
@@ -4509,6 +4509,26 @@
         }
       ],
       "name": "frontend/src/lib/recommendationsLifecycle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7648cba19a760ab5e80cdb43a28d572b88d74d10ce51e30a2630e7dbabca6afe"
+        }
+      ],
+      "name": "frontend/src/lib/referenceContracts.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0aebb9653b1eda4a42b9e312256734b635049ebf00025b9852a0964959e1ec34"
+        }
+      ],
+      "name": "frontend/src/lib/referenceContracts.ts",
       "type": "file"
     },
     {

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5470,
+    "files_scanned": 5472,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1526,
-      "tests": 1866,
-      "web": 459
+      "tests": 1867,
+      "web": 460
     },
-    "unmapped_artifacts": 2221,
+    "unmapped_artifacts": 2223,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -37533,6 +37533,14 @@
     },
     {
       "path": "frontend/src/lib/recommendationsLifecycle.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.ts",
       "kind": "web"
     },
     {

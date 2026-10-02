@@ -1232,6 +1232,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/referenceContracts.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/referenceContracts.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/reports.ts",
     "kind": "web"
   },
