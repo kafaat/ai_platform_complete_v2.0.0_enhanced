@@ -7,28 +7,16 @@
 // ═══════════════════════════════════════════════════════════════
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { kongApi } from '../services/api';
+import {
+  parseHimyariteMonths,
+  parseLunarMansions,
+  parseRegionalProfiles,
+  type HimyariteMonth,
+  type LunarMansion,
+  type RegionalProfile,
+} from '../lib/referenceContracts';
 
-export interface LunarMansion {
-  index?: number;
-  name_ar?: string;
-  season_ar?: string;
-  agricultural_note_ar?: string;
-  [k: string]: unknown;
-}
-
-export interface HimyariteMonth {
-  index?: number;
-  name_ar?: string;
-  gregorian_approx?: string;
-  note_ar?: string;
-  [k: string]: unknown;
-}
-
-export interface RegionalProfile {
-  governorate?: string;
-  region_ar?: string;
-  [k: string]: unknown;
-}
+export type { LunarMansion, HimyariteMonth, RegionalProfile };
 
 export interface CalendarContext {
   date_iso: string;
@@ -44,7 +32,7 @@ const STALE = 60 * 60_000; // مرجع تراثيّ شبه ثابت — تخبئ
 export function useLunarMansions(enabled = true): UseQueryResult<LunarMansion[]> {
   return useQuery<LunarMansion[]>({
     queryKey: ['calendars', 'lunar-mansions'],
-    queryFn: () => kongApi.get('/api/v1/calendars/lunar-mansions').then((r) => r.data),
+    queryFn: () => kongApi.get('/api/v1/calendars/lunar-mansions').then((r) => parseLunarMansions(r.data)),
     staleTime: STALE,
     enabled,
     retry: false,
@@ -55,7 +43,7 @@ export function useLunarMansions(enabled = true): UseQueryResult<LunarMansion[]>
 export function useHimyariteMonths(enabled = true): UseQueryResult<HimyariteMonth[]> {
   return useQuery<HimyariteMonth[]>({
     queryKey: ['calendars', 'himyarite-months'],
-    queryFn: () => kongApi.get('/api/v1/calendars/himyarite-months').then((r) => r.data),
+    queryFn: () => kongApi.get('/api/v1/calendars/himyarite-months').then((r) => parseHimyariteMonths(r.data)),
     staleTime: STALE,
     enabled,
     retry: false,
@@ -74,7 +62,7 @@ export function useRegionalProfiles(
         .get('/api/v1/calendars/regional-profiles', {
           params: governorate ? { governorate } : {},
         })
-        .then((r) => r.data),
+        .then((r) => parseRegionalProfiles(r.data)),
     staleTime: STALE,
     enabled,
     retry: false,

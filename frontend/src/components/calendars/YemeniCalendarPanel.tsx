@@ -78,11 +78,16 @@ export default function YemeniCalendarPanel() {
         </summary>
         {mansionsQuery.isLoading ? (
           <div className="mt-2 text-slate-400">جارٍ التحميل…</div>
+        ) : mansionsQuery.isError ? (
+          <div className="mt-2 text-red-400">تعذّر تحميل المنازل القمريّة.</div>
+        ) : !mansionsQuery.data?.length ? (
+          <div className="mt-2 text-slate-400">لا منازل متاحة.</div>
         ) : (
           <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-4">
-            {(mansionsQuery.data ?? []).map((m, i) => (
-              <li key={m.index ?? i} className="text-xs text-slate-300">
+            {mansionsQuery.data.map((m, i) => (
+              <li key={m.order ?? i} className="text-xs text-slate-300">
                 {m.name_ar ?? `منزلة ${i + 1}`}
+                {m.approx_start_ar ? ` · ${m.approx_start_ar}` : ''}
               </li>
             ))}
           </ul>
@@ -96,12 +101,16 @@ export default function YemeniCalendarPanel() {
         </summary>
         {monthsQuery.isLoading ? (
           <div className="mt-2 text-slate-400">جارٍ التحميل…</div>
+        ) : monthsQuery.isError ? (
+          <div className="mt-2 text-red-400">تعذّر تحميل الشهور الحميريّة.</div>
+        ) : !monthsQuery.data?.length ? (
+          <div className="mt-2 text-slate-400">لا شهور متاحة.</div>
         ) : (
           <ul className="mt-2 grid gap-1 sm:grid-cols-2 md:grid-cols-3">
-            {(monthsQuery.data ?? []).map((mo, i) => (
-              <li key={mo.index ?? i} className="text-xs text-slate-300">
+            {monthsQuery.data.map((mo, i) => (
+              <li key={mo.order ?? i} className="text-xs text-slate-300">
                 {mo.name_ar ?? `شهر ${i + 1}`}
-                {mo.gregorian_approx ? ` · ${mo.gregorian_approx}` : ''}
+                {mo.approx_gregorian_ar ? ` · ${mo.approx_gregorian_ar}` : ''}
               </li>
             ))}
           </ul>

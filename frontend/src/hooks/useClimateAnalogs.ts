@@ -7,18 +7,20 @@
 // ═══════════════════════════════════════════════════════════════
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { kongApi } from '../services/api';
+import {
+  parseClimateAnalogRegions,
+  parseDesertCrops,
+  type ClimateAnalogRegion,
+  type DesertCrop,
+} from '../lib/referenceContracts';
 
-export interface ClimateAnalogRegion {
-  region?: string;
-  name_ar?: string;
-  similarity?: number;
-  [k: string]: unknown;
-}
+export type { ClimateAnalogRegion, DesertCrop };
 
-export interface DesertCrop {
-  crop?: string;
-  name_ar?: string;
-  category?: string;
+/** ``supported=false`` يحمل ``message_ar`` بالمناطق المتاحة بدل حقول المنطقة. */
+export interface ClimateAnalogDetail {
+  supported?: boolean;
+  region_ar?: string;
+  message_ar?: string;
   [k: string]: unknown;
 }
 
@@ -28,7 +30,7 @@ const STALE = 60 * 60_000;
 export function useClimateAnalogsList(enabled = true): UseQueryResult<ClimateAnalogRegion[]> {
   return useQuery<ClimateAnalogRegion[]>({
     queryKey: ['climate-analogs', 'list'],
-    queryFn: () => kongApi.get('/api/v1/climate-analogs/list').then((r) => r.data),
+    queryFn: () => kongApi.get('/api/v1/climate-analogs/list').then((r) => parseClimateAnalogRegions(r.data)),
     staleTime: STALE,
     enabled,
     retry: false,
@@ -39,8 +41,8 @@ export function useClimateAnalogsList(enabled = true): UseQueryResult<ClimateAna
 export function useClimateAnalogDetail(
   region: string,
   enabled = true,
-): UseQueryResult<ClimateAnalogRegion> {
-  return useQuery<ClimateAnalogRegion>({
+): UseQueryResult<ClimateAnalogDetail> {
+  return useQuery<ClimateAnalogDetail>({
     queryKey: ['climate-analogs', 'detail', region],
     queryFn: () =>
       kongApi
@@ -64,7 +66,7 @@ export function useDesertCrops(
         .get('/api/v1/climate-analogs/desert-crops', {
           params: category ? { category } : {},
         })
-        .then((r) => r.data),
+        .then((r) => parseDesertCrops(r.data)),
     staleTime: STALE,
     enabled,
     retry: false,
