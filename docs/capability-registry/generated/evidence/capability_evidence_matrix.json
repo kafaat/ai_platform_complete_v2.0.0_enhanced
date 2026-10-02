@@ -6526,6 +6526,7 @@
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
+        "tests_v9/test_cdse_catalog_outage_is_not_no_scenes.py",
         "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_cdse_evalscript.py",
         "tests_v9/test_cdse_latest_scene_day_binding.py",

@@ -423,7 +423,7 @@
         "GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668",
         "GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
-        "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43",
+        "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:49",
         "PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2307",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
         "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:216",
@@ -1120,7 +1120,7 @@
         "GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156",
         "GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146",
         "GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1549",
-        "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186",
+        "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:204",
         "GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87",
         "GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45",
         "GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101",
@@ -1276,7 +1276,7 @@
         "GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191",
         "GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255",
         "GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116",
-        "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65",
+        "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:71",
         "GET /v1/stac @ services/raster-service/routers/stac.py:17",
         "GET /v1/stac/collections @ services/raster-service/routers/stac.py:25",
         "POST /api/v1/gis/cloud-native/stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:218",
@@ -1309,6 +1309,7 @@
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
+        "tests_v9/test_cdse_catalog_outage_is_not_no_scenes.py",
         "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_cdse_evalscript.py",
         "tests_v9/test_cdse_latest_scene_day_binding.py",
@@ -1317,8 +1318,7 @@
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
-        "tests_v9/test_historical_search_cdse_v30_8.py",
-        "tests_v9/test_imagery_single_scene_process.py"
+        "tests_v9/test_historical_search_cdse_v30_8.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1357,7 +1357,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 3
+        "tests": 4
       }
     },
     {
@@ -1892,11 +1892,11 @@
         "GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1186",
         "GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93",
         "GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22",
-        "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65",
-        "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186",
+        "GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:71",
+        "GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:204",
         "GET /v1/imagery/quality/policy @ services/raster-service/routers/imagery.py:44",
-        "GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157",
-        "GET /v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157"
+        "GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:175",
+        "GET /v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:175"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

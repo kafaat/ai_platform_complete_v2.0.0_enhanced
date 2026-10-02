@@ -5380,28 +5380,6 @@
     ]
   },
   {
-    "path": "services/raster-service/routers/imagery_search.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-001",
-        "score": 11,
-        "signals": [
-          "content:sentinel",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 10,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/raster-service/scene_policy.py",
     "kind": "backend",
     "candidates": [
