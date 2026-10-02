@@ -6,7 +6,8 @@ defusedxml==0.7.1  # تحليل XML آمن لملفّات KML غير الموث�
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-PyJWT==2.13.0   # مثبّت عند 2.13.0: يُغلق crit-bypass (PYSEC-2026-120) + خلط HMAC (179) + نواقل DoS/SSRF (175/177/178)
+PyJWT[crypto]==2.15.0   # مثبّت عند 2.15.0: يُغلق CVE-2026-101918 (حجب pip-audit 2026-09-30)؛ و2.14.0 أغلق CVE-2026-102274، و2.13.0 أغلق crit-bypass (PYSEC-2026-120) + خلط HMAC (179) + نواقل DoS/SSRF (175/177/178)
+cryptography==50.0.1  # مزوّدُ RSA لـPyJWT: بدونه يرفض التحقّقُ كلَّ توكن RS256 بـInvalidAlgorithmError (PLATFORM-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01؛ مقيسٌ حيّاً في staging: has_crypto False) — كسابقة guardrails في #1091
 python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق DoS في تحليل multipart (CVE-2026-53538/53539/53540)
 
 # Open-Meteo integration
