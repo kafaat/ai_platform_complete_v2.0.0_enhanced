@@ -6816,6 +6816,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_actuator_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_actuator_mode.py",
     "kind": "tests"
   },
