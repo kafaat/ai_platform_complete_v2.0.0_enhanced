@@ -64,12 +64,20 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
+from pathlib import Path
 
-__all__ = ["source_epoch", "generated_at_utc", "DeterministicTimeUnavailable"]
+__all__ = [
+    "source_epoch",
+    "generated_at_utc",
+    "DeterministicTimeUnavailable",
+    "carried_stamp",
+    "with_carried_stamp",
+]
 
 
 class DeterministicTimeUnavailable(RuntimeError):
@@ -140,3 +148,52 @@ def generated_at_utc(
     """
     stamp = datetime.fromtimestamp(source_epoch(cwd=cwd, payload=payload), tz=UTC)
     return stamp.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def carried_stamp(
+    path: Path, document: Mapping[str, object], fresh: str, *, key: str = "measured_on"
+) -> str:
+    """ختمُ الإسناد للمصنوعة: القديمُ إن لم يتغيّر شيءٌ سواه، وإلّا ``fresh``.
+
+    ``DOCS-ONLY-PR-RESTAMPED-INTO-REPORT-ONLY-BY-REGENERATION-01`` — **مقيسٌ على #1118 ثمّ #1123.**
+    ستّةُ مولّداتٍ كانت تختم ``measured_on`` بـ``HEAD`` في كلّ تشغيل، فكلُّ ``--fix`` على
+    تغييرٍ لا يمسّ مدخلاتها (صيانةُ الدماغ) غيّر سطراً واحداً في ستّة ملفّات. واثنان منها
+    خارج مصنوعات إعادة التوليد عمداً (يحملان حقولاً بخطّ اليد) واثنان «تقريريّان» بالاسم ⇒
+    ``no_report_only_change_guard`` يحجب الـPR الوثائقيّ. والالتفافُ اليدويّ (إعادتُها إلى main)
+    تكرّر مرّتين.
+
+    **القاعدةُ أختُ قاعدة الزمن أعلاه:** الختمُ يتبع **آخرَ قياسٍ غيّر الحمولة** لا ``HEAD``.
+    وليس إخفاءً للبيات: ``measured_on`` إسنادٌ لا سلطةُ طزاجة (``test_claim_base_guard``
+    يرفض صراحةً «اشتراطَ measured_on == HEAD» و«تدويرَ SHA بعد كلّ squash»)، والسلطةُ
+    لإعادة الاشتقاق — فأيُّ تغيّرٍ في الناتج (ومنه ``measurement_basis_digest``) يُعيد الختم.
+
+    المقارنةُ على **البنية** بعد حذف المفتاح من الطرفين، لا على البايتات: إعادةُ ترتيب
+    المفاتيح أو المسافات ليست تغيّرَ حمولة. وملفٌّ غائبٌ أو تالفٌ أو بلا مفتاحٍ نصّيّ ⇒
+    ``fresh`` (لا اختلاق ختمٍ من لا شيء).
+    """
+    try:
+        previous = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return fresh
+    if not isinstance(previous, dict):
+        return fresh
+    old = previous.get(key)
+    if not isinstance(old, str) or not old:
+        return fresh
+    stripped_old = {k: v for k, v in previous.items() if k != key}
+    stripped_new = {k: v for k, v in document.items() if k != key}
+    # الجولةُ عبر JSON تُوحِّد ما سيُكتَب فعلاً (tuple ⇒ list ...) قبل المقارنة.
+    if json.loads(json.dumps(stripped_new, ensure_ascii=False)) == stripped_old:
+        return old
+    return fresh
+
+
+def with_carried_stamp(path: Path, document: dict, *, key: str = "measured_on") -> dict:
+    """``document`` نفسُه وختمُه مُصحَّحٌ بـ``carried_stamp`` — يلفّ القاموسَ عند موضع الكتابة.
+
+    الختمُ الطازج هو ما وضعه المولّد في ``document[key]``؛ فلا يتغيّر مصدرُه، ويتغيّر فقط
+    متى يُستعمَل. قاموسٌ بلا المفتاح يمرّ كما هو.
+    """
+    if key in document and isinstance(document[key], str):
+        document[key] = carried_stamp(path, document, document[key], key=key)
+    return document

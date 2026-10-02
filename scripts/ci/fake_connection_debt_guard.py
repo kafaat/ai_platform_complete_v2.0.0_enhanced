@@ -30,6 +30,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deterministic_time import with_carried_stamp  # noqa: E402
+
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
 # نجاحه (UnicodeEncodeError) ⇒ خروجٌ بـ1 يُقرَأ «الحارس يحجب» وهو قد مرّ. وحارسٌ
@@ -302,21 +305,24 @@ def _generate() -> None:
     carried = _load_baseline().get("proven_live", {}) if BASELINE.exists() else {}
     BASELINE.write_text(
         json.dumps(
-            {
-                "$comment": (
-                    "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا "
-                    "يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من "
-                    "النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة "
-                    "من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ "
-                    "لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب."
-                ),
-                # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
-                # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
-                "measured_on": _measured_on(),
-                "fake_connection_tests": found["fake"],
-                "claiming_db_enforced": found["claiming"],
-                "proven_live": carried,
-            },
+            with_carried_stamp(
+                document={
+                    "$comment": (
+                        "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا "
+                        "يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من "
+                        "النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة "
+                        "من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ "
+                        "لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب."
+                    ),
+                    # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
+                    # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
+                    "measured_on": _measured_on(),
+                    "fake_connection_tests": found["fake"],
+                    "claiming_db_enforced": found["claiming"],
+                    "proven_live": carried,
+                },
+                path=BASELINE,
+            ),
             ensure_ascii=False,
             indent=2,
             sort_keys=False,

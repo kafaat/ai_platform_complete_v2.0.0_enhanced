@@ -1103,6 +1103,13 @@
           "find": "    live = measure()\n    if sorted(declared) != live:",
           "replace": "    live = sorted(declared)  # mutated\n    if sorted(declared) != live:",
           "why": "`--check` الذي يصف بدل أن يقيس يمرّ أخضر على بيانٍ بائت أبداً."
+        },
+        {
+          "expect": "test_a_real_generator_does_not_restamp_an_unchanged_measurement",
+          "find": "with_carried_stamp(MANIFEST, document)",
+          "replace": "document  # mutated: المولّد يتجاوز الحمل",
+          "test": "tests_v9/test_measured_on_carried_stamp.py",
+          "why": "مولّدٌ يكتب قاموسَه بلا الحمل يختم HEAD في كلّ تشغيل — الشاهدُ على المولّد الحقيقيّ لا على الدالّة وحدها."
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
@@ -3060,6 +3067,19 @@
           "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
         }
       ]
+    },
+    "scripts/ci/deterministic_time.py": {
+      "$why_ar": "DOCS-ONLY-PR-RESTAMPED-INTO-REPORT-ONLY-BY-REGENERATION-01: ختمُ measured_on يتبع آخرَ قياسٍ غيّر الحمولة لا HEAD؛ نكوصُه يُعيد ختمَ ستّة ملفّات في كلّ --fix فيحجب الحارسُ صيانةَ الدماغ (أُعيد إنتاجه على #1118 و#1123).",
+      "mutations": [
+        {
+          "expect": "test_an_unchanged_payload_keeps_the_previous_stamp",
+          "find": "        return old\n",
+          "replace": "        return fresh  # mutated: لا حملَ للختم\n",
+          "test": "tests_v9/test_measured_on_carried_stamp.py",
+          "why": "إسقاطُ الحمل يُعيد ختمَ HEAD على حمولةٍ ثابتة — العطلُ الذي أُمسِك على #1118 و#1123."
+        }
+      ],
+      "test": "tests_v9/test_measured_on_carried_stamp.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

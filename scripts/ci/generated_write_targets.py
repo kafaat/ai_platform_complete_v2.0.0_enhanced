@@ -35,6 +35,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deterministic_time import with_carried_stamp  # noqa: E402
+
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         _stream.reconfigure(encoding="utf-8")
@@ -187,7 +190,10 @@ def generate() -> int:
         "count": len(found),
         "targets": found,
     }
-    MANIFEST.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    MANIFEST.write_text(
+        json.dumps(with_carried_stamp(MANIFEST, document), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"generated_write_targets: {len(found)} هدفاً مقيساً ساكناً")
     return 0
 

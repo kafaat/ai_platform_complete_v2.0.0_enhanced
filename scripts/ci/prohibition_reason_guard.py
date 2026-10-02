@@ -50,6 +50,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deterministic_time import with_carried_stamp  # noqa: E402
+
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
 # نجاحه (UnicodeEncodeError) ⇒ خروجٌ بـ1 يُقرَأ «الحارس يحجب» وهو قد مرّ. وحارسٌ
@@ -253,7 +256,10 @@ def generate() -> int:
         ),
         **result,
     }
-    INVENTORY.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    INVENTORY.write_text(
+        json.dumps(with_carried_stamp(INVENTORY, payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"كُتِب {INVENTORY.relative_to(ROOT)} — {payload['totals']}")
     return 0
 

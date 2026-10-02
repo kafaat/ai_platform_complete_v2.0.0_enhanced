@@ -38,10 +38,14 @@ import argparse
 import ast
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deterministic_time import with_carried_stamp  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "docs" / "architecture" / "db_ownership.yml"
@@ -592,7 +596,12 @@ def generate_triage() -> None:
     rows = triage_rows()
     excluded = excluded_write_sites()
     TRIAGE.write_text(
-        json.dumps(triage_document(rows, excluded), ensure_ascii=False, indent=1) + "\n",
+        json.dumps(
+            with_carried_stamp(TRIAGE, triage_document(rows, excluded)),
+            ensure_ascii=False,
+            indent=1,
+        )
+        + "\n",
         encoding="utf-8",
     )
     print(
@@ -604,18 +613,21 @@ def generate() -> None:
     current = survey()
     BASELINE.write_text(
         json.dumps(
-            {
-                "$comment": (
-                    "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — "
-                    "مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد "
-                    "يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: "
-                    "يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن."
-                ),
-                "contract": CONTRACT.relative_to(ROOT).as_posix(),
-                "measured_on": _head_sha(),
-                "violation_count": len(current),
-                "violations": current,
-            },
+            with_carried_stamp(
+                document={
+                    "$comment": (
+                        "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — "
+                        "مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد "
+                        "يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: "
+                        "يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن."
+                    ),
+                    "contract": CONTRACT.relative_to(ROOT).as_posix(),
+                    "measured_on": _head_sha(),
+                    "violation_count": len(current),
+                    "violations": current,
+                },
+                path=BASELINE,
+            ),
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
