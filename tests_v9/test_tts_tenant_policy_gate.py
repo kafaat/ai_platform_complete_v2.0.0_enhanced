@@ -93,20 +93,32 @@ class _External:
         monkeypatch.setattr(main.edge_tts, "Communicate", Communicate, raising=False)
 
 
+#: ``external_llm_allowed`` غائبٌ من الغلاف كلّيّاً (لا ``None``).
+_MISSING = object()
+#: لم يُمرَّر — فيُبنى كما تبنيه المنصّة لصفٍّ يأذن بالتوليد.
+_AS_PLATFORM_BUILDS = object()
+
+
 def _no_local_providers(monkeypatch, providers) -> None:
     monkeypatch.setattr(providers.PiperProvider, "available", lambda self: False)
     monkeypatch.setattr(providers.XTTSProvider, "available", lambda self: False)
 
 
 def _policy(
-    monkeypatch, tts_policy, mode=None, *, tenant=_TENANT, raises=False, external_llm_allowed=None
+    monkeypatch,
+    tts_policy,
+    mode=None,
+    *,
+    tenant=_TENANT,
+    raises=False,
+    external_llm_allowed=_AS_PLATFORM_BUILDS,
 ):
     """يحقن ردَّ ``/api/v1/me`` بغلافٍ بالوضع المُعطى، ويُرجِع عدّادَ قراءات المنصّة.
 
     ``external_llm_allowed`` افتراضاً كما تبنيه المنصّة لصفٍّ يأذن بالتوليد: صحيحٌ للوضعين
     الخارجيّين وحدهما.
     """
-    if external_llm_allowed is None:
+    if external_llm_allowed is _AS_PLATFORM_BUILDS:
         external_llm_allowed = mode in ("full_external", "redacted_external")
     monkeypatch.setenv("PLATFORM_API_URL", "http://sahool-platform:8000")
     asked = {"n": 0}
@@ -117,13 +129,12 @@ def _policy(
         assert authorization.startswith("Bearer ")
         if raises:
             raise TimeoutError("platform unreachable")
+        envelope = {"policy_mode": mode, "tenant_id": tenant}
+        if external_llm_allowed is not _MISSING:
+            envelope["external_llm_allowed"] = external_llm_allowed
         return {
             "tenant_id": _TENANT,
-            "ai_policy_envelope": {
-                "policy_mode": mode,
-                "tenant_id": tenant,
-                "external_llm_allowed": external_llm_allowed,
-            },
+            "ai_policy_envelope": envelope,
         }
 
     monkeypatch.setattr(tts_policy, "_fetch_me", fake_fetch)
@@ -174,13 +185,20 @@ def test_a_policy_that_forbids_raw_text_out_makes_zero_external_calls(monkeypatc
 
 
 @pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
-def test_full_external_without_explicit_permission_makes_zero_external_calls(monkeypatch, path):
-    """المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false`` لمستأجِرٍ عطّل التوليد."""
+@pytest.mark.parametrize("flag", [False, _MISSING, None, "true", 1, "yes"])
+def test_full_external_without_explicit_permission_makes_zero_external_calls(
+    monkeypatch, path, flag
+):
+    """الإرسالُ يتطلّب ``full_external`` **و**``external_llm_allowed is True`` معاً.
+
+    المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false`` لمستأجِرٍ عطّل التوليد؛
+    وغيابُ الحقل أو قيمةٌ غيرُ منطقيّة (نصٌّ، رقم) لا تُقرأ إذناً.
+    """
     main, providers, tts_policy = _load(monkeypatch)
     ext = _External()
     ext.install(monkeypatch, main, providers)
     _no_local_providers(monkeypatch, providers)
-    _policy(monkeypatch, tts_policy, "full_external", external_llm_allowed=False)
+    _policy(monkeypatch, tts_policy, "full_external", external_llm_allowed=flag)
     resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
     _assert_blocked(resp, "local_only")
     assert ext.calls == 0
