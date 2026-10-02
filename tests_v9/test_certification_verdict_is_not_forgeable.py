@@ -29,6 +29,7 @@ import io
 import json
 import os
 import tempfile
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -45,7 +46,11 @@ _BASE = {
     "workflow": "CI",
     "workflow_run_id": "1",
     "commit": "a" * 39 + "b",
-    "timestamp_utc": "2026-09-02T00:00:00+00:00",
+    # **نسبيٌّ لا ثابت.** كان `2026-09-02` حرفيّاً، والحارسُ يرفض دليلاً أقدمَ من 30 يوماً —
+    # فانقلب الجناحُ أحمرَ وحده في 2026-10-02 بلا تغيّرِ شيفرة (تسعُ حالاتٍ رُفِضت بسبب
+    # «older than 30 days» لا بالسبب الذي تقيسه). الحارسُ لم يُمَسّ: الدليلُ الصالح
+    # يُكتَب «قبل يوم» في كلّ تشغيل، فيبقى داخل النافذة ولا يصير قنبلةً موقوتة.
+    "timestamp_utc": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
 }
 #: كلُّ الحقول الدنيا لكلّ الحواجز — قيمٌ ذاتُ مضمون، لا مفاتيحُ حاضرة.
 _FIELDS = {
@@ -244,6 +249,15 @@ def test_the_adjudicator_evaluates_every_blocker_the_strict_guard_declares():
             "must differ from owner",
         ),
         ("إعفاءٌ منقضٍ", None, None, None, {**_VALID_WAIVER, "expiry": "2020-01-01"}, "expired"),
+        # النافذةُ تبقى مقيسةً بعد أن صار الدليلُ الصالح نسبيّاً: 31 يوماً ⇒ مرفوض بسببه هو.
+        (
+            "دليلٌ أقدمُ من 30 يوماً",
+            "ci_summary.json",
+            {"timestamp_utc": (datetime.now(UTC) - timedelta(days=31)).isoformat()},
+            None,
+            None,
+            "older than 30 days",
+        ),
     ],
 )
 def test_forged_evidence_is_refused_for_its_own_reason(case, target, patch, env, waiver, expected):
