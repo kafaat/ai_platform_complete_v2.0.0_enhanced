@@ -17995,7 +17995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e3e562c4be0f876198c68282c52fb567a80c9cb2d92c24908e456be9dd85c11"
+          "content": "a1246f14a2197c45e65c807024b3a3354284820ae08ccda9af7e96af43f20c6d"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
