@@ -4403,7 +4403,7 @@
       "function": "nl_sql_endpoint",
       "method": "POST",
       "path": "/api/v1/nl-sql",
-      "line": 70,
+      "line": 72,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/nl_sql.py::POST /api/v1/nl-sql::nl_sql_endpoint"
@@ -5323,7 +5323,7 @@
       "function": "proxy_edge",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/edge/{path:path}",
-      "line": 131,
+      "line": 171,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/edge/{path:path}::proxy_edge"
@@ -5333,7 +5333,7 @@
       "function": "proxy_segmentation",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/segmentation/{path:path}",
-      "line": 161,
+      "line": 204,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/segmentation/{path:path}::proxy_segmentation"
@@ -5343,7 +5343,7 @@
       "function": "proxy_soil",
       "method": "DELETE,GET,PATCH,POST,PUT",
       "path": "/api/soil/{path:path}",
-      "line": 146,
+      "line": 186,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/soil/{path:path}::proxy_soil"
@@ -5353,7 +5353,7 @@
       "function": "proxy_field_forms",
       "method": "GET,POST",
       "path": "/api/field-forms/{path:path}",
-      "line": 178,
+      "line": 221,
       "target_owner": "scout-ingest-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/service_proxy.py::GET,POST /api/field-forms/{path:path}::proxy_field_forms"

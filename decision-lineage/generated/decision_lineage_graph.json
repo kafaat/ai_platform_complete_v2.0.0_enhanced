@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 604,
+      "evidence_count": 606,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -307,6 +307,7 @@
         "services/sahool-platform/api/routers/productivity.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
+        "services/sahool-platform/api/routers/service_proxy.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
         "services/sahool-platform/api/routers/trials.py",
         "services/sahool-platform/api/routers/weather.py",
@@ -497,6 +498,7 @@
         "services/sahool-platform/tests/test_schema_factory.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_sensor_intake.py",
+        "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_source_of_truth.py",
         "services/sahool-platform/tests/test_sync_delta.py",
         "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
@@ -1720,7 +1722,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 130,
+      "evidence_count": 131,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1847,6 +1849,7 @@
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
+        "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
@@ -2055,7 +2058,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 295,
+      "evidence_count": 296,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2330,6 +2333,7 @@
         "services/sahool-platform/tests/test_remaining_engines.py",
         "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_skills_registry.py",
+        "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/sahool-platform/tests/test_sync_delta.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
         "services/sahool-platform/tests/test_workflow_engine.py",
@@ -2484,7 +2488,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
-      "source_evidence_count": 604,
+      "source_evidence_count": 606,
       "target_evidence_count": 503,
       "static_supported": true,
       "runtime_verified": false
@@ -2738,7 +2742,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 33,
-      "target_evidence_count": 130,
+      "target_evidence_count": 131,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2767,7 +2771,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 130,
+      "source_evidence_count": 131,
       "target_evidence_count": 30,
       "static_supported": true,
       "runtime_verified": false
@@ -2855,7 +2859,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 51,
-      "target_evidence_count": 295,
+      "target_evidence_count": 296,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2865,5 +2869,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f91e9e5963713e0c1c76a421f9677df67adedda06962846364ca29d43fb298ee"
+  "content_sha256": "9f58bb8dbab2ef32b5599370e3a5ce08f6f72a7bf73843c4f487842c4a3747b8"
 }

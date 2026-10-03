@@ -8,12 +8,13 @@
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Iterable
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
-from api.main import UserSchema, get_current_user
+from api.main import Permission, UserSchema, get_current_user, require_permission
 
 router = APIRouter()
 
@@ -30,6 +31,45 @@ _HOP_BY_HOP = {
     "content-length",
 }
 _ALLOWED_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
+
+# Public BFF contract. Internal governance/administration endpoints are not
+# automatically exposed when a new soil-service router is registered.
+_SOIL_ROUTES = (
+    (r"(?:health|healthz|readyz)", "GET", Permission.SETTINGS_VIEW),
+    (r"v1/soil/readings/[^/%\\?#]+", "GET", Permission.OBSERVATION_VIEW),
+    (
+        r"v1/fields/[^/%\\?#]+/soil/(?:observations|profile|profile/history|closed-loop)",
+        "GET",
+        Permission.OBSERVATION_VIEW,
+    ),
+    (r"v1/soil/(?:ingest|observations)", "POST", Permission.OBSERVATION_RECORD),
+    (r"v1/fields/[^/%\\?#]+/soil/evidence", "POST", Permission.OBSERVATION_RECORD),
+    (r"v1/fields/[^/%\\?#]+/soil/profile/rebuild", "POST", Permission.OBSERVATION_RECORD),
+)
+
+
+def _authorize_soil_path(path: str, method: str, user: UserSchema) -> str:
+    path = path.removesuffix("/")
+    if any(segment in {".", ".."} for segment in path.split("/")):
+        raise HTTPException(404, "مسار التربة غير مكشوف عبر BFF")
+    matched = [
+        (verb, permission)
+        for pattern, verb, permission in _SOIL_ROUTES
+        if re.fullmatch(pattern, path)
+    ]
+    if not matched:
+        raise HTTPException(404, "مسار التربة غير مكشوف عبر BFF")
+    for verb, permission in matched:
+        if method.upper() == verb:
+            # Reuse the platform's denial audit and RBAC; user was authenticated
+            # by get_current_user before this function receives it.
+            require_permission(permission)(user)
+            return path
+    raise HTTPException(
+        405,
+        "method not allowed",
+        headers={"Allow": ", ".join(sorted({verb for verb, _ in matched}))},
+    )
 
 
 def _service_token() -> str:
@@ -154,8 +194,11 @@ async def proxy_soil(
     user: UserSchema = Depends(get_current_user),
 ) -> Response:
     """واجهة التربة → JWT → platform → X-Agent-Token + X-Tenant-Id → soil-service."""
+    path = _authorize_soil_path(path, request.method, user)
     base = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
-    return await _proxy(request=request, user=user, base_url=base, path=path, timeout=60.0)
+    return await _proxy(
+        request=request, user=user, base_url=base, path=path, timeout=60.0, inject_actor=True
+    )
 
 
 @router.api_route(
