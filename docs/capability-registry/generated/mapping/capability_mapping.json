@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5474,
+    "files_scanned": 5475,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1527,
+      "other": 1528,
       "tests": 1869,
       "web": 459
     },
     "unmapped_artifacts": 2222,
-    "ambiguous_artifacts": 429
+    "ambiguous_artifacts": 430
   },
   "capabilities": [
     {
@@ -25076,6 +25076,18 @@
           "score": 9
         },
         {
+          "value": "v155_soil_observations_profiles.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:22",
+          "score": 9
+        },
+        {
+          "value": "v157_soil_projection_jobs_reconciliation.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:23",
+          "score": 9
+        },
+        {
+          "value": "v159_soil_observation_supersession_current_pointer.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:24",
+          "score": 9
+        },
+        {
           "value": "v195_irrigation_capacity_reservation_core.sql @ scripts/ci/irrigation_convergence_guard.py:35",
           "score": 9
         },
@@ -26114,6 +26126,14 @@
           ]
         },
         {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/ARCHITECTURE_AUDIT_2026-06-14.md",
           "score": 9,
           "signals": [
@@ -26358,12 +26378,12 @@
         "backend": 13,
         "routes": 31,
         "database": 100,
-        "events": 48,
+        "events": 51,
         "web": 0,
         "mobile": 0,
         "tests": 71,
         "governance": 0,
-        "other_evidence": 74
+        "other_evidence": 75
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -28746,7 +28766,19 @@
           "score": 12
         },
         {
+          "value": "v155_soil_observations_profiles.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:22",
+          "score": 12
+        },
+        {
           "value": "v155_soil_observations_profiles.sql @ scripts/ci/soil_canonical_store_guard.py:39",
+          "score": 12
+        },
+        {
+          "value": "v157_soil_projection_jobs_reconciliation.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:23",
+          "score": 12
+        },
+        {
+          "value": "v159_soil_observation_supersession_current_pointer.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:24",
           "score": 12
         },
         {
@@ -29043,6 +29075,14 @@
           ]
         },
         {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -29147,12 +29187,12 @@
         "backend": 13,
         "routes": 95,
         "database": 14,
-        "events": 43,
+        "events": 46,
         "web": 1,
         "mobile": 0,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 16
+        "other_evidence": 17
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -45644,6 +45684,28 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
           ]
         }
       ]

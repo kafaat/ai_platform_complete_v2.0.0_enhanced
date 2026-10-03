@@ -431,6 +431,28 @@
     ]
   },
   {
+    "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "config/endpoint_ui_coverage.json",
     "kind": "other",
     "candidates": [
