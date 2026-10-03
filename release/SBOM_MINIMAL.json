@@ -6715,7 +6715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff0722e49b95db8259acd2828c9169885b3cf9f14f12f889a58c09e1603430f7"
+          "content": "b68df2b33d58c71ef9abd86c94cb38a26f3d1803313acb2a8f82f4f3dbe99137"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",

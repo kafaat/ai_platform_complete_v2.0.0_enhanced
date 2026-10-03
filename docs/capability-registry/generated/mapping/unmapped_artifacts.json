@@ -7980,6 +7980,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_nginx_runtime_pull_retry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_nginx_weather_routing_guard.py",
     "kind": "tests"
   },

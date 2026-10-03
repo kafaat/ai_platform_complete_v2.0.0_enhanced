@@ -390,6 +390,43 @@ class RuntimeContract(unittest.TestCase):
             self.assertNotIn("[emerg]", self.log.read_text())
 
 
+#: محاولاتُ سحب الصورة وانتظارُ ما بينها (ثوانٍ). مقيس على #1125 (تشغيل 37122157444):
+#: ``auth.docker.io`` أعاد ``connection reset by peer`` قبل أيّ اختبار، والإعادةُ نجحت.
+#: الميزانيّةُ كلُّها يجب أن تسع داخل ``timeout-minutes`` لخطوة CI مع هامشٍ للاختبار نفسه
+#: (الخطوةُ كاملةً ~36ث على main@76a5ca58)؛ يفرضها ``test_nginx_runtime_pull_retry``.
+PULL_ATTEMPTS = 3
+PULL_TIMEOUT_SECONDS = 60
+PULL_BACKOFF_SECONDS = (5, 15)
+
+
+def pull_budget_seconds():
+    """أسوأُ زمنٍ للسحب: كلُّ المحاولات حتى مهلتها + كلُّ الانتظارات بينها."""
+    return PULL_ATTEMPTS * PULL_TIMEOUT_SECONDS + sum(PULL_BACKOFF_SECONDS[: PULL_ATTEMPTS - 1])
+
+
+def pull_image(image, *, run=subprocess.run, sleep=time.sleep):
+    """``docker pull`` بإعادة محاولةٍ محدودة.
+
+    يُعيد المحاولة على **أيّ** خروجٍ غير صفريّ أو انتهاء مهلة — رمزُ الخروج لا يميّز الانقطاعَ
+    العابر من الفشل الدائم (مصادقة، وسمٌ مفقود، قرص)؛ فالدائمُ يكلّف المحاولاتِ الثلاث ثمّ يفشل
+    بالخطأ نفسه. بعد آخر محاولة يُرفع آخرُ خطأ كما هو: لا يُتخطّى الاختبار ولا يُعدّ السحبُ ناجحاً.
+    """
+    for attempt in range(1, PULL_ATTEMPTS + 1):
+        try:
+            run(["docker", "pull", image], check=True, timeout=PULL_TIMEOUT_SECONDS)
+            return
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            if attempt == PULL_ATTEMPTS:
+                raise
+            wait = PULL_BACKOFF_SECONDS[min(attempt, len(PULL_BACKOFF_SECONDS)) - 1]
+            print(
+                f"docker pull {image} failed (attempt {attempt}/{PULL_ATTEMPTS}: "
+                f"{type(exc).__name__}); retrying in {wait}s",
+                flush=True,
+            )
+            sleep(wait)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -400,7 +437,7 @@ def main():
     RuntimeContract.config = args.config
     if args.docker:
         image = re.findall(r"^FROM (nginx:\S+)", (FRONTEND / "Dockerfile").read_text(), re.M)[-1]
-        subprocess.run(["docker", "pull", image], check=True, timeout=180)
+        pull_image(image)
 
         def command(directory):
             return [
