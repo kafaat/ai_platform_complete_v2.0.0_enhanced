@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5472,
+    "files_scanned": 5475,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1527,
-      "tests": 1867,
+      "other": 1528,
+      "tests": 1869,
       "web": 459
     },
     "unmapped_artifacts": 2222,
-    "ambiguous_artifacts": 429
+    "ambiguous_artifacts": 430
   },
   "capabilities": [
     {
@@ -25076,6 +25076,18 @@
           "score": 9
         },
         {
+          "value": "v155_soil_observations_profiles.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:22",
+          "score": 9
+        },
+        {
+          "value": "v157_soil_projection_jobs_reconciliation.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:23",
+          "score": 9
+        },
+        {
+          "value": "v159_soil_observation_supersession_current_pointer.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:24",
+          "score": 9
+        },
+        {
           "value": "v195_irrigation_capacity_reservation_core.sql @ scripts/ci/irrigation_convergence_guard.py:35",
           "score": 9
         },
@@ -26114,6 +26126,14 @@
           ]
         },
         {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/ARCHITECTURE_AUDIT_2026-06-14.md",
           "score": 9,
           "signals": [
@@ -26358,12 +26378,12 @@
         "backend": 13,
         "routes": 31,
         "database": 100,
-        "events": 48,
+        "events": 51,
         "web": 0,
         "mobile": 0,
         "tests": 71,
         "governance": 0,
-        "other_evidence": 74
+        "other_evidence": 75
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -28682,11 +28702,11 @@
           "score": 12
         },
         {
-          "value": "public.soil_observations @ services/soil-service/soil_store.py:390",
+          "value": "public.soil_observations @ services/soil-service/soil_store.py:452",
           "score": 12
         },
         {
-          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:391",
+          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:453",
           "score": 12
         },
         {
@@ -28738,7 +28758,7 @@
           "score": 12
         },
         {
-          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:428",
+          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:490",
           "score": 12
         },
         {
@@ -28746,7 +28766,19 @@
           "score": 12
         },
         {
+          "value": "v155_soil_observations_profiles.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:22",
+          "score": 12
+        },
+        {
           "value": "v155_soil_observations_profiles.sql @ scripts/ci/soil_canonical_store_guard.py:39",
+          "score": 12
+        },
+        {
+          "value": "v157_soil_projection_jobs_reconciliation.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:23",
+          "score": 12
+        },
+        {
+          "value": "v159_soil_observation_supersession_current_pointer.sql @ certification/evidence/soil_ingest_native_postgres_20261003.json:24",
           "score": 12
         },
         {
@@ -28872,6 +28904,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "services/soil-service/test_soil_snapshot_identity.py",
           "score": 12,
           "signals": [
@@ -28929,6 +28969,14 @@
         },
         {
           "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "path": "tests_v9/test_soil_ingest_atomic.py",
           "score": 10,
           "signals": [
             "content:Soil profile",
@@ -29027,6 +29075,14 @@
           ]
         },
         {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -29091,6 +29147,14 @@
           ]
         },
         {
+          "path": "docs/audits/SOURCE_AUDIT_REPAIR_PROPOSAL_20261002.md",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/architecture/live_pg_schema_contract.json",
           "score": 8,
           "signals": [
@@ -29123,12 +29187,12 @@
         "backend": 13,
         "routes": 95,
         "database": 14,
-        "events": 43,
+        "events": 46,
         "web": 1,
         "mobile": 0,
-        "tests": 19,
+        "tests": 21,
         "governance": 1,
-        "other_evidence": 15
+        "other_evidence": 17
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -29485,7 +29549,7 @@
           "score": 11
         },
         {
-          "value": "v156_durable_soil_lab_workflow.sql @ scripts/ci/soil_lab_projection_guard.py:41",
+          "value": "v156_durable_soil_lab_workflow.sql @ scripts/ci/soil_lab_projection_guard.py:45",
           "score": 8
         }
       ],
@@ -41996,6 +42060,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_notification_delivery_endpoints.py",
       "kind": "tests"
     },
@@ -43117,10 +43185,6 @@
     },
     {
       "path": "tests_v9/test_actuation_killswitch_v29_5_op.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_actuator_crypto_dependency.py",
       "kind": "tests"
     },
     {
@@ -45620,6 +45684,28 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
           ]
         }
       ]

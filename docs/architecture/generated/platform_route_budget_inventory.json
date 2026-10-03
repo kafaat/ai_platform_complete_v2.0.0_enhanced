@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "635751ded9738cca3e746641c2f601deba29e9e10248a419f2d4d54791bfffa6",
+  "inventory_sha256": "b36bb98845eb038e8d5b6afa24a7c98a6cad2cab7b3b9695665e0607957aa02f",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "699b3ee1669a1e42c09baecdc2346cc78f6b206dcb24d8646885eb16d79b5240"
+    "policy_sha256": "adc6882aed92cf40aacce7991c77d3223508f413ef56a0d135577aae923982be"
   },
   "routes": [
     {
@@ -4106,7 +4106,7 @@
     {
       "classification": "domain",
       "function": "nl_sql_endpoint",
-      "line": 70,
+      "line": 72,
       "method": "POST",
       "path": "/api/v1/nl-sql",
       "source": "api/routers/nl_sql.py"

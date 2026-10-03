@@ -385,7 +385,7 @@ FM-002,test,services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py
 FM-002,test,services/sahool-platform/tests/test_simple_farm_book.py,3,applied
 FM-002,test,shared/test_autonomous_farm_os_phase9.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
-FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183,2,applied
+FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226,2,applied
 FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1682,4,applied
 FM-003,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:656,2,applied
 FM-003,api,GET / @ services/field-management-service/main.py:273,3,applied
@@ -512,7 +512,7 @@ FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields
 FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:307,2,applied
 FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2390,2,applied
 FM-003,api,GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91,2,applied
-FM-003,api,GET /v1/soil/readings/{field_id} @ services/soil-service/routers/readings.py:23,2,applied
+FM-003,api,GET /v1/soil/readings/{field_id} @ services/soil-service/routers/readings.py:28,2,applied
 FM-003,api,GET /v1/timeseries/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:46,2,applied
 FM-003,api,PATCH /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1238,4,applied
 FM-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,6,applied
@@ -1268,7 +1268,7 @@ OPS-003,test,services/scout-ingest-service/tests/test_projection_live.py,3,appli
 OPS-003,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
 OPS-003,test,tests_v9/test_scout_ingest_service_ownership.py,3,applied
 OPS-003,test,tests_v9/test_scouting_pins_persistence.py,3,applied
-OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183,6,applied
+OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226,6,applied
 OPS-004,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,6,applied
 OPS-004,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,6,applied
 OPS-004,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,6,applied
