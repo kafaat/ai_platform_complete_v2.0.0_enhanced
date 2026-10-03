@@ -1,3 +1,5 @@
+> **2026-10-03 — مزوّدُ RSA لصورة تحليل الغطاء النباتيّ (`claude/wip-vegetation-rs256-v2`):** `VEGETATION-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01` ⇒ fixed — حلُّ تبعيّات الصورة كان بلا `cryptography` فيرفض كلَّ توكن RS256 (يفسّر 401 الدائمة في staging). **ما ينتظر المالك:** المراجعة؛ والدمجُ يُعيد نشرَ `sahool-vegetation-analysis` في البيئتين لأنّها تتبع `main`. والفرعُ السابق `claude/wip-vegetation-rs256` حمل صفّاً خاطئاً عن المُشغِّل — حذفُه بإذن المالك.
+
 > **2026-10-02 — صيانةُ الدماغ لم تعد تُحجَب بختم `measured_on`:** المولّداتُ الستّة تحمل الختمَ القديم ما لم تتغيّر الحمولة (`DOCS-ONLY-PR-RESTAMPED-INTO-REPORT-ONLY-BY-REGENERATION-01` ⇒ fixed). لا التفافَ يدويّاً بعد اليوم.
 
 > **2026-10-01 — #1121 حيٌّ في الإنتاج وstaging (`a69db693` · `bdde4958`). قاعدةُ الإنتاج: v233/v231 مطبّقتان، RLS المُجبَر ناقصٌ 0 (عيّنة، `MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01` باقيةٌ open حتّى الجرد).** لا يُعاد نشرُ `sahool-migrate-main` (يُعيد ضبطَ كلمتَي سرّ الأدوار). ما ينتظر المالك: قيمةُ `NOTIFICATION_CONSUMER_MODE` في البيئتين · طلبُ TTS حيّ · قرارُ `queue_v1` · #1122 (تجهيزُ `PLATFORM_API_URL` و`/me` قبل دمجه).
