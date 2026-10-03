@@ -28,8 +28,23 @@ def _requirements() -> list[Requirement]:
 
 
 def test_the_image_requirements_are_what_the_dockerfile_installs():
-    dockerfile = (_SERVICE / "Dockerfile").read_text(encoding="utf-8")
-    assert "COPY services/vegetation-analysis-service/requirements.txt" in dockerfile
+    """النسخُ وحده لا يكفي: يجب أن يكون الملفُّ المنسوخ هو ما يُمرَّر إلى ``pip install -r``."""
+    lines = (_SERVICE / "Dockerfile").read_text(encoding="utf-8").splitlines()
+    copied = [
+        line.split()[-1]
+        for line in lines
+        if line.startswith("COPY services/vegetation-analysis-service/requirements.txt ")
+    ]
+    assert len(copied) == 1, "the image must copy the service requirements exactly once"
+    installs = [
+        line.split()
+        for line in lines
+        if line.startswith("RUN ") and "pip install" in line and " -r " in line
+    ]
+    targets = [words[words.index("-r") + 1] for words in installs]
+    assert copied[0] in targets, (
+        f"the copied requirements ({copied[0]}) must be installed with pip install -r; got {targets}"
+    )
 
 
 def test_the_service_verifies_rs256_when_a_public_key_is_set():
