@@ -388,7 +388,7 @@
       },
       "evidence_truncated": {
         "apis": 202,
-        "tests": 104
+        "tests": 103
       }
     },
     {
@@ -937,7 +937,6 @@
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
-        "services/sahool-platform/tests/test_nl_sql_policy_boundary.py",
         "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
         "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
         "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
@@ -951,7 +950,8 @@
         "tests_v9/test_canonical_field_geometry_contract.py",
         "tests_v9/test_decision_review_boundary_guard.py",
         "tests_v9/test_field_boundary_adapters_v59_1.py",
-        "tests_v9/test_field_boundary_ai_v59.py"
+        "tests_v9/test_field_boundary_ai_v59.py",
+        "tests_v9/test_field_boundary_backends_v59_5.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1000,7 +1000,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 13
+        "tests": 12
       }
     },
     {

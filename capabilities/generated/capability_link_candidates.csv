@@ -695,7 +695,6 @@ FM-003,test,services/sahool-platform/tests/test_field_type_catalog.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_workspace.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_fields_endpoint.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py,3,applied
-FM-003,test,services/sahool-platform/tests/test_nl_sql_policy_boundary.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_p1_raster_boundary_guard.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_p1_weather_boundary_guard.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_p2_2_field_ai_context_raster_facade_guard.py,3,applied
@@ -1008,7 +1007,6 @@ GIS-001,test,services/sahool-platform/tests/test_field_boundary_contracts.py,3,a
 GIS-001,test,services/sahool-platform/tests/test_field_boundary_graph.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_field_boundary_pipeline.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py,3,applied
-GIS-001,test,services/sahool-platform/tests/test_nl_sql_policy_boundary.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_p1_raster_boundary_guard.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_p1_weather_boundary_guard.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py,3,applied

@@ -5692,7 +5692,7 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_nl_sql_policy_boundary.py",
+    "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
     "kind": "tests"
   },
   {

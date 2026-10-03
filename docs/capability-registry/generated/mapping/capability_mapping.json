@@ -28702,11 +28702,11 @@
           "score": 12
         },
         {
-          "value": "public.soil_observations @ services/soil-service/soil_store.py:449",
+          "value": "public.soil_observations @ services/soil-service/soil_store.py:452",
           "score": 12
         },
         {
-          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:450",
+          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:453",
           "score": 12
         },
         {
@@ -28758,7 +28758,7 @@
           "score": 12
         },
         {
-          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:487",
+          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:490",
           "score": 12
         },
         {
@@ -29549,7 +29549,7 @@
           "score": 11
         },
         {
-          "value": "v156_durable_soil_lab_workflow.sql @ scripts/ci/soil_lab_projection_guard.py:41",
+          "value": "v156_durable_soil_lab_workflow.sql @ scripts/ci/soil_lab_projection_guard.py:45",
           "score": 8
         }
       ],
@@ -42060,7 +42060,7 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_nl_sql_policy_boundary.py",
+      "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
       "kind": "tests"
     },
     {
