@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5470,
+    "files_scanned": 5474,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1526,
-      "tests": 1866,
+      "other": 1527,
+      "tests": 1869,
       "web": 459
     },
-    "unmapped_artifacts": 2221,
+    "unmapped_artifacts": 2222,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -28682,11 +28682,11 @@
           "score": 12
         },
         {
-          "value": "public.soil_observations @ services/soil-service/soil_store.py:390",
+          "value": "public.soil_observations @ services/soil-service/soil_store.py:449",
           "score": 12
         },
         {
-          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:391",
+          "value": "public.soil_profile_snapshots @ services/soil-service/soil_store.py:450",
           "score": 12
         },
         {
@@ -28738,7 +28738,7 @@
           "score": 12
         },
         {
-          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:428",
+          "value": "soil-profile.v1 @ services/soil-service/soil_store.py:487",
           "score": 12
         },
         {
@@ -28872,6 +28872,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "services/soil-service/test_soil_snapshot_identity.py",
           "score": 12,
           "signals": [
@@ -28929,6 +28937,14 @@
         },
         {
           "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "path": "tests_v9/test_soil_ingest_atomic.py",
           "score": 10,
           "signals": [
             "content:Soil profile",
@@ -29091,6 +29107,14 @@
           ]
         },
         {
+          "path": "docs/audits/SOURCE_AUDIT_REPAIR_PROPOSAL_20261002.md",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/architecture/live_pg_schema_contract.json",
           "score": 8,
           "signals": [
@@ -29126,9 +29150,9 @@
         "events": 43,
         "web": 1,
         "mobile": 0,
-        "tests": 19,
+        "tests": 21,
         "governance": 1,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -41993,6 +42017,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_nasa_power_wind.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_nl_sql_policy_boundary.py",
       "kind": "tests"
     },
     {

@@ -258,7 +258,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1682",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:656",
         "GET / @ services/field-management-service/main.py:273",
@@ -388,7 +388,7 @@
       },
       "evidence_truncated": {
         "apis": 202,
-        "tests": 103
+        "tests": 104
       }
     },
     {
@@ -937,6 +937,7 @@
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+        "services/sahool-platform/tests/test_nl_sql_policy_boundary.py",
         "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
         "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
         "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
@@ -950,8 +951,7 @@
         "tests_v9/test_canonical_field_geometry_contract.py",
         "tests_v9/test_decision_review_boundary_guard.py",
         "tests_v9/test_field_boundary_adapters_v59_1.py",
-        "tests_v9/test_field_boundary_ai_v59.py",
-        "tests_v9/test_field_boundary_backends_v59_5.py"
+        "tests_v9/test_field_boundary_ai_v59.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1000,7 +1000,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 12
+        "tests": 13
       }
     },
     {
@@ -3890,7 +3890,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",

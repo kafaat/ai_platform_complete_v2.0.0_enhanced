@@ -3,9 +3,65 @@
 from __future__ import annotations
 
 import json
+from contextlib import asynccontextmanager
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from shared.contracts.soil import SoilObservation, SoilProfileSnapshot
+
+
+class SoilIngestConflict(ValueError):
+    """An ingest key already identifies a different or incomplete measurement."""
+
+
+async def ingest_retry_ids(
+    conn, observations: list[SoilObservation], base_key: str, *, check_observed_at: bool
+) -> list[str] | None:
+    """Check the complete property set and semantic payload, ignoring generated IDs."""
+    properties = (
+        "soil_temperature",
+        "soil_moisture",
+        "ph",
+        "ec",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+    )
+    rows = await conn.fetch(
+        """
+        SELECT observation_id, field_id, property, value_json, unit,
+               depth_from_cm, depth_to_cm, observed_at, source_type, source_id
+        FROM soil_observations
+        WHERE tenant_id=$1::uuid AND idempotency_key = ANY($2::text[])
+        """,
+        observations[0].tenant_id,
+        [f"{base_key}:{name}" for name in properties],
+    )
+    if not rows:
+        return None
+    by_property = {row["property"]: row for row in rows}
+    if set(by_property) != {item.property for item in observations}:
+        raise SoilIngestConflict("soil_ingest_idempotency_conflict")
+    ids = []
+    for item in observations:
+        row = by_property[item.property]
+        value = row["value_json"]
+        value = json.loads(value) if isinstance(value, str) else value
+        # PostgreSQL's existing depth columns are NUMERIC(8,2).
+        depth = Decimal(str(item.depth_to_cm)).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+        if (
+            row["field_id"] != item.field_id
+            or value != item.value
+            or row["unit"] != item.unit
+            or float(row["depth_from_cm"]) != item.depth_from_cm
+            or Decimal(str(row["depth_to_cm"])) != depth
+            or row["source_type"] != item.source_type.value
+            or row["source_id"] != item.source_id
+            or (check_observed_at and row["observed_at"] != item.observed_at)
+        ):
+            raise SoilIngestConflict("soil_ingest_idempotency_conflict")
+        ids.append(row["observation_id"])
+    return ids
 
 
 async def _tenant_tx(conn, tenant_id: str):
@@ -15,89 +71,95 @@ async def _tenant_tx(conn, tenant_id: str):
     return tx
 
 
-async def persist_observation(pool, observation: SoilObservation) -> bool:
+@asynccontextmanager
+async def tenant_transaction(pool, tenant_id: str):
+    """One RLS-scoped transaction; also rolls back on cancellation/context failure."""
     async with pool.acquire() as conn:
-        tx = await _tenant_tx(conn, observation.tenant_id)
-        try:
-            result = await conn.execute(
-                """
-                INSERT INTO soil_observations (
-                    observation_id, contract_version, tenant_id, field_id, zone_id,
-                    property, value_json, unit, depth_from_cm, depth_to_cm,
-                    observed_at, received_at, source_type, source_id, procedure_id,
-                    calibration_id, quality_status, quality_flags, confidence,
-                    idempotency_key, provenance
-                ) VALUES (
-                    $1,$2,$3::uuid,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,
-                    $16,$17,$18::jsonb,$19,$20,$21::jsonb
-                )
-                ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
-                """,
-                observation.observation_id,
-                observation.contract_version,
-                observation.tenant_id,
-                observation.field_id,
-                observation.zone_id,
-                observation.property,
-                json.dumps(observation.value),
-                observation.unit,
-                observation.depth_from_cm,
-                observation.depth_to_cm,
-                observation.observed_at,
-                observation.received_at,
-                observation.source_type.value,
-                observation.source_id,
-                observation.procedure_id,
-                observation.calibration_id,
-                observation.quality_status.value,
-                json.dumps(observation.quality_flags),
-                observation.confidence,
-                observation.idempotency_key,
-                json.dumps(observation.provenance),
-            )
-            if result.endswith("1"):
-                if observation.supersedes_observation_id:
-                    linked = await conn.fetchval(
-                        """
-                        INSERT INTO soil_observation_supersessions (
-                            tenant_id, superseded_observation_id, replacement_observation_id, reason
-                        )
-                        SELECT $1::uuid, old.observation_id, new.observation_id, $4
-                        FROM soil_observations old
-                        JOIN soil_observations new ON new.observation_id = $3
-                        WHERE old.observation_id = $2
-                          AND old.tenant_id = $1::uuid AND new.tenant_id = $1::uuid
-                          AND old.field_id = new.field_id
-                          AND old.property = new.property
-                          AND old.depth_from_cm = new.depth_from_cm
-                          AND old.depth_to_cm = new.depth_to_cm
-                        ON CONFLICT (tenant_id, superseded_observation_id) DO NOTHING
-                        RETURNING replacement_observation_id
-                        """,
-                        observation.tenant_id,
-                        observation.supersedes_observation_id,
-                        observation.observation_id,
-                        observation.supersession_reason,
-                    )
-                    if linked is None:
-                        raise ValueError(
-                            "soil_observation_supersession_target_invalid_or_already_replaced"
-                        )
-                import projection_jobs
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            yield conn
 
-                await projection_jobs.enqueue(
-                    conn,
-                    tenant_id=observation.tenant_id,
-                    field_id=observation.field_id,
-                    reason="observation_superseded"
-                    if observation.supersedes_observation_id
-                    else "observation_ingested",
+
+async def persist_observation(pool, observation: SoilObservation) -> bool:
+    async with tenant_transaction(pool, observation.tenant_id) as conn:
+        return await persist_observation_in_transaction(conn, observation)
+
+
+async def persist_observation_in_transaction(conn, observation: SoilObservation) -> bool:
+    """Append evidence and its projection job using the caller's tenant transaction."""
+    result = await conn.execute(
+        """
+        INSERT INTO soil_observations (
+            observation_id, contract_version, tenant_id, field_id, zone_id,
+            property, value_json, unit, depth_from_cm, depth_to_cm,
+            observed_at, received_at, source_type, source_id, procedure_id,
+            calibration_id, quality_status, quality_flags, confidence,
+            idempotency_key, provenance
+        ) VALUES (
+            $1,$2,$3::uuid,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,
+            $16,$17,$18::jsonb,$19,$20,$21::jsonb
+        )
+        ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+        """,
+        observation.observation_id,
+        observation.contract_version,
+        observation.tenant_id,
+        observation.field_id,
+        observation.zone_id,
+        observation.property,
+        json.dumps(observation.value),
+        observation.unit,
+        observation.depth_from_cm,
+        observation.depth_to_cm,
+        observation.observed_at,
+        observation.received_at,
+        observation.source_type.value,
+        observation.source_id,
+        observation.procedure_id,
+        observation.calibration_id,
+        observation.quality_status.value,
+        json.dumps(observation.quality_flags),
+        observation.confidence,
+        observation.idempotency_key,
+        json.dumps(observation.provenance),
+    )
+    if result.endswith("1"):
+        if observation.supersedes_observation_id:
+            linked = await conn.fetchval(
+                """
+                INSERT INTO soil_observation_supersessions (
+                    tenant_id, superseded_observation_id, replacement_observation_id, reason
                 )
-            await tx.commit()
-            return result.endswith("1")
-        except Exception:
-            await tx.rollback()
-            raise
+                SELECT $1::uuid, old.observation_id, new.observation_id, $4
+                FROM soil_observations old
+                JOIN soil_observations new ON new.observation_id = $3
+                WHERE old.observation_id = $2
+                  AND old.tenant_id = $1::uuid AND new.tenant_id = $1::uuid
+                  AND old.field_id = new.field_id
+                  AND old.property = new.property
+                  AND old.depth_from_cm = new.depth_from_cm
+                  AND old.depth_to_cm = new.depth_to_cm
+                ON CONFLICT (tenant_id, superseded_observation_id) DO NOTHING
+                RETURNING replacement_observation_id
+                """,
+                observation.tenant_id,
+                observation.supersedes_observation_id,
+                observation.observation_id,
+                observation.supersession_reason,
+            )
+            if linked is None:
+                raise ValueError("soil_observation_supersession_target_invalid_or_already_replaced")
+        import projection_jobs
+
+        await projection_jobs.enqueue(
+            conn,
+            tenant_id=observation.tenant_id,
+            field_id=observation.field_id,
+            reason="observation_superseded"
+            if observation.supersedes_observation_id
+            else "observation_ingested",
+        )
+    return result.endswith("1")
 
 
 async def list_observations(
@@ -232,105 +294,102 @@ async def get_snapshot_history(
 
 
 async def rebuild_snapshot_locked(pool, *, tenant_id: str, field_id: str) -> SoilProfileSnapshot:
-    """Build and persist one immutable projection under a per-tenant/field advisory lock.
+    """Persist a projection under a per-tenant/field lock in its own transaction."""
+    async with tenant_transaction(pool, tenant_id) as conn:
+        return await rebuild_snapshot_in_transaction(conn, tenant_id=tenant_id, field_id=field_id)
 
-    The lock prevents duplicate competing projections across workers. The resulting
-    profile hash remains the idempotency identity, so retries are logically exactly-once.
-    """
+
+async def rebuild_snapshot_in_transaction(
+    conn, *, tenant_id: str, field_id: str
+) -> SoilProfileSnapshot:
+    """Compose and update the current pointer without committing the caller's writes."""
     import profile_composer
 
-    async with pool.acquire() as conn:
-        tx = await _tenant_tx(conn, tenant_id)
-        try:
-            await conn.execute(
-                "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
-                f"soil-profile:{tenant_id}:{field_id}",
-            )
-            rows = await conn.fetch(
-                """
-                SELECT o.observation_id, o.contract_version, o.tenant_id::text, o.field_id, o.zone_id,
-                       o.property, o.value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
-                       o.observed_at, o.received_at, o.source_type, o.source_id, o.procedure_id,
-                       o.calibration_id, o.quality_status, o.quality_flags, o.confidence,
-                       o.idempotency_key, o.provenance,
-                       (s.replacement_observation_id IS NOT NULL) AS is_superseded,
-                       s.replacement_observation_id AS superseded_by_observation_id
-                FROM soil_observations o
-                LEFT JOIN soil_observation_supersessions s
-                  ON s.tenant_id=o.tenant_id AND s.superseded_observation_id=o.observation_id
-                WHERE o.tenant_id=$1::uuid AND o.field_id=$2
-                ORDER BY o.observed_at DESC, o.received_at DESC
-                LIMIT 5000
-                """,
-                tenant_id,
-                field_id,
-            )
-            snapshot = profile_composer.compose_snapshot(
-                tenant_id=tenant_id, field_id=field_id, observations=[dict(r) for r in rows]
-            )
-            payload = snapshot.model_dump(mode="json")
-            persisted = await conn.fetchval(
-                """
-                INSERT INTO soil_profile_snapshots (
-                    profile_id, profile_hash, contract_version, tenant_id, field_id, zone_id,
-                    effective_at, data_available_at, status, evidence_level,
-                    completeness_score, quality_passed, executable,
-                    selection_policy_version, snapshot
-                ) VALUES ($1,$2,$3,$4::uuid,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb)
-                ON CONFLICT (profile_hash) DO NOTHING
-                RETURNING snapshot
-                """,
-                snapshot.profile_id,
-                snapshot.profile_hash,
-                snapshot.contract_version,
-                snapshot.tenant_id,
-                snapshot.field_id,
-                snapshot.zone_id,
-                snapshot.effective_at,
-                snapshot.data_available_at,
-                snapshot.status.value,
-                snapshot.evidence_level.value,
-                snapshot.completeness_score,
-                snapshot.quality_gate.passed,
-                snapshot.quality_gate.executable,
-                snapshot.selection_policy_version,
-                json.dumps(payload),
-            )
-            if persisted is None:
-                persisted = await conn.fetchval(
-                    """
-                    SELECT snapshot
-                    FROM soil_profile_snapshots
-                    WHERE tenant_id=$1::uuid AND field_id=$2 AND profile_hash=$3
-                    """,
-                    tenant_id,
-                    field_id,
-                    snapshot.profile_hash,
-                )
-            if persisted is None:
-                raise RuntimeError("soil_snapshot_persist_or_load_failed")
-            # JSONB decodes as str without a registered codec; normalise before use.
-            record = json.loads(persisted) if isinstance(persisted, str) else dict(persisted)
-            persisted_profile_id = record.get("profile_id")
-            await conn.execute(
-                """
-                INSERT INTO soil_profile_current (
-                    tenant_id, field_id, current_profile_id, projected_at, projection_reason
-                ) VALUES ($1::uuid,$2,$3,now(),'rebuild')
-                ON CONFLICT (tenant_id, field_id) DO UPDATE SET
-                    current_profile_id=EXCLUDED.current_profile_id,
-                    projected_at=EXCLUDED.projected_at,
-                    projection_reason=EXCLUDED.projection_reason
-                """,
-                tenant_id,
-                field_id,
-                persisted_profile_id,
-            )
-            await tx.commit()
-            return SoilProfileSnapshot.model_validate(record)
-        except Exception:
-            await tx.rollback()
-            raise
+    await conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        f"soil-profile:{tenant_id}:{field_id}",
+    )
+    rows = await conn.fetch(
+        """
+        SELECT o.observation_id, o.contract_version, o.tenant_id::text, o.field_id, o.zone_id,
+               o.property, o.value_json, o.unit, o.depth_from_cm, o.depth_to_cm,
+               o.observed_at, o.received_at, o.source_type, o.source_id, o.procedure_id,
+               o.calibration_id, o.quality_status, o.quality_flags, o.confidence,
+               o.idempotency_key, o.provenance,
+               (s.replacement_observation_id IS NOT NULL) AS is_superseded,
+               s.replacement_observation_id AS superseded_by_observation_id
+        FROM soil_observations o
+        LEFT JOIN soil_observation_supersessions s
+          ON s.tenant_id=o.tenant_id AND s.superseded_observation_id=o.observation_id
+        WHERE o.tenant_id=$1::uuid AND o.field_id=$2
+        ORDER BY o.observed_at DESC, o.received_at DESC
+        LIMIT 5000
+        """,
+        tenant_id,
+        field_id,
+    )
+    snapshot = profile_composer.compose_snapshot(
+        tenant_id=tenant_id, field_id=field_id, observations=[dict(r) for r in rows]
+    )
+    payload = snapshot.model_dump(mode="json")
+    persisted = await conn.fetchval(
+        """
+        INSERT INTO soil_profile_snapshots (
+            profile_id, profile_hash, contract_version, tenant_id, field_id, zone_id,
+            effective_at, data_available_at, status, evidence_level,
+            completeness_score, quality_passed, executable,
+            selection_policy_version, snapshot
+        ) VALUES ($1,$2,$3,$4::uuid,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb)
+        ON CONFLICT (profile_hash) DO NOTHING
+        RETURNING snapshot
+        """,
+        snapshot.profile_id,
+        snapshot.profile_hash,
+        snapshot.contract_version,
+        snapshot.tenant_id,
+        snapshot.field_id,
+        snapshot.zone_id,
+        snapshot.effective_at,
+        snapshot.data_available_at,
+        snapshot.status.value,
+        snapshot.evidence_level.value,
+        snapshot.completeness_score,
+        snapshot.quality_gate.passed,
+        snapshot.quality_gate.executable,
+        snapshot.selection_policy_version,
+        json.dumps(payload),
+    )
+    if persisted is None:
+        persisted = await conn.fetchval(
+            """
+            SELECT snapshot
+            FROM soil_profile_snapshots
+            WHERE tenant_id=$1::uuid AND field_id=$2 AND profile_hash=$3
+            """,
+            tenant_id,
+            field_id,
+            snapshot.profile_hash,
+        )
+    if persisted is None:
+        raise RuntimeError("soil_snapshot_persist_or_load_failed")
+    # JSONB decodes as str without a registered codec; normalise before use.
+    record = json.loads(persisted) if isinstance(persisted, str) else dict(persisted)
+    persisted_profile_id = record.get("profile_id")
+    await conn.execute(
+        """
+        INSERT INTO soil_profile_current (
+            tenant_id, field_id, current_profile_id, projected_at, projection_reason
+        ) VALUES ($1::uuid,$2,$3,now(),'rebuild')
+        ON CONFLICT (tenant_id, field_id) DO UPDATE SET
+            current_profile_id=EXCLUDED.current_profile_id,
+            projected_at=EXCLUDED.projected_at,
+            projection_reason=EXCLUDED.projection_reason
+        """,
+        tenant_id,
+        field_id,
+        persisted_profile_id,
+    )
+    return SoilProfileSnapshot.model_validate(record)
 
 
 async def canonical_sensor_readings(

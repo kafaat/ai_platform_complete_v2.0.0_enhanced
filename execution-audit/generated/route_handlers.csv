@@ -735,7 +735,7 @@ sahool-platform,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis
 sahool-platform,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint,services/sahool-platform/api/routers/niche_crops.py,24
 sahool-platform,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint,services/sahool-platform/api/routers/niche_crops.py,30
 sahool-platform,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint,services/sahool-platform/api/routers/nl_gis.py,199
-sahool-platform,POST,/api/v1/nl-sql,nl_sql_endpoint,services/sahool-platform/api/routers/nl_sql.py,71
+sahool-platform,POST,/api/v1/nl-sql,nl_sql_endpoint,services/sahool-platform/api/routers/nl_sql.py,73
 sahool-platform,GET,/api/v1/notifications/preferences,get_notification_preferences,services/sahool-platform/api/routers/notifications.py,58
 sahool-platform,PUT,/api/v1/notifications/preferences,update_notification_preferences,services/sahool-platform/api/routers/notifications.py,88
 sahool-platform,POST,/api/v1/notifications/delivery,upsert_notification_delivery,services/sahool-platform/api/routers/notifications.py,179
@@ -834,10 +834,10 @@ sahool-platform,POST,/api/v1/seed/evaluate-source,seed_evaluate_endpoint,service
 sahool-platform,GET,/api/v1/seed/germination-rate,seed_germination_endpoint,services/sahool-platform/api/routers/seed.py,42
 sahool-platform,GET,/api/v1/seed/storage-check,seed_storage_endpoint,services/sahool-platform/api/routers/seed.py,50
 sahool-platform,GET,/api/v1/seed/sowing-depth,seed_sowing_depth_endpoint,services/sahool-platform/api/routers/seed.py,58
-sahool-platform,API_ROUTE,/api/edge/{path:path},proxy_edge,services/sahool-platform/api/routers/service_proxy.py,136
-sahool-platform,API_ROUTE,/api/soil/{path:path},proxy_soil,services/sahool-platform/api/routers/service_proxy.py,151
-sahool-platform,API_ROUTE,/api/segmentation/{path:path},proxy_segmentation,services/sahool-platform/api/routers/service_proxy.py,166
-sahool-platform,API_ROUTE,/api/field-forms/{path:path},proxy_field_forms,services/sahool-platform/api/routers/service_proxy.py,183
+sahool-platform,API_ROUTE,/api/edge/{path:path},proxy_edge,services/sahool-platform/api/routers/service_proxy.py,176
+sahool-platform,API_ROUTE,/api/soil/{path:path},proxy_soil,services/sahool-platform/api/routers/service_proxy.py,191
+sahool-platform,API_ROUTE,/api/segmentation/{path:path},proxy_segmentation,services/sahool-platform/api/routers/service_proxy.py,209
+sahool-platform,API_ROUTE,/api/field-forms/{path:path},proxy_field_forms,services/sahool-platform/api/routers/service_proxy.py,226
 sahool-platform,PUT,/api/v1/settings,upsert_setting,services/sahool-platform/api/routers/settings.py,30
 sahool-platform,GET,/api/v1/settings,list_settings,services/sahool-platform/api/routers/settings.py,63
 sahool-platform,POST,/api/v1/sharing/generate-key,generate_share_key,services/sahool-platform/api/routers/sharing.py,46
@@ -1004,8 +1004,8 @@ soil-service,POST,/v1/soil/learning-datasets,create_learning_dataset,services/so
 soil-service,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification,services/soil-service/routers/p6_certification.py,21
 soil-service,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,services/soil-service/routers/p6_certification.py,49
 soil-service,GET,/v1/soil/runtime-certifications/{run_id},get_certification,services/soil-service/routers/p6_certification.py,60
-soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,23
-soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,38
+soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,28
+soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,43
 soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,65
 soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,76
 supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,33
