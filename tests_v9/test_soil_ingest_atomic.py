@@ -309,9 +309,7 @@ def _rekey(pool, mapping):
         ),
     ],
 )
-def test_a_row_is_matched_to_its_key_not_to_its_property(
-    soil, monkeypatch, reading_body, mapping
-):
+def test_a_row_is_matched_to_its_key_not_to_its_property(soil, monkeypatch, reading_body, mapping):
     from fastapi import HTTPException
 
     main, _store = soil
