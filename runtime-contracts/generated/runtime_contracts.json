@@ -2617,6 +2617,7 @@
       },
       "configuration": [
         "JWT_PUBLIC_KEY",
+        "PIPER_MAX_CONCURRENCY",
         "PIPER_VOICE_PATH",
         "PLATFORM_API_URL",
         "REDIS_URL",
