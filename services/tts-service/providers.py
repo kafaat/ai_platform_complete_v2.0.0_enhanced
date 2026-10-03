@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import contextlib
 import importlib.metadata
 import io
 import logging
@@ -272,6 +273,20 @@ def _require_audible_wav(audio: bytes) -> None:
         raise PiperLoadError("Piper أعاد WAV بلا إطاراتٍ صوتيّة كاملة")
 
 
+def _release_after_thread(
+    semaphore: asyncio.Semaphore, future: asyncio.Future, abandoned: dict[str, bool]
+) -> None:
+    """يُحرِّر المقعد عند انتهاء الخيط ويقرأ استثناءه دائماً. فشلُ خيطٍ أُلغي طلبُه لا يقرؤه أحدٌ
+    غيرُ هذا، فيُسجَّل بالاسم بدل «Future exception was never retrieved»؛ وفشلُ طلبٍ قائم
+    يصل المُعالِجَ نفسَه فلا يُكرَّر هنا."""
+    semaphore.release()
+    exc = None if future.cancelled() else future.exception()
+    if exc is not None and abandoned["value"]:
+        logger.warning(
+            "piper synthesis failed after its request was cancelled: %s", type(exc).__name__
+        )
+
+
 class PiperProvider(TTSProvider):
     """Piper — شبكة عصبيّة على المعالِج (اختياريّ). لا يُتاح إلّا بالمكتبة + نموذج.
 
@@ -283,8 +298,9 @@ class PiperProvider(TTSProvider):
     ``synthesize(text, wav)`` يُمرِّر ملفَّ WAV مكانَ ``syn_config`` فلا يُكتب صوت. لذا:
       • ``synthesize_wav`` وحدَه، ورفضٌ صريح لمكتبةٍ لا تحمله (لا تخمينَ واجهة).
       • النموذجُ يُحمَّل **مرّةً لكلّ عمليّة** لكلّ مسار (قفلٌ يمنع التحميل المزدوج).
-      • التركيبُ الثقيل في خيطٍ (``asyncio.to_thread``) لا في حلقة الطلبات، وبحدٍّ للتزامن
-        (``PIPER_MAX_CONCURRENCY``، افتراضاً 1) كي لا يتنافس على المعالِج بلا سقف.
+      • التركيبُ الثقيل في خيطٍ (``run_in_executor``) لا في حلقة الطلبات، وبحدٍّ للتزامن
+        (``PIPER_MAX_CONCURRENCY``، افتراضاً 1) لكلّ نسخة مزوّد — والخدمةُ تستعمل نسخةَ
+        السجلّ الواحدة (``main._PROVIDER_REGISTRY``)، فالحدُّ عمليّاً لكلّ عمليّة.
       • فشلُ التحميل أو مخرجٌ بلا إطارات ⇒ ``PiperLoadError`` صريح؛ والمُعالِجُ لا يرجع إلى edge.
       • الإصدارُ المستهدف صريح (``PIPER_TTS_TARGET_VERSION``): وجودُ ``synthesize_wav`` لا يُثبت
         توافقَ كلّ ≥ 1.3، فغيرُ المستهدف يُرفض بالاسم بدل أن يُفترض متوافقاً.
@@ -352,8 +368,16 @@ class PiperProvider(TTSProvider):
 
         voice = self._load(path)
         buf = io.BytesIO()
-        with wave.open(buf, "wb") as wav:
+        wav = wave.open(buf, "wb")
+        try:
             voice.synthesize_wav(text, wav)
+        except BaseException:
+            # ``close()`` على كاتبٍ لم تُضبط معاملاتُه يرمي «# channels not specified» فيُخفي
+            # السببَ الحقيقيّ (مقيس). يُكتم ذاك وحده؛ و``close`` يُصفّر الملفّ في ``finally``.
+            with contextlib.suppress(wave.Error):
+                wav.close()
+            raise
+        wav.close()
         audio = buf.getvalue()
         _require_audible_wav(audio)
         return audio
@@ -372,8 +396,13 @@ class PiperProvider(TTSProvider):
             semaphore.release()
             raise
         # المقعدُ يُحرَّر حين ينتهي الخيطُ فعلاً — لا حين يُلغى الطلبُ المنتظِر (shield).
-        future.add_done_callback(lambda _f: semaphore.release())
-        return await asyncio.shield(future)
+        abandoned = {"value": False}
+        future.add_done_callback(lambda f: _release_after_thread(semaphore, f, abandoned))
+        try:
+            return await asyncio.shield(future)
+        except asyncio.CancelledError:
+            abandoned["value"] = True
+            raise
 
 
 class XTTSProvider(TTSProvider):

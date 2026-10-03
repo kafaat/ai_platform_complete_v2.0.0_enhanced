@@ -356,3 +356,37 @@ def test_a_stream_that_fails_after_starting_is_logged_and_cut_not_relabelled(
         _client(main).post("/v1/tts/stream", json=_BODY, headers=_bearer(main))
     logged = [r.getMessage() for r in caplog.records]
     assert any("TTS stream aborted after start" in m and "bytes_sent=11" in m for m in logged)
+
+
+def test_a_cancelled_request_whose_thread_fails_is_logged_by_name(piper_env, monkeypatch, caplog):
+    """فشلُ خيطٍ أُلغي طلبُه يُقرأ ويُسجَّل بالاسم — لا «Future exception was never retrieved»."""
+    import gc
+
+    _main, providers, _ = piper_env
+    _FakeVoice.synth_delay = 0.2
+    _FakeVoice.synth_error = True
+
+    async def scenario():
+        task = asyncio.create_task(
+            providers.PiperProvider().synthesize("x", "v", "+0%", "+0Hz", "+0%")
+        )
+        await asyncio.sleep(0.05)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        await asyncio.sleep(0.4)  # يدع الخيطَ ينتهي ويُنفَّذ نداءُ الإتمام
+
+    with caplog.at_level("WARNING"):
+        asyncio.run(scenario())
+        gc.collect()
+    messages = [r.getMessage() for r in caplog.records]
+    assert any("after its request was cancelled: RuntimeError" in m for m in messages)
+    assert not any("never retrieved" in m for m in messages)
+
+
+def test_a_failure_of_a_live_request_is_not_double_logged_by_the_provider(piper_env, caplog):
+    _main, providers, _ = piper_env
+    _FakeVoice.synth_error = True
+    with caplog.at_level("WARNING"), pytest.raises(RuntimeError):
+        asyncio.run(providers.PiperProvider().synthesize("x", "v", "+0%", "+0Hz", "+0%"))
+    assert not any("after its request was cancelled" in r.getMessage() for r in caplog.records)
