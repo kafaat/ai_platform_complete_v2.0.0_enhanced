@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import importlib.metadata
 import io
 import logging
 import math
@@ -240,8 +241,35 @@ class EdgeTTSProvider(TTSProvider):
         raise AssertionError("unreachable")  # pragma: no cover - الحلقة تُعيد أو ترمي
 
 
+#: الإصدارُ الوحيد الذي فُحصت واجهتُه (توقيعات ``load``/``synthesize``/``synthesize_wav``).
+PIPER_TTS_TARGET_VERSION = "1.8.0"
+
+
 class PiperLoadError(RuntimeError):
     """النموذجُ موجودٌ لكنّه لا يُحمَّل (تالف/غير متوافق) — خطأٌ صريح، لا رجوعَ إلى مزوّدٍ آخر."""
+
+
+def _require_audible_wav(audio: bytes) -> None:
+    """ترويسةُ RIFF/WAVE صحيحة + معاملاتٌ معقولة + إطاراتٌ موجودةٌ فعلاً بطولها المُعلَن."""
+    import wave
+
+    if audio[:4] != b"RIFF" or audio[8:12] != b"WAVE":
+        raise PiperLoadError("مخرجُ Piper ليس RIFF/WAVE")
+    try:
+        with wave.open(io.BytesIO(audio), "rb") as w:
+            channels, width, rate, frames = (
+                w.getnchannels(),
+                w.getsampwidth(),
+                w.getframerate(),
+                w.getnframes(),
+            )
+            data = w.readframes(frames)
+    except (wave.Error, EOFError) as exc:
+        raise PiperLoadError(f"WAV تالف: {exc}") from exc
+    if channels < 1 or width not in (1, 2, 3, 4) or rate <= 0:
+        raise PiperLoadError("معاملاتُ WAV غير صالحة")
+    if frames <= 0 or len(data) != frames * channels * width:
+        raise PiperLoadError("Piper أعاد WAV بلا إطاراتٍ صوتيّة كاملة")
 
 
 class PiperProvider(TTSProvider):
@@ -258,6 +286,10 @@ class PiperProvider(TTSProvider):
       • التركيبُ الثقيل في خيطٍ (``asyncio.to_thread``) لا في حلقة الطلبات، وبحدٍّ للتزامن
         (``PIPER_MAX_CONCURRENCY``، افتراضاً 1) كي لا يتنافس على المعالِج بلا سقف.
       • فشلُ التحميل أو مخرجٌ بلا إطارات ⇒ ``PiperLoadError`` صريح؛ والمُعالِجُ لا يرجع إلى edge.
+      • الإصدارُ المستهدف صريح (``PIPER_TTS_TARGET_VERSION``): وجودُ ``synthesize_wav`` لا يُثبت
+        توافقَ كلّ ≥ 1.3، فغيرُ المستهدف يُرفض بالاسم بدل أن يُفترض متوافقاً.
+      • إلغاءُ الطلب لا يوقف خيطَ التركيب؛ لذا يُحرَّر مقعدُ التزامن عند **انتهاء الخيط** لا عند
+        الإلغاء، فلا يتجاوز عددُ الخيوط العاملة الحدَّ.
     """
 
     name = "piper"
@@ -278,6 +310,13 @@ class PiperProvider(TTSProvider):
         path = self._voice_path()
         return bool(_PIPER_LIB_AVAILABLE and path and os.path.exists(path))
 
+    @staticmethod
+    def _installed_version() -> str | None:
+        try:
+            return importlib.metadata.version("piper-tts")
+        except importlib.metadata.PackageNotFoundError:
+            return None
+
     def _max_concurrency(self) -> int:
         try:
             return max(1, int(os.getenv("PIPER_MAX_CONCURRENCY", "1")))
@@ -293,6 +332,12 @@ class PiperProvider(TTSProvider):
             if voice is None:
                 from piper import PiperVoice  # type: ignore[import-not-found]
 
+                installed = self._installed_version()
+                if installed != PIPER_TTS_TARGET_VERSION:
+                    raise PiperLoadError(
+                        f"piper-tts {installed or 'غير معروف'} ليس الإصدارَ المستهدف "
+                        f"{PIPER_TTS_TARGET_VERSION} (لم يُتحقَّق من توافقه)"
+                    )
                 if not hasattr(PiperVoice, "synthesize_wav"):
                     raise PiperLoadError("piper-tts غير مدعوم: لا synthesize_wav (يلزم ≥ 1.3)")
                 try:
@@ -310,9 +355,7 @@ class PiperProvider(TTSProvider):
         with wave.open(buf, "wb") as wav:
             voice.synthesize_wav(text, wav)
         audio = buf.getvalue()
-        with wave.open(io.BytesIO(audio), "rb") as check:
-            if check.getnframes() <= 0:
-                raise PiperLoadError("Piper أعاد WAV بلا إطارات")
+        _require_audible_wav(audio)
         return audio
 
     async def synthesize(self, text: str, voice: str, rate: str, pitch: str, volume: str) -> bytes:
@@ -320,8 +363,17 @@ class PiperProvider(TTSProvider):
             raise RuntimeError("Piper غير متاح (المكتبة أو PIPER_VOICE_PATH مفقود)")
         if self._semaphore is None:
             self._semaphore = asyncio.Semaphore(self._max_concurrency())
-        async with self._semaphore:
-            return await asyncio.to_thread(self._synthesize_blocking, self._voice_path(), text)
+        semaphore = self._semaphore
+        await semaphore.acquire()
+        try:
+            loop = asyncio.get_running_loop()
+            future = loop.run_in_executor(None, self._synthesize_blocking, self._voice_path(), text)
+        except BaseException:
+            semaphore.release()
+            raise
+        # المقعدُ يُحرَّر حين ينتهي الخيطُ فعلاً — لا حين يُلغى الطلبُ المنتظِر (shield).
+        future.add_done_callback(lambda _f: semaphore.release())
+        return await asyncio.shield(future)
 
 
 class XTTSProvider(TTSProvider):

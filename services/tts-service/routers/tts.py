@@ -212,9 +212,21 @@ async def stream(
             pitch=req.pitch,
             volume=req.volume,
         )
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                yield chunk["data"]
+        sent = 0
+        try:
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    sent += len(chunk["data"])
+                    yield chunk["data"]
+        except Exception as e:
+            # الرؤوسُ (200) أُرسِلت: لا 503 ممكناً بعدها. يُسجَّل الفشلُ ويُعاد رفعُه كي يُقطع
+            # النقلُ المجزَّأ بلا مقطعٍ ختاميّ — فيرى العميلُ بثّاً ناقصاً لا ملفّاً يبدو مكتملاً.
+            main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="stream").inc()
+            main.logger.error(
+                f"TTS stream aborted after start: provider={chosen.name} "
+                f"bytes_sent={sent} error={type(e).__name__}"
+            )
+            raise
 
     main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
     return StreamingResponse(audio_stream(), media_type=chosen.media_type)
