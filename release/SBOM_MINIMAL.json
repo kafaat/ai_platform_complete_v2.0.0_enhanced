@@ -10535,7 +10535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47c166efcfe1e092a2c33eccc8a39dabc7d640da0befc3cc07efae2e1759766c"
+          "content": "80f31c761b87809b36695dbee4f7c9f731e3da6414d4a96b4bdecd058ac2bb86"
         }
       ],
       "name": "services/actuator-service/requirements.txt",

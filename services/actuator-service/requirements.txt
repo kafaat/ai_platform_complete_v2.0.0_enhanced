@@ -5,4 +5,5 @@ httpx>=0.27.0
 asyncpg>=0.30.0,<0.32.0
 redis>=5.0.0
 aiomqtt>=2.0.0
-PyJWT>=2.13.0
+PyJWT[crypto]>=2.13.0
+cryptography==50.0.1  # مزوّدُ RSA لـPyJWT: بدونه يرفض _verify_token كلَّ توكن RS256 (حتّى الصالح) بـInvalidAlgorithmError ⇒ 401 (ACTUATOR-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01) — كسابقة guardrails في #1091
