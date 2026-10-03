@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5477,
+    "files_scanned": 5478,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1529,
-      "tests": 1870,
+      "tests": 1871,
       "web": 459
     },
-    "unmapped_artifacts": 2223,
+    "unmapped_artifacts": 2224,
     "ambiguous_artifacts": 430
   },
   "capabilities": [
@@ -44345,6 +44345,10 @@
     },
     {
       "path": "tests_v9/test_nginx_edge_routing_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_nginx_runtime_pull_retry.py",
       "kind": "tests"
     },
     {
