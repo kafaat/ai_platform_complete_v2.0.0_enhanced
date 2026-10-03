@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "soil-ingest-native-postgres-20261003",
+  "verdict": "MEASURED",
+  "scope": "disposable_local_postgresql_16_strict_rls_soil_ingest",
+  "source": {
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "fixed_commit_sha": "650596c12095609a4f095a6e8ae5d880198e9cab",
+    "baseline_commit_sha": "f60f0635398963f0fb0442c60bb51d774687393d",
+    "fixed_source_hashes": {
+      "services/soil-service/soil_store.py": "d2549c6f1e2f6c3e0453b11341b64fcbe2b08798066af7b46214d6a9c23032b8",
+      "services/soil-service/routers/readings.py": "718bb61d727872454fea4656c003cb97c84e6121dfa4c280d618f4f6b54d99d5"
+    },
+    "baseline_source_hashes": {
+      "services/soil-service/soil_store.py": "14621f295d37867fe0d0b61b9190a0a2cc28f6e5cbd0ba9193f8142530f5c787",
+      "services/soil-service/routers/readings.py": "285c4cdab598ae1a1f5ef18f7f09fd6e07e3c649c4a87055a212dad106619d3b"
+    },
+    "migration_hashes": {
+      "init_v8.sql:soil_readings_declaration": "ee8a4b69a90debea3cc585638e145b8ea0c32ae1d6a7f5d59cc9f6ee294ffd2f",
+      "v9_rls_tenant_isolation.sql": "7f025bc714629ea0862819a3d838bb0ce35ddb9d158c4c98524e423bb550f2e7",
+      "v122_rls_with_check_session_unification.sql": "e7622d53ae4a120975e63859ad57d94d15ff25996c37ac03670e7fd40a63fd0a",
+      "v155_soil_observations_profiles.sql": "47a14e881e52d167e6bfcbfebaab1a3e0150e55e134b71d51508ef0e5f9ef969",
+      "v157_soil_projection_jobs_reconciliation.sql": "d4c5859cd49d16f7bccec02e3cfbc722e3930fc2e7357d79ac8b708fb78c9e0b",
+      "v159_soil_observation_supersession_current_pointer.sql": "07a85c24c172b457bc095370a21394fa5bfbb975241403942960293737d42c0d",
+      "v206_rls_final_hardening.sql": "5d44c98657b172915885c3a238ad4d4508d6e6ac2c0ca62a043dda015bdb4571"
+    }
+  },
+  "environment": {
+    "server_version": "16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)",
+    "server_binary": "/usr/lib/postgresql/16/bin (system package)",
+    "server_identity": "initdb/pg_ctl run as uid 65534 (nobody); unix socket only, listen_addresses empty; cluster deleted after the run",
+    "app_role": [
+      {
+        "rolname": "audit_app",
+        "rolsuper": false,
+        "rolbypassrls": false
+      },
+      {
+        "rolname": "audit_jobs",
+        "rolsuper": false,
+        "rolbypassrls": true
+      }
+    ],
+    "rls": [
+      {
+        "relname": "soil_observations",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "soil_profile_current",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "soil_profile_projection_jobs",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "soil_profile_snapshots",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "relname": "soil_readings",
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      }
+    ],
+    "pgserver_shim": "pgserver not installed; a two-line local module exported only POSTGRES_BIN_PATH=/usr/lib/postgresql/16/bin, the sole symbol the probe imports from it"
+  },
+  "method": {
+    "probe": "verification/probe_soil_postgres.py from SAHOOL_Source_Repair_Review_20261003",
+    "probe_sha256": "9fbff284b5e187b85eaf0bde4193a2f65c2200785c7a4d450b40161ab0e85319",
+    "fixed_run": "--expect-fixed (every assertion held, exit 0)",
+    "baseline_run": "no --expect-fixed (records the defects instead of asserting their absence)",
+    "no_railway": true,
+    "database_url": "cleared by the probe",
+    "field_ownership": "stubbed to the test tenant"
+  },
+  "measurement": {
+    "fixed": {
+      "strict_rls_ingest": {
+        "error": null,
+        "response": {
+          "status": "ingested",
+          "canonical_observation_ids": [
+            "sob_f5deb9cbf36549f2b3b833e4d28e6442",
+            "sob_0f626249496e41bfbe4235300a95548f"
+          ],
+          "profile_id": "sp_9e849eb464954fbba4e549d2118d4485",
+          "profile_hash": "03d661ba6bea9ffe9347411d2f002016cf4bb3e1a93c1744e42f1203c97254fb"
+        },
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 2,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 1,
+          "soil_profile_current": 1
+        },
+        "other_tenant_snapshot": null,
+        "tenant_context_reset": true
+      },
+      "two_tenant_read_write_isolation": {
+        "a_visible": 2,
+        "b_visible": 1,
+        "missing_context_visible": 0,
+        "cross_tenant_insert_rejected": true
+      },
+      "second_property_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "projection_job_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "snapshot_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "current_pointer_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "legacy_row_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "idempotent_retry": {
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 2,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 1,
+          "soil_profile_current": 1
+        },
+        "same_observation_ids": true,
+        "same_profile_id": true,
+        "same_profile_hash": true
+      },
+      "changed_key_payload": {
+        "rejected": 6,
+        "counts_unchanged": true
+      },
+      "concurrent_identical_key": {
+        "same_ids": true,
+        "no_duplicate_rows": true
+      },
+      "concurrent_same_field": {
+        "counts": {
+          "soil_readings": 2,
+          "soil_observations": 4,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 2,
+          "soil_profile_current": 1
+        },
+        "latest_evidence_selected": true
+      },
+      "cross_field_key_collision": {
+        "status": 409,
+        "counts_unchanged": true
+      },
+      "request_cancellation": {
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        },
+        "rolled_back": true
+      }
+    },
+    "baseline": {
+      "strict_rls_ingest": {
+        "error": "InsufficientPrivilegeError",
+        "response": null,
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "second_property_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 1,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "projection_job_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "snapshot_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 2,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "current_pointer_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 1,
+          "soil_observations": 2,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "legacy_row_failure": {
+        "error": "RaiseError",
+        "counts": {
+          "soil_readings": 0,
+          "soil_observations": 0,
+          "soil_profile_projection_jobs": 0,
+          "soil_profile_snapshots": 0,
+          "soil_profile_current": 0
+        }
+      },
+      "idempotent_retry": {
+        "counts": {
+          "soil_readings": 2,
+          "soil_observations": 2,
+          "soil_profile_projection_jobs": 1,
+          "soil_profile_snapshots": 1,
+          "soil_profile_current": 1
+        },
+        "same_observation_ids": false,
+        "same_profile_id": true,
+        "same_profile_hash": true
+      }
+    }
+  },
+  "gap_mapping": {
+    "SOIL-LEGACY-INGEST-MISSES-TENANT-TRANSACTION-01": "baseline: ingest under a NOBYPASSRLS role fails InsufficientPrivilegeError; fixed: succeeds, other tenant sees nothing, cross-tenant insert rejected, missing context sees 0 rows",
+    "SOIL-WIDE-INGEST-COMMITS-PARTIAL-EVIDENCE-01": "baseline: injected failures leave partial rows ([1,1,1,0,0] · [1,0,0,0,0] · [1,2,1,0,0]) and a retry duplicates soil_readings with new observation ids; fixed: every failure and a mid-request cancellation roll back to zero, retries and concurrent identical keys converge on one row set"
+  },
+  "boundaries": {
+    "runtime_claims": false,
+    "state_transition": "none — the gaps stay open until the fix is merged and measured on a deployed image",
+    "not_exercised": "PostGIS/full MANIFEST, live field ownership, real JWT, deployed image, production data, Railway"
+  }
+}
