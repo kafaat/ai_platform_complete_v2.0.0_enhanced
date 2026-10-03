@@ -29965,7 +29965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "549bdbebf531b85b27f3908f30c1519a0435d4caa8066ecb4b8a4a506a9b8676"
+          "content": "51b878cf434f8c2ec1f5a2e0ec0f83ca35ade68e7bd62f99ad567f6d27fd796e"
         }
       ],
       "name": "services/vegetation-analysis-service/requirements.txt",
