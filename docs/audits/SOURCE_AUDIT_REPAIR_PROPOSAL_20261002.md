@@ -154,7 +154,7 @@
 | سياق ومعاملة ومخزن التربة | `services/soil-service/routers/readings.py` و`services/soil-service/soil_store.py` |
 | مهمة الإسقاط المتينة | `services/soil-service/projection_jobs.py` |
 | بنية الصف التوافقي وRLS | `migrations/init_v8.sql` و`migrations/v206_rls_final_hardening.sql` |
-| اختبار السياسة والعميل | `services/sahool-platform/tests/test_nl_sql_policy_boundary.py` |
+| اختبار السياسة والعميل | `services/sahool-platform/tests/test_nl_sql_policy.py` |
 | اختبار BFF وهوية الفاعل | `services/sahool-platform/tests/test_soil_proxy_authorization.py` |
 | اختبار الخطأ والإلغاء وإعادة الطلب | `tests_v9/test_soil_ingest_atomic.py` |
 

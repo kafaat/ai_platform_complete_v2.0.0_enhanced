@@ -280,6 +280,58 @@ def test_a_key_used_for_another_field_cannot_return_its_observations(soil, monke
     assert pool.state == before
 
 
+def _rekey(pool, mapping):
+    """Give stored rows other keys, as a canonical writer may do for the same base."""
+    rows = pool.state["observations"]
+    for (tenant, key), args in list(rows.items()):
+        if key in mapping:
+            del rows[(tenant, key)]
+            args = list(args)
+            args[19] = mapping[key]
+            rows[(tenant, mapping[key])] = tuple(args)
+
+
+@pytest.mark.parametrize(
+    "reading_body, mapping",
+    [
+        # "<base>:ph" holds a soil_moisture row: it is not this reading's moisture key.
+        (
+            {"moisture_pct": 30},
+            {"atomic-1:soil_moisture": "atomic-1:ph"},
+        ),
+        # Swapped suffixes: every key and property exists, but not on the same row.
+        (
+            {"temperature": 25, "moisture_pct": 30},
+            {
+                "atomic-1:soil_moisture": "atomic-1:soil_temperature",
+                "atomic-1:soil_temperature": "atomic-1:soil_moisture",
+            },
+        ),
+    ],
+)
+def test_a_row_is_matched_to_its_key_not_to_its_property(
+    soil, monkeypatch, reading_body, mapping
+):
+    from fastapi import HTTPException
+
+    main, _store = soil
+    pool = Pool()
+    body = dict(
+        field_id="atomic-field",
+        sensor_id="sensor-1",
+        observed_at=datetime(2026, 10, 2, tzinfo=UTC),
+        idempotency_key="atomic-1",
+        **reading_body,
+    )
+    ingest(soil, monkeypatch, pool, main.SoilReading(**body))
+    _rekey(pool, mapping)
+    before = deepcopy(pool.state)
+    with pytest.raises(HTTPException) as failure:
+        ingest(soil, monkeypatch, pool, main.SoilReading(**body))
+    assert failure.value.status_code == 409
+    assert pool.state == before
+
+
 def test_cancellation_does_not_leave_an_earlier_write_committed(soil, monkeypatch):
     import projection_jobs
 

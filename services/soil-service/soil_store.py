@@ -29,7 +29,7 @@ async def ingest_retry_ids(
     )
     rows = await conn.fetch(
         """
-        SELECT observation_id, field_id, property, value_json, unit,
+        SELECT observation_id, idempotency_key, field_id, property, value_json, unit,
                depth_from_cm, depth_to_cm, observed_at, source_type, source_id
         FROM soil_observations
         WHERE tenant_id=$1::uuid AND idempotency_key = ANY($2::text[])
@@ -39,18 +39,21 @@ async def ingest_retry_ids(
     )
     if not rows:
         return None
-    by_property = {row["property"]: row for row in rows}
-    if set(by_property) != {item.property for item in observations}:
+    # Rows are unique by key, not by property: a canonical observation may hold
+    # "<base>:ph" with another property, and must not answer this retry.
+    by_key = {row["idempotency_key"]: row for row in rows}
+    if set(by_key) != {item.idempotency_key for item in observations}:
         raise SoilIngestConflict("soil_ingest_idempotency_conflict")
     ids = []
     for item in observations:
-        row = by_property[item.property]
+        row = by_key[item.idempotency_key]
         value = row["value_json"]
         value = json.loads(value) if isinstance(value, str) else value
         # PostgreSQL's existing depth columns are NUMERIC(8,2).
         depth = Decimal(str(item.depth_to_cm)).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
         if (
-            row["field_id"] != item.field_id
+            row["property"] != item.property
+            or row["field_id"] != item.field_id
             or value != item.value
             or row["unit"] != item.unit
             or float(row["depth_from_cm"]) != item.depth_from_cm
