@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1866256b1c6913bbb57bc1a7e8bd5c359377cc73f00216a525a06304b241efce"
+          "content": "bdc11ecaa169399593c2a019d3ed53df5872069163d74c62f2c6b8814db7881e"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10535,7 +10535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47c166efcfe1e092a2c33eccc8a39dabc7d640da0befc3cc07efae2e1759766c"
+          "content": "80f31c761b87809b36695dbee4f7c9f731e3da6414d4a96b4bdecd058ac2bb86"
         }
       ],
       "name": "services/actuator-service/requirements.txt",
@@ -19085,7 +19085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d784f0c3cafe096b4c593245b09def1d7983b926bb99f533b0f937293603b905"
+          "content": "98e0757d8d02a1de95699703a6c27865017f7dfd6b8c54c12e9bd8e995f9cbd0"
         }
       ],
       "name": "services/sahool-platform/api/routers/nl_sql.py",
@@ -19475,7 +19475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76d863545d1cab61d89d96aacd7d0ee525bb6d2e2bf7c2d2628c88bdce65f59f"
+          "content": "add432f7083db29bd0f59308c4a2056363558e9dd6ef15e3caaab117479bd056"
         }
       ],
       "name": "services/sahool-platform/api/routers/service_proxy.py",
@@ -26735,6 +26735,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b29a89fb2634804eb496435c5b907064bc1b12925e224862952f1026a534802b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_nl_sql_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f0257cb241ee2be9f40101b2a970ec9fe361874142088a3e850d2f53c5be3a98"
         }
       ],
@@ -27929,6 +27939,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_soil_lab_workflow.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46d5110a390c943783b9e5ec26fe812e99e56b66b122f97da67dd05d344017bb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
       "type": "file"
     },
     {
@@ -29195,7 +29215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "285c4cdab598ae1a1f5ef18f7f09fd6e07e3c649c4a87055a212dad106619d3b"
+          "content": "718bb61d727872454fea4656c003cb97c84e6121dfa4c280d618f4f6b54d99d5"
         }
       ],
       "name": "services/soil-service/routers/readings.py",
@@ -29225,7 +29245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14621f295d37867fe0d0b61b9190a0a2cc28f6e5cbd0ba9193f8142530f5c787"
+          "content": "e880ddd933fbdb27ad46e434400bf3745bfa36c68d7304b4cb839778c9f48418"
         }
       ],
       "name": "services/soil-service/soil_store.py",

@@ -68,7 +68,6 @@ medium,gis-workflow-service,function,assemble_print_map_svg,services/gis-workflo
 medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,361,0,review_before_delete,False
 medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,368,0,review_before_delete,False
 medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py,150,0,review_before_delete,False
-medium,mcp-servers,function,tenant_transaction,services/mcp_servers/shared/oauth_middleware.py,36,0,review_before_delete,False
 medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,185,0,review_before_delete,False
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
@@ -581,7 +580,7 @@ medium,sahool-platform,class,TestAssembleHonesty,services/sahool-platform/tests/
 medium,sahool-platform,class,TestCalibrated,services/sahool-platform/tests/test_yield_interval_service.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestPending,services/sahool-platform/tests/test_yield_interval_service.py,35,0,review_before_delete,False
 medium,sahool-platform,class,TestCoverageMonotonicity,services/sahool-platform/tests/test_yield_interval_service.py,61,0,review_before_delete,False
-medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,143,0,review_before_delete,False
+medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,208,0,review_before_delete,False
 medium,soil-service,function,fetch_soil_properties,services/soil-service/soilgrids_client.py,148,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False

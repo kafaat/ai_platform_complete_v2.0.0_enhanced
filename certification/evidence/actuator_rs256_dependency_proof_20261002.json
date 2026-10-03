@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "actuator-rs256-dependency-proof-20261002",
+  "verdict": "MEASURED",
+  "scope": "isolated_environment_built_from_actuator_service_requirements_only",
+  "source": {
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "base_commit_sha": "f60f0635398963f0fb0442c60bb51d774687393d",
+    "requirements_file": "services/actuator-service/requirements.txt"
+  },
+  "environment": {
+    "python": "3.11",
+    "isolation": "fresh venv per side; pip install -r services/actuator-service/requirements.txt and nothing else",
+    "pip_check": {
+      "before": "No broken requirements found.",
+      "after": "No broken requirements found."
+    }
+  },
+  "method": {
+    "code_path": "actuator_runtime._verify_token (the service's real verifier, imported in the venv with JWT_PUBLIC_KEY set to a generated RSA-2048 public key)",
+    "tokens": {
+      "valid": "RS256 signed by the matching private key (openssl dgst -sha256 -sign)",
+      "tampered": "valid token with the first signature character flipped",
+      "foreign": "RS256 signed by an unrelated RSA-2048 key"
+    },
+    "claims": {
+      "sub": "u-1",
+      "tenant_id": "t-1",
+      "aud": "sahool",
+      "iss": "sahool-auth"
+    },
+    "keys": "generated for the run and discarded; never a deployed key"
+  },
+  "measurement": {
+    "before_fix": {
+      "pyjwt": "2.15.1",
+      "cryptography": null,
+      "has_crypto": false,
+      "jwt_algorithm": "RS256",
+      "valid": {
+        "status": 401,
+        "cause": "InvalidAlgorithmError"
+      },
+      "tampered": {
+        "status": 401,
+        "cause": "InvalidAlgorithmError"
+      },
+      "foreign": {
+        "status": 401,
+        "cause": "InvalidAlgorithmError"
+      }
+    },
+    "after_fix": {
+      "pyjwt": "2.15.1",
+      "cryptography": "50.0.1",
+      "has_crypto": true,
+      "jwt_algorithm": "RS256",
+      "valid": {
+        "status": 200,
+        "sub": "u-1"
+      },
+      "tampered": {
+        "status": 401,
+        "cause": "InvalidSignatureError"
+      },
+      "foreign": {
+        "status": 401,
+        "cause": "InvalidSignatureError"
+      }
+    }
+  },
+  "dependency_delta": {
+    "added": [
+      "cffi==2.1.1",
+      "cryptography==50.0.1",
+      "pycparser==3.0"
+    ],
+    "removed": [],
+    "note": "no previously-resolved package changed version"
+  },
+  "pip_audit": "No known vulnerabilities found (with the documented --ignore-vuln PYSEC-2026-1325)",
+  "gap_mapping": {
+    "ACTUATOR-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01": {
+      "state": "fixed",
+      "basis": "Before: a valid RS256 token is rejected 401 with InvalidAlgorithmError in an environment built from the service requirements. After: valid -> 200; tampered and foreign -> 401 InvalidSignatureError."
+    }
+  },
+  "boundaries": {
+    "runtime_claims": false,
+    "deployed_image_measured": false,
+    "production_certification": "NOT_GRANTED",
+    "behavioural_change_ar": "بعد النشر تبدأ الخدمةُ بقبول توكنات RS256 الصالحة التي كانت تُرفض كلُّها؛ وهي خدمةٌ تتحكّم بأجهزةٍ فيزيائيّة، فالنشرُ قرارٌ مستقلّ بموافقة المالك لا نتيجةٌ لهذا الدليل.",
+    "untouched_ar": "لا تغيير في actuator_runtime.py ولا routers/commands.py (مسارا GATE-01 المجمَّدان) ولا في التفويض أو MQTT أو تنفيذ الأجهزة؛ ولم يُرسَل أيُّ أمرٍ إلى جهاز."
+  }
+}

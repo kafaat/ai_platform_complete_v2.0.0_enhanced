@@ -5692,6 +5692,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_notification_delivery_endpoints.py",
     "kind": "tests"
   },
@@ -6813,6 +6817,10 @@
   },
   {
     "path": "tests_v9/test_actuation_killswitch_v29_5_op.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuator_crypto_dependency.py",
     "kind": "tests"
   },
   {

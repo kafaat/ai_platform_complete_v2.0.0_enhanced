@@ -258,7 +258,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1682",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:656",
         "GET / @ services/field-management-service/main.py:273",
@@ -3130,6 +3130,7 @@
         "services/sahool-platform/tests/test_actuator_command.py",
         "services/sahool-platform/tests/test_command_dispatcher.py",
         "tests_v9/actuator_route_source.py",
+        "tests_v9/test_actuator_crypto_dependency.py",
         "tests_v9/test_actuator_idempotency.py",
         "tests_v9/test_actuator_mode.py",
         "tests_v9/test_command_dispatch_race_v65.py",
@@ -3176,7 +3177,7 @@
           "path": "services/actuator-service/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=18, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=19, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3890,7 +3891,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",

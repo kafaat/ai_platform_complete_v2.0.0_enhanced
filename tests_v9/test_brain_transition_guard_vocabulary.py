@@ -241,3 +241,44 @@ def test_a_bare_token_between_two_quotations_is_still_a_claim():
     ثقبٌ صامت: السطرُ يبدو مقتبَساً وهو ليس كذلك.
     """
     assert guard._is_claim("+- `أ` CLOSED `ب`")
+
+
+# ── BRAIN-TRANSITION-GUARD-BLIND-TO-FRONTEND-CODE-01 ────────────────────────────────────
+# كانت إصلاحاتُ الواجهة تُرفض «دماغيّةً صرفة» مع أنّ شيفرتها واختبارها في الدفعة. يُحتسَب
+# مصدرُ الواجهة القابلُ للتنفيذ واختبارُه وحدهما؛ والتوثيقُ والإعدادُ والمُولَّدُ لا يكفي.
+_CLAIM = "+- **الحالة:** CLOSED\n"
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "frontend/src/lib/referenceContracts.ts",
+        "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+        "frontend/src/lib/referenceContracts.test.ts",
+        "frontend/e2e/field-workspace.spec.ts",
+    ],
+)
+def test_a_frontend_source_or_test_change_counts_as_executable_evidence(path, capsys):
+    guard.check(["sahool-brain/gaps/registry.md", path], _CLAIM)
+    assert "brain_state_transition_guard_ok" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "frontend/README.md",
+        "frontend/package.json",
+        "frontend/vite.config.ts",
+        "frontend/src/index.css",
+        "frontend/src/lib/indicatorsRegistry.generated.ts",
+        "frontend/src/lib/platformCatalog.generated.ts",
+    ],
+)
+def test_frontend_docs_config_or_generated_files_do_not_justify_a_closure(path):
+    with pytest.raises(SystemExit, match="sahool-brain-only"):
+        guard.check(["sahool-brain/gaps/registry.md", path], _CLAIM)
+
+
+def test_brain_only_closure_is_still_rejected_after_the_frontend_widening():
+    with pytest.raises(SystemExit, match="sahool-brain-only"):
+        guard.check(["sahool-brain/gaps/registry.md", "sahool-brain/log.md"], _CLAIM)
