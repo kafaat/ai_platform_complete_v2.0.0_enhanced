@@ -8700,6 +8700,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_piper_provider.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_providers_20260702.py",
     "kind": "tests"
   },

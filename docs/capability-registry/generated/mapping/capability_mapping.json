@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5475,
+    "files_scanned": 5476,
     "files_by_kind": {
       "backend": 1219,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1526,
-      "tests": 1870,
+      "tests": 1871,
       "web": 459
     },
-    "unmapped_artifacts": 2224,
+    "unmapped_artifacts": 2225,
     "ambiguous_artifacts": 429
   },
   "capabilities": [
@@ -45017,6 +45017,10 @@
     },
     {
       "path": "tests_v9/test_tts_edge_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_piper_provider.py",
       "kind": "tests"
     },
     {

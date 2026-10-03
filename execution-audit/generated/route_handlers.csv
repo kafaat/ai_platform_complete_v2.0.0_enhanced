@@ -1021,10 +1021,10 @@ supervisor-agent,GET,/runtime-identity,runtime_identity,services/supervisor-agen
 tts-service,GET,/healthz,health,services/tts-service/routers/health.py,22
 tts-service,GET,/readyz,readyz,services/tts-service/routers/health.py,27
 tts-service,GET,/metrics,metrics,services/tts-service/routers/health.py,43
-tts-service,GET,/v1/tts/voices,list_voices,services/tts-service/routers/tts.py,46
-tts-service,GET,/v1/tts/status,tts_status,services/tts-service/routers/tts.py,56
-tts-service,POST,/v1/tts/synthesize,synthesize,services/tts-service/routers/tts.py,69
-tts-service,POST,/v1/tts/stream,stream,services/tts-service/routers/tts.py,155
+tts-service,GET,/v1/tts/voices,list_voices,services/tts-service/routers/tts.py,62
+tts-service,GET,/v1/tts/status,tts_status,services/tts-service/routers/tts.py,72
+tts-service,POST,/v1/tts/synthesize,synthesize,services/tts-service/routers/tts.py,85
+tts-service,POST,/v1/tts/stream,stream,services/tts-service/routers/tts.py,173
 vegetation-analysis-service,GET,/v1/analyze,analyze,services/vegetation-analysis-service/routers/analysis.py,22
 vegetation-analysis-service,GET,/v1/timeseries/{field_id},timeseries,services/vegetation-analysis-service/routers/analysis.py,46
 vegetation-analysis-service,GET,/v1/ndvi/current/{field_id},current_ndvi,services/vegetation-analysis-service/routers/analysis.py,91
