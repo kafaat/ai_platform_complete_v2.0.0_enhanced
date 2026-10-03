@@ -392,19 +392,28 @@ class RuntimeContract(unittest.TestCase):
 
 #: محاولاتُ سحب الصورة وانتظارُ ما بينها (ثوانٍ). مقيس على #1125 (تشغيل 37122157444):
 #: ``auth.docker.io`` أعاد ``connection reset by peer`` قبل أيّ اختبار، والإعادةُ نجحت.
+#: الميزانيّةُ كلُّها يجب أن تسع داخل ``timeout-minutes`` لخطوة CI مع هامشٍ للاختبار نفسه
+#: (الخطوةُ كاملةً ~36ث على main@76a5ca58)؛ يفرضها ``test_nginx_runtime_pull_retry``.
 PULL_ATTEMPTS = 3
+PULL_TIMEOUT_SECONDS = 60
 PULL_BACKOFF_SECONDS = (5, 15)
 
 
-def pull_image(image, *, run=subprocess.run, sleep=time.sleep):
-    """``docker pull`` بإعادة محاولةٍ محدودة لأعطال الشبكة العابرة فقط.
+def pull_budget_seconds():
+    """أسوأُ زمنٍ للسحب: كلُّ المحاولات حتى مهلتها + كلُّ الانتظارات بينها."""
+    return PULL_ATTEMPTS * PULL_TIMEOUT_SECONDS + sum(PULL_BACKOFF_SECONDS[: PULL_ATTEMPTS - 1])
 
-    يُعاد المحاولة على فشل الأمر أو انتهاء مهلته، ثمّ يُرفع آخرُ خطأ كما هو؛ لا يُتخطّى الاختبار
-    ولا يُعدّ السحبُ الفاشل نجاحاً.
+
+def pull_image(image, *, run=subprocess.run, sleep=time.sleep):
+    """``docker pull`` بإعادة محاولةٍ محدودة.
+
+    يُعيد المحاولة على **أيّ** خروجٍ غير صفريّ أو انتهاء مهلة — رمزُ الخروج لا يميّز الانقطاعَ
+    العابر من الفشل الدائم (مصادقة، وسمٌ مفقود، قرص)؛ فالدائمُ يكلّف المحاولاتِ الثلاث ثمّ يفشل
+    بالخطأ نفسه. بعد آخر محاولة يُرفع آخرُ خطأ كما هو: لا يُتخطّى الاختبار ولا يُعدّ السحبُ ناجحاً.
     """
     for attempt in range(1, PULL_ATTEMPTS + 1):
         try:
-            run(["docker", "pull", image], check=True, timeout=180)
+            run(["docker", "pull", image], check=True, timeout=PULL_TIMEOUT_SECONDS)
             return
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             if attempt == PULL_ATTEMPTS:

@@ -32,6 +32,7 @@ class _Run:
 
     def __call__(self, cmd, check, timeout):
         self.calls.append(cmd)
+        self.timeouts = getattr(self, "timeouts", []) + [timeout]
         outcome = self.outcomes.pop(0)
         if outcome is not None:
             raise outcome
@@ -70,3 +71,34 @@ def test_the_ci_entrypoint_pulls_through_the_retrying_helper():
     source = _PATH.read_text(encoding="utf-8")
     assert "pull_image(image)" in source
     assert source.count('["docker", "pull", image]') == 1, "سحبٌ مباشرٌ ثانٍ يتجاوز الإعادة"
+
+
+def test_each_attempt_uses_the_bounded_timeout():
+    mod = _module()
+    run = _Run([_reset(), None])
+    mod.pull_image("nginx:1.27.5-alpine", run=run, sleep=lambda _s: None)
+    assert run.timeouts == [mod.PULL_TIMEOUT_SECONDS] * 2
+
+
+def test_the_whole_retry_budget_fits_inside_the_ci_step_with_room_for_the_test():
+    """مراجعة #1130: ٣ × 180ث + الانتظار = 560ث لا تسع خطوةً حدُّها 5 دقائق، فيُقطع السحبُ
+    قبل أن يُرفع خطؤه. الحدُّ يُقرأ من ci.yml نفسه لا يُنسخ."""
+    import yaml
+
+    mod = _module()
+    workflow = yaml.safe_load(
+        (_PATH.parents[2] / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    )
+    steps = [
+        step
+        for job in workflow["jobs"].values()
+        for step in job.get("steps", [])
+        if "frontend/tests/test_nginx_runtime.py --docker" in str(step.get("run", ""))
+    ]
+    assert len(steps) == 1, "خطوةُ اختبار تشغيل nginx يجب أن تكون واحدة"
+    step_seconds = int(steps[0]["timeout-minutes"]) * 60
+    test_reserve_seconds = 60  # الخطوةُ كاملةً ~36ث على main@76a5ca58
+    assert mod.pull_budget_seconds() + test_reserve_seconds <= step_seconds, (
+        mod.pull_budget_seconds(),
+        step_seconds,
+    )
