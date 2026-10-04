@@ -102,6 +102,7 @@ def piper_env(monkeypatch, tmp_path):
     monkeypatch.setattr(providers, "_PIPER_LIB_AVAILABLE", True)
     model = tmp_path / "ar_JO-kareem-medium.onnx"
     model.write_bytes(b"fake-onnx")
+    (tmp_path / "ar_JO-kareem-medium.onnx.json").write_text("{}", encoding="utf-8")
     monkeypatch.setenv("PIPER_VOICE_PATH", str(model))
     monkeypatch.setattr(providers.PiperProvider, "_voices", {}, raising=False)
     monkeypatch.setattr(
@@ -222,6 +223,28 @@ def test_a_missing_model_file_is_unavailable_and_never_edge(piper_env, monkeypat
     resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
     assert resp.status_code == 503, resp.text
     assert resp.json()["detail"]["error"] == "local_provider_unavailable_for_policy"
+    assert ext.calls == 0 and _FakeVoice.loads == 0
+
+
+@pytest.mark.parametrize("missing", ["model", "config"])
+def test_piper_needs_both_the_model_and_its_config_file(piper_env, monkeypatch, missing):
+    """``PiperVoice.load(path)`` يقرأ ``<path>.json``: غيابُ أيٍّ من الملفّين ⇒ غيرُ متاح.
+
+    بلا الإعداد كان ``available()`` يُعلِن توافراً ثمّ يفشل التحميل عند أوّل طلب. والنتيجةُ
+    الخارجيّة واحدة في الحالتين: 503 مُسمّى، صفرُ نداءٍ لـedge، ولا محاولةَ تحميل.
+    """
+    import os
+
+    main, providers, tts_policy = piper_env
+    model = os.environ["PIPER_VOICE_PATH"]
+    assert providers.PiperProvider().available() is True  # ضابط: الملفّان موجودان
+    os.remove(model if missing == "model" else f"{model}.json")
+    assert providers.PiperProvider().available() is False
+    ext = _local_only_piper(monkeypatch, main, providers, tts_policy)
+    for path in ("/v1/tts/synthesize", "/v1/tts/stream"):
+        resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+        assert resp.status_code == 503, resp.text
+        assert resp.json()["detail"]["error"] == "local_provider_unavailable_for_policy"
     assert ext.calls == 0 and _FakeVoice.loads == 0
 
 

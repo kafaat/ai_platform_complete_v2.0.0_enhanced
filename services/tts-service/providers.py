@@ -6,14 +6,16 @@
   • ``EdgeTTSProvider`` — Microsoft edge-tts (المحرّك الإلزاميّ الوحيد والافتراضيّ؛
     متاح دوماً ما دام ``edge_tts`` يُستورَد). سلوكه أمينُ-البايت لمسار التركيب القائم.
   • ``PiperProvider`` — Piper (شبكة عصبيّة على المعالِج، اختياريّ). استيراد محروس؛
-    ``available()`` = False حين تغيب المكتبة أو مسار نموذج الصوت (``PIPER_VOICE_PATH``).
+    ``available()`` = False حين تغيب المكتبة أو ملفُّ النموذج (``PIPER_VOICE_PATH``) أو ملفُّ
+    إعداده المجاور (``<النموذج>.json``، المسارُ الذي يقرؤه ``PiperVoice.load`` افتراضاً).
   • ``XTTSProvider`` — Coqui XTTS (اختياريّ، يفضّل المعالِج الرسوميّ). استيراد محروس؛
     ``available()`` = False ما لم تُستورَد المكتبة **و** يُفعَّل صراحةً
     (``TTS_GPU_PROVIDER=xtts`` أو ``XTTS_ENABLE=1``) — تماشياً مع overlay الـGPU.
 
 قاعدة صارمة: piper/coqui **تبعيّات اختياريّة** لا تُضاف إلى ``requirements.txt`` (كي
 لا تكسر طبقة الوحدات/pip-audit). الخدمة تُستورَد وتُختبَر بدونها؛ edge يبقى الآمن.
-لتفعيل piper محليّاً: ``pip install piper-tts`` + ضبط ``PIPER_VOICE_PATH``.
+لتفعيل piper محليّاً: ``pip install piper-tts`` + ضبط ``PIPER_VOICE_PATH`` إلى ``voice.onnx``
+وبجانبه ``voice.onnx.json``.
 لتفعيل xtts (GPU): ``pip install TTS`` + ``TTS_GPU_PROVIDER=xtts``.
 """
 
@@ -322,9 +324,21 @@ class PiperProvider(TTSProvider):
     def _voice_path(self) -> str:
         return self._voice_path_override or os.getenv("PIPER_VOICE_PATH", "")
 
+    @staticmethod
+    def _config_path(path: str) -> str:
+        """إعدادُ النموذج حيث يبحث عنه ``PiperVoice.load(path)`` حين لا يُمرَّر ``config_path``."""
+        return f"{path}.json"
+
     def available(self) -> bool:
+        # الملفّان شرطان: النموذجُ وحده بلا إعداده يُعلِن توافراً كاذباً ثمّ يفشل عند أوّل تحميل.
+        # وجودُهما لا يُثبت سلامتَهما — التحميلُ الحقيقيّ يكشف التالف (``PiperLoadError``).
         path = self._voice_path()
-        return bool(_PIPER_LIB_AVAILABLE and path and os.path.exists(path))
+        return bool(
+            _PIPER_LIB_AVAILABLE
+            and path
+            and os.path.exists(path)
+            and os.path.exists(self._config_path(path))
+        )
 
     @staticmethod
     def _installed_version() -> str | None:
