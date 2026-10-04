@@ -596,13 +596,19 @@ def main() -> int:
         f"stage={r.get('stage')} child={child} killed={r['coordinator'].get('killed_pids')}",
     )
 
-    full = isolated and limits  # المقارنةُ تحتاج العزلَ **و**الحدود معاً
-    why = f"netns={caps['netns'][1]} · cgroup_v1={caps['cgroup_v1'][1]}"
+    # المقارنةُ تحتاج العزلَ **و**الحدودَ **و**جذراً فارغاً (bwrap): unshare يكشف نظامَ ملفّات المضيف (مراجعةُ
+    # Copilot على #1133) فلا يُثبَت أنّ المحرّك لم يقرأ إلّا المعلَن.
+    full = isolated and limits and bwrap_ok
+    why = f"netns={caps['netns'][1]} · cgroup_v1={caps['cgroup_v1'][1]} · bwrap={caps['bwrap'][1]}"
+    comparable_ref = None
     if full:
-        _, r_a = run("ok", root)
-        _, r_b = run("ok", root)
+        sandbox = ("--sandbox", "bwrap")
+        _, r_a = run("ok", root, coord=sandbox)
+        _, r_b = run("ok", root, coord=sandbox)
         _, r_blk = run("ok", root, isolation=False)
-        _, r_lim = run("ok", root, cpus="0.5")
+        _, r_lim = run("ok", root, cpus="0.5", coord=sandbox)
+        _, r_un = run("ok", root)  # unshare: عزلٌ وحدودٌ كاملة، لكنّ نظامَ الملفّات مكشوف
+        comparable_ref = r_a
 
         def perf(*runs) -> int:
             return subprocess.run(
@@ -623,6 +629,17 @@ def main() -> int:
         )
         check(
             "v4 حدودٌ مختلفة بين التشغيلات تمنع المقارنة", perf(r_a, r_lim) != 0, "cpus 1 مقابل 0.5"
+        )
+        un_why = " ".join(r_un.get("comparability_problems") or [])
+        check(
+            "v14 تشغيلُ unshare (عزلٌ وحدودٌ كاملة) غيرُ قابلٍ للمقارنة: نظامُ ملفّات المضيف مكشوف ⇒ perf يرفض",
+            r_un.get("harness_status") == "ok"
+            and r_un.get("network_isolation") == "PROVEN"
+            and r_un.get("performance_comparable") is False
+            and "bwrap" in un_why
+            and perf(r_a, r_un) != 0,
+            f"status={r_un.get('harness_status')} comparable={r_un.get('performance_comparable')} "
+            f"problems={un_why[:90]}",
         )
     else:
         RESULTS.append(("BLOCKED", "v4 بوّابة مقارنة الأداء", why))
@@ -671,7 +688,7 @@ def main() -> int:
         f"error={str(r.get('error'))[:50]}",
     )
 
-    if full:
+    if isolated and limits:  # الحصّةُ والجرد: namespace وcgroup — لا تحتاج bwrap
         _, r_full = run("busy", root, "--concurrency", "1", "--concurrency-items", "2", cpus="1")
         _, r_half = run(
             "busy",
@@ -965,10 +982,15 @@ def main() -> int:
         and "in_effect" in err,
         f"rc={rc} {err.strip()[-100:]}",
     )
-    if full and base.get("performance_comparable") is True:
+    # الضابطُ الإيجابيّ وسجلّاتُ نقص الدليل تُبنى على تشغيل bwrap من v4: السجلُّ المرجعيّ good_run يعمل بـunshare
+    # فلم يعُد قابلاً للمقارنة، وتزويرٌ مبنيٌّ عليه يُرفض لسبب الإخفاء لا للسبب الذي تختبره الحالة.
+    if comparable_ref is not None and comparable_ref.get("performance_comparable") is True:
+        base = json.loads(
+            (Path(comparable_ref["_run_dir"]) / "result.json").read_text(encoding="utf-8")
+        )
         rc, err = perf_on(base, "control")
         check(
-            "v7 perf: الضابطُ الإيجابيّ — سجلٌّ حقيقيٌّ كامل الأدلّة يُقبل",
+            "v7 perf: الضابطُ الإيجابيّ — سجلٌّ حقيقيٌّ كامل الأدلّة (bwrap) يُقبل",
             rc == 0,
             f"rc={rc} {err.strip()[-90:]}",
         )

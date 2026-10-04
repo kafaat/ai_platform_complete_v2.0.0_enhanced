@@ -186,6 +186,27 @@ def cgroup_stats(info: dict) -> dict:
     return stats
 
 
+# بيئةُ العامل **قائمةُ سماحٍ** لا قائمةُ منع (مراجعةُ Copilot على #1133): شيفرةُ النموذج طرفٌ ثالث، وعزلُ الشبكة
+# لا يمنعها من كتابة ما ورثته إلى مجلّد الناتج القابل للكتابة. قائمةُ المنع السابقة (``*_proxy`` و``*TOKEN*``) كانت
+# تُمرّر ``AWS_SECRET_ACCESS_KEY`` و``DATABASE_URL`` و``*_PASSWORD``. يُمرَّر ما يلزم التشغيلَ وحده؛ وأسماؤه تُسجَّل.
+WORKER_ENV_ALLOW = (
+    "PATH",
+    "HOME",
+    "LANG",
+    "LANGUAGE",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TZ",
+    "TMPDIR",
+    "PYTHONHASHSEED",
+)
+
+
+def worker_env(environ) -> dict:
+    """ما يُورَّث للعامل من بيئة المنسّق: الأسماءُ المسموحة وحدها (القيمُ لا تُسجَّل)."""
+    return {k: environ[k] for k in WORKER_ENV_ALLOW if k in environ}
+
+
 def kill_everything(
     proc: subprocess.Popen, info: dict, identities: dict | None = None
 ) -> list[int]:
@@ -514,11 +535,7 @@ def main() -> int:
         "cgroup": cg["backend"],
         "hard_timeout_s": args.hard_timeout,
     }
-    env = {
-        k: v
-        for k, v in os.environ.items()
-        if not k.lower().endswith("_proxy") and "TOKEN" not in k.upper()
-    }
+    env = worker_env(os.environ)
     env.update(
         {
             "BAKEOFF_LIMITS": json.dumps(limits),
@@ -653,6 +670,7 @@ def main() -> int:
         "killed_at_hard_timeout": killed,
         "killed_pids": sorted(set(killed_pids)),
         "killed_starttimes": killed_identities,
+        "worker_env_names": sorted(env),
         "proc_matches_pid_namespace": procs.proc_namespace()[0],
         "survivors_after_exit": survivors,
         "negative_control": neg,

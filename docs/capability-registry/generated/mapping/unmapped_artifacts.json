@@ -6784,6 +6784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/test_tts_bakeoff_input_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/test_tts_bakeoff_procs.py",
     "kind": "tests"
   },

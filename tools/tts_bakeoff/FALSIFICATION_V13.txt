@@ -19,13 +19,16 @@ BLOCKED procs: مراجعةُ المالك على v13 — عالقٌ له ابن
 ⇒ v13 ادّعى group_gone=True من /proc لفضاءٍ آخر؛ والابنُ في الحقيقة باقٍ زومبي لا يُقرأ حالُه ⇒ BLOCKED لا PASS.
    في v14 يتبنّى المُفرِزُ الأيتامَ (PR_SET_CHILD_SUBREAPER) فيحصدهم، ثمّ killpg(pgid,0) ⇒ ESRCH دليلٌ قاطع في فضائنا.
 
-## 4. v14 النهائيّة تحت الشرط نفسه (results/v14/)
+## 4. v14 النهائيّة تحت الشرط نفسه (results/v14/، بعد إصلاحات مراجعة Copilot على #1133)
 $ unshare -p -f -- python3 semantic_selftest.py
-BLOCKED ASR: زومبي حقيقيّ  تعذّر إنشاؤه أو قراءتُه في هذه البيئة (state=unverifiable · NSpid=[3758, 1] getpid=1) — الحالةُ المصطنعة تغطّي المنطق
+BLOCKED ASR: زومبي حقيقيّ  تعذّر إنشاؤه أو قراءتُه في هذه البيئة (state=unverifiable · NSpid=[28252, 1] getpid=1) — الحالةُ المصطنعة تغطّي المنطق
 95 حالة · فشل 0 · BLOCKED 1
 
 $ unshare -p -f -- python3 selftest.py   (v13 والشجرةُ قبل الإصلاح: مسبارُ bwrap يعلق بلا مهلة)
 BLOCKED  v4 عاملٌ عالق وأبناؤه يُنهَون، ويبقى السجلّ الجزئيّ                                        stage=hard_timeout child=260 killed=[255] survivors=unverifiable {260: 'unverifiable'}
-BLOCKED  v8 bwrap                                                                                   bwrap=/proc لفضاء PID آخر (NSpid=[2808, 1] getpid=1) — bwrap لا يُعتمد هنا · cgroup_v1=ok
-61 حالة · فشل 0 · BLOCKED 2
+BLOCKED  v4 بوّابة مقارنة الأداء                                                                    netns=ok · cgroup_v1=ok · bwrap=/proc لفضاء PID آخر (NSpid=[27583, 1] getpid=1) — bwrap لا يُعتمد هنا
+BLOCKED  v8 bwrap                                                                                   bwrap=/proc لفضاء PID آخر (NSpid=[27583, 1] getpid=1) — bwrap لا يُعتمد هنا · cgroup_v1=ok
+BLOCKED  v7 perf: الضابطُ الإيجابيّ وسجلّاتُ نقص الدليل                                             لا سجلَّ حقيقيّاً قابلاً للمقارنة على هذا المضيف (netns=ok · cgroup_v1=ok · bwrap=/proc لفضاء PID آخر (NSpid=[27583, 1] getpid=1) — bwrap لا يُعتمد هنا) — gate_selftest.py يغطّيها بلا root
+57 حالة · فشل 0 · BLOCKED 4
 BLOCKED = لم يُختبر على هذا المضيف (لا شهادةَ عزلٍ أو حدودٍ منه) — لا يُحسب نجاحاً.
+(بوّابةُ مقارنة الأداء وضابطُ perf الإيجابيّ BLOCKED هنا لأنّ المقارنةَ تتطلّب bwrap منذ مراجعة Copilot، وbwrap غيرُ متاحٍ حين /proc لفضاءٍ آخر.)

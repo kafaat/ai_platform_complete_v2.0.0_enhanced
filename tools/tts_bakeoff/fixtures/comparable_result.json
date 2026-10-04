@@ -1,5 +1,5 @@
 {
-  "run_id": "fake-20261004T182932Z-0b53738f",
+  "run_id": "fake-20261004T201151Z-d7062f88",
   "engine": "fake",
   "harness_status": "ok",
   "settings": {
@@ -21,14 +21,14 @@
     },
     "corpus_sha256": "975dd909c41014a31b65432b620f0ca37e5143b36f94d3753bd32ffb236a127a",
     "scripts_sha256": {
-      "audio.py": "86ce3974929ee7828db1641f7f726d92bdf1658ff76e978b5d3562577dcb01eb",
+      "audio.py": "4e5ccf1fdbc53127b53e4a20eb0e2f77b698d2af753d6f72e5af66cb1c2c4a02",
       "engines.py": "e49c4afb8fcd188778990d39901b23f5667ffb76201f2af5aa2db83ef0220b27",
       "worker.py": "5bf512794e1c60a0458293d95fe774f106445472c4704c72e2b6913530079972",
-      "run.py": "7ee2583a442fabc930423eac6a0e7dd62b4f4189d3ae30e70506292523f8c919",
+      "run.py": "510d8823ea17e4837519a5bac95d6a3bd7a7205d8aa275201eea380a1ddf54bf",
       "blind.py": "9649b2ef4ffba3ab9483fdafff5dd87b850bbac11696b7c94ea10044209ccd21",
-      "score.py": "f4daad8636b56f795b1ecf71cf318e9182e8e6ae70ac619dd0c5b50b7ea205d0",
-      "perf.py": "10486cb104baefcf26e7b3112e836013e576478429a802b35fb7cd9cebbe12d5",
-      "procs.py": "2b98e7a2e9baa77dff144fee2e1e0cc241c12566bbd5e017bcd54e70532febf0"
+      "score.py": "c88ebfcfa6737d166d4ed94b52e2897091ab1d27ad71c1a2d371585f90104902",
+      "perf.py": "f9d273f8501bd2e32fb78961a3f683bb19830e76b9e087e47e23974d0ceff9fc",
+      "procs.py": "3201fcc5595bb281e7266bbad66f655cf07bcd59e8648c37a4c819f46948b053"
     },
     "packages": [
       "CacheControl==0.14.4",
@@ -230,7 +230,7 @@
     "probes": {
       "tcp pypi.org:443": "blocked (gaierror -3)",
       "dns pypi.org": "blocked (gaierror -3)",
-      "tcp 151.101.192.223:443 (بلا DNS)": "blocked (OSError 101)"
+      "tcp 151.101.0.223:443 (بلا DNS)": "blocked (OSError 101)"
     },
     "isolated": true
   },
@@ -249,8 +249,8 @@
       "cpu_affinity": [
         0
       ],
-      "memory_cgroup": "/bakeoff-fake-20261004T182932Z-0b53738f",
-      "cpu_cgroup": "/bakeoff-fake-20261004T182932Z-0b53738f",
+      "memory_cgroup": "/bakeoff-fake-20261004T201151Z-d7062f88",
+      "cpu_cgroup": "/bakeoff-fake-20261004T201151Z-d7062f88",
       "memory_limit_mb": 1024,
       "cpu_quota": 1.0
     }
@@ -271,9 +271,9 @@
       "category": "crop",
       "phase": "cold",
       "ok": true,
-      "wall_s": 0.024,
+      "wall_s": 0.038,
       "audio_s": 4.72,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "8f12586f94927940ef209d17398e4814e846ee4d5327c70d86a1265c9a18ac4a"
     },
@@ -282,9 +282,9 @@
       "category": "crop",
       "phase": "warmup",
       "ok": true,
-      "wall_s": 0.033,
+      "wall_s": 0.045,
       "audio_s": 5.2,
-      "rtf": 0.006,
+      "rtf": 0.009,
       "rms": 0.17262,
       "sha256": "9d4dec4b02f51fbd33bb76e33a3714fd999109ffb476a766ebfd9e95f0341761"
     },
@@ -293,9 +293,9 @@
       "category": "crop",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.019,
+      "wall_s": 0.034,
       "audio_s": 4.08,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "cbb23874bf6e68945e1af4650bb045d63aa4a24abfa131eba6349e5330e8c3e6"
     },
@@ -304,9 +304,9 @@
       "category": "crop",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.016,
+      "wall_s": 0.03,
       "audio_s": 3.92,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "74d008c58499ca15d74ae874ce3009e420f76325a81c235c1c6227c0dc489211"
     },
@@ -315,9 +315,9 @@
       "category": "crop",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.035,
       "audio_s": 4.24,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "51d40a21f4c243f25245e136ae85e01577f2a87760b59d38c9fb19e6ca6a2b7b"
     },
@@ -326,9 +326,9 @@
       "category": "crop",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.012,
+      "wall_s": 0.023,
       "audio_s": 2.96,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "637de842df709c1b1ec7e625b66a562c498b1feaec103d8bcfcf8249b4f77358"
     },
@@ -337,9 +337,9 @@
       "category": "pest",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.017,
+      "wall_s": 0.032,
       "audio_s": 3.92,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "74d008c58499ca15d74ae874ce3009e420f76325a81c235c1c6227c0dc489211"
     },
@@ -348,9 +348,9 @@
       "category": "pest",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.033,
       "audio_s": 4.08,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "cbb23874bf6e68945e1af4650bb045d63aa4a24abfa131eba6349e5330e8c3e6"
     },
@@ -359,9 +359,9 @@
       "category": "pest",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.033,
       "audio_s": 4.08,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "cbb23874bf6e68945e1af4650bb045d63aa4a24abfa131eba6349e5330e8c3e6"
     },
@@ -370,9 +370,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.015,
+      "wall_s": 0.028,
       "audio_s": 3.44,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "59a082cb74c7abe8e7b848be5d41b24ab078acc2ed55cb0bdd8085c168e69f43"
     },
@@ -381,9 +381,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.023,
+      "wall_s": 0.032,
       "audio_s": 3.92,
-      "rtf": 0.006,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "74d008c58499ca15d74ae874ce3009e420f76325a81c235c1c6227c0dc489211"
     },
@@ -392,9 +392,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.012,
+      "wall_s": 0.023,
       "audio_s": 2.96,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "637de842df709c1b1ec7e625b66a562c498b1feaec103d8bcfcf8249b4f77358"
     },
@@ -403,9 +403,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.014,
+      "wall_s": 0.026,
       "audio_s": 3.28,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "6cac330248ef6e979c4f8ade18421e79aecd0f6285e60a9c6a5a3ac4dcc83358"
     },
@@ -414,9 +414,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.028,
       "audio_s": 3.52,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "6e7ca192b10bfa47c2e46b19064b97e5eb1bba8a305faa604a3386cec4fb7e97"
     },
@@ -425,9 +425,9 @@
       "category": "dose",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.019,
+      "wall_s": 0.035,
       "audio_s": 4.32,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "278a7f6e6345e3fb5e38228e69464f659b347818fa6a8533846a831d7411391d"
     },
@@ -436,9 +436,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.014,
+      "wall_s": 0.028,
       "audio_s": 3.36,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "a883b0fbbc03ef7038688225a6bb9c1901d5a91f3fbca3879e37c71dcb3a5439"
     },
@@ -447,9 +447,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.009,
+      "wall_s": 0.018,
       "audio_s": 2.24,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "3601c9d6b3adadc6bcda3589a608cc23e981d3de340c8071bc5eacddf781646f"
     },
@@ -458,9 +458,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.013,
+      "wall_s": 0.024,
       "audio_s": 3.04,
-      "rtf": 0.004,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "8b0c29e0a37922775a1ad4cb5fa301a4c983edf8f5fb5a9911d5d7a554161575"
     },
@@ -469,9 +469,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.027,
+      "wall_s": 0.039,
       "audio_s": 4.72,
-      "rtf": 0.006,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "8f12586f94927940ef209d17398e4814e846ee4d5327c70d86a1265c9a18ac4a"
     },
@@ -480,9 +480,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.017,
+      "wall_s": 0.023,
       "audio_s": 3.68,
-      "rtf": 0.005,
+      "rtf": 0.006,
       "rms": 0.17262,
       "sha256": "2a5823022449dbb0996dbee4bb3c7d1f1f05cfece7195b05a32950bed35e7b9f"
     },
@@ -491,9 +491,9 @@
       "category": "prohibition",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.014,
+      "wall_s": 0.011,
       "audio_s": 2.72,
-      "rtf": 0.005,
+      "rtf": 0.004,
       "rms": 0.17262,
       "sha256": "59ecdbb1a3a53986c4091ab754028942c708d7410ad1c3e3a7d9eafc30e1995f"
     },
@@ -502,7 +502,7 @@
       "category": "time",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.019,
+      "wall_s": 0.021,
       "audio_s": 4.16,
       "rtf": 0.005,
       "rms": 0.17261,
@@ -513,9 +513,9 @@
       "category": "time",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.029,
       "audio_s": 3.6,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "c7cdda62420d44404897ce58fbd676936de187d6e421712b241acabb34829ce2"
     },
@@ -524,9 +524,9 @@
       "category": "time",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.021,
+      "wall_s": 0.033,
       "audio_s": 4.0,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "77f49bd8604a8857fbd909e8b3192fb68f86f68f6e839efa579c79aa1bf41f5b"
     },
@@ -535,9 +535,9 @@
       "category": "mixed",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.018,
+      "wall_s": 0.035,
       "audio_s": 4.16,
-      "rtf": 0.004,
+      "rtf": 0.009,
       "rms": 0.17261,
       "sha256": "2ad6ecc80f759241e3d21b0166a31c63099decaafd827871585755ed0bafe875"
     },
@@ -546,9 +546,9 @@
       "category": "mixed",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.022,
+      "wall_s": 0.032,
       "audio_s": 4.16,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17261,
       "sha256": "2ad6ecc80f759241e3d21b0166a31c63099decaafd827871585755ed0bafe875"
     },
@@ -557,9 +557,9 @@
       "category": "mixed",
       "phase": "warm",
       "ok": true,
-      "wall_s": 0.024,
+      "wall_s": 0.038,
       "audio_s": 4.64,
-      "rtf": 0.005,
+      "rtf": 0.008,
       "rms": 0.17262,
       "sha256": "600c59728a90295f1ae9dc04107ec890f8517e31b618fbd4e53ba95993da26a3"
     }
@@ -568,7 +568,7 @@
     "id": "C01",
     "ok": true,
     "error": null,
-    "wall_s": 0.024,
+    "wall_s": 0.038,
     "network": "PROVEN"
   },
   "sequential": {
@@ -576,15 +576,15 @@
     "failed": 0,
     "cold_request": {
       "n": 1,
-      "median_s": 0.024,
-      "p95_s": 0.024
+      "median_s": 0.038,
+      "p95_s": 0.038
     },
     "warm_requests": {
       "n": 25,
-      "median_s": 0.018,
-      "p95_s": 0.024
+      "median_s": 0.03,
+      "p95_s": 0.038
     },
-    "rtf_warm_median": 0.004
+    "rtf_warm_median": 0.008
   },
   "concurrency": {
     "1": {
@@ -593,12 +593,12 @@
       "errors": 0,
       "error_samples": [],
       "timeouts": 0,
-      "span_s": 0.086,
-      "throughput_rps": 34.99,
+      "span_s": 0.139,
+      "throughput_rps": 21.598,
       "latency": {
         "n": 3,
-        "median_s": 0.028,
-        "p95_s": 0.033
+        "median_s": 0.042,
+        "p95_s": 0.05
       }
     },
     "2": {
@@ -607,12 +607,12 @@
       "errors": 0,
       "error_samples": [],
       "timeouts": 0,
-      "span_s": 0.165,
-      "throughput_rps": 36.47,
+      "span_s": 0.279,
+      "throughput_rps": 21.519,
       "latency": {
         "n": 6,
-        "median_s": 0.05,
-        "p95_s": 0.06
+        "median_s": 0.082,
+        "p95_s": 0.118
       }
     },
     "4": {
@@ -621,16 +621,16 @@
       "errors": 0,
       "error_samples": [],
       "timeouts": 0,
-      "span_s": 0.307,
-      "throughput_rps": 39.099,
+      "span_s": 0.439,
+      "throughput_rps": 27.359,
       "latency": {
         "n": 12,
-        "median_s": 0.062,
-        "p95_s": 0.111
+        "median_s": 0.137,
+        "p95_s": 0.183
       }
     }
   },
-  "peak_rss_mb": 68.9,
+  "peak_rss_mb": 70.7,
   "threads_at_end": 2,
   "network_attempts": [],
   "stage": "complete",
@@ -709,29 +709,29 @@
       "/usr/bin/python3.11",
       "/usr/local/bin/python3",
       "--ro-bind",
-      "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff",
-      "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff",
+      "/home/user/wt_tts_bakeoff/tools/tts_bakeoff",
+      "/home/user/wt_tts_bakeoff/tools/tts_bakeoff",
       "--ro-bind",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f.pinned",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f.pinned",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88.pinned",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88.pinned",
       "--bind",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88",
       "--chdir",
-      "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff",
+      "/home/user/wt_tts_bakeoff/tools/tts_bakeoff",
       "--",
       "/usr/local/bin/python3",
-      "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff/worker.py",
+      "/home/user/wt_tts_bakeoff/tools/tts_bakeoff/worker.py",
       "--engine",
       "fake",
       "--manifest",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f.pinned/manifest.json",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88.pinned/manifest.json",
       "--out",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88",
       "--run-id",
-      "fake-20261004T182932Z-0b53738f",
+      "fake-20261004T201151Z-d7062f88",
       "--pinned-dir",
-      "/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f.pinned",
+      "/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88.pinned",
       "--concurrency-items",
       "3",
       "--warmup",
@@ -742,12 +742,23 @@
     "killed_at_hard_timeout": false,
     "killed_pids": [],
     "killed_starttimes": {},
+    "worker_env_names": [
+      "BAKEOFF_CONTROL_HOST",
+      "BAKEOFF_CONTROL_IP",
+      "BAKEOFF_LIMITS",
+      "HOME",
+      "LC_CTYPE",
+      "MKL_NUM_THREADS",
+      "OMP_NUM_THREADS",
+      "ORT_NUM_THREADS",
+      "PATH"
+    ],
     "proc_matches_pid_namespace": true,
     "survivors_after_exit": [],
     "negative_control": {
       "target": "pypi.org:443",
       "reached": true,
-      "ip": "151.101.192.223"
+      "ip": "151.101.0.223"
     },
     "system_isolation": "bwrap (empty root, declared ro binds, net/ipc/uts unshared)",
     "sandbox": {
@@ -769,9 +780,9 @@
         "ro:/usr/lib/python3/dist-packages",
         "ro:/usr/local/lib/python3.11/dist-packages",
         "link:/usr/local/bin/python3->/usr/bin/python3.11",
-        "ro:/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff",
-        "ro:/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f.pinned",
-        "rw:/tmp/tmp.5j2OTXwmgr/runs/fake-20261004T182932Z-0b53738f"
+        "ro:/home/user/wt_tts_bakeoff/tools/tts_bakeoff",
+        "ro:/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88.pinned",
+        "rw:/tmp/tmp.RhjtlR9x5B/runs/fake-20261004T201151Z-d7062f88"
       ],
       "version": "bubblewrap 0.9.0"
     },
@@ -780,22 +791,22 @@
       "memory_limit_mb": 1024,
       "cpu_quota": 1.0,
       "paths": [
-        "/sys/fs/cgroup/memory/bakeoff-fake-20261004T182932Z-0b53738f",
-        "/sys/fs/cgroup/cpu/bakeoff-fake-20261004T182932Z-0b53738f"
+        "/sys/fs/cgroup/memory/bakeoff-fake-20261004T201151Z-d7062f88",
+        "/sys/fs/cgroup/cpu/bakeoff-fake-20261004T201151Z-d7062f88"
       ]
     },
     "sigchld_inherited": "default",
     "cgroup_stats": {
       "cgroup_version": "v1",
-      "memory_peak_mb": 63.0,
+      "memory_peak_mb": 65.0,
       "memory_failcnt": 0,
       "oom_kill_events": 0,
-      "cpu_periods": 14,
-      "cpu_throttled_periods": 1,
-      "cpu_throttled_ratio": 0.071,
+      "cpu_periods": 22,
+      "cpu_throttled_periods": 3,
+      "cpu_throttled_ratio": 0.136,
       "cpu_throttled_s": 0.001
     },
-    "cgroup_peak_memory_mb": 63.0
+    "cgroup_peak_memory_mb": 65.0
   },
   "comparability_problems": [],
   "performance_comparable": true

@@ -99,6 +99,15 @@ def evidence_problems(r: dict) -> list[str]:
         p.append(f"resource_limits.status={lim.get('status')!r}")
     if "file_inventory" in r:
         p.append("تشغيلُ جردٍ بـstrace (يُبطئ)")
+    # إخفاءٌ صارم (مراجعةُ Copilot على #1133): ``unshare -n -m`` يُبقي نظامَ ملفّات المضيف كلَّه مرئيّاً، فنموذجٌ
+    # غيرُ معلَن يؤثّر في الناتج ويمرّ. المقارنةُ تُشترط في جذرٍ فارغ (bwrap) بربطٍ معلَنٍ للقراءة فقط، والربطُ
+    # مُسجَّلٌ في السجلّ؛ وما تحت ربطات النظام نفسها يبقى للجرد المنفصل (``--inventory``).
+    sandbox = coord.get("sandbox") or {}
+    if sandbox.get("kind") != "bwrap" or not sandbox.get("binds"):
+        p.append(
+            f"sandbox={sandbox.get('kind')!r}: المقارنةُ تتطلّب جذراً فارغاً (bwrap) بربطٍ معلَن — "
+            "unshare يكشف نظامَ ملفّات المضيف فلا يُثبَت أنّ المحرّك لم يقرأ إلّا المعلَن"
+        )
     # الخروج والقتل وOOM
     if coord.get("exit_code") != 0:
         p.append(f"coordinator.exit_code={coord.get('exit_code')!r}")

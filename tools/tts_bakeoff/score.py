@@ -17,6 +17,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import statistics
 import sys
 from collections import defaultdict
@@ -27,11 +28,22 @@ CRIT = "خطأ حرج؟ (نعم/لا) — رقم أو وحدة أو جرعة أ�
 TEXT, FACTS = "النص المكتوب", "الحقائق الحرجة (يجب أن تُسمع حرفيّاً)"
 
 
-def _num(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
+RATING_RANGE = (1.0, 5.0)
+
+
+def _rating(value, where: str):
+    """تقديرٌ «1-5»: فارغٌ ⇒ غيرُ مُقيَّم (None)؛ وغيرُ ذلك يجب أن يكون عدداً منتهياً داخل المدى، وإلّا تُرفض
+    الورقةُ باسم الصفّ — لا يُقبل NaN ولا ∞ ولا 7، فتلك تُنتج JSON غيرَ صالح أو متوسّطاتٍ خارج المدى."""
+    text = (value or "").strip()
+    if not text:
         return None
+    try:
+        number = float(text)
+    except ValueError:
+        raise SystemExit(f"{where}: تقديرٌ غيرُ عدديّ {text!r}") from None
+    if not (math.isfinite(number) and RATING_RANGE[0] <= number <= RATING_RANGE[1]):
+        raise SystemExit(f"{where}: تقديرٌ {text!r} خارج {RATING_RANGE[0]:g}–{RATING_RANGE[1]:g}")
+    return number
 
 
 def main() -> int:
@@ -41,6 +53,9 @@ def main() -> int:
     ap.add_argument("--corpus", default=str(HERE / "corpus.tsv"))
     ap.add_argument("--min-reviewers", type=int, default=2)
     args = ap.parse_args()
+    if args.min_reviewers < 1:
+        # 0 أو سالب يجعل كلَّ مقطعٍ «مكتملاً» فينال محرّكٌ بلا أيّ صفٍّ مُقيَّم PASSED_SAFETY_GATE
+        raise SystemExit(f"--min-reviewers={args.min_reviewers}: يجب أن يكون 1 على الأقلّ")
 
     key_doc = json.loads(
         (Path(args.review_dir) / "KEY_DO_NOT_SHARE.json").read_text(encoding="utf-8")
@@ -111,7 +126,7 @@ def main() -> int:
                     }
                 )
             for col, bucket in (("الوضوح (1-5)", "clarity"), ("الطبيعيّة (1-5)", "naturalness")):
-                if (v := _num(row.get(col))) is not None:
+                if (v := _rating(row.get(col), f"{sheet}: {blind} «{col}»")) is not None:
                     e[bucket].append(v)
 
     report = {"corpus_sha256": corpus_sha, "reviewers": sorted(seen_reviewers), "engines": {}}

@@ -24,6 +24,7 @@ from pathlib import Path
 PROC = Path("/proc")
 PR_SET_CHILD_SUBREAPER = 36
 NOT_ALIVE = ("gone", "dead", "reused")
+DEAD_STATES = ("Z", "X")  # زومبي/ميّت: pid_status وماسحُ المجموعة يستعملان المجموعةَ نفسها
 
 
 def proc_namespace(proc_root: Path = PROC) -> tuple[bool, str]:
@@ -75,7 +76,7 @@ def pid_status(pid: int, start: int | None = None, proc_root: Path = PROC) -> tu
     fields = _stat_fields(pid, proc_root)
     if fields is None:
         return "gone", "زالت بين الإشارة والقراءة"
-    if fields[0] in ("Z", "X"):
+    if fields[0] in DEAD_STATES:
         return "dead", f"state={fields[0]}"
     if start is not None and len(fields) > 19 and int(fields[19]) != start:
         return "reused", f"starttime={fields[19]} ≠ المسجَّل {start}"
@@ -138,7 +139,7 @@ def live_in_group(pgid: int, proc_root: Path = PROC) -> list[int]:
             fields = stat.read_text().rsplit(")", 1)[1].split()
         except (OSError, IndexError):
             continue  # عمليّةٌ زالت بين السرد والقراءة: ليست حيّة
-        if fields[0] != "Z" and int(fields[2]) == pgid:
+        if fields[0] not in DEAD_STATES and int(fields[2]) == pgid:
             alive.append(int(stat.parent.name))
     return alive
 

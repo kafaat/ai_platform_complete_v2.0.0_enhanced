@@ -36,7 +36,7 @@ MUTS = [
         "if start is not None and len(fields) > 19 and int(fields[19]) != start:",
         "if False:",
     ),
-    ("M5 procs: الزومبي حيّ", "procs.py", 'if fields[0] in ("Z", "X"):', 'if fields[0] in ("X",):'),
+    ("M5 procs: الزومبي حيّ", "procs.py", 'DEAD_STATES = ("Z", "X")', 'DEAD_STATES = ("X",)'),
     (
         "M6 procs: ESRCH لا يُعدّ زوالاً",
         "procs.py",

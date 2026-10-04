@@ -19,6 +19,6 @@
 
 قُتلت 17/17
 
-real	2m51.532s
-user	0m8.016s
-sys	0m1.983s
+real	2m51.294s
+user	0m7.688s
+sys	0m2.157s

@@ -1,19 +1,38 @@
+#!/usr/bin/env bash
+# مصفوفةُ التحقّق لـv14: تُعيد إنتاج السجلّات في هذا المجلّد على أيّ نسخة.
+#
+#   sudo bash tools/tts_bakeoff/results/v14/run_matrix.sh [مجلّد_الناتج]
+#
+# الجذرُ مشتقٌّ من موضع السكربت (لا مسارَ جلسةٍ مؤقّت)، والناتجُ في مجلّدٍ منفصل (افتراضيّاً مؤقّت) فلا تُكتب
+# سجلّاتُ الحزمة فوق نفسها. يحتاج root (namespaces · cgroup v1 · bwrap)؛ وحالةُ فضاء PID والمضيف المقيَّد
+# تُسجَّل BLOCKED حيث لا يسمح المضيف. الخطوة 0 تكتب ``fixtures/comparable_result.json`` من تشغيلٍ bwrap حقيقيّ.
+# حالةُ ASR الحقيقيّة (pocketsphinx) تحتاج مفسّراً فيه pocketsphinx: BAKEOFF_PS_PYTHON=<venv_ps>/bin/python، وبدونه BLOCKED.
 set -u
-S=/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad
-F=$S/final_v14; rm -rf $F; mkdir -p $F
-cd $S/tts_bakeoff && rm -rf __pycache__
-# 0. fixture from final code
+PKG=$(cd "$(dirname "$0")/../.." && pwd)
+OUT=${1:-$(mktemp -d)}
+mkdir -p "$OUT"
+cd "$PKG" || exit 1
+rm -rf __pycache__
+
 T=$(mktemp -d)
-python3 -c "
-import sys; sys.path.insert(0,'.')
+python3 - "$T" > "$OUT/fixture.txt" 2>&1 <<'EOF'
+import shutil, sys
 from pathlib import Path
+sys.path.insert(0, ".")
 import selftest
-rc,r=selftest.run('ok', Path('$T'), coord=('--sandbox','bwrap'))
-print(rc, r.get('performance_comparable'), r['_run_dir'])
-assert r.get('performance_comparable') is True
-import shutil; shutil.copy(Path(r['_run_dir'])/'result.json', 'fixtures/comparable_result.json')
-" > $F/fixture.txt 2>&1; echo "fixture rc=$?" >> $F/rc.txt
-step() { name=$1; shift; ( time timeout 1800 "$@" ) > $F/$name.txt 2>&1; echo "$name rc=$?" >> $F/rc.txt; }
+rc, r = selftest.run("ok", Path(sys.argv[1]), coord=("--sandbox", "bwrap"))
+print(rc, r.get("performance_comparable"), r["_run_dir"])
+assert r.get("performance_comparable") is True
+shutil.copy(Path(r["_run_dir"]) / "result.json", "fixtures/comparable_result.json")
+EOF
+echo "fixture rc=$?" >> "$OUT/rc.txt"
+
+step() {
+    name=$1
+    shift
+    { time timeout 1800 "$@"; } > "$OUT/$name.txt" 2>&1
+    echo "$name rc=$?" >> "$OUT/rc.txt"
+}
 step normal_harness python3 selftest.py
 step normal_semantic python3 semantic_selftest.py
 step normal_gate python3 gate_selftest.py
@@ -23,5 +42,6 @@ step restricted_harness sh restricted_host_sim.sh python3 selftest.py
 step restricted_semantic sh restricted_host_sim.sh python3 semantic_selftest.py
 step restricted_gate sh restricted_host_sim.sh python3 gate_selftest.py
 step sigign_semantic python3 -c "import signal,subprocess,sys; signal.signal(signal.SIGCHLD, signal.SIG_IGN); sys.exit(subprocess.call([sys.executable,'semantic_selftest.py']))"
-cd $S && step mutations python3 mut_v14.py tts_bakeoff
-cat $F/rc.txt
+step mutations python3 mutations_v14.py .
+cat "$OUT/rc.txt"
+echo "السجلّات في $OUT"

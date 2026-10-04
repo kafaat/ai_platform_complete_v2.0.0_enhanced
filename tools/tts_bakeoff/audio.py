@@ -64,7 +64,8 @@ def validate_wav(data: bytes, text: str | None = None) -> AudioCheck:
             samples.byteswap()
         peak = 2147483648.0
     else:
-        samples = array.array("b", bytes(b - 128 for b in payload))
+        # PCM8 بلا إشارة (WAV): يُمركَز حول 128 أعداداً صحيحة — ``bytes()`` لا تقبل السالب فكانت تنهار على كلّ عيّنة < 128
+        samples = [b - 128 for b in payload[: actual * frame_bytes]]
         peak = 128.0
     rms = math.sqrt(sum(s * s for s in samples) / len(samples)) / peak
     if rms < MIN_RMS:

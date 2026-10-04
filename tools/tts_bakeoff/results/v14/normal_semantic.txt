@@ -48,7 +48,7 @@ PASS  نفيٌ معلنٌ داخل الشرط بلا negated ⇒ خطأُ نطا
 PASS  mapping: 2.5 مل ↔ «اثنان فاصلة خمسة مل» متطابق · ↔ «25 مل» القيمةُ تختلف والوحدةُ لا · ↔ «اثنان , خمسون» زوجان بلا نظير  ok=[{'source': '2.5 مل', 'converted': 'اثنان فاصلة خمسة مل', 'source_value': '2.5', 'converted_value': '2.5', 'same_value': True, 'same_unit': True, 'same_per': True, 'same_bound': True, 'all_same': True}] bad={'source': '2.5 مل', 'converted': '25 مل', 'source_value': '2.5', 'converted_value': '25', 'same_value': False, 'same_unit': True, 'same_per': True, 'same_bound': True, 'all_same': False} split=2
 PASS  كلُّ جملةٍ في النصوص لها حقائقُ معلنة  []
 PASS  ASR: تفريغٌ أسقط «لا» ⇒ علَم، والسليمان بلا علَم  rc=0 {'NO_FLAG_ON_DECLARED_CHECKS': 2, 'REVIEW_UNCOVERED_CONTENT': 0, 'FLAGGED': 1, 'EVALUATOR_FAILED': 0, 'EVALUATOR_TIMEOUT': 0} 
-PASS  ASR: الاستدعاءُ الفعليّ (argv كما وصل المقيِّم) وبصمتا النموذج والملفّ التنفيذيّ محفوظةٌ لكلّ مقطع  argv=[['/tmp/tmpp_mu22s7/whisper-cli', '-m', '/tmp/tmpp_mu22s7/model.json', '-l', 'ar', '-nt', '-np', '-f', '/tmp/tmpp_mu22s7/run/wav/D03.wav', '-bs', '1', '-tp', '0.0']]
+PASS  ASR: الاستدعاءُ الفعليّ (argv كما وصل المقيِّم) وبصمتا النموذج والملفّ التنفيذيّ محفوظةٌ لكلّ مقطع  argv=[['/tmp/tmpkp33crh1/whisper-cli', '-m', '/tmp/tmpkp33crh1/model.json', '-l', 'ar', '-nt', '-np', '-f', '/tmp/tmpkp33crh1/run/wav/D03.wav', '-bs', '1', '-tp', '0.0']]
 PASS  ASR: مسبارُ الشبكة يُسجَّل مسباراً لا إثباتَ عزل  {'host': 'pypi.org:443', 'result': 'reachable', 'proves_isolation': False}
 PASS  ASR: مجلّدُ ناتجٍ موجود ⇒ رفض  rc=5
 PASS  ASR: command حرٌّ فيه --initial-prompt (ثغرةُ v5) ⇒ رفضٌ بسببه  rc=1 يحُ غيرُ معروفة في إعداد المقيِّم ['command'] — لا أمرَ حرّاً ولا وسائطَ إضافيّة
@@ -64,14 +64,14 @@ PASS  ASR تحت SIGCHLD=SIG_IGN موروث: مقيِّمٌ يخرج بخطأ �
 PASS  ASR: تغيّرت الأوزان أثناء الفرز ⇒ رفض  rc=1 مرفوض: تغيّرت أوزانُ المقيِّم أثناء الفرز
 PASS  ASR: تفريغٌ يجتاز المعلن وفيه محتوى غيرُ مغطّى ⇒ REVIEW_UNCOVERED_CONTENT لا «بلا علَم»  D03=REVIEW_UNCOVERED_CONTENT ['تقريبا']
 PASS  ASR: مثالُ المالك (الشرطُ انتقل إلى الجهاز عبر جملةٍ مستقلّة) ⇒ FLAGGED بسببه، و«الجهاز، سليماً» مُسجَّلان  FLAGGED flags=['الكمّيّة 1 في جملةٍ مستقلّة عن الشرط «إذا» — لا تُربط به عبر حدّ الجملة'] uncovered=['الجهاز', 'سليما']
-PASS  ASR whisper_cpp: مقيِّمٌ عالقٌ له ابن ⇒ EVALUATOR_TIMEOUT، والمجموعةُ والابنُ قُتلا (حكمٌ بهويّة الابن وفي فضاء PID المختبِر)  screen=EVALUATOR_TIMEOUT timeout={'killed_pgid': 2605, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة'} child=2606 start=1007372 status=gone (kill(pid, 0): ESRCH في فضاء PID هذه العمليّة) wall=0.6s
-PASS  ASR faster_whisper: طلبٌ يكتمل بعد 0.20s ومهلتُه 0.05s ⇒ EVALUATOR_TIMEOUT قبل اكتماله، والمقطعُ التالي يُفرَّغ بعمليّةٍ جديدة  rc=0 D03=EVALUATOR_TIMEOUT 0.131s timeout={'killed_pgid': 2610, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'لم يكتمل سطرُ الردّ خلال 0.05s (وصل 0 بايت)'} N01=NO_FLAG_ON_DECLARED_CHECKS 
+PASS  ASR whisper_cpp: مقيِّمٌ عالقٌ له ابن ⇒ EVALUATOR_TIMEOUT، والمجموعةُ والابنُ قُتلا (حكمٌ بهويّة الابن وفي فضاء PID المختبِر)  screen=EVALUATOR_TIMEOUT timeout={'killed_pgid': 27413, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة'} child=27414 start=1621931 status=gone (kill(pid, 0): ESRCH في فضاء PID هذه العمليّة) wall=0.6s
+PASS  ASR faster_whisper: طلبٌ يكتمل بعد 0.20s ومهلتُه 0.05s ⇒ EVALUATOR_TIMEOUT قبل اكتماله، والمقطعُ التالي يُفرَّغ بعمليّةٍ جديدة  rc=0 D03=EVALUATOR_TIMEOUT 0.132s timeout={'killed_pgid': 27418, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'لم يكتمل سطرُ الردّ خلال 0.05s (وصل 0 بايت)'} N01=NO_FLAG_ON_DECLARED_CHECKS 
 PASS  ASR: /proc مصطنعة — الزومبي (Z) ليس حيّاً، والعضوُ الحيّ يُعدّ، والمختفي يُتجاوز  got=([102], [103])
 PASS  ASR: زومبي حقيقيّ (fork تحت SIGCHLD=SIG_DFL، بلا waitpid) لا يُعدّ حيّاً  state=dead alive=[]
-PASS  ASR faster_whisper: مولِّدُ مقاطع كسول (يعود فوراً ويُفكّ عند الاستهلاك) ⇒ المهلةُ تشمل الاستهلاك  D03=EVALUATOR_TIMEOUT 0.39s N01=NO_FLAG_ON_DECLARED_CHECKS
-PASS  ASR faster_whisper: مجلّدُ نموذجٍ بلا tokenizer.json (المكتبةُ تجلبه من الشبكة بصمت) ⇒ رفضٌ بسببه  rc=1 mp/tmpcwa6cvbz/fwmodel) — وإلّا جلبت المكتبةُ مُرمِّزاً من الشبكة بصمت
-PASS  ASR faster_whisper: حرفٌ بلا نهاية سطر ثمّ تعليقٌ أثناء التفريغ ⇒ EVALUATOR_TIMEOUT خلال المهلة (0.2s)، والمجموعةُ قُتلت  screen=EVALUATOR_TIMEOUT 0.295s timeout={'killed_pgid': 2645, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'لم يكتمل سطرُ الردّ خلال 0.2s (وصل 1 بايت)'} wall=0.5s
-PASS  ASR faster_whisper: حرفٌ بلا نهاية سطر ثمّ تعليقٌ أثناء التحميل ⇒ EVALUATOR_TIMEOUT خلال المهلة (0.3s)، والمجموعةُ قُتلت  screen=EVALUATOR_TIMEOUT 0.303s timeout={'killed_pgid': 2648, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'تحميلُ النموذج تجاوز load_timeout_s: لم يكتمل سطرُ الردّ خلال 0.3s (وصل 1 بايت)'} wall=1.0s
+PASS  ASR faster_whisper: مولِّدُ مقاطع كسول (يعود فوراً ويُفكّ عند الاستهلاك) ⇒ المهلةُ تشمل الاستهلاك  D03=EVALUATOR_TIMEOUT 0.388s N01=NO_FLAG_ON_DECLARED_CHECKS
+PASS  ASR faster_whisper: مجلّدُ نموذجٍ بلا tokenizer.json (المكتبةُ تجلبه من الشبكة بصمت) ⇒ رفضٌ بسببه  rc=1 mp/tmpdgxmppes/fwmodel) — وإلّا جلبت المكتبةُ مُرمِّزاً من الشبكة بصمت
+PASS  ASR faster_whisper: حرفٌ بلا نهاية سطر ثمّ تعليقٌ أثناء التفريغ ⇒ EVALUATOR_TIMEOUT خلال المهلة (0.2s)، والمجموعةُ قُتلت  screen=EVALUATOR_TIMEOUT 0.29s timeout={'killed_pgid': 27432, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'لم يكتمل سطرُ الردّ خلال 0.2s (وصل 1 بايت)'} wall=0.5s
+PASS  ASR faster_whisper: حرفٌ بلا نهاية سطر ثمّ تعليقٌ أثناء التحميل ⇒ EVALUATOR_TIMEOUT خلال المهلة (0.3s)، والمجموعةُ قُتلت  screen=EVALUATOR_TIMEOUT 0.303s timeout={'killed_pgid': 27455, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة', 'reason': 'تحميلُ النموذج تجاوز load_timeout_s: لم يكتمل سطرُ الردّ خلال 0.3s (وصل 1 بايت)'} wall=1.0s
 PASS  ASR: سطرٌ مجزّأ على دفعتين يكتمل قبل الموعد، والسطرُ الثاني في الدفعة نفسها يبقى للطلب التالي  first={'a': 1} second={'b': 2}
 PASS  ASR: timeout_s غيرُ عدديّ ⇒ رفضٌ بسببه  rc=1 مرفوض: timeout_s='0.5; --prompt x' ليس عدداً في (0, 3600]
 PASS  blind: تلميحُ ASR يظهر للمراجع **فقط** بـ--asr-hints، ويُسجَّل في المفتاح أنّه عُرض  plain_has_col=False D03=REVIEW_UNCOVERED_CONTENT · غيرُ مغطّى: تقريبا تنبيه: محرّكٌ واحد فقط — هذا فحصٌ للإجراء، لا مقارنة.
@@ -81,7 +81,7 @@ PASS  pocketsphinx: لغةٌ عربيّة لنموذجٍ إنجليزيّ ⇒ ر
 PASS  pocketsphinx: نموذجٌ بلا قاموس (Decoder يفكّ بالمضمَّن بصمت) ⇒ رفضٌ بسببه  t صراحةً (['dict=cmudict-en-us.dict']) — وإلّا فكّ Decoder() بنموذجه المضمَّن لا بالمُبصَم
 PASS  pocketsphinx: معاملٌ غيرُ مسموح ⇒ رفضٌ بسببه  مرفوض: معاملٌ غيرُ مسموح 'beam' للمحوّل pocketsphinx (المسموح [])
 PASS  pocketsphinx: isolate_net غيرُ منطقيّ ⇒ رفضٌ بسببه  مرفوض: isolate_net='yes' ليس true/false
-PASS  pocketsphinx: python غيرُ موجود ⇒ رفضٌ بسببه  python غيرُ موجود أو غيرُ قابلٍ للتنفيذ: /tmp/tmp3dt4ni68/nope
+PASS  pocketsphinx: python غيرُ موجود ⇒ رفضٌ بسببه  python غيرُ موجود أو غيرُ قابلٍ للتنفيذ: /tmp/tmpag1un5ha/nope
 PASS  ASR الإنجليزيّ — ضابطٌ إيجابيّ: «No field» محفوظٌ في التفريغ ⇒ لا علَمَ نفي (يبقى غيرُ المغطّى للمراجعة)  screen=REVIEW_UNCOVERED_CONTENT flags=[] uncovered=['this', 'is', 'a', 'is']
 PASS  ASR isolate_net: «unshare» لا يعزل فعلاً ⇒ المسبارُ داخل المقيِّم يبلغ الهدف ⇒ رفض (لا ادّعاءَ عزل)  rc=1 outside=reachable مرفوض: isolate_net=true والمسبارُ داخل المقيِّم 'reachable' — لا عزل
 PASS  ASR: تسريبُ نصٍّ **إنجليزيّ** في الاستدعاء يُكشف (v9 كان يتجاوز اللاتينيّة)، وكلماتُ المسارات لا تُعدّ تسريباً  leak=True path_only=False
@@ -91,14 +91,14 @@ PASS  procs: /proc لفضاءٍ آخر (أو أب) ⇒ unverifiable لا «حي�
 PASS  procs: عمليّةٌ حُصدت ⇒ gone بـkill(pid, 0) وحده، ولو كان /proc غيرَ مقروء  ('gone', 'kill(pid, 0): ESRCH في فضاء PID هذه العمليّة')
 PASS  حكمُ البقاء: تعذّرُ الإثبات ⇒ BLOCKED لا PASS، والحيُّ بهويّته أو المجموعةُ الباقية ⇒ FAIL  10 صفّاً
 PASS  ASR _kill_group: تعذّرُ الإثبات ⇒ group_gone=None مع سببه، وعضوٌ حيّ ⇒ False — لا «قُتلت» بلا دليل  got={'unverifiable': (None, None, True), 'alive': (False, [4242], False)}
-PASS  procs.probe: أبٌ يخرج وحفيدُه يُمسك الأنبوب ⇒ فشلٌ بمهلة (لا تعليق) والحفيدُ قُتل  ok=False wall=0.5s grandchild=2743:gone subreaper=True killed_by=9 علِق أكثر من 0.5s فقُتلت مجموعتُه (NSpid=[2571] getpid=2571)
+PASS  procs.probe: أبٌ يخرج وحفيدُه يُمسك الأنبوب ⇒ فشلٌ بمهلة (لا تعليق) والحفيدُ قُتل  ok=False wall=0.5s grandchild=27532:gone subreaper=True killed_by=9 علِق أكثر من 0.5s فقُتلت مجموعتُه (NSpid=[27382] getpid=27382)
 PASS  procs.bwrap_probe: /proc لفضاءٍ آخر ⇒ غيرُ متاح حتميّاً (لا نجاحٌ مرّةً وتعليقٌ مرّة)  (False, '/proc لفضاء PID آخر (مصطنع) — bwrap لا يُعتمد هنا')
-PASS  procs: مراجعةُ المالك على v13 — عالقٌ له ابن في فضاء PID جديد و/proc لفضاء الأب ⇒ لا «child_alive» كاذب  getpid=1 ns=[False, 'NSpid=[2749, 1] getpid=1'] inner=PASS: screen=EVALUATOR_TIMEOUT timeout={'killed_pgid': 3, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة'} child=4 start=None status=gone (kill(pid, 0): ESRCH في فضاء PID هذه العمليّة) wall=0.7s
+PASS  procs: مراجعةُ المالك على v13 — عالقٌ له ابن في فضاء PID جديد و/proc لفضاء الأب ⇒ لا «child_alive» كاذب  getpid=1 ns=[False, 'NSpid=[27534, 1] getpid=1'] inner=PASS: screen=EVALUATOR_TIMEOUT timeout={'killed_pgid': 3, 'group_gone': True, 'evidence': 'killpg(pgid, 0): ESRCH في فضاء PID هذه العمليّة'} child=4 start=None status=gone (kill(pid, 0): ESRCH في فضاء PID هذه العمليّة) wall=0.7s
 
 95 حالة · فشل 0 · BLOCKED 0
 حدّه: «اجتاز» = اجتاز فحوصَ الحقائق المعلنة لا «المعنى محفوظ». يفحص النصّ قبل التوليد، ولا يرى النحو،
 ولا يحكم على الصوت ولا يُغني عن المراجع البشريّ.
 
-real	0m13.365s
-user	0m4.537s
-sys	0m1.695s
+real	0m12.964s
+user	0m4.890s
+sys	0m0.928s

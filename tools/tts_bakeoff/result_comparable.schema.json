@@ -313,7 +313,8 @@
         "survivors_after_exit",
         "negative_control",
         "cgroup",
-        "cgroup_stats"
+        "cgroup_stats",
+        "sandbox"
       ],
       "properties": {
         "exit_code": {
@@ -405,6 +406,25 @@
             },
             "oom_kill_events": {
               "const": 0
+            }
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "required": [
+            "kind",
+            "binds"
+          ],
+          "properties": {
+            "kind": {
+              "const": "bwrap"
+            },
+            "binds": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
             }
           }
         }

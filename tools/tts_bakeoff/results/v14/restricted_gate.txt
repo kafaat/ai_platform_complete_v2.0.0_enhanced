@@ -1,17 +1,17 @@
 PASS  الضابطُ الإيجابيّ: السجلُّ الحقيقيّ كما هو يُقبل  rc=0 
-PASS  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 فوض — لا تُعتمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/owner-NaN: قيمةٌ غيرُ منتهية في JSON: NaN
-PASS  sentences[0].wall_s = Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 ُعتمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/owner-Infinity: قيمةٌ غيرُ منتهية في JSON: Infinity
-PASS  sentences[0].wall_s = -Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 تمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/owner--Infinity: قيمةٌ غيرُ منتهية في JSON: -Infinity
-PASS  sentences[0].wall_s = 1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 تُعتمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/owner-1e309: عددٌ يفيض إلى قيمةٍ غير منتهية: 1e309
-PASS  sentences[0].wall_s = -1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 عتمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/owner--1e309: عددٌ يفيض إلى قيمةٍ غير منتهية: -1e309
-PASS  عددٌ يفيض (1e999 ⇒ inf بصمت) ⇒ رفض  rc=2 لا تُعتمد مقارنةُ أداء:   /tmp/tmpkk4j8okx/overflow: عددٌ يفيض إلى قيمةٍ غير منتهية: 1e999
+PASS  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 فوض — لا تُعتمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/owner-NaN: قيمةٌ غيرُ منتهية في JSON: NaN
+PASS  sentences[0].wall_s = Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 ُعتمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/owner-Infinity: قيمةٌ غيرُ منتهية في JSON: Infinity
+PASS  sentences[0].wall_s = -Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 تمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/owner--Infinity: قيمةٌ غيرُ منتهية في JSON: -Infinity
+PASS  sentences[0].wall_s = 1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 تُعتمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/owner-1e309: عددٌ يفيض إلى قيمةٍ غير منتهية: 1e309
+PASS  sentences[0].wall_s = -1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 عتمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/owner--1e309: عددٌ يفيض إلى قيمةٍ غير منتهية: -1e309
+PASS  عددٌ يفيض (1e999 ⇒ inf بصمت) ⇒ رفض  rc=2 لا تُعتمد مقارنةُ أداء:   /tmp/tmp0fh80tlz/overflow: عددٌ يفيض إلى قيمةٍ غير منتهية: 1e999
 PASS  كلُّ حقلٍ عدديّ (174) × NaN/±Infinity/±1e309 ⇒ القارئُ الصارم يرفض 870/870  
 PASS  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 870/870  
 PASS  كلُّ طلبات التزامن فشلت ⇒ رفضٌ بسببه  rc=2 — لا مقارنةَ أداءٍ مع طلباتٍ فاشلة\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
-PASS  غيابُ p95 في التزامن ⇒ رفضٌ بسببه  rc=2 سيط {\'n\': 3, \'median_s\': 0.028}"]'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
-PASS  نسبةُ تباطؤ 9 ⇒ رفضٌ بسببه  rc=2 _throttled_ratio=9 لا تتّسق مع 1/14']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
-PASS  نسبةُ تباطؤٍ لا تتّسق مع عدّاتها ⇒ رفضٌ بسببه  rc=2 hrottled_ratio=0.5 لا تتّسق مع 1/14']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
-PASS  إنتاجيّةٌ لا تتّسق ⇒ رفضٌ بسببه  rc=2 hput_rps=999.0 لا تتّسق مع 3/0.086s']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  غيابُ p95 في التزامن ⇒ رفضٌ بسببه  rc=2 سيط {\'n\': 3, \'median_s\': 0.042}"]'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  نسبةُ تباطؤ 9 ⇒ رفضٌ بسببه  rc=2 _throttled_ratio=9 لا تتّسق مع 3/22']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  نسبةُ تباطؤٍ لا تتّسق مع عدّاتها ⇒ رفضٌ بسببه  rc=2 hrottled_ratio=0.5 لا تتّسق مع 3/22']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  إنتاجيّةٌ لا تتّسق ⇒ رفضٌ بسببه  rc=2 hput_rps=999.0 لا تتّسق مع 3/0.139s']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
 PASS  ذروةُ ذاكرةٍ فوق الحدّ ⇒ رفضٌ بسببه  rc=2 _peak_mb=1000000 > حدّ الذاكرة 1024']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
 PASS  مقطعٌ فاشلٌ داخل سجلٍّ ناجح ⇒ رفضٌ بسببه  rc=2 :/sentences/3/ok: True was expected']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
 PASS  حالاتُ نجاحٍ بلا قياسات ⇒ رفضٌ بسببه  rc=2 _median=None\', \'concurrency فارغ\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
@@ -20,6 +20,6 @@ PASS  أنويةٌ فعليّة مشوّهة (نصٌّ لا عدد) — رفضٌ
 18 حالة · فشل 0
 حدّه: يُثبت سلوكَ بوّابة المقارنة وحدها على سجلٍّ ثابت — لا العزل ولا القياس ولا أيَّ محرّكٍ حقيقيّ.
 
-real	0m3.301s
-user	0m2.679s
-sys	0m0.376s
+real	0m3.568s
+user	0m2.929s
+sys	0m0.431s

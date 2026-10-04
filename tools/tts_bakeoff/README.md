@@ -12,7 +12,7 @@
 | فرزُ ASR المحلّيّ | ثلاثةُ محوّلات بمعاملاتٍ مسموحة فقط. **pocketsphinx 5.1.1 حقيقيٌّ ومُشغَّل** (إنجليزيّ فقط، BSD، من PyPI بلا Hugging Face) بعزل شبكةٍ PROVEN. **لا ASR عربيّاً حقيقيّاً بعد** |
 | بوّابةُ المقارنة **بلا root** (`gate_selftest.py`) | غيرُ مقيَّد **18 · 0** من 18 · مقيَّد **18 · 0** من 18 (لا حالاتٍ محجوبة في هذه الأداة)، على سجلٍّ حقيقيّ أُعيد توليدُه بكود v14 (`fixtures/comparable_result.json`)، منها **870/870**: 174 حقلاً × NaN/±Infinity/±1e309. وعلى perf.py من v10: فشل 10/19 (`GATE_SELFTEST_ON_V10.txt`) |
 | الأداة نفسها — مضيفٌ مقيَّد (محاكاة: CapEff=0 · cgroup للقراءة فقط) | **41 PASS · 0 FAIL · 7 BLOCKED** من 48 حالة (`SELFTEST_RESTRICTED_HOST_RESULT.txt`) — **لا شهادةَ عزلٍ ولا حدود** منه |
-| الأداة نفسها (`selftest.py`، root، cgroup v1) | غيرُ مقيَّد **65 PASS · 0 FAIL · 0 BLOCKED** من 65 (`SELFTEST_RESULT.txt`) · فضاءُ PID مختلف **59 · 0 · 2** من 61 (v13 والشجرةُ قبل الإصلاح: يعلق) — تُثبت سلوكَ الأداة فقط |
+| الأداة نفسها (`selftest.py`، root، cgroup v1) | غيرُ مقيَّد **66 PASS · 0 FAIL · 0 BLOCKED** من 66 (`SELFTEST_RESULT.txt`) · فضاءُ PID مختلف **53 · 0 · 4** من 57 (v13 والشجرةُ قبل الإصلاح: يعلق) — تُثبت سلوكَ الأداة فقط |
 | قياسُ محرّكٍ حقيقيّ | لم يُقَس Piper أو SILMA؛ شُغّل Flite الإنجليزيّ وPocketSphinx كتجربةٍ منفصلة، دون اعتماد جودة العربيّة |
 | مقارنة | **لا توجد نتائج مقارنة.** 54 مقطعاً اصطناعيّاً سابقاً أثبتت إجراءَ الخلط وحده |
 | صوت Piper العربيّ | **معلّق** — ترخيصُه لم يُتحقَّق من مصدرٍ أوّليّ؛ لا يُنزَّل |
@@ -83,23 +83,43 @@ v13 المجمَّدة تفشل كما عند المالك (88 حالة · فش�
 
 **النتائج:**
 
-الأعدادُ صريحة (PASS · FAIL · BLOCKED)؛ رمزُ الخروج 0 وحده قد يضمّ حالاتٍ محجوبة. السجلّاتُ الكاملة في `results/v14/`.
+الأعدادُ صريحة (PASS · FAIL · BLOCKED)؛ رمزُ الخروج 0 وحده قد يضمّ حالاتٍ محجوبة. السجلّاتُ الكاملة في `results/v14/`
+(تُعاد بـ`sudo BAKEOFF_PS_PYTHON=<venv_ps>/bin/python bash results/v14/run_matrix.sh <مجلّد>`؛ بلا المتغيّر تُحجب حالةُ
+pocketsphinx الحقيقيّة BLOCKED لا تنجح).
 
 | البيئة | selftest.py (root) | semantic_selftest.py | gate_selftest.py |
 |---|---|---|---|
-| غيرُ مقيَّد | 65: **65 · 0 · 0** | 95: **95 · 0 · 0** | 18: **18 · 0 · —** |
-| فضاءُ PID مختلف (`unshare -p -f` بلا `--mount-proc`) | 61: **59 · 0 · 2** | 95: **94 · 0 · 1** | — |
+| غيرُ مقيَّد | 66: **66 · 0 · 0** | 95: **95 · 0 · 0** | 18: **18 · 0 · —** |
+| فضاءُ PID مختلف (`unshare -p -f` بلا `--mount-proc`) | 57: **53 · 0 · 4** | 95: **94 · 0 · 1** | — |
 | مقيَّدٌ (محاكاة: CapEff=0 · cgroup للقراءة فقط) | 48: **41 · 0 · 7** | 95: **94 · 0 · 1** | 18: **18 · 0 · —** |
 | SIGCHLD=SIG_IGN موروث | — | 95: **95 · 0 · 0** | — |
 | v13 المجمَّدة في فضاء PID مختلف | يعلق (مسبار bwrap بلا مهلة — قيس على الشجرة قبل الإصلاح، وسطرُ المسبار مطابقٌ لـv13 `run.py:318-320` حرفيّاً) | 88: 86 · **1** · 1 (الإنذارُ الكاذب) | — |
 
 **أسبابُ BLOCKED بأسمائها:**
 - فضاء PID مختلف — selftest: (1) v4 عاملٌ عالق: الابنُ `unverifiable` (زومبي لـPID 1 لا يُقرأ حالُه من `/proc` ذلك الفضاء)؛
-  (2) كتلة v8 bwrap: «`/proc` لفضاء PID آخر — bwrap لا يُعتمد هنا». semantic: «زومبي حقيقيّ» (يختبر ماسحَ `/proc` نفسَه).
+  (2) كتلة v8 bwrap: «`/proc` لفضاء PID آخر — bwrap لا يُعتمد هنا»؛ (3) و(4) بوّابةُ مقارنة الأداء والضابطُ الإيجابيّ لـperf:
+  منذ مراجعة Copilot تتطلّب المقارنةُ bwrap، وbwrap غيرُ متاحٍ في هذا الفضاء (كانتا PASS بتشغيلات unshare — 61 حالة · 2 BLOCKED).
+  semantic: «زومبي حقيقيّ» (يختبر ماسحَ `/proc` نفسَه).
 - مقيَّد — selftest: سبعُ كتلٍ تحتاج namespace أو cgroup (EPERM · EROFS)، كما في v13. semantic: حالةُ فضاء PID (`unshare -p` ⇒ EPERM).
 
 **أعطالٌ مزروعة (v14):** **17/17 قُتلت** — 15 بتحويل PASS→FAIL، واثنتان (M9 بلا subreaper · M12 بلا حصد) بتحويل PASS→BLOCKED: بدونهما يصير زوالُ المجموعة غيرَ قابلٍ للإثبات فتُحجب الحالةُ لا تنجح زوراً. السكربت `mutations_v14.py` (`mutations_v14.txt`).
 
+
+
+**مراجعةُ Copilot على #1133 (تسعُ نتائج، كلُّها مُتحقَّقٌ منها ثمّ أُصلِحت؛ حالةٌ لكلٍّ في `tests/test_tts_bakeoff_input_contracts.py`
+تعمل في CI بلا root، وتسقط 21 من حالاتها على الشجرة قبل الإصلاح `f333b6e4`):**
+
+| الشدّة | العيب | الإصلاح |
+|---|---|---|
+| عالية | بيئةُ العامل قائمةُ منع (`*_proxy` · `*TOKEN*`) فتمرّ `AWS_SECRET_ACCESS_KEY` و`DATABASE_URL` و`*_PASSWORD` إلى شيفرة النموذج | `run.worker_env`: **قائمةُ سماح** (`WORKER_ENV_ALLOW`)، وأسماءُ الممرَّر (لا قيمُه) في `coordinator.worker_env_names` |
+| عالية | بصمةُ catt المقيسةُ عند التنزيل في `trusted_sha256` فيقبلها `fetch_models.py` | `trusted_sha256: null` والقيمةُ في `measured_sha256_unverified` حتّى تُطابَق بصفحة الإصدار |
+| متوسّطة | PCM8 بلا إشارة ينهار (`bytes()` لا تقبل السالب) | تمركزٌ حول 128 أعداداً صحيحة |
+| متوسّطة | ماسحُ المجموعة يستثني `Z` وحده و`pid_status` يعدّ `Z`/`X` | `DEAD_STATES = ("Z", "X")` للاثنين |
+| متوسّطة | `run_matrix.sh` مربوطٌ بمسار جلسةٍ مؤقّت | الجذرُ من موضع السكربت، والناتجُ في مجلّدٍ منفصل، وbash |
+| متوسّطة | `performance_comparable` بلا دليلٍ على أنّ المحرّك لم يقرأ إلّا المعلَن: `unshare` يكشف نظامَ ملفّات المضيف | المقارنةُ تُشترط في **جذرٍ فارغ (bwrap)** بربطٍ معلَن (`perf.evidence_problems` والمخطّط معاً)؛ تشغيلُ unshare يُرفض بسببه. **يبقى:** ما تحت ربطات النظام (`/usr/lib` …) مقروءٌ، ودليلُ الوصول الكامل للجرد المنفصل `--inventory` (strace يُبطئ فلا يجتمع مع القياس) |
+| متوسّطة | تقديراتُ «1-5» تقبل NaN/∞ وما خارج المدى | `score._rating`: عددٌ منتهٍ في [1, 5] وإلّا تُرفض الورقةُ باسم الصفّ؛ الفارغُ «غيرُ مُقيَّم» |
+| متوسّطة | `--min-reviewers 0` يُنجِح محرّكاً بلا صفٍّ مُقيَّم | يُرفض ما دون 1 قبل الحساب |
+| منخفضة | README لا يذكر pocketsphinx ويقول إنّ اللغةَ `ar` دائماً | المحوّلاتُ الثلاثة ولغةُ كلٍّ منها من `asr_screen.LANGUAGES` |
 
 **ما بقي صراحةً:**
 - **اعتمادُ العزل محجوب** كما قرّر المالك: لا شهادةَ من مضيفٍ مقيَّد، والمحاكاةُ هنا تُثبت سلوكَ الأداة لا عزلَ مضيف المالك.
@@ -628,8 +648,8 @@ python3 blind.py runs/silma-… runs/<محرّكٌ ثانٍ>-… --out review-00
 python3 score.py review-001 reviewer_a.csv reviewer_b.csv
 
 # 6) اختياريّ — فرزٌ مساعد بـASR محلّيّ (لا يدخل الحكم). شغّله بلا شبكة:
-#    asr.json (مفاتيحُ مسموحة فقط): name · version · adapter (whisper_cpp|faster_whisper) · binary (لـwhisper_cpp)
-#             · model_path (محلّيّ) · language ("ar") · params (whisper_cpp: beam_size · best_of · temperature · threads)
+#    asr.json (مفاتيحُ مسموحة فقط): name · version · adapter (whisper_cpp|faster_whisper|pocketsphinx) · binary (لـwhisper_cpp)
+#             · model_path (محلّيّ) · language (لكلّ محوّلٍ لغتُه: whisper_cpp وfaster_whisper ⇒ "ar"، pocketsphinx ⇒ "en"؛ asr_screen.LANGUAGES) · params (whisper_cpp: beam_size · best_of · temperature · threads)
 #             · timeout_s (لكلّ مقطع) · load_timeout_s (تحميلُ faster_whisper) — تُفرضان بقتل مجموعة العمليّات
 #             · python (مفسّرُ بيئة المقيِّم) · isolate_net (true ⇒ unshare -n ومسبارٌ داخليّ)
 #    مثالٌ حقيقيّ مُشغَّل (إنجليزيّ): python3 -m venv venv_ps && venv_ps/bin/pip install -r requirements-asr-pocketsphinx.txt
