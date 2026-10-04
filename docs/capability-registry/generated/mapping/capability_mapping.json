@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5504,
+    "files_scanned": 5505,
     "files_by_kind": {
       "backend": 1218,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1556,
-      "tests": 1870,
+      "tests": 1871,
       "web": 459
     },
-    "unmapped_artifacts": 2223,
+    "unmapped_artifacts": 2224,
     "ambiguous_artifacts": 430
   },
   "capabilities": [
@@ -43173,6 +43173,10 @@
     },
     {
       "path": "tests/test_riv_p0_consumer_truth_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_tts_bakeoff_procs.py",
       "kind": "tests"
     },
     {

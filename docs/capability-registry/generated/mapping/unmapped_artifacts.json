@@ -6784,6 +6784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/test_tts_bakeoff_procs.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
     "kind": "tests"
   },
