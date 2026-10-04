@@ -1,0 +1,24 @@
+الأساس: ['PASS', 'PASS', 'PASS', 'PASS', 'PASS', 'PASS', 'PASS', 'PASS']
+قُتلت  M1 procs: الفضاءُ «لنا» دائماً: #0:PASS→FAIL #6:PASS→FAIL
+قُتلت  M2 procs: آخرُ NSpid يكفي (فضاءٌ أب يمرّ): #0:PASS→FAIL #6:PASS→FAIL
+قُتلت  M3 procs: pid_status بلا فحص الفضاء: #0:PASS→FAIL
+قُتلت  M4 procs: الهويّةُ مُتجاهَلة (لا reused): #0:PASS→FAIL
+قُتلت  M5 procs: الزومبي حيّ: #0:PASS→FAIL
+قُتلت  M6 procs: ESRCH لا يُعدّ زوالاً: #1:PASS→FAIL #6:PASS→BLOCKED
+قُتلت  M7 procs: starttime بلا فحص الفضاء: #0:PASS→FAIL
+قُتلت  M8 procs: group_status بلا فحص الفضاء: #0:PASS→FAIL
+قُتلت  M9 asr_screen: لا subreaper: #6:PASS→BLOCKED
+قُتلت  M10 asr_screen: تعذّرُ الإثبات ⇒ True: #3:PASS→FAIL
+قُتلت  M11 asr_screen: عضوٌ حيّ ⇒ True: #3:PASS→FAIL
+قُتلت  M12 asr_screen: لا حصدَ للمجموعة: #6:PASS→BLOCKED
+قُتلت  M13 selftest: unverifiable يُحسب نجاحاً: #2:PASS→FAIL
+قُتلت  M14 selftest: الابنُ يُقرأ من /proc/<رقم> أعمى (v13): #6:PASS→FAIL
+قُتلت  M15 procs.probe: قتلُ الأب وحده لا المجموعة: #4:PASS→FAIL
+قُتلت  M16 procs.probe: بلا مهلة: #4:PASS→FAIL
+قُتلت  M17 procs.bwrap_probe: بلا فحص الفضاء: #5:PASS→FAIL
+
+قُتلت 17/17
+
+real	2m51.532s
+user	0m8.016s
+sys	0m1.983s

@@ -1,0 +1,23 @@
+{
+  "_note": "كلُّ قيمة REPLACE تُملأ من المصدر الأصليّ قبل التنزيل. البصمةُ الموثوقة من صفحة الملفّ على huggingface.co (حقل SHA256 لملفّات LFS) أو صفحة الإصدار — لا من المرآة.",
+  "files": [
+    {"purpose": "silma checkpoint", "repo_id": "silma-ai/silma-tts", "revision": "REPLACE-40-char-commit",
+     "filename": "model.pt", "local_dir": "silma", "trusted_sha256": null,
+     "license": "Apache-2.0 (weights)", "license_source": "README المستودع الرسميّ SILMA-AI/silma-tts"},
+    {"purpose": "silma vocab", "repo_id": "silma-ai/silma-tts", "revision": "REPLACE-40-char-commit",
+     "filename": "vocab.txt", "local_dir": "silma", "trusted_sha256": null,
+     "license": "Apache-2.0 (weights)", "license_source": "README المستودع الرسميّ SILMA-AI/silma-tts"},
+    {"purpose": "vocos vocoder config", "repo_id": "charactr/vocos-mel-24khz", "revision": "REPLACE-40-char-commit",
+     "filename": "config.yaml", "local_dir": "vocos-mel-24khz", "trusted_sha256": null,
+     "license": "REPLACE — راجع بطاقة النموذج", "license_source": "REPLACE"},
+    {"purpose": "vocos vocoder weights", "repo_id": "charactr/vocos-mel-24khz", "revision": "REPLACE-40-char-commit",
+     "filename": "pytorch_model.bin", "local_dir": "vocos-mel-24khz", "trusted_sha256": null,
+     "license": "REPLACE — راجع بطاقة النموذج", "license_source": "REPLACE"},
+    {"purpose": "silma diacritizer (catt eo_model v2)",
+     "url": "https://github.com/abjadai/catt/releases/download/v2/eo_model_onnx.zip",
+     "filename": "eo_model_onnx.zip", "local_dir": "catt",
+     "trusted_sha256": "5343bfdfda70c981b587811b79348b8dde91f65c0a551ca98f232ea5cb62ceac",
+     "_sha256_provenance": "مقيسةٌ عند التنزيل في 2026-10-04 من بيئة الإعداد؛ لم تُطابَق ببصمةٍ منشورة على صفحة الإصدار (واجهة GitHub محجوبة هنا) — طابِقها قبل الاعتماد",
+     "license": "Apache-2.0", "license_source": "LICENSE في github.com/abjadai/catt (main)"}
+  ]
+}

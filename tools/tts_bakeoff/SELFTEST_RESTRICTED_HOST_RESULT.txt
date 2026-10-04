@@ -1,0 +1,58 @@
+المضيف: netns=لا (unshare: unshare failed: Operation not permitted) · cgroup_v1=لا (OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940') · bwrap=لا (bwrap: Creating new namespace failed: Operation not permitted)
+PASS     سليم ⇒ ok ورمز 0                                                                           rc=0 status=ok net=BLOCKED
+PASS     عزل الشبكة = BLOCKED                                                                       control={'probes': {'tcp pypi.org:443': 'REACHED', 'dns pypi.org': 'REACHED', 'tcp 151.101.128.223:443 (بلا DNS)': 'REACHED'}, 'isolated': False} negative={'target': 'pypi.org:443', 'reached': True, 'ip': '151.101.128.223'}
+PASS     فشلُ كلِّ طلبات التزامن ⇒ failed ورمز ≠ 0                                                  rc=1 errors=[3, 6, 12]
+PASS     header_only ⇒ مرفوض                                                                        rc=1 مرفوض 27/27
+PASS     truncated ⇒ مرفوض                                                                          rc=1 مرفوض 27/27
+PASS     silent ⇒ مرفوض                                                                             rc=1 مرفوض 27/27
+PASS     طلبٌ عالق ⇒ مهلةُ الطلب تُنهيه                                                             rc=1 stage=request_timeout
+PASS     مهلةٌ صلبة ⇒ قتلُ المجموعة مع سجلٍّ جزئيّ                                                  killed=True stage=hard_timeout
+PASS     اتّصالُ بايثون عند التحميل ⇒ load_failed (طبقةُ حارس العمليّة)                             stage=load_failed error=gaierror: [Errno -3] process guard: DNS blocked
+BLOCKED  عزلُ العمليّات الأصليّة                                                                    المضيفُ لا يُنشئ namespace: unshare: unshare failed: Operation not permitted
+PASS     مجلّدٌ قديم غير فارغ ⇒ مرفوض                                                               rc=5
+PASS     blind يرفض تشغيلاً فاشلاً                                                                  
+PASS     blind يرفض مقطعاً تغيّرت بايتاته                                                           
+PASS     blind يرفض مقطعاً غير مُسجَّل                                                              
+PASS     blind يقبل التشغيل السليم                                                                  
+PASS     محرّكٌ حقيقيّ ببيانٍ فارغ ⇒ مرفوض قبل الاستيراد                                            stage=manifest_rejected
+PASS     مسارُ إعدادٍ موجودٌ لكنّه خارج الملفّات المثبّتة ⇒ مرفوض                                   stage=manifest_rejected error=eoff-selftest-40g57clt/elsewhere.json خارج الملفّات المثبّتة
+PASS     حارس العمليّة: localhost.evil.example ليس loopback                                         
+PASS     v3 فشلُ التزامن وحده (المتتابع سليم 27/27) ⇒ failed ورمز ≠ 0                               rc=1 seq=27/27 errors 1/2/4=[0, 5, 11]
+PASS     v3 طلبٌ متزامن عالق ⇒ مهلتُه الخاصّة تُنهي التشغيل دون انتظار الخيط                        stage=concurrency_timeout seq=27 took=4.4s
+PASS     v3 الكمون يُقاس داخل خيط الطلب (≈0.3ث لا تراكمُ الطابور)                                   conc4 median=0.368 p95=0.401 warm median=0.32
+BLOCKED  v3 حدود الموارد                                                                            لا cgroup v1 قابلة للكتابة: OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940'
+PASS     v3 مسارُ إعدادٍ غير موجود ⇒ مرفوض قبل الاستيراد                                            error=gs.config = /tmp/bakeoff-selftest-40g57clt/real.onnx.missing غير موجود
+PASS     v3 ملفٌّ مُثبَّت هو رابطٌ رمزيّ ⇒ مرفوض قبل الاستيراد                                      error=رابطٌ رمزيّ مرفوض: link.onnx — يُثبَّت الملفّ الحقيقيّ لا رابطٌ إليه
+PASS     v3 رابطٌ داخل مجلّدٍ مُثبَّت يخرج منه ⇒ مرفوض قبل الاستيراد                                error=روابطُ رمزيّة داخل vtree مرفوضة: ['escape.bin']
+PASS     v3 blind يرفض نصوصاً بصمتُها تخالف ما قِيس عليه التشغيل                                    
+PASS     blind يُعدّ جولةَ تقييمٍ من التشغيل المرجعيّ (أساسُ حالات score التالية)                   rc=0 net=BLOCKED تنبيه: محرّكٌ واحد فقط — هذا فحصٌ للإجراء، لا مقارنة.
+PASS     v3 score: مراجعان مختلفان سليمان ⇒ PASSED_SAFETY_GATE                                      verdict=PASSED_SAFETY_GATE
+PASS     v3 score: الورقة نفسها مرّتين ⇒ مرفوض                                                      
+PASS     v3 score: المراجع نفسه في ورقتين مختلفتين ⇒ مرفوض                                          
+PASS     v3 score: reviewer_id فارغ ⇒ مرفوض                                                         
+PASS     v3 score: صفٌّ مكرّر في الورقة ⇒ مرفوض                                                     
+PASS     v3 score: نصٌّ أو حقائقُ معدّلة في الورقة ⇒ مرفوض                                          
+PASS     v3 score: خطأ حرج واحد ⇒ REJECTED                                                          verdict=REJECTED
+PASS     v3 score: مراجعٌ واحد فقط ⇒ INCOMPLETE                                                     verdict=INCOMPLETE under=27
+PASS     v4 طلبٌ يكتمل بعد مهلته يُرفض ولو أعاد WAV صالحاً                                          stage=complete conc2 errors=1 sample=['TimeoutError: late: 0.381s > 0.25s']
+PASS     v4 عاملٌ عالق وأبناؤه يُنهَون، ويبقى السجلّ الجزئيّ                                        stage=hard_timeout child=4303 killed=[] survivors=gone {4303: 'dead'}
+BLOCKED  v4 بوّابة مقارنة الأداء                                                                    netns=unshare: unshare failed: Operation not permitted · cgroup_v1=OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940'
+PASS     v4 بلا عزلٍ ينجح التعديل ⇒ تكشفه المطابقةُ بعد التشغيل (pinned_files_changed)              stage=pinned_files_changed ro=BLOCKED original_intact=True
+PASS     v4 نموذجٌ تغيّر بعد كتابة بصمته ⇒ مرفوضٌ قبل الإطلاق                                       error=بصمةٌ مخالفة: pinned_model.bin
+  المُعلنة 9257d4bc
+BLOCKED  v4 الحصّة/الجرد                                                                            netns=unshare: unshare failed: Operation not permitted · cgroup_v1=OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940'
+BLOCKED  v6 الجرد تحت /usr والتنظيفُ الجزئيّ                                                        netns=unshare: unshare failed: Operation not permitted · cgroup_v1=OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940'
+PASS     v6 .pth نصّيٌّ صغيرٌ في جذر بايثون يمرّ، وأوزانٌ .pth ثنائيّة في الموضع نفسه ⇒ undeclared  undeclared=['/tmp/bakeoff-selftest-40g57clt/site-packages/weights.pth']
+BLOCKED  v8 bwrap                                                                                   bwrap=bwrap: Creating new namespace failed: Operation not permitted · cgroup_v1=OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940'
+PASS     v9 SIGCHLD موروثٌ مُهمَلاً ⇒ رمزُ خروج العامل الفاشل محفوظ (≠ 0) والموروثُ مُسجَّل         rc=1 worker_exit=1 inherited=SIG_IGN
+PASS     v6 perf: علَمُ المقارنة true مع failed/BLOCKED ⇒ سجلٌّ متناقض مرفوض                        rc=2 .cpu_quota=None ≠ requested 1.0\']'] (net=BLOCKED limits=BLOCKED ro=BLOCKED status=failed)
+PASS     v7 perf: سجلٌّ يحمل حالاتِ النجاح وحدها بلا قياساتٍ ولا بصماتٍ ولا حدودٍ فعليّة ⇒ مرفوض    rc=2 \'rtf_warm_median=None\', \'concurrency فارغ\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+BLOCKED  v7 perf: الضابطُ الإيجابيّ وسجلّاتُ نقص الدليل                                             لا سجلَّ حقيقيّاً قابلاً للمقارنة على هذا المضيف (netns=unshare: unshare failed: Operation not permitted · cgroup_v1=OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-3940') — gate_selftest.py يغطّيها بلا root
+
+48 حالة · فشل 0 · BLOCKED 7
+BLOCKED = لم يُختبر على هذا المضيف (لا شهادةَ عزلٍ أو حدودٍ منه) — لا يُحسب نجاحاً.
+تنبيه: هذا يُثبت سلوك الأداة فقط — لا قياسَ لأيِّ محرّكٍ حقيقيّ ولا مقارنة.
+
+real	0m48.601s
+user	0m14.306s
+sys	0m1.886s

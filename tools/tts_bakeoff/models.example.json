@@ -1,0 +1,33 @@
+{
+  "_note": "المساراتُ نسبيّةٌ إلى هذا الملفّ. كلُّ إعدادٍ يحمل مساراً يجب أن يقع تحت ملفٍّ في files أو مجلّدٍ في trees ببصمته، وإلّا رُفض التشغيل قبل الاستيراد. البصمةُ null تُرفض: الصق الفعليّة من sha256sum أو من رسالة الرفض بعد مطابقتها بالمصدر.",
+  "fake": {"files": {}, "settings": {"mode": "ok"}},
+  "piper": {
+    "_status": "معلّق — ترخيصُ الصوت العربيّ لم يُحسم؛ لا يُنزَّل.",
+    "source": {"library": "piper-tts==1.8.0 (GPL-3.0-or-later من بيانات الحزمة)", "voice": "REPLACE بعد حسم الترخيص"},
+    "files": {"models/piper/REPLACE.onnx": null, "models/piper/REPLACE.onnx.json": null},
+    "settings": {"model": "models/piper/REPLACE.onnx", "config": "models/piper/REPLACE.onnx.json"},
+    "_package_assets_note": "أوزانٌ داخل الحزمة نفسها يفتحها المحرّك (piper يُنشئ tashkeel عند أوّل جملةٍ عربيّة). تُعلَن ببصمتها وإلّا صارت undeclared في الجرد. null يُرفض.",
+    "package_assets": {"piper/tashkeel/model.onnx": null}
+  },
+  "silma": {
+    "source": {"library": "silma-tts==1.0.5", "weights": "silma-ai/silma-tts@REPLACE-commit", "provenance": "models/provenance.json"},
+    "files": {
+      "models/silma/model.pt": null,
+      "models/silma/vocab.txt": null,
+      "models/silma/ref.wav": null,
+      "models/catt/encoder.onnx": null,
+      "models/catt/decoder.onnx": null
+    },
+    "trees": {"models/vocos-mel-24khz": null},
+    "settings": {
+      "ckpt_file": "models/silma/model.pt",
+      "vocab_file": "models/silma/vocab.txt",
+      "vocoder_dir": "models/vocos-mel-24khz",
+      "tashkeel_encoder": "models/catt/encoder.onnx",
+      "tashkeel_decoder": "models/catt/decoder.onnx",
+      "ref_audio": "models/silma/ref.wav",
+      "ref_text": "REPLACE: النصُّ الحرفيّ للمقطع المرجعيّ (وترخيصُ المقطع نفسه يُحسم قبل الاستعمال)",
+      "device": "cpu", "nfe_step": 16, "speed": 1.0, "seed": 1234, "enable_normalizer": true
+    }
+  }
+}
