@@ -29,11 +29,15 @@ import procs  # noqa: E402
 def _fake_proc(root: Path, nspid: list[int], entries: dict[int, tuple[str, int, int]]) -> Path:
     """``self/status`` بسطر NSpid، و``<pid>/stat`` بحالةٍ ومجموعةٍ وزمنِ بدء (الحقل 22)."""
     (root / "self").mkdir(parents=True)
-    (root / "self" / "status").write_text("Name:\tx\nNSpid:\t" + "\t".join(map(str, nspid)) + "\n")
+    (root / "self" / "status").write_text(
+        "Name:\tx\nNSpid:\t" + "\t".join(map(str, nspid)) + "\n", encoding="utf-8"
+    )
     for pid, (state, pgrp, start) in entries.items():
         (root / str(pid)).mkdir()
         fields = [state, "1", str(pgrp), str(pgrp)] + ["0"] * 15 + [str(start), "0", "0"]
-        (root / str(pid) / "stat").write_text(f"{pid} (name with ) paren) " + " ".join(fields))
+        (root / str(pid) / "stat").write_text(
+            f"{pid} (name with ) paren) " + " ".join(fields), encoding="utf-8"
+        )
     return root
 
 
@@ -81,7 +85,7 @@ def test_probe_times_out_and_kills_the_grandchild_holding_the_pipe(tmp_path):
         t0 = time.monotonic()
         ok, why = procs.probe(["sh", "-c", f"sleep 30 & echo $! > {pidfile}; exit 0"], timeout=0.5)
         wall = time.monotonic() - t0
-        gpid = int(pidfile.read_text())
+        gpid = int(pidfile.read_text(encoding="utf-8"))
         killed_by = None
         for _ in range(200 if adopted else 0):
             pid, status = os.waitpid(gpid, os.WNOHANG)
