@@ -6138,7 +6138,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/nl_sql.py",
-    "line": 71,
+    "line": 73,
     "method": "POST",
     "path": "/api/v1/nl-sql",
     "function": "nl_sql_endpoint"
@@ -6930,7 +6930,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 136,
+    "line": 176,
     "method": "ANY",
     "path": "/api/edge/{path:path}",
     "function": "proxy_edge"
@@ -6938,7 +6938,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 151,
+    "line": 191,
     "method": "ANY",
     "path": "/api/soil/{path:path}",
     "function": "proxy_soil"
@@ -6946,7 +6946,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 166,
+    "line": 209,
     "method": "ANY",
     "path": "/api/segmentation/{path:path}",
     "function": "proxy_segmentation"
@@ -6954,7 +6954,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 183,
+    "line": 226,
     "method": "ANY",
     "path": "/api/field-forms/{path:path}",
     "function": "proxy_field_forms"
@@ -8306,7 +8306,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
-    "line": 23,
+    "line": 28,
     "method": "GET",
     "path": "/v1/soil/readings/{field_id}",
     "function": "get_readings"
@@ -8314,7 +8314,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
-    "line": 38,
+    "line": 43,
     "method": "POST",
     "path": "/v1/soil/ingest",
     "function": "ingest_reading"

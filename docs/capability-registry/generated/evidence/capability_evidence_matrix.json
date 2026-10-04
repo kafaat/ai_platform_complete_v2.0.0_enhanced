@@ -8943,6 +8943,7 @@
         "services/decision-service/tests/test_soil_profile_context_gate.py",
         "services/sahool-platform/tests/test_canonical_soil_state.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/tests/test_soil_proxy_authorization.py",
         "services/soil-service/test_canonical_soil_profile.py",
         "services/soil-service/test_soil_snapshot_identity.py",
         "tests_v9/test_api_versioning_policy_guard.py",
@@ -8951,6 +8952,7 @@
         "tests_v9/test_hourly_energy_aware_irrigation_mpc.py",
         "tests_v9/test_live_pg_fake_connection_debt.py",
         "tests_v9/test_main_inventory_generator.py",
+        "tests_v9/test_soil_ingest_atomic.py",
         "tests_v9/test_soil_science_20260703.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]

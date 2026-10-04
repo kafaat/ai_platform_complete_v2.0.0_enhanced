@@ -766,7 +766,7 @@ sahool-platform,services/sahool-platform/api/routers/ndvi_analysis.py,35,POST,/a
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,24,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,30,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint
 sahool-platform,services/sahool-platform/api/routers/nl_gis.py,199,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint
-sahool-platform,services/sahool-platform/api/routers/nl_sql.py,71,POST,/api/v1/nl-sql,nl_sql_endpoint
+sahool-platform,services/sahool-platform/api/routers/nl_sql.py,73,POST,/api/v1/nl-sql,nl_sql_endpoint
 sahool-platform,services/sahool-platform/api/routers/notifications.py,58,GET,/api/v1/notifications/preferences,get_notification_preferences
 sahool-platform,services/sahool-platform/api/routers/notifications.py,88,PUT,/api/v1/notifications/preferences,update_notification_preferences
 sahool-platform,services/sahool-platform/api/routers/notifications.py,179,POST,/api/v1/notifications/delivery,upsert_notification_delivery
@@ -865,10 +865,10 @@ sahool-platform,services/sahool-platform/api/routers/seed.py,36,POST,/api/v1/see
 sahool-platform,services/sahool-platform/api/routers/seed.py,42,GET,/api/v1/seed/germination-rate,seed_germination_endpoint
 sahool-platform,services/sahool-platform/api/routers/seed.py,50,GET,/api/v1/seed/storage-check,seed_storage_endpoint
 sahool-platform,services/sahool-platform/api/routers/seed.py,58,GET,/api/v1/seed/sowing-depth,seed_sowing_depth_endpoint
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,136,ANY,/api/edge/{path:path},proxy_edge
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,151,ANY,/api/soil/{path:path},proxy_soil
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,166,ANY,/api/segmentation/{path:path},proxy_segmentation
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,183,ANY,/api/field-forms/{path:path},proxy_field_forms
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,176,ANY,/api/edge/{path:path},proxy_edge
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,191,ANY,/api/soil/{path:path},proxy_soil
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,209,ANY,/api/segmentation/{path:path},proxy_segmentation
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,226,ANY,/api/field-forms/{path:path},proxy_field_forms
 sahool-platform,services/sahool-platform/api/routers/settings.py,30,PUT,/api/v1/settings,upsert_setting
 sahool-platform,services/sahool-platform/api/routers/settings.py,63,GET,/api/v1/settings,list_settings
 sahool-platform,services/sahool-platform/api/routers/sharing.py,46,POST,/api/v1/sharing/generate-key,generate_share_key
@@ -1037,8 +1037,8 @@ soil-service,services/soil-service/routers/p5_certification.py,128,POST,/v1/soil
 soil-service,services/soil-service/routers/p6_certification.py,21,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification
 soil-service,services/soil-service/routers/p6_certification.py,49,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification
 soil-service,services/soil-service/routers/p6_certification.py,60,GET,/v1/soil/runtime-certifications/{run_id},get_certification
-soil-service,services/soil-service/routers/readings.py,23,GET,/v1/soil/readings/{field_id},get_readings
-soil-service,services/soil-service/routers/readings.py,38,POST,/v1/soil/ingest,ingest_reading
+soil-service,services/soil-service/routers/readings.py,28,GET,/v1/soil/readings/{field_id},get_readings
+soil-service,services/soil-service/routers/readings.py,43,POST,/v1/soil/ingest,ingest_reading
 soil-service,services/soil-service/routers/soil_profile.py,65,POST,/v1/soil/suitability,soil_suitability
 soil-service,services/soil-service/routers/soil_profile.py,76,GET,/v1/soil/soilgrids,soil_from_soilgrids
 supervisor-agent,services/supervisor-agent/routers/agent.py,33,POST,/v1/agent/query,process_query

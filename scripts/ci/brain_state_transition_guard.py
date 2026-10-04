@@ -41,6 +41,25 @@ SUBSTANTIVE = (
     "certification/evidence/",
 )
 
+# BRAIN-TRANSITION-GUARD-BLIND-TO-FRONTEND-CODE-01. `SUBSTANTIVE` had no frontend entry, so a
+# real frontend fix (source plus vitest) carrying its brain row was rejected as "brain-only"
+# -- measured on FRONTEND-REFERENCE-LISTS-CALL-MAP-ON-AN-ENVELOPE-01, which had to reword its
+# status to pass. The repair is deliberately NOT a `frontend/` prefix: that would let a
+# README, a config file or a regenerated `*.generated.ts` stand in as evidence of a fix.
+# Only executable source and its tests count -- `.ts/.tsx/.js/.jsx` under `frontend/src/` or
+# `frontend/e2e/`, and never a generated artifact.
+_FRONTEND_CODE_ROOTS = ("frontend/src/", "frontend/e2e/")
+_FRONTEND_CODE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx")
+
+
+def _is_frontend_code(path: str) -> bool:
+    """مصدرُ واجهةٍ قابلٌ للتنفيذ أو اختبارُه — لا توثيق ولا إعداد ولا مُولَّد."""
+    return (
+        path.startswith(_FRONTEND_CODE_ROOTS)
+        and path.endswith(_FRONTEND_CODE_SUFFIXES)
+        and ".generated." not in path
+    )
+
 
 # BRAIN-TRANSITION-GUARD-MATCHES-A-QUOTED-STATUS-TOKEN-01. The boundary above kills
 # `fail-closed`, but a boundary is not an anchor: `CLOSED_RE` still matches the token
@@ -131,7 +150,8 @@ def check(paths: list[str], diff: str) -> None:
     outside = [
         p
         for p in paths
-        if any(p.startswith(x) for x in SUBSTANTIVE) and not p.startswith("sahool-brain/")
+        if (any(p.startswith(x) for x in SUBSTANTIVE) or _is_frontend_code(p))
+        and not p.startswith("sahool-brain/")
     ]
     if brain_changed and claims and not outside:
         raise SystemExit(

@@ -764,7 +764,7 @@ sahool-platform,services/sahool-platform/api/routers/ndvi_analysis.py,35,POST,/a
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,24,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,30,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/nl_gis.py,199,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/nl_sql.py,71,POST,/api/v1/nl-sql,nl_sql_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/nl_sql.py,73,POST,/api/v1/nl-sql,nl_sql_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/notifications.py,58,GET,/api/v1/notifications/preferences,get_notification_preferences,versioned
 sahool-platform,services/sahool-platform/api/routers/notifications.py,88,PUT,/api/v1/notifications/preferences,update_notification_preferences,versioned
 sahool-platform,services/sahool-platform/api/routers/notifications.py,179,POST,/api/v1/notifications/delivery,upsert_notification_delivery,versioned
@@ -1029,8 +1029,8 @@ soil-service,services/soil-service/routers/p5_certification.py,128,POST,/v1/soil
 soil-service,services/soil-service/routers/p6_certification.py,21,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification,versioned
 soil-service,services/soil-service/routers/p6_certification.py,49,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,versioned
 soil-service,services/soil-service/routers/p6_certification.py,60,GET,/v1/soil/runtime-certifications/{run_id},get_certification,versioned
-soil-service,services/soil-service/routers/readings.py,23,GET,/v1/soil/readings/{field_id},get_readings,versioned
-soil-service,services/soil-service/routers/readings.py,38,POST,/v1/soil/ingest,ingest_reading,versioned
+soil-service,services/soil-service/routers/readings.py,28,GET,/v1/soil/readings/{field_id},get_readings,versioned
+soil-service,services/soil-service/routers/readings.py,43,POST,/v1/soil/ingest,ingest_reading,versioned
 soil-service,services/soil-service/routers/soil_profile.py,65,POST,/v1/soil/suitability,soil_suitability,versioned
 soil-service,services/soil-service/routers/soil_profile.py,76,GET,/v1/soil/soilgrids,soil_from_soilgrids,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,33,POST,/v1/agent/query,process_query,versioned

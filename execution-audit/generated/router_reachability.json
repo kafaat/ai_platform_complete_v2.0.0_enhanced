@@ -1504,7 +1504,7 @@
     },
     {
       "kind": "router",
-      "line": 30,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.nl_sql",
       "node_id": "services.sahool-platform.api.routers.nl_sql:router",
       "route_count": 1,
@@ -1855,7 +1855,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 34,
+  "include_edge_count": 35,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2613,6 +2613,15 @@
       "target": null
     },
     {
+      "expression": "service_proxy.router",
+      "line": 28,
+      "module": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_soil_proxy_authorization:<dynamic-source>",
+      "target": null
+    },
+    {
       "expression": "season_router",
       "line": 52,
       "module": "services/scout-ingest-service/main.py",
@@ -2676,7 +2685,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "91e8ee3466cacd0362c2019b1646780976088bbfb1ab7390832214707947df34",
+  "inventory_sha256": "6a926b4aa76565a7601acab98f0a1455419ff25471836c8af940b7cb5dc688d6",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4102,7 +4111,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 30,
+      "line": 32,
       "module": "services.sahool-platform.api.routers.nl_sql",
       "node_id": "services.sahool-platform.api.routers.nl_sql:router",
       "route_count": 1,
@@ -4492,7 +4501,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -4957,7 +4966,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 32,
+  "unresolved_include_count": 33,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5174,6 +5183,14 @@
       "module": "services.sahool-platform.tests.test_phase9_autonomous_farm_os_api",
       "source": null,
       "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+      "line": 28,
+      "module": "services.sahool-platform.tests.test_soil_proxy_authorization",
+      "source": null,
+      "target_expression": "service_proxy.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

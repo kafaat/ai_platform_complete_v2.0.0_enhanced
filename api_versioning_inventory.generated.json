@@ -6887,7 +6887,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/nl_sql.py",
-    "line": 71,
+    "line": 73,
     "method": "POST",
     "path": "/api/v1/nl-sql",
     "handler": "nl_sql_endpoint",
@@ -9272,7 +9272,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
-    "line": 23,
+    "line": 28,
     "method": "GET",
     "path": "/v1/soil/readings/{field_id}",
     "handler": "get_readings",
@@ -9281,7 +9281,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
-    "line": 38,
+    "line": 43,
     "method": "POST",
     "path": "/v1/soil/ingest",
     "handler": "ingest_reading",
