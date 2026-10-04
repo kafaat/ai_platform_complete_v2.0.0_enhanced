@@ -5551,6 +5551,36 @@
     ]
   },
   {
+    "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-005",
+        "score": 9,
+        "signals": [
+          "content:cloud mask",
+          "content:scl"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_historical_backfill.py",
     "kind": "tests",
     "candidates": [

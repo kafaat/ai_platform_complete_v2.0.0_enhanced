@@ -150,50 +150,20 @@ async def process_from_stac(
 
     مناسب للمزوّد بلا مفتاح (Element84): استدعِ /v1/imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
+
+    **محتوى حاليّاً:** المسار لا يملك تحويلاً إشعاعيّاً محسوماً (المقياس · محاذاة 10/20م ·
+    NoData — ``radiometry_containment``)، فيُرفَض بـ``422 radiometry_unresolved`` قبل بناء
+    الـVRT ولا تُنشأ مهمّة. لا يُحوَّل إلى CDSE تلقائيّاً: هويّةُ المشهد والمزوّد تُطلَب صراحةً.
     """
     _require_service_token(x_agent_token)
-    import stac_vrt
+    import radiometry_containment
 
-    # كلّ href يُتحقَّق منه (traversal/SSRF) قبل بناء الـVRT.
-    safe_hrefs = {k: _safe_raster_source(v) for k, v in (req.band_hrefs or {}).items()}
     try:
-        # الـVRT يُكتَب تحت UPLOAD_DIR كي يقبله حارس المصدر (_safe_raster_source) —
-        # كتابته في /tmp مباشرة كانت تُفشِل المعالجة بـ400 (خارج المجلّد المسموح).
-        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=_upload_dir())
-    except Exception as e:  # noqa: BLE001 — مدخل غير صالح/نطاق غير مقروء
-        raise HTTPException(400, f"تعذّر بناء VRT من نطاقات STAC: {e}") from e
-
-    band_kwargs = {k: v for k, v in index_map.items() if k in BandMapping.model_fields}
-    preq = ProcessRequest(
-        raster_url=vrt_path,
-        indicator=req.indicator,
-        bands=BandMapping(**band_kwargs),
-        field_id=field_id,
-        tenant_id=req.tenant_id,
-        source_format=req.source_format,
-        scene_id=req.scene_id,
-        capture_datetime=req.capture_datetime,
-        apply_cloud_mask=req.apply_cloud_mask,
-        clip_polygon_geojson=req.clip_polygon_geojson,
-        geometry_revision=req.geometry_revision,  # v143: نَسَب هندسة الحقل
-    )
-    job_id = f"stac_{uuid.uuid4().hex[:12]}"
-    _jobs.set(
-        job_id,
-        {
-            "job_id": job_id,
-            "status": JobStatus.pending,
-            "progress_pct": 0,
-            "created_at": datetime.now(UTC).isoformat(),
-        },
-    )
-    background_tasks.add_task(_run_processing, job_id, preq)
-    return {
-        "job_id": job_id,
-        "status": JobStatus.pending,
-        "bands": index_map,
-        "raster_url": vrt_path,
-    }
+        radiometry_containment.reject_element84_vrt(
+            (req.band_hrefs or {}).keys(), entry_point="process_from_stac"
+        )
+    except radiometry_containment.RadiometryUnresolved as e:
+        raise HTTPException(422, e.detail) from e
 
 
 async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> None:
@@ -423,8 +393,8 @@ async def field_historical_backfill(
             _persist_selected_stac_scenes, str(tenant_id), list(selected_scenes)
         )
     for scene in selected_scenes:
-        # For Element84 Sentinel-2 COGs, build a VRT lazily in the background via the
-        # same processing core contract. The direct job stores enough provenance to re-run.
+        # Element84 Sentinel-2 scenes are contained (radiometry_containment): the job is
+        # recorded failed with radiometry_unresolved before any VRT, processing or persist.
         for indicator in req.indices:
             job_id = f"backfill_{uuid.uuid4().hex[:12]}"
             scheduled_item = {
@@ -452,15 +422,15 @@ async def field_historical_backfill(
                 },
             )
 
-            # Reuse the same VRT/process path without issuing an HTTP subrequest.
+            # Same processing core without issuing an HTTP subrequest.
             # v6-audit F3: دالّة **متزامنة** عمداً — جسمها كلّه I/O ثقيل متزامن
-            # (build_band_vrt + _run_processing، لا await). FastAPI يُشغّل مهامّ الخلفيّة
+            # (_run_processing، لا await). FastAPI يُشغّل مهامّ الخلفيّة
             # المتزامنة في threadpool، بينما `async def` كان يُنفَّذها على حلقة الأحداث
             # فيحجب باقي طلبات raster (tilejson/health) أثناء معالجة COG.
             def _run_scene_job(jid=job_id, sc=scene, ind=indicator):
-                try:
-                    import stac_vrt
+                import radiometry_containment
 
+                try:
                     ind_value = ind.value if hasattr(ind, "value") else str(ind)
                     if (sc.get("provider") or "").startswith("landsat") or sc.get("thermal_urls"):
                         if ind_value != "lst":
@@ -500,34 +470,27 @@ async def field_historical_backfill(
                         )
                         return
 
-                    safe_hrefs = {
-                        k: _safe_raster_source(v)
-                        for k, v in (sc.get("bands_urls") or {}).items()
-                        if v
-                    }
-                    # تحت UPLOAD_DIR كي يقبله _safe_raster_source — كتابة الـVRT في
-                    # /tmp أسقطت كلّ مهامّ backfill بـHTTPException 400 (بلاغ 2026-07-04).
-                    vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=_upload_dir())
-                    preq = ProcessRequest(
-                        tenant_id=tenant_id,
-                        field_id=field_id,
-                        raster_url=vrt_path,
-                        indicator=ind,
-                        source_format=SourceFormat.sentinel2_l2a,
-                        bands=BandMapping(
-                            **{k: v for k, v in index_map.items() if k in BandMapping.model_fields}
-                        ),
-                        clip_polygon_geojson=clip,
-                        apply_cloud_mask=req.apply_cloud_mask,
-                        scene_id=sc.get("item_id"),
-                        capture_datetime=sc.get("datetime"),
-                        provider="element84",
-                        # v8-F7: النَّسَب — مرّر مراجعة الهندسة في المسار المتزامن أيضاً
-                        # (كان يغفلها ⇒ أصول backfill بـgeometry_revision=NULL تُضعِف
-                        # كشف التقادم والتحليل الجنائيّ عند تغيّر حدود الحقل).
-                        geometry_revision=getattr(req, "geometry_revision", None),
+                    # مشهد Element84 (ذو bands_urls): محجوب قبل بناء الـVRT وقبل أيّ
+                    # معالجة أو حفظ — radiometry_containment. لا ارتداد إلى CDSE هنا.
+                    radiometry_containment.reject_element84_vrt(
+                        (sc.get("bands_urls") or {}).keys(), entry_point="historical_backfill"
                     )
-                    _run_processing(jid, preq)
+                except radiometry_containment.RadiometryUnresolved as e:
+                    # فشلٌ دائم لهذه النسخة — لا «مشهد فارغ» ولا «جودة منخفضة» ولا إعادة.
+                    logger.warning(
+                        "scene job %s محجوب: %s scene=%s", jid, e.detail["code"], sc.get("item_id")
+                    )
+                    j = _jobs.get(jid) or {"job_id": jid}
+                    j.update(
+                        {
+                            "status": JobStatus.failed,
+                            "error_message": radiometry_containment.RADIOMETRY_UNRESOLVED,
+                            "error_detail": e.detail,
+                            "retryable": False,
+                            "finished_at": datetime.now(UTC).isoformat(),
+                        }
+                    )
+                    _jobs.set(jid, j)
                 except Exception as e:  # noqa: BLE001
                     # توحيد main↔cert (#542): لا نُسرّب نصّ الاستثناء للعميل — رمز عامّ،
                     # والسجلّ الداخلي يحمل النوع (+ status/detail لـHTTPException —

@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bdc11ecaa169399593c2a019d3ed53df5872069163d74c62f2c6b8814db7881e"
+          "content": "9d3fab0019842068f979bd655784d007d48461d3a8d2d1dc00c183e427d4deee"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -14135,7 +14135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eda71bec884342ed326137559ac62730f4acdd5e71a884763baa29df11651cd6"
+          "content": "f40953af2d00917655c68b9c6fb725047dae1eedd2b846a95a52ed7d1ad17ad0"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -14369,6 +14369,16 @@
         }
       ],
       "name": "services/raster-service/quality_metrics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b39e1acacf9a7acf7b05b9708d6821007d81814ebebdb6ec0840cf0bf5fbfe28"
+        }
+      ],
+      "name": "services/raster-service/radiometry_containment.py",
       "type": "file"
     },
     {
@@ -14745,7 +14755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "adf8b63d5f54859ad58aebae34184aba2b055fbc073fd30023e22d49a9162faf"
+          "content": "966e5aed5c082ff78f842c23cee8162170b6de4661f1d35016102bed5e281f6b"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -15189,6 +15199,26 @@
         }
       ],
       "name": "services/raster-service/test_db_rehydrate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2edf19a5c9c514573713635ff2f4f6f1b585b3da4ba88e34b3905e70e3666128"
+        }
+      ],
+      "name": "services/raster-service/test_element84_vrt_containment_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cc07b5333f076258d2a7a9345abeb0bf62fc5193b6e53bc662539db3d6d02de"
+        }
+      ],
+      "name": "services/raster-service/test_element84_vrt_defect_witnesses.py",
       "type": "file"
     },
     {
@@ -17255,7 +17285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2db8d333fd6377ec0e72c85bf502541bce0e42ae5919e118e8c6dc1fc9f6645"
+          "content": "10eb635eaf840a1850c012e1e0e54c8d435eedd7219c1cf381c2384c753ede67"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",

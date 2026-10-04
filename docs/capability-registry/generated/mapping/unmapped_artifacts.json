@@ -7452,6 +7452,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_element84_vrt_containment.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_end_to_end.py",
     "kind": "tests"
   },
