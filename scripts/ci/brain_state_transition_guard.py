@@ -255,7 +255,8 @@ def fixed_gap_ids(text: str) -> set[str]:
     reviewed = {
         gap_id
         for gap_id, counts in roles.items()
-        if sum(counts.values()) > 1 and counts == Counter(current=1, historical=sum(counts.values()) - 1)
+        if sum(counts.values()) > 1
+        and counts == Counter(current=1, historical=sum(counts.values()) - 1)
     }
     for index in sections:
         gap_id, entry_role = entries[index]

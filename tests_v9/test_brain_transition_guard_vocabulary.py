@@ -459,11 +459,18 @@ def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, reject
     if change == "delete":
         (tmp_path / "tests_v9/test_old.py").unlink()
     else:
-        (tmp_path / "tests_v9/test_new.py").write_text("def test_y():\n    pass\n", encoding="utf-8")
+        (tmp_path / "tests_v9/test_new.py").write_text(
+            "def test_y():\n    pass\n", encoding="utf-8"
+        )
     _git(tmp_path, "add", "-A")
     _git(tmp_path, "commit", "-q", "-m", "head")
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts/ci/brain_state_transition_guard.py"), "--base", "HEAD~1"],
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/brain_state_transition_guard.py"),
+            "--base",
+            "HEAD~1",
+        ],
         cwd=tmp_path,
         capture_output=True,
         text=True,
@@ -471,4 +478,3 @@ def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, reject
     )
     assert (result.returncode != 0) is rejected, result.stdout + result.stderr
     assert ("GAP-ALPHA-01" in result.stderr) is rejected
-
