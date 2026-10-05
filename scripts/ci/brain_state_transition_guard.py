@@ -288,11 +288,18 @@ def main():
     ).stdout
     if REGISTRY in names:
         base = subprocess.run(
-            ["git", "merge-base", a.base, a.head], capture_output=True, text=True, check=True
+            ["git", "merge-base", a.base, a.head],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
         ).stdout.strip()
         texts = [
             subprocess.run(
-                ["git", "show", f"{ref}:{REGISTRY}"], capture_output=True, text=True
+                ["git", "show", f"{ref}:{REGISTRY}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
             ).stdout
             for ref in (base, a.head)
         ]
