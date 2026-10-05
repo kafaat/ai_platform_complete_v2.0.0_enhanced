@@ -37,7 +37,7 @@ CEILING = 800
 FROZEN_OVERSIZE: dict[str, int] = {
     "services/sahool-platform/api/routers/fields.py": 4199,
     "services/sahool-platform/api/routers/weather.py": 3022,
-    "services/raster-service/routers/fields.py": 1712,
+    "services/raster-service/routers/fields.py": 1675,
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 1029,
     "services/sahool-platform/api/routers/decision_review.py": 923,
 }
