@@ -772,8 +772,8 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 | المكوّن | الترخيص | المصدر | الحالة |
 |---|---|---|---|
 | silma-tts (الكود) | MIT | README المستودع الرسميّ | مُعلن |
-| SILMA TTS v1 (الأوزان) | Apache-2.0 | بطاقة النموذج (commit `226dd7a6`) | مُعلن؛ **(U):** هل هُيِّئ من أوزان F5-TTS (CC-BY-NC) غيرُ مراجَع |
-| مقطعُ SILMA المرجعيّ في الحزمة (`ar.ref.24k.wav`) | — | README SILMA السطر 205 يشترط موافقةَ المتحدّث | **مرفوض** ولو للتقييم المحلّيّ: يُسجَّل مرجعٌ بموافقةٍ مكتوبة |
+| SILMA TTS v1 (الأوزان) | Apache-2.0 | README المستودع `96ec4bee` السطران 189-191؛ بطاقة النموذج (commit `226dd7a6`) | مُعلن؛ «pretrained from scratch» (السطر 9) وحجمُه `F5TTS_v1_Small` ولا أوزانَ F5 رسميّةً بهذا الحجم ⇒ التهيئةُ المباشرة من F5 (CC-BY-NC) مستبعَدة؛ **باقٍ:** مصادرُ بيانات التدريب غيرُ مُفصَّلة — `LICENSE_EVIDENCE_SILMA.md` |
+| مقطعُ SILMA المرجعيّ في الحزمة (`ar.ref.24k.wav`) | — | README مستودع SILMA عند `96ec4bee` السطر 197 يشترط موافقةَ المتحدّث | **مرفوض** ولو للتقييم المحلّيّ: يُسجَّل مرجعٌ بموافقةٍ مكتوبة |
 | catt_tashkeel 1.0.2 + eo_model v2 | Apache-2.0 | LICENSE في abjadai/catt | مُعلن |
 | vocos-mel-24khz | MIT | بطاقة النموذج (commit `0feb3fdd`) | مُعلن |
 | piper-tts 1.8.0 (المكتبة) | GPL-3.0-or-later | بيانات الحزمة المثبّتة | مقيس |
@@ -794,7 +794,7 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 | إنجليزيّ | Piper en_US-ljspeech-high | الثاني | بياناتُ LJSpeech ملكٌ عامّ (U)؛ يُتحقَّق أنّه مدرَّبٌ من الصفر لا مشتقٌّ من lessac؛ piper-tts GPL فيبقى عمليّةً منفصلة |
 | إنجليزيّ | Piper lessac/ryan/amy · XTTS-v2 · F5-TTS · MeloTTS · Parler-TTS | مستبعدة | بحثيّ/NC (U) · CPML غيرُ تجاريّ ولا مُرخِّص بعد إغلاق Coqui · أوزانٌ CC-BY-NC · بياناتٌ مجهولة · ثقيلٌ على CPU |
 | عربيّ | **Piper ar_JO-kareem** | معلّقٌ بسببٍ مقيس | مستودعُ بياناته `github.com/AliMokhammad/arabicttstrain` **بلا ملفّ ترخيص** ولا بيانِ متحدّثٍ أو موافقة ⇒ محفوظُ الحقوق افتراضاً؛ تُطلب رخصةٌ مكتوبة من صاحبه |
-| عربيّ | SILMA TTS v1 (محوّلٌ قائم) | مرشّح | الأوزان Apache-2.0 مُعلنة في README الرسميّ؛ مصدرُ بيانات التدريب غيرُ مُراجَع |
+| عربيّ | SILMA TTS v1 (محوّلٌ قائم) | مرشّح للجودة فقط | الأوزان Apache-2.0 مُعلنة ومدرَّبةٌ من الصفر بإعلان الناشر؛ مصادرُ بيانات التدريب غيرُ مُفصَّلة («public and proprietary») — لا اعتمادَ تجاريّ قبل تأكيدٍ مكتوب |
 | عربيّ | Chatterbox Multilingual | مرشّح | MIT للشيفرة؛ الأوزان (U)؛ 500M معامل — بطيءٌ على CPU؛ يضيف علامةً مائيّة |
 | عربيّ | MMS-TTS ara · XTTS-v2 · Fish-Speech · tts_arabic (nipponjo) | مستبعدة | CC-BY-NC · CPML · رخصةٌ بحثيّة · مدرَّبٌ على مخرجات XTTS |
 | ASR عربيّ | **faster-whisper + Whisper** | الأوّل | MIT للشيفرة والأوزان (README openai/whisper) |
