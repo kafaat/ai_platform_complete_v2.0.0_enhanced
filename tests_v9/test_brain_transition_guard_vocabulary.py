@@ -282,3 +282,199 @@ def test_frontend_docs_config_or_generated_files_do_not_justify_a_closure(path):
 def test_brain_only_closure_is_still_rejected_after_the_frontend_widening():
     with pytest.raises(SystemExit, match="sahool-brain-only"):
         guard.check(["sahool-brain/gaps/registry.md", "sahool-brain/log.md"], _CLAIM)
+
+
+# --- BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01 -----------------------------------------------
+# الحارسُ يقرأ **انتقالَ** صفٍّ إلى ``fixed`` لا الكلمة: قاعدةُ «fixed في PR إصلاحها» (decisions/ledger.md،
+# #1136) كانت مطلبَ مراجعة لأنّ ``CLOSED_RE`` لا يطابق fixed. الانتقالُ بلا شيفرةٍ يُرفض باسم الفجوة،
+# وتحريرُ صفٍّ fixed أصلاً أو ذكرُ الكلمة في السرد أو مدخلٌ تاريخيّ لا يُحمِّره.
+
+BRAIN_ONLY = ["sahool-brain/gaps/registry.md", "sahool-brain/log.md"]
+WITH_TEST = [*BRAIN_ONLY, "tests_v9/test_some_fix.py"]
+
+TABLE = """# سجلّ
+
+| id | العنوان | المجال/الخدمة | المصدر | الحالة |
+|---|---|---|---|---|
+| GAP-ALPHA-01 | عيبٌ أوّل | svc | `a.py` | {alpha} |
+| GAP-BETA-01 | عيبٌ ثانٍ | svc | `b.py` | **fixed** (`abc1234`) — شاهدٌ قائم |
+"""
+
+SECTION = """
+## GAP-GAMMA-01 — عيبٌ في قسم
+<!-- gap-registry: current -->
+- **الحالة:** {gamma}
+- **المصدر:** `c.py`
+
+## GAP-GAMMA-01 — المدخل السابق
+<!-- gap-registry: historical -->
+- **الحالة:** {old}
+"""
+
+
+def registry(alpha="open", gamma="**open** (2026-10-05)", old="open", extra=""):
+    return TABLE.format(alpha=alpha) + SECTION.format(gamma=gamma, old=old) + extra
+
+
+def test_brain_only_table_row_moved_to_fixed_is_rejected_by_name():
+    base, head = registry(), registry(alpha="**fixed** (`def5678`)")
+    assert guard.fixed_transitions(base, head) == ["GAP-ALPHA-01"]
+    with pytest.raises(SystemExit) as exc:
+        guard.check_fixed(BRAIN_ONLY, base, head)
+    assert "GAP-ALPHA-01" in str(exc.value)
+
+
+def test_brain_only_section_state_moved_to_fixed_is_rejected():
+    base, head = registry(), registry(gamma="**fixed** (2026-10-05، عند `def5678`)")
+    assert guard.fixed_transitions(base, head) == ["GAP-GAMMA-01"]
+    with pytest.raises(SystemExit):
+        guard.check_fixed(BRAIN_ONLY, base, head)
+
+
+def test_new_gap_registered_already_fixed_counts_as_a_transition():
+    row = "| GAP-DELTA-01 | جديد | svc | `d.py` | **fixed** (`def5678`) |\n"
+    base = registry()
+    head = base.replace("| GAP-BETA-01", row.rstrip("\n") + "\n| GAP-BETA-01", 1)
+    assert guard.fixed_transitions(base, head) == ["GAP-DELTA-01"]
+    with pytest.raises(SystemExit):
+        guard.check_fixed(BRAIN_ONLY, base, head)
+
+
+def test_transition_with_executable_evidence_in_the_pr_passes():
+    guard.check_fixed(WITH_TEST, registry(), registry(alpha="**fixed** (`def5678`)"))
+
+
+@pytest.mark.parametrize(
+    ("base_kwargs", "head_kwargs"),
+    [
+        ({}, {"extra": "\nنثرٌ يذكر fixed و**fixed** في سطرٍ حرّ.\n"}),
+        ({}, {"old": "**fixed** (مدخلٌ تاريخيّ)"}),
+        ({"alpha": "**fixed** (`1111111`)"}, {"alpha": "**fixed** (`1111111`) — صياغةٌ أوضح"}),
+        ({"alpha": "**fixed** (`1111111`)"}, {"alpha": "**verified** — قياسٌ حيّ"}),
+        ({}, {"alpha": "**open** — بقيّةٌ مكتوبة"}),
+    ],
+    ids=[
+        "prose-mention",
+        "historical-entry",
+        "reword-fixed-row",
+        "fixed-to-verified",
+        "open-stays-open",
+    ],
+)
+def test_no_transition_to_fixed_is_not_blocked(base_kwargs, head_kwargs):
+    base, head = registry(**base_kwargs), registry(**head_kwargs)
+    assert guard.fixed_transitions(base, head) == []
+    guard.check_fixed(BRAIN_ONLY, base, head)
+
+
+def test_annotated_policy_row_is_not_a_fixed_state():
+    head = registry(alpha="<!-- gap-registry: policy --> fixed by design")
+    assert guard.fixed_transitions(registry(), head) == []
+
+
+def test_fenced_example_is_not_read_as_a_state():
+    fence = "\n```\n| id | الحالة |\n|---|---|\n| GAP-EPS-01 | **fixed** |\n```\n"
+    assert guard.fixed_transitions(registry(), registry(extra=fence)) == []
+
+
+def test_the_real_registry_moving_one_open_row_to_fixed_is_caught():
+    g = guard._measure_module()
+    text = (ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8")
+    before = guard.fixed_gap_ids(text)
+    for line in text.splitlines():
+        cells = g.table_cells(line) if line.startswith("| ") else []
+        if len(cells) == 5 and g.classify(cells[-1])[0] == "open" and g.LABEL.fullmatch(cells[0]):
+            break
+    else:
+        pytest.fail("no open table row in the real registry")
+    gap_id = g.LABEL.fullmatch(cells[0]).group("id")
+    moved = "| " + " | ".join([*cells[:-1], "**fixed** (`def5678`)"]) + " |"
+    head = text.replace(line, moved, 1)
+    assert gap_id not in before
+    assert guard.fixed_transitions(text, head) == [gap_id]
+    with pytest.raises(SystemExit):
+        guard.check_fixed(BRAIN_ONLY, text, head)
+
+
+# وسمُ ``historical`` لا يُسقط الحالة إلّا في سلسلةٍ مُراجَعة (حاليٌّ واحد والباقي تاريخيّ) — قاعدةُ
+# gap_registry_measure.measure() نفسها. مدخلٌ منفردٌ موسومٌ تاريخيّاً كان طريقاً لتسجيل fixed في الدماغ وحده.
+_LONE_HISTORICAL = """
+## GAP-ZETA-01 — مدخلٌ وحيدٌ موسومٌ تاريخيّاً
+<!-- gap-registry: historical -->
+- **الحالة:** **fixed** (`def5678`)
+"""
+
+_NO_CURRENT = """
+## GAP-ETA-01 — الأوّل
+<!-- gap-registry: historical -->
+- **الحالة:** **fixed** (`def5678`)
+
+## GAP-ETA-01 — الثاني
+<!-- gap-registry: historical -->
+- **الحالة:** open
+"""
+
+
+@pytest.mark.parametrize(
+    ("extra", "gap_id"),
+    [(_LONE_HISTORICAL, "GAP-ZETA-01"), (_NO_CURRENT, "GAP-ETA-01")],
+    ids=["lone-historical-entry", "sequence-without-current"],
+)
+def test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state(extra, gap_id):
+    base, head = registry(), registry(extra=extra)
+    assert guard.fixed_transitions(base, head) == [gap_id]
+    with pytest.raises(SystemExit) as exc:
+        guard.check_fixed(BRAIN_ONLY, base, head)
+    assert gap_id in str(exc.value)
+
+
+def _git(cwd, *args):
+    import subprocess
+
+    return subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
+
+
+@pytest.mark.parametrize(("change", "rejected"), [("delete", True), ("add", False)])
+def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, rejected):
+    """حذفُ ملفٍّ تحت ``tests_v9/`` لا يبرّر انتقالاً إلى fixed؛ وإضافةُ اختبارٍ تبرّره (الضابط)."""
+    import subprocess
+    import sys
+
+    (tmp_path / "sahool-brain/gaps").mkdir(parents=True)
+    (tmp_path / "tests_v9").mkdir()
+    reg = tmp_path / guard.REGISTRY
+    reg.write_text(registry(), encoding="utf-8")
+    (tmp_path / "tests_v9/test_old.py").write_text("def test_x():\n    pass\n", encoding="utf-8")
+    _git(tmp_path, "init", "-q", "-b", "base")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    reg.write_text(registry(alpha="**fixed** (`def5678`)"), encoding="utf-8")
+    if change == "delete":
+        (tmp_path / "tests_v9/test_old.py").unlink()
+    else:
+        (tmp_path / "tests_v9/test_new.py").write_text(
+            "def test_y():\n    pass\n", encoding="utf-8"
+        )
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "head")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/brain_state_transition_guard.py"),
+            "--base",
+            "HEAD~1",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert (result.returncode != 0) is rejected, result.stdout + result.stderr
+    assert ("GAP-ALPHA-01" in result.stderr) is rejected

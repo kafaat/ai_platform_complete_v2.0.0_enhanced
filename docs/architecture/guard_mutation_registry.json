@@ -3421,7 +3421,7 @@
         },
         {
           "expect": "test_brain_only_diff_with_a_real_claim_is_still_rejected",
-          "find": "    if brain_changed and claims and not outside:",
+          "find": "    if brain_changed and claims and not _has_executable_evidence(paths):",
           "replace": "    if False:",
           "why": "نزع اشتراط كود تنفيذيّ خارج الدماغ ⇒ ادّعاء إغلاق دماغيّ صرف يمرّ"
         },
@@ -3472,6 +3472,36 @@
           "find": "(any(p.startswith(x) for x in SUBSTANTIVE) or _is_frontend_code(p))",
           "replace": "any(p.startswith(x) for x in SUBSTANTIVE)",
           "why": "عودةُ العمى عن الواجهة ⇒ إصلاحُ واجهةٍ حقيقيّ مع صفّه يُرفض «دماغيّاً صرفاً» (العطلُ المقيس على FRONTEND-REFERENCE-LISTS-CALL-MAP-ON-AN-ENVELOPE-01)"
+        },
+        {
+          "expect": "test_brain_only_table_row_moved_to_fixed_is_rejected_by_name",
+          "find": "    return sorted(fixed_gap_ids(head_text) - fixed_gap_ids(base_text))",
+          "replace": "    return []",
+          "why": "عودةُ العمى عن fixed (BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01) ⇒ صفٌّ يُنقل إلى fixed في تعديلٍ للدماغ وحده يمرّ"
+        },
+        {
+          "expect": "test_brain_only_table_row_moved_to_fixed_is_rejected_by_name",
+          "find": "    if moved and not _has_executable_evidence(paths):",
+          "replace": "    if False:",
+          "why": "نزعُ اشتراط الدليل التنفيذيّ عن انتقال fixed ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ"
+        },
+        {
+          "expect": "test_no_transition_to_fixed_is_not_blocked",
+          "find": "        if entry_role == \"historical\" and gap_id in reviewed:",
+          "replace": "        if False:",
+          "why": "قراءةُ المداخل التاريخيّة حالاتٍ قائمة ⇒ مدخلٌ تاريخيّ يحمل fixed يُعدّ انتقالاً فيُحجب تعديلٌ لا يدّعي شيئاً"
+        },
+        {
+          "expect": "test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state",
+          "find": "        if entry_role == \"historical\" and gap_id in reviewed:",
+          "replace": "        if entry_role == \"historical\":",
+          "why": "وسمُ historical يُسقط الحالةَ بلا سلسلةٍ مُراجَعة ⇒ مدخلٌ منفردٌ موسومٌ تاريخيّاً يُسجِّل fixed في الدماغ وحده (مراجعة Copilot على #1138)"
+        },
+        {
+          "expect": "test_a_deleted_test_file_is_not_executable_evidence",
+          "find": "\"--diff-filter=d\", ",
+          "replace": "",
+          "why": "احتسابُ الملفّات المحذوفة دليلاً ⇒ حذفُ أيّ ملفٍّ تحت tests_v9/ يُمرِّر انتقالاً إلى fixed بلا إصلاح (مراجعة Copilot على #1138)"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"
