@@ -6855,3 +6855,17 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المقيس:** على `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` أصلح PR #1133 (`claude/wip-tts-bakeoff`) أربعةَ عيوبٍ مادّيّة (`TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01` · `TTS-BAKEOFF-UNVERIFIED-DIGEST-MARKED-TRUSTED-01` · `TTS-BAKEOFF-SAFETY-GATE-PASSES-WITH-ZERO-REVIEWERS-01` · `TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01`) وblob السجلّ عليه مطابقٌ لـ`main` (`b88e0b286d8968283baeebdaa0344f437b01f564`)، ومع ذلك نجحت «Gap registry measurement (report-only)» (run `37234904375` / job `111531956838`) و`no-report-only-change` وكلُّ حرّاس الفجوات. رصده المالك 2026-10-04.
 - **الخلل:** القياسُ يتحقّق من اتّساق ما سُجِّل (التكرار · الحالة القانونيّة · الانتقالات)، ولا يفرض تسجيلَ عيبٍ أُصلح داخل PR إن لم يُمنح معرّفاً أصلاً.
 - **الإغلاق:** قرارُ المالك (مثلاً: ربطُ نتائج المراجعة المصنَّفة High/Medium بمعرّفات فجوة في متن الـPR). حتّى ذلك يُسجَّل يدويّاً كما هنا.
+
+## TTS-PIPER-KAREEM-DATASET-HAS-NO-LICENSE-01 — بياناتُ صوت Piper العربيّ بلا ترخيص
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-05) — صوتُ `ar_JO-kareem` يبقى معلّقاً؛ لا يُنزَّل ولا يُقاس.
+- **المصدر:** `https://github.com/AliMokhammad/arabicttstrain` (فرع `master`): `raw.githubusercontent.com/AliMokhammad/arabicttstrain/master/LICENSE` ⇒ 404، والـREADME عنوانٌ وحده، و`dataset/metadata.csv` (~2284 سطراً مشكولاً) بلا بيانٍ للمتحدّث أو موافقته أو مصدر الصوت. مقروءٌ في مسح التراخيص 2026-10-05 (`tools/tts_bakeoff/README.md`، قسم «مسحُ التراخيص»).
+- **الخلل:** بياناتٌ بلا منحِ ترخيص محفوظةُ الحقوق افتراضاً؛ وبطاقةُ النموذج على Hugging Face (محجوبةٌ هنا) تحمل في مقتطفات البحث تراخيصَ متعارضة (CC0 · MIT · CC BY-SA 3.0 ES) — وأيُّها لا يُصلح بياناتٍ لم تُرخَّص.
+- **شرطُ الإغلاق:** رخصةٌ مكتوبة من صاحب البيانات تُحفظ نسختُها خارج الدماغ، أو قرارُ المالك باستبدال الصوت (تسجيلٌ مرخَّص خاصّ أو بديلٌ مُثبَتُ الترخيص).
+
+## TTS-KOKORO-ONNX-LOADS-GPL-ESPEAK-IN-PROCESS-01 — kokoro-onnx يحمّل espeak-ng (GPL) داخل العمليّة دائماً
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-05) — قيدٌ ترخيصيّ مقيس على مرشّح الشهادة الإنجليزيّة الأوّل، لا عيبَ في الأداة؛ الحكمُ قانونيّ.
+- **المصدر:** kokoro-onnx 0.6.1 (عجلة PyPI): `kokoro_onnx/tokenizer.py` 21-61 يحمّل `libespeak-ng` عبر `ctypes` في `Tokenizer.__init__` الذي يبنيه `Kokoro._setup` دائماً، وMETADATA تُلزم `espeakng-loader` و`phonemizer`؛ و`tools/tts_bakeoff/engines.py` (`KokoroEngine.g2p`) يسجّله في كلّ `result.json`.
+- **الخلل:** نتيجةُ البحث «Kokoro بلا GPL إن عُطِّل بديلُ espeak» تصحّ لـ`misaki` لا لـkokoro-onnx: المكتبةُ GPL-3.0 تُحمَّل في عمليّة الخدمة. وبياناتُ تدريب Kokoro تضمّ صوتاً اصطناعيّاً غيرَ مُفصَّل (بطاقة النموذج، غيرُ مقروءةٍ مباشرةً).
+- **شرطُ الإغلاق:** مراجعةٌ قانونيّة مكتوبة لنمط التشغيل (خدمةٌ على خادم لا توزيع)، أو مسارُ G2P بلا espeak (فونيماتٌ من `misaki` بلا بديلٍ احتياطيّ تُمرَّر بـ`is_phonemes=True` مع Tokenizer لا يحمّل المكتبة) بشاهدٍ يثبت غيابَها من العمليّة.

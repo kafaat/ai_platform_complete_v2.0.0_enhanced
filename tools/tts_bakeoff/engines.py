@@ -285,10 +285,73 @@ class SilmaEngine:
         return buf.getvalue()
 
 
-ENGINES = {cls.name: cls for cls in (FakeEngine, PiperEngine, SilmaEngine)}
+class KokoroEngine:
+    """Kokoro-82M عبر kokoro-onnx 0.6.1 — للشهادة الإنجليزيّة أوّلاً (لا صوتَ عربيّاً فيه).
+
+    الشيفرةُ والأوزانُ Apache-2.0 (github.com/hexgrad/kokoro) وkokoro-onnx MIT (LICENSE في الحزمة).
+    **مقيسٌ من مصدر الحزمة 0.6.1، لا من وصفها:** ``Kokoro._setup`` يبني ``Tokenizer`` الذي يحمّل
+    ``libespeak-ng`` (GPL-3.0) عبر ``ctypes`` **دائماً** (``tokenizer.py`` 21-61، والتبعيّتان
+    ``espeakng-loader`` و``phonemizer`` إلزاميّتان في METADATA) — فالقولُ «بلا GPL إن عُطِّل البديل»
+    يصحّ لـ``misaki`` لا لـkokoro-onnx. يُسجَّل في ``self.g2p`` ليُرى في النتيجة، والحكمُ القانونيّ خارج الأداة.
+
+    الجلسةُ تُبنى هنا بخياراتٍ صريحة (كـPiper) وتُمرَّر بـ``Kokoro.from_session``: ``create_session``
+    الافتراضيّة تقرأ متغيّرات البيئة ولا تُثبّت الخيوط. **غيرُ مُجرَّب على الأوزان الحقيقيّة بعد.**
+    """
+
+    name = "kokoro"
+    DIST, TARGET = "kokoro-onnx", "0.6.1"
+
+    def __init__(self, cfg: dict) -> None:
+        self.version = _require_version(self.DIST, self.TARGET)
+        for key in ("model", "voices", "voice"):
+            if not cfg.get(key):
+                raise ValueError(f"kokoro: {key} مطلوب (لا افتراضَ ضمنيّ)")
+        import onnxruntime
+        from kokoro_onnx import Kokoro
+
+        opts = onnxruntime.SessionOptions()
+        opts.intra_op_num_threads = int(cfg.get("ort_intra_threads", 1))
+        opts.inter_op_num_threads = 1
+        opts.add_session_config_entry(
+            "session.intra_op.allow_spinning", "1" if cfg.get("ort_spinning") else "0"
+        )
+        session = onnxruntime.InferenceSession(
+            cfg["model"], sess_options=opts, providers=["CPUExecutionProvider"]
+        )
+        self.kokoro = Kokoro.from_session(session, cfg["voices"])
+        voices = self.kokoro.get_voices()
+        if cfg["voice"] not in voices:
+            raise ValueError(
+                f"kokoro: الصوت {cfg['voice']!r} ليس في ملفّ الأصوات ({len(voices)} صوتاً)"
+            )
+        self.voice = cfg["voice"]
+        self.lang = cfg.get("lang", "en-us")
+        self.speed = float(cfg.get("speed", 1.0))
+        self.ort = {
+            "intra_op_num_threads": opts.intra_op_num_threads,
+            "allow_spinning": bool(cfg.get("ort_spinning")),
+        }
+        self.g2p = {"backend": "espeak-ng (GPL-3.0) عبر phonemizer — يُحمَّل داخل العمليّة"}
+
+    def synthesize(self, text: str) -> bytes:
+        import numpy as np
+
+        samples, rate = self.kokoro.create(text, voice=self.voice, speed=self.speed, lang=self.lang)
+        pcm = (np.clip(np.asarray(samples, dtype=np.float32), -1.0, 1.0) * 32767.0).astype("<i2")
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(int(rate))
+            w.writeframes(pcm.tobytes())
+        return buf.getvalue()
+
+
+ENGINES = {cls.name: cls for cls in (FakeEngine, PiperEngine, SilmaEngine, KokoroEngine)}
 #: إعداداتٌ تحمل مساراتٍ يجب أن تغطّيها البصمات.
 PATH_SETTINGS = {
     "piper": ("model", "config"),
+    "kokoro": ("model", "voices"),
     "silma": (
         "ckpt_file",
         "vocab_file",

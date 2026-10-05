@@ -9,6 +9,13 @@
     "_package_assets_note": "أوزانٌ داخل الحزمة نفسها يفتحها المحرّك (piper يُنشئ tashkeel عند أوّل جملةٍ عربيّة). تُعلَن ببصمتها وإلّا صارت undeclared في الجرد. null يُرفض.",
     "package_assets": {"piper/tashkeel/model.onnx": null}
   },
+  "kokoro": {
+    "_status": "للشهادة الإنجليزيّة أوّلاً — لا صوتَ عربيّاً. لا يُنزَّل قبل مطابقة البصمة من صفحة الإصدار الرسميّة.",
+    "source": {"library": "kokoro-onnx==0.6.1 (MIT، LICENSE في الحزمة)", "weights": "github.com/thewh1teagle/kokoro-onnx releases model-files-v1.0 (أوزان Kokoro-82M Apache-2.0، github.com/hexgrad/kokoro)"},
+    "_license_note": "kokoro-onnx 0.6.1 يحمّل libespeak-ng (GPL-3.0) داخل العمليّة دائماً (tokenizer.py) — مقيسٌ من مصدر الحزمة. وبيانات تدريب Kokoro تضمّ صوتاً اصطناعيّاً غيرَ مُفصَّل (بطاقة النموذج، غيرُ مقروءة مباشرةً). كلاهما للمراجعة القانونيّة قبل الإنتاج.",
+    "files": {"models/kokoro/kokoro-v1.0.onnx": null, "models/kokoro/voices-v1.0.bin": null},
+    "settings": {"model": "models/kokoro/kokoro-v1.0.onnx", "voices": "models/kokoro/voices-v1.0.bin", "voice": "REPLACE (مثل af_heart)", "lang": "en-us", "speed": 1.0}
+  },
   "silma": {
     "source": {"library": "silma-tts==1.0.5", "weights": "silma-ai/silma-tts@REPLACE-commit", "provenance": "models/provenance.json"},
     "files": {

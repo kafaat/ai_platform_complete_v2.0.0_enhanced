@@ -263,3 +263,123 @@ def test_workload_signature_includes_requests_per_level(tmp_path, monkeypatch, c
     assert "عدد الطلبات" in capsys.readouterr().err
     monkeypatch.setattr(sys, "argv", ["perf.py", paths[0], paths[0]])
     assert perf.main() == 0
+
+
+# ── محوّل Kokoro (الشهادة الإنجليزيّة) — بلا أوزانٍ ولا onnxruntime: الوحدتان مُستبدَلتان ─────────
+#
+# الشاهدُ يثبت ما يعد به المحوّل: الإصدارُ مفروض، الجلسةُ تُبنى بخياراتٍ صريحة وتُمرَّر بـfrom_session،
+# الصوتُ غيرُ الموجود يُرفض عند التحميل لا عند أوّل طلب، والمخرجُ WAV PCM16 أحاديّ مقصوصٌ إلى [-1, 1].
+
+
+class _FakeSessionOptions:
+    def __init__(self):
+        self.intra_op_num_threads = 0
+        self.inter_op_num_threads = 0
+        self.entries = {}
+
+    def add_session_config_entry(self, key, value):
+        self.entries[key] = value
+
+
+class _FakeKokoro:
+    created = []
+
+    def __init__(self, session, voices_path):
+        self.session, self.voices_path = session, voices_path
+
+    @classmethod
+    def from_session(cls, session, voices_path):
+        inst = cls(session, voices_path)
+        cls.created.append(inst)
+        return inst
+
+    def get_voices(self):
+        return ["af_heart", "am_adam"]
+
+    def create(self, text, voice, speed, lang):
+        import numpy as np
+
+        self.last = (text, voice, speed, lang)
+        return np.array([0.0, 0.5, 2.0, -3.0], dtype=np.float32), 24000
+
+
+def _stub_kokoro(monkeypatch, version="0.6.1"):
+    import importlib.metadata
+    import types
+
+    sessions = []
+    ort = types.ModuleType("onnxruntime")
+    ort.SessionOptions = _FakeSessionOptions
+    ort.InferenceSession = lambda path, sess_options, providers: (
+        sessions.append((path, sess_options, providers)) or ("session", path)
+    )
+    kmod = types.ModuleType("kokoro_onnx")
+    kmod.Kokoro = _FakeKokoro
+    monkeypatch.setitem(sys.modules, "onnxruntime", ort)
+    monkeypatch.setitem(sys.modules, "kokoro_onnx", kmod)
+    real = importlib.metadata.version
+    monkeypatch.setattr(
+        importlib.metadata, "version", lambda d: version if d == "kokoro-onnx" else real(d)
+    )
+    _FakeKokoro.created = []
+    return sessions
+
+
+_KOKORO_CFG = {"model": "m.onnx", "voices": "v.bin", "voice": "af_heart"}
+
+
+def test_kokoro_builds_its_own_pinned_session(monkeypatch):
+    import engines
+
+    sessions = _stub_kokoro(monkeypatch)
+    eng = engines.ENGINES["kokoro"](dict(_KOKORO_CFG, ort_intra_threads=2))
+    ((path, opts, providers),) = sessions
+    assert path == "m.onnx" and providers == ["CPUExecutionProvider"]
+    assert opts.intra_op_num_threads == 2 and opts.inter_op_num_threads == 1
+    assert opts.entries["session.intra_op.allow_spinning"] == "0"
+    assert _FakeKokoro.created[0].session == ("session", "m.onnx")
+    assert eng.version == "0.6.1" and "espeak-ng" in eng.g2p["backend"]
+
+
+def test_kokoro_rejects_an_unpinned_version_or_an_unknown_voice(monkeypatch):
+    import engines
+
+    _stub_kokoro(monkeypatch, version="0.7.0")
+    with pytest.raises(RuntimeError, match="0.6.1"):
+        engines.ENGINES["kokoro"](dict(_KOKORO_CFG))
+    _stub_kokoro(monkeypatch)
+    with pytest.raises(ValueError, match="bf_missing"):
+        engines.ENGINES["kokoro"](dict(_KOKORO_CFG, voice="bf_missing"))
+    with pytest.raises(ValueError, match="voice"):
+        engines.ENGINES["kokoro"]({"model": "m.onnx", "voices": "v.bin"})
+
+
+def test_kokoro_output_is_clipped_mono_pcm16_wav(monkeypatch):
+    import engines
+
+    _stub_kokoro(monkeypatch)
+    eng = engines.ENGINES["kokoro"](dict(_KOKORO_CFG, speed=1.1))
+    data = eng.synthesize("Irrigate in the early morning.")
+    assert _FakeKokoro.created[0].last == (
+        "Irrigate in the early morning.",
+        "af_heart",
+        1.1,
+        "en-us",
+    )
+    with wave.open(io.BytesIO(data)) as w:
+        assert (w.getnchannels(), w.getsampwidth(), w.getframerate()) == (1, 2, 24000)
+        frames = w.readframes(w.getnframes())
+    import struct
+
+    assert struct.unpack("<4h", frames) == (0, 16383, 32767, -32767)
+
+
+def test_kokoro_manifest_pins_every_path_it_loads():
+    import engines
+
+    models = json.loads((PKG / "models.example.json").read_text(encoding="utf-8"))
+    entry = models["kokoro"]
+    for key in engines.PATH_SETTINGS["kokoro"]:
+        assert entry["settings"][key] in entry["files"], key
+    assert set(engines.PATH_SETTINGS["kokoro"]) == {"model", "voices"}
+    assert all(sha is None for sha in entry["files"].values()), "لا بصمةَ قبل مطابقة المصدر"

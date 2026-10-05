@@ -426,6 +426,7 @@ def main() -> int:
         "child_starttime": getattr(engine, "child_start", None),
         "engine_version": getattr(engine, "version", None),
         "ort": getattr(engine, "ort", None),
+        "g2p": getattr(engine, "g2p", None),
         "rss_delta_mb": round(
             (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - rss0) / 1024, 1
         ),

@@ -19,6 +19,8 @@
      "trusted_sha256": null,
      "measured_sha256_unverified": "5343bfdfda70c981b587811b79348b8dde91f65c0a551ca98f232ea5cb62ceac",
      "_sha256_provenance": "measured_sha256_unverified مقيسةٌ عند التنزيل في 2026-10-04 من بيئة الإعداد، ولم تُطابَق ببصمةٍ منشورة على صفحة الإصدار (واجهة GitHub محجوبة هنا). لذا trusted_sha256=null فيرفض fetch_models التنزيل حتّى تُطابَق وتُنقَل إليه",
-     "license": "Apache-2.0", "license_source": "LICENSE في github.com/abjadai/catt (main)"}
+     "license": "Apache-2.0", "license_source": "LICENSE في github.com/abjadai/catt (main)"},
+    {"purpose": "kokoro model", "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx", "filename": "kokoro-v1.0.onnx", "local_dir": "kokoro", "trusted_sha256": null, "license": "Apache-2.0 (Kokoro-82M weights)", "license_source": "LICENSE في github.com/hexgrad/kokoro؛ وkokoro-onnx MIT (LICENSE في الحزمة 0.6.1)"},
+    {"purpose": "kokoro voices", "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin", "filename": "voices-v1.0.bin", "local_dir": "kokoro", "trusted_sha256": null, "license": "Apache-2.0 (Kokoro-82M weights)", "license_source": "LICENSE في github.com/hexgrad/kokoro؛ وkokoro-onnx MIT (LICENSE في الحزمة 0.6.1)"}
   ]
 }
