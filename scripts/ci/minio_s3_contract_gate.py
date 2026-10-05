@@ -33,6 +33,39 @@ def fail(msg: str) -> None:
     sys.exit(1)
 
 
+# MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01: المستودعُ نفسُه محذوف، فيُرفَض بأيّ شكلٍ للمرجع —
+# وسمٌ (``:``) أو دايجست (``@``) أو بلا لاحقة، وبـ``docker.io/`` أو بدونه (مراجعة Copilot على #1139:
+# البادئةُ ``minio/minio:`` وحدها كانت تُفلت ``minio/minio@sha256:…``).
+_DELETED_REPO = re.compile(r"^(?:docker\.io/)?minio/(?:minio|mc)(?=[:@]|$)")
+_SERVICE = re.compile(r"^  [A-Za-z0-9_.-]+:\s*$")
+_TOP_LEVEL_KEY = re.compile(r"^[A-Za-z0-9_.-]+:")
+
+
+def is_deleted_repo(ref: str) -> bool:
+    return bool(_DELETED_REPO.match(ref.strip().strip("'\"")))
+
+
+def service_blocks(lines: list[str]) -> list[list[str]]:
+    """كتلُ الخدمات بالإزاحة **داخل ``services:`` وحده** — مفتاحٌ علويّ آخر (``volumes:`` …) يُنهي الكتلة
+    الأخيرة، فلا تبتلع ما بعد القسم (مراجعة Copilot على #1139)."""
+    blocks: list[list[str]] = []
+    in_services = False
+    current: list[str] | None = None
+    for raw in lines:
+        if _TOP_LEVEL_KEY.match(raw):
+            in_services = raw.split(":", 1)[0] == "services"
+            current = None
+            continue
+        if not in_services:
+            continue
+        if _SERVICE.match(raw):
+            current = []
+            blocks.append(current)
+        if current is not None:
+            current.append(raw)
+    return blocks
+
+
 def load_env(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -137,7 +170,6 @@ def main() -> int:
         "coollabsio/minio:2025-04-22T22-12-26Z"
         "@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68"
     )
-    DELETED_REPOS = ("minio/minio:", "minio/mc:")
     for key in ("MINIO_IMAGE", "MINIO_MC_IMAGE"):
         env_pin = env.get(key, "")
         if env_pin != FULL_CONSOLE_PIN:
@@ -155,9 +187,7 @@ def main() -> int:
             ref = s.split("image:", 1)[1].strip().strip("'\"")
             if ref.startswith("${") and ":-" in ref:  # ${VAR:-default} ⇒ the default ref
                 ref = ref.split(":-", 1)[1].rstrip("}")
-            if ref.startswith(DELETED_REPOS) or ref.startswith(
-                tuple("docker.io/" + r for r in DELETED_REPOS)
-            ):
+            if is_deleted_repo(ref):
                 fail(
                     f"{cf.name}:{idx + 1}: {s} — minio/minio and minio/mc were deleted from "
                     "Docker Hub; a fresh pull fails (MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01)"
@@ -169,21 +199,16 @@ def main() -> int:
                     not ("${MINIO_IMAGE" in s or "${MINIO_MC_IMAGE" in s)
                     or FULL_CONSOLE_PIN not in s
                 ):
+                    var = "MINIO_MC_IMAGE" if "MINIO_MC_IMAGE" in s else "MINIO_IMAGE"
                     fail(
-                        f"{cf.name}: MinIO image must be ${{MINIO_IMAGE:-{FULL_CONSOLE_PIN}}} "
+                        f"{cf.name}:{idx + 1}: MinIO image must be ${{{var}:-{FULL_CONSOLE_PIN}}} "
                         f"(no bare hardcode / no undigested tag) — got: {s}"
                     )
         # The pinned image has no curl/wget: a curl healthcheck keeps sahool-minio unhealthy
         # forever, and service_healthy dependents (sahool-minio-init) never start.
         # Service blocks by indentation, not by name (`minio`, `evidence-minio`, `sahool-minio`
         # all exist across these files); the MinIO block is the one whose image is the pin.
-        blocks: list[list[str]] = []
-        for raw in lines:
-            if re.match(r"^  [A-Za-z0-9_.-]+:\s*$", raw):
-                blocks.append([])
-            if blocks:
-                blocks[-1].append(raw)
-        for blk in blocks:
+        for blk in service_blocks(lines):
             svc = "\n".join(blk)
             if "MINIO_IMAGE" not in svc:
                 continue

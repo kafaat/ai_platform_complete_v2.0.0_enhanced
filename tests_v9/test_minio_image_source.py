@@ -9,12 +9,14 @@
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 
@@ -24,6 +26,16 @@ PIN = (
     "@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68"
 )
 COMPOSE = sorted(ROOT.glob("docker-compose*.yml"))
+DELETED = re.compile(r"[\s:'\"-](docker\.io/)?minio/(minio|mc)(?=[:@'\"]|\s*$)")
+
+
+def _gate():
+    spec = importlib.util.spec_from_file_location(
+        "minio_gate", ROOT / "scripts/ci/minio_s3_contract_gate.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def test_the_contract_gate_passes_on_the_tree():
@@ -42,9 +54,49 @@ def test_the_contract_gate_passes_on_the_tree():
 def test_no_compose_file_pulls_a_deleted_docker_hub_repository(compose):
     for line in compose.read_text(encoding="utf-8").splitlines():
         if "image:" in line:
-            assert not re.search(r"[\s:-](docker\.io/)?minio/(minio|mc):", line), (
+            assert not DELETED.search(line), (
                 f"{compose.name}: {line.strip()} — مستودعٌ حُذِف من Docker Hub"
             )
+
+
+DELETED_FORMS = [
+    "minio/minio:RELEASE.2025-04-22T22-12-26Z",
+    "minio/minio@sha256:" + "a" * 64,
+    "docker.io/minio/mc@sha256:" + "b" * 64,
+    "minio/mc",
+    '"minio/mc:latest"',
+]
+KEPT_FORMS = [PIN, "minio/minio-extra:1", "coollabsio/minio/mc:1", "quay.io/minio/minio:x"]
+
+
+@pytest.mark.parametrize("ref", DELETED_FORMS)
+def test_the_deleted_repository_is_rejected_in_every_reference_form(ref):
+    """مراجعة Copilot على #1139: البادئة ``minio/minio:`` كانت تُفلت الدايجست ``minio/minio@sha256:…``."""
+    assert _gate().is_deleted_repo(ref)
+    assert DELETED.search(f"    image: {ref}")
+
+
+@pytest.mark.parametrize("ref", KEPT_FORMS)
+def test_other_repositories_are_not_mistaken_for_the_deleted_one(ref):
+    assert not _gate().is_deleted_repo(ref)
+    assert not DELETED.search(f"    image: {ref}")
+
+
+def test_service_blocks_stop_at_the_next_top_level_key():
+    """مراجعة Copilot على #1139: الكتلةُ الأخيرة كانت تبتلع ``volumes:`` وما بعده."""
+    lines = [
+        "services:",
+        "  sahool-minio:",
+        "    image: ${MINIO_IMAGE:-x}",
+        "volumes:",
+        "  minio-data:",
+        "    driver: local",
+        "x-health:",
+        "  probe:",
+        "    test: curl http://minio/health",
+    ]
+    blocks = _gate().service_blocks(lines)
+    assert blocks == [["  sahool-minio:", "    image: ${MINIO_IMAGE:-x}"]]
 
 
 def test_every_minio_image_reference_is_the_digest_pin():
@@ -61,10 +113,18 @@ def test_every_minio_image_reference_is_the_digest_pin():
 
 
 def test_the_minio_healthcheck_does_not_need_curl():
-    """الصورة بلا curl: فحصٌ به يُبقي الخادم unhealthy فلا تبدأ ``sahool-minio-init`` أبداً."""
-    v9 = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
-    block = v9.split("\n  sahool-minio:", 1)[1].split("\n  sahool-", 1)[0]
-    assert "- mc\n      - ready\n      - local" in block
-    health = block.split("healthcheck:", 1)[1]
-    code = [ln for ln in health.splitlines() if not ln.strip().startswith("#")]
-    assert not any("curl" in ln for ln in code), "فحصُ الصحّة يستدعي curl"
+    """الصورة بلا curl: فحصٌ به يُبقي الخادم unhealthy فلا تبدأ ``sahool-minio-init`` أبداً.
+
+    يُقرأ بنيويّاً (YAML) لا بتقطيع النصّ — إعادةُ ترتيب الملفّ أو تسميةُ الخدمة تُفشِل الشاهدَ
+    برسالةٍ تقول ما الناقص لا بـIndexError (مراجعة Copilot على #1139)."""
+    services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))[
+        "services"
+    ]
+    minio = [
+        name
+        for name, svc in services.items()
+        if str(svc.get("image", "")).startswith("${MINIO_IMAGE:-")
+    ]
+    assert minio == ["sahool-minio"], f"خدمةُ خادم MinIO في v9 غير متعيّنة: {minio}"
+    test = services["sahool-minio"].get("healthcheck", {}).get("test")
+    assert test == ["CMD", "mc", "ready", "local"], test
