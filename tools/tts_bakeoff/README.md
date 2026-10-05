@@ -635,6 +635,9 @@ cp sources.example.json sources.json   # البصماتُ مملوءةٌ ومص�
 python3 fetch_models.py --plan sources.json --dest models [--endpoint https://hf-mirror.com]
 #    ملفّان صغيران بلا sha256 منشورة (vocab.txt وconfig.yaml) يُتحقَّق منهما بمعرّف git blob المنشور
 #    عند الـcommit المثبّت — في كلّ تنزيل (`published_git_blob_sha1`)؛ وprovenance.json يسجّل أساسَ الثقة
+#    ويُكتب **بعد كلّ ملفّ** (انقطاعُ model.pt لا يضيّع سجلَّ ما قبله)، والموجودُ بالبصمة نفسها لا يُنزَّل ثانيةً.
+#    أرشيفُ catt (`"extract": "zip"`) يُفكّ بعد تحقّقه، وتُطبع بصمةُ كلّ عضو مشتقّةً منه — انسخها إلى models.json
+#    بأسماء الأعضاء **كما طُبعت** (قد لا تكون encoder.onnx/decoder.onnx). عضوٌ خارج المجلّد أو رابطٌ رمزيّ ⇒ رفضٌ قبل أيّ كتابة.
 
 # 3) البيان: بصماتُ Kokoro وSILMA مملوءة؛ يبقى مجلّدُ vocos ونموذجا catt المستخرَجان ومقطعُ SILMA المرجعيّ
 #    (رسالةُ الرفض تطبع الفعليّة لمطابقتها بالمصدر). **المقطعُ المرجعيّ يُستنسخ صوتُه:** سجِّل 6–10 ثوانٍ

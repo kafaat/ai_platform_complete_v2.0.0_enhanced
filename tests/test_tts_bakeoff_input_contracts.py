@@ -748,3 +748,136 @@ def test_the_published_download_plan_has_no_placeholder_left_and_every_entry_is_
         assert entry.get("_sha256_provenance"), entry["filename"]
         if "published_git_blob_sha1" in entry:
             assert len(entry["revision"]) == 40 and "url" not in entry, entry["filename"]
+
+
+# ── fetch_models: سجلٌّ بعد كلّ ملفّ، لا إعادةَ تنزيلٍ لموجودٍ مطابق، وفكُّ أرشيفٍ موثوقٍ بلا zip-slip ──────
+
+
+def _url_plan(tmp_path, monkeypatch, entries, payloads):
+    import fetch_models
+
+    calls = []
+
+    def fake_url(item, dest):
+        calls.append(item["filename"])
+        target = dest / item["local_dir"] / item["filename"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payloads[item["filename"]])
+        return target
+
+    monkeypatch.setattr(fetch_models, "fetch_url", fake_url)
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps({"files": entries}), encoding="utf-8")
+    dest = tmp_path / "models"
+    monkeypatch.setattr(sys, "argv", ["fetch_models.py", "--plan", str(plan), "--dest", str(dest)])
+    return fetch_models, dest, calls
+
+
+def _entry(name, payload, **extra):
+    import hashlib
+
+    return {
+        "url": f"https://example.invalid/{name}",
+        "filename": name,
+        "local_dir": "d",
+        "trusted_sha256": hashlib.sha256(payload).hexdigest(),
+        **extra,
+    }
+
+
+def test_provenance_survives_a_later_file_failing(tmp_path, monkeypatch):
+    good, bad = b"good", b"tampered"
+    entries = [_entry("a.bin", good), {**_entry("b.bin", b"expected"), "filename": "b.bin"}]
+    fetch_models, dest, _ = _url_plan(tmp_path, monkeypatch, entries, {"a.bin": good, "b.bin": bad})
+    with pytest.raises(SystemExit, match="بصمةٌ مخالفة"):
+        fetch_models.main()
+    (record,) = json.loads((dest / "provenance.json").read_text(encoding="utf-8"))
+    assert record["filename"] == "a.bin" and record["already_present"] is False
+    assert not (dest / "d" / "b.bin").exists()
+
+
+def test_a_present_and_matching_file_is_not_downloaded_again(tmp_path, monkeypatch):
+    payload = b"weights"
+    fetch_models, dest, calls = _url_plan(
+        tmp_path, monkeypatch, [_entry("w.bin", payload)], {"w.bin": payload}
+    )
+    assert fetch_models.main() == 0 and calls == ["w.bin"]
+    calls.clear()
+    assert fetch_models.main() == 0 and calls == []
+    (record,) = json.loads((dest / "provenance.json").read_text(encoding="utf-8"))
+    assert record["already_present"] is True
+
+
+def test_a_present_but_altered_file_is_fetched_again_not_trusted(tmp_path, monkeypatch):
+    payload = b"weights"
+    fetch_models, dest, calls = _url_plan(
+        tmp_path, monkeypatch, [_entry("w.bin", payload)], {"w.bin": payload}
+    )
+    (dest / "d").mkdir(parents=True)
+    (dest / "d" / "w.bin").write_bytes(b"altered")
+    assert fetch_models.main() == 0 and calls == ["w.bin"]
+    assert (dest / "d" / "w.bin").read_bytes() == payload
+
+
+def _zip_bytes(members):
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for name, data in members:
+            if isinstance(data, zipfile.ZipInfo):
+                zf.writestr(data, b"target")
+            else:
+                zf.writestr(name, data)
+    return buf.getvalue()
+
+
+def test_a_verified_archive_is_extracted_with_derived_member_hashes(tmp_path, monkeypatch, capsys):
+    import hashlib
+
+    archive = _zip_bytes([("eo/encoder.onnx", b"enc"), ("eo/decoder.onnx", b"dec")])
+    fetch_models, dest, _ = _url_plan(
+        tmp_path, monkeypatch, [_entry("m.zip", archive, extract="zip")], {"m.zip": archive}
+    )
+    assert fetch_models.main() == 0
+    (record,) = json.loads((dest / "provenance.json").read_text(encoding="utf-8"))
+    assert record["extracted"] == {
+        "eo/encoder.onnx": hashlib.sha256(b"enc").hexdigest(),
+        "eo/decoder.onnx": hashlib.sha256(b"dec").hexdigest(),
+    }
+    assert record["extracted_trust"] == "derived-from-verified-archive"
+    assert (dest / "d" / "eo" / "encoder.onnx").read_bytes() == b"enc"
+    assert "eo/decoder.onnx" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("member", ["../escape.onnx", "/abs.onnx", "eo/../../escape.onnx"])
+def test_an_archive_member_outside_the_folder_is_refused_before_any_write(
+    tmp_path, monkeypatch, member
+):
+    archive = _zip_bytes([("eo/fine.onnx", b"ok"), (member, b"evil")])
+    fetch_models, dest, _ = _url_plan(
+        tmp_path, monkeypatch, [_entry("m.zip", archive, extract="zip")], {"m.zip": archive}
+    )
+    with pytest.raises(SystemExit, match="مرفوض|خارج"):
+        fetch_models.main()
+    assert not (dest / "d" / "eo" / "fine.onnx").exists(), "لا عضوَ يُكتب قبل فحص الكلّ"
+    assert not (tmp_path / "escape.onnx").exists() and not (dest / "escape.onnx").exists()
+
+
+def test_a_symlink_inside_an_archive_is_refused(tmp_path, monkeypatch):
+    import zipfile
+
+    link = zipfile.ZipInfo("eo/link.onnx")
+    link.external_attr = 0o120777 << 16
+    archive = _zip_bytes([("eo/link.onnx", link)])
+    fetch_models, _, _ = _url_plan(
+        tmp_path, monkeypatch, [_entry("m.zip", archive, extract="zip")], {"m.zip": archive}
+    )
+    with pytest.raises(SystemExit, match="رابطٌ رمزيّ"):
+        fetch_models.main()
+
+
+def test_the_catt_archive_is_marked_for_verified_extraction():
+    sources = json.loads((PKG / "sources.example.json").read_text(encoding="utf-8"))
+    (catt,) = [e for e in sources["files"] if e["filename"] == "eo_model_onnx.zip"]
+    assert catt["extract"] == "zip" and len(catt["trusted_sha256"]) == 64
