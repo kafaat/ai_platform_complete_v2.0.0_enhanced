@@ -11,6 +11,7 @@ This static gate keeps the credential source-of-truth explicit and aligned.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -124,25 +125,73 @@ def main() -> int:
     # the repo was archived (2026-04), and later Docker Hub images carry a HIGH CVE and
     # were pulled. This deployment relies on the console (--console-address :9001), so we
     # pin the LAST full-console release and forbid drift/bare hardcodes across compose.
-    # Operators may still override via MINIO_IMAGE. See COMPOSE_ENV_CONTRACT report.
-    FULL_CONSOLE_PIN = "minio/minio:RELEASE.2025-04-22T22-12-26Z"
-    env_pin = env.get("MINIO_IMAGE", "")
-    if env_pin != FULL_CONSOLE_PIN:
-        fail(
-            f".env.example MINIO_IMAGE must pin the last full-console release "
-            f"{FULL_CONSOLE_PIN} (got {env_pin!r}); newer community images removed the admin UI"
-        )
+    # Operators may still override via MINIO_IMAGE / MINIO_MC_IMAGE. See COMPOSE_ENV_CONTRACT.
+    #
+    # MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 (2026-10-05): MinIO deleted `minio/minio` and
+    # `minio/mc` from Docker Hub (2026-09-11..14) and quay.io now requires a login, so every
+    # fresh `docker compose up` failed with "pull access denied for minio/mc". The pin keeps
+    # the SAME release from a community mirror, digest-pinned so it cannot drift. Measured
+    # from its layers: it ships `minio`, `mc` and bash but NO curl/wget — so the init job runs
+    # on the same image and the healthcheck is `mc ready local`, never curl.
+    FULL_CONSOLE_PIN = (
+        "coollabsio/minio:2025-04-22T22-12-26Z"
+        "@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68"
+    )
+    DELETED_REPOS = ("minio/minio:", "minio/mc:")
+    for key in ("MINIO_IMAGE", "MINIO_MC_IMAGE"):
+        env_pin = env.get(key, "")
+        if env_pin != FULL_CONSOLE_PIN:
+            fail(
+                f".env.example {key} must pin the last full-console release from a pullable "
+                f"source, digest-pinned: {FULL_CONSOLE_PIN} (got {env_pin!r})"
+            )
     for cf in sorted(ROOT.glob("docker-compose*.yml")):
-        for raw in cf.read_text(encoding="utf-8", errors="replace").splitlines():
+        text = cf.read_text(encoding="utf-8", errors="replace")
+        lines = text.splitlines()
+        for idx, raw in enumerate(lines):
             s = raw.strip()
-            if "image:" in s and "minio/minio:" in s:
-                # Must use the ${MINIO_IMAGE:-...} override form with the pinned default —
-                # a bare hardcode risks shipping a console-stripped / CVE image.
-                if "${MINIO_IMAGE" not in s or FULL_CONSOLE_PIN not in s:
+            if "image:" not in s:
+                continue
+            ref = s.split("image:", 1)[1].strip().strip("'\"")
+            if ref.startswith("${") and ":-" in ref:  # ${VAR:-default} ⇒ the default ref
+                ref = ref.split(":-", 1)[1].rstrip("}")
+            if ref.startswith(DELETED_REPOS) or ref.startswith(
+                tuple("docker.io/" + r for r in DELETED_REPOS)
+            ):
+                fail(
+                    f"{cf.name}:{idx + 1}: {s} — minio/minio and minio/mc were deleted from "
+                    "Docker Hub; a fresh pull fails (MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01)"
+                )
+            if "MINIO_IMAGE" in s or "MINIO_MC_IMAGE" in s or "coollabsio/minio" in s:
+                # Must use the override form with the pinned default — a bare hardcode or a
+                # floating tag risks shipping a console-stripped / CVE / swapped image.
+                if (
+                    not ("${MINIO_IMAGE" in s or "${MINIO_MC_IMAGE" in s)
+                    or FULL_CONSOLE_PIN not in s
+                ):
                     fail(
                         f"{cf.name}: MinIO image must be ${{MINIO_IMAGE:-{FULL_CONSOLE_PIN}}} "
-                        f"(no bare hardcode / no post-console-removal tag) — got: {s}"
+                        f"(no bare hardcode / no undigested tag) — got: {s}"
                     )
+        # The pinned image has no curl/wget: a curl healthcheck keeps sahool-minio unhealthy
+        # forever, and service_healthy dependents (sahool-minio-init) never start.
+        # Service blocks by indentation, not by name (`minio`, `evidence-minio`, `sahool-minio`
+        # all exist across these files); the MinIO block is the one whose image is the pin.
+        blocks: list[list[str]] = []
+        for raw in lines:
+            if re.match(r"^  [A-Za-z0-9_.-]+:\s*$", raw):
+                blocks.append([])
+            if blocks:
+                blocks[-1].append(raw)
+        for blk in blocks:
+            svc = "\n".join(blk)
+            if "MINIO_IMAGE" not in svc:
+                continue
+            if "curl" in svc and "minio/health" in svc:
+                fail(
+                    f"{cf.name}: MinIO healthcheck uses curl, which the pinned image does not "
+                    "ship — use `mc ready local`"
+                )
 
     # TiTiler should be able to inspect local file COGs in dev and S3 COGs in prod.
     if "sahool-titiler:" in compose:

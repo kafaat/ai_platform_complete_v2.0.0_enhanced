@@ -393,7 +393,7 @@ services:
       retries: 8
       start_period: 60s
   sahool-minio:
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
+    image: ${MINIO_IMAGE:-coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -415,11 +415,13 @@ services:
     networks:
     - sahool-internal
     healthcheck:
+      # الصورة (ubi9-micro) بلا curl ولا wget — مقيسٌ من طبقاتها؛ `mc ready local` هو فحصُ
+      # MinIO الموثَّق ويعمل بالثنائيّ المُضمَّن في الصورة نفسها.
       test:
       - CMD
-      - curl
-      - -f
-      - http://localhost:9000/minio/health/live
+      - mc
+      - ready
+      - local
       interval: 30s
       timeout: 10s
       retries: 6
@@ -427,7 +429,8 @@ services:
   sahool-minio-init:
     # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
     mem_limit: 128m
-    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-04-16T18-13-26Z}
+    # الصورةُ نفسُها: صورةُ الخادم تحمل `mc` و`/bin/sh` (مقيسٌ من طبقاتها)، و`minio/mc` حُذِف من Docker Hub.
+    image: ${MINIO_MC_IMAGE:-coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68}
     restart: "no"
     security_opt:
     - no-new-privileges:true
