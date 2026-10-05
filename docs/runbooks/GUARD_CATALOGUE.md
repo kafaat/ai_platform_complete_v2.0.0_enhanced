@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **422**
+- إجماليّ الطفرات المُسجَّلة: **425**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **363** على 128 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -162,6 +162,9 @@
 - نزعُ استثناء المُولَّد ⇒ إعادةُ توليد `*.generated.ts` تُحتسَب دليلَ إصلاح فيمرّ إغلاقٌ بلا شيفرة — يُسقِط `test_frontend_docs_config_or_generated_files_do_not_justify_a_closure`
 - توسيعُ القبول إلى بادئة frontend/ كلّها ⇒ README أو package.json أو ملفُّ إعدادٍ يكفي لتبرير إغلاق — الحلُّ الذي رفضه المالك صراحةً — يُسقِط `test_frontend_docs_config_or_generated_files_do_not_justify_a_closure`
 - عودةُ العمى عن الواجهة ⇒ إصلاحُ واجهةٍ حقيقيّ مع صفّه يُرفض «دماغيّاً صرفاً» (العطلُ المقيس على FRONTEND-REFERENCE-LISTS-CALL-MAP-ON-AN-ENVELOPE-01) — يُسقِط `test_a_frontend_source_or_test_change_counts_as_executable_evidence`
+- عودةُ العمى عن fixed (BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01) ⇒ صفٌّ يُنقل إلى fixed في تعديلٍ للدماغ وحده يمرّ — يُسقِط `test_brain_only_table_row_moved_to_fixed_is_rejected_by_name`
+- نزعُ اشتراط الدليل التنفيذيّ عن انتقال fixed ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ — يُسقِط `test_brain_only_table_row_moved_to_fixed_is_rejected_by_name`
+- قراءةُ المداخل التاريخيّة حالاتٍ قائمة ⇒ مدخلٌ تاريخيّ يحمل fixed يُعدّ انتقالاً فيُحجب تعديلٌ لا يدّعي شيئاً — يُسقِط `test_no_transition_to_fixed_is_not_blocked`
 
 ### `branch_protection_contract_guard.py`
 
