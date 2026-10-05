@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
 
 import pytest
@@ -478,3 +479,84 @@ def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, reject
     )
     assert (result.returncode != 0) is rejected, result.stdout + result.stderr
     assert ("GAP-ALPHA-01" in result.stderr) is rejected
+
+
+# BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01 (تصحيحٌ ثانٍ): الدليلُ محتوى لا اسم. ``--name-only`` كان يُدرج الاسمَ
+# الجديد لإعادة تسميةٍ صرفة، فـ``git mv`` لاختبارٍ قائم يُمرِّر انتقالاً إلى fixed في الدماغ وحده.
+@pytest.mark.parametrize(
+    ("change", "rejected"),
+    [
+        ("pure_rename", True),  # R100
+        ("pure_copy", True),  # C100 — ``-M`` لا يكتشفه فيصل ``A`` ببصمةٍ موجودة في الأساس
+        ("chmod_only", True),  # تغييرُ صلاحيّاتٍ بلا محتوى
+        ("rename_with_edit", False),  # الضابط: R<100 يحمل محتوىً جديداً
+    ],
+)
+def test_a_pure_rename_or_copy_of_a_test_is_not_executable_evidence(tmp_path, change, rejected):
+    """pure rename + brain-only open→fixed ⇒ reject (ومثلُه النسخُ وتغييرُ الصلاحيّات)."""
+    import subprocess
+    import sys
+
+    (tmp_path / "sahool-brain/gaps").mkdir(parents=True)
+    (tmp_path / "tests_v9").mkdir()
+    reg = tmp_path / guard.REGISTRY
+    reg.write_text(registry(), encoding="utf-8")
+    body = "".join(f"def test_{i}():\n    assert {i} == {i}\n\n" for i in range(12))
+    old = tmp_path / "tests_v9/test_old.py"
+    old.write_text(body, encoding="utf-8")
+    _git(tmp_path, "init", "-q", "-b", "base")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    reg.write_text(registry(alpha="**fixed** (`def5678`)"), encoding="utf-8")
+    if change == "pure_rename":
+        _git(tmp_path, "mv", "tests_v9/test_old.py", "tests_v9/test_renamed.py")
+    elif change == "pure_copy":
+        (tmp_path / "tests_v9/test_copy.py").write_text(body, encoding="utf-8")
+    elif change == "chmod_only":
+        old.chmod(0o755)
+    else:
+        _git(tmp_path, "mv", "tests_v9/test_old.py", "tests_v9/test_renamed.py")
+        (tmp_path / "tests_v9/test_renamed.py").write_text(
+            body + "def test_fix():\n    assert True\n", encoding="utf-8"
+        )
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "head")
+    status = _git(tmp_path, "diff", "--name-status", "-M", "HEAD~1", "HEAD")
+    if change == "pure_rename":
+        assert "R100" in status, status  # الشاهدُ يصنع ما يدّعيه
+    if change == "chmod_only":
+        assert "M\ttests_v9/test_old.py" in status, status
+    if change == "rename_with_edit":
+        assert re.search(r"^R0?[0-9]{2}\t", status, re.M), status
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/brain_state_transition_guard.py"),
+            "--base",
+            "HEAD~1",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert (result.returncode != 0) is rejected, result.stdout + result.stderr
+    assert ("GAP-ALPHA-01" in result.stderr) is rejected
+
+
+def test_raw_parsing_keeps_the_new_name_and_the_similarity_score():
+    z = "0" * 40
+    raw = (
+        f":100644 100644 {'a' * 40} {'a' * 40} R100\0tests_v9/old.py\0tests_v9/new.py\0"
+        f":000000 100644 {z} {'b' * 40} A\0tests_v9/added.py\0"
+        f":100644 100644 {'c' * 40} {'d' * 40} R087\0x.py\0y.py\0"
+    )
+    entries = guard.parse_raw(raw)
+    assert entries == [
+        ("R100", "a" * 40, "tests_v9/new.py"),
+        ("A", "b" * 40, "tests_v9/added.py"),
+        ("R087", "d" * 40, "y.py"),
+    ]
+    # R100 يحمل بصمةَ مصدره، فهي في شجرة الأساس بالضرورة؛ و``A`` ببصمةٍ قائمة نسخٌ (C100).
+    base_blobs = {"a" * 40, "b" * 40, "c" * 40}
+    assert guard.content_evidence(entries, base_blobs) == ["y.py"]

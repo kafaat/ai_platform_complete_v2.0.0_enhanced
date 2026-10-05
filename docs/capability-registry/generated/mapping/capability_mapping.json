@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5518,
+    "files_scanned": 5519,
     "files_by_kind": {
       "backend": 1220,
       "database": 281,
       "governance": 65,
       "mobile": 55,
       "other": 1559,
-      "tests": 1879,
+      "tests": 1880,
       "web": 459
     },
-    "unmapped_artifacts": 2228,
+    "unmapped_artifacts": 2229,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -44426,6 +44426,10 @@
     },
     {
       "path": "tests_v9/test_migration_validator_cross_file_unique.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_minio_image_source.py",
       "kind": "tests"
     },
     {

@@ -7976,6 +7976,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_minio_image_source.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_modbus_decoder_20260703.py",
     "kind": "tests"
   },
