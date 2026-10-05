@@ -399,6 +399,10 @@ async def fetch_forecast(
                 "sunset",
                 "daylight_duration",
                 "shortwave_radiation_sum",
+                # مدخلا Penman-Monteith اليوميّان: الرطوبة **المتوسّطة** والريح **المتوسّطة**
+                # (لا القصوى) — دونهما يسقط ET0 إلى Hargreaves المتدهور.
+                "relative_humidity_2m_mean",
+                "wind_speed_10m_mean",
             ]
         ),
         "forecast_days": days,
@@ -446,6 +450,7 @@ def normalize_daily(
         sunshine_s = _at(_as_list(data, "daily", "sunshine_duration"), idx)
         daylight_s = _at(_as_list(data, "daily", "daylight_duration"), idx)
         wind_max_kmh = _at(_as_list(data, "daily", "wind_speed_10m_max"), idx)
+        wind_mean_kmh = _at(_as_list(data, "daily", "wind_speed_10m_mean"), idx)
         days.append(
             {
                 "date": day,
@@ -467,6 +472,12 @@ def normalize_daily(
                 if wind_max_kmh is not None
                 else None,
                 "wind_max_kmh": wind_max_kmh,
+                # متوسّط اليوم **على ارتفاع 10م** — الاسم يحمل الارتفاع كي لا يُمرَّر كأنّه
+                # ريحُ 2م (التحويل بمعادلة FAO-56 47 عند المستهلك). غائبٌ ⇒ None لا صفر.
+                "wind_mean_10m_ms": round(float(wind_mean_kmh) / 3.6, 3)
+                if wind_mean_kmh is not None
+                else None,
+                "rh_mean_pct": _at(_as_list(data, "daily", "relative_humidity_2m_mean"), idx),
                 "weather_code": _at(_as_list(data, "daily", "weather_code"), idx),
                 "sunrise": _at(_as_list(data, "daily", "sunrise"), idx),
                 "sunset": _at(_as_list(data, "daily", "sunset"), idx),

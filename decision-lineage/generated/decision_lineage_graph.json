@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 606,
+      "evidence_count": 607,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -636,6 +636,7 @@
         "shared/knowledge/contracts.py",
         "shared/knowledge/providers.py",
         "shared/precision_agriculture/__init__.py",
+        "shared/precision_agriculture/fertigation_plan.py",
         "shared/precision_agriculture/pail_om_edge.py",
         "shared/precision_agriculture/trial_spatial.py",
         "shared/runtime_identity.py",
@@ -650,7 +651,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 503,
+      "evidence_count": 504,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1173,6 +1174,7 @@
         "shared/memory/import_engine.py",
         "shared/memory/models.py",
         "shared/notification_consumers.py",
+        "shared/precision_agriculture/fertigation_plan.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_continuous_learning_phase10.py",
         "shared/test_field_runtime_cohesion.py",
@@ -2488,8 +2490,8 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
-      "source_evidence_count": 606,
-      "target_evidence_count": 503,
+      "source_evidence_count": 607,
+      "target_evidence_count": 504,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2598,7 +2600,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 503,
+      "source_evidence_count": 504,
       "target_evidence_count": 174,
       "static_supported": true,
       "runtime_verified": false
@@ -2869,5 +2871,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9f58bb8dbab2ef32b5599370e3a5ce08f6f72a7bf73843c4f487842c4a3747b8"
+  "content_sha256": "6a728451297ca1ea9b2c2eed6e7c9be04a0f6c48604b9dbc3b82d30de859cc6b"
 }

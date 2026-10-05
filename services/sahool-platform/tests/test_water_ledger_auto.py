@@ -294,6 +294,8 @@ def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
         "irrigation_volume_untracked",
         "precipitation_assumed_zero",
         "irrigation_unobserved",
+        "et0_reference_unavailable",
+        "root_zone_texture_fallback",
     }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
 
 

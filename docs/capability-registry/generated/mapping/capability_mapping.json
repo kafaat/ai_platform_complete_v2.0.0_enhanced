@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5481,
+    "files_scanned": 5489,
     "files_by_kind": {
-      "backend": 1219,
+      "backend": 1220,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1529,
-      "tests": 1873,
+      "other": 1532,
+      "tests": 1877,
       "web": 459
     },
-    "unmapped_artifacts": 2224,
+    "unmapped_artifacts": 2226,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -3185,7 +3185,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
           "score": 12
         },
         {
@@ -22007,7 +22007,7 @@
       "evidence_truncated": {
         "backend": 24,
         "events": 57,
-        "tests": 78
+        "tests": 79
       },
       "evidence_counts": {
         "backend": 100,
@@ -31013,7 +31013,7 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
           "score": 14
         },
         {
@@ -32073,6 +32073,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/water_ledger_inputs.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/weather_advice.py",
           "score": 12,
           "signals": [
@@ -32578,6 +32586,10 @@
           "score": 12
         },
         {
+          "value": "crop_kc.stage @ services/sahool-platform/tests/test_water_ledger_inputs.py:197",
+          "score": 12
+        },
+        {
           "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/core/crop_intelligence/engine.py:211",
           "score": 12
         },
@@ -32586,7 +32598,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
           "score": 12
         },
         {
@@ -33260,6 +33272,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_water_ledger_inputs.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_weather_advice.py",
           "score": 12,
           "signals": [
@@ -33704,6 +33724,14 @@
           ]
         },
         {
+          "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-05-001.json",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/architecture/weather_engine_formula_allowlist.json",
           "score": 8,
           "signals": [
@@ -33781,15 +33809,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
+        "backend": 61,
         "routes": 48,
         "database": 0,
-        "events": 93,
+        "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 60,
+        "tests": 61,
         "governance": 0,
-        "other_evidence": 25
+        "other_evidence": 26
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -42925,6 +42953,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/weather-service/tests/test_daily_penman_monteith_inputs.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "kind": "tests"
     },
@@ -43938,6 +43970,10 @@
     },
     {
       "path": "tests_v9/test_fertigation_ec.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_fertigation_plan.py",
       "kind": "tests"
     },
     {

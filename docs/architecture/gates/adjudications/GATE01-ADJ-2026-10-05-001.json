@@ -1,0 +1,45 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-10-05-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-10-05",
+  "expires_on": "2026-11-04",
+  "pr": 1135,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [],
+  "authorized_patch_sha256": "a102fd05da960ec9b74f2df992b9242577567a6c64ff92a47bd5849219619c23",
+  "authorized_blobs": {
+    "services/sahool-platform/api/phase_runtime_workers.py": "f662838e190da3bd93b02277b1d8dea5bc46ee9f"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "f4f6f4fdf61cb150604734a4e42cdcda704d5be6"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "قوم بتنفيذ الكل موافق عليها",
+    "context_ar": "بعد مراجعة الريّ والتسميد مقابل الكود، وافق المالك على البند الذي يمسّ المسار المجمَّد: دفتر الماء اليوميّ يقرأ Kc الطوريّ ومنطقة الجذور القانونيّة ويُمرّر الرطوبة ومتوسّط الريح المحوَّل ويحمل جودة ET0. لا يشمل actuator_runtime ولا routers/commands ولا phase_runtime_store."
+  },
+  "scope_limit_ar": "مسارٌ مجمَّد واحد: run_water_ledger_once في phase_runtime_workers.py — توصيل مدخلات اليوم إلى api/water_ledger_inputs.py (Kc الطوريّ · منطقة الجذور · RH وريح 2م · أعلام الجودة) واسم المرحلة. لا يغيّر منطق الكتابة اليدويّة السيّدة ولا جسر القرار ولا جدولة العامل.",
+  "why_frozen_paths_ar": "المدخلات الخاطئة (Kc منتصف الموسم، احتياط القمح، عمق 0.6م، ET0 بلا رطوبة) تُقرأ داخل العامل نفسه؛ لا طبقة خارجه تستطيع تصحيح ما يكتبه في water_ledger.",
+  "honesty_limit_ar": "الشواهد سلوكيّة على الدوالّ النقيّة وقراءة توصيل من المصدر؛ لم يُشغَّل العامل على PostgreSQL حيّ. وقيم p من FAO-56 Table 22 مرجعيّة غير معايَرة يمنيّاً.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "هذا سجلّ لطلب المالك في الجلسة، لا توقيع مستقلّ. الحارس يربط البايتات المحدّدة فقط."
+  }
+}

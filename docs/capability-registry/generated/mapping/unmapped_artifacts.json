@@ -6524,6 +6524,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_daily_penman_monteith_inputs.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
     "kind": "tests"
   },
@@ -7537,6 +7541,10 @@
   },
   {
     "path": "tests_v9/test_fertigation_ec.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fertigation_plan.py",
     "kind": "tests"
   },
   {

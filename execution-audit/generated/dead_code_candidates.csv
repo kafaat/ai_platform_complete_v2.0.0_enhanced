@@ -165,7 +165,7 @@ medium,sahool-platform,function,validate_sync_batch,services/sahool-platform/api
 medium,sahool-platform,function,fetch_synced_operations,services/sahool-platform/api/offline_sync_db.py,185,0,review_before_delete,False
 medium,sahool-platform,function,validate_response,services/sahool-platform/api/onboarding.py,244,0,review_before_delete,False
 medium,sahool-platform,function,run_field_bootstrap_once,services/sahool-platform/api/onboarding.py,490,0,review_before_delete,False
-medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,338,0,review_before_delete,False
+medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,360,0,review_before_delete,False
 medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,347,0,review_before_delete,False
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,797,0,review_before_delete,False
@@ -625,6 +625,12 @@ medium,shared,function,load_skill,shared/memory/skills.py,109,0,review_before_de
 medium,shared,function,list_skills,shared/memory/skills.py,147,0,review_before_delete,False
 medium,shared,function,register_dataset_version,shared/mlops/runtime.py,213,0,review_before_delete,False
 medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,281,0,review_before_delete,False
+medium,shared,function,p_from_p2o5,shared/precision_agriculture/fertigation_plan.py,39,0,review_before_delete,False
+medium,shared,function,k_from_k2o,shared/precision_agriculture/fertigation_plan.py,43,0,review_before_delete,False
+medium,shared,function,p2o5_from_p,shared/precision_agriculture/fertigation_plan.py,47,0,review_before_delete,False
+medium,shared,function,k2o_from_k,shared/precision_agriculture/fertigation_plan.py,51,0,review_before_delete,False
+medium,shared,function,decide,shared/precision_agriculture/fertigation_plan.py,135,0,review_before_delete,False
+medium,shared,function,delivered_kg,shared/precision_agriculture/fertigation_plan.py,217,0,review_before_delete,False
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False

@@ -10020,6 +10020,7 @@
         "services/sahool-platform/tests/test_season_simulation.py",
         "services/sahool-platform/tests/test_skills_registry.py",
         "services/sahool-platform/tests/test_water_ledger_auto.py",
+        "services/sahool-platform/tests/test_water_ledger_inputs.py",
         "services/sahool-platform/tests/test_weather_advice.py",
         "services/sahool-platform/tests/test_weather_et0_client.py",
         "services/sahool-platform/tests/test_weather_sources.py",

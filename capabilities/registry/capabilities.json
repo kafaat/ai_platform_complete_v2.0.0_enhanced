@@ -3468,6 +3468,7 @@
       "tests": [
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_fii_prescription_season_context_guard.py",
+        "tests_v9/test_nitrogen_prescription_honesty.py",
         "tests_v9/test_prescription_export_adapters_v62_1.py",
         "tests_v9/test_prescription_shapefile.py",
         "tests_v9/test_vra_prescription_engine_v62.py"
@@ -3500,7 +3501,7 @@
           "path": "services/sahool-platform/api/prescription_shapefile.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "5",
         "CropX": null,

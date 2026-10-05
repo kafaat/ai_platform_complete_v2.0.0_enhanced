@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5481**
+- Files scanned: **5489**
 - Ambiguous artifacts queued: **431**
-- Unmapped artifacts queued: **2224**
+- Unmapped artifacts queued: **2226**
 
 ## Capability coverage
 
@@ -94,7 +94,7 @@
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-002 | weather | 22 | 63 | 8 | 57 | 9 | 0 | 25 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 3 | 0 | 0 | 5 | 5 |
-| WX-004 | weather | 60 | 48 | 0 | 93 | 18 | 0 | 60 | 5 |
+| WX-004 | weather | 61 | 48 | 0 | 94 | 18 | 0 | 61 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 85 | 26 | 33 | 29 | 17 | 0 | 47 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

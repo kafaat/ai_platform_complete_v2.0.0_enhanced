@@ -1355,6 +1355,7 @@ PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
+PA-002,test,tests_v9/test_nitrogen_prescription_honesty.py,3,applied
 PA-002,test,tests_v9/test_prescription_export_adapters_v62_1.py,3,applied
 PA-002,test,tests_v9/test_prescription_shapefile.py,3,applied
 PA-002,test,tests_v9/test_vra_prescription_engine_v62.py,5,applied

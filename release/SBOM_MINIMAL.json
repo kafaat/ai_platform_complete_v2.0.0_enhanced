@@ -16295,7 +16295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94862c8b49ad8da494e6f5fd5077ce8da6fcdc6f9bb382d9f34703f5b646868f"
+          "content": "b75a2af58cdf4b096b010d3402c8ab77de6d6d41b0b3c0f82be6821571fc0d9e"
         }
       ],
       "name": "services/sahool-platform/api/canonical_water_state.py",
@@ -17895,7 +17895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4036387ff45180d6314d6b8440e512eaed72f66cc3260ef7060dd5abff181791"
+          "content": "b8aadd7833c3fc2cb07db15ef47106ba6bff382c76516984f479e941b2a49ea1"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -17965,7 +17965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51dd4c07e7f1d100789219a3a281a98848df7432a04b08889f25c69fd622eaeb"
+          "content": "beb53e52f2b4a1649b371c14098dfb1485ff031f085ce08fe7f55331230d008e"
         }
       ],
       "name": "services/sahool-platform/api/prescriptions.py",
@@ -20125,7 +20125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f0241d6a8a686c65bfab839f3f658d5e58e0f4d31f806a87618cdd422d3cead"
+          "content": "1f577246833032d07e56c17998c9c770a2efb75cf570b4a60c7ffe66906b244d"
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_auto.py",
@@ -20139,6 +20139,16 @@
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_compute.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31a4fc76cb5bed13d5306bfb05c0701195da309d2a3e6c6024e12db5f7bd1c06"
+        }
+      ],
+      "name": "services/sahool-platform/api/water_ledger_inputs.py",
       "type": "file"
     },
     {
@@ -28365,10 +28375,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5785e3c401abd717d59a0a6824699ac77c5e30c46a31dd4b4dd401994487b4a0"
+          "content": "733ac641f5a50bd91f17af46f5789b1f455d439fb158070409d04df629e47fa9"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_ledger_auto.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "25d0b67855aa25215d4519a261a25e8913f9101171f53fede0fafa31372c07aa"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_water_ledger_inputs.py",
       "type": "file"
     },
     {
@@ -30475,7 +30495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01eaf9ac39b65d99f18cbe50866c91b0343fb1ca82d908a3e9bebd7087975f06"
+          "content": "dcc5708ca710ead671b4aaaf493ac4caf7b44b4759804953c3cb15c6c21df0da"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -30545,7 +30565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42fbbed3ed2bdec538019e9050465b64f6b5bda7679befd780adbf4bf995641e"
+          "content": "89ea26c3a4efe8e70009eb8dff89570a5f1aa3b9f1e5ddfa092729c1337e5977"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -30649,6 +30669,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_crop_stress_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0dcc327e6b3571b1b6158c51e8cbdd2771639646b106c0a237534c89802a928e"
+        }
+      ],
+      "name": "services/weather-service/tests/test_daily_penman_monteith_inputs.py",
       "type": "file"
     },
     {
@@ -32309,6 +32339,16 @@
         }
       ],
       "name": "shared/precision_agriculture/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "444654c4b6710c048f2d2e43520de0939f8fb2c8c7ea91d9a1e5315a032c514c"
+        }
+      ],
+      "name": "shared/precision_agriculture/fertigation_plan.py",
       "type": "file"
     },
     {
