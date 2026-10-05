@@ -6799,3 +6799,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **حد القبول:** وجود أدلة لمحاولة أقدم فقط ينتج absent للمحاولة المطلوبة، لا شهادة نجاح ولا إسقاطاً لفحص المنشأ. يلزم تشغيل post-run جديد بدليل موقّع مطابق لمحاولته قبل ادعاء اعتماد حي. runtime_verified وproduction_certified لا يُرقّيان بهذه الشريحة؛ إعدادات الخدمات والبيانات وRailway وNATS لا تتغير.
 
 - **تتمة مراجعة (2026-09-28):** القرار وسببه مرجعهما `decisions/ledger.md` تحت `PR1089-REVIEW-FOLLOWUP-20260928` (#1089، الرأس المراجع `f995dd66a560951b866b7f59132e48b286b6939e`). يُذكر `run_attempt` صراحة في حد صدق الحكم. إعادة إسناد المصنوعات تقاس على إيداع المصدر المثبت قبل توليدها، مع بقاء قيود أساس القياس وعدم ترقية القبول الحي.
+
+## BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01 — حارسُ انتقال الدماغ لا يرى `fixed`
+<!-- gap-registry: current -->
+- **الحالة:** **fixed** (2026-10-05، عند `912188bba843b941222457ad8bffdfef597f6d48`؛ الدمجُ مصدرٌ لا حالة) — الشواهد في `tests_v9/test_brain_transition_guard_vocabulary.py` (12 حالة)، وثلاثُ طفراتٍ مسجّلة في `docs/architecture/guard_mutation_registry.json` مقتولة (`guard_mutation_guard --run --only brain_state_transition_guard.py`). **ليس fixed على `main`** حتّى يُدمَج.
+- **المصدر:** `scripts/ci/brain_state_transition_guard.py` (`CLOSED_RE` · `fixed_gap_ids` · `check_fixed`)؛ مراجعةُ Copilot على #1136 وتصحيحُ `decisions/ledger.md` فيه؛ وفحصُ المالك 2026-10-05.
+- **الخلل:** على `cd21e6567962c2bc0a9aaf13863a15f3031090c9` يطابق `CLOSED_RE` الرموزَ `CLOSED`/`VERIFIED`/`RUNTIME_VERIFIED`/`PRODUCTION_CERTIFIED` وحدها، فتعديلٌ للدماغ وحده ينقل صفّاً إلى `fixed` يمرّ؛ وقاعدةُ «fixed في PR إصلاحها» (#1136) سياسةٌ مكتوبة بلا إنفاذ.
+- **الإصلاح المقيس:** يُقرأ **انتقالُ الحالة** لا الكلمة: حالةُ كلّ فجوة من مواضعها القانونيّة (خليّةُ الحالة في جدولٍ بترويسة · سطرُ `- **الحالة:**` تحت عنوانٍ غيرِ تاريخيّ) بأدوات `gap_registry_measure.py`، ويُقارَن الأساسُ بالرأس؛ الانتقالُ إلى fixed أو تسجيلُ فجوةٍ fixed لأوّل مرّة يشترط شيفرةً أو اختباراً خارج الدماغ في الـPR. مطابقٌ للقياس على `main`: 315 معرّفاً، فرقُ صفر.
+- **الحدّ:** الحارسُ يرى وجودَ دليلٍ تنفيذيّ في الـPR، لا أنّ ذلك الدليلَ يخصّ الفجوةَ نفسها؛ الربطُ بينهما للمراجعة. ولا يحكم على `verified` بغير ما كان يفعل (`CLOSED_RE`).
