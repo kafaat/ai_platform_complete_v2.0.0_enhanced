@@ -33,6 +33,10 @@ sys.path.insert(0, str(HERE))
 from audio import AudioRejected, validate_wav  # noqa: E402
 from engines import ENGINES, PATH_SETTINGS  # noqa: E402
 
+#: مسارا القراءة لحدود المجموعة — ثابتان ليُستبدلا في الشواهد (لا سلاسلَ حرفيّة داخل الدالّة).
+PROC_CGROUP = Path("/proc/self/cgroup")
+CG = Path("/sys/fs/cgroup")
+
 SCRIPTS = (
     "audio.py",
     "engines.py",
@@ -204,29 +208,47 @@ def install_process_guard() -> None:
 def verify_limits() -> dict:
     """ما **يسري فعلاً** على هذه العمليّة — من ``/proc/self/cgroup`` وملفّات المجموعة، لا ممّا طُلب.
 
+    يقرأ الهرمَ الذي أعلنه المنسّقُ في ``BAKEOFF_LIMITS.cgroup``: v1 من ``memory.limit_in_bytes``
+    و``cpu.cfs_quota_us``، وv2 من ``memory.max`` و``cpu.max`` في مجموعة سطر ``0::``.
+
     ``ENFORCED`` إن طابق المطلوب · ``BLOCKED`` إن لم تتوفّر cgroups أصلاً (يُسجَّل لا يُدّعى) ·
     ``MISMATCH`` إن طُلبت حدودٌ ولم تَسرِ ⇒ يفشل التشغيل.
     """
     requested = json.loads(os.environ.get("BAKEOFF_LIMITS", "{}"))
     seen: dict = {"cpu_affinity": sorted(os.sched_getaffinity(0))}
+    backend = requested.get("cgroup")
     try:
-        groups = {}
-        for line in Path("/proc/self/cgroup").read_text().splitlines():
+        groups, unified = {}, None
+        for line in PROC_CGROUP.read_text().splitlines():
             _, ctrls, path = line.split(":", 2)
+            if not ctrls:  # ``0::/…`` سطرُ الهرم الموحّد
+                unified = path
+                continue
             for c in ctrls.split(","):
                 groups[c] = path
-        mem = Path("/sys/fs/cgroup/memory") / groups["memory"].lstrip("/")
-        cpu = Path("/sys/fs/cgroup/cpu") / groups["cpu"].lstrip("/")
-        seen["memory_cgroup"], seen["cpu_cgroup"] = groups["memory"], groups["cpu"]
-        seen["memory_limit_mb"] = int((mem / "memory.limit_in_bytes").read_text()) // 2**20
-        quota, period = (
-            int((cpu / "cpu.cfs_quota_us").read_text()),
-            int((cpu / "cpu.cfs_period_us").read_text()),
-        )
-        seen["cpu_quota"] = None if quota < 0 else quota / period
-    except (OSError, KeyError, ValueError) as exc:
+        if backend == "cgroup-v2":
+            if unified is None:
+                raise KeyError("لا سطرَ هرمٍ موحّد في /proc/self/cgroup")
+            group = CG / unified.lstrip("/")
+            seen["memory_cgroup"] = seen["cpu_cgroup"] = unified
+            # ``max`` يعني أنّ الحدَّ لم يَسرِ: تبقى None فيُحكَم MISMATCH لا ENFORCED
+            raw = (group / "memory.max").read_text().strip()
+            seen["memory_limit_mb"] = None if raw == "max" else int(raw) // 2**20
+            fields = (group / "cpu.max").read_text().split()
+            seen["cpu_quota"] = None if fields[0] == "max" else int(fields[0]) / int(fields[1])
+        else:
+            mem = CG / "memory" / groups["memory"].lstrip("/")
+            cpu = CG / "cpu" / groups["cpu"].lstrip("/")
+            seen["memory_cgroup"], seen["cpu_cgroup"] = groups["memory"], groups["cpu"]
+            seen["memory_limit_mb"] = int((mem / "memory.limit_in_bytes").read_text()) // 2**20
+            quota, period = (
+                int((cpu / "cpu.cfs_quota_us").read_text()),
+                int((cpu / "cpu.cfs_period_us").read_text()),
+            )
+            seen["cpu_quota"] = None if quota < 0 else quota / period
+    except (OSError, KeyError, ValueError, IndexError) as exc:
         seen["error"] = f"{type(exc).__name__}: {exc}"
-    if requested.get("cgroup") != "cgroup-v1":
+    if backend not in ("cgroup-v1", "cgroup-v2"):
         return {"status": "BLOCKED", "requested": requested, "in_effect": seen}
     wanted_cores = sorted(int(c) for c in str(requested.get("cpu_cores", "")).split(",") if c)
     ok = (

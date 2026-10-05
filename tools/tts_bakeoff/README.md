@@ -29,8 +29,9 @@
 
 | الملفّ | وظيفته |
 |---|---|
+| `corpus_en.tsv` | 27 جملةً إنجليزيّةً تُقابل العربيّةَ معرِّفاً بمعرِّف وفئةً بفئة — لشهادة الصوت الإنجليزيّ (`-- --corpus corpus_en.tsv`) |
 | `corpus.tsv` | 27 جملة؛ **كلُّها أمثلةٌ اصطناعيّة لا نصائح ميدانيّة** (عمود `synthetic_example`)، وعمود `critical_facts` لما يجب أن يُسمع حرفيّاً |
-| `run.py` | المنسّق: عزلُ النظام، والحدود، والمهلة الصلبة، والضابط السلبيّ |
+| `run.py` | المنسّق: عزلُ النظام، والحدود (cgroup v1 أو v2 بكشف الهرم المُركَّب)، والمهلة الصلبة، والضابط السلبيّ |
 | `worker.py` | القياس داخل العزل: البصمات، والضابط الإيجابيّ، والتحميل، وطلبٌ بارد، وإحماء، ودافئ، وتزامن |
 | `engines.py` | محوّلات: `piper` (1.8.0 مفروض)، `silma` (1.0.5 مفروض، مساراتٌ محلّيّة صريحة)، `kokoro` (kokoro-onnx 0.6.1 مفروض، إنجليزيّ فقط)، `fake` لحقن الأعطال |
 | `audio.py` | فحصُ WAV بقراءة **كلّ** الإطارات |
@@ -638,6 +639,7 @@ cp models.example.json models.json
 python3 -m pip install -r requirements-gate.txt
 
 # 4) القياس داخل العزل، بحدودٍ معلنة لبيئة التشغيل المستهدفة (أضف --sandbox bwrap لجذرٍ فارغ إن توفّر bwrap)
+#    وللإنجليزيّة: --engine kokoro مع -- --corpus corpus_en.tsv (لا يُقارَن سجلٌّ بنصوصٍ مختلفة)
 sudo python3 run.py --engine silma --python venv_silma/bin/python --manifest models.json \
     --mem-mb 4096 --cpus 2 --cores 2 --threads 2 --hard-timeout 3600 -- --request-timeout 120 --warmup 2
 # جردُ الملفّات وأوّلُ جملة (لا يُقارَن أداؤه): أضف --inventory
@@ -716,6 +718,29 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 
 1. مراجعة ترخيص نموذجه (ترخيصُ نموذجٍ خاصّ).
 2. اجتياز القبول نفسه المطبَّق هنا.
+
+## حدودُ الموارد: cgroup v1 و v2
+
+`run.py` يكشف الهرمَ **المُركَّب فعلاً** (`cgroup_hierarchy`) ولا يفترضه:
+
+| | v1 | v2 |
+|---|---|---|
+| الإنشاء | مجموعتان: `memory/` و`cpu/` | مجموعةٌ واحدة تحت الجذر الموحّد |
+| الحدّ | `memory.limit_in_bytes` · `cpu.cfs_quota_us` + `cpu.cfs_period_us` | `memory.max` · `cpu.max` |
+| شرطٌ سابق | المتحكّمان مُركَّبان | `memory` و`cpu` مُفعَّلان في `cgroup.subtree_control` للجذر — يُفعِّلهما المنسّقُ إن غابا ولا يُعطّلهما في التنظيف |
+| الذروة | `memory.max_usage_in_bytes` | `memory.peak` (نواة 5.19+)؛ غيابُها **يُعلَن** ولا يُستبدل بـ`memory.current` فترفض بوّابةُ الأداء السجلّ |
+| الحدُّ المُصطَدَم | `memory.failcnt` | `memory.events` الحقل `max` |
+| قتلُ OOM | `memory.oom_control` | `memory.events` الحقل `oom_kill` |
+| التباطؤ | `cpu.stat` الحقل `throttled_time` (نانوثانية) | `cpu.stat` الحقل `throttled_usec` (**ميكروثانية**) |
+| المسارات في السجلّ | `paths` طولُه 2 | `paths` طولُه 1 |
+
+`memory.max` يحدّ الذاكرة لا المبادلة — كـ`memory.limit_in_bytes` في v1؛ `memory.swap.max` لا يُمَسّ.
+والعاملُ يقرأ الحدَّ من داخله (`worker.verify_limits`) من سطر `0::` في v2: قيمةُ `max` تعني أنّ الحدَّ
+لم يَسرِ فيُحكَم `MISMATCH` لا `ENFORCED`.
+
+**لماذا:** قياسُ المالك على WSL2 (نواة 6.6، 2026-10-05) أعطى 44 نجاحاً و0 فشلاً و**6 BLOCKED**،
+وكلُّها لسببٍ واحد: لا `cgroup v1` على المضيف. Ubuntu 22.04 وما بعدها وWSL2 على v2، فكانت كلُّ
+مقارنةِ أداءٍ هناك `performance_comparable=false` دائماً — لا لعيبٍ في المحرّك.
 
 ## التراخيص (للقرار، لا حسماً)
 

@@ -6,7 +6,8 @@
 • **الشبكة:** ``unshare -n`` يضع العامل في فضاء شبكةٍ لا يحوي إلّا loopback معطّلاً — يمنع
   المكتباتِ الأصليّة أيضاً، لا بايثون وحدها. ضابطٌ سلبيّ هنا (خارج العزل يصل)، وإيجابيّ داخل
   العامل (داخله لا يصل). إن تعذّر ``unshare`` (لا root أو لا دعم) فالاختبار **BLOCKED** ولا يُدّعى عزل.
-• **الموارد:** cgroup v1 (``memory.limit_in_bytes`` و``cpu.cfs_quota_us``) + ``taskset`` للأنوية.
+• **الموارد:** cgroup v1 (``memory.limit_in_bytes`` و``cpu.cfs_quota_us``) أو v2 (``memory.max``
+  و``cpu.max``) — الهرمُ المُركَّب فعلاً يُكتشَف لا يُفترض + ``taskset`` للأنوية.
   تُسجَّل الحدود وذروةُ الذاكرة الفعليّة للمجموعة. تعذُّرها يُسجَّل صراحةً لا يُفترض.
 • **المهلة:** العاملُ في مجموعة عمليّاتٍ مستقلّة؛ عند ``--hard-timeout`` تُقتل المجموعة كلُّها،
   ويبقى ``result.json`` الجزئيّ (العامل يكتبه بعد كلّ مرحلة).
@@ -114,21 +115,73 @@ def bwrap_command(worker: list[str], ro: list[str], rw: list[str]) -> tuple[list
     return args + ["--chdir", str(HERE), "--", *worker], binds
 
 
+def cgroup_hierarchy() -> str | None:
+    """أيُّ هرمٍ **مُركَّبٌ فعلاً**: ``v1`` إن كان متحكّما الذاكرة والمعالج هرمَين منفصلَين بملفّاتهما،
+    و``v2`` إن وُجد الهرمُ الموحّد، و``None`` إن لم يوجد أيٌّ منهما.
+
+    الترتيبُ يفضّل v1 حيث وُجد فلا يتغيّر ما قِيس عليه سابقاً؛ والمضيفُ الهجين (v1 للذاكرة
+    والمعالج مع ``unified`` للباقي) يبقى v1. وWSL2 وUbuntu 22.04 وما بعدها v2 فقط.
+    """
+    if (CG / "memory" / "memory.limit_in_bytes").exists() and (
+        CG / "cpu" / "cpu.cfs_period_us"
+    ).exists():
+        return "v1"
+    if (CG / "cgroup.controllers").exists():
+        return "v2"
+    return None
+
+
+def _setup_v2(name: str, mem_mb: int, cpus: float, created: list[str]) -> dict:
+    """v2: مجموعةٌ واحدة بملفَّي ``memory.max`` و``cpu.max``.
+
+    المتحكّمان يجب أن يكونا مُفعَّلَين في ``cgroup.subtree_control`` للجذر وإلّا لم يوجد الملفّان
+    في الابن أصلاً. والجذرُ **مستثنىً** من قاعدة «لا عمليّاتٍ داخليّة»، فتفعيلُهما فيه لا يتطلّب
+    نقلَ عمليّات المضيف. وما فعّلناه **لا يُعاد تعطيلُه** في التنظيف: مجموعاتٌ أخرى قد تكون
+    نشأت تحته. الكتابةُ إلى ملفَّي الحدّ هي الشاهد: إن لم يَسرِ المتحكّمُ فالملفُّ غائبٌ وتفشل.
+    """
+    available = (CG / "cgroup.controllers").read_text().split()
+    missing = [c for c in ("memory", "cpu") if c not in available]
+    if missing:
+        raise OSError(f"متحكّماتٌ غائبةٌ عن الهرم الموحّد: {missing} (المتوفّر {available})")
+    enabled = (CG / "cgroup.subtree_control").read_text().split()
+    turned_on = [c for c in ("memory", "cpu") if c not in enabled]
+    if turned_on:
+        (CG / "cgroup.subtree_control").write_text(" ".join(f"+{c}" for c in turned_on))
+    group = CG / name
+    group.mkdir()
+    created.append(str(group))
+    (group / "memory.max").write_text(str(mem_mb * 1024 * 1024))
+    (group / "cpu.max").write_text(f"{int(cpus * 100000)} 100000")
+    return {
+        "backend": "cgroup-v2",
+        "paths": created,
+        "controllers_enabled_by_us": turned_on,
+        "swap_note": "memory.max يحدّ الذاكرة لا المبادلة — كـmemory.limit_in_bytes في v1؛ memory.swap.max لم يُمَسّ",
+    }
+
+
 def setup_cgroups(name: str, mem_mb: int, cpus: float) -> dict:
-    """يُنشئ مجموعتَي الذاكرة والمعالج. كلُّ مسارٍ يُسجَّل **لحظةَ إنشائه**، فإن فشلت خطوةٌ لاحقة
-    (حصّةٌ مرفوضة مثلاً) أُزيل ما أُنشئ فوراً وسُجِّل — لا تبقى مجموعةُ ذاكرةٍ يتيمة خارج التنظيف."""
+    """يُنشئ حدودَ الذاكرة والمعالج على الهرم المُركَّب (v1 مجموعتان · v2 مجموعةٌ واحدة). كلُّ مسارٍ
+    يُسجَّل **لحظةَ إنشائه**، فإن فشلت خطوةٌ لاحقة (حصّةٌ مرفوضة مثلاً) أُزيل ما أُنشئ فوراً
+    وسُجِّل — لا تبقى مجموعةُ ذاكرةٍ يتيمة خارج التنظيف."""
     info = {"backend": None, "memory_limit_mb": mem_mb, "cpu_quota": cpus, "paths": []}
-    mem, cpu = CG / "memory" / name, CG / "cpu" / name
     created: list[str] = []
     try:
-        mem.mkdir()
-        created.append(str(mem))
-        (mem / "memory.limit_in_bytes").write_text(str(mem_mb * 1024 * 1024))
-        cpu.mkdir()
-        created.append(str(cpu))
-        (cpu / "cpu.cfs_period_us").write_text("100000")
-        (cpu / "cpu.cfs_quota_us").write_text(str(int(cpus * 100000)))
-        info.update(backend="cgroup-v1", paths=created)
+        hierarchy = cgroup_hierarchy()
+        if hierarchy == "v1":
+            mem, cpu = CG / "memory" / name, CG / "cpu" / name
+            mem.mkdir()
+            created.append(str(mem))
+            (mem / "memory.limit_in_bytes").write_text(str(mem_mb * 1024 * 1024))
+            cpu.mkdir()
+            created.append(str(cpu))
+            (cpu / "cpu.cfs_period_us").write_text("100000")
+            (cpu / "cpu.cfs_quota_us").write_text(str(int(cpus * 100000)))
+            info.update(backend="cgroup-v1", paths=created)
+        elif hierarchy == "v2":
+            info.update(_setup_v2(name, mem_mb, cpus, created))
+        else:
+            raise OSError(f"لا هرمَ cgroup مُركَّباً تحت {CG} (لا v1 ولا v2)")
     except OSError as exc:
         partial = {"paths": created}
         teardown_cgroups(partial)
@@ -155,10 +208,47 @@ def teardown_cgroups(info: dict) -> None:
             info.setdefault("teardown_leaked", []).append(path)
 
 
+def _stats_v2(group: Path) -> dict:
+    """ذروةُ الذاكرة من ``memory.peak`` (نواة 5.19+). غيابُها يُعلَن ولا يُستبدل بـ``memory.current``
+    (قراءةٌ لحظيّةٌ لا ذروة) — وبوّابةُ ``perf.py`` ترفض السجلَّ بلا ذروةٍ موجبة. وأحداثُ الحدّ
+    وOOM من ``memory.events`` (``max`` يقابل ``failcnt`` في v1)، والتباطؤُ من ``cpu.stat``
+    بوحدة ``throttled_usec`` لا ``throttled_time`` النانوثانويّة."""
+    out: dict = {}
+    peak = group / "memory.peak"
+    if peak.exists():
+        out["memory_peak_mb"] = round(int(peak.read_text()) / 2**20, 1)
+    else:
+        out["memory_peak_unavailable"] = (
+            "memory.peak غائب (نواةٌ أقدم من 5.19) — لا يُستبدل بـmemory.current"
+        )
+    events = dict(ln.split() for ln in (group / "memory.events").read_text().splitlines())
+    out["memory_failcnt"] = int(events.get("max", 0))
+    out["oom_kill_events"] = int(events.get("oom_kill", 0))
+    cpu_stat = dict(ln.split() for ln in (group / "cpu.stat").read_text().splitlines())
+    periods, throttled = (
+        int(cpu_stat.get("nr_periods", 0)),
+        int(cpu_stat.get("nr_throttled", 0)),
+    )
+    out.update(
+        cpu_periods=periods,
+        cpu_throttled_periods=throttled,
+        cpu_throttled_ratio=round(throttled / periods, 3) if periods else 0.0,
+        cpu_throttled_s=round(int(cpu_stat.get("throttled_usec", 0)) / 1e6, 3),
+    )
+    return out
+
+
 def cgroup_stats(info: dict) -> dict:
     """تُقرأ **قبل** إزالة المجموعة: ذروةُ الذاكرة، وأحداثُ OOM، والتباطؤُ بسبب الحصّة."""
-    stats: dict = {"cgroup_version": "v1" if info.get("paths") else None}
-    if not info.get("paths"):
+    version = {"cgroup-v1": "v1", "cgroup-v2": "v2"}.get(info.get("backend"))
+    stats: dict = {"cgroup_version": version if info.get("paths") else None}
+    if not info.get("paths") or version is None:
+        return stats
+    if version == "v2":
+        try:
+            stats.update(_stats_v2(Path(info["paths"][0])))
+        except (OSError, ValueError) as exc:
+            stats["error"] = f"{type(exc).__name__}: {exc}"
         return stats
     mem, cpu = Path(info["paths"][0]), Path(info["paths"][1])
     try:

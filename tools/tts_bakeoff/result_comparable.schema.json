@@ -351,11 +351,14 @@
           },
           "properties": {
             "backend": {
-              "const": "cgroup-v1"
+              "enum": [
+                "cgroup-v1",
+                "cgroup-v2"
+              ]
             },
             "paths": {
               "type": "array",
-              "minItems": 2,
+              "minItems": 1,
               "maxItems": 2,
               "items": {
                 "type": "string"
@@ -370,7 +373,47 @@
                 }
               }
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "backend"
+                ],
+                "properties": {
+                  "backend": {
+                    "const": "cgroup-v1"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "paths": {
+                    "minItems": 2
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "backend"
+                ],
+                "properties": {
+                  "backend": {
+                    "const": "cgroup-v2"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "paths": {
+                    "maxItems": 1
+                  }
+                }
+              }
+            }
+          ]
         },
         "cgroup_stats": {
           "type": "object",

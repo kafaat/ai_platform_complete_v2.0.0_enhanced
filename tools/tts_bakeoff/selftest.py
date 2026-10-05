@@ -17,6 +17,7 @@ import tempfile
 from pathlib import Path
 
 import procs
+import run as run_mod
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -77,15 +78,20 @@ def run(
 def probe_host() -> dict:
     """ما يسمح به المضيفُ **فعلاً** — بإنشاءٍ حقيقيّ لا بوجود الأدوات: v12 كان يستنتج العزلَ من root ووجود unshare،
     فعلى مضيفٍ root بلا صلاحيّات (CapEff=0) ظنّ العزلَ متاحاً ثمّ انهار عند أوّل رفض (مراجعةُ المالك)."""
-    from run import setup_cgroups, teardown_cgroups
+    from run import cgroup_hierarchy, setup_cgroups, teardown_cgroups
 
     caps = {}
     if shutil.which("unshare"):
         caps["netns"] = procs.probe(["unshare", "-n", "-m", "true"])
     else:
         caps["netns"] = (False, "unshare غيرُ موجود")
+    # الهرمُ **المُركَّب فعلاً** لا v1 وحدها: WSL2 وUbuntu 22.04+ على v2، وكان ذلك يحجب
+    # ستَّ حالاتٍ لسببٍ واحد (قياسُ المالك على نواة 6.6). يُسجَّل أيُّ هرمٍ قِيس عليه.
     info = setup_cgroups(f"bakeoff-probe-{os.getpid()}", 64, 1.0)
-    caps["cgroup_v1"] = (info["backend"] == "cgroup-v1", info.get("error", "ok"))
+    caps["cgroup"] = (
+        info["backend"] in ("cgroup-v1", "cgroup-v2"),
+        f"{info['backend']} ({cgroup_hierarchy()}) {info.get('error', 'ok')}",
+    )
     teardown_cgroups(info)
     if shutil.which("bwrap"):
         caps["bwrap"] = procs.bwrap_probe(
@@ -155,7 +161,7 @@ def main() -> int:
         " · ".join(f"{k}={'نعم' if ok else 'لا'} ({why})" for k, (ok, why) in caps.items()),
         flush=True,
     )
-    isolated, limits, bwrap_ok = caps["netns"][0], caps["cgroup_v1"][0], caps["bwrap"][0]
+    isolated, limits, bwrap_ok = caps["netns"][0], caps["cgroup"][0], caps["bwrap"][0]
     root = Path(tempfile.mkdtemp(prefix="bakeoff-selftest-"))
     net_expect = "PROVEN" if isolated else "BLOCKED"
 
@@ -362,7 +368,7 @@ def main() -> int:
         f"conc4 median={c4.get('median_s')} p95={c4.get('p95_s')} warm median={warm.get('median_s')}",
     )
 
-    if limits:  # حدودُ الموارد تحتاج cgroup v1 قابلةً للكتابة — لا عزلَ الشبكة
+    if limits:  # حدودُ الموارد تحتاج هرمَ cgroup (v1 أو v2) قابلاً للكتابة — لا عزلَ الشبكة
         rc, r = run("ok", root)
         lim = r.get("resource_limits", {})
         check(
@@ -382,7 +388,12 @@ def main() -> int:
         env = dict(
             os.environ,
             BAKEOFF_LIMITS=json.dumps(
-                {"cgroup": "cgroup-v1", "memory_limit_mb": 999, "cpu_quota": 1.0, "cpu_cores": "0"}
+                {
+                    "cgroup": f"cgroup-{run_mod.cgroup_hierarchy()}",
+                    "memory_limit_mb": 999,
+                    "cpu_quota": 1.0,
+                    "cpu_cores": "0",
+                }
             ),
         )
         p = subprocess.run(
@@ -410,7 +421,7 @@ def main() -> int:
         )
     else:
         RESULTS.append(
-            ("BLOCKED", "v3 حدود الموارد", f"لا cgroup v1 قابلة للكتابة: {caps['cgroup_v1'][1]}")
+            ("BLOCKED", "v3 حدود الموارد", f"لا هرمَ cgroup قابلاً للكتابة: {caps['cgroup'][1]}")
         )
 
     # البيان: مساراتٌ غير موجودة وروابطُ رمزيّة
@@ -599,7 +610,7 @@ def main() -> int:
     # المقارنةُ تحتاج العزلَ **و**الحدودَ **و**جذراً فارغاً (bwrap): unshare يكشف نظامَ ملفّات المضيف (مراجعةُ
     # Copilot على #1133) فلا يُثبَت أنّ المحرّك لم يقرأ إلّا المعلَن.
     full = isolated and limits and bwrap_ok
-    why = f"netns={caps['netns'][1]} · cgroup_v1={caps['cgroup_v1'][1]} · bwrap={caps['bwrap'][1]}"
+    why = f"netns={caps['netns'][1]} · cgroup={caps['cgroup'][1]} · bwrap={caps['bwrap'][1]}"
     comparable_ref = None
     if full:
         sandbox = ("--sandbox", "bwrap")
@@ -808,7 +819,12 @@ def main() -> int:
 
         rc, r = run("ok", root, cpus="0.0001")
         cg = r.get("coordinator", {}).get("cgroup", {})
-        mem_path = Path("/sys/fs/cgroup/memory") / f"bakeoff-{r.get('run_id')}"
+        # أوّلُ مجموعةٍ تُنشأ: الذاكرةُ في v1، والمجموعةُ الموحّدة في v2 — المسارُ يتبع الهرم المقيس
+        mem_path = (
+            Path("/sys/fs/cgroup/memory") / f"bakeoff-{r.get('run_id')}"
+            if run_mod.cgroup_hierarchy() == "v1"
+            else Path("/sys/fs/cgroup") / f"bakeoff-{r.get('run_id')}"
+        )
         partial = cg.get("partial_cleanup", {})
         check(
             "v6 فشلُ الحصّة بعد إنشاء مجموعة الذاكرة ⇒ تُزال فوراً، ولا تُدّعى الحدود",

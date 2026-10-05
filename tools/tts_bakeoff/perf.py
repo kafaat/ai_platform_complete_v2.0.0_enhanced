@@ -181,7 +181,10 @@ def evidence_problems(r: dict) -> list[str]:
         p.append(f"عمليّاتٌ بقيت بعد الخروج {coord['survivors_after_exit']}")
     # المجموعة: إنشاءٌ كامل، وإحصاءاتٌ بلا خطأ، وتنظيفٌ بلا تسرّب
     cg, st = coord.get("cgroup") or {}, coord.get("cgroup_stats") or {}
-    if cg.get("backend") != "cgroup-v1" or len(cg.get("paths") or []) != 2:
+    # v1 مجموعتان (ذاكرة ومعالج) · v2 مجموعةٌ واحدة بالملفَّين. العددُ يُفحص لكلٍّ بحسبه،
+    # فلا يمرّ سجلُّ v1 ناقصَ مجموعةٍ ولا يُرفض سجلُّ v2 الكامل.
+    expected = {"cgroup-v1": 2, "cgroup-v2": 1}.get(cg.get("backend"))
+    if expected is None or len(cg.get("paths") or []) != expected:
         p.append(f"cgroup.backend={cg.get('backend')!r} paths={cg.get('paths')!r}")
     if cg.get("teardown_leaked"):
         p.append(f"تسرّبُ تنظيف المجموعة {cg['teardown_leaked']}")

@@ -19,6 +19,7 @@ from __future__ import annotations
 import io
 import json
 import math
+import os
 import sys
 import wave
 from pathlib import Path
@@ -383,3 +384,176 @@ def test_kokoro_manifest_pins_every_path_it_loads():
         assert entry["settings"][key] in entry["files"], key
     assert set(engines.PATH_SETTINGS["kokoro"]) == {"model", "voices"}
     assert all(sha is None for sha in entry["files"].values()), "لا بصمةَ قبل مطابقة المصدر"
+
+
+# ── cgroup v2: الحدود تُقاس على المضيفات الحديثة لا تُحجب ──────────────────────────────────
+#
+# قياسُ المالك على WSL2 (نواة 6.6): 44 نجاحاً و0 فشلاً و6 BLOCKED، وكلُّها BLOCKED لسببٍ واحد —
+# ``setup_cgroups`` كان يعرف v1 فقط، وWSL2 وUbuntu 22.04+ على v2. فأيُّ تشغيلٍ هناك يخرج
+# ``performance_comparable=false`` دائماً، لا لعيبٍ في المحرّك بل لأنّ الأداة لا تقرأ الهرم المُركَّب.
+
+
+def _fake_v2_root(tmp_path, controllers="cpu memory pids", subtree=""):
+    (tmp_path / "cgroup.controllers").write_text(controllers, encoding="utf-8")
+    (tmp_path / "cgroup.subtree_control").write_text(subtree, encoding="utf-8")
+    return tmp_path
+
+
+def _fake_v1_root(tmp_path):
+    (tmp_path / "memory").mkdir()
+    (tmp_path / "memory" / "memory.limit_in_bytes").write_text("max", encoding="utf-8")
+    (tmp_path / "cpu").mkdir()
+    (tmp_path / "cpu" / "cpu.cfs_period_us").write_text("100000", encoding="utf-8")
+    return tmp_path
+
+
+@pytest.mark.parametrize("shape", ["v1", "v2", "hybrid", "none"])
+def test_the_mounted_cgroup_hierarchy_is_detected_not_assumed(tmp_path, monkeypatch, shape):
+    if shape in ("v1", "hybrid"):
+        _fake_v1_root(tmp_path)
+    if shape in ("v2", "hybrid"):
+        _fake_v2_root(tmp_path)
+    monkeypatch.setattr(run, "CG", tmp_path)
+    assert run.cgroup_hierarchy() == {"v1": "v1", "hybrid": "v1", "v2": "v2", "none": None}[shape]
+
+
+def test_cgroup_v2_writes_the_unified_limits_and_enables_the_controllers(tmp_path, monkeypatch):
+    root = _fake_v2_root(tmp_path)
+    monkeypatch.setattr(run, "CG", root)
+
+    real_mkdir = Path.mkdir
+
+    def mkdir(self, *a, **k):  # الملفّان لا يوجدان في الابن إلّا إن سرى المتحكّم — نحاكي سريانه
+        real_mkdir(self, *a, **k)
+        (self / "memory.max").write_text("max", encoding="utf-8")
+        (self / "cpu.max").write_text("max 100000", encoding="utf-8")
+
+    monkeypatch.setattr(Path, "mkdir", mkdir)
+    info = run.setup_cgroups("bakeoff-t", 2048, 2.0)
+    group = root / "bakeoff-t"
+    assert info["backend"] == "cgroup-v2"
+    assert info["paths"] == [str(group)]
+    assert info["controllers_enabled_by_us"] == ["memory", "cpu"]
+    assert (root / "cgroup.subtree_control").read_text() == "+memory +cpu"
+    assert (group / "memory.max").read_text() == str(2048 * 1024 * 1024)
+    assert (group / "cpu.max").read_text() == "200000 100000"
+
+
+def test_cgroup_v2_without_the_controllers_is_unavailable_not_silently_unlimited(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(run, "CG", _fake_v2_root(tmp_path, controllers="pids io"))
+    info = run.setup_cgroups("bakeoff-t", 2048, 2.0)
+    assert info["backend"] == "UNAVAILABLE"
+    assert "memory" in info["error"] and info["paths"] == []
+
+
+def test_no_hierarchy_at_all_is_unavailable(tmp_path, monkeypatch):
+    monkeypatch.setattr(run, "CG", tmp_path)
+    assert run.setup_cgroups("bakeoff-t", 2048, 2.0)["backend"] == "UNAVAILABLE"
+
+
+def _write_v2_stats(group, peak="314572800", events="low 0\nhigh 0\nmax 3\noom 0\noom_kill 0"):
+    group.mkdir(parents=True, exist_ok=True)
+    if peak is not None:
+        (group / "memory.peak").write_text(peak, encoding="utf-8")
+    (group / "memory.events").write_text(events, encoding="utf-8")
+    (group / "cpu.stat").write_text(
+        "usage_usec 1\nnr_periods 400\nnr_throttled 20\nthrottled_usec 1500000",
+        encoding="utf-8",
+    )
+    return group
+
+
+def test_cgroup_v2_stats_read_peak_events_and_microsecond_throttling(tmp_path):
+    group = _write_v2_stats(tmp_path / "bakeoff-t")
+    stats = run.cgroup_stats({"backend": "cgroup-v2", "paths": [str(group)]})
+    assert stats["cgroup_version"] == "v2"
+    assert stats["memory_peak_mb"] == 300.0
+    assert (stats["memory_failcnt"], stats["oom_kill_events"]) == (3, 0)
+    assert (stats["cpu_periods"], stats["cpu_throttled_periods"]) == (400, 20)
+    assert stats["cpu_throttled_ratio"] == 0.05
+    # ``throttled_usec`` ميكروثانية: 1.5 ثانية — لا 0.0015 لو قُرئت نانوثانيةً كـv1
+    assert stats["cpu_throttled_s"] == 1.5
+
+
+def test_a_kernel_without_memory_peak_declares_it_instead_of_substituting_current(tmp_path):
+    group = _write_v2_stats(tmp_path / "bakeoff-t", peak=None)
+    (group / "memory.current").write_text("999999999", encoding="utf-8")
+    stats = run.cgroup_stats({"backend": "cgroup-v2", "paths": [str(group)]})
+    assert "memory_peak_mb" not in stats
+    assert "memory.peak" in stats["memory_peak_unavailable"]
+    # وبوّابةُ الأداء ترفض سجلّاً بلا ذروةٍ موجبة، فالغيابُ لا يصير مقارنةً
+    problems = perf.evidence_problems(
+        {"performance_comparable": True, "coordinator": {"cgroup_stats": stats}}
+    )
+    assert any("memory_peak_mb" in problem for problem in problems)
+
+
+@pytest.mark.parametrize(
+    ("backend", "count", "flagged"),
+    [
+        ("cgroup-v2", 1, False),
+        ("cgroup-v2", 2, True),
+        ("cgroup-v1", 2, False),
+        ("cgroup-v1", 1, True),
+    ],
+)
+def test_the_perf_gate_counts_the_groups_each_version_actually_creates(backend, count, flagged):
+    record = {
+        "performance_comparable": True,
+        "coordinator": {"cgroup": {"backend": backend, "paths": [f"/p{i}" for i in range(count)]}},
+    }
+    problems = [p for p in perf.evidence_problems(record) if p.startswith("cgroup.backend=")]
+    assert bool(problems) is flagged
+
+
+@pytest.mark.parametrize(
+    ("memory_max", "status"), [("2147483648", "ENFORCED"), ("max", "MISMATCH")]
+)
+def test_the_worker_reads_the_v2_limits_from_inside_the_process(
+    tmp_path, monkeypatch, memory_max, status
+):
+    import worker
+
+    group = tmp_path / "bakeoff-t"
+    group.mkdir()
+    (group / "memory.max").write_text(memory_max, encoding="utf-8")
+    (group / "cpu.max").write_text("200000 100000", encoding="utf-8")
+    proc = tmp_path / "self-cgroup"
+    proc.write_text("0::/bakeoff-t\n", encoding="utf-8")
+    monkeypatch.setattr(worker, "CG", tmp_path)
+    monkeypatch.setattr(worker, "PROC_CGROUP", proc)
+    cores = ",".join(str(c) for c in sorted(os.sched_getaffinity(0))[:1])
+    monkeypatch.setenv(
+        "BAKEOFF_LIMITS",
+        json.dumps(
+            {
+                "cgroup": "cgroup-v2",
+                "memory_limit_mb": 2048,
+                "cpu_quota": 2.0,
+                "cpu_cores": cores,
+            }
+        ),
+    )
+    monkeypatch.setattr(os, "sched_getaffinity", lambda pid: {int(cores)})
+    result = worker.verify_limits()
+    assert result["status"] == status
+    assert result["in_effect"]["cpu_quota"] == 2.0
+    assert result["in_effect"]["memory_cgroup"] == "/bakeoff-t"
+
+
+def test_the_english_corpus_mirrors_the_arabic_one_field_for_field():
+    import csv
+
+    def rows(name):
+        with (PKG / name).open(encoding="utf-8") as fh:
+            return list(csv.DictReader(fh, delimiter="\t"))
+
+    arabic, english = rows("corpus.tsv"), rows("corpus_en.tsv")
+    assert [r["id"] for r in english] == [r["id"] for r in arabic]
+    assert [r["category"] for r in english] == [r["category"] for r in arabic]
+    assert all(set(r) == set(arabic[0]) and all(r.values()) for r in english)
+    # كلُّ جملةٍ مُعلَنةٌ اصطناعيّة، ولا حرفَ عربيّاً في نصٍّ إنجليزيّ
+    assert all(r["synthetic_example"].startswith("yes") for r in english)
+    assert not any("؀" <= ch <= "ۿ" for r in english for ch in r["text"])
