@@ -2035,6 +2035,7 @@
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "created_in": "v144_backfill_runs.sql",
@@ -2056,6 +2057,7 @@
       "code_writers": [
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "created_in": "v144_backfill_runs.sql",
@@ -5759,6 +5761,7 @@
       "code_readers": [
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
       "code_writers": [
