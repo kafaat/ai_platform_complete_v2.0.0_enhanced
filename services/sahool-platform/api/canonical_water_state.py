@@ -19,6 +19,7 @@ from core.season_phenology import crop_kc_profile, resolve_crop_id, stage_kc
 
 from api.canonical_root_zone_profile import resolve_canonical_root_zone_profile
 from api.field_context import _field_weather_context
+from api.water_ledger_inputs import depletion_fraction
 from api.weather_service_client import get_et0_series, get_weather_forecast
 
 SCHEMA_VERSION = "canonical_water_state.v1"
@@ -157,7 +158,8 @@ async def resolve_canonical_water_state(
         crop=crop_id or str(crop),
         variety=variety,
         phenology_progress=phenology_progress,
-        raw_fraction=0.5,
+        # p من FAO-56 Table 22 للمحصول مُعدَّلاً بـETc القيد (لا 0.5 ثابتة لكلّ محصول).
+        raw_fraction=depletion_fraction(crop_id, ledger["etc_mm"])[0],
     )
     if isinstance(root_zone, dict):
         return {

@@ -1,9 +1,7 @@
-import os
 import sys
 import types
 
 import main
-import raster_field_runtime
 import scene_policy
 from fastapi.testclient import TestClient
 from routers import fields as field_routes
@@ -83,11 +81,15 @@ def test_backfill_dry_run_builds_jobs_from_custom_range(monkeypatch):
     assert calls and calls[0][0] == [44.0, 15.0, 44.01, 15.01]
 
 
-def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
-    """انحدار بلاغ 2026-07-04: كلّ مهامّ backfill فشلت بـHTTPException مباشرةً بعد
-    بناء الـVRT، لأنّ الـVRT كُتب في /tmp (خارج UPLOAD_DIR) ومُرِّر كمسار خام
-    يرفضه _safe_raster_source. العقد: الـVRT يُبنى بـout_dir=UPLOAD_DIR والمسار
-    المجدول للمعالجة يجتاز حارس المصدر."""
+def test_backfill_element84_scene_job_is_contained_before_vrt_and_processing(monkeypatch):
+    """مشهد Element84 (ذو ``bands_urls``) محجوبٌ عبر نقطة HTTP الحقيقيّة: ``radiometry_containment``.
+
+    كان هذا الاختبار يُثبت انحدار 2026-07-04 (الـVRT يُكتب تحت ``UPLOAD_DIR`` فيجتاز
+    ``_safe_raster_source``). المسار محجوبٌ الآن قبل بناء الـVRT — المقياس والمحاذاة وNoData
+    غير محسومة — فالعقد: المهمّة تُجدوَل وتُسجَّل ``failed`` بـ``radiometry_unresolved``
+    و``retryable:false``، بلا VRT ولا معالجة. **عند رفع الاحتواء** يُستعاد شرطُ ``UPLOAD_DIR``
+    ضمن عقد التطبيع (درسُ البلاغ باقٍ: مسارٌ خارج المجلّد المسموح يُرمى 400).
+    """
     monkeypatch.setattr(main, "AGENT_TOKEN", "test-token")
 
     async def fake_search(bbox, dt_start, dt_end, max_cloud, limit):
@@ -95,30 +97,12 @@ def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
 
     monkeypatch.setattr(field_routes, "_stac_search", fake_search)
 
-    captured: dict[str, object] = {}
+    def _trap(*_a, **_k):
+        raise AssertionError("بلغ الطلبُ المحجوب مرحلةً لاحقة للرفض")
 
-    def fake_run_processing(job_id, preq):
-        captured[job_id] = preq
-        j = main._jobs.get(job_id) or {"job_id": job_id}
-        j["status"] = main.JobStatus.completed
-        main._jobs.set(job_id, j)
-
-    monkeypatch.setattr(field_routes, "_run_processing", fake_run_processing)
-
-    # stac_vrt الحقيقيّ يستورد rasterio ويفتح النطاقات — بديل خفيف يحترم out_dir
-    # كي يبقى الاختبار وحدويّاً ويُثبت أين تُكتب مخرجات البناء فعلاً.
-    used = {}
-
-    def fake_build_band_vrt(band_hrefs, out_dir="/tmp"):
-        used["out_dir"] = out_dir
-        os.makedirs(out_dir, exist_ok=True)
-        path = os.path.join(out_dir, "stac_stack_guardtest.vrt")
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write("<VRTDataset/>")
-        return path, {"red": 1, "nir": 2}
-
+    monkeypatch.setattr(field_routes, "_run_processing", _trap)
     fake_mod = types.ModuleType("stac_vrt")
-    fake_mod.build_band_vrt = fake_build_band_vrt
+    fake_mod.build_band_vrt = _trap
     monkeypatch.setitem(sys.modules, "stac_vrt", fake_mod)
 
     client = TestClient(main.app)
@@ -138,14 +122,13 @@ def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
         },
     )
     assert resp.status_code == 200, resp.text
-    assert resp.json()["jobs_scheduled"] == 1
-    # TestClient ينفّذ مهامّ الخلفيّة بعد الاستجابة — الالتقاط اكتمل هنا.
-    assert len(captured) == 1, "مهمّة المشهد لم تصل إلى المعالجة (فشلت قبلها؟)"
-    preq = next(iter(captured.values()))
-    assert used["out_dir"] == main.UPLOAD_DIR, "الـVRT يجب أن يُكتَب تحت UPLOAD_DIR"
-    # جوهر الانحدار: المسار المجدول كان يُرمى 400 «مخطّط URL غير مدعوم».
-    resolved = raster_field_runtime._safe_raster_source(preq.raster_url)
-    assert resolved.startswith(os.path.realpath(main.UPLOAD_DIR))
+    (job,) = resp.json()["jobs"]
+    # TestClient ينفّذ مهامّ الخلفيّة بعد الاستجابة — الحالة النهائيّة مكتوبة هنا.
+    stored = main._jobs.get(job["job_id"])
+    assert stored["status"] == main.JobStatus.failed
+    assert stored["error_message"] == "radiometry_unresolved"
+    assert stored["retryable"] is False
+    assert stored["error_detail"]["entry_point"] == "historical_backfill"
 
 
 def test_backfill_requires_clip_polygon_for_new_field_geometry(monkeypatch):

@@ -270,6 +270,8 @@ _DAILY_OPTIONAL_DAY_FIELDS = (
     "sunset",
     "daylight_hours",
     "solar_radiation_mj_m2",
+    "rh_mean_pct",
+    "wind_mean_10m_ms",
 )
 # نفس عائلة `_CURRENT_ZERO_COERCED_FIELDS`: `normalize_daily` يضع 0 عند الغياب
 # (`_at(..., idx, 0)`) لهذه الحقول ⇒ لا يُميَّز المرصود من المفقود.
@@ -286,6 +288,10 @@ _DAILY_OPTIONAL_DAY_FIELDS = (
 # يمرّر `wind_max_ms` إلى `wind_2m_ms` في ET0، وET0 يقود دفترَ الماء الذي يُصدِر كمّيّةَ
 # الريّ. وريحٌ صفرٌ تُنقِص ET0 (يدخل `u2` بسطاً ومقاماً في Penman-Monteith) ⇒ ريٌّ دون
 # الحاجة — انحيازٌ معكوسُ انحياز المطر وكلاهما ضرر.
+# **تصحيحٌ لاحق (2026-10-05):** ذلك التمرير لم يكن يبلغ PM فعلاً — العامل لم يُرسِل الرطوبة،
+# فكان المحرّك يسقط إلى Hargreaves دائماً ولا يقرأ الريح. والقصوى على 10م لم تكن تصلح `u2`
+# أصلاً. صار العامل يُرسِل `rh_mean_pct` و`wind_mean_10m_ms` محوَّلاً إلى 2م (FAO-56 Eq. 47،
+# `api/water_ledger_inputs.py`)، ولا يقرأ `wind_max_ms`.
 #
 # والقائمةُ تبقى آليّةً قائمة: مزوّدٌ ثانٍ يُصفّر حقلاً يُعلَن هنا باسمه فيبلغ المستهلكَ.
 _DAILY_ZERO_COERCED_FIELDS: tuple[str, ...] = ()
