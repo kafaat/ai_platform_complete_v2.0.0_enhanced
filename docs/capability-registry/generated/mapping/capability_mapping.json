@@ -10154,15 +10154,15 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:196",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:195",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:571",
+          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:569",
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:589",
+          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:587",
           "score": 16
         },
         {
@@ -10186,7 +10186,7 @@
           "score": 16
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142",
           "score": 16
         },
         {
@@ -10206,7 +10206,7 @@
           "score": 16
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93",
           "score": 16
         },
         {
@@ -17060,15 +17060,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:196",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:195",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:571",
+          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:569",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:589",
+          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:587",
           "score": 18
         },
         {
@@ -17092,7 +17092,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142",
           "score": 18
         },
         {
@@ -17112,7 +17112,7 @@
           "score": 18
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93",
           "score": 18
         },
         {
@@ -22685,15 +22685,15 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:196",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:195",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:571",
+          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:569",
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:589",
+          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:587",
           "score": 18
         },
         {
@@ -22717,7 +22717,7 @@
           "score": 18
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142",
           "score": 18
         },
         {
@@ -22737,7 +22737,7 @@
           "score": 18
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93",
           "score": 18
         },
         {
@@ -23589,15 +23589,15 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:196",
+          "value": "/v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:195",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:571",
+          "value": "/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:569",
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:589",
+          "value": "/v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:587",
           "score": 15
         },
         {
@@ -23621,7 +23621,7 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141",
+          "value": "/v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142",
           "score": 15
         },
         {
@@ -23641,7 +23641,7 @@
           "score": 15
         },
         {
-          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92",
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93",
           "score": 15
         },
         {

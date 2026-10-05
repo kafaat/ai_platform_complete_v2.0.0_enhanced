@@ -290,3 +290,114 @@ def test_a_transient_failure_is_still_requeued(worker, monkeypatch):
     )
     assert db["requeued"] is True
     assert processed == ["evi"]
+
+
+# ── ٤. المشهد المفرد (/imagery/process-date) — مراجعة Copilot على #1135 ──
+
+
+class _SingleSceneConn:
+    """اتّصالٌ مصغّر لعنصرٍ قائمٍ واحد؛ يُطبّق شرط إعادة الربط كما تكتبه العبارة."""
+
+    def __init__(self, item_error: str):
+        self.item_error = item_error
+        self.executed: list[str] = []
+        self.runs_created = 0
+        self.requeued = False
+
+    def transaction(self):
+        return _Tx()
+
+    async def close(self):
+        return None
+
+    async def execute(self, sql, *args):
+        self.executed.append(" ".join(sql.split()))
+        return "OK"
+
+    async def fetchrow(self, sql, *args):
+        flat = " ".join(sql.split())
+        assert flat.startswith("SELECT id, run_id, status")
+        return {"id": 9, "run_id": 3, "status": "failed", "error": self.item_error}
+
+    async def fetchval(self, sql, *args):
+        flat = " ".join(sql.split())
+        if flat.startswith("SELECT 1 FROM raster_assets"):
+            return None
+        if "INSERT INTO backfill_runs" in flat:
+            self.runs_created += 1
+            return 41
+        if flat.startswith("UPDATE backfill_run_items SET run_id=$1"):
+            guarded = "AND (error IS NULL OR NOT starts_with(error, $4))" in flat
+            if guarded and self.item_error.startswith(args[3]):
+                return None
+            self.requeued = True
+            return 9
+        raise AssertionError(f"عبارة غير متوقَّعة: {flat}")
+
+
+def _enqueue(monkeypatch, item_error):
+    pytest.importorskip("asyncpg")
+    import db_persist
+
+    conn = _SingleSceneConn(item_error)
+
+    async def _connect():
+        return conn
+
+    monkeypatch.setattr(db_persist, "_connect", _connect)
+    result = asyncio.run(
+        db_persist.enqueue_single_scene_process(
+            tenant_id=TENANT,
+            field_id="fld",
+            acquisition_date="2025-06-05",
+            index_name="evi",
+            scene_id="S2A_38PLB_20250605_0_L2A",
+        )
+    )
+    return result, conn
+
+
+def test_process_date_does_not_requeue_a_permanently_rejected_item(monkeypatch):
+    result, conn = _enqueue(monkeypatch, rc.ITEM_ERROR)
+    assert result["status"] == "radiometry_unresolved" and result["retryable"] is False
+    assert conn.runs_created == 0, "أُنشئت تشغيلة لعنصرٍ محجوبٍ دائماً"
+    assert conn.requeued is False
+
+
+def test_process_date_still_retries_a_transient_failure(monkeypatch):
+    """الضابط: الفشل العابر يُعاد ربطه بتشغيلةٍ جديدة كما كان."""
+    result, conn = _enqueue(monkeypatch, "exception:ConnectionError:abc123")
+    assert result["status"] == "planned" and conn.requeued is True and conn.runs_created == 1
+
+
+def test_process_date_route_answers_422_not_scheduled(monkeypatch):
+    import db_persist
+    from fastapi import HTTPException
+    from raster_api_models import ProcessDateRequest
+    from routers import fields
+
+    async def _noop(*_a, **_k):
+        return None
+
+    async def _blocked(**_k):
+        return {
+            "status": "radiometry_unresolved",
+            "run_id": 3,
+            "item_id": 9,
+            "reused_existing_job": True,
+            "retryable": False,
+            "error": rc.ITEM_ERROR,
+        }
+
+    monkeypatch.setattr(fields, "_require_service_token", lambda _t: None)
+    monkeypatch.setattr(fields, "_require_field_tenant", _noop)
+    monkeypatch.setattr(fields, "_authenticated_tenant", lambda _t: TENANT)
+    monkeypatch.setattr(db_persist, "enqueue_single_scene_process", _blocked)
+    req = ProcessDateRequest(
+        date="2025-06-05", index="evi", scene_id="S2A", clip_polygon_geojson=POLYGON
+    )
+    with pytest.raises(HTTPException) as info:
+        asyncio.run(fields.field_process_date("fld", req, x_agent_token="t"))
+    assert info.value.status_code == 422
+    assert info.value.detail["code"] == "radiometry_unresolved"
+    assert info.value.detail["retryable"] is False

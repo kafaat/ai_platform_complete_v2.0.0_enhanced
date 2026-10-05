@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
+from radiometry_containment import single_scene_detail as _radiometry_single_scene_detail
 from raster_field_runtime import (
     _REQ_TENANT,
     _TRANSPARENT_PNG,
@@ -151,9 +152,7 @@ async def process_from_stac(
     مناسب للمزوّد بلا مفتاح (Element84): استدعِ /v1/imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
 
-    **محتوى حاليّاً:** المسار لا يملك تحويلاً إشعاعيّاً محسوماً (المقياس · محاذاة 10/20م ·
-    NoData — ``radiometry_containment``)، فيُرفَض بـ``422 radiometry_unresolved`` قبل بناء
-    الـVRT ولا تُنشأ مهمّة. لا يُحوَّل إلى CDSE تلقائيّاً: هويّةُ المشهد والمزوّد تُطلَب صراحةً.
+    **محتوى:** ``422 radiometry_unresolved`` قبل بناء الـVRT بلا مهمّة (``radiometry_containment``).
     """
     _require_service_token(x_agent_token)
     import radiometry_containment
@@ -393,8 +392,7 @@ async def field_historical_backfill(
             _persist_selected_stac_scenes, str(tenant_id), list(selected_scenes)
         )
     for scene in selected_scenes:
-        # Element84 Sentinel-2 scenes are contained (radiometry_containment): the job is
-        # recorded failed with radiometry_unresolved before any VRT, processing or persist.
+        # Element84 scenes are contained: job failed radiometry_unresolved (radiometry_containment).
         for indicator in req.indices:
             job_id = f"backfill_{uuid.uuid4().hex[:12]}"
             scheduled_item = {
@@ -634,6 +632,8 @@ async def field_process_date(
             503,
             "تعذّرت جدولة معالجة التاريخ (تحقّق من ترحيل v144/v213 أو القاعدة)؛ لم تُجدوَل معالجة.",
         )
+    if result.get("status") == "radiometry_unresolved":  # محجوبٌ دائماً — لا «مجدول»
+        raise HTTPException(422, _radiometry_single_scene_detail(result))
     logger.info(
         "process_date field_id=%s date=%s index=%s status=%s run_id=%s reused=%s",
         field_id,

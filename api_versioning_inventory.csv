@@ -238,11 +238,11 @@ raster-service,services/raster-service/routers/analysis.py,175,POST,/v1/salinity
 raster-service,services/raster-service/routers/cdse_tiles.py,116,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile,versioned
 raster-service,services/raster-service/routers/cdse_tiles.py,191,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail,versioned
 raster-service,services/raster-service/routers/cdse_tiles.py,255,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson,versioned
-raster-service,services/raster-service/routers/fields.py,93,GET,/v1/gis/admin-boundaries,gis_admin_boundaries,versioned
-raster-service,services/raster-service/routers/fields.py,142,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac,versioned
-raster-service,services/raster-service/routers/fields.py,197,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill,versioned
-raster-service,services/raster-service/routers/fields.py,572,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status,versioned
-raster-service,services/raster-service/routers/fields.py,590,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date,versioned
+raster-service,services/raster-service/routers/fields.py,94,GET,/v1/gis/admin-boundaries,gis_admin_boundaries,versioned
+raster-service,services/raster-service/routers/fields.py,143,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac,versioned
+raster-service,services/raster-service/routers/fields.py,196,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill,versioned
+raster-service,services/raster-service/routers/fields.py,570,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status,versioned
+raster-service,services/raster-service/routers/fields.py,588,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date,versioned
 raster-service,services/raster-service/routers/fields.py,659,POST,/v1/fields/{field_id}/geometry/versions,create_field_geometry_version,versioned
 raster-service,services/raster-service/routers/fields.py,688,POST,/v1/fields/analytics/geoparquet/export,export_field_analytics_geoparquet,versioned
 raster-service,services/raster-service/routers/fields.py,740,POST,/v1/fields/{field_id}/process-cdse,process_cdse,versioned

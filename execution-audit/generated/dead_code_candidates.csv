@@ -71,6 +71,7 @@ medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py
 medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,185,0,review_before_delete,False
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
+medium,raster-service,function,single_scene_detail,services/raster-service/radiometry_containment.py,102,0,review_before_delete,False
 medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,120,0,review_before_delete,False
 medium,raster-service,function,extract_trial_zonal_outcomes,services/raster-service/raster_processing_runtime.py,142,0,review_before_delete,False
 medium,raster-service,function,verify_provenance_match,services/raster-service/raster_provenance.py,126,0,review_before_delete,False

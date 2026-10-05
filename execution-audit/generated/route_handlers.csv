@@ -229,11 +229,11 @@ raster-service,POST,/v1/salinity/calibrate,salinity_calibrate,services/raster-se
 raster-service,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile,services/raster-service/routers/cdse_tiles.py,116
 raster-service,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail,services/raster-service/routers/cdse_tiles.py,191
 raster-service,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson,services/raster-service/routers/cdse_tiles.py,255
-raster-service,GET,/v1/gis/admin-boundaries,gis_admin_boundaries,services/raster-service/routers/fields.py,93
-raster-service,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac,services/raster-service/routers/fields.py,142
-raster-service,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill,services/raster-service/routers/fields.py,197
-raster-service,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status,services/raster-service/routers/fields.py,572
-raster-service,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date,services/raster-service/routers/fields.py,590
+raster-service,GET,/v1/gis/admin-boundaries,gis_admin_boundaries,services/raster-service/routers/fields.py,94
+raster-service,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac,services/raster-service/routers/fields.py,143
+raster-service,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill,services/raster-service/routers/fields.py,196
+raster-service,GET,/v1/fields/{field_id}/imagery/backfill/{run_id},field_backfill_run_status,services/raster-service/routers/fields.py,570
+raster-service,POST,/v1/fields/{field_id}/imagery/process-date,field_process_date,services/raster-service/routers/fields.py,588
 raster-service,POST,/v1/fields/{field_id}/geometry/versions,create_field_geometry_version,services/raster-service/routers/fields.py,659
 raster-service,POST,/v1/fields/analytics/geoparquet/export,export_field_analytics_geoparquet,services/raster-service/routers/fields.py,688
 raster-service,POST,/v1/fields/{field_id}/process-cdse,process_cdse,services/raster-service/routers/fields.py,740

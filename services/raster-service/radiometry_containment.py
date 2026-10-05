@@ -97,3 +97,23 @@ def element84_vrt_detail(band_keys, *, entry_point: str) -> dict:
 def reject_element84_vrt(band_keys, *, entry_point: str) -> NoReturn:
     """يرفض الطلب قبل بناء الـVRT. يُستدعى في كلّ نقطة دخول كانت تبني VRT من نطاقات Element84."""
     raise RadiometryUnresolved(element84_vrt_detail(band_keys, entry_point=entry_point))
+
+
+def single_scene_detail(result: dict) -> dict:
+    """حمولة 422 لـ``/imagery/process-date`` حين يكون العنصر فشلاً دائماً لهذه النسخة.
+
+    مراجعة Copilot على #1135: ذلك المسار كان يمسح الخطأ ويُعيد العنصر إلى ``queued``،
+    فيُكسَر وعد «الفشل دائمٌ لنسخة المعالجة». الآن يُرفَض بلا تشغيلة جديدة.
+    """
+    return {
+        "code": RADIOMETRY_UNRESOLVED,
+        "entry_point": "process_date",
+        "retryable": False,
+        "item_id": result.get("item_id"),
+        "run_id": result.get("run_id"),
+        "previous_error": result.get("error"),
+        "note_ar": (
+            "المشهد فشل فشلاً دائماً لنسخة المعالجة الحاليّة (مسار Element84→VRT محجوب حتّى "
+            "عقد التطبيع) — لا إعادة محاولة بالنقر."
+        ),
+    }

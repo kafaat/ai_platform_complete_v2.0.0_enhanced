@@ -14215,7 +14215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81a9ca9c5e72168f7191cebd2b44db909f4c32fec92467d6111722ecb109137a"
+          "content": "0cf35141fcdc94214c54aecc8205d1e0f0c9a4b553d89343c924ee71c3913a17"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -14375,7 +14375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b39e1acacf9a7acf7b05b9708d6821007d81814ebebdb6ec0840cf0bf5fbfe28"
+          "content": "24fa41f23b3584981ca3e99601a4458b88442edd0870512a9549c8e7a3f6dfaf"
         }
       ],
       "name": "services/raster-service/radiometry_containment.py",
@@ -14755,7 +14755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "966e5aed5c082ff78f842c23cee8162170b6de4661f1d35016102bed5e281f6b"
+          "content": "abac07e0932713804a205648ab3aebf9ae1d11ff42f67b76e6a9b7045ac05331"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -15205,7 +15205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2edf19a5c9c514573713635ff2f4f6f1b585b3da4ba88e34b3905e70e3666128"
+          "content": "4844bf1949172a4cd97a0bae0448fd6c900fdfc6567941692757595fd528f680"
         }
       ],
       "name": "services/raster-service/test_element84_vrt_containment_runtime.py",

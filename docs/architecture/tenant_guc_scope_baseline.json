@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "f4f6f4fdf61cb150604734a4e42cdcda704d5be6",
+  "measured_on": "a81fb6ee68c4a61fe3336d20f80c3b5c782ee847",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "0ea4ca5561924b19295e554871bdf6b9ae182aecbe4c3bea27ba830a613bdb99",
+  "measurement_input_digest": "1f8eba2cd32ed4ce2967b305115223f8497000101ee2fc65a2c231acccd45681",
   "measurement_algorithm_digest": "f97be0263384a027232f95dcfff3ed99e755bc80cbf05a280e59f6059f9fa9fd",
-  "measurement_basis_digest": "195cdba00127b764638192e2ef20e50dcf7c2a9df495577357632d3967341c23",
+  "measurement_basis_digest": "39cbd4494d628efef652e0f86e5dd786c05bc5a5a57dcd75d995a251366082d4",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -84,7 +84,7 @@
     },
     {
       "path": "services/raster-service/db_persist.py",
-      "sha256": "81a9ca9c5e72168f7191cebd2b44db909f4c32fec92467d6111722ecb109137a"
+      "sha256": "0cf35141fcdc94214c54aecc8205d1e0f0c9a4b553d89343c924ee71c3913a17"
     },
     {
       "path": "services/raster-service/raster_batch_job_store.py",
