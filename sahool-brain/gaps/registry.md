@@ -6781,7 +6781,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 — عاملُ المحرّك يرث أسرارَ المضيف
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-04) — مُصلَحٌ في المصدر على فرع PR #1133 (`claude/wip-tts-bakeoff`) عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9`، **غيرُ مدموج**؛ يبقى open حتّى الدمج (السجلُّ القانونيّ على `main`)، ولا verified من اختبارات الفرع وحدها.
+- **الحالة:** **fixed** (2026-10-05، عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_worker_env_is_an_allowlist_that_drops_host_secrets`: حالةٌ ناجحةٌ على `355db5f6` وحالةٌ حمراءُ على `f333b6e4` (أُعيد القياس 2026-10-05). **ليس fixed على `main`** حتّى يُدمَج، ولا verified: شرطُه تشغيلُ محرّكٍ حقيقيّ بأسرارٍ مزروعةٍ في بيئة المضيف وإثباتُ غيابها داخل العامل.
 - **المصدر:** `tools/tts_bakeoff/run.py:192` (`WORKER_ENV_ALLOW`) و`run.py:205` (`worker_env`) و`run.py:538`؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:34` (`test_worker_env_is_an_allowlist_that_drops_host_secrets`).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` كانت بيئةُ العامل نسخةً من بيئة المضيف ناقصَ `*_proxy` و`*TOKEN*` (قائمةُ منع)، فتصل `AWS_SECRET_ACCESS_KEY` و`DATABASE_URL` و`*_PASSWORD` إلى شيفرة نموذجٍ من طرفٍ ثالث، ويمكنها كتابتُها إلى مجلّد الناتج القابل للكتابة ولو مع عزل الشبكة. صنّفتها مراجعةُ Copilot على PR #1133 (`claude/wip-tts-bakeoff`) **High**.
 - **الإصلاح المقيس:** قائمةُ سماحٍ صريحة (PATH · HOME · LANG · LANGUAGE · LC_ALL · LC_CTYPE · TZ · TMPDIR · PYTHONHASHSEED)، وأسماءُ الممرَّر (لا قيمُه) في `coordinator.worker_env_names`. الاختبارُ يسقط على `f333b6e462e87a44838163480cba312aa751edb3` وينجح على `da9202533f3be8ab39ce1a309ef0ccf241f0cea9`.
@@ -6789,7 +6789,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## TTS-BAKEOFF-UNVERIFIED-DIGEST-MARKED-TRUSTED-01 — بصمةٌ مقيسةٌ من التنزيل نفسه تُعامَل «موثوقة»
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-04) — مُصلَحٌ في المصدر على فرع PR #1133 (`claude/wip-tts-bakeoff`) عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9`، **غيرُ مدموج**؛ يبقى open حتّى الدمج (السجلُّ القانونيّ على `main`)، ولا verified من اختبارات الفرع وحدها.
+- **الحالة:** **fixed** (2026-10-05، عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_measured_download_hash_is_not_marked_trusted`: حالةٌ ناجحةٌ على `355db5f6` وحالةٌ حمراءُ على `f333b6e4` (أُعيد القياس 2026-10-05). **ليس fixed على `main`** حتّى يُدمَج، ولا verified: مطابقةُ البصمة بمصدرٍ منشورٍ أصليّ ما زالت مطلوبة قبل نقلها إلى `trusted_sha256`.
 - **المصدر:** `tools/tts_bakeoff/sources.example.json:20-21` (`measured_sha256_unverified`، و`trusted_sha256: null`)؛ `fetch_models.py:75-82` يرفض ما لا `trusted_sha256` له؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:49` (`test_measured_download_hash_is_not_marked_trusted`).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` وُضعت بصمةُ أرشيف catt المقيسةُ من التنزيل نفسه في `trusted_sha256`، والسطرُ التالي يقرّ بأنّها لم تُطابَق ببصمةٍ منشورة؛ فيمرّ فحصُ المصدر بلا مصادقةٍ حقيقيّة. **High** في مراجعة Copilot.
 - **الإصلاح المقيس:** نُقلت القيمةُ إلى `measured_sha256_unverified` وصار `trusted_sha256 = null`، فيرفض `fetch_models.py` التنزيلَ حتّى تُطابَق بصفحة الإصدار وتُنقَل.
@@ -6797,7 +6797,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## TTS-BAKEOFF-SAFETY-GATE-PASSES-WITH-ZERO-REVIEWERS-01 — بوّابةُ السلامة تنجح بلا مراجعين
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-04) — مُصلَحٌ في المصدر على فرع PR #1133 (`claude/wip-tts-bakeoff`) عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9`، **غيرُ مدموج**؛ يبقى open حتّى الدمج (السجلُّ القانونيّ على `main`)، ولا verified من اختبارات الفرع وحدها.
+- **الحالة:** **fixed** (2026-10-05، عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_min_reviewers_below_one_is_refused`: حالتان ناجحتان على `355db5f6` وحالتان حمراوان على `f333b6e4` (أُعيد القياس 2026-10-05). **ليس fixed على `main`** حتّى يُدمَج، ولا verified: شرطُه تشغيلُ البوّابة على أوراق مراجعةٍ حقيقيّة.
 - **المصدر:** `tools/tts_bakeoff/score.py:56` (رفضُ `--min-reviewers < 1`)؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:115` (`test_min_reviewers_below_one_is_refused`، القيمتان 0 و-1).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` كان `--min-reviewers 0` (أو سالباً) يجعل كلَّ مقطعٍ «مكتملاً»، فينال محرّكٌ بلا أيّ صفٍّ مُقيَّم `PASSED_SAFETY_GATE`.
 - **الإصلاح المقيس:** رفضُ ما دون 1 قبل أيّ حساب. وفي الشريحة نفسها (`score.py:34`، `_rating`): التقديرُ عددٌ منتهٍ في [1, 5] وإلّا تُرفض الورقةُ باسم الصفّ (كانت NaN/∞ تُقبل).
@@ -6805,7 +6805,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01 — «قابلٌ للمقارنة» بلا حدٍّ لنظام الملفّات
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-04) — مُصلَحٌ في المصدر على فرع PR #1133 (`claude/wip-tts-bakeoff`) عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9`، **غيرُ مدموج**؛ يبقى open حتّى الدمج (السجلُّ القانونيّ على `main`)، ولا verified من اختبارات الفرع وحدها. **ويبقى open بعد الدمج أيضاً** للبقيّة الموثَّقة أدناه.
+- **الحالة:** **open** (2026-10-05) — **إصلاحٌ جزئيّ** عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` (PR #1133): المقارنةُ تشترط صندوق bwrap بربطات (`test_comparability_requires_an_empty_root_sandbox`)، لكنّ ما تحت ربطات النظام (`/usr/lib` ونحوه) يبقى مرئيّاً للعامل — البقيّةُ الموثَّقة أدناه تمنع fixed **بغضّ النظر عن الدمج** (الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05).
 - **المصدر:** `tools/tts_bakeoff/perf.py:106` (`evidence_problems` يشترط `sandbox.kind == "bwrap"` بربطٍ معلَن) و`result_comparable.schema.json` (`coordinator.sandbox`)؛ `selftest.py` (كتلةُ المقارنة بـbwrap + حالة «unshare غيرُ قابلٍ للمقارنة»)؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:124` (`test_comparability_requires_an_empty_root_sandbox`).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` كان `performance_comparable` يصير true تحت `unshare -n -m` الذي يُبقي نظامَ ملفّات المضيف مرئيّاً، و`verified_files` تبصم البيان لا ما فُتح فعلاً؛ فنموذجُ نظامٍ غيرُ معلَن قد يؤثّر في الناتج ويجتاز `perf.py`.
 - **الإصلاح المقيس:** المقارنةُ تُشترط في جذرٍ فارغ (bwrap) بربطٍ معلَنٍ للقراءة فقط؛ تشغيلُ unshare يُرفض بسببه. أثرٌ مقيس: تحت فضاء PID مختلف صارت كتلتا المقارنة BLOCKED (selftest 53 · 0 · 4 من 57، `tools/tts_bakeoff/results/v14/pidns_harness.txt`).
