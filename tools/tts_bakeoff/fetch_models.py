@@ -6,6 +6,11 @@
   • مستودع Hugging Face + **commit كامل** (لا فرع ولا وسم متحرّك) + اسم الملفّ، أو رابط GitHub Release.
   • ``trusted_sha256``: بصمةٌ تأتي من **المصدر الأصليّ** (صفحة الملفّ على huggingface.co أو صفحة
     الإصدار) — لا من المرآة. المرآةُ وسيلةُ نقلٍ فقط؛ لا تُغيّر الترخيص ولا تُثبت الأصالة.
+  • ``published_git_blob_sha1``: لملفٍّ صغير بلا sha256 منشورة (ليس LFS، مثل ``vocab.txt`` و``config.yaml``):
+    معرّفُ blob الذي ينشره المستودعُ عند **commit مثبّت** هويّةٌ منشورةٌ مُعنونةٌ بالمحتوى. تُحسب للملفّ
+    المُنزَّل هويّتُه كما يحسبها ``git hash-object`` ويُرفض إن خالفت — **في كلّ تنزيل**، لا مرّةً واحدة
+    بيد من نقلها. وإن وُجدت معها ``trusted_sha256`` وجب أن تطابق أيضاً. **حدٌّ معلن:** SHA-1 مكسورةٌ
+    للتصادم المُختار، فالسلسلةُ تحمي من تبديلٍ لاحق لا من مستودعٍ زُرع فيه تصادمٌ عند ذلك الـcommit.
 
 الضمانات: لا توكن يُرسَل (``token=False``)، والملفُّ الذي تخالف بصمتُه يُحذف ويُفشل التنزيل.
 يكتب ``models/provenance.json`` (المصدر، commit، الخادم الفعليّ، البصمة، الترخيص المُعلن، الوقت).
@@ -23,10 +28,21 @@ import urllib.request
 from pathlib import Path
 
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
+SHA1_HEX = re.compile(r"^[0-9a-f]{40}$")
 
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def git_blob_sha1(path: Path) -> str:
+    """هويّةُ git للمحتوى: SHA-1 لـ``blob <الطول>\\0`` ثمّ البايتات — ما يطبعه ``git hash-object``."""
+    h = hashlib.sha1()  # noqa: S324 - هويّةُ git المنشورة نفسها؛ حدُّها مُعلنٌ في رأس الملفّ
+    h.update(f"blob {path.stat().st_size}\0".encode())
     with path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
             h.update(chunk)
@@ -72,11 +88,29 @@ def main() -> int:
     plan = json.loads(Path(args.plan).read_text(encoding="utf-8"))
     provenance = []
     for item in plan["files"]:
-        if not item.get("trusted_sha256"):
+        blob = item.get("published_git_blob_sha1")
+        if not item.get("trusted_sha256") and not blob:
             raise SystemExit(f"{item.get('filename')}: لا بصمةَ موثوقة من المصدر الأصليّ — لن يُنزَّل")
+        if blob is not None:
+            # الهويّةُ لا معنى لها إلّا داخل مستودعٍ عند commit مثبّت: رابطُ إصدارٍ أو فرعٌ متحرّك يُرفضان قبل التنزيل
+            if not SHA1_HEX.match(str(blob)):
+                raise SystemExit(
+                    f"{item.get('filename')}: published_git_blob_sha1 غيرُ صالح {blob!r}"
+                )
+            if item.get("url") or not COMMIT.match(str(item.get("revision", ""))):
+                raise SystemExit(
+                    f"{item.get('filename')}: سلسلةُ git blob تتطلّب مستودعاً وcommit مثبّتاً (40 حرفاً)"
+                )
         path = fetch_url(item, dest) if item.get("url") else fetch_hf(item, dest, args.endpoint)
+        if blob is not None:
+            actual_blob = git_blob_sha1(path)
+            if actual_blob != blob:
+                path.unlink(missing_ok=True)
+                raise SystemExit(
+                    f"هويّةُ git مخالفة لـ{item['filename']}: المنشورة {blob} الفعليّة {actual_blob} — حُذف"
+                )
         actual = sha256(path)
-        if actual != item["trusted_sha256"]:
+        if item.get("trusted_sha256") and actual != item["trusted_sha256"]:
             path.unlink(missing_ok=True)
             raise SystemExit(
                 f"بصمةٌ مخالفة لـ{item['filename']}: الموثوقة {item['trusted_sha256']} الفعليّة {actual} — حُذف"
@@ -98,6 +132,8 @@ def main() -> int:
                 "served_by": item.get("url") or args.endpoint or "https://huggingface.co",
                 "path": str(path),
                 "sha256": actual,
+                "trust_basis": "git-blob-sha1@commit" if blob else "published-sha256",
+                "git_blob_sha1": blob,
                 "fetched_at": dt.datetime.now(dt.UTC).isoformat(),
             }
         )

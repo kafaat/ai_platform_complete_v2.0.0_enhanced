@@ -631,19 +631,27 @@ uv venv --python 3.12 venv_silma  && venv_silma/bin/pip install silma-tts==1.0.5
 uv venv --python 3.12 venv_kokoro && venv_kokoro/bin/pip install kokoro-onnx==0.6.1
 
 # 2) التنزيل — منفصلٌ عن القياس، حيث الشبكة مسموحة
-cp sources.example.json sources.json   # املأ commit والبصمات الموثوقة من المصدر الأصليّ
+cp sources.example.json sources.json   # البصماتُ مملوءةٌ ومصدرُ كلٍّ منها في `_sha256_provenance`
 python3 fetch_models.py --plan sources.json --dest models [--endpoint https://hf-mirror.com]
+#    ملفّان صغيران بلا sha256 منشورة (vocab.txt وconfig.yaml) يُتحقَّق منهما بمعرّف git blob المنشور
+#    عند الـcommit المثبّت — في كلّ تنزيل (`published_git_blob_sha1`)؛ وprovenance.json يسجّل أساسَ الثقة
 
-# 3) البيان: انسخ واملأ البصمات (رسالةُ الرفض تطبع الفعليّة لمطابقتها بالمصدر)
+# 3) البيان: بصماتُ Kokoro وSILMA مملوءة؛ يبقى مجلّدُ vocos ونموذجا catt المستخرَجان ومقطعُ SILMA المرجعيّ
+#    (رسالةُ الرفض تطبع الفعليّة لمطابقتها بالمصدر). **المقطعُ المرجعيّ يُستنسخ صوتُه:** سجِّل 6–10 ثوانٍ
+#    من متحدّثٍ وقّع موافقةً مكتوبة، لا `ar.ref.24k.wav` من الحزمة (بلا ترخيص، وREADME SILMA يشترط الموافقة)
 cp models.example.json models.json
 
 # 3ب) بوّابةُ المقارنة تحتاج عقدَ السجلّ
 python3 -m pip install -r requirements-gate.txt
 
-# 4) القياس داخل العزل، بحدودٍ معلنة لبيئة التشغيل المستهدفة (أضف --sandbox bwrap لجذرٍ فارغ إن توفّر bwrap)
-#    وللإنجليزيّة: --engine kokoro مع -- --corpus corpus_en.tsv (لا يُقارَن سجلٌّ بنصوصٍ مختلفة)
-sudo python3 run.py --engine silma --python venv_silma/bin/python --manifest models.json \
+# 4) القياس داخل العزل، بحدودٍ معلنة لبيئة التشغيل المستهدفة.
+#    **`--sandbox bwrap` شرطٌ للسجلّ القابل للمقارنة** (selftest v14): `unshare` الافتراضيّ يكشف نظامَ
+#    ملفّات المضيف فلا يُثبَت أنّ المحرّك لم يقرأ إلّا المعلَن، و`perf.py` يرفض سجلَّه. بدونه: جردٌ لا مقارنة.
+sudo python3 run.py --engine silma --python venv_silma/bin/python --manifest models.json --sandbox bwrap \
     --mem-mb 4096 --cpus 2 --cores 2 --threads 2 --hard-timeout 3600 -- --request-timeout 120 --warmup 2
+#    والإنجليزيّة على نصوصها (لا يُقارَن سجلٌّ بنصوصٍ مختلفة):
+sudo python3 run.py --engine kokoro --python venv_kokoro/bin/python --manifest models.json --sandbox bwrap \
+    --mem-mb 2048 --cpus 2 --cores 2 --threads 2 --hard-timeout 1800 -- --corpus corpus_en.tsv --warmup 2
 # جردُ الملفّات وأوّلُ جملة (لا يُقارَن أداؤه): أضف --inventory
 # مقارنةُ الأداء: python3 perf.py runs/silma-… runs/<آخر>-…
 
@@ -761,9 +769,10 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 | المكوّن | الترخيص | المصدر | الحالة |
 |---|---|---|---|
 | silma-tts (الكود) | MIT | README المستودع الرسميّ | مُعلن |
-| SILMA TTS v1 (الأوزان) | Apache-2.0 | README المستودع الرسميّ | مُعلن؛ يُسجَّل الإصدار عند التنزيل |
+| SILMA TTS v1 (الأوزان) | Apache-2.0 | بطاقة النموذج (commit `226dd7a6`) | مُعلن؛ **(U):** هل هُيِّئ من أوزان F5-TTS (CC-BY-NC) غيرُ مراجَع |
+| مقطعُ SILMA المرجعيّ في الحزمة (`ar.ref.24k.wav`) | — | README SILMA السطر 205 يشترط موافقةَ المتحدّث | **مرفوض** ولو للتقييم المحلّيّ: يُسجَّل مرجعٌ بموافقةٍ مكتوبة |
 | catt_tashkeel 1.0.2 + eo_model v2 | Apache-2.0 | LICENSE في abjadai/catt | مُعلن |
-| vocos-mel-24khz | — | بطاقة النموذج | **غير مُراجَع** |
+| vocos-mel-24khz | MIT | بطاقة النموذج (commit `0feb3fdd`) | مُعلن |
 | piper-tts 1.8.0 (المكتبة) | GPL-3.0-or-later | بيانات الحزمة المثبّتة | مقيس |
 | صوت Piper العربيّ (kareem) | — | — | **معلّق** |
 | eSpeak NG | GPLv3 | — | ليس مخرجاً من GPL |

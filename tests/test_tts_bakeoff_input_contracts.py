@@ -54,13 +54,42 @@ def test_worker_env_is_an_allowlist_that_drops_host_secrets():
     assert set(env) <= set(run.WORKER_ENV_ALLOW)
 
 
-def test_measured_download_hash_is_not_marked_trusted():
+def test_measured_download_hash_is_not_marked_trusted(tmp_path, monkeypatch):
+    # سلوكيٌّ لا بيانيّ: كان الشاهدُ يعتمد على مدخل catt الذي ما زال مقيساً فقط، فلمّا طُوبقت بصمتُه بالصفحة
+    # المنشورة ونُقلت إلى trusted_sha256 صار فارغاً. الآن يُثبت أنّ ``fetch_models`` نفسه يرفض التنزيلَ
+    # بقيمةٍ مقيسةٍ وحدها — قبل أن يلمس الشبكة.
+    import fetch_models
+
+    called = []
+    monkeypatch.setattr(fetch_models, "fetch_url", lambda *a: called.append(a))
+    plan = tmp_path / "plan.json"
+    plan.write_text(
+        json.dumps(
+            {
+                "files": [
+                    {
+                        "url": "https://example.invalid/x.bin",
+                        "filename": "x.bin",
+                        "local_dir": "x",
+                        "trusted_sha256": None,
+                        "measured_sha256_unverified": "a" * 64,
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        sys, "argv", ["fetch_models.py", "--plan", str(plan), "--dest", str(tmp_path)]
+    )
+    with pytest.raises(SystemExit, match="لا بصمةَ موثوقة"):
+        fetch_models.main()
+    assert called == []
+    # وفي الخطّة المنشورة: لا مدخلَ يحمل قيمةً مقيسةً على أنّها موثوقة
     sources = json.loads((PKG / "sources.example.json").read_text(encoding="utf-8"))
-    entries = [e for e in sources["files"] if "measured_sha256_unverified" in e]
-    assert entries, "مدخلُ catt ذو البصمة المقيسة غيرِ المُطابَقة مفقود"
-    for entry in entries:
-        assert entry["trusted_sha256"] is None
-        assert entry["measured_sha256_unverified"] != entry["trusted_sha256"]
+    for entry in sources["files"]:
+        if "measured_sha256_unverified" in entry:
+            assert entry["trusted_sha256"] is None
 
 
 def _pcm8_wav(seconds: float = 0.5, rate: int = 16000) -> bytes:
@@ -383,7 +412,20 @@ def test_kokoro_manifest_pins_every_path_it_loads():
     for key in engines.PATH_SETTINGS["kokoro"]:
         assert entry["settings"][key] in entry["files"], key
     assert set(engines.PATH_SETTINGS["kokoro"]) == {"model", "voices"}
-    assert all(sha is None for sha in entry["files"].values()), "لا بصمةَ قبل مطابقة المصدر"
+    # البصمةُ في البيان هي نفسُها الموثوقةُ في خطّة التنزيل — لا قيمةٌ ثالثة تُنسخ يدويّاً فتنحرف
+    trusted = {
+        e["filename"]: e["trusted_sha256"]
+        for e in json.loads((PKG / "sources.example.json").read_text(encoding="utf-8"))["files"]
+    }
+    for path, sha in entry["files"].items():
+        assert sha == trusted[Path(path).name], path
+    assert "/model-files-v1.1/" in json.dumps(
+        [
+            e
+            for e in json.loads((PKG / "sources.example.json").read_text(encoding="utf-8"))["files"]
+            if e["local_dir"] == "kokoro"
+        ]
+    ), "إصدار v1.0 بلا digest منشور — v1.1 وحده موثوق"
 
 
 # ── cgroup v2: الحدود تُقاس على المضيفات الحديثة لا تُحجب ──────────────────────────────────
@@ -606,3 +648,103 @@ def test_two_identical_runs_are_still_compared(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["perf.py", *_two_runs(tmp_path)])
     assert perf.main() == 0
     assert "يختلف بين التشغيلات" not in capsys.readouterr().err
+
+
+# ── سلسلةُ git blob: لملفٍّ صغير بلا sha256 منشورة، يتحقّق fetch_models من الهويّة في كلّ تنزيل ─────────
+
+
+def test_the_git_blob_identity_is_what_git_hash_object_prints(tmp_path):
+    import subprocess
+
+    import fetch_models
+
+    sample = tmp_path / "vocab.txt"
+    sample.write_bytes(b"hello\n")
+    assert fetch_models.git_blob_sha1(sample) == "ce013625030ba8dba906f756967f9e9ca394464a"
+    printed = subprocess.run(
+        ["git", "hash-object", str(sample)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
+    assert fetch_models.git_blob_sha1(sample) == printed
+
+
+def _blob_plan(tmp_path, monkeypatch, *, blob, revision="a" * 40, trusted=None, content=b"x\n"):
+    import fetch_models
+
+    def fake_fetch(item, dest, endpoint):
+        target = dest / item["local_dir"] / item["filename"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        return target
+
+    called = []
+    monkeypatch.setattr(fetch_models, "fetch_hf", lambda *a: called.append(a) or fake_fetch(*a))
+    plan = tmp_path / "plan.json"
+    plan.write_text(
+        json.dumps(
+            {
+                "files": [
+                    {
+                        "repo_id": "o/r",
+                        "revision": revision,
+                        "filename": "vocab.txt",
+                        "local_dir": "m",
+                        "published_git_blob_sha1": blob,
+                        "trusted_sha256": trusted,
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    dest = tmp_path / "models"
+    monkeypatch.setattr(sys, "argv", ["fetch_models.py", "--plan", str(plan), "--dest", str(dest)])
+    return fetch_models, dest, called
+
+
+def test_a_matching_git_blob_chain_is_accepted_and_its_basis_recorded(tmp_path, monkeypatch):
+    import hashlib
+
+    content = b"vocab\n"
+    blob = hashlib.sha1(b"blob %d\0" % len(content) + content).hexdigest()  # noqa: S324
+    sha = hashlib.sha256(content).hexdigest()
+    fetch_models, dest, _ = _blob_plan(
+        tmp_path, monkeypatch, blob=blob, trusted=sha, content=content
+    )
+    assert fetch_models.main() == 0
+    (record,) = json.loads((dest / "provenance.json").read_text(encoding="utf-8"))
+    assert (record["trust_basis"], record["git_blob_sha1"], record["sha256"]) == (
+        "git-blob-sha1@commit",
+        blob,
+        sha,
+    )
+
+
+def test_a_file_whose_git_blob_differs_is_deleted_and_refused(tmp_path, monkeypatch):
+    fetch_models, dest, _ = _blob_plan(tmp_path, monkeypatch, blob="b" * 40)
+    with pytest.raises(SystemExit, match="هويّةُ git مخالفة"):
+        fetch_models.main()
+    assert not (dest / "m" / "vocab.txt").exists()
+
+
+@pytest.mark.parametrize("revision", ["main", "v1.0", "a" * 39])
+def test_a_git_blob_chain_needs_a_pinned_commit_before_any_download(
+    tmp_path, monkeypatch, revision
+):
+    fetch_models, _, called = _blob_plan(tmp_path, monkeypatch, blob="c" * 40, revision=revision)
+    with pytest.raises(SystemExit, match="commit مثبّت"):
+        fetch_models.main()
+    assert called == []
+
+
+def test_the_published_download_plan_has_no_placeholder_left_and_every_entry_is_trusted():
+    sources = json.loads((PKG / "sources.example.json").read_text(encoding="utf-8"))
+    assert "REPLACE" not in json.dumps(sources, ensure_ascii=False)
+    for entry in sources["files"]:
+        assert (entry.get("trusted_sha256") or "").__len__() == 64, entry["filename"]
+        assert entry.get("_sha256_provenance"), entry["filename"]
+        if "published_git_blob_sha1" in entry:
+            assert len(entry["revision"]) == 40 and "url" not in entry, entry["filename"]

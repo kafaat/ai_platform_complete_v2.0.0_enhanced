@@ -1,31 +1,65 @@
 {
   "_note": "المساراتُ نسبيّةٌ إلى هذا الملفّ. كلُّ إعدادٍ يحمل مساراً يجب أن يقع تحت ملفٍّ في files أو مجلّدٍ في trees ببصمته، وإلّا رُفض التشغيل قبل الاستيراد. البصمةُ null تُرفض: الصق الفعليّة من sha256sum أو من رسالة الرفض بعد مطابقتها بالمصدر.",
-  "fake": {"files": {}, "settings": {"mode": "ok"}},
+  "fake": {
+    "files": {},
+    "settings": {
+      "mode": "ok"
+    }
+  },
   "piper": {
     "_status": "معلّق — ترخيصُ الصوت العربيّ لم يُحسم؛ لا يُنزَّل.",
-    "source": {"library": "piper-tts==1.8.0 (GPL-3.0-or-later من بيانات الحزمة)", "voice": "REPLACE بعد حسم الترخيص"},
-    "files": {"models/piper/REPLACE.onnx": null, "models/piper/REPLACE.onnx.json": null},
-    "settings": {"model": "models/piper/REPLACE.onnx", "config": "models/piper/REPLACE.onnx.json"},
+    "source": {
+      "library": "piper-tts==1.8.0 (GPL-3.0-or-later من بيانات الحزمة)",
+      "voice": "REPLACE بعد حسم الترخيص"
+    },
+    "files": {
+      "models/piper/REPLACE.onnx": null,
+      "models/piper/REPLACE.onnx.json": null
+    },
+    "settings": {
+      "model": "models/piper/REPLACE.onnx",
+      "config": "models/piper/REPLACE.onnx.json"
+    },
     "_package_assets_note": "أوزانٌ داخل الحزمة نفسها يفتحها المحرّك (piper يُنشئ tashkeel عند أوّل جملةٍ عربيّة). تُعلَن ببصمتها وإلّا صارت undeclared في الجرد. null يُرفض.",
-    "package_assets": {"piper/tashkeel/model.onnx": null}
+    "package_assets": {
+      "piper/tashkeel/model.onnx": null
+    }
   },
   "kokoro": {
-    "_status": "للشهادة الإنجليزيّة أوّلاً — لا صوتَ عربيّاً. لا يُنزَّل قبل مطابقة البصمة من صفحة الإصدار الرسميّة.",
-    "source": {"library": "kokoro-onnx==0.6.1 (MIT، LICENSE في الحزمة)", "weights": "github.com/thewh1teagle/kokoro-onnx releases model-files-v1.0 (أوزان Kokoro-82M Apache-2.0، github.com/hexgrad/kokoro)"},
+    "_status": "للشهادة الإنجليزيّة أوّلاً — لا صوتَ عربيّاً. البصماتُ من sources.example.json (إصدار model-files-v1.1).",
+    "source": {
+      "library": "kokoro-onnx==0.6.1 (MIT، LICENSE في الحزمة)",
+      "weights": "github.com/thewh1teagle/kokoro-onnx releases model-files-v1.1 (أوزان Kokoro-82M Apache-2.0، github.com/hexgrad/kokoro)"
+    },
     "_license_note": "kokoro-onnx 0.6.1 يحمّل libespeak-ng (GPL-3.0) داخل العمليّة دائماً (tokenizer.py) — مقيسٌ من مصدر الحزمة. وبيانات تدريب Kokoro تضمّ صوتاً اصطناعيّاً غيرَ مُفصَّل (بطاقة النموذج، غيرُ مقروءة مباشرةً). كلاهما للمراجعة القانونيّة قبل الإنتاج.",
-    "files": {"models/kokoro/kokoro-v1.0.onnx": null, "models/kokoro/voices-v1.0.bin": null},
-    "settings": {"model": "models/kokoro/kokoro-v1.0.onnx", "voices": "models/kokoro/voices-v1.0.bin", "voice": "REPLACE (مثل af_heart)", "lang": "en-us", "speed": 1.0}
+    "files": {
+      "models/kokoro/kokoro-v1.0.onnx": "beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a",
+      "models/kokoro/voices-v1.0.bin": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d"
+    },
+    "settings": {
+      "model": "models/kokoro/kokoro-v1.0.onnx",
+      "voices": "models/kokoro/voices-v1.0.bin",
+      "voice": "af_heart",
+      "lang": "en-us",
+      "speed": 1.0
+    }
   },
   "silma": {
-    "source": {"library": "silma-tts==1.0.5", "weights": "silma-ai/silma-tts@REPLACE-commit", "provenance": "models/provenance.json"},
+    "source": {
+      "library": "silma-tts==1.0.5",
+      "weights": "silma-ai/silma-tts@226dd7a65cadf51f9a6dbe3953fc89003b3844d5",
+      "provenance": "models/provenance.json"
+    },
     "files": {
-      "models/silma/model.pt": null,
-      "models/silma/vocab.txt": null,
+      "models/silma/model.pt": "f43256d0b78b8803c638aed0875da5a4b372b4a784690a0156e5baff14f7336c",
+      "models/silma/vocab.txt": "5c2ffc48802a52bbdf715dacf1d6519d3fee96e391aef690261963a692b8e661",
       "models/silma/ref.wav": null,
       "models/catt/encoder.onnx": null,
       "models/catt/decoder.onnx": null
     },
-    "trees": {"models/vocos-mel-24khz": null},
+    "trees": {
+      "models/vocos-mel-24khz": null
+    },
     "settings": {
       "ckpt_file": "models/silma/model.pt",
       "vocab_file": "models/silma/vocab.txt",
@@ -33,8 +67,13 @@
       "tashkeel_encoder": "models/catt/encoder.onnx",
       "tashkeel_decoder": "models/catt/decoder.onnx",
       "ref_audio": "models/silma/ref.wav",
-      "ref_text": "REPLACE: النصُّ الحرفيّ للمقطع المرجعيّ (وترخيصُ المقطع نفسه يُحسم قبل الاستعمال)",
-      "device": "cpu", "nfe_step": 16, "speed": 1.0, "seed": 1234, "enable_normalizer": true
-    }
+      "ref_text": "REPLACE: النصُّ الحرفيّ لمقطعٍ مرجعيّ **مسجَّلٍ بموافقةٍ مكتوبة** — لا مقطعُ الحزمة (ar.ref.24k.wav بلا ترخيص، وREADME SILMA السطر 205 يشترط موافقةَ المتحدّث الموثَّقة؛ والنموذجُ يستنسخ صوتَ المرجع)",
+      "device": "cpu",
+      "nfe_step": 16,
+      "speed": 1.0,
+      "seed": 1234,
+      "enable_normalizer": true
+    },
+    "_ref_audio_policy": "المرجعُ يُستنسخ صوتُه: يُسجَّل 6–10 ثوانٍ من متحدّثٍ وقّع موافقةً على استعمال صوته للتوليد، ويُثبَّت ملفُّه ببصمته هنا. مقطعُ الحزمة مرفوضٌ ولو للتقييم المحلّيّ (قرار 2026-10-05)."
   }
 }
