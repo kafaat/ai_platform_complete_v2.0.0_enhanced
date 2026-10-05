@@ -68,3 +68,10 @@
   `sources.example.json` من commit البطاقة لا المستودع.
 - **شرطُ الإغلاق الباقي:** تأكيدٌ مكتوب من SILMA AI بمصادر بيانات التدريب (أو ورقةٌ تُفصّلها)، يُحفظ هنا.
   حتّى ذلك: **يُقاس SILMA للجودة فقط، ولا يُعتمد تجاريّاً ولا في الإنتاج.**
+
+## للمقارنة: Habibi-TTS (المنبع نفسه، مرشّحٌ عربيّ آخر)
+
+`github.com/SWivid/Habibi-TTS` عند `16252f67b9d54fc75670c091d7a1e9e9550bbe3d` (2026-03-30): الكود MIT؛ النماذج
+Unified/SAU/UAE CC-BY-NC-SA-4.0 والمتخصّصة (ALG · EGY · IRQ · MAR · MSA) Apache-2.0 (`README.md:125-128`). وخلافاً
+لـSILMA، حجمُه `v1_base_cfg = dim 1024 · depth 22 · heads 16` (`src/habibi_tts/infer/infer_gradio.py:73`) = حجمُ
+`F5TTS_v1_Base` — فالحجّةُ البنيويّة أعلاه **لا تنطبق عليه**، ونقطةُ تهيئته غيرُ مقروءة (issue #2 والورقة محجوبان هنا).

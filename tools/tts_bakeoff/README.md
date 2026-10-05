@@ -795,6 +795,8 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 | إنجليزيّ | Piper lessac/ryan/amy · XTTS-v2 · F5-TTS · MeloTTS · Parler-TTS | مستبعدة | بحثيّ/NC (U) · CPML غيرُ تجاريّ ولا مُرخِّص بعد إغلاق Coqui · أوزانٌ CC-BY-NC · بياناتٌ مجهولة · ثقيلٌ على CPU |
 | عربيّ | **Piper ar_JO-kareem** | معلّقٌ بسببٍ مقيس | مستودعُ بياناته `github.com/AliMokhammad/arabicttstrain` **بلا ملفّ ترخيص** ولا بيانِ متحدّثٍ أو موافقة ⇒ محفوظُ الحقوق افتراضاً؛ تُطلب رخصةٌ مكتوبة من صاحبه |
 | عربيّ | SILMA TTS v1 (محوّلٌ قائم) | مرشّح للجودة فقط | الأوزان Apache-2.0 مُعلنة ومدرَّبةٌ من الصفر بإعلان الناشر؛ مصادرُ بيانات التدريب غيرُ مُفصَّلة («public and proprietary») — لا اعتمادَ تجاريّ قبل تأكيدٍ مكتوب |
+| عربيّ | Habibi-TTS — MSA Specialized (`SWivid/Habibi-TTS` عند `16252f67`) | مشروطٌ، بلا محوّل | الأوزان Apache-2.0 مُعلنة (`README.md:128`)؛ **(U):** نقطةُ التهيئة — الحجمُ `v1_base_cfg` (1024×22، `infer/infer_gradio.py:73`) هو حجمُ `F5TTS_v1_Base` غيرِ التجاريّ، والنقاطُ 100k–200k خطوة توحي بضبطٍ دقيق؛ التفصيلُ في issue #2 وarXiv 2601.13802 (محجوبان هنا). مقاطعُه المرجعيّة **مرفوضة**: MP3 من مكتبة أصوات ElevenLabs، وWAV من SADA/Mixat (`assets/README.md`). يعتمد على `f5-tts>=1.1.5` و`torch<2.9` ⇒ venv مستقلّ |
+| عربيّ | Habibi-TTS — Unified · SAU · UAE | مستبعد | CC-BY-NC-SA-4.0 بسبب SADA وMixat (`README.md:127`) |
 | عربيّ | Chatterbox Multilingual | مرشّح | MIT للشيفرة؛ الأوزان (U)؛ 500M معامل — بطيءٌ على CPU؛ يضيف علامةً مائيّة |
 | عربيّ | MMS-TTS ara · XTTS-v2 · Fish-Speech · tts_arabic (nipponjo) | مستبعدة | CC-BY-NC · CPML · رخصةٌ بحثيّة · مدرَّبٌ على مخرجات XTTS |
 | ASR عربيّ | **faster-whisper + Whisper** | الأوّل | MIT للشيفرة والأوزان (README openai/whisper) |
