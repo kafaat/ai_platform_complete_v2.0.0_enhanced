@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
 
 # BRAIN-TRANSITION-GUARD-MATCHES-FAIL-CLOSED-01. `\b(CLOSED)\b` was wrong in both
 # directions at once, and the two errors hid each other:
@@ -144,16 +147,145 @@ def _is_claim(line: str) -> bool:
     return bool(CLOSED_RE.search(stripped))
 
 
+def _has_executable_evidence(paths: list[str]) -> bool:
+    """في نطاق الـPR شيفرةٌ أو اختبارٌ أو دليلٌ خارج الدماغ (``SUBSTANTIVE`` أو مصدرُ الواجهة)."""
+    return any(
+        (any(p.startswith(x) for x in SUBSTANTIVE) or _is_frontend_code(p))
+        and not p.startswith("sahool-brain/")
+        for p in paths
+    )
+
+
+# BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01. ``CLOSED_RE`` لا يطابق ``fixed``، فكان صفٌّ يُنقل إلى fixed في تعديلٍ
+# للدماغ وحده يمرّ — وقاعدةُ «fixed في PR إصلاحها» (decisions/ledger.md، #1136) مطلبُ مراجعةٍ بلا إنفاذ.
+# العلاجُ ليس مطابقةَ الكلمة (تُذكر fixed في السجلّ ولقطة التركيز والسرد آلافَ المرّات): يُقرأ **انتقالُ الحالة**
+# من مواضعها القانونيّة في السجلّ نفسها التي يقرؤها gap_registry_measure.py — خليّةُ الحالة في جدولٍ بترويسة،
+# وسطرُ ``- **الحالة:**`` تحت عنوانٍ غيرِ تاريخيّ — ثمّ يُقارَن الأساسُ بالرأس. صفٌّ صار fixed (أو سُجِّل fixed
+# لأوّل مرّة) يشترط شيفرةً أو اختباراً خارج الدماغ في نطاق الـPR. **حدٌّ معلن:** الحارسُ يرى وجودَ دليلٍ تنفيذيّ
+# في الـPR، لا أنّ ذلك الدليلَ يخصّ الفجوةَ نفسها — والربطُ بينهما يبقى للمراجعة.
+REGISTRY = "sahool-brain/gaps/registry.md"
+
+
+def _measure_module():
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import gap_registry_measure
+
+    return gap_registry_measure
+
+
+def fixed_gap_ids(text: str) -> set[str]:
+    """معرّفاتُ الفجوات التي حالتُها ``fixed`` في مواضع الحالة القانونيّة (لا السرد، ولا المداخل التاريخيّة)."""
+    g = _measure_module()
+    out: set[str] = set()
+    schema: list[str] | None = None
+    heading: str | None = None
+    role: str | None = None
+    fence: str | None = None
+    # كلُّ عنوانٍ بدوره النهائيّ، وكلُّ سطرِ حالةٍ fixed بعنوانه — يُحسم التاريخيّ بعد القراءة كاملةً.
+    entries: list[list[str]] = []
+    sections: list[int] = []
+    lines = text.splitlines()
+    for number, line in enumerate(lines, 1):
+        fence_match = g.FENCE.match(line)
+        if fence is not None:
+            marker = fence_match.group("marker") if fence_match else ""
+            if (
+                fence_match
+                and marker[0] == fence[0]
+                and len(marker) >= len(fence)
+                and not fence_match.group("tail").strip()
+            ):
+                fence = None
+            continue
+        if fence_match:
+            fence, schema = fence_match.group("marker"), None
+            continue
+        if not line.startswith("|"):
+            schema = None
+        if re.match(r"^#{1,2}\s", line):
+            heading, role = None, None
+        found = g.HEADING.match(line)
+        if found:
+            heading, role = found.group("id"), "unreviewed"
+            entries.append([heading, role])
+            continue
+        annotation = g.ANNOTATION.fullmatch(line.strip())
+        if annotation and heading and role == "unreviewed":
+            if annotation.group("role") in ("current", "historical"):
+                role = annotation.group("role")
+                entries[-1][1] = role
+            continue
+        if line.startswith("|"):
+            cells = g.table_cells(line)
+            if number < len(lines) and g.is_separator(lines[number]):
+                schema = [cell.strip("* ").lower() for cell in cells]
+                continue
+            if g.is_separator(line) or not schema or not cells:
+                continue
+            label = g.LABEL.fullmatch(cells[0])
+            columns = [
+                i
+                for i, name in enumerate(schema)
+                if name == "status" or name in ("الحالة", "الحالة والدليل")
+            ]
+            if (
+                not label
+                or len(columns) != 1
+                or schema[0] not in g.ID_HEADERS
+                or len(cells) != len(schema)
+            ):
+                continue
+            raw = cells[columns[0]]
+            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == "fixed":
+                out.add(label.group("id"))
+            continue
+        section = g.SECTION_STATE.match(line)
+        if section and heading:
+            raw = section.group("value")
+            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == "fixed":
+                sections.append(len(entries) - 1)
+    # وسمُ ``historical`` لا يُسقط الحالةَ إلّا في سلسلةٍ مُراجَعة بقاعدة gap_registry_measure.measure() نفسها:
+    # أكثرُ من مدخلٍ للمعرّف، مدخلٌ حاليٌّ واحد، والباقي كلُّه تاريخيّ. مدخلٌ منفردٌ موسومٌ تاريخيّاً
+    # (أو سلسلةٌ بلا حاليّ) يبقى حالةً تُقرأ — وإلّا صار الوسمُ نفسُه طريقاً لتسجيل fixed في الدماغ وحده.
+    roles: dict[str, Counter] = defaultdict(Counter)
+    for gap_id, entry_role in entries:
+        roles[gap_id][entry_role] += 1
+    reviewed = {
+        gap_id
+        for gap_id, counts in roles.items()
+        if sum(counts.values()) > 1
+        and counts == Counter(current=1, historical=sum(counts.values()) - 1)
+    }
+    for index in sections:
+        gap_id, entry_role = entries[index]
+        if entry_role == "historical" and gap_id in reviewed:
+            continue
+        out.add(gap_id)
+    return out
+
+
+def fixed_transitions(base_text: str, head_text: str) -> list[str]:
+    """ما صار fixed في الرأس ولم يكن fixed في الأساس (ومنه المسجَّلُ fixed لأوّل مرّة)."""
+    return sorted(fixed_gap_ids(head_text) - fixed_gap_ids(base_text))
+
+
+def check_fixed(paths: list[str], base_text: str, head_text: str) -> None:
+    moved = fixed_transitions(base_text, head_text)
+    if moved and not _has_executable_evidence(paths):
+        raise SystemExit(
+            "sahool-brain-only fixed transition rejected for "
+            + ", ".join(moved)
+            + "; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — "
+            "include its executable code/test outside the brain knowledge base"
+        )
+
+
 def check(paths: list[str], diff: str) -> None:
     claims = [line for line in diff.splitlines() if _is_claim(line)]
     brain_changed = any(p.startswith("sahool-brain/") for p in paths)
-    outside = [
-        p
-        for p in paths
-        if (any(p.startswith(x) for x in SUBSTANTIVE) or _is_frontend_code(p))
-        and not p.startswith("sahool-brain/")
-    ]
-    if brain_changed and claims and not outside:
+    if brain_changed and claims and not _has_executable_evidence(paths):
         raise SystemExit(
             "sahool-brain-only closure/verification transition rejected; include executable code/test/evidence outside the brain knowledge base"
         )
@@ -165,8 +297,10 @@ def main():
     p.add_argument("--base")
     p.add_argument("--head", default="HEAD")
     a = p.parse_args()
+    # ``--diff-filter=d`` يُسقط الملفّاتِ المحذوفة: حذفُ اختبارٍ ليس دليلاً تنفيذيّاً على إصلاح، وإلّا كفى
+    # حذفُ أيّ ملفٍّ تحت ``tests_v9/`` لتمرير انتقالٍ إلى fixed. والحذفُ لا يُضيف سطراً ولا حالةً يُفحصان.
     names = subprocess.run(
-        ["git", "diff", "--name-only", f"{a.base}...{a.head}"],
+        ["git", "diff", "--name-only", "--diff-filter=d", f"{a.base}...{a.head}"],
         capture_output=True,
         text=True,
         check=True,
@@ -177,6 +311,24 @@ def main():
         text=True,
         check=True,
     ).stdout
+    if REGISTRY in names:
+        base = subprocess.run(
+            ["git", "merge-base", a.base, a.head],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.strip()
+        texts = [
+            subprocess.run(
+                ["git", "show", f"{ref}:{REGISTRY}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            ).stdout
+            for ref in (base, a.head)
+        ]
+        check_fixed(names, *texts)
     check(names, diff)
 
 
