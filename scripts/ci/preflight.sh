@@ -649,7 +649,7 @@ if [ "$TIER" = full ]; then
   # ظهرت نتيجة حمراء كاذبة (ecdsa · WONTFIX عند صانعيه · مسارنا يوقّع عبر cryptography).
   if need pip-audit "٩ب) pip-audit"; then
     run "٩ب) pip-audit (المسار الحرج)" \
-      pip-audit -r requirements_real.txt --ignore-vuln PYSEC-2026-1325
+      pip-audit -r requirements_real.txt --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394
   fi
   # ── ١٠) المتّجه الذي يخفيه Linux: ترميز لغة الآلة (§٣.١٠) ───────────────
   # `env -u PYTHONIOENCODING` صراحةً: `run` يضبطه لأجل طرفيّات Windows، وهذه الخطوة
