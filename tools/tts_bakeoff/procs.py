@@ -173,3 +173,24 @@ def bwrap_probe(argv: list[str], timeout: float = 15.0) -> tuple[bool, str]:
     if not ours:
         return False, f"/proc لفضاء PID آخر ({why}) — bwrap لا يُعتمد هنا"
     return probe(argv, timeout)
+
+
+# بيئةُ كلّ عمليّةٍ تُشغّل شيفرةَ طرفٍ ثالث **قائمةُ سماحٍ** لا قائمةُ منع (مراجعتا Copilot على #1133: العاملُ ثمّ عمّالُ ASR): شيفرةُ النموذج طرفٌ ثالث، وعزلُ الشبكة
+# لا يمنعها من كتابة ما ورثته إلى مجلّد الناتج القابل للكتابة. قائمةُ المنع السابقة (``*_proxy`` و``*TOKEN*``) كانت
+# تُمرّر ``AWS_SECRET_ACCESS_KEY`` و``DATABASE_URL`` و``*_PASSWORD``. يُمرَّر ما يلزم التشغيلَ وحده؛ وأسماؤه تُسجَّل.
+WORKER_ENV_ALLOW = (
+    "PATH",
+    "HOME",
+    "LANG",
+    "LANGUAGE",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TZ",
+    "TMPDIR",
+    "PYTHONHASHSEED",
+)
+
+
+def worker_env(environ) -> dict:
+    """ما يُورَّث للعامل من بيئة المنسّق: الأسماءُ المسموحة وحدها (القيمُ لا تُسجَّل)."""
+    return {k: environ[k] for k in WORKER_ENV_ALLOW if k in environ}

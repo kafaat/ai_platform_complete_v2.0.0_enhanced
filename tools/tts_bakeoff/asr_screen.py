@@ -82,6 +82,16 @@ ALLOWED = {
 }
 WHISPER_CPP_FLAGS = {"beam_size": "-bs", "best_of": "-bo", "temperature": "-tp", "threads": "-t"}
 CONTROL_HOST = os.environ.get("BAKEOFF_CONTROL_HOST", "pypi.org")
+# بيئةُ عمّال ASR: قائمةُ سماح العامل نفسُها (procs.WORKER_ENV_ALLOW — مراجعةُ Copilot الثانية على #1133) مع اسمين
+# من إعداد الأداة لا أسرارٍ: ``PYTHONPATH`` (مكتباتُ المقيِّم) و``BAKEOFF_CONTROL_HOST`` (هدفُ مسبار العزل داخله).
+ASR_ENV_ALLOW = (*procs.WORKER_ENV_ALLOW, "PYTHONPATH", "BAKEOFF_CONTROL_HOST")
+
+
+def asr_env(environ) -> dict:
+    """ما يرثه عاملُ ASR من بيئة المنسّق: الأسماءُ المسموحة وحدها."""
+    return {k: environ[k] for k in ASR_ENV_ALLOW if k in environ}
+
+
 # المحتوى غيرُ المغطّى **لا يُخفى** تحت «بلا علَم»: له حالةٌ تستدعي المراجعة
 SCREENS = (
     "NO_FLAG_ON_DECLARED_CHECKS",
@@ -253,7 +263,10 @@ class _PersistentWorker:
 
     def _start(self) -> None:
         env = dict(
-            os.environ, HF_HUB_OFFLINE="1", HF_HUB_DISABLE_TELEMETRY="1", TRANSFORMERS_OFFLINE="1"
+            asr_env(os.environ),
+            HF_HUB_OFFLINE="1",
+            HF_HUB_DISABLE_TELEMETRY="1",
+            TRANSFORMERS_OFFLINE="1",
         )
         self.buf = b""
         argv = [
@@ -439,6 +452,7 @@ def make_transcriber(cfg: dict, cfg_path: Path):
                 stderr=subprocess.PIPE,
                 text=True,
                 start_new_session=True,
+                env=asr_env(os.environ),
             )
             try:
                 stdout, stderr = proc.communicate(timeout=cfg.get("timeout_s", 120))

@@ -186,25 +186,9 @@ def cgroup_stats(info: dict) -> dict:
     return stats
 
 
-# بيئةُ العامل **قائمةُ سماحٍ** لا قائمةُ منع (مراجعةُ Copilot على #1133): شيفرةُ النموذج طرفٌ ثالث، وعزلُ الشبكة
-# لا يمنعها من كتابة ما ورثته إلى مجلّد الناتج القابل للكتابة. قائمةُ المنع السابقة (``*_proxy`` و``*TOKEN*``) كانت
-# تُمرّر ``AWS_SECRET_ACCESS_KEY`` و``DATABASE_URL`` و``*_PASSWORD``. يُمرَّر ما يلزم التشغيلَ وحده؛ وأسماؤه تُسجَّل.
-WORKER_ENV_ALLOW = (
-    "PATH",
-    "HOME",
-    "LANG",
-    "LANGUAGE",
-    "LC_ALL",
-    "LC_CTYPE",
-    "TZ",
-    "TMPDIR",
-    "PYTHONHASHSEED",
-)
-
-
-def worker_env(environ) -> dict:
-    """ما يُورَّث للعامل من بيئة المنسّق: الأسماءُ المسموحة وحدها (القيمُ لا تُسجَّل)."""
-    return {k: environ[k] for k in WORKER_ENV_ALLOW if k in environ}
+# بيئةُ العامل قائمةُ سماحٍ معرَّفةٌ مرّةً واحدة في procs.py — يستعملها المنسّقُ هنا وعمّالُ ASR في asr_screen.py.
+WORKER_ENV_ALLOW = procs.WORKER_ENV_ALLOW
+worker_env = procs.worker_env
 
 
 def kill_everything(
