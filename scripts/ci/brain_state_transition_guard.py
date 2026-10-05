@@ -292,19 +292,72 @@ def check(paths: list[str], diff: str) -> None:
     print("brain_state_transition_guard_ok")
 
 
+# BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01 (تصحيحٌ ثانٍ، 2026-10-05). ``git diff --name-only`` يُدرج الاسمَ الجديد
+# لملفٍّ أُعيدت تسميتُه، فإعادةُ تسميةٍ صرفة (R100) لاختبارٍ قائم — أو نسخُه بلا تعديل (C100) — كانت تُحتسب دليلاً
+# تنفيذيّاً وتُمرِّر انتقالاً إلى fixed لا يحمل سطراً جديداً. الدليلُ إذن **محتوى** لا اسم: يُقرأ ``--raw -M``
+# (الحالةُ وبصمةُ الكائن الجديدة)، ويُسقَط كلُّ مسارٍ بصمتُه الجديدة موجودةٌ أصلاً في شجرة الأساس. القاعدةُ الواحدة
+# تُسقط R100 وC100 (البصمةُ نفسُها بتعريف التشابه 100٪) ونسخاً لا يكتشفه ``-M`` فيصل ``A``، وتغييرَ صلاحيّاتٍ
+# وحده — فلا فحصَ منفصلاً لدرجة التشابه: كان سيكون فرعاً ميتاً لا تقتله طفرة. **حدٌّ معلن:** تعديلٌ تافه يبقى
+# محتوىً جديداً — الحارسُ يرى أنّ في الـPR محتوىً تنفيذيّاً جديداً، لا أنّه يُصلح الفجوة.
+
+
+def parse_raw(raw: str) -> list[tuple[str, str, str]]:
+    """``git diff --raw -z --no-abbrev`` ⇒ ``[(status, dst_blob, path)]`` (للمُعاد تسميتُه والمنسوخ: الاسمُ الجديد)."""
+    fields = raw.split("\0")
+    out: list[tuple[str, str, str]] = []
+    i = 0
+    while i < len(fields) and fields[i].startswith(":"):
+        meta = fields[i][1:].split()
+        status, dst_blob = meta[4], meta[3]
+        two_paths = status[:1] in ("R", "C")
+        path = fields[i + 2] if two_paths else fields[i + 1]
+        out.append((status, dst_blob, path))
+        i += 3 if two_paths else 2
+    return out
+
+
+def content_evidence(entries: list[tuple[str, str, str]], base_blobs: set[str]) -> list[str]:
+    """المساراتُ التي تحمل محتوىً لم يكن في الأساس — المرشّحةُ وحدها دليلاً تنفيذيّاً."""
+    return [path for _status, blob, path in entries if blob not in base_blobs]
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--base")
     p.add_argument("--head", default="HEAD")
     a = p.parse_args()
-    # ``--diff-filter=d`` يُسقط الملفّاتِ المحذوفة: حذفُ اختبارٍ ليس دليلاً تنفيذيّاً على إصلاح، وإلّا كفى
-    # حذفُ أيّ ملفٍّ تحت ``tests_v9/`` لتمرير انتقالٍ إلى fixed. والحذفُ لا يُضيف سطراً ولا حالةً يُفحصان.
-    names = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=d", f"{a.base}...{a.head}"],
+    base = subprocess.run(
+        ["git", "merge-base", a.base, a.head],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
-    ).stdout.splitlines()
+    ).stdout.strip()
+    # ``--diff-filter=d`` يُسقط الملفّاتِ المحذوفة: حذفُ اختبارٍ ليس دليلاً تنفيذيّاً على إصلاح، وإلّا كفى
+    # حذفُ أيّ ملفٍّ تحت ``tests_v9/`` لتمرير انتقالٍ إلى fixed. والحذفُ لا يُضيف سطراً ولا حالةً يُفحصان.
+    raw_format = ["--raw", "-z", "-M", "--no-abbrev"]
+    entries = parse_raw(
+        subprocess.run(
+            ["git", "diff", *raw_format, "--diff-filter=d", f"{a.base}...{a.head}"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout
+    )
+    names = [path for _, _, path in entries]
+    base_blobs = {
+        line.split()[2]
+        for line in subprocess.run(
+            ["git", "ls-tree", "-r", base],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.splitlines()
+        if line
+    }
+    evidence = content_evidence(entries, base_blobs)
     diff = subprocess.run(
         ["git", "diff", "--unified=0", f"{a.base}...{a.head}", "--", "sahool-brain/"],
         capture_output=True,
@@ -312,13 +365,6 @@ def main():
         check=True,
     ).stdout
     if REGISTRY in names:
-        base = subprocess.run(
-            ["git", "merge-base", a.base, a.head],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            check=True,
-        ).stdout.strip()
         texts = [
             subprocess.run(
                 ["git", "show", f"{ref}:{REGISTRY}"],
@@ -328,8 +374,8 @@ def main():
             ).stdout
             for ref in (base, a.head)
         ]
-        check_fixed(names, *texts)
-    check(names, diff)
+        check_fixed(evidence, *texts)
+    check(evidence, diff)
 
 
 if __name__ == "__main__":
