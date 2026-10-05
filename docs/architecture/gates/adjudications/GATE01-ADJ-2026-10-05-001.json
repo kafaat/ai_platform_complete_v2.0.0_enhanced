@@ -3,7 +3,8 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-05-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
+  "merge_sha": "e29401acec751e377328a1aa18706b266e78e5e9",
   "approved_by": "owner",
   "adjudicated_on": "2026-10-05",
   "expires_on": "2026-11-04",
@@ -41,5 +42,15 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "هذا سجلّ لطلب المالك في الجلسة، لا توقيع مستقلّ. الحارس يربط البايتات المحدّدة فقط."
+  },
+  "consumed_by": {
+    "pr": 1135,
+    "merge_sha": "e29401acec751e377328a1aa18706b266e78e5e9",
+    "merged_at": "2026-10-05T08:42:23Z"
+  },
+  "consumption": {
+    "merge_sha": "e29401acec751e377328a1aa18706b266e78e5e9",
+    "consumed_on": "2026-10-05",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1135"
   }
 }
