@@ -3487,9 +3487,21 @@
         },
         {
           "expect": "test_no_transition_to_fixed_is_not_blocked",
-          "find": "        if section and heading and role != \"historical\":",
-          "replace": "        if section and heading:",
+          "find": "        if entry_role == \"historical\" and gap_id in reviewed:",
+          "replace": "        if False:",
           "why": "قراءةُ المداخل التاريخيّة حالاتٍ قائمة ⇒ مدخلٌ تاريخيّ يحمل fixed يُعدّ انتقالاً فيُحجب تعديلٌ لا يدّعي شيئاً"
+        },
+        {
+          "expect": "test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state",
+          "find": "        if entry_role == \"historical\" and gap_id in reviewed:",
+          "replace": "        if entry_role == \"historical\":",
+          "why": "وسمُ historical يُسقط الحالةَ بلا سلسلةٍ مُراجَعة ⇒ مدخلٌ منفردٌ موسومٌ تاريخيّاً يُسجِّل fixed في الدماغ وحده (مراجعة Copilot على #1138)"
+        },
+        {
+          "expect": "test_a_deleted_test_file_is_not_executable_evidence",
+          "find": "\"--diff-filter=d\", ",
+          "replace": "",
+          "why": "احتسابُ الملفّات المحذوفة دليلاً ⇒ حذفُ أيّ ملفٍّ تحت tests_v9/ يُمرِّر انتقالاً إلى fixed بلا إصلاح (مراجعة Copilot على #1138)"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"

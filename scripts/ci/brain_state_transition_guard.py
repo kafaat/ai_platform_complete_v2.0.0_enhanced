@@ -7,6 +7,7 @@ import argparse
 import re
 import subprocess
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
 
 # BRAIN-TRANSITION-GUARD-MATCHES-FAIL-CLOSED-01. `\b(CLOSED)\b` was wrong in both
@@ -182,6 +183,9 @@ def fixed_gap_ids(text: str) -> set[str]:
     heading: str | None = None
     role: str | None = None
     fence: str | None = None
+    # كلُّ عنوانٍ بدوره النهائيّ، وكلُّ سطرِ حالةٍ fixed بعنوانه — يُحسم التاريخيّ بعد القراءة كاملةً.
+    entries: list[list[str]] = []
+    sections: list[int] = []
     lines = text.splitlines()
     for number, line in enumerate(lines, 1):
         fence_match = g.FENCE.match(line)
@@ -205,11 +209,13 @@ def fixed_gap_ids(text: str) -> set[str]:
         found = g.HEADING.match(line)
         if found:
             heading, role = found.group("id"), "unreviewed"
+            entries.append([heading, role])
             continue
         annotation = g.ANNOTATION.fullmatch(line.strip())
         if annotation and heading and role == "unreviewed":
             if annotation.group("role") in ("current", "historical"):
                 role = annotation.group("role")
+                entries[-1][1] = role
             continue
         if line.startswith("|"):
             cells = g.table_cells(line)
@@ -236,10 +242,26 @@ def fixed_gap_ids(text: str) -> set[str]:
                 out.add(label.group("id"))
             continue
         section = g.SECTION_STATE.match(line)
-        if section and heading and role != "historical":
+        if section and heading:
             raw = section.group("value")
             if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == "fixed":
-                out.add(heading)
+                sections.append(len(entries) - 1)
+    # وسمُ ``historical`` لا يُسقط الحالةَ إلّا في سلسلةٍ مُراجَعة بقاعدة gap_registry_measure.measure() نفسها:
+    # أكثرُ من مدخلٍ للمعرّف، مدخلٌ حاليٌّ واحد، والباقي كلُّه تاريخيّ. مدخلٌ منفردٌ موسومٌ تاريخيّاً
+    # (أو سلسلةٌ بلا حاليّ) يبقى حالةً تُقرأ — وإلّا صار الوسمُ نفسُه طريقاً لتسجيل fixed في الدماغ وحده.
+    roles: dict[str, Counter] = defaultdict(Counter)
+    for gap_id, entry_role in entries:
+        roles[gap_id][entry_role] += 1
+    reviewed = {
+        gap_id
+        for gap_id, counts in roles.items()
+        if sum(counts.values()) > 1 and counts == Counter(current=1, historical=sum(counts.values()) - 1)
+    }
+    for index in sections:
+        gap_id, entry_role = entries[index]
+        if entry_role == "historical" and gap_id in reviewed:
+            continue
+        out.add(gap_id)
     return out
 
 
@@ -274,8 +296,10 @@ def main():
     p.add_argument("--base")
     p.add_argument("--head", default="HEAD")
     a = p.parse_args()
+    # ``--diff-filter=d`` يُسقط الملفّاتِ المحذوفة: حذفُ اختبارٍ ليس دليلاً تنفيذيّاً على إصلاح، وإلّا كفى
+    # حذفُ أيّ ملفٍّ تحت ``tests_v9/`` لتمرير انتقالٍ إلى fixed. والحذفُ لا يُضيف سطراً ولا حالةً يُفحصان.
     names = subprocess.run(
-        ["git", "diff", "--name-only", f"{a.base}...{a.head}"],
+        ["git", "diff", "--name-only", "--diff-filter=d", f"{a.base}...{a.head}"],
         capture_output=True,
         text=True,
         check=True,

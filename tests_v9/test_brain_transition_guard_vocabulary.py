@@ -394,3 +394,81 @@ def test_the_real_registry_moving_one_open_row_to_fixed_is_caught():
     assert guard.fixed_transitions(text, head) == [gap_id]
     with pytest.raises(SystemExit):
         guard.check_fixed(BRAIN_ONLY, text, head)
+
+
+# وسمُ ``historical`` لا يُسقط الحالة إلّا في سلسلةٍ مُراجَعة (حاليٌّ واحد والباقي تاريخيّ) — قاعدةُ
+# gap_registry_measure.measure() نفسها. مدخلٌ منفردٌ موسومٌ تاريخيّاً كان طريقاً لتسجيل fixed في الدماغ وحده.
+_LONE_HISTORICAL = """
+## GAP-ZETA-01 — مدخلٌ وحيدٌ موسومٌ تاريخيّاً
+<!-- gap-registry: historical -->
+- **الحالة:** **fixed** (`def5678`)
+"""
+
+_NO_CURRENT = """
+## GAP-ETA-01 — الأوّل
+<!-- gap-registry: historical -->
+- **الحالة:** **fixed** (`def5678`)
+
+## GAP-ETA-01 — الثاني
+<!-- gap-registry: historical -->
+- **الحالة:** open
+"""
+
+
+@pytest.mark.parametrize(
+    ("extra", "gap_id"),
+    [(_LONE_HISTORICAL, "GAP-ZETA-01"), (_NO_CURRENT, "GAP-ETA-01")],
+    ids=["lone-historical-entry", "sequence-without-current"],
+)
+def test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state(extra, gap_id):
+    base, head = registry(), registry(extra=extra)
+    assert guard.fixed_transitions(base, head) == [gap_id]
+    with pytest.raises(SystemExit) as exc:
+        guard.check_fixed(BRAIN_ONLY, base, head)
+    assert gap_id in str(exc.value)
+
+
+def _git(cwd, *args):
+    import subprocess
+
+    return subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
+
+
+@pytest.mark.parametrize(("change", "rejected"), [("delete", True), ("add", False)])
+def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, rejected):
+    """حذفُ ملفٍّ تحت ``tests_v9/`` لا يبرّر انتقالاً إلى fixed؛ وإضافةُ اختبارٍ تبرّره (الضابط)."""
+    import subprocess
+    import sys
+
+    (tmp_path / "sahool-brain/gaps").mkdir(parents=True)
+    (tmp_path / "tests_v9").mkdir()
+    reg = tmp_path / guard.REGISTRY
+    reg.write_text(registry(), encoding="utf-8")
+    (tmp_path / "tests_v9/test_old.py").write_text("def test_x():\n    pass\n", encoding="utf-8")
+    _git(tmp_path, "init", "-q", "-b", "base")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    reg.write_text(registry(alpha="**fixed** (`def5678`)"), encoding="utf-8")
+    if change == "delete":
+        (tmp_path / "tests_v9/test_old.py").unlink()
+    else:
+        (tmp_path / "tests_v9/test_new.py").write_text("def test_y():\n    pass\n", encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "head")
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ci/brain_state_transition_guard.py"), "--base", "HEAD~1"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert (result.returncode != 0) is rejected, result.stdout + result.stderr
+    assert ("GAP-ALPHA-01" in result.stderr) is rejected
+
