@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **425**
+- إجماليّ الطفرات المُسجَّلة: **427**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **363** على 128 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -165,6 +165,8 @@
 - عودةُ العمى عن fixed (BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01) ⇒ صفٌّ يُنقل إلى fixed في تعديلٍ للدماغ وحده يمرّ — يُسقِط `test_brain_only_table_row_moved_to_fixed_is_rejected_by_name`
 - نزعُ اشتراط الدليل التنفيذيّ عن انتقال fixed ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ — يُسقِط `test_brain_only_table_row_moved_to_fixed_is_rejected_by_name`
 - قراءةُ المداخل التاريخيّة حالاتٍ قائمة ⇒ مدخلٌ تاريخيّ يحمل fixed يُعدّ انتقالاً فيُحجب تعديلٌ لا يدّعي شيئاً — يُسقِط `test_no_transition_to_fixed_is_not_blocked`
+- وسمُ historical يُسقط الحالةَ بلا سلسلةٍ مُراجَعة ⇒ مدخلٌ منفردٌ موسومٌ تاريخيّاً يُسجِّل fixed في الدماغ وحده (مراجعة Copilot على #1138) — يُسقِط `test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state`
+- احتسابُ الملفّات المحذوفة دليلاً ⇒ حذفُ أيّ ملفٍّ تحت tests_v9/ يُمرِّر انتقالاً إلى fixed بلا إصلاح (مراجعة Copilot على #1138) — يُسقِط `test_a_deleted_test_file_is_not_executable_evidence`
 
 ### `branch_protection_contract_guard.py`
 
