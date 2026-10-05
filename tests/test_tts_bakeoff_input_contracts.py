@@ -434,9 +434,9 @@ def test_cgroup_v2_writes_the_unified_limits_and_enables_the_controllers(tmp_pat
     assert info["backend"] == "cgroup-v2"
     assert info["paths"] == [str(group)]
     assert info["controllers_enabled_by_us"] == ["memory", "cpu"]
-    assert (root / "cgroup.subtree_control").read_text() == "+memory +cpu"
-    assert (group / "memory.max").read_text() == str(2048 * 1024 * 1024)
-    assert (group / "cpu.max").read_text() == "200000 100000"
+    assert (root / "cgroup.subtree_control").read_text(encoding="utf-8") == "+memory +cpu"
+    assert (group / "memory.max").read_text(encoding="utf-8") == str(2048 * 1024 * 1024)
+    assert (group / "cpu.max").read_text(encoding="utf-8") == "200000 100000"
 
 
 def test_cgroup_v2_without_the_controllers_is_unavailable_not_silently_unlimited(
@@ -557,3 +557,52 @@ def test_the_english_corpus_mirrors_the_arabic_one_field_for_field():
     # كلُّ جملةٍ مُعلَنةٌ اصطناعيّة، ولا حرفَ عربيّاً في نصٍّ إنجليزيّ
     assert all(r["synthetic_example"].startswith("yes") for r in english)
     assert not any("؀" <= ch <= "ۿ" for r in english for ch in r["text"])
+
+
+# ── المفسّرُ والمضيف يجب أن يتساويا بين التشغيلات ───────────────────────────────────────────
+#
+# قيدٌ حقيقيّ مقيسٌ من بيانات الحزم: ``kokoro-onnx==0.6.1`` يشترط ``Requires-Python: >=3.10,<3.14``،
+# و``silma-tts==1.0.5`` يثبّت ``numpy<=1.26.4`` التي لا عجلةَ لها بعد cp312 — فالمحرّكان يُشغَّلان
+# على 3.12 ولو كان المضيفُ على 3.14. وكانت ``perf.py`` تُقارن ``corpus_sha256`` و``scripts_sha256``
+# فقط، فتشغيلان على بايثونَين أو جهازَين مختلفَين يُقارَنان كأنّهما متكافئان.
+
+
+def _two_runs(tmp_path, **second_environment):
+    fixture = json.loads((PKG / "fixtures" / "comparable_result.json").read_text(encoding="utf-8"))
+    out = []
+    for index, overrides in enumerate(({}, second_environment)):
+        record = json.loads(json.dumps(fixture))
+        record.setdefault("environment", {}).update(overrides)
+        directory = tmp_path / f"run{index}"
+        directory.mkdir()
+        (directory / "result.json").write_text(
+            json.dumps(record, ensure_ascii=False), encoding="utf-8"
+        )
+        out.append(str(directory))
+    return out
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"python": "3.13.1"},
+        {"platform": "Linux-6.6.0-microsoft-standard-WSL2-x86_64"},
+        {"cpu_model": "AMD Ryzen 9 7950X"},
+        {"cpu_visible": 32},
+        {"thread_env": {"OMP_NUM_THREADS": "4"}},
+    ],
+    ids=["python", "platform", "cpu_model", "cpu_visible", "thread_env"],
+)
+def test_runs_on_a_different_interpreter_or_host_are_not_compared(
+    tmp_path, monkeypatch, capsys, overrides
+):
+    monkeypatch.setattr(sys, "argv", ["perf.py", *_two_runs(tmp_path, **overrides)])
+    assert perf.main() == 2
+    field = next(iter(overrides))
+    assert f"environment.{field} يختلف بين التشغيلات" in capsys.readouterr().err
+
+
+def test_two_identical_runs_are_still_compared(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["perf.py", *_two_runs(tmp_path)])
+    assert perf.main() == 0
+    assert "يختلف بين التشغيلات" not in capsys.readouterr().err

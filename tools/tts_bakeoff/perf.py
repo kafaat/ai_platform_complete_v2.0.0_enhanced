@@ -386,6 +386,26 @@ def main() -> int:
         problems.append(
             f"حِملُ التزامن يختلف بين التشغيلات (المستوى ⇒ عدد الطلبات): {sorted(workloads)}"
         )
+    # المفسّرُ والمضيف: مقارنةٌ بين تشغيلَين على بايثونَين مختلفَين أو جهازَين مختلفَين ليست مقارنة.
+    # والقيدُ حقيقيّ ومقيس: `kokoro-onnx==0.6.1` يشترط بايثون <3.14، و`silma-tts==1.0.5` يثبّت
+    # `numpy<=1.26.4` وعجلاتُها تنتهي عند cp312 — فالمحرّكان يُشغَّلان على 3.12 بينما المضيفُ قد
+    # يحمل 3.14. وهذه الحقولُ مُسجَّلةٌ أصلاً في `environment`، فما كان ينقص إلّا فرضُ تساويها.
+    for field in ("python", "platform", "cpu_model", "cpu_visible", "thread_env"):
+        if (
+            len({json.dumps(r.get("environment", {}).get(field), sort_keys=True) for r in results})
+            > 1
+        ):
+            problems.append(
+                f"environment.{field} يختلف بين التشغيلات: "
+                + str(
+                    sorted(
+                        {
+                            json.dumps(r.get("environment", {}).get(field), sort_keys=True)
+                            for r in results
+                        }
+                    )
+                )
+            )
     for field in ("corpus_sha256", "scripts_sha256"):
         if (
             len({json.dumps(r.get("environment", {}).get(field), sort_keys=True) for r in results})

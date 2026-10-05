@@ -625,8 +625,10 @@ python3 semantic_selftest.py
 python3 -m venv venv_front && venv_front/bin/pip install arabic-tts-frontend==0.1.0 num2words==0.5.14
 venv_front/bin/python compare_text.py --out text-001 --require-all
 
-# 1) بيئةٌ منفصلة لكلّ محرّك
-python3 -m venv venv_silma && venv_silma/bin/pip install silma-tts==1.0.5
+# 1) بيئةٌ منفصلة لكلّ محرّك — **على بايثون 3.12** (انظر «مدى المفسّر» أدناه؛ المضيفُ قد يحمل 3.14)
+uv python install 3.12            # أو أيُّ طريقةٍ تضع 3.12 داخل مجلّد العمل بلا تغييرٍ عامّ
+uv venv --python 3.12 venv_silma  && venv_silma/bin/pip install silma-tts==1.0.5
+uv venv --python 3.12 venv_kokoro && venv_kokoro/bin/pip install kokoro-onnx==0.6.1
 
 # 2) التنزيل — منفصلٌ عن القياس، حيث الشبكة مسموحة
 cp sources.example.json sources.json   # املأ commit والبصمات الموثوقة من المصدر الأصليّ
@@ -718,6 +720,18 @@ sudo unshare -n python3 asr_screen.py runs/silma-… --asr-config asr.json --out
 
 1. مراجعة ترخيص نموذجه (ترخيصُ نموذجٍ خاصّ).
 2. اجتياز القبول نفسه المطبَّق هنا.
+
+## مدى المفسّر (مقيسٌ من بيانات الحزم، لا من وصفها)
+
+| الحزمة | ما تُعلنه | المدى الفعليّ | كيف قِيس |
+|---|---|---|---|
+| `kokoro-onnx==0.6.1` | `Requires-Python: >=3.10,<3.14` | 3.10–3.13 | `METADATA` في عجلة PyPI |
+| `silma-tts==1.0.5` | `Requires-Python: >=3.10` | **3.10–3.12** | `pyproject.toml` يثبّت `numpy<=1.26.4`، وعجلاتُها تنتهي عند cp312: تنزيلُها لـ3.13 و3.14 يفشل ولـ3.12 ينجح |
+
+فتقاطعُ المحرّكَين **3.10–3.12**، ويُنصح بـ3.12. والمضيفُ قد يحمل أحدثَ (Ubuntu 26.04 يشحن 3.14)،
+فلا تُغيَّر بايثونُ النظام: يُنصَّب 3.12 داخل مجلّد العمل (`uv python install 3.12`) ويُشار إليه
+بـ`run.py --python <venv>/bin/python`. والعاملُ يسجّل `environment.python`، و`perf.py` **يرفض**
+مقارنةَ تشغيلَين يختلف فيهما المفسّر أو المنصّة أو المعالج أو متغيّراتُ الخيوط.
 
 ## حدودُ الموارد: cgroup v1 و v2
 
