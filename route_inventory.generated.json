@@ -5946,7 +5946,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 528,
+    "line": 537,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "function": "irrigation_mpc_hourly_recommendation"
@@ -5954,7 +5954,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 569,
+    "line": 578,
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "function": "reconcile_irrigation_execution"
