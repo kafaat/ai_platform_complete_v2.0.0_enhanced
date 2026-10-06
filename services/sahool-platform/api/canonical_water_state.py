@@ -260,8 +260,8 @@ async def resolve_canonical_water_state(
                 "et0_mm": float(et0_days[i]),
                 "kc": float(kc),
                 "rain_mm": float(rain),
-                "et0_method": et0_methods[i],
                 "source": "weather-engine-et0-series+season-phenology",
+                "et0_method": et0_methods[i],
             }
         )
 
