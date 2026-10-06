@@ -63,44 +63,70 @@ class _FakeClient:
         return _Resp({"job_id": f"job_{kwargs['json']['indicator']}", "status": "pending"})
 
 
-@pytest.mark.asyncio
-async def test_trigger_field_imagery_processing_queues_process_from_stac(monkeypatch):
+_GEOMETRY = {
+    "type": "Polygon",
+    "coordinates": [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15.01], [44, 15]]],
+}
+
+
+async def _trigger(monkeypatch, client_cls):
     import httpx
 
-    _FakeClient.calls = []
-    monkeypatch.setattr(httpx, "AsyncClient", _FakeClient)
-
+    client_cls.calls = []
+    monkeypatch.setattr(httpx, "AsyncClient", client_cls)
     auto = ImageryAutomation()
-    result = await auto.trigger_field_imagery_processing(
+    return await auto.trigger_field_imagery_processing(
         field_id="fld_real",
         tenant_id="00000000-0000-0000-0000-000000000001",
         bbox=[44.0, 15.0, 44.01, 15.01],
-        geometry={
-            "type": "Polygon",
-            "coordinates": [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15.01], [44, 15]]],
-        },
+        geometry=_GEOMETRY,
         reason="field.created",
         indicators=["ndvi", "ndre"],
     )
 
-    assert result["queued"] is True
-    assert result["real_data"] is False  # becomes true only when raster-service reads generated COG
-    post_calls = [
-        c
-        for c in _FakeClient.calls
-        if c[0] == "POST" and c[1].endswith("/v1/fields/fld_real/process-from-stac")
+
+def _element84_calls(calls):
+    """أيّ طلبٍ إلى مسار Element84 (بحث المشهد الأفضل أو المعالجة من STAC)."""
+    return [
+        c for c in calls if c[1].endswith("/process-from-stac") or c[1].endswith("/imagery/best")
     ]
-    assert len(post_calls) == 2
-    # CDSE activation may issue a best-effort process-cdse POST first; this assertion
-    # scopes the contract to the Element84 STAC fallback jobs requested by this test.
-    for _, url, kwargs in post_calls:
-        assert url.endswith("/v1/fields/fld_real/process-from-stac")
-        body = kwargs["json"]
-        assert body["tenant_id"] == "00000000-0000-0000-0000-000000000001"
-        assert body["scene_id"] == "S2_SCENE_REAL"
-        assert body["band_hrefs"]["red"].endswith("red.tif")
-        assert body["band_hrefs"]["nir"].endswith("nir.tif")
-        assert body["clip_polygon_geojson"]["type"] == "Polygon"
+
+
+@pytest.mark.asyncio
+async def test_a_cdse_failure_is_a_provider_failure_not_an_element84_fallback(monkeypatch):
+    """كان تعذّر CDSE يسقط **صامتاً** إلى Element84 (imagery/best + process-from-stac).
+
+    المسار محجوب الآن (``radiometry_containment``)، وتعذّر المزوّد يُبلَّغ كما هو: لا «لا
+    مشهد»، ولا ارتداد إلى المسار المحجوب. ``_FakeClient.post`` يرمي على حمولة process-cdse
+    (لا ``indicator`` مفرد فيها) فيُمثّل تعذّر CDSE.
+    """
+    result = await _trigger(monkeypatch, _FakeClient)
+
+    assert result["status"] == "provider_failed"
+    assert result["provider"] == "cdse"
+    assert result["queued"] is False and result["real_data"] is False
+    assert _element84_calls(_FakeClient.calls) == [], "ارتدادٌ إلى مسار Element84 المحجوب"
+
+
+class _CdseUnavailableClient(_FakeClient):
+    async def post(self, url, **kwargs):
+        self.calls.append(("POST", url, kwargs))
+        if url.endswith("/process-cdse"):
+            return _Resp({"provider": "cdse", "available": False, "queued": False})
+        return _Resp({"job_id": "job_should_not_exist", "status": "pending"})
+
+
+@pytest.mark.asyncio
+async def test_cdse_unavailable_reports_radiometry_unresolved_without_calling_element84(
+    monkeypatch,
+):
+    """بلا CDSE مُهيّأ لا مسار صالح: النتيجة ``radiometry_unresolved`` ولا طلب raster لـElement84."""
+    result = await _trigger(monkeypatch, _CdseUnavailableClient)
+
+    assert result["status"] == "radiometry_unresolved"
+    assert result["provider"] == "element84"
+    assert result["queued"] is False and result["real_data"] is False
+    assert _element84_calls(_CdseUnavailableClient.calls) == []
 
 
 def test_band_hrefs_normalize_stac_asset_names():

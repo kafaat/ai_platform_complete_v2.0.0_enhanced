@@ -102,7 +102,9 @@ def test_vrt_builders_write_under_upload_dir():
     main إن حُمّل وإلّا raster_settings.UPLOAD_DIR) — نفس عقد «الكتابة تحت UPLOAD_DIR»."""
     src = open(os.path.join(RASTER, "routers", "fields.py"), encoding="utf-8").read()
     calls = re.findall(r"build_band_vrt\(([^)]*)\)", src)
-    assert len(calls) >= 2, f"توقّعنا بوّابتَي بناء VRT على الأقلّ، وجدنا {len(calls)}"
+    # احتواء Element84→VRT (radiometry_containment): البوّابتان محجوبتان فلا استدعاء اليوم،
+    # و``test_element84_vrt_containment`` يفرض ذلك. القاعدة تبقى لأيّ استدعاءٍ يُعاد مع عقد
+    # التطبيع: الكتابة تحت UPLOAD_DIR وإلّا عاد إسقاط المهامّ (بلاغ 2026-07-04).
     offenders = [c.strip() for c in calls if "out_dir=_upload_dir(" not in c]
     assert not offenders, f"build_band_vrt بلا out_dir=_upload_dir(): {offenders}"
 

@@ -48,6 +48,12 @@ logger = logging.getLogger("sahool.imagery_automation")
 # تعمل بوضع الإدامة «أفضل-جهد».
 _BATCH_TERMINAL_STATUSES = frozenset({"completed", "processed_unpublished", "failed", "cancelled"})
 
+# احتواء مسار Element84→VRT (raster-service ``radiometry_containment``): المسار لا يملك تحويلاً
+# إشعاعيّاً محسوماً (المقياس · محاذاة 10/20م · NoData)، فلا يُطلَب ``process-from-stac`` ما دام
+# محجوباً — لا تحويل صامت إلى CDSE ولا ارتداد إلى المسار المحجوب. يُرفَع مع عقد التطبيع
+# (قرارٌ صريح بسطرٍ واحد، يُثبته ``test_element84_vrt_containment``).
+ELEMENT84_VRT_CONTAINED = True
+
 
 def _batch_wait_budget_s() -> float:
     """أقصى انتظار لاكتمال دفعة واحدة (ثوانٍ). صفر أو أقلّ ⇒ لا انتظار (سلوك ما قبل الإصلاح)."""
@@ -386,11 +392,14 @@ class ImageryAutomation:
         date_to: str | None = None,
         geometry_revision: int | None = None,
     ) -> dict | None:
-        """Try CDSE (the default, stronger provider) first; return None to fall back to Element84.
+        """Try CDSE (the default, stronger provider) first.
 
-        Honest semantics: CDSE not configured (``available:false``) or any transport/processing
-        error ⇒ return None ⇒ caller silently uses the existing Element84 STAC path. We only
-        return a result dict when CDSE actually queued processing — never fabricate data.
+        * queued ⇒ the queued result dict;
+        * CDSE not configured / gate off (``available:false``) ⇒ ``None`` — no CDSE path here;
+        * transport or processing error, or available-but-not-queued ⇒ a ``provider_failed``
+          dict. A provider failure is reported as such: it is **not** an empty search and does
+          **not** fall back to the Element84 path (contained — ``ELEMENT84_VRT_CONTAINED``).
+        Never fabricates data.
         """
         try:
             body = (
@@ -414,13 +423,13 @@ class ImageryAutomation:
                 )
                 or {}
             )
-        except Exception:  # noqa: BLE001 — CDSE متعذّر ⇒ fallback صامت إلى Element84
-            return None
-        # CDSE غير مُهيّأ (لا اعتمادات) ⇒ المسار القائم (Element84) دون ضجيج.
+        except Exception as e:  # noqa: BLE001 — CDSE متعذّر ⇒ فشل مزوّد صريح، لا ارتداد
+            return self._cdse_provider_failed(field_id, reason, type(e).__name__)
+        # CDSE غير مُهيّأ / البوّابة غير مُفعّلة ⇒ لا مسار CDSE (يقرّر المُستدعي، لا ارتداد صامت).
         if not body.get("available"):
             return None
         if not body.get("queued"):
-            return None
+            return self._cdse_provider_failed(field_id, reason, "cdse_not_queued")
         tf.new_images_found += 1
         tf.last_indicator_job = body.get("job_id")
         await self._persist_field(tf)
@@ -435,7 +444,22 @@ class ImageryAutomation:
             "real_data": False,
             "note_ar": (
                 "أُطلقت معالجة CDSE (Sentinel-2 الافتراضيّ الأقوى). real_data=true فقط بعد "
-                "اكتمال COG وقراءته. fallback إلى Element84 يحدث تلقائيّاً عند تعذّر CDSE."
+                "اكتمال COG وقراءته. تعذّر CDSE يُبلَّغ فشلَ مزوّد — لا ارتداد إلى Element84."
+            ),
+        }
+
+    @staticmethod
+    def _cdse_provider_failed(field_id: str, reason: str, error: str) -> dict:
+        return {
+            "status": "provider_failed",
+            "queued": False,
+            "provider": "cdse",
+            "field_id": field_id,
+            "reason": reason,
+            "error": error,
+            "real_data": False,
+            "note_ar": (
+                "تعذّر مزوّد CDSE — فشلُ مزوّد لا «لا مشهد»، ولا ارتداد إلى مسار Element84 المحجوب."
             ),
         }
 
@@ -473,7 +497,8 @@ class ImageryAutomation:
 
         # ── المزوّد الافتراضيّ: CDSE (أقوى) ───────────────────────────────
         # نجرّب CDSE أوّلاً (يحسب المؤشّر خادميّاً على نطاقات Sentinel-2 الكاملة).
-        # غير مُهيّأ / متعذّر ⇒ None ⇒ نسقط بصمت إلى Element84 أدناه (لا كسر، لا تلفيق).
+        # متعذّر ⇒ provider_failed يُعاد كما هو. غير مُهيّأ ⇒ None ⇒ مسار Element84 أدناه،
+        # وهو محجوب ما دام ELEMENT84_VRT_CONTAINED (radiometry_unresolved، بلا طلب raster).
         cdse = await self._try_cdse(
             field_id=field_id,
             tenant_id=tenant_id,
@@ -489,7 +514,24 @@ class ImageryAutomation:
             geometry_revision=geometry_revision,
         )
         if cdse is not None:
+            if cdse.get("status") == "provider_failed":
+                tf.check_errors += 1
+                await self._persist_field(tf)
             return cdse
+        if ELEMENT84_VRT_CONTAINED:
+            await self._persist_field(tf)
+            return {
+                "status": "radiometry_unresolved",
+                "queued": False,
+                "provider": "element84",
+                "field_id": field_id,
+                "reason": reason,
+                "real_data": False,
+                "note_ar": (
+                    "CDSE غير مُهيّأ لهذه البيئة، ومسار Element84→VRT محجوب حتّى يُبنى عقد "
+                    "التطبيع والمحاذاة وNoData — لم تُطلَق معالجة."
+                ),
+            }
         try:
             best_body = await get_best_imagery_scene(
                 bbox=stac_bbox,

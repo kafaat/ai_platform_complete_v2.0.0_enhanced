@@ -66,8 +66,14 @@ export default function ApprovalsConsolePage() {
   const reviewCandidate = (
     decisionId: string,
     candidateLineageId: string,
+    decisionValueDigest: string | null,
     action: 'approve' | 'reject',
   ) => {
+    // مرشّحٌ بلا بصمة نسخة (قديم، قبل 035) لا يُعتمَد — يُرفَض فيُعاد تقديمه؛ لا يُرسَل اعتمادٌ سيُرفَض.
+    if (action === 'approve' && !decisionValueDigest) {
+      setRowStates((state) => ({ ...state, [decisionId]: 'failed' }));
+      return;
+    }
     const reason = (reviewReasons[decisionId] ?? '').trim();
     if (action === 'reject' && !reason) {
       setRowStates((state) => ({ ...state, [decisionId]: 'reason_required' }));
@@ -80,6 +86,7 @@ export default function ApprovalsConsolePage() {
         action,
         reason,
         candidateLineageId,
+        decisionValueDigest,
         idempotencyKey: newReviewIdempotencyKey(decisionId),
       },
       {
@@ -151,10 +158,10 @@ export default function ApprovalsConsolePage() {
                       style={{ borderColor: T.line, color: T.ink }}
                       disabled={state === 'sending'}
                     />
-                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, 'approve')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #14532d', color: '#86efac' }}>
+                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, candidate.decision_value_digest, 'approve')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #14532d', color: '#86efac' }}>
                       <Check className="w-3 h-3" aria-hidden="true" /> اعتماد
                     </button>
-                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, 'reject')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #7c2d12', color: '#fca5a5' }}>
+                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, candidate.decision_value_digest, 'reject')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #7c2d12', color: '#fca5a5' }}>
                       <X className="w-3 h-3" aria-hidden="true" /> رفض
                     </button>
                     {state === 'reason_required' && <span role="alert" style={{ color: '#fca5a5' }}>سبب الرفض إلزامي.</span>}

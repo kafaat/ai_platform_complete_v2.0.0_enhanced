@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 680,
+  "baseline_python_module_count": 681,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -417,6 +417,7 @@
     "api/water_harvesting.py",
     "api/water_ledger_auto.py",
     "api/water_ledger_compute.py",
+    "api/water_ledger_inputs.py",
     "api/water_twin.py",
     "api/water_twin_seed.py",
     "api/weather_advice.py",
@@ -719,5 +720,6 @@
   "container_command_path_not_in_image_note": "680->681 — **نقلٌ لا نموّ**: workers/canonical_execution_learning_worker.py كان في scripts/workers/ بجذر المستودع، و`services/sahool-platform/Dockerfile` ينسخ shared/ وجذر الخدمة فقط ⇒ لم يكن في الصورة أصلاً، والحاوية تموت عند الإقلاع وrestart يُعيدها إلى الأبد (CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01، مُثبَت بالتشغيل في تخطيط صورةٍ محاكاة). ولا يُعَدّ كوداً مجالَ استخراج: يستورد ستّ وحدات `api.*` مملوكة للمنصّة (canonical_nutrient_ledger · canonical_phenology_state · canonical_salinity_state · irrigation_closed_loop_runtime · learning_feedback · persisted_canonical_repositories)، فموضعه القانونيّ هو الخدمة التي يقرأ داخلها لا جذر المستودع. وجرد وحدات المستودع **لم يتغيّر** — ملفّ واحد انتقل، ولم يُكتَب كودُ مجالٍ جديد. وسكناه تحت جذر الخدمة هو ما يجعل parents[1] يصحّ في المستودع وفي الصورة معاً.",
   "c3_precision_execution_note": "C3 (2026-08-18): وحدتان جديدتان مقصودتان — core/yield_map_processing.py (معالجة خرائط الغلّة لتغذية التعلّم المتحقَّق) وcore/machinery_as_applied.py (تحقّق التطبيق الفعليّ للآليّات فاشلاً مغلقاً). ملاصقتان لحالة الحقل القانونيّة التي تملكها المنصّة اليوم؛ خروجهما إلى خدمة مالكة يتبع مسار S5-EXEC لا هذا الأساس، وهما مقيَّدتان زمنيّاً في استثناءات راتشِت الانكماش (target_close_by=2026-11-30).",
   "s5_main_delta_forward_port_note": "main@010c9627 + S5/C4/JAIS delta: physical tombstones lowered module baseline 683→679 while retaining C3 core/yield_map_processing.py and core/machinery_as_applied.py from #870.",
-  "irr_corr1_evidence_chain_verifier_note": "679->680: api/irrigation_decision_evidence_chain.py (IRR-CORR1) — مُتحقِّقُ سلسلة أدلّة الريّ fail-closed لعقد EvidenceChain v1.1-errata2، يفرض ما لا يفرضه JSON Schema: E1 (بصماتُ مراحلَ حتميّة) وE2 (ارتباطُ أبٍ خطّيٌّ صارم). موضعُه داخل المنصّة لأنّه يقرأ مخطَّطَه من services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/، ملاصقاً لـapi/irrigation_engineering_contracts.py وأخواتها. وحدُّ صدقٍ مقيس: لا مستهلكَ إنتاجيّاً له اليوم — المستورِدُ الوحيد ملفُّ اختباره، مقيساً بمسحٍ كامل للشجرة. فلا يُقبَل على أرضيّة ci10_knowledge_layer_note ولا persisted_agronomic_sor_chain_note (بلوغٌ من مسارٍ مركَّب يُقاس في التغيير نفسِه)، بل قبولاً مقيَّداً زمنيّاً في استثناءات راتشِت الانكماش (target_close_by=2026-12-31) على شرط إغلاقٍ مسمّى: إمّا مستهلكٌ حيٌّ في مسار أدلّة C6، وإمّا انتقالٌ إلى خدمته المالكة — لا إعفاء عدّ. وC6 الحيُّ غيرُ مُدَّعى."
+  "irr_corr1_evidence_chain_verifier_note": "679->680: api/irrigation_decision_evidence_chain.py (IRR-CORR1) — مُتحقِّقُ سلسلة أدلّة الريّ fail-closed لعقد EvidenceChain v1.1-errata2، يفرض ما لا يفرضه JSON Schema: E1 (بصماتُ مراحلَ حتميّة) وE2 (ارتباطُ أبٍ خطّيٌّ صارم). موضعُه داخل المنصّة لأنّه يقرأ مخطَّطَه من services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/، ملاصقاً لـapi/irrigation_engineering_contracts.py وأخواتها. وحدُّ صدقٍ مقيس: لا مستهلكَ إنتاجيّاً له اليوم — المستورِدُ الوحيد ملفُّ اختباره، مقيساً بمسحٍ كامل للشجرة. فلا يُقبَل على أرضيّة ci10_knowledge_layer_note ولا persisted_agronomic_sor_chain_note (بلوغٌ من مسارٍ مركَّب يُقاس في التغيير نفسِه)، بل قبولاً مقيَّداً زمنيّاً في استثناءات راتشِت الانكماش (target_close_by=2026-12-31) على شرط إغلاقٍ مسمّى: إمّا مستهلكٌ حيٌّ في مسار أدلّة C6، وإمّا انتقالٌ إلى خدمته المالكة — لا إعفاء عدّ. وC6 الحيُّ غيرُ مُدَّعى.",
+  "water_ledger_inputs_note": "680->681: api/water_ledger_inputs.py — مدخلاتُ دفتر الماء اليوميّ (Kc الطوريّ من بطاقة المحصول، منطقة الجذور القانونيّة مع احتياط قوامٍ معلَّم، p من FAO-56 Table 22 مُعدَّلاً بـETc، الرطوبة وريح 2م بمعادلة 47). يُقبَل على أرضيّة ci10_knowledge_layer_note: له مستهلكان إنتاجيّان في التغيير نفسه — العامل اليوميّ phase_runtime_workers.run_water_ledger_once (مسار مجمَّد، تفويض GATE01-ADJ-2026-10-05-001) وapi/canonical_water_state.py المقروء من راوتر الريّ. موضعُه خارج العامل المجمَّد عمداً كي يُختبَر سلوكيّاً ويُعدَّل بلا تفويضٍ جديد. أمّا عقد التسميد غير الموصول فلم يُقبَل هنا: وُضِع في shared/precision_agriculture/fertigation_plan.py لأنّه بلا مستهلكٍ إنتاجيّ. لا مسارَ جديداً."
 }

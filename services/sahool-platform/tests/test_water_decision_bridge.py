@@ -54,7 +54,13 @@ async def test_full_auto_chain(monkeypatch):
     monkeypatch.setenv("WATER_DEFICIT_AUTO_EXECUTION_ENABLED", "true")
     monkeypatch.setenv("WATER_DEFICIT_EXECUTION_TARGET_ID", "pivot-1")
     mods = {
-        "record_decision": AsyncMock(return_value={"persisted": True, "authoritative": True}),
+        "record_decision": AsyncMock(
+            return_value={
+                "persisted": True,
+                "authoritative": True,
+                "decision_value_digest": "c" * 64,
+            }
+        ),
         "review_decision": AsyncMock(return_value={"review_id": "rev1"}),
         "create_execution_plan": AsyncMock(return_value={"execution_plan_id": "plan1"}),
         "authorize_dispatch": AsyncMock(return_value={"dispatch_authorization_id": "auth1"}),
@@ -69,6 +75,9 @@ async def test_full_auto_chain(monkeypatch):
             entry={"deficit_mm": 20, "confidence": 0.8},
         )
     assert out["status"] == "execution_queued" and out["execution_request_id"] == "req1"
+    # The policy approves the version decision-service stored and reported (035).
+    review_payload = mods["review_decision"].await_args.args[1]
+    assert review_payload["decision_value_digest"] == "c" * 64
 
 
 def test_auto_execution_payload_matches_actuator_contract(monkeypatch):

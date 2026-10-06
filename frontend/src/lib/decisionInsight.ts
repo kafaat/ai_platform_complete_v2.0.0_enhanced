@@ -121,7 +121,7 @@ export interface DecisionExplainResponse {
 // ── اقتراحات التعلُّم (GET /api/v1/decision/learning) — استشاريّة، لا تُطبَّق آليّاً ──
 
 export interface LearningSuggestion {
-  kind: 'raise_approvals' | 'relax_friction' | 'favor_water_efficiency' | 'review_failures' | string;
+  kind: 'raise_approvals' | 'relax_friction' | 'review_requested_applied_gap' | 'review_failures' | string;
   action_type: string;
   message_ar: string;
   evidence: {
@@ -129,7 +129,7 @@ export interface LearningSuggestion {
     failed: number;
     sample: number;
     success_rate: number;
-    water_saved_mm: number;
+    requested_minus_applied_mm: number;
   };
   confidence: number; // [0,1] — يتزايد مع العيّنة (تشبع عند 30)
 }
@@ -147,8 +147,20 @@ export interface DecisionLearningResponse {
 export interface ImpactByAction {
   executed: number;
   failed: number;
-  water_saved_mm: number;
+  requested_minus_applied_mm: number;
 }
+
+/** حكمُ الخادم على الوفر — فرقُ المطلوب عن المُنفَّذ **ليس** وفراً (قد يكون نقصَ تنفيذ). */
+export interface SavingsClaim {
+  status: 'not_established';
+  basis: 'requested_minus_applied';
+  not_a_saving_ar: string;
+  evidence_required: Record<
+    'withdrawal_reduction' | 'consumption_reduction' | 'attribution' | 'economic_impact',
+    string
+  >;
+}
+
 
 export interface DecisionImpactResponse {
   total_decisions: number;
@@ -157,9 +169,10 @@ export interface DecisionImpactResponse {
   success_rate: number; // executed / (executed+failed) — [0,1]
   water_requested_mm: number;
   water_applied_mm: number;
-  water_saved_mm: number;
+  requested_minus_applied_mm: number; // ليس وفراً — انظر savings_claim
   water_records: number; // السجلّات التي أُحتسب لها الماء (شفافيّة التغطية)
   by_action: Record<string, ImpactByAction>;
+  savings_claim?: SavingsClaim;
   disabled?: boolean;
 }
 
@@ -191,7 +204,7 @@ export function decisionTypeLabel(type: string | null | undefined): string {
 const SUGGESTION_KIND_AR: Record<string, string> = {
   raise_approvals: 'رفع الموافقات',
   relax_friction: 'تخفيف الاحتكاك',
-  favor_water_efficiency: 'ترجيح كفاءة الماء',
+  review_requested_applied_gap: 'مراجعة فرق المطلوب عن المُنفَّذ',
   review_failures: 'مراجعة الإخفاقات',
 };
 
@@ -204,7 +217,7 @@ const SUGGESTION_KIND_TONE: Record<string, string> = {
   raise_approvals: '#fdba74',
   review_failures: '#fca5a5',
   relax_friction: '#86efac',
-  favor_water_efficiency: '#7dd3fc',
+  review_requested_applied_gap: '#7dd3fc',
 };
 
 export function suggestionKindColor(kind: string | null | undefined): string {

@@ -531,12 +531,16 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     import datetime as _dt
 
     from api.soil_enrichment import extract_texture
-    from api.soil_water import soil_water_params
-    from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
     from api.water_ledger_auto import (
         AUTO_CREATED_BY,
         compute_daily_ledger_entry,
         manual_entry_takes_precedence,
+    )
+    from api.water_ledger_inputs import (
+        daily_kc,
+        et0_is_reference,
+        et0_weather_inputs,
+        ledger_root_zone,
     )
     from api.weather_service_client import get_et0_product, get_weather_forecast
 
@@ -545,7 +549,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     async with pool.acquire() as conn:
         fields = await conn.fetch(
             """
-            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop, s.season_id
+            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop, s.season_id,
+                   s.sowing_date, s.cultivar
             FROM fields f
             JOIN seasons s ON s.field_id = f.field_id AND s.status = 'active'
             WHERE f.lat IS NOT NULL AND f.lon IS NOT NULL
@@ -579,7 +584,22 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     field_id,
                 )
                 texture = extract_texture(soil_row["result"]) if soil_row else None
-                sw = soil_water_params(texture=texture, root_depth_m=None)
+                # Kc الطوريّ من بطاقة المحصول وتاريخ الزراعة — لا Kc منتصف الموسم كلَّ يوم ولا
+                # احتياطَ القمح. مجهولٌ ⇒ تخطٍّ مُعلَّل (لا قيدَ بمعاملٍ لا يمثّل الحقل).
+                crop_kc = daily_kc(row["field_crop"], row["sowing_date"], today)
+                if crop_kc is None:
+                    print(
+                        json.dumps(
+                            {
+                                "worker": "water_ledger",
+                                "field_id": field_id,
+                                "skipped": "crop_kc_unavailable",
+                            },
+                            ensure_ascii=False,
+                        ),
+                        flush=True,
+                    )
+                    continue
                 irr = await conn.fetchrow(
                     "SELECT COALESCE(SUM(volume_mm), 0) AS mm,"
                     " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
@@ -602,11 +622,11 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                 rain_mm = float(_precip or 0.0)
                 if t_max is None or t_min is None:
                     continue
+                # الرطوبة ومتوسّط الريح (محوَّلاً إلى 2م، FAO-56 Eq. 47) — لا قصوى اليوم.
                 et0 = await get_et0_product(
                     t_max_c=float(t_max),
                     t_min_c=float(t_min),
-                    solar_rad_mj_m2=day0.get("solar_radiation_mj_m2"),
-                    wind_2m_ms=day0.get("wind_max_ms"),
+                    **et0_weather_inputs(day0),
                     lat_deg=float(row["lat"]),
                     day_of_year=today.timetuple().tm_yday,
                     tenant_id=str(row["tenant_id"]),
@@ -615,17 +635,25 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                 if et0_mm is None:
                     continue
 
-                crop = (row["field_crop"] or "").strip().lower() or None
-                kc_map = KC_BY_CROP_STAGE.get(crop or "", KC_BY_CROP_STAGE.get("wheat", {}))
-                kc, _ = kc_from_ndvi(None, kc_map, "mid")
+                kc = crop_kc.kc
+                zone = await ledger_root_zone(
+                    conn,
+                    tenant_id=str(row["tenant_id"]),
+                    field_id=field_id,
+                    season_id=str(row["season_id"]) if row["season_id"] else None,
+                    crop_kc=crop_kc,
+                    variety=row["cultivar"],
+                    texture=texture,
+                    etc_mm_day=kc * float(et0_mm),
+                )
                 entry = compute_daily_ledger_entry(
                     prev_depletion_mm=(
                         float(prev["depletion_mm"])
                         if prev and prev["depletion_mm"] is not None
                         else None
                     ),
-                    taw_mm=float(sw["taw_mm"]),
-                    raw_mm=float(sw["taw_mm"]) * float(sw["raw_fraction"]),
+                    taw_mm=zone["taw_mm"],
+                    raw_mm=zone["raw_mm"],
                     et0_mm=float(et0_mm),
                     kc=kc,
                     rain_mm=rain_mm,
@@ -633,6 +661,9 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     irrigation_volume_untracked=bool(irr["untracked"]),
                     irrigation_unobserved=not int(irr["runs"] or 0),
                     rain_assumed_zero=rain_assumed_zero,
+                    et0_reference_unavailable=not et0_is_reference(et0),
+                    root_zone_texture_fallback=zone["root_zone_texture_fallback"],
+                    depletion_fraction_default=zone["depletion_fraction_default"],
                 )
                 await conn.execute(
                     """
@@ -659,7 +690,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     float(irr["mm"] or 0.0),
                     entry["depletion_mm"],
                     entry["deficit_mm"],
-                    "mid",
+                    crop_kc.stage,
                     entry["decision"],
                     entry["confidence"],
                     AUTO_CREATED_BY,
@@ -675,8 +706,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     ledger_date=today,
                     entry={
                         **entry,
-                        "taw_mm": float(sw["taw_mm"]),
-                        "raw_mm": float(sw["taw_mm"]) * float(sw["raw_fraction"]),
+                        "taw_mm": zone["taw_mm"],
+                        "raw_mm": zone["raw_mm"],
                     },
                 )
                 if bridge_result.get("status") not in {"disabled", "below_threshold"}:
