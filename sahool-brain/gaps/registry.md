@@ -7185,7 +7185,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، على `main` عند `1a2a5cd7` — دمجُ #1145 squash، رأسُه `0a9e2700`) — شرطُ الإغلاق المكتوب أدناه مقيسٌ على `main@b645c067`: الشهودُ 20/20 (`tests_v9/test_platform_catalog_gate.py`) · الطفراتُ 21/21 مقتولة · المولَّدُ متّسق · CI أخضرُ على رأس #1145 وعلى دمجه. الدليلُ الخام `certification/evidence/route_governance_model_dump_closure_20261006.json`. (كانت open منذ كُشفت بمراجعة Copilot على #1144.)
 - **الصنف:** فجوةُ قياس (أثرٌ حوكميّ مولَّد يُبخس العقد).
-- **النسخة المفحوصة:** `77f9f188`.
+- **النسخة المفحوصة:** `77f9f188` عند الفتح (قبل الإصلاح) · `b645c067` عند الإغلاق (قياسُ شرطه، `certification/evidence/route_governance_model_dump_closure_20261006.json`).
 - **المُنتِج والمستهلك:** `scripts/architecture/build_platform_catalog.py` (`scan_route_governance` و`_IDEMPOTENCY_TOKENS`) يشتقّ `idempotency_required` من رموزٍ حرفيّة في جسم المعالِج؛ ومستهلكُه `platform_catalog.generated.json` و`docs/architecture/PLATFORM_CATALOG.generated.md`.
 - **طريقة الاستدعاء:** `python scripts/architecture/build_platform_catalog.py` ضمن `verify_all_generated --fix`.
 - **إعادة الإنتاج:** مسحٌ بـ`ast` لمعالِجات `services/sahool-platform/api/routers/decision_review.py`: أحدَ عشرَ معالِجاً يمرّر `req.model_dump()` لنموذجٍ يُعلن `idempotency_key` بلا ذكر الرمز في الجسم (منها `create_decision_execution_plan` و`authorize_execution_plan_dispatch` و`create_authorized_execution_request`)، فتُفهرَس `idempotency_required: false` والطلبُ يشترطه. والثاني عشر (`review_decision_candidate`) انحدر كذلك في #1144 ثمّ أُعيد في الـPR نفسه بتسمية المفتاح صراحةً.
