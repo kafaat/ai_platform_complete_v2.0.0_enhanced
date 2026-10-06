@@ -57,7 +57,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 61,
+      "capability_count": 62,
       "component_id": "decision-service",
       "domain": "decision-governance",
       "status": {
@@ -505,7 +505,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "3687e2b793561ea9fde95c411d31cc05458e791745cce3dc9a2860f8deb709cc",
+  "fingerprint": "f1688d291ef84a192db93856b1cd47558b4025a5fa3faafd45b1fd7822726421",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

@@ -99,6 +99,16 @@ async def _lookup_content_digest(conn: Any, *, tenant_id: str, decision_id: str)
     return row["content_digest"] if row else None
 
 
+def decision_value_digest(decision_value: Any) -> str:
+    """IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01 — sha256 over canonical JSON of the
+    evidence, computed HERE and never accepted from the client. Approval binds to it, a plan
+    records it, and the platform re-checks it at the moment of manual execution (035)."""
+    blob = json.dumps(
+        decision_value or {}, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
 async def persist_decision_record(
     *, tenant_id: str, payload: Any, decision_id: str
 ) -> dict[str, Any]:
@@ -160,9 +170,9 @@ async def persist_decision_record(
                        agronomic_context_snapshot_id, field_historical_context_snapshot_id,
                        feature_manifest_id, context_contract_version,
                        season_id, crop_id, cultivar_id, vegetation_snapshot_id, feature_manifest_hash,
-                       content_digest)
+                       decision_value_digest, content_digest)
                     VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
-                            $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+                            $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
                     ON CONFLICT (decision_id) DO NOTHING
                     RETURNING decision_id
                     """,
@@ -186,6 +196,7 @@ async def persist_decision_record(
                     getattr(payload, "cultivar_id", None),
                     vegetation_snapshot_id,
                     feature_manifest_hash,
+                    decision_value_digest(payload.decision_value),
                     content_digest,
                 )
             except (
@@ -199,11 +210,13 @@ async def persist_decision_record(
             replayed = inserted is None
             if replayed:
                 existing = await conn.fetchrow(
-                    "SELECT tenant_id, decision_id FROM decision_record WHERE decision_id=$1",
+                    "SELECT tenant_id, decision_id, decision_value_digest FROM decision_record "
+                    "WHERE decision_id=$1",
                     decision_id,
                 )
                 if existing is None or str(existing["tenant_id"]) != str(tenant_id):
                     raise ValueError("decision_id collision belongs to another tenant")
+                stored_digest = existing["decision_value_digest"]
             else:
                 await emit_outbox_event(
                     conn,
@@ -213,7 +226,14 @@ async def persist_decision_record(
                     aggregate_id=decision_id,
                     payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
                 )
-        return {"decision_id": decision_id, "replayed": replayed}
+                stored_digest = decision_value_digest(payload.decision_value)
+        # The version a reviewer will be shown — the stored one on replay, never recomputed from
+        # a replayed payload that may differ (035).
+        return {
+            "decision_id": decision_id,
+            "replayed": replayed,
+            "decision_value_digest": stored_digest,
+        }
     finally:
         await conn.close()
 
@@ -555,11 +575,19 @@ def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
         if hasattr(reviewed_at, "isoformat")
         else reviewed_at,
         "candidate_lineage_id": row["candidate_lineage_id"],
+        # The version approved (035). ``get`` — a pre-035 row has no such column.
+        "decision_value_digest": row.get("approved_decision_value_digest"),
     }
 
 
 def _request_hash(
-    *, decision_id: str, action: str, new_state: str, reason: str | None, candidate_lineage_id: str
+    *,
+    decision_id: str,
+    action: str,
+    new_state: str,
+    reason: str | None,
+    candidate_lineage_id: str,
+    decision_value_digest: str | None,
 ) -> str:
     """Stable hash of the semantic review request — drives idempotency replay vs conflict."""
     blob = json.dumps(
@@ -569,6 +597,7 @@ def _request_hash(
             "new_state": new_state,
             "reason": reason or "",
             "candidate_lineage_id": candidate_lineage_id,
+            "decision_value_digest": decision_value_digest,
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -587,6 +616,7 @@ async def review_decision(
     candidate_lineage_id: str,
     idempotency_key: str,
     policy_version: str | None,
+    decision_value_digest: str | None,
 ) -> dict[str, Any]:
     """WX-10.7 — atomic ``pending_approval -> approved|rejected`` transition owned by
     decision-service, in ONE transaction: conditional UPDATE of the dedicated ``review_state``
@@ -611,6 +641,7 @@ async def review_decision(
         new_state=new_state,
         reason=reason,
         candidate_lineage_id=candidate_lineage_id,
+        decision_value_digest=decision_value_digest,
     )
     policy_version = policy_version or "unspecified"
 
@@ -622,8 +653,7 @@ async def review_decision(
             # the original authoritative result; same key + different request ⇒ conflict.
             existing = await conn.fetchrow(
                 """
-                SELECT review_id, decision_id, previous_state, new_state, reviewed_by,
-                       reviewed_at, candidate_lineage_id, request_hash
+                SELECT *
                   FROM decision_reviews
                  WHERE tenant_id = $1::uuid AND idempotency_key = $2
                 """,
@@ -646,19 +676,21 @@ async def review_decision(
                    AND stage = 'candidate'
                    AND review_state = 'pending_approval'
                    AND candidate_lineage_id = $4
+                   AND ($3 = 'rejected' OR decision_value_digest = $5)
                 RETURNING decision_id
                 """,
                 decision_id,
                 tenant_id,
                 new_state,
                 candidate_lineage_id,
+                decision_value_digest,
             )
             if updated is None:
                 # Tenant-scoped classification (no cross-tenant oracle). Only candidates are
                 # reviewable, so probe is scoped to stage='candidate' + tenant.
                 probe = await conn.fetchrow(
                     """
-                    SELECT review_state, candidate_lineage_id
+                    SELECT review_state, candidate_lineage_id, decision_value_digest
                       FROM decision_record
                      WHERE decision_id = $1 AND tenant_id = $2::uuid AND stage = 'candidate'
                     """,
@@ -669,7 +701,11 @@ async def review_decision(
                     return {"status": "not_found"}
                 if probe["review_state"] != "pending_approval":
                     return {"status": "conflict", "reason": "not_pending_approval"}
-                return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
+                if probe["candidate_lineage_id"] != candidate_lineage_id:
+                    return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
+                # The reviewer approved a version the record does not carry (or a legacy row
+                # without a server digest): fail closed — the candidate must be resubmitted.
+                return {"status": "conflict", "reason": "decision_version_mismatch"}
 
             # (3) Append-only audit row. UNIQUE(tenant_id, decision_id) is the concurrency backstop.
             try:
@@ -678,11 +714,11 @@ async def review_decision(
                     INSERT INTO decision_reviews
                       (review_id, decision_id, tenant_id, action, previous_state, new_state,
                        reason, reviewed_by, candidate_lineage_id, idempotency_key, request_hash,
-                       policy_version)
+                       policy_version, approved_decision_value_digest)
                     VALUES ('rev_' || replace(gen_random_uuid()::text, '-', ''),
-                            $1, $2::uuid, $3, 'pending_approval', $4, $5, $6, $7, $8, $9, $10)
-                    RETURNING review_id, decision_id, previous_state, new_state, reviewed_by,
-                              reviewed_at, candidate_lineage_id
+                            $1, $2::uuid, $3, 'pending_approval', $4, $5, $6, $7, $8, $9, $10,
+                            $11)
+                    RETURNING *
                     """,
                     decision_id,
                     tenant_id,
@@ -694,6 +730,7 @@ async def review_decision(
                     idempotency_key,
                     request_hash,
                     policy_version,
+                    decision_value_digest,
                 )
             except unique_violation:
                 # A concurrent reviewer already recorded the terminal review for this decision.
@@ -728,7 +765,8 @@ async def list_review_queue(*, tenant_id: str, limit: int = 100) -> list[dict[st
         rows = await conn.fetch(
             """
             SELECT decision_id, field_id, decision_type, region, stage, decision_value,
-                   confidence, review_state, candidate_lineage_id, created_at, updated_at
+                   confidence, review_state, candidate_lineage_id, decision_value_digest,
+                   created_at, updated_at
               FROM decision_record
              WHERE tenant_id = $1::uuid
                AND stage = 'candidate'
@@ -771,14 +809,55 @@ async def list_decision_records(
         await conn.close()
 
 
+# IRRIGATION-MANUAL-PLAN-NOT-BOUND-TO-DECISION-AMOUNT-01 — owner decision (2026-10-06): a manual
+# irrigation plan binds to the approved decision's ``target_refill_mm`` within ±10%.
+MANUAL_IRRIGATION_PLAN_TOLERANCE = 0.10
+
+
+def _number(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def _manual_irrigation_plan_violation(decision: Any, payload: Any) -> str | None:
+    """Why a manual-irrigation plan does not match the approved decision — or None."""
+    if decision["decision_type"] != "irrigation":
+        return "manual_irrigation_requires_irrigation_decision"
+    if not decision["approved_decision_value_digest"]:
+        return "decision_version_unbound"
+    value = decision["decision_value"]
+    if isinstance(value, str):
+        value = json.loads(value)
+    recommendation = (value or {}).get("recommendation") or {}
+    if recommendation.get("should_irrigate") is not True:
+        return "decision_does_not_recommend_irrigation"
+    target = _number(recommendation.get("target_refill_mm"))
+    if target is None or target <= 0:
+        return "decision_has_no_refill_target"
+    constraints = payload.constraints or {}
+    if constraints.get("field_id") != decision["field_id"]:
+        return "plan_field_differs_from_decision"
+    depth = _number(constraints.get("target_depth_mm"))
+    if depth is None or abs(depth - target) > MANUAL_IRRIGATION_PLAN_TOLERANCE * target:
+        return "plan_amount_diverges_from_decision"
+    return None
+
+
 def _execution_plan_request_hash(
-    *, decision_id: str, review_id: str, candidate_lineage_id: str, payload: Any
+    *,
+    decision_id: str,
+    review_id: str,
+    candidate_lineage_id: str,
+    payload: Any,
+    decision_value_digest: str | None = None,
 ) -> str:
     blob = json.dumps(
         {
             "decision_id": decision_id,
             "review_id": review_id,
             "candidate_lineage_id": candidate_lineage_id,
+            "decision_value_digest": decision_value_digest,
             "operation_type": payload.operation_type,
             "planned_start": str(payload.planned_start) if payload.planned_start else None,
             "planned_end": str(payload.planned_end) if payload.planned_end else None,
@@ -810,6 +889,7 @@ def _authoritative_execution_plan(row: Any, *, replay: bool) -> dict[str, Any]:
         "created_by": row["created_by"],
         "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
         "plan_digest": row["request_hash"],
+        "decision_value_digest": row["decision_value_digest"],
     }
 
 
@@ -829,16 +909,33 @@ async def create_execution_plan(
     is mutated and no dispatch/task/equipment side effect is emitted. Same-key/same-payload is a
     deterministic replay; same-key/different-payload conflicts.
     """
-    request_hash = _execution_plan_request_hash(
-        decision_id=decision_id,
-        review_id=review_id,
-        candidate_lineage_id=candidate_lineage_id,
-        payload=payload,
-    )
     conn = await _connect()
     try:
         async with conn.transaction():
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            source = await conn.fetchrow(
+                """
+                SELECT d.decision_id, d.review_state, d.candidate_lineage_id, d.field_id,
+                       d.decision_type, d.decision_value, d.decision_value_digest,
+                       r.review_id, r.new_state, r.approved_decision_value_digest
+                  FROM decision_record d
+                  JOIN decision_reviews r
+                    ON r.tenant_id=d.tenant_id AND r.decision_id=d.decision_id
+                 WHERE d.tenant_id=$1::uuid AND d.decision_id=$2
+                """,
+                tenant_id,
+                decision_id,
+            )
+            # The plan digest commits to the approved VERSION, so a replay is only a replay of a
+            # plan for the same version (035).
+            bound_digest = source["decision_value_digest"] if source else None
+            request_hash = _execution_plan_request_hash(
+                decision_id=decision_id,
+                review_id=review_id,
+                candidate_lineage_id=candidate_lineage_id,
+                payload=payload,
+                decision_value_digest=bound_digest,
+            )
             prior = await conn.fetchrow(
                 """
                 SELECT * FROM decision_execution_plans
@@ -852,18 +949,6 @@ async def create_execution_plan(
                     return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
                 return _authoritative_execution_plan(prior, replay=True)
 
-            source = await conn.fetchrow(
-                """
-                SELECT d.decision_id, d.review_state, d.candidate_lineage_id,
-                       r.review_id, r.new_state
-                  FROM decision_record d
-                  JOIN decision_reviews r
-                    ON r.tenant_id=d.tenant_id AND r.decision_id=d.decision_id
-                 WHERE d.tenant_id=$1::uuid AND d.decision_id=$2
-                """,
-                tenant_id,
-                decision_id,
-            )
             if not source:
                 return {"status": "not_found"}
             if source["review_state"] != "approved" or source["new_state"] != "approved":
@@ -872,6 +957,13 @@ async def create_execution_plan(
                 return {"status": "conflict", "reason": "candidate_lineage_mismatch"}
             if source["review_id"] != review_id:
                 return {"status": "conflict", "reason": "review_id_mismatch"}
+            approved = source["approved_decision_value_digest"]
+            if approved is not None and approved != source["decision_value_digest"]:
+                return {"status": "conflict", "reason": "decision_version_mismatch"}
+            if payload.operation_type == "manual_irrigation":
+                violation = _manual_irrigation_plan_violation(source, payload)
+                if violation:
+                    return {"status": "conflict", "reason": violation}
 
             plan_id = (
                 "xplan_"
@@ -885,9 +977,10 @@ async def create_execution_plan(
                   (execution_plan_id, tenant_id, decision_id, review_id,
                    candidate_lineage_id, operation_type, planned_start, planned_end,
                    target_zone_ids, required_resources, constraints, safety_conditions,
-                   weather_window_reference, status, idempotency_key, request_hash, created_by)
+                   weather_window_reference, status, idempotency_key, request_hash, created_by,
+                   decision_value_digest)
                 VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb,
-                        $12::jsonb,$13::jsonb,'planned',$14,$15,$16)
+                        $12::jsonb,$13::jsonb,'planned',$14,$15,$16,$17)
                 ON CONFLICT DO NOTHING
                 RETURNING *
                 """,
@@ -909,6 +1002,7 @@ async def create_execution_plan(
                 idempotency_key,
                 request_hash,
                 created_by,
+                bound_digest,
             )
             if row is None:
                 # A competing request won a unique constraint. Re-read deterministically; no
@@ -943,6 +1037,60 @@ async def create_execution_plan(
             return _authoritative_execution_plan(row, replay=False)
     finally:
         await conn.close()
+
+
+async def get_execution_plan_state(*, tenant_id: str, execution_plan_id: str) -> dict[str, Any]:
+    """IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01 — the live state a manual execution
+    re-checks at start and at confirm: the plan's digest and window, the version it was derived
+    from, and the decision's CURRENT version and review state. Read-only and tenant-scoped; the
+    caller (platform) fails closed on any mismatch. ``bound`` is the server's own verdict."""
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                """
+                SELECT p.execution_plan_id, p.decision_id, p.request_hash, p.status,
+                       p.planned_start, p.planned_end, p.operation_type,
+                       p.decision_value_digest AS plan_decision_value_digest,
+                       d.review_state, d.decision_value_digest AS current_decision_value_digest
+                  FROM decision_execution_plans p
+                  JOIN decision_record d
+                    ON d.tenant_id = p.tenant_id AND d.decision_id = p.decision_id
+                 WHERE p.tenant_id = $1::uuid AND p.execution_plan_id = $2
+                """,
+                tenant_id,
+                execution_plan_id,
+            )
+    finally:
+        await conn.close()
+    if row is None:
+        return {"status": "not_found"}
+
+    def _iso(v: Any) -> Any:
+        return v.isoformat() if hasattr(v, "isoformat") else v
+
+    plan_digest = row["plan_decision_value_digest"]
+    bound = (
+        row["review_state"] == "approved"
+        and plan_digest is not None
+        and plan_digest == row["current_decision_value_digest"]
+    )
+    return {
+        "status": "ok",
+        "authoritative": True,
+        "execution_plan_id": row["execution_plan_id"],
+        "decision_id": row["decision_id"],
+        "plan_digest": row["request_hash"],
+        "plan_state": row["status"],
+        "operation_type": row["operation_type"],
+        "planned_start": _iso(row["planned_start"]),
+        "planned_end": _iso(row["planned_end"]),
+        "review_state": row["review_state"],
+        "decision_value_digest": plan_digest,
+        "current_decision_value_digest": row["current_decision_value_digest"],
+        "bound": bound,
+    }
 
 
 def _dispatch_authorization_request_hash(

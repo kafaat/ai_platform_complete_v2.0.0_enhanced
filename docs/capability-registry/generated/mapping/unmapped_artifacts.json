@@ -2556,6 +2556,10 @@
     "kind": "database"
   },
   {
+    "path": "services/decision-service/migrations/035_decision_version_binding.sql",
+    "kind": "database"
+  },
+  {
     "path": "services/decision-service/outcome_reconcile.py",
     "kind": "backend"
   },
@@ -3569,10 +3573,6 @@
   },
   {
     "path": "services/sahool-platform/api/irrigation_logic.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/irrigation_manual_execution.py",
     "kind": "backend"
   },
   {
@@ -7801,6 +7801,10 @@
   },
   {
     "path": "tests_v9/test_irrigation_commissioning_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_manual_slice_routes.py",
     "kind": "tests"
   },
   {

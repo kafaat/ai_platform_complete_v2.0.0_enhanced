@@ -102,6 +102,14 @@ def test_candidate_surfaces_in_downstream_review_queue():
 def test_candidate_is_reviewable_and_leaves_queue():
     c = _client()
     _record(c, "dec_wx106_rev")
+    # The reviewer approves the version the queue showed — the server digest travels with it
+    # (IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01).
+    shown = [it for it in _queue(c)["items"] if it["decision_id"] == "dec_wx106_rev"][0]
+    from persistence import decision_value_digest
+
+    assert shown["decision_value_digest"] == decision_value_digest(
+        _candidate_payload("dec_wx106_rev")["decision_value"]
+    )
     r = c.post(
         "/v1/decisions/dec_wx106_rev/review",
         json={
@@ -109,6 +117,7 @@ def test_candidate_is_reviewable_and_leaves_queue():
             "reason": "ok",
             "expected_state": "pending_approval",
             "candidate_lineage_id": LINEAGE,
+            "decision_value_digest": shown["decision_value_digest"],
             "idempotency_key": "wx106-approve",  # gitleaks:allow — test idempotency token, not a secret
             "policy_version": "rev/1.0.0",
         },

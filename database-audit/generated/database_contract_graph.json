@@ -4435,7 +4435,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/routers/irrigation_engineering.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py"
       ],
@@ -4485,6 +4487,7 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py"
       ],
       "code_writers": [

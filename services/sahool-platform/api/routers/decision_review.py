@@ -37,6 +37,8 @@ class DecisionReviewRequest(BaseModel):
     reason: str = ""
     expected_state: str = "pending_approval"
     candidate_lineage_id: str
+    # IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01: لازمةٌ للاعتماد (422) لا للرفض.
+    decision_value_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     idempotency_key: str
     policy_version: str | None = None
 
@@ -117,14 +119,9 @@ async def review_decision_candidate(
     ∧ persisted ∧ decision_id مطابق ∧ previous_state=pending_approval ∧ state∈{approved,rejected}
     ∧ review_id/reviewed_by/reviewed_at غير فارغة ∧ candidate_lineage_id مطابق). mirror/SoR-off ⇒
     ردّ غير آمِر ⇒ 503. الخدمة ساقطة ⇒ 503. لا تنفيذ (dispatch/task/معدّات)."""
-    payload = {
-        "action": req.action,
-        "reason": req.reason,
-        "expected_state": req.expected_state,
-        "candidate_lineage_id": req.candidate_lineage_id,
-        "idempotency_key": req.idempotency_key,
-        "policy_version": req.policy_version,
-    }
+    # كلُّ حقول الطلب (ومنها بصمةُ النسخة المعروضة)، ومفتاحُ عدم التكرار مُسمّىً صراحةً: عقدُ
+    # الحوكمة يُشتقّ من رموز جسم المعالِج، وmodel_dump وحده أخفاه (idempotency_required ⇒ false).
+    payload = {**req.model_dump(), "idempotency_key": req.idempotency_key}
     try:
         result = await ds_review_decision(
             decision_id,
@@ -152,6 +149,8 @@ async def review_decision_candidate(
         and bool(result.get("reviewed_by"))
         and bool(result.get("reviewed_at"))
         and result.get("candidate_lineage_id") == req.candidate_lineage_id
+        # النسخةُ المعتمدة هي النسخةُ التي رآها المراجِع — يُثبتها الخادم لا يفترضها الموجِّه.
+        and result.get("decision_value_digest") == req.decision_value_digest
     )
     if not proven:
         raise HTTPException(
@@ -166,6 +165,7 @@ async def review_decision_candidate(
         "reviewed_by": result["reviewed_by"],
         "reviewed_at": result["reviewed_at"],
         "candidate_lineage_id": result["candidate_lineage_id"],
+        "decision_value_digest": result["decision_value_digest"],
         "replay": bool(result.get("replay", False)),
     }
 

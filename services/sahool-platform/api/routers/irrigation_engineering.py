@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 
+from api.decision_service_client import get_execution_plan_state
 from api.irrigation_commissioning_runtime import (
     CommissioningCertificate,
     CommissioningCertificateInput,
@@ -29,11 +30,14 @@ from api.irrigation_engineering_workspace import (
     calculate_reservoir_booster_network,
 )
 from api.irrigation_manual_execution import (
+    ApprovedPlanRefused,
+    DeviationReasonRequired,
     ManualAsAppliedResult,
     ManualExecutionConfirmation,
     ManualExecutionState,
     ManualRecommendationInput,
     derive_manual_as_applied,
+    live_plan_recheck,
     transition_manual_execution,
 )
 from api.irrigation_manual_ledger_bridge import (
@@ -350,6 +354,33 @@ async def create_manual_execution(
     }
 
 
+async def _append_execution_event(conn, user, execution_id, from_state, to_state, body) -> None:
+    """Append-only lifecycle event with its actor; the digest is over the canonical body."""
+    await conn.execute(
+        """INSERT INTO irrigation_manual_execution_events
+           (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
+           VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6::jsonb,$7) ON CONFLICT DO NOTHING""",
+        str(user.tenant_id),
+        execution_id,
+        from_state,
+        to_state,
+        str(user.user_id),
+        json.dumps(body),
+        __import__("hashlib").sha256(json.dumps(body, sort_keys=True).encode()).hexdigest(),
+    )
+
+
+async def _live_plan_recheck(row, tenant_id: str, **window) -> dict:
+    """IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01 — fail closed as 409 (see
+    ``live_plan_recheck``); the plan-state reader is looked up here so tests can replace it."""
+    try:
+        return await live_plan_recheck(
+            row, tenant_id, fetch_state=get_execution_plan_state, **window
+        )
+    except ApprovedPlanRefused as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
 @router.post("/manual-executions/{execution_id}/transition")
 async def transition_manual_execution_endpoint(
     execution_id: str,
@@ -377,6 +408,11 @@ async def transition_manual_execution_endpoint(
                 "valid_until"
             ] <= datetime.now(UTC):
                 raise HTTPException(status_code=409, detail="EXECUTION_WINDOW_EXPIRED")
+            plan_recheck = (
+                await _live_plan_recheck(row, str(user.tenant_id))
+                if target == ManualExecutionState.STARTED
+                else None
+            )
             column = {
                 ManualExecutionState.APPROVED: "approved_at",
                 ManualExecutionState.STARTED: "started_at",
@@ -402,22 +438,10 @@ async def transition_manual_execution_endpoint(
                 "to": target.value,
                 "actor": str(user.user_id),
             }
-            event_digest = (
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest()
-            )
-            await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6::jsonb,$7) ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
-                execution_id,
-                current.value,
-                target.value,
-                str(user.user_id),
-                json.dumps(event_body),
-                event_digest,
+            if plan_recheck:
+                event_body["plan_recheck"] = plan_recheck
+            await _append_execution_event(
+                conn, user, execution_id, current.value, target.value, event_body
             )
     return {"execution_id": execution_id, "state": target.value}
 
@@ -440,6 +464,12 @@ async def confirm_manual_execution(
                 raise HTTPException(
                     status_code=409, detail="EXECUTION_MUST_BE_STOPPED_BEFORE_CONFIRMATION"
                 )
+            plan_recheck = await _live_plan_recheck(
+                row,
+                str(user.tenant_id),
+                executed_from=req.confirmation.started_at,
+                executed_until=req.confirmation.stopped_at,
+            )
             rec = ManualRecommendationInput(
                 execution_id=str(row["execution_id"]),
                 tenant_id=str(row["tenant_id"]),
@@ -458,7 +488,10 @@ async def confirm_manual_execution(
                 valid_until=row["valid_until"],
                 created_by=str(row["created_by"]),
             )
-            result = derive_manual_as_applied(rec, req.confirmation)
+            try:
+                result = derive_manual_as_applied(rec, req.confirmation)
+            except DeviationReasonRequired as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
             await conn.execute(
                 """UPDATE irrigation_manual_executions SET state='confirmed', confirmed_at=now(),
                    started_at=$2, stopped_at=$3, completion_ratio=$4, confirmation=$5::jsonb,
@@ -472,6 +505,27 @@ async def confirm_manual_execution(
                 result.model_dump_json(),
                 result.as_applied_digest,
                 result.ledger_eligible,
+            )
+            # IRRIGATION-MANUAL-CONFIRM-HAS-NO-ACTOR-01: the measurement step recorded no actor and no
+            # event — the one transition that carries the as-applied water. It now writes the
+            # append-only event with the confirming actor, the live plan re-check and the deviation.
+            event_body = {
+                "execution_id": execution_id,
+                "from": ManualExecutionState.STOPPED.value,
+                "to": ManualExecutionState.CONFIRMED.value,
+                "actor": str(user.user_id),
+                "as_applied_digest": result.as_applied_digest,
+                "deviation_pct": result.deviation_pct,
+                "deviation_reason": result.deviation_reason,
+                "plan_recheck": plan_recheck,
+            }
+            await _append_execution_event(
+                conn,
+                user,
+                execution_id,
+                ManualExecutionState.STOPPED.value,
+                ManualExecutionState.CONFIRMED.value,
+                event_body,
             )
     return result
 
@@ -491,6 +545,7 @@ async def verify_manual_execution(
     req: ManualExecutionVerifyRequest,
     user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
 ) -> ManualVerificationResult:
+    rejected: ManualVerificationResult | None = None
     async with tenant_connection(user) as conn:
         async with conn.transaction():
             row = await conn.fetchrow(
@@ -509,6 +564,20 @@ async def verify_manual_execution(
                 as_applied = json.loads(as_applied)
             if isinstance(confirmation, str):
                 confirmation = json.loads(confirmation)
+            # IRRIGATION-MANUAL-VERIFICATION-WITHOUT-SEPARATION-01: «independent» verification could be
+            # done by the operator who created or confirmed the execution. The confirmer is read from
+            # the append-only event the confirm step now writes; an execution with no recorded
+            # confirmer (confirmed before that) cannot be independently verified — fail closed.
+            confirmer = await conn.fetchval(
+                """SELECT actor_id FROM irrigation_manual_execution_events
+                    WHERE execution_id=$1::uuid AND from_state='stopped' AND to_state='confirmed'
+                    ORDER BY occurred_at DESC LIMIT 1""",
+                execution_id,
+            )
+            if confirmer is None:
+                raise HTTPException(status_code=409, detail="CONFIRMER_NOT_RECORDED")
+            if str(user.user_id) in {str(row["created_by"]), str(confirmer)}:
+                raise HTTPException(status_code=409, detail="VERIFIER_MUST_BE_INDEPENDENT")
             # Reviewer identity is server-authoritative; never trust a client-supplied actor id.
             verification_request = req.verification.model_copy(
                 update={"reviewer_id": str(user.user_id)}
@@ -522,52 +591,57 @@ async def verify_manual_execution(
                 request=verification_request,
             )
             if result.status != "verified":
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "code": "MANUAL_AS_APPLIED_VERIFICATION_FAILED",
-                        "blocking_reasons": result.blocking_reasons,
-                    },
+                # A refused verification is a fact, not an absence: record it (append-only, no state
+                # change) and COMMIT it before refusing — raising inside the transaction rolled it
+                # back, so a rejection left no trace.
+                rejection = {
+                    "execution_id": execution_id,
+                    "from": "confirmed",
+                    "to": "confirmed",
+                    "actor": str(user.user_id),
+                    "verification_rejected": True,
+                    "blocking_reasons": result.blocking_reasons,
+                    "at": datetime.now(UTC).isoformat(),
+                }
+                await _append_execution_event(
+                    conn, user, execution_id, "confirmed", "confirmed", rejection
                 )
-            await conn.execute(
-                """UPDATE irrigation_manual_executions
-                   SET state='verified', verified_at=$2, verified_by=$3,
-                       verification=$4::jsonb, verification_digest=$5, updated_at=now()
-                   WHERE execution_id=$1::uuid""",
-                execution_id,
-                result.verified_at,
-                result.reviewer_id,
-                json.dumps(
-                    {
-                        **verification_request.model_dump(mode="json"),
-                        **result.model_dump(mode="json"),
-                    }
-                ),
-                result.verification_digest,
-            )
-            event_body = {
-                "execution_id": execution_id,
-                "from": "confirmed",
-                "to": "verified",
-                "actor": str(user.user_id),
-                "verification_digest": result.verification_digest,
-            }
-            event_digest = (
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest()
-            )
-            await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,'confirmed','verified',$3,$4::jsonb,$5)
-                   ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
-                execution_id,
-                str(user.user_id),
-                json.dumps(event_body),
-                event_digest,
-            )
+                rejected = result
+            else:
+                await conn.execute(
+                    """UPDATE irrigation_manual_executions
+                       SET state='verified', verified_at=$2, verified_by=$3,
+                           verification=$4::jsonb, verification_digest=$5, updated_at=now()
+                       WHERE execution_id=$1::uuid""",
+                    execution_id,
+                    result.verified_at,
+                    result.reviewer_id,
+                    json.dumps(
+                        {
+                            **verification_request.model_dump(mode="json"),
+                            **result.model_dump(mode="json"),
+                        }
+                    ),
+                    result.verification_digest,
+                )
+                event_body = {
+                    "execution_id": execution_id,
+                    "from": "confirmed",
+                    "to": "verified",
+                    "actor": str(user.user_id),
+                    "verification_digest": result.verification_digest,
+                }
+                await _append_execution_event(
+                    conn, user, execution_id, "confirmed", "verified", event_body
+                )
+    if rejected is not None:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "MANUAL_AS_APPLIED_VERIFICATION_FAILED",
+                "blocking_reasons": rejected.blocking_reasons,
+            },
+        )
     return result
 
 
@@ -682,20 +756,45 @@ async def reconcile_manual_execution_to_water_ledger(
                 "actor": str(user.user_id),
                 "ledger_event_digest": event.ledger_event_digest,
             }
-            event_digest = (
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest()
+            await _append_execution_event(
+                conn, user, execution_id, "verified", "reconciled", event_body
             )
+            # IRRIGATION-EXECUTION-COMPLETED-HAS-NO-PRODUCER-01: the completion event comes from the
+            # documented, verified, reconciled state — in the SAME transaction (outbox), so it exists
+            # iff the reconciliation does. Duplicates: this branch runs once per execution (the
+            # reconciliation row above short-circuits replays) and the consumer is idempotent by
+            # outcome digest; a late or out-of-order delivery is retried, not dropped.
+            as_applied = execution.get("as_applied") or {}
+            completion = {
+                "source": "manual",
+                "execution_id": execution_id,
+                "execution_plan_id": row["execution_plan_id"],
+                "decision_id": row["decision_id"],
+                "field_id": event.field_id,
+                "season_id": event.season_id,
+                "planned_depth_mm": float(row["target_depth_mm"]),
+                "applied_depth_mm": event.applied_depth_mm,
+                "applied_volume_m3": event.applied_volume_m3,
+                "deviation_pct": as_applied.get("deviation_pct"),
+                "deviation_reason": as_applied.get("deviation_reason"),
+                "observed_at": event.observed_at.isoformat(),
+                "ledger_event_digest": event.ledger_event_digest,
+                "source_digests": {
+                    "plan_digest": row["plan_digest"],
+                    "as_applied_digest": event.as_applied_digest,
+                    "verification_digest": event.verification_digest,
+                    "ledger_event_digest": event.ledger_event_digest,
+                },
+            }
             await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,'verified','reconciled',$3,$4::jsonb,$5)
-                   ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
+                """SELECT emit_event($1::text,$2::text,$3::text,$4::uuid,$5::jsonb,$6::text,
+                                     $7::text,NULL::uuid,now())""",
+                "irrigation.execution.completed",
+                "irrigation_manual_execution",
                 execution_id,
+                str(user.tenant_id),
+                json.dumps(completion, sort_keys=True),
+                "system",
                 str(user.user_id),
-                json.dumps(event_body),
-                event_digest,
             )
             return result
