@@ -362,6 +362,7 @@ def main():
         ["git", "diff", "--unified=0", f"{a.base}...{a.head}", "--", "sahool-brain/"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     ).stdout
     if REGISTRY in names:

@@ -8,10 +8,6 @@
       "reads": 0,
       "subprocess": 2
     },
-    "scripts/ci/brain_state_transition_guard.py": {
-      "reads": 0,
-      "subprocess": 2
-    },
     "scripts/ci/capability_evidence_maturity_engine.py": {
       "reads": 1,
       "subprocess": 0
