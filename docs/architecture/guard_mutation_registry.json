@@ -94,8 +94,8 @@
         },
         {
           "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
-          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off\n",
-          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off || true\n",
+          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off || true\n",
           "test": "tests_v9/test_runtime_image_audit_gate.py",
           "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
