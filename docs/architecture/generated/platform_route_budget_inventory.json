@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "b36bb98845eb038e8d5b6afa24a7c98a6cad2cab7b3b9695665e0607957aa02f",
+  "inventory_sha256": "84a65f3794b43089014b63f9a473802a1ab83ea08cc5cd0f4f9514bc6288e8af",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "adc6882aed92cf40aacce7991c77d3223508f413ef56a0d135577aae923982be"
+    "policy_sha256": "7c7ecf4b116e38608ae9869a4eb50597dfb864eb4760adcb6248fa9ae021d935"
   },
   "routes": [
     {
@@ -3634,7 +3634,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_hourly_recommendation",
-      "line": 527,
+      "line": 533,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3914,7 +3914,7 @@
     {
       "classification": "domain",
       "function": "reconcile_irrigation_execution",
-      "line": 568,
+      "line": 574,
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
       "source": "api/routers/irrigation_mpc.py"
