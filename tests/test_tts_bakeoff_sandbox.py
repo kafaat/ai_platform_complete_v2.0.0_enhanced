@@ -34,7 +34,7 @@ def _venv(tmp_path: Path) -> tuple[Path, Path, Path]:
     (base / "bin").mkdir(parents=True)
     (base / "lib" / "python3.12" / "lib-dynload").mkdir(parents=True)
     real = base / "bin" / "python3.12"
-    real.write_text("#!/bin/sh\n")
+    real.write_text("#!/bin/sh\n", encoding="utf-8")
     real.chmod(0o755)
     venv = tmp_path / "venv_kokoro"
     (venv / "bin").mkdir(parents=True)
@@ -78,7 +78,7 @@ def test_every_hop_of_a_stdlib_venv_interpreter_is_reachable(tmp_path):
     usr_bin = tmp_path / "usr" / "bin"
     usr_bin.mkdir(parents=True)
     real = usr_bin / "python3.11"
-    real.write_text("#!/bin/sh\n")
+    real.write_text("#!/bin/sh\n", encoding="utf-8")
     local = tmp_path / "usr" / "local" / "bin"
     local.mkdir(parents=True)
     (local / "python3").symlink_to(real)
@@ -103,7 +103,7 @@ def test_link_whose_target_is_outside_every_bind_is_skipped_and_recorded(tmp_pat
     """``/etc/resolv.conf → /mnt/wsl/resolv.conf``: إنشاءُ الرابط يسمّي هدفاً غيرَ معلن ولا يُوصل إليه."""
     target = tmp_path / "mnt" / "wsl" / "resolv.conf"
     target.parent.mkdir(parents=True)
-    target.write_text("nameserver 10.255.255.254\n")
+    target.write_text("nameserver 10.255.255.254\n", encoding="utf-8")
     link = tmp_path / "etc" / "resolv.conf"
     link.parent.mkdir()
     link.symlink_to(target)
@@ -146,14 +146,14 @@ def test_declared_interpreter_must_be_the_one_that_ran():
 def test_limit_swap_closes_it_when_the_kernel_exposes_the_file(tmp_path, monkeypatch):
     monkeypatch.setattr(run, "host_swap_active", lambda: True)
     f = tmp_path / "memory.swap.max"
-    f.write_text("max\n")
+    f.write_text("max\n", encoding="utf-8")
     assert run._limit_swap(f, "0") == {
         "limited": True,
         "file": "memory.swap.max",
         "value": "0",
         "host_swap_active": True,
     }
-    assert f.read_text() == "0"
+    assert f.read_text(encoding="utf-8") == "0"
     absent = run._limit_swap(tmp_path / "nope", "0")
     assert absent["limited"] is False and absent["host_swap_active"] is True
 
@@ -162,8 +162,8 @@ def test_v2_group_records_whether_swap_was_closed(tmp_path, monkeypatch):
     """الهرمُ الموحّد المصطنع بلا ``memory.swap.max`` (محاسبةُ المبادلة معطّلة) — يُسجَّل ولا يُدّعى الإغلاق."""
     cg = tmp_path / "cg"
     cg.mkdir()
-    (cg / "cgroup.controllers").write_text("cpu memory io\n")
-    (cg / "cgroup.subtree_control").write_text("cpu memory\n")
+    (cg / "cgroup.controllers").write_text("cpu memory io\n", encoding="utf-8")
+    (cg / "cgroup.subtree_control").write_text("cpu memory\n", encoding="utf-8")
     monkeypatch.setattr(run, "CG", cg)
     monkeypatch.setattr(run, "host_swap_active", lambda: True)
     info = run.setup_cgroups("bakeoff-t", 256, 1.0)
@@ -261,6 +261,7 @@ def _coordinate(tmp_path: Path, *extra: str, cwd: Path | None = None, env=None) 
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=300,
     )
     assert p.stdout.strip(), p.stderr[-2000:]
