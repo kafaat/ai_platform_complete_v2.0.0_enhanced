@@ -375,6 +375,20 @@ def test_a_legacy_candidate_without_a_server_digest_cannot_be_approved():
     assert res == {"status": "conflict", "reason": "decision_version_mismatch"}
 
 
+def test_a_legacy_candidate_can_still_be_rejected_so_it_leaves_the_queue():
+    _run(_seed_candidate("dec_ver2r", "cand/lin-1", with_digest=False))
+    res = _run(
+        _review(
+            "dec_ver2r",
+            action="reject",
+            new_state="rejected",
+            reason="resubmit with a server digest",
+            decision_value_digest=None,
+        )
+    )
+    assert res["status"] == "ok" and res["state"] == "rejected"
+
+
 def test_the_approved_version_is_recorded_on_the_review():
     _run(_seed_candidate("dec_ver3", "cand/lin-1"))
     assert _run(_review("dec_ver3"))["status"] == "ok"
@@ -390,6 +404,9 @@ def test_the_approved_version_is_recorded_on_the_review():
             await conn.close()
 
     assert _run(_approved()) == _digest()
+    # …and echoed in the authoritative result, so the BFF can prove WHICH version was approved.
+    replay = _run(_review("dec_ver3"))
+    assert replay["replay"] is True and replay["decision_value_digest"] == _digest()
 
 
 @pytest.mark.parametrize(
@@ -418,7 +435,7 @@ def test_evidence_and_its_digest_are_immutable_in_the_database(assignment):
         _run(_tamper())
 
 
-def test_endpoint_review_without_the_version_digest_is_422():
+def test_endpoint_approve_without_the_version_digest_is_422():
     body = _body(idempotency_key="http-nodigest")
     body.pop("decision_value_digest")
     r = _client().post("/v1/decisions/dec_x/review", json=body, headers=_HDR)

@@ -656,6 +656,7 @@ async def record_decision(
             "tenant_id": tenant,
             "decision_id": did,
             "replayed": bool(result.get("replayed", False)),
+            "decision_value_digest": result.get("decision_value_digest"),
             "stage": payload.stage,
             "outbox": "decision_outbox_events",
             "received_at": datetime.now(UTC).isoformat(),
@@ -715,8 +716,9 @@ class DecisionReviewIn(BaseModel):
     expected_state: str = "pending_approval"
     candidate_lineage_id: str
     # IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01: the server digest of the exact version
-    # the reviewer saw (returned by the review queue). Approval binds to it; a mismatch is 409.
-    decision_value_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    # the reviewer saw (returned by the review queue). Required to APPROVE (a mismatch is 409);
+    # a rejection approves nothing, so it stays possible for a legacy row without a digest.
+    decision_value_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     idempotency_key: str
     policy_version: str | None = None
 
@@ -748,6 +750,8 @@ async def review_candidate(
         raise HTTPException(status_code=422, detail="idempotency_key is required")
     if payload.action == "reject" and not payload.reason.strip():
         raise HTTPException(status_code=422, detail="reason is required to reject")
+    if payload.action == "approve" and not payload.decision_value_digest:
+        raise HTTPException(status_code=422, detail="decision_value_digest is required to approve")
     # Optimistic concurrency: the caller asserts the state it saw. Anything other than
     # pending_approval is stale by definition (the only reviewable state).
     if payload.expected_state != "pending_approval":

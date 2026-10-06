@@ -210,11 +210,13 @@ async def persist_decision_record(
             replayed = inserted is None
             if replayed:
                 existing = await conn.fetchrow(
-                    "SELECT tenant_id, decision_id FROM decision_record WHERE decision_id=$1",
+                    "SELECT tenant_id, decision_id, decision_value_digest FROM decision_record "
+                    "WHERE decision_id=$1",
                     decision_id,
                 )
                 if existing is None or str(existing["tenant_id"]) != str(tenant_id):
                     raise ValueError("decision_id collision belongs to another tenant")
+                stored_digest = existing["decision_value_digest"]
             else:
                 await emit_outbox_event(
                     conn,
@@ -224,7 +226,14 @@ async def persist_decision_record(
                     aggregate_id=decision_id,
                     payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
                 )
-        return {"decision_id": decision_id, "replayed": replayed}
+                stored_digest = decision_value_digest(payload.decision_value)
+        # The version a reviewer will be shown — the stored one on replay, never recomputed from
+        # a replayed payload that may differ (035).
+        return {
+            "decision_id": decision_id,
+            "replayed": replayed,
+            "decision_value_digest": stored_digest,
+        }
     finally:
         await conn.close()
 
@@ -566,6 +575,8 @@ def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
         if hasattr(reviewed_at, "isoformat")
         else reviewed_at,
         "candidate_lineage_id": row["candidate_lineage_id"],
+        # The version approved (035). ``get`` — a pre-035 row has no such column.
+        "decision_value_digest": row.get("approved_decision_value_digest"),
     }
 
 
@@ -576,7 +587,7 @@ def _request_hash(
     new_state: str,
     reason: str | None,
     candidate_lineage_id: str,
-    decision_value_digest: str,
+    decision_value_digest: str | None,
 ) -> str:
     """Stable hash of the semantic review request — drives idempotency replay vs conflict."""
     blob = json.dumps(
@@ -605,7 +616,7 @@ async def review_decision(
     candidate_lineage_id: str,
     idempotency_key: str,
     policy_version: str | None,
-    decision_value_digest: str,
+    decision_value_digest: str | None,
 ) -> dict[str, Any]:
     """WX-10.7 — atomic ``pending_approval -> approved|rejected`` transition owned by
     decision-service, in ONE transaction: conditional UPDATE of the dedicated ``review_state``
@@ -642,8 +653,7 @@ async def review_decision(
             # the original authoritative result; same key + different request ⇒ conflict.
             existing = await conn.fetchrow(
                 """
-                SELECT review_id, decision_id, previous_state, new_state, reviewed_by,
-                       reviewed_at, candidate_lineage_id, request_hash
+                SELECT *
                   FROM decision_reviews
                  WHERE tenant_id = $1::uuid AND idempotency_key = $2
                 """,
@@ -666,7 +676,7 @@ async def review_decision(
                    AND stage = 'candidate'
                    AND review_state = 'pending_approval'
                    AND candidate_lineage_id = $4
-                   AND decision_value_digest = $5
+                   AND ($3 = 'rejected' OR decision_value_digest = $5)
                 RETURNING decision_id
                 """,
                 decision_id,
@@ -708,8 +718,7 @@ async def review_decision(
                     VALUES ('rev_' || replace(gen_random_uuid()::text, '-', ''),
                             $1, $2::uuid, $3, 'pending_approval', $4, $5, $6, $7, $8, $9, $10,
                             $11)
-                    RETURNING review_id, decision_id, previous_state, new_state, reviewed_by,
-                              reviewed_at, candidate_lineage_id
+                    RETURNING *
                     """,
                     decision_id,
                     tenant_id,

@@ -37,6 +37,9 @@ class DecisionReviewRequest(BaseModel):
     reason: str = ""
     expected_state: str = "pending_approval"
     candidate_lineage_id: str
+    # IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01: بصمةُ النسخة التي رآها المراجِع في الطابور.
+    # لازمةٌ للاعتماد (تفرضها decision-service بـ422)؛ والرفضُ لا يعتمد شيئاً فيبقى ممكناً بدونها.
+    decision_value_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     idempotency_key: str
     policy_version: str | None = None
 
@@ -122,6 +125,7 @@ async def review_decision_candidate(
         "reason": req.reason,
         "expected_state": req.expected_state,
         "candidate_lineage_id": req.candidate_lineage_id,
+        "decision_value_digest": req.decision_value_digest,
         "idempotency_key": req.idempotency_key,
         "policy_version": req.policy_version,
     }
@@ -152,6 +156,8 @@ async def review_decision_candidate(
         and bool(result.get("reviewed_by"))
         and bool(result.get("reviewed_at"))
         and result.get("candidate_lineage_id") == req.candidate_lineage_id
+        # النسخةُ المعتمدة هي النسخةُ التي رآها المراجِع — يُثبتها الخادم لا يفترضها الموجِّه.
+        and result.get("decision_value_digest") == req.decision_value_digest
     )
     if not proven:
         raise HTTPException(
@@ -166,6 +172,7 @@ async def review_decision_candidate(
         "reviewed_by": result["reviewed_by"],
         "reviewed_at": result["reviewed_at"],
         "candidate_lineage_id": result["candidate_lineage_id"],
+        "decision_value_digest": result["decision_value_digest"],
         "replay": bool(result.get("replay", False)),
     }
 
