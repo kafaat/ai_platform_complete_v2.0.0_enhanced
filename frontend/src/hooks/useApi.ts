@@ -1960,12 +1960,13 @@ export function useDecisionAgronomicEvidence(
 /** Approve/reject a pending candidate. The decision-service owns and proves the transition. */
 export function useReviewDecisionCandidate(): ReturnType<typeof useMutation<DecisionReviewResult, Error, DecisionReviewInput>> {
   return useMutation<DecisionReviewResult, Error, DecisionReviewInput>({
-    mutationFn: ({ decisionId, action, reason, candidateLineageId, idempotencyKey }) => kongApi
+    mutationFn: ({ decisionId, action, reason, candidateLineageId, decisionValueDigest, idempotencyKey }) => kongApi
       .post(`/api/v1/decisions/${encodeURIComponent(decisionId)}/review`, {
         action,
         reason,
         expected_state: 'pending_approval',
         candidate_lineage_id: candidateLineageId,
+        decision_value_digest: decisionValueDigest,
         idempotency_key: idempotencyKey,
         policy_version: 'wx-10.8-reviewer-ui-v1',
       })

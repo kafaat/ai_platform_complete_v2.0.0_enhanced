@@ -45,7 +45,25 @@ async def _connect():
     return await asyncpg.connect(DB, statement_cache_size=0)
 
 
-async def _seed_candidate(decision_id: str, lineage: str, *, tenant: str = TENANT) -> None:
+def _value(lineage: str) -> dict:
+    return {
+        "status": "pending_approval",
+        "approval_required": True,
+        "candidate_lineage_id": lineage,
+        "evidence": {"field_id": "f1", "accumulated_gdd": 26.0},
+        "evidence_ids": ["snap-1", "snap-2", lineage],
+    }
+
+
+def _digest(lineage: str = "cand/lin-1") -> str:
+    from persistence import decision_value_digest
+
+    return decision_value_digest(_value(lineage))
+
+
+async def _seed_candidate(
+    decision_id: str, lineage: str, *, tenant: str = TENANT, with_digest: bool = True
+) -> None:
     conn = await _connect()
     try:
         await conn.execute("DELETE FROM decision_reviews WHERE decision_id=$1", decision_id)
@@ -54,22 +72,15 @@ async def _seed_candidate(decision_id: str, lineage: str, *, tenant: str = TENAN
             """
             INSERT INTO decision_record
               (decision_id, tenant_id, decision_type, stage, decision_value,
-               review_state, candidate_lineage_id)
+               review_state, candidate_lineage_id, decision_value_digest)
             VALUES ($1, $2::uuid, 'crop_decision_candidate', 'candidate', $3::jsonb,
-                    'pending_approval', $4)
+                    'pending_approval', $4, $5)
             """,
             decision_id,
             tenant,
-            json.dumps(
-                {
-                    "status": "pending_approval",
-                    "approval_required": True,
-                    "candidate_lineage_id": lineage,
-                    "evidence": {"field_id": "f1", "accumulated_gdd": 26.0},
-                    "evidence_ids": ["snap-1", "snap-2", lineage],
-                }
-            ),
+            json.dumps(_value(lineage)),
             lineage,
+            _digest(lineage) if with_digest else None,
         )
     finally:
         await conn.close()
@@ -113,6 +124,7 @@ def _review(decision_id, **over):
         reason="ok",
         reviewed_by="u-rev",
         candidate_lineage_id="cand/lin-1",
+        decision_value_digest=_digest(),
         # UNIQUE per decision: idempotency_key is a tenant-global token, so tests must not share
         # it (a reused key with a different payload correctly yields idempotency_key_payload_mismatch).
         idempotency_key=f"idem-{decision_id}",
@@ -211,6 +223,7 @@ def test_two_concurrent_reviews_exactly_one_wins():
             tenant_id=TENANT,
             decision_id="dec_cc1",
             candidate_lineage_id="cand/lin-1",
+            decision_value_digest=_digest(),
             reviewed_by="u-rev",
             policy_version="rev/1.0.0",
         )
@@ -280,6 +293,7 @@ def _body(**over):
         "reason": "ok",
         "expected_state": "pending_approval",
         "candidate_lineage_id": "cand/lin-1",
+        "decision_value_digest": _digest(),
         "idempotency_key": "http-1",
     }
     b.update(over)
@@ -345,3 +359,87 @@ def test_endpoint_mirror_mode_fails_closed_503(monkeypatch):
     r = _client().post("/v1/decisions/dec_x/review", json=_body(), headers=_HDR)
     assert r.status_code == 503
     assert "persisted" not in r.json() or r.json().get("persisted") is not False
+
+
+# ── IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01 (035) ─────────────────────────
+def test_approval_of_another_version_is_refused():
+    _run(_seed_candidate("dec_ver1", "cand/lin-1"))
+    res = _run(_review("dec_ver1", decision_value_digest="0" * 64))
+    assert res == {"status": "conflict", "reason": "decision_version_mismatch"}
+    assert _run(_fetch_record("dec_ver1"))["review_state"] == "pending_approval"
+
+
+def test_a_legacy_candidate_without_a_server_digest_cannot_be_approved():
+    _run(_seed_candidate("dec_ver2", "cand/lin-1", with_digest=False))
+    res = _run(_review("dec_ver2"))
+    assert res == {"status": "conflict", "reason": "decision_version_mismatch"}
+
+
+def test_a_legacy_candidate_can_still_be_rejected_so_it_leaves_the_queue():
+    _run(_seed_candidate("dec_ver2r", "cand/lin-1", with_digest=False))
+    res = _run(
+        _review(
+            "dec_ver2r",
+            action="reject",
+            new_state="rejected",
+            reason="resubmit with a server digest",
+            decision_value_digest=None,
+        )
+    )
+    assert res["status"] == "ok" and res["state"] == "rejected"
+
+
+def test_the_approved_version_is_recorded_on_the_review():
+    _run(_seed_candidate("dec_ver3", "cand/lin-1"))
+    assert _run(_review("dec_ver3"))["status"] == "ok"
+
+    async def _approved():
+        conn = await _connect()
+        try:
+            return await conn.fetchval(
+                "SELECT approved_decision_value_digest FROM decision_reviews WHERE decision_id=$1",
+                "dec_ver3",
+            )
+        finally:
+            await conn.close()
+
+    assert _run(_approved()) == _digest()
+    # …and echoed in the authoritative result, so the BFF can prove WHICH version was approved.
+    replay = _run(_review("dec_ver3"))
+    assert replay["replay"] is True and replay["decision_value_digest"] == _digest()
+
+
+@pytest.mark.parametrize(
+    "assignment",
+    [
+        "decision_value = decision_value || '{\"x\":1}'::jsonb",
+        "decision_value_digest = repeat('0', 64)",
+        "candidate_lineage_id = 'cand/other'",
+        # the review queue shows these to the reviewer, so they are part of what was approved
+        "confidence = 0.01",
+        "region = 'elsewhere'",
+    ],
+)
+def test_evidence_and_its_digest_are_immutable_in_the_database(assignment):
+    import asyncpg
+
+    _run(_seed_candidate("dec_ver4", "cand/lin-1"))
+
+    async def _tamper():
+        conn = await _connect()
+        try:
+            await conn.execute(
+                f"UPDATE decision_record SET {assignment} WHERE decision_id='dec_ver4'"
+            )
+        finally:
+            await conn.close()
+
+    with pytest.raises(asyncpg.exceptions.CheckViolationError):
+        _run(_tamper())
+
+
+def test_endpoint_approve_without_the_version_digest_is_422():
+    body = _body(idempotency_key="http-nodigest")
+    body.pop("decision_value_digest")
+    r = _client().post("/v1/decisions/dec_x/review", json=body, headers=_HDR)
+    assert r.status_code == 422
