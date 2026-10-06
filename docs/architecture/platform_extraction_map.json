@@ -4133,7 +4133,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 527,
+      "line": 536,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4153,7 +4153,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 568,
+      "line": 577,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"

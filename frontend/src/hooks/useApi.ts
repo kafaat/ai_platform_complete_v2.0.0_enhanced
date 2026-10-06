@@ -1752,7 +1752,7 @@ export function useDecisionLearning(minSample = 5, enabled = true): UseQueryResu
   });
 }
 
-/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر) — قياس لا تنبّؤ. */
+/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، فرق المطلوب عن المُنفَّذ — لا وفر) — قياس لا تنبّؤ. */
 export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQueryResult<DecisionImpactResponse> {
   return useQuery<DecisionImpactResponse>({
     queryKey: ['decision-impact', fieldId ?? 'all'],
@@ -1761,7 +1761,7 @@ export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQ
       .catch((e) => {
         if (isDisabled404(e)) return {
           total_decisions: 0, executed: 0, failed: 0, success_rate: 0,
-          water_requested_mm: 0, water_applied_mm: 0, water_saved_mm: 0, water_records: 0,
+          water_requested_mm: 0, water_applied_mm: 0, requested_minus_applied_mm: 0, water_records: 0,
           by_action: {}, disabled: true,
         };
         throw e;

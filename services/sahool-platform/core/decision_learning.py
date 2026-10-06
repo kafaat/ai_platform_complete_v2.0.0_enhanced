@@ -26,7 +26,7 @@ _HIGH_SUCCESS = 0.9  # نسبة نجاح أعلى منها ⇒ ثقة (يمكن 
 class LearningSuggestion:
     """اقتراح معايرة واحد — مُسنَد بالدليل، استشاريّ لا تنفيذيّ."""
 
-    kind: str  # raise_approvals | relax_friction | favor_water_efficiency | review_failures
+    kind: str  # raise_approvals | relax_friction | review_requested_applied_gap | review_failures
     action_type: str
     message_ar: str
     evidence: dict  # الأرقام التي بُني عليها الاقتراح (شفافيّة)
@@ -48,9 +48,9 @@ def derive_learning_suggestions(
 ) -> list[LearningSuggestion]:
     """يشتقّ اقتراحات معايرة من أثر كلّ إجراء (نقيّ) — استشاريّة، لا تُطبَّق آليّاً.
 
-    `by_action`: {action_type: {executed, failed, water_saved_mm}} من ImpactSummary.
+    `by_action`: {action_type: {executed, failed, requested_minus_applied_mm}} من ImpactSummary.
     لكلّ إجراء بعيّنة كافية: نجاح منخفض ⇒ raise_approvals/review_failures؛ نجاح عالٍ ⇒
-    relax_friction؛ توفير ماء مُتّسق ⇒ favor_water_efficiency. كلّ اقتراح يحمل دليله.
+    relax_friction؛ فرقٌ مُتّسق بين المطلوب والمُنفَّذ ⇒ review_requested_applied_gap (لا ترجيحَ كفاءة: الفرق ليس وفراً). كلّ اقتراح يحمل دليله.
     """
     suggestions: list[LearningSuggestion] = []
     for action, stats in sorted(by_action.items()):
@@ -60,14 +60,14 @@ def derive_learning_suggestions(
         if sample < min_sample:
             continue  # عيّنة غير كافية — لا اقتراح (صدق)
         success_rate = round(executed / sample, 3) if sample else 0.0
-        water_saved = float(stats.get("water_saved_mm", 0.0))
+        gap_mm = float(stats.get("requested_minus_applied_mm", 0.0))
         conf = _confidence(sample)
         evidence = {
             "executed": executed,
             "failed": failed,
             "sample": sample,
             "success_rate": success_rate,
-            "water_saved_mm": round(water_saved, 2),
+            "requested_minus_applied_mm": round(gap_mm, 2),
         }
 
         if success_rate < _LOW_SUCCESS:
@@ -97,14 +97,19 @@ def derive_learning_suggestions(
                 )
             )
 
-        if water_saved > 0 and "irrig" in action:
+        # REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01: كان «وفّرت … يُقترَح ترجيح كفاءة الماء». نقصُ
+        # التنفيذ عن المطلوب قد يكون عطلاً أو انقطاعاً، فلا يُرجَّح سياسةً — يُراجَع سببُه.
+        if gap_mm != 0 and "irrig" in action:
+            # الفرقُ مُوقَّع: نقصُ تطبيقٍ (موجب) أو زيادةٌ (سالب) — كلاهما انحرافٌ يُراجَع سببُه.
+            direction = "أقلُّ" if gap_mm > 0 else "أكثرُ"
             suggestions.append(
                 LearningSuggestion(
-                    kind="favor_water_efficiency",
+                    kind="review_requested_applied_gap",
                     action_type=action,
                     message_ar=(
-                        f"وفّرت أمثَلة «{action}» {water_saved:.0f}مم تراكميّاً دون فشل ملحوظ — "
-                        f"يُقترَح ترجيح كفاءة الماء افتراضاً لهذا الإجراء."
+                        f"طُبِّق في «{action}» {direction} من المطلوب بـ{abs(gap_mm):.0f}مم تراكميّاً — "
+                        f"ليس وفراً مثبتاً ولا هدراً مثبتاً: راجِع أسبابَ الانحراف، ولا يُدَّعى وفرٌ قبل "
+                        f"قياس السحب ومقارنةٍ مناسبة."
                     ),
                     evidence=evidence,
                     confidence=conf,

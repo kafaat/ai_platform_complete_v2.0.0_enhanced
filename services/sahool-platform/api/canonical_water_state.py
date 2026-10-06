@@ -19,7 +19,7 @@ from core.season_phenology import crop_kc_profile, resolve_crop_id, stage_kc
 
 from api.canonical_root_zone_profile import resolve_canonical_root_zone_profile
 from api.field_context import _field_weather_context
-from api.water_ledger_inputs import depletion_fraction
+from api.water_ledger_inputs import depletion_fraction, et0_is_reference, et0_weather_inputs
 from api.weather_service_client import get_et0_series, get_weather_forecast
 
 SCHEMA_VERSION = "canonical_water_state.v1"
@@ -204,12 +204,17 @@ async def resolve_canonical_water_state(
         return blocked("canonical_field_elevation_missing")
 
     # ET0 is produced only by Weather Engine; the forecast endpoint supplies meteorology.
+    # CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01: كان يُرسِل ``humidity_mean_pct`` — مفتاحٌ لا يُصدِره
+    # ``normalize_daily`` (يُصدِر ``rh_mean_pct``) — فلا يكتمل PM ويسقط المحرّك إلى Hargreaves؛ وكان يُرسِل
+    # ``wind_max_ms`` (قصوى اليوم على 10م) بوصفها ريحَ 2م. التحويلُ الآن واحدٌ مع دفتر الماء اليوميّ:
+    # المتوسّط على 10م ⇒ 2م بمعادلة FAO-56 47، ولا تُشتقّ الريح من القصوى أبداً.
+    met = [et0_weather_inputs(d) for d in days[:horizon_days]]
     series = await get_et0_series(
         daily_t_min=[d.get("temp_min_c") for d in days[:horizon_days]],
         daily_t_max=[d.get("temp_max_c") for d in days[:horizon_days]],
-        daily_solar_rad_mj_m2=[d.get("solar_radiation_mj_m2") for d in days[:horizon_days]],
-        daily_rh_mean_pct=[d.get("humidity_mean_pct") for d in days[:horizon_days]],
-        daily_wind_2m_ms=[d.get("wind_max_ms") for d in days[:horizon_days]],
+        daily_solar_rad_mj_m2=[m["solar_rad_mj_m2"] for m in met],
+        daily_rh_mean_pct=[m["rh_mean_pct"] for m in met],
+        daily_wind_2m_ms=[m["wind_2m_ms"] for m in met],
         lat_deg=lat,
         elevation_m=float(elevation),
         daily_dates=[d.get("date") for d in days[:horizon_days]],
@@ -217,6 +222,12 @@ async def resolve_canonical_water_state(
         valid_period={"start": days[0].get("date"), "end": days[horizon_days - 1].get("date")},
     )
     et0_days = series.get("daily_et0_mm") or []
+    raw_methods = series.get("methods")
+    et0_methods = (
+        [raw_methods[i] if i < len(raw_methods) else None for i in range(horizon_days)]
+        if isinstance(raw_methods, list)
+        else [None] * horizon_days
+    )
     if (
         not isinstance(et0_days, list)
         or len(et0_days) < horizon_days
@@ -250,6 +261,7 @@ async def resolve_canonical_water_state(
                 "kc": float(kc),
                 "rain_mm": float(rain),
                 "source": "weather-engine-et0-series+season-phenology",
+                "et0_method": et0_methods[i],
             }
         )
 
@@ -260,6 +272,13 @@ async def resolve_canonical_water_state(
     limitations.append("surface runoff not modelled: rain counted as fully effective")
     if age_hours > MAX_LEDGER_AGE_HOURS:
         limitations.append(f"water ledger stale: {age_hours:.1f}h > {MAX_LEDGER_AGE_HOURS:.0f}h")
+    # يومٌ لا يُعلِن طريقتَه يُعدّ متدهوراً (``et0_is_reference``). ET0 المتدهور قيمةٌ لا غياب، فلا يحجب
+    # الأهليّةَ التشغيليّة — لكنّه يُنزِل الجودة عن «verified» ويُسمّى، ويصل إلى MPC تدهوراً.
+    et0_fallback_days = sum(1 for m in et0_methods if not et0_is_reference({"method": m}))
+    if et0_fallback_days:
+        limitations.append(
+            f"et0_reference_unavailable: {et0_fallback_days}/{horizon_days} days not FAO-56 PM"
+        )
     if float(ledger["depletion_mm"]) > float(root_zone.taw_mm):
         return {
             "status": "blocked",
@@ -284,13 +303,14 @@ async def resolve_canonical_water_state(
             "days_since_sowing": days_since_sowing,
         },
         "weather_source": fc.get("source") or "weather-engine",
+        "et0_methods": et0_methods,
         "location": {"lat": float(lat), "lon": float(lon), "elevation_m": float(elevation)},
     }
     weather_digest = _digest(forecast)
     soil_digest = root_zone.profile_digest
     season_digest = _digest(evidence["season"])
     operational_eligible = age_hours <= MAX_LEDGER_AGE_HOURS and root_zone.operational_eligible
-    quality = "verified" if operational_eligible else "degraded"
+    quality = "verified" if operational_eligible and not et0_fallback_days else "degraded"
     base = {
         "schema_version": SCHEMA_VERSION,
         "tenant_id": tenant_id,

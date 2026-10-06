@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 607,
+      "evidence_count": 609,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -368,6 +368,7 @@
         "services/sahool-platform/core/historical_season_context.py",
         "services/sahool-platform/core/hybrid_rag_retrieval.py",
         "services/sahool-platform/core/identity.py",
+        "services/sahool-platform/core/impact_measurement.py",
         "services/sahool-platform/core/internal_orchestrator.py",
         "services/sahool-platform/core/learning/recommendation_log.py",
         "services/sahool-platform/core/learning_source_lineage.py",
@@ -442,6 +443,7 @@
         "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
         "services/sahool-platform/tests/test_decision_playbook.py",
         "services/sahool-platform/tests/test_decision_record_persistence.py",
+        "services/sahool-platform/tests/test_economic_intelligence.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
         "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
         "services/sahool-platform/tests/test_evidence_class.py",
@@ -1382,7 +1384,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 265,
+      "evidence_count": 266,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1582,6 +1584,7 @@
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_crop_decision_endpoint.py",
         "services/sahool-platform/tests/test_decision_approve_permission.py",
+        "services/sahool-platform/tests/test_decision_learning.py",
         "services/sahool-platform/tests/test_decision_playbook.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
         "services/sahool-platform/tests/test_decision_review_queue_endpoint.py",
@@ -2490,7 +2493,7 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py"
       ],
-      "source_evidence_count": 607,
+      "source_evidence_count": 609,
       "target_evidence_count": 504,
       "static_supported": true,
       "runtime_verified": false
@@ -2675,7 +2678,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 174,
-      "target_evidence_count": 265,
+      "target_evidence_count": 266,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2707,7 +2710,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 265,
+      "source_evidence_count": 266,
       "target_evidence_count": 33,
       "static_supported": true,
       "runtime_verified": false
@@ -2871,5 +2874,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "6a728451297ca1ea9b2c2eed6e7c9be04a0f6c48604b9dbc3b82d30de859cc6b"
+  "content_sha256": "115238056c29510b6565f5b1edd79f61786b2d830df55c25659ae33aa17d2932"
 }
