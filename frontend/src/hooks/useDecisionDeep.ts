@@ -82,7 +82,7 @@ export function useDecisionEconomics(
           // العلم مُطفأ ⇒ حالة صادقة لا اختلاق أرقام (نفس نمط useDispatchQueue).
           return {
             currency: currency ?? 'YER', executed_decisions: 0, success_rate: 0,
-            water_saved_mm: 0, water_saved_m3: null, water_cost_avoided: null,
+            requested_minus_applied_mm: 0, requested_minus_applied_m3: null, requested_minus_applied_value: null,
             notes_ar: null, disabled: true,
           } satisfies DecisionEconomicsResult;
         }

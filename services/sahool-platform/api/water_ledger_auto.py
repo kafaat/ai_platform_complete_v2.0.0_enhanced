@@ -55,8 +55,19 @@ CONFIDENCE_BOOTSTRAP = 0.4
 #:
 #: ولا يُلغى حسابُ اليوم: الدفترُ يبقى **أدنى تقديرٍ للماء المضاف**، وتُخفَّض ثقتُه.
 #: إلغاؤه كان سيحرم الحقلَ المطريَّ الصادقَ من ميزانه — عطلٌ معاكسُ الاتّجاه.
+#:
+#: **واثنان لا اتّجاهَ معروفاً لهما، ويدخلان بحجّة السقف نفسها لا بحجّة الاتّجاه:**
+#: ``et0_reference_unavailable`` (ET0 بـHargreaves المتدهور لا Penman-Monteith) و
+#: ``root_zone_texture_fallback`` (عمقٌ افتراضيّ من جدول قوام لا منطقةُ الجذور القانونيّة).
+#: كلاهما حدٌّ مفترَضٌ في الميزان لا مقيس، فلا يكون يومٌ قام عليهما أوثقَ من التهيئة.
 _BIASING_ASSUMPTIONS = frozenset(
-    {"irrigation_volume_untracked", "precipitation_assumed_zero", "irrigation_unobserved"}
+    {
+        "irrigation_volume_untracked",
+        "precipitation_assumed_zero",
+        "irrigation_unobserved",
+        "et0_reference_unavailable",
+        "root_zone_texture_fallback",
+    }
 )
 
 
@@ -72,6 +83,9 @@ def compute_daily_ledger_entry(
     irrigation_volume_untracked: bool = False,
     irrigation_unobserved: bool = False,
     rain_assumed_zero: bool = False,
+    et0_reference_unavailable: bool = False,
+    root_zone_texture_fallback: bool = False,
+    depletion_fraction_default: bool = False,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
 
@@ -140,6 +154,14 @@ def compute_daily_ledger_entry(
     p_eff = _effective_rain(rain_mm)
     if irrigation_volume_untracked:
         notes.append("irrigation_volume_untracked")
+    if et0_reference_unavailable:
+        notes.append("et0_reference_unavailable")
+    if root_zone_texture_fallback:
+        notes.append("root_zone_texture_fallback")
+    if depletion_fraction_default:
+        # عتبةُ الريّ (RAW) لا الاستنزاف: p بلا قيمة جدول للمحصول — يُعلَن ولا يُخفِّض ثقة
+        # الاستنزاف نفسه، لأنّه لا يدخل معادلة الميزان.
+        notes.append("depletion_fraction_default")
     if irrigation_unobserved:
         # لا صفَّ ريٍّ لهذا اليوم: «لم يُرصَد سجلٌّ» لا «لم يُروَ». يبقى `irrigation_mm`
         # صفراً (لا بيانات تُضاف) والقيدُ أدنى تقدير — والثقةُ تهبط بإعلان.

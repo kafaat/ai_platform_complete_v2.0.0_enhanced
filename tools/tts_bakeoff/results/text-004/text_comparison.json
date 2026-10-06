@@ -1,0 +1,1727 @@
+{
+  "kind": "text-level declared-facts check — not audio, not engine output; passing ≠ meaning preserved",
+  "stopwords_not_counted_as_uncovered": [
+    ",",
+    ".",
+    ":",
+    "،",
+    "؛",
+    "اذا",
+    "التي",
+    "الذي",
+    "الي",
+    "ان",
+    "او",
+    "بعد",
+    "تلك",
+    "ثم",
+    "حتي",
+    "خلال",
+    "ذلك",
+    "علي",
+    "عن",
+    "عند",
+    "في",
+    "قبل",
+    "كان",
+    "كانت",
+    "كل",
+    "لكل",
+    "مع",
+    "من",
+    "هذا",
+    "هذه",
+    "و",
+    "وقت",
+    "يوم"
+  ],
+  "corpus_sha256": "975dd909c41014a31b65432b620f0ca37e5143b36f94d3753bd32ffb236a127a",
+  "facts_sha256": "f6e458c6bea2e75631410cfba3dba9ff592c9bde364827a6c2d5f882e3fcf896",
+  "semantic_py_sha256": "87d22c585399da7ba8702f9faa1ace9fd949c335c4c9d580ca8c4c0e4009a48a",
+  "compare_text_py_sha256": "3bb1d7c1f5942a034deb595d34ae3c0946af9dcd55d4de1b21a9fffbb0649aee",
+  "python": "3.11.15",
+  "versions_found": {
+    "arabic-tts-frontend": "0.1.0",
+    "num2words": "0.5.14"
+  },
+  "versions_pinned": {
+    "arabic-tts-frontend": "0.1.0",
+    "num2words": "0.5.14"
+  },
+  "skipped_pipelines": [],
+  "pipelines": {
+    "raw": {
+      "package": null,
+      "sentences": 27,
+      "passed_declared_checks": 27,
+      "review_uncovered_content": [],
+      "failed_ids": [],
+      "uncovered_tokens_total": 0
+    },
+    "arabic_tts_frontend": {
+      "package": "arabic-tts-frontend",
+      "version": "0.1.0",
+      "call": "normalise(text).tts",
+      "sentences": 27,
+      "passed_declared_checks": 27,
+      "review_uncovered_content": [],
+      "failed_ids": [],
+      "uncovered_tokens_total": 0
+    },
+    "num2words_naive": {
+      "package": "num2words",
+      "version": "0.5.14",
+      "call": "re.sub(digits → num2words(n, lang='ar')) — غلافٌ محلّيّ",
+      "sentences": 27,
+      "passed_declared_checks": 24,
+      "review_uncovered_content": [],
+      "failed_ids": [
+        "D03",
+        "D05",
+        "M01"
+      ],
+      "uncovered_tokens_total": 0
+    }
+  },
+  "sentences": {
+    "C01": {
+      "text": "زراعة الذرة الرفيعة في تهامة تبدأ مع أول مطر في موسم الصيف.",
+      "raw": {
+        "output": "زراعة الذرة الرفيعة في تهامة تبدأ مع أول مطر في موسم الصيف.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "زراعة الذرة الرفيعة في تهامة تبدأ مع أول مطر في موسم الصيف.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "زراعة الذرة الرفيعة في تهامة تبدأ مع أول مطر في موسم الصيف.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "C02": {
+      "text": "البن اليمني يحتاج ظلاً خفيفاً وريّاً منتظماً في المدرجات الجبلية.",
+      "raw": {
+        "output": "البن اليمني يحتاج ظلاً خفيفاً وريّاً منتظماً في المدرجات الجبلية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "البن اليمني يحتاج ظلاً خفيفاً وريّاً منتظماً في المدرجات الجبلية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "البن اليمني يحتاج ظلاً خفيفاً وريّاً منتظماً في المدرجات الجبلية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "C03": {
+      "text": "الدخن والسمسم يتحملان الجفاف أكثر من الذرة الشامية.",
+      "raw": {
+        "output": "الدخن والسمسم يتحملان الجفاف أكثر من الذرة الشامية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "الدخن والسمسم يتحملان الجفاف أكثر من الذرة الشامية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "الدخن والسمسم يتحملان الجفاف أكثر من الذرة الشامية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "C04": {
+      "text": "أصناف المانجو في الحديدة تُقطف من مايو حتى أغسطس.",
+      "raw": {
+        "output": "أصناف المانجو في الحديدة تُقطف من مايو حتى أغسطس.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "أصناف المانجو في الحديدة تُقطف من مايو حتى أغسطس.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "أصناف المانجو في الحديدة تُقطف من مايو حتى أغسطس.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "C05": {
+      "text": "الطماطم والبصل والبطاطس من أهم الخضروات في المرتفعات.",
+      "raw": {
+        "output": "الطماطم والبصل والبطاطس من أهم الخضروات في المرتفعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "الطماطم والبصل والبطاطس من أهم الخضروات في المرتفعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "الطماطم والبصل والبطاطس من أهم الخضروات في المرتفعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "C06": {
+      "text": "الرمان والعنب ينتشران في صعدة وصنعاء.",
+      "raw": {
+        "output": "الرمان والعنب ينتشران في صعدة وصنعاء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "الرمان والعنب ينتشران في صعدة وصنعاء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "الرمان والعنب ينتشران في صعدة وصنعاء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "P01": {
+      "text": "ظهرت دودة الحشد الخريفية على أوراق الذرة الصغيرة.",
+      "raw": {
+        "output": "ظهرت دودة الحشد الخريفية على أوراق الذرة الصغيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "ظهرت دودة الحشد الخريفية على أوراق الذرة الصغيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "ظهرت دودة الحشد الخريفية على أوراق الذرة الصغيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "P02": {
+      "text": "المنّ والذبابة البيضاء يسببان اصفرار أوراق الطماطم.",
+      "raw": {
+        "output": "المنّ والذبابة البيضاء يسببان اصفرار أوراق الطماطم.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "المنّ والذبابة البيضاء يسببان اصفرار أوراق الطماطم.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "المنّ والذبابة البيضاء يسببان اصفرار أوراق الطماطم.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "P03": {
+      "text": "حفار ساق الذرة يترك ثقوباً ونشارة عند قاعدة النبات.",
+      "raw": {
+        "output": "حفار ساق الذرة يترك ثقوباً ونشارة عند قاعدة النبات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "حفار ساق الذرة يترك ثقوباً ونشارة عند قاعدة النبات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "حفار ساق الذرة يترك ثقوباً ونشارة عند قاعدة النبات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "D01": {
+      "text": "اخلط مليلترين ونصف من المبيد في كل لتر ماء.",
+      "raw": {
+        "output": "اخلط مليلترين ونصف من المبيد في كل لتر ماء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "مليلترين ونصف",
+            "converted": "مليلترين ونصف",
+            "source_value": "2.5",
+            "converted_value": "2.5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "اخلط مليلترين ونصف من المبيد في كل لتر ماء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "مليلترين ونصف",
+            "converted": "مليلترين ونصف",
+            "source_value": "2.5",
+            "converted_value": "2.5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "اخلط مليلترين ونصف من المبيد في كل لتر ماء.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "مليلترين ونصف",
+            "converted": "مليلترين ونصف",
+            "source_value": "2.5",
+            "converted_value": "2.5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "D02": {
+      "text": "أضف ٥٠ كيلوجراماً من سماد اليوريا للهكتار الواحد.",
+      "raw": {
+        "output": "أضف ٥٠ كيلوجراماً من سماد اليوريا للهكتار الواحد.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "50 كيلوجراما",
+            "converted": "50 كيلوجراما",
+            "source_value": "50",
+            "converted_value": "50",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "أضف خمسون كيلوجراماً من سماد اليوريا للهكتار الواحد.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "50 كيلوجراما",
+            "converted": "خمسون كيلوجراما",
+            "source_value": "50",
+            "converted_value": "50",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "أضف خمسون كيلوجراماً من سماد اليوريا للهكتار الواحد.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "50 كيلوجراما",
+            "converted": "خمسون كيلوجراما",
+            "source_value": "50",
+            "converted_value": "50",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "D03": {
+      "text": "الجرعة 2.5 مل لكل لتر، ولا تزد عليها.",
+      "raw": {
+        "output": "الجرعة 2.5 مل لكل لتر، ولا تزد عليها.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "2.5 مل",
+            "converted": "2.5 مل",
+            "source_value": "2.5",
+            "converted_value": "2.5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "الجرعة اثنان فاصلة خمسة مل لكل لتر، ولا تزد عليها.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "2.5 مل",
+            "converted": "اثنان فاصلة خمسة مل",
+            "source_value": "2.5",
+            "converted_value": "2.5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "الجرعة اثنان  , خمسون مل لكل لتر، ولا تزد عليها.",
+        "changed": true,
+        "status": "FAILED_DECLARED_CHECKS",
+        "errors": [
+          "الكمّيّة 1 «اثنان»: value=2 والمتوقَّع 2.5",
+          "الكمّيّة 1 «اثنان»: unit=None والمتوقَّع ml",
+          "الكمّيّة 1 «اثنان»: per=None والمتوقَّع L",
+          "كمّيّةٌ زائدة «خمسون مل» = 50 — قراءةٌ مجزّأة أو رقمٌ دخيل"
+        ],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "2.5 مل",
+            "converted": "اثنان",
+            "source_value": "2.5",
+            "converted_value": "2",
+            "same_value": false,
+            "same_unit": false,
+            "same_per": false,
+            "same_bound": true,
+            "all_same": false
+          },
+          {
+            "source": null,
+            "converted": "خمسون مل",
+            "source_value": null,
+            "converted_value": "50",
+            "same_value": false,
+            "same_unit": false,
+            "same_per": false,
+            "same_bound": false,
+            "all_same": false
+          }
+        ]
+      }
+    },
+    "D04": {
+      "text": "اسقِ النخلة ١٢٠ لتراً كل ٧ أيام في الصيف.",
+      "raw": {
+        "output": "اسقِ النخلة ١٢٠ لتراً كل ٧ أيام في الصيف.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "120 لترا",
+            "converted": "120 لترا",
+            "source_value": "120",
+            "converted_value": "120",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "7 ايام",
+            "converted": "7 ايام",
+            "source_value": "7",
+            "converted_value": "7",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "اسقِ النخلة مئة وعشرون لتراً كل سبعة أيام في الصيف.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "120 لترا",
+            "converted": "مئة وعشرون لترا",
+            "source_value": "120",
+            "converted_value": "120",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "7 ايام",
+            "converted": "سبعة ايام",
+            "source_value": "7",
+            "converted_value": "7",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "اسقِ النخلة مائة و عشرون لتراً كل سبعة أيام في الصيف.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "120 لترا",
+            "converted": "مائة و عشرون لترا",
+            "source_value": "120",
+            "converted_value": "120",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "7 ايام",
+            "converted": "سبعة ايام",
+            "source_value": "7",
+            "converted_value": "7",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "D05": {
+      "text": "نسبة الملوحة في البئر 3.2 ديسيسيمنز لكل متر.",
+      "raw": {
+        "output": "نسبة الملوحة في البئر 3.2 ديسيسيمنز لكل متر.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3.2 ديسيسيمنز",
+            "converted": "3.2 ديسيسيمنز",
+            "source_value": "3.2",
+            "converted_value": "3.2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "نسبة الملوحة في البئر ثلاثة فاصلة اثنان ديسيسيمنز لكل متر.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3.2 ديسيسيمنز",
+            "converted": "ثلاثة فاصلة اثنان ديسيسيمنز",
+            "source_value": "3.2",
+            "converted_value": "3.2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "نسبة الملوحة في البئر ثلاثة  , عشرون ديسيسيمنز لكل متر.",
+        "changed": true,
+        "status": "FAILED_DECLARED_CHECKS",
+        "errors": [
+          "الكمّيّة 1 «ثلاثة»: value=3 والمتوقَّع 3.2",
+          "الكمّيّة 1 «ثلاثة»: unit=None والمتوقَّع dS",
+          "الكمّيّة 1 «ثلاثة»: per=None والمتوقَّع m",
+          "كمّيّةٌ زائدة «عشرون ديسيسيمنز» = 20 — قراءةٌ مجزّأة أو رقمٌ دخيل"
+        ],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3.2 ديسيسيمنز",
+            "converted": "ثلاثة",
+            "source_value": "3.2",
+            "converted_value": "3",
+            "same_value": false,
+            "same_unit": false,
+            "same_per": false,
+            "same_bound": true,
+            "all_same": false
+          },
+          {
+            "source": null,
+            "converted": "عشرون ديسيسيمنز",
+            "source_value": null,
+            "converted_value": "20",
+            "same_value": false,
+            "same_unit": false,
+            "same_per": false,
+            "same_bound": false,
+            "all_same": false
+          }
+        ]
+      }
+    },
+    "D06": {
+      "text": "درجة الحرارة المتوقعة غداً ٣٨ درجة مئوية والرطوبة ٤٥٪.",
+      "raw": {
+        "output": "درجة الحرارة المتوقعة غداً ٣٨ درجة مئوية والرطوبة ٤٥٪.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "38 درجة مئوية",
+            "converted": "38 درجة مئوية",
+            "source_value": "38",
+            "converted_value": "38",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "45 %",
+            "converted": "45 %",
+            "source_value": "45",
+            "converted_value": "45",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "درجة الحرارة المتوقعة غداً ثمانية وثلاثون درجة مئوية والرطوبة خمسة وأربعون بالمئة.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "38 درجة مئوية",
+            "converted": "ثمانية وثلاثون درجة مئوية",
+            "source_value": "38",
+            "converted_value": "38",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "45 %",
+            "converted": "خمسة واربعون بالمئة",
+            "source_value": "45",
+            "converted_value": "45",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "درجة الحرارة المتوقعة غداً ثمانية و ثلاثون درجة مئوية والرطوبة خمسة و أربعون٪.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "38 درجة مئوية",
+            "converted": "ثمانية و ثلاثون درجة مئوية",
+            "source_value": "38",
+            "converted_value": "38",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "45 %",
+            "converted": "خمسة و اربعون %",
+            "source_value": "45",
+            "converted_value": "45",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "N01": {
+      "text": "لا ترش المبيد قبل الحصاد بأقل من ١٤ يوماً.",
+      "raw": {
+        "output": "لا ترش المبيد قبل الحصاد بأقل من ١٤ يوماً.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "14 يوما",
+            "converted": "14 يوما",
+            "source_value": "14",
+            "converted_value": "14",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "لا ترش المبيد قبل الحصاد بأقل من أربعة عشر يوماً.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "14 يوما",
+            "converted": "اربعة عشر يوما",
+            "source_value": "14",
+            "converted_value": "14",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "لا ترش المبيد قبل الحصاد بأقل من أربعة عشر يوماً.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "14 يوما",
+            "converted": "اربعة عشر يوما",
+            "source_value": "14",
+            "converted_value": "14",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "N02": {
+      "text": "لا تسقِ المحصول وقت الظهيرة.",
+      "raw": {
+        "output": "لا تسقِ المحصول وقت الظهيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "لا تسقِ المحصول وقت الظهيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "لا تسقِ المحصول وقت الظهيرة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "N03": {
+      "text": "لا تخلط هذا المبيد مع الأسمدة الورقية.",
+      "raw": {
+        "output": "لا تخلط هذا المبيد مع الأسمدة الورقية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "arabic_tts_frontend": {
+        "output": "لا تخلط هذا المبيد مع الأسمدة الورقية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      },
+      "num2words_naive": {
+        "output": "لا تخلط هذا المبيد مع الأسمدة الورقية.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": []
+      }
+    },
+    "N04": {
+      "text": "لا ترش إذا كانت سرعة الرياح أكثر من ١٥ كيلومتراً في الساعة.",
+      "raw": {
+        "output": "لا ترش إذا كانت سرعة الرياح أكثر من ١٥ كيلومتراً في الساعة.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "15 كيلومترا",
+            "converted": "15 كيلومترا",
+            "source_value": "15",
+            "converted_value": "15",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "لا ترش إذا كانت سرعة الرياح أكثر من خمسة عشر كيلومتراً في الساعة.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "15 كيلومترا",
+            "converted": "خمسة عشر كيلومترا",
+            "source_value": "15",
+            "converted_value": "15",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "لا ترش إذا كانت سرعة الرياح أكثر من خمسة عشر كيلومتراً في الساعة.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "15 كيلومترا",
+            "converted": "خمسة عشر كيلومترا",
+            "source_value": "15",
+            "converted_value": "15",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "N05": {
+      "text": "يجب ألّا تدخل الحقل قبل مرور ٤٨ ساعة على الرش.",
+      "raw": {
+        "output": "يجب ألّا تدخل الحقل قبل مرور ٤٨ ساعة على الرش.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "48 ساعة",
+            "converted": "48 ساعة",
+            "source_value": "48",
+            "converted_value": "48",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "يجب ألّا تدخل الحقل قبل مرور ثمانية وأربعون ساعة على الرش.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "48 ساعة",
+            "converted": "ثمانية واربعون ساعة",
+            "source_value": "48",
+            "converted_value": "48",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "يجب ألّا تدخل الحقل قبل مرور ثمانية و أربعون ساعة على الرش.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "48 ساعة",
+            "converted": "ثمانية و اربعون ساعة",
+            "source_value": "48",
+            "converted_value": "48",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "N06": {
+      "text": "لا ترش، المطر متوقع خلال ست ساعات.",
+      "raw": {
+        "output": "لا ترش، المطر متوقع خلال ست ساعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "ست ساعات",
+            "converted": "ست ساعات",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "لا ترش، المطر متوقع خلال ست ساعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "ست ساعات",
+            "converted": "ست ساعات",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "لا ترش، المطر متوقع خلال ست ساعات.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "ست ساعات",
+            "converted": "ست ساعات",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "T01": {
+      "text": "موعد الري القادم يوم الثلاثاء الساعة السادسة صباحاً.",
+      "raw": {
+        "output": "موعد الري القادم يوم الثلاثاء الساعة السادسة صباحاً.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الساعة السادسة",
+            "converted": "الساعة السادسة",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "موعد الري القادم يوم الثلاثاء الساعة السادسة صباحاً.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الساعة السادسة",
+            "converted": "الساعة السادسة",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "موعد الري القادم يوم الثلاثاء الساعة السادسة صباحاً.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الساعة السادسة",
+            "converted": "الساعة السادسة",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "T02": {
+      "text": "ابدأ الحصاد في الأسبوع الثالث من أكتوبر ٢٠٢٦.",
+      "raw": {
+        "output": "ابدأ الحصاد في الأسبوع الثالث من أكتوبر ٢٠٢٦.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الثالث",
+            "converted": "الثالث",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "2026",
+            "converted": "2026",
+            "source_value": "2026",
+            "converted_value": "2026",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "ابدأ الحصاد في الأسبوع الثالث من أكتوبر ألفان وستة وعشرون.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الثالث",
+            "converted": "الثالث",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "2026",
+            "converted": "الفان وستة وعشرون",
+            "source_value": "2026",
+            "converted_value": "2026",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "ابدأ الحصاد في الأسبوع الثالث من أكتوبر ألفان و ستة و عشرون.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "الثالث",
+            "converted": "الثالث",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "2026",
+            "converted": "الفان و ستة و عشرون",
+            "source_value": "2026",
+            "converted_value": "2026",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "T03": {
+      "text": "سجّل القراءة كل ٣ ساعات من الساعة ٦ حتى الساعة ١٨.",
+      "raw": {
+        "output": "سجّل القراءة كل ٣ ساعات من الساعة ٦ حتى الساعة ١٨.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3 ساعات",
+            "converted": "3 ساعات",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 6",
+            "converted": "الساعة 6",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 18",
+            "converted": "الساعة 18",
+            "source_value": "18",
+            "converted_value": "18",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "سجّل القراءة كل ثلاثة ساعات من الساعة ستة حتى الساعة ثمانية عشر.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3 ساعات",
+            "converted": "ثلاثة ساعات",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 6",
+            "converted": "الساعة ستة",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 18",
+            "converted": "الساعة ثمانية عشر",
+            "source_value": "18",
+            "converted_value": "18",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "سجّل القراءة كل ثلاثة ساعات من الساعة ستة حتى الساعة ثمانية عشر.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "3 ساعات",
+            "converted": "ثلاثة ساعات",
+            "source_value": "3",
+            "converted_value": "3",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 6",
+            "converted": "الساعة ستة",
+            "source_value": "6",
+            "converted_value": "6",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "الساعة 18",
+            "converted": "الساعة ثمانية عشر",
+            "source_value": "18",
+            "converted_value": "18",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "M01": {
+      "text": "مؤشر NDVI للحقل انخفض من 0.62 إلى 0.41 خلال أسبوعين.",
+      "raw": {
+        "output": "مؤشر NDVI للحقل انخفض من 0.62 إلى 0.41 خلال أسبوعين.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "0.62",
+            "converted": "0.62",
+            "source_value": "0.62",
+            "converted_value": "0.62",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "0.41",
+            "converted": "0.41",
+            "source_value": "0.41",
+            "converted_value": "0.41",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "اسبوعين",
+            "converted": "اسبوعين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "مؤشر NDVI للحقل انخفض من صفر فاصلة اثنان وستون إلى صفر فاصلة واحد وأربعون خلال أسبوعين.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "0.62",
+            "converted": "صفر فاصلة اثنان وستون",
+            "source_value": "0.62",
+            "converted_value": "0.62",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "0.41",
+            "converted": "صفر فاصلة واحد واربعون",
+            "source_value": "0.41",
+            "converted_value": "0.41",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "اسبوعين",
+            "converted": "اسبوعين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "مؤشر NDVI للحقل انخفض من , اثنتان و ستون إلى , إحدى و أربعون خلال أسبوعين.",
+        "changed": true,
+        "status": "FAILED_DECLARED_CHECKS",
+        "errors": [
+          "الكمّيّة 1 «اثنتان و ستون»: value=62 والمتوقَّع 0.62",
+          "الكمّيّة 1 «اثنتان و ستون»: bound=None والمتوقَّع من",
+          "الكمّيّة 2 «احدي و اربعون»: value=41 والمتوقَّع 0.41",
+          "الكمّيّة 2 «احدي و اربعون»: bound=None والمتوقَّع الي"
+        ],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "0.62",
+            "converted": "اثنتان و ستون",
+            "source_value": "0.62",
+            "converted_value": "62",
+            "same_value": false,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": false,
+            "all_same": false
+          },
+          {
+            "source": "0.41",
+            "converted": "احدي و اربعون",
+            "source_value": "0.41",
+            "converted_value": "41",
+            "same_value": false,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": false,
+            "all_same": false
+          },
+          {
+            "source": "اسبوعين",
+            "converted": "اسبوعين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "M02": {
+      "text": "استخدم مبيد Emamectin benzoate بتركيز ٥٪ حسب الملصق.",
+      "raw": {
+        "output": "استخدم مبيد Emamectin benzoate بتركيز ٥٪ حسب الملصق.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "5 %",
+            "converted": "5 %",
+            "source_value": "5",
+            "converted_value": "5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "استخدم مبيد Emamectin benzoate بتركيز خمسة بالمئة حسب الملصق.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "5 %",
+            "converted": "خمسة بالمئة",
+            "source_value": "5",
+            "converted_value": "5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "استخدم مبيد Emamectin benzoate بتركيز خمسة٪ حسب الملصق.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "5 %",
+            "converted": "خمسة %",
+            "source_value": "5",
+            "converted_value": "5",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    },
+    "M03": {
+      "text": "رطوبة التربة ٢٢٪ ونقطة الذبول ١٢٪، فالري مطلوب خلال يومين.",
+      "raw": {
+        "output": "رطوبة التربة ٢٢٪ ونقطة الذبول ١٢٪، فالري مطلوب خلال يومين.",
+        "changed": false,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "22 %",
+            "converted": "22 %",
+            "source_value": "22",
+            "converted_value": "22",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "12 %",
+            "converted": "12 %",
+            "source_value": "12",
+            "converted_value": "12",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "يومين",
+            "converted": "يومين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "arabic_tts_frontend": {
+        "output": "رطوبة التربة اثنان وعشرون بالمئة ونقطة الذبول اثنا عشر بالمئة، فالري مطلوب خلال يومين.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "22 %",
+            "converted": "اثنان وعشرون بالمئة",
+            "source_value": "22",
+            "converted_value": "22",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "12 %",
+            "converted": "اثنا عشر بالمئة",
+            "source_value": "12",
+            "converted_value": "12",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "يومين",
+            "converted": "يومين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      },
+      "num2words_naive": {
+        "output": "رطوبة التربة اثنان و عشرون٪ ونقطة الذبول اثنا عشر٪، فالري مطلوب خلال يومين.",
+        "changed": true,
+        "status": "PASSED_DECLARED_CHECKS",
+        "errors": [],
+        "uncovered_content": [],
+        "quantity_mapping": [
+          {
+            "source": "22 %",
+            "converted": "اثنان و عشرون %",
+            "source_value": "22",
+            "converted_value": "22",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "12 %",
+            "converted": "اثنا عشر %",
+            "source_value": "12",
+            "converted_value": "12",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          },
+          {
+            "source": "يومين",
+            "converted": "يومين",
+            "source_value": "2",
+            "converted_value": "2",
+            "same_value": true,
+            "same_unit": true,
+            "same_per": true,
+            "same_bound": true,
+            "all_same": true
+          }
+        ]
+      }
+    }
+  }
+}

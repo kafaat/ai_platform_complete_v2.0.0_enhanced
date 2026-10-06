@@ -22,8 +22,8 @@ automation_rules,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 autonomous_event_store,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 autonomous_execution_plan,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,1
 autonomous_recommendations,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
-backfill_run_items,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,4
-backfill_runs,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,3
+backfill_run_items,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,5
+backfill_runs,v144_backfill_runs.sql,149,True,True,True,1,True,False,3,4
 boundary_extraction_jobs,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
 break_glass_grants,v90_break_glass.sql,95,False,True,True,1,True,False,1,1
 calibration_audit,v84_calibration_audit.sql,89,True,True,True,1,True,False,1,1
@@ -168,10 +168,10 @@ irrigation_learning_proposals,v181_irrigation_closed_loop_learning_production_ce
 irrigation_machine_spans,v172_irrigation_machine_capability.sql,177,True,False,False,0,False,True,0,0
 irrigation_machines,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
 irrigation_mainlines,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
-irrigation_manual_execution_events,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,0,1
+irrigation_manual_execution_events,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,1,1
 irrigation_manual_execution_sources,v190_irrx1_authoritative_recommendation_provenance_lock.sql,195,True,True,True,1,True,False,1,1
 irrigation_manual_executions,v187_irrx1_manual_execution_lifecycle.sql,192,True,True,True,1,True,False,1,1
-irrigation_manual_ledger_reconciliations,v188_irrx1_verified_manual_as_applied_ledger_bridge.sql,193,True,True,True,1,True,False,1,1
+irrigation_manual_ledger_reconciliations,v188_irrx1_verified_manual_as_applied_ledger_bridge.sql,193,True,True,True,1,True,False,2,1
 irrigation_outcome_evidence,v181_irrigation_closed_loop_learning_production_certification.sql,186,True,False,False,0,False,True,0,1
 irrigation_production_certifications,v181_irrigation_closed_loop_learning_production_certification.sql,186,True,False,False,0,False,True,0,0
 irrigation_projects,v168_irrigation_engineering_foundation.sql,173,True,False,False,0,False,True,0,0
@@ -253,7 +253,7 @@ prescription_maps,v115_precision_agriculture_phase6.sql,121,True,True,True,1,Tru
 prescriptions,v95_prescriptions.sql,100,True,True,True,2,True,False,1,2
 processed_events,v93_processed_events.sql,98,False,False,False,0,False,False,1,1
 processing_jobs,init_v8.sql,0,True,True,False,0,False,True,2,3
-raster_assets,v14_imagery_storage.sql,17,True,True,False,1,False,True,3,2
+raster_assets,v14_imagery_storage.sql,17,True,True,False,1,False,True,4,2
 raster_batch_jobs,v154_raster_product_identity_batch_leases.sql,159,True,True,True,1,True,False,1,2
 raster_cache_invalidations,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,2,4
 raster_registry,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,3

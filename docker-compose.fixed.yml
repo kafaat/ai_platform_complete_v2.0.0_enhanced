@@ -216,7 +216,7 @@ services:
   # FIX-05: MINIO_ROOT_PASSWORD من .env
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
+    image: ${MINIO_IMAGE:-coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68}
     restart: unless-stopped
     # MEDIUM (تدقيق): تخزين داخليّ — لا يُكشَف على 0.0.0.0. حصر على loopback (المضيف فقط).
     ports:
@@ -231,7 +231,7 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 30s
       timeout: 10s
       retries: 6

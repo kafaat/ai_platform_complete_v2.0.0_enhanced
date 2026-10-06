@@ -1127,6 +1127,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.execution-plans.execution_plan_id",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/execution-plans/{execution_plan_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.execution-plans.execution_plan_id.authorize-dispatch",
       "consumers": [],
       "curated": false,
@@ -5871,7 +5886,7 @@
       "entrypoints": [
         "POST /api/v1/decisions/{decision_id}/execution-plan"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6044,7 +6059,7 @@
       "entrypoints": [
         "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6709,7 +6724,7 @@
       "entrypoints": [
         "POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6728,7 +6743,7 @@
       "entrypoints": [
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -9997,7 +10012,7 @@
         "POST /api/v1/learning/activation-commands/{activation_command_id}/claim",
         "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10016,7 +10031,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10035,7 +10050,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-requests"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10054,7 +10069,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-requests/{activation_request_id}/review"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10111,7 +10126,7 @@
       "entrypoints": [
         "POST /api/v1/learning/evaluation-runs"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10168,7 +10183,7 @@
       "entrypoints": [
         "POST /api/v1/learning/promotion-decisions"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10665,7 +10680,7 @@
       "entrypoints": [
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -14590,7 +14605,7 @@
       "entrypoints": [
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -14718,7 +14733,7 @@
       "entrypoints": [
         "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -17568,10 +17583,10 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 831,
+    "capabilities": 832,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 95,
-    "capabilities_idempotent": 48,
+    "capabilities_idempotent": 61,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 478,
     "components": 36,
@@ -17579,9 +17594,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1122,
+    "route_rows": 1123,
     "ui_waivers": 53,
-    "unique_method_path": 1003
+    "unique_method_path": 1004
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17841,7 +17856,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "e9b030367f816c6d0af50f91202d99040780819139903a0119de3e2adc0e90a2",
+  "fingerprint": "581a913bc5a1f1d541fe434507e82c1c865ee1c65b643e819992c33e572aee3a",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17891,16 +17906,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 839,
+      "edge_count": 844,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 430,
+        "READS": 433,
         "ROUTES_TO": 72,
-        "WRITES": 290
+        "WRITES": 292
       }
     },
     "u3_wiring_ownership": {

@@ -168,12 +168,12 @@ export default function DecisionInsightPanel() {
               <span style={{ color: T.faint }}> · نجاح {percentLabel(impactQ.data.success_rate)}</span>
             </div>
             <div>
-              ماء موفَّر <span style={{ color: '#7dd3fc' }}>{impactQ.data.water_saved_mm}مم</span>
+              فرق المطلوب عن المُنفَّذ (ليس وفراً) <span style={{ color: '#7dd3fc' }}>{impactQ.data.requested_minus_applied_mm}مم</span>
               <span style={{ color: T.faint }}> (من {impactQ.data.water_records} سجلّاً اكتملت كمّيّاته — الناقص لا يُحتسَب)</span>
             </div>
             {Object.entries(impactQ.data.by_action ?? {}).slice(0, 4).map(([action, a]) => (
               <div key={action} style={{ color: T.faint }}>
-                <span style={{ color: T.ink }}>{action}</span> · نُفِّذ {a.executed} · فشل {a.failed} · وفّر {a.water_saved_mm}مم
+                <span style={{ color: T.ink }}>{action}</span> · نُفِّذ {a.executed} · فشل {a.failed} · الفرق {a.requested_minus_applied_mm}مم
               </div>
             ))}
           </div>
