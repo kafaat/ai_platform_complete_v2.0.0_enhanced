@@ -363,3 +363,131 @@ def test_the_real_registry_has_no_broken_rows_and_no_unclassified_states():
     unclassified = [(row["id"], row["line"]) for row in report["unclassified_rows"]]
     assert not broken, f"صفوفٌ كسرت جدولَ السجلّ (سطرٌ جديد داخل خليّة؟): {broken}"
     assert not unclassified, f"صفوفُ فجوةٍ بلا حالةٍ قانونيّة: {unclassified}"
+
+
+# ── BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01 ────────────────────────
+# الدمجُ squash، فـSHA الإصلاح في صفّ fixed ليس سلفاً لـ`main` بعد الدمج. مقيسٌ على `ab07ceb8`:
+# صفُّ #1149 يذكر `0726a887` في حالته و`main@c56db557` في وصفه — والقياسُ كان أخضر.
+
+_HEAD = "| ID | Detail | Status |\n| --- | --- | --- |\n"
+_MAIN = {"c56db557aaaa", "ab07ceb8cccc"}
+
+
+def _reach(sha):
+    return any(full.startswith(sha) for full in _MAIN)
+
+
+def _flagged(text, merges=None):
+    m = mod()
+    report = m.measure(text)
+    return m.fixed_provenance(text, report["fixed_records"], merges or {}, _reach)
+
+
+def test_a_squashed_repair_sha_without_a_canonical_link_is_reported():
+    row = "| GAP-A-01 | قيس على `main@c56db557` | **fixed** (`0726a887`، #1149) |\n"
+    found = _flagged(_HEAD + row, {1149: "ab07ceb8cccc"})
+    assert [f["id"] for f in found] == ["GAP-A-01"]
+    assert found[0]["repair_shas"] == ["0726a887"]
+    assert found[0]["cited_pr_merges"] == {"1149": "ab07ceb8cccc"}
+
+
+def test_a_reachable_sha_outside_the_status_does_not_count_as_a_link():
+    # الشاهدُ على الحالة التي وُجِد القياسُ لأجلها: قاعدةُ القياس في الوصف تُبلَغ، والربطُ غائب.
+    row = "| GAP-A-01 | قيس على `main@c56db557` | **fixed** (`0726a887`) |\n"
+    assert _flagged(_HEAD + row)
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        "**fixed** (`0726a887`، #1149) · **canonical على `main`:** squash `ab07ceb8`",
+        "**fixed** (`c56db557`)",
+        "**fixed** (2026-10-06، `20260626` · `feedback` · run `2412021383`)",
+    ],
+    ids=["appended-merge", "repair-on-main", "dates-words-run-ids-are-not-shas"],
+)
+def test_a_linked_or_reachable_or_non_sha_status_is_not_reported(status):
+    assert _flagged(_HEAD + f"| GAP-A-01 | x | {status} |\n") == []
+
+
+def test_a_section_is_linked_by_its_canonical_line_not_by_any_sha_in_its_body():
+    section = (
+        "## GAP-B-01 — x\n<!-- gap-registry: current -->\n"
+        "- **الحالة:** **fixed** (عند `0726a887`)\n- **النسخة المفحوصة:** `main@c56db557`.\n"
+    )
+    assert [f["id"] for f in _flagged(section)] == ["GAP-B-01"]
+    linked = section + "- **canonical على `main` (2026-10-06):** squash `ab07ceb8`\n"
+    assert _flagged(linked) == []
+
+
+def test_an_open_row_and_a_historical_entry_are_not_provenance_findings():
+    text = _HEAD + "| GAP-A-01 | x | **open** (`0726a887`) |\n" + (
+        "## GAP-C-01\n<!-- gap-registry: historical -->\n- **الحالة:** fixed (`0726a887`)\n"
+        "## GAP-C-01\n<!-- gap-registry: current -->\n- **الحالة:** fixed (`c56db557`)\n"
+    )
+    assert _flagged(text) == []
+
+
+def _repo(tmp_path):
+    def git(*args, cwd=tmp_path):
+        return subprocess.run(
+            ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
+            cwd=cwd, check=True, capture_output=True, encoding="utf-8",
+        ).stdout.strip()
+
+    return git
+
+
+def test_the_cli_maps_a_squash_merge_from_real_history_and_declares_a_shallow_clone(tmp_path):
+    git = _repo(tmp_path)
+    reg = tmp_path / "sahool-brain/gaps/registry.md"
+    reg.parent.mkdir(parents=True)
+    reg.write_text("seed\n", encoding="utf-8")
+    git("init", "-q", "-b", "main")
+    git("add", "-A")
+    git("commit", "-qm", "seed")
+    git("checkout", "-qb", "fix")
+    (tmp_path / "fix.txt").write_text("fix\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "repair")
+    repair = git("rev-parse", "--short=8", "HEAD")
+    git("checkout", "-q", "main")
+    git("merge", "-q", "--squash", "fix")
+    git("commit", "-qm", "repair (#77)")
+    merge = git("rev-parse", "HEAD")
+    git("branch", "-qD", "fix")
+    git("reflog", "expire", "--expire=now", "--all")
+    git("gc", "-q", "--prune=now")
+    reg.write_text(_HEAD + f"| GAP-A-01 | x | **fixed** (`{repair}`، #77) |\n", encoding="utf-8")
+
+    def run(cwd):
+        out = subprocess.run(
+            ["python3", str(ROOT / "scripts/ci/gap_registry_measure.py"), "--json",
+             str(cwd / "sahool-brain/gaps/registry.md")],
+            capture_output=True, encoding="utf-8", check=True,
+        ).stdout
+        return json.loads(out)
+
+    report = run(tmp_path)
+    assert report["provenance_measured"] is True
+    assert [f["id"] for f in report["unreconciled_fixed_provenance"]] == ["GAP-A-01"]
+    assert report["unreconciled_fixed_provenance"][0]["cited_pr_merges"] == {"77": merge}
+
+    git("add", "-A")
+    git("commit", "-qm", "registry")
+    shallow = tmp_path.parent / "shallow"
+    subprocess.run(
+        ["git", "clone", "-q", "--depth", "1", f"file://{tmp_path}", str(shallow)],
+        check=True, capture_output=True,
+    )
+    report = run(shallow)
+    assert report["provenance_measured"] is False
+    assert report["provenance_unmeasured_reason"] == "shallow_clone"
+    assert report["unreconciled_fixed_provenance"] is None
+
+
+def test_the_report_job_fetches_full_history_for_the_provenance_measure():
+    checkout = next(
+        step for step in report_job()["steps"] if "actions/checkout@" in step.get("uses", "")
+    )
+    assert checkout["with"]["fetch-depth"] == 0
