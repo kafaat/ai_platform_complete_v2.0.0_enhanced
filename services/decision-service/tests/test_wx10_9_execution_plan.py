@@ -192,3 +192,118 @@ def test_execution_plan_is_append_only():
     ):
         with pytest.raises(asyncpg.PostgresError):
             _run(mutate(sql))
+
+
+# ── IRRIGATION-MANUAL-PLAN-NOT-BOUND-TO-DECISION-AMOUNT-01 (035) ────────────────────────
+# Owner decision (2026-10-06): a manual irrigation plan binds to the approved decision's
+# target_refill_mm within ±10%, on the same field, for the approved version only.
+def _irrigation_value(*, target=20.0, should=True, lineage="lin_irr"):
+    return {
+        "decision_type": "irrigation",
+        "field_id": "fld-1",
+        "candidate_lineage_id": lineage,
+        "recommendation": {"should_irrigate": should, "target_refill_mm": target},
+    }
+
+
+async def _seed_irrigation(*, approved_digest="auto", **value_kw):
+    from persistence import decision_value_digest
+
+    decision_id = "dec_" + uuid4().hex
+    review_id = "rev_" + uuid4().hex
+    lineage = "lin_" + uuid4().hex
+    value = _irrigation_value(lineage=lineage, **value_kw)
+    digest = decision_value_digest(value)
+    conn = await _connect()
+    try:
+        await conn.execute(
+            """INSERT INTO decision_record
+               (decision_id,tenant_id,field_id,decision_type,stage,decision_value,review_state,
+                candidate_lineage_id,decision_value_digest)
+               VALUES ($1,$2::uuid,'fld-1','irrigation','candidate',$3::jsonb,'approved',$4,$5)""",
+            decision_id,
+            TENANT,
+            json.dumps(value),
+            lineage,
+            digest,
+        )
+        await conn.execute(
+            """INSERT INTO decision_reviews
+               (review_id,decision_id,tenant_id,action,previous_state,new_state,reason,reviewed_by,
+                candidate_lineage_id,idempotency_key,request_hash,policy_version,
+                approved_decision_value_digest)
+               VALUES ($1,$2,$3::uuid,'approve','pending_approval','approved','ok','reviewer',
+                       $4,$5,$6,'p1',$7)""",
+            review_id,
+            decision_id,
+            TENANT,
+            lineage,
+            "seed-" + uuid4().hex,
+            uuid4().hex,
+            digest if approved_digest == "auto" else approved_digest,
+        )
+        return decision_id, review_id, lineage, digest
+    finally:
+        await conn.close()
+
+
+def _manual(**constraints):
+    base = {"field_id": "fld-1", "target_depth_mm": 20.0}
+    base.update(constraints)
+    return SimpleNamespace(
+        operation_type="manual_irrigation",
+        planned_start=None,
+        planned_end=None,
+        target_zone_ids=[],
+        required_resources=[],
+        constraints=base,
+        safety_conditions={},
+        weather_window_reference=None,
+    )
+
+
+@pytest.mark.parametrize("depth", [18.0, 20.0, 22.0])
+def test_manual_plan_within_ten_percent_binds_the_approved_version(depth):
+    did, rid, lin, digest = _run(_seed_irrigation())
+    res = _run(_create(did, rid, lin, payload=_manual(target_depth_mm=depth)))
+    assert res["status"] == "ok", res
+    assert res["decision_value_digest"] == digest
+
+
+@pytest.mark.parametrize(
+    ("seed_kw", "constraints", "reason"),
+    [
+        ({}, {"target_depth_mm": 22.5}, "plan_amount_diverges_from_decision"),
+        ({}, {"target_depth_mm": 17.5}, "plan_amount_diverges_from_decision"),
+        ({}, {"target_depth_mm": None}, "plan_amount_diverges_from_decision"),
+        ({}, {"field_id": "fld-other"}, "plan_field_differs_from_decision"),
+        ({"should": False}, {}, "decision_does_not_recommend_irrigation"),
+        ({"target": None}, {}, "decision_has_no_refill_target"),
+        ({"approved_digest": None}, {}, "decision_version_unbound"),
+        ({"approved_digest": "0" * 64}, {}, "decision_version_mismatch"),
+    ],
+)
+def test_manual_plan_is_refused_when_it_does_not_match_the_approved_decision(
+    seed_kw, constraints, reason
+):
+    did, rid, lin, _ = _run(_seed_irrigation(**seed_kw))
+    res = _run(_create(did, rid, lin, payload=_manual(**constraints)))
+    assert res == {"status": "conflict", "reason": reason}
+
+
+def test_plan_state_reports_the_bound_version_for_the_live_recheck():
+    from persistence import get_execution_plan_state
+
+    did, rid, lin, digest = _run(_seed_irrigation())
+    plan = _run(_create(did, rid, lin, payload=_manual()))
+    state = _run(
+        get_execution_plan_state(tenant_id=TENANT, execution_plan_id=plan["execution_plan_id"])
+    )
+    assert state["bound"] is True
+    assert state["plan_digest"] == plan["plan_digest"]
+    assert state["decision_value_digest"] == state["current_decision_value_digest"] == digest
+    assert state["review_state"] == "approved"
+    other = _run(
+        get_execution_plan_state(tenant_id=OTHER, execution_plan_id=plan["execution_plan_id"])
+    )
+    assert other == {"status": "not_found"}  # tenant-scoped, no oracle
