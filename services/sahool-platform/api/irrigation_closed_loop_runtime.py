@@ -452,6 +452,7 @@ MANUAL_COMPLETION_REQUIRED = frozenset(
         "season_id",
         "planned_depth_mm",
         "applied_depth_mm",
+        "observed_at",
         "ledger_event_digest",
         "source_digests",
     }
@@ -481,8 +482,16 @@ async def record_manual_execution_outcome(
     if str(reconciliation["ledger_event_digest"]).strip() != str(payload["ledger_event_digest"]):
         raise ValueError("MANUAL_COMPLETION_DIGEST_MISMATCH")
 
+    # The reconciled depth is authoritative; a payload that keeps the valid digest but carries
+    # another applied depth is forged or corrupted, not a different measurement.
+    applied = float(reconciliation["applied_depth_mm"])
+    if abs(float(payload["applied_depth_mm"]) - applied) > 1e-6:
+        raise ValueError("MANUAL_COMPLETION_APPLIED_DEPTH_MISMATCH")
+    # The measurement happened when the producer observed it, not when this delivery arrived.
+    measured_at = datetime.fromisoformat(str(payload["observed_at"]))
+    if measured_at.tzinfo is None:
+        raise ValueError("MANUAL_COMPLETION_OBSERVED_AT_NOT_TZ_AWARE")
     planned = float(payload["planned_depth_mm"])
-    applied = float(payload["applied_depth_mm"])
     deviation = (applied - planned) / planned if planned > 0 else None
     within = deviation is not None and abs(deviation) <= MANUAL_DEVIATION_TOLERANCE
     body = {
@@ -520,7 +529,7 @@ async def record_manual_execution_outcome(
         """INSERT INTO irrigation_outcome_evidence (
                tenant_id, field_id, season_id, decision_id, execution_plan_id, measured_at,
                outcome_status, source_digests, payload, outcome_evidence_digest
-           ) VALUES ($1::uuid,$2,$3,$4,$5,now(),'degraded',$6::jsonb,$7::jsonb,$8)
+           ) VALUES ($1::uuid,$2,$3,$4,$5,$9,'degraded',$6::jsonb,$7::jsonb,$8)
            ON CONFLICT (tenant_id, outcome_evidence_digest) DO NOTHING
            RETURNING id""",
         tenant_id,
@@ -531,6 +540,7 @@ async def record_manual_execution_outcome(
         json.dumps(payload["source_digests"], sort_keys=True),
         json.dumps(body, sort_keys=True),
         digest,
+        measured_at,
     )
     # 'degraded', not 'verified': adherence is proven; outcome and attribution are not.
     return {

@@ -11,8 +11,9 @@
 -- This migration adds:
 --   * decision_record.decision_value_digest — server-computed sha256 over canonical JSON of
 --     decision_value (persistence.py computes it; the client never supplies it);
---   * a BEFORE UPDATE trigger that forbids changing the evidence and identity columns, so the
---     digest stays true for the life of the row (review_state transitions remain allowed);
+--   * a BEFORE UPDATE trigger that forbids changing the evidence and identity columns — and
+--     every column the review queue shows the reviewer (confidence, region) — so the digest and
+--     what was reviewed stay true for the life of the row (review_state transitions remain allowed);
 --   * decision_reviews.approved_decision_value_digest — the version the reviewer approved;
 --   * decision_execution_plans.decision_value_digest — the version a plan was derived from.
 --
@@ -32,6 +33,8 @@ BEGIN
      OR NEW.content_digest IS DISTINCT FROM OLD.content_digest
      OR NEW.candidate_lineage_id IS DISTINCT FROM OLD.candidate_lineage_id
      OR NEW.decision_type IS DISTINCT FROM OLD.decision_type
+     OR NEW.confidence IS DISTINCT FROM OLD.confidence
+     OR NEW.region IS DISTINCT FROM OLD.region
      OR NEW.field_id IS DISTINCT FROM OLD.field_id
      OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
      OR NEW.stage IS DISTINCT FROM OLD.stage THEN

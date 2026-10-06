@@ -430,67 +430,67 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:47",
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:46",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:73",
+          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:72",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:186",
+          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:187",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:109",
+          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:108",
           "score": 12
         },
         {
-          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:391",
+          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:326",
+          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
+          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:829",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:866",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:898",
+          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:727",
+          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:775",
+          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:577",
+          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:631",
+          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:682",
+          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683",
           "score": 12
         },
         {
-          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
+          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522",
           "score": 12
         },
         {
@@ -1064,67 +1064,67 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:47",
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:46",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:73",
+          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:72",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:186",
+          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:187",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:109",
+          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:108",
           "score": 12
         },
         {
-          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:391",
+          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:326",
+          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
+          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:829",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:866",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:898",
+          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:727",
+          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:775",
+          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:577",
+          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:631",
+          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:682",
+          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683",
           "score": 12
         },
         {
-          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
+          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522",
           "score": 12
         },
         {
@@ -1929,67 +1929,67 @@
           "score": 28
         },
         {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:47",
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:46",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:73",
+          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:72",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:186",
+          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:187",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:109",
+          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:108",
           "score": 12
         },
         {
-          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:391",
+          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:326",
+          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
+          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:829",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:866",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:898",
+          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:727",
+          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:775",
+          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:577",
+          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:631",
+          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:682",
+          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683",
           "score": 12
         },
         {
-          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
+          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522",
           "score": 12
         },
         {
@@ -2624,67 +2624,67 @@
           "score": 14
         },
         {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:47",
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:46",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:73",
+          "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:72",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:186",
+          "value": "/api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:187",
           "score": 12
         },
         {
-          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:109",
+          "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:108",
           "score": 12
         },
         {
-          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:391",
+          "value": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:326",
+          "value": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327",
           "score": 12
         },
         {
-          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
+          "value": "/api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:829",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:866",
+          "value": "/api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:898",
+          "value": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:727",
+          "value": "/api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:775",
+          "value": "/api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:577",
+          "value": "/api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:631",
+          "value": "/api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632",
           "score": 12
         },
         {
-          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:682",
+          "value": "/api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683",
           "score": 12
         },
         {
-          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
+          "value": "/api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522",
           "score": 12
         },
         {

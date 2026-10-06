@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ce2bac19aa53e01db68a47ee368522524e3b20b1018a244eeb0180fa479ec94"
+          "content": "1ca4761ce01f9ec4822ddee5098f3804b3ab58a0d8b65b3551aec70866d29de0"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12115,7 +12115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27a6fcf8f0f8d05e0e558173f111f0d511b33beba9c45aa8cd0a08a9f32b8d46"
+          "content": "e92188e96465c605c9cf40793c8d022302be83318c1e7d78eef74efac15b6853"
         }
       ],
       "name": "services/decision-service/migrations/035_decision_version_binding.sql",
@@ -12675,7 +12675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b202860dbd245a41f02588cbea73f518627f2546ce54083e15608763bfc70cd"
+          "content": "c259f6e468c12ca126bacff9874288f92f7d40c4a46d8c7450e19202e438da71"
         }
       ],
       "name": "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -17395,7 +17395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83117ae1d71494d334e7485edcf838e08600176ef8531f71ceb7e76f75a28977"
+          "content": "c94494eba0180bc199ea023e4639b8601b4f5d00f738d9ace28805eccd97c08e"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -18475,7 +18475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "147b58f845d181251e712510afbcad3d69f2effb5f85e436bdb66eda8c5f1e16"
+          "content": "af809a255fa6bbc431eb293a2fa92f33092203a883b941356ab0abbd075e01ec"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",
@@ -18955,7 +18955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10fe00bf79b1973f9fde0f00dbf88c0bf335cfd2fe49c1a8f1df1c12dcb65c4d"
+          "content": "ec80228579cfa0d7be45c896be8294a11252675b7aa74e50fbd4565aa6f79a59"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_engineering.py",

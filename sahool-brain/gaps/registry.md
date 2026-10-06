@@ -7030,6 +7030,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الأثر:** خطّةٌ لا تحمل دليلاً على أيّ نسخةٍ اعتُمدت، ولا شيءَ يُعاد التحقّقُ منه عند الفعل.
 - **الإصلاح:** 035: `decision_value_digest` يحسبه الخادم ومُثبَّتٌ بمُشغِّل؛ الاعتمادُ يشترطه (لازمٌ للاعتماد، والرفضُ ممكنٌ بدونه)؛ النتيجةُ الآمِرة تُعيده ويُثبته الـBFF؛ اللوحةُ تُرسِل بصمةَ ما عرضته.
 - **شرط الإغلاق إلى verified:** اعتمادٌ حيّ يحمل `approved_decision_value_digest` مطابقاً لنسخة الطابور.
+- **تصحيحٌ بعد مراجعة Copilot على #1144 (2026-10-06):** المُشغِّل لم يشمل `confidence` و`region` وطابورُ المراجعة يعرضهما للمراجِع، فكان ما رآه قابلاً للتغيير بعد الاعتماد والبصمةُ ثابتة. صار المُشغِّل يشملهما؛ الشاهد `test_evidence_and_its_digest_are_immutable_in_the_database[confidence = 0.01|region = 'elsewhere']` أحمرُ قبل الإصلاح (DID NOT RAISE) أخضرُ بعده على Postgres حقيقيّ محلّيّ. الحالةُ fixed لم تتغيّر.
 
 ## IRRIGATION-MANUAL-PLAN-NOT-BOUND-TO-DECISION-AMOUNT-01 — خطّةُ الريّ اليدويّ لا تُربَط بكمّيّة القرار المعتمد
 <!-- gap-registry: current -->
@@ -7091,6 +7092,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الأثر:** توقيعٌ ثانٍ للشخص نفسه قبل دخول الماء الدفتر.
 - **الإصلاح:** المُنشئ والمؤكِّد ممنوعان؛ تنفيذٌ بلا مؤكِّدٍ مسجَّل لا يُتحقَّق منه؛ الرفضُ حدثٌ يُلتزَم قبل الرفض؛ المربّعاتُ غيرُ مُعلَّمة.
 - **شرط الإغلاق إلى verified:** تحقّقٌ حيٌّ من مستخدمٍ ثالث.
+- **تصحيحٌ بعد مراجعة Copilot على #1144 (2026-10-06):** استعلامُ المؤكِّد طابق `to_state='confirmed'` وحده، فحدثُ رفض التحقّق (`confirmed`→`confirmed`، فاعلُه المُحقِّق) صار «المؤكِّد» بعد أوّل رفض: يتحقّق المؤكِّدُ الحقيقيّ من قياسه ويُمنع المُحقِّقُ المرفوض من الإعادة. صار مقيّداً بانتقال `stopped`→`confirmed`؛ الشاهد `test_a_rejected_verification_does_not_replace_the_confirmer` أحمرُ قبل الإصلاح أخضرُ بعده. الحالةُ fixed لم تتغيّر.
 
 ## IRRIGATION-EXECUTION-COMPLETED-HAS-NO-PRODUCER-01 — حدثُ إكمال الريّ له مستهلكٌ ولا مُنتِج
 <!-- gap-registry: current -->
@@ -7103,6 +7105,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الأثر:** حلقةُ النتيجة والتعلّم لا تُبلَغ أبداً.
 - **الإصلاح:** الإصدارُ في معاملة التسوية؛ المستهلك idempotent ببصمة النتيجة، ويُعيد المحاولة (NAK) للوصول المبكّر؛ والنتيجةُ `degraded` تفصل الأسئلة الثلاثة ولا تدّعي إلّا الالتزام.
 - **شرط الإغلاق إلى verified:** حدثٌ حيّ يُنتِج صفَّ نتيجة.
+- **تصحيحٌ بعد مراجعة Copilot على #1144 (2026-10-06):** المستهلك قرأ `applied_depth_mm` من المطابقة ولم يستعمله، فحمولةٌ تُبقي البصمةَ الصحيحة بعمقٍ آخر صارت نتيجةَ التزام؛ وخزّن `measured_at=now()` (زمنَ التسليم) بدل `observed_at` المُنتِج. صار العمقُ المُطابَق مرجعاً يُرفَض ما خالفه (`MANUAL_COMPLETION_APPLIED_DEPTH_MISMATCH`)، و`observed_at` لازماً بمنطقةٍ زمنيّة ويُخزَّن `measured_at`؛ ثلاثةُ شواهد في `tests_v9/test_irrigation_manual_slice_routes.py` حمراءُ قبل الإصلاح خضراءُ بعده. الحالةُ fixed لم تتغيّر.
 
 ## IRRIGATION-SLICE-HAS-NO-UI-CALLERS-01 — شريحةُ الريّ اليدويّ بلا واجهةٍ تقدّم المرشّح وتنشئ الخطّة والتنفيذ
 <!-- gap-registry: current -->
@@ -7136,3 +7139,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **إعادة الإنتاج:** —
 - **الأثر:** لا دليلَ على تشغيلٍ حيّ لأيّ خطوة.
 - **شرط الإغلاق إلى verified:** تشغيلٌ حيٌّ كاملٌ من التوصية إلى النتيجة على حقلٍ حقيقيّ بعد تحويل SoR.
+
+## ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01 — ماسحُ حوكمة المسارات لا يرى مفتاحَ عدم التكرار الممرَّر عبر `model_dump()`
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-06) — فجوةُ قياس قائمةٌ على `main` قبل هذه الشريحة؛ كُشفت بمراجعة Copilot على #1144.
+- **الصنف:** فجوةُ قياس (أثرٌ حوكميّ مولَّد يُبخس العقد).
+- **النسخة المفحوصة:** `77f9f188`.
+- **المُنتِج والمستهلك:** `scripts/architecture/build_platform_catalog.py` (`scan_route_governance` و`_IDEMPOTENCY_TOKENS`) يشتقّ `idempotency_required` من رموزٍ حرفيّة في جسم المعالِج؛ ومستهلكُه `platform_catalog.generated.json` و`docs/architecture/PLATFORM_CATALOG.generated.md`.
+- **طريقة الاستدعاء:** `python scripts/architecture/build_platform_catalog.py` ضمن `verify_all_generated --fix`.
+- **إعادة الإنتاج:** مسحٌ بـ`ast` لمعالِجات `services/sahool-platform/api/routers/decision_review.py`: أحدَ عشرَ معالِجاً يمرّر `req.model_dump()` لنموذجٍ يُعلن `idempotency_key` بلا ذكر الرمز في الجسم (منها `create_decision_execution_plan` و`authorize_execution_plan_dispatch` و`create_authorized_execution_request`)، فتُفهرَس `idempotency_required: false` والطلبُ يشترطه. والثاني عشر (`review_decision_candidate`) انحدر كذلك في #1144 ثمّ أُعيد في الـPR نفسه بتسمية المفتاح صراحةً.
+- **الأثر:** أثرُ الحوكمة المولَّد يُبخس عقدَ API لنقاطٍ آمِرة؛ وأيُّ مراجعةٍ تعتمد الكتالوج تراها بلا idempotency.
+- **شرط الإغلاق إلى fixed:** الماسحُ يقرأ حقولَ نموذج الطلب حين يُمرَّر بـ`model_dump()` (لا تسميةُ الرمز في كلّ معالِج)، مع شاهدٍ أحمر قبل الإصلاح، وإعادةُ توليد الكتالوج؛ والنطاقُ بقرار المالك لأنّه يقلب أحد عشر صفّاً في أثرٍ حوكميّ.

@@ -4090,7 +4090,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 48,
+    "line": 47,
     "method": "GET",
     "path": "/api/v1/decisions/review-queue",
     "function": "get_decision_review_queue"
@@ -4098,7 +4098,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 74,
+    "line": 73,
     "method": "GET",
     "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
     "function": "get_decision_agronomic_evidence_boundary"
@@ -4106,7 +4106,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 110,
+    "line": 109,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/review",
     "function": "review_decision_candidate"
@@ -4114,7 +4114,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 187,
+    "line": 188,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/execution-plan",
     "function": "create_decision_execution_plan"
@@ -4122,7 +4122,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 327,
+    "line": 328,
     "method": "POST",
     "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "function": "authorize_execution_plan_dispatch"
@@ -4130,7 +4130,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 392,
+    "line": 393,
     "method": "POST",
     "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "function": "create_authorized_execution_request"
@@ -4138,7 +4138,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 459,
+    "line": 460,
     "method": "POST",
     "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
     "function": "verify_execution_outcome_boundary"
@@ -4146,7 +4146,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 522,
+    "line": 523,
     "method": "POST",
     "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
     "function": "create_learning_attribution_boundary"
@@ -4154,7 +4154,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 578,
+    "line": 579,
     "method": "GET",
     "path": "/api/v1/learning/calibration-dataset",
     "function": "read_calibration_dataset_boundary"
@@ -4162,7 +4162,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 632,
+    "line": 633,
     "method": "POST",
     "path": "/api/v1/learning/evaluation-runs",
     "function": "register_model_evaluation_boundary"
@@ -4170,7 +4170,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 683,
+    "line": 684,
     "method": "POST",
     "path": "/api/v1/learning/promotion-decisions",
     "function": "register_model_promotion_decision_boundary"
@@ -4178,7 +4178,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 728,
+    "line": 729,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests",
     "function": "register_model_activation_request_boundary"
@@ -4186,7 +4186,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 776,
+    "line": 777,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
     "function": "review_model_activation_request_boundary"
@@ -4194,7 +4194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 830,
+    "line": 831,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
     "function": "claim_registry_activation_command_bff"
@@ -4202,7 +4202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 867,
+    "line": 868,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
     "function": "record_registry_activation_receipt_bff"
@@ -4210,7 +4210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 899,
+    "line": 900,
     "method": "POST",
     "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "function": "create_registry_rollback_command_bff"

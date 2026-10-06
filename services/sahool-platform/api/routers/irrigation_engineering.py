@@ -570,7 +570,7 @@ async def verify_manual_execution(
             # confirmer (confirmed before that) cannot be independently verified — fail closed.
             confirmer = await conn.fetchval(
                 """SELECT actor_id FROM irrigation_manual_execution_events
-                    WHERE execution_id=$1::uuid AND to_state='confirmed'
+                    WHERE execution_id=$1::uuid AND from_state='stopped' AND to_state='confirmed'
                     ORDER BY occurred_at DESC LIMIT 1""",
                 execution_id,
             )

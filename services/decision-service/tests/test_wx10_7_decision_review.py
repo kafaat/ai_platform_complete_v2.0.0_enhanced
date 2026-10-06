@@ -415,6 +415,9 @@ def test_the_approved_version_is_recorded_on_the_review():
         "decision_value = decision_value || '{\"x\":1}'::jsonb",
         "decision_value_digest = repeat('0', 64)",
         "candidate_lineage_id = 'cand/other'",
+        # the review queue shows these to the reviewer, so they are part of what was approved
+        "confidence = 0.01",
+        "region = 'elsewhere'",
     ],
 )
 def test_evidence_and_its_digest_are_immutable_in_the_database(assignment):

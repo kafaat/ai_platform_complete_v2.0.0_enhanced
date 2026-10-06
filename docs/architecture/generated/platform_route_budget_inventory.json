@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "038d6a12fcbe7c982eb09657db3a539dc746c242c9b22569be8211f8b4b6865a",
+  "inventory_sha256": "875dd535bcaf3b1fb5678b6c74257ce8aaa9db547bc970e184be019fda023bda",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "3f1ad922584644fafbdc73a785904c0e18f7ae07479ebd78c3bf50e448e675dd"
+    "policy_sha256": "896ac92fa5a8d92e216c945d7e1c4f3759b5aae0f78e03dfd71062663f508faa"
   },
   "routes": [
     {
@@ -706,7 +706,7 @@
     {
       "classification": "domain",
       "function": "get_decision_review_queue",
-      "line": 47,
+      "line": 46,
       "method": "GET",
       "path": "/api/v1/decisions/review-queue",
       "source": "api/routers/decision_review.py"
@@ -714,7 +714,7 @@
     {
       "classification": "domain",
       "function": "get_decision_agronomic_evidence_boundary",
-      "line": 73,
+      "line": 72,
       "method": "GET",
       "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
       "source": "api/routers/decision_review.py"
@@ -1682,7 +1682,7 @@
     {
       "classification": "domain",
       "function": "read_calibration_dataset_boundary",
-      "line": 577,
+      "line": 578,
       "method": "GET",
       "path": "/api/v1/learning/calibration-dataset",
       "source": "api/routers/decision_review.py"
@@ -3250,7 +3250,7 @@
     {
       "classification": "domain",
       "function": "create_decision_execution_plan",
-      "line": 186,
+      "line": 187,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/execution-plan",
       "source": "api/routers/decision_review.py"
@@ -3258,7 +3258,7 @@
     {
       "classification": "domain",
       "function": "review_decision_candidate",
-      "line": 109,
+      "line": 108,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/review",
       "source": "api/routers/decision_review.py"
@@ -3290,7 +3290,7 @@
     {
       "classification": "domain",
       "function": "create_authorized_execution_request",
-      "line": 391,
+      "line": 392,
       "method": "POST",
       "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
       "source": "api/routers/decision_review.py"
@@ -3378,7 +3378,7 @@
     {
       "classification": "domain",
       "function": "authorize_execution_plan_dispatch",
-      "line": 326,
+      "line": 327,
       "method": "POST",
       "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
       "source": "api/routers/decision_review.py"
@@ -3386,7 +3386,7 @@
     {
       "classification": "domain",
       "function": "verify_execution_outcome_boundary",
-      "line": 458,
+      "line": 459,
       "method": "POST",
       "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
       "source": "api/routers/decision_review.py"
@@ -4010,7 +4010,7 @@
     {
       "classification": "domain",
       "function": "claim_registry_activation_command_bff",
-      "line": 829,
+      "line": 830,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "source": "api/routers/decision_review.py"
@@ -4018,7 +4018,7 @@
     {
       "classification": "domain",
       "function": "record_registry_activation_receipt_bff",
-      "line": 866,
+      "line": 867,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
       "source": "api/routers/decision_review.py"
@@ -4026,7 +4026,7 @@
     {
       "classification": "domain",
       "function": "create_registry_rollback_command_bff",
-      "line": 898,
+      "line": 899,
       "method": "POST",
       "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "source": "api/routers/decision_review.py"
@@ -4034,7 +4034,7 @@
     {
       "classification": "domain",
       "function": "register_model_activation_request_boundary",
-      "line": 727,
+      "line": 728,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests",
       "source": "api/routers/decision_review.py"
@@ -4042,7 +4042,7 @@
     {
       "classification": "domain",
       "function": "review_model_activation_request_boundary",
-      "line": 775,
+      "line": 776,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
       "source": "api/routers/decision_review.py"
@@ -4050,7 +4050,7 @@
     {
       "classification": "domain",
       "function": "register_model_evaluation_boundary",
-      "line": 631,
+      "line": 632,
       "method": "POST",
       "path": "/api/v1/learning/evaluation-runs",
       "source": "api/routers/decision_review.py"
@@ -4066,7 +4066,7 @@
     {
       "classification": "domain",
       "function": "register_model_promotion_decision_boundary",
-      "line": 682,
+      "line": 683,
       "method": "POST",
       "path": "/api/v1/learning/promotion-decisions",
       "source": "api/routers/decision_review.py"
@@ -4162,7 +4162,7 @@
     {
       "classification": "domain",
       "function": "create_learning_attribution_boundary",
-      "line": 521,
+      "line": 522,
       "method": "POST",
       "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
       "source": "api/routers/decision_review.py"

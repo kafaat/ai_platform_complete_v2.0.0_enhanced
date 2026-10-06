@@ -28,9 +28,12 @@ VERIFIER = SimpleNamespace(tenant_id=TENANT, user_id="u-verifier")
 
 
 class FakeConn:
-    def __init__(self, row: dict, *, confirmer: str | None = "u-operator"):
+    def __init__(self, row: dict, *, confirmer: str | None = "u-operator", log=None):
         self.row = row
         self.confirmer = confirmer
+        # optional event log [(from_state, to_state, actor)] — the lookup is then evaluated
+        # against the SQL's own filter instead of returning a fixed confirmer.
+        self.log = log
         self.executed: list[tuple[str, tuple]] = []
 
     @contextlib.asynccontextmanager
@@ -42,7 +45,14 @@ class FakeConn:
 
     async def fetchval(self, sql, *args):
         assert "irrigation_manual_execution_events" in sql
-        return self.confirmer
+        if self.log is None:
+            return self.confirmer
+        rows = [
+            actor
+            for frm, to, actor in self.log
+            if to == "confirmed" and ("from_state='stopped'" not in sql or frm == "stopped")
+        ]
+        return rows[-1] if rows else None
 
     async def execute(self, sql, *args):
         self.executed.append((" ".join(sql.split()), args))
@@ -241,6 +251,24 @@ def test_an_execution_without_a_recorded_confirmer_cannot_be_verified(monkeypatc
     assert exc.value.detail == "CONFIRMER_NOT_RECORDED"
 
 
+def test_a_rejected_verification_does_not_replace_the_confirmer(monkeypatch):
+    # A refusal is appended as confirmed→confirmed by the VERIFIER. The confirmer is the actor of
+    # the stopped→confirmed transition only — else, after one refusal, the real confirmer could
+    # verify their own measurement and the refused verifier could never retry.
+    log = [("stopped", "confirmed", "u-operator"), ("confirmed", "confirmed", "u-verifier")]
+    row = _row("confirmed", as_applied={}, confirmation={}, as_applied_digest="a" * 64)
+    conn = FakeConn(row, log=log)
+    _install(monkeypatch, conn)
+    with pytest.raises(HTTPException) as exc:
+        _verify(conn, OPERATOR)
+    assert exc.value.detail == "VERIFIER_MUST_BE_INDEPENDENT"
+    retry = FakeConn(dict(row), log=log)
+    _install(monkeypatch, retry)
+    with pytest.raises(HTTPException) as exc:
+        _verify(retry, VERIFIER, volume_verified=False)
+    assert exc.value.detail != "VERIFIER_MUST_BE_INDEPENDENT"  # the verifier may retry
+
+
 def test_a_refused_verification_is_recorded_before_the_refusal(monkeypatch):
     conn = FakeConn(_row("confirmed", as_applied={}, confirmation={}, as_applied_digest="a" * 64))
     _install(monkeypatch, conn)
@@ -343,6 +371,7 @@ def _completion(**kw):
         "season_id": "sea-1",
         "planned_depth_mm": 20.0,
         "applied_depth_mm": 18.0,
+        "observed_at": "2026-10-06T06:00:00+00:00",
         "ledger_event_digest": "l" * 64,
         "source_digests": {"plan_digest": "c" * 64},
     }
@@ -375,6 +404,12 @@ def test_a_deviation_beyond_tolerance_is_not_called_executed_as_approved():
     assert out["executed_as_approved"] == "deviated_with_stated_reason"
 
 
+def test_the_measurement_time_is_the_producers_observed_at_not_the_delivery_time():
+    conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 18.0})
+    _outcome(conn, _completion())
+    assert conn.inserts[0][8] == datetime(2026, 10, 6, 6, 0, tzinfo=UTC)
+
+
 def test_a_duplicate_delivery_is_a_replay_not_a_second_outcome():
     conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 18.0}, inserted=False)
     assert _outcome(conn, _completion())["status"] == "replay"
@@ -393,6 +428,13 @@ def test_an_event_before_its_reconciliation_is_visible_is_retried_not_dropped():
     [
         (_completion(ledger_event_digest="z" * 64), "MANUAL_COMPLETION_DIGEST_MISMATCH"),
         ({"source": "manual"}, "MANUAL_COMPLETION_FIELDS_REQUIRED"),
+        # the reconciled depth is authoritative: a payload keeping the valid digest but carrying
+        # another applied depth must not become an adherence result
+        (_completion(applied_depth_mm=25.0), "MANUAL_COMPLETION_APPLIED_DEPTH_MISMATCH"),
+        (
+            {k: v for k, v in _completion().items() if k != "observed_at"},
+            "MANUAL_COMPLETION_FIELDS_REQUIRED:observed_at",
+        ),
     ],
 )
 def test_a_malformed_or_forged_completion_is_terminated(payload, reason):
