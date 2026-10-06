@@ -6806,6 +6806,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 — عاملُ المحرّك يرث أسرارَ المضيف
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `49bc30eeb623739f7821b339cd98b3d066075daf` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة) — الشاهدان `tests/test_tts_bakeoff_input_contracts.py::test_worker_env_is_an_allowlist_that_drops_host_secrets` و`::test_asr_workers_inherit_the_allowlist_not_the_host_environment` (3 محوّلات): حمراءُ على `ab675a8e` وخضراءُ هنا. **ليس fixed على `main`** حتّى يُدمَج، ولا verified: شرطُه تشغيلُ محرّكٍ ومقيِّمٍ حقيقيَّين بأسرارٍ مزروعة وإثباتُ غيابها داخلهما.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **تصحيح (2026-10-05، مراجعة Copilot الثانية):** إعلانُ fixed عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` كان **جزئيّاً**: أصلح عاملَ TTS وحده، وبقي عمّالُ ASR في `tools/tts_bakeoff/asr_screen.py` (العاملُ المستمرّ لـfaster_whisper/pocketsphinx، وعمليّةُ whisper_cpp بلا `env`) يرثون بيئةَ المضيف كلَّها. صارت قائمةُ السماح في `procs.WORKER_ENV_ALLOW` يستعملها الطرفان، ولعمّال ASR اسمان من إعداد الأداة لا أسرار: `PYTHONPATH` و`BAKEOFF_CONTROL_HOST`.
 - **المصدر:** `tools/tts_bakeoff/run.py:192` (`WORKER_ENV_ALLOW`) و`run.py:205` (`worker_env`) و`run.py:538`؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:34` (`test_worker_env_is_an_allowlist_that_drops_host_secrets`).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` كانت بيئةُ العامل نسخةً من بيئة المضيف ناقصَ `*_proxy` و`*TOKEN*` (قائمةُ منع)، فتصل `AWS_SECRET_ACCESS_KEY` و`DATABASE_URL` و`*_PASSWORD` إلى شيفرة نموذجٍ من طرفٍ ثالث، ويمكنها كتابتُها إلى مجلّد الناتج القابل للكتابة ولو مع عزل الشبكة. صنّفتها مراجعةُ Copilot على PR #1133 (`claude/wip-tts-bakeoff`) **High**.
@@ -6815,6 +6816,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-UNVERIFIED-DIGEST-MARKED-TRUSTED-01 — بصمةٌ مقيسةٌ من التنزيل نفسه تُعامَل «موثوقة»
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_measured_download_hash_is_not_marked_trusted`: حالةٌ ناجحةٌ على `355db5f6` وحالةٌ حمراءُ على `f333b6e4` (أُعيد القياس 2026-10-05). **ليس fixed على `main`** حتّى يُدمَج، ولا verified: مطابقةُ البصمة بمصدرٍ منشورٍ أصليّ ما زالت مطلوبة قبل نقلها إلى `trusted_sha256`.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `tools/tts_bakeoff/sources.example.json:20-21` (`measured_sha256_unverified`، و`trusted_sha256: null`)؛ `fetch_models.py:75-82` يرفض ما لا `trusted_sha256` له؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:49` (`test_measured_download_hash_is_not_marked_trusted`).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` وُضعت بصمةُ أرشيف catt المقيسةُ من التنزيل نفسه في `trusted_sha256`، والسطرُ التالي يقرّ بأنّها لم تُطابَق ببصمةٍ منشورة؛ فيمرّ فحصُ المصدر بلا مصادقةٍ حقيقيّة. **High** في مراجعة Copilot.
 - **الإصلاح المقيس:** نُقلت القيمةُ إلى `measured_sha256_unverified` وصار `trusted_sha256 = null`، فيرفض `fetch_models.py` التنزيلَ حتّى تُطابَق بصفحة الإصدار وتُنقَل.
@@ -6823,6 +6825,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-SAFETY-GATE-PASSES-WITH-ZERO-REVIEWERS-01 — بوّابةُ السلامة تنجح بلا مراجعين
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `da9202533f3be8ab39ce1a309ef0ccf241f0cea9` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة — قرارُ المالك 2026-10-05) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_min_reviewers_below_one_is_refused`: حالتان ناجحتان على `355db5f6` وحالتان حمراوان على `f333b6e4` (أُعيد القياس 2026-10-05). **ليس fixed على `main`** حتّى يُدمَج، ولا verified: شرطُه تشغيلُ البوّابة على أوراق مراجعةٍ حقيقيّة.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `tools/tts_bakeoff/score.py:56` (رفضُ `--min-reviewers < 1`)؛ الاختبار `tests/test_tts_bakeoff_input_contracts.py``:115` (`test_min_reviewers_below_one_is_refused`، القيمتان 0 و-1).
 - **الخلل:** على `f333b6e462e87a44838163480cba312aa751edb3` كان `--min-reviewers 0` (أو سالباً) يجعل كلَّ مقطعٍ «مكتملاً»، فينال محرّكٌ بلا أيّ صفٍّ مُقيَّم `PASSED_SAFETY_GATE`.
 - **الإصلاح المقيس:** رفضُ ما دون 1 قبل أيّ حساب. وفي الشريحة نفسها (`score.py:34`، `_rating`): التقديرُ عددٌ منتهٍ في [1, 5] وإلّا تُرفض الورقةُ باسم الصفّ (كانت NaN/∞ تُقبل).
@@ -6840,6 +6843,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-PERF-WORKLOAD-SIGNATURE-OMITS-REQUEST-COUNTS-01 — بصمةُ الحِمل تقارن أسماءَ مستويات التزامن وحدها
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `49bc30eeb623739f7821b339cd98b3d066075daf` على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_workload_signature_includes_requests_per_level`: أحمرُ على `ab675a8e` وأخضرُ هنا. **ليس fixed على `main`** حتّى يُدمَج، ولا verified: شرطُه مقارنةُ تشغيلَين حقيقيَّين بحِملين مختلفين ورفضُها.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `tools/tts_bakeoff/perf.py` (`main`، بصمةُ `workloads`)؛ مراجعة Copilot الثانية على PR #1133.
 - **الخلل:** على `ab675a8eec06` كان `perf.py` يقارن `sorted(concurrency)` وحدها، فتشغيلان بالمستويات نفسِها و`--concurrency-items` مختلف (أعدادُ طلباتٍ مختلفة) يُقبلان معاً وإنتاجيّتُهما وزمنُ انتظارهما غيرُ متكافئين.
 - **الإصلاح المقيس:** البصمةُ صارت «المستوى ⇒ عدد الطلبات»، والاختلافُ يُرفض برسالةٍ تسمّيه؛ والتشغيلُ نفسُه مرّتين يُقبل.
@@ -6876,6 +6880,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-RESOURCE-LIMITS-ONLY-CGROUP-V1-01 — حدودُ الموارد لا تُقاس إلّا على هرم cgroup v1
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة) — 11 حالةً جديدة في `tests/test_tts_bakeoff_input_contracts.py` (منها 10 حمراء على `77daabe3`)، و`selftest.py` كاملاً على مضيف v1 الحاضر: **66 حالة · فشل 0 · BLOCKED 0** (`scripts` ليست مطلوبة؛ الشاهدُ تشغيلٌ حقيقيّ). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `tools/tts_bakeoff/run.py` (`setup_cgroups` · `cgroup_stats`) · `tools/tts_bakeoff/worker.py` (`verify_limits`) · `tools/tts_bakeoff/perf.py` (`evidence_problems`) · `tools/tts_bakeoff/result_comparable.schema.json` · `tools/tts_bakeoff/selftest.py` (مسبار القدرة).
 - **الخلل المقيس (بلاغُ المالك 2026-10-05):** على WSL2 بنواة 6.6 أعطى `selftest.py` بصلاحيّة root **44 نجاحاً و0 فشلاً و6 BLOCKED**، وكلُّ الستّ لسببٍ واحد: لا `cgroup v1` على المضيف لأنّ WSL2 (وUbuntu 22.04 وما بعدها) على v2. و`setup_cgroups` كان يكتب `memory.limit_in_bytes` و`cpu.cfs_quota_us` فقط، فيعود `backend=UNAVAILABLE`، ويعلن `verify_limits` `BLOCKED`، وترفض بوّابةُ `perf.py` كلَّ سجلّ. فكانت مقارنةُ الأداء **متعذّرةً دائماً على أيّ مضيفٍ حديث** — لا لعيبٍ في المحرّك. وعزلُ الشبكة نفسه `PROVEN` هناك (الضابطُ السلبيّ وصل من الخارج، والداخلُ محجوب).
 - **الإصلاح المقيس:** `cgroup_hierarchy()` يكشف الهرمَ المُركَّب (v1 يُفضَّل حيث وُجد فلا يتغيّر ما قِيس سابقاً، وv2 عبر `cgroup.controllers`)؛ وv2 يُفعِّل `memory`/`cpu` في `cgroup.subtree_control` للجذر (المستثنى من قاعدة «لا عمليّاتٍ داخليّة») ثمّ يكتب `memory.max` و`cpu.max`؛ والإحصاءات من `memory.peak` و`memory.events` و`cpu.stat` بوحدة **ميكروثانية** لا نانوثانية؛ والعاملُ يقرأ حدَّه من سطر `0::`، وقيمةُ `max` تعني أنّ الحدَّ لم يَسرِ ⇒ `MISMATCH`. وبوّابةُ الأداء والعقدُ يعدّان المجموعاتِ بحسب الهرم (v1: 2 · v2: 1).
@@ -6885,6 +6890,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## TTS-BAKEOFF-PERF-IGNORES-INTERPRETER-AND-HOST-01 — مقارنةُ الأداء تتجاهل المفسّر والمضيف
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، على PR #1133 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة) — الشاهد `tests/test_tts_bakeoff_input_contracts.py::test_runs_on_a_different_interpreter_or_host_are_not_compared` (5 حالات، كلُّها حمراء قبل الإصلاح) مع ضابطٍ موجب `test_two_identical_runs_are_still_compared`. **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1133 squash عند `9801d07620e25226d2f8306afae3eb6e635e5c2a`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `tools/tts_bakeoff/perf.py` (`main`، حلقةُ تساوي الحقول بين التشغيلات) · `tools/tts_bakeoff/worker.py` (`environment_record`).
 - **الخلل:** كانت البوّابةُ تفرض تساوي `corpus_sha256` و`scripts_sha256` والحدودِ وبصمةِ الحِمل فقط، ولا تنظر إلى `environment.python` ولا `platform` ولا `cpu_model` ولا `cpu_visible` ولا `thread_env` — وكلُّها مُسجَّلةٌ في السجلّ أصلاً. فتشغيلان على بايثونَين مختلفَين أو جهازَين مختلفَين يُقارَنان كأنّهما متكافئان، والفرقُ يُنسَب إلى المحرّك.
 - **السياقُ الذي كشفه (إعدادُ المالك المحلّيّ 2026-10-05):** `kokoro-onnx==0.6.1` يشترط بايثون `>=3.10,<3.14` (مقروءٌ من `METADATA`)، و`silma-tts==1.0.5` يثبّت `numpy<=1.26.4` التي لا عجلةَ لها بعد cp312 (مقيس: تنزيلُها لـ3.13 و3.14 يفشل ولـ3.12 ينجح) — فالمحرّكان على 3.12 بينما Ubuntu 26.04 يشحن 3.14، ومجالُ خلط المفسّرات صار واقعيّاً لا نظريّاً.
@@ -6900,6 +6906,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01 — حارسُ انتقال الدماغ لا يرى `fixed`
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `2e0a55c769ae9b31d803537475e63d84a21d303d`؛ أُعيد فتحُها ثمّ أُصلحت في الـPR نفسه — انظر التصحيحَ الثاني) — الشواهد في `tests_v9/test_brain_transition_guard_vocabulary.py`، وستُّ طفراتٍ للانتقال مسجّلة في `docs/architecture/guard_mutation_registry.json` مقتولة (16/16 للحارس، `guard_mutation_guard --run --only brain_state_transition_guard.py`). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-05):** دُمج #1139 squash عند `172cb4505b66dd57e418e35819670fbf84a072a9`؛ فعبارةُ «غيرِ المدموج» و«ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **تصحيح (2026-10-05، مراجعةُ Copilot على #1138):** إصلاحُ `912188bb` كان جزئيّاً بثغرتَين: (1) `git diff --name-only` يُدرج المحذوف، فحذفُ أيّ ملفٍّ تحت `tests_v9/` يُحتسب دليلاً ⇒ صار `--diff-filter=d`؛ (2) وسمُ `historical` كان يُسقط الحالةَ بلا شرط، فمدخلٌ منفردٌ موسومٌ تاريخيّاً يسجِّل fixed في الدماغ وحده ⇒ صار يُسقطها في سلسلةٍ مُراجَعة فقط، بقاعدة `gap_registry_measure.measure()` نفسها. ثلاثُ حالاتٍ حمراء على `912188bb` خضراء على `3271c1e7`؛ ومجموعةُ fixed على السجلّ الحقيقيّ لم تتغيّر (فرقُ صفر).
 - **تصحيحٌ ثانٍ — أُعيد فتحُها (2026-10-05، فحصُ المالك على `main@bb02257b` بعد دمج #1138):** الحالةُ fixed عند `3271c1e7` كانت قابلةً للتجاوز: الدليلُ يُجمَع بـ`git diff --name-only --diff-filter=d`، والاسمُ الجديد لإعادة تسميةٍ صرفة (R100) يُدرَج فيه، فـ`git mv` لاختبارٍ قائم مع نقل صفٍّ open→fixed في الدماغ يمرّ بلا سطرٍ تنفيذيٍّ جديد — ومثلُه نسخٌ بلا تعديل (C100، يصل `A` لأنّ `-M` لا يكتشف النسخ) وتغييرُ صلاحيّاتٍ وحده. **الإصلاح عند `2e0a55c769ae9b31d803537475e63d84a21d303d`:** الدليلُ محتوى لا اسم — `git diff --raw -z -M --no-abbrev --diff-filter=d` (`parse_raw`)، ويُسقَط كلُّ مسارٍ بصمتُه الجديدة موجودةٌ في شجرة الأساس (`content_evidence`)؛ قاعدةٌ واحدة تُسقط R100 وC100 والصلاحيّات، فلا فحصَ منفصلاً لدرجة التشابه (كان سيكون فرعاً ميتاً لا تقتله طفرة). الشاهد `test_a_pure_rename_or_copy_of_a_test_is_not_executable_evidence`: الحالاتُ الثلاث (R100 · C100 · chmod) حمراء على حارس `main` خضراء على الإصلاح، والضابطُ (R<100 يحمل محتوىً جديداً) يمرّ في الاتّجاهين؛ والطفرة `if blob not in base_blobs]` ⇒ `]` مقتولة. **حدٌّ باقٍ:** تعديلٌ تافه محتوىً جديد — الحارسُ يرى وجودَ محتوىً تنفيذيٍّ جديد لا أنّه يُصلح الفجوة.
 - **المصدر:** `scripts/ci/brain_state_transition_guard.py` (`CLOSED_RE` · `fixed_gap_ids` · `check_fixed`)؛ مراجعةُ Copilot على #1136 وتصحيحُ `decisions/ledger.md` فيه؛ وفحصُ المالك 2026-10-05.
@@ -6910,6 +6917,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## CI-PR-RUNS-NOT-SUPERSEDED-01 — تشغيلاتُ الـPR القديمة لا تُلغى عند دفعٍ جديد فتستنزف أجهزةَ التشغيل
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-05، عند `3bd8641b790fe5c356ebae6f0fc094cb60707cc2` في #1140 غيرِ المدموج؛ الدمجُ مصدرٌ لا حالة) — الشاهد `tests_v9/test_ci_pr_concurrency.py` (48 حالة؛ 45 منها حمراء على المسارات قبل التغيير).
+- **canonical على `main` (2026-10-06):** دُمج #1140 squash عند `f160f7e05bef6f386e99bafa8dfd2dbdfd76a6fe`؛ فعبارةُ «غيرِ المدموج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **المصدر:** `.github/workflows/*.yml` — 45 من 50 مساراً على الـPR بلا `concurrency` على `bb02257b`؛ قياسُ الحمل على `1c6547f8` (#1134) و`a47f0328` (#1133): 31–32 مساراً و64–68 وظيفة لكلّ دفع.
 - **الخلل:** كلُّ دفعٍ جديد إلى PR يترك تشغيلات الدفع السابق تعمل حتّى النهاية وتشغل أجهزةَ GitHub المحدودة بحدّ تزامن الخطّة؛ ومع أربعة فروع تُدفع متقاربةً (2026-10-05) صار الطابورُ عميقاً، وأُلغيت وظائفُ بلا خطوةٍ واحدة بـ«The job was not acquired by Runner of type hosted even after multiple attempts» (مع خطأٍ داخليّ من GitHub — فالعطلُ مركّب: حملٌ من جهتنا وخللٌ في التخصيص من جهتهم).
 - **الإصلاح المقيس:** الشكلُ نفسُه الذي في `ci.yml` أُضيف إلى المسارات الـ45: مجموعةٌ باسم المسار ورقم الـPR، و`cancel-in-progress` صحيحٌ على حدث الـPR وحده؛ ولغير الـPR مجموعةٌ فريدة بـ`run_id` فلا يُلغى ولا يُسلسَل أيُّ تشغيلٍ على main. أربعةُ تصاميم سابقة تُزيل التكرارَ لكلّ PR تُركت بدلالتها (قائمةٌ مغلقة في الشاهد).
@@ -6923,9 +6931,33 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **تصحيح الجرد (2026-10-05، مراجعةُ Copilot على #1141):** جردي الأوّل بحث في `services/ agents/ bots/` وحدها فأغفل المفكِّكَ المشترك في `shared/` ومستهلكَيه؛ أُعيد البحثُ على الشجرة كلّها (كلُّ ملفٍّ يستورد `jose` خارج الاختبارات: 9) وأُضيف أعلاه. النتيجةُ لم تتغيّر: كلُّ تحقّقٍ مقيَّد بخوارزميّةٍ واحدة مقترنة بمفتاحها.
 - **الحدّ:** الاستثناءُ لا يحمي استدعاءً **جديداً** بلا تقييد خوارزميّة؛ والمراجعةُ هي الحارس. وينقضي في `2026-11-05` فيحمرّ `waiver_expiry_guard` ويُفرض القرار من جديد.
 
+
+## BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01 — صفُّ fixed يبقى يقول «PR غيرُ مدموج» بعد دمجه ولا يراه القياس
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-06) — فجوةُ قياس، لا عيبَ في حالة؛ مَظهرُها الحاليّ (ثمانية صفوف) أُلحق به commit الدمج يدويّاً، والقياسُ لم يُوسَّع.
+- **مَظهرٌ ثانٍ (2026-10-06، مراجعةُ Copilot على #1143):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b` أثناء مراجعة هذا الـPR، فصار المَظهرُ **اثني عشر** صفّاً لا ثمانية — أربعٌ أضافها #1142 تقول «ليس fixed على `main` حتّى يُدمَج». أُلحق بها commit الدمج بالشكل نفسه. تكرارُ الانجراف بين فتح الـPR ودمجه هو الشاهدُ على أنّ الإصلاحَ اليدويّ لا يُغلق الصنف.
+- **المصدر:** إشعارُ المالك 2026-10-06: `Gap registry measurement (report-only)` أخضرُ على رؤوس #1141/#1140/#1133 (jobs 112046254884 · 112067005469 · 112081080462) بينما صفوفُ fixed تقول «PR … غيرِ المدموج» بعد دمجه؛ وثامنٌ (`BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01`) بعد دمج #1139.
+- **الخلل:** `scripts/ci/gap_registry_measure.py` يقيس الحالاتِ القانونيّة والبنية، لا صدقَ عبارات المصدر داخل صفّ fixed؛ فعبارةٌ صادقةٌ زمنَ الكتابة تصير غيرَ صادقةٍ بالدمج ولا شيءَ يقول ذلك.
+- **قيدٌ مقيس على أيّ إصلاح:** الدمجُ squash، فـSHA الإصلاح في الصفّ (`49bc30ee` · `da920253` · `3bd8641b`) ليس سلفاً لـ`main` (`git merge-base --is-ancestor` سالبٌ للثلاثة على `9801d076`). المطابقةُ برقم الـPR إلى commit الدمج (`(#N)` في عنوان الـsquash)، لا بنَسَب SHA الإصلاح.
+- **شرطُ الإغلاق:** توسيعُ `gap_registry_measure` (لا حارسٌ عامّ جديد) ليُبلغ عن صفّ fixed يذكر «#N غيرِ المدموج» أو «ليس fixed على main» بينما `main` يحمل commit دمجٍ لـ#N؛ تقريراً أوّلاً، والنطاقُ بقرار المالك.
+
+## PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01 — خفضٌ مُخطَّط يُسمّى «ماءً موفَّراً»
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-06) — بقيّةٌ مُعلَنة في `REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01` (#1142) بلا هويّةٍ مستقلّة حتّى الآن.
+- **المصدر:** `services/sahool-platform/core/cross_domain_optimization.py:34` (`def water_saved_mm`) و`:39` (`d["water_saved_mm"] = …`) على `main@9801d076`؛ ويعرضه `decision_dispatch` بحسب صفّ #1142.
+- **الخلل:** الخفضُ **المُخطَّط** في التحسين العابر للمجالات يُسمّى `water_saved_mm`، وهو ادّعاءُ توفيرٍ لم يُقَس سحبُه ولا استهلاكُه ولا إسنادُه — العيبُ نفسُه الذي أصلحه #1142 في مسار الاقتصاد. وليس هو `WOFOST-WHAT-IF-SEVEN-DEFECTS-01` (ذاك `routers/simulate.py`).
+- **شرطُ الإغلاق:** تسميةٌ تقول ما يُحسَب (خفضٌ مُخطَّط) مع `savings_claim` غيرِ مُثبَت كما في #1142، وشاهدٌ أحمرُ قبل الإصلاح.
+
+## MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01 — «توفير X% عن الشهر الماضي» بلا مُنتِجٍ خلفيّ
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-06) — بقيّةٌ مُعلَنة في صفّ #1142 بلا هويّةٍ مستقلّة حتّى الآن.
+- **المصدر:** `mobile/sahool_app/lib/screens/dashboard_screen.dart:524` يعرض `'توفير ${water['savings_pct']}% عن الشهر الماضي'` (والسطر 172 بحسب صفّ #1142) على `main@9801d076`.
+- **الخلل:** الشاشة تعرض نسبةَ توفيرٍ شهريّة لا يُنتجها أيُّ مسارٍ خلفيّ مقيس، فإمّا تظهر فارغةً أو قيمةً بلا أساس — ادّعاءُ توفيرٍ بلا دليل.
+- **شرطُ الإغلاق:** إمّا مُنتِجٌ خلفيّ يحسب الفرقَ المقيس فعلاً بوحداته وأساسه (لا «توفيراً» قبل إثبات الإسناد)، وإمّا إزالةُ العرض؛ مع شاهد.
 ## MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01 — نسبةُ الإكمال تُعيد تحجيمَ حجمٍ مقيس
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_irrx1_2_manual_execution_lifecycle.py` (ستُّ حالاتٍ حمراء على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** عيبٌ حسابيّ.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `services/sahool-platform/api/irrigation_manual_execution.py:163` (`derive_manual_as_applied`) ⇒ `irrigation_manual_executions.as_applied` ⇒ جسرُ الدفتر `irrigation_manual_ledger_bridge.py` (`ledger_eligible`).
@@ -6938,6 +6970,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01 — الحالةُ القانونيّة للماء تُرسِل لـET0 مفاتيحَ لا يُصدِرها الطقس وريحاً قصوى على 10م
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_canonical_water_state_mpc.py` (أربعُ حالاتٍ حمراء على `f160f7e0`، منها شاهدٌ تنفيذيّ من حمولة مزوّد إلى نواة المحرّك). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** انقطاعُ ربط (اسمُ حقل + وحدةُ ارتفاع).
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `services/weather-service/open_meteo.py` `normalize_daily` يُصدِر `rh_mean_pct` و`wind_mean_10m_ms` و`wind_max_ms` ⇒ `/v1/weather/forecast` (`build_canonical_weather_state` ⇒ `forecast_view`) ⇒ `canonical_water_state.py:211-212` كان يقرأ `humidity_mean_pct` و`wind_max_ms` ⇒ `/v1/weather/agro/et0/series` ⇒ `et0.py` `et0_series_product` ⇒ `compute_et0`.
@@ -6951,6 +6984,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## MPC-OPERATIONAL-ROUTE-DROPS-CONFIDENCE-AND-DEGRADATION-01 — المسارُ التشغيليّ يُسقط ثقةَ الدفتر وتدهورَ اللقطة
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_lexicographic_mpc_bridge.py` (حالتان حمراوان عبر المسار على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** انقطاعُ ربط، ومعه عيبُ سياسةٍ في المُحلِّل.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `CanonicalWaterState.depletion_confidence`/`quality_status` ⇒ `routers/irrigation_mpc.py:485-486` (كانا `None`/`False` ثابتَين) ⇒ `solve_lexicographic_irrigation` (`lexicographic_irrigation_mpc.py:660`) ⇒ مرشّحُ decision-service عبر `emit_mpc_candidate`.
@@ -6962,6 +6996,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01 — فرقُ المطلوب عن المُنفَّذ يُعرَض «ماءً موفَّراً» و«تكلفةً متجنَّبة»
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `services/sahool-platform/tests/test_economic_intelligence.py` و`test_impact_measurement.py` و`test_decision_impact_endpoint.py` (الاستجابةُ عبر النقطة) و`test_decision_learning.py`. **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** عرضٌ مضلِّل (ادّعاءٌ سببيٌّ بلا دليل)، ومعه عيبُ أبعاد.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `core/impact_measurement.py:84-93` و`core/economic_intelligence.py:57-65` ⇒ `GET /api/v1/decision/impact` و`/economics` (`routers/decision_impact.py`، خلف `SAHOOL_DECISION_DISPATCH`) ⇒ `DecisionInsightPanel.tsx` و`DecisionDeepPanel.tsx`؛ و`core/decision_learning.py` يقترح «ترجيح كفاءة الماء» من الفرق نفسه.
