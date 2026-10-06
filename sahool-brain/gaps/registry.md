@@ -6828,3 +6828,51 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **التعرّض المقيس (`main@1220689c`):** كلُّ `jwt.decode` من jose يمرّر خوارزميّةً واحدة مقترنةً بمفتاحها — `services/auth/main.py:423,716` و`routers/session.py:191` و`video-processor/main.py:428` و`odoo-bridge/main.py:133` و`local-ai-rag/main.py:588` و`tts-service/main.py:180`، والمفكِّكُ المشترك `shared/security/access_tokens.py:40` (`algorithms=[algorithm]` من `access_token_verification_key`: `RS256` مع `JWT_PUBLIC_KEY` وإلّا `HS256` مع سرٍّ ≥32 حرفاً، والإنتاجُ يرفض HS256 بلا راية ترحيل) الذي يستهلكه `services/rag-retrieval/main.py:256` و`agents/notification/agent.py:643`؛ و`shared/fcm.py:81` يستعمل jose **للتوقيع** (`jwt.encode`) لا للتحقّق فلا يبلغ المسارَ المُصاب؛ والضبطُ الجزئيّ لمفاتيح RSA يُرفَض عند الإقلاع (`shared/security/jwt_key_validation.py:83-84`، مشهودٌ بـ`services/sahool-platform/tests/test_jwt_key_validation.py:32-33`). لا مسارَ مقيساً يبلغ الحالةَ المُصابة.
 - **تصحيح الجرد (2026-10-05، مراجعةُ Copilot على #1141):** جردي الأوّل بحث في `services/ agents/ bots/` وحدها فأغفل المفكِّكَ المشترك في `shared/` ومستهلكَيه؛ أُعيد البحثُ على الشجرة كلّها (كلُّ ملفٍّ يستورد `jose` خارج الاختبارات: 9) وأُضيف أعلاه. النتيجةُ لم تتغيّر: كلُّ تحقّقٍ مقيَّد بخوارزميّةٍ واحدة مقترنة بمفتاحها.
 - **الحدّ:** الاستثناءُ لا يحمي استدعاءً **جديداً** بلا تقييد خوارزميّة؛ والمراجعةُ هي الحارس. وينقضي في `2026-11-05` فيحمرّ `waiver_expiry_guard` ويُفرض القرار من جديد.
+
+## MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01 — نسبةُ الإكمال تُعيد تحجيمَ حجمٍ مقيس
+<!-- gap-registry: current -->
+- **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_irrx1_2_manual_execution_lifecycle.py` (ستُّ حالاتٍ حمراء على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **الصنف:** عيبٌ حسابيّ.
+- **النسخة المفحوصة:** `main@f160f7e0`.
+- **المُنتِج والمستهلك:** `services/sahool-platform/api/irrigation_manual_execution.py:163` (`derive_manual_as_applied`) ⇒ `irrigation_manual_executions.as_applied` ⇒ جسرُ الدفتر `irrigation_manual_ledger_bridge.py` (`ledger_eligible`).
+- **طريقة الاستدعاء:** `POST /api/v1/irrigation/engineering/manual-executions/{id}/confirm` (`routers/irrigation_engineering.py:425`)؛ النسبةُ حقلٌ حرّ في `IrrigationManualOperationsPanel.tsx:130`. المسارُ نفسُه خلف `DECISION_SERVICE_SOR_ENABLED` (افتراضيّاً false) لأنّ مصدرَ التنفيذ يُكتَب بعد خطّةٍ موثوقة.
+- **إعادة الإنتاج:** عدّاد 100⇒1100 م³ بنسبة 0.5 ⇒ `actual_volume_m3=500` بجودة `measured_meter` و`ledger_eligible=True`؛ وتدفّقٌ مقيس 100 م³/س في 8 س صافية بنسبة 0.5 ⇒ 400 (الانقطاعُ يُطرَح مرّتين).
+- **الأثر:** نصفُ الماء المُطبَّق فعلاً يدخل دفترَ الماء ⇒ استنزافٌ مُضخَّم ⇒ ريٌّ زائد في القرار التالي.
+- **الإصلاح:** النسبةُ تُطبَّق على `estimated`/`estimated_nominal` وحدهما، وتُعلَن في `completion_ratio_applied`؛ وتبقى مُدخَلاً محفوظاً كما هو.
+- **شرط الإغلاق إلى verified:** تنفيذٌ يدويّ حيّ بقراءة عدّاد ونسبةٍ ≠1 يُسجِّل الحجمَ المقروء نفسَه في `water_ledger` (قياسٌ على قاعدةٍ حيّة).
+
+## CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01 — الحالةُ القانونيّة للماء تُرسِل لـET0 مفاتيحَ لا يُصدِرها الطقس وريحاً قصوى على 10م
+<!-- gap-registry: current -->
+- **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_canonical_water_state_mpc.py` (أربعُ حالاتٍ حمراء على `f160f7e0`، منها شاهدٌ تنفيذيّ من حمولة مزوّد إلى نواة المحرّك). **ليس fixed على `main`** حتّى يُدمَج.
+- **الصنف:** انقطاعُ ربط (اسمُ حقل + وحدةُ ارتفاع).
+- **النسخة المفحوصة:** `main@f160f7e0`.
+- **المُنتِج والمستهلك:** `services/weather-service/open_meteo.py` `normalize_daily` يُصدِر `rh_mean_pct` و`wind_mean_10m_ms` و`wind_max_ms` ⇒ `/v1/weather/forecast` (`build_canonical_weather_state` ⇒ `forecast_view`) ⇒ `canonical_water_state.py:211-212` كان يقرأ `humidity_mean_pct` و`wind_max_ms` ⇒ `/v1/weather/agro/et0/series` ⇒ `et0.py` `et0_series_product` ⇒ `compute_et0`.
+- **طريقة الاستدعاء:** `resolve_canonical_water_state` يستهلكه `/api/v1/fields/{id}/irrigation/mpc/recommendation` و`/mpc/hourly-recommendation`.
+- **إعادة الإنتاج (تنفيذاً، لا قراءةً):** حمولةٌ تحمل الرطوبة والريح المتوسّطة كاملتين ⇒ على `f160f7e0` `methods=["hargreaves_fallback"]×3` والحالة `verified`؛ والريحُ المُرسَلة 10 م/ث (قصوى 10م) بدل 2.244 م/ث.
+- **الأثر:** ET0 قانونيٌّ متدهور يُقدَّم «verified»، وريحٌ قصوى كانت ستدخل PM لو اكتمل.
+- **الإصلاح:** `et0_weather_inputs` (تحويلُ دفتر الماء نفسُه: المتوسّط على 10م ⇒ 2م بمعادلة FAO-56 47، ولا قصوى أبداً)؛ `et0_method` لكلّ يوم؛ يومٌ بغير PM ⇒ `degraded` + `et0_reference_unavailable` (تشغيليٌّ لأنّ القيمة متدهورةٌ لا غائبة).
+- **حدٌّ معلن:** لم يُقَس أنّ مزوّدَ الإنتاج يُعيد `relative_humidity_2m_mean` و`wind_speed_10m_mean` فعلاً لكلّ نموذج.
+- **شرط الإغلاق إلى verified:** استجابةٌ حيّة من `/mpc/recommendation` بـ`et0_method=fao56_penman_monteith` لحقلٍ حقيقيّ.
+
+## MPC-OPERATIONAL-ROUTE-DROPS-CONFIDENCE-AND-DEGRADATION-01 — المسارُ التشغيليّ يُسقط ثقةَ الدفتر وتدهورَ اللقطة
+<!-- gap-registry: current -->
+- **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_lexicographic_mpc_bridge.py` (حالتان حمراوان عبر المسار على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **الصنف:** انقطاعُ ربط، ومعه عيبُ سياسةٍ في المُحلِّل.
+- **النسخة المفحوصة:** `main@f160f7e0`.
+- **المُنتِج والمستهلك:** `CanonicalWaterState.depletion_confidence`/`quality_status` ⇒ `routers/irrigation_mpc.py:485-486` (كانا `None`/`False` ثابتَين) ⇒ `solve_lexicographic_irrigation` (`lexicographic_irrigation_mpc.py:660`) ⇒ مرشّحُ decision-service عبر `emit_mpc_candidate`.
+- **طريقة الاستدعاء:** `POST /api/v1/fields/{id}/irrigation/mpc/recommendation`.
+- **إعادة الإنتاج:** قيدُ دفترٍ بثقة 0.4 ⇒ `NORMAL_OPTIMIZATION`/`CROP_PROTECTION` بثقة 0.7 وبلا `DATA_DEGRADED`.
+- **الإصلاح:** يُمرَّر حكمُ المُنتِج؛ وفي المُحلِّل صار سببُ التدهور وسقفُ الثقة 0.4 مربوطَين بتدهور المُدخَل لا بالحالة، فحمايةُ المحصول تبقى الفعل دون أن تمحو التدهور.
+- **شرط الإغلاق إلى verified:** مرشّحٌ حيّ في decision-service من لقطةٍ منخفضة الثقة يحمل `DATA_DEGRADED` وثقة ≤0.4.
+
+## REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01 — فرقُ المطلوب عن المُنفَّذ يُعرَض «ماءً موفَّراً» و«تكلفةً متجنَّبة»
+<!-- gap-registry: current -->
+- **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `services/sahool-platform/tests/test_economic_intelligence.py` و`test_impact_measurement.py` و`test_decision_impact_endpoint.py` (الاستجابةُ عبر النقطة) و`test_decision_learning.py`. **ليس fixed على `main`** حتّى يُدمَج.
+- **الصنف:** عرضٌ مضلِّل (ادّعاءٌ سببيٌّ بلا دليل)، ومعه عيبُ أبعاد.
+- **النسخة المفحوصة:** `main@f160f7e0`.
+- **المُنتِج والمستهلك:** `core/impact_measurement.py:84-93` و`core/economic_intelligence.py:57-65` ⇒ `GET /api/v1/decision/impact` و`/economics` (`routers/decision_impact.py`، خلف `SAHOOL_DECISION_DISPATCH`) ⇒ `DecisionInsightPanel.tsx` و`DecisionDeepPanel.tsx`؛ و`core/decision_learning.py` يقترح «ترجيح كفاءة الماء» من الفرق نفسه.
+- **إعادة الإنتاج:** مطلوب 20 مم ومُطبَّق 12 ⇒ «ماء موفَّر 8 مم» و«قيمة متجنَّبة» = الفرق × السعر؛ وبلا `field_id` تُضرب مليمتراتٌ مجموعةٌ عبر حقول في مساحةٍ واحدة.
+- **الأثر:** نقصُ التنفيذ (عطل، انقطاع) يُعرَض وفراً ويُقترَح ترجيحُه سياسةً.
+- **الإصلاح:** `requested_minus_applied_*` مع `savings_claim` (`not_established`) يسمّي أربعةَ أدلّةٍ منفصلة: خفضُ السحب المقيس، خفضُ الاستهلاك (ET)، الإسناد بمقارنةٍ مضبوطة، الأثر الاقتصاديّ. مقترحُ التعلّم صار `review_requested_applied_gap`؛ والحجمُ لا يُحسَب لعدّة حقول.
+- **باقٍ خارج النطاق (مفتوح):** `core/cross_domain_optimization.py:34` يسمّي الخفضَ **المُخطَّط** `water_saved_mm`، و`decision_dispatch` يعرضه؛ وشاشة الجوّال «توفير X% عن الشهر الماضي» بلا مُنتِجٍ خلفيّ (`dashboard_screen.dart:172,524`).
+- **شرط الإغلاق إلى verified:** استجابةٌ حيّة من `/decision/economics` بلا أيّ مفتاح `saved`/`avoided` وبـ`savings_claim`.
