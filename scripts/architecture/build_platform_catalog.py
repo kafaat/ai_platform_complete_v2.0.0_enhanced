@@ -807,11 +807,18 @@ def _function_source_ranges(text: str) -> list[tuple[str, int, int]]:
 
 def _model_fields(tree: ast.Module) -> dict[str, set[str]]:
     """الحقولُ **الإلزاميّة** لكلّ صنفٍ مُعرَّف في الوحدة (``name: type`` بلا قيمةٍ افتراضيّة)،
-    موروثةً عبر أصولٍ من الوحدة نفسها. حقلٌ له افتراضيّ ليس إلزاماً فلا يُدَّعى ``required``."""
+    موروثةً عبر أصولٍ من الوحدة نفسها. حقلٌ له افتراضيّ ليس إلزاماً فلا يُدَّعى ``required``؛
+    وإعادةُ إعلانه في صنفٍ فرعيّ تحجب الموروث (``str | None = None`` فوق ``str`` ⇒ ليس إلزاماً)."""
     own: dict[str, set[str]] = {}
+    declared: dict[str, set[str]] = {}
     bases: dict[str, list[str]] = {}
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
+            declared[node.name] = {
+                stmt.target.id
+                for stmt in node.body
+                if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name)
+            }
             own[node.name] = {
                 stmt.target.id
                 for stmt in node.body
@@ -824,10 +831,10 @@ def _model_fields(tree: ast.Module) -> dict[str, set[str]]:
     def resolve(cls: str, seen: frozenset[str]) -> set[str]:
         if cls in seen or cls not in own:
             return set()
-        out = set(own[cls])
+        inherited: set[str] = set()
         for base in bases[cls]:
-            out |= resolve(base, seen | {cls})
-        return out
+            inherited |= resolve(base, seen | {cls})
+        return (inherited - declared[cls]) | own[cls]
 
     return {cls: resolve(cls, frozenset()) for cls in own}
 
@@ -868,7 +875,9 @@ def _model_dump_forwarded_fields(
         ):
             continue
         forwarded = set(fields[params[node.func.value.id]])
-        keywords = {k.arg: k.value for k in node.keywords if k.arg}
+        if any(k.arg is None for k in node.keywords):
+            continue  # ``**options`` may carry include=/exclude= — unresolved, so claim nothing
+        keywords = {k.arg: k.value for k in node.keywords}
         if "include" in keywords:
             include = _literal_names(keywords["include"])
             if include is None:

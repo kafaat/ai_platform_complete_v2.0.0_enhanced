@@ -339,6 +339,10 @@ class OptionallyKeyed(BaseModel):
     idempotency_key: str | None = None
 
 
+class OptionalOverride(Keyed):
+    idempotency_key: str | None = None
+
+
 @ROUTE("/explicit")
 async def explicit(req: Keyed):
     return await send({"idempotency_key": req.idempotency_key})
@@ -377,6 +381,16 @@ async def lacking(req: Unkeyed):
 @ROUTE("/optional-key")
 async def optional_key(req: OptionallyKeyed):
     return await send(req.model_dump())
+
+
+@ROUTE("/optional-override")
+async def optional_override(req: OptionalOverride):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-expanded-options")
+async def dumped_expanded_options(req: Keyed, options: dict):
+    return await send(req.model_dump(**options))
 """
 
 
@@ -416,6 +430,8 @@ def test_a_model_dump_excluding_the_idempotency_key_is_not_detected(tmp_path, mo
     assert found["/dumped-including-other"] is False
     # an exclude the scanner cannot resolve statically claims nothing (under-measure, never over-claim)
     assert found["/dumped-unresolvable-exclude"] is False
+    # nor do expanded keyword arguments, which may carry include=/exclude= (Copilot on #1145)
+    assert found["/dumped-expanded-options"] is False
 
 
 def test_a_route_genuinely_lacking_the_key_is_not_detected(tmp_path, monkeypatch) -> None:
@@ -423,3 +439,5 @@ def test_a_route_genuinely_lacking_the_key_is_not_detected(tmp_path, monkeypatch
     assert found["/lacking"] is False
     # a key with a default is accepted, not required — the catalog field says "required"
     assert found["/optional-key"] is False
+    # a subclass redeclaring the key with a default overrides the required base field (Copilot on #1145)
+    assert found["/optional-override"] is False

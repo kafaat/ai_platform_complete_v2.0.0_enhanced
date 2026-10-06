@@ -412,6 +412,20 @@
           "replace": "                and True\n",
           "test": "tests_v9/test_platform_catalog_gate.py",
           "why": "حقلٌ بقيمةٍ افتراضيّة (idempotency_key: str | None = None) مقبولٌ لا مُلزِم؛ عدُّه يجعل الكتالوج يقول required لمفتاحٍ اختياريّ."
+        },
+        {
+          "expect": "test_a_model_dump_excluding_the_idempotency_key_is_not_detected",
+          "find": "            continue  # ``**options`` may carry include=/exclude= — unresolved, so claim nothing\n",
+          "replace": "            pass  # mutated: expanded keywords ignored\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "مراجعة Copilot على #1145: ``model_dump(**options)`` يُسقط وسيطاتٍ قد تحمل include=/exclude= فيُعدّ التفريغُ غيرَ مقيَّد ويُدَّعى إلزامٌ لا يثبت."
+        },
+        {
+          "expect": "test_a_route_genuinely_lacking_the_key_is_not_detected",
+          "find": "        return (inherited - declared[cls]) | own[cls]\n",
+          "replace": "        return inherited | own[cls]\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "مراجعة Copilot على #1145: صنفٌ فرعيّ يُعيد إعلان المفتاح اختياريّاً (``str | None = None``) يحجب الموروث الإلزاميّ؛ إسقاطُ الحجب يُعيد إليه ``required``."
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"
