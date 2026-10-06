@@ -310,3 +310,116 @@ def test_compiler_importable_pure() -> None:
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert callable(mod.build)
+
+
+# ── ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01 ──────────────────────────────────────────
+# idempotency_required was derived from literal tokens in the handler body only, so a handler that
+# forwards ``req.model_dump()`` of a model declaring ``idempotency_key`` was catalogued as not
+# requiring it — eleven decision_review.py routes on main@77f9f188. These witnesses run the real
+# scan_route_governance over a router written to a temporary root.
+_GOVERNANCE_ROUTER = """
+from pydantic import BaseModel
+
+
+class Keyed(BaseModel):
+    action: str
+    idempotency_key: str
+
+
+class KeyedChild(Keyed):
+    reason: str = ""
+
+
+class Unkeyed(BaseModel):
+    action: str
+
+
+class OptionallyKeyed(BaseModel):
+    action: str
+    idempotency_key: str | None = None
+
+
+@ROUTE("/explicit")
+async def explicit(req: Keyed):
+    return await send({"idempotency_key": req.idempotency_key})
+
+
+@ROUTE("/dumped")
+async def dumped(req: Keyed):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-inherited")
+async def dumped_inherited(req: KeyedChild):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-excluding")
+async def dumped_excluding(req: Keyed):
+    return await send(req.model_dump(exclude={"idempotency_key"}))
+
+
+@ROUTE("/dumped-including-other")
+async def dumped_including_other(req: Keyed):
+    return await send(req.model_dump(include={"action"}))
+
+
+@ROUTE("/dumped-unresolvable-exclude")
+async def dumped_unresolvable_exclude(req: Keyed, dropped: set):
+    return await send(req.model_dump(exclude=dropped))
+
+
+@ROUTE("/lacking")
+async def lacking(req: Unkeyed):
+    return await send(req.model_dump())
+
+
+@ROUTE("/optional-key")
+async def optional_key(req: OptionallyKeyed):
+    return await send(req.model_dump())
+"""
+
+
+def _scan_governance(tmp_path, monkeypatch) -> dict[str, bool]:
+    spec = importlib.util.spec_from_file_location("platform_catalog_compiler", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    source = _GOVERNANCE_ROUTER.replace("@ROUTE(", "@router." + "post(")
+    (tmp_path / "router.py").write_text(source, encoding="utf-8")
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    lines = _GOVERNANCE_ROUTER.splitlines()
+    routes = []
+    for i, text in enumerate(lines, start=1):
+        if text.startswith("@ROUTE("):
+            path = text.split('"')[1]
+            fn = lines[i].split("def ")[1].split("(")[0]
+            routes.append(
+                {"method": "POST", "path": path, "function": fn, "file": "router.py", "line": i}
+            )
+    gov = mod.scan_route_governance(routes)
+    return {path: g["idempotency"] for (_m, path, _f), g in gov.items()}
+
+
+def test_an_explicit_idempotency_key_is_detected(tmp_path, monkeypatch) -> None:
+    assert _scan_governance(tmp_path, monkeypatch)["/explicit"] is True
+
+
+def test_a_model_dump_carrying_the_idempotency_key_is_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/dumped"] is True
+    assert found["/dumped-inherited"] is True  # the field declared on a same-module base model
+
+
+def test_a_model_dump_excluding_the_idempotency_key_is_not_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/dumped-excluding"] is False
+    assert found["/dumped-including-other"] is False
+    # an exclude the scanner cannot resolve statically claims nothing (under-measure, never over-claim)
+    assert found["/dumped-unresolvable-exclude"] is False
+
+
+def test_a_route_genuinely_lacking_the_key_is_not_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/lacking"] is False
+    # a key with a default is accepted, not required — the catalog field says "required"
+    assert found["/optional-key"] is False

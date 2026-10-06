@@ -5886,7 +5886,7 @@
       "entrypoints": [
         "POST /api/v1/decisions/{decision_id}/execution-plan"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6059,7 +6059,7 @@
       "entrypoints": [
         "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6724,7 +6724,7 @@
       "entrypoints": [
         "POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -6743,7 +6743,7 @@
       "entrypoints": [
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10012,7 +10012,7 @@
         "POST /api/v1/learning/activation-commands/{activation_command_id}/claim",
         "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10031,7 +10031,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10050,7 +10050,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-requests"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10069,7 +10069,7 @@
       "entrypoints": [
         "POST /api/v1/learning/activation-requests/{activation_request_id}/review"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10126,7 +10126,7 @@
       "entrypoints": [
         "POST /api/v1/learning/evaluation-runs"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10183,7 +10183,7 @@
       "entrypoints": [
         "POST /api/v1/learning/promotion-decisions"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -10680,7 +10680,7 @@
       "entrypoints": [
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -14605,7 +14605,7 @@
       "entrypoints": [
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -14733,7 +14733,7 @@
       "entrypoints": [
         "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "command",
       "owner": "vegetation-analysis-service",
       "producer": "vegetation-analysis-service",
@@ -17586,7 +17586,7 @@
     "capabilities": 832,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 95,
-    "capabilities_idempotent": 48,
+    "capabilities_idempotent": 61,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 478,
     "components": 36,
@@ -17856,7 +17856,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f1688d291ef84a192db93856b1cd47558b4025a5fa3faafd45b1fd7822726421",
+  "fingerprint": "581a913bc5a1f1d541fe434507e82c1c865ee1c65b643e819992c33e572aee3a",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

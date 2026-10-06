@@ -377,6 +377,41 @@
           "find": "        srcs = {resolve_build_source(compose_services_raw[u]) for u in extra_units}",
           "replace": "        srcs = {resolve_build_source(_compose_services()[u]) for u in extra_units}  # mutated: second compose load",
           "why": "عودة القراءة الثانية لcompose تكسر عقد اللقطة الواحدة: discover_compose تقيس نسخةً وextras تقيس أخرى — انحراف اتّساقٍ لا أداءٍ فقط"
+        },
+        {
+          "expect": "test_a_model_dump_carrying_the_idempotency_key_is_detected",
+          "find": "        out |= forwarded\n",
+          "replace": "        out |= set()\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01: إسقاطُ قراءة حقول النموذج يُعيد العمى نفسه — معالِجٌ يمرّر req.model_dump() لنموذجٍ يشترط idempotency_key يُفهرَس idempotency_required: false (ثلاثةَ عشرَ صفّاً على main@f51e2fb4)."
+        },
+        {
+          "expect": "test_a_model_dump_excluding_the_idempotency_key_is_not_detected",
+          "find": "            forwarded -= exclude\n",
+          "replace": "            pass\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "تجاهلُ exclude= الحرفيّ يجعل المسحَ يدّعي إلزاماً حذفه المعالِجُ صراحةً من الحمولة — تضخيمٌ يقابل العمى."
+        },
+        {
+          "expect": "test_a_model_dump_excluding_the_idempotency_key_is_not_detected",
+          "find": "                token_body = token_body.replace(segment, \"\")\n",
+          "replace": "                pass\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "مطابقةُ الرموز الحرفيّة كانت تعدّ exclude={\"idempotency_key\"} إلزاماً وهو نقيضُه؛ إسقاطُ استبعاد مصدر exclude= يُعيد هذا الإيجابَ الكاذب."
+        },
+        {
+          "expect": "test_a_model_dump_excluding_the_idempotency_key_is_not_detected",
+          "find": "            if exclude is None:\n                continue\n",
+          "replace": "            if exclude is None:\n                exclude = set()\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "exclude= غيرُ حرفيّ لا يُحسَم ساكناً؛ معاملتُه كفارغ تدّعي إلزاماً لا يثبت — المسحُ يُبخس ولا يُضخّم."
+        },
+        {
+          "expect": "test_a_route_genuinely_lacking_the_key_is_not_detected",
+          "find": "                and stmt.value is None\n",
+          "replace": "                and True\n",
+          "test": "tests_v9/test_platform_catalog_gate.py",
+          "why": "حقلٌ بقيمةٍ افتراضيّة (idempotency_key: str | None = None) مقبولٌ لا مُلزِم؛ عدُّه يجعل الكتالوج يقول required لمفتاحٍ اختياريّ."
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"
