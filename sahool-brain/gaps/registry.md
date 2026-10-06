@@ -6956,6 +6956,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01 — نسبةُ الإكمال تُعيد تحجيمَ حجمٍ مقيس
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_irrx1_2_manual_execution_lifecycle.py` (ستُّ حالاتٍ حمراء على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** عيبٌ حسابيّ.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `services/sahool-platform/api/irrigation_manual_execution.py:163` (`derive_manual_as_applied`) ⇒ `irrigation_manual_executions.as_applied` ⇒ جسرُ الدفتر `irrigation_manual_ledger_bridge.py` (`ledger_eligible`).
@@ -6968,6 +6969,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01 — الحالةُ القانونيّة للماء تُرسِل لـET0 مفاتيحَ لا يُصدِرها الطقس وريحاً قصوى على 10م
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_canonical_water_state_mpc.py` (أربعُ حالاتٍ حمراء على `f160f7e0`، منها شاهدٌ تنفيذيّ من حمولة مزوّد إلى نواة المحرّك). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** انقطاعُ ربط (اسمُ حقل + وحدةُ ارتفاع).
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `services/weather-service/open_meteo.py` `normalize_daily` يُصدِر `rh_mean_pct` و`wind_mean_10m_ms` و`wind_max_ms` ⇒ `/v1/weather/forecast` (`build_canonical_weather_state` ⇒ `forecast_view`) ⇒ `canonical_water_state.py:211-212` كان يقرأ `humidity_mean_pct` و`wind_max_ms` ⇒ `/v1/weather/agro/et0/series` ⇒ `et0.py` `et0_series_product` ⇒ `compute_et0`.
@@ -6981,6 +6983,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## MPC-OPERATIONAL-ROUTE-DROPS-CONFIDENCE-AND-DEGRADATION-01 — المسارُ التشغيليّ يُسقط ثقةَ الدفتر وتدهورَ اللقطة
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_lexicographic_mpc_bridge.py` (حالتان حمراوان عبر المسار على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** انقطاعُ ربط، ومعه عيبُ سياسةٍ في المُحلِّل.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `CanonicalWaterState.depletion_confidence`/`quality_status` ⇒ `routers/irrigation_mpc.py:485-486` (كانا `None`/`False` ثابتَين) ⇒ `solve_lexicographic_irrigation` (`lexicographic_irrigation_mpc.py:660`) ⇒ مرشّحُ decision-service عبر `emit_mpc_candidate`.
@@ -6992,6 +6995,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01 — فرقُ المطلوب عن المُنفَّذ يُعرَض «ماءً موفَّراً» و«تكلفةً متجنَّبة»
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `services/sahool-platform/tests/test_economic_intelligence.py` و`test_impact_measurement.py` و`test_decision_impact_endpoint.py` (الاستجابةُ عبر النقطة) و`test_decision_learning.py`. **ليس fixed على `main`** حتّى يُدمَج.
+- **canonical على `main` (2026-10-06):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b`؛ فعبارةُ «ليس fixed على `main` حتّى يُدمَج» في سطر الحالة أعلاه صادقةٌ زمنَ القياس وتاريخيّةٌ الآن. الحالةُ fixed لم تتغيّر.
 - **الصنف:** عرضٌ مضلِّل (ادّعاءٌ سببيٌّ بلا دليل)، ومعه عيبُ أبعاد.
 - **النسخة المفحوصة:** `main@f160f7e0`.
 - **المُنتِج والمستهلك:** `core/impact_measurement.py:84-93` و`core/economic_intelligence.py:57-65` ⇒ `GET /api/v1/decision/impact` و`/economics` (`routers/decision_impact.py`، خلف `SAHOOL_DECISION_DISPATCH`) ⇒ `DecisionInsightPanel.tsx` و`DecisionDeepPanel.tsx`؛ و`core/decision_learning.py` يقترح «ترجيح كفاءة الماء» من الفرق نفسه.
