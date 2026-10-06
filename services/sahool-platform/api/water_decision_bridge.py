@@ -168,6 +168,9 @@ async def process_water_deficit(
             "reason": "approved by explicit water-deficit automation policy",
             "expected_state": "pending_approval",
             "candidate_lineage_id": lineage,
+            # The automation approves the version decision-service stored and reported — not a
+            # digest computed here (035, IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01).
+            "decision_value_digest": recorded.get("decision_value_digest"),
             "idempotency_key": _stable("wtrrev_", decision_id),
             "policy_version": policy,
         },

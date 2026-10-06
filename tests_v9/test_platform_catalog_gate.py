@@ -42,7 +42,11 @@ PINNED_BACKEND_COMPONENTS = 32
 #   قراءةٍ مُصادَقة تُظهِر ملاحظات المؤشّرات لحقلٍ عبر المنصّة؛ قدرةٌ واحدةٌ جديدة
 #   (sahool-platform.fields.field_id.indicator-observations، field+tenant-scoped) مع إعفاء
 #   واجهةٍ محكوم. جردٌ مقيس (route_rows 1121→1122)، وميزانيّةُ المسارات 629/629 (لا رفعُ سقف).
-PINNED_UNIQUE_METHOD_PATH = 1003  # +1 (2026-09-29): M4 indicator-observations (انظر أعلاه). +2 (2026-09-21): D1 raster owner write commands (انظر أعلاه). +1 (2026-09-16): POST /v1/evaluate في guardrails-engine — مسارُ تقييمٍ بلا كتابة (B6) يُرجِع دائماً allowed=false. جردٌ مقيس لا رفعُ سقف: ميزانيّةُ مسارات المنصّة لم تُمَسّ (628/629، الهامش 1) لأنّ المسار في خدمةٍ أخرى. #3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice; +6: Option B (2026-07-30) -- generate_service_inventory.py's own APIRouter(prefix=...) blind spot finally fixed (matching PR #717's sibling fix), composing all 99 routes across the six sahool-platform prefixed files to their real served paths. Bare /plan now genuinely vanishes (sahool-platform's phase9 route composes to /v1/phase9/autonomy/plan, closing the previously-tracked phantom -- net 0, one new text replaces one vanishing text); +2 from GET /stac and GET /stac/collections splitting away from raster-service's real routes of the same bare text into sahool-platform's own composed /api/v1/gis/cloud-native/stac[/collections] (raster's unique entry survives unchanged, sahool's composed path is new); +4 from bare texts that were shared *within* the six prefixed files themselves before composition -- POST /cycle (phase9, phase10, phase11, phase12/ecosystem: 4 rows collapsed into 1 unique bare text pre-fix, now 4 distinct prefixed texts, +3) and POST /models/register (phase9, phase10: 2 rows collapsed into 1 pre-fix, now 2 distinct texts, +1)
+# 2026-10-06: +1 GET /v1/execution-plans/{execution_plan_id} (decision-service) — قراءةٌ حيّة لحالة
+#   الخطّة يُعيد بها مسارُ الريّ اليدويّ التحقّقَ عند البدء والتأكيد
+#   (IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01). المسارُ في decision-service لا في المنصّة،
+#   فميزانيّةُ مسارات المنصّة لم تُمَسّ. جردٌ مقيس لا رفعُ سقف.
+PINNED_UNIQUE_METHOD_PATH = 1004  # +1 (2026-10-06): decision-service execution-plan state (انظر أعلاه). +1 (2026-09-29): M4 indicator-observations (انظر أعلاه). +2 (2026-09-21): D1 raster owner write commands (انظر أعلاه). +1 (2026-09-16): POST /v1/evaluate في guardrails-engine — مسارُ تقييمٍ بلا كتابة (B6) يُرجِع دائماً allowed=false. جردٌ مقيس لا رفعُ سقف: ميزانيّةُ مسارات المنصّة لم تُمَسّ (628/629، الهامش 1) لأنّ المسار في خدمةٍ أخرى. #3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice; +6: Option B (2026-07-30) -- generate_service_inventory.py's own APIRouter(prefix=...) blind spot finally fixed (matching PR #717's sibling fix), composing all 99 routes across the six sahool-platform prefixed files to their real served paths. Bare /plan now genuinely vanishes (sahool-platform's phase9 route composes to /v1/phase9/autonomy/plan, closing the previously-tracked phantom -- net 0, one new text replaces one vanishing text); +2 from GET /stac and GET /stac/collections splitting away from raster-service's real routes of the same bare text into sahool-platform's own composed /api/v1/gis/cloud-native/stac[/collections] (raster's unique entry survives unchanged, sahool's composed path is new); +4 from bare texts that were shared *within* the six prefixed files themselves before composition -- POST /cycle (phase9, phase10, phase11, phase12/ecosystem: 4 rows collapsed into 1 unique bare text pre-fix, now 4 distinct prefixed texts, +3) and POST /models/register (phase9, phase10: 2 rows collapsed into 1 pre-fix, now 2 distinct texts, +1)
 
 
 def _catalog() -> dict:
@@ -306,3 +310,170 @@ def test_compiler_importable_pure() -> None:
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert callable(mod.build)
+
+
+# ── ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01 ──────────────────────────────────────────
+# idempotency_required was derived from literal tokens in the handler body only, so a handler that
+# forwards ``req.model_dump()`` of a model declaring ``idempotency_key`` was catalogued as not
+# requiring it — eleven decision_review.py routes on main@77f9f188. These witnesses run the real
+# scan_route_governance over a router written to a temporary root.
+_GOVERNANCE_ROUTER = """
+from pydantic import BaseModel
+
+
+class Keyed(BaseModel):
+    action: str
+    idempotency_key: str
+
+
+class KeyedChild(Keyed):
+    reason: str = ""
+
+
+class Unkeyed(BaseModel):
+    action: str
+
+
+class OptionallyKeyed(BaseModel):
+    action: str
+    idempotency_key: str | None = None
+
+
+class OptionalOverride(Keyed):
+    idempotency_key: str | None = None
+
+
+@ROUTE("/explicit")
+async def explicit(req: Keyed):
+    return await send({"idempotency_key": req.idempotency_key})
+
+
+@ROUTE("/dumped")
+async def dumped(req: Keyed):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-inherited")
+async def dumped_inherited(req: KeyedChild):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-excluding")
+async def dumped_excluding(req: Keyed):
+    return await send(req.model_dump(exclude={"idempotency_key"}))
+
+
+@ROUTE("/dumped-including-other")
+async def dumped_including_other(req: Keyed):
+    return await send(req.model_dump(include={"action"}))
+
+
+@ROUTE("/dumped-unresolvable-exclude")
+async def dumped_unresolvable_exclude(req: Keyed, dropped: set):
+    return await send(req.model_dump(exclude=dropped))
+
+
+@ROUTE("/lacking")
+async def lacking(req: Unkeyed):
+    return await send(req.model_dump())
+
+
+@ROUTE("/optional-key")
+async def optional_key(req: OptionallyKeyed):
+    return await send(req.model_dump())
+
+
+@ROUTE("/optional-override")
+async def optional_override(req: OptionalOverride):
+    return await send(req.model_dump())
+
+
+@ROUTE("/dumped-expanded-options")
+async def dumped_expanded_options(req: Keyed, options: dict):
+    return await send(req.model_dump(**options))
+"""
+
+
+def _scan_governance(tmp_path, monkeypatch) -> dict[str, bool]:
+    spec = importlib.util.spec_from_file_location("platform_catalog_compiler", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    source = _GOVERNANCE_ROUTER.replace("@ROUTE(", "@router." + "post(")
+    (tmp_path / "router.py").write_text(source, encoding="utf-8")
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    lines = _GOVERNANCE_ROUTER.splitlines()
+    routes = []
+    for i, text in enumerate(lines, start=1):
+        if text.startswith("@ROUTE("):
+            path = text.split('"')[1]
+            fn = lines[i].split("def ")[1].split("(")[0]
+            routes.append(
+                {"method": "POST", "path": path, "function": fn, "file": "router.py", "line": i}
+            )
+    gov = mod.scan_route_governance(routes)
+    return {path: g["idempotency"] for (_m, path, _f), g in gov.items()}
+
+
+def test_an_explicit_idempotency_key_is_detected(tmp_path, monkeypatch) -> None:
+    assert _scan_governance(tmp_path, monkeypatch)["/explicit"] is True
+
+
+def test_a_model_dump_carrying_the_idempotency_key_is_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/dumped"] is True
+    assert found["/dumped-inherited"] is True  # the field declared on a same-module base model
+
+
+def test_a_model_dump_excluding_the_idempotency_key_is_not_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/dumped-excluding"] is False
+    assert found["/dumped-including-other"] is False
+    # an exclude the scanner cannot resolve statically claims nothing (under-measure, never over-claim)
+    assert found["/dumped-unresolvable-exclude"] is False
+    # nor do expanded keyword arguments, which may carry include=/exclude= (Copilot on #1145)
+    assert found["/dumped-expanded-options"] is False
+
+
+def test_a_route_genuinely_lacking_the_key_is_not_detected(tmp_path, monkeypatch) -> None:
+    found = _scan_governance(tmp_path, monkeypatch)
+    assert found["/lacking"] is False
+    # a key with a default is accepted, not required — the catalog field says "required"
+    assert found["/optional-key"] is False
+    # a subclass redeclaring the key with a default overrides the required base field (Copilot on #1145)
+    assert found["/optional-override"] is False
+
+
+# The real routes the repair re-measured, pinned by entrypoint (a capability id is a quoted dotted
+# string, which the capability mapping engine reads as an event subject). Each forwards
+# ``req.model_dump()`` of a model declaring a required ``idempotency_key`` and names the key nowhere
+# else — ``review_decision_candidate`` included, whose scanner-appeasing
+# ``{**req.model_dump(), "idempotency_key": ...}`` was removed once the scanner read the model. On the
+# pre-repair scanner (main@f51e2fb4) every one of these reads ``false``.
+_MODEL_DUMP_KEYED_ENTRYPOINTS = (
+    "POST /api/v1/decisions/{decision_id}/review",
+    "POST /api/v1/decisions/{decision_id}/execution-plan",
+    "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+    "POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+    "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome",
+    "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt",
+    "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
+    "POST /api/v1/learning/activation-requests",
+    "POST /api/v1/learning/activation-requests/{activation_request_id}/review",
+    "POST /api/v1/learning/evaluation-runs",
+    "POST /api/v1/learning/promotion-decisions",
+    "POST /api/v1/outcomes/{outcome_id}/learning-attribution",
+    "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome",
+    "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution",
+)
+
+
+def test_routes_forwarding_the_key_through_model_dump_are_catalogued_as_requiring_it() -> None:
+    by_entrypoint = {ep: c for c in _catalog()["capabilities"] for ep in c.get("entrypoints") or []}
+    missing = [ep for ep in _MODEL_DUMP_KEYED_ENTRYPOINTS if ep not in by_entrypoint]
+    assert not missing, f"entrypoints vanished from the catalog: {missing}"
+    understated = [
+        ep
+        for ep in _MODEL_DUMP_KEYED_ENTRYPOINTS
+        if by_entrypoint[ep]["idempotency_required"] is not True
+    ]
+    assert not understated, f"idempotency_required understated again: {understated}"

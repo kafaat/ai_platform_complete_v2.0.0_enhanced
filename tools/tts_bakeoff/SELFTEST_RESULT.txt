@@ -1,0 +1,72 @@
+المضيف: netns=نعم (ok) · cgroup=نعم (cgroup-v1 (v1) ok) · bwrap=نعم (ok)
+PASS     سليم ⇒ ok ورمز 0                                                                                   rc=0 status=ok net=PROVEN
+PASS     عزل الشبكة = PROVEN                                                                                control={'probes': {'tcp pypi.org:443': 'blocked (gaierror -3)', 'dns pypi.org': 'blocked (gaierror -3)', 'tcp 151.101.64.223:443 (بلا DNS)': 'blocked (OSError 101)'}, 'isolated': True} negative={'target': 'pypi.org:443', 'reached': True, 'ip': '151.101.64.223'}
+PASS     فشلُ كلِّ طلبات التزامن ⇒ failed ورمز ≠ 0                                                          rc=1 errors=[3, 6, 12]
+PASS     header_only ⇒ مرفوض                                                                                rc=1 مرفوض 27/27
+PASS     truncated ⇒ مرفوض                                                                                  rc=1 مرفوض 27/27
+PASS     silent ⇒ مرفوض                                                                                     rc=1 مرفوض 27/27
+PASS     طلبٌ عالق ⇒ مهلةُ الطلب تُنهيه                                                                     rc=1 stage=request_timeout
+PASS     مهلةٌ صلبة ⇒ قتلُ المجموعة مع سجلٍّ جزئيّ                                                          killed=True stage=hard_timeout
+PASS     اتّصالُ بايثون عند التحميل ⇒ load_failed (طبقةُ حارس العمليّة)                                     stage=load_failed error=gaierror: [Errno -3] process guard: DNS blocked
+PASS     عمليّةٌ أصليّة داخل العزل لا تصل ⇒ التشغيل ok                                                      rc=0 status=ok stage=complete
+PASS     الضابط: نفسُ العمليّة بلا عزلٍ تصل ⇒ load_failed و BLOCKED                                         stage=load_failed net=BLOCKED error=RuntimeError: native process REACHED the network (curl → pyp
+PASS     مجلّدٌ قديم غير فارغ ⇒ مرفوض                                                                       rc=5
+PASS     blind يرفض تشغيلاً فاشلاً                                                                          
+PASS     blind يرفض مقطعاً تغيّرت بايتاته                                                                   
+PASS     blind يرفض مقطعاً غير مُسجَّل                                                                      
+PASS     blind يقبل التشغيل السليم                                                                          
+PASS     محرّكٌ حقيقيّ ببيانٍ فارغ ⇒ مرفوض قبل الاستيراد                                                    stage=manifest_rejected
+PASS     مسارُ إعدادٍ موجودٌ لكنّه خارج الملفّات المثبّتة ⇒ مرفوض                                           stage=manifest_rejected error=eoff-selftest-v9ssm8zk/elsewhere.json خارج الملفّات المثبّتة
+PASS     حارس العمليّة: localhost.evil.example ليس loopback                                                 
+PASS     v3 فشلُ التزامن وحده (المتتابع سليم 27/27) ⇒ failed ورمز ≠ 0                                       rc=1 seq=27/27 errors 1/2/4=[0, 5, 11]
+PASS     v3 طلبٌ متزامن عالق ⇒ مهلتُه الخاصّة تُنهي التشغيل دون انتظار الخيط                                stage=concurrency_timeout seq=27 took=4.0s
+PASS     v3 الكمون يُقاس داخل خيط الطلب (≈0.3ث لا تراكمُ الطابور)                                           conc4 median=0.342 p95=0.379 warm median=0.315
+PASS     v3 حدودُ الموارد مقروءةٌ من داخل العمليّة = المطلوب (ENFORCED)                                     status=ENFORCED in_effect={'memory_limit_mb': 1024, 'cpu_quota': 1.0, 'cpu_affinity': [0]}
+PASS     v3 تجاوزُ حدّ الذاكرة يُقتل فعلاً ⇒ oom_killed (والمبادلةُ مغلقةٌ أو غائبة)                        stage=oom_killed oom=1 peak=256.0MB swap={'limited': True, 'file': 'memory.memsw.limit_in_bytes', 'value': '268435456', 'host_swap_active': False}
+PASS     v3 حدودٌ مُدّعاة لا تسري ⇒ limits_not_in_effect                                                    rc=7 stage=limits_not_in_effect status=MISMATCH
+PASS     v3 مسارُ إعدادٍ غير موجود ⇒ مرفوض قبل الاستيراد                                                    error=gs.config = /tmp/bakeoff-selftest-v9ssm8zk/real.onnx.missing غير موجود
+PASS     v3 ملفٌّ مُثبَّت هو رابطٌ رمزيّ ⇒ مرفوض قبل الاستيراد                                              error=رابطٌ رمزيّ مرفوض: link.onnx — يُثبَّت الملفّ الحقيقيّ لا رابطٌ إليه
+PASS     v3 رابطٌ داخل مجلّدٍ مُثبَّت يخرج منه ⇒ مرفوض قبل الاستيراد                                        error=روابطُ رمزيّة داخل vtree مرفوضة: ['escape.bin']
+PASS     v3 blind يرفض نصوصاً بصمتُها تخالف ما قِيس عليه التشغيل                                            
+PASS     blind يُعدّ جولةَ تقييمٍ من التشغيل المرجعيّ (أساسُ حالات score التالية)                           rc=0 net=PROVEN تنبيه: محرّكٌ واحد فقط — هذا فحصٌ للإجراء، لا مقارنة.
+PASS     v3 score: مراجعان مختلفان سليمان ⇒ PASSED_SAFETY_GATE                                              verdict=PASSED_SAFETY_GATE
+PASS     v3 score: الورقة نفسها مرّتين ⇒ مرفوض                                                              
+PASS     v3 score: المراجع نفسه في ورقتين مختلفتين ⇒ مرفوض                                                  
+PASS     v3 score: reviewer_id فارغ ⇒ مرفوض                                                                 
+PASS     v3 score: صفٌّ مكرّر في الورقة ⇒ مرفوض                                                             
+PASS     v3 score: نصٌّ أو حقائقُ معدّلة في الورقة ⇒ مرفوض                                                  
+PASS     v3 score: خطأ حرج واحد ⇒ REJECTED                                                                  verdict=REJECTED
+PASS     v3 score: مراجعٌ واحد فقط ⇒ INCOMPLETE                                                             verdict=INCOMPLETE under=27
+PASS     v4 طلبٌ يكتمل بعد مهلته يُرفض ولو أعاد WAV صالحاً                                                  stage=complete conc2 errors=1 sample=['TimeoutError: late: 0.382s > 0.25s']
+PASS     v4 عاملٌ عالق وأبناؤه يُنهَون، ويبقى السجلّ الجزئيّ                                                stage=hard_timeout child=3260 killed=[3256, 3260] survivors=gone {3260: 'dead'}
+PASS     v4 تشغيلان قابلان للمقارنة بالشروط نفسها ⇒ perf يقبل                                               comparable=True
+PASS     v4 BLOCKED في العزل/الملفّات يمنع مقارنة الأداء                                                    net=BLOCKED ro=BLOCKED
+PASS     v4 حدودٌ مختلفة بين التشغيلات تمنع المقارنة                                                        cpus 1 مقابل 0.5
+PASS     v14 تشغيلُ unshare (عزلٌ وحدودٌ كاملة) غيرُ قابلٍ للمقارنة: نظامُ ملفّات المضيف مكشوف ⇒ perf يرفض  status=ok comparable=False problems=sandbox='unshare': المقارنةُ تتطلّب جذراً فارغاً (bwrap) بربطٍ معلَن — unshare يكشف نظامَ 
+PASS     v4 محاولةُ تعديل نموذجٍ مُثبَّت داخل العزل تُرفض (للقراءة فقط حتّى لـroot)                         error=OSError: [Errno 30] Read-only file system: '/tmp/bakeoff-sel integrity=INTACT
+PASS     v4 بلا عزلٍ ينجح التعديل ⇒ تكشفه المطابقةُ بعد التشغيل (pinned_files_changed)                      stage=pinned_files_changed ro=BLOCKED original_intact=True
+PASS     v4 نموذجٌ تغيّر بعد كتابة بصمته ⇒ مرفوضٌ قبل الإطلاق                                               error=بصمةٌ مخالفة: pinned_model.bin
+  المُعلنة 9257d4bc
+PASS     v4 تُسجَّل الحصّةُ والأنويةُ والخيوطُ والتباطؤُ وذروةُ الذاكرة — والحصّةُ تُبطئ فعلاً              throttled 1.0=0.025 0.5=0.989 warm 1.0=0.264s 0.5=0.296s threads=2 peak=37.5MB
+PASS     v4 أوّلُ جملةٍ عربيّة بلا شبكة + جردُ الملفّات بلا غيرِ مُعلن                                      opened=389 counts={'pinned': 2, 'python_env': 307, 'system': 24, 'harness': 39, 'undeclared': 0} comparable=False
+PASS     v4 محرّكٌ يفتح ملفّاً خارج المُثبَّت ⇒ undeclared_files_opened                                     stage=undeclared_files_opened undeclared=['/var/tmp/undeclared-5st9wr6x/voice_extra.bin']
+PASS     v6 نموذجٌ غيرُ مُعلن تحت /usr/share ⇒ undeclared_files_opened                                      stage=undeclared_files_opened reason=weight_extension (sha256 044eb0baacfdddd6… غيرُ مُعلن في package_assets)
+PASS     v6 ملفُّ بياناتٍ كبيرٌ بلا امتدادٍ تحت /usr/lib ⇒ undeclared                                       stage=undeclared_files_opened reason=large_data_file>=5MiB (sha256 5229ef8643896a39… غيرُ مُعلن في package_assets)
+PASS     v6 الملفُّ نفسه مُعلنٌ ببصمته في package_assets ⇒ يمرّ (القاعدةُ لا تحجب المُعلن)                  rc=0 undeclared=[]
+PASS     v6 فشلُ الحصّة بعد إنشاء مجموعة الذاكرة ⇒ تُزال فوراً، ولا تُدّعى الحدود                           backend=UNAVAILABLE partial={'created': ['/sys/fs/cgroup/memory/bakeoff-fake-20261006T154245Z-b90eaa82', '/sys/fs/cgroup/cpu/bakeoff-fake-20261006T154245Z-b90eaa82'], 'leaked': []} exists=False limits=BLOCKED
+PASS     v6 .pth نصّيٌّ صغيرٌ في جذر بايثون يمرّ، وأوزانٌ .pth ثنائيّة في الموضع نفسه ⇒ undeclared          undeclared=['/tmp/bakeoff-selftest-v9ssm8zk/site-packages/weights.pth']
+PASS     v8 bwrap: سليم ⇒ ok · PROVEN بمسبار عنوانٍ بلا DNS · المُثبَّت للقراءة فقط · قابلٌ للمقارنة        rc=0 probes={'tcp pypi.org:443': 'blocked (gaierror -3)', 'dns pypi.org': 'blocked (gaierror -3)', 'tcp 151.101.64.223:443 (بلا DNS)': 'blocked (OSError 101)'} ro=ENFORCED problems=[]
+PASS     v15 bwrap ببيئةٍ افتراضيّة ⇒ يعمل · PROVEN · ENFORCED · ربطاتُها كلُّها مقبولة · قابلٌ للمقارنة    rc=0 stage=complete error=None problems=[]
+PASS     v8 bwrap: نموذجٌ تحت /usr/share **غيرُ موجود** داخل الصندوق ⇒ load_failed (منعٌ لا كشف)            stage=load_failed error=FileNotFoundError: [Errno 2] No such file or directory: '/usr/share/ba
+PASS     v8 bwrap: تعديلُ نموذجٍ مُثبَّت يُرفض (ربطٌ للقراءة فقط)                                           error=OSError: [Errno 30] Read-only file system: '/tmp/bakeoff-sel
+PASS     v8 bwrap: اتّصالٌ أصليٌّ (خارج حارس بايثون) لا يصل ⇒ ok و PROVEN                                   rc=0 stage=complete error=None
+PASS     v8 bwrap: عالقٌ له ابن داخل الصندوق ⇒ hard_timeout، والمجموعةُ قُتلت                               stage=hard_timeout killed=[3562, 3563, 3564] survivors=gone {3562: 'gone', 3563: 'dead', 3564: 'dead'}
+PASS     v9 SIGCHLD موروثٌ مُهمَلاً ⇒ رمزُ خروج العامل الفاشل محفوظ (≠ 0) والموروثُ مُسجَّل                 rc=1 worker_exit=1 inherited=SIG_IGN
+PASS     v6 perf: علَمُ المقارنة true مع failed/BLOCKED ⇒ سجلٌّ متناقض مرفوض                                rc=2 ّ المحرّك لم يقرأ إلّا المعلَن"]'] (net=BLOCKED limits=ENFORCED ro=ENFORCED status=failed)
+PASS     v7 perf: سجلٌّ يحمل حالاتِ النجاح وحدها بلا قياساتٍ ولا بصماتٍ ولا حدودٍ فعليّة ⇒ مرفوض            rc=2 \'rtf_warm_median=None\', \'concurrency فارغ\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS     v7 perf: الضابطُ الإيجابيّ — سجلٌّ حقيقيٌّ كامل الأدلّة (bwrap) يُقبل                              rc=0 
+PASS     v7/v8 perf: 23 سجلّاتٍ ناقصةَ الدليل أو مخالفةً للعقد ⇒ كلٌّ مرفوضٌ بسببه                          23/23
+PASS     v8 perf: بلا jsonschema ⇒ BLOCKED (رمز 3) ولو كان السجلُّ سليماً — لا مقارنةَ بلا عقد              rc=3  مثبّت — لا تُعتمد مقارنةٌ بلا عقد السجلّ (pip install -r requirements-gate.txt)
+
+67 حالة · فشل 0 · BLOCKED 0
+تنبيه: هذا يُثبت سلوك الأداة فقط — لا قياسَ لأيِّ محرّكٍ حقيقيّ ولا مقارنة.

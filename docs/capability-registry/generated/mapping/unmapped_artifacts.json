@@ -2556,6 +2556,10 @@
     "kind": "database"
   },
   {
+    "path": "services/decision-service/migrations/035_decision_version_binding.sql",
+    "kind": "database"
+  },
+  {
     "path": "services/decision-service/outcome_reconcile.py",
     "kind": "backend"
   },
@@ -3569,10 +3573,6 @@
   },
   {
     "path": "services/sahool-platform/api/irrigation_logic.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/irrigation_manual_execution.py",
     "kind": "backend"
   },
   {
@@ -6524,6 +6524,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_daily_penman_monteith_inputs.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
     "kind": "tests"
   },
@@ -6781,6 +6785,18 @@
   },
   {
     "path": "tests/test_riv_p0_consumer_truth_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_tts_bakeoff_input_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_tts_bakeoff_procs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_tts_bakeoff_sandbox.py",
     "kind": "tests"
   },
   {
@@ -7172,6 +7188,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_pr_concurrency.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_trigger_contract.py",
     "kind": "tests"
   },
@@ -7452,6 +7472,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_element84_vrt_containment.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_end_to_end.py",
     "kind": "tests"
   },
@@ -7533,6 +7557,10 @@
   },
   {
     "path": "tests_v9/test_fertigation_ec.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fertigation_plan.py",
     "kind": "tests"
   },
   {
@@ -7780,6 +7808,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irrigation_manual_slice_routes.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irrigation_method.py",
     "kind": "tests"
   },
@@ -7953,6 +7985,10 @@
   },
   {
     "path": "tests_v9/test_migration_validator_cross_file_unique.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_minio_image_source.py",
     "kind": "tests"
   },
   {

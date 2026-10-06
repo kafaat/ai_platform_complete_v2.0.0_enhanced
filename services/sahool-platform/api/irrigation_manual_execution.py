@@ -87,6 +87,9 @@ class ManualExecutionConfirmation(BaseModel):
     pressure_bar: float | None = Field(default=None, ge=0)
     evidence_digests: list[str] = Field(default_factory=list)
     notes: str | None = None
+    # IRRIGATION-MANUAL-DEVIATION-UNEXPLAINED-01: required when |actual − target| / target exceeds
+    # DEVIATION_REASON_TOLERANCE (owner decision 2026-10-06: 15%).
+    deviation_reason: str | None = Field(default=None, max_length=500)
 
     @model_validator(mode="after")
     def validate_confirmation(self) -> ManualExecutionConfirmation:
@@ -112,9 +115,22 @@ class ManualAsAppliedResult(BaseModel):
     actual_volume_m3: float
     actual_depth_mm: float
     completion_ratio: float
+    completion_ratio_applied: bool
+    target_depth_mm: float
+    deviation_pct: float | None
+    deviation_reason: str | None
     ledger_eligible: bool
     blocking_reasons: list[str]
     as_applied_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+# Owner decision (2026-10-06): an execution deviating more than 15% from the planned depth must
+# carry a stated reason — the same tolerance as the controller path's variance gate.
+DEVIATION_REASON_TOLERANCE = 0.15
+
+
+class DeviationReasonRequired(ValueError):
+    """Confirmation refused: the deviation exceeds the tolerance and no reason was given."""
 
 
 def _digest(payload: Any) -> str:
@@ -160,7 +176,16 @@ def derive_manual_as_applied(
         blockers.append("NO_VOLUME_EVIDENCE")
         volume = 0.0
 
-    volume *= confirmation.completion_ratio
+    # MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01: النسبةُ تقديرُ المشغِّل، فلا تمسّ حجماً هو نفسُه
+    # مشاهدة. قراءةُ العدّاد وحاصلُ التدفّق المقيس في زمن التشغيل الصافي (الانقطاعاتُ مطروحةٌ أعلاه) والحجمُ
+    # المُعلَن تبقى كما هي؛ والنسبة تصحّح التقديرَين المبنيَّين على تدفّقٍ غير مقيس فقط. كان الضربُ عامّاً،
+    # فقراءةُ عدّادٍ بـ0.5 تُنصَّف وتبقى «measured_meter» مؤهَّلةً للدفتر.
+    # لا تقديرَ يُحجَّم حين لا دليلَ حجمٍ أصلاً (الصفر المُعلَن مع NO_VOLUME_EVIDENCE) — مراجعة Copilot.
+    completion_ratio_applied = (
+        quality in ("estimated", "estimated_nominal") and "NO_VOLUME_EVIDENCE" not in blockers
+    )
+    if completion_ratio_applied:
+        volume *= confirmation.completion_ratio
     area_ha = recommendation.target_volume_m3 / (recommendation.target_depth_mm * 10.0)
     depth = volume / (area_ha * 10.0) if area_ha > 0 else 0.0
     measured = quality.startswith("measured")
@@ -168,6 +193,14 @@ def derive_manual_as_applied(
     if recommendation.mode == ManualExecutionMode.MANUAL_MEASURED and not measured:
         blockers.append("MEASURED_MODE_REQUIRES_MEASURED_EVIDENCE")
         ledger_eligible = False
+
+    target = float(recommendation.target_depth_mm)
+    deviation = (depth - target) / target if target > 0 else None
+    reason = (confirmation.deviation_reason or "").strip() or None
+    if deviation is not None and abs(deviation) > DEVIATION_REASON_TOLERANCE and reason is None:
+        raise DeviationReasonRequired(
+            f"DEVIATION_REASON_REQUIRED:{deviation:+.1%} exceeds ±{DEVIATION_REASON_TOLERANCE:.0%}"
+        )
 
     body = {
         "execution_id": recommendation.execution_id,
@@ -177,7 +210,107 @@ def derive_manual_as_applied(
         "actual_volume_m3": round(volume, 3),
         "actual_depth_mm": round(depth, 4),
         "completion_ratio": confirmation.completion_ratio,
+        "completion_ratio_applied": completion_ratio_applied,
+        "target_depth_mm": round(target, 4),
+        "deviation_pct": None if deviation is None else round(deviation, 4),
+        "deviation_reason": reason,
         "ledger_eligible": ledger_eligible,
         "blocking_reasons": sorted(set(blockers)),
     }
     return ManualAsAppliedResult(**body, as_applied_digest=_digest(body))
+
+
+# IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01 — owner decision (2026-10-06): the approved
+# decision IS the authorization. At start and again at confirm the platform re-reads the live plan
+# state from decision-service; any change fails closed. No separate dispatch authorization for the
+# manual path (that would mix manual confirmation with machine-dispatch authorization).
+def approved_plan_violation(
+    row: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime,
+    executed_from: datetime | None = None,
+    executed_until: datetime | None = None,
+) -> str | None:
+    """Why the manual execution may not proceed against the live plan state — or None.
+
+    ``row`` is the local manual execution; ``state`` is decision-service's
+    ``GET /v1/execution-plans/{id}``. At start the window is checked against ``now``; at confirm
+    the EXECUTED times must lie inside the approved window (a measurement confirmed after the
+    window closes is not lost, but one taken outside it is refused).
+    """
+    if state.get("status") != "ok" or state.get("authoritative") is not True:
+        return "APPROVED_PLAN_STATE_NOT_AUTHORITATIVE"
+    if state.get("execution_plan_id") != row.get("execution_plan_id"):
+        return "APPROVED_PLAN_IDENTITY_MISMATCH"
+    if state.get("decision_id") != row.get("decision_id"):
+        return "APPROVED_DECISION_IDENTITY_MISMATCH"
+    if state.get("plan_digest") != row.get("plan_digest"):
+        return "APPROVED_PLAN_DIGEST_CHANGED"
+    if state.get("review_state") != "approved":
+        return "APPROVAL_WITHDRAWN"
+    if not state.get("decision_value_digest") or state.get("decision_value_digest") != state.get(
+        "current_decision_value_digest"
+    ):
+        return "APPROVED_DECISION_VERSION_CHANGED"
+    if state.get("bound") is not True:
+        return "APPROVED_PLAN_NOT_BOUND"
+    valid_from, valid_until = row.get("valid_from"), row.get("valid_until")
+    if executed_from is None and executed_until is None:
+        if valid_until is None or valid_until <= now:
+            return "EXECUTION_WINDOW_EXPIRED"
+        if valid_from is not None and now < valid_from:
+            return "EXECUTION_WINDOW_NOT_OPEN"
+    else:
+        if valid_from is None or valid_until is None:
+            return "EXECUTION_WINDOW_UNKNOWN"
+        if executed_from is None or executed_until is None:
+            return "EXECUTED_TIMES_REQUIRED"
+        if executed_from < valid_from or executed_until > valid_until:
+            return "EXECUTED_OUTSIDE_APPROVED_WINDOW"
+    return None
+
+
+class ApprovedPlanRefused(Exception):  # noqa: N818 — a refusal with a named reason, not a fault
+    """The live approved-plan re-check refused the action; ``str(exc)`` is the named reason."""
+
+
+async def live_plan_recheck(
+    row: Any,
+    tenant_id: str,
+    *,
+    fetch_state: Any,
+    executed_from: datetime | None = None,
+    executed_until: datetime | None = None,
+) -> dict[str, Any]:
+    """Re-read the approved plan from decision-service at the moment of action and fail closed.
+
+    The decision-service verdict is the authorization; an unreachable or mirror-mode service
+    refuses the action (no local default). ``fetch_state(plan_id, tenant_id=...)`` raises an
+    exception carrying ``status_code`` when the service refuses. Returns the digests that were
+    verified, recorded on the lifecycle event as evidence.
+    """
+    try:
+        state = await fetch_state(row["execution_plan_id"], tenant_id=tenant_id)
+    except Exception as exc:  # noqa: BLE001 — any failure to read the live state refuses the action
+        code = getattr(exc, "status_code", None)
+        raise ApprovedPlanRefused(
+            "APPROVED_PLAN_NOT_FOUND" if code == 404 else "APPROVED_PLAN_RECHECK_UNAVAILABLE"
+        ) from exc
+    from datetime import UTC
+
+    violation = approved_plan_violation(
+        dict(row),
+        state,
+        now=datetime.now(UTC),
+        executed_from=executed_from,
+        executed_until=executed_until,
+    )
+    if violation:
+        raise ApprovedPlanRefused(violation)
+    return {
+        "execution_plan_id": state["execution_plan_id"],
+        "plan_digest": state["plan_digest"],
+        "decision_value_digest": state["decision_value_digest"],
+        "review_state": state["review_state"],
+    }

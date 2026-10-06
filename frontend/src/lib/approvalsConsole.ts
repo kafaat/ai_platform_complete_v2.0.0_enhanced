@@ -31,6 +31,8 @@ export interface DecisionReviewCandidate {
   confidence?: number | null;
   review_state: 'pending_approval';
   candidate_lineage_id: string;
+  /** بصمةُ النسخة التي يحسبها الخادم — الاعتمادُ يُربَط بها (035). null لمرشّحٍ قديم لا يُعتمَد. */
+  decision_value_digest: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 }
@@ -47,6 +49,8 @@ export interface DecisionReviewInput {
   action: 'approve' | 'reject';
   reason: string;
   candidateLineageId: string;
+  /** بصمةُ النسخة المعروضة على المراجِع، كما وصلت من الطابور (لازمةٌ للاعتماد). */
+  decisionValueDigest: string | null;
   idempotencyKey: string;
 }
 
@@ -60,6 +64,7 @@ export interface DecisionReviewResult {
   reviewed_by: string;
   reviewed_at: string;
   candidate_lineage_id: string;
+  decision_value_digest: string | null;
   replay?: boolean;
 }
 

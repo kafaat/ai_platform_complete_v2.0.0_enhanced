@@ -27,6 +27,9 @@ _USER = UserSchema(
 )
 
 
+_DIGEST = "a" * 64
+
+
 def _authoritative(**over):
     base = {
         "authoritative": True,
@@ -38,6 +41,7 @@ def _authoritative(**over):
         "reviewed_by": "rev-1",
         "reviewed_at": "2026-07-11T00:00:00+00:00",
         "candidate_lineage_id": "cand/lin-1",
+        "decision_value_digest": _DIGEST,
         "replay": False,
     }
     base.update(over)
@@ -50,6 +54,7 @@ def _req(**over):
         reason="reviewed",
         expected_state="pending_approval",
         candidate_lineage_id="cand/lin-1",
+        decision_value_digest=_DIGEST,
         idempotency_key="k-1",
     )
     base.update(over)
@@ -139,3 +144,41 @@ async def test_not_found_404_propagates(monkeypatch):
     with pytest.raises(HTTPException) as ei:
         await review_decision_candidate(decision_id="dec_1", req=_req(), user=_USER)
     assert ei.value.status_code == 404
+
+
+# IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01 — the BFF proves WHICH version was approved.
+@pytest.mark.asyncio
+async def test_the_reviewed_version_digest_is_forwarded_and_must_be_echoed(monkeypatch):
+    seen = {}
+
+    async def fake(decision_id, payload, *, tenant_id=None, reviewed_by=None):
+        seen.update(payload)
+        return _authoritative(decision_id=decision_id)
+
+    _patch(monkeypatch, fake)
+    out = await review_decision_candidate(decision_id="dec_1", req=_req(), user=_USER)
+    assert seen["decision_value_digest"] == _DIGEST
+    assert out["decision_value_digest"] == _DIGEST
+
+
+@pytest.mark.asyncio
+async def test_a_different_approved_version_in_the_response_fails_closed(monkeypatch):
+    async def fake(decision_id, payload, *, tenant_id=None, reviewed_by=None):
+        return _authoritative(decision_id=decision_id, decision_value_digest="b" * 64)
+
+    _patch(monkeypatch, fake)
+    with pytest.raises(HTTPException) as ei:
+        await review_decision_candidate(decision_id="dec_1", req=_req(), user=_USER)
+    assert ei.value.status_code == 503
+
+
+def test_a_malformed_version_digest_is_rejected_by_the_model():
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        DecisionReviewRequest(
+            action="approve",
+            candidate_lineage_id="cand/lin-1",
+            decision_value_digest="not-a-digest",
+            idempotency_key="k-2",
+        )

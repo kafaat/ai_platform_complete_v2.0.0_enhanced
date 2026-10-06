@@ -59,6 +59,7 @@ from persistence import (
     get_active_model_state,
     get_context_snapshot,
     get_decision_agronomic_evidence,
+    get_execution_plan_state,
     list_decision_records,
     list_inflight_execution_requests,
     list_queued_execution_requests,
@@ -655,6 +656,7 @@ async def record_decision(
             "tenant_id": tenant,
             "decision_id": did,
             "replayed": bool(result.get("replayed", False)),
+            "decision_value_digest": result.get("decision_value_digest"),
             "stage": payload.stage,
             "outbox": "decision_outbox_events",
             "received_at": datetime.now(UTC).isoformat(),
@@ -713,6 +715,10 @@ class DecisionReviewIn(BaseModel):
     reason: str = ""
     expected_state: str = "pending_approval"
     candidate_lineage_id: str
+    # IRRIGATION-APPROVAL-NOT-BOUND-TO-DECISION-VERSION-01: the server digest of the exact version
+    # the reviewer saw (returned by the review queue). Required to APPROVE (a mismatch is 409);
+    # a rejection approves nothing, so it stays possible for a legacy row without a digest.
+    decision_value_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     idempotency_key: str
     policy_version: str | None = None
 
@@ -744,6 +750,8 @@ async def review_candidate(
         raise HTTPException(status_code=422, detail="idempotency_key is required")
     if payload.action == "reject" and not payload.reason.strip():
         raise HTTPException(status_code=422, detail="reason is required to reject")
+    if payload.action == "approve" and not payload.decision_value_digest:
+        raise HTTPException(status_code=422, detail="decision_value_digest is required to approve")
     # Optimistic concurrency: the caller asserts the state it saw. Anything other than
     # pending_approval is stale by definition (the only reviewable state).
     if payload.expected_state != "pending_approval":
@@ -773,6 +781,7 @@ async def review_candidate(
         candidate_lineage_id=payload.candidate_lineage_id,
         idempotency_key=payload.idempotency_key,
         policy_version=payload.policy_version,
+        decision_value_digest=payload.decision_value_digest,
     )
     status = result.get("status")
     if status == "ok":
@@ -848,6 +857,26 @@ async def build_execution_plan(
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="approved decision not found")
     raise HTTPException(status_code=409, detail=result.get("reason", "execution plan conflict"))
+
+
+@app.get("/v1/execution-plans/{execution_plan_id}")
+async def read_execution_plan_state(
+    execution_plan_id: str, x_tenant_id: str | None = Header(default=None)
+) -> dict[str, Any]:
+    """Live plan state for the platform's re-check at manual start/confirm (read-only).
+
+    Fail-closed: mirror mode 503 (no authoritative state exists to re-check), unknown plan 404.
+    """
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — plan state unavailable",
+        )
+    result = await get_execution_plan_state(tenant_id=tenant, execution_plan_id=execution_plan_id)
+    if result.get("status") != "ok":
+        raise HTTPException(status_code=404, detail="execution plan not found")
+    return {"tenant_id": tenant, **result}
 
 
 @app.post("/v1/dispatch/decisions")

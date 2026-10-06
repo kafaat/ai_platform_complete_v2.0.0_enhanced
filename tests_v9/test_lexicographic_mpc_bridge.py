@@ -176,7 +176,13 @@ class _User:
     tenant_id = "tenant-42"
 
 
-def _canonical_state(*, horizon_days: int = 7, operational_eligible: bool = True):
+def _canonical_state(
+    *,
+    horizon_days: int = 7,
+    operational_eligible: bool = True,
+    depletion_confidence: float | None = None,
+    quality_status: str | None = None,
+):
     """لقطةٌ قانونيّة كاملة — من **النوع الحقيقيّ** لا من قاموسٍ يشبهه.
 
     بديلٌ بقاموسٍ كان سيمرّ على تغيّرِ حقلٍ في `CanonicalWaterState`، وهو بالضبط صنفُ
@@ -192,7 +198,7 @@ def _canonical_state(*, horizon_days: int = 7, operational_eligible: bool = True
         crop="maize",
         growth_stage="flowering",
         depletion_mm=45.0,
-        depletion_confidence=None,
+        depletion_confidence=depletion_confidence,
         ledger_date="2026-07-13",
         ledger_age_hours=3.0,
         taw_mm=100.0,
@@ -205,7 +211,7 @@ def _canonical_state(*, horizon_days: int = 7, operational_eligible: bool = True
             for i in range(horizon_days)
         ],
         evidence={"location": {"lat": 15.0, "lon": 44.0}},
-        quality_status="verified" if operational_eligible else "degraded",
+        quality_status=quality_status or ("verified" if operational_eligible else "degraded"),
         operational_eligible=operational_eligible,
         limitations=[] if operational_eligible else ["water ledger stale: 96.0h > 48h"],
         water_state_digest="a" * 64,
@@ -668,3 +674,79 @@ def test_the_decision_is_built_from_the_canonical_snapshot_not_from_request_fiel
     assert captured["raw_fraction"] == 0.5, "حقيقةٌ فيزيائيّة من العميل أزاحت اللقطة القانونيّة"
     assert captured["initial_depletion_mm"] == 45.0
     assert len(captured["forecast"]) == 7
+
+
+# MPC-OPERATIONAL-ROUTE-DROPS-CONFIDENCE-AND-DEGRADATION-01 — عبر المسار التشغيليّ نفسه، لا المُحلِّل وحده.
+def _operational(monkeypatch, **canonical_kw):
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _canonical(u, f, h):
+        return _canonical_state(horizon_days=h, **canonical_kw)
+
+    async def _no_bindings(t, f):
+        return []
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
+    monkeypatch.setattr(route, "_source_canonical_water", _canonical)
+    req = route.RecommendationRequest(horizon_days=7)
+    return asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+
+
+@_requires_fastapi
+@pytest.mark.parametrize(
+    ("canonical_kw", "why"),
+    [
+        ({"depletion_confidence": 0.4}, "ثقةُ دفترٍ منخفضة (قيدٌ بافتراضات: ريٌّ غير مرصود…)"),
+        (
+            {"depletion_confidence": 0.9, "quality_status": "degraded"},
+            "لقطةٌ تشغيليّة متدهورة (ET0 بلا PM)",
+        ),
+    ],
+)
+def test_operational_route_applies_the_degraded_policy(monkeypatch, canonical_kw, why):
+    out = _operational(monkeypatch, **canonical_kw)
+    decision = out["decision"]
+    assert out["mode"] == "operational"
+    # اللقطةُ في مرحلة إزهار تحت إجهاد ⇒ حمايةُ المحصول تبقى الفعل (أولويّةٌ مقصودة)،
+    # والتدهورُ لا يسقط معها: سببُه معلنٌ وسقفُ الثقة مطبَّق.
+    assert decision["operating_state"] == "CROP_PROTECTION"
+    assert "DATA_DEGRADED" in decision["reason_codes"], why
+    assert decision["confidence"] <= 0.4
+    prov = out["facts_provenance"]
+    assert prov["depletion_confidence"] == canonical_kw["depletion_confidence"]
+    # طريقةُ ET0 لكلّ يوم تُقرأ من الاستجابة نفسها (مراجعة Copilot على #1142).
+    assert len(prov["et0_methods"]) == 7
+    assert prov["canonical_quality_status"] == canonical_kw.get("quality_status", "verified")
+
+
+@_requires_fastapi
+def test_operational_route_keeps_normal_optimisation_for_verified_confident_state(monkeypatch):
+    """الضابط: لقطةٌ موثّقة بثقة عالية لا تُدهوَر — الإصلاحُ لا يُعمِّم الحذر."""
+    out = _operational(monkeypatch, depletion_confidence=0.9)
+    assert out["decision"]["operating_state"] != "DATA_DEGRADED"
+    assert "DATA_DEGRADED" not in out["decision"]["reason_codes"]
+
+
+def test_degraded_input_becomes_the_state_when_no_higher_priority_state_applies():
+    """خارج المرحلة الحرجة وبلا إجهاد، التدهورُ هو الحالة نفسها."""
+    from api.lexicographic_irrigation_mpc import ForecastDay, solve_lexicographic_irrigation
+
+    kw = dict(
+        forecast=[ForecastDay(et0_mm=4.0, kc=0.6, rain_mm=0.0) for _ in range(7)],
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=10.0,
+        tenant_id="t",
+        field_id="f",
+        crop="maize",
+        growth_stage="initial",
+    )
+    degraded = solve_lexicographic_irrigation(**kw, depletion_confidence=0.4).to_dict()
+    assert degraded["operating_state"] == "DATA_DEGRADED"
+    assert degraded["confidence"] <= 0.4
+    normal = solve_lexicographic_irrigation(**kw, depletion_confidence=0.9).to_dict()
+    assert normal["operating_state"] == "NORMAL_OPTIMIZATION"

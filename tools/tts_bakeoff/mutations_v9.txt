@@ -1,0 +1,22 @@
+KILLED   perf.py        errors_allowed               أخطاءٌ أو مهلات
+KILLED   perf.py        p95_unchecked                الكمونُ ناقص
+KILLED   perf.py        ratio_range_unchecked        خارج [0, 1]
+KILLED   perf.py        ratio_consistency_unchecked  لا تتّسق مع
+KILLED   perf.py        throttled_gt_unchecked       > cpu_periods
+KILLED   perf.py        throughput_unchecked         throughput_rps=999.0 لا تتّسق
+KILLED   perf.py        peak_unchecked               > حدّ الذاكرة
+KILLED   result_comparable.schema.json schema_errors_free           schema:/concurrency/1/errors
+KILLED   run.py         runpy_sigchld_kept           exit_code=0 inherited=SIG_IGN
+KILLED   asr_screen.py  blocking_readline            FAIL  ASR faster_whisper: حرفٌ بلا نهاية سطر ثمّ تعليقٌ أثناء التفريغ ⇒ EVALUATOR_TIMEOUT 
+KILLED   asr_screen.py  buffer_dropped               FAIL  ASR: سطرٌ مجزّأ على دفعتين يكتمل قبل الموعد، والسطرُ الثاني في الدفعة نفسها يبقى للط
+KILLED   asr_screen.py  asr_sigchld_kept             FAIL  ASR تحت SIGCHLD=SIG_IGN موروث: مقيِّمٌ يخرج بخطأ ⇒ EVALUATOR_FAILED (لا رمزَ 0 زائفا
+KILLED   asr_screen.py  zombie_counted               FAIL  ASR: /proc مصطنعة — الزومبي (Z) ليس حيّاً، والعضوُ الحيّ يُعدّ، والمختفي يُتجاوز  
+SURVIVED asr_screen.py  vanished_crashes             
+
+13/14 أعطالٍ مزروعة في شيفرة v9 أحمرّت لها حالة
+
+(إعادةٌ بعد إضافة stat يُسرَد ثمّ يزول)
+SURVIVED asr_screen.py  vanished_crashes             
+
+(إعادةٌ ثانية: stat مجلّدٌ يطابق النمط ويفشل فتحُه)
+KILLED   asr_screen.py  vanished_crashes             IsADirectoryError: [Errno 21] Is a directory: '/tmp/tmppgjf20yl/106/stat'
