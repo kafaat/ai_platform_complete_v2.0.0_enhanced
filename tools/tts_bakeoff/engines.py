@@ -16,6 +16,20 @@ import time
 import wave
 
 
+def ort_intra_threads(cfg: dict) -> tuple[int, str]:
+    """خيوطُ ORT: ``ort_intra_threads`` إن أُعلن في الإعدادات، وإلّا ``--threads`` الذي يسجّله التشغيلُ في
+    ``BAKEOFF_LIMITS``. كان الافتراضيّ 1 ثابتاً فيُسجَّل threads=2 والمحرّكُ يعمل بخيطٍ واحد (قياسُ المالك على
+    Kokoro: RTF 1.065 مع --threads 2) — حدٌّ مُسجَّل لا يسري. ⇒ (العدد، مصدرُه)."""
+    import json
+
+    if cfg.get("ort_intra_threads") is not None:
+        return int(cfg["ort_intra_threads"]), "settings.ort_intra_threads"
+    threads = json.loads(os.environ.get("BAKEOFF_LIMITS") or "{}").get("threads")
+    if isinstance(threads, int) and threads > 0:
+        return threads, "BAKEOFF_LIMITS.threads (--threads)"
+    return 1, "default (لا --threads)"
+
+
 def _require_version(dist: str, target: str) -> str:
     import importlib.metadata
 
@@ -159,7 +173,7 @@ class PiperEngine:
         # ``PiperVoice.load`` (1.8.0، voice.py 193-196) يبني الجلسة بـ``SessionOptions()`` افتراضيّة: خيوطٌ
         # بعدد الأنوية وspinning مفعّل، ولا تقرأ متغيّرات البيئة. لذا تُعاد الجلسة بخياراتٍ صريحة مُسجَّلة.
         opts = onnxruntime.SessionOptions()
-        opts.intra_op_num_threads = int(cfg.get("ort_intra_threads", 1))
+        opts.intra_op_num_threads, threads_source = ort_intra_threads(cfg)
         opts.inter_op_num_threads = 1
         opts.add_session_config_entry(
             "session.intra_op.allow_spinning", "1" if cfg.get("ort_spinning") else "0"
@@ -169,6 +183,7 @@ class PiperEngine:
         )
         self.ort = {
             "intra_op_num_threads": opts.intra_op_num_threads,
+            "intra_op_num_threads_source": threads_source,
             "allow_spinning": bool(cfg.get("ort_spinning")),
             "note": "التشكيلُ العربيّ (piper/tashkeel/model.onnx) جلسةٌ منفصلة بخياراتٍ افتراضيّة",
         }
@@ -310,7 +325,7 @@ class KokoroEngine:
         from kokoro_onnx import Kokoro
 
         opts = onnxruntime.SessionOptions()
-        opts.intra_op_num_threads = int(cfg.get("ort_intra_threads", 1))
+        opts.intra_op_num_threads, threads_source = ort_intra_threads(cfg)
         opts.inter_op_num_threads = 1
         opts.add_session_config_entry(
             "session.intra_op.allow_spinning", "1" if cfg.get("ort_spinning") else "0"
@@ -329,6 +344,7 @@ class KokoroEngine:
         self.speed = float(cfg.get("speed", 1.0))
         self.ort = {
             "intra_op_num_threads": opts.intra_op_num_threads,
+            "intra_op_num_threads_source": threads_source,
             "allow_spinning": bool(cfg.get("ort_spinning")),
         }
         self.g2p = {"backend": "espeak-ng (GPL-3.0) عبر phonemizer — يُحمَّل داخل العمليّة"}
