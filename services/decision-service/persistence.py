@@ -170,7 +170,7 @@ async def persist_decision_record(
                        agronomic_context_snapshot_id, field_historical_context_snapshot_id,
                        feature_manifest_id, context_contract_version,
                        season_id, crop_id, cultivar_id, vegetation_snapshot_id, feature_manifest_hash,
-                       content_digest, decision_value_digest)
+                       decision_value_digest, content_digest)
                     VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
                             $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
                     ON CONFLICT (decision_id) DO NOTHING
@@ -196,8 +196,8 @@ async def persist_decision_record(
                     getattr(payload, "cultivar_id", None),
                     vegetation_snapshot_id,
                     feature_manifest_hash,
-                    content_digest,
                     decision_value_digest(payload.decision_value),
+                    content_digest,
                 )
             except (
                 asyncpg.exceptions.RaiseError,

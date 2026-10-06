@@ -120,15 +120,7 @@ async def review_decision_candidate(
     ∧ persisted ∧ decision_id مطابق ∧ previous_state=pending_approval ∧ state∈{approved,rejected}
     ∧ review_id/reviewed_by/reviewed_at غير فارغة ∧ candidate_lineage_id مطابق). mirror/SoR-off ⇒
     ردّ غير آمِر ⇒ 503. الخدمة ساقطة ⇒ 503. لا تنفيذ (dispatch/task/معدّات)."""
-    payload = {
-        "action": req.action,
-        "reason": req.reason,
-        "expected_state": req.expected_state,
-        "candidate_lineage_id": req.candidate_lineage_id,
-        "decision_value_digest": req.decision_value_digest,
-        "idempotency_key": req.idempotency_key,
-        "policy_version": req.policy_version,
-    }
+    payload = req.model_dump()  # كلُّ حقول الطلب، ومنها بصمةُ النسخة المعروضة
     try:
         result = await ds_review_decision(
             decision_id,

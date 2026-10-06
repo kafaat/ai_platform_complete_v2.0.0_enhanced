@@ -49,7 +49,7 @@ class FakeConn:
 
     def events(self) -> list[dict]:
         return [
-            json.loads(args[5] if "'confirmed','confirmed'" not in sql else args[3])
+            json.loads(args[5])
             for sql, args in self.executed
             if sql.startswith("INSERT INTO irrigation_manual_execution_events")
         ]

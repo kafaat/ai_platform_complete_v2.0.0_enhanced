@@ -40,7 +40,7 @@ FROZEN_OVERSIZE: dict[str, int] = {
     # خُفِّض 1712 ⇒ 1675 (#1135): احتواء Element84→VRT أزال بناء الـVRT من نقطتي الدخول.
     "services/raster-service/routers/fields.py": 1675,
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 1029,
-    "services/sahool-platform/api/routers/decision_review.py": 923,
+    "services/sahool-platform/api/routers/decision_review.py": 922,
 }
 
 

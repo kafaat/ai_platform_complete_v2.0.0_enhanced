@@ -68,22 +68,22 @@ DEC-002,test,services/sahool-platform/tests/test_candidate_generator.py,3,applie
 DEC-002,test,services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py,3,applied
 DEC-003,api,GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:48,2,applied
 DEC-003,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:74,2,applied
-DEC-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:586,2,applied
+DEC-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578,2,applied
 DEC-003,api,GET /v1/decisions/review-queue @ services/decision-service/main.py:687,3,applied
 DEC-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
-DEC-003,api,POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:195,2,applied
+DEC-003,api,POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:187,2,applied
 DEC-003,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:110,2,applied
-DEC-003,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:400,2,applied
-DEC-003,api,POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:335,2,applied
-DEC-003,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:467,2,applied
-DEC-003,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:838,2,applied
-DEC-003,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:875,2,applied
-DEC-003,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:907,2,applied
-DEC-003,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:736,2,applied
-DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:784,2,applied
-DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:640,2,applied
-DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:691,2,applied
-DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:530,2,applied
+DEC-003,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392,2,applied
+DEC-003,api,POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327,2,applied
+DEC-003,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459,2,applied
+DEC-003,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830,2,applied
+DEC-003,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867,2,applied
+DEC-003,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899,2,applied
+DEC-003,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728,2,applied
+DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776,2,applied
+DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632,2,applied
+DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683,2,applied
+DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522,2,applied
 DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:252,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:727,3,applied
@@ -109,8 +109,8 @@ DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:1780,5,applied
 DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:1809,5,applied
-DEC-004,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:400,4,applied
-DEC-004,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:467,4,applied
+DEC-004,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392,4,applied
+DEC-004,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459,4,applied
 DEC-004,api,POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1831,5,applied
 DEC-004,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1863,5,applied
 DEC-004,api,POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67,4,applied
@@ -128,8 +128,8 @@ DEC-005,api,POST /api/v1/decision/dispatch/evaluate @ services/sahool-platform/a
 DEC-005,api,POST /api/v1/decision/dispatch/execute @ services/sahool-platform/api/routers/decision_dispatch.py:247,2,applied
 DEC-005,api,POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580,2,applied
 DEC-005,api,POST /api/v1/decision/unified @ services/sahool-platform/api/routers/decision_dispatch.py:129,2,applied
-DEC-005,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:400,6,applied
-DEC-005,api,POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:335,2,applied
+DEC-005,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:392,6,applied
+DEC-005,api,POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:327,2,applied
 DEC-005,api,POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1249,7,applied
 DEC-005,api,POST /v1/dispatch/decisions @ services/decision-service/main.py:883,3,applied
 DEC-005,api,POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1181,3,applied
@@ -160,10 +160,10 @@ DEC-006,service,services/decision-service/main.py,10,applied
 DEC-006,test,services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py,3,applied
 DEC-006,test,tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py,3,applied
 DEC-007,api,POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580,2,applied
-DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:467,2,applied
+DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459,2,applied
 DEC-007,api,POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43,2,applied
 DEC-007,api,POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:453,2,applied
-DEC-007,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:530,2,applied
+DEC-007,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522,2,applied
 DEC-007,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526,2,applied
 DEC-007,api,POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67,2,applied
 DEC-007,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1909,3,applied
@@ -183,7 +183,7 @@ DEC-007,test,services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutov
 DEC-007,test,services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py,3,applied
 DEC-007,test,tests_v9/test_outcome_measurement.py,3,applied
 DEC-007,test,tests_v9/test_run_outcome_guard.py,3,applied
-DEC-008,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:530,6,applied
+DEC-008,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522,6,applied
 DEC-008,api,POST /v1/fields/{field_id}/soil/learning-attributions @ services/soil-service/routers/p4_workflow.py:114,4,applied
 DEC-008,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1967,7,applied
 DEC-008,api,POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:88,2,applied
@@ -196,7 +196,7 @@ DEC-009,api,GET /api/v1/calibration/{region} @ services/sahool-platform/api/rout
 DEC-009,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:636,2,applied
 DEC-009,api,GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:180,2,applied
 DEC-009,api,GET /api/v1/calibration/{region}/resolved @ services/sahool-platform/api/routers/calibration.py:528,2,applied
-DEC-009,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:586,2,applied
+DEC-009,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578,2,applied
 DEC-009,api,GET /api/v1/learning/prediction-calibration @ services/sahool-platform/api/routers/learning.py:114,2,applied
 DEC-009,api,GET /v1/learning/calibration-dataset @ services/decision-service/main.py:2001,3,applied
 DEC-009,api,POST /api/v1/calibration/feedback @ services/sahool-platform/api/routers/calibration.py:222,2,applied
@@ -206,7 +206,7 @@ DEC-009,api,POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ servic
 DEC-009,api,POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124,2,applied
 DEC-009,api,POST /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:462,2,applied
 DEC-009,api,POST /api/v1/calibration/{region}/propose-values @ services/sahool-platform/api/routers/calibration.py:439,2,applied
-DEC-009,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:640,2,applied
+DEC-009,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632,2,applied
 DEC-009,api,POST /v1/learning/evaluation-runs @ services/decision-service/main.py:2043,3,applied
 DEC-009,api,POST /v1/soil/calibrations/build @ services/soil-service/routers/p5_certification.py:58,2,applied
 DEC-009,api,POST /v1/soil/calibrations/{calibration_id}/evaluate @ services/soil-service/routers/p5_certification.py:92,2,applied
@@ -224,10 +224,10 @@ DEC-009,test,tests_v9/test_calibration_audit_migration.py,3,applied
 DEC-009,test,tests_v9/test_calibration_ingest.py,3,applied
 DEC-009,test,tests_v9/test_calibration_override.py,3,applied
 DEC-009,ui,frontend/src/services/api/calibration.ts,2,applied
-DEC-010,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:907,2,applied
-DEC-010,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:736,4,applied
-DEC-010,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:784,4,applied
-DEC-010,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:691,2,applied
+DEC-010,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899,2,applied
+DEC-010,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728,4,applied
+DEC-010,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776,4,applied
+DEC-010,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683,2,applied
 DEC-010,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2309,3,applied
 DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/main.py:2129,5,applied
 DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2093,3,applied
@@ -454,7 +454,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-pla
 FM-003,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256,4,applied
 FM-003,api,GET /api/v1/geo-locate/field @ services/sahool-platform/api/routers/geo_locate.py:24,2,applied
 FM-003,api,GET /api/v1/gis/cloud-native/ogc/collections/fields/items @ services/sahool-platform/api/routers/gis_cloud_native.py:319,4,applied
-FM-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:586,2,applied
+FM-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578,2,applied
 FM-003,api,GET /api/v1/registry/report-fields @ services/sahool-platform/api/routers/registry.py:32,2,applied
 FM-003,api,GET /api/v1/reports/field/{field_id}/summary @ services/sahool-platform/api/routers/reports.py:96,2,applied
 FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/api/routers/weather.py:2535,2,applied
@@ -519,7 +519,7 @@ FM-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-pla
 FM-003,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2307,4,applied
 FM-003,api,PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3311,4,applied
 FM-003,api,POST /api/v1/automation/imagery/register-field @ services/sahool-platform/api/routers/automation.py:126,2,applied
-FM-003,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:467,2,applied
+FM-003,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459,2,applied
 FM-003,api,POST /api/v1/field-intelligence/analyze @ services/sahool-platform/api/routers/field_intelligence.py:469,2,applied
 FM-003,api,POST /api/v1/field-intelligence/analyze/jobs/{job_id}/cancel @ services/sahool-platform/api/routers/field_intelligence.py:526,2,applied
 FM-003,api,POST /api/v1/field-portfolio/allocate @ services/sahool-platform/api/routers/field_portfolio.py:76,2,applied
@@ -567,11 +567,11 @@ FM-003,api,POST /api/v1/fields/{field_id}/zones @ services/sahool-platform/api/r
 FM-003,api,POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:345,2,applied
 FM-003,api,POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:700,2,applied
 FM-003,api,POST /api/v1/introduction/field-fit @ services/sahool-platform/api/routers/introduction.py:41,2,applied
-FM-003,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:736,2,applied
-FM-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:784,2,applied
-FM-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:640,2,applied
-FM-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:691,2,applied
-FM-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:530,2,applied
+FM-003,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728,2,applied
+FM-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776,2,applied
+FM-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632,2,applied
+FM-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683,2,applied
+FM-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522,2,applied
 FM-003,api,POST /api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:257,2,applied
 FM-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,2,applied
 FM-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
@@ -963,10 +963,10 @@ GIS-001,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-p
 GIS-001,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:74,2,applied
 GIS-001,api,GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265,2,applied
 GIS-001,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1526,2,applied
-GIS-001,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:586,2,applied
+GIS-001,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:578,2,applied
 GIS-001,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2419,2,applied
 GIS-001,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
-GIS-001,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:467,2,applied
+GIS-001,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:459,2,applied
 GIS-001,api,POST /api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:244,2,applied
 GIS-001,api,POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3582,2,applied
 GIS-001,api,POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181,2,applied
@@ -975,11 +975,11 @@ GIS-001,api,POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services
 GIS-001,api,POST /api/v1/gis/cloud-native/ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:345,2,applied
 GIS-001,api,POST /api/v1/gis/cloud-native/locks @ services/sahool-platform/api/routers/gis_cloud_native.py:620,2,applied
 GIS-001,api,POST /api/v1/gis/cloud-native/phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:700,2,applied
-GIS-001,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:736,2,applied
-GIS-001,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:784,2,applied
-GIS-001,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:640,2,applied
-GIS-001,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:691,2,applied
-GIS-001,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:530,2,applied
+GIS-001,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:728,2,applied
+GIS-001,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:776,2,applied
+GIS-001,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:632,2,applied
+GIS-001,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:683,2,applied
+GIS-001,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:522,2,applied
 GIS-001,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:659,2,applied
 GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2222,2,applied
 GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2263,2,applied
@@ -1168,9 +1168,9 @@ IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:74,
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179,3,applied
-IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:838,3,applied
-IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:875,3,applied
-IRR-007,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:907,3,applied
+IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:830,3,applied
+IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:867,3,applied
+IRR-007,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:899,3,applied
 IRR-007,api,POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70,3,applied
 IRR-007,api,POST /v1/command @ services/actuator-service/routers/commands.py:25,5,applied
 IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2222,2,applied

@@ -30,13 +30,14 @@ from api.irrigation_engineering_workspace import (
     calculate_reservoir_booster_network,
 )
 from api.irrigation_manual_execution import (
+    ApprovedPlanRefused,
     DeviationReasonRequired,
     ManualAsAppliedResult,
     ManualExecutionConfirmation,
     ManualExecutionState,
     ManualRecommendationInput,
-    approved_plan_violation,
     derive_manual_as_applied,
+    live_plan_recheck,
     transition_manual_execution,
 )
 from api.irrigation_manual_ledger_bridge import (
@@ -353,43 +354,31 @@ async def create_manual_execution(
     }
 
 
-async def _live_plan_recheck(
-    row,
-    tenant_id: str,
-    *,
-    executed_from: datetime | None = None,
-    executed_until: datetime | None = None,
-) -> dict:
-    """Re-read the approved plan from decision-service at the moment of action and fail closed.
-
-    IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01: the decision-service verdict is the
-    authorization; an unreachable or mirror-mode service refuses the action (no local default).
-    Returns the digests that were verified, recorded on the transition event as evidence.
-    """
-    try:
-        state = await get_execution_plan_state(row["execution_plan_id"], tenant_id=tenant_id)
-    except HTTPException as exc:
-        reason = (
-            "APPROVED_PLAN_NOT_FOUND"
-            if exc.status_code == 404
-            else "APPROVED_PLAN_RECHECK_UNAVAILABLE"
-        )
-        raise HTTPException(status_code=409, detail=reason) from exc
-    violation = approved_plan_violation(
-        dict(row),
-        state,
-        now=datetime.now(UTC),
-        executed_from=executed_from,
-        executed_until=executed_until,
+async def _append_execution_event(conn, user, execution_id, from_state, to_state, body) -> None:
+    """Append-only lifecycle event with its actor; the digest is over the canonical body."""
+    await conn.execute(
+        """INSERT INTO irrigation_manual_execution_events
+           (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
+           VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6::jsonb,$7) ON CONFLICT DO NOTHING""",
+        str(user.tenant_id),
+        execution_id,
+        from_state,
+        to_state,
+        str(user.user_id),
+        json.dumps(body),
+        __import__("hashlib").sha256(json.dumps(body, sort_keys=True).encode()).hexdigest(),
     )
-    if violation:
-        raise HTTPException(status_code=409, detail=violation)
-    return {
-        "execution_plan_id": state["execution_plan_id"],
-        "plan_digest": state["plan_digest"],
-        "decision_value_digest": state["decision_value_digest"],
-        "review_state": state["review_state"],
-    }
+
+
+async def _live_plan_recheck(row, tenant_id: str, **window) -> dict:
+    """IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01 — fail closed as 409 (see
+    ``live_plan_recheck``); the plan-state reader is looked up here so tests can replace it."""
+    try:
+        return await live_plan_recheck(
+            row, tenant_id, fetch_state=get_execution_plan_state, **window
+        )
+    except ApprovedPlanRefused as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.post("/manual-executions/{execution_id}/transition")
@@ -451,22 +440,8 @@ async def transition_manual_execution_endpoint(
             }
             if plan_recheck:
                 event_body["plan_recheck"] = plan_recheck
-            event_digest = (
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest()
-            )
-            await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6::jsonb,$7) ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
-                execution_id,
-                current.value,
-                target.value,
-                str(user.user_id),
-                json.dumps(event_body),
-                event_digest,
+            await _append_execution_event(
+                conn, user, execution_id, current.value, target.value, event_body
             )
     return {"execution_id": execution_id, "state": target.value}
 
@@ -544,19 +519,13 @@ async def confirm_manual_execution(
                 "deviation_reason": result.deviation_reason,
                 "plan_recheck": plan_recheck,
             }
-            await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6::jsonb,$7) ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
+            await _append_execution_event(
+                conn,
+                user,
                 execution_id,
                 ManualExecutionState.STOPPED.value,
                 ManualExecutionState.CONFIRMED.value,
-                str(user.user_id),
-                json.dumps(event_body),
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest(),
+                event_body,
             )
     return result
 
@@ -634,18 +603,8 @@ async def verify_manual_execution(
                     "blocking_reasons": result.blocking_reasons,
                     "at": datetime.now(UTC).isoformat(),
                 }
-                await conn.execute(
-                    """INSERT INTO irrigation_manual_execution_events
-                       (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                       VALUES ($1::uuid,$2::uuid,'confirmed','confirmed',$3,$4::jsonb,$5)
-                       ON CONFLICT DO NOTHING""",
-                    str(user.tenant_id),
-                    execution_id,
-                    str(user.user_id),
-                    json.dumps(rejection),
-                    __import__("hashlib")
-                    .sha256(json.dumps(rejection, sort_keys=True).encode())
-                    .hexdigest(),
+                await _append_execution_event(
+                    conn, user, execution_id, "confirmed", "confirmed", rejection
                 )
                 rejected = result
             else:
@@ -672,21 +631,8 @@ async def verify_manual_execution(
                     "actor": str(user.user_id),
                     "verification_digest": result.verification_digest,
                 }
-                event_digest = (
-                    __import__("hashlib")
-                    .sha256(json.dumps(event_body, sort_keys=True).encode())
-                    .hexdigest()
-                )
-                await conn.execute(
-                    """INSERT INTO irrigation_manual_execution_events
-                       (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                       VALUES ($1::uuid,$2::uuid,'confirmed','verified',$3,$4::jsonb,$5)
-                       ON CONFLICT DO NOTHING""",
-                    str(user.tenant_id),
-                    execution_id,
-                    str(user.user_id),
-                    json.dumps(event_body),
-                    event_digest,
+                await _append_execution_event(
+                    conn, user, execution_id, "confirmed", "verified", event_body
                 )
     if rejected is not None:
         raise HTTPException(
@@ -810,21 +756,8 @@ async def reconcile_manual_execution_to_water_ledger(
                 "actor": str(user.user_id),
                 "ledger_event_digest": event.ledger_event_digest,
             }
-            event_digest = (
-                __import__("hashlib")
-                .sha256(json.dumps(event_body, sort_keys=True).encode())
-                .hexdigest()
-            )
-            await conn.execute(
-                """INSERT INTO irrigation_manual_execution_events
-                   (tenant_id,execution_id,from_state,to_state,actor_id,payload,event_digest)
-                   VALUES ($1::uuid,$2::uuid,'verified','reconciled',$3,$4::jsonb,$5)
-                   ON CONFLICT DO NOTHING""",
-                str(user.tenant_id),
-                execution_id,
-                str(user.user_id),
-                json.dumps(event_body),
-                event_digest,
+            await _append_execution_event(
+                conn, user, execution_id, "verified", "reconciled", event_body
             )
             # IRRIGATION-EXECUTION-COMPLETED-HAS-NO-PRODUCER-01: the completion event comes from the
             # documented, verified, reconciled state — in the SAME transaction (outbox), so it exists

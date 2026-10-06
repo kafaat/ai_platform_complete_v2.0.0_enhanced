@@ -269,3 +269,48 @@ def approved_plan_violation(
         if executed_from < valid_from or executed_until > valid_until:
             return "EXECUTED_OUTSIDE_APPROVED_WINDOW"
     return None
+
+
+class ApprovedPlanRefused(Exception):  # noqa: N818 — a refusal with a named reason, not a fault
+    """The live approved-plan re-check refused the action; ``str(exc)`` is the named reason."""
+
+
+async def live_plan_recheck(
+    row: Any,
+    tenant_id: str,
+    *,
+    fetch_state: Any,
+    executed_from: datetime | None = None,
+    executed_until: datetime | None = None,
+) -> dict[str, Any]:
+    """Re-read the approved plan from decision-service at the moment of action and fail closed.
+
+    The decision-service verdict is the authorization; an unreachable or mirror-mode service
+    refuses the action (no local default). ``fetch_state(plan_id, tenant_id=...)`` raises an
+    exception carrying ``status_code`` when the service refuses. Returns the digests that were
+    verified, recorded on the lifecycle event as evidence.
+    """
+    try:
+        state = await fetch_state(row["execution_plan_id"], tenant_id=tenant_id)
+    except Exception as exc:  # noqa: BLE001 — any failure to read the live state refuses the action
+        code = getattr(exc, "status_code", None)
+        raise ApprovedPlanRefused(
+            "APPROVED_PLAN_NOT_FOUND" if code == 404 else "APPROVED_PLAN_RECHECK_UNAVAILABLE"
+        ) from exc
+    from datetime import UTC
+
+    violation = approved_plan_violation(
+        dict(row),
+        state,
+        now=datetime.now(UTC),
+        executed_from=executed_from,
+        executed_until=executed_until,
+    )
+    if violation:
+        raise ApprovedPlanRefused(violation)
+    return {
+        "execution_plan_id": state["execution_plan_id"],
+        "plan_digest": state["plan_digest"],
+        "decision_value_digest": state["decision_value_digest"],
+        "review_state": state["review_state"],
+    }

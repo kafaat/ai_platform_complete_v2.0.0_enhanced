@@ -14,14 +14,14 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'f1688d291ef84a192db93856b1cd47558b4025a5fa3faafd45b1fd7822726421';
+export const PLATFORM_CATALOG_FINGERPRINT = '7fd533f9c65b21c4e264388fad05175a15dea0070b74c27260601da3ed922fe4';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
   "capabilities": 832,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 95,
-  "capabilities_idempotent": 48,
+  "capabilities_idempotent": 47,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 478,
   "components": 36,

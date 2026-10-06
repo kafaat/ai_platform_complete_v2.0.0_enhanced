@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "ff4b4f733a4ea0905ceb6dfc97ea7a21d4b57496907e644c96eb6bce642b23de",
+  "inventory_sha256": "038d6a12fcbe7c982eb09657db3a539dc746c242c9b22569be8211f8b4b6865a",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "7acf4676e4e30dddfbd4117b1fca378c57af15b9115b4e829d96c09794ceb3fa"
+    "policy_sha256": "3f1ad922584644fafbdc73a785904c0e18f7ae07479ebd78c3bf50e448e675dd"
   },
   "routes": [
     {
@@ -1682,7 +1682,7 @@
     {
       "classification": "domain",
       "function": "read_calibration_dataset_boundary",
-      "line": 585,
+      "line": 577,
       "method": "GET",
       "path": "/api/v1/learning/calibration-dataset",
       "source": "api/routers/decision_review.py"
@@ -2586,7 +2586,7 @@
     {
       "classification": "domain",
       "function": "get_current_commissioning_certificate",
-      "line": 178,
+      "line": 179,
       "method": "GET",
       "path": "/commissioning/systems/{system_id}/current",
       "source": "api/routers/irrigation_engineering.py"
@@ -2626,7 +2626,7 @@
     {
       "classification": "domain",
       "function": "list_manual_executions",
-      "line": 239,
+      "line": 240,
       "method": "GET",
       "path": "/manual-executions",
       "source": "api/routers/irrigation_engineering.py"
@@ -3250,7 +3250,7 @@
     {
       "classification": "domain",
       "function": "create_decision_execution_plan",
-      "line": 194,
+      "line": 186,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/execution-plan",
       "source": "api/routers/decision_review.py"
@@ -3290,7 +3290,7 @@
     {
       "classification": "domain",
       "function": "create_authorized_execution_request",
-      "line": 399,
+      "line": 391,
       "method": "POST",
       "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
       "source": "api/routers/decision_review.py"
@@ -3378,7 +3378,7 @@
     {
       "classification": "domain",
       "function": "authorize_execution_plan_dispatch",
-      "line": 334,
+      "line": 326,
       "method": "POST",
       "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
       "source": "api/routers/decision_review.py"
@@ -3386,7 +3386,7 @@
     {
       "classification": "domain",
       "function": "verify_execution_outcome_boundary",
-      "line": 466,
+      "line": 458,
       "method": "POST",
       "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
       "source": "api/routers/decision_review.py"
@@ -4010,7 +4010,7 @@
     {
       "classification": "domain",
       "function": "claim_registry_activation_command_bff",
-      "line": 837,
+      "line": 829,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "source": "api/routers/decision_review.py"
@@ -4018,7 +4018,7 @@
     {
       "classification": "domain",
       "function": "record_registry_activation_receipt_bff",
-      "line": 874,
+      "line": 866,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
       "source": "api/routers/decision_review.py"
@@ -4026,7 +4026,7 @@
     {
       "classification": "domain",
       "function": "create_registry_rollback_command_bff",
-      "line": 906,
+      "line": 898,
       "method": "POST",
       "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "source": "api/routers/decision_review.py"
@@ -4034,7 +4034,7 @@
     {
       "classification": "domain",
       "function": "register_model_activation_request_boundary",
-      "line": 735,
+      "line": 727,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests",
       "source": "api/routers/decision_review.py"
@@ -4042,7 +4042,7 @@
     {
       "classification": "domain",
       "function": "review_model_activation_request_boundary",
-      "line": 783,
+      "line": 775,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
       "source": "api/routers/decision_review.py"
@@ -4050,7 +4050,7 @@
     {
       "classification": "domain",
       "function": "register_model_evaluation_boundary",
-      "line": 639,
+      "line": 631,
       "method": "POST",
       "path": "/api/v1/learning/evaluation-runs",
       "source": "api/routers/decision_review.py"
@@ -4066,7 +4066,7 @@
     {
       "classification": "domain",
       "function": "register_model_promotion_decision_boundary",
-      "line": 690,
+      "line": 682,
       "method": "POST",
       "path": "/api/v1/learning/promotion-decisions",
       "source": "api/routers/decision_review.py"
@@ -4162,7 +4162,7 @@
     {
       "classification": "domain",
       "function": "create_learning_attribution_boundary",
-      "line": 529,
+      "line": 521,
       "method": "POST",
       "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
       "source": "api/routers/decision_review.py"
@@ -4458,7 +4458,7 @@
     {
       "classification": "domain",
       "function": "calculate_engineering",
-      "line": 64,
+      "line": 65,
       "method": "POST",
       "path": "/calculate",
       "source": "api/routers/irrigation_engineering.py"
@@ -4482,7 +4482,7 @@
     {
       "classification": "domain",
       "function": "evaluate_execution_authorization",
-      "line": 202,
+      "line": 203,
       "method": "POST",
       "path": "/commissioning/authorize",
       "source": "api/routers/irrigation_engineering.py"
@@ -4490,7 +4490,7 @@
     {
       "classification": "domain",
       "function": "issue_commissioning_certificate",
-      "line": 113,
+      "line": 114,
       "method": "POST",
       "path": "/commissioning/certificates",
       "source": "api/routers/irrigation_engineering.py"
@@ -4674,7 +4674,7 @@
     {
       "classification": "domain",
       "function": "calculate_interactive_engineering",
-      "line": 75,
+      "line": 76,
       "method": "POST",
       "path": "/interactive-calculate",
       "source": "api/routers/irrigation_engineering.py"
@@ -4730,7 +4730,7 @@
     {
       "classification": "domain",
       "function": "create_manual_execution",
-      "line": 277,
+      "line": 278,
       "method": "POST",
       "path": "/manual-executions",
       "source": "api/routers/irrigation_engineering.py"
@@ -4738,7 +4738,7 @@
     {
       "classification": "domain",
       "function": "confirm_manual_execution",
-      "line": 474,
+      "line": 449,
       "method": "POST",
       "path": "/manual-executions/{execution_id}/confirm",
       "source": "api/routers/irrigation_engineering.py"
@@ -4746,7 +4746,7 @@
     {
       "classification": "domain",
       "function": "reconcile_manual_execution_to_water_ledger",
-      "line": 702,
+      "line": 648,
       "method": "POST",
       "path": "/manual-executions/{execution_id}/reconcile",
       "source": "api/routers/irrigation_engineering.py"
@@ -4754,7 +4754,7 @@
     {
       "classification": "domain",
       "function": "transition_manual_execution_endpoint",
-      "line": 395,
+      "line": 384,
       "method": "POST",
       "path": "/manual-executions/{execution_id}/transition",
       "source": "api/routers/irrigation_engineering.py"
@@ -4762,7 +4762,7 @@
     {
       "classification": "domain",
       "function": "verify_manual_execution",
-      "line": 570,
+      "line": 539,
       "method": "POST",
       "path": "/manual-executions/{execution_id}/verify",
       "source": "api/routers/irrigation_engineering.py"
@@ -4826,7 +4826,7 @@
     {
       "classification": "domain",
       "function": "calculate_network_engineering",
-      "line": 88,
+      "line": 89,
       "method": "POST",
       "path": "/network-calculate",
       "source": "api/routers/irrigation_engineering.py"
