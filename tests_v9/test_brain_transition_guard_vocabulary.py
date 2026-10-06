@@ -442,11 +442,24 @@ def _git(cwd, *args):
     ).stdout.strip()
 
 
-@pytest.mark.parametrize(("change", "rejected"), [("delete", True), ("add", False)])
-def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, rejected):
+# BRAIN-TRANSITION-GUARD-DIES-ON-ARABIC-DIFF-UNDER-C-LOCALE-01: ``git diff`` لـ``sahool-brain/`` كان يُفكّ
+# بترميز اللغة، فتحت ``LC_ALL=C`` يموت الحارسُ بـUnicodeDecodeError على أوّل حرفٍ عربيّ قبل أن يحكم. عدّاءُ CI
+# افتراضيّه UTF-8 فلا يراه الجناحُ إلّا إن فُرِضت لغةُ C على الحارس نفسه — وهذا ما تفعله حالةُ ``c_locale``.
+@pytest.mark.parametrize(
+    ("change", "rejected", "c_locale"),
+    [("delete", True, False), ("add", False, False), ("delete", True, True), ("add", False, True)],
+    ids=["delete", "add", "delete-c_locale", "add-c_locale"],
+)
+def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, rejected, c_locale):
     """حذفُ ملفٍّ تحت ``tests_v9/`` لا يبرّر انتقالاً إلى fixed؛ وإضافةُ اختبارٍ تبرّره (الضابط)."""
+    import os
     import subprocess
     import sys
+
+    env = None
+    if c_locale:
+        env = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "LANG")}
+        env.update(LC_ALL="C", PYTHONUTF8="0")
 
     (tmp_path / "sahool-brain/gaps").mkdir(parents=True)
     (tmp_path / "tests_v9").mkdir()
@@ -473,10 +486,12 @@ def test_a_deleted_test_file_is_not_executable_evidence(tmp_path, change, reject
             "HEAD~1",
         ],
         cwd=tmp_path,
+        env=env,
         capture_output=True,
         text=True,
         encoding="utf-8",
     )
+    assert "Traceback" not in result.stderr, result.stderr
     assert (result.returncode != 0) is rejected, result.stdout + result.stderr
     assert ("GAP-ALPHA-01" in result.stderr) is rejected
 
