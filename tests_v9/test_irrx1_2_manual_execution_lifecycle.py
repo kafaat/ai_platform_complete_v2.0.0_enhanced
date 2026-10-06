@@ -119,3 +119,58 @@ def test_operator_declared_volume_does_not_satisfy_measured_mode():
 def test_incomplete_meter_pair_is_rejected():
     with pytest.raises(ValidationError):
         confirmation(meter_start_m3=100, meter_end_m3=None)
+
+
+# MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01: النسبةُ تقديرُ المشغِّل؛ لا تمسّ حجماً مقيساً أو مُعلَناً.
+@pytest.mark.parametrize(
+    ("kw", "quality", "volume"),
+    [
+        ({}, "measured_meter", 1000),  # العدّاد: 1100 − 100
+        (
+            {"meter_start_m3": None, "meter_end_m3": None, "measured_flow_m3_h": 100},
+            "measured_flow",
+            1000,  # 100 م³/س × 10 س صافية
+        ),
+        (
+            {"meter_start_m3": None, "meter_end_m3": None, "manual_volume_m3": 700},
+            "operator_declared",
+            700,
+        ),
+    ],
+)
+def test_completion_ratio_never_rescales_an_observed_volume(kw, quality, volume):
+    result = m.derive_manual_as_applied(recommendation(), confirmation(completion_ratio=0.5, **kw))
+    assert result.quality == quality
+    assert result.actual_volume_m3 == volume
+    assert result.completion_ratio_applied is False
+    assert result.completion_ratio == 0.5  # يُحفَظ مُدخَلاً كما أُدخل، لا يُخفى
+
+
+def test_measured_flow_volume_already_nets_out_interruptions_once():
+    c = confirmation(
+        meter_start_m3=None,
+        meter_end_m3=None,
+        measured_flow_m3_h=100,
+        interruptions_minutes=120,
+        completion_ratio=0.5,
+    )
+    result = m.derive_manual_as_applied(recommendation(), c)
+    assert result.actual_runtime_h == 8
+    assert result.actual_volume_m3 == 800  # لا 400: الانقطاع لا يُطرح مرّتين
+    assert result.ledger_eligible is True
+
+
+@pytest.mark.parametrize(
+    ("kw", "rec_kw", "quality"),
+    [
+        ({"estimated_flow_m3_h": 100}, {}, "estimated"),
+        ({}, {"nominal": 100.0}, "estimated_nominal"),
+    ],
+)
+def test_completion_ratio_scales_only_an_estimate(kw, rec_kw, quality):
+    c = confirmation(meter_start_m3=None, meter_end_m3=None, completion_ratio=0.5, **kw)
+    result = m.derive_manual_as_applied(recommendation("manual_estimated", **rec_kw), c)
+    assert result.quality == quality
+    assert result.actual_volume_m3 == 500  # 100 × 10 س × 0.5
+    assert result.completion_ratio_applied is True
+    assert result.ledger_eligible is False  # التقدير لا يدخل الدفتر بالنسبة أو بدونها

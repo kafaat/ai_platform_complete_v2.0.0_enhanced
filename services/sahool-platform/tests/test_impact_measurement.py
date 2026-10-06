@@ -17,7 +17,7 @@ def test_empty_records():
     s = measure_impact([])
     assert s.total_decisions == 0
     assert s.success_rate == 0.0
-    assert s.water_saved_mm == 0.0
+    assert s.requested_minus_applied_mm == 0.0
     assert s.by_action == {}
 
 
@@ -46,7 +46,7 @@ def test_water_saved_only_with_both_quantities():
     ]
     s = measure_impact(recs)
     assert s.executed == 2
-    assert s.water_saved_mm == 6.0  # فقط السجلّ الأوّل
+    assert s.requested_minus_applied_mm == 6.0  # فقط السجلّ الأوّل
     assert s.water_records == 1
 
 
@@ -60,7 +60,7 @@ def test_water_not_counted_for_failed():
         ),
     ]
     s = measure_impact(recs)
-    assert s.water_saved_mm == 0.0
+    assert s.requested_minus_applied_mm == 0.0
     assert s.water_records == 0
 
 
@@ -76,7 +76,7 @@ def test_invalid_water_pair_excluded():
     ]
     s = measure_impact(recs)
     assert s.water_records == 0
-    assert s.water_saved_mm == 0.0
+    assert s.requested_minus_applied_mm == 0.0
 
 
 def test_by_action_breakdown():
@@ -92,10 +92,10 @@ def test_by_action_breakdown():
     ]
     s = measure_impact(recs)
     assert s.by_action["irrigation"]["executed"] == 1
-    assert s.by_action["irrigation"]["water_saved_mm"] == 8.0
+    assert s.by_action["irrigation"]["requested_minus_applied_mm"] == 8.0
     assert s.by_action["spray"]["executed"] == 1
     assert s.by_action["spray"]["failed"] == 1
-    assert s.by_action["spray"]["water_saved_mm"] == 0.0
+    assert s.by_action["spray"]["requested_minus_applied_mm"] == 0.0
 
 
 def test_serializable():
@@ -104,3 +104,10 @@ def test_serializable():
     s = measure_impact([ImpactRecord(action_type="irrigation", outcome="executed")])
     blob = json.dumps(s.to_dict(), ensure_ascii=False)
     assert json.loads(blob)["executed"] == 1
+
+
+def test_impact_summary_carries_the_not_established_savings_claim():
+    """REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01: ملخّصُ الأثر يحمل حكمَه على الوفر."""
+    out = measure_impact([]).to_dict()
+    assert "water_saved_mm" not in out
+    assert out["savings_claim"]["status"] == "not_established"

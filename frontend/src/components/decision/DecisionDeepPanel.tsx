@@ -336,7 +336,7 @@ export default function DecisionDeepPanel() {
         {/* الاقتصاد — ترجمة الأثر إلى قيمة (الخادم يحسب فقط مع المساحة/التكلفة) */}
         <section className="rounded-2xl border p-3" style={sectionStyle}>
           <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
-            <BadgeDollarSign className="w-4 h-4 text-amber-300" aria-hidden="true" /> اقتصاد القرار (ماء موفَّر ⇒ تكلفة متجنَّبة)
+            <BadgeDollarSign className="w-4 h-4 text-amber-300" aria-hidden="true" /> اقتصاد القرار (فرق المطلوب عن المُنفَّذ — ليس وفراً)
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px]" style={{ color: T.muted }}>
             <input type="number" value={ecoArea} onChange={(e) => setEcoArea(e.target.value)} placeholder="مساحة (هـ، اختياريّ)" className="w-36 px-2 py-1 rounded-lg" style={inputStyle} />
@@ -357,8 +357,9 @@ export default function DecisionDeepPanel() {
                 قرارات نُفِّذت: <b>{economicsQ.data.executed_decisions}</b>
                 <span style={{ color: T.faint }}> · نسبة نجاح {percentLabel(economicsQ.data.success_rate)}</span>
               </div>
-              <div>ماء موفَّر: {numLabel(economicsQ.data.water_saved_mm)} مم · {numLabel(economicsQ.data.water_saved_m3)} م³</div>
-              <div>قيمة متجنَّبة: {moneyLabel(economicsQ.data.water_cost_avoided, economicsQ.data.currency)}</div>
+              <div>فرق المطلوب عن المُنفَّذ: {numLabel(economicsQ.data.requested_minus_applied_mm)} مم · {numLabel(economicsQ.data.requested_minus_applied_m3)} م³</div>
+              <div>قيمته الاسميّة: {moneyLabel(economicsQ.data.requested_minus_applied_value, economicsQ.data.currency)}</div>
+              <div className="text-amber-300/80">ليس وفراً مثبتاً: قد يكون نقصَ تنفيذ، ولا يُثبَت الوفر إلّا بقياس السحب ومقارنةٍ مناسبة.</div>
               {(economicsQ.data.notes_ar ?? []).map((n) => <div key={n} style={{ color: T.faint }}>ℹ {n}</div>)}
             </div>
           ) : null}

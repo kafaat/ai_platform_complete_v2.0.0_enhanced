@@ -112,6 +112,7 @@ class ManualAsAppliedResult(BaseModel):
     actual_volume_m3: float
     actual_depth_mm: float
     completion_ratio: float
+    completion_ratio_applied: bool
     ledger_eligible: bool
     blocking_reasons: list[str]
     as_applied_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -160,7 +161,13 @@ def derive_manual_as_applied(
         blockers.append("NO_VOLUME_EVIDENCE")
         volume = 0.0
 
-    volume *= confirmation.completion_ratio
+    # MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01: النسبةُ تقديرُ المشغِّل، فلا تمسّ حجماً هو نفسُه
+    # مشاهدة. قراءةُ العدّاد وحاصلُ التدفّق المقيس في زمن التشغيل الصافي (الانقطاعاتُ مطروحةٌ أعلاه) والحجمُ
+    # المُعلَن تبقى كما هي؛ والنسبة تصحّح التقديرَين المبنيَّين على تدفّقٍ غير مقيس فقط. كان الضربُ عامّاً،
+    # فقراءةُ عدّادٍ بـ0.5 تُنصَّف وتبقى «measured_meter» مؤهَّلةً للدفتر.
+    completion_ratio_applied = quality in ("estimated", "estimated_nominal")
+    if completion_ratio_applied:
+        volume *= confirmation.completion_ratio
     area_ha = recommendation.target_volume_m3 / (recommendation.target_depth_mm * 10.0)
     depth = volume / (area_ha * 10.0) if area_ha > 0 else 0.0
     measured = quality.startswith("measured")
@@ -177,6 +184,7 @@ def derive_manual_as_applied(
         "actual_volume_m3": round(volume, 3),
         "actual_depth_mm": round(depth, 4),
         "completion_ratio": confirmation.completion_ratio,
+        "completion_ratio_applied": completion_ratio_applied,
         "ledger_eligible": ledger_eligible,
         "blocking_reasons": sorted(set(blockers)),
     }

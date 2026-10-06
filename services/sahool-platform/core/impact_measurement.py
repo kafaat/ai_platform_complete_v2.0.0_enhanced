@@ -41,14 +41,31 @@ class ImpactSummary:
     success_rate: float = 0.0  # executed / (executed+failed) — [0,1]
     water_requested_mm: float = 0.0
     water_applied_mm: float = 0.0
-    water_saved_mm: float = 0.0
+    # REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01: فرقُ المطلوب عن المُنفَّذ — **ليس وفراً**.
+    # نقصُ التنفيذ قد يكون عطلاً أو انقطاعاً أو قراراً ميدانيّاً، ولا يُثبِت خفضَ سحبٍ مقيس ولا خفضَ
+    # استهلاكٍ مائيّ ولا أثراً اقتصاديّاً؛ لكلٍّ منها دليلٌ مختلف (``SAVINGS_CLAIM``).
+    requested_minus_applied_mm: float = 0.0
     water_records: int = 0  # عدد السجلّات التي أُحتسب لها الماء (شفافيّة التغطية)
     by_action: dict = field(
         default_factory=dict
-    )  # {action_type: {executed, failed, water_saved_mm}}
+    )  # {action_type: {executed, failed, requested_minus_applied_mm}}
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        return {**asdict(self), "savings_claim": dict(SAVINGS_CLAIM)}
+
+
+# ما يلزم لكلّ ادّعاءٍ من أربعة لا يُغني أحدُها عن غيره. لا يُنتِج هذا الملخّصُ أيّاً منها.
+SAVINGS_CLAIM: dict[str, Any] = {
+    "status": "not_established",
+    "basis": "requested_minus_applied",
+    "not_a_saving_ar": "فرقُ المطلوب عن المُنفَّذ ليس وفراً: قد يكون نقصَ تنفيذ.",
+    "evidence_required": {
+        "withdrawal_reduction": "سحبٌ مقيسٌ بعدّاد مقابل خطّ أساسٍ أو مقارنةٍ مناسبة",
+        "consumption_reduction": "خفضُ الاستهلاك المائيّ (ET) لا خفضُ الماء المُطبَّق وحده",
+        "attribution": "مقارنةٌ مضبوطة بتكرارٍ كافٍ وضبطٍ للطقس والصنف والتربة",
+        "economic_impact": "تكلفةٌ فعليّة وأثرٌ على الإنتاج — لا سعرُ الماء مضروباً في الفرق",
+    },
+}
 
 
 def _to_float(v: Any) -> float | None:
@@ -63,7 +80,7 @@ def _to_float(v: Any) -> float | None:
 def measure_impact(records: list[ImpactRecord]) -> ImpactSummary:
     """يُجمِّع سجلّات الأثر في ملخّص مُحقَّق (نقيّ) — انظر docstring الوحدة.
 
-    success_rate = نُفِّذ / (نُفِّذ + فشل) النهائيّة. الماء الموفَّر يُجمَع فقط من السجلّات
+    success_rate = نُفِّذ / (نُفِّذ + فشل) النهائيّة. فرقُ المطلوب عن المُطبَّق يُجمَع فقط من السجلّات
     التي توفّرت لها الكمّيّتان (المطلوبة ≥ المُطبَّقة)؛ يُحسَب per-action أيضاً. صدق: لا
     اختلاق أثر لسجلّ ناقص — يُحتسَب في النتائج لا في الماء.
     """
@@ -72,7 +89,9 @@ def measure_impact(records: list[ImpactRecord]) -> ImpactSummary:
 
     for r in records:
         action = r.action_type or "unknown"
-        slot = by_action.setdefault(action, {"executed": 0, "failed": 0, "water_saved_mm": 0.0})
+        slot = by_action.setdefault(
+            action, {"executed": 0, "failed": 0, "requested_minus_applied_mm": 0.0}
+        )
         outcome = (r.outcome or "").strip().lower()
         if outcome == _EXECUTED:
             summary.executed += 1
@@ -83,21 +102,21 @@ def measure_impact(records: list[ImpactRecord]) -> ImpactSummary:
 
         req = _to_float(r.water_requested_mm)
         app = _to_float(r.water_applied_mm)
-        # الماء الموفَّر يُحتسَب فقط للقرارات المُنفَّذة بكمّيّتين صالحتين (req ≥ app ≥ 0).
+        # الفرق يُحتسَب فقط للقرارات المُنفَّذة بكمّيّتين صالحتين (req ≥ app ≥ 0).
         if outcome == _EXECUTED and req is not None and app is not None and req >= app >= 0:
-            saved = req - app
+            gap = req - app
             summary.water_requested_mm += req
             summary.water_applied_mm += app
-            summary.water_saved_mm += saved
+            summary.requested_minus_applied_mm += gap
             summary.water_records += 1
-            slot["water_saved_mm"] += saved
+            slot["requested_minus_applied_mm"] += gap
 
     finalized = summary.executed + summary.failed
     summary.success_rate = round(summary.executed / finalized, 3) if finalized else 0.0
     summary.water_requested_mm = round(summary.water_requested_mm, 2)
     summary.water_applied_mm = round(summary.water_applied_mm, 2)
-    summary.water_saved_mm = round(summary.water_saved_mm, 2)
+    summary.requested_minus_applied_mm = round(summary.requested_minus_applied_mm, 2)
     for slot in by_action.values():
-        slot["water_saved_mm"] = round(slot["water_saved_mm"], 2)
+        slot["requested_minus_applied_mm"] = round(slot["requested_minus_applied_mm"], 2)
     summary.by_action = by_action
     return summary
