@@ -5,9 +5,9 @@
   "governance_wide_paths": 13,
   "capabilities": 81,
   "inputs": {
-    ".github/workflows/capability-governance.yml": "13a4076f45df4aab51bbf35469bc5b781026017d638800a03b81b4082ba7787c",
+    ".github/workflows/capability-governance.yml": "9b273033bfcd242d3c1d2f7265733b8c40ab39a5c1ee4dc170405b18abd3d24a",
     "docs/capability-registry/generated/capability_registry.json": "77e54ac680a3f75b7637c73436ab4ca82491bf7e3a655d916bc6785235e34e04",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "fc4525565d91f09f770dbffc635760f3ab6e2bcdf5ee88e8051428522b3edb9e",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "9be6ce9d2f5b9fe4524fd4e00a52a29a8c371aff6a7ad66ee934ace76ae2f7b7",
     "docs/capability-registry/roadmap/roadmap_items.yaml": "a67bb6f7755787dc03b440cb4709d93d9f234124cdb93fb46527dbffd5811527",
     "scripts/ci/capability_impact.py": "1f8b505a6ab4e23d0fce4fb89426360a4aa94d748e9697f6ebb40e47f8137d3d",
     "scripts/ci/capability_roadmap_linker.py": "7de48c0de3fa995f0838be2f42a03ababfda5659b6513bd209559fe6f01e210a",
