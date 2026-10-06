@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "875dd535bcaf3b1fb5678b6c74257ce8aaa9db547bc970e184be019fda023bda",
+  "inventory_sha256": "e9cf23fde57d03c3fea6c7a723333e1a95ea126ef0f74a31e10822b68aa58bba",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "896ac92fa5a8d92e216c945d7e1c4f3759b5aae0f78e03dfd71062663f508faa"
+    "policy_sha256": "71798e2cbf404191f00fa7188ba3470c5db309149509be7a8d7e25a9c4245381"
   },
   "routes": [
     {
@@ -1682,7 +1682,7 @@
     {
       "classification": "domain",
       "function": "read_calibration_dataset_boundary",
-      "line": 578,
+      "line": 576,
       "method": "GET",
       "path": "/api/v1/learning/calibration-dataset",
       "source": "api/routers/decision_review.py"
@@ -3250,7 +3250,7 @@
     {
       "classification": "domain",
       "function": "create_decision_execution_plan",
-      "line": 187,
+      "line": 185,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/execution-plan",
       "source": "api/routers/decision_review.py"
@@ -3290,7 +3290,7 @@
     {
       "classification": "domain",
       "function": "create_authorized_execution_request",
-      "line": 392,
+      "line": 390,
       "method": "POST",
       "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
       "source": "api/routers/decision_review.py"
@@ -3378,7 +3378,7 @@
     {
       "classification": "domain",
       "function": "authorize_execution_plan_dispatch",
-      "line": 327,
+      "line": 325,
       "method": "POST",
       "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
       "source": "api/routers/decision_review.py"
@@ -3386,7 +3386,7 @@
     {
       "classification": "domain",
       "function": "verify_execution_outcome_boundary",
-      "line": 459,
+      "line": 457,
       "method": "POST",
       "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
       "source": "api/routers/decision_review.py"
@@ -4010,7 +4010,7 @@
     {
       "classification": "domain",
       "function": "claim_registry_activation_command_bff",
-      "line": 830,
+      "line": 828,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
       "source": "api/routers/decision_review.py"
@@ -4018,7 +4018,7 @@
     {
       "classification": "domain",
       "function": "record_registry_activation_receipt_bff",
-      "line": 867,
+      "line": 865,
       "method": "POST",
       "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
       "source": "api/routers/decision_review.py"
@@ -4026,7 +4026,7 @@
     {
       "classification": "domain",
       "function": "create_registry_rollback_command_bff",
-      "line": 899,
+      "line": 897,
       "method": "POST",
       "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "source": "api/routers/decision_review.py"
@@ -4034,7 +4034,7 @@
     {
       "classification": "domain",
       "function": "register_model_activation_request_boundary",
-      "line": 728,
+      "line": 726,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests",
       "source": "api/routers/decision_review.py"
@@ -4042,7 +4042,7 @@
     {
       "classification": "domain",
       "function": "review_model_activation_request_boundary",
-      "line": 776,
+      "line": 774,
       "method": "POST",
       "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
       "source": "api/routers/decision_review.py"
@@ -4050,7 +4050,7 @@
     {
       "classification": "domain",
       "function": "register_model_evaluation_boundary",
-      "line": 632,
+      "line": 630,
       "method": "POST",
       "path": "/api/v1/learning/evaluation-runs",
       "source": "api/routers/decision_review.py"
@@ -4066,7 +4066,7 @@
     {
       "classification": "domain",
       "function": "register_model_promotion_decision_boundary",
-      "line": 683,
+      "line": 681,
       "method": "POST",
       "path": "/api/v1/learning/promotion-decisions",
       "source": "api/routers/decision_review.py"
@@ -4162,7 +4162,7 @@
     {
       "classification": "domain",
       "function": "create_learning_attribution_boundary",
-      "line": 522,
+      "line": 520,
       "method": "POST",
       "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
       "source": "api/routers/decision_review.py"

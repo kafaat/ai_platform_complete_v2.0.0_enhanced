@@ -441,3 +441,39 @@ def test_a_route_genuinely_lacking_the_key_is_not_detected(tmp_path, monkeypatch
     assert found["/optional-key"] is False
     # a subclass redeclaring the key with a default overrides the required base field (Copilot on #1145)
     assert found["/optional-override"] is False
+
+
+# The real routes the repair re-measured, pinned by entrypoint (a capability id is a quoted dotted
+# string, which the capability mapping engine reads as an event subject). Each forwards
+# ``req.model_dump()`` of a model declaring a required ``idempotency_key`` and names the key nowhere
+# else — ``review_decision_candidate`` included, whose scanner-appeasing
+# ``{**req.model_dump(), "idempotency_key": ...}`` was removed once the scanner read the model. On the
+# pre-repair scanner (main@f51e2fb4) every one of these reads ``false``.
+_MODEL_DUMP_KEYED_ENTRYPOINTS = (
+    "POST /api/v1/decisions/{decision_id}/review",
+    "POST /api/v1/decisions/{decision_id}/execution-plan",
+    "POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+    "POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+    "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome",
+    "POST /api/v1/learning/activation-commands/{activation_command_id}/receipt",
+    "POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
+    "POST /api/v1/learning/activation-requests",
+    "POST /api/v1/learning/activation-requests/{activation_request_id}/review",
+    "POST /api/v1/learning/evaluation-runs",
+    "POST /api/v1/learning/promotion-decisions",
+    "POST /api/v1/outcomes/{outcome_id}/learning-attribution",
+    "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome",
+    "POST /v1/outcomes/{outcome_id}/remote-sensing-attribution",
+)
+
+
+def test_routes_forwarding_the_key_through_model_dump_are_catalogued_as_requiring_it() -> None:
+    by_entrypoint = {ep: c for c in _catalog()["capabilities"] for ep in c.get("entrypoints") or []}
+    missing = [ep for ep in _MODEL_DUMP_KEYED_ENTRYPOINTS if ep not in by_entrypoint]
+    assert not missing, f"entrypoints vanished from the catalog: {missing}"
+    understated = [
+        ep
+        for ep in _MODEL_DUMP_KEYED_ENTRYPOINTS
+        if by_entrypoint[ep]["idempotency_required"] is not True
+    ]
+    assert not understated, f"idempotency_required understated again: {understated}"

@@ -119,9 +119,7 @@ async def review_decision_candidate(
     ∧ persisted ∧ decision_id مطابق ∧ previous_state=pending_approval ∧ state∈{approved,rejected}
     ∧ review_id/reviewed_by/reviewed_at غير فارغة ∧ candidate_lineage_id مطابق). mirror/SoR-off ⇒
     ردّ غير آمِر ⇒ 503. الخدمة ساقطة ⇒ 503. لا تنفيذ (dispatch/task/معدّات)."""
-    # كلُّ حقول الطلب (ومنها بصمةُ النسخة المعروضة)، ومفتاحُ عدم التكرار مُسمّىً صراحةً: عقدُ
-    # الحوكمة يُشتقّ من رموز جسم المعالِج، وmodel_dump وحده أخفاه (idempotency_required ⇒ false).
-    payload = {**req.model_dump(), "idempotency_key": req.idempotency_key}
+    payload = req.model_dump()  # كلُّ حقول الطلب، ومنها بصمةُ النسخة المعروضة ومفتاحُ عدم التكرار
     try:
         result = await ds_review_decision(
             decision_id,
