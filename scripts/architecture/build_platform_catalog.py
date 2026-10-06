@@ -805,10 +805,113 @@ def _function_source_ranges(text: str) -> list[tuple[str, int, int]]:
     return out
 
 
+def _model_fields(tree: ast.Module) -> dict[str, set[str]]:
+    """الحقولُ **الإلزاميّة** لكلّ صنفٍ مُعرَّف في الوحدة (``name: type`` بلا قيمةٍ افتراضيّة)،
+    موروثةً عبر أصولٍ من الوحدة نفسها. حقلٌ له افتراضيّ ليس إلزاماً فلا يُدَّعى ``required``؛
+    وإعادةُ إعلانه في صنفٍ فرعيّ تحجب الموروث (``str | None = None`` فوق ``str`` ⇒ ليس إلزاماً)."""
+    own: dict[str, set[str]] = {}
+    declared: dict[str, set[str]] = {}
+    bases: dict[str, list[str]] = {}
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef):
+            declared[node.name] = {
+                stmt.target.id
+                for stmt in node.body
+                if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name)
+            }
+            own[node.name] = {
+                stmt.target.id
+                for stmt in node.body
+                if isinstance(stmt, ast.AnnAssign)
+                and isinstance(stmt.target, ast.Name)
+                and stmt.value is None
+            }
+            bases[node.name] = [b.id for b in node.bases if isinstance(b, ast.Name)]
+
+    def resolve(cls: str, seen: frozenset[str]) -> set[str]:
+        if cls in seen or cls not in own:
+            return set()
+        inherited: set[str] = set()
+        for base in bases[cls]:
+            inherited |= resolve(base, seen | {cls})
+        return (inherited - declared[cls]) | own[cls]
+
+    return {cls: resolve(cls, frozenset()) for cls in own}
+
+
+def _literal_names(node: ast.expr) -> set[str] | None:
+    """مفاتيحُ ``include=``/``exclude=`` حين تكون حرفيّة؛ وإلّا None (غيرُ محسوم ⇒ لا ادّعاء)."""
+    if isinstance(node, (ast.Set, ast.List, ast.Tuple)):
+        items = node.elts
+    elif isinstance(node, ast.Dict):
+        items = node.keys
+    else:
+        return None
+    if not all(isinstance(i, ast.Constant) and isinstance(i.value, str) for i in items):
+        return None
+    return {i.value for i in items}
+
+
+def _model_dump_forwarded_fields(
+    func: ast.FunctionDef | ast.AsyncFunctionDef, fields: dict[str, set[str]]
+) -> set[str]:
+    """ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01: حقولُ نموذج الطلب التي يُمرّرها المعالِج
+    بـ``param.model_dump(...)`` (أو ``.dict(...)``) — النموذجُ مُعرَّفٌ في الوحدة نفسها ومُعلَنٌ نوعاً
+    للمُعامِل. ``include``/``exclude`` الحرفيّان يُطبَّقان؛ غيرُ الحرفيّ لا يُدَّعى منه شيء."""
+    args = [*func.args.posonlyargs, *func.args.args, *func.args.kwonlyargs]
+    params = {
+        a.arg: a.annotation.id
+        for a in args
+        if isinstance(a.annotation, ast.Name) and a.annotation.id in fields
+    }
+    out: set[str] = set()
+    for node in ast.walk(func):
+        if not (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in ("model_dump", "dict")
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id in params
+        ):
+            continue
+        forwarded = set(fields[params[node.func.value.id]])
+        if any(k.arg is None for k in node.keywords):
+            continue  # ``**options`` may carry include=/exclude= — unresolved, so claim nothing
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "include" in keywords:
+            include = _literal_names(keywords["include"])
+            if include is None:
+                continue
+            forwarded &= include
+        if "exclude" in keywords:
+            exclude = _literal_names(keywords["exclude"])
+            if exclude is None:
+                continue
+            forwarded -= exclude
+        out |= forwarded
+    return out
+
+
+def _excluded_segments(func: ast.FunctionDef | ast.AsyncFunctionDef, text: str) -> list[str]:
+    """مصادرُ ``exclude=`` في استدعاءات ``model_dump``/``dict``: اسمُ حقلٍ مُستبعَد ليس دليلَ تمريره،
+    فلا يُحسَب رمزاً في الجسم (وإلّا عُدَّ ``exclude={"idempotency_key"}`` إلزاماً وهو نقيضُه)."""
+    out = []
+    for node in ast.walk(func):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in ("model_dump", "dict")
+        ):
+            for kw in node.keywords:
+                if kw.arg == "exclude" and (segment := ast.get_source_segment(text, kw)):
+                    out.append(segment)
+    return out
+
+
 def scan_route_governance(routes: list[dict]) -> dict[tuple[str, str, str], dict]:
     """يمسح جسم دالّة كلّ مسار (مرّة واحدة لكلّ ملفّ) لاشتقاق idempotency/approval
     من رموز حقيقيّة في الكود — لا قيمة مُخترَعة، فقط ما يظهر في المصدر."""
-    file_cache: dict[str, tuple[str, list[tuple[str, int, int]]]] = {}
+    file_cache: dict[str, tuple[str, list[tuple[str, int, int]], dict, dict]] = {}
     result: dict[tuple[str, str, str], dict] = {}
     for r in routes:
         rel = r.get("file")
@@ -817,8 +920,17 @@ def scan_route_governance(routes: list[dict]) -> dict[tuple[str, str, str], dict
         if rel and (ROOT / rel).exists():
             if rel not in file_cache:
                 text = (ROOT / rel).read_text(encoding="utf-8", errors="ignore")
-                file_cache[rel] = (text, _function_source_ranges(text))
-            text, ranges = file_cache[rel]
+                try:
+                    tree = ast.parse(text)
+                except SyntaxError:
+                    tree = ast.Module(body=[], type_ignores=[])
+                funcs = {
+                    (n.name, min([n.lineno] + [d.lineno for d in n.decorator_list])): n
+                    for n in ast.walk(tree)
+                    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
+                file_cache[rel] = (text, _function_source_ranges(text), _model_fields(tree), funcs)
+            text, ranges, fields, funcs = file_cache[rel]
             fn, line = r.get("function"), int(r.get("line") or 0)
             body = ""
             best = None
@@ -829,8 +941,16 @@ def scan_route_governance(routes: list[dict]) -> dict[tuple[str, str, str], dict
             if best:
                 lines = text.splitlines()
                 body = "\n".join(lines[best[0] - 1 : best[1]])
-            if any(tok in body for tok in _IDEMPOTENCY_TOKENS):
+            func = funcs.get((fn, best[0])) if best else None
+            token_body = body
+            for segment in _excluded_segments(func, text) if func is not None else []:
+                token_body = token_body.replace(segment, "")
+            if any(tok in token_body for tok in _IDEMPOTENCY_TOKENS):
                 gov["idempotency"] = True
+            elif func is not None:
+                # المفتاحُ يُمرَّر داخل ``model_dump()`` لا باسمه في الجسم — يُقرأ من حقول النموذج.
+                forwarded = _model_dump_forwarded_fields(func, fields)
+                gov["idempotency"] = any(tok in forwarded for tok in _IDEMPOTENCY_TOKENS)
             if any(tok in body for tok in _APPROVAL_TOKENS):
                 gov["approval"] = True
         result[key] = gov
