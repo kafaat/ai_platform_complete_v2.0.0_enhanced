@@ -761,8 +761,8 @@ bwrap (قياسُ المالك على WSL2، 2026-10-06)، وما تجاوز ذ�
 | `platform.platform()` يُطلق `uname -p` ⇒ coreutils المكتوبةُ بـRust (Ubuntu 26.04) تفتح `uucore/en-US.ftl` في الجرد | `worker.platform_string()` من `os.uname` بلا عمليّةٍ فرعيّة |
 | `--inventory` بلا strace ⇒ انهيارٌ بأثر مكدّس، والاختبارُ الذاتيّ FAIL | `inventory_tool_missing` مسمّاة، والاختبارُ الذاتيّ BLOCKED |
 
-الشواهد: `tests/test_tts_bakeoff_sandbox.py` (14 حالة، 13 منها حمراء على `main@77f9f188` بالسبب المسمّى، والرابعةَ عشرة
-ضابطٌ يمرّ على الاثنين) · `selftest.py` الحالة **v15**: venv تحت bwrap حقيقيّ ⇒ ok · PROVEN · ENFORCED · قابلٌ للمقارنة.
+الشواهد: `tests/test_tts_bakeoff_sandbox.py` (15 حالةً أصلاً، 14 منها حمراء على `main@77f9f188` بالسبب المسمّى،
+والخامسةَ عشرة ضابطٌ يمرّ على الاثنين؛ وأضافت مراجعةُ #1146 ثلاثاً تُغلق مسالكَ القبول المفتوحة) · `selftest.py` الحالة **v15**: venv تحت bwrap حقيقيّ ⇒ ok · PROVEN · ENFORCED · قابلٌ للمقارنة.
 
 ## حدودُ الموارد: cgroup v1 و v2
 

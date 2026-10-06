@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
@@ -105,8 +106,13 @@ def interpreter_prefixes(interpreter) -> set[str]:
     out: set[str] = set()
     if not isinstance(interpreter, dict):
         return out
-    for key in ("path", "real"):
-        p = interpreter.get(key)
+    candidates = [interpreter.get("path")]
+    # ``real`` يُرخِّص بادئتَه فقط إن كان فعلاً هدفَ المسار المُشغَّل على هذا المضيف: وإلّا كتب السجلُّ
+    # ``real: /srv/private/bin/python`` فرخّص ``ro:/srv/private`` (مراجعةُ Copilot على #1146). ما لا يُتحقَّق منه لا يُرخِّص.
+    real, path = interpreter.get("real"), interpreter.get("path")
+    if isinstance(real, str) and isinstance(path, str) and os.path.realpath(path) == real:
+        candidates.append(real)
+    for p in candidates:
         if isinstance(p, str) and _clean_abs(p) and _PY_BIN.fullmatch(p):
             prefix = posixpath.dirname(posixpath.dirname(p))
             if (
@@ -116,6 +122,25 @@ def interpreter_prefixes(interpreter) -> set[str]:
             ):
                 out.add(prefix)
     return out
+
+
+def swap_closed(swap: dict, cg: dict) -> bool:
+    """«أُغلقت المبادلة» بملفّها وقيمتها لكلّ هرم، لا بعلَم ``limited`` وحده (مراجعةُ Copilot على #1146): v2
+    ``memory.swap.max=0`` · v1 ``memory.memsw.limit_in_bytes`` = حدُّ الذاكرة المطلوب بالبايت."""
+    if swap.get("limited") is not True:
+        return False
+    want = {
+        "cgroup-v2": ("memory.swap.max", "0"),
+        "cgroup-v1": (
+            "memory.memsw.limit_in_bytes",
+            str(cg["memory_limit_mb"] * 1024 * 1024)
+            if isinstance(cg.get("memory_limit_mb"), int)
+            else None,
+        ),
+    }.get(cg.get("backend"))
+    return (
+        want is not None and want[1] is not None and (swap.get("file"), swap.get("value")) == want
+    )
 
 
 def _ro_allowed(path: str, rw: str | None, prefixes: set[str] = frozenset()) -> bool:
@@ -230,7 +255,7 @@ def evidence_problems(r: dict) -> list[str]:
     # إغلاقُ المبادلة في المجموعة، أو مضيفٌ بلا مبادلة؛ وغيابُ السجلّ (أداةٌ أقدم) لا يُفترض خيراً.
     swap = cg.get("swap")
     if not isinstance(swap, dict) or not (
-        swap.get("limited") is True or swap.get("host_swap_active") is False
+        swap_closed(swap, cg) or swap.get("host_swap_active") is False
     ):
         p.append(f"cgroup.swap={swap!r}: حدُّ الذاكرة لا يشمل المبادلة — لا دليلَ أنّ الحدَّ يسري")
     if cg.get("teardown_leaked"):

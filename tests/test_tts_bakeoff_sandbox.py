@@ -1,7 +1,8 @@
 """صندوقُ ``tools/tts_bakeoff`` مع بيئةٍ افتراضيّة حقيقيّة — عيوبُ تشغيل Kokoro عند المالك على WSL2 (2026-10-06).
 
 الأداةُ المدموجة (``9801d076``) لم تُشغِّل أيَّ محرّكٍ مثبّتٍ في venv تحت bwrap، وما تجاوز ذلك بترقيعٍ محلّيّ
-بقي «غيرَ قابلٍ للمقارنة» لأسبابٍ من الأداة نفسها. كلُّ حالةٍ هنا حمراءُ على ``main@77f9f188`` وحتميّةٌ بلا root
+بقي «غيرَ قابلٍ للمقارنة» لأسبابٍ من الأداة نفسها. كلُّ حالةٍ هنا حمراءُ على ``main@77f9f188`` — عدا ضابطٍ
+واحد يمرّ على الاثنين (``test_weights_behind_a_declared_system_name_are_still_undeclared``) — وحتميّةٌ بلا root
 ولا bwrap ولا cgroup حقيقيّ (مسارٌ مصطنع أو ترقيعٌ صريح)، فتعمل في CI. التشغيلُ الحقيقيّ تحت bwrap في
 ``selftest.py`` (الحالة v15).
 """
@@ -140,6 +141,17 @@ def test_declared_interpreter_must_be_the_one_that_ran():
     assert [p for p in perf.evidence_problems(r) if "interpreter" in p]
 
 
+def test_real_licenses_its_prefix_only_if_it_is_the_actual_target(tmp_path):
+    """مراجعةُ Copilot على #1146: ``real`` بلا تحقّقٍ كان يُرخِّص أيَّ مجلّدٍ يكتبه السجلّ."""
+    base, venv, py = _venv(tmp_path)
+    forged = {"path": str(py), "real": "/srv/private/bin/python"}
+    assert perf.interpreter_prefixes(forged) == {str(venv)}
+    out = tmp_path / "runs" / "r1"
+    assert perf.sandbox_bind_problems(["ro:/srv/private", f"rw:{out}"], "r1", forged)
+    genuine = {"path": str(py), "real": str(base / "bin" / "python3.12")}
+    assert perf.interpreter_prefixes(genuine) == {str(venv), str(base)}
+
+
 # ── 3) المبادلة: حدُّ الذاكرة بلا إغلاقها لا يُقاس ───────────────────────────────────────────────
 
 
@@ -183,6 +195,36 @@ def test_memory_limit_without_swap_evidence_is_not_comparable():
         assert [p for p in perf.evidence_problems(rr) if "swap" in p], swap
     rr["coordinator"]["cgroup"]["swap"] = {"limited": False, "host_swap_active": False}
     assert not [p for p in perf.evidence_problems(rr) if "swap" in p]
+
+
+def test_swap_is_closed_only_by_its_backend_file_and_value():
+    """``limited=true`` وحده ليس دليلاً: الملفُّ والقيمةُ لكلّ هرم (مراجعةُ Copilot على #1146)."""
+    r = _fixture()
+    cg = r["coordinator"]["cgroup"]
+    assert cg["backend"] == "cgroup-v1" and cg["swap"]["limited"] is True
+    # المضيفُ هنا بلا مبادلة فيُعفى؛ المزوّراتُ تفترضها مفعّلةً كي يُفحص الملفُّ والقيمة وحدهما
+    assert perf.swap_closed(cg["swap"], cg)
+    for forged in (
+        {"limited": True, "host_swap_active": True},
+        {**cg["swap"], "value": "9223372036854771712", "host_swap_active": True},
+        {**cg["swap"], "file": "memory.swap.max", "value": "0", "host_swap_active": True},
+    ):
+        rr = json.loads(json.dumps(r))
+        rr["coordinator"]["cgroup"]["swap"] = forged
+        assert [p for p in perf.evidence_problems(rr) if "swap" in p], forged
+    v2 = {"backend": "cgroup-v2", "memory_limit_mb": 256}
+    assert perf.swap_closed({"limited": True, "file": "memory.swap.max", "value": "0"}, v2)
+    assert not perf.swap_closed({"limited": True, "file": "memory.swap.max", "value": "max"}, v2)
+
+
+def test_unreadable_proc_swaps_is_unknown_not_absent(tmp_path):
+    assert run.host_swap_active(tmp_path / "no-such-swaps") is None
+    swaps = tmp_path / "swaps"
+    swaps.write_text("Filename Type Size Used Priority\n", encoding="utf-8")
+    assert run.host_swap_active(swaps) is False
+    r = _fixture()
+    r["coordinator"]["cgroup"]["swap"] = {"limited": False, "host_swap_active": None}
+    assert [p for p in perf.evidence_problems(r) if "swap" in p]
 
 
 # ── 4) الجرد: ملفُّ نظامٍ معلنٌ باسمه يبقى نظاماً عبر رابط — والأوزانُ لا تمرّ عبره ────────────────

@@ -190,12 +190,13 @@ def _setup_v2(name: str, mem_mb: int, cpus: float, created: list[str]) -> dict:
     }
 
 
-def host_swap_active() -> bool:
-    """هل في المضيف مبادلةٌ مفعّلة؟ (/proc/swaps: سطرُ العناوين ثمّ سطرٌ لكلّ جهاز)."""
+def host_swap_active(swaps: Path = Path("/proc/swaps")) -> bool | None:
+    """هل في المضيف مبادلةٌ مفعّلة؟ (/proc/swaps: سطرُ العناوين ثمّ سطرٌ لكلّ جهاز). تعذُّرُ القراءة ⇒ ``None``
+    (مجهول) لا ``False``: «لا مبادلة» دليلٌ يُعفي من إغلاقها، فلا يُستنتج من ملفٍّ لم يُقرأ (مراجعةُ Copilot على #1146)."""
     try:
-        return len(Path("/proc/swaps").read_text().strip().splitlines()) > 1
+        return len(swaps.read_text(encoding="utf-8").strip().splitlines()) > 1
     except OSError:
-        return False
+        return None
 
 
 def _limit_swap(path: Path, value: str) -> dict:

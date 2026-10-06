@@ -382,7 +382,8 @@ def main() -> int:
         )
         rc, r = run("alloc", root, mem_mb=256, settings={"alloc_mb": 600})
         swap = r["coordinator"]["cgroup"].get("swap") or {}
-        if swap.get("limited") is not True and swap.get("host_swap_active"):
+        # المبادلةُ لم تُغلق ومضيفُها غيرُ مؤكَّدٍ خلوُّه منها (مفعّلةٌ أو مجهولة) ⇒ لا حكم
+        if swap.get("limited") is not True and swap.get("host_swap_active") is not False:
             # مبادلةٌ مفعّلة ونواةٌ بلا محاسبة مبادلة: تُبادَل العمليّةُ ولا تُقتل — حكمٌ متعذّر لا عيب
             RESULTS.append(
                 (
