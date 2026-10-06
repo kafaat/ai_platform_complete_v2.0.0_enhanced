@@ -1,0 +1,23 @@
+إعادةُ إثبات فجوات مراجعة المالك على نسخة v6 المجمّدة (sha256 الحزمة 07063e40…00be) ثمّ على v7 — 2026-10-04
+
+١. perf.py — سجلٌّ بحالات النجاح وحدها، وسجلٌّ حقيقيٌّ نُزعت منه أدلّة:
+   حالاتُ نجاحٍ فقط         v6 rc=0   v7 rc=2
+   بلا sequential           v6 rc=0   v7 rc=2
+   خطأُ إحصاءات المجموعة    v6 rc=0   v7 rc=2
+   تسرّبُ التنظيف           v6 rc=0   v7 rc=2
+   حصّةٌ فعليّة ≠ المطلوبة  v6 rc=0   v7 rc=2
+٢. نطاق الشرط — «لا ترش إذا كان الجهاز سليماً. سرعة الرياح أكثر من ١٥ كيلومتراً في الساعة.»:
+   frozen   errors=0 []
+   v7       errors=1 ['الكمّيّة 1 في جملةٍ مستقلّة عن الشرط «إذا» — لا تُربط به عبر حدّ الجملة']
+٣ و٤. فرز ASR — محتوى غيرُ مغطّى، ومهلةُ faster_whisper (0.01s، والطلب يكتمل بعد 0.20s):
+   v6 D03: screen=NO_FLAG_ON_DECLARED_CHECKS seconds=0.201 uncovered=—(لا حقل)
+   v6 N04: screen=NO_FLAG_ON_DECLARED_CHECKS seconds=0.201 uncovered=—(لا حقل)
+   v7 D03: screen=EVALUATOR_TIMEOUT seconds=0.06 uncovered=[]
+   v7 N04: screen=EVALUATOR_TIMEOUT seconds=0.088 uncovered=[]
+   (نفسُه بمهلة 5s ليظهر الفرز):
+   v6 D03: screen=NO_FLAG_ON_DECLARED_CHECKS uncovered=—(لا حقل) flags=[]
+   v6 N04: screen=NO_FLAG_ON_DECLARED_CHECKS uncovered=—(لا حقل) flags=[]
+   v7 D03: screen=REVIEW_UNCOVERED_CONTENT uncovered=['تقريبا'] flags=[]
+   v7 N04: screen=FLAGGED uncovered=['الجهاز', 'سليما'] flags=['الكمّيّة 1 في جملةٍ مستقلّة عن الشرط «إذ']
+
+لم يُقَس: أيُّ محرّكٍ حقيقيّ، ولا نموذج ASR حقيقيّ، ولا ما يُسمع.

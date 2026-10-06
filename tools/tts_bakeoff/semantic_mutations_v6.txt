@@ -1,0 +1,27 @@
+KILLED   semantic.py    no_subject                 red=1 FAIL  يكشف [M03] تبديلُ الإسناد: القيمتان صحيحتان والمُسنَد إليه انقلب
+KILLED   semantic.py    no_action_polarity         red=1 FAIL  يكشف [D03] أمرٌ لاحق «زد عليها» يناقض النهي  لم يُكشف!
+KILLED   semantic.py    no_condition_scope         red=1 FAIL  نفيٌ معلنٌ داخل الشرط بلا negated ⇒ خطأُ نطاق؛ ومع negated=true 
+KILLED   semantic.py    no_condition_marker        red=1 FAIL  يكشف [N04] أداةُ الشرط سقطت فصار النهيُ مطلقاً  لم يُكشف!
+KILLED   semantic.py    content_unordered          red=1 FAIL  يكشف [C03] تبديلُ طرفَي المقارنة وكلُّ الكلمات باقية (الترتيب وح
+KILLED   semantic.py    empty_facts_pass           red=1 FAIL  جملةٌ بلا حقائقَ معلنة لا تجتاز  قُبلت!
+KILLED   semantic.py    laysat_not_negation        red=2 FAIL  يكشف [N04] نفيٌ داخل الشرط («ليست») يقلب نطاقه  لم يُكشف!
+KILLED   semantic.py    coverage_blind             red=1 FAIL  [D03] يجتاز المعلن ويُسجَّل المحتوى غيرُ المغطّى «تقريبا»  error
+KILLED   semantic.py    ignore_bound               red=3 FAIL  يكشف [N01] قلبُ الحدّ: أكثر من بدل أقل من  لم يُكشف!
+KILLED   semantic.py    ignore_extra_qty           red=1 FAIL  يكشف [D04] رقمٌ دخيل  لم يُكشف!
+KILLED   semantic.py    ignore_extra_neg           red=1 FAIL  يكشف [N03] نفيٌ زائد لم يكن في الأصل  لم يُكشف!
+KILLED   semantic.py    no_fasla                   red=3 FAIL  يقبل [D03] فاصلةٌ منطوقة  الكمّيّة 1 «اثنان»: value=2 والمتوقَّع
+KILLED   asr_screen.py  unknown_keys_ok            red=2 FAIL  ASR: command حرٌّ فيه --initial-prompt (ثغرةُ v5) ⇒ رفضٌ بسببه  
+KILLED   asr_screen.py  params_unchecked           red=1 FAIL  ASR: معاملٌ غيرُ مسموح initial_prompt ⇒ رفضٌ بسببه  rc=1 hi = ru
+SURVIVED asr_screen.py  type_unchecked             red=0 
+KILLED   asr_screen.py  language_unchecked         red=1 FAIL  ASR: لغةٌ تحمل وسيطاً ⇒ رفضٌ بسببه  rc=1 nt', '-np', '-f', '/tmp
+KILLED   asr_screen.py  adapter_unchecked          red=1 FAIL  ASR: محوّلٌ غيرُ معروف ⇒ رفضٌ بسببه  rc=1 LLOWED[cfg["adapter"]]
+KILLED   asr_screen.py  reference_never_measured   red=1 FAIL  ASR: reference_text_in_invocation مقيسٌ على الاستدعاء (يكشف كلمة
+KILLED   asr_screen.py  invocation_not_recorded    red=1 FAIL  ASR: الاستدعاءُ الفعليّ (argv كما وصل المقيِّم) وبصمتا النموذج و
+KILLED   asr_screen.py  binary_not_hashed          red=1 FAIL  ASR: الاستدعاءُ الفعليّ (argv كما وصل المقيِّم) وبصمتا النموذج و
+KILLED   asr_screen.py  model_change_ignored       red=1 FAIL  ASR: تغيّرت الأوزان أثناء الفرز ⇒ رفض  rc=0 
+KILLED   asr_screen.py  probe_claims_isolation     red=1 FAIL  ASR: مسبارُ الشبكة يُسجَّل مسباراً لا إثباتَ عزل  {'host': 'pypi
+
+21/22 أعطالٍ مزروعة أحمرّت لها حالة
+
+(إعادة) KILLED   asr_screen.py  type_unchecked (الشرطُ كاملاً) red=1 FAIL  ASR: معاملٌ مسموحٌ بقيمةٍ نصّيّة ⇒ رفضٌ بسببه  rc=1 wb/run/wav/D03.wav', '-bs', '5 -
+الطفرةُ الأولى أزالت نصفَ الشرط فبقي «kind is int» يرفض النصّ — طفرةٌ ضعيفة لا ثغرة؛ هذه تُزيله كاملاً.
