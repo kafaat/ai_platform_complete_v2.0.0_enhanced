@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '3687e2b793561ea9fde95c411d31cc05458e791745cce3dc9a2860f8deb709cc';
+export const PLATFORM_CATALOG_FINGERPRINT = 'f1688d291ef84a192db93856b1cd47558b4025a5fa3faafd45b1fd7822726421';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 831,
+  "capabilities": 832,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 95,
   "capabilities_idempotent": 48,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1122,
+  "route_rows": 1123,
   "ui_waivers": 53,
-  "unique_method_path": 1003
+  "unique_method_path": 1004
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -72,7 +72,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 61,
+    "capabilityCount": 62,
     "domain": "decision-governance",
     "id": "decision-service",
     "tested": true,

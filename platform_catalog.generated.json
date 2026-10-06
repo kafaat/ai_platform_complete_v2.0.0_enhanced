@@ -1127,6 +1127,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.execution-plans.execution_plan_id",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/execution-plans/{execution_plan_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.execution-plans.execution_plan_id.authorize-dispatch",
       "consumers": [],
       "curated": false,
@@ -17568,7 +17583,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 831,
+    "capabilities": 832,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 95,
     "capabilities_idempotent": 48,
@@ -17579,9 +17594,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1122,
+    "route_rows": 1123,
     "ui_waivers": 53,
-    "unique_method_path": 1003
+    "unique_method_path": 1004
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17841,7 +17856,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "3687e2b793561ea9fde95c411d31cc05458e791745cce3dc9a2860f8deb709cc",
+  "fingerprint": "f1688d291ef84a192db93856b1cd47558b4025a5fa3faafd45b1fd7822726421",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17891,14 +17906,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 842,
+      "edge_count": 844,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 45,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 431,
+        "READS": 433,
         "ROUTES_TO": 72,
         "WRITES": 292
       }

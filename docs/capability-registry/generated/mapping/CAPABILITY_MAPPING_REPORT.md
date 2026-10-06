@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5521**
+- Files scanned: **5523**
 - Ambiguous artifacts queued: **431**
-- Unmapped artifacts queued: **2230**
+- Unmapped artifacts queued: **2231**
 
 ## Capability coverage
 
@@ -24,12 +24,12 @@
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 3 | 3 |
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 16 | 5 |
-| DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
+| DEC-005 | decision | 6 | 87 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
-| DEC-008 | decision | 5 | 94 | 14 | 5 | 0 | 0 | 4 | 5 |
+| DEC-008 | decision | 5 | 95 | 14 | 5 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
-| DEC-010 | decision | 4 | 89 | 49 | 7 | 0 | 0 | 6 | 5 |
+| DEC-010 | decision | 4 | 90 | 49 | 7 | 0 | 0 | 6 | 5 |
 | FM-001 | farm_management | 15 | 2 | 26 | 6 | 1 | 0 | 28 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 15 | 2 | 28 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 28 | 100 | 10 | 51 | 12 | 0 | 38 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 76 | 0 | 0 | 14 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 77 | 0 | 0 | 14 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
@@ -86,7 +86,7 @@
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 10 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
-| SOIL-001 | soil | 13 | 95 | 14 | 46 | 1 | 0 | 21 | 6 |
+| SOIL-001 | soil | 13 | 96 | 14 | 46 | 1 | 0 | 21 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 8 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
