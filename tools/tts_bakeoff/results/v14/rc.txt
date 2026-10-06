@@ -1,0 +1,11 @@
+fixture rc=0
+normal_harness rc=0
+normal_semantic rc=0
+normal_gate rc=0
+pidns_harness rc=0
+pidns_semantic rc=0
+restricted_harness rc=0
+restricted_semantic rc=0
+restricted_gate rc=0
+sigign_semantic rc=0
+mutations rc=0

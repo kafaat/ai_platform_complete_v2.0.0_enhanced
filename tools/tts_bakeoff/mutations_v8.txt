@@ -1,0 +1,15 @@
+KILLED   perf.py        schema_skipped           schema:/sentences/3/sha256
+KILLED   perf.py        schema_errors_dropped    schema:/sentences/3/sha256
+KILLED   run.py         bwrap_net_shared         ok: net=None probes={'tcp pypi.org:443': 'REACHED', 'dns pypi.org': 'REACHED', 'tcp 151.101.192.223:
+KILLED   run.py         prefix_usr_bound         ok: net=None probes={}
+KILLED   run.py         no_ip_to_worker          ok: net=PROVEN probes={'tcp pypi.org:443': 'blocked (gaierror -3)', 'dns pypi.org': 'blocked (gaierr
+KILLED   worker.py      ip_probe_removed         ok: net=PROVEN probes={'tcp pypi.org:443': 'blocked (gaierror -3)', 'dns pypi.org': 'blocked (gaierr
+KILLED   asr_screen.py  tokenizer_unchecked      FAIL  ASR faster_whisper: مجلّدُ نموذجٍ بلا tokenizer.json (المكتبةُ تجلبه من الشبكة بصمت) ⇒ رفضٌ بس
+KILLED   asr_screen.py  worker_online            FAIL  ASR faster_whisper: طلبٌ يكتمل بعد 0.20s ومهلتُه 0.05s ⇒ EVALUATOR_TIMEOUT قبل اكتماله، والمقط
+KILLED   blind.py       hint_sha_unchecked       FAIL  blind: تلميحٌ لمقطعٍ بصمتُه مختلفة (قديم أو لتشغيلٍ آخر) ⇒ رفض  rc=0 تنبيه: محرّكٌ واحد فقط — 
+KILLED   blind.py       hints_always_shown       FAIL  blind: تلميحُ ASR يظهر للمراجع **فقط** بـ--asr-hints، ويُسجَّل في المفتاح أنّه عُرض  plain_has
+KILLED   blind.py       key_hides_hints          FAIL  blind: تلميحُ ASR يظهر للمراجع **فقط** بـ--asr-hints، ويُسجَّل في المفتاح أنّه عُرض  plain_has
+SURVIVED semantic.py    mapping_ignores_value    
+
+11/12 أعطالٍ مزروعة في شيفرة v8 أحمرّت لها حالة
+mapping_ignores_value mutant rc=1 (≠0 = KILLED)

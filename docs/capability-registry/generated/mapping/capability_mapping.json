@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5491,
+    "files_scanned": 5521,
     "files_by_kind": {
       "backend": 1220,
       "database": 281,
       "governance": 65,
       "mobile": 55,
-      "other": 1532,
-      "tests": 1879,
+      "other": 1560,
+      "tests": 1881,
       "web": 459
     },
-    "unmapped_artifacts": 2228,
+    "unmapped_artifacts": 2230,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -21728,6 +21728,14 @@
           ]
         },
         {
+          "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
@@ -21833,6 +21841,14 @@
         },
         {
           "path": "skills/sahool-gis/PIVOT_SEGMENTATION.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "tools/tts_bakeoff/semantic_selftest.py",
           "score": 10,
           "signals": [
             "content:NDVI",
@@ -21998,6 +22014,14 @@
             "content:NDVI",
             "content:ndvi"
           ]
+        },
+        {
+          "path": "tools/tts_bakeoff/semantic_facts.json",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
         }
       ],
       "ambiguous": [],
@@ -22006,7 +22030,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 24,
-        "events": 57,
+        "events": 58,
         "tests": 79
       },
       "evidence_counts": {
@@ -22018,7 +22042,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 87
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -43214,6 +43238,14 @@
     },
     {
       "path": "tests/test_riv_p0_consumer_truth_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_tts_bakeoff_input_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_tts_bakeoff_procs.py",
       "kind": "tests"
     },
     {
