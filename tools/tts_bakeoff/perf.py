@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
@@ -82,9 +83,11 @@ def nonfinite_paths(obj, path: str = "") -> list[str]:
 # جذراً فارغاً — ``rw:/`` يمرّ. فكلُّ ربطٍ يُفحص بنفسه مقابل ما يبنيه run.py: ربطاتُ النظام المعلنة
 # (``run.BWRAP_SYSTEM_RO``) · جذورُ بايثون (``site-packages``/``dist-packages``) · المفسّر · مجلّدُ الحزمة ·
 # مجلّدُ النماذج المُثبَّتة لهذا التشغيل؛ والكتابةُ لمجلّد ناتج هذا التشغيل وحده.
-_PY_BIN = re.compile(r"/(?:[^/]+/)*bin/python3(?:\.\d+)?")
+_PY_BIN = re.compile(r"/(?:[^/]+/)*bin/python(?:3(?:\.\d+)?)?")
 _BIND = re.compile(r"(ro|rw):(/\S*)")
 _LINK = re.compile(r"link:(/\S*)->(/\S*)")
+# رابطٌ تركه run.py لأنّ هدفه خارج كلّ ربطٍ معلن (/etc/resolv.conf → /mnt/wsl/…): لا يمنح وصولاً، فيُقبل ويبقى مُسجَّلاً.
+_SKIP = re.compile(r"skip:(/\S*)->(/\S*)")
 
 
 def _clean_abs(path: str) -> bool:
@@ -93,7 +96,54 @@ def _clean_abs(path: str) -> bool:
     return path.startswith("/") and posixpath.normpath(path) == path and path != "/"
 
 
-def _ro_allowed(path: str, rw: str | None) -> bool:
+def interpreter_prefixes(interpreter) -> set[str]:
+    """بادئاتُ بايثون التي يجوز ربطُها: ``X`` لكلّ مسارٍ مُسجَّلٍ للمفسّر شكلُه ``X/bin/python…`` (الرابطُ نفسه
+    ⇒ البيئةُ الافتراضيّة، وهدفُه ⇒ بايثونُ الأساس). تُشتقّ من **موضع المفسّر** لا من قائمةٍ يكتبها السجلّ،
+    فلا يُرخِّص السجلُّ مجلّداً بتسميته. وتُرفض بادئاتُ النظام (``/usr`` تكشف /usr/share كلّه — run.py يستبعدها)
+    وما كان بعمق مكوّنٍ واحد (``/opt`` · ``/home`` · ``/root``): بادئةٌ كهذه تكشف ما هو أوسع من بايثون."""
+    import posixpath
+
+    out: set[str] = set()
+    if not isinstance(interpreter, dict):
+        return out
+    candidates = [interpreter.get("path")]
+    # ``real`` يُرخِّص بادئتَه فقط إن كان فعلاً هدفَ المسار المُشغَّل على هذا المضيف: وإلّا كتب السجلُّ
+    # ``real: /srv/private/bin/python`` فرخّص ``ro:/srv/private`` (مراجعةُ Copilot على #1146). ما لا يُتحقَّق منه لا يُرخِّص.
+    real, path = interpreter.get("real"), interpreter.get("path")
+    if isinstance(real, str) and isinstance(path, str) and os.path.realpath(path) == real:
+        candidates.append(real)
+    for p in candidates:
+        if isinstance(p, str) and _clean_abs(p) and _PY_BIN.fullmatch(p):
+            prefix = posixpath.dirname(posixpath.dirname(p))
+            if (
+                _clean_abs(prefix)
+                and prefix not in ("/usr", "/usr/local")
+                and prefix.count("/") >= 2
+            ):
+                out.add(prefix)
+    return out
+
+
+def swap_closed(swap: dict, cg: dict) -> bool:
+    """«أُغلقت المبادلة» بملفّها وقيمتها لكلّ هرم، لا بعلَم ``limited`` وحده (مراجعةُ Copilot على #1146): v2
+    ``memory.swap.max=0`` · v1 ``memory.memsw.limit_in_bytes`` = حدُّ الذاكرة المطلوب بالبايت."""
+    if swap.get("limited") is not True:
+        return False
+    want = {
+        "cgroup-v2": ("memory.swap.max", "0"),
+        "cgroup-v1": (
+            "memory.memsw.limit_in_bytes",
+            str(cg["memory_limit_mb"] * 1024 * 1024)
+            if isinstance(cg.get("memory_limit_mb"), int)
+            else None,
+        ),
+    }.get(cg.get("backend"))
+    return (
+        want is not None and want[1] is not None and (swap.get("file"), swap.get("value")) == want
+    )
+
+
+def _ro_allowed(path: str, rw: str | None, prefixes: set[str] = frozenset()) -> bool:
     import posixpath
 
     import run
@@ -101,6 +151,8 @@ def _ro_allowed(path: str, rw: str | None) -> bool:
     if not _clean_abs(path):
         return False
     if any(path == s or path.startswith(s + "/") for s in run.BWRAP_SYSTEM_RO):
+        return True
+    if any(path == p or path.startswith(p + "/") for p in prefixes):
         return True
     name = posixpath.basename(path)
     if name in ("site-packages", "dist-packages") or _PY_BIN.fullmatch(path):
@@ -110,12 +162,14 @@ def _ro_allowed(path: str, rw: str | None) -> bool:
     return rw is not None and path == rw + ".pinned"
 
 
-def sandbox_bind_problems(binds, run_id) -> list[str]:
-    """كلُّ ربطٍ معلنٍ مقبولٌ بنفسه، وربطُ كتابةٍ واحدٌ لمجلّد ناتج هذا التشغيل؛ وإلّا فالمشكلات بأسمائها."""
+def sandbox_bind_problems(binds, run_id, interpreter=None) -> list[str]:
+    """كلُّ ربطٍ معلنٍ مقبولٌ بنفسه، وربطُ كتابةٍ واحدٌ لمجلّد ناتج هذا التشغيل؛ وإلّا فالمشكلات بأسمائها.
+    ``interpreter`` (``coordinator.sandbox.interpreter``) يُرخِّص بادئتَي المفسّر وحدهما — انظر ``interpreter_prefixes``."""
     import posixpath
 
     if not isinstance(binds, list) or not binds:
         return ["sandbox.binds فارغة أو ليست قائمة"]
+    prefixes = interpreter_prefixes(interpreter)
     out, rws, ros, links = [], [], [], []
     for b in binds:
         m, ln = _BIND.fullmatch(str(b)), _LINK.fullmatch(str(b))
@@ -123,6 +177,8 @@ def sandbox_bind_problems(binds, run_id) -> list[str]:
             (rws if m.group(1) == "rw" else ros).append(m.group(2))
         elif ln:
             links.append((ln.group(1), ln.group(2)))
+        elif _SKIP.fullmatch(str(b)):
+            continue
         else:
             out.append(f"ربطٌ بصيغةٍ غير معروفة: {b!r}")
     if len(rws) != 1:
@@ -132,10 +188,10 @@ def sandbox_bind_problems(binds, run_id) -> list[str]:
         out.append(f"ربطُ الكتابة ليس مجلّدَ ناتج هذا التشغيل ({run_id!r}): {rw!r}")
         rw = None
     for path in ros:
-        if not _ro_allowed(path, rw):
+        if not _ro_allowed(path, rw, prefixes):
             out.append(f"ربطُ قراءةٍ خارج المعلن: {path!r}")
     for src, dst in links:
-        if not _clean_abs(src) or not _ro_allowed(dst, rw):
+        if not _clean_abs(src) or not _ro_allowed(dst, rw, prefixes):
             out.append(f"رابطٌ إلى خارج المعلن: {src!r} -> {dst!r}")
     return out
 
@@ -171,7 +227,16 @@ def evidence_problems(r: dict) -> list[str]:
             "unshare يكشف نظامَ ملفّات المضيف فلا يُثبَت أنّ المحرّك لم يقرأ إلّا المعلَن"
         )
     else:
-        p += [f"sandbox: {q}" for q in sandbox_bind_problems(sandbox["binds"], r.get("run_id"))]
+        interp = sandbox.get("interpreter")
+        p += [
+            f"sandbox: {q}"
+            for q in sandbox_bind_problems(sandbox["binds"], r.get("run_id"), interp)
+        ]
+        # المفسّرُ الذي يُرخِّص بادئتيه هو الذي شُغِّل فعلاً: مسارُه في أمر المنسِّق نفسه
+        if interp is not None and (
+            not isinstance(interp, dict) or interp.get("path") not in (coord.get("command") or [])
+        ):
+            p.append("sandbox.interpreter.path ليس في coordinator.command — مفسّرٌ مُعلَنٌ غيرُ المُشغَّل")
     # الخروج والقتل وOOM
     if coord.get("exit_code") != 0:
         p.append(f"coordinator.exit_code={coord.get('exit_code')!r}")
@@ -186,6 +251,13 @@ def evidence_problems(r: dict) -> list[str]:
     expected = {"cgroup-v1": 2, "cgroup-v2": 1}.get(cg.get("backend"))
     if expected is None or len(cg.get("paths") or []) != expected:
         p.append(f"cgroup.backend={cg.get('backend')!r} paths={cg.get('paths')!r}")
+    # حدُّ الذاكرة بلا المبادلة لا يُقتل عنده شيء: تُبادَل العمليّةُ بدل OOM (قياسُ المالك على WSL2). يُقبل
+    # إغلاقُ المبادلة في المجموعة، أو مضيفٌ بلا مبادلة؛ وغيابُ السجلّ (أداةٌ أقدم) لا يُفترض خيراً.
+    swap = cg.get("swap")
+    if not isinstance(swap, dict) or not (
+        swap_closed(swap, cg) or swap.get("host_swap_active") is False
+    ):
+        p.append(f"cgroup.swap={swap!r}: حدُّ الذاكرة لا يشمل المبادلة — لا دليلَ أنّ الحدَّ يسري")
     if cg.get("teardown_leaked"):
         p.append(f"تسرّبُ تنظيف المجموعة {cg['teardown_leaked']}")
     if (cg.get("partial_cleanup") or {}).get("leaked"):

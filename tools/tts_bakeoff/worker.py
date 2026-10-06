@@ -282,10 +282,19 @@ def stats(values):
     }
 
 
+def platform_string() -> str:
+    """كـ``platform.platform()`` بلا عمليّةٍ فرعيّة: ذاك يستدعي ``uname -p`` ليملأ حقلَ المعالج، فتظهر في جرد
+    الملفّات قراءاتُ ``uname`` نفسِه (coreutils المكتوبةُ بـRust على Ubuntu 26.04 تفتح ``uucore/en-US.ftl`` —
+    قياسُ المالك، 2026-10-06) ويُحكم على المحرّك بملفٍّ غيرِ مُعلن لم يقرأه. ``os.uname`` استدعاءُ نظام."""
+    u = os.uname()
+    lib, ver = platform.libc_ver()
+    return f"{u.sysname}-{u.release}-{u.machine}" + (f"-with-{lib}{ver}" if lib else "")
+
+
 def environment_record(corpus: Path) -> dict:
     return {
         "python": platform.python_version(),
-        "platform": platform.platform(),
+        "platform": platform_string(),
         "cpu_model": next(
             (
                 ln.split(":", 1)[1].strip()

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5523,
+    "files_scanned": 5524,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
       "other": 1560,
-      "tests": 1882,
+      "tests": 1883,
       "web": 459
     },
-    "unmapped_artifacts": 2231,
+    "unmapped_artifacts": 2232,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -43274,6 +43274,10 @@
     },
     {
       "path": "tests/test_tts_bakeoff_procs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_tts_bakeoff_sandbox.py",
       "kind": "tests"
     },
     {

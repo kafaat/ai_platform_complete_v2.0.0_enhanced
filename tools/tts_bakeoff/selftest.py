@@ -37,6 +37,7 @@ def run(
     cpus="1",
     coord: tuple = (),
     sigchld_ign: bool = False,
+    python: str | None = None,
 ) -> tuple[int, dict]:
     man = root / f"manifest-{mode}.json"
     man.write_text(
@@ -62,6 +63,7 @@ def run(
         "--hard-timeout",
         str(hard_timeout),
     ] + ([] if isolation else ["--no-isolation"])
+    cmd += ["--python", python] if python else []
     cmd += ["--", "--concurrency-items", "3", "--warmup", "1", *worker_args]
     proc = subprocess.run(
         cmd,
@@ -379,12 +381,24 @@ def main() -> int:
             f"status={lim.get('status')} in_effect={ {k: lim.get('in_effect', {}).get(k) for k in ('memory_limit_mb', 'cpu_quota', 'cpu_affinity')} }",
         )
         rc, r = run("alloc", root, mem_mb=256, settings={"alloc_mb": 600})
-        check(
-            "v3 تجاوزُ حدّ الذاكرة يُقتل فعلاً ⇒ oom_killed",
-            r.get("stage") == "oom_killed"
-            and (r["coordinator"]["cgroup_stats"].get("oom_kill_events") or 0) >= 1,
-            f"stage={r.get('stage')} oom={r['coordinator']['cgroup_stats'].get('oom_kill_events')} peak={r['coordinator'].get('cgroup_peak_memory_mb')}MB",
-        )
+        swap = r["coordinator"]["cgroup"].get("swap") or {}
+        # المبادلةُ لم تُغلق ومضيفُها غيرُ مؤكَّدٍ خلوُّه منها (مفعّلةٌ أو مجهولة) ⇒ لا حكم
+        if swap.get("limited") is not True and swap.get("host_swap_active") is not False:
+            # مبادلةٌ مفعّلة ونواةٌ بلا محاسبة مبادلة: تُبادَل العمليّةُ ولا تُقتل — حكمٌ متعذّر لا عيب
+            RESULTS.append(
+                (
+                    "BLOCKED",
+                    "v3 تجاوزُ حدّ الذاكرة يُقتل فعلاً",
+                    f"المبادلةُ لا تُغلق في المجموعة: {swap}",
+                )
+            )
+        else:
+            check(
+                "v3 تجاوزُ حدّ الذاكرة يُقتل فعلاً ⇒ oom_killed (والمبادلةُ مغلقةٌ أو غائبة)",
+                r.get("stage") == "oom_killed"
+                and (r["coordinator"]["cgroup_stats"].get("oom_kill_events") or 0) >= 1,
+                f"stage={r.get('stage')} oom={r['coordinator']['cgroup_stats'].get('oom_kill_events')} peak={r['coordinator'].get('cgroup_peak_memory_mb')}MB swap={swap}",
+            )
         env = dict(
             os.environ,
             BAKEOFF_LIMITS=json.dumps(
@@ -731,91 +745,103 @@ def main() -> int:
             f"threads={r_half.get('threads_at_end')} peak={s_half.get('memory_peak_mb')}MB",
         )
 
-        rc, r = run("ok", root, coord=("--inventory",))
-        inv = r.get("file_inventory", {})
-        check(
-            "v4 أوّلُ جملةٍ عربيّة بلا شبكة + جردُ الملفّات بلا غيرِ مُعلن",
-            rc == 0
-            and r.get("first_arabic_sentence", {}).get("ok")
-            and r["first_arabic_sentence"]["network"] == "PROVEN"
-            and inv.get("files_opened", 0) > 0
-            and inv.get("undeclared") == []
-            and r.get("performance_comparable") is False,
-            f"opened={inv.get('files_opened')} counts={inv.get('counts')} comparable={r.get('performance_comparable')}",
-        )
-        secret = Path(tempfile.mkdtemp(prefix="undeclared-", dir="/var/tmp")) / "voice_extra.bin"
-        secret.write_bytes(b"x")
-        rc, r = run(
-            "reads_undeclared",
-            root,
-            coord=("--inventory",),
-            settings={"undeclared_path": str(secret)},
-        )
-        check(
-            "v4 محرّكٌ يفتح ملفّاً خارج المُثبَّت ⇒ undeclared_files_opened",
-            r.get("stage") == "undeclared_files_opened"
-            and str(secret) in r.get("file_inventory", {}).get("undeclared", []),
-            f"stage={r.get('stage')} undeclared={r.get('file_inventory', {}).get('undeclared')}",
-        )
-        # v6 — ثغراتُ مراجعة v5 الثلاث
-        import hashlib
-
-        share = Path(tempfile.mkdtemp(prefix="bakeoff-st-", dir="/usr/share"))
-        libdir = Path(tempfile.mkdtemp(prefix="bakeoff-st-", dir="/usr/lib"))
-        try:
-            voice = share / "voice.onnx"
-            voice.write_bytes(b"onnx-weights")
-            rc, r = run(
-                "reads_undeclared",
-                root,
-                coord=("--inventory",),
-                settings={"undeclared_path": str(voice)},
+        if not shutil.which("strace"):
+            # أداةُ القياس غائبة، لا عيبٌ في المحرّك ولا في الأداة: الحالاتُ الأربع لا يُحكم فيها (كانت FAIL)
+            RESULTS.append(
+                (
+                    "BLOCKED",
+                    "v4/v6 جردُ الملفّات",
+                    "strace غيرُ مثبّت — --inventory ⇒ inventory_tool_missing",
+                )
             )
-            reasons = r.get("file_inventory", {}).get("undeclared_reasons", {})
-            check(
-                "v6 نموذجٌ غيرُ مُعلن تحت /usr/share ⇒ undeclared_files_opened",
-                r.get("stage") == "undeclared_files_opened" and str(voice) in reasons,
-                f"stage={r.get('stage')} reason={reasons.get(str(voice))}",
-            )
-            blob = libdir / "blob"
-            blob.write_bytes(os.urandom(6 * 2**20))
-            rc, r = run(
-                "reads_undeclared",
-                root,
-                coord=("--inventory",),
-                settings={"undeclared_path": str(blob)},
-            )
-            reasons = r.get("file_inventory", {}).get("undeclared_reasons", {})
-            check(
-                "v6 ملفُّ بياناتٍ كبيرٌ بلا امتدادٍ تحت /usr/lib ⇒ undeclared",
-                r.get("stage") == "undeclared_files_opened"
-                and "large_data_file" in reasons.get(str(blob), ""),
-                f"stage={r.get('stage')} reason={reasons.get(str(blob))}",
-            )
-            digest = hashlib.sha256(blob.read_bytes()).hexdigest()
-            rc, r = run(
-                "reads_undeclared",
-                root,
-                coord=("--inventory",),
-                manifest={
-                    "fake": {
-                        "files": {},
-                        "settings": {"mode": "reads_undeclared", "undeclared_path": str(blob)},
-                        "package_assets": {"blob": digest},
-                    }
-                },
-            )
+        else:
+            rc, r = run("ok", root, coord=("--inventory",))
             inv = r.get("file_inventory", {})
             check(
-                "v6 الملفُّ نفسه مُعلنٌ ببصمته في package_assets ⇒ يمرّ (القاعدةُ لا تحجب المُعلن)",
+                "v4 أوّلُ جملةٍ عربيّة بلا شبكة + جردُ الملفّات بلا غيرِ مُعلن",
                 rc == 0
+                and r.get("first_arabic_sentence", {}).get("ok")
+                and r["first_arabic_sentence"]["network"] == "PROVEN"
+                and inv.get("files_opened", 0) > 0
                 and inv.get("undeclared") == []
-                and inv.get("declared_package_assets") == {"blob": digest},
-                f"rc={rc} undeclared={inv.get('undeclared')}",
+                and r.get("performance_comparable") is False,
+                f"opened={inv.get('files_opened')} counts={inv.get('counts')} comparable={r.get('performance_comparable')}",
             )
-        finally:
-            shutil.rmtree(share, ignore_errors=True)
-            shutil.rmtree(libdir, ignore_errors=True)
+            secret = (
+                Path(tempfile.mkdtemp(prefix="undeclared-", dir="/var/tmp")) / "voice_extra.bin"
+            )
+            secret.write_bytes(b"x")
+            rc, r = run(
+                "reads_undeclared",
+                root,
+                coord=("--inventory",),
+                settings={"undeclared_path": str(secret)},
+            )
+            check(
+                "v4 محرّكٌ يفتح ملفّاً خارج المُثبَّت ⇒ undeclared_files_opened",
+                r.get("stage") == "undeclared_files_opened"
+                and str(secret) in r.get("file_inventory", {}).get("undeclared", []),
+                f"stage={r.get('stage')} undeclared={r.get('file_inventory', {}).get('undeclared')}",
+            )
+            # v6 — ثغراتُ مراجعة v5 الثلاث
+            import hashlib
+
+            share = Path(tempfile.mkdtemp(prefix="bakeoff-st-", dir="/usr/share"))
+            libdir = Path(tempfile.mkdtemp(prefix="bakeoff-st-", dir="/usr/lib"))
+            try:
+                voice = share / "voice.onnx"
+                voice.write_bytes(b"onnx-weights")
+                rc, r = run(
+                    "reads_undeclared",
+                    root,
+                    coord=("--inventory",),
+                    settings={"undeclared_path": str(voice)},
+                )
+                reasons = r.get("file_inventory", {}).get("undeclared_reasons", {})
+                check(
+                    "v6 نموذجٌ غيرُ مُعلن تحت /usr/share ⇒ undeclared_files_opened",
+                    r.get("stage") == "undeclared_files_opened" and str(voice) in reasons,
+                    f"stage={r.get('stage')} reason={reasons.get(str(voice))}",
+                )
+                blob = libdir / "blob"
+                blob.write_bytes(os.urandom(6 * 2**20))
+                rc, r = run(
+                    "reads_undeclared",
+                    root,
+                    coord=("--inventory",),
+                    settings={"undeclared_path": str(blob)},
+                )
+                reasons = r.get("file_inventory", {}).get("undeclared_reasons", {})
+                check(
+                    "v6 ملفُّ بياناتٍ كبيرٌ بلا امتدادٍ تحت /usr/lib ⇒ undeclared",
+                    r.get("stage") == "undeclared_files_opened"
+                    and "large_data_file" in reasons.get(str(blob), ""),
+                    f"stage={r.get('stage')} reason={reasons.get(str(blob))}",
+                )
+                digest = hashlib.sha256(blob.read_bytes()).hexdigest()
+                rc, r = run(
+                    "reads_undeclared",
+                    root,
+                    coord=("--inventory",),
+                    manifest={
+                        "fake": {
+                            "files": {},
+                            "settings": {"mode": "reads_undeclared", "undeclared_path": str(blob)},
+                            "package_assets": {"blob": digest},
+                        }
+                    },
+                )
+                inv = r.get("file_inventory", {})
+                check(
+                    "v6 الملفُّ نفسه مُعلنٌ ببصمته في package_assets ⇒ يمرّ (القاعدةُ لا تحجب المُعلن)",
+                    rc == 0
+                    and inv.get("undeclared") == []
+                    and inv.get("declared_package_assets") == {"blob": digest},
+                    f"rc={rc} undeclared={inv.get('undeclared')}",
+                )
+            finally:
+                shutil.rmtree(share, ignore_errors=True)
+                shutil.rmtree(libdir, ignore_errors=True)
 
         rc, r = run("ok", root, cpus="0.0001")
         cg = r.get("coordinator", {}).get("cgroup", {})
@@ -880,6 +906,26 @@ def main() -> int:
             and r["coordinator"]["sandbox"]["kind"] == "bwrap"
             and r["coordinator"]["negative_control"].get("ip"),
             f"rc={rc} probes={probes} ro={r.get('files_readonly')} problems={r.get('comparability_problems')}",
+        )
+        # بيئةٌ افتراضيّة: المفسّرُ رابطٌ تحت sys.prefix المربوط. كلُّ محرّكٍ حقيقيّ يعمل هكذا، والحالاتُ
+        # السابقة كلُّها بـ/usr/bin/python3 فلم يُرَ أنّ bwrap ينهار بـ«Can't create file» (قياسُ المالك على WSL2).
+        venv = root / "venv-bwrap"
+        subprocess.run(
+            [sys.executable, "-m", "venv", "--without-pip", "--system-site-packages", str(venv)],
+            check=True,
+        )
+        rc, r = run("ok", root, coord=bw, python=str(venv / "bin" / "python"))
+        sandbox = r.get("coordinator", {}).get("sandbox", {})
+        check(
+            "v15 bwrap ببيئةٍ افتراضيّة ⇒ يعمل · PROVEN · ENFORCED · ربطاتُها كلُّها مقبولة · قابلٌ للمقارنة",
+            rc == 0
+            and r.get("harness_status") == "ok"
+            and r.get("network_isolation") == "PROVEN"
+            and r.get("files_readonly") == "ENFORCED"
+            and sandbox.get("interpreter", {}).get("prefix") == str(venv)
+            and r.get("performance_comparable") is True,
+            f"rc={rc} stage={r.get('stage')} error={str(r.get('error'))[:80]} "
+            f"problems={r.get('comparability_problems')}",
         )
         share = Path(tempfile.mkdtemp(prefix="bakeoff-st-", dir="/usr/share"))
         try:

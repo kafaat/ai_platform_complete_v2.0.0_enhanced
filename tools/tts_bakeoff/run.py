@@ -95,17 +95,32 @@ def bwrap_command(worker: list[str], ro: list[str], rw: list[str]) -> tuple[list
         [],
     )
     ro = list(dict.fromkeys(ro))
+    # المجلّداتُ التي ستُربط فعلاً (مجلّدٌ هو رابطٌ يُنشأ رابطاً لا ربطاً، فلا يغطّي ما تحته)
+    dirs = [r.rstrip("/") for r in ro if os.path.isdir(r) and not os.path.islink(r)]
+
+    def under_dir(p: str) -> bool:
+        return any(p != d and p.startswith(d + "/") for d in dirs)
+
     for path in ro:
         if not os.path.exists(path):
             continue
-        covered = any(
-            path != r and path.startswith(r.rstrip("/") + "/") for r in ro if os.path.isdir(r)
-        )
-        if os.path.islink(path) and not covered:
+        if under_dir(path):
+            # مرئيٌّ عبر مجلّدٍ مربوطٍ أعلاه. ربطُه ثانيةً يطلب نقطةَ تركيبٍ **داخل** ربطٍ للقراءة فقط فيفشل
+            # bwrap بـ«Can't create file» في كلّ بيئةٍ افتراضيّة (venv/bin/python رابطٌ تحت sys.prefix
+            # المربوط) — قياسُ المالك على WSL2، 2026-10-06؛ والاختبارُ الذاتيّ لم يره لأنّه يعمل بـ/usr/bin/python3.
+            continue
+        if os.path.islink(path):
+            real = os.path.realpath(path)
+            if not (under_dir(real) or real in dirs):
+                # هدفُ الرابط خارج كلّ ربطٍ معلن (/etc/resolv.conf → /mnt/wsl/resolv.conf على WSL، أو
+                # /run/systemd/resolve/… على systemd): إنشاؤه يسمّي هدفاً غيرَ معلن ولا يُوصِل إليه. يُترك،
+                # ويُسجَّل تركُه — لا ربطَ لما لم يُعلَن، ولا إخفاءَ أنّه تُرك.
+                binds.append(f"skip:{path}->{real}")
+                continue
             # مفسّرٌ عبر رابطٍ خارج المربوط (/usr/local/bin/python3 → /usr/bin/python3.11): يُنشأ الرابطُ وحده
             # داخل الصندوق، لا يُربط مجلّدُه كلّه.
-            args += ["--dir", os.path.dirname(path), "--symlink", os.path.realpath(path), path]
-            binds.append(f"link:{path}->{os.path.realpath(path)}")
+            args += ["--dir", os.path.dirname(path), "--symlink", real, path]
+            binds.append(f"link:{path}->{real}")
             continue
         args += ["--ro-bind", path, path]
         binds.append(f"ro:{path}")
@@ -113,6 +128,21 @@ def bwrap_command(worker: list[str], ro: list[str], rw: list[str]) -> tuple[list
         args += ["--bind", path, path]
         binds.append(f"rw:{path}")
     return args + ["--chdir", str(HERE), "--", *worker], binds
+
+
+def link_chain(path: str) -> list[str]:
+    """كلُّ قفزةٍ من المفسّر إلى ملفّه الحقيقيّ. ``python -m venv`` يكتب ``venv/bin/python → python3 →
+    /usr/local/bin/python3 → /usr/bin/python3.11``: الطرفان وحدهما لا يكفيان، فالقفزةُ الوسطى (/usr/local/bin)
+    غائبةٌ داخل الصندوق ⇒ ``bwrap: execvp … No such file``. ما وقع منها تحت مجلّدٍ مربوط يُتخطّى في
+    ``bwrap_command``، وما سواه يُنشأ رابطاً إلى هدفه."""
+    chain, seen = [path], {path}
+    while os.path.islink(chain[-1]) and len(chain) < 40:
+        nxt = os.path.normpath(os.path.join(os.path.dirname(chain[-1]), os.readlink(chain[-1])))
+        if nxt in seen:
+            break
+        chain.append(nxt)
+        seen.add(nxt)
+    return chain
 
 
 def cgroup_hierarchy() -> str | None:
@@ -156,8 +186,29 @@ def _setup_v2(name: str, mem_mb: int, cpus: float, created: list[str]) -> dict:
         "backend": "cgroup-v2",
         "paths": created,
         "controllers_enabled_by_us": turned_on,
-        "swap_note": "memory.max يحدّ الذاكرة لا المبادلة — كـmemory.limit_in_bytes في v1؛ memory.swap.max لم يُمَسّ",
+        "swap": _limit_swap(group / "memory.swap.max", "0"),
     }
+
+
+def host_swap_active(swaps: Path = Path("/proc/swaps")) -> bool | None:
+    """هل في المضيف مبادلةٌ مفعّلة؟ (/proc/swaps: سطرُ العناوين ثمّ سطرٌ لكلّ جهاز). تعذُّرُ القراءة ⇒ ``None``
+    (مجهول) لا ``False``: «لا مبادلة» دليلٌ يُعفي من إغلاقها، فلا يُستنتج من ملفٍّ لم يُقرأ (مراجعةُ Copilot على #1146)."""
+    try:
+        return len(swaps.read_text(encoding="utf-8").strip().splitlines()) > 1
+    except OSError:
+        return None
+
+
+def _limit_swap(path: Path, value: str) -> dict:
+    """``memory.max`` (v2) و``memory.limit_in_bytes`` (v1) يحدّان الذاكرةَ **لا المبادلة**: مع مبادلةٍ مفعّلة
+    تُبادَل العمليّةُ بدل أن تُقتل، فلا يقع OOM ولا يُقاس الحدّ (قياسُ المالك على WSL2 بمبادلة: peak=256MB
+    وoom=0، 2026-10-06). يُغلق الملفُّ المبادلةَ (v2: ``memory.swap.max=0`` · v1: ``memsw`` = حدّ الذاكرة).
+    غيابُه (محاسبةُ المبادلة معطّلة في النواة) يُسجَّل كما هو مع حالة المبادلة في المضيف، ولا يُدّعى الإغلاق."""
+    active = host_swap_active()
+    if not path.exists():
+        return {"limited": False, "file": path.name, "host_swap_active": active, "why": "absent"}
+    path.write_text(value)
+    return {"limited": True, "file": path.name, "value": value, "host_swap_active": active}
 
 
 def setup_cgroups(name: str, mem_mb: int, cpus: float) -> dict:
@@ -173,11 +224,13 @@ def setup_cgroups(name: str, mem_mb: int, cpus: float) -> dict:
             mem.mkdir()
             created.append(str(mem))
             (mem / "memory.limit_in_bytes").write_text(str(mem_mb * 1024 * 1024))
+            # memsw = الذاكرة + المبادلة، فمساواتُه بحدّ الذاكرة تمنع المبادلة (ويُكتب بعده: لا يقلّ عنه)
+            swap = _limit_swap(mem / "memory.memsw.limit_in_bytes", str(mem_mb * 1024 * 1024))
             cpu.mkdir()
             created.append(str(cpu))
             (cpu / "cpu.cfs_period_us").write_text("100000")
             (cpu / "cpu.cfs_quota_us").write_text(str(int(cpus * 100000)))
-            info.update(backend="cgroup-v1", paths=created)
+            info.update(backend="cgroup-v1", paths=created, swap=swap)
         elif hierarchy == "v2":
             info.update(_setup_v2(name, mem_mb, cpus, created))
         else:
@@ -454,7 +507,9 @@ def file_inventory(
             classes["python_env"].append(entry)
         elif any(real.startswith(a) for a in harness_roots):
             classes["harness"].append(real)
-        elif real.startswith(SYSTEM_ROOTS) or real in ("/dev/null",):
+        elif real.startswith(SYSTEM_ROOTS) or real in ("/dev/null",) or path in BWRAP_SYSTEM_RO:
+            # ملفُّ نظامٍ معلنٌ **باسمه** يبقى ملفَّ نظام وإن كان رابطاً إلى خارج الجذور (/etc/resolv.conf →
+            # /mnt/wsl/resolv.conf على WSL). شبيهُ الأوزان فُحص قبل هذا فلا يمرّ عبر رابطٍ كهذا.
             classes["system"].append(real)
         else:
             classes["undeclared"].append(real)
@@ -512,27 +567,42 @@ def main() -> int:
     if out.exists() or pinned.exists():
         print(f"مرفوض: {out} موجود", file=sys.stderr)
         return 5
-    try:
-        cfg, pinned_manifest = pin_files(args.engine, Path(args.manifest).resolve(), pinned)
-    except SystemExit as exc:
+
+    def early_failure(stage: str, error: str) -> int:
+        """فشلٌ قبل أيّ تشغيل: سجلٌّ بمرحلته وسببه، لا أثرَ مكدّسٍ ولا سجلَّ مفقود."""
         out.mkdir(parents=True)
         result = {
             "run_id": run_id,
             "engine": args.engine,
             "harness_status": "failed",
-            "stage": "manifest_rejected",
-            "error": str(exc),
+            "stage": stage,
+            "error": error,
         }
         (out / "result.json").write_text(
             json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         print(
             json.dumps(
-                {"run": str(out), "harness_status": "failed", "stage": "manifest_rejected"},
+                {"run": str(out), "harness_status": "failed", "stage": stage},
                 ensure_ascii=False,
             )
         )
         return 1
+
+    # المفسّرُ بمسارٍ مطلق: داخل bwrap يتغيّر مجلّدُ العمل (--chdir إلى الحزمة) فيُحلّ «venv/bin/python» النسبيُّ
+    # على غير ما قصده المستدعي، ولا يُربط مسارٌ نسبيّ. يُحفظ الرابطُ نفسه (abspath لا realpath): بايثون يكتشف
+    # بيئتَه الافتراضيّة من موضع المُشغِّل، فحلُّ الرابط يُسقط site-packages البيئة.
+    found = args.python if os.sep in args.python else shutil.which(args.python)
+    if not found or not os.access(found, os.X_OK):
+        return early_failure("python_not_found", f"--python {args.python!r}: لا مفسّرَ قابلاً للتنفيذ")
+    args.python = os.path.abspath(found)
+    if args.inventory and not shutil.which("strace"):
+        # ليس عيباً في المحرّك ولا في الأداة: أداةُ القياس غائبة. مرحلةٌ مسمّاة يُصنّفها الاختبارُ الذاتيّ BLOCKED.
+        return early_failure("inventory_tool_missing", "--inventory يتطلّب strace وهو غيرُ مثبّت")
+    try:
+        cfg, pinned_manifest = pin_files(args.engine, Path(args.manifest).resolve(), pinned)
+    except SystemExit as exc:
+        return early_failure("manifest_rejected", str(exc))
     from worker import sha256_file, sha256_tree
 
     def pinned_digests() -> dict:
@@ -548,18 +618,27 @@ def main() -> int:
         [
             args.python,
             "-c",
-            "import sys,json;print(json.dumps([p for p in sys.path if p]"
-            "+[sys.prefix,sys.base_prefix]))",
+            "import sys,json;print(json.dumps({'path':[p for p in sys.path if p],"
+            "'prefix':sys.prefix,'base_prefix':sys.base_prefix}))",
         ],
         capture_output=True,
         text=True,
     )
+    seen = json.loads(probe.stdout or "{}")
+    # المفسّرُ وبادئتاه كما رآها **هو**: perf.py يقبل ربطَ بادئةٍ لأنّها بادئةُ هذا المفسّر (فيها bin/python)،
+    # لا لأنّها مذكورةٌ في السجلّ. بلا هذا كانت كلُّ بيئةٍ افتراضيّة «ربطاً خارج المعلن» (قياسُ المالك).
+    interpreter = {
+        "path": args.python,
+        "real": os.path.realpath(args.python),
+        "prefix": seen.get("prefix"),
+        "base_prefix": seen.get("base_prefix"),
+    }
     # sys.prefix يُستبعد إن كان جذرَ نظام (/usr · /usr/local · /): ربطُه في bwrap يُعيد كشفَ /usr/share كلّه،
     # وعدُّه «بيئة بايثون» في الجرد يُصنّف كلَّ /usr تحتها. مداخلُ sys.path نفسُها محدّدةٌ بما يكفي.
     py_roots = sorted(
         {
             p.rstrip("/") + "/"
-            for p in json.loads(probe.stdout or "[]")
+            for p in [*seen.get("path", []), seen.get("prefix"), seen.get("base_prefix")]
             if p and p.rstrip("/") not in ("", "/usr", "/usr/local")
         }
     )
@@ -636,13 +715,13 @@ def main() -> int:
         str(pinned),
     ]
     inner += [a for a in args.worker_args if a != "--"]
-    sandbox = {"kind": args.sandbox, "probe": isolation_probe[1]}
+    sandbox = {"kind": args.sandbox, "probe": isolation_probe[1], "interpreter": interpreter}
     if args.sandbox == "bwrap" and can_isolate:
         out.mkdir(parents=True, exist_ok=True)
         ro = [
             *BWRAP_SYSTEM_RO,
             *[r.rstrip("/") for r in py_roots],
-            args.python,
+            *link_chain(args.python),
             str(HERE),
             str(pinned),
         ]
