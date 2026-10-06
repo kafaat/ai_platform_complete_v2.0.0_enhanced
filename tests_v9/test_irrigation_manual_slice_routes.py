@@ -251,3 +251,151 @@ def test_a_refused_verification_is_recorded_before_the_refusal(monkeypatch):
     (event,) = conn.events()
     assert event["verification_rejected"] is True and event["actor"] == "u-verifier"
     assert "VOLUME_NOT_VERIFIED" in event["blocking_reasons"]
+
+
+# ── completion event: produced from the reconciled state, consumed idempotently ──────────
+class ReconcileConn(FakeConn):
+    """fetchrow: 1st = existing reconciliation (None), 2nd = the verified execution."""
+
+    def __init__(self, row, *, existing=None):
+        super().__init__(row)
+        self._fetchrows = [existing, row]
+
+    async def fetchrow(self, sql, *args):
+        return self._fetchrows.pop(0)
+
+    async def fetchval(self, sql, *args):
+        return 30.0  # depletion before
+
+
+def _verified_row():
+    stopped = datetime(2026, 10, 6, 6, 0, tzinfo=UTC)
+    return _row(
+        "verified",
+        ledger_eligible=True,
+        verification_digest="e" * 64,
+        as_applied_digest="a" * 64,
+        as_applied={
+            "actual_volume_m3": 900.0,
+            "actual_depth_mm": 18.0,
+            "deviation_pct": -0.1,
+            "deviation_reason": None,
+        },
+        confirmation={"stopped_at": stopped.isoformat()},
+    )
+
+
+def test_reconcile_emits_the_completion_event_in_the_same_transaction(monkeypatch):
+    conn = ReconcileConn(_verified_row())
+    _install(monkeypatch, conn)
+    asyncio.run(
+        route.reconcile_manual_execution_to_water_ledger(conn.row["execution_id"], user=VERIFIER)
+    )
+    emits = [args for sql, args in conn.executed if sql.startswith("SELECT emit_event(")]
+    assert len(emits) == 1
+    event_type, entity_type, entity_id, tenant, payload, _source, actor = emits[0]
+    assert event_type == "irrigation.execution.completed"
+    assert (entity_type, entity_id, tenant, actor) == (
+        "irrigation_manual_execution",
+        conn.row["execution_id"],
+        TENANT,
+        "u-verifier",
+    )
+    body = json.loads(payload)
+    assert body["source"] == "manual"
+    assert body["planned_depth_mm"] == 20.0 and body["applied_depth_mm"] == 18.0
+    assert body["source_digests"]["plan_digest"] == "c" * 64
+    # the emit is the LAST statement: it exists iff the reconciliation was written before it
+    assert conn.executed[-1][0].startswith("SELECT emit_event(")
+
+
+def test_a_replayed_reconcile_emits_nothing(monkeypatch):
+    conn = ReconcileConn(_verified_row(), existing={"payload": {"status": "reconciled"}})
+    _install(monkeypatch, conn)
+    out = asyncio.run(
+        route.reconcile_manual_execution_to_water_ledger(conn.row["execution_id"], user=VERIFIER)
+    )
+    assert out["idempotent_replay"] is True
+    assert not [sql for sql, _ in conn.executed if sql.startswith("SELECT emit_event(")]
+
+
+class OutcomeConn:
+    def __init__(self, reconciliation, inserted=True):
+        self.reconciliation = reconciliation
+        self.inserted = inserted
+        self.inserts: list[tuple] = []
+
+    async def fetchrow(self, sql, *args):
+        return self.reconciliation
+
+    async def fetchval(self, sql, *args):
+        self.inserts.append(args)
+        return "row-id" if self.inserted else None
+
+
+def _completion(**kw):
+    base = {
+        "source": "manual",
+        "execution_id": "11111111-1111-1111-1111-111111111111",
+        "execution_plan_id": "xplan_1",
+        "decision_id": "dec_1",
+        "field_id": "fld-1",
+        "season_id": "sea-1",
+        "planned_depth_mm": 20.0,
+        "applied_depth_mm": 18.0,
+        "ledger_event_digest": "l" * 64,
+        "source_digests": {"plan_digest": "c" * 64},
+    }
+    base.update(kw)
+    return base
+
+
+def _outcome(conn, payload, event_id="evt-1"):
+    from api.irrigation_closed_loop_runtime import record_manual_execution_outcome
+
+    return asyncio.run(
+        record_manual_execution_outcome(conn, tenant_id=TENANT, event_id=event_id, payload=payload)
+    )
+
+
+def test_the_outcome_separates_the_three_questions_and_claims_only_adherence():
+    conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 18.0})
+    out = _outcome(conn, _completion())
+    assert out["status"] == "recorded" and out["outcome_status"] == "degraded"
+    assert out["executed_as_approved"] == "yes"
+    body = json.loads(conn.inserts[0][6])
+    assert body["questions"]["outcome_improved"]["answer"] == "not_measured"
+    assert body["questions"]["attributable_effect"]["answer"] == "not_established"
+    assert body["cost"]["status"] == "not_computed"
+
+
+def test_a_deviation_beyond_tolerance_is_not_called_executed_as_approved():
+    conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 12.0})
+    out = _outcome(conn, _completion(applied_depth_mm=12.0, deviation_reason="pump tripped"))
+    assert out["executed_as_approved"] == "deviated_with_stated_reason"
+
+
+def test_a_duplicate_delivery_is_a_replay_not_a_second_outcome():
+    conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 18.0}, inserted=False)
+    assert _outcome(conn, _completion())["status"] == "replay"
+
+
+def test_an_event_before_its_reconciliation_is_visible_is_retried_not_dropped():
+    from api.irrigation_closed_loop_runtime import ManualOutcomeNotReady
+
+    with pytest.raises(ManualOutcomeNotReady):
+        _outcome(OutcomeConn(None), _completion())
+    assert not issubclass(ManualOutcomeNotReady, (ValueError, KeyError, TypeError))  # ⇒ NAK
+
+
+@pytest.mark.parametrize(
+    ("payload", "reason"),
+    [
+        (_completion(ledger_event_digest="z" * 64), "MANUAL_COMPLETION_DIGEST_MISMATCH"),
+        ({"source": "manual"}, "MANUAL_COMPLETION_FIELDS_REQUIRED"),
+    ],
+)
+def test_a_malformed_or_forged_completion_is_terminated(payload, reason):
+    conn = OutcomeConn({"ledger_event_digest": "l" * 64, "applied_depth_mm": 18.0})
+    with pytest.raises(ValueError, match=reason):
+        _outcome(conn, payload)

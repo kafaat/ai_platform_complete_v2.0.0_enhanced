@@ -826,4 +826,42 @@ async def reconcile_manual_execution_to_water_ledger(
                 json.dumps(event_body),
                 event_digest,
             )
+            # IRRIGATION-EXECUTION-COMPLETED-HAS-NO-PRODUCER-01: the completion event comes from the
+            # documented, verified, reconciled state — in the SAME transaction (outbox), so it exists
+            # iff the reconciliation does. Duplicates: this branch runs once per execution (the
+            # reconciliation row above short-circuits replays) and the consumer is idempotent by
+            # outcome digest; a late or out-of-order delivery is retried, not dropped.
+            as_applied = execution.get("as_applied") or {}
+            completion = {
+                "source": "manual",
+                "execution_id": execution_id,
+                "execution_plan_id": row["execution_plan_id"],
+                "decision_id": row["decision_id"],
+                "field_id": event.field_id,
+                "season_id": event.season_id,
+                "planned_depth_mm": float(row["target_depth_mm"]),
+                "applied_depth_mm": event.applied_depth_mm,
+                "applied_volume_m3": event.applied_volume_m3,
+                "deviation_pct": as_applied.get("deviation_pct"),
+                "deviation_reason": as_applied.get("deviation_reason"),
+                "observed_at": event.observed_at.isoformat(),
+                "ledger_event_digest": event.ledger_event_digest,
+                "source_digests": {
+                    "plan_digest": row["plan_digest"],
+                    "as_applied_digest": event.as_applied_digest,
+                    "verification_digest": event.verification_digest,
+                    "ledger_event_digest": event.ledger_event_digest,
+                },
+            }
+            await conn.execute(
+                """SELECT emit_event($1::text,$2::text,$3::text,$4::uuid,$5::jsonb,$6::text,
+                                     $7::text,NULL::uuid,now())""",
+                "irrigation.execution.completed",
+                "irrigation_manual_execution",
+                execution_id,
+                str(user.tenant_id),
+                json.dumps(completion, sort_keys=True),
+                "system",
+                str(user.user_id),
+            )
             return result

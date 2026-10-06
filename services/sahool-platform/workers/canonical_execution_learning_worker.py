@@ -48,6 +48,7 @@ from api.canonical_salinity_state import (  # noqa: E402  (import after sys.path
 )
 from api.irrigation_closed_loop_runtime import (  # noqa: E402  (import after sys.path insertion)
     finalize_irrigation_closed_loop,
+    record_manual_execution_outcome,
 )
 from api.learning_feedback import (  # noqa: E402  (import after sys.path insertion)
     process_season_closed_event,
@@ -222,6 +223,10 @@ async def handle_envelope(pool: Any, envelope: dict[str, Any]) -> dict[str, Any]
                 field_id=str(payload["field_id"]),
                 season_id=str(payload["season_id"]),
                 minimum_outcomes=int(payload.get("minimum_outcomes", 3)),
+            )
+        elif event_type == "irrigation.execution.completed" and payload.get("source") == "manual":
+            result = await record_manual_execution_outcome(
+                conn, tenant_id=tenant_id, event_id=event_id, payload=payload
             )
         elif event_type == "irrigation.execution.completed":
             required = {"run_id", "expected_depletion_after_mm", "source_digests"}
