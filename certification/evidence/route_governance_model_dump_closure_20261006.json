@@ -1,0 +1,44 @@
+{
+  "gap_id": "ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01",
+  "measured_at": "2026-10-06",
+  "measured_on": "b645c0679db370f330b903cfa1d73d76c4363c28",
+  "closure_condition_source": "sahool-brain/gaps/registry.md — «تُغلق حين يخضرّ الماسحُ والمصنوعاتُ المولَّدة والشهودُ والطفراتُ وCI على الرأس نفسه»",
+  "fix_pr": 1145,
+  "fix_pr_head": "0a9e2700bca68872ed42ba639320a77a8ce139dd",
+  "canonical_merge": "1a2a5cd7c (#1145 squash)",
+  "witnesses": {
+    "command": "python -m pytest tests_v9/test_platform_catalog_gate.py",
+    "result": "20 passed"
+  },
+  "mutations": {
+    "command": "python scripts/ci/guard_mutation_guard.py --run --only scripts/architecture/build_platform_catalog.py",
+    "planted": 21,
+    "killed": 21,
+    "survived": 0,
+    "summary": "guard_mutation_guard_ok"
+  },
+  "generated": {
+    "command": "python scripts/ci/verify_all_generated.py --check",
+    "result": "كلّ المصنوعات المولَّدة المُكتشَفة متّسقة"
+  },
+  "ci": {
+    "pr_head_0a9e2700": {
+      "success": 68,
+      "skipped": 1,
+      "cancelled": 2,
+      "failed": 0,
+      "cancelled_note": "capability-registry وConversation resolution: لكلٍّ تشغيلٌ ناجحٌ على الرأس نفسه (أُلغي المستبدَل)"
+    },
+    "merge_1a2a5cd7": {
+      "success": 64,
+      "skipped": 3,
+      "failed": 0
+    },
+    "main_b645c067": {
+      "success": 64,
+      "skipped": 1,
+      "failed": 0
+    }
+  },
+  "limit": "قياسُ أثرٍ مولَّد وحرّاسه؛ لا يقيس سلوكَ النقاط نفسها في التشغيل (لم تتغيّر مصادرُ المعالِجات)."
+}

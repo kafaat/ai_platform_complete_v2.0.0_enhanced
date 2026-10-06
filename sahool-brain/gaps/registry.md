@@ -6975,6 +6975,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01 — صفُّ fixed يبقى يقول «PR غيرُ مدموج» بعد دمجه ولا يراه القياس
 <!-- gap-registry: current -->
 - **الحالة:** **open** (2026-10-06) — فجوةُ قياس، لا عيبَ في حالة؛ مَظهرُها الحاليّ (ثمانية صفوف) أُلحق به commit الدمج يدويّاً، والقياسُ لم يُوسَّع.
+- **مَظهرٌ ثالث (2026-10-06):** `ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01` — إصلاحٌ أجّل إعلانَ fixed إلى «خضرة CI على الرأس نفسه» ثمّ دُمج (#1145، `1a2a5cd7`) فبقي open على `main` بعد تحقّق شرطه. صنفٌ مجاورٌ لـprovenance: لا يرى القياسُ شرطَ إغلاقٍ تحقّق ولم يُعلَن.
 - **مَظهرٌ ثانٍ (2026-10-06، مراجعةُ Copilot على #1143):** دُمج #1142 squash عند `90138460962c97a7c07ca1e79b16ce8ce0e6207b` أثناء مراجعة هذا الـPR، فصار المَظهرُ **اثني عشر** صفّاً لا ثمانية — أربعٌ أضافها #1142 تقول «ليس fixed على `main` حتّى يُدمَج». أُلحق بها commit الدمج بالشكل نفسه. تكرارُ الانجراف بين فتح الـPR ودمجه هو الشاهدُ على أنّ الإصلاحَ اليدويّ لا يُغلق الصنف.
 - **المصدر:** إشعارُ المالك 2026-10-06: `Gap registry measurement (report-only)` أخضرُ على رؤوس #1141/#1140/#1133 (jobs 112046254884 · 112067005469 · 112081080462) بينما صفوفُ fixed تقول «PR … غيرِ المدموج» بعد دمجه؛ وثامنٌ (`BRAIN-TRANSITION-GUARD-BLIND-TO-FIXED-01`) بعد دمج #1139.
 - **الخلل:** `scripts/ci/gap_registry_measure.py` يقيس الحالاتِ القانونيّة والبنية، لا صدقَ عبارات المصدر داخل صفّ fixed؛ فعبارةٌ صادقةٌ زمنَ الكتابة تصير غيرَ صادقةٍ بالدمج ولا شيءَ يقول ذلك.
@@ -7182,7 +7183,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## ROUTE-GOVERNANCE-SCANNER-BLIND-TO-MODEL-DUMP-01 — ماسحُ حوكمة المسارات لا يرى مفتاحَ عدم التكرار الممرَّر عبر `model_dump()`
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-06) — فجوةُ قياس قائمةٌ على `main` قبل هذه الشريحة؛ كُشفت بمراجعة Copilot على #1144.
+- **الحالة:** **fixed** (2026-10-06، على `main` عند `1a2a5cd7` — دمجُ #1145 squash، رأسُه `0a9e2700`) — شرطُ الإغلاق المكتوب أدناه مقيسٌ على `main@b645c067`: الشهودُ 20/20 (`tests_v9/test_platform_catalog_gate.py`) · الطفراتُ 21/21 مقتولة · المولَّدُ متّسق · CI أخضرُ على رأس #1145 وعلى دمجه. الدليلُ الخام `certification/evidence/route_governance_model_dump_closure_20261006.json`. (كانت open منذ كُشفت بمراجعة Copilot على #1144.)
 - **الصنف:** فجوةُ قياس (أثرٌ حوكميّ مولَّد يُبخس العقد).
 - **النسخة المفحوصة:** `77f9f188`.
 - **المُنتِج والمستهلك:** `scripts/architecture/build_platform_catalog.py` (`scan_route_governance` و`_IDEMPOTENCY_TOKENS`) يشتقّ `idempotency_required` من رموزٍ حرفيّة في جسم المعالِج؛ ومستهلكُه `platform_catalog.generated.json` و`docs/architecture/PLATFORM_CATALOG.generated.md`.
