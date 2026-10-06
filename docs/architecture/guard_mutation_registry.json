@@ -3087,6 +3087,24 @@
         }
       ],
       "test": "tests_v9/test_measured_on_carried_stamp.py"
+    },
+    "services/sahool-platform/api/routers/irrigation_engineering.py": {
+      "$gap_ar": "IRRIGATION-MANUAL-EXECUTION-NOT-RECHECKED-AT-ACTION-01 · IRRIGATION-MANUAL-VERIFICATION-WITHOUT-SEPARATION-01 — بدءُ الريّ اليدويّ لا يُعيد قراءةَ الخطّة المعتمدة الحيّة، والتحقّقُ «المستقلّ» يجريه من أنشأ أو أكّد.",
+      "mutations": [
+        {
+          "expect": "test_start_fails_closed_and_writes_nothing",
+          "find": "                if target == ManualExecutionState.STARTED\n",
+          "replace": "                if False\n",
+          "why": "إسقاطُ إعادة التحقّق الحيّة عند البدء ⇒ يبدأ ريٌّ على خطّةٍ تغيّرت بصمتُها أو سُحب اعتمادُها أو تعذّر بلوغ decision-service — قرارُ المالك: الاعتمادُ هو التفويض ويُعاد التحقّق منه عند الفعل."
+        },
+        {
+          "expect": "test_the_confirmer_or_creator_cannot_verify",
+          "find": "            if str(user.user_id) in {str(row[\"created_by\"]), str(confirmer)}:",
+          "replace": "            if False:",
+          "why": "نزعُ فصل الواجبات ⇒ من أكّد القياس يتحقّق منه بنفسه، فيصير «التحقّق المستقلّ» توقيعاً ثانياً للشخص نفسه قبل دخول الماء الدفتر."
+        }
+      ],
+      "test": "tests_v9/test_irrigation_manual_slice_routes.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
