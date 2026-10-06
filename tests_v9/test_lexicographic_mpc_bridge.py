@@ -718,6 +718,8 @@ def test_operational_route_applies_the_degraded_policy(monkeypatch, canonical_kw
     assert decision["confidence"] <= 0.4
     prov = out["facts_provenance"]
     assert prov["depletion_confidence"] == canonical_kw["depletion_confidence"]
+    # طريقةُ ET0 لكلّ يوم تُقرأ من الاستجابة نفسها (مراجعة Copilot على #1142).
+    assert len(prov["et0_methods"]) == 7
     assert prov["canonical_quality_status"] == canonical_kw.get("quality_status", "verified")
 
 

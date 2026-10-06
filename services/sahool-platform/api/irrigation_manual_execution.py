@@ -165,7 +165,10 @@ def derive_manual_as_applied(
     # مشاهدة. قراءةُ العدّاد وحاصلُ التدفّق المقيس في زمن التشغيل الصافي (الانقطاعاتُ مطروحةٌ أعلاه) والحجمُ
     # المُعلَن تبقى كما هي؛ والنسبة تصحّح التقديرَين المبنيَّين على تدفّقٍ غير مقيس فقط. كان الضربُ عامّاً،
     # فقراءةُ عدّادٍ بـ0.5 تُنصَّف وتبقى «measured_meter» مؤهَّلةً للدفتر.
-    completion_ratio_applied = quality in ("estimated", "estimated_nominal")
+    # لا تقديرَ يُحجَّم حين لا دليلَ حجمٍ أصلاً (الصفر المُعلَن مع NO_VOLUME_EVIDENCE) — مراجعة Copilot.
+    completion_ratio_applied = (
+        quality in ("estimated", "estimated_nominal") and "NO_VOLUME_EVIDENCE" not in blockers
+    )
     if completion_ratio_applied:
         volume *= confirmation.completion_ratio
     area_ha = recommendation.target_volume_m3 / (recommendation.target_depth_mm * 10.0)

@@ -123,7 +123,8 @@ export default function DecisionDeepPanel() {
   const [ecoArea, setEcoArea] = useState('');
   const [ecoCost, setEcoCost] = useState('');
   const [ecoOpts, setEcoOpts] = useState<{ areaHa?: number; waterCostPerM3?: number }>({});
-  const economicsQ = useDecisionEconomics(ecoOpts);
+  // الحجمُ والقيمة يُحسَبان لحقلٍ واحد فقط (المليمترات لا تُضرب في مساحةٍ عبر حقول) — يُمرَّر الحقلُ المختار.
+  const economicsQ = useDecisionEconomics({ ...ecoOpts, fieldId: activeFieldId || undefined });
   const applyEco = () => setEcoOpts({
     areaHa: ecoArea.trim() === '' ? undefined : Number(ecoArea) || undefined,
     waterCostPerM3: ecoCost.trim() === '' ? undefined : Number(ecoCost) || undefined,

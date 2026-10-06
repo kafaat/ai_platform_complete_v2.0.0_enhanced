@@ -99,14 +99,17 @@ def derive_learning_suggestions(
 
         # REQUESTED-MINUS-APPLIED-REPORTED-AS-WATER-SAVED-01: كان «وفّرت … يُقترَح ترجيح كفاءة الماء». نقصُ
         # التنفيذ عن المطلوب قد يكون عطلاً أو انقطاعاً، فلا يُرجَّح سياسةً — يُراجَع سببُه.
-        if gap_mm > 0 and "irrig" in action:
+        if gap_mm != 0 and "irrig" in action:
+            # الفرقُ مُوقَّع: نقصُ تطبيقٍ (موجب) أو زيادةٌ (سالب) — كلاهما انحرافٌ يُراجَع سببُه.
+            direction = "أقلُّ" if gap_mm > 0 else "أكثرُ"
             suggestions.append(
                 LearningSuggestion(
                     kind="review_requested_applied_gap",
                     action_type=action,
                     message_ar=(
-                        f"طُبِّق في «{action}» أقلُّ من المطلوب بـ{gap_mm:.0f}مم تراكميّاً — ليس وفراً "
-                        f"مثبتاً: راجِع أسبابَ النقص، ولا يُدَّعى وفرٌ قبل قياس السحب ومقارنةٍ مناسبة."
+                        f"طُبِّق في «{action}» {direction} من المطلوب بـ{abs(gap_mm):.0f}مم تراكميّاً — "
+                        f"ليس وفراً مثبتاً ولا هدراً مثبتاً: راجِع أسبابَ الانحراف، ولا يُدَّعى وفرٌ قبل "
+                        f"قياس السحب ومقارنةٍ مناسبة."
                     ),
                     evidence=evidence,
                     confidence=conf,

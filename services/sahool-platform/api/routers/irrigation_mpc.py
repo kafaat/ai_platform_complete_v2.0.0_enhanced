@@ -503,6 +503,9 @@ async def irrigation_mpc_recommendation(
             "soil_snapshot_hash": soil_snapshot_hash,
             "water_salinity": salinity_provenance,
             "canonical_quality_status": canonical.quality_status,
+            # طريقةُ ET0 لكلّ يوم (PM أو احتياط) — شرطُ إغلاق CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01
+            # يُقرأ من استجابة المسار نفسه؛ المُحلِّل لا يحملها فتُؤخذ من اللقطة القانونيّة.
+            "et0_methods": [d.get("et0_method") for d in canonical.forecast],
             "depletion_confidence": canonical.depletion_confidence,
             "canonical_limitations": list(canonical.limitations),
         },

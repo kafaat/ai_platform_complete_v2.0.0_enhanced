@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "18502986759e2c07b4eca3ff88e455868b876af4be0e2f05cf49d0df93e27ce7",
+  "inventory_sha256": "76084f7280af537729c42d32d740ba9c5818e00a2b72c7dcd19e9ab8c1757bd4",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "7c7ecf4b116e38608ae9869a4eb50597dfb864eb4760adcb6248fa9ae021d935",
+  "map_sha256": "574622071aeec407437ee1538013e24971e63cc55fbeabae77c85bfa6676d24f",
   "routes": [
     {
       "classification": null,
@@ -6371,7 +6371,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/irrigation_mpc.py",
       "function": "irrigation_mpc_hourly_recommendation",
-      "line": 533,
+      "line": 536,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
@@ -6861,7 +6861,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/irrigation_mpc.py",
       "function": "reconcile_irrigation_execution",
-      "line": 574,
+      "line": 577,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",

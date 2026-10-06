@@ -86,10 +86,12 @@ _outcome = st.sampled_from(["executed", "failed", "queued", ""])
 def test_measure_impact_invariants(recs):
     s = measure_impact(recs)
     assert 0.0 <= s.success_rate <= 1.0
-    assert s.requested_minus_applied_mm >= -1e-6, "فرقٌ سالب"
+    # الفرقُ مُوقَّع (الزيادةُ انحرافٌ لا تُسقَط) ويطابق مجموعَي الطرفين.
+    assert s.requested_minus_applied_mm == pytest.approx(
+        s.water_requested_mm - s.water_applied_mm, abs=0.02
+    )
     assert s.executed + s.failed <= s.total_decisions
     assert s.water_records <= s.executed, "سجلّات ماء أكثر من المُنفَّذة"
-    assert s.water_applied_mm <= s.water_requested_mm + 1e-6
 
 
 # ── الذكاء الاقتصاديّ ──
@@ -104,10 +106,11 @@ def test_measure_impact_invariants(recs):
 def test_economics_invariants(saved, executed, rate, area, cost):
     impact = {"requested_minus_applied_mm": saved, "executed": executed, "success_rate": rate}
     e = summarize_economics(impact, area_ha=area, water_cost_per_m3=cost)
+    # الحجمُ والقيمة يحملان إشارةَ الفرق نفسها (لا يُقلَب انحرافٌ ولا يُصفَّر).
     if e.requested_minus_applied_m3 is not None:
-        assert e.requested_minus_applied_m3 >= -1e-6
-    if e.requested_minus_applied_value is not None:
-        assert e.requested_minus_applied_value >= -1e-6, "قيمةٌ سالبة"
+        assert e.requested_minus_applied_m3 * saved >= -1e-6
+    if e.requested_minus_applied_value is not None and cost is not None and cost > 0:
+        assert e.requested_minus_applied_value * saved >= -1e-6
     # القيمة لا تُحسَب إلّا بمدخلات كاملة (صدق)
     if area is None or cost is None:
         assert e.requested_minus_applied_value is None

@@ -174,3 +174,14 @@ def test_completion_ratio_scales_only_an_estimate(kw, rec_kw, quality):
     assert result.actual_volume_m3 == 500  # 100 × 10 س × 0.5
     assert result.completion_ratio_applied is True
     assert result.ledger_eligible is False  # التقدير لا يدخل الدفتر بالنسبة أو بدونها
+
+
+def test_no_volume_evidence_is_not_reported_as_a_scaled_estimate():
+    """مراجعة Copilot على #1142: لا تقديرَ يُحجَّم حين لا دليلَ حجمٍ أصلاً."""
+    c = confirmation(meter_start_m3=None, meter_end_m3=None, completion_ratio=0.5)
+    try:
+        result = m.derive_manual_as_applied(recommendation(nominal=None), c)
+    except Exception as exc:  # the slice later requires a deviation reason; this PR does not
+        raise AssertionError(exc) from exc
+    assert "NO_VOLUME_EVIDENCE" in result.blocking_reasons
+    assert result.completion_ratio_applied is False

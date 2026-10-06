@@ -102,8 +102,10 @@ def measure_impact(records: list[ImpactRecord]) -> ImpactSummary:
 
         req = _to_float(r.water_requested_mm)
         app = _to_float(r.water_applied_mm)
-        # الفرق يُحتسَب فقط للقرارات المُنفَّذة بكمّيّتين صالحتين (req ≥ app ≥ 0).
-        if outcome == _EXECUTED and req is not None and app is not None and req >= app >= 0:
+        # الفرق **مُوقَّع** لكلّ قرارٍ مُنفَّذ بكمّيّتين صالحتين (≥ 0): موجبٌ نقصُ تطبيق، وسالبٌ زيادةُ
+        # تطبيق. كان الشرط req ≥ app فتُسقَط الزيادة من المجموع ومن water_records معاً — انحرافٌ
+        # تنفيذيٌّ حقيقيٌّ يُعرَض صفراً (مراجعة Copilot على #1142).
+        if outcome == _EXECUTED and req is not None and app is not None and req >= 0 and app >= 0:
             gap = req - app
             summary.water_requested_mm += req
             summary.water_applied_mm += app

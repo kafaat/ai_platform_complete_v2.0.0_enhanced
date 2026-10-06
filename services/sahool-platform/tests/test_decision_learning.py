@@ -71,3 +71,13 @@ def test_suggestions_serializable():
     sugg = derive_learning_suggestions(by_action)
     blob = json.dumps([s.to_dict() for s in sugg], ensure_ascii=False)
     assert json.loads(blob)[0]["kind"] == "raise_approvals"
+
+
+def test_over_application_also_asks_for_review():
+    by_action = {"irrigation": {"executed": 10, "failed": 0, "requested_minus_applied_mm": -40.0}}
+    gap = next(
+        s
+        for s in derive_learning_suggestions(by_action)
+        if s.kind == "review_requested_applied_gap"
+    )
+    assert "أكثرُ من المطلوب" in gap.message_ar and "40مم" in gap.message_ar

@@ -65,13 +65,14 @@ def test_water_not_counted_for_failed():
 
 
 def test_invalid_water_pair_excluded():
-    # المُطبَّق > المطلوب (غير منطقيّ) ⇒ يُستثنى بصدق
+    # كمّيّةٌ سالبة غيرُ صالحة ⇒ تُستثنى بصدق. (المُطبَّق > المطلوب **ليس** غيرَ منطقيّ: زيادةُ تطبيقٍ
+    # انحرافٌ تنفيذيّ يُحتسَب سالباً — انظر test_over_application_is_a_negative_difference_not_dropped.)
     recs = [
         ImpactRecord(
             action_type="irrigation",
             outcome="executed",
             water_requested_mm=10.0,
-            water_applied_mm=15.0,
+            water_applied_mm=-1.0,
         ),
     ]
     s = measure_impact(recs)
@@ -111,3 +112,16 @@ def test_impact_summary_carries_the_not_established_savings_claim():
     out = measure_impact([]).to_dict()
     assert "water_saved_mm" not in out
     assert out["savings_claim"]["status"] == "not_established"
+
+
+def test_over_application_is_a_negative_difference_not_dropped():
+    """مراجعة Copilot على #1142: زيادةُ التطبيق انحرافٌ تنفيذيّ — تُحتسَب سالبةً ولا تُسقَط من التغطية."""
+    s = measure_impact(
+        [
+            ImpactRecord("irrigation", "executed", water_requested_mm=10.0, water_applied_mm=6.0),
+            ImpactRecord("irrigation", "executed", water_requested_mm=10.0, water_applied_mm=15.0),
+        ]
+    )
+    assert s.water_records == 2
+    assert s.requested_minus_applied_mm == -1.0  # (+4) + (−5)
+    assert s.by_action["irrigation"]["requested_minus_applied_mm"] == -1.0
