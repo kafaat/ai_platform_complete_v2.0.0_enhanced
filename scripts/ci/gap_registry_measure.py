@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import re
+import subprocess
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -114,6 +116,9 @@ def measure(text: str) -> dict:
     schema: list[str] | None = None
     schema_line: int | None = None
     fence: str | None = None
+    # مواضعُ تقرؤها ``fixed_provenance`` بالقاعدة نفسها: ما داخل سياجٍ مثالٌ لا سجلّ.
+    unfenced: set[int] = set()
+    section_ends: list[int] = []
     lines = text.splitlines()
     for number, line in enumerate(lines, 1):
         fence_match = FENCE.match(line)
@@ -130,11 +135,13 @@ def measure(text: str) -> dict:
             fence = fence_match.group("marker")
             schema = None
             continue
+        unfenced.add(number)
         if not line.startswith("|"):
             schema = None
             schema_line = None
         if re.match(r"^#{1,2}\s", line):
             current_heading = None
+            section_ends.append(number)
         deep = DEEP_HEADING.match(line)
         if deep:
             noncanonical_headings.append(
@@ -311,6 +318,38 @@ def measure(text: str) -> dict:
     # عناوين هذا السجلّ سردٌ تاريخيّ لا مدخلُ حالة، فحقلٌ يُحمِّر على الكلّ يُطفَأ
     # في أوّل أسبوع. والراتشِتُ في `docs/architecture/gap_heading_state_baseline.json`
     # يمنع **النموّ** ولا يدّعي أنّ ما فيه سليم — نفسُ عقد `fake_connection_debt`.
+    # ``BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01``: سجلّاتُ fixed الحاليّة وسطورُ
+    # ``canonical`` في أقسامها — يقرؤها ``fixed_provenance``. **وبقواعد هذه الدالّة نفسها**
+    # (مراجعةُ Copilot على #1150): حدُّ القسم عنوانٌ **خارج سياج**، وسطرُ canonical خارج سياج —
+    # وإلّا قطع `## مثال` مُسيَّجٌ القسمَ قبل ربطٍ حقيقيّ، أو ستر سطرٌ مُسيَّجٌ غيابَ الربط. والتاريخيُّ
+    # لا يُسقَط إلّا في سلسلةٍ مُراجَعة (``reviewed``)، كقاعدة الحالة أعلاه حرفاً — مدخلٌ تاريخيٌّ
+    # منفرد يبقى فعّالاً، فلا يكون الوسمُ طريقاً لإخفاء SHA غيرِ مُصالَح.
+    def _canonical(begin: int, end: int) -> list[str]:
+        return [
+            lines[n - 1]
+            for n in range(begin, end + 1)
+            if n in unfenced and CANONICAL_LINE.match(lines[n - 1])
+        ]
+
+    def _section_end(begin: int) -> int:
+        return next((n - 1 for n in section_ends if n > begin), len(lines))
+
+    fixed_spans = [
+        {"id": row["id"], "line": row["line"], "status": row["raw_state"], "canonical": []}
+        for row in gap_rows
+        if row["state"] == "fixed"
+    ] + [
+        {
+            "id": item["id"],
+            "line": item["line"],
+            "status": item["raw_state"],
+            "canonical": _canonical(item["heading_line"], _section_end(item["heading_line"])),
+        }
+        for item in section_states
+        if item["kind"] == "gap"
+        and item["state"] == "fixed"
+        and not (item["entry_role"] == "historical" and item["id"] in reviewed)
+    ]
     stated_ids = {item["id"] for item in section_states}
     row_ids = {row["id"] for row in rows if row.get("id")}
     unresolved_aliases = resolve_aliases(rows, section_states, headings)
@@ -356,6 +395,7 @@ def measure(text: str) -> dict:
         "noncanonical_heading_levels": noncanonical_headings,
         "noncanonical_heading_level_count": len(noncanonical_headings),
         "unresolved_aliases": unresolved_aliases,
+        "fixed_records": fixed_spans,
     }
 
 
@@ -399,12 +439,127 @@ def resolve_aliases(rows: list[dict], section_states: list[dict], headings: list
     return out
 
 
+# ── `BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01` ──────────────────────
+#
+# الدمجُ هنا squash: فـSHA الإصلاح الذي يذكره صفُّ fixed يعيش في فرع الـPR وحده، وبعد الدمج
+# **ليس سلفاً لـ`main`** (مقيس: `git merge-base --is-ancestor` سالبٌ لـ`49bc30ee` · `da920253` ·
+# `3bd8641b` على `9801d076`، ولـ`0726a887` على `ab07ceb8`). فالصفُّ صادقٌ زمنَ كتابته ويشير إلى
+# commit لا تحمله `main`، ووظيفةُ القياس كانت خضراءَ على كلّ مَظهرٍ له.
+#
+# **العيبُ المقيس:** سجلُّ fixed تذكر حالتُه SHA لا يُبلَغ من HEAD، **ولا يحمل موضعُ الربط أيَّ
+# SHA يُبلَغ** — أي لا ربطَ بأيّ commit على `main`. والعلاجُ إلحاقُ commit الدمج، لا استبدالُ الأصل.
+#
+# **وموضعُ الربط محدَّد، لا المدخلُ كلُّه — مقيسٌ:** صفُّ #1149 يذكر في خليّة الوصف `main@c56db557`
+# (القاعدةَ التي قيس عليها العطل)، وهي تُبلَغ؛ فلو عُدّ أيُّ SHA في المدخل ربطاً لستر الصفَّ الذي
+# وُجِد القياسُ لأجله. الموضعُ: نصُّ الحالة نفسُه (خليّةُ الحالة / سطرُ `- **الحالة:**`)، وسطرُ
+# `- **canonical …:**` في القسم — الاصطلاحُ الذي كتبت به المطابقاتُ اليدويّة الأربعَ عشرة.
+#
+# **و`#N` في الحالة تلميحٌ لا حكم — مقيسٌ لا مفترَض.** على `ab07ceb8` سبعةُ سجلّاتٍ تذكر PR؛ وفي
+# ثلاثةٍ منها الـSHA المُصلِح من PR **آخر** (`4634ef15` ∈ #1110 والصفّ يذكر #1031 · `0a6f2988` ∈
+# #1112 والصفّ يذكر #993 · `fd850a06` ∈ #987 والصفّ يذكر #988) لأنّ الـPR المذكورَ موضعُ القياس لا
+# الإصلاح. فلو طُلب «commit دمج الـPR المذكور» لدُفع القارئُ إلى ربطٍ خاطئ. لذا ``cited_pr_merges``
+# يُعرَض للقارئ ولا يدخل الحكم، والربطُ الصحيح يُستخرج من الـSHA نفسه (`commits/{sha}/pulls`).
+#
+# **حدٌّ مُعلَن:** أيُّ SHA يُبلَغ في موضع الربط يُعَدّ ربطاً — القياسُ يرى **غيابَ** الربط لا صحّتَه.
+#
+# **والقياسُ يحتاج التاريخ:** على استنساخٍ ضحل كلُّ SHA «لا يُبلَغ»، فيصير كلُّ صفّ fixed عيباً
+# كاذباً. لذا ``provenance_measured`` يُعلَن، والحقلُ ``None`` حين لا يُقاس — صمتٌ مُعلَن بسببه.
+# حدُّ الكلمة الكامل (لا حدُّ hex) كي لا يُقرأ «feedback» SHA؛ وحرفٌ واحدٌ a-f على الأقلّ كي لا
+# تُقرأ التواريخُ (`20260626`) ومعرّفاتُ وظائف CI (`2412021383`) — مقيسٌ: كانت ٧ من ٤٦ كاذبة.
+STATUS_SHA = re.compile(r"(?<![0-9A-Za-z_])(?=[0-9]*[a-f])([0-9a-f]{7,40})(?![0-9A-Za-z_])")
+STATUS_PR = re.compile(r"(?<![\w/&])#(\d{2,6})(?!\d)")
+SQUASH_SUBJECT = re.compile(r"\(#(\d+)\)\s*$")
+CANONICAL_LINE = re.compile(r"^\s*-\s*\*\*canonical\b", re.I)
+
+
+#: بصمةُ محتوى (``sha256:a4938f37…`` لصورة MinIO) ليست commit — مراجعةُ Copilot على #1150: كانت
+#: تُدرج `MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01` بين غير المُصالَحة كذباً.
+DIGEST = re.compile(r"(?<![0-9A-Za-z_])[a-z][a-z0-9]*:[0-9a-f]{7,}…?")
+
+
+def _shas(text: str) -> list[str]:
+    # داخل ``code span`` وحده: النثرُ العربيّ لا يحمل hex، لكنّ المعرّفاتِ والأرقامَ قد تُشبهه.
+    return [
+        m
+        for span in re.findall(r"`([^`]+)`", text)
+        for m in STATUS_SHA.findall(DIGEST.sub(" ", span))
+    ]
+
+
+def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], reachable) -> list:
+    """``merges``: رقمُ PR ⇒ SHA دمجه الكامل على HEAD. ``reachable(sha)``: هل يُبلَغ من HEAD."""
+    del text  # السجلّاتُ تحمل سطورَ canonical مقروءةً بقواعد ``measure()`` (السياج)
+    out: list[dict] = []
+    for record in records:
+        status = ANNOTATION.sub("", record["status"])
+        repair = [sha for sha in _shas(status) if not reachable(sha)]
+        if not repair:
+            continue
+        zone = [status, *record["canonical"]]
+        if any(reachable(sha) for sha in _shas("\n".join(zone))):
+            continue
+        prs = sorted({int(n) for n in STATUS_PR.findall(status)})
+        out.append(
+            {
+                "id": record["id"],
+                "line": record["line"],
+                "repair_shas": repair,
+                "cited_pr_merges": {str(pr): merges[pr] for pr in prs if pr in merges},
+            }
+        )
+    return out
+
+
+def _git(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", *args], cwd=root, capture_output=True, text=True, encoding="utf-8", check=True
+    ).stdout
+
+
+def git_history(root: Path) -> tuple[dict[int, str], list[str]] | str:
+    """(دمجات الـPR على السلسلة الأولى، كلُّ SHA يُبلَغ من HEAD) — أو سببُ عدم القياس."""
+    try:
+        if _git(root, "rev-parse", "--is-shallow-repository").strip() == "true":
+            return "shallow_clone"
+        merges: dict[int, str] = {}
+        for line in _git(root, "log", "--first-parent", "--format=%H%x00%s", "HEAD").splitlines():
+            sha, _, subject = line.partition("\0")
+            match = SQUASH_SUBJECT.search(subject)
+            if match:
+                merges.setdefault(int(match.group(1)), sha)
+        return merges, sorted(_git(root, "rev-list", "HEAD").split())
+    except (OSError, subprocess.CalledProcessError):
+        return "no_git_history"
+
+
+def _prefix_lookup(all_shas: list[str]):
+    def reachable(sha: str) -> bool:
+        index = bisect.bisect_left(all_shas, sha.lower())
+        return index < len(all_shas) and all_shas[index].startswith(sha.lower())
+
+    return reachable
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
     parser.add_argument("path", nargs="?", default=str(REGISTRY))
     args = parser.parse_args()
-    report = measure(Path(args.path).read_text(encoding="utf-8"))
+    path = Path(args.path)
+    text = path.read_text(encoding="utf-8")
+    report = measure(text)
+    history = git_history(path.resolve().parent)
+    if isinstance(history, str):
+        report["provenance_measured"] = False
+        report["provenance_unmeasured_reason"] = history
+        report["unreconciled_fixed_provenance"] = None
+        report["unreconciled_fixed_provenance_count"] = None
+    else:
+        merges, all_shas = history
+        found = fixed_provenance(text, report["fixed_records"], merges, _prefix_lookup(all_shas))
+        report["provenance_measured"] = True
+        report["unreconciled_fixed_provenance"] = found
+        report["unreconciled_fixed_provenance_count"] = len(found)
     print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else report)
     return 0
 
