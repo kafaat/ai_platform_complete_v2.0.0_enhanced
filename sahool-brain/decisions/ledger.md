@@ -3593,4 +3593,4 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 
 **السبب:** (١) لو عُدّ أيُّ SHA في المدخل ربطاً لستر صفَّ #1149 نفسَه (`main@c56db557` في وصفه) — مقيس. (٢) في ٣ من ٧ صفوفٍ تذكر PR، الـSHA ينتمي إلى PR آخر — فـ«ألحِق commit دمج الـPR المذكور» كان سيكتب ربطاً خاطئاً. (٣) الحاجبُ هنا يُحمِّر كلَّ PR لاحقٍ بعد أيّ دمجٍ لم يُصالَح، أي يعاقب غيرَ صاحب الدين؛ والرفعُ إلى بوّابةٍ قرارُ المالك (شرطُ إغلاق الفجوة: «تقريراً أوّلاً»).
 
-**المصدر:** `scripts/ci/gap_registry_measure.py` (`fixed_provenance` · `git_history`) عند `5d1553f085518861759bbd0ac53ee0f7280ae564` (#PRNUM)؛ `tests/architecture/test_gap_registry_measure.py`.
+**المصدر:** `scripts/ci/gap_registry_measure.py` (`fixed_provenance` · `git_history`) عند `5d1553f085518861759bbd0ac53ee0f7280ae564` (PR #1150)؛ `tests/architecture/test_gap_registry_measure.py`.
