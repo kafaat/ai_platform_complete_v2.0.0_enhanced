@@ -3602,3 +3602,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** (١) #1151 يرقّي `tailwindcss` ^3.4.3 ⇒ ^4.3.3 تحت عنوان «source-map-js» فيحمرّ البناءُ (١٠ فحوص) لأنّ `postcss.config.js` و`src/index.css` من v3؛ والإصلاحُ داخل النطاقات مقيسٌ بـ`npm ci` نظيف (lint 0 أخطاء · typecheck · build · no-demo · bundle-budget). (٢) هجرةُ v4 تمسّ إعدادَ البناء وكلَّ الأنماط، فهي قرارُ نطاقٍ لا إصلاحٌ آليّ؛ والثغراتُ الباقية في أدوات البناء لا في الحزمة المنشورة. (٣) شاهدٌ أحمرُ لا يراه أحد هو صنفُ `UNIT-TEST-DORMANCY-01`، وتخطّيه يُخفيه ولا يُصلحه. وكلُّ دمجٍ تحت `/frontend/**` نشرٌ للواجهة ⇒ قرارُ المالك.
 
 **المصدر:** `frontend/package-lock.json` عند `4c8b33d9` (PR #1153) · `frontend/postcss.config.js` · `frontend/src/index.css` · #1151 · `.github/workflows/field-workspace-production-closure.yml:60`.
+
+## 2026-10-07 — شاهدا vitest البائتان يُحدَّثان لا يُتخطّيان، وإصلاحُ الجناح يُطوى في #1153
+
+**القرار:** الملفّان الأحمران يُحدَّثان ليحرسا الخاصّيّة نفسَها بعد التغيير المقصود (DDL في الهجرة لا الراوتر؛ `field_id` من FieldView بلا سياقٍ من العميل)، و`npm run test:ci` يصير خطوةً في وظيفة `frontend-typecheck` القائمة لا وظيفةً جديدة؛ والتغييرُ يُطوى في #1153 لا PR مستقلّ.
+
+**السبب:** كلاهما شاهدٌ لم يتبع تغييراً مقصوداً (#990 · #1007) — الشقيقُ `ChatbotAiContextPack.static.test.ts` حُدِّث في #1007 نفسه — فالتخطّي يُخفي وحذفُهما يُفقد الحراسة. والطيُّ لأنّ الفجوةَ سُجِّلت في #1153 (PR مستقلّ كان سيُكرّر الصفَّ أو يُشير إلى غائب) ولأنّ كليهما تحت `/frontend/**` ⇒ قرارُ نشرٍ واحد للمالك لا اثنان.
+
+**المصدر:** `e7b74622` (PR #1153) · `.github/workflows/ci.yml` (`frontend-typecheck`) · `migrations/v230_drawing_features.sql` · `frontend/src/sections/ChatbotAiContextPack.static.test.ts`.

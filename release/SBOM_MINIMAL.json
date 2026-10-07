@@ -2135,7 +2135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ca365fd7aeb836301a54934994f2992950bcdea7a8b23813a63654f81c7a04a"
+          "content": "5b379541a7a1bafa53fadb1ef015ec021060ea07c99a2b94e180a4cb7d177544"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
@@ -2645,7 +2645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c62a6c57f67b81cfd99899b28cbfdadfc3d6ec65a620bd52213da35843efc991"
+          "content": "728056181e877dac8eaaebef5eacead62d56e960d7c9f318bbcf9edeff6a7bd7"
         }
       ],
       "name": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
