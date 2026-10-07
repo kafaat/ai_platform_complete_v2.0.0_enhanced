@@ -116,6 +116,9 @@ def measure(text: str) -> dict:
     schema: list[str] | None = None
     schema_line: int | None = None
     fence: str | None = None
+    # مواضعُ تقرؤها ``fixed_provenance`` بالقاعدة نفسها: ما داخل سياجٍ مثالٌ لا سجلّ.
+    unfenced: set[int] = set()
+    section_ends: list[int] = []
     lines = text.splitlines()
     for number, line in enumerate(lines, 1):
         fence_match = FENCE.match(line)
@@ -132,11 +135,13 @@ def measure(text: str) -> dict:
             fence = fence_match.group("marker")
             schema = None
             continue
+        unfenced.add(number)
         if not line.startswith("|"):
             schema = None
             schema_line = None
         if re.match(r"^#{1,2}\s", line):
             current_heading = None
+            section_ends.append(number)
         deep = DEEP_HEADING.match(line)
         if deep:
             noncanonical_headings.append(
@@ -313,16 +318,24 @@ def measure(text: str) -> dict:
     # عناوين هذا السجلّ سردٌ تاريخيّ لا مدخلُ حالة، فحقلٌ يُحمِّر على الكلّ يُطفَأ
     # في أوّل أسبوع. والراتشِتُ في `docs/architecture/gap_heading_state_baseline.json`
     # يمنع **النموّ** ولا يدّعي أنّ ما فيه سليم — نفسُ عقد `fake_connection_debt`.
-    # ``BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01``: مواضعُ سجلّات fixed الحاليّة
-    # (الصفّ سطرُه، والقسمُ من عنوانه إلى العنوان التالي) — يقرؤها ``fixed_provenance``.
-    section_ends = [number for number, line in enumerate(lines, 1) if re.match(r"^#{1,2}\s", line)]
+    # ``BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01``: سجلّاتُ fixed الحاليّة وسطورُ
+    # ``canonical`` في أقسامها — يقرؤها ``fixed_provenance``. **وبقواعد هذه الدالّة نفسها**
+    # (مراجعةُ Copilot على #1150): حدُّ القسم عنوانٌ **خارج سياج**، وسطرُ canonical خارج سياج —
+    # وإلّا قطع `## مثال` مُسيَّجٌ القسمَ قبل ربطٍ حقيقيّ، أو ستر سطرٌ مُسيَّجٌ غيابَ الربط. والتاريخيُّ
+    # لا يُسقَط إلّا في سلسلةٍ مُراجَعة (``reviewed``)، كقاعدة الحالة أعلاه حرفاً — مدخلٌ تاريخيٌّ
+    # منفرد يبقى فعّالاً، فلا يكون الوسمُ طريقاً لإخفاء SHA غيرِ مُصالَح.
+    def _canonical(begin: int, end: int) -> list[str]:
+        return [
+            lines[n - 1]
+            for n in range(begin, end + 1)
+            if n in unfenced and CANONICAL_LINE.match(lines[n - 1])
+        ]
+
+    def _section_end(begin: int) -> int:
+        return next((n - 1 for n in section_ends if n > begin), len(lines))
+
     fixed_spans = [
-        {
-            "id": row["id"],
-            "line": row["line"],
-            "status": row["raw_state"],
-            "span": [row["line"], row["line"]],
-        }
+        {"id": row["id"], "line": row["line"], "status": row["raw_state"], "canonical": []}
         for row in gap_rows
         if row["state"] == "fixed"
     ] + [
@@ -330,13 +343,12 @@ def measure(text: str) -> dict:
             "id": item["id"],
             "line": item["line"],
             "status": item["raw_state"],
-            "span": [
-                item["heading_line"],
-                next((n - 1 for n in section_ends if n > item["heading_line"]), len(lines)),
-            ],
+            "canonical": _canonical(item["heading_line"], _section_end(item["heading_line"])),
         }
         for item in section_states
-        if item["kind"] == "gap" and item["state"] == "fixed" and item["entry_role"] != "historical"
+        if item["kind"] == "gap"
+        and item["state"] == "fixed"
+        and not (item["entry_role"] == "historical" and item["id"] in reviewed)
     ]
     stated_ids = {item["id"] for item in section_states}
     row_ids = {row["id"] for row in rows if row.get("id")}
@@ -460,22 +472,30 @@ SQUASH_SUBJECT = re.compile(r"\(#(\d+)\)\s*$")
 CANONICAL_LINE = re.compile(r"^\s*-\s*\*\*canonical\b", re.I)
 
 
+#: بصمةُ محتوى (``sha256:a4938f37…`` لصورة MinIO) ليست commit — مراجعةُ Copilot على #1150: كانت
+#: تُدرج `MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01` بين غير المُصالَحة كذباً.
+DIGEST = re.compile(r"(?<![0-9A-Za-z_])[a-z][a-z0-9]*:[0-9a-f]{7,}…?")
+
+
 def _shas(text: str) -> list[str]:
     # داخل ``code span`` وحده: النثرُ العربيّ لا يحمل hex، لكنّ المعرّفاتِ والأرقامَ قد تُشبهه.
-    return [m for span in re.findall(r"`([^`]+)`", text) for m in STATUS_SHA.findall(span)]
+    return [
+        m
+        for span in re.findall(r"`([^`]+)`", text)
+        for m in STATUS_SHA.findall(DIGEST.sub(" ", span))
+    ]
 
 
 def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], reachable) -> list:
     """``merges``: رقمُ PR ⇒ SHA دمجه الكامل على HEAD. ``reachable(sha)``: هل يُبلَغ من HEAD."""
-    lines = text.splitlines()
+    del text  # السجلّاتُ تحمل سطورَ canonical مقروءةً بقواعد ``measure()`` (السياج)
     out: list[dict] = []
     for record in records:
         status = ANNOTATION.sub("", record["status"])
         repair = [sha for sha in _shas(status) if not reachable(sha)]
         if not repair:
             continue
-        begin, end = record["span"]
-        zone = [status, *(line for line in lines[begin - 1 : end] if CANONICAL_LINE.match(line))]
+        zone = [status, *record["canonical"]]
         if any(reachable(sha) for sha in _shas("\n".join(zone))):
             continue
         prs = sorted({int(n) for n in STATUS_PR.findall(status)})

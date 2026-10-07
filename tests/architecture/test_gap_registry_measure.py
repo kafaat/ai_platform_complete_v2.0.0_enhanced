@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -457,7 +458,10 @@ def test_the_cli_maps_a_squash_merge_from_real_history_and_declares_a_shallow_cl
     (tmp_path / "fix.txt").write_text("fix\n", encoding="utf-8")
     git("add", "-A")
     git("commit", "-qm", "repair")
-    repair = git("rev-parse", "--short=8", "HEAD")
+    # SHA كامل لا مقطوع: ``STATUS_SHA`` يتجاهل الأرقام وحدها عمداً، و٨ خاناتٍ عشوائيّة تكون أرقاماً
+    # في ~٢٪ من التشغيلات فيسقط الشاهدُ والسلوكُ صحيح (مراجعةُ Copilot على #1150).
+    repair = git("rev-parse", "HEAD")
+    assert re.search("[a-f]", repair), repair
     git("checkout", "-q", "main")
     git("merge", "-q", "--squash", "fix")
     git("commit", "-qm", "repair (#77)")
@@ -505,3 +509,38 @@ def test_the_report_job_fetches_full_history_for_the_provenance_measure():
         step for step in report_job()["steps"] if "actions/checkout@" in step.get("uses", "")
     )
     assert checkout["with"]["fetch-depth"] == 0
+
+
+def test_a_fenced_heading_does_not_cut_a_section_before_its_real_canonical_line():
+    section = (
+        "## GAP-F-01 — x\n<!-- gap-registry: current -->\n"
+        "- **الحالة:** **fixed** (عند `0726a887`)\n"
+        "```markdown\n## مثال\n```\n"
+        "- **canonical على `main` (2026-10-06):** squash `ab07ceb8`\n"
+    )
+    assert _flagged(section) == []
+
+
+def test_a_fenced_canonical_line_is_not_a_link():
+    section = (
+        "## GAP-F-02 — x\n<!-- gap-registry: current -->\n"
+        "- **الحالة:** **fixed** (عند `0726a887`)\n"
+        "```markdown\n- **canonical على `main`:** squash `ab07ceb8`\n```\n"
+    )
+    assert [f["id"] for f in _flagged(section)] == ["GAP-F-02"]
+
+
+def test_a_lone_historical_entry_stays_in_the_provenance_report():
+    # التاريخيُّ يُسقَط في سلسلةٍ مُراجَعة وحدها، كقاعدة الحالة — لا بالوسم وحده.
+    section = (
+        "## GAP-H-01 — x\n<!-- gap-registry: historical -->\n"
+        "- **الحالة:** **fixed** (عند `0726a887`)\n"
+    )
+    assert [f["id"] for f in _flagged(section)] == ["GAP-H-01"]
+
+
+def test_a_content_digest_is_not_read_as_a_repair_commit():
+    # نصُّ حالة MinIO على `ab07ceb8` (registry.md:13): بصمةُ صورة، لا commit.
+    row = "| MINIO-01 | x | **fixed** (`minio/minio@sha256:a4938f37…` مُثبَّت) |\n"
+    assert _flagged(_HEAD + row) == []
+    assert mod()._shas("`sha256:a4938f37` و`0726a887`") == ["0726a887"]
