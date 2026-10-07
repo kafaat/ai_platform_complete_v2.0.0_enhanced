@@ -9108,6 +9108,12 @@ NDVI · `value`/`ndvi` مكان `mean` مع `scene_id` لا تحمله النق�
 
 > **2026-10-06 — `BRAIN-TRANSITION-GUARD-DIES-ON-ARABIC-DIFF-UNDER-C-LOCALE-01` fixed عند `0726a887`:** ظهرت في `preflight --full` على #1128 (خطوة ١٠، ٦ حالات) والملفّان مطابقان لـmain؛ الاستدعاءُ الرابع لـgit في الحارس صار UTF-8، وحالتا `c_locale` حمراوان بلا الإصلاح وخضراوان معه. المصدر: `scripts/ci/brain_state_transition_guard.py:361` · `tests_v9/test_brain_transition_guard_vocabulary.py`.
 
+> **2026-10-06 — `BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01` fixed عند `5d1553f0`:** بلاغُ المالك بعد دمج #1149 (صفُّه يذكر `0726a887` المُسحَق والـcanonical `ab07ceb8`، والقياسُ أخضر). وُسِّع `gap_registry_measure` بحقل `unreconciled_fixed_provenance`؛ ٤٩ على `main@ab07ceb8` ⇒ ٤٤ صُولحت إلحاقاً (الحالاتُ `fixed 269 · open 112 · verified 3` لم تتغيّر) و٥ بلا PR. المصدر: `scripts/ci/gap_registry_measure.py` · `tests/architecture/test_gap_registry_measure.py` · `.github/workflows/capability-governance.yml`.
+
+> **2026-10-07 — مراجعةُ Copilot على PR #1150 (أربعُ ملاحظاتٍ حقيقيّة) أُصلحت عند `4addb0a2`:** السياجُ في حدّ القسم وسطرِ canonical · التاريخيُّ داخل سلسلةٍ مُراجَعة وحدها · بصمةُ `sha256:` ليست commit (صفُّ MinIO كاذب) · شاهدُ التاريخ بـSHA كامل. وصُولحت البقيّةُ الأربع (٣ ⇒ #985 `d95b8eaf` من رسائل إعادة الكتابة، و`268f33c` غيرُ موجودٍ بعيداً ⇒ #997 `62fc7b01` من المحتوى) ⇒ `unreconciled_fixed_provenance_count = 0`. وفشلُ `brain_append_only` على `09e0d093` (رقمُ الـPR أنقص بايتاً) أُعيد تشكيلُه في `7680b76a` لا بالتزامٍ لاحق.
+
+> **2026-10-07 — provenance #1150 بعد دمجه:** دُمج squash عند `c1e5fabaea4b0b0e9760c59a61b5d9e2633ec9ec` (شجرةُ main = الرأسُ المُختبَر `e3fb62d9`). القياسُ الجديد على `main` أبلغ عن صفّ الفجوة الأمّ وحده (SHA الإصلاح `5d1553f0` مُسحَق، والتلميحُ `#1150 ⇒ c1e5faba` صحيح) — أُلحق به سطرُ canonical ⇒ 0. المصدر: `scripts/ci/gap_registry_measure.py --json` على `c1e5faba`.
+
 > **2026-10-06 — سجلٌّ متأخّرُ الدمج (#1128):** السطرُ التالي كُتب في 2026-10-03 ودُمج بعد أيّام؛ أُلحق في الذيل حفاظاً على الإلحاق، بنصّه كما كُتب.
 
 > **2026-10-02 — `VEGETATION-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01`: صورةٌ تتحقّق بـRS256 بلا مزوّد RSA.** بعد قياس المنصّة حيّاً (#1122) مسحتُ الصنف: ملفّاتُ المتطلّبات التي فيها `PyJWT` مع شيفرةٍ تذكر RS256 بلا سطر مزوّد ⇒ المنصّة (في #1122) · `vegetation-analysis-service` · `actuator-service` (في فرعه المستقلّ). حلُّ تبعيّات صورة الغطاء النباتيّ بلا `cryptography` ⇒ يفسّر 401 الدائمة في staging؛ أُصلح بسابقة guardrails واختبارٍ يحمرّ بلا الإصلاح.
