@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11281327967f214d4a9d8e31edc6ca6174fdb9530c244061f3d7595ddbf64bb0"
+          "content": "7c96f220e9bbac6b180c0894872a61eae3da8dfb68ce50eadffc0f7a976042a4"
         }
       ],
       "name": "frontend/package-lock.json",
