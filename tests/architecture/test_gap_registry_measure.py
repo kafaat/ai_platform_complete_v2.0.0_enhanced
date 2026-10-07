@@ -421,9 +421,13 @@ def test_a_section_is_linked_by_its_canonical_line_not_by_any_sha_in_its_body():
 
 
 def test_an_open_row_and_a_historical_entry_are_not_provenance_findings():
-    text = _HEAD + "| GAP-A-01 | x | **open** (`0726a887`) |\n" + (
-        "## GAP-C-01\n<!-- gap-registry: historical -->\n- **الحالة:** fixed (`0726a887`)\n"
-        "## GAP-C-01\n<!-- gap-registry: current -->\n- **الحالة:** fixed (`c56db557`)\n"
+    text = (
+        _HEAD
+        + "| GAP-A-01 | x | **open** (`0726a887`) |\n"
+        + (
+            "## GAP-C-01\n<!-- gap-registry: historical -->\n- **الحالة:** fixed (`0726a887`)\n"
+            "## GAP-C-01\n<!-- gap-registry: current -->\n- **الحالة:** fixed (`c56db557`)\n"
+        )
     )
     assert _flagged(text) == []
 
@@ -432,7 +436,10 @@ def _repo(tmp_path):
     def git(*args, cwd=tmp_path):
         return subprocess.run(
             ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
-            cwd=cwd, check=True, capture_output=True, encoding="utf-8",
+            cwd=cwd,
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
         ).stdout.strip()
 
     return git
@@ -462,9 +469,15 @@ def test_the_cli_maps_a_squash_merge_from_real_history_and_declares_a_shallow_cl
 
     def run(cwd):
         out = subprocess.run(
-            ["python3", str(ROOT / "scripts/ci/gap_registry_measure.py"), "--json",
-             str(cwd / "sahool-brain/gaps/registry.md")],
-            capture_output=True, encoding="utf-8", check=True,
+            [
+                "python3",
+                str(ROOT / "scripts/ci/gap_registry_measure.py"),
+                "--json",
+                str(cwd / "sahool-brain/gaps/registry.md"),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
         ).stdout
         return json.loads(out)
 
@@ -478,7 +491,8 @@ def test_the_cli_maps_a_squash_merge_from_real_history_and_declares_a_shallow_cl
     shallow = tmp_path.parent / "shallow"
     subprocess.run(
         ["git", "clone", "-q", "--depth", "1", f"file://{tmp_path}", str(shallow)],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     report = run(shallow)
     assert report["provenance_measured"] is False

@@ -315,20 +315,26 @@ def measure(text: str) -> dict:
     # يمنع **النموّ** ولا يدّعي أنّ ما فيه سليم — نفسُ عقد `fake_connection_debt`.
     # ``BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01``: مواضعُ سجلّات fixed الحاليّة
     # (الصفّ سطرُه، والقسمُ من عنوانه إلى العنوان التالي) — يقرؤها ``fixed_provenance``.
-    section_ends = [
-        number for number, line in enumerate(lines, 1) if re.match(r"^#{1,2}\s", line)
-    ]
+    section_ends = [number for number, line in enumerate(lines, 1) if re.match(r"^#{1,2}\s", line)]
     fixed_spans = [
-        {"id": row["id"], "line": row["line"], "status": row["raw_state"],
-         "span": [row["line"], row["line"]]}
+        {
+            "id": row["id"],
+            "line": row["line"],
+            "status": row["raw_state"],
+            "span": [row["line"], row["line"]],
+        }
         for row in gap_rows
         if row["state"] == "fixed"
     ] + [
-        {"id": item["id"], "line": item["line"], "status": item["raw_state"],
-         "span": [
-             item["heading_line"],
-             next((n - 1 for n in section_ends if n > item["heading_line"]), len(lines)),
-         ]}
+        {
+            "id": item["id"],
+            "line": item["line"],
+            "status": item["raw_state"],
+            "span": [
+                item["heading_line"],
+                next((n - 1 for n in section_ends if n > item["heading_line"]), len(lines)),
+            ],
+        }
         for item in section_states
         if item["kind"] == "gap" and item["state"] == "fixed" and item["entry_role"] != "historical"
     ]
