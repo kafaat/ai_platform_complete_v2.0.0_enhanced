@@ -3594,3 +3594,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** (١) لو عُدّ أيُّ SHA في المدخل ربطاً لستر صفَّ #1149 نفسَه (`main@c56db557` في وصفه) — مقيس. (٢) في ٣ من ٧ صفوفٍ تذكر PR، الـSHA ينتمي إلى PR آخر — فـ«ألحِق commit دمج الـPR المذكور» كان سيكتب ربطاً خاطئاً. (٣) الحاجبُ هنا يُحمِّر كلَّ PR لاحقٍ بعد أيّ دمجٍ لم يُصالَح، أي يعاقب غيرَ صاحب الدين؛ والرفعُ إلى بوّابةٍ قرارُ المالك (شرطُ إغلاق الفجوة: «تقريراً أوّلاً»).
 
 **المصدر:** `scripts/ci/gap_registry_measure.py` (`fixed_provenance` · `git_history`) عند `5d1553f085518861759bbd0ac53ee0f7280ae564` (PR #1150)؛ `tests/architecture/test_gap_registry_measure.py`.
+
+## 2026-10-07 — أمنُ قفل الواجهة: إصلاحٌ داخل النطاقات لا ترقيةٌ رئيسيّة؛ هجرةُ tailwind v4 مؤجَّلة للمالك؛ وجناحُ vitest يُغلَق بوظيفةٍ حاجبة
+
+**القرار:** (١) يُصلَح قفلُ `frontend/` بـ`npm audit fix --package-lock-only` **بلا `--force`** (عند `4c8b33d9`، PR #1153) — 15 ⇒ 7 و`package.json` بلا تغيير — ولا يُدمج Dependabot #1151. (٢) الـ٧ الباقية (سلسلةُ tailwind v3) تُترك open حتّى يقرّر المالكُ هجرةَ v4 كشريحةٍ مستقلّة بشاهدٍ بصريّ. (٣) `FRONTEND-VITEST-SUITE-NEVER-RUNS-IN-CI-01` لا تُغلَق إلّا بوظيفةٍ حاجبة تُشغّل `test:ci` بعد تصحيح الملفّين الأحمرين أو تسبيبهما — لا بتخطّيهما.
+
+**السبب:** (١) #1151 يرقّي `tailwindcss` ^3.4.3 ⇒ ^4.3.3 تحت عنوان «source-map-js» فيحمرّ البناءُ (١٠ فحوص) لأنّ `postcss.config.js` و`src/index.css` من v3؛ والإصلاحُ داخل النطاقات مقيسٌ بـ`npm ci` نظيف (lint 0 أخطاء · typecheck · build · no-demo · bundle-budget). (٢) هجرةُ v4 تمسّ إعدادَ البناء وكلَّ الأنماط، فهي قرارُ نطاقٍ لا إصلاحٌ آليّ؛ والثغراتُ الباقية في أدوات البناء لا في الحزمة المنشورة. (٣) شاهدٌ أحمرُ لا يراه أحد هو صنفُ `UNIT-TEST-DORMANCY-01`، وتخطّيه يُخفيه ولا يُصلحه. وكلُّ دمجٍ تحت `/frontend/**` نشرٌ للواجهة ⇒ قرارُ المالك.
+
+**المصدر:** `frontend/package-lock.json` عند `4c8b33d9` (PR #1153) · `frontend/postcss.config.js` · `frontend/src/index.css` · #1151 · `.github/workflows/field-workspace-production-closure.yml:60`.
