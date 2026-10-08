@@ -73,7 +73,7 @@ describe('v33/v34/v35 drawing phases — pivot, topology, agricultural workflows
     expect(pivot.validation?.valid).toBe(true);
   });
 
-  it('builds ring-3 drafts for variable-rate pivot management', () => {
+  it('builds ring drafts for variable-rate pivot management', () => {
     const rings = buildPivotRings({ center: [44.05, 15.05], radiusM: 600, ringCount: 4, fieldId: 'field-parent' });
     expect(rings).toHaveLength(4);
     expect(rings[0].properties.ringIndex).toBe(1);

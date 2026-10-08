@@ -131,9 +131,24 @@
     "note": "run with PW_CHROMIUM_PATH=/opt/pw-browsers/chromium (project pin expects headless-shell 1228 absent in sandbox)"
   },
   "unit": {
-    "vitest": "203 files / 1372 tests",
-    "guard": "src/spaceYCompat.static.test.ts — 5 contracts, 5 mutations red (unlayered rule · reset in utilities · missing space-y value · space-y variant · new divide-* site)"
+    "vitest": "204 files / 1377 tests on the certified SHA (203/1372 before the guard file was added)",
+    "guard": "src/spaceYCompat.static.test.ts — 5 contracts, 6 mutations red (unlayered rule · reset in utilities · missing space-y value · space-y variant · new divide-* site · negative -space-y-*)"
   },
   "npm_audit": "0 vulnerabilities (was 7: tailwindcss v3 chain)",
-  "retained_locally_not_committed": "frontend/.tw-compare/{baseline,out-*,report-*,styles-*,pseudo-*} (git-excluded harness)"
+  "retained_locally_not_committed": "frontend/.tw-compare/{baseline,out-*,report-*,styles-*,pseudo-*} (git-excluded harness)",
+  "codemod_prose_rewrite_scan": {
+    "method": "every changed line of the @tailwindcss/upgrade diff (frontend/src, 209 lines) checked for a renamed token outside a class-string context",
+    "flagged": 8,
+    "legitimate": [
+      "components/shell/ContextBar.tsx (class-string constant)",
+      "components/maphub/InteractiveDrawLayer.test.ts (source-text assertion rewritten consistently with its target)"
+    ],
+    "accidental_restored": [
+      "lib/designSystemGovernance.ts: 'shadow-sm' → 'shadow' (DesignTokenDomain union, token domain, required list)",
+      "sections/SpatialIndicatorsPage.tsx: transition \"outline-solid .2s\" → \"outline .2s\"",
+      "lib/driftZones.test.ts: test title 'ring-3' → 'ring'",
+      "components/maphub/drawing/DrawingRemainingPhases.test.ts: test title 'ring-3' → 'ring'"
+    ],
+    "found_by": "Copilot review on PR #1156, then confirmed exhaustive by the scan"
+  }
 }

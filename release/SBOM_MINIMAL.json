@@ -2115,7 +2115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40a10f813f8a693381ccc6a57040acd130ef20ff843945a7e543f656e296c49d"
+          "content": "7052d650f79bf6114ebe53dae5fe91a70b271cfb217e309d9d4da402b8b3eb24"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.test.ts",
@@ -3355,7 +3355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85ab5a97cdc475f0d70ababcec406a82ad86ea0cb7fdb8dac429164d0df808a7"
+          "content": "520e0fef030511fcb0cdcd8ac3f8d29e149f26860195a2a8754af6d77c1936ff"
         }
       ],
       "name": "frontend/src/lib/designSystemGovernance.ts",
@@ -3385,7 +3385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "536903f8ea31c59e901f61ae5953082f37f51b44c0a92a6e719758753b2c458a"
+          "content": "c3d836644d83d71d8ce3fca532ba4cab32d4655082ed9bda98cefe22cfa31b83"
         }
       ],
       "name": "frontend/src/lib/driftZones.test.ts",
@@ -6125,7 +6125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76fe8460c8ef13d07645611d4215c292e69c40fb605adea6eaf8b2a57d4211b5"
+          "content": "c2ca2637be29cd8fa12297d886df75d21600fa861c2fcfdcf9ff131ddf946df6"
         }
       ],
       "name": "frontend/src/sections/SpatialIndicatorsPage.tsx",
@@ -6665,7 +6665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd62b9ba7f4ae9f2760860d22233e0fb655dcc918bfa0ea9a09b10a51a555e82"
+          "content": "0c5d35089699983b5e77c0a48ecd1df377d81f7ad1d5c73f4bd10d903c7e1901"
         }
       ],
       "name": "frontend/src/spaceYCompat.static.test.ts",

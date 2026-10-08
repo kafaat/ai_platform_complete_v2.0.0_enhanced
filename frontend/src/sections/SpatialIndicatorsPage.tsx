@@ -425,7 +425,7 @@ export default function SpatialView() {
                     style={{
                       background: pixelColor(v, activeKey), borderRadius: 2,
                       outline: inSel ? "2px solid #fff" : inZone ? "1px solid rgba(255,255,255,.5)" : "none",
-                      outlineOffset: -1, transition: "outline-solid .2s",
+                      outlineOffset: -1, transition: "outline .2s",
                     }} />
                 );
               }))}

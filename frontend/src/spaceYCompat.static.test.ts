@@ -40,14 +40,14 @@ function topLevelPreludes(text: string): string[] {
   return preludes.filter(Boolean);
 }
 
-const SPACE_Y = /(?:^|[\s'"`])((?:[a-z0-9-]+:)*)(-?space-([xy])-([0-9.]+|px|reverse|\[[^\]]+\]))/g;
+const SPACE_Y = /(?:^|[\s'"`])((?:[a-z0-9-]+:)*)((-?)space-([xy])-([0-9.]+|px|reverse|\[[^\]]+\]))/g;
 
 function usedSpaceClasses() {
-  const found: { file: string; variant: string; axis: string; value: string }[] = [];
+  const found: { file: string; variant: string; negative: boolean; axis: string; value: string }[] = [];
   for (const file of sourceFiles(join(root, 'src'))) {
     const text = readFileSync(file, 'utf8');
     for (const m of text.matchAll(SPACE_Y)) {
-      found.push({ file: file.slice(root.length + 1), variant: m[1], axis: m[3], value: m[4] });
+      found.push({ file: file.slice(root.length + 1), variant: m[1], negative: m[3] === '-', axis: m[4], value: m[5] });
     }
   }
   return found;
@@ -95,12 +95,13 @@ describe('Tailwind v4 cascade contract (src/index.css)', () => {
     expect(uses.sort()).toEqual(['src/sections/MyFieldsPage.tsx×2']);
   });
 
-  it('uses no responsive/state space-* variant and no space-x (the compat layer covers neither)', () => {
+  it('uses no responsive/state space-* variant, no space-x, and no negative space-* (the compat layer covers none)', () => {
     // `md:space-y-*` يتطلّب سطرَ توافقٍ داخل الوسيط نفسه، و`space-x-*` في v4 منطقيٌّ (inline)
-    // فيتغيّر اتّجاهُه في واجهةٍ RTL — كلاهما قرارٌ صريح لا إضافةٌ صامتة.
+    // فيتغيّر اتّجاهُه في واجهةٍ RTL، و`-space-y-*` السالب لا قاعدةَ توافقٍ له (الإشارةُ تُحفَظ هنا كي
+    // لا يمرّ `-space-y-2` متخفّياً بتغطية `space-y-2`) — كلُّها قرارٌ صريح لا إضافةٌ صامتة.
     const offenders = usedSpaceClasses()
-      .filter((u) => u.variant !== '' || u.axis === 'x')
-      .map((u) => `${u.file}: ${u.variant}space-${u.axis}-${u.value}`);
+      .filter((u) => u.variant !== '' || u.axis === 'x' || u.negative)
+      .map((u) => `${u.file}: ${u.variant}${u.negative ? '-' : ''}space-${u.axis}-${u.value}`);
     expect(offenders).toEqual([]);
   });
 });

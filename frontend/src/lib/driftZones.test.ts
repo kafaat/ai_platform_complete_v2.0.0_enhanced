@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { centroidOf, haversineKm, neighborZones, type FieldLike } from './driftZones';
 
 describe('driftZones helpers', () => {
-  it('centroidOf prefers lat/lon then falls back to geometry ring-3 average', () => {
+  it('centroidOf prefers lat/lon then falls back to geometry ring average', () => {
     expect(centroidOf({ id: 'a', lat: 15, lon: 45 })).toEqual({ lat: 15, lon: 45 });
     const poly: FieldLike = {
       id: 'b',
