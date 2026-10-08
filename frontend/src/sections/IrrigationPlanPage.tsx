@@ -330,7 +330,7 @@ export default function IrrigationPlanPage() {
 
           {/* 5) Uncalibrated banner (rich) */}
           <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <div className="text-sm font-semibold text-amber-200">🟡 نموذج غير مُعاير — اعتمد على:</div>
               {uncalibReasons(res).map((n, i) => (

@@ -645,7 +645,7 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
                           <div key={m.metric} className="text-[11px]" style={{ color: T.muted }}>
                             <span className="font-semibold" style={{ color: T.ink }}>{m.label_ar}</span>: {fmtNum(m.previous, 2)} → {fmtNum(m.current, 2)} {trendArrow(m.direction)}
                             {m.percent_change != null && <span style={{ color: T.faint }}> ({fmtNum(m.percent_change, 1)}٪)</span>}
-                            {m.better != null && <span className="px-1 rounded" style={{ color: bb.color }}> {bb.label_ar}</span>}
+                            {m.better != null && <span className="px-1 rounded-sm" style={{ color: bb.color }}> {bb.label_ar}</span>}
                           </div>
                         );
                       })}

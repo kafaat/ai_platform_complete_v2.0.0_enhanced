@@ -239,7 +239,7 @@ export default function SQLEditor() {
             onKeyDown={(e) => { if (e.key === 'Enter') generateFromNl(); }}
             placeholder="مثال: حقول القمح التي مساحتها أكبر من 50 هكتاراً"
             aria-label="سؤال باللغة الطبيعيّة"
-            className="flex-1 min-w-[14rem] rounded-lg px-3 py-2 text-sm"
+            className="flex-1 min-w-56 rounded-lg px-3 py-2 text-sm"
             style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
           />
           <button

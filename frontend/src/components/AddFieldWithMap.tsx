@@ -1160,7 +1160,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const selectedBasemapMaxZoom = selectedBasemap?.maxZoom ?? 19;
 
   return (
-    <div className="fixed inset-0 z-[1200] flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
+    <div className="fixed inset-0 z-1200 flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
       {/* Top bar (ملء العرض): العنوان + التبويبات على جهة البداية، تبديل الطبقة + الإغلاق على جهة النهاية */}
       <header className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor:'#334155', background:'#1e293b' }}>
         <div className="flex items-center gap-3">
@@ -1201,7 +1201,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               value={tileType}
               onChange={(e) => setTileType(e.target.value)}
               title="اختر خلفية الخريطة للرسم والمراجعة — التحليل يبقى عبر Sentinel/COG"
-              className="px-2 py-1 rounded text-xs border bg-slate-900"
+              className="px-2 py-1 rounded-sm text-xs border bg-slate-900"
               style={{ borderColor:'#334155', color:'#cbd5e1' }}
             >
               {ADD_FIELD_BASEMAPS.map((layer) => (
@@ -1209,7 +1209,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               ))}
             </select>
           )}
-          <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400">
+          <button onClick={onCancel} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -1450,7 +1450,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                         الموقع: <strong className="text-slate-200">{autoCountry || '—'}</strong>
                         {autoRegion ? <> · <strong className="text-slate-200">{autoRegion}</strong></> : null}
                       </span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px]"
+                      <span className="px-1.5 py-0.5 rounded-sm text-[10px]"
                         style={{ background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a44' }}>
                         تلقائيّ
                       </span>
@@ -1463,7 +1463,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       style={{ background:'#1a1400', border:'1px solid #ca8a0444', color:'#fbbf24' }}>
                       {drawIssues.map((iss, i) => (
                         <div key={i} className="flex items-center gap-2">
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                           <span>{iss.message}</span>
                         </div>
                       ))}
@@ -1605,7 +1605,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               {/* شريط أدوات الرسم على الخريطة (أعلى اليمين، تحت زرّ المضلّع في شريط
                   leaflet-draw): الدائرة والمستطيل المُدار ظاهران حيث يتوقّعهما المستخدم. */}
               {stage === 'draw' && (
-                <div className="absolute top-12 right-2 z-[1000] flex flex-col gap-1.5" dir="rtl">
+                <div className="absolute top-12 right-2 z-1000 flex flex-col gap-1.5" dir="rtl">
                   <button
                     type="button"
                     aria-pressed={drawTool === 'circle'}
@@ -1660,7 +1660,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               {/* شريط إجراءات على الخريطة: تراجع/إعادة عن تعديلات الشكل + إلغاء —
                   متاح حيث يحرّر المستخدم الحدّ (إضافةً لأزرار لوحة النموذج). */}
               {(polygon || drawTool) && (
-                <div className="absolute bottom-3 left-3 z-[1000] flex items-center gap-1.5" dir="rtl">
+                <div className="absolute bottom-3 left-3 z-1000 flex items-center gap-1.5" dir="rtl">
                   {polygon && (
                     <>
                       <button

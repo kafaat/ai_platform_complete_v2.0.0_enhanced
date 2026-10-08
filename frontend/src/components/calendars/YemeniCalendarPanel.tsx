@@ -37,7 +37,7 @@ export default function YemeniCalendarPanel() {
               type="date"
               value={dateIso}
               onChange={(e) => setDateIso(e.target.value)}
-              className="rounded bg-slate-800 px-2 py-1 text-slate-100"
+              className="rounded-sm bg-slate-800 px-2 py-1 text-slate-100"
             />
           </label>
           <input
@@ -45,7 +45,7 @@ export default function YemeniCalendarPanel() {
             placeholder="المحافظة (اختياريّ)"
             value={governorate}
             onChange={(e) => setGovernorate(e.target.value)}
-            className="rounded bg-slate-800 px-2 py-1 text-sm text-slate-100"
+            className="rounded-sm bg-slate-800 px-2 py-1 text-sm text-slate-100"
           />
         </div>
 

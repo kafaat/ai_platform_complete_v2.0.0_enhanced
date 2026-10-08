@@ -120,7 +120,7 @@ export default function RecommendationsLifecyclePanel() {
                     {engineStatusLabel(eff)}
                   </span>
                   <span style={{ color: T.ink }}>{e.name_ar}</span>
-                  <span className="px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: engineCategoryColor(e.category) }}>
+                  <span className="px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: engineCategoryColor(e.category) }}>
                     {engineCategoryLabel(e.category)}
                   </span>
                   <span className="font-mono" style={{ color: T.faint }}>{e.id}</span>
@@ -171,7 +171,7 @@ export default function RecommendationsLifecyclePanel() {
       <section className="rounded-2xl border p-3 md:col-span-2" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
         <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
           <Sprout className="w-4 h-4 text-emerald-300" aria-hidden="true" /> بدائل زراعيّة حسب هدفك
-          <span className="text-[11px] font-normal px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
+          <span className="text-[11px] font-normal px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
             اقتراح لا فرض — الترتيب توجيه والقرار للمزارع
           </span>
         </div>
@@ -257,10 +257,10 @@ export default function RecommendationsLifecyclePanel() {
                 <span className="font-semibold" style={{ color: T.ink }}>#{c.rank} {c.name_ar}</span>
                 {/* الدرجة كما أرسلها الخادم — لا إعادة تقريب تُغيّر القيمة */}
                 <span style={{ color: T.faint }}>درجة {scoreLabel(c.score)}</span>
-                <span className="px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: suitedColor(c.is_suited) }}>
+                <span className="px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: suitedColor(c.is_suited) }}>
                   {suitedLabel(c.is_suited)}
                 </span>
-                {c.highlighted && <span className="px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: '#86efac' }}>ضمن المُقترَح</span>}
+                {c.highlighted && <span className="px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: '#86efac' }}>ضمن المُقترَح</span>}
                 {c.flags_ar.map((f) => <span key={f} style={{ color: '#fdba74' }}>⚠ {f}</span>)}
               </div>
             ))}
@@ -301,7 +301,7 @@ export default function RecommendationsLifecyclePanel() {
               <div>{econ.investment_posture_ar} <span style={{ color: T.faint }}>— الأولويّة: {econ.economic_priority_ar}</span></div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {econ.adapted_options.map((o, i) => (
-                  <span key={i} className="px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: T.ink }}>
+                  <span key={i} className="px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: T.ink }}>
                     #{i + 1} {dash((o.name_ar ?? o.crop_id) as string)}
                     <span style={{ color: T.faint }}> · تكلفة {levelLabel(o.upfront_cost_level as string | undefined)}</span>
                   </span>
@@ -319,7 +319,7 @@ export default function RecommendationsLifecyclePanel() {
       <section className="rounded-2xl border p-3 md:col-span-2" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
         <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
           <ClipboardCheck className="w-4 h-4 text-violet-300" aria-hidden="true" /> تسجيل نتيجة توصية
-          <span className="text-[11px] font-normal px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
+          <span className="text-[11px] font-normal px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
             يُسجَّل المُرسَل فقط — لا اختراع؛ النتيجة مجهولة حتى تُقاس
           </span>
         </div>

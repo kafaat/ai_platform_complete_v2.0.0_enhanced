@@ -1,4 +1,4 @@
-export type DesignTokenDomain = 'color' | 'radius' | 'shadow' | 'spacing' | 'font' | 'motion';
+export type DesignTokenDomain = 'color' | 'radius' | 'shadow-sm' | 'spacing' | 'font' | 'motion';
 export type DesignGovernanceSeverity = 'ok' | 'info' | 'warn' | 'critical';
 
 export interface DesignTokenContract {
@@ -40,7 +40,7 @@ export const SAHOOL_TOKEN_CONTRACTS: DesignTokenContract[] = [
   { name: 'sahool-radius-sm', domain: 'radius', cssVar: '--sahool-radius-sm', purpose: 'زوايا مدمجة للجوال', agentHint: 'استخدم radius tokens بدلاً من أرقام عشوائية.' },
   { name: 'sahool-radius-md', domain: 'radius', cssVar: '--sahool-radius-md', purpose: 'زوايا البطاقة الافتراضية', agentHint: 'القيمة الافتراضية للبطاقات.' },
   { name: 'sahool-radius-lg', domain: 'radius', cssVar: '--sahool-radius-lg', purpose: 'زوايا اللوحات الكبيرة', agentHint: 'للـ dashboards/panels لا للأزرار الصغيرة.' },
-  { name: 'sahool-shadow-soft', domain: 'shadow', cssVar: '--sahool-shadow-soft', purpose: 'ظلّ موحد للبطاقات', agentHint: 'لا تنسخ box-shadow جديداً في كل شاشة.' },
+  { name: 'sahool-shadow-soft', domain: 'shadow-sm', cssVar: '--sahool-shadow-soft', purpose: 'ظلّ موحد للبطاقات', agentHint: 'لا تنسخ box-shadow جديداً في كل شاشة.' },
   { name: 'sahool-page-pad', domain: 'spacing', cssVar: '--sahool-page-pad', purpose: 'حافة الصفحة المتجاوبة', agentHint: 'استخدمه في صفحات FieldView بدلاً من padding ثابت.' },
   { name: 'font-ar', domain: 'font', cssVar: '--font-ar', purpose: 'خط عربي موحد', agentHint: 'التزم بالخط العربي المعلن بدلاً من system-ui مباشر.' },
   { name: 'motion-reduced', domain: 'motion', purpose: 'احترام prefers-reduced-motion', value: '@media (prefers-reduced-motion: reduce)', agentHint: 'أي animation جديدة يجب أن تكون قابلة للإطفاء ضمن media query.' },
@@ -74,7 +74,7 @@ export const SAHOOL_COMPONENT_CONTRACTS: DesignComponentContract[] = [
 ];
 
 function missingDomains(tokens: DesignTokenContract[]): DesignTokenDomain[] {
-  const required: DesignTokenDomain[] = ['color', 'radius', 'shadow', 'spacing', 'font', 'motion'];
+  const required: DesignTokenDomain[] = ['color', 'radius', 'shadow-sm', 'spacing', 'font', 'motion'];
   const present = new Set(tokens.map((token) => token.domain));
   return required.filter((domain) => !present.has(domain));
 }

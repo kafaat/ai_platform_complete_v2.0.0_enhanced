@@ -217,7 +217,7 @@ function ReplayBody({
     <div className="space-y-6">
       {/* ── بانر الصدق/المصدر (provenance) — كهرمانيّ ── */}
       <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-        <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
         <div className="space-y-1">
           <div className="text-sm font-semibold text-amber-200">🟡 خطّ زمنيّ من سجلّات مُدامة فقط — لا تاريخ مخترَع</div>
           <div className="text-[12px] text-amber-300/80">{data.provenance.note_ar}</div>
@@ -250,7 +250,7 @@ function ReplayBody({
                 className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
                 style={{ background: '#1e293b', borderColor: '#334155' }}
               >
-                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: meta.color }} aria-hidden="true" />
+                <span className="w-3 h-3 rounded-full shrink-0" style={{ background: meta.color }} aria-hidden="true" />
                 <span className="text-[12px] text-slate-200">{t.track_ar}</span>
                 <span className="text-[11px] text-slate-400">
                   {count > 0 ? `${count}` : '0 — لا أحداث'}
@@ -301,7 +301,7 @@ function ReplayBody({
                 type="button"
                 onClick={() => setScrub(0)}
                 aria-label="الانتقال إلى بداية الموسم"
-                className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+                className="rounded-sm border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
               >
                 بداية الموسم
               </button>
@@ -309,7 +309,7 @@ function ReplayBody({
                 type="button"
                 onClick={() => setScrub(1)}
                 aria-label="الانتقال إلى نهاية الموسم"
-                className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+                className="rounded-sm border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
               >
                 نهاية الموسم
               </button>
@@ -333,12 +333,12 @@ function ReplayBody({
                 return (
                   <div key={t.track} className="flex items-center gap-3">
                     {/* تسمية المسار (ثابتة العرض) */}
-                    <span className="text-[11px] w-24 flex-shrink-0 flex items-center gap-1" style={{ color: meta.color }}>
+                    <span className="text-[11px] w-24 shrink-0 flex items-center gap-1" style={{ color: meta.color }}>
                       {meta.icon}
                       <span className="truncate">{t.track_ar}</span>
                     </span>
                     {/* مسار النقاط — موضع كلّ نقطة بكسر تاريخها؛ RTL ⇒ نضع right بالكسر */}
-                    <div className="relative flex-1 h-6 rounded" style={{ background: '#1e293b' }}>
+                    <div className="relative flex-1 h-6 rounded-sm" style={{ background: '#1e293b' }}>
                       {trackEvents.length === 0 ? (
                         <span className="absolute inset-0 flex items-center justify-center text-[10px] text-slate-600">
                           لا أحداث
@@ -389,13 +389,13 @@ function ReplayBody({
                     className="flex items-center gap-3 rounded-lg border p-2.5 text-sm"
                     style={{ background: '#1e293b', borderColor: '#25303f' }}
                   >
-                    <span className="text-[11px] text-slate-500 w-24 flex-shrink-0 flex items-center gap-1" dir="ltr">
+                    <span className="text-[11px] text-slate-500 w-24 shrink-0 flex items-center gap-1" dir="ltr">
                       <Clock className="w-3 h-3" aria-hidden="true" />
                       {dayOf(ev.date)}
                     </span>
                     <TrackBadge track={ev.track} track_ar={ev.track_ar} />
                     <span className="text-slate-200 flex-1 min-w-0 truncate">{ev.label_ar}</span>
-                    <span className="text-[12px] text-slate-400 font-mono flex-shrink-0" dir="ltr">{valueText(ev.value)}</span>
+                    <span className="text-[12px] text-slate-400 font-mono shrink-0" dir="ltr">{valueText(ev.value)}</span>
                   </li>
                 ))}
               </ol>

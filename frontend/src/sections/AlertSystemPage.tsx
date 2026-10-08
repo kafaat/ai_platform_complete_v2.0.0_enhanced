@@ -173,7 +173,7 @@ export function AlertSystemPage() {
           ...(clamp ? { height: ROW_H - ROW_GAP, overflow: 'hidden' } : {}),
         }}>
         <div className="flex items-start gap-3">
-          <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: cfg.color }} aria-hidden="true" />
+          <Icon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: cfg.color }} aria-hidden="true" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-semibold text-slate-100 text-sm">{a.title}</span>
