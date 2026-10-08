@@ -738,6 +738,14 @@ jobs:
       # ESLint يخرج بـ2 على تثبيت بائت، فلا يبقى الأساس متضخّماً بصمت.
       - run: npm run lint
         working-directory: frontend
+      # FRONTEND-VITEST-SUITE-NEVER-RUNS-IN-CI-01: جناحُ vitest الكامل (٢٠٣ ملفّاً) لم
+      # يُشغِّله أيُّ workflow — CI كان يُشغِّل ملفّاتٍ مُسمّاة فقط — فاحمرّ ملفّان على main
+      # (شاهدان لم يُحدَّثا بعد #990 و#1007) ولم يرَهما أحد. مقيس محلّيّاً ~١٦٦ث
+      # (`--no-file-parallelism --maxWorkers=1` كما في `test:ci`)؛ السقفُ هامشٌ لعدّاءٍ أبطأ.
+      - name: Frontend unit suite (vitest, full)
+        timeout-minutes: 15
+        run: npm run test:ci
+        working-directory: frontend
       # **والتحذير ليس خطأً هنا — وتلك هي الثغرة.** `no-explicit-any` و
       # `no-unused-vars` تُبلَّغ تحذيراً، فتخرج هذه الوظيفة **خضراء** ومعها ٨٢
       # تحذيراً؛ وGitHub يعرض **عشرة** منها في التعليقات، فيقرأ المالك «عشرة»
