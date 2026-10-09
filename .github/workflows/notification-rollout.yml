@@ -49,4 +49,4 @@ jobs:
           NOTIFICATION_ROLLOUT_CERTIFICATION_REQUIRED: "1"
           NOTIFICATION_TEST_NATS_SERVER: ${{ runner.temp }}/nats-server-v2.15.0-linux-amd64/nats-server
           NOTIFICATION_TEST_DATABASE_URL: postgresql://notification_test:disposable_test_password@localhost:5438/notification_rollout_test
-        run: pytest -v -rs tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py
+        run: pytest -v -rs tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py tests/architecture/test_notification_rollout_postgres_image.py
