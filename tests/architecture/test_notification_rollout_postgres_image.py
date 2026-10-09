@@ -60,16 +60,14 @@ def test_ci_database_and_frontend_images_are_pinned_outside_docker_hub():
     assert (ROOT / "frontend/Dockerfile").read_text(encoding="utf-8").count(
         f"FROM {NGINX_1_27_5}"
     ) == 1
-    assert (ROOT / "deploy/railway/Dockerfile.frontend").read_text(
-        encoding="utf-8"
-    ).count(f"FROM {NGINX_1_27_5}") == 1
-    assert (ROOT / "deploy/railway/Dockerfile.migrate").read_text(
-        encoding="utf-8"
-    ).count(f"FROM {POSTGRES_16_ALPINE}") == 1
+    assert (ROOT / "deploy/railway/Dockerfile.frontend").read_text(encoding="utf-8").count(
+        f"FROM {NGINX_1_27_5}"
+    ) == 1
+    assert (ROOT / "deploy/railway/Dockerfile.migrate").read_text(encoding="utf-8").count(
+        f"FROM {POSTGRES_16_ALPINE}"
+    ) == 1
 
-    postgis_builder = (ROOT / "scripts/ci/build_postgis_test_image.sh").read_text(
-        encoding="utf-8"
-    )
+    postgis_builder = (ROOT / "scripts/ci/build_postgis_test_image.sh").read_text(encoding="utf-8")
     assert "public\\.ecr\\.aws/docker/library/postgres@sha256" in postgis_builder
     assert "postgresql-$pg_major-postgis-3" in postgis_builder
     assert "postgresql-$pg_major-postgis-3-scripts" in postgis_builder

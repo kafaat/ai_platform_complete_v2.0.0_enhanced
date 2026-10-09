@@ -41,7 +41,7 @@ jobs:
             -e POSTGRES_USER=sahool -e POSTGRES_PASSWORD=sahool -e POSTGRES_DB=sahool \
             -p 5432:5432 --health-cmd "pg_isready -U sahool -d sahool" \
             --health-interval 5s --health-timeout 5s --health-retries 20 "$postgis_image"
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             docker exec wx12-postgres pg_isready -U sahool -d sahool && break
             sleep 2
           done

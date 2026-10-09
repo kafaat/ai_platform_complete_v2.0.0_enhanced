@@ -1561,7 +1561,7 @@ jobs:
             -e POSTGRES_DB=decision033_test -e POSTGRES_USER=decision033_admin \
             -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 \
             --pull=never "$postgres_image"
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if docker exec decision-033-pg16 pg_isready -U decision033_admin -d decision033_test; then break; fi
             sleep 2
           done
