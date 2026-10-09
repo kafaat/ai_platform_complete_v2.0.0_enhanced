@@ -177,7 +177,7 @@ export default function ScenarioComparePage() {
             </tbody>
           </table>
           <div className="flex items-start gap-2 px-4 py-3" style={{ borderTop: '1px solid #334155' }}>
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div className="text-[11px] text-amber-300/80">
               قيم تقديريّة غير معايَرة (±20٪). الهامش يحتاج أسعاراً مُدخَلة؛ «أقصى ربح» يحتاج سعر الماء وقيمة الغلّة وإلّا يتراجع لتوفير الماء.
             </div>

@@ -148,7 +148,7 @@ export default function DecisionRuntimePage() {
               <div className="flex flex-col gap-1">
                 {(policiesQ.data?.policies ?? []).slice(0, 6).map((p) => (
                   <div key={p.policy_id} className="text-[11px] flex items-center gap-1.5" style={{ color: T.muted }}>
-                    <span className="px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: p.enabled ? '#86efac' : T.faint }}>
+                    <span className="px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: p.enabled ? '#86efac' : T.faint }}>
                       {p.enabled ? 'فعّالة' : 'معطّلة'}
                     </span>
                     <span style={{ color: T.ink }}>{p.name}</span>

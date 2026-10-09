@@ -95,7 +95,7 @@ export default function MyFieldsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="ابحث باسم الحقل، المحصول، الكود، أو المنطقة…"
-          className="w-full bg-transparent outline-none text-slate-100 placeholder:text-slate-500 text-sm"
+          className="w-full bg-transparent outline-hidden text-slate-100 placeholder:text-slate-500 text-sm"
         />
       </div>
 
@@ -199,7 +199,7 @@ function FieldRow({
       tabIndex={0}
       onClick={() => onOpen(opt.id, opt.name)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(opt.id, opt.name); }}
-      className="cursor-pointer bg-slate-950/30 hover:bg-emerald-950/20 focus:outline-none focus:bg-emerald-950/30"
+      className="cursor-pointer bg-slate-950/30 hover:bg-emerald-950/20 focus:outline-hidden focus:bg-emerald-950/30"
       title="فتح خريطة الحقل ومؤشرات CDSE وطبقة الطقس/الرياح"
     >
       <Td>
@@ -250,7 +250,7 @@ function FieldMobileRow({
     <button
       type="button"
       onClick={() => onOpen(opt.id, opt.name)}
-      className="w-full text-right p-4 hover:bg-emerald-950/20 focus:outline-none focus:bg-emerald-950/30"
+      className="w-full text-right p-4 hover:bg-emerald-950/20 focus:outline-hidden focus:bg-emerald-950/30"
     >
       <div className="flex items-start justify-between gap-3">
         <div>

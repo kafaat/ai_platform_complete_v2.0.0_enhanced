@@ -109,7 +109,7 @@ function LayersPanel({ ws }: { ws: FieldWorkspace }) {
         {ws.layers.map((l) => (
           <li key={l.key} className="flex items-center gap-2 text-sm">
             <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ background: layerStatusColor(l) }}
               aria-hidden="true"
             />

@@ -15,15 +15,15 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5525,
+    "files_scanned": 5527,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
-      "other": 1560,
-      "tests": 1884,
-      "web": 459
+      "other": 1562,
+      "tests": 1885,
+      "web": 458
     },
     "unmapped_artifacts": 2233,
     "ambiguous_artifacts": 431
@@ -38261,6 +38261,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/spaceYCompat.static.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/test/setup.ts",
       "kind": "web"
     },
@@ -38274,10 +38278,6 @@
     },
     {
       "path": "frontend/src/vite-env.d.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/tailwind.config.js",
       "kind": "web"
     },
     {

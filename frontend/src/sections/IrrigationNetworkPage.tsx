@@ -174,7 +174,7 @@ export default function IrrigationNetworkPage() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">عُقدة {i + 1}</span>
               <button onClick={() => removeNode(i)} disabled={nodes.length <= 1}
-                title="حذف العُقدة" className="p-1 rounded text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف العُقدة" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -252,7 +252,7 @@ export default function IrrigationNetworkPage() {
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
         <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة</div>
             <div className="text-[12px] text-slate-400">
@@ -268,7 +268,7 @@ export default function IrrigationNetworkPage() {
         <div className="space-y-4">
           {/* توصية فقط — لا تنفيذ (بانر بارز) */}
           <div className="rounded-xl border p-3 flex items-center gap-2" style={{ background: '#1a1400', borderColor: '#f59e0b55' }}>
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="text-sm font-semibold text-amber-200">توصية فقط — لا تنفيذ ولا فتح صمّامات.</span>
           </div>
 
@@ -278,8 +278,8 @@ export default function IrrigationNetworkPage() {
               ? { background: '#0c2a1a', borderColor: '#10b98155' }
               : { background: '#2a0d0d', borderColor: '#ef444455' }}>
             {res.overall_feasible
-              ? <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-              : <XCircle className="w-6 h-6 text-red-400 flex-shrink-0" />}
+              ? <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+              : <XCircle className="w-6 h-6 text-red-400 shrink-0" />}
             <div>
               <div className={`text-base font-bold ${res.overall_feasible ? 'text-emerald-200' : 'text-red-200'}`}>
                 {res.overall_feasible ? 'الشبكة مُجدية للتنفيذ' : 'الشبكة غير مُجدية للتنفيذ'}
@@ -294,7 +294,7 @@ export default function IrrigationNetworkPage() {
           {/* warnings_ar banner (honesty) */}
           {res.warnings_ar.length > 0 && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 {res.warnings_ar.map((w, i) => (
                   <div key={i} className="text-[11px] text-amber-300/80">• {w}</div>

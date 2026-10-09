@@ -44,7 +44,7 @@ export default function DataFreshnessBadge({
         className="flex items-start gap-2 text-[11px] px-3 py-2 rounded-lg border"
         style={{ background: '#3a2414', borderColor: '#8a5a1a', color: '#f5c66b' }}
       >
-        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
         <span>
           <strong className="font-semibold">عدم تطابق توقيت البيانات</strong>
           {' — '}
@@ -71,7 +71,7 @@ export default function DataFreshnessBadge({
       className="flex items-center gap-2 text-[11px] px-3 py-2 rounded-lg border"
       style={{ background: '#13301f', borderColor: '#2d6a3e', color: '#9fe6b4' }}
     >
-      <Clock className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+      <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
       <span>
         {idx}بيانات الطبقة محدّثة لهذا المشهد
         {result.layerDate && <> · {fmtDateAr(result.layerDate)}</>}

@@ -94,45 +94,45 @@ export default function IrrigationEngineeringPage() {
 
       <section className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-3">
         <label className="flex flex-col gap-1 text-sm">معرّف الحقل
-          <input className="rounded border px-2 py-1" value={form.fieldId}
+          <input className="rounded-sm border px-2 py-1" value={form.fieldId}
             onChange={(e) => set('fieldId', e.target.value)} placeholder="field_id" />
         </label>
         <label className="flex flex-col gap-1 text-sm">معرّف النظام
-          <input className="rounded border px-2 py-1" value={form.systemId}
+          <input className="rounded-sm border px-2 py-1" value={form.systemId}
             onChange={(e) => set('systemId', e.target.value)} placeholder="system_id" />
         </label>
         <label className="flex flex-col gap-1 text-sm">اسم النظام
-          <input className="rounded border px-2 py-1" value={form.name}
+          <input className="rounded-sm border px-2 py-1" value={form.name}
             onChange={(e) => set('name', e.target.value)} placeholder="مثال: محوري ١" />
         </label>
         <label className="flex flex-col gap-1 text-sm">نوع النظام
-          <select className="rounded border px-2 py-1" value={form.systemType}
+          <select className="rounded-sm border px-2 py-1" value={form.systemType}
             onChange={(e) => set('systemType', e.target.value as IrrigationSystemType)}>
             {SYSTEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm">المساحة المرويّة (هكتار)
-          <input className="rounded border px-2 py-1" inputMode="decimal" value={form.irrigatedAreaHa}
+          <input className="rounded-sm border px-2 py-1" inputMode="decimal" value={form.irrigatedAreaHa}
             onChange={(e) => set('irrigatedAreaHa', e.target.value)} placeholder="> 0" />
         </label>
         <label className="flex flex-col gap-1 text-sm">العمق الصافي (مم)
-          <input className="rounded border px-2 py-1" inputMode="decimal" value={form.netDepthMm}
+          <input className="rounded-sm border px-2 py-1" inputMode="decimal" value={form.netDepthMm}
             onChange={(e) => set('netDepthMm', e.target.value)} placeholder="> 0" />
         </label>
         <label className="flex flex-col gap-1 text-sm">المطر الفعّال (مم)
-          <input className="rounded border px-2 py-1" inputMode="decimal" value={form.effectiveRainMm}
+          <input className="rounded-sm border px-2 py-1" inputMode="decimal" value={form.effectiveRainMm}
             onChange={(e) => set('effectiveRainMm', e.target.value)} placeholder="0" />
         </label>
         {form.systemType === 'center_pivot' && (
           <label className="flex flex-col gap-1 text-sm">طول الذراع (م) — مطلوب للمحوري
-            <input className="rounded border px-2 py-1" inputMode="decimal" value={form.lengthM}
+            <input className="rounded-sm border px-2 py-1" inputMode="decimal" value={form.lengthM}
               onChange={(e) => set('lengthM', e.target.value)} placeholder="> 0" />
           </label>
         )}
       </section>
 
-      {error && <div role="alert" className="rounded border border-red-500 bg-red-950/20 px-3 py-2 text-sm">{error}</div>}
-      {notice && <div role="status" className="rounded border px-3 py-2 text-sm">{notice}</div>}
+      {error && <div role="alert" className="rounded-sm border border-red-500 bg-red-950/20 px-3 py-2 text-sm">{error}</div>}
+      {notice && <div role="status" className="rounded-sm border px-3 py-2 text-sm">{notice}</div>}
 
       <IrrigationEngineeringWorkspace
         summary={summary}

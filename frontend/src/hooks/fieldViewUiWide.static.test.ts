@@ -28,7 +28,10 @@ describe('FieldView UI-wide guards', () => {
   it('prevents direct FieldContext store reads in Chatbot runtime', () => {
     const source = read('src/sections/ChatbotPage.tsx');
     expect(source).not.toContain('useFieldContextStore');
-    expect(source).toContain('active_field_name');
+    // #1007: الصفحةُ ترسل الحقلَ المختار من FieldView مُعرِّفاً فقط، والخادمُ يجمع سياقَه
+    // (لا اسمَ ولا حالةَ حقلٍ من العميل) — كما يفرضه ChatbotAiContextPack.static.test.ts.
+    expect(source).toContain('field_id: activeFieldId || undefined');
+    expect(source).not.toContain('active_field_name');
   });
 
   it('keeps share/sql utilities FieldView-aware', () => {
