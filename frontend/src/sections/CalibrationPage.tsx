@@ -42,7 +42,7 @@ function ProfileRow({ p, isGeneric }: { p: CalibrationProfile; isGeneric?: boole
       <td className="px-3 py-1.5 font-medium text-slate-100">
         {p.region_ar}
         {isGeneric && (
-          <span className="mr-2 text-[10px] px-1.5 py-0.5 rounded text-slate-400" style={{ background: '#0f1117' }}>
+          <span className="mr-2 text-[10px] px-1.5 py-0.5 rounded-sm text-slate-400" style={{ background: '#0f1117' }}>
             عامّ
           </span>
         )}
@@ -104,7 +104,7 @@ export default function CalibrationPage() {
         <div className="space-y-4">
           {/* Header strip: validated_count / total + note */}
           <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="text-center px-3 flex-shrink-0">
+            <div className="text-center px-3 shrink-0">
               <div className="text-2xl font-bold text-slate-100">
                 {data.validated_count}<span className="text-slate-500 text-base"> / {data.regions.length}</span>
               </div>
@@ -116,7 +116,7 @@ export default function CalibrationPage() {
           {/* Honesty banner: regions needing field data */}
           {needFieldData.length > 0 && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <div className="text-sm font-semibold text-amber-200">
                   🟡 {needFieldData.length} إقليم ترث الافتراضات العامّة (FAO) وتحتاج بيانات حقليّة

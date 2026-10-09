@@ -14,7 +14,7 @@ export default function SQLWorkspacePage() {
         <Database className="w-5 h-5 text-emerald-400" aria-hidden="true" />
         <h1 className="text-lg font-bold" style={{ color: T.ink }}>ورشة SQL — استوديو البيانات</h1>
         <span
-          className="text-[11px] px-2 py-0.5 rounded"
+          className="text-[11px] px-2 py-0.5 rounded-sm"
           style={{ background: T.card2, color: T.muted, border: `1px solid ${T.line}` }}
         >
           DuckDB-WASM · ألفا

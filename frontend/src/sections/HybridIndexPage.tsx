@@ -389,7 +389,7 @@ export function HybridIndexPage() {
 
       {/* ── NDVI Gauge + Field Status Bar Chart ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col items-center justify-center">
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-xs border border-slate-200 p-5 flex flex-col items-center justify-center">
           {/* لا قيمة NDVI في حمولة اللوحة (تأتي من شاشة الأقمار لكلّ حقل) ⇒ مقياس
               محايد مع وسم صادق بدل قيمة افتراضيّة مُلفَّقة. */}
           <NDVIGauge value={(() => {
@@ -402,7 +402,7 @@ export function HybridIndexPage() {
               : 'NDVI لكلّ حقل من شاشة الأقمار'}
           </p>
         </div>
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-xs border border-slate-200 p-5">
           <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-emerald-600" /> حالة المواسم عبر الحقول
           </h3>
@@ -426,7 +426,7 @@ export function HybridIndexPage() {
       </div>
 
       {/* ── Season Simulation Summary (حيّ — sim_* من /simulate) ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
             <Sprout className="w-4 h-4 text-emerald-600" />
@@ -460,7 +460,7 @@ export function HybridIndexPage() {
       </div>
 
       {/* ── Indicator Registry Legend (السجلّ الحيّ WS-B.2 — لا قائمة ثابتة) ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
             <Info className="w-4 h-4 text-slate-500" /> دليل المؤشرات
@@ -482,7 +482,7 @@ export function HybridIndexPage() {
         ) : registry.error || !registry.data ? (
           // تدهور صادق: تعذّر السجلّ ⇒ لا اختلاق قائمة، تحذير واضح فقط.
           <div className="flex items-start gap-2 py-4 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>
               تعذّر تحميل سجلّ المؤشّرات — القائمة قد تكون غير محدّثة، لذا أُخفيت
               لتفادي عرض بيانات غير موثوقة كأنّها الحقيقة.
@@ -498,7 +498,7 @@ export function HybridIndexPage() {
                 <div
                   key={ind.id}
                   className={`flex items-start gap-2 p-2.5 rounded-lg ${unavailable ? 'bg-slate-100 opacity-60' : 'bg-slate-50'}`}>
-                  <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: p.color }} />
+                  <Icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: p.color }} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-semibold text-slate-700 text-xs">{ind.name_ar}</span>

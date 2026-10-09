@@ -2211,7 +2211,7 @@ function MapHubCore() {
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+                        <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                         <span className="text-sm font-medium truncate">{f.name}</span>
                       </div>
                       <div className="text-[11px] opacity-70 mt-0.5">
@@ -3125,7 +3125,7 @@ function MapHubCore() {
       )}
 
       {deleteConfirmOpen && selected && (
-        <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4" style={{ background: 'rgba(2,6,23,0.72)' }} role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-1200 flex items-center justify-center p-4" style={{ background: 'rgba(2,6,23,0.72)' }} role="dialog" aria-modal="true">
           <div className="w-full max-w-md rounded-2xl border p-4 shadow-2xl" style={{ background: T.card, borderColor: T.line }}>
             <div className="flex items-center gap-2 text-base font-bold" style={{ color: '#fecaca' }}>
               <Trash2 className="w-5 h-5" /> تأكيد حذف الحقل

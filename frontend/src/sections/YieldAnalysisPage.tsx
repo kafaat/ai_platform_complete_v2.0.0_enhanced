@@ -149,7 +149,7 @@ export default function YieldAnalysisPage() {
         className="rounded-xl border p-4 flex flex-wrap gap-4"
         style={{ background: '#1e293b', borderColor: '#334155' }}
       >
-        <label className="flex flex-col gap-1 min-w-[12rem]">
+        <label className="flex flex-col gap-1 min-w-48">
           <span className="text-xs text-slate-400 flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-amber-400" /> الحقل (اختياريّ)
           </span>
@@ -169,7 +169,7 @@ export default function YieldAnalysisPage() {
           )}
         </label>
 
-        <label className="flex flex-col gap-1 min-w-[12rem]">
+        <label className="flex flex-col gap-1 min-w-48">
           <span className="text-xs text-slate-400 flex items-center gap-1">
             <CalendarRange className="w-3.5 h-3.5 text-amber-400" /> الموسم (اختياريّ)
           </span>
@@ -223,7 +223,7 @@ export default function YieldAnalysisPage() {
               style={{ background: '#1e293b', borderColor: '#334155' }}
               role="status"
             >
-              <Info className="w-5 h-5 text-amber-300 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <Info className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
               <div className="text-[12px] text-slate-300">{data.provenance.note_ar}</div>
             </div>
           )}

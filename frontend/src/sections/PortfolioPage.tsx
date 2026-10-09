@@ -162,7 +162,7 @@ export default function PortfolioPage() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">حقل {i + 1}</span>
               <button onClick={() => removeField(i)} disabled={fields.length <= 1}
-                title="حذف الحقل" className="p-1 rounded text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف الحقل" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -214,7 +214,7 @@ export default function PortfolioPage() {
           {/* Uncalibrated / warnings banner */}
           {(!res.calibrated || res.warnings_ar.length > 0) && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 {!res.calibrated && (
                   <div className="text-sm font-semibold text-amber-200">🟡 توزيع غير مُعاير — قيم تقديريّة لا قاطعة.</div>

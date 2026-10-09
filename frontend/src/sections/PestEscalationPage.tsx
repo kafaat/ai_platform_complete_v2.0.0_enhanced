@@ -261,7 +261,7 @@ export default function PestEscalationPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 py-1.5 border-b last:border-0" style={{ borderColor: '#334155' }}>
-      <span className="text-sm text-slate-400 flex-shrink-0">{label}</span>
+      <span className="text-sm text-slate-400 shrink-0">{label}</span>
       <span className="text-sm text-slate-200 text-left">{value}</span>
     </div>
   );
