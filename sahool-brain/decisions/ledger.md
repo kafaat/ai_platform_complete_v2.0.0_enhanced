@@ -3653,3 +3653,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** مقيسٌ على `main@c1760e9e`: القاعدةُ القديمة أبلغت عن صفٍّ واحد بينما الصارمةُ تكشف ثمانية (Tailwind + سبعة قديمة)، أي أنّ «0» السابق كان يقيس غيابَ أيّ SHA مبلوغ لا وجودَ الربط. والقياسُ report-only فلا يُحتجّ بأخضره على صحّة provenance حتّى يصير حاجباً بشرط إغلاق الفجوة الأمّ.
 
 **المصدر:** `scripts/ci/gap_registry_measure.py` (`_split_inline_canonical` · `fixed_provenance`) · `tests/architecture/test_gap_registry_measure.py::test_a_reachable_sha_in_the_status_prose_does_not_link_a_squashed_repair` · PR #1157 عند `7012cd1e`.
+
+## 2026-10-09 — دمجُ main@3daa3547 في فرع #1157 بعد دمج #1155
+
+**القرار:** يُحافَظ على دمجٍ حقيقيّ ذي والدين عند `4e2681d5`، ويُعالَج تعارضُ manifest بإعادة توليده من شجرة المصدر. في سجلّ الفجوات يُحتفَظ بصفّ واحد fixed مع تاريخه السابق، لا بنسختي open/fixed متكرّرتين؛ لا تتغيّر حالة Railway (open) أو Tailwind (fixed لا verified).
+
+**السبب:** دمج #1155 إلى `main@3daa3547` يوفّر الأصل المطلوب للفرع المكدّس؛ وقياس provenance على رأس الدمج بعد إكمال التاريخ أعاد `unreconciled_fixed_provenance_count = 0` بلا حالات غير مصنّفة/غير canonical أو تكرارات غير مراجعَة. يثبت ذلك دمج البيانات من الجانبين من دون اختيار نسخة كاملة من ملفات الدماغ أو المصنوعات.
+
+**المصدر:** PR #1157 · merge commit `4e2681d5` · `scripts/ci/gap_registry_measure.py` · `sahool-brain/gaps/registry.md` · `release/SAHOOL_RELEASE_MANIFEST_20260626.json`.
