@@ -183,7 +183,7 @@ function DeviceTelemetry({ device }: { device: Device }) {
             {series.map((p, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-sm"
+                className="flex-1 rounded-xs"
                 style={{ height: `${8 + ((p.value - min) / span) * 92}%`, background: T.green, opacity: 0.7 }}
                 title={`${p.value}${p.unit ? ' ' + p.unit : ''} · ${fmtTime(p.recorded_at)}`}
               />
@@ -371,7 +371,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                             style={{ background: `${cfg.color}22` }}>
                             <Icon className="w-4 h-4" style={{ color: cfg.color }} />
                           </span>

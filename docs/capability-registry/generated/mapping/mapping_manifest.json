@@ -1,7 +1,7 @@
 {
-  "CAPABILITY_MAPPING_REPORT.md": "dbd151dd407eef291aaebb921e38ec8cd09119640df1ebb37fcc8755ae781550",
+  "CAPABILITY_MAPPING_REPORT.md": "e0c1ecb0bb49a8ec8cc4f908e22318ef48e67192adab38da985f9c8f7d185b59",
   "ambiguous_artifacts.json": "dee7ee1483c00c0eb685f6ea789a1f15fca8667f899450f5cb11025046316ea4",
   "capability_mapping.csv": "5ca55a1f1e437143a4a3ca3b89f1b52d2f7e5c52fd8bee3b44cdd7fc4372b2e2",
-  "capability_mapping.json": "8afca5b6994a80e5e030ba5c04c4556a5c497f7d83dd9d8228e8655391c3771c",
-  "unmapped_artifacts.json": "c32663067484e190d789b3c3544be4599cfdedd6bdd15abd3ba5f58b3f71c1e7"
+  "capability_mapping.json": "cf228e3bbaabb92b8b09086a607052af2c38336a5a0fd464df867526a733cd3f",
+  "unmapped_artifacts.json": "bccfd10c6ddb1cf547fff38955c0c1b0b395cf67677cf6d270f39311cf563062"
 }

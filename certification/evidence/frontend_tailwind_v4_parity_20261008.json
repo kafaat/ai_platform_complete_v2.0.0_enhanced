@@ -1,0 +1,160 @@
+{
+  "subject": "frontend Tailwind v3.4.19 → v4.3.3 migration — visual & interaction parity vs main@94e6e07a",
+  "measured_on": "2026-10-08",
+  "method": {
+    "baseline": "vite build of main@94e6e07a (v3) served by vite preview; same for v4 tree",
+    "browser": "Chromium 1194 (Playwright), 1280x800 (mobile 390x844), dark/light/cream via sahool-theme, fake clock 2026-06-15T09:00Z, animations disabled, canvas/MapLibre/Leaflet masked, maxDiffPixels 0",
+    "routes": 91,
+    "noise_measurement": "v3 compared against a second v3 run per variant; routes failing there are non-deterministic and excluded from the v4 verdict"
+  },
+  "pixel_matrix": {
+    "dark": {
+      "v3_vs_v3_failing": {
+        "/assistant": 2729,
+        "/advanced/gis-catalog": 1107
+      },
+      "v4_vs_v3_failing": {
+        "/advanced/gis-catalog": 1107
+      }
+    },
+    "light": {
+      "v3_vs_v3_failing": {
+        "/assistant": 3122
+      },
+      "v4_vs_v3_failing": {
+        "/assistant": 3122,
+        "/advanced/gis-catalog": 1107
+      }
+    },
+    "cream": {
+      "v3_vs_v3_failing": {
+        "/assistant": 3089,
+        "/advanced/gis-catalog": 1107
+      },
+      "v4_vs_v3_failing": {
+        "/assistant": 3089
+      }
+    },
+    "mobile": {
+      "v3_vs_v3_failing": {
+        "/advanced/gis-catalog": 6213
+      },
+      "v4_vs_v3_failing": {
+        "/advanced/gis-catalog": 6213
+      }
+    }
+  },
+  "v4_failures_outside_measured_noise": [],
+  "noise_routes": {
+    "/assistant": "timestamp/async content differs between two v3 runs",
+    "/advanced/gis-catalog": "one <p> width differs between two v3 runs (async content)"
+  },
+  "overlays": {
+    "cases": [
+      "command palette Ctrl+K (+typed)",
+      "mobile nav drawer",
+      "<details> open on /crop/climate-analogs,/crop/calendars",
+      "ds/modal إضافة صنف on /ops/inventory (+focused input)",
+      "date input focus + button hover on /ops/equipment"
+    ],
+    "skipped": [
+      "combobox listbox — no [aria-haspopup=listbox] reachable without backend data on /settings,/admin/documents,/ops/inventory"
+    ],
+    "results": {
+      "ov-v3self": {
+        "passed": [
+          "command palette (Ctrl+K) on /dashboard",
+          "mobile nav drawer on /dashboard",
+          "<details> open on /crop/climate-analogs and /crop/calendars",
+          "ds/modal (إضافة صنف) on /ops/inventory",
+          "date input focused + hover on a form (/ops/equipment)"
+        ],
+        "skipped": [
+          "combobox listbox open (first page that has one)"
+        ]
+      },
+      "ov-v4g": {
+        "passed": [
+          "command palette (Ctrl+K) on /dashboard",
+          "mobile nav drawer on /dashboard",
+          "<details> open on /crop/climate-analogs and /crop/calendars",
+          "ds/modal (إضافة صنف) on /ops/inventory",
+          "date input focused + hover on a form (/ops/equipment)"
+        ],
+        "skipped": [
+          "combobox listbox open (first page that has one)"
+        ]
+      }
+    }
+  },
+  "pseudo_states": {
+    "elements": 3025,
+    "states": [
+      "hover",
+      "focus+focus-visible",
+      "active",
+      "hover+active"
+    ],
+    "method": "CDP CSS.forcePseudoState, transitions/animations disabled, element + up to 40 descendants",
+    "remaining_differences_classified": [
+      {
+        "kind": "SELECT focus: v3 outline 2px solid transparent (focus:outline-none) → v4 outline-style none (focus:outline-hidden)",
+        "visual": "identical (both invisible); documented v4 semantics",
+        "count": 228,
+        "routes": 74
+      },
+      {
+        "kind": "hover:scale-[1.02]: v3 transform matrix(1.02) → v4 scale:1.02 property",
+        "visual": "identical geometry",
+        "count": 12,
+        "routes": 2
+      },
+      {
+        "kind": "alpha colors expressed as oklab(...) via color-mix",
+        "visual": "converted back to v3 hex exactly (emerald-950/slate-900/amber-950/slate-950 checked numerically)",
+        "routes": "≤2"
+      },
+      {
+        "kind": "divide-y on /fields: border moved from top-of-next (v3, specificity 0,3,0) to bottom-of-previous (v4, :where)",
+        "visual": "identical; /fields pixel-identical in 4 variants; usage allowlisted by spaceYCompat.static.test.ts"
+      },
+      {
+        "kind": "classless INPUT hover outline-offset -2px → 0px",
+        "visual": "outline-style none in both; never drawn",
+        "routes": 2
+      }
+    ]
+  },
+  "functional_e2e": {
+    "project": "chromium (frontend/playwright.config.ts)",
+    "result": "24 passed",
+    "note": "run with PW_CHROMIUM_PATH=/opt/pw-browsers/chromium (project pin expects headless-shell 1228 absent in sandbox)"
+  },
+  "unit": {
+    "vitest": "204 files / 1377 tests, exit 0, on commit bfeb860c (frontend tree c7140075)",
+    "typecheck": "tsc --noEmit exit 0 (pipefail) on bfeb860c",
+    "lint": "eslint exit 0 — 0 errors, 38 pre-existing warnings — on bfeb860c",
+    "guard": "src/spaceYCompat.static.test.ts — 5 contracts; 6 mutations each killed by the intended contract (1 failed | 4 passed, title matched), tree and working files restored — see frontend_tailwind_v4_guard_mutations_20261008.json"
+  },
+  "npm_audit": "0 vulnerabilities (was 7: tailwindcss v3 chain)",
+  "retained_locally_not_committed": "frontend/.tw-compare/{baseline,out-*,report-*,styles-*,pseudo-*} (git-excluded harness)",
+  "codemod_prose_rewrite_scan": {
+    "method": "every changed line of the @tailwindcss/upgrade diff (frontend/src, 209 lines) checked for a renamed token outside a class-string context",
+    "flagged": 8,
+    "legitimate": [
+      "components/shell/ContextBar.tsx (class-string constant)",
+      "components/maphub/InteractiveDrawLayer.test.ts (source-text assertion rewritten consistently with its target)"
+    ],
+    "accidental_restored": [
+      "lib/designSystemGovernance.ts: 'shadow-sm' → 'shadow' (DesignTokenDomain union, token domain, required list)",
+      "sections/SpatialIndicatorsPage.tsx: transition \"outline-solid .2s\" → \"outline .2s\"",
+      "lib/driftZones.test.ts: test title 'ring-3' → 'ring'",
+      "components/maphub/drawing/DrawingRemainingPhases.test.ts: test title 'ring-3' → 'ring'"
+    ],
+    "found_by": "Copilot review on PR #1156, then confirmed exhaustive by the scan"
+  },
+  "measured_on_commit": "bfeb860c37b5bda318b9d727d5254ad7d090f656",
+  "frontend_tree": "c7140075550ffbf037da14db7ce02166ef4e0ed9",
+  "tree_binding": "vitest/lint/typecheck/mutation results below are bound to `frontend/` tree c7140075 (git rev-parse <commit>:frontend); later commits that do not touch frontend/ keep this hash, so the measurement stays valid for them — verify by comparing the hash, not the commit SHA",
+  "review_fixes_commit": "90b8c69709c7e8ba1c5f432f8da7feec7343db4a"
+}

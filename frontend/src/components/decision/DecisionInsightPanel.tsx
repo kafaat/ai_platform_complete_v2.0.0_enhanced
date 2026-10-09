@@ -102,7 +102,7 @@ export default function DecisionInsightPanel() {
               <div className="mt-1">
                 <span className="font-semibold" style={{ color: T.ink }}>النتائج المُدامة ({explainQ.data.outcome_count}):</span>
                 {(explainQ.data.outcomes ?? []).slice(0, 3).map((o) => (
-                  <span key={o.outcome_id} className="mr-1 px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: outcomeSuccessColor(o.success) }}>
+                  <span key={o.outcome_id} className="mr-1 px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: outcomeSuccessColor(o.success) }}>
                     {outcomeSuccessLabel(o.success)}
                   </span>
                 ))}
@@ -117,7 +117,7 @@ export default function DecisionInsightPanel() {
       <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
         <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
           <GraduationCap className="w-4 h-4 text-violet-300" aria-hidden="true" /> اقتراحات التعلُّم
-          <span className="text-[11px] font-normal px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
+          <span className="text-[11px] font-normal px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
             استشاريّة — لا تُطبَّق آليّاً
           </span>
         </div>

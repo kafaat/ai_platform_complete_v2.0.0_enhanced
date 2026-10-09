@@ -157,14 +157,14 @@ export default function AgronomicTimelinePage() {
           {data.note_ar && (
             <div className="rounded-xl border p-3 flex items-start gap-3"
               style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-[12px] text-amber-200">{data.note_ar}</div>
             </div>
           )}
           {data.error && (
             <div className="rounded-xl border p-3 flex items-start gap-3"
               style={{ background: '#2a0d0d', borderColor: '#f8717133' }}>
-              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
               <div className="text-[12px] text-red-200">{data.error}</div>
             </div>
           )}
@@ -176,7 +176,7 @@ export default function AgronomicTimelinePage() {
               title="لا أحداث في الخطّ الزمنيّ"
               hint={category ? 'لا أحداث ضمن هذه الفئة — جرّب «الكلّ».' : 'لم تُسجَّل أحداث لهذا الحقل بعد. لا تاريخ مخترَع.'} />
           ) : (
-            <ol className="relative space-y-3 border-r-2 mr-[1px]" style={{ borderColor: '#25303f' }}>
+            <ol className="relative space-y-3 border-r-2 mr-px" style={{ borderColor: '#25303f' }}>
               {data.events.map((ev, i) => <TimelineRow key={`${ev.event_type}-${ev.timestamp}-${i}`} ev={ev} />)}
             </ol>
           )}

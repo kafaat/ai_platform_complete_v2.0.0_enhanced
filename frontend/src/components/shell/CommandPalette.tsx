@@ -60,7 +60,7 @@ export default function CommandPalette() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[60] flex items-start justify-center"
+          className="fixed inset-0 z-60 flex items-start justify-center"
           style={{ background: 'rgba(2,6,12,.6)', padding: '12vh 16px 16px' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -83,13 +83,13 @@ export default function CommandPalette() {
               style={{ background: '#0d1117', border: '1px solid #1e293b' }}
             >
               <div className="flex items-center gap-2 px-3 border-b" style={{ borderColor: '#1e293b' }}>
-                <Search className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                <Search className="w-4 h-4 text-slate-500 shrink-0" />
                 <Command.Input
                   autoFocus
                   placeholder="ابحث عن صفحة أو انتقل إليها…"
-                  className="flex-1 bg-transparent py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none text-right"
+                  className="flex-1 bg-transparent py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-hidden text-right"
                 />
-                <kbd className="hidden sm:inline text-[10px] text-slate-500 border border-slate-700 rounded px-1.5 py-0.5">
+                <kbd className="hidden sm:inline text-[10px] text-slate-500 border border-slate-700 rounded-sm px-1.5 py-0.5">
                   Esc
                 </kbd>
               </div>
@@ -101,7 +101,7 @@ export default function CommandPalette() {
                   <Command.Group
                     key={section.id}
                     heading={section.label}
-                    className="text-[11px] font-semibold text-slate-500 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5"
+                    className="text-[11px] font-semibold text-slate-500 **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5"
                   >
                     {section.items.map((item) => {
                       const Icon = item.icon;
@@ -114,7 +114,7 @@ export default function CommandPalette() {
                           onSelect={() => go(item)}
                           className="flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer text-sm text-slate-300 data-[selected=true]:bg-emerald-950 data-[selected=true]:text-emerald-300"
                         >
-                          <Icon className="w-4 h-4 flex-shrink-0" />
+                          <Icon className="w-4 h-4 shrink-0" />
                           <span className="flex-1 text-right">{item.label}</span>
                           {mat && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"

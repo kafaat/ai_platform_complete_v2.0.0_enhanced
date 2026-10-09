@@ -54,7 +54,7 @@ describe('AddFieldWithMap — تكامل أدوات الرسم التفاعلي�
   it('exposes on-map circle/rectangle tool buttons (discoverable where users look)', () => {
     // حارس انحدار: أداتا الدائرة/المستطيل يجب أن تظهرا على الخريطة (z-[1000])، لا في
     // اللوحة الجانبيّة فقط — وإلّا «أداة الدائرة غير موجودة» كما في تقرير المستخدم.
-    expect(src).toContain('z-[1000]');
+    expect(src).toContain('z-1000');
     expect(src).toMatch(/setDrawTool\(t => \(t === 'circle' \? null : 'circle'\)\)/);
     expect(src).toMatch(/setDrawTool\(t => \(t === 'rectangle' \? null : 'rectangle'\)\)/);
   });

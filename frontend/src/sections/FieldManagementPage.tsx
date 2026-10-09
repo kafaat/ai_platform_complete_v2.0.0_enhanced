@@ -343,7 +343,7 @@ export default function FieldManagementPage() {
             <div className="font-semibold text-slate-100 text-sm truncate">{f.name}</div>
             <div className="text-xs text-slate-400 mt-0.5">{f.crop} · {f.area_ha} هـ</div>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0"
             style={{ background:`${sc.color}22`, color:sc.color }}>{sc.label}</span>
         </div>
         {/* NDVI bar */}
@@ -362,7 +362,7 @@ export default function FieldManagementPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-1 px-4 pb-3 text-center">
           {[{l:'GDD',v:f.gdd},{l:'t/ha',v:f.yield_est},{l:'مرحلة',v:f.stage.substring(0,4)}].map((s,i)=>(
-            <div key={i} className="rounded py-1" style={{ background:'#0f1117' }}>
+            <div key={i} className="rounded-sm py-1" style={{ background:'#0f1117' }}>
               <div className="text-xs font-bold text-slate-200">{s.v}</div>
               <div className="text-[10px] text-slate-500">{s.l}</div>
             </div>
@@ -516,22 +516,22 @@ export default function FieldManagementPage() {
                       <td className="px-4 py-3">
                         <div className="flex gap-1.5 items-center">
                           <button onClick={()=>setShowDetail(f)} title="تفاصيل الحقل"
-                            className="p-1.5 rounded hover:bg-sky-950 text-slate-400 hover:text-sky-400 transition-colors">
+                            className="p-1.5 rounded-sm hover:bg-sky-950 text-slate-400 hover:text-sky-400 transition-colors">
                             <ClipboardList className="w-3.5 h-3.5" />
                           </button>
                         {mutateAllowed ? (
                           <div className="flex gap-1.5">
                             <button onClick={()=>setShowSeason(f)} title="إضافة موسم"
-                              className="p-1.5 rounded hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
+                              className="p-1.5 rounded-sm hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
                               <Sprout className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={()=>setEditField(f)}
-                              className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200">
+                              className="p-1.5 rounded-sm hover:bg-slate-700 text-slate-400 hover:text-slate-200">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
                             {canDeleteField && (
                               <button onClick={()=>handleDelete(f.field_id)}
-                                className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400">
+                                className="p-1.5 rounded-sm hover:bg-red-950 text-slate-400 hover:text-red-400">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -779,7 +779,7 @@ function EditFieldModal({ field, onSave, onCancel }: { field: Field; onSave: (d:
       <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background:'#1e293b', border:'1px solid #334155' }}>
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-bold text-slate-100">تعديل الحقل</h3>
-          <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400"><X className="w-4 h-4" /></button>
+          <button onClick={onCancel} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-4" dir="rtl">
           {[{l:'الاسم',v:name,s:setName,t:'text'},{l:'المساحة (هـ)',v:area,s:setArea,t:'number'}].map(f=>(

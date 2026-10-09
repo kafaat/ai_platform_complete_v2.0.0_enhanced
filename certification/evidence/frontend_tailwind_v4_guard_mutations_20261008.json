@@ -1,0 +1,112 @@
+{
+  "test": "frontend/src/spaceYCompat.static.test.ts",
+  "measured_at": "2026-10-08T23:10:16.206416Z",
+  "commit": "bfeb860c37b5bda318b9d727d5254ad7d090f656",
+  "frontend_tree": "c7140075550ffbf037da14db7ce02166ef4e0ed9",
+  "baseline": {
+    "exit": 0,
+    "summary": "Tests  5 passed (5)"
+  },
+  "mutations": [
+    {
+      "name": "M1 unlayered rule",
+      "file": "frontend/src/index.css",
+      "patch": "append `.unlayered-probe { color: red; }` outside any @layer",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "has no unlayered rule: every top-level block is @import/@theme/@layer"
+      ],
+      "expected_failing_test": "has no unlayered rule: every top-level block is @import/@theme/@layer",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    },
+    {
+      "name": "M2 reset moved into utilities",
+      "file": "frontend/src/index.css",
+      "patch": "remove the base reset block and place `*{...}` inside @layer utilities",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "keeps the universal reset in @layer base, not utilities"
+      ],
+      "expected_failing_test": "keeps the universal reset in @layer base, not utilities",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    },
+    {
+      "name": "M3 missing space-y-2 compat",
+      "file": "frontend/src/index.css",
+      "patch": "delete the `.space-y-2 > :not([hidden]) ~ :not([hidden])` compat rule",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "covers every space-y value used in src/ with a v3 compat rule"
+      ],
+      "expected_failing_test": "covers every space-y value used in src/ with a v3 compat rule",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    },
+    {
+      "name": "M4 responsive variant",
+      "file": "frontend/src/components/shell/NavRail.tsx",
+      "patch": "add `md:space-y-1.5` to a NavRail element",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "uses no responsive/state space-* variant, no space-x, and no negative space-* (the compat layer covers none)"
+      ],
+      "expected_failing_test": "uses no responsive/state space-* variant, no space-x, and no negative space-* (the compat layer covers none)",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    },
+    {
+      "name": "M5 new divide-* site",
+      "file": "frontend/src/components/shell/NavRail.tsx",
+      "patch": "add `divide-y` to a NavRail element",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "keeps divide-* usage to the pixel-verified allowlist (v4 divide-* has zero specificity)"
+      ],
+      "expected_failing_test": "keeps divide-* usage to the pixel-verified allowlist (v4 divide-* has zero specificity)",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    },
+    {
+      "name": "M6 negative space",
+      "file": "frontend/src/components/shell/NavRail.tsx",
+      "patch": "add `-space-y-2` to a NavRail element",
+      "vitest_exit": 1,
+      "summary": "Tests  1 failed | 4 passed (5)",
+      "failed_tests": [
+        "uses no responsive/state space-* variant, no space-x, and no negative space-* (the compat layer covers none)"
+      ],
+      "expected_failing_test": "uses no responsive/state space-* variant, no space-x, and no negative space-* (the compat layer covers none)",
+      "crashed": false,
+      "killed_by_intended_contract": true,
+      "restored": true
+    }
+  ],
+  "after_restore": {
+    "exit": 0,
+    "summary": "Tests  5 passed (5)",
+    "tree_clean": true
+  },
+  "working_files_sha256_before": {
+    "frontend/src/index.css": "b43b76ee72c8f474eccd3a2dc907b7db032447dc3112389db48d22301ba06a21",
+    "frontend/src/components/shell/NavRail.tsx": "0f5e0e433ce34cbdd1a0789c3ebc96a9d00e89654c4f8cd404375259a450f7b9"
+  },
+  "working_files_sha256_after": {
+    "frontend/src/index.css": "b43b76ee72c8f474eccd3a2dc907b7db032447dc3112389db48d22301ba06a21",
+    "frontend/src/components/shell/NavRail.tsx": "0f5e0e433ce34cbdd1a0789c3ebc96a9d00e89654c4f8cd404375259a450f7b9"
+  },
+  "working_files_restored": true,
+  "frontend_tree_after": "c7140075550ffbf037da14db7ce02166ef4e0ed9",
+  "verdict": "all 6 mutations killed by the intended contract; tree restored"
+}

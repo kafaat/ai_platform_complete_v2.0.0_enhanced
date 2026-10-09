@@ -166,7 +166,7 @@ function ValidationResult({ v }: { v: CalibrationValidation }) {
           {accepted.map(([k, val]) => (
             <div key={k} className="rounded-lg px-3 py-2 flex items-center gap-2"
               style={{ background: '#0c2a1a', border: '1px solid #14532d' }}>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <div className="min-w-0">
                 <div className="text-[11px] text-emerald-300/80 truncate">{k}</div>
                 <div className="text-sm font-semibold text-emerald-200 truncate">
@@ -182,7 +182,7 @@ function ValidationResult({ v }: { v: CalibrationValidation }) {
           {v.rejected.map((r, i) => (
             <div key={`${r.field}-${i}`} className="rounded-lg px-3 py-2 flex items-start gap-2"
               style={{ background: '#2a0d0d', border: '1px solid #7f1d1d' }}>
-              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <XCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <div className="text-[12px]">
                 <span className="font-semibold text-red-200">{r.field}</span>
                 <span className="text-red-300/80"> — {r.reason_ar}</span>
@@ -349,7 +349,7 @@ export default function CalibrationWorkbenchPage() {
 
       {!mayMutate && (
         <div className="rounded-xl border p-3 flex items-start gap-3" style={{ background: '#0f1117', borderColor: '#25303f' }}>
-          <Lock className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+          <Lock className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
           <div className="text-sm text-slate-400">
             دورك للعرض فقط — المقارنة والتدقيق متاحان، لكنّ الاقتراح والموافقة والرفض محصورة بأصحاب صلاحيّة التعديل.
           </div>
@@ -437,7 +437,7 @@ export default function CalibrationWorkbenchPage() {
                 style={actionMsg.ok
                   ? { background: '#0c2a1a', color: '#86efac', border: '1px solid #14532d' }
                   : { background: '#2a0d0d', color: '#fca5a5', border: '1px solid #7f1d1d' }}>
-                {actionMsg.ok ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+                {actionMsg.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}
                 <span>{actionMsg.text}</span>
               </div>
             )}

@@ -24,7 +24,7 @@ export function FieldBoundaryProposalPanel({
 }: FieldBoundaryProposalPanelProps) {
   if (!proposals.length) return null;
   return (
-    <div className="rounded-2xl border border-emerald-100 bg-white/95 p-3 shadow-sm" data-testid="field-boundary-proposal-panel">
+    <div className="rounded-2xl border border-emerald-100 bg-white/95 p-3 shadow-xs" data-testid="field-boundary-proposal-panel">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="text-sm font-semibold text-slate-800">حدود حقل مقترحة</div>

@@ -373,7 +373,7 @@ function ReportsSection() {
                 if (first) setActiveFieldId(first, { source: 'user' });
                 setR({ ...r, field_ids: ids.join(',') });
               }}
-              className="rounded-lg px-2 py-1 text-[12px] min-h-[4.5rem] disabled:opacity-60"
+              className="rounded-lg px-2 py-1 text-[12px] min-h-18 disabled:opacity-60"
               style={inputStyle}
             >
               {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}

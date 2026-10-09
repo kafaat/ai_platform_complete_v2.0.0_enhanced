@@ -188,7 +188,7 @@ export default function PortfolioCommandPage() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">مصدر {i + 1}</span>
               <button onClick={() => removeSource(i)} disabled={sources.length <= 1}
-                title="حذف المصدر" className="p-1 rounded text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف المصدر" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -247,7 +247,7 @@ export default function PortfolioCommandPage() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">حقل {i + 1}</span>
               <button onClick={() => removeField(i)} disabled={fields.length <= 1}
-                title="حذف الحقل" className="p-1 rounded text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف الحقل" className="p-1 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -302,7 +302,7 @@ export default function PortfolioCommandPage() {
                   className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
               </label>
               <button onClick={() => removePolicy(pi)} disabled={policies.length <= 1}
-                title="حذف السياسة" className="p-1 mt-5 rounded text-slate-500 hover:text-red-400 disabled:opacity-40">
+                title="حذف السياسة" className="p-1 mt-5 rounded-sm text-slate-500 hover:text-red-400 disabled:opacity-40">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -343,7 +343,7 @@ export default function PortfolioCommandPage() {
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
         <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة</div>
             <div className="text-[12px] text-slate-400">
@@ -359,14 +359,14 @@ export default function PortfolioCommandPage() {
         <div className="space-y-4">
           {/* توصية فقط — لا تنفيذ (بانر بارز) */}
           <div className="rounded-xl border p-3 flex items-center gap-2" style={{ background: '#1a1400', borderColor: '#f59e0b55' }}>
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="text-sm font-semibold text-amber-200">توصية فقط — لا تنفيذ ولا حجز ماء.</span>
           </div>
 
           {/* Uncalibrated / warnings banner */}
           {(!res.calibrated || res.warnings_ar.length > 0) && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 {!res.calibrated && (
                   <div className="text-sm font-semibold text-amber-200">🟡 تقديريّ غير معايَر — قيم لا قاطعة.</div>
