@@ -475,7 +475,7 @@ STATUS_SHA = re.compile(r"(?<![0-9A-Za-z_])(?=[0-9]*[a-f])([0-9a-f]{7,40})(?![0-
 STATUS_PR = re.compile(r"(?<![\w/&])#(\d{2,6})(?!\d)")
 SQUASH_SUBJECT = re.compile(r"\(#(\d+)\)\s*$")
 CANONICAL_LINE = re.compile(r"^\s*-\s*\*\*canonical\b", re.I)
-CANONICAL_INLINE = re.compile(r"\*\*canonical\b", re.I)
+CANONICAL_INLINE = re.compile(r"(?:^|(?<= · ))\*\*canonical\b[^*\n]*:\*\*", re.I)
 INLINE_ITEM_SEPARATOR = " · **"
 
 
@@ -494,7 +494,11 @@ def _shas(text: str) -> list[str]:
 
 
 def _split_inline_canonical(status: str) -> tuple[str, list[str]]:
-    """نثرُ الخليّة بلا مقاطع canonical، ومقاطعُ canonical وحدها (كلٌّ حتّى الفاصل ` · **` التالي)."""
+    """نثرُ الخليّة بلا مقاطع canonical، ومقاطعُ canonical وحدها (كلٌّ حتّى الفاصل ` · **` التالي).
+
+    لا تُعامل إشارةٌ وسط النثر إلى صياغة canonical بوصفها وصلةً؛ يجب أن تبدأ عند حدّ
+    عنصرٍ داخليّ وأن تُغلق بعلامة ``:**``.
+    """
     prose: list[str] = []
     segments: list[str] = []
     cursor = 0

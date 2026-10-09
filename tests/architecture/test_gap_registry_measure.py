@@ -455,6 +455,17 @@ def test_a_reachable_sha_in_the_status_prose_does_not_link_a_squashed_repair():
     )
 
 
+def test_a_quoted_canonical_syntax_mention_does_not_hide_an_unreachable_repair():
+    status = (
+        "**fixed** (`0726a887`) — صياغة الوصلة هي `**canonical …:**`، "
+        "والإصلاح غير المبلوغ `deadbeef`."
+    )
+    found = _flagged(_HEAD + f"| GAP-A-01 | x | {status} |\n")
+
+    assert [item["id"] for item in found] == ["GAP-A-01"]
+    assert found[0]["repair_shas"] == ["0726a887", "deadbeef"]
+
+
 def test_an_open_row_and_a_historical_entry_are_not_provenance_findings():
     text = (
         _HEAD
