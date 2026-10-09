@@ -3661,3 +3661,10 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** دمج #1155 إلى `main@3daa3547` يوفّر الأصل المطلوب للفرع المكدّس؛ وقياس provenance على رأس الدمج بعد إكمال التاريخ أعاد `unreconciled_fixed_provenance_count = 0` بلا حالات غير مصنّفة/غير canonical أو تكرارات غير مراجعَة. يثبت ذلك دمج البيانات من الجانبين من دون اختيار نسخة كاملة من ملفات الدماغ أو المصنوعات.
 
 **المصدر:** PR #1157 · merge commit `4e2681d5` · `scripts/ci/gap_registry_measure.py` · `sahool-brain/gaps/registry.md` · `release/SAHOOL_RELEASE_MANIFEST_20260626.json`.
+## 2026-10-09 — إبعاد صور CI عن Docker Hub مع إبقاء اختبارات قواعد البيانات حقيقية
+
+**القرار:** تستخدم وظائف CI صور Docker Official من ECR Public مثبتة بالـOCI digest لـPostgreSQL/Redis/Nginx. لا تعتمد PostGIS على صورة طرف ثالث أو Docker Hub: تُبنى محليّاً فوق PostgreSQL المثبت، بإضافة حزم PostGIS عبر مستودع PGDG الذي يتحقق apt من توقيعه. سحب الصورة يفشل مغلقاً؛ حدّ 429 يوقف إعادة المحاولة، وتُسجّل حالات الفشل كـ`HARNESS_INVALID` مع السبب الجذري. لا تُحوَّل الوظائف إلى optional ولا تُصنَّع أدلة XML.
+
+**السبب:** Actions `37993614081` سجّل مهلات `auth.docker.io` و429 على وظائف متعددة قبل إنشاء قواعد البيانات أو بدء الاختبارات. مصادقة Docker Hub لا تعالج تعذّر الوصول إلى نقطة المصادقة، وزيادة المحاولات لم تُثبت استعادة الاختبار؛ مصدر ECR المثبت يزيل المسار غير الموثق، بينما حزم PostGIS تأتي من مصدر PGDG الموقّع. إغلاق الفجوة التشغيلية مشروط بإعادة تشغيل فعلية ناجحة وإنتاج دليل Decision 033 من اختبارات PostgreSQL حقيقية.
+
+**المصدر:** PR #1157 · Actions `37993614081` · `.github/workflows/ci.yml` · `.github/workflows/wx12-runtime-certification.yml` · `scripts/ci/build_postgis_test_image.sh` · `scripts/ci/resilient_docker_pull.sh`.

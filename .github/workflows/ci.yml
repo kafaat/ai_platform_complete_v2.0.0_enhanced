@@ -1040,29 +1040,18 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: tests_v9/requirements-test.txt
-      # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
-      # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
-      # تبقى الـ٦ محاولات أدناه خطّ دفاع ثانٍ. (إعادة إصلاح #538 الذي ضاع في إعادة كتابة main.)
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start Postgres+PostGIS and Redis, then provision the client from the image
         run: |
-          set -e
-          pull() {
-            for i in 1 2 3 4 5 6; do
-              docker pull "$1" && return 0
-              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
-            done
-            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
-          }
-          pull postgis/postgis:15-3.4
-          pull redis:7-alpine
+          set -euo pipefail
+          postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
+          postgis_image=sahool-postgis-15:ci
+          redis_image=public.ecr.aws/docker/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+          scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 15 "$postgis_image"
+          scripts/ci/resilient_docker_pull.sh "$redis_image"
           docker run -d --name sahool-pg \
             -e POSTGRES_DB=sahool_test -e POSTGRES_USER=sahool_test \
-            -e POSTGRES_PASSWORD=test_password -p 5433:5432 postgis/postgis:15-3.4
-          docker run -d --name sahool-redis -p 6380:6379 redis:7-alpine
+            -e POSTGRES_PASSWORD=test_password -p 5433:5432 --pull=never "$postgis_image"
+          docker run -d --name sahool-redis -p 6380:6379 --pull=never "$redis_image"
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
@@ -1074,6 +1063,11 @@ jobs:
             echo "بانتظار Postgres ($i)"; sleep 2
           done
           pg_isready -h localhost -p 5433 -U sahool_test
+          for i in $(seq 1 30); do
+            docker exec sahool-redis redis-cli ping | grep -qx PONG && break
+            echo "بانتظار Redis ($i)"; sleep 2
+          done
+          docker exec sahool-redis redis-cli ping | grep -qx PONG
       - run: pip install -r tests_v9/requirements-test.txt
       # تطبيق مخطّط الترحيلات على قاعدة الاختبار قبل اختبارات التكامل (RLS/DB)،
       # وإلّا تفشل الاختبارات التي تُدرج في field_boundaries/ndvi_timeseries… (الجداول غير موجودة).
@@ -1251,24 +1245,14 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: services/decision-service/requirements.txt
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start Postgres, then provision the client from the image
         run: |
-          set -e
-          pull() {
-            for i in 1 2 3 4 5 6; do
-              docker pull "$1" && return 0
-              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
-            done
-            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
-          }
-          pull postgres:15
+          set -euo pipefail
+          postgres_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
+          scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name ds-pg \
             -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
-            -e POSTGRES_PASSWORD=test_password -p 5434:5432 postgres:15
+            -e POSTGRES_PASSWORD=test_password -p 5434:5432 --pull=never "$postgres_image"
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
@@ -1571,14 +1555,12 @@ jobs:
       - name: Start isolated PostgreSQL 16 (no external secrets)
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            if docker pull postgres:16; then break; fi
-            if [ "$attempt" -eq 3 ]; then exit 1; fi
-            sleep "$((attempt * 5))"
-          done
+          postgres_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name decision-033-pg16 \
             -e POSTGRES_DB=decision033_test -e POSTGRES_USER=decision033_admin \
-            -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 postgres:16
+            -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 \
+            --pull=never "$postgres_image"
           for attempt in $(seq 1 30); do
             if docker exec decision-033-pg16 pg_isready -U decision033_admin -d decision033_test; then break; fi
             sleep 2
@@ -1628,12 +1610,10 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: tests_v9/requirements-test.txt
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start PostgreSQL 16 + PostGIS, then provision the client from the image
         id: live_pg_harness
+        env:
+          HARNESS_PRIMARY_CAUSE_FILE: live_pg_primary_cause.txt
         # حلقة السحب انتقلت إلى `scripts/ci/resilient_docker_pull.sh` كي **تُختبَر**:
         # منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً، فيبقى
         # «مقيسٌ بمحاكاة» ادّعاءً في رسالة التزام. الاختبار في
@@ -1641,11 +1621,15 @@ jobs:
         # `docker run` **لم يُنفَّذ** بعد استنفاد المحاولات.
         run: |
           set -euo pipefail
-          scripts/ci/resilient_docker_pull.sh postgis/postgis:16-3.4
-          docker run -d --name sahool-pg16 \
+          postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          postgis_image=sahool-postgis-16:ci
+          scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 16 "$postgis_image"
+          if ! docker run -d --name sahool-pg16 \
             -e POSTGRES_DB=sahool -e POSTGRES_USER=sahool_user \
-            -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never \
-            postgis/postgis:16-3.4
+            -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never "$postgis_image"; then
+            printf '%s\n' POSTGRES_CONTAINER_START_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"
+            exit 1
+          fi
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.

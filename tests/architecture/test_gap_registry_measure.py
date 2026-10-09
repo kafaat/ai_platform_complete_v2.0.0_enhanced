@@ -401,7 +401,7 @@ def test_a_reachable_sha_outside_the_status_does_not_count_as_a_link():
 @pytest.mark.parametrize(
     "status",
     [
-        "**fixed** (`0726a887`، #1149) · **canonical على `main`:** squash `ab07ceb8`",
+        "**fixed** (`0726a887`، #1149) · **canonical 2026-10-09:** squash `ab07ceb8`",
         "**fixed** (`c56db557`)",
         "**fixed** (2026-10-06، `20260626` · `feedback` · run `2412021383`)",
     ],
