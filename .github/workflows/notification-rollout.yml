@@ -21,7 +21,8 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:16-alpine
+        # Docker Official Image on ECR Public, pinned to its verified OCI index digest.
+        image: public.ecr.aws/docker/library/postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
         env:
           POSTGRES_DB: notification_rollout_test
           POSTGRES_USER: notification_test
