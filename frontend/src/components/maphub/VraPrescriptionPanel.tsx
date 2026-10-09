@@ -53,7 +53,7 @@ export function VraPrescriptionPanel({
   if (!prescription || !zones.length) return null;
   const status = readinessStatus || prescription.readiness_status || 'proposal_only';
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white/95 p-3 shadow-sm" data-testid="vra-prescription-panel">
+    <div className="rounded-2xl border border-violet-100 bg-white/95 p-3 shadow-xs" data-testid="vra-prescription-panel">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">

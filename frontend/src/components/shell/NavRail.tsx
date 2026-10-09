@@ -59,7 +59,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
           borderRight: active ? '3px solid rgb(var(--sahool-green))' : '3px solid transparent',
           color: active ? 'rgb(var(--sahool-green-light))' : 'rgb(var(--sahool-muted))',
         }}>
-        <Icon className="w-4 h-4 flex-shrink-0" />
+        <Icon className="w-4 h-4 shrink-0" />
         {!collapsed && (
           <>
             <span className="text-sm flex-1 text-right">{item.label}</span>
@@ -95,7 +95,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
     }}>
       {/* الشعار + حالة NATS */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-800">
-        <div className="w-9 h-9 rounded-2xl bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-950/30">
+        <div className="w-9 h-9 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/30">
           <Leaf className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
@@ -116,7 +116,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
 
       {/* شارة الوضع التجريبيّ */}
       {isDemoMode && !collapsed && (
-        <div className="mx-2 mt-2 px-2 py-1 rounded text-[10px] text-amber-400 text-center"
+        <div className="mx-2 mt-2 px-2 py-1 rounded-sm text-[10px] text-amber-400 text-center"
           style={{ background: '#2a1a00', border: '1px solid #f59e0b44' }}>
           ⚠️ وضع تجريبي
         </div>
@@ -155,7 +155,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
       {!collapsed && (
         <div className="px-3 py-4 border-t border-slate-800">
           <div className="flex items-center gap-2 px-2 py-2 rounded-lg" style={{ background: '#1e293b' }}>
-            <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center shrink-0">
               <User className="w-3.5 h-3.5 text-emerald-300" />
             </div>
             <div className="flex-1 min-w-0">

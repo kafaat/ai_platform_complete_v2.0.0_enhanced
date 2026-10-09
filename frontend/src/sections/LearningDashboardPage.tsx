@@ -259,7 +259,7 @@ export default function LearningDashboardPage() {
 
       {!isLoading && !isError && recordsDegraded && (
         <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-[12px]">
             <div className="text-sm font-semibold text-amber-200">
               تعمل اللوحة في وضع متدهور
@@ -307,7 +307,7 @@ export default function LearningDashboardPage() {
 
           {/* بانر الصدق العامّ */}
           <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-1 text-[12px]">
               <div className="text-sm font-semibold text-amber-200">
                 🟡 حلقة التعلّم قيد التراكم — قيم تقديريّة غير مُعايَرة

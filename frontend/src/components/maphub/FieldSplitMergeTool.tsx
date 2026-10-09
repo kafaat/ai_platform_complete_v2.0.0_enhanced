@@ -328,7 +328,7 @@ export default function FieldSplitMergeTool({ fields, selectedId, onClose, refet
             className="flex items-start gap-2"
             style={{ background: T.dangerBg, color: T.danger, borderRadius: RADIUS.sm, padding: '8px 12px', fontSize: 12 }}
           >
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ marginTop: 2 }} />
+            <AlertTriangle className="w-4 h-4 shrink-0" style={{ marginTop: 2 }} />
             <span>
               عمليّة مُتلِفة: تُنشئ حقولاً جديدة ثمّ تحذف الأصول. يُفحَص الموسم النشط مسبقاً، ويُحظَر الحذف إن وُجد.
             </span>
@@ -378,7 +378,7 @@ export default function FieldSplitMergeTool({ fields, selectedId, onClose, refet
                 )}
                 {mergeIsMulti && (
                   <div className="flex items-start gap-2" style={{ marginTop: 8, color: T.danger, fontSize: 12 }}>
-                    <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ marginTop: 1 }} />
+                    <AlertTriangle className="w-4 h-4 shrink-0" style={{ marginTop: 1 }} />
                     <span>الحقول المختارة غير متجاورة (ناتج متعدّد الأجزاء) — الخادم لا يقبله. اختَر حقولاً متلاصقة.</span>
                   </div>
                 )}

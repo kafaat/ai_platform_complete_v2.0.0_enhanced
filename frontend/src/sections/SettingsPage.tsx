@@ -97,7 +97,7 @@ export default function SettingsPage() {
 
   const Row = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <div className="sm:w-44 flex-shrink-0">
+      <div className="sm:w-44 shrink-0">
         <div style={{ fontSize: 13, color: T.ink, fontWeight: 600 }}>{label}</div>
         {hint && <div style={{ fontSize: 11, color: T.faint }}>{hint}</div>}
       </div>
@@ -182,7 +182,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between mb-3">
               <span style={{ fontSize: 12, color: T.muted }}>آخر فحص</span>
               <button onClick={() => refetchSv()}
-                className="flex items-center gap-1 px-2 py-1 rounded"
+                className="flex items-center gap-1 px-2 py-1 rounded-sm"
                 style={{ fontSize: 12, color: T.muted }}>
                 <RefreshCw className={`w-3 h-3 ${svLoading?'animate-spin':''}`} /> تحديث
               </button>
@@ -302,7 +302,7 @@ export default function SettingsPage() {
               return (
                 <div key={i} className="flex gap-3 py-1.5 text-sm items-center"
                   style={{ borderBottom: `1px solid ${T.line}` }}>
-                  <span className="px-2 py-0.5 rounded text-[11px]"
+                  <span className="px-2 py-0.5 rounded-sm text-[11px]"
                     style={{ background: isCurrent ? T.greenSoft : T.card2,
                       border: `1px solid ${isCurrent ? T.green : T.line}`,
                       color: isCurrent ? T.greenDark : T.info, fontWeight: 600 }}>
@@ -433,7 +433,7 @@ function TeamManagement({ Section, inputCls, inputSty }: {
           </div>
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: T.danger }} />
+              <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: T.danger }} />
               <span style={{ color: T.danger }}>{error}</span>
             </div>
           )}
@@ -468,7 +468,7 @@ function TeamManagement({ Section, inputCls, inputSty }: {
         <div className="flex items-center justify-between mb-1">
           <span style={{ fontSize: 12, color: T.muted }}>{invites.length} دعوة معلّقة</span>
           <button type="button" onClick={refresh}
-            className="flex items-center gap-1 px-2 py-1 rounded"
+            className="flex items-center gap-1 px-2 py-1 rounded-sm"
             style={{ fontSize: 12, color: T.muted }}>
             <RefreshCw className={`w-3 h-3 ${loadingList ? 'animate-spin' : ''}`} /> تحديث
           </button>
@@ -487,7 +487,7 @@ function TeamManagement({ Section, inputCls, inputSty }: {
               </div>
             </div>
             <button type="button" onClick={() => handleRevoke(inv.id)}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              className="flex items-center gap-1 px-2 py-1 rounded-sm text-xs"
               style={{ background: T.dangerBg, border: `1px solid ${T.danger}`, color: T.danger }}>
               <Trash2 className="w-3.5 h-3.5" /> إلغاء
             </button>
@@ -523,7 +523,7 @@ function SessionRefreshButton() {
     <span className="inline-flex items-center gap-2">
       {msg && <span style={{ fontSize: 11, color: T.muted }}>{msg}</span>}
       <button type="button" onClick={run} disabled={busy}
-        className="inline-flex items-center gap-1 px-2 py-1 rounded disabled:opacity-50"
+        className="inline-flex items-center gap-1 px-2 py-1 rounded-sm disabled:opacity-50"
         style={{ fontSize: 11, color: T.muted, border: `1px solid ${T.line}` }}>
         <RefreshCw className={`w-3 h-3 ${busy ? 'animate-spin' : ''}`} /> تحديث الجلسة
       </button>
@@ -613,7 +613,7 @@ function TeamMembersRoles({ Section, inputCls, inputSty }: {
       <div className="flex items-center justify-between mb-1">
         <span style={{ fontSize: 12, color: T.muted }}>{users.length} عضواً</span>
         <button type="button" onClick={refresh}
-          className="flex items-center gap-1 px-2 py-1 rounded"
+          className="flex items-center gap-1 px-2 py-1 rounded-sm"
           style={{ fontSize: 12, color: T.muted }}>
           <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> تحديث
         </button>
@@ -737,7 +737,7 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
 
   const errBox = (msg: string) => (
     <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
-      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.danger }} />
+      <AlertTriangle className="w-3.5 h-3.5 shrink-0" style={{ color: T.danger }} />
       <span style={{ color: T.danger }}>{msg}</span>
     </div>
   );
@@ -793,7 +793,7 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
       {channelRow('phone', 'الهاتف', Phone, status?.verified_phone ?? false)}
       {sentMsg && (
         <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.infoBg, border: `1px solid ${T.info}`, color: T.info }}>
-          <Mail className="w-3.5 h-3.5 flex-shrink-0" /> {sentMsg}
+          <Mail className="w-3.5 h-3.5 shrink-0" /> {sentMsg}
         </div>
       )}
       {err && errBox(err)}
@@ -916,13 +916,13 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
 
   const errBox = (msg: string) => (
     <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
-      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.danger }} />
+      <AlertTriangle className="w-3.5 h-3.5 shrink-0" style={{ color: T.danger }} />
       <span style={{ color: T.danger }}>{msg}</span>
     </div>
   );
   const okBox = (msg: string) => (
     <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.okBg, border: `1px solid ${T.green}`, color: T.greenDark }}>
-      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> {msg}
+      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> {msg}
     </div>
   );
 
@@ -952,7 +952,7 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
               <p style={{ fontSize: 11, color: T.muted }}>امسح هذا الرابط كـ QR أو أدخل السرّ يدويّاً في تطبيق المصادقة. <span style={{ color: T.warn }}>يُعرَض مرّة واحدة فقط.</span></p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-xs font-mono break-all" style={{ color: T.greenDark }}>{setupData.secret}</code>
-                <button onClick={copySecret} className="flex items-center gap-1 px-2 py-1 rounded text-[11px]" style={{ border: `1px solid ${T.line}`, color: T.brownSoft }}>
+                <button onClick={copySecret} className="flex items-center gap-1 px-2 py-1 rounded-sm text-[11px]" style={{ border: `1px solid ${T.line}`, color: T.brownSoft }}>
                   {copied ? <Check className="w-3 h-3" style={{ color: T.green }} /> : <Copy className="w-3 h-3" />} {copied ? 'نُسخ' : 'نسخ'}
                 </button>
               </div>

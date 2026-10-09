@@ -244,7 +244,7 @@ export default function DecisionConfidencePage() {
             className="rounded-xl border p-4 flex items-start gap-3"
             style={{ background: '#1a1400', borderColor: '#f59e0b33' }}
           >
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="space-y-1">
               <div className="text-sm font-semibold text-amber-200">
                 🟡 ثقة القرار تركيبة موزونة شفّافة على المصادر المتوفّرة فقط — الغائبة مُعلَنة لا مُفترَضة

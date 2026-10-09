@@ -84,7 +84,7 @@ function ByLevelChip({ level, count, label }: { level: string; count: number; la
       className="flex items-center gap-2 rounded-lg px-3 py-1.5"
       style={{ background: T.card2, border: `1px solid ${T.line}` }}
     >
-      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: hex }} aria-hidden="true" />
+      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: hex }} aria-hidden="true" />
       <span className="text-[12px]" style={{ color: T.ink }}>{label}</span>
       <span
         className="text-[12px] font-bold px-1.5 rounded-full"
@@ -138,7 +138,7 @@ function DeviceTwinCard({ device }: { device: DeviceTwin }) {
               {device.field_id ? <> · حقل: <span style={{ color: T.brownSoft }}>{device.field_id}</span></> : null}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <span
               className="text-[11px] px-2 py-0.5 rounded-full"
               style={{ background: T.card2, color: T.muted, border: `1px solid ${T.line}` }}
@@ -286,7 +286,7 @@ export default function DeviceTwinPage() {
           {/* ── بانر الصدق/المصدر (provenance) — كهرمانيّ ── */}
           <Card style={{ background: T.warnBg, border: `1px solid ${T.warn}33` }}>
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: T.warn }} aria-hidden="true" />
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: T.warn }} aria-hidden="true" />
               <div className="space-y-1">
                 <div className="text-sm font-semibold" style={{ color: T.ink }}>
                   🟡 ثقة الحسّاس معادلة موزونة شفّافة على الإشارات المتوفّرة فقط — الغائبة مُعلَنة لا مُفترَضة
