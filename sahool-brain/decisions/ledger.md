@@ -3645,3 +3645,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** قاعدةُ المالك «الدليلُ يسمّي ما قِيس فعلاً» لم تكن مستوفاةً حرفاً في دليل #1156 رغم ربطه ببصمة الشجرة: القياسُ كان على مصنوعٍ أقدمَ من الشجرة بأربع قواعد غيرِ مستعملة. الربطُ بالبايتات يجعل المطابقةَ قابلةً للتكذيب بلا استدلال.
 
 **المصدر:** `certification/evidence/frontend_tailwind_v4_parity_20261008.json` (`deployment_gate_20261009`) · نشرا Railway `83156b01` و`841ffaee` · PR #1156 squash `c1760e9e`.
+
+## 2026-10-09 — ربطُ provenance يُقرأ من مقاطع canonical وحدها، ومعرّفاتُ النشر ليست commits
+
+**القرار:** لا يُعَدّ سجلُّ fixed مُسحَقُ الإصلاح مُصالَحاً إلّا بـSHA مبلوغٍ داخل مقطع `**canonical …:**` (داخل خليّة الحالة أو سطراً في القسم). أيُّ SHA آخر في نثر الحالة — أساسُ قياس (`main@94e6e07a`)، نسخةٌ مفحوصة، معرّفُ نشر Railway — لا يربط. ومن يكتب صفّاً fixed لإصلاحٍ سيُدمج squash يُلحق سطرَ canonical بعد الدمج بصيغة «`X` في #N ⇒ squash `SHA`»، ويذكر معرّفاتِ النشر بوصفها كذلك لا بوصفها commits.
+
+**السبب:** مقيسٌ على `main@c1760e9e`: القاعدةُ القديمة أبلغت عن صفٍّ واحد بينما الصارمةُ تكشف ثمانية (Tailwind + سبعة قديمة)، أي أنّ «0» السابق كان يقيس غيابَ أيّ SHA مبلوغ لا وجودَ الربط. والقياسُ report-only فلا يُحتجّ بأخضره على صحّة provenance حتّى يصير حاجباً بشرط إغلاق الفجوة الأمّ.
+
+**المصدر:** `scripts/ci/gap_registry_measure.py` (`_split_inline_canonical` · `fixed_provenance`) · `tests/architecture/test_gap_registry_measure.py::test_a_reachable_sha_in_the_status_prose_does_not_link_a_squashed_repair` · PR #1157 عند `7012cd1e`.
