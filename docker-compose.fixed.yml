@@ -143,6 +143,8 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}
+      # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
+      SAHOOL_MIGRATE_APPLY: "1"
     volumes:
       - ./migrations:/migrations:ro
     command: ["bash", "/migrations/apply_in_compose.sh"]
