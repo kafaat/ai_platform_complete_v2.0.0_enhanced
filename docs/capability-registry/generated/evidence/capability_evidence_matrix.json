@@ -8808,6 +8808,7 @@
         "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
         "services/raster-service/test_production_truth_fail_closed.py",
         "services/weather-service/tests/test_operation_fail_closed.py",
+        "tests_v9/test_apply_in_compose_fail_closed.py",
         "tests_v9/test_critical_event_fail_closed.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_tile_mask_fail_closed_v29_8.py"
