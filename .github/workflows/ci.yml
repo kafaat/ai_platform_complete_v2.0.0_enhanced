@@ -1246,24 +1246,31 @@ jobs:
           cache: pip
           cache-dependency-path: services/decision-service/requirements.txt
       - name: Start Postgres, then provision the client from the image
+        env:
+          HARNESS_PRIMARY_CAUSE_FILE: decision_service_primary_cause.txt
         run: |
           set -euo pipefail
+          : >"$HARNESS_PRIMARY_CAUSE_FILE"
           postgres_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
           scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name ds-pg \
             -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
-            -e POSTGRES_PASSWORD=test_password -p 5434:5432 --pull=never "$postgres_image"
+            -e POSTGRES_PASSWORD=test_password -p 5434:5432 --pull=never "$postgres_image" \
+            || { printf '%s\n' POSTGRES_CONTAINER_START_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          bash scripts/ci/provision_pg_client.sh ds-pg
+          bash scripts/ci/provision_pg_client.sh ds-pg \
+            || { printf '%s\n' POSTGRES_CLIENT_PROVISIONING_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
-          command -v pg_isready >/dev/null
+          command -v pg_isready >/dev/null \
+            || { printf '%s\n' POSTGRES_CLIENT_MISSING >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
             echo "بانتظار Postgres ($i)"; sleep 2
           done
-          pg_isready -h localhost -p 5434 -U decision_test
+          pg_isready -h localhost -p 5434 -U decision_test \
+            || { printf '%s\n' POSTGRES_TCP_READINESS_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
@@ -1538,6 +1545,20 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest ../model-registry-adapter/tests -q -p no:cacheprovider
+      - name: Classify Decision Service harness setup evidence
+        if: always()
+        run: |
+          if [ -s decision_service_primary_cause.txt ]; then
+            primary_cause="$(head -n1 decision_service_primary_cause.txt)"
+            echo "::error::HARNESS_INVALID root_cause=${primary_cause}"
+          fi
+      - name: Preserve Decision Service harness setup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: decision-service-harness-${{ github.run_id }}-${{ github.run_attempt }}
+          path: decision_service_primary_cause.txt
+          if-no-files-found: warn
 
   decision-033-pg16-proof:
     name: Decision 033 Restricted Role Proof (PG16)

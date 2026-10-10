@@ -17,6 +17,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 
@@ -156,6 +157,40 @@ def test_rate_limit_stops_retrying_and_records_invalid_harness_cause(tmp_path):
     assert "evidence_state=HARNESS_INVALID" in proc.stderr
     assert cause_file.read_text(encoding="utf-8").strip() == "DOCKER_IMAGE_PULL_FAILED"
     assert "backoff" not in proc.stderr
+
+
+def test_decision_service_job_preserves_pull_failure_as_harness_evidence():
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    job = workflow["jobs"]["decision-service-tests"]
+    provision_step = next(
+        step
+        for step in job["steps"]
+        if "scripts/ci/resilient_docker_pull.sh" in step.get("run", "")
+    )
+    cause_file = "decision_service_primary_cause.txt"
+
+    assert provision_step["env"]["HARNESS_PRIMARY_CAUSE_FILE"] == cause_file
+    assert ': >"$HARNESS_PRIMARY_CAUSE_FILE"' in provision_step["run"]
+    assert "set -euo pipefail" in provision_step["run"]
+    assert "scripts/ci/resilient_docker_pull.sh" in provision_step["run"]
+
+    classify_step = next(
+        step
+        for step in job["steps"]
+        if step.get("name") == "Classify Decision Service harness setup evidence"
+    )
+    assert classify_step["if"] == "always()"
+    assert "HARNESS_INVALID" in classify_step["run"]
+    assert "root_cause=${primary_cause}" in classify_step["run"]
+
+    artifact_step = next(
+        step
+        for step in job["steps"]
+        if step.get("name") == "Preserve Decision Service harness setup evidence"
+    )
+    assert artifact_step["if"] == "always()"
+    assert artifact_step["with"]["path"] == cause_file
+    assert artifact_step["with"]["if-no-files-found"] == "warn"
 
 
 @pytest.mark.parametrize(
