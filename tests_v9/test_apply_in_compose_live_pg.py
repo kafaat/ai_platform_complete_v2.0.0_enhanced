@@ -46,7 +46,11 @@ def pg_env() -> dict[str, str]:
     }
     # الحياةُ تُفحص بـpsql (الذي يحتاجه السكربتُ أصلاً) لا بـpg_isready، كي لا يتحوّل غيابُ أداةٍ إلى خطأ.
     alive = subprocess.run(
-        ["psql", "-X", "-At", "-c", "select 1"], env=env, capture_output=True, text=True
+        ["psql", "-X", "-At", "-c", "select 1"],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
     )
     if alive.returncode or alive.stdout.strip() != "1":
         pytest.skip("لا خادمَ حيّاً على TEST_DATABASE_URL")
