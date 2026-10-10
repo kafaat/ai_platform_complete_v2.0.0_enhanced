@@ -3684,3 +3684,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** على Railway يُعاد بناءُ المُهاجر ونشرُه من أيّ دفعةٍ تمسّ `migrations/**` أو `deploy/railway/Dockerfile.migrate` (`watchPatterns`)، فأطلق تثبيتُ صورةٍ أساسيّة في #1157 هجرةَ إنتاج (نشر `87cc687b`) على قاعدةٍ غائبة؛ وما حماها كان فشلُ DNS لا الشيفرة (`MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01`، تنبيهُ المالك 2026-10-10 و#1158 البند ٥). الخروجُ الصفريّ عند غياب الإذن مقصود كي لا تُحمَرّ كلُّ دفعةٍ لا تنوي هجرة، والسطرُ المُعلَن يمنع قراءةَ SUCCESS على أنّه تطبيق.
 
 **المصدر:** `migrations/apply_in_compose.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · `docker-compose.v9.yml` · `docker-compose.fixed.yml` · Railway `get-service-config(sahool-migrate-main)` · #1158.
+
+## 2026-10-10 — نشرُ المُهاجر بلا إذنٍ يقرأ حالةَ المخطَّط ولا يصمت
+
+**القرار:** حين يُنشر المُهاجر بلا `SAHOOL_MIGRATE_APPLY=1` يشغّل `migrations/probe_schema_state.sh` قراءةً فقط ويطبع `SCHEMA_STATE …` ثمّ يخرج صفراً (`2ecff854`)؛ تعذّرُ القراءة لا يُخفي `MIGRATIONS_NOT_APPLIED` ولا يُغيّر الخروج. الدورُ الافتراضيّ `PGUSER` ويُستبدَل بـ`PROBE_PGUSER` الأدنى صلاحيّةً حين يتوفّر.
+
+**السبب:** بوّابةُ #1158 تشترط قبل أيّ هجرة هويّةَ القاعدة ودفترَ الهجرات والحالةَ الجزئيّة، ولا دفترَ للمُهاجر (`MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01`)؛ فالنشرُ الذي لا يُؤذن له بالتطبيق هو الموضعُ الطبيعيّ لقراءةٍ لا تكتب — بالصورة نفسِها وبلا خدمةٍ جديدة. القراءةُ لا تُغني عن إذن التطبيق ولا تمنحه.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `migrations/apply_in_compose.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · إثباتٌ محلّيّ على PG16 (log.md 2026-10-10) · #1158.
