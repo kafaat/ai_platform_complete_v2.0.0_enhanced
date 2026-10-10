@@ -134,4 +134,6 @@ def test_compose_stacks_grant_the_permission_explicitly():
 def test_the_railway_runner_does_not_bake_the_permission_into_the_image():
     """على Railway الإذنُ متغيّرُ بيئةٍ يضبطه المشغِّل عند قرار الهجرة — لا يُخبَز في الصورة."""
     text = (ROOT / "deploy" / "railway" / "Dockerfile.migrate").read_text(encoding="utf-8")
-    assert "SAHOOL_MIGRATE_APPLY" not in text
+    assert "SAHOOL_MIGRATE_APPLY" not in text, (
+        "الإذنُ متغيّرُ مشغِّلٍ يُضبَط عند قرار الهجرة — خبزُه في الصورة يُعيد كلَّ إعادة بناءٍ هجرةً"
+    )
