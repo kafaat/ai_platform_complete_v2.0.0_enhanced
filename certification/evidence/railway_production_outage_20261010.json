@@ -1,0 +1,629 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "railway-production-outage-all-deployments-removed-20261010",
+  "verdict": "MEASURED",
+  "scope": "read_only_railway_state_both_environments",
+  "method": "Railway MCP read-only tools: list-deployments(status=REMOVED, limit=50) per environment, environment-status(includeSuccessful, 168h), describe-service(sahool-postgres) in both environments, get-service-config(sahool-migrate-main), get-logs(deployment 87cc687b), railway-agent restricted to reading. No Railway, database, or migrator mutation. Creator fields stripped (PII).",
+  "measured_at_utc": "2026-10-10T12:20:00Z",
+  "issue": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/issues/1158",
+  "project": {
+    "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "name": "sahool-staging"
+  },
+  "environments": {
+    "production": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+    "staging": "70cc51f8-b11f-4506-87b2-4b6615e472be"
+  },
+  "finding": "All deployments in both environments transitioned to REMOVED between 2026-10-05T11:05:50Z and 2026-10-05T11:08:59Z (15 production, 13 staging). Every deployment created afterwards was REMOVED minutes after SUCCESS. environment-status: production 20/20 services offline, staging 23/23 offline. No GitHub Actions run in 2026-10-05T10:30Z..11:30Z; no workflow invokes the Railway CLI; no brain log entry at that hour. Actor is outside the repository and not readable through MCP (no audit log, usage counters or billing state exposed).",
+  "production_removal_window_20261005": [
+    {
+      "id": "1fa182c5-7424-4b4b-b027-a2a770c8514c",
+      "service_id": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+      "service": "sahool-redis",
+      "status": "REMOVED",
+      "created_at": "2026-09-28T12:40:48.467Z",
+      "removed_at": "2026-10-05T11:05:50.133Z",
+      "reason": "redeploy",
+      "commit": null,
+      "image": "redis:7-alpine"
+    },
+    {
+      "id": "03bdb5f0-32cf-4ab6-86ae-2bc34123f138",
+      "service_id": "01de1a7c-3a4a-4772-aff2-080b3a78c58a",
+      "service": "sahool-nats",
+      "status": "REMOVED",
+      "created_at": "2026-09-28T12:40:57.233Z",
+      "removed_at": "2026-10-05T11:05:51.964Z",
+      "reason": "redeploy",
+      "commit": null,
+      "image": "nats:2-alpine"
+    },
+    {
+      "id": "27d4dde4-5712-4c05-a483-556c293f354c",
+      "service_id": "65cee1c0-8473-4219-b246-1b4015190938",
+      "service": "sahool-guardrails-engine",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.509Z",
+      "removed_at": "2026-10-05T11:06:10.883Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "3d2e3742-c987-4685-8777-b569a450d94d",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "service": "sahool-decision-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.960Z",
+      "removed_at": "2026-10-05T11:06:34.790Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "359610f4-6268-4d46-8e85-a9eed786e4f7",
+      "service_id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+      "service": "sahool-notification-agent",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.090Z",
+      "removed_at": "2026-10-05T11:06:34.903Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "4931ed19-1a2a-4f1f-992a-a0e445aeb8e8",
+      "service_id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+      "service": "sahool-vegetation-analysis",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.222Z",
+      "removed_at": "2026-10-05T11:06:57.635Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "729aa3f6-b211-4535-94e4-d876a3dc28b5",
+      "service_id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+      "service": "sahool-tts-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.509Z",
+      "removed_at": "2026-10-05T11:06:58.492Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "910d2941-8613-441b-943d-fde4daf5710b",
+      "service_id": "cae85573-5316-40b9-bf62-ccda465e4228",
+      "service": "sahool-redis-state",
+      "status": "REMOVED",
+      "created_at": "2026-09-28T12:40:43.718Z",
+      "removed_at": "2026-10-05T11:07:41.297Z",
+      "reason": "redeploy",
+      "commit": null,
+      "image": "redis:7-alpine"
+    },
+    {
+      "id": "82b6c44e-6caa-4dba-88e7-7e856403faa9",
+      "service_id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+      "service": "sahool-raster-main-candidate",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.509Z",
+      "removed_at": "2026-10-05T11:07:46.333Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "7a6b345a-5f2d-4a5a-af2c-a4fe04fff520",
+      "service_id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+      "service": "sahool-auth-main",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.510Z",
+      "removed_at": "2026-10-05T11:08:02.657Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "bfcdf54e-96fc-4e23-8fdf-32f1dd43c76d",
+      "service_id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+      "service": "sahool-raster-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.217Z",
+      "removed_at": "2026-10-05T11:08:35.037Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "da94b801-e261-4032-a08c-5c776a8ce156",
+      "service_id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+      "service": "sahool-field-management-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.510Z",
+      "removed_at": "2026-10-05T11:08:36.071Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "df8bb825-7db5-45d5-899f-f3cb8bbc1867",
+      "service_id": "f37b4995-25cc-4f9b-a5f9-14d6759ccd1a",
+      "service": "sahool-auth",
+      "status": "REMOVED",
+      "created_at": "2026-09-28T12:40:53.778Z",
+      "removed_at": "2026-10-05T11:08:38.449Z",
+      "reason": "redeploy",
+      "commit": "fa92a1f7e5920ed038dfac315afe755de92718e7",
+      "image": null
+    },
+    {
+      "id": "e70710e6-1710-44a7-bc37-fbf9e4f25f92",
+      "service_id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+      "service": "sahool-postgres",
+      "status": "REMOVED",
+      "created_at": "2026-09-28T12:40:51.938Z",
+      "removed_at": "2026-10-05T11:08:38.733Z",
+      "reason": "redeploy",
+      "commit": null,
+      "image": "postgis/postgis:15-3.4"
+    },
+    {
+      "id": "ec325fc2-71f1-425e-9e26-1266bbb3c48d",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.863Z",
+      "removed_at": "2026-10-05T11:08:59.662Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    }
+  ],
+  "staging_removal_window_20261005": [
+    {
+      "id": "27d27611-4751-400d-845a-4bd58f613d82",
+      "service_id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+      "service": "sahool-vegetation-analysis",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.958Z",
+      "removed_at": "2026-10-05T11:05:51.080Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "15c5b50b-04ac-41f9-ad71-da28f8527d1b",
+      "service_id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+      "service": "sahool-auth-main",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.216Z",
+      "removed_at": "2026-10-05T11:06:11.557Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "2f80b1b4-c6c6-4210-8516-136652137f5c",
+      "service_id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+      "service": "sahool-raster-main-candidate",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.508Z",
+      "removed_at": "2026-10-05T11:06:14.680Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "8aa7c924-788c-4e17-ad80-c9a4edefbb65",
+      "service_id": "b92d960f-c267-47d7-a730-5c542d41c791",
+      "service": "sahool-soil-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.509Z",
+      "removed_at": "2026-10-05T11:07:41.073Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "735b066e-7b5f-4bd4-a525-696f84bf0fca",
+      "service_id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+      "service": "sahool-raster-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.860Z",
+      "removed_at": "2026-10-05T11:07:41.324Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "98c59ebe-3b3b-4733-9a78-8453e53e1c30",
+      "service_id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+      "service": "sahool-tts-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-02T13:19:25.166Z",
+      "removed_at": "2026-10-05T11:07:42.547Z",
+      "reason": "deploy",
+      "commit": "0eaa1e4e2e1deee237ef7238bcd88ea07919a0e4",
+      "image": null
+    },
+    {
+      "id": "ab04524f-218d-4c42-a4d6-b3670632d4ad",
+      "service_id": "65cee1c0-8473-4219-b246-1b4015190938",
+      "service": "sahool-guardrails-engine",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.857Z",
+      "removed_at": "2026-10-05T11:08:14.612Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "aa0e77e0-04ef-43e4-b318-32d8daba332c",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "service": "sahool-decision-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.221Z",
+      "removed_at": "2026-10-05T11:08:14.734Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "b6c7013c-d679-4bb7-8819-28e808f95427",
+      "service_id": "671188de-2a64-4233-8be5-1ac1718b38f0",
+      "service": "sahool-ai-agronomist",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.865Z",
+      "removed_at": "2026-10-05T11:08:14.891Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "c1690182-e762-4a99-8488-e0bff573a018",
+      "service_id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+      "service": "sahool-platform",
+      "status": "REMOVED",
+      "created_at": "2026-10-02T15:06:56.130Z",
+      "removed_at": "2026-10-05T11:08:34.599Z",
+      "reason": "deploy",
+      "commit": "df16cc05c4b666397956bd8c721949045e59b680",
+      "image": null
+    },
+    {
+      "id": "e4d5fcdf-a0ca-448e-babf-e144fba0ba79",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.954Z",
+      "removed_at": "2026-10-05T11:08:38.812Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "e0bd930c-71ff-4f41-bcad-b6add68f3930",
+      "service_id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+      "service": "sahool-field-management-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:26.220Z",
+      "removed_at": "2026-10-05T11:08:38.894Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    },
+    {
+      "id": "e76dc2a2-23be-4827-8ab7-a2600ee5feb5",
+      "service_id": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+      "service": "sahool-weather-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-05T08:42:25.865Z",
+      "removed_at": "2026-10-05T11:08:59.619Z",
+      "reason": "deploy",
+      "commit": "e29401acec751e377328a1aa18706b266e78e5e9",
+      "image": null
+    }
+  ],
+  "production_removals_after_20261005": [
+    {
+      "id": "8de4e006-2967-4eb4-9fec-87c1836be946",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T11:24:13.636Z",
+      "removed_at": "2026-10-06T12:19:21.724Z",
+      "reason": "deploy",
+      "commit": "90138460962c97a7c07ca1e79b16ce8ce0e6207b",
+      "image": null
+    },
+    {
+      "id": "09cba90b-ba1f-485e-bf8d-497adc1e6fe8",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "service": "sahool-decision-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T15:37:55.384Z",
+      "removed_at": "2026-10-06T15:51:52.397Z",
+      "reason": "deploy",
+      "commit": "f51e2fb46f6c3e449cfdbebec4842259cffb8623",
+      "image": null
+    },
+    {
+      "id": "19a6229f-51aa-4788-8f99-779374957a0a",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T15:37:55.374Z",
+      "removed_at": "2026-10-06T15:51:57.565Z",
+      "reason": "deploy",
+      "commit": "f51e2fb46f6c3e449cfdbebec4842259cffb8623",
+      "image": null
+    },
+    {
+      "id": "c9753003-8cae-455c-abd3-1c746a9978c1",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T18:00:28.657Z",
+      "removed_at": "2026-10-06T18:48:31.528Z",
+      "reason": "deploy",
+      "commit": "1a2a5cd7c40bc7b3c942eda207d05db33b653857",
+      "image": null
+    },
+    {
+      "id": "d8ff6c4a-869f-49e3-8d8f-862032ec0051",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-08T17:38:30.719Z",
+      "removed_at": "2026-10-08T18:13:00.243Z",
+      "reason": "deploy",
+      "commit": "94e6e07a137c9c798507b75a32ee1e159f51173d",
+      "image": null
+    },
+    {
+      "id": "841ffaee-2ae3-46a4-bff2-3da00b1dfd2b",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-09T00:01:55.924Z",
+      "removed_at": "2026-10-09T00:11:16.263Z",
+      "reason": "deploy",
+      "commit": "c1760e9e202423ebb1c4ecd79773d11228259055",
+      "image": null
+    },
+    {
+      "id": "87cc687b-cf84-4e82-81e4-3d41079f48a6",
+      "service_id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+      "service": "sahool-migrate-main",
+      "status": "REMOVED",
+      "created_at": "2026-10-10T11:45:34.496Z",
+      "removed_at": "2026-10-10T12:14:48.271Z",
+      "reason": "deploy",
+      "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+      "image": null
+    },
+    {
+      "id": "7c5467e1-ab4a-4835-8c5e-4b7ed95f981e",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-10T11:45:35.354Z",
+      "removed_at": "2026-10-10T12:15:10.419Z",
+      "reason": "deploy",
+      "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+      "image": null
+    }
+  ],
+  "staging_removals_after_20261005": [
+    {
+      "id": "142c34d8-d2c4-4a26-aa9d-b01a69a34bf7",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T11:24:13.732Z",
+      "removed_at": "2026-10-06T12:19:02.224Z",
+      "reason": "deploy",
+      "commit": "90138460962c97a7c07ca1e79b16ce8ce0e6207b",
+      "image": null
+    },
+    {
+      "id": "837a9bac-f574-46d6-9009-ceeb20b15384",
+      "service_id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+      "service": "sahool-decision-service",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T15:37:55.686Z",
+      "removed_at": "2026-10-06T15:51:32.421Z",
+      "reason": "deploy",
+      "commit": "f51e2fb46f6c3e449cfdbebec4842259cffb8623",
+      "image": null
+    },
+    {
+      "id": "6f08e20f-3639-45c2-babf-d25d349f94a5",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T15:37:55.373Z",
+      "removed_at": "2026-10-06T15:51:33.545Z",
+      "reason": "deploy",
+      "commit": "f51e2fb46f6c3e449cfdbebec4842259cffb8623",
+      "image": null
+    },
+    {
+      "id": "c7d35c45-38e3-4516-91f8-1350dc307735",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-06T18:00:28.657Z",
+      "removed_at": "2026-10-06T18:48:08.556Z",
+      "reason": "deploy",
+      "commit": "1a2a5cd7c40bc7b3c942eda207d05db33b653857",
+      "image": null
+    },
+    {
+      "id": "6b1226e1-280d-4709-95ef-29de77a69e87",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-07T23:34:01.593Z",
+      "removed_at": "2026-10-08T00:12:39.403Z",
+      "reason": "deploy",
+      "commit": "cb2374c66a367f398173de961e431f610714029a",
+      "image": null
+    },
+    {
+      "id": "0b83e46c-af94-46fc-bd2e-75bec5a3fdef",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-08T18:27:43.051Z",
+      "removed_at": "2026-10-08T19:09:38.933Z",
+      "reason": "deploy",
+      "commit": "94e6e07a137c9c798507b75a32ee1e159f51173d",
+      "image": null
+    },
+    {
+      "id": "83156b01-7bea-4bb9-8a5d-5b2325c742df",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-09T00:01:46.505Z",
+      "removed_at": "2026-10-09T00:10:43.657Z",
+      "reason": "deploy",
+      "commit": "cbdf713e584672074c7db4e95868b4e0fdde64db",
+      "image": null
+    },
+    {
+      "id": "5b2f9fec-51e6-4dc3-85ba-90b6cb10bd24",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-09T00:10:15.209Z",
+      "removed_at": "2026-10-09T00:10:56.156Z",
+      "reason": "deploy",
+      "commit": "c1760e9e202423ebb1c4ecd79773d11228259055",
+      "image": null
+    },
+    {
+      "id": "a6b54791-06f3-45c5-97e7-d5ff045919d0",
+      "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+      "service": "sahool-frontend",
+      "status": "REMOVED",
+      "created_at": "2026-10-10T11:45:35.520Z",
+      "removed_at": "2026-10-10T12:14:49.227Z",
+      "reason": "deploy",
+      "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+      "image": null
+    },
+    {
+      "id": "c10d8979-c826-49d1-9adf-982c77decc18",
+      "service_id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+      "service": "sahool-migrate-main",
+      "status": "REMOVED",
+      "created_at": "2026-10-10T11:45:34.496Z",
+      "removed_at": "2026-10-10T12:14:50.348Z",
+      "reason": "deploy",
+      "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+      "image": null
+    }
+  ],
+  "environment_status": {
+    "production": {
+      "total_services": 20,
+      "offline": 20,
+      "pending_work": [
+        {
+          "id": "patch:073447ea-bbed-47d2-a7a9-807847d7b293",
+          "status": "staged",
+          "changes": [],
+          "started_at": "2026-10-01T21:27:12.796Z"
+        }
+      ]
+    },
+    "staging": {
+      "total_services": 23,
+      "offline": 23,
+      "recent_failed": [
+        {
+          "service": "sahool-notification-agent",
+          "deployment": "025df781-e7dc-4a6c-8ccb-36c36faa1c0f",
+          "status": "FAILED",
+          "created_at": "2026-10-05T08:42:25.509Z"
+        }
+      ]
+    }
+  },
+  "sahool_postgres": {
+    "service_id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+    "image": "postgis/postgis:15-3.4",
+    "latest_deployment": null,
+    "last_production_deployment": {
+      "id": "e70710e6-1710-44a7-bc37-fbf9e4f25f92",
+      "created_at": "2026-09-28T12:40:51.938Z",
+      "removed_at": "2026-10-05T11:08:38.733Z",
+      "reason": "redeploy"
+    },
+    "volume": {
+      "id": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+      "name": "sahool-postgres-data",
+      "mount_path": "/var/lib/postgresql/data",
+      "region": "asia-southeast1-eqsg3a",
+      "size_mb_production_view": 1024,
+      "size_mb_staging_view": 50000,
+      "last_disk_metric_gb_production": 0.178,
+      "disk_metric_note": "flat 2026-09-24..2026-10-10 per railway-agent read; service offline so likely last-known",
+      "backup_schedule_visible": false,
+      "snapshot_listing_tool_available": false
+    },
+    "variable_names": [
+      "PGDATA",
+      "POSTGRES_DB",
+      "POSTGRES_PASSWORD",
+      "POSTGRES_USER"
+    ]
+  },
+  "sahool_migrate_main": {
+    "service_id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+    "watch_patterns": [
+      "/migrations/**",
+      "/deploy/railway/Dockerfile.migrate"
+    ],
+    "dockerfile": "deploy/railway/Dockerfile.migrate",
+    "restart_policy": "NEVER",
+    "trigger_for_87cc687b": "#1157 (squash 7310de85) changed the FROM line of deploy/railway/Dockerfile.migrate (postgres:16-alpine -> public.ecr.aws digest pin); prior main pushes (3daa3547, c1760e9e, 94e6e07a) were SKIPPED",
+    "deployment_87cc687b": {
+      "created_at": "2026-10-10T11:45:34.496Z",
+      "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+      "final_status": "REMOVED",
+      "removed_at": "2026-10-10T12:14:48.271Z",
+      "runtime_log_excerpt": [
+        "2026-10-10T11:46:21Z Starting Container",
+        "2026-10-10T11:46:21Z..11:47:20Z بانتظار postgres (1)…(30)",
+        "2026-10-10T11:47:21Z ─ تطبيق الهجرات (ترتيب MANIFEST، لا أبجدي) على sahool-postgres.railway.internal/sahool ─",
+        "2026-10-10T11:47:21Z   → init_v8.sql",
+        "2026-10-10T11:47:21Z psql: error: could not translate host name \"sahool-postgres.railway.internal\" to address: Name does not resolve"
+      ],
+      "partial_write": false,
+      "partial_write_basis": "psql -v ON_ERROR_STOP=1 failed at name resolution before any connection"
+    },
+    "script_defect": "migrations/apply_in_compose.sh:29-31 loops pg_isready 30 times and then proceeds to apply MANIFEST without a failure branch"
+  },
+  "railway_agent_read_only_summary": {
+    "thread_id": "e60b8172-00c8-44b9-88d5-5661e4df3b35",
+    "notifications_on_20261005": "none",
+    "platform_incidents_overlapping_window": "none",
+    "maintenance_notices_30d": "none",
+    "plan": "PRO",
+    "usage_counters_readable": false,
+    "audit_log_readable": false,
+    "environment_deletion_or_restore_records_readable": false
+  },
+  "not_measured": [
+    "actor of the 2026-10-05 removal",
+    "usage limit / billing state",
+    "volume backup or snapshot inventory and integrity",
+    "database identity and migration journal (no SQL path)"
+  ]
+}
