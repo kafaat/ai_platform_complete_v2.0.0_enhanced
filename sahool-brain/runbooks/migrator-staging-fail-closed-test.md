@@ -56,6 +56,7 @@
    ─ المتوقَّع من MANIFEST (231 ملفّاً): 341 جدولاً · 127 عموداً ─
    … (الغائب إن وُجد، وأوّلُه في ترتيب MANIFEST)
    SCHEMA_STATE readable=true read_only=on db=… user=… tables=p/341 columns=p/127 first_missing=<file|none> scope=tables_and_columns_only
+   SCHEMA_INSPECTION status=PASS|INCOMPLETE read_only=true manifest_sha256=… files_parsed=231 expected_tables=341 present_tables=p expected_columns=127 present_columns=p first_missing=<file|none>
    MIGRATION_INSPECTION_COMPLETED apply=false
    ```
    وحالةُ النشر **SUCCESS** (خروج 0). غيابُ `MIGRATION_INSPECTION_COMPLETED` مع SUCCESS مستحيلٌ بالعقد؛ إن
@@ -70,7 +71,7 @@
 
 اختياريٌّ لكنّه يثبت الجانبَ الثالث من العقد: اضبط `PROBE_PGUSER` على دورٍ غير موجود (أو بياناتِ اعتمادٍ غير
 صالحة) وانشر. **المتوقَّع:** `MIGRATIONS_NOT_APPLIED reason=apply_not_permitted` ثمّ
-`SCHEMA_STATE readable=false reason=connect_or_query_failed …` و`SCHEMA_PROBE_FAILED exit=3`، وحالةُ النشر
+`SCHEMA_INSPECTION status=ERROR read_only=true reason=connect_or_query_failed …` و`SCHEMA_PROBE_FAILED exit=3`، وحالةُ النشر
 **CRASHED**، والجردُ قبل/بعد متطابق. ثمّ أعِد المتغيّرَ إلى قيمته.
 
 ---
