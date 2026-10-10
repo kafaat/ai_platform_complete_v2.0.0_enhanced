@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c2138a716af62e1a571219792e2511a3afc2c36d22cbd98f7624058901f774b"
+          "content": "0f31ee32b8d6e10e96b36712c102af0f6930bf79967c9d298f808457005e3ebe"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -6715,7 +6715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff0722e49b95db8259acd2828c9169885b3cf9f14f12f889a58c09e1603430f7"
+          "content": "6a8bdabc37e7ec56c15e78d9b5f8461b428f1764bb1235d1603bcb881041d4aa"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",

@@ -460,7 +460,12 @@ def resolve_aliases(rows: list[dict], section_states: list[dict], headings: list
 # الإصلاح. فلو طُلب «commit دمج الـPR المذكور» لدُفع القارئُ إلى ربطٍ خاطئ. لذا ``cited_pr_merges``
 # يُعرَض للقارئ ولا يدخل الحكم، والربطُ الصحيح يُستخرج من الـSHA نفسه (`commits/{sha}/pulls`).
 #
-# **حدٌّ مُعلَن:** أيُّ SHA يُبلَغ في موضع الربط يُعَدّ ربطاً — القياسُ يرى **غيابَ** الربط لا صحّتَه.
+# **حدٌّ مُعلَن:** أيُّ SHA يُبلَغ **داخل مقطع canonical** يُعَدّ ربطاً — القياسُ يرى **غيابَ** الربط
+# لا صحّتَه. و`GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01` (مقيسٌ على
+# `main@c1760e9e`): نثرُ خليّة الحالة نفسِها قد يذكر SHA مبلوغاً (`main@94e6e07a` أساسَ مقارنةٍ بصريّة)
+# فستر إصلاحين مُسحَقين (`71191cd5` · `90b8c697`)؛ لذا يُقرأ الربطُ من مقاطع `**canonical …:**` وحدها
+# — داخل الخليّة (حتّى الفاصل ` · **` التالي أو نهايتها) أو سطراً `- **canonical …:**` في القسم — ولا
+# يُقرأ SHA الإصلاح إلّا من النثر خارجها.
 #
 # **والقياسُ يحتاج التاريخ:** على استنساخٍ ضحل كلُّ SHA «لا يُبلَغ»، فيصير كلُّ صفّ fixed عيباً
 # كاذباً. لذا ``provenance_measured`` يُعلَن، والحقلُ ``None`` حين لا يُقاس — صمتٌ مُعلَن بسببه.
@@ -470,6 +475,8 @@ STATUS_SHA = re.compile(r"(?<![0-9A-Za-z_])(?=[0-9]*[a-f])([0-9a-f]{7,40})(?![0-
 STATUS_PR = re.compile(r"(?<![\w/&])#(\d{2,6})(?!\d)")
 SQUASH_SUBJECT = re.compile(r"\(#(\d+)\)\s*$")
 CANONICAL_LINE = re.compile(r"^\s*-\s*\*\*canonical\b", re.I)
+CANONICAL_INLINE = re.compile(r"(?:^|(?<= · ))\*\*canonical\b[^*\n]*:\*\*", re.I)
+INLINE_ITEM_SEPARATOR = " · **"
 
 
 #: بصمةُ محتوى (``sha256:a4938f37…`` لصورة MinIO) ليست commit — مراجعةُ Copilot على #1150: كانت
@@ -486,17 +493,39 @@ def _shas(text: str) -> list[str]:
     ]
 
 
+def _split_inline_canonical(status: str) -> tuple[str, list[str]]:
+    """نثرُ الخليّة بلا مقاطع canonical، ومقاطعُ canonical وحدها (كلٌّ حتّى الفاصل ` · **` التالي).
+
+    لا تُعامل إشارةٌ وسط النثر إلى صياغة canonical بوصفها وصلةً؛ يجب أن تبدأ عند حدّ
+    عنصرٍ داخليّ وأن تُغلق بعلامة ``:**``.
+    """
+    prose: list[str] = []
+    segments: list[str] = []
+    cursor = 0
+    for marker in CANONICAL_INLINE.finditer(status):
+        if marker.start() < cursor:
+            continue
+        prose.append(status[cursor : marker.start()])
+        end = status.find(INLINE_ITEM_SEPARATOR, marker.end())
+        end = len(status) if end < 0 else end
+        segments.append(status[marker.start() : end])
+        cursor = end
+    prose.append(status[cursor:])
+    return "".join(prose), segments
+
+
 def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], reachable) -> list:
     """``merges``: رقمُ PR ⇒ SHA دمجه الكامل على HEAD. ``reachable(sha)``: هل يُبلَغ من HEAD."""
     del text  # السجلّاتُ تحمل سطورَ canonical مقروءةً بقواعد ``measure()`` (السياج)
     out: list[dict] = []
     for record in records:
         status = ANNOTATION.sub("", record["status"])
-        repair = [sha for sha in _shas(status) if not reachable(sha)]
+        prose, inline_links = _split_inline_canonical(status)
+        repair = [sha for sha in _shas(prose) if not reachable(sha)]
         if not repair:
             continue
-        zone = [status, *record["canonical"]]
-        if any(reachable(sha) for sha in _shas("\n".join(zone))):
+        links = [*inline_links, *record["canonical"]]
+        if any(reachable(sha) for sha in _shas("\n".join(links))):
             continue
         prs = sorted({int(n) for n in STATUS_PR.findall(status)})
         out.append(

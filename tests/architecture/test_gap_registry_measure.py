@@ -401,7 +401,7 @@ def test_a_reachable_sha_outside_the_status_does_not_count_as_a_link():
 @pytest.mark.parametrize(
     "status",
     [
-        "**fixed** (`0726a887`، #1149) · **canonical على `main`:** squash `ab07ceb8`",
+        "**fixed** (`0726a887`، #1149) · **canonical 2026-10-09:** squash `ab07ceb8`",
         "**fixed** (`c56db557`)",
         "**fixed** (2026-10-06، `20260626` · `feedback` · run `2412021383`)",
     ],
@@ -419,6 +419,51 @@ def test_a_section_is_linked_by_its_canonical_line_not_by_any_sha_in_its_body():
     assert [f["id"] for f in _flagged(section)] == ["GAP-B-01"]
     linked = section + "- **canonical على `main` (2026-10-06):** squash `ab07ceb8`\n"
     assert _flagged(linked) == []
+
+
+def test_a_reachable_sha_in_the_status_prose_does_not_link_a_squashed_repair():
+    # `GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01`:
+    # صفُّ `FRONTEND-LOCK-TAILWIND-V3-CHAIN-CARRIES-ADVISORIES-01` على `main@c1760e9e` يذكر
+    # `main@94e6e07a` (أساسَ المقارنة البصريّة) داخل خليّة الحالة نفسِها، وإصلاحاه `71191cd5`
+    # و`90b8c697` مُسحَقان — فكان القياسُ يعدّه مُصالَحاً لأنّ أيَّ SHA مبلوغٍ في الخليّة كان ربطاً.
+    # الربطُ يُقرأ من مقاطع `**canonical …:**` وحدها (داخل الخليّة أو سطراً في القسم).
+    status = (
+        "**fixed** (2026-10-08، عند `71191cd5`، PR #1156) — هجرةٌ كاملة؛ الشاهد: ٩١ مساراً "
+        "بكسلاً بكسلاً = بناءُ v3 من `main@94e6e07a` خارج مسارَي ضجيج. "
+        "· **الـSHA النهائيّ للإصلاح `90b8c697`** (بعد مراجعة Copilot)."
+    )
+    reach = {"94e6e07a1111", "c1760e9e2222"}
+    m = mod()
+    text = _HEAD + f"| GAP-TW-01 | x | {status} |\n"
+    found = m.fixed_provenance(
+        text, m.measure(text)["fixed_records"], {}, lambda s: any(f.startswith(s) for f in reach)
+    )
+    assert [f["id"] for f in found] == ["GAP-TW-01"]
+    assert found[0]["repair_shas"] == ["71191cd5", "90b8c697"]
+    linked = text.replace(
+        " |\n",
+        " · **canonical على `main` (2026-10-09):** `71191cd5` و`90b8c697` في #1156 ⇒ squash `c1760e9e` |\n",
+    )
+    assert (
+        m.fixed_provenance(
+            linked,
+            m.measure(linked)["fixed_records"],
+            {},
+            lambda s: any(f.startswith(s) for f in reach),
+        )
+        == []
+    )
+
+
+def test_a_quoted_canonical_syntax_mention_does_not_hide_an_unreachable_repair():
+    status = (
+        "**fixed** (`0726a887`) — صياغة الوصلة هي `**canonical …:**`، "
+        "والإصلاح غير المبلوغ `deadbeef`."
+    )
+    found = _flagged(_HEAD + f"| GAP-A-01 | x | {status} |\n")
+
+    assert [item["id"] for item in found] == ["GAP-A-01"]
+    assert found[0]["repair_shas"] == ["0726a887", "deadbeef"]
 
 
 def test_an_open_row_and_a_historical_entry_are_not_provenance_findings():

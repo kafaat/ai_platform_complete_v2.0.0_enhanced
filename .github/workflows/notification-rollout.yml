@@ -21,7 +21,8 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:16-alpine
+        # Docker Official Image on ECR Public, pinned to its verified OCI index digest.
+        image: public.ecr.aws/docker/library/postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
         env:
           POSTGRES_DB: notification_rollout_test
           POSTGRES_USER: notification_test
@@ -48,4 +49,4 @@ jobs:
           NOTIFICATION_ROLLOUT_CERTIFICATION_REQUIRED: "1"
           NOTIFICATION_TEST_NATS_SERVER: ${{ runner.temp }}/nats-server-v2.15.0-linux-amd64/nats-server
           NOTIFICATION_TEST_DATABASE_URL: postgresql://notification_test:disposable_test_password@localhost:5438/notification_rollout_test
-        run: pytest -v -rs tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py
+        run: pytest -v -rs tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py tests/architecture/test_notification_rollout_postgres_image.py
