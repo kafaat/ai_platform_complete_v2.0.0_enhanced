@@ -3716,3 +3716,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** مراجعةُ المالك الثالثة: `expected="$(expected_objects)"` مع `done < <(manifest_files)` لا تنقل فشلَ المُنتِج ولا تُثبت أنّ كلَّ الملفّات قُرئت، فقد يُصدَر نجاحٌ جزئيّ؛ و341/127 ليست ضمانةً عامّة (صيغُ DDL الأخرى والقيود والفهارس وRLS خارج القياس)؛ والإذنُ الدائم في متغيّرات الخدمة قد يُعيد تشغيلَ الهجرات في نشرٍ لاحق.
 
 **المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · PR #1160.
+
+## 2026-10-10 — شهادةُ المُهاجر الحيّة لا تُتخطّى، ولا PASS بلا عقدٍ مربوطٍ ببصمة MANIFEST
+
+**القرار (`49948861`):** (١) `MIGRATOR_CERTIFICATION_REQUIRED=1` في وظيفة Integration Tests — تخطّي الاختبار الحيّ (غيابُ DSN أو سقوطُ القاعدة) فشلٌ صلب، على نمط أعلام `*_CERTIFICATION_REQUIRED` القائمة؛ (٢) `migrations/schema_probe_contract.env` عقدُ الحدّ الأدنى (بصمةُ MANIFEST · 341 · 179) يُولَّد ويُحرَس بالراتشِت، والقراءةُ ترفض قبل الاتّصال أيَّ MANIFEST لا يحمل عقده أو يُخرج أقلَّ منه أو صفراً؛ (٣) `read_only` لا يُدَّعى قبل قياسه؛ (٤) الاختبارُ الحيّ يقرأ بدور `sahool_probe_ro` بلا CREATE ويُثبت رفضَ الخادم للكتابة. Gate C (تطبيقٌ على قاعدةٍ مؤقّتة في CI) وجردُ RLS/الفهارس والإذنُ المؤقّت على Railway في PR مستقلّ.
+
+**السبب:** مراجعةُ المالك الرابعة: شهادةٌ قابلةٌ للتخطّي الأخضر عند انقطاع القاعدة؛ `read_only=true` يُعلَن قبل إنشاء جلسة؛ PASS ممكنٌ بصفر كائنات حين لا تطابق الملفّاتُ الأنماط؛ وعدُّ الكائنات وحده لا يُثبت عدمَ الكتابة. وفي الطريق ظهر أنّ الاستخراج السطريّ أسقط 52 عموداً.
+
+**المصدر:** `.github/workflows/ci.yml` (Integration Tests env) · `migrations/probe_schema_state.sh` · `migrations/schema_probe_contract.env` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · PR #1160.
