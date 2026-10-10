@@ -55,14 +55,23 @@
      transaction_read_only=on · PostgreSQL … · db=… · user=… (super=…) · server=…
    ─ المتوقَّع من MANIFEST (231 ملفّاً): 341 جدولاً · 127 عموداً ─
    … (الغائب إن وُجد، وأوّلُه في ترتيب MANIFEST)
-   SCHEMA_STATE readable=true read_only=on db=… user=… tables=p/341 columns=p/127 first_missing=<file|none>
+   SCHEMA_STATE readable=true read_only=on db=… user=… tables=p/341 columns=p/127 first_missing=<file|none> scope=tables_and_columns_only
+   MIGRATION_INSPECTION_COMPLETED apply=false
    ```
-   وحالةُ النشر **SUCCESS** (خروج 0).
+   وحالةُ النشر **SUCCESS** (خروج 0). غيابُ `MIGRATION_INSPECTION_COMPLETED` مع SUCCESS مستحيلٌ بالعقد؛ إن
+   فشلت القراءة فالمتوقَّع `SCHEMA_PROBE_FAILED exit=3` وحالةُ النشر **CRASHED** — وليس ذلك نجاحاً (السيناريو ج).
 4. **جردٌ بعدُ:** الاستعلاماتُ الثلاث نفسُها — **المتوقَّع: الأرقامُ والأدوارُ متطابقةٌ تماماً** مع «قبلُ».
 5. **برهانُ (٢):** لا `→ <file>.sql` في السجلّ، و`transaction_read_only=on` مطبوعةٌ من الخادم، والجردُ
    قبل/بعد متطابق ⇒ القاعدةُ الجاهزة لم تُمَسّ بلا إذن.
 6. **قيمةٌ مضافة:** سطرُ `SCHEMA_STATE` هو أوّلُ قراءةٍ كاملة لحالة الهجرات على staging —
    يُلحَق بصفّ `MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01` (الذي يبقى open حتّى يُقرأ من production).
+
+## 2ب. السيناريو ج — القاعدةُ جاهزة لكنّ القراءةَ تفشل (ليس نجاحاً)
+
+اختياريٌّ لكنّه يثبت الجانبَ الثالث من العقد: اضبط `PROBE_PGUSER` على دورٍ غير موجود (أو بياناتِ اعتمادٍ غير
+صالحة) وانشر. **المتوقَّع:** `MIGRATIONS_NOT_APPLIED reason=apply_not_permitted` ثمّ
+`SCHEMA_STATE readable=false reason=connect_or_query_failed …` و`SCHEMA_PROBE_FAILED exit=3`، وحالةُ النشر
+**CRASHED**، والجردُ قبل/بعد متطابق. ثمّ أعِد المتغيّرَ إلى قيمته.
 
 ---
 
