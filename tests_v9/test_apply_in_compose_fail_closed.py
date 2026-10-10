@@ -97,7 +97,7 @@ def test_without_explicit_permission_a_ready_database_is_not_migrated(tmp_path):
     result = _run(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
-    assert _psql_calls(log) == []
+    assert not any(" -f " in c for c in _psql_calls(log)), "لا يُطبَّق ملفٌّ بلا إذن"
 
 
 def test_a_value_other_than_one_is_not_permission(tmp_path):
@@ -107,7 +107,7 @@ def test_a_value_other_than_one_is_not_permission(tmp_path):
         result = _run(tmp_path, SAHOOL_MIGRATE_APPLY=value)
         assert result.returncode == 0, value
         assert "apply_not_permitted" in result.stdout, value
-        assert _psql_calls(log) == [], value
+        assert not any(" -f " in c for c in _psql_calls(log)), value
 
 
 def test_with_permission_and_a_ready_database_the_manifest_is_applied_in_order(tmp_path):
@@ -137,3 +137,81 @@ def test_the_railway_runner_does_not_bake_the_permission_into_the_image():
     assert "SAHOOL_MIGRATE_APPLY" not in text, (
         "الإذنُ متغيّرُ مشغِّلٍ يُضبَط عند قرار الهجرة — خبزُه في الصورة يُعيد كلَّ إعادة بناءٍ هجرةً"
     )
+
+
+# ── قراءةُ حالة المخطَّط حين لا إذنَ بالتطبيق (بوّابةُ #1158 البندان ٣–٤) ──────────────────
+
+PROBE = ROOT / "migrations" / "probe_schema_state.sh"
+
+
+def _probe_workspace(tmp_path: Path, *, missing: str = "") -> Path:
+    """psql مزيّف يسجّل كلَّ استدعاءٍ مع PGOPTIONS، ويُجيب عن استعلام الهويّة واستعلام الغياب."""
+    log = _workspace(tmp_path, ready=True)
+    (tmp_path / "migrations" / "v001.sql").write_text(
+        "CREATE TABLE IF NOT EXISTS alpha (id int);\n"
+        "ALTER TABLE alpha ADD COLUMN IF NOT EXISTS extra text;\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "migrations" / "v206_rls_final_hardening.sql").write_text(
+        "create table if not exists Beta (id int);\n", encoding="utf-8"
+    )
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql PGOPTIONS=[$PGOPTIONS] $*" >> "{log}"\n'
+        'case "$*" in\n'
+        '  *transaction_read_only*) echo "on|PostgreSQL 16.13 fake|sahool|probe_user|10.0.0.1|f";;\n'
+        f'  *"WITH expected"*) printf "%s" "{missing}";;\n'
+        "esac\nexit 0\n",
+    )
+    return log
+
+
+def test_without_permission_the_job_reports_schema_state_read_only(tmp_path):
+    log = _probe_workspace(tmp_path, missing="3|v206_rls_final_hardening.sql|table|beta|")
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert "SCHEMA_STATE readable=true read_only=on" in result.stdout
+    assert "tables=1/2 columns=1/1 first_missing=v206_rls_final_hardening.sql" in result.stdout
+    # الاستعلامُ متعدّدُ الأسطر يُسجَّل على أسطرٍ عدّة؛ سطرُ الاستدعاء وحده يبدأ بـpsql.
+    calls = [c for c in _psql_calls(log) if c.startswith("psql ")]
+    assert calls and all("default_transaction_read_only=on" in c for c in calls), calls
+    assert not any(" -f " in c for c in calls), "القراءةُ لا تطبّق ملفّات"
+
+
+def test_the_probe_refuses_a_session_the_server_did_not_confirm_read_only(tmp_path):
+    log = _probe_workspace(tmp_path)
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\n'
+        'case "$*" in *transaction_read_only*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 0  # الإذنُ غائب ⇒ لا هجرة؛ تعذّرُ القراءة لا يحجب ذلك
+    assert "SCHEMA_STATE readable=false reason=session_not_read_only" in result.stderr
+    assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
+    assert not any("WITH expected" in c for c in _psql_calls(log))
+
+
+def test_the_probe_parses_only_the_manifest_files_in_manifest_order(tmp_path):
+    log = _probe_workspace(tmp_path)
+    (tmp_path / "migrations" / "stray.sql").write_text(
+        "CREATE TABLE IF NOT EXISTS stray (id int);\n", encoding="utf-8"
+    )
+    result = _run(tmp_path)
+    assert "stray" not in result.stdout
+    query = next(c for c in _psql_calls(log) if "WITH expected" in c)
+    assert query.index("'v001.sql','table','alpha'") < query.index(
+        "'v001.sql','column','alpha','extra'"
+    )
+    assert query.index("'alpha','extra'") < query.index(
+        "'v206_rls_final_hardening.sql','table','beta'"
+    )
+
+
+def test_a_permitted_run_does_not_probe(tmp_path):
+    log = _probe_workspace(tmp_path)
+    result = _run(tmp_path, SAHOOL_MIGRATE_APPLY="1")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SCHEMA_STATE" not in result.stdout + result.stderr
+    assert any(" -f " in c for c in _psql_calls(log))

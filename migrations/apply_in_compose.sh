@@ -49,6 +49,9 @@ fi
 if [ "${SAHOOL_MIGRATE_APPLY:-0}" != "1" ]; then
   echo "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted host=${PGHOST}:${PGPORT:-5432}"
   echo "─ القاعدةُ جاهزة، لكنّ تطبيقَ الهجرات غيرُ مأذونٍ به (SAHOOL_MIGRATE_APPLY≠1) — لم تُطبَّق أيُّ هجرة ولم يُنشأ أيُّ دور. ─"
+  # بدل الصمت: قراءةٌ فقط لهويّة القاعدة وحالة المخطَّط مقابل MANIFEST (بوّابةُ الاسترداد
+  # #1158 البندان ٣–٤) — الجلسةُ read-only مؤكَّدةٌ من الخادم؛ تعذّرُها لا يُخفي الرسالةَ أعلاه.
+  bash "$(dirname "${BASH_SOURCE[0]}")/probe_schema_state.sh" || echo "SCHEMA_PROBE_FAILED exit=$?" >&2
   exit 0
 fi
 
