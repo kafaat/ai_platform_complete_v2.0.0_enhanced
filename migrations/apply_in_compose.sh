@@ -50,8 +50,17 @@ if [ "${SAHOOL_MIGRATE_APPLY:-0}" != "1" ]; then
   echo "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted host=${PGHOST}:${PGPORT:-5432}"
   echo "─ القاعدةُ جاهزة، لكنّ تطبيقَ الهجرات غيرُ مأذونٍ به (SAHOOL_MIGRATE_APPLY≠1) — لم تُطبَّق أيُّ هجرة ولم يُنشأ أيُّ دور. ─"
   # بدل الصمت: قراءةٌ فقط لهويّة القاعدة وحالة المخطَّط مقابل MANIFEST (بوّابةُ الاسترداد
-  # #1158 البندان ٣–٤) — الجلسةُ read-only مؤكَّدةٌ من الخادم؛ تعذّرُها لا يُخفي الرسالةَ أعلاه.
-  bash "$(dirname "${BASH_SOURCE[0]}")/probe_schema_state.sh" || echo "SCHEMA_PROBE_FAILED exit=$?" >&2
+  # #1158 البندان ٣–٤) — الجلسةُ read-only مؤكَّدةٌ من الخادم. العقدُ ثلاثيّ (مراجعةُ المالك
+  # 2026-10-10): APPLY_NOT_PERMITTED = لا هجرة (مطلوب) · SCHEMA_PROBE_FAILED = تعذّر إثباتُ
+  # الحالة ⇒ خروج 3 لا شهادةُ نجاح · MIGRATION_INSPECTION_COMPLETED = قُرئت الحالة (وقد تكون
+  # ناقصة؛ السطرُ SCHEMA_STATE يقول كم غاب). فشلُ القراءة لا يتحوّل إلى نجاح.
+  if bash "$(dirname "${BASH_SOURCE[0]}")/probe_schema_state.sh"; then
+    echo "MIGRATION_INSPECTION_COMPLETED apply=false"
+  else
+    rc=$?
+    echo "SCHEMA_PROBE_FAILED exit=$rc" >&2
+    exit 3
+  fi
   exit 0
 fi
 

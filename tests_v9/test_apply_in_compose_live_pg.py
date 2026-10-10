@@ -1,0 +1,111 @@
+"""اختبارُ قبولٍ حقيقيّ للمُهاجر على PostgreSQL حيّ — لا أدواتَ مزيّفة.
+
+تكملةُ ``test_apply_in_compose_fail_closed.py`` (مراجعةُ المالك 2026-10-10: المحاكاةُ لا تكفي).
+يعمل على ``TEST_DATABASE_URL`` (وظيفة *Integration Tests*: Postgres+PostGIS حقيقيّ) ولا يكتب فيها
+شيئاً: السيناريوهاتُ الثلاثة هنا كلُّها بلا إذنٍ بالتطبيق، والجردُ قبل/بعد يُثبت ذلك من الخادم لا من
+stdout. سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤقّتةً يملكها الاختبار ولا يُشغَّل على القاعدة المشتركة.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+from pathlib import Path
+from urllib.parse import urlparse
+
+import pytest
+
+pytestmark = pytest.mark.integration
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "migrations" / "apply_in_compose.sh"
+INVENTORY_SQL = (
+    "SELECT (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace"
+    " WHERE n.nspname = 'public' AND c.relkind = 'r')"
+    " || '|' || (SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public')"
+    " || '|' || (SELECT count(*) FROM pg_roles)"
+    " || '|' || (SELECT count(*) FROM pg_policies)"
+)
+
+
+@pytest.fixture(scope="module")
+def pg_env() -> dict[str, str]:
+    url = os.environ.get("TEST_DATABASE_URL", "")
+    if not url:
+        pytest.skip("TEST_DATABASE_URL غير مضبوط — يعمل في وظيفة Integration Tests")
+    u = urlparse(url)
+    env = {
+        "PATH": os.environ["PATH"],
+        "PGHOST": u.hostname or "localhost",
+        "PGPORT": str(u.port or 5432),
+        "PGUSER": u.username or "",
+        "PGPASSWORD": u.password or "",
+        "PGDATABASE": u.path.lstrip("/"),
+        "MIG_DIR": str(ROOT / "migrations"),
+        "INGEST_DB_PASSWORD": "unused-in-read-only-scenarios",
+    }
+    # الحياةُ تُفحص بـpsql (الذي يحتاجه السكربتُ أصلاً) لا بـpg_isready، كي لا يتحوّل غيابُ أداةٍ إلى خطأ.
+    alive = subprocess.run(
+        ["psql", "-X", "-At", "-c", "select 1"], env=env, capture_output=True, text=True
+    )
+    if alive.returncode or alive.stdout.strip() != "1":
+        pytest.skip("لا خادمَ حيّاً على TEST_DATABASE_URL")
+    return env
+
+
+def _inventory(env: dict[str, str]) -> str:
+    out = subprocess.run(
+        ["psql", "-X", "-At", "-c", INVENTORY_SQL],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+        check=True,
+    )
+    return out.stdout.strip()
+
+
+def _run(env: dict[str, str], **extra: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(SCRIPT)],
+        env={**env, **extra},
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=300,
+    )
+
+
+def test_an_unreachable_database_exits_nonzero_without_any_migration_call(pg_env):
+    before = _inventory(pg_env)
+    result = _run(
+        pg_env, PGHOST="127.0.0.1", PGPORT="9", MIGRATE_READY_ATTEMPTS="2", SAHOOL_MIGRATE_APPLY="1"
+    )
+    assert result.returncode != 0
+    assert "MIGRATIONS_NOT_APPLIED reason=database_unreachable" in result.stderr
+    assert "→ " not in result.stdout, "ظهر سطرُ تطبيق ملفّ"
+    assert _inventory(pg_env) == before
+
+
+def test_a_ready_database_without_permission_is_inspected_read_only_and_unchanged(pg_env):
+    before = _inventory(pg_env)
+    result = _run(pg_env, SAHOOL_MIGRATE_APPLY="0")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert "transaction_read_only=on" in result.stdout
+    assert "SCHEMA_STATE readable=true read_only=on" in result.stdout
+    assert "MIGRATION_INSPECTION_COMPLETED apply=false" in result.stdout
+    assert "→ " not in result.stdout
+    assert _inventory(pg_env) == before, "تغيّر المخطَّط/الأدوار بلا إذن"
+
+
+def test_a_failed_schema_probe_on_a_ready_database_is_not_a_success(pg_env):
+    before = _inventory(pg_env)
+    result = _run(pg_env, PROBE_PGUSER="sahool_probe_role_that_does_not_exist")
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
+    assert "→ " not in result.stdout
+    assert _inventory(pg_env) == before

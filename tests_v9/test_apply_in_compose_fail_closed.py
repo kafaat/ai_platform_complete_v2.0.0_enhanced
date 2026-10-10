@@ -92,16 +92,17 @@ def test_the_readiness_loop_still_waits_the_configured_number_of_attempts(tmp_pa
 
 
 def test_without_explicit_permission_a_ready_database_is_not_migrated(tmp_path):
-    """بناءُ الصورة ≠ الإذنُ بالتطبيق: الجاهزيّةُ مُثبَتة، لا SAHOOL_MIGRATE_APPLY ⇒ لا psql، خروجٌ صفريّ مُعلَن."""
-    log = _workspace(tmp_path, ready=True)
+    """بناءُ الصورة ≠ الإذنُ بالتطبيق: الجاهزيّةُ مُثبَتة، لا SAHOOL_MIGRATE_APPLY ⇒ لا تطبيق، وقراءةٌ ناجحة ⇒ خروجٌ صفريّ مُعلَن."""
+    log = _probe_workspace(tmp_path)
     result = _run(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert "MIGRATION_INSPECTION_COMPLETED apply=false" in result.stdout
     assert not any(" -f " in c for c in _psql_calls(log)), "لا يُطبَّق ملفٌّ بلا إذن"
 
 
 def test_a_value_other_than_one_is_not_permission(tmp_path):
-    log = _workspace(tmp_path, ready=True)
+    log = _probe_workspace(tmp_path)
     for value in ("true", "yes", "0", ""):
         log.write_text("", encoding="utf-8")
         result = _run(tmp_path, SAHOOL_MIGRATE_APPLY=value)
@@ -187,10 +188,14 @@ def test_the_probe_refuses_a_session_the_server_did_not_confirm_read_only(tmp_pa
         'case "$*" in *transaction_read_only*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
     )
     result = _run(tmp_path)
-    assert result.returncode == 0  # الإذنُ غائب ⇒ لا هجرة؛ تعذّرُ القراءة لا يحجب ذلك
+    # الإذنُ غائب ⇒ لا هجرة؛ لكنّ تعذّرَ القراءة ليس نجاحاً (مراجعةُ المالك 2026-10-10): خروج 3.
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
     assert "SCHEMA_STATE readable=false reason=session_not_read_only" in result.stderr
     assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
     assert not any("WITH expected" in c for c in _psql_calls(log))
+    assert not any(" -f " in c for c in _psql_calls(log))
 
 
 def test_the_probe_parses_only_the_manifest_files_in_manifest_order(tmp_path):
@@ -215,3 +220,27 @@ def test_a_permitted_run_does_not_probe(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     assert "SCHEMA_STATE" not in result.stdout + result.stderr
     assert any(" -f " in c for c in _psql_calls(log))
+
+
+def test_a_failed_schema_probe_is_not_reported_as_success(tmp_path):
+    """العيبُ الذي وجده المالك: كان `|| echo …; exit 0` يحوّل فشلَ القراءة إلى نجاح. الآن: خروج 3، لا تطبيق."""
+    log = _probe_workspace(tmp_path)
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\necho "psql: error: connection refused" >&2\nexit 2\n',
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert "SCHEMA_STATE readable=false reason=connect_or_query_failed" in result.stderr
+    assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
+    assert not any(" -f " in c for c in _psql_calls(log))
+
+
+def test_the_schema_state_line_declares_its_limited_scope(tmp_path):
+    """`tables=n/n` وحده لا يُغلق فجوةَ قراءة الحالة: السطرُ يُعلن أنّ القياس وجودُ الجداول/الأعمدة فقط."""
+    _probe_workspace(tmp_path)
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "scope=tables_and_columns_only" in result.stdout

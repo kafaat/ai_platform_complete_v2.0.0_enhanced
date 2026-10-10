@@ -81,4 +81,7 @@ if [ -n "$missing" ]; then
 else
   echo "  ✓ كلُّ الجداول والأعمدة المتوقَّعة موجودة."
 fi
-echo "SCHEMA_STATE readable=true read_only=on db=${database} user=${user} tables=$((n_tables - m_tables))/${n_tables} columns=$((n_columns - m_columns))/${n_columns} first_missing=${first_missing:-none}"
+# حدُّ الدلالة (مراجعةُ المالك 2026-10-10): وجودُ الجداول والأعمدة لا يُثبت تطبيقَ الهجرات كاملةً —
+# القيودُ والفهارسُ وسياساتُ RLS والدوالّ لا تُقارَن هنا. `tables=n/n` ليس إغلاقاً لفجوة قراءة الحالة.
+echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ وRLS والدوالّ خارج هذه القراءة."
+echo "SCHEMA_STATE readable=true read_only=on db=${database} user=${user} tables=$((n_tables - m_tables))/${n_tables} columns=$((n_columns - m_columns))/${n_columns} first_missing=${first_missing:-none} scope=tables_and_columns_only"
