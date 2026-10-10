@@ -436,7 +436,11 @@ def main():
     args = parser.parse_args()
     RuntimeContract.config = args.config
     if args.docker:
-        image = re.findall(r"^FROM (nginx:\S+)", (FRONTEND / "Dockerfile").read_text(), re.M)[-1]
+        image = re.findall(
+            r"^FROM (public\.ecr\.aws/docker/library/nginx@sha256:[0-9a-f]{64})",
+            (FRONTEND / "Dockerfile").read_text(),
+            re.M,
+        )[-1]
         pull_image(image)
 
         def command(directory):

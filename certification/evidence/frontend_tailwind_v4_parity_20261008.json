@@ -156,5 +156,105 @@
   "measured_on_commit": "bfeb860c37b5bda318b9d727d5254ad7d090f656",
   "frontend_tree": "c7140075550ffbf037da14db7ce02166ef4e0ed9",
   "tree_binding": "vitest/lint/typecheck/mutation results below are bound to `frontend/` tree c7140075 (git rev-parse <commit>:frontend); later commits that do not touch frontend/ keep this hash, so the measurement stays valid for them — verify by comparing the hash, not the commit SHA",
-  "review_fixes_commit": "90b8c69709c7e8ba1c5f432f8da7feec7343db4a"
+  "review_fixes_commit": "90b8c69709c7e8ba1c5f432f8da7feec7343db4a",
+  "deployment_gate_20261009": {
+    "pr_merge": {
+      "pr": 1156,
+      "merged_by": "kafaat",
+      "merged_at": "2026-10-09T00:01:53Z",
+      "squash": "c1760e9e202423ebb1c4ecd79773d11228259055",
+      "tree_equality": "git rev-parse c1760e9e^{tree} = cbdf713e^{tree} = 2b0a7a4f364b15886906a925486234438a1baa96; frontend tree c7140075 unchanged"
+    },
+    "staging_gate": {
+      "staged_patch": "104e2d47 (service sahool-frontend 64048c16, staging 70cc51f8: branch claude/wip-frontend-tailwind-v4 + commitSha cbdf713e)",
+      "commit_path": "accept-deploy MCP timed out (60s) without applying, as for #1153; Railway agent (thread 3a487b28) committed the patch with a restricted instruction (staging only, no variables/services)",
+      "deployment": "83156b01-7bea-4bb9-8a5d-5b2325c742df SUCCESS 2026-10-09T00:02:31Z on cbdf713e (healthcheck /healthz passed)",
+      "build_log": "npm ci 509 packages · vite 8.0.16 · 3458 modules · dist/assets/index-BrDRJ-1k.css 72.88 kB · index-B30HTXZe.js 340.46 kB",
+      "nginx_resolve_errors": "identical set to the previous main deployment 0b83e46c (internal hosts absent in staging) — pre-existing, not from this PR",
+      "removed": "REMOVED 2026-10-09T00:10:43Z (see external_stop)"
+    },
+    "production": {
+      "deployment": "841ffaee-2ae3-46a4-bff2-3da00b1dfd2b SUCCESS 2026-10-09T00:02:44Z on c1760e9e (main)",
+      "build_assets": "dist/assets/index-BrDRJ-1k.css 72.88 kB · index-B30HTXZe.js 340.46 kB — same names/sizes as the staging build",
+      "removed": "nginx graceful exit 00:10:55Z (workers exit code 0) → REMOVED 00:11:16Z, 8.5 min after SUCCESS; no replacement deployment"
+    },
+    "staging_restore": {
+      "staged_patch": "d90d71cb (branch → main, commitSha removed) committed by Railway agent (thread f014cecc) at ~00:10:15Z",
+      "deployment": "5b2f9fec-51e6-4dc3-85ba-90b6cb10bd24 on c1760e9e created 00:10:15Z → REMOVED 00:10:56Z with no build/deploy logs",
+      "state_after": "staging source = main without commitSha; no staged changes in staging or production; neither environment has a live sahool-frontend deployment"
+    },
+    "external_stop": {
+      "witnesses": [
+        "841ffaee production REMOVED 00:11:16Z",
+        "83156b01 staging REMOVED 00:10:43Z",
+        "5b2f9fec staging REMOVED 00:10:56Z"
+      ],
+      "railway_agent_findings (thread 89ce1185, read-only)": "deployment record has failureStage/failureError/failedReason null and no stop actor; no workspace notifications on 10-08/10-09; plan PRO (ceilings only, usage meters not visible); audit log not accessible via the agent; cause unconfirmed",
+      "gap": "RAILWAY-DEPLOYMENT-STOPPED-BY-EXTERNAL-SIGTERM-AFTER-SUCCESS-01 (open)"
+    },
+    "artifact_reproducibility": {
+      "railway_css": "index-BrDRJ-1k.css sha256 41745bf1a1b9074e015ec006d65cb843fdde5728e33ace20703314f9d41122e1 (name+size from the Railway build logs of 83156b01 and 841ffaee; bytes from the two local reproductions below)",
+      "clean_tree_build": "git archive cbdf713e:frontend → npm ci --legacy-peer-deps → vite build with the Dockerfile env (VITE_API_MODE=gateway VITE_MOCK_MODE=false VITE_API_URL=/api VITE_WS_URL=/ws): index-BrDRJ-1k.css + index-B30HTXZe.js — identical asset hashes",
+      "worktree_build": "vite build in the checked-out worktree at cbdf713e with the same env: identical asset hashes",
+      "env_independence": "same clean tree built without the env vars: CSS sha256 identical (JS differs: index-DrkEgm-e.js — API-mode constants only)",
+      "pitfall_measured": "a second build in the same directory with a previous dist/ present and no .gitignore produced a different CSS (index-Dy9atHpL.css 73.88 kB): Tailwind v4 scans dist/ as content — always build in a clean directory or a git checkout"
+    },
+    "css_delta_vs_pixel_measured_dist": {
+      "measured_dist": "frontend/dist built 2026-10-08T21:18Z (index-C7CUJqa0.css sha256 3d7b7d819bbc73ce6764a420ff4fbb64621a6bfe8a8524f360bed36a3847e820) — built BEFORE the review-fix commit 90b8c697 (22:43Z); the pixel matrix above was therefore measured on the 71191cd5 tree, not on c7140075",
+      "rule_diff": {
+        "only_in_measured_dist": [
+          ".ring-3",
+          ".outline-solid"
+        ],
+        "only_in_deployed_css": [
+          ".shadow",
+          ":where(.-space-y-2>:not(:last-child))"
+        ]
+      },
+      "explanation": "each comes from a non-class string that 90b8c697 restored or added: 'ring' test titles and transition: \"outline .2s\" (removed ring-3/outline-solid), DesignTokenDomain 'shadow' (designSystemGovernance.ts) and the `-space-y-2` comment in spaceYCompat.static.test.ts (added .shadow/-space-y-2). git grep confirms none of the four is used as a class in src/; all four rules are unused in the DOM",
+      "consequence": "re-measured below on the deployed CSS bytes"
+    },
+    "pixel_matrix_on_deployed_css": {
+      "dist": "clean-tree build dist2 (CSS sha256 41745bf1a1b9074e015ec006d65cb843fdde5728e33ace20703314f9d41122e1, JS in the same API mode as the v3 baselines)",
+      "baselines": "the v3 baselines of the original matrix (main@94e6e07a), unchanged",
+      "results": {
+        "dark": {
+          "passed": 90,
+          "failed": 1,
+          "failing_routes": {
+            "/assistant": 2729
+          }
+        },
+        "light": {
+          "passed": 90,
+          "failed": 1,
+          "failing_routes": {
+            "/advanced/gis-catalog": 1107
+          }
+        },
+        "cream": {
+          "passed": 90,
+          "failed": 1,
+          "failing_routes": {
+            "/assistant": 3089
+          }
+        },
+        "mobile": {
+          "passed": 90,
+          "failed": 1,
+          "failing_routes": {
+            "/advanced/gis-catalog": 6213
+          }
+        }
+      },
+      "v4_failures_outside_measured_noise": {
+        "dark": {},
+        "light": {},
+        "cream": {},
+        "mobile": {}
+      },
+      "note": "a first re-run with the Dockerfile env (VITE_API_MODE=gateway) failed /health by 26742 px: the page renders API-mode state, not CSS; the run was discarded and repeated in baseline mode with the byte-identical CSS"
+    },
+    "verdict": "the deployed stylesheet is byte-identical to the re-measured one; every variant matches the v3 baseline on all routes outside the two measured-noise routes; FRONTEND-LOCK-TAILWIND-V3-CHAIN-CARRIES-ADVISORIES-01 stays fixed (not verified): the production deployment lived 8.5 min before an external stop, so no live-window verification exists"
+  }
 }
