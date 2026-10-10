@@ -217,8 +217,7 @@ def test_primary_cause_contract_ignores_earlier_mentions_and_rejects_missing_inh
     )
     evidence["run"] = evidence["run"].replace(
         "if [ -s live_pg_primary_cause.txt ]; then",
-        "command -v psql >/dev/null 2>&1\n"
-        "            if [ -s live_pg_primary_cause.txt ]; then",
+        "command -v psql >/dev/null 2>&1\n            if [ -s live_pg_primary_cause.txt ]; then",
         1,
     )
     with pytest.raises(AssertionError, match="الاشتقاق يسبق الوراثة"):
