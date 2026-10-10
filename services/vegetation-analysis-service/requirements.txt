@@ -5,6 +5,7 @@ nats-py>=2.3.0
 pydantic==2.13.4
 prometheus-client>=0.19.0
 python-dotenv>=1.0.0
-PyJWT>=2.13.0  # تحقّق توقيع JWT الحقيقيّ (كان أيّ Bearer يمرّ)
+PyJWT[crypto]>=2.13.0  # تحقّق توقيع JWT الحقيقيّ (كان أيّ Bearer يمرّ)
+cryptography==50.0.1  # مزوّدُ RSA لـPyJWT: بدونه يرفض التحقّقُ كلَّ توكن RS256 بـInvalidAlgorithmError ⇒ 401 دائمة (VEGETATION-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01) — كسابقة guardrails في #1091 والمنصّة في #1122
 # aiosmtplib>=3.0.0  # for email in notification agent
 asyncpg>=0.30,<1

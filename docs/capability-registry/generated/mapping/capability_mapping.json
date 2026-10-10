@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5526,
+    "files_scanned": 5527,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
       "other": 1562,
-      "tests": 1884,
+      "tests": 1885,
       "web": 458
     },
-    "unmapped_artifacts": 2232,
+    "unmapped_artifacts": 2233,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -45290,6 +45290,10 @@
     },
     {
       "path": "tests_v9/test_vegetation_container_contract_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_vegetation_crypto_dependency.py",
       "kind": "tests"
     },
     {
