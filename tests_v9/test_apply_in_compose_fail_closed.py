@@ -13,7 +13,9 @@ MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01: ``apply_in_compose.sh`` �
 
 from __future__ import annotations
 
+import hashlib
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -43,6 +45,18 @@ def _workspace(tmp_path: Path, *, ready: bool) -> Path:
     _fake(tmp_path / "psql", f'echo "psql $*" >> "{log}"\nexit 0\n')
     _fake(tmp_path / "sleep", "exit 0\n")  # ٣٠ محاولة × ٢ث لا تُنتظَر فعلاً
     return log
+
+
+def _write_contract(
+    tmp_path: Path, *, min_tables: int = 2, min_columns: int = 1, sha: str | None = None
+) -> None:
+    """عقدٌ مصغَّر صريح للمانيفست المؤقّت (مربوطٌ ببصمته ما لم يُطلب غيرُ ذلك)."""
+    manifest = tmp_path / "migrations" / "MANIFEST.txt"
+    digest = sha or hashlib.sha256(manifest.read_bytes()).hexdigest()
+    (tmp_path / "migrations" / "schema_probe_contract.env").write_text(
+        f"MANIFEST_SHA256={digest}\nMIN_TABLES={min_tables}\nMIN_COLUMNS={min_columns}\n",
+        encoding="utf-8",
+    )
 
 
 def _run(tmp_path: Path, **extra_env: str) -> subprocess.CompletedProcess[str]:
@@ -156,6 +170,7 @@ def _probe_workspace(tmp_path: Path, *, missing: str = "") -> Path:
     (tmp_path / "migrations" / "v206_rls_final_hardening.sql").write_text(
         "create table if not exists Beta (id int);\n", encoding="utf-8"
     )
+    _write_contract(tmp_path)
     _fake(
         tmp_path / "psql",
         f'echo "psql PGOPTIONS=[$PGOPTIONS] $*" >> "{log}"\n'
@@ -254,6 +269,7 @@ def test_a_manifest_entry_without_a_readable_file_is_an_error_not_a_partial_pass
     (tmp_path / "migrations" / "MANIFEST.txt").write_text(
         "v001.sql\nv_missing.sql\nv206_rls_final_hardening.sql\n", encoding="utf-8"
     )
+    _write_contract(tmp_path)
     result = _run(tmp_path)
     assert result.returncode == 3, result.stdout + result.stderr
     assert "SCHEMA_INSPECTION status=ERROR" in result.stderr
@@ -268,6 +284,7 @@ def test_a_manifest_entry_without_a_readable_file_is_an_error_not_a_partial_pass
 def test_an_empty_manifest_is_an_error(tmp_path):
     log = _probe_workspace(tmp_path)
     (tmp_path / "migrations" / "MANIFEST.txt").write_text("# لا شيء\n", encoding="utf-8")
+    _write_contract(tmp_path)
     result = _run(tmp_path)
     assert result.returncode == 3
     assert "reason=manifest_empty" in result.stderr
@@ -304,3 +321,111 @@ def test_the_live_acceptance_never_grants_apply_permission():
     assert 'SAHOOL_MIGRATE_APPLY="1"' not in text, (
         "سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤقّتةً يملكها الاختبار — لا القاعدةَ المشتركة"
     )
+
+
+# ── عقدُ الحدّ الأدنى ودلالةُ read_only (مراجعةُ المالك الرابعة 2026-10-10) ──────────────────────
+
+ROOT_MIGRATIONS = ROOT / "migrations"
+
+
+def _extracted(manifest_dir: Path) -> tuple[str, int, int]:
+    """ما يستخرجه السكربتُ نفسُه بأنماطه، لمطابقة العقد المُلتزَم مع MANIFEST الحاليّ."""
+    manifest = manifest_dir / "MANIFEST.txt"
+    files = [
+        ln.strip()
+        for ln in manifest.read_text(encoding="utf-8").splitlines()
+        if ln.strip() and not ln.lstrip().startswith("#")
+    ]
+    tables = columns = 0
+    for name in files:
+        text = (manifest_dir / name).read_text(encoding="utf-8")
+        tables += len(re.findall(r"CREATE TABLE IF NOT EXISTS\s+[a-z0-9_]+", text, re.I))
+        columns += len(
+            re.findall(
+                r"ALTER TABLE\s+[a-z0-9_]+\s+ADD COLUMN IF NOT EXISTS\s+[a-z0-9_]+", text, re.I
+            )
+        )
+    return hashlib.sha256(manifest.read_bytes()).hexdigest(), tables, columns
+
+
+def test_the_schema_probe_contract_matches_the_manifest():
+    """العقدُ المُلتزَم مربوطٌ ببصمة MANIFEST الحاليّة وبعدد الكائنات المستخرَجة — راتشِت لا يُحرَّر يدويّاً."""
+    sha, tables, columns = _extracted(ROOT_MIGRATIONS)
+    text = (ROOT_MIGRATIONS / "schema_probe_contract.env").read_text(encoding="utf-8")
+    fields = dict(
+        ln.split("=", 1) for ln in text.splitlines() if "=" in ln and not ln.startswith("#")
+    )
+    expected = {"MANIFEST_SHA256": sha, "MIN_TABLES": str(tables), "MIN_COLUMNS": str(columns)}
+    assert fields == expected, (
+        "schema_probe_contract.env لا يطابق MANIFEST الحاليّ — أعِد توليده بهذه القيم: "
+        + " ".join(f"{k}={v}" for k, v in expected.items())
+    )
+    assert tables > 0 and columns > 0, "المانيفست الإنتاجيّ بلا كائناتٍ مستخرَجة — الأنماطُ انكسرت"
+
+
+def test_a_missing_contract_is_an_error_before_any_connection(tmp_path):
+    log = _probe_workspace(tmp_path)
+    (tmp_path / "migrations" / "schema_probe_contract.env").unlink()
+    result = _run(tmp_path)
+    assert result.returncode == 3
+    assert (
+        "SCHEMA_INSPECTION status=ERROR read_only=unknown reason=contract_missing" in result.stderr
+    )
+    assert _psql_calls(log) == [], "لا اتّصالَ قبل العقد"
+
+
+def test_a_contract_signed_for_another_manifest_is_rejected(tmp_path):
+    log = _probe_workspace(tmp_path)
+    _write_contract(tmp_path, sha="0" * 64)
+    result = _run(tmp_path)
+    assert result.returncode == 3
+    assert "reason=manifest_contract_mismatch" in result.stderr
+    assert _psql_calls(log) == []
+
+
+def test_zero_extracted_objects_never_pass_even_with_a_permissive_contract(tmp_path):
+    """الطفرة التي طلبها المالك: ملفّاتٌ صالحة لا تطابق الأنماط ⇒ ERROR لا PASS بلا فحص أيّ كائن."""
+    log = _probe_workspace(tmp_path, missing="")
+    (tmp_path / "migrations" / "v001.sql").write_text("select 1;\n", encoding="utf-8")
+    (tmp_path / "migrations" / "v206_rls_final_hardening.sql").write_text(
+        "select 2;\n", encoding="utf-8"
+    )
+    _write_contract(tmp_path, min_tables=0, min_columns=0)
+    result = _run(tmp_path)
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "reason=no_objects_extracted files_parsed=2" in result.stderr
+    assert "status=PASS" not in result.stdout
+    assert _psql_calls(log) == []
+
+
+def test_fewer_objects_than_the_contract_is_an_error(tmp_path):
+    log = _probe_workspace(tmp_path)
+    _write_contract(tmp_path, min_tables=5, min_columns=1)
+    result = _run(tmp_path)
+    assert result.returncode == 3
+    assert "reason=objects_below_contract extracted_tables=2 min_tables=5" in result.stderr
+    assert _psql_calls(log) == []
+
+
+def test_read_only_is_unknown_before_the_server_confirms_it_and_false_when_it_denies(tmp_path):
+    log = _probe_workspace(tmp_path)
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\necho "psql: error: connection refused" >&2\nexit 2\n',
+    )
+    result = _run(tmp_path)
+    assert "status=ERROR read_only=unknown reason=connect_or_query_failed" in result.stderr
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\n'
+        'case "$*" in *transaction_read_only*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+    )
+    result = _run(tmp_path)
+    assert "status=ERROR read_only=false reason=session_not_read_only" in result.stderr
+    assert "read_only=true" not in result.stderr
+
+
+def test_the_integration_job_makes_the_migrator_certification_mandatory():
+    """بلا هذا العَلَم يصير نزعُ TEST_DATABASE_URL يوماً ما تحويلاً صامتاً للشهادة إلى تخطٍّ أخضر."""
+    ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert 'MIGRATOR_CERTIFICATION_REQUIRED: "1"' in ci

@@ -1121,6 +1121,10 @@ jobs:
           # flag, dropping TEST_DATABASE_URL one day would turn the certification into a
           # green skip — the class this repository keeps closing.
           RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED: "1"
+          # MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 (#1160): the live migrator
+          # certification (tests_v9/test_apply_in_compose_live_pg.py) must not turn into a green
+          # skip when the DB is unreachable or the DSN is dropped — a skip is a HARD failure here.
+          MIGRATOR_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation

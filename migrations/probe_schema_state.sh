@@ -33,8 +33,11 @@ export PGOPTIONS="-c default_transaction_read_only=on ${PGOPTIONS:-}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
+# read_only يبقى unknown حتّى يؤكّده الخادم (مراجعةُ المالك الرابعة 2026-10-10): خطأٌ قبل الاتّصال لا
+# يدّعي جلسةً لم تُنشأ؛ وجلسةٌ أنكرت read-only تُعلَن false.
+READ_ONLY=unknown
 fail() { # $1 = reason, $2.. = extra key=value
-  echo "SCHEMA_INSPECTION status=ERROR read_only=true reason=$1 ${*:2}" >&2
+  echo "SCHEMA_INSPECTION status=ERROR read_only=${READ_ONLY} reason=$1 ${*:2}" >&2
   echo "SCHEMA_STATE readable=false reason=$1" >&2
   exit 3
 }
@@ -57,8 +60,11 @@ parsed=0
 while IFS= read -r f; do
   [ -r "$MIG_DIR/$f" ] || fail manifest_file_unreadable "file=$f files_parsed=$parsed"
   # grep بلا مطابقةٍ يُعيد 1 — ليس خطأً (ملفٌّ بلا جداول/أعمدة جديدة)؛ غيرُ ذلك (≥2) خطأُ قراءة.
-  grep -ioE 'CREATE TABLE IF NOT EXISTS\s+[a-z0-9_]+' "$MIG_DIR/$f" > "$WORK/t" || [ $? -eq 1 ] || fail parse_failed "file=$f"
-  grep -ioE 'ALTER TABLE\s+[a-z0-9_]+\s+ADD COLUMN IF NOT EXISTS\s+[a-z0-9_]+' "$MIG_DIR/$f" > "$WORK/c" || [ $? -eq 1 ] || fail parse_failed "file=$f"
+  # الأسطرُ تُسطَّح أوّلاً: ٥٢ عبارةَ ADD COLUMN في MANIFEST تمتدّ على سطرين (ALTER TABLE x ⏎ ADD COLUMN …)
+  # وكان grep السطريّ يُسقطها (127 بدل 179) — القياسُ يطابق الآن الجردَ المرجعيّ.
+  tr '\n' ' ' < "$MIG_DIR/$f" > "$WORK/flat" || fail parse_failed "file=$f"
+  grep -ioE 'CREATE TABLE IF NOT EXISTS\s+[a-z0-9_]+' "$WORK/flat" > "$WORK/t" || [ $? -eq 1 ] || fail parse_failed "file=$f"
+  grep -ioE 'ALTER TABLE\s+[a-z0-9_]+\s+ADD COLUMN IF NOT EXISTS\s+[a-z0-9_]+' "$WORK/flat" > "$WORK/c" || [ $? -eq 1 ] || fail parse_failed "file=$f"
   awk -v f="$f" '{print f"|table|"tolower($NF)"|"}' "$WORK/t" >> "$WORK/expected"
   awk -v f="$f" '{print f"|column|"tolower($3)"|"tolower($NF)}' "$WORK/c" >> "$WORK/expected"
   parsed=$((parsed + 1))
@@ -68,12 +74,27 @@ done < "$WORK/files"
 n_tables=$(grep -c '|table|' "$WORK/expected" || true)
 n_columns=$(grep -c '|column|' "$WORK/expected" || true)
 
+# ── ٢ب) عقدُ الحدّ الأدنى (مراجعةُ المالك الرابعة): ملفٌّ بجوار MANIFEST يربط بصمتَه بأقلّ عددٍ معتمدٍ من
+# الكائنات المستخرَجة؛ فلا يُصدَر PASS على تحليلٍ أخرج صفراً (ملفّاتٌ لا تطابق الأنماط) ولا على MANIFEST
+# غيرِ الذي كُتب له العقد. الإنتاجُ: schema_probe_contract.env المُولَّد من MANIFEST الحاليّ ويحرسه اختبار.
+CONTRACT="$MIG_DIR/schema_probe_contract.env"
+[ -r "$CONTRACT" ] || fail contract_missing "path=$CONTRACT"
+c_sha="$(grep -oE '^MANIFEST_SHA256=[0-9a-f]{64}$' "$CONTRACT" | cut -d= -f2 || true)"
+c_tables="$(grep -oE '^MIN_TABLES=[0-9]+$' "$CONTRACT" | cut -d= -f2 || true)"
+c_columns="$(grep -oE '^MIN_COLUMNS=[0-9]+$' "$CONTRACT" | cut -d= -f2 || true)"
+[ -n "$c_sha" ] && [ -n "$c_tables" ] && [ -n "$c_columns" ] || fail contract_malformed "path=$CONTRACT"
+[ "$c_sha" = "$manifest_sha256" ] || fail manifest_contract_mismatch "contract_sha256=${c_sha:0:12} manifest_sha256=${manifest_sha256:0:12}"
+[ $((n_tables + n_columns)) -gt 0 ] || fail no_objects_extracted "files_parsed=$parsed"
+[ "$n_tables" -ge "$c_tables" ] && [ "$n_columns" -ge "$c_columns" ] \
+  || fail objects_below_contract "extracted_tables=$n_tables min_tables=$c_tables extracted_columns=$n_columns min_columns=$c_columns"
+
 # ── ٣) الهويّة، والجلسةُ read-only مؤكَّدةٌ من الخادم ──
 echo "─ قراءةُ هويّة القاعدة (read-only) ${PGHOST}:${PGPORT:-5432}/${PGDATABASE} كـ${PROBE_USER} ─"
 identity="$(probe_sql -c "SELECT current_setting('transaction_read_only'), version(), current_database(), current_user, inet_server_addr(), (SELECT rolsuper FROM pg_roles WHERE rolname = current_user)")" \
   || fail connect_or_query_failed "host=${PGHOST}:${PGPORT:-5432}"
 IFS='|' read -r ro version database user addr super <<<"$identity"
-[ "$ro" = "on" ] || fail session_not_read_only
+[ "$ro" = "on" ] || { READ_ONLY=false; fail session_not_read_only; }
+READ_ONLY=true
 echo "  transaction_read_only=${ro} · ${version%%,*} · db=${database} · user=${user} (super=${super}) · server=${addr:-local}"
 echo "─ المتوقَّع من MANIFEST (${n_files} ملفّاً، كلُّها قُرئت؛ sha256=${manifest_sha256:0:12}…): ${n_tables} جدولاً · ${n_columns} عموداً ─"
 
@@ -108,4 +129,4 @@ fi
 # القيودُ والفهارسُ وسياساتُ RLS والدوالّ لا تُقارَن هنا. PASS ليس اعتماداً للقاعدة.
 echo "  ملاحظة: القياسُ وجودُ الجداول/الأعمدة فقط — القيودُ والفهارسُ وRLS والدوالّ خارج هذه القراءة."
 echo "SCHEMA_STATE readable=true read_only=on db=${database} user=${user} tables=$((n_tables - m_tables))/${n_tables} columns=$((n_columns - m_columns))/${n_columns} first_missing=${first_missing:-none} scope=tables_and_columns_only"
-echo "SCHEMA_INSPECTION status=${status} read_only=true manifest_sha256=${manifest_sha256} files_parsed=${parsed} expected_tables=${n_tables} present_tables=$((n_tables - m_tables)) expected_columns=${n_columns} present_columns=$((n_columns - m_columns)) first_missing=${first_missing:-none}"
+echo "SCHEMA_INSPECTION status=${status} read_only=${READ_ONLY} manifest_sha256=${manifest_sha256} files_parsed=${parsed} expected_tables=${n_tables} present_tables=$((n_tables - m_tables)) expected_columns=${n_columns} present_columns=$((n_columns - m_columns)) first_missing=${first_missing:-none}"
