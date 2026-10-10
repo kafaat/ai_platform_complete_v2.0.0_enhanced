@@ -79,9 +79,9 @@ def _run(env: dict[str, str], **extra: str) -> subprocess.CompletedProcess[str]:
 
 def test_an_unreachable_database_exits_nonzero_without_any_migration_call(pg_env):
     before = _inventory(pg_env)
-    result = _run(
-        pg_env, PGHOST="127.0.0.1", PGPORT="9", MIGRATE_READY_ATTEMPTS="2", SAHOOL_MIGRATE_APPLY="1"
-    )
+    # بلا إذنٍ عمداً: الاختبارُ الحيّ لا يمنح إذنَ التطبيق أبداً (حمايةُ القاعدة المشتركة)؛ وبرهانُ
+    # «حتّى مع الإذن» مُغطّىً بالمحاكاة في test_apply_in_compose_fail_closed.py.
+    result = _run(pg_env, PGHOST="127.0.0.1", PGPORT="9", MIGRATE_READY_ATTEMPTS="2")
     assert result.returncode != 0
     assert "MIGRATIONS_NOT_APPLIED reason=database_unreachable" in result.stderr
     assert "→ " not in result.stdout, "ظهر سطرُ تطبيق ملفّ"
@@ -96,6 +96,11 @@ def test_a_ready_database_without_permission_is_inspected_read_only_and_unchange
     assert "transaction_read_only=on" in result.stdout
     assert "SCHEMA_STATE readable=true read_only=on" in result.stdout
     assert "MIGRATION_INSPECTION_COMPLETED apply=false" in result.stdout
+    line = next(ln for ln in result.stdout.splitlines() if ln.startswith("SCHEMA_INSPECTION "))
+    fields = dict(kv.split("=", 1) for kv in line.split()[1:])
+    assert fields["status"] in {"PASS", "INCOMPLETE"}
+    assert fields["read_only"] == "true"
+    assert int(fields["files_parsed"]) > 0 and len(fields["manifest_sha256"]) == 64
     assert "→ " not in result.stdout
     assert _inventory(pg_env) == before, "تغيّر المخطَّط/الأدوار بلا إذن"
 

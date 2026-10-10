@@ -244,3 +244,63 @@ def test_the_schema_state_line_declares_its_limited_scope(tmp_path):
     result = _run(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "scope=tables_and_columns_only" in result.stdout
+
+
+# ── اكتمالُ تحليل MANIFEST شرطٌ لأيّ نتيجة (مراجعةُ المالك الثالثة 2026-10-10) ────────────────
+
+
+def test_a_manifest_entry_without_a_readable_file_is_an_error_not_a_partial_pass(tmp_path):
+    log = _probe_workspace(tmp_path)
+    (tmp_path / "migrations" / "MANIFEST.txt").write_text(
+        "v001.sql\nv_missing.sql\nv206_rls_final_hardening.sql\n", encoding="utf-8"
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "SCHEMA_INSPECTION status=ERROR" in result.stderr
+    assert "reason=manifest_file_unreadable file=v_missing.sql files_parsed=1" in result.stderr
+    assert "readable=true" not in result.stdout
+    assert "SCHEMA_INSPECTION status=PASS" not in result.stdout
+    assert "SCHEMA_INSPECTION status=INCOMPLETE" not in result.stdout
+    # لا استعلامَ قبل اكتمال التحليل، ولا تطبيق.
+    assert not any("WITH expected" in c or " -f " in c for c in _psql_calls(log))
+
+
+def test_an_empty_manifest_is_an_error(tmp_path):
+    log = _probe_workspace(tmp_path)
+    (tmp_path / "migrations" / "MANIFEST.txt").write_text("# لا شيء\n", encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 3
+    assert "reason=manifest_empty" in result.stderr
+    assert not any("WITH expected" in c for c in _psql_calls(log))
+
+
+def test_the_inspection_line_carries_the_contract_fields(tmp_path):
+    _probe_workspace(tmp_path, missing="3|v206_rls_final_hardening.sql|table|beta|")
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    line = next(ln for ln in result.stdout.splitlines() if ln.startswith("SCHEMA_INSPECTION "))
+    fields = dict(kv.split("=", 1) for kv in line.split()[1:])
+    assert fields["status"] == "INCOMPLETE"
+    assert fields["read_only"] == "true"
+    assert len(fields["manifest_sha256"]) == 64
+    assert fields["files_parsed"] == "2"
+    assert (fields["expected_tables"], fields["present_tables"]) == ("2", "1")
+    assert (fields["expected_columns"], fields["present_columns"]) == ("1", "1")
+    assert fields["first_missing"] == "v206_rls_final_hardening.sql"
+
+
+def test_pass_means_every_expected_object_is_present_and_every_file_parsed(tmp_path):
+    _probe_workspace(tmp_path, missing="")
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SCHEMA_INSPECTION status=PASS read_only=true" in result.stdout
+    assert "files_parsed=2" in result.stdout
+    assert "first_missing=none" in result.stdout
+
+
+def test_the_live_acceptance_never_grants_apply_permission():
+    """حمايةُ S4: الاختبارُ الحيّ على TEST_DATABASE_URL المشتركة لا يمنح إذنَ التطبيق أبداً."""
+    text = (ROOT / "tests_v9" / "test_apply_in_compose_live_pg.py").read_text(encoding="utf-8")
+    assert 'SAHOOL_MIGRATE_APPLY="1"' not in text, (
+        "سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤقّتةً يملكها الاختبار — لا القاعدةَ المشتركة"
+    )
