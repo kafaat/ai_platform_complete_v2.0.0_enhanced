@@ -42,9 +42,12 @@ fail() { # $1 = reason, $2.. = extra key=value
   exit 3
 }
 
+# القراءةُ-فقط تُفرَض داخل الجلسة بـSET لا عبر PGOPTIONS وحدها: عميلُ CI (psql مُوفَّر من صورة) لا يمرّر
+# PGOPTIONS فأنكر الخادمُ read-only في التشغيل 38092839653 — والأوامرُ المتعدّدة -c تعمل في جلسةٍ واحدة.
 probe_sql() {
   PGPASSWORD="$PROBE_PASSWORD" psql -X -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" \
-    -U "$PROBE_USER" -d "$PGDATABASE" -At -F '|' "$@"
+    -U "$PROBE_USER" -d "$PGDATABASE" -At -F '|' -q \
+    -c "SET SESSION default_transaction_read_only = on" "$@"
 }
 
 # ── ١) MANIFEST: قائمةٌ في ملفٍّ (لا process substitution — فشلُ المُنتِج لا ينتقل إلى الحلقة) ──

@@ -6825,10 +6825,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26f5ebb0263d0685853f3b3745d18a0e74a27b971a59e6abf42e5f54a004195c"
+          "content": "0de9b2b4dc5d4f1572adac3079714a496069e89754159590a1e847ca158edcd6"
         }
       ],
       "name": "migrations/probe_schema_state.sh",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "634bc1bedb8f942dda65a38a15d18aaceaed28fe611d110d6605ba2fa1e6eaea"
+        }
+      ],
+      "name": "migrations/schema_probe_contract.env",
       "type": "file"
     },
     {

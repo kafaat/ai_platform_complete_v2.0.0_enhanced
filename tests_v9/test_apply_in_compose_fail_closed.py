@@ -175,7 +175,7 @@ def _probe_workspace(tmp_path: Path, *, missing: str = "") -> Path:
         tmp_path / "psql",
         f'echo "psql PGOPTIONS=[$PGOPTIONS] $*" >> "{log}"\n'
         'case "$*" in\n'
-        '  *transaction_read_only*) echo "on|PostgreSQL 16.13 fake|sahool|probe_user|10.0.0.1|f";;\n'
+        '  *current_setting*) echo "on|PostgreSQL 16.13 fake|sahool|probe_user|10.0.0.1|f";;\n'
         f'  *"WITH expected"*) printf "%s" "{missing}";;\n'
         "esac\nexit 0\n",
     )
@@ -200,7 +200,7 @@ def test_the_probe_refuses_a_session_the_server_did_not_confirm_read_only(tmp_pa
     _fake(
         tmp_path / "psql",
         f'echo "psql $*" >> "{log}"\n'
-        'case "$*" in *transaction_read_only*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+        'case "$*" in *current_setting*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
     )
     result = _run(tmp_path)
     # الإذنُ غائب ⇒ لا هجرة؛ لكنّ تعذّرَ القراءة ليس نجاحاً (مراجعةُ المالك 2026-10-10): خروج 3.
@@ -418,7 +418,7 @@ def test_read_only_is_unknown_before_the_server_confirms_it_and_false_when_it_de
     _fake(
         tmp_path / "psql",
         f'echo "psql $*" >> "{log}"\n'
-        'case "$*" in *transaction_read_only*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+        'case "$*" in *current_setting*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
     )
     result = _run(tmp_path)
     assert "status=ERROR read_only=false reason=session_not_read_only" in result.stderr

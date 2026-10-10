@@ -3724,3 +3724,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** مراجعةُ المالك الرابعة: شهادةٌ قابلةٌ للتخطّي الأخضر عند انقطاع القاعدة؛ `read_only=true` يُعلَن قبل إنشاء جلسة؛ PASS ممكنٌ بصفر كائنات حين لا تطابق الملفّاتُ الأنماط؛ وعدُّ الكائنات وحده لا يُثبت عدمَ الكتابة. وفي الطريق ظهر أنّ الاستخراج السطريّ أسقط 52 عموداً.
 
 **المصدر:** `.github/workflows/ci.yml` (Integration Tests env) · `migrations/probe_schema_state.sh` · `migrations/schema_probe_contract.env` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · PR #1160.
+
+## 2026-10-10 — القراءةُ-فقط لقراءة المخطَّط تُفرَض داخل الجلسة لا عبر بيئة العميل
+
+**القرار:** `probe_schema_state.sh` يفرض `SET SESSION default_transaction_read_only = on` كأوّل `-c` في كلّ استدعاء psql، ويبقى `PGOPTIONS` طبقةً ثانية لا يُعتمَد عليها. لا يُعدَّل عميلُ CI (`provision_pg_client.sh`) لتمرير PGOPTIONS: الضمانةُ يجب أن تعيش في الأداة لا في بيئة مَن يستدعيها، لأنّ المُهاجر على Railway يعمل بصورةٍ وبيئةٍ مختلفتين.
+
+**السبب:** التشغيل 38092839653 على `76d45d28`: `session_not_read_only` لأنّ حاويةَ psql في CI تُمرّر متغيّراتِ PG الخمسة فقط. العقدُ عمل كما صُمّم (رفضٌ لا ادّعاء)، لكنّ الأداةَ كانت تعتمد على قناةٍ لا تملكها.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `scripts/ci/provision_pg_client.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · PR #1160.

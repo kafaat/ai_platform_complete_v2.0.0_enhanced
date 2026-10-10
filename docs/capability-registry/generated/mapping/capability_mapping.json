@@ -28102,19 +28102,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:157",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:171",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:152",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:166",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:153",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:167",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:204",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:219",
           "score": 8
         }
       ],
@@ -28124,7 +28124,7 @@
           "score": 11
         },
         {
-          "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:51",
+          "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:65",
           "score": 8
         }
       ],
