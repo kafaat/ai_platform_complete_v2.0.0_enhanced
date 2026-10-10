@@ -25,11 +25,35 @@ APP_ALLOW_SCHEMA_CREATE="${APP_ALLOW_SCHEMA_CREATE:-false}"
 JOBS_ROLE="${JOBS_DB_ROLE:-sahool_jobs}"
 JOBS_PASSWORD="${JOBS_DB_PASSWORD:-sahool_jobs_pw}"
 
-# انتظار جاهزيّة القاعدة (depends_on: service_healthy يكفي عادةً — تأمين إضافيّ)
-for i in $(seq 1 30); do
-  pg_isready -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" >/dev/null 2>&1 && break
+# انتظار جاهزيّة القاعدة (depends_on: service_healthy يكفي عادةً — تأمين إضافيّ).
+# MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01: كانت الحلقة تنتهي بعد ٣٠ محاولةً فاشلة
+# **وتتابع إلى التطبيق**؛ على Railway (نشر 87cc687b، 2026-10-10) أوقفها psql بفشل حلّ الاسم لا هذا
+# السكربت. الآن: جاهزيّةٌ غيرُ مُثبَتة ⇒ خروجٌ غيرُ صفريّ قبل أيّ اتّصال، برسالةٍ تسمّي المضيف.
+READY_ATTEMPTS="${MIGRATE_READY_ATTEMPTS:-30}"
+ready=0
+for i in $(seq 1 "$READY_ATTEMPTS"); do
+  if pg_isready -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" >/dev/null 2>&1; then ready=1; break; fi
   echo "بانتظار postgres ($i)…"; sleep 2
 done
+if [ "$ready" != "1" ]; then
+  echo "MIGRATIONS_NOT_APPLIED reason=database_unreachable host=${PGHOST}:${PGPORT:-5432} attempts=${READY_ATTEMPTS}" >&2
+  echo "✗ لم تُثبَت جاهزيّةُ القاعدة ${PGHOST}:${PGPORT:-5432} بعد ${READY_ATTEMPTS} محاولة — لا تُطبَّق أيُّ هجرة (fail-closed)." >&2
+  exit 1
+fi
+
+# فصلُ «بناء صورة المُهاجر» عن «الإذن بتطبيق الهجرات»: على Railway يُعاد بناءُ الخدمة ونشرُها من
+# أيّ دفعةٍ تمسّ migrations/ أو Dockerfile.migrate (watchPatterns)، فكان تثبيتُ صورةٍ أساسيّة (#1157)
+# يُطلق هجرةَ إنتاج. التطبيقُ يحتاج الآن إذناً صريحاً بالمتغيّر SAHOOL_MIGRATE_APPLY=1 (compose
+# يضبطه؛ على Railway يضبطه المشغِّل عند قرار الهجرة فقط). بدونه: الجاهزيّةُ مُثبَتة، ولا تُطبَّق هجرة،
+# والخروجُ صفريّ لأنّ الوظيفةَ فعلت كلَّ ما أُذن لها به — والسطرُ أدناه يُعلن ذلك صراحةً.
+if [ "${SAHOOL_MIGRATE_APPLY:-0}" != "1" ]; then
+  echo "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted host=${PGHOST}:${PGPORT:-5432}"
+  echo "─ القاعدةُ جاهزة، لكنّ تطبيقَ الهجرات غيرُ مأذونٍ به (SAHOOL_MIGRATE_APPLY≠1) — لم تُطبَّق أيُّ هجرة ولم يُنشأ أيُّ دور. ─"
+  # بدل الصمت: قراءةٌ فقط لهويّة القاعدة وحالة المخطَّط مقابل MANIFEST (بوّابةُ الاسترداد
+  # #1158 البندان ٣–٤) — الجلسةُ read-only مؤكَّدةٌ من الخادم؛ تعذّرُها لا يُخفي الرسالةَ أعلاه.
+  bash "$(dirname "${BASH_SOURCE[0]}")/probe_schema_state.sh" || echo "SCHEMA_PROBE_FAILED exit=$?" >&2
+  exit 0
+fi
 
 psql_exec() { psql -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" -d "$PGDATABASE" "$@"; }
 

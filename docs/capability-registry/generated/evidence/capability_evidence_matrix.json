@@ -8716,7 +8716,7 @@
       "evidence": {
         "api": false,
         "backend": false,
-        "database": false,
+        "database": true,
         "documentation": true,
         "events": true,
         "integration_tests": false,
@@ -8739,7 +8739,7 @@
           "type": "backend"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "database"
         },
@@ -8789,7 +8789,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -8808,6 +8808,7 @@
         "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
         "services/raster-service/test_production_truth_fail_closed.py",
         "services/weather-service/tests/test_operation_fail_closed.py",
+        "tests_v9/test_apply_in_compose_fail_closed.py",
         "tests_v9/test_critical_event_fail_closed.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_tile_mask_fail_closed_v29_8.py"

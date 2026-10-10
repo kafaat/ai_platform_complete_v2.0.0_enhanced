@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5527,
+    "files_scanned": 5528,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
       "other": 1563,
-      "tests": 1884,
+      "tests": 1885,
       "web": 458
     },
     "unmapped_artifacts": 2232,
@@ -28100,11 +28100,32 @@
       "title": "Secrets and production fail-closed",
       "backend": [],
       "routes": [],
-      "database": [],
+      "database": [
+        {
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:156",
+          "score": 8
+        },
+        {
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:151",
+          "score": 8
+        },
+        {
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:152",
+          "score": 8
+        },
+        {
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:199",
+          "score": 8
+        }
+      ],
       "events": [
         {
           "value": "background_tasks.add_task @ tests_v9/test_erp_bridge_fail_closed.py:160",
           "score": 11
+        },
+        {
+          "value": "sahool-postgres.railway.internal @ tests_v9/test_apply_in_compose_fail_closed.py:51",
+          "score": 8
         }
       ],
       "web": [],
@@ -28155,6 +28176,13 @@
           "signals": [
             "path:fail closed"
           ]
+        },
+        {
+          "path": "tests_v9/test_apply_in_compose_fail_closed.py",
+          "score": 8,
+          "signals": [
+            "path:fail closed"
+          ]
         }
       ],
       "governance": [],
@@ -28166,15 +28194,15 @@
       "evidence_counts": {
         "backend": 0,
         "routes": 0,
-        "database": 0,
-        "events": 1,
+        "database": 4,
+        "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 6,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {

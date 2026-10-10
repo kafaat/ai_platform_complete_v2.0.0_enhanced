@@ -5515,6 +5515,7 @@
         "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
         "services/raster-service/test_production_truth_fail_closed.py",
         "services/weather-service/tests/test_operation_fail_closed.py",
+        "tests_v9/test_apply_in_compose_fail_closed.py",
         "tests_v9/test_critical_event_fail_closed.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
@@ -5551,7 +5552,7 @@
           "path": "shared/security/secret_guard.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
