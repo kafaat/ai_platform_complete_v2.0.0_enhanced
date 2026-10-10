@@ -53,7 +53,7 @@ def _fake_docker(
     return docker, log
 
 
-def _run(tmp_path: Path, docker: Path, attempts: int = 3, **extra_env: str):
+def _run(tmp_path: Path, docker: Path, attempts: int | None = 3, **extra_env: str):
     """يستدعي السكربت ثمّ `docker run` **بالتسلسل تحت `set -e`** — كما في الوظيفة.
 
     لو أعاد السكربت صفراً خطأً، لَنُفِّذ `docker run` وظهر في السجلّ.
@@ -68,17 +68,30 @@ def _run(tmp_path: Path, docker: Path, attempts: int = 3, **extra_env: str):
         PATH=f"{fast_bin}:{docker.parent}:{os.environ['PATH']}",
         **extra_env,
     )
+    pull_args = f'"{SCRIPT}" some/image'
+    if attempts is not None:
+        pull_args += f" {attempts}"
     return subprocess.run(  # noqa: S603
         [
             "bash",
             "-c",
-            f'set -e; "{SCRIPT}" some/image {attempts}; docker run -d --name x some/image',
+            f"set -e; {pull_args}; docker run -d --name x some/image",
         ],
         capture_output=True,
         encoding="utf-8",
         env=env,
         cwd=tmp_path,
     )
+
+
+def test_default_pull_budget_fits_a_short_ci_job(tmp_path):
+    docker, log = _fake_docker(tmp_path, pull_succeeds_on=None)
+    proc = _run(tmp_path, docker, attempts=None)
+
+    assert proc.returncode != 0
+    assert log.read_text(encoding="utf-8").splitlines() == ["pull some/image"] * 3
+    assert "تعذّر سحب some/image بعد 3/3 محاولات" in proc.stderr
+    assert 'PULL_TIMEOUT="${PULL_TIMEOUT:-180}"' in SCRIPT.read_text(encoding="utf-8")
 
 
 def test_exhausting_the_attempts_fails_and_does_not_reach_docker_run(tmp_path):

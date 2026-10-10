@@ -7,6 +7,10 @@ on:
       - 'services/model-registry-adapter/**'
       - 'scripts/wx12/**'
       - 'scripts/ci/wx12_runtime_certification_gate.py'
+      - 'scripts/ci/build_postgis_test_image.sh'
+      - 'scripts/ci/resilient_docker_pull.sh'
+      - 'scripts/ci/provision_pg_client.sh'
+      - '.github/workflows/wx12-runtime-certification.yml'
 # عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
 # غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
 concurrency:
@@ -24,6 +28,7 @@ jobs:
       - run: python -m compileall -q services/model-registry-adapter scripts/wx12
   postgres:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       DATABASE_URL: postgresql://sahool:sahool@localhost:5432/sahool
       DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: 'true'
@@ -31,23 +36,45 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: '3.12'}
+      - run: pip install asyncpg
       - name: Start digest-pinned PostgreSQL 16 with PostGIS packages
         run: |
           set -euo pipefail
           postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
           postgis_image=sahool-wx12-postgis-16:ci
+          export PULL_TIMEOUT=180
           scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 16 "$postgis_image"
           docker run -d --name wx12-postgres --pull=never \
             -e POSTGRES_USER=sahool -e POSTGRES_PASSWORD=sahool -e POSTGRES_DB=sahool \
             -p 5432:5432 --health-cmd "pg_isready -U sahool -d sahool" \
             --health-interval 5s --health-timeout 5s --health-retries 20 "$postgis_image"
+          bash scripts/ci/provision_pg_client.sh wx12-postgres
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
           for _ in $(seq 1 30); do
-            docker exec wx12-postgres pg_isready -U sahool -d sahool && break
+            pg_isready -h localhost -p 5432 -U sahool -d sahool && break
             sleep 2
           done
-          docker exec wx12-postgres pg_isready -U sahool -d sahool
-      # migration_runner connects via asyncpg — that is all this cert step needs.
-      - run: pip install asyncpg
+          pg_isready -h localhost -p 5432 -U sahool -d sahool
+      - name: Verify authenticated SQL and PostGIS over the published TCP port
+        run: |
+          python - <<'PY'
+          import asyncio
+          import os
+
+          import asyncpg
+
+          async def main():
+              connection = await asyncpg.connect(os.environ["DATABASE_URL"])
+              try:
+                  await connection.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+                  version = await connection.fetchval("SELECT PostGIS_Version()")
+                  assert version, "PostGIS extension did not return a version"
+                  print(f"PostgreSQL TCP/SQL and PostGIS ready: {version}")
+              finally:
+                  await connection.close()
+
+          asyncio.run(main())
+          PY
       # WX-12 runtime certification proves the decision-service migration set applies cleanly and
       # is idempotent (--check) against a real Postgres. The decision-service TEST SUITE is NOT run
       # here: it is owned end-to-end by the "Decision Service Tests" job in ci.yml, which runs each

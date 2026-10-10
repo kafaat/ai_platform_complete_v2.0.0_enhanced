@@ -29,6 +29,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 ROOT = Path(__file__).resolve().parents[1]
 CI = ROOT / ".github/workflows/ci.yml"
 CERTIFY = ROOT / ".github/workflows/certify-run.yml"
+WX12 = ROOT / ".github/workflows/wx12-runtime-certification.yml"
 
 
 def _on(path: Path) -> dict:
@@ -74,3 +75,25 @@ def test_pull_request_runs_still_cancel_the_stale_one():
     assert "run_id" in str(conc.get("group", "")), (
         "تشغيلات main تبقى بمجموعةٍ فريدة فلا تُلغى: لكلّ التزامٍ سجلُّه المُعتمَد"
     )
+
+
+def test_wx12_runs_when_its_workflow_or_image_provisioning_changes():
+    """تغييرات الاعتمادات التي تختبرها الشهادة يجب أن تُشغّلها تلقائياً على PR."""
+    paths = set((_on(WX12).get("pull_request") or {}).get("paths", []))
+    assert {
+        ".github/workflows/wx12-runtime-certification.yml",
+        "scripts/ci/build_postgis_test_image.sh",
+        "scripts/ci/resilient_docker_pull.sh",
+        "scripts/ci/provision_pg_client.sh",
+    } <= paths
+
+
+def test_wx12_uses_tcp_readiness_and_authenticates_sql_before_migrations():
+    workflow = WX12.read_text(encoding="utf-8")
+    postgres = workflow[workflow.index("  postgres:") :]
+    assert "timeout-minutes: 45" in postgres
+    assert "pg_isready -h localhost -p 5432 -U sahool -d sahool" in postgres
+    assert "docker exec wx12-postgres pg_isready" not in postgres
+    assert 'asyncpg.connect(os.environ["DATABASE_URL"])' in postgres
+    assert "CREATE EXTENSION IF NOT EXISTS postgis" in postgres
+    assert postgres.index("PostGIS_Version()") < postgres.index("migration_runner.py --apply")

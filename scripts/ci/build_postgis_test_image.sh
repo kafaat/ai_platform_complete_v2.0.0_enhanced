@@ -23,11 +23,12 @@ scripts/ci/resilient_docker_pull.sh "$base_image"
 if ! docker build --pull=false --tag "$image_tag" - <<DOCKERFILE
 FROM $base_image
 USER root
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+RUN timeout -k 10 240 apt-get update \
+    && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get install --yes --no-install-recommends \
         postgresql-$pg_major-postgis-3 \
         postgresql-$pg_major-postgis-3-scripts \
-    && dpkg-query --show --showformat='\${Version}\n' postgresql-$pg_major-postgis-3 \
+    && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3 \
+    && dpkg-query --show --showformat='\${Package}=\${Version}\n' postgresql-$pg_major-postgis-3-scripts \
     && rm -rf /var/lib/apt/lists/*
 USER postgres
 DOCKERFILE
