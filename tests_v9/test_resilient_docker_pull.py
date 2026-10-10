@@ -210,6 +210,9 @@ def test_postgis_image_is_built_from_pinned_postgres_and_signed_packages(tmp_pat
     assert f"FROM {base_image}" in build_instructions
     assert "postgresql-16-postgis-3" in build_instructions
     assert "postgresql-16-postgis-3-scripts" in build_instructions
+    assert "timeout -k 10 240 apt-get update" in build_instructions
+    assert "timeout -k 10 240 apt-get install" in build_instructions
+    assert r"${Package}=${Version}\n" in build_instructions
 
 
 def test_the_workflow_calls_the_script_rather_than_inlining_the_loop():
