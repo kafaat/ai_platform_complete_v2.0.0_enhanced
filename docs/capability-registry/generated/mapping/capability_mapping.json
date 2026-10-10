@@ -28100,7 +28100,24 @@
       "title": "Secrets and production fail-closed",
       "backend": [],
       "routes": [],
-      "database": [],
+      "database": [
+        {
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:156",
+          "score": 8
+        },
+        {
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:151",
+          "score": 8
+        },
+        {
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:152",
+          "score": 8
+        },
+        {
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:199",
+          "score": 8
+        }
+      ],
       "events": [
         {
           "value": "background_tasks.add_task @ tests_v9/test_erp_bridge_fail_closed.py:160",
@@ -28177,7 +28194,7 @@
       "evidence_counts": {
         "backend": 0,
         "routes": 0,
-        "database": 0,
+        "database": 4,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -28185,7 +28202,7 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {

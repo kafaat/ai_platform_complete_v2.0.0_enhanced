@@ -8716,7 +8716,7 @@
       "evidence": {
         "api": false,
         "backend": false,
-        "database": false,
+        "database": true,
         "documentation": true,
         "events": true,
         "integration_tests": false,
@@ -8739,7 +8739,7 @@
           "type": "backend"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "database"
         },
@@ -8789,7 +8789,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",

@@ -6795,7 +6795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cc4c70cd69e557f32a5b1c71e8055de6d8cb63b23f1031347940e7ad5720d43"
+          "content": "a562e59bc4dcb0bb07bd13cfe5cd146c3b5da295bb56b280b4c1db11372f7d54"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6819,6 +6819,16 @@
         }
       ],
       "name": "migrations/init_v8.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0df5ff24d8d62648b3143cca009a90fb68d77128835d4e9f20160f9949ebbf59"
+        }
+      ],
+      "name": "migrations/probe_schema_state.sh",
       "type": "file"
     },
     {
