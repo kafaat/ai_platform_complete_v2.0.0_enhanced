@@ -1,10 +1,10 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "a3ca6a758106d4e7294dc80dc3980750d14ae7f1",
+  "measured_on": "a0d15a0a36a269b62b55ea337a7420bed9012d8a",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2391,
+    "source_text_assertions": 2399,
     "positive_pinning_a_call": 349,
     "prohibitions": 207
   },
@@ -61,6 +61,9 @@
     },
     "tests/architecture/test_immutable_build_wrapper_behaviour.py": {
       "TESTED_SHA=<unset>": 1
+    },
+    "tests/architecture/test_notification_rollout_postgres_image.py": {
+      "postgis/postgis:": 1
     },
     "tests/architecture/test_raster_service_route_migration_plan.py": {
       "\"/indices\"": 1,

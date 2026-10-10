@@ -142,7 +142,7 @@ def test_an_unreadable_workflow_fails_closed_instead_of_being_skipped(tmp_path, 
     )
 
 
-def test_the_host_side_readiness_probe_is_deliberately_not_forbidden():
+def test_the_host_side_readiness_probe_is_deliberately_not_forbidden(tmp_path, monkeypatch):
     """حدٌّ مُعلَن: القاعدة الثالثة حُذِفت لأنّ القياس كذّبها، لا لأنّها نُسيت.
 
     فرضتُ أوّلاً «اسأل الجاهزيّة داخل الحاوية»، فسقط التجهيز في تشغيل 32125050692:
@@ -153,7 +153,21 @@ def test_the_host_side_readiness_probe_is_deliberately_not_forbidden():
     هذا الاختبار يمنع إعادة القاعدة بحسن نيّة: من يُضيفها يجب أن يُبطِله عمداً،
     فيقرأ السبب قبل أن يُعيد العطل.
     """
-    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    workflows = tmp_path / ".github/workflows"
+    workflows.mkdir(parents=True)
+    scripts = tmp_path / "scripts/ci"
+    scripts.mkdir(parents=True)
+    (workflows / "ci.yml").write_text(
+        "jobs:\n"
+        "  readiness:\n"
+        "    timeout-minutes: 5\n"
+        "    steps:\n"
+        "      - run: pg_isready -h localhost -p 5432\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    monkeypatch.setattr(mod, "WORKFLOWS", workflows)
+    ci = (workflows / "ci.yml").read_text(encoding="utf-8")
     assert "pg_isready -h localhost" in ci, "الاستجواب من المضيف هو العقد المقيس"
     assert mod.findings() == [], "الحارس لا يجوز أن يُدين الاستجواب من المضيف"
 
