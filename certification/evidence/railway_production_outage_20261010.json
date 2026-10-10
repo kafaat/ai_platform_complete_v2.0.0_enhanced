@@ -14,7 +14,7 @@
     "production": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
     "staging": "70cc51f8-b11f-4506-87b2-4b6615e472be"
   },
-  "finding": "All deployments in both environments transitioned to REMOVED between 2026-10-05T11:05:50Z and 2026-10-05T11:08:59Z (15 production, 13 staging). Every deployment created afterwards was REMOVED minutes after SUCCESS. environment-status: production 20/20 services offline, staging 23/23 offline. No GitHub Actions run in 2026-10-05T10:30Z..11:30Z; no workflow invokes the Railway CLI; no brain log entry at that hour. Actor is outside the repository and not readable through MCP (no audit log, usage counters or billing state exposed).",
+  "finding": "All deployments in both environments transitioned to REMOVED between 2026-10-05T11:05:50Z and 2026-10-05T11:08:59Z (15 production, 13 staging). Every deployment created afterwards ended in REMOVED within minutes: frontend deployments after reaching SUCCESS (2026-10-06, 10-08, 10-09, 10-10), and migrator 87cc687b after CRASHED on DNS resolution (2026-10-10). The frontend was therefore briefly live several times; sahool-postgres has had no deployment of any status since 2026-10-05T11:08:38Z. environment-status: production 20/20 services offline, staging 23/23 offline. No GitHub Actions run in 2026-10-05T10:30Z..11:30Z; no workflow invokes the Railway CLI; no brain log entry at that hour. Actor is outside the repository and not readable through MCP (no audit log, usage counters or billing state exposed).",
   "production_removal_window_20261005": [
     {
       "id": "1fa182c5-7424-4b4b-b027-a2a770c8514c",
