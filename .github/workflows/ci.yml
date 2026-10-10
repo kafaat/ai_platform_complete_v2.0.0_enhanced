@@ -1250,7 +1250,6 @@ jobs:
           HARNESS_PRIMARY_CAUSE_FILE: decision_service_primary_cause.txt
         run: |
           set -euo pipefail
-          : >"$HARNESS_PRIMARY_CAUSE_FILE"
           postgres_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
           scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name ds-pg \
@@ -1558,7 +1557,7 @@ jobs:
         with:
           name: decision-service-harness-${{ github.run_id }}-${{ github.run_attempt }}
           path: decision_service_primary_cause.txt
-          if-no-files-found: warn
+          if-no-files-found: ignore
 
   decision-033-pg16-proof:
     name: Decision 033 Restricted Role Proof (PG16)

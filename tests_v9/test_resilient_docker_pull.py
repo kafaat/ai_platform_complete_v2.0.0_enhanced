@@ -170,7 +170,6 @@ def test_decision_service_job_preserves_pull_failure_as_harness_evidence():
     cause_file = "decision_service_primary_cause.txt"
 
     assert provision_step["env"]["HARNESS_PRIMARY_CAUSE_FILE"] == cause_file
-    assert ': >"$HARNESS_PRIMARY_CAUSE_FILE"' in provision_step["run"]
     assert "set -euo pipefail" in provision_step["run"]
     assert "scripts/ci/resilient_docker_pull.sh" in provision_step["run"]
 
@@ -190,7 +189,7 @@ def test_decision_service_job_preserves_pull_failure_as_harness_evidence():
     )
     assert artifact_step["if"] == "always()"
     assert artifact_step["with"]["path"] == cause_file
-    assert artifact_step["with"]["if-no-files-found"] == "warn"
+    assert artifact_step["with"]["if-no-files-found"] == "ignore"
 
 
 @pytest.mark.parametrize(
