@@ -19,6 +19,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 
@@ -172,15 +173,67 @@ def test_the_bounded_variant_stops_before_the_named_prefix(tmp_path):
 
 
 def test_the_first_causal_failure_is_inherited_not_replaced_by_a_symptom():
-    ci = CI.read_text(encoding="utf-8")
-    # عطلُ الهجرات يترك فُتاتاً سببيّاً
-    assert "MIGRATION_MANIFEST_APPLY_FAILED" in ci
-    assert "live_pg_primary_cause.txt" in ci
-    # وبناءُ المواضيع يقرؤه **أوّلاً** قبل أيّ اشتقاقٍ من حالة العالم
-    body = ci[ci.index("HARNESS_INVALID") - 2000 : ci.index("HARNESS_INVALID")]
-    inherit = body.index("live_pg_primary_cause.txt")
-    derive = body.index("command -v psql")
-    assert inherit < derive, "الاشتقاق يسبق الوراثة — العَرَض يغلب السبب"
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    _assert_live_pg_primary_cause_precedes_symptom_derivation(workflow)
+
+
+def _assert_live_pg_primary_cause_precedes_symptom_derivation(workflow):
+    job = workflow["jobs"]["live-pg-fake-connection-proofs"]
+    evidence_steps = [
+        step
+        for step in job["steps"]
+        if step.get("name") == "Build the canonical evidence manifest and subject digest set"
+    ]
+    assert len(evidence_steps) == 1
+    body = evidence_steps[0]["run"]
+    assert "live_pg_primary_cause.txt" in body
+    assert "command -v psql" in body
+    assert body.index("live_pg_primary_cause.txt") < body.index("command -v psql"), (
+        "الاشتقاق يسبق الوراثة — العَرَض يغلب السبب"
+    )
+
+
+def test_primary_cause_contract_ignores_earlier_mentions_and_rejects_missing_inheritance():
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    workflow["jobs"]["decision-service-tests"]["steps"].insert(
+        0, {"name": "Unrelated note", "run": 'echo "HARNESS_INVALID is a status label"'}
+    )
+    _assert_live_pg_primary_cause_precedes_symptom_derivation(workflow)
+
+    evidence = next(
+        step
+        for step in workflow["jobs"]["live-pg-fake-connection-proofs"]["steps"]
+        if step.get("name") == "Build the canonical evidence manifest and subject digest set"
+    )
+    evidence["run"] = evidence["run"].replace("live_pg_primary_cause.txt", "missing-cause.txt")
+    with pytest.raises(AssertionError):
+        _assert_live_pg_primary_cause_precedes_symptom_derivation(workflow)
+
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    evidence = next(
+        step
+        for step in workflow["jobs"]["live-pg-fake-connection-proofs"]["steps"]
+        if step.get("name") == "Build the canonical evidence manifest and subject digest set"
+    )
+    evidence["run"] = evidence["run"].replace(
+        "if [ -s live_pg_primary_cause.txt ]; then",
+        "command -v psql >/dev/null 2>&1\n"
+        "            if [ -s live_pg_primary_cause.txt ]; then",
+        1,
+    )
+    with pytest.raises(AssertionError, match="الاشتقاق يسبق الوراثة"):
+        _assert_live_pg_primary_cause_precedes_symptom_derivation(workflow)
+
+
+def test_live_pg_failure_marker_is_written_before_evidence_subject_classification():
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    migration_step = next(
+        step
+        for step in workflow["jobs"]["live-pg-fake-connection-proofs"]["steps"]
+        if step.get("name") == "Apply the canonical MANIFEST"
+    )
+    assert "MIGRATION_MANIFEST_APPLY_FAILED" in migration_step["run"]
+    assert "live_pg_primary_cause.txt" in migration_step["run"]
 
 
 def test_semantic_proofs_do_not_run_when_migrations_did_not_complete():
