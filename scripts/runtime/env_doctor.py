@@ -236,8 +236,9 @@ def check_minio_images(root: Path, checks: list[Check]) -> None:
     local = load_env_file(root / ".env")
     effective: dict[str, str] = {}
     for key in MINIO_IMAGE_KEYS:
-        # Compose interpolation order: the shell, then `.env`, then the compose default.
-        value = os.environ.get(key) or local.get(key, "")
+        # Compose interpolation order: the shell, then `.env`, then the compose default. A shell
+        # value wins even when empty, and `${VAR:-pin}` then selects the pin (Copilot on #1162).
+        value = os.environ[key] if key in os.environ else local.get(key, "")
         if value:
             effective[key] = value
     stale = {k: v for k, v in effective.items() if _DELETED_MINIO_REPO.match(v)}

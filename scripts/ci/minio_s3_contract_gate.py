@@ -80,6 +80,39 @@ def healthcheck_probe(block: list[str]) -> str:
     return "\n".join(out)
 
 
+# مراجعة Copilot على #1162: سطرٌ فيه «image:» ليس مرجعاً بالضرورة — التعليقُ (``# from image: …``)
+# ونصُّ مفتاحٍ آخر (``command: echo "image: …"``) لا يسحبهما Compose. فالمرجعُ هو قيمةُ مفتاحٍ
+# ينتهي بـ``image:`` وحده (``image:`` أو حقلُ امتدادٍ كـ``x-minio-image:``)، بلا تعليقه، وبلا مرساة ``&name``.
+_IMAGE_KEY = re.compile(r"^(?:-\s+)?[A-Za-z0-9_.-]*image:(?:\s+(.*))?$")
+_ANCHOR = re.compile(r"^&\S+\s*")
+
+
+def image_ref(raw: str) -> str | None:
+    """مرجعُ الصورة في سطر مفتاح ``image:``، أو None لكلّ سطرٍ ليس مفتاحَ صورة."""
+    s = _TRAILING_COMMENT.sub("", raw.strip())
+    if not s or s.startswith("#"):
+        return None
+    m = _IMAGE_KEY.match(s)
+    if not m:
+        return None
+    ref = _ANCHOR.sub("", (m.group(1) or "").strip()).strip().strip("'\"")
+    if ref.startswith("${") and ":-" in ref:  # ${VAR:-default} ⇒ the default ref
+        ref = ref.split(":-", 1)[1].rstrip("}")
+    return ref
+
+
+def block_is_minio(block: list[str]) -> bool:
+    """كتلةُ خدمة MinIO بمفتاح صورتها لا بذكر المتغيّر في تعليقٍ داخلها (Copilot على #1162)."""
+    for raw in block:
+        ref = image_ref(raw)
+        if ref is None:
+            continue
+        s = _TRAILING_COMMENT.sub("", raw.strip())
+        if "MINIO_IMAGE" in s or "MINIO_MC_IMAGE" in s or is_minio_image(ref):
+            return True
+    return False
+
+
 def service_blocks(lines: list[str]) -> list[list[str]]:
     """كتلُ الخدمات بالإزاحة **داخل ``services:`` وحده** — مفتاحٌ علويّ آخر (``volumes:`` …) يُنهي الكتلة
     الأخيرة، فلا تبتلع ما بعد القسم (مراجعة Copilot على #1139)."""
@@ -216,12 +249,10 @@ def main() -> int:
         text = cf.read_text(encoding="utf-8", errors="replace")
         lines = text.splitlines()
         for idx, raw in enumerate(lines):
-            s = raw.strip()
-            if "image:" not in s:
+            ref = image_ref(raw)
+            if ref is None:  # not an image key: a comment or another key's text is never pulled
                 continue
-            ref = s.split("image:", 1)[1].strip().strip("'\"")
-            if ref.startswith("${") and ":-" in ref:  # ${VAR:-default} ⇒ the default ref
-                ref = ref.split(":-", 1)[1].rstrip("}")
+            s = _TRAILING_COMMENT.sub("", raw.strip())
             if is_deleted_repo(ref):
                 fail(
                     f"{cf.name}:{idx + 1}: {s} — minio/minio and minio/mc were deleted from "
@@ -252,8 +283,7 @@ def main() -> int:
         # Only the healthcheck section is read, without comments: a comment explaining that
         # the image lacks curl is not a probe, and a curl probe on any path is still curl.
         for blk in service_blocks(lines):
-            svc = "\n".join(blk)
-            if "MINIO_IMAGE" not in svc and "MINIO_MC_IMAGE" not in svc:
+            if not block_is_minio(blk):
                 continue
             client = _HTTP_CLIENT.search(healthcheck_probe(blk))
             if client:

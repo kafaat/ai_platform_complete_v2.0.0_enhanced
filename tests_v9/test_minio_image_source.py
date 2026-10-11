@@ -237,3 +237,49 @@ def test_a_comment_about_curl_inside_the_healthcheck_is_not_a_probe():
     probe = gate.healthcheck_probe(block)
     assert "ready" in probe and "interval" in probe, probe
     assert not gate._HTTP_CLIENT.search(probe), probe
+
+
+# ── مراجعة Copilot على #1162: المرجعُ قيمةُ مفتاح ``image:`` وحده، لا كلُّ نصٍّ فيه «image:» ──
+@pytest.mark.parametrize(
+    "line",
+    [
+        "    # migrate from image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+        '    command: echo "image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"',
+        "    image: postgres:16  # was image: bitnami/minio:2025.4.22",
+    ],
+    ids=["comment", "other-key-text", "trailing-comment"],
+)
+def test_text_that_is_not_an_image_key_is_not_read_as_a_minio_reference(line):
+    gate = _gate()
+    ref = gate.image_ref(line)
+    assert ref is None or not gate.is_minio_image(ref), ref
+
+
+def test_an_image_set_through_an_extension_field_anchor_is_still_read():
+    ref = _gate().image_ref(
+        "x-minio-image: &minio quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"
+    )
+    assert ref == "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"
+
+
+def test_a_comment_naming_another_minio_image_does_not_fail_the_gate(tmp_path, capsys):
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        "  probe-app:\n"
+        "    # migrate from image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\n"
+        "    image: postgres:16\n",
+    )
+    assert code == 0, out
+
+
+def test_a_service_that_only_mentions_the_variable_keeps_its_own_healthcheck(tmp_path, capsys):
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        "  probe-app:\n"
+        "    # writes objects to the bucket that MINIO_IMAGE serves\n"
+        "    image: nginx:1.27.5-alpine\n"
+        '    healthcheck:\n      test: ["CMD", "curl", "-f", "http://localhost/"]\n',
+    )
+    assert code == 0, out

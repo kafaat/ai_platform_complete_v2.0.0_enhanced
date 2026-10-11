@@ -257,3 +257,15 @@ def test_a_minio_image_away_from_the_pin_is_a_warning_not_a_failure(tmp_path, mo
     )
     assert check.status == "warn", check
     assert set(check.detail["differs_from_template"]) == {"MINIO_IMAGE"}
+
+
+def test_an_empty_shell_value_wins_over_a_stale_env_file(tmp_path, monkeypatch):
+    """Copilot on #1162: an empty shell variable takes precedence over `.env`, and `${VAR:-pin}`
+    then selects the pin — the stale `.env` underneath is not what compose pulls."""
+    check = _minio_images_check(
+        tmp_path,
+        monkeypatch,
+        OLD_TEMPLATE_MINIO_IMAGES,
+        shell={"MINIO_IMAGE": "", "MINIO_MC_IMAGE": ""},
+    )
+    assert check.status == "pass", check
