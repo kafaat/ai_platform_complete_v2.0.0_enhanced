@@ -7222,3 +7222,103 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **إصلاحٌ مكتوب، لا fixed (2026-10-06، على `main@f51e2fb4` بعد دمج #1144) — بقرار المالك في PR مستقلّة:** الماسحُ صار يقرأ الحقولَ **الإلزاميّة** (بلا افتراضيّ) لنموذج الطلب حين يُمرَّر بـ`param.model_dump(...)`/`.dict(...)`، مع `include=`/`exclude=` الحرفيّين؛ وغيرُ الحرفيّ لا يُدَّعى منه شيء. **وتصحيحُ عدٍّ:** الصفوفُ المقلوبة **ثلاثةَ عشر** لا أحد عشر — الأحدَ عشرَ في `decision_review.py` واثنان في `services/vegetation-analysis-service/routers/outcomes.py` (`verify_remote_sensing_outcome` و`attribute_remote_sensing_outcome`) لم يشملهما مسحي الأوّل لأنّه قصَر على راوترات المنصّة. كلُّ صفٍّ منها `false→true`، ونموذجُه يُعلن `idempotency_key: str` إلزاميّاً، ولم يتغيّر مصدرُ أيّ معالِج ⇒ تحسينُ قياسٍ لا تغييرُ عقد. **وإيجابٌ كاذبٌ قديم أُصلح معه:** مطابقةُ الرموز كانت تعدّ `exclude={"idempotency_key"}` إلزاماً. خمسةُ شهود (`test_an_explicit_idempotency_key_is_detected` و`test_a_model_dump_carrying_the_idempotency_key_is_detected` و`test_a_model_dump_excluding_the_idempotency_key_is_not_detected` و`test_a_route_genuinely_lacking_the_key_is_not_detected`) وخمسُ طفراتٍ مسجّلة مقتولة. **الحالةُ تبقى open:** تُغلق حين يخضرّ الماسحُ والمصنوعاتُ المولَّدة والشهودُ والطفراتُ وCI على الرأس نفسه، لا عند كتابة الإصلاح.
 - **تصحيحٌ بعد مراجعة Copilot على #1145 (2026-10-06):** طريقان آخران للادّعاء الكاذب في الإصلاح المكتوب — صنفٌ فرعيّ يُعيد إعلان المفتاح اختياريّاً (`str | None = None`) كان الموروثُ الإلزاميّ يعود إليه، و`model_dump(**options)` كان يُعدّ غيرَ مقيَّد. صار الإعلانُ المحلّيّ يحجب الموروث، والوسيطاتُ الموسَّعة غيرَ محسومة فلا يُدَّعى منها شيء؛ شاهدان أحمران قبل الإصلاح وطفرتان مسجّلتان (الطفراتُ الجديدة سبعٌ لا خمس). الكتالوج لم يتغيّر بهما (الصفوفُ الثلاثةَ عشر نفسُها). **الحالةُ تبقى open.**
 - **الإغلاق (2026-10-06) — شروطُ المالك كلُّها على رأسٍ واحد ثمّ شاهدٌ من شيفرةٍ حقيقيّة:** على `0a9e2700` (رأس #1145) خضرت معاً: الماسحُ الجديد + المصنوعاتُ المولَّدة (`--check` متّسق) + الشهود + الطفراتُ السبع + CI (20/20 مطلوبة، لا معلَّق ولا فاشل)؛ ودُمج squash عند `1a2a5cd7`. ولأنّ قاعدة #1136 تُوجب إعلانَ fixed في PR يحمل شيفرةً، يحمل هذا الـPR **إزالةَ الالتفاف** الذي كتبتُه في #1144 لإرضاء الماسح القديم (`{**req.model_dump(), "idempotency_key": req.idempotency_key}` في `review_decision_candidate` ⇒ `req.model_dump()`). **الشاهد:** على المعالِج المُعاد نفسِه، الماسحُ القديم (`f51e2fb4`) يقرأ `idempotency_required: false` والجديد `true`؛ وإعادةُ التوليد لا تُغيّر الكتالوج. و`test_routes_forwarding_the_key_through_model_dump_are_catalogued_as_requiring_it` يُثبّت الصفوفَ الأربعة عشر الحقيقيّة (ثلاثةَ عشرَ منها `false` على كتالوج `f51e2fb4`، والرابعُ عشر كان `true` بالالتفاف وحده).
+
+## WATER-LEDGER-WRITERS-DISAGREE-ADD-VS-REPLACE-01 — كاتبان لـ`water_ledger.irrigation_mm` بدلالتَين متعارضتَين
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** عيبٌ (سلامةُ بيانات).
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** المطابقتان المقيستان **تجمعان**: `services/sahool-platform/api/routers/irrigation_engineering.py:697` و`services/sahool-platform/api/irrigation_closed_loop_runtime.py:205` (`COALESCE(water_ledger.irrigation_mm,0)+EXCLUDED.irrigation_mm`). و`POST /api/v1/fields/{field_id}/water-ledger` (`services/sahool-platform/api/routers/water_ledger.py:77`، صلاحيةُ `FIELD_EDIT` عند `:81`) **يستبدل** `irrigation_mm = EXCLUDED.irrigation_mm` (`:112`) بلا مصدرٍ ولا علمِ جودة (`irrigation_mm: float` عند `:68`).
+- **إعادة الإنتاج:** الموضعان يكتبان بمفتاح `(field_id, ledger_date)`؛ نداءٌ يدويّ لليوم نفسه بعد مطابقةٍ مقيسة يكتب فوق ما جمعته، ومطابقةٌ تليه تُضيف إلى قيمةٍ غير موثّقة. (من نصّ الـSQL في الموضعين؛ لم يُشغَّل.)
+- **الأثر:** ريٌّ مقيس قد يُمحى أو يُلوَّث بقيمةٍ بلا مصدر في الدفتر الذي تقرأ منه التوصيات.
+- **شرط الإغلاق إلى fixed:** دلالةُ كتابةٍ واحدة (أو رفضُ الكتابة اليدويّة فوق صفٍّ فيه ريٌّ مقيس) مع علمِ مصدر/جودة على `irrigation_mm`، وشاهدٌ أحمر قبل الإصلاح على Postgres حقيقيّ.
+
+## IRRIGATION-CAPACITY-CHECKED-AFTER-APPROVAL-WITH-NO-UNMET-FIELD-01 — فحصُ القدرة يقع بعد اعتماد الخطّة ولا حقلَ للعجز
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** قدرةٌ تصميميّة ناقصة.
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** القبولُ بالقدرة عند الحجز: `services/sahool-platform/api/irrigation_reservation_adapter.py:249` (`CapacityNotAdmissible`) — بعد اعتماد الخطّة. والمسارُ اليدويّ يفحص الهويّة والبصمة وحالةَ الاعتماد والنافذة فقط (`services/sahool-platform/api/irrigation_manual_execution.py:227` `approved_plan_violation`). و`services/sahool-platform/api/unified_decision.py:123-124` يُصدر `engine_proposed_mm` و`capacity_constrained_mm` بلا `unmet_mm`؛ ولا ملفَّ في `frontend/src` يقرأ أيّاً منهما أو `constraint_reasons`.
+- **إعادة الإنتاج:** `grep -rln "capacity_constrained_mm\|constraint_reasons\|engine_proposed_mm" frontend/src` فارغ.
+- **الأثر:** المعتمِد لا يرى المطلوبَ والمتاحَ والعجزَ معاً قبل الاعتماد.
+- **شرط الإغلاق إلى fixed:** حقلُ `unmet_mm`، وفحصُ قدرةٍ يسبق الاعتماد (ويشمل المسارَ اليدويّ) أو إعلانٌ صريح بأنّه غيرُ مطلوب، وعرضٌ في الواجهة، وشاهدٌ أحمر.
+
+## IRRIGATION-EXECUTION-HAS-NO-PARTIAL-OR-FAILED-STATE-01 — لا حالةَ طرفيّة صريحة للتنفيذ الجزئيّ أو الفاشل
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** قدرةٌ تصميميّة ناقصة.
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** `services/sahool-platform/api/irrigation_manual_execution.py:18-26` — الحالةُ غيرُ الناجحة الطرفيّة الوحيدة `CANCELLED`. والجزئيّةُ نسبةٌ مشتقّة: حقولُها `services/sahool-platform/api/canonical_as_applied_irrigation.py:137-141` وحسابُها `:374-380`.
+- **إعادة الإنتاج:** لا قيمةَ `PARTIAL`/`FAILED` في أيٍّ من التعدادَين المقروءَين.
+- **الأثر:** لا يُستعلَم عن «التنفيذات الجزئيّة أو الفاشلة» حالةً؛ تُشتقّ في التقارير.
+- **شرط الإغلاق إلى fixed:** حالةٌ طرفيّة صريحة تحمل المطلوبَ والمُنجَز، أو قرارٌ مُعلَن بأنّ النسبة المشتقّة كافية، وشاهد.
+
+## MANUAL-AS-APPLIED-AREA-BACK-DERIVED-FROM-PLAN-01 — مساحةُ التنفيذ اليدويّ مُشتقّة من الخطّة لا من الحقل، وكفاءةُ التطبيق بلا مصدر
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** عيبٌ (دقّةُ قياس).
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** `services/sahool-platform/api/irrigation_manual_execution.py:189-190`: `area_ha = target_volume_m3/(target_depth_mm×10)` ثمّ `depth = volume/(area_ha×10)` — فالعمقُ = الحجمُ × عمقُ الهدف ÷ حجمُ الهدف، ومساحةُ الحقل لا تُقرأ. وكفاءةُ التطبيق `application_efficiency` افتراضيّها 0.8 (`services/sahool-platform/api/irrigation_engineering_workspace.py:77`) بلا علم تقدير/مصدر.
+- **إعادة الإنتاج:** من اشتقاق السطرَين؛ يصحّ فقط إن اتّسق حجمُ الخطّة وعمقُها.
+- **الأثر:** عمقٌ مُطبَّقٌ مقيس يتبع اتّساقَ الخطّة لا مساحةَ الحقل.
+- **شرط الإغلاق إلى fixed:** مساحةُ الحقل من سجلّ الحقل، أو إعلانُ الاعتماد على اتّساق الخطّة بفحصٍ صريح؛ وعلمُ مصدرٍ للكفاءة؛ وشاهد.
+
+## RECORD-SCHEMA-HAS-NO-DATA-CLASS-PERIOD-OR-CALIBRATION-VERSION-01 — لا تصنيفَ (قياس/توقّع/إعادة تحليل/سيناريو) ولا فترةَ تمثيل ولا نسخةَ معايرة موحَّدة
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** قدرةٌ تصميميّة ناقصة.
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** القائم: وقتُ المراقبة والتوفّر والمصدر والجودة (`services/sahool-platform/api/agronomic_context_composer.py:131`). الناقص: `services/sahool-platform/core/canonical_schemas.py:246` (`ObservationSource` يخلط المصدرَ بالتصنيف) ولا تعدادَ رباعيّاً؛ و`temporal_scope` نصٌّ حرّ اختياريّ (`services/decision-service/agronomic_context/contracts.py:40`) تمرّره المنصّةُ فقط (`services/sahool-platform/api/agronomic_context_composer.py:134`)؛ و`calibration_id` للتربة وحدها (`shared/contracts/soil/observation.py:70`) ولا مرجعَ معايرة على `water_ledger`.
+- **إعادة الإنتاج:** `grep -niE "reanalysis|scenario" services/sahool-platform/core/canonical_schemas.py shared/contracts` فارغ.
+- **الأثر:** لا يُفصل في السجلّ بين قياسٍ وتوقّعٍ وسيناريو، ولا تُعرف الفترةُ التي تمثّلها القيمة.
+- **شرط الإغلاق إلى fixed:** تعدادُ تصنيفٍ موحّد وفترةُ تمثيلٍ وقيدُ معايرة على السجلّات المشتركة، مع هجرةٍ وشاهد.
+
+## SATELLITE-WATER-SIGNALS-NOT-INGESTED-AND-NO-PER-ZONE-DEFICIT-01 — إشاراتُ الأقمار المائيّة غيرُ مُدخَلة ولا مقارنةَ عجزٍ لكلّ منطقة
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** قدرةٌ تصميميّة ناقصة.
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** WaPOR جسّةُ جاهزيّة فقط: `services/raster-service/wapor_worldcereal.py:62-66` (`active: False`) ومرشّحٌ في `sahool-brain/agronomy/data-inputs-catalog.md:59,114`. الحالةُ الطيفيّة متوسّطُ حقل (`services/sahool-platform/api/canonical_spectral_state.py:58`). و`zone_id` ضمن الحقول غير المُنمذَجة في MPC (`services/sahool-platform/api/lexicographic_irrigation_mpc.py:72`). و`services/sahool-platform/api/canonical_vri_prescription.py:127` بلا مستورد (دَينٌ مُجمَّد مُعلَن في `sahool-brain/gaps/registry.md:2537`). عمرُ المشهد يُحسب لاختيار المشهد فقط (`services/raster-service/scene_policy.py:118`) ولا عمقَ إشارة.
+- **إعادة الإنتاج:** من القراءة؛ لا مستدعيَ لـ`build_governed_vri_prescription` خارج الحرّاس والاختبار.
+- **الأثر:** لا مقارنةَ مكانيّة للعجز، ولا عمرَ/عمقَ إشارةٍ أقمارٍ يُعرض.
+- **شرط الإغلاق إلى fixed:** مصدرُ ET/مطر/رطوبة مُدخَلٌ فعلاً مع عمر الصورة وعمق التمثيل، وتجميعٌ لكلّ منطقة يغذّي مقارنةً، وإمّا توصيلُ مُخصِّص الوصفة أو إسقاطُه من الدَّين.
+
+## ISOXML-EXPORT-AND-VRA-APPROVE-NOT-TIED-TO-DECISION-APPROVAL-01 — تصديرُ ISOXML وزرُّ اعتماد VRA غير مربوطَين بسجلّ اعتماد
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** عيبٌ (حوكمة).
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** `services/sahool-platform/api/routers/prescriptions.py:500` يمرّر `approved_recommendation_id=prescription_id` — أي معرّفَ الوصفة نفسِها — إلى `services/sahool-platform/api/machinery_export.py:125`. وزرُّ الاعتماد `frontend/src/components/maphub/VraPrescriptionPanel.tsx:102` يستدعي `onApprove?.()` الاختياريّ (`:33`)، ولا يمرّره `frontend/src/sections/ChatbotPage.tsx:304`.
+- **إعادة الإنتاج:** الموضعان المقروءان لا يربطان المعرّفَ بقرار اعتماد؛ والزرُّ بلا معالج في موضع الاستخدام الوحيد.
+- **الأثر:** ملفُّ آلةٍ يحمل اسمَ «معتمَد» بلا سجلّ اعتماد، وزرٌّ بلا أثر.
+- **شرط الإغلاق إلى fixed:** ربطُ التصدير بقرار اعتماد decision-service أو إعادةُ تسمية الحقل بصدق، وتوصيلُ الزرّ أو إزالتُه، وشاهد.
+
+## IRRIGATION-ROBUSTNESS-TESTS-LACK-LATE-OUT-OF-ORDER-AND-SENSOR-DROPOUT-01 — لا اختبارَ لوصولٍ متأخّر/غير مرتَّب للريّ ولا لانقطاع حسّاسٍ أثناء التشغيل
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** فجوةُ اختبار.
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** القائم: حالةُ «قديم» (`tests_v9/test_soil_moisture_unit_identity.py:173`، `tests_v9/test_canonical_water_state_mpc.py:339`، `tests_v9/test_canonical_as_applied_irrigation.py:155` `AS_APPLIED_TELEMETRY_STALE`)، وتنفيذٌ جزئيّ لا يُحجِّم حجماً مرصوداً (`tests_v9/test_irrx1_2_manual_execution_lifecycle.py:143-151`). الناقص: وصولٌ متأخّر أو غير مرتَّب للريّ، وانقطاعُ حسّاسٍ أثناء تشغيل.
+- **إعادة الإنتاج:** `grep -rlE "out_of_order|out-of-order|late_arriv|arrives_late|sensor_dropout|sensor_loss" tests_v9 services/sahool-platform/tests` لا يجد إلا `tests_v9/test_projection_determinism_v63.py` (إسقاطُ أحداثٍ لا ريّ).
+- **الأثر:** سلوكُ المنظومة عند التأخّر وعدمِ الترتيب والانقطاع غيرُ محروس.
+- **شرط الإغلاق إلى fixed:** اختباراتٌ بسلوكٍ مُعلَن لكلٍّ من الثلاثة، تُثبت أحمرَ قبل أيّ إصلاح يلزم.
+
+## FACTS-PROVENANCE-AND-DELIVERY-LEG-NOT-RENDERED-AND-NO-TRACE-ENDPOINT-01 — بصماتُ النَّسَب وساقُ قيود التسليم لا تُعرض ولا نقطةَ تتبّعٍ واحدة
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** قدرةٌ تصميميّة ناقصة (تتقاطع مع `IRRIGATION-SLICE-HAS-NO-UI-CALLERS-01`).
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** `services/sahool-platform/api/routers/irrigation_mpc.py:495` يُرجع `facts_provenance` (بصماتُ اللقطات)؛ ولا ملفَّ في `frontend/src` يذكره. ولم يجد المسحُ نقطةً تُرجع السلسلةَ كاملةً (بيانات ← حساب ← قيود التسليم ← المنفَّذ).
+- **إعادة الإنتاج:** `grep -rln facts_provenance frontend/src` فارغ.
+- **الأثر:** المستخدم لا يستطيع تتبّعَ الرقم النهائيّ إلى بياناته وحسابه وما نُفِّذ فعلاً.
+- **شرط الإغلاق إلى fixed:** نقطةُ تتبّعٍ تُرجع السلسلةَ، وعرضٌ لها في الواجهة، وشاهد.
+
+## SEASON-SIMULATION-IS-NOT-THE-LEDGER-ENGINE-01 — الموسمُ والجدولةُ والدفترُ ليست عروضاً لمحرّكٍ واحد
+<!-- gap-registry: current -->
+- **الحالة:** **open** (2026-10-11) — قراءةُ شيفرة لا تشغيل: لم يُعاد إنتاجُه على خدمةٍ حيّة.
+- **الصنف:** عيبُ تصميم (ازدواجُ منطق).
+- **النسخة المفحوصة:** `main@e1ac643c`.
+- **المُنتِج والمستهلك:** أربعُ حلقاتٍ منفصلة: `services/sahool-platform/api/water_ledger_auto.py:74` · `services/sahool-platform/api/irrigation_mpc.py:94` (`plan_irrigation`) · `services/sahool-platform/api/root_zone_balance.py:74` · `services/sahool-platform/api/season_simulation.py:344` (`simulate_season` يجمع ΣET0×Kc عبر `_seasonal_water_need` `:279` بلا استنفاد). ومع ذلك تتشعّب مصادرُ Kc: بطاقةُ الذرة `initial 0.30` (`services/sahool-platform/core/crop_cards/maize.yaml:10`) مقابل `0.40` (`services/sahool-platform/api/water_balance.py:44`)؛ و**منحنيان** احتياطيّان مختلفان في أربعة مواضع — `{0.4,0.8,1.1,0.6}` في `services/sahool-platform/api/water_balance.py:280` و`services/sahool-platform/api/season_simulation.py:290` و`services/sahool-platform/api/weather_advice.py:45`، و`{0.40,0.75,1.10,0.50}` في `services/sahool-platform/api/routers/crop_twin.py:44` — بينما لا يحتاط الدفترُ (`services/sahool-platform/api/water_ledger_inputs.py:88-96` ⇒ `None`). الصفُّ المسجَّل أصلاً `PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01` (`sahool-brain/gaps/registry.md:21`) يبقى open بلا تعديل؛ وهذا الإدخالُ يضيف إليه هذه القياسات.
+- **إعادة الإنتاج:** من القراءة؛ لم تُقارَن مخرجاتُ المحرّكات على مدخلٍ واحد.
+- **الأثر:** رقمُ الموسم قد لا يتّسق مع الدفتر والتوصية لمحصولٍ ويومٍ واحد.
+- **شرط الإغلاق إلى fixed:** محرّكُ ماءٍ واحد تستهلكه الجدولةُ والموسم، ومصدرُ Kc واحد، وشاهدُ اتّساقٍ على مدخلٍ مشترك.
