@@ -3732,3 +3732,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** التشغيل 38092839653 على `76d45d28`: `session_not_read_only` لأنّ حاويةَ psql في CI تُمرّر متغيّراتِ PG الخمسة فقط. العقدُ عمل كما صُمّم (رفضٌ لا ادّعاء)، لكنّ الأداةَ كانت تعتمد على قناةٍ لا تملكها.
 
 **المصدر:** `migrations/probe_schema_state.sh` · `scripts/ci/provision_pg_client.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · PR #1160.
+
+## 2026-10-11 — قراءةُ المخطَّط: كلُّ استعلامٍ داخل معاملة READ ONLY صريحة يؤكّدها الخادم
+
+**القرار:** `probe_schema_state.sh` يلفّ كلَّ استعلام فحص في `BEGIN READ ONLY` ثمّ سطرَ تأكيدٍ من الخادم (`RO_CONFIRMED=<transaction_read_only> pgoptions_honored=<default_transaction_read_only>` قبل أيّ SET) ثمّ `SET SESSION default_transaction_read_only = on` دفاعاً ثانياً ثمّ الاستعلام ثمّ `COMMIT` — في اتّصالٍ واحد ومعاملةٍ واحدة تحت `ON_ERROR_STOP`؛ `require_ro` يرفض أيَّ ناتجٍ لا يبدأ بالسطر الكامل `RO_CONFIRMED=on pgoptions_honored=<on|off>` (غياباً أو فراغاً أو تشويهاً) ويُعلن `read_only=false` مع القيمة المرصودة وحالةِ PGOPTIONS (`inherited` · `honored_by_server`) **لا قيمتِه** (ملاحظة المالك 2026-10-11). توقّعاتُ الاختبار الحيّ لم تُغيَّر وشرطُ القراءة لم يُنزَع.
+
+**السبب:** تنبيه Gap Watch 2026-10-11 طلب تسجيلَ القيمة الفعليّة وضمانَ تنفيذ كلّ استعلامٍ داخل معاملة READ ONLY مؤكَّدة من PostgreSQL. قبل ذلك كان التأكيدُ في جلسة الهويّة فقط، واستعلامُ الغياب في جلسةٍ ثانية بلا تأكيدٍ خاصّ بها.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_live_pg.py` · `tests_v9/test_apply_in_compose_fail_closed.py` · التشغيل 38092839653 · PR #1160.

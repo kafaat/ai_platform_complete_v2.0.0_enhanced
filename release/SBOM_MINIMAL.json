@@ -6825,7 +6825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0de9b2b4dc5d4f1572adac3079714a496069e89754159590a1e847ca158edcd6"
+          "content": "42cc11152bd01b8ee015e368b473962a348474b7ca99f965c79ae54e9bcf09b2"
         }
       ],
       "name": "migrations/probe_schema_state.sh",

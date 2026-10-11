@@ -28,6 +28,8 @@ set -euo pipefail
 MIG_DIR="${MIG_DIR:-/migrations}"
 PROBE_USER="${PROBE_PGUSER:-$PGUSER}"
 PROBE_PASSWORD="${PROBE_PGPASSWORD:-${PGPASSWORD:-}}"
+# يُسجَّل توريثُ PGOPTIONS كحالةٍ (yes/no) لا كقيمة — قد تحمل البيئةُ مستقبلاً ما لا يُنشَر (مراجعة المالك 2026-10-11).
+PGOPTIONS_INHERITED=no; [ -n "${PGOPTIONS:-}" ] && PGOPTIONS_INHERITED=yes
 export PGOPTIONS="-c default_transaction_read_only=on ${PGOPTIONS:-}"
 
 WORK="$(mktemp -d)"
@@ -44,11 +46,34 @@ fail() { # $1 = reason, $2.. = extra key=value
 
 # القراءةُ-فقط تُفرَض داخل الجلسة بـSET لا عبر PGOPTIONS وحدها: عميلُ CI (psql مُوفَّر من صورة) لا يمرّر
 # PGOPTIONS فأنكر الخادمُ read-only في التشغيل 38092839653 — والأوامرُ المتعدّدة -c تعمل في جلسةٍ واحدة.
+# وكلُّ استعلامِ فحصٍ يُنفَّذ داخل معاملة `BEGIN READ ONLY` صريحة، في الاتّصال نفسِه، يؤكّدها الخادمُ بسطرٍ أوّل
+# `RO_CONFIRMED=<transaction_read_only> pgoptions_honored=<default_transaction_read_only>` قبل أيّ SET (فتكشف
+# القيمةُ الثانية هل مرّر العميلُ PGOPTIONS أم أسقطه) — ولا يُقرأ ناتجٌ ما لم تكن الأولى on (تنبيه Gap Watch 2026-10-11).
+# ON_ERROR_STOP مع أوامر -c متعدّدة: أيُّ خطأ SQL في الوسط ⇒ خروج 1 (مقيس على PG16: استعلامٌ خاطئ ⇒ 1؛
+# CREATE TABLE داخل READ ONLY ⇒ "cannot execute CREATE TABLE in a read-only transaction" وخروج 1).
 probe_sql() {
   PGPASSWORD="$PROBE_PASSWORD" psql -X -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" \
     -U "$PROBE_USER" -d "$PGDATABASE" -At -F '|' -q \
-    -c "SET SESSION default_transaction_read_only = on" "$@"
+    -c "BEGIN READ ONLY" \
+    -c "SELECT 'RO_CONFIRMED=' || current_setting('transaction_read_only') || ' pgoptions_honored=' || current_setting('default_transaction_read_only')" \
+    -c "SET SESSION default_transaction_read_only = on" \
+    "$@" \
+    -c "COMMIT"
 }
+PGOPTIONS_HONORED=unknown
+# يرفض ناتجَ استعلامٍ لم يؤكّد الخادمُ معاملتَه read-only — غياباً أو قيمةً أخرى أو ناتجاً فارغاً/مشوَّهاً —
+# ويُسجّل القيمةَ المرصودة وحالةَ PGOPTIONS (توريثاً وتكريماً من الخادم) بلا طباعة قيمته.
+require_ro() { # $1 = ناتجُ probe_sql كاملاً
+  local first="${1%%$'\n'*}" ro="" po=""
+  case "$first" in
+    "RO_CONFIRMED="*) ro="${first#RO_CONFIRMED=}"; ro="${ro%% *}"; po="${first#*pgoptions_honored=}"; [ "$po" = "$first" ] && po="";;
+  esac
+  PGOPTIONS_HONORED="${po:-unknown}"
+  [ "$ro" = "on" ] && [ "$first" = "RO_CONFIRMED=on pgoptions_honored=${po}" ] && [ -n "$po" ] && return 0
+  READ_ONLY=false
+  fail session_not_read_only "observed_transaction_read_only=${ro:-<none>} pgoptions_inherited=${PGOPTIONS_INHERITED} pgoptions_honored_by_server=${PGOPTIONS_HONORED}"
+}
+strip_first_line() { local rest="${1#*$'\n'}"; [ "$rest" = "$1" ] && rest=""; printf '%s' "$rest"; }
 
 # ── ١) MANIFEST: قائمةٌ في ملفٍّ (لا process substitution — فشلُ المُنتِج لا ينتقل إلى الحلقة) ──
 [ -r "$MIG_DIR/MANIFEST.txt" ] || fail manifest_unreadable "path=$MIG_DIR/MANIFEST.txt"
@@ -95,10 +120,12 @@ c_columns="$(grep -oE '^MIN_COLUMNS=[0-9]+$' "$CONTRACT" | cut -d= -f2 || true)"
 echo "─ قراءةُ هويّة القاعدة (read-only) ${PGHOST}:${PGPORT:-5432}/${PGDATABASE} كـ${PROBE_USER} ─"
 identity="$(probe_sql -c "SELECT current_setting('transaction_read_only'), version(), current_database(), current_user, inet_server_addr(), (SELECT rolsuper FROM pg_roles WHERE rolname = current_user)")" \
   || fail connect_or_query_failed "host=${PGHOST}:${PGPORT:-5432}"
+require_ro "$identity"
+identity="$(strip_first_line "$identity")"
 IFS='|' read -r ro version database user addr super <<<"$identity"
-[ "$ro" = "on" ] || { READ_ONLY=false; fail session_not_read_only; }
+[ "$ro" = "on" ] || { READ_ONLY=false; fail session_not_read_only "observed_transaction_read_only=${ro:-<none>} pgoptions_inherited=${PGOPTIONS_INHERITED} pgoptions_honored_by_server=${PGOPTIONS_HONORED}"; }
 READ_ONLY=true
-echo "  transaction_read_only=${ro} · ${version%%,*} · db=${database} · user=${user} (super=${super}) · server=${addr:-local}"
+echo "  transaction_read_only=${ro} · ${version%%,*} · db=${database} · user=${user} (super=${super}) · server=${addr:-local} · pgoptions_inherited=${PGOPTIONS_INHERITED} pgoptions_honored_by_server=${PGOPTIONS_HONORED}"
 echo "─ المتوقَّع من MANIFEST (${n_files} ملفّاً، كلُّها قُرئت؛ sha256=${manifest_sha256:0:12}…): ${n_tables} جدولاً · ${n_columns} عموداً ─"
 
 # ── ٤) الغائب: استعلامٌ واحد؛ المعرّفاتُ من [a-z0-9_] فقط بالبناء أعلاه ──
@@ -114,6 +141,8 @@ WHERE (kind = 'table'  AND to_regclass('public.' || tbl) IS NULL)
          SELECT 1 FROM information_schema.columns c
          WHERE c.table_schema = 'public' AND c.table_name = e.tbl AND c.column_name = e.col))
 ORDER BY ord")" || fail presence_query_failed
+  require_ro "$missing"
+  missing="$(strip_first_line "$missing")"
 fi
 
 m_tables=$(printf '%s\n' "$missing" | grep -c '|table|' || true)

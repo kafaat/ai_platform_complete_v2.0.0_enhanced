@@ -174,8 +174,10 @@ def _probe_workspace(tmp_path: Path, *, missing: str = "") -> Path:
     _fake(
         tmp_path / "psql",
         f'echo "psql PGOPTIONS=[$PGOPTIONS] $*" >> "{log}"\n'
+        # السطرُ الأوّل من كلّ ناتج: تأكيدُ الخادم أنّ المعاملة read-only (كما يطبعه probe_sql الحقيقيّ).
+        'echo "RO_CONFIRMED=on pgoptions_honored=on"\n'
         'case "$*" in\n'
-        '  *current_setting*) echo "on|PostgreSQL 16.13 fake|sahool|probe_user|10.0.0.1|f";;\n'
+        '  *"version()"*) echo "on|PostgreSQL 16.13 fake|sahool|probe_user|10.0.0.1|f";;\n'
         f'  *"WITH expected"*) printf "%s" "{missing}";;\n'
         "esac\nexit 0\n",
     )
@@ -195,12 +197,76 @@ def test_without_permission_the_job_reports_schema_state_read_only(tmp_path):
     assert not any(" -f " in c for c in calls), "القراءةُ لا تطبّق ملفّات"
 
 
+def test_read_only_is_set_inside_every_session_not_only_through_pgoptions(tmp_path):
+    """التشغيل 38092839653: عميلُ psql في CI (provision_pg_client.sh) لا يمرّر PGOPTIONS فأنكر الخادمُ
+    read-only. الضمانةُ يجب أن تُحمَل في الجلسة نفسِها: `SET SESSION default_transaction_read_only = on`
+    أوّلَ `-c` في كلّ استدعاء وقبل الاستعلام — فلا يُعاد الاعتمادُ على بيئة العميل خلسةً."""
+    log = _probe_workspace(tmp_path)
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    calls = [c for c in _psql_calls(log) if c.startswith("psql ")]
+    assert calls
+    for call in calls:
+        argv = call.split(" PGOPTIONS=[", 1)[1].split("] ", 1)[1]
+        first_c = argv.find(" -c ")
+        assert first_c >= 0, call
+        # أوّلُ أمرٍ معاملةٌ READ ONLY صريحة، ثمّ تأكيدُ الخادم، ثمّ SET (دفاعٌ ثانٍ) — كلُّها قبل الاستعلام.
+        assert argv[first_c:].startswith(" -c BEGIN READ ONLY -c SELECT 'RO_CONFIRMED='"), call
+        assert " -c SET SESSION default_transaction_read_only = on -c " in argv, call
+    # الاستعلامُ متعدّدُ الأسطر يقطع سطرَ السجلّ؛ COMMIT يُعَدّ على النصّ كاملاً: واحدٌ لكلّ استدعاء.
+    assert log.read_text(encoding="utf-8").count("-c COMMIT") == len(calls)
+
+
+@pytest.mark.parametrize(
+    "first_line",
+    [
+        "",
+        "garbage",
+        "RO_CONFIRMED=",
+        "RO_CONFIRMED=on",
+        "RO_CONFIRMED=on  pgoptions_honored=on",
+        "ro_confirmed=on pgoptions_honored=on",
+    ],
+    ids=["empty", "garbage", "no-value", "no-pgoptions-field", "double-space", "lowercase"],
+)
+def test_a_missing_empty_or_malformed_confirmation_is_rejected_not_assumed(tmp_path, first_line):
+    """مراجعةُ المالك 2026-10-11: غيابُ `RO_CONFIRMED=on` أو ناتجٌ فارغ/مشوَّه ⇒ رفضٌ وخروج 3، لا متابعة."""
+    log = _probe_workspace(tmp_path)
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\n'
+        + (f'echo "{first_line}"\n' if first_line else "")
+        + 'case "$*" in *"version()"*) echo "on|PostgreSQL|sahool|u|a|f";; esac\nexit 0\n',
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "reason=session_not_read_only observed_transaction_read_only=" in result.stderr
+    assert "pgoptions_inherited=no pgoptions_honored_by_server=" in result.stderr
+    assert "SCHEMA_STATE readable=true" not in result.stdout
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
+    assert not any("WITH expected" in c for c in _psql_calls(log))
+
+
+def test_the_failure_line_never_prints_the_pgoptions_value(tmp_path):
+    """تُسجَّل حالةُ PGOPTIONS (توريث/تكريم) لا قيمتُه — فقد تحمل البيئةُ ما لا يُنشَر."""
+    log = _probe_workspace(tmp_path)
+    _fake(
+        tmp_path / "psql",
+        f'echo "psql $*" >> "{log}"\necho "RO_CONFIRMED=off pgoptions_honored=off"\nexit 0\n',
+    )
+    result = _run(tmp_path, PGOPTIONS="-c search_path=secret_schema_name")
+    assert result.returncode == 3
+    assert "pgoptions_inherited=yes pgoptions_honored_by_server=off" in result.stderr
+    assert "secret_schema_name" not in result.stdout + result.stderr
+
+
 def test_the_probe_refuses_a_session_the_server_did_not_confirm_read_only(tmp_path):
     log = _probe_workspace(tmp_path)
     _fake(
         tmp_path / "psql",
         f'echo "psql $*" >> "{log}"\n'
-        'case "$*" in *current_setting*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+        'echo "RO_CONFIRMED=off pgoptions_honored=off"\n'
+        'case "$*" in *"version()"*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
     )
     result = _run(tmp_path)
     # الإذنُ غائب ⇒ لا هجرة؛ لكنّ تعذّرَ القراءة ليس نجاحاً (مراجعةُ المالك 2026-10-10): خروج 3.
@@ -418,7 +484,8 @@ def test_read_only_is_unknown_before_the_server_confirms_it_and_false_when_it_de
     _fake(
         tmp_path / "psql",
         f'echo "psql $*" >> "{log}"\n'
-        'case "$*" in *current_setting*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
+        'echo "RO_CONFIRMED=off pgoptions_honored=off"\n'
+        'case "$*" in *"version()"*) echo "off|PostgreSQL|sahool|u|a|t";; esac\nexit 0\n',
     )
     result = _run(tmp_path)
     assert "status=ERROR read_only=false reason=session_not_read_only" in result.stderr

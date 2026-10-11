@@ -1105,6 +1105,19 @@ jobs:
         run: |
           bash scripts/ci/apply_migration_manifest.sh \
             --port 5433 --user sahool_test --db sahool_test
+      # تشخيصٌ لا يحجب (طلبُ المالك بعد التشغيل 38092839653، #1160): psql هنا غلافُ حاويةٍ من
+      # provision_pg_client.sh يمرّر PGPASSWORD/PGHOST/PGPORT/PGUSER/PGDATABASE ولا يمرّر PGOPTIONS،
+      # فمسارُ PGOPTIONS يُعيد off بينما مسارُ SET داخل الجلسة يُعيد on. يُطبَع المساران ليبقى السببُ
+      # مقيساً في السجلّ؛ العقدُ الحاجب هو الاختبارُ الحيّ (tests_v9/test_apply_in_compose_live_pg.py).
+      - name: Read-only session diagnostic — PGOPTIONS route vs in-session SET route (report-only)
+        env:
+          PGPASSWORD: test_password
+        run: |
+          q="SELECT current_setting('transaction_read_only'), current_setting('default_transaction_read_only'), current_user, current_database()"
+          echo "PGOPTIONS route (on|on only if the client forwards PGOPTIONS):"
+          PGOPTIONS="-c default_transaction_read_only=on" psql -X -h localhost -p 5433 -U sahool_test -d sahool_test -At -F '|' -c "$q" || true
+          echo "in-session SET route (the probe's contract; expected on|on):"
+          psql -X -h localhost -p 5433 -U sahool_test -d sahool_test -At -F '|' -c "SET SESSION default_transaction_read_only = on" -c "$q" || true
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0

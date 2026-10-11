@@ -9,6 +9,7 @@ stdout. سيناريو «إذنٌ + تطبيق» يحتاج قاعدةً مؤق�
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
@@ -179,4 +180,105 @@ def test_a_failed_schema_probe_on_a_ready_database_is_not_a_success(pg_env):
     assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
     assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
     assert "→ " not in result.stdout
+    assert _inventory(pg_env) == before
+
+
+def _psql_shim(tmp_path: Path, *, flip_set: bool = False, only_presence: bool = False) -> str:
+    """غلافُ psql يُعيد إنتاج عميل CI (`scripts/ci/provision_pg_client.sh`): يُسقط PGOPTIONS قبل الاستدعاء.
+    مع flip_set يُبدّل أمرَ SET إلى off وBEGIN READ ONLY إلى READ WRITE — عميلٌ/وسيطٌ لا يُكرّم تهيئةَ القراءة — ليُقاس أنّ الرفضَ
+    يأتي من قيمة الخادم لا من افتراض السكربت."""
+    real = shutil.which("psql")
+    assert real, "psql غيرُ موجود على PATH"
+    shim_dir = tmp_path / "shim"
+    shim_dir.mkdir()
+    if flip_set:
+        # يُقلَب SET وBEGIN معاً في الجلسات المستهدَفة فقط (كلِّها، أو جلسةِ استعلام الغياب وحدها).
+        rewrite = (
+            'flip=1; case "$*" in *"WITH expected"*) flip=1;; *) flip='
+            + ("0" if only_presence else "1")
+            + ';; esac\nargs=()\nfor a in "$@"; do\n'
+            '  if [ "$flip" = 1 ]; then case "$a" in\n'
+            '    "SET SESSION default_transaction_read_only = on") a="SET SESSION default_transaction_read_only = off";;\n'
+            '    "BEGIN READ ONLY") a="BEGIN READ WRITE";;\n'
+            "  esac; fi\n"
+            '  args+=("$a")\ndone\n'
+        )
+    else:
+        rewrite = 'args=("$@")\n'
+    (shim_dir / "psql").write_text(
+        "#!/usr/bin/env bash\nunset PGOPTIONS\n" + rewrite + f'exec "{real}" "${{args[@]}}"\n',
+        encoding="utf-8",
+    )
+    (shim_dir / "psql").chmod(0o755)
+    return f"{shim_dir}:{os.environ['PATH']}"
+
+
+def test_read_only_holds_when_the_client_drops_pgoptions_and_the_inherited_value_contradicts(
+    pg_env, probe_role, tmp_path
+):
+    """انحدارُ التشغيل 38092839653: عميلٌ يُسقط PGOPTIONS (كعميل CI) + PGOPTIONS موروثٌ يقول off ⇒
+    الجلسةُ تبقى read-only لأنّ SET يُنفَّذ داخلها، والخادمُ هو مَن يقول on."""
+    before = _inventory(pg_env)
+    result = _run(
+        pg_env,
+        SAHOOL_MIGRATE_APPLY="0",
+        PATH=_psql_shim(tmp_path),
+        PGOPTIONS="-c default_transaction_read_only=off",
+        **probe_role,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "transaction_read_only=on" in result.stdout
+    line = next(ln for ln in result.stdout.splitlines() if ln.startswith("SCHEMA_INSPECTION "))
+    assert "read_only=true" in line.split()
+    assert "MIGRATION_INSPECTION_COMPLETED apply=false" in result.stdout
+    # الخادمُ نفسُه يشهد أنّ العميلَ أسقط PGOPTIONS (كما في CI) وأنّ القراءةَ مع ذلك مضمونة؛ والقيمةُ الموروثة لا تُطبَع.
+    assert "pgoptions_inherited=yes pgoptions_honored_by_server=off" in result.stdout
+    assert "default_transaction_read_only=off" not in result.stdout + result.stderr
+    assert _inventory(pg_env) == before
+
+
+def test_a_session_the_server_reports_writable_fails_closed_on_live_postgres(
+    pg_env, probe_role, tmp_path
+):
+    """الجانبُ المغلق من العقد على خادمٍ حقيقيّ: حين لا تُكرَّم تهيئةُ القراءة (SET مقلوبٌ إلى off وبلا
+    PGOPTIONS) يُعلن الخادمُ off ⇒ خروج 3 وreason=session_not_read_only ولا استعلامَ مخطَّط ولا تغيير."""
+    before = _inventory(pg_env)
+    result = _run(
+        pg_env, SAHOOL_MIGRATE_APPLY="0", PATH=_psql_shim(tmp_path, flip_set=True), **probe_role
+    )
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
+    assert (
+        "SCHEMA_INSPECTION status=ERROR read_only=false reason=session_not_read_only"
+        in result.stderr
+    )
+    # القيمةُ المرصودة من الخادم وPGOPTIONS تُسجَّلان في سطر الفشل (تنبيه Gap Watch 2026-10-11) بلا أسرار.
+    assert "observed_transaction_read_only=off" in result.stderr
+    assert "pgoptions_inherited=no pgoptions_honored_by_server=off" in result.stderr
+    assert (
+        "probe_ro_pw" not in result.stderr and "default_transaction_read_only=" not in result.stderr
+    )
+    assert "SCHEMA_PROBE_FAILED exit=3" in result.stderr
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
+    assert "SCHEMA_STATE readable=true" not in result.stdout
+    assert _inventory(pg_env) == before
+
+
+def test_the_presence_query_itself_must_run_in_a_server_confirmed_read_only_transaction(
+    pg_env, probe_role, tmp_path
+):
+    """تنبيه Gap Watch 2026-10-11: التأكيدُ لكلّ استعلام لا للهويّة وحدها — جلسةُ الهويّة سليمة،
+    وجلسةُ استعلام الغياب وحدها تفقد READ ONLY ⇒ خروج 3 ولا SCHEMA_STATE ولا تغيير."""
+    before = _inventory(pg_env)
+    result = _run(
+        pg_env,
+        SAHOOL_MIGRATE_APPLY="0",
+        PATH=_psql_shim(tmp_path, flip_set=True, only_presence=True),
+        **probe_role,
+    )
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert "transaction_read_only=on" in result.stdout, "جلسةُ الهويّة كان يجب أن تبقى read-only"
+    assert "reason=session_not_read_only observed_transaction_read_only=off" in result.stderr
+    assert "SCHEMA_STATE readable=true" not in result.stdout
+    assert "MIGRATION_INSPECTION_COMPLETED" not in result.stdout
     assert _inventory(pg_env) == before
