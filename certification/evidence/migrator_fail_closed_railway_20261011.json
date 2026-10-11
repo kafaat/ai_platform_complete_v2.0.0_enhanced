@@ -41,7 +41,9 @@
         "containerimage_config_digest": "sha256:0501008105d17457ff3ce0a977709cf17fcf15b137e653fe61263a3b5b359abe",
         "image_created_utc": "2026-10-11T15:30:44Z",
         "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
-      }
+      },
+      "later_status": "REMOVED",
+      "removed_at_utc": "2026-10-11T16:07:37.917Z"
     },
     {
       "environment": "staging",
@@ -63,7 +65,9 @@
         "containerimage_config_digest": "sha256:c96e20fa2d1560b4e10ed22975f101aaafdd86e658194c2799bf7eaba12e9509",
         "image_created_utc": "2026-10-11T15:31:04Z",
         "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
-      }
+      },
+      "later_status": "REMOVED",
+      "removed_at_utc": "2026-10-11T16:07:37.812Z"
     }
   ],
   "comparison_before_fix": {
@@ -77,5 +81,15 @@
     "scenario B (ready database, no permission, read-only inspection, inventory before/after) — requires a live staging postgres",
     "backup integrity and production restoration — outside this evidence"
   ],
-  "gap_state_effect": "MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 stays fixed; runbook §3 requires scenario B before any state transition"
+  "gap_state_effect": "MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 stays fixed; runbook §3 requires scenario B before any state transition",
+  "post_run_removal": {
+    "observed_utc": "2026-10-11T16:07:37Z",
+    "spread_seconds": 0.105,
+    "actor": "not exposed by the Railway API",
+    "not_github_actions": "no workflow run in the repository started or finished 16:04–16:11Z (listing covers all runs since 13:53Z); no Railway mutation call in the tree",
+    "pending_patch_073447ea": "still staged, unchanged since 2026-10-01 — not committed",
+    "health_view_after_removal": "environment-status reports 0 recent failures for sahool-migrate-main in both environments (removal erases the crash signal)",
+    "railway_agent_read_only_query": "timed out at the connector after 60 s, no answer",
+    "tracked_in": "RAILWAY-DEPLOYMENT-STOPPED-BY-EXTERNAL-SIGTERM-AFTER-SUCCESS-01 (open)"
+  }
 }
