@@ -64,7 +64,7 @@ SEC-004,security,MFA,True,7,7,24,23,5,5,4,18,0
 SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,3,0,0,10,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,7,52,0,0,10,0
-SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
+SEC-008,security,Secrets and production fail-closed,True,3,0,0,4,2,0,0,7,0
 SOIL-001,soil,Soil profile,True,6,13,96,14,46,1,0,21,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,8,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
