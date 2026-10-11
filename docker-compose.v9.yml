@@ -611,6 +611,8 @@ services:
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
       INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
+      # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
+      SAHOOL_MIGRATE_APPLY: "1"
     volumes:
     - ./migrations:/migrations:ro
     command:

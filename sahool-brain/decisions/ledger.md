@@ -3676,3 +3676,67 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** فصلُ دليل تشغيل سابق ناجح عن تحققٍ لاحق غير مُتاح يمنع محو النجاح أو اعتباره دليلاً على مسار صورة لم يُشغَّل بعد. لا تعطيل لاختبار حيّ ولا إنشاء ملف XML صوري.
 
 **المصدر:** PR #1157 · Actions `37996212429` / job `114044034240` · Actions `37996212368` · `.github/workflows/ci.yml:1558-1586` · `sahool-brain/gaps/registry.md`.
+
+## 2026-10-10 — بناءُ صورة المُهاجر ليس إذناً بتطبيق الهجرات
+
+**القرار:** تطبيقُ الهجرات في `migrations/apply_in_compose.sh` يشترط إذناً صريحاً `SAHOOL_MIGRATE_APPLY=1` يضبطه المشغِّل في بيئة التشغيل عند قرار الهجرة؛ وفشلُ إثبات جاهزيّة القاعدة يُنهي الوظيفة بخروجٍ غير صفريّ قبل أيّ اتّصال (`48f6d666`). compose المحلّيّ يمنح الإذنَ صراحةً لأنّ الهجرة هناك جزءٌ من الإقلاع؛ `Dockerfile.migrate` لا يخبزه.
+
+**السبب:** على Railway يُعاد بناءُ المُهاجر ونشرُه من أيّ دفعةٍ تمسّ `migrations/**` أو `deploy/railway/Dockerfile.migrate` (`watchPatterns`)، فأطلق تثبيتُ صورةٍ أساسيّة في #1157 هجرةَ إنتاج (نشر `87cc687b`) على قاعدةٍ غائبة؛ وما حماها كان فشلُ DNS لا الشيفرة (`MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01`، تنبيهُ المالك 2026-10-10 و#1158 البند ٥). الخروجُ الصفريّ عند غياب الإذن مقصود كي لا تُحمَرّ كلُّ دفعةٍ لا تنوي هجرة، والسطرُ المُعلَن يمنع قراءةَ SUCCESS على أنّه تطبيق.
+
+**المصدر:** `migrations/apply_in_compose.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · `docker-compose.v9.yml` · `docker-compose.fixed.yml` · Railway `get-service-config(sahool-migrate-main)` · #1158.
+
+## 2026-10-10 — نشرُ المُهاجر بلا إذنٍ يقرأ حالةَ المخطَّط ولا يصمت
+
+**القرار:** حين يُنشر المُهاجر بلا `SAHOOL_MIGRATE_APPLY=1` يشغّل `migrations/probe_schema_state.sh` قراءةً فقط ويطبع `SCHEMA_STATE …` ثمّ يخرج صفراً (`2ecff854`)؛ تعذّرُ القراءة لا يُخفي `MIGRATIONS_NOT_APPLIED` ولا يُغيّر الخروج. الدورُ الافتراضيّ `PGUSER` ويُستبدَل بـ`PROBE_PGUSER` الأدنى صلاحيّةً حين يتوفّر.
+
+**السبب:** بوّابةُ #1158 تشترط قبل أيّ هجرة هويّةَ القاعدة ودفترَ الهجرات والحالةَ الجزئيّة، ولا دفترَ للمُهاجر (`MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01`)؛ فالنشرُ الذي لا يُؤذن له بالتطبيق هو الموضعُ الطبيعيّ لقراءةٍ لا تكتب — بالصورة نفسِها وبلا خدمةٍ جديدة. القراءةُ لا تُغني عن إذن التطبيق ولا تمنحه.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `migrations/apply_in_compose.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · إثباتٌ محلّيّ على PG16 (log.md 2026-10-10) · #1158.
+
+## 2026-10-10 — سجلُّ قبول MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01: fixed إصلاحُ شيفرة، وverified رهنُ staging
+
+**القرار:** حالةُ `fixed` على الصفّ (`3281ce42` عند `48f6d666`) تعني إصلاحَ الشيفرة المُثبَتَ بالشواهد المحلّيّة فقط (11 حالة؛ PostgreSQL 16 حقيقيّ للقراءة)، بقاعدة «fixed في PR إصلاحها» (#1136). **شرطُ الإغلاق الأصليّ في الصفّ — اختبارُ staging المعزول بلا قاعدة — غيرُ مستوفًى، ولا يُعَدّ مستوفًى بهذه الحالة.** الانتقالُ إلى `verified` يشترط تنفيذَ `sahool-brain/runbooks/migrator-staging-fail-closed-test.md` وإلحاقَ سجلّات النشر (معرّفُ النشر، الأسطرُ الآليّة، جردُ المخطَّط قبل/بعد) بالصفّ. والإصلاحُ لا يُقدّم دليلاً على استعادة الإنتاج.
+
+**السبب:** ملاحظةُ المالك (تنبيه Gap Watch 2026-10-10): الصفُّ اشترط staging ثمّ أُعلن fixed مع الإقرار بعدم تنفيذه؛ قبولُ fixed بوصفها حالةَ إصلاح الشيفرة مشروطٌ بتوضيح الفرق صراحةً في سجلّ القبول وعدم اعتبار شرط staging مستوفًى. تشغيلُ الاختبار نشرٌ على Railway = قرارُ المالك.
+
+**المصدر:** `sahool-brain/gaps/registry.md` (الصفّ) · PR #1160 · `sahool-brain/runbooks/migrator-staging-fail-closed-test.md` · ledger #1136.
+
+## 2026-10-10 — فشلُ قراءة المخطَّط لا يُسجَّل نجاحاً (يُلغي خيارَ الخروج الصفريّ السابق)
+
+**القرار:** يُلغى ما قرّرتُه في اليوم نفسِه («الخروجُ الصفريّ عند غياب الإذن مقصود … تعذّرُ القراءة لا يُغيّر الخروج»). العقدُ الجديد (`2833294e`): بلا إذنٍ لا هجرة؛ نجاحُ القراءة ⇒ `MIGRATION_INSPECTION_COMPLETED apply=false` وخروج 0؛ فشلُ القراءة ⇒ `SCHEMA_PROBE_FAILED` وخروج 3. ويُعلن `SCHEMA_STATE` حدَّ دلالته (`scope=tables_and_columns_only`).
+
+**السبب:** مراجعةُ المالك: نشرٌ ناجح (exit 0) بلا دليلٍ صالح عن حالة المخطَّط أخطرُ من حمرةٍ مزعجة، خصوصاً إن اتُّخذت نتيجةُ الوظيفة شرطاً لاستعادة الإنتاج؛ والمحاكاةُ بأدواتٍ مزيّفة لا تكفي قبولاً — فأُضيف قبولٌ على PostgreSQL حيّ بجردٍ قبل/بعد (محلّيّاً بالسيناريوهات الأربعة، وفي CI بالثلاثة التي لا تكتب). الـfixtures عُدِّلت لتمثّل قراءةً ناجحة فعلاً لا لإرضاء الإصلاح.
+
+**المصدر:** `migrations/apply_in_compose.sh` · `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · log.md 2026-10-10 (سجلُّ القبول الحقيقيّ) · PR #1160.
+
+## 2026-10-10 — عقدُ قراءة المخطَّط: لا نتيجةَ بلا اكتمال التحليل، وPASS نطاقٌ لا اعتماد
+
+**القرار:** `SCHEMA_INSPECTION status=PASS|INCOMPLETE|ERROR …` هو عقدُ القبول (`aa2ad21e`): ERROR عند أيّ تعذّرٍ في الاتّصال أو في تحليل أيّ ملفٍّ من MANIFEST (لا `readable=true` جزئيّ)، وPASS يعني اكتمالَ النطاق المُعلَن (الجداولُ والأعمدة) فقط. الاختبارُ الحيّ على القاعدة المشتركة لا يمنح إذنَ التطبيق أبداً؛ سيناريو الإذن على قاعدةٍ مؤقّتة فقط. جردُ RLS/الفهارس/القيود الحرجة وإذنُ الهجرة المؤقّت على Railway يُنفَّذان في PR مستقلّ.
+
+**السبب:** مراجعةُ المالك الثالثة: `expected="$(expected_objects)"` مع `done < <(manifest_files)` لا تنقل فشلَ المُنتِج ولا تُثبت أنّ كلَّ الملفّات قُرئت، فقد يُصدَر نجاحٌ جزئيّ؛ و341/127 ليست ضمانةً عامّة (صيغُ DDL الأخرى والقيود والفهارس وRLS خارج القياس)؛ والإذنُ الدائم في متغيّرات الخدمة قد يُعيد تشغيلَ الهجرات في نشرٍ لاحق.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · PR #1160.
+
+## 2026-10-10 — شهادةُ المُهاجر الحيّة لا تُتخطّى، ولا PASS بلا عقدٍ مربوطٍ ببصمة MANIFEST
+
+**القرار (`49948861`):** (١) `MIGRATOR_CERTIFICATION_REQUIRED=1` في وظيفة Integration Tests — تخطّي الاختبار الحيّ (غيابُ DSN أو سقوطُ القاعدة) فشلٌ صلب، على نمط أعلام `*_CERTIFICATION_REQUIRED` القائمة؛ (٢) `migrations/schema_probe_contract.env` عقدُ الحدّ الأدنى (بصمةُ MANIFEST · 341 · 179) يُولَّد ويُحرَس بالراتشِت، والقراءةُ ترفض قبل الاتّصال أيَّ MANIFEST لا يحمل عقده أو يُخرج أقلَّ منه أو صفراً؛ (٣) `read_only` لا يُدَّعى قبل قياسه؛ (٤) الاختبارُ الحيّ يقرأ بدور `sahool_probe_ro` بلا CREATE ويُثبت رفضَ الخادم للكتابة. Gate C (تطبيقٌ على قاعدةٍ مؤقّتة في CI) وجردُ RLS/الفهارس والإذنُ المؤقّت على Railway في PR مستقلّ.
+
+**السبب:** مراجعةُ المالك الرابعة: شهادةٌ قابلةٌ للتخطّي الأخضر عند انقطاع القاعدة؛ `read_only=true` يُعلَن قبل إنشاء جلسة؛ PASS ممكنٌ بصفر كائنات حين لا تطابق الملفّاتُ الأنماط؛ وعدُّ الكائنات وحده لا يُثبت عدمَ الكتابة. وفي الطريق ظهر أنّ الاستخراج السطريّ أسقط 52 عموداً.
+
+**المصدر:** `.github/workflows/ci.yml` (Integration Tests env) · `migrations/probe_schema_state.sh` · `migrations/schema_probe_contract.env` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_apply_in_compose_live_pg.py` · PR #1160.
+
+## 2026-10-10 — القراءةُ-فقط لقراءة المخطَّط تُفرَض داخل الجلسة لا عبر بيئة العميل
+
+**القرار:** `probe_schema_state.sh` يفرض `SET SESSION default_transaction_read_only = on` كأوّل `-c` في كلّ استدعاء psql، ويبقى `PGOPTIONS` طبقةً ثانية لا يُعتمَد عليها. لا يُعدَّل عميلُ CI (`provision_pg_client.sh`) لتمرير PGOPTIONS: الضمانةُ يجب أن تعيش في الأداة لا في بيئة مَن يستدعيها، لأنّ المُهاجر على Railway يعمل بصورةٍ وبيئةٍ مختلفتين.
+
+**السبب:** التشغيل 38092839653 على `76d45d28`: `session_not_read_only` لأنّ حاويةَ psql في CI تُمرّر متغيّراتِ PG الخمسة فقط. العقدُ عمل كما صُمّم (رفضٌ لا ادّعاء)، لكنّ الأداةَ كانت تعتمد على قناةٍ لا تملكها.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `scripts/ci/provision_pg_client.sh` · `tests_v9/test_apply_in_compose_fail_closed.py` · PR #1160.
+
+## 2026-10-11 — قراءةُ المخطَّط: كلُّ استعلامٍ داخل معاملة READ ONLY صريحة يؤكّدها الخادم
+
+**القرار:** `probe_schema_state.sh` يلفّ كلَّ استعلام فحص في `BEGIN READ ONLY` ثمّ سطرَ تأكيدٍ من الخادم (`RO_CONFIRMED=<transaction_read_only> pgoptions_honored=<default_transaction_read_only>` قبل أيّ SET) ثمّ `SET SESSION default_transaction_read_only = on` دفاعاً ثانياً ثمّ الاستعلام ثمّ `COMMIT` — في اتّصالٍ واحد ومعاملةٍ واحدة تحت `ON_ERROR_STOP`؛ `require_ro` يرفض أيَّ ناتجٍ لا يبدأ بالسطر الكامل `RO_CONFIRMED=on pgoptions_honored=<on|off>` (غياباً أو فراغاً أو تشويهاً) ويُعلن `read_only=false` مع القيمة المرصودة وحالةِ PGOPTIONS (`inherited` · `honored_by_server`) **لا قيمتِه** (ملاحظة المالك 2026-10-11). توقّعاتُ الاختبار الحيّ لم تُغيَّر وشرطُ القراءة لم يُنزَع.
+
+**السبب:** تنبيه Gap Watch 2026-10-11 طلب تسجيلَ القيمة الفعليّة وضمانَ تنفيذ كلّ استعلامٍ داخل معاملة READ ONLY مؤكَّدة من PostgreSQL. قبل ذلك كان التأكيدُ في جلسة الهويّة فقط، واستعلامُ الغياب في جلسةٍ ثانية بلا تأكيدٍ خاصّ بها.
+
+**المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_live_pg.py` · `tests_v9/test_apply_in_compose_fail_closed.py` · التشغيل 38092839653 · PR #1160.
