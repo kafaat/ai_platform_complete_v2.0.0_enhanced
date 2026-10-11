@@ -653,11 +653,17 @@ def solve_lexicographic_irrigation(
         yield_floor_preserved = None
 
     approaching_critical = dr_before >= raw_mm or risk_before in ("watch", "critical")
+    # تدهورُ المُدخَل حقيقةٌ عن الدليل لا حالةٌ تشغيليّة: الحالةُ الأعلى أولويّةً (حمايةُ المحصول، شحّ
+    # الماء) تبقى هي الفعل، لكنّ سببَ التدهور وسقفَ الثقة لا يسقطان معها. كانا مربوطَين بالحالة، فلقطةٌ
+    # متدهورة في مرحلةٍ حرجة تخرج بلا DATA_DEGRADED وبثقة 0.7.
+    degraded_input = data_degraded or (
+        depletion_confidence is not None and depletion_confidence < 0.5
+    )
     if winner.budget_exhausted and winner.stress_days:
         state = OperatingState.WATER_SCARCITY
     elif is_critical and (approaching_critical or winner.stress_days):
         state = OperatingState.CROP_PROTECTION
-    elif data_degraded or (depletion_confidence is not None and depletion_confidence < 0.5):
+    elif degraded_input:
         state = OperatingState.DATA_DEGRADED
     else:
         state = OperatingState.NORMAL_OPTIMIZATION
@@ -681,7 +687,7 @@ def solve_lexicographic_irrigation(
         reasons.append(ReasonCode.YIELD_DATA_INSUFFICIENT)
     elif yield_floor_preserved is False:
         reasons.append(ReasonCode.YIELD_FLOOR_AT_RISK)
-    if state == OperatingState.DATA_DEGRADED:
+    if degraded_input:
         reasons.append(ReasonCode.DATA_DEGRADED)
     if not reasons:
         reasons.append(ReasonCode.NORMAL_SCHEDULE)
@@ -694,7 +700,7 @@ def solve_lexicographic_irrigation(
         confidence *= 0.8
     if yr.uncertainty is not None:
         confidence *= 1.0 - min(0.3, yr.uncertainty)
-    if state == OperatingState.DATA_DEGRADED:
+    if degraded_input:
         confidence = min(confidence, 0.4)
     if depletion_confidence is not None:
         confidence = min(confidence, max(0.2, depletion_confidence))

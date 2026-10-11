@@ -202,7 +202,7 @@ export default function LineagePage() {
               </div>
             ) : (
               <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-200">
                   القرار غير مُدام (قد يكون حُسِب عبر المسار النقيّ).
                 </div>
@@ -321,7 +321,7 @@ export default function LineagePage() {
 
             {/* بانر الصدق: تقديريّ غير مُعايَر + المصدر + warnings_ar */}
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <div className="text-sm font-semibold text-amber-200">
                   🟡 دليل تقديريّ غير مُعايَر (calibrated = false)

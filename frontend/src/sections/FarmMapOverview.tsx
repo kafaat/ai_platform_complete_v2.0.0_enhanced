@@ -134,7 +134,7 @@ export default function FarmMapOverview() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+                    <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                     <span className="text-sm font-medium truncate">{f.name}</span>
                   </div>
                   <div className="text-[11px] opacity-70 mt-0.5">

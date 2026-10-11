@@ -6,7 +6,10 @@ DOCKERFILE = ROOT / "deploy" / "railway" / "Dockerfile.migrate"
 
 def test_railway_migration_runner_is_one_shot_and_contains_psql():
     text = DOCKERFILE.read_text(encoding="utf-8")
-    assert "FROM postgres:16-alpine" in text
+    assert (
+        "FROM public.ecr.aws/docker/library/postgres@sha256:"
+        "721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+    ) in text
     assert "COPY migrations/ /migrations/" in text
     assert 'ENTRYPOINT ["bash", "/migrations/apply_in_compose.sh"]' in text
 

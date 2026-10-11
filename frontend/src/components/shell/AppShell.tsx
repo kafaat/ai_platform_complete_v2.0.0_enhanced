@@ -43,7 +43,7 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
         {/* درج التنقّل — الموبايل */}
         {mobileOpen && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
+            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden" onClick={() => setMobileOpen(false)} />
             <div className="fixed right-0 top-0 h-full z-50 md:hidden">
               <NavRail collapsed={false} setCollapsed={() => {}} onNavigate={() => setMobileOpen(false)} />
             </div>

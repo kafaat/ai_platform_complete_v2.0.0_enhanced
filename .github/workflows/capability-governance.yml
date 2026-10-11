@@ -6,6 +6,12 @@ on:
   push:
     branches: [main, develop]
 
+# عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
+# غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Measurement stays independent of blocking checks so their failures cannot
   # suppress evidence from the real registry. Findings do not change gap states.
@@ -20,6 +26,10 @@ jobs:
         with:
           # Measure the PR head, not GitHub's synthetic merge commit.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # BRAIN-FIXED-PROVENANCE-NOT-RECONCILED-WITH-MERGE-01: a fixed row's repair SHA is
+          # matched against main's history; on a depth-1 clone every SHA looks unreachable,
+          # so the measure would declare itself unmeasured instead of reporting.
+          fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
@@ -247,6 +257,7 @@ jobs:
             tests/architecture/test_check_steps_are_read_only.py \
             tests/architecture/test_marker_coverage_guard.py \
             tests/architecture/test_gap_registry_measure.py \
+            tests/architecture/test_notification_rollout_postgres_image.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
             tests/architecture/test_unenforced_report_list_tests.py \
             tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py \

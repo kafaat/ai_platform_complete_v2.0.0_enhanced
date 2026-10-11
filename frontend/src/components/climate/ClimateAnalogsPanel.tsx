@@ -92,7 +92,7 @@ export default function ClimateAnalogsPanel() {
             placeholder="تصفية بالفئة (اختياريّ)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="mb-2 rounded bg-slate-800 px-2 py-1 text-sm text-slate-100"
+            className="mb-2 rounded-sm bg-slate-800 px-2 py-1 text-sm text-slate-100"
           />
           <ReferenceQueryState
             query={cropsQuery}

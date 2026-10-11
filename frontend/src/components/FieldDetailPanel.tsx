@@ -238,7 +238,7 @@ export default function FieldDetailPanel({
             <h3 className="font-bold text-slate-100">تفاصيل الحقل</h3>
             <p className="text-xs text-slate-400 mt-0.5">{fieldName}</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-slate-700 text-slate-400" aria-label="إغلاق">
+          <button onClick={onClose} className="p-1 rounded-sm hover:bg-slate-700 text-slate-400" aria-label="إغلاق">
             <X className="w-4 h-4" />
           </button>
         </div>

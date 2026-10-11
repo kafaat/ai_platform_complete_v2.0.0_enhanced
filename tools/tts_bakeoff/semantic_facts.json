@@ -1,0 +1,572 @@
+{
+ "_doc": "حقائقُ مكتوبةٌ يدويّاً من الجملة الأصليّة في corpus.tsv — لا مستخرَجةٌ آليّاً. quantities بالترتيب: value · unit · per · bound · subject (المُسنَد إليه؛ subject_side=before افتراضاً أو after). actions: صيغُ الفعل وقطبيّتها (pos أمر / neg نهي) ويجب أن يحملها كلُّ ظهور. negations: الأداة مع فعلها. conditions: أداةُ الشرط وموضوعُه (subject) والكمّيّاتُ داخله (بترقيمٍ من 1) — في الجملة نفسها. content: عباراتٌ يجب ظهورها **بترتيبها**. الاجتيازُ = اجتيازُ هذه الفحوص المعلنة وحدها، لا حفظُ المعنى كاملاً.",
+ "units": {
+  "ml": "مليلتر",
+  "L": "لتر",
+  "kg": "كيلوجرام",
+  "ha": "هكتار",
+  "day": "يوم",
+  "hour": "ساعة (مدّة)",
+  "week": "أسبوع",
+  "km": "كيلومتر",
+  "pct": "نسبة مئويّة",
+  "degC": "درجة مئويّة",
+  "dS": "ديسيسيمنز",
+  "m": "متر",
+  "clock": "ساعة اليوم",
+  "ordinal": "ترتيب"
+ },
+ "sentences": {
+  "C01": {
+   "content": [
+    "زراعة",
+    "الذرة الرفيعة",
+    "تهامة",
+    "تبدأ",
+    "أول مطر",
+    "موسم الصيف"
+   ]
+  },
+  "C02": {
+   "content": [
+    "البن اليمني",
+    "يحتاج",
+    "ظلاً خفيفاً",
+    "ريّاً منتظماً",
+    "المدرجات الجبلية"
+   ]
+  },
+  "C03": {
+   "content": [
+    "الدخن",
+    "السمسم",
+    "يتحملان الجفاف",
+    "أكثر من",
+    "الذرة الشامية"
+   ]
+  },
+  "C04": {
+   "content": [
+    "أصناف المانجو",
+    "الحديدة",
+    "تُقطف",
+    "من مايو",
+    "حتى أغسطس"
+   ]
+  },
+  "C05": {
+   "content": [
+    "الطماطم",
+    "البصل",
+    "البطاطس",
+    "أهم الخضروات",
+    "المرتفعات"
+   ]
+  },
+  "C06": {
+   "content": [
+    "الرمان",
+    "العنب",
+    "ينتشران",
+    "صعدة",
+    "صنعاء"
+   ]
+  },
+  "P01": {
+   "content": [
+    "ظهرت",
+    "دودة الحشد الخريفية",
+    "أوراق الذرة الصغيرة"
+   ]
+  },
+  "P02": {
+   "content": [
+    "المنّ",
+    "الذبابة البيضاء",
+    "يسببان اصفرار",
+    "أوراق الطماطم"
+   ]
+  },
+  "P03": {
+   "content": [
+    "حفار ساق الذرة",
+    "يترك",
+    "ثقوباً",
+    "نشارة",
+    "قاعدة النبات"
+   ]
+  },
+  "D01": {
+   "quantities": [
+    {
+     "value": "2.5",
+     "unit": "ml",
+     "per": "L",
+     "bound": null,
+     "subject": "المبيد",
+     "subject_side": "after"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "اخلط",
+      "تخلط",
+      "يخلط",
+      "اخلطوا"
+     ],
+     "polarity": "pos"
+    }
+   ],
+   "content": [
+    "ماء"
+   ]
+  },
+  "D02": {
+   "quantities": [
+    {
+     "value": "50",
+     "unit": "kg",
+     "per": "ha",
+     "bound": null,
+     "subject": "سماد اليوريا",
+     "subject_side": "after"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "أضف",
+      "تضف",
+      "تضيف",
+      "يضاف",
+      "أضيفوا"
+     ],
+     "polarity": "pos"
+    }
+   ],
+   "content": [
+    "الواحد"
+   ]
+  },
+  "D03": {
+   "quantities": [
+    {
+     "value": "2.5",
+     "unit": "ml",
+     "per": "L",
+     "bound": null,
+     "subject": "الجرعة"
+    }
+   ],
+   "negations": [
+    "لا تزد"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "تزد",
+      "زد",
+      "تزيد",
+      "يزيد",
+      "زيدوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "عليها"
+   ]
+  },
+  "D04": {
+   "quantities": [
+    {
+     "value": "120",
+     "unit": "L",
+     "per": null,
+     "bound": null,
+     "subject": "النخلة"
+    },
+    {
+     "value": "7",
+     "unit": "day",
+     "per": null,
+     "bound": "كل"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "اسقِ",
+      "تسقِ",
+      "تسقي",
+      "يسقي",
+      "اسقوا"
+     ],
+     "polarity": "pos"
+    }
+   ],
+   "content": [
+    "الصيف"
+   ]
+  },
+  "D05": {
+   "quantities": [
+    {
+     "value": "3.2",
+     "unit": "dS",
+     "per": "m",
+     "bound": null,
+     "subject": "نسبة الملوحة"
+    }
+   ],
+   "content": [
+    "البئر"
+   ]
+  },
+  "D06": {
+   "quantities": [
+    {
+     "value": "38",
+     "unit": "degC",
+     "per": null,
+     "bound": null,
+     "subject": "درجة الحرارة"
+    },
+    {
+     "value": "45",
+     "unit": "pct",
+     "per": null,
+     "bound": null,
+     "subject": "الرطوبة"
+    }
+   ],
+   "content": [
+    "المتوقعة",
+    "غداً"
+   ]
+  },
+  "N01": {
+   "quantities": [
+    {
+     "value": "14",
+     "unit": "day",
+     "per": null,
+     "bound": "أقل من"
+    }
+   ],
+   "negations": [
+    "لا ترش"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "ترش",
+      "رش",
+      "يرش",
+      "رشوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "المبيد",
+    "قبل الحصاد"
+   ]
+  },
+  "N02": {
+   "negations": [
+    "لا تسقِ"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "تسقِ",
+      "اسقِ",
+      "تسقي",
+      "يسقي",
+      "اسقوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "المحصول",
+    "وقت الظهيرة"
+   ]
+  },
+  "N03": {
+   "negations": [
+    "لا تخلط"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "تخلط",
+      "اخلط",
+      "يخلط",
+      "اخلطوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "المبيد",
+    "مع الأسمدة الورقية"
+   ]
+  },
+  "N04": {
+   "quantities": [
+    {
+     "value": "15",
+     "unit": "km",
+     "per": "hour",
+     "bound": "أكثر من",
+     "subject": "سرعة الرياح"
+    }
+   ],
+   "negations": [
+    "لا ترش"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "ترش",
+      "رش",
+      "يرش",
+      "رشوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "conditions": [
+    {
+     "marker": "إذا",
+     "subject": "سرعة الرياح",
+     "quantities": [
+      1
+     ]
+    }
+   ]
+  },
+  "N05": {
+   "quantities": [
+    {
+     "value": "48",
+     "unit": "hour",
+     "per": null,
+     "bound": "قبل مرور"
+    }
+   ],
+   "negations": [
+    "ألّا تدخل"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "تدخل",
+      "ادخل",
+      "يدخل",
+      "ادخلوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "يجب",
+    "الحقل",
+    "على الرش"
+   ]
+  },
+  "N06": {
+   "quantities": [
+    {
+     "value": "6",
+     "unit": "hour",
+     "per": null,
+     "bound": "خلال"
+    }
+   ],
+   "negations": [
+    "لا ترش"
+   ],
+   "actions": [
+    {
+     "forms": [
+      "ترش",
+      "رش",
+      "يرش",
+      "رشوا"
+     ],
+     "polarity": "neg"
+    }
+   ],
+   "content": [
+    "المطر متوقع"
+   ]
+  },
+  "T01": {
+   "quantities": [
+    {
+     "value": "6",
+     "unit": "clock",
+     "per": null,
+     "bound": null
+    }
+   ],
+   "content": [
+    "موعد الري",
+    "القادم",
+    "يوم الثلاثاء",
+    "صباحاً"
+   ]
+  },
+  "T02": {
+   "quantities": [
+    {
+     "value": "3",
+     "unit": "ordinal",
+     "per": null,
+     "bound": null,
+     "subject": "الأسبوع"
+    },
+    {
+     "value": "2026",
+     "unit": null,
+     "per": null,
+     "bound": null,
+     "subject": "أكتوبر"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "ابدأ",
+      "تبدأ",
+      "يبدأ",
+      "ابدؤوا"
+     ],
+     "polarity": "pos"
+    }
+   ],
+   "content": [
+    "الحصاد"
+   ]
+  },
+  "T03": {
+   "quantities": [
+    {
+     "value": "3",
+     "unit": "hour",
+     "per": null,
+     "bound": "كل",
+     "subject": "القراءة"
+    },
+    {
+     "value": "6",
+     "unit": "clock",
+     "per": null,
+     "bound": "من"
+    },
+    {
+     "value": "18",
+     "unit": "clock",
+     "per": null,
+     "bound": "حتى"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "سجّل",
+      "تسجل",
+      "يسجل",
+      "سجلوا"
+     ],
+     "polarity": "pos"
+    }
+   ]
+  },
+  "M01": {
+   "quantities": [
+    {
+     "value": "0.62",
+     "unit": null,
+     "per": null,
+     "bound": "من",
+     "subject": "مؤشر NDVI"
+    },
+    {
+     "value": "0.41",
+     "unit": null,
+     "per": null,
+     "bound": "إلى",
+     "subject": "مؤشر NDVI"
+    },
+    {
+     "value": "2",
+     "unit": "week",
+     "per": null,
+     "bound": "خلال"
+    }
+   ],
+   "content": [
+    "الحقل",
+    "انخفض"
+   ]
+  },
+  "M02": {
+   "quantities": [
+    {
+     "value": "5",
+     "unit": "pct",
+     "per": null,
+     "bound": null,
+     "subject": "تركيز"
+    }
+   ],
+   "actions": [
+    {
+     "forms": [
+      "استخدم",
+      "تستخدم",
+      "يستخدم",
+      "استخدموا"
+     ],
+     "polarity": "pos"
+    }
+   ],
+   "content": [
+    "مبيد Emamectin benzoate",
+    "حسب الملصق"
+   ]
+  },
+  "M03": {
+   "quantities": [
+    {
+     "value": "22",
+     "unit": "pct",
+     "per": null,
+     "bound": null,
+     "subject": "رطوبة التربة"
+    },
+    {
+     "value": "12",
+     "unit": "pct",
+     "per": null,
+     "bound": null,
+     "subject": "نقطة الذبول"
+    },
+    {
+     "value": "2",
+     "unit": "day",
+     "per": null,
+     "bound": "خلال"
+    }
+   ],
+   "content": [
+    "الري مطلوب"
+   ]
+  }
+ }
+}

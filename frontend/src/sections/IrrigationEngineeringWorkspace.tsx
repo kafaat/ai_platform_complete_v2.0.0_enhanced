@@ -14,7 +14,7 @@ export function IrrigationEngineeringWorkspace({ summary, onCalculate, onConfirm
         <p className="text-sm text-muted-foreground">مواصفات وحسابات محايدة عن الشركة المصنعة، للتشغيل اليدوي أو المراقب أو الآلي.</p>
       </header>
       <nav aria-label="Irrigation engineering sections" className="flex flex-wrap gap-2">
-        {IRRIGATION_ENGINEERING_SECTIONS.map((section) => <span key={section} className="rounded border px-2 py-1 text-xs">{section}</span>)}
+        {IRRIGATION_ENGINEERING_SECTIONS.map((section) => <span key={section} className="rounded-sm border px-2 py-1 text-xs">{section}</span>)}
       </nav>
       {!summary ? (
         <button type="button" onClick={onCalculate}>احسب قابلية النظام</button>

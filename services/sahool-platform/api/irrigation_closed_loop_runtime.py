@@ -436,3 +436,116 @@ async def finalize_irrigation_closed_loop(
         "learning_proposal": proposal.to_dict(),
         "event_id": str(event_id) if event_id else None,
     }
+
+
+# ── Manual irrigation completion (IRRIGATION-EXECUTION-COMPLETED-HAS-NO-PRODUCER-01) ────────────
+# The reconcile of a VERIFIED manual execution now emits ``irrigation.execution.completed`` with
+# ``source='manual'``. Its consumer records what is actually known, separating the owner's three
+# questions instead of collapsing them into one "success": was it executed as approved? did the
+# outcome improve? how much is attributable? Only the first is answerable from this chain.
+MANUAL_COMPLETION_REQUIRED = frozenset(
+    {
+        "execution_id",
+        "execution_plan_id",
+        "decision_id",
+        "field_id",
+        "season_id",
+        "planned_depth_mm",
+        "applied_depth_mm",
+        "observed_at",
+        "ledger_event_digest",
+        "source_digests",
+    }
+)
+MANUAL_DEVIATION_TOLERANCE = 0.15
+
+
+class ManualOutcomeNotReady(Exception):  # noqa: N818 — transient by contract (NAK, not term)
+    """The reconciliation the event points at is not visible yet (out-of-order / late delivery).
+    Not a ValueError on purpose: the worker NAKs and retries instead of terminating the message."""
+
+
+async def record_manual_execution_outcome(
+    conn, *, tenant_id: str, event_id: str, payload: dict[str, Any]
+) -> dict[str, Any]:
+    missing = sorted(MANUAL_COMPLETION_REQUIRED - payload.keys())
+    if missing:
+        raise ValueError(f"MANUAL_COMPLETION_FIELDS_REQUIRED:{','.join(missing)}")
+    reconciliation = await conn.fetchrow(
+        """SELECT ledger_event_digest, applied_depth_mm
+             FROM irrigation_manual_ledger_reconciliations
+            WHERE execution_id=$1::uuid""",
+        str(payload["execution_id"]),
+    )
+    if reconciliation is None:
+        raise ManualOutcomeNotReady("MANUAL_RECONCILIATION_NOT_VISIBLE")
+    if str(reconciliation["ledger_event_digest"]).strip() != str(payload["ledger_event_digest"]):
+        raise ValueError("MANUAL_COMPLETION_DIGEST_MISMATCH")
+
+    # The reconciled depth is authoritative; a payload that keeps the valid digest but carries
+    # another applied depth is forged or corrupted, not a different measurement.
+    applied = float(reconciliation["applied_depth_mm"])
+    if abs(float(payload["applied_depth_mm"]) - applied) > 1e-6:
+        raise ValueError("MANUAL_COMPLETION_APPLIED_DEPTH_MISMATCH")
+    # The measurement happened when the producer observed it, not when this delivery arrived.
+    measured_at = datetime.fromisoformat(str(payload["observed_at"]))
+    if measured_at.tzinfo is None:
+        raise ValueError("MANUAL_COMPLETION_OBSERVED_AT_NOT_TZ_AWARE")
+    planned = float(payload["planned_depth_mm"])
+    deviation = (applied - planned) / planned if planned > 0 else None
+    within = deviation is not None and abs(deviation) <= MANUAL_DEVIATION_TOLERANCE
+    body = {
+        "source": "manual",
+        "execution_id": str(payload["execution_id"]),
+        "planned_depth_mm": planned,
+        "applied_depth_mm": applied,
+        "deviation_pct": None if deviation is None else round(deviation, 4),
+        "deviation_reason": payload.get("deviation_reason"),
+        "questions": {
+            "executed_as_approved": {
+                "answer": "yes" if within else "deviated_with_stated_reason",
+                "basis": "verified manual as-applied vs the approved plan (±15%)",
+            },
+            "outcome_improved": {
+                "answer": "not_measured",
+                "basis": "no post-irrigation observation is produced in this chain",
+            },
+            "attributable_effect": {
+                "answer": "not_established",
+                "basis": "no comparison (control/baseline) exists for this execution",
+            },
+        },
+        "cost": {"status": "not_computed", "basis": "no tariff or metered energy in this chain"},
+    }
+    digest_input = {"event_id": event_id, "source_digests": payload["source_digests"], **body}
+    digest = (
+        __import__("hashlib")
+        .sha256(
+            json.dumps(digest_input, sort_keys=True, separators=(",", ":"), default=str).encode()
+        )
+        .hexdigest()
+    )
+    inserted = await conn.fetchval(
+        """INSERT INTO irrigation_outcome_evidence (
+               tenant_id, field_id, season_id, decision_id, execution_plan_id, measured_at,
+               outcome_status, source_digests, payload, outcome_evidence_digest
+           ) VALUES ($1::uuid,$2,$3,$4,$5,$9,'degraded',$6::jsonb,$7::jsonb,$8)
+           ON CONFLICT (tenant_id, outcome_evidence_digest) DO NOTHING
+           RETURNING id""",
+        tenant_id,
+        str(payload["field_id"]),
+        str(payload["season_id"]),
+        str(payload["decision_id"]),
+        str(payload["execution_plan_id"]),
+        json.dumps(payload["source_digests"], sort_keys=True),
+        json.dumps(body, sort_keys=True),
+        digest,
+        measured_at,
+    )
+    # 'degraded', not 'verified': adherence is proven; outcome and attribution are not.
+    return {
+        "status": "recorded" if inserted is not None else "replay",
+        "outcome_status": "degraded",
+        "outcome_evidence_digest": digest,
+        "executed_as_approved": body["questions"]["executed_as_approved"]["answer"],
+    }

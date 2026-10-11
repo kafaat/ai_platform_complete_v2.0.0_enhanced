@@ -96,7 +96,7 @@ function ByStatusChip({ status, count }: { status: ExecutionLoopStatus; count: n
       className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
       style={{ background: '#1e293b', borderColor: '#334155' }}
     >
-      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: hex }} aria-hidden="true" />
+      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: hex }} aria-hidden="true" />
       <span className="text-[12px] text-slate-200">{STATUS_LABEL_AR[status]}</span>
       <span
         className="text-[12px] font-bold px-1.5 rounded-full"
@@ -253,7 +253,7 @@ export default function ExecutionFeedbackPage() {
             className="rounded-xl border p-4 flex items-start gap-3"
             style={{ background: '#1a1400', borderColor: '#f59e0b33' }}
           >
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="space-y-1">
               <div className="text-sm font-semibold text-amber-200">
                 🟡 حالات الحلقة من سجلّات مُدامة فقط — غير المُسجَّل لا يُفترَض مُنفَّذاً، والمنفَّذ بلا قياس ليس نجاحاً

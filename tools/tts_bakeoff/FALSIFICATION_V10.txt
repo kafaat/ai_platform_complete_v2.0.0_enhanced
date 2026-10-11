@@ -1,0 +1,12 @@
+تحقّقٌ من ادّعاء مراجعة المالك لـv9 (قيمٌ غير منتهية) على نسختَي v9 وv10 المجمّدتين، ثمّ على v11 — 2026-10-04
+السجلّ: fixtures/comparable_result.json (حقيقيّ، bwrap، قابلٌ للمقارنة)؛ تُعدَّل قيمةٌ واحدة ويُكتب الملفُّ بـjson.dumps (يكتب NaN حرفيّاً)
+
+   sentences[0].wall_s = NaN (حالةُ المالك) v9 rc=0   v10 rc=0   v11 rc=2
+   sentences[0].wall_s = Infinity           v9 rc=0   v10 rc=0   v11 rc=2
+   sentences[2].audio_s = -Infinity         v9 rc=2   v10 rc=2   v11 rc=2
+   sentences[0].rtf = NaN                   v9 rc=0   v10 rc=0   v11 rc=2
+   concurrency.1.latency.median_s = NaN     v9 rc=2   v10 rc=2   v11 rc=2
+   sentences[0].wall_s = 1e999 (يفيض)       v9 rc=0   v10 rc=0   v11 rc=2
+
+سببُ القبول في v9/v10: json.loads يقبل NaN/Infinity افتراضاً (ليست JSON صالحاً)، وحقولُ الجمل كان يحرسها العقدُ وحده —
+وNaN يفشل كلَّ مقارنة فلا يخرق exclusiveMinimum، وInfinity أكبرُ من 0 فيمرّ. الحقولُ التي يمرّ بها _num (isfinite) كانت تُرفض.

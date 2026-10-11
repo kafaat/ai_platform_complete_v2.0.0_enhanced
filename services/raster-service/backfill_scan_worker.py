@@ -28,6 +28,7 @@ from datetime import UTC, datetime
 from typing import Any, NamedTuple
 
 import asyncpg
+import radiometry_containment
 import raster_api_models as api_models
 import raster_backfill_scene_processing
 import raster_date_geo
@@ -356,6 +357,9 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         #   • إذا صار raster_asset جاهزاً فعلاً => skip.
                         #   • إذا لا يوجد أصل ready => أعد ربط العنصر الحالي بهذه التشغيلة
                         #     وأعده إلى queued ليُعاد السحب بدل أن يختفي بصمت.
+                        #   • إلّا الفشلَ الدائم (radiometry_unresolved): المفتاح يحمل
+                        #     processing_version، فعنصرٌ محجوبٌ لهذه النسخة لا يُعاد صفُّه —
+                        #     يُرفَع الحجبُ بنسخة معالجة جديدة (مفتاح جديد) لا بإعادة محاولة.
                         if exists:
                             items_skipped += 1
                             continue
@@ -365,14 +369,17 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                                SET run_id=$1, status='queued', job_id=NULL, error=NULL,
                                    processed_at=NULL
                              WHERE tenant_id=$2::uuid AND idempotency_key=$3
+                               AND (error IS NULL OR NOT starts_with(error, $4))
                              RETURNING id
                             """,
                             run_id,
                             tenant,
                             key,
+                            radiometry_containment.ITEM_ERROR,
                         )
             if item_id is None:
-                # سباق نادر: عنصر تعذر إدراجه أو استعادته. لا نعلن نجاحاً ولا نرسل طلباً مكرراً.
+                # سباق نادر (عنصر تعذر إدراجه أو استعادته)، أو عنصرٌ فشل فشلاً دائماً لهذه
+                # النسخة فلم يُعَد صفُّه. لا نعلن نجاحاً ولا نرسل طلباً مكرراً.
                 items_failed += 1
                 continue
             if exists:
@@ -669,8 +676,8 @@ def _process_scene_index(
 
     التحويل إلى CDSE: مشاهد truecolor دائماً عبر CDSE (Fix 2: تجنّب قراءة النطاق الكامل OOM).
     المشاهد بلا ``bands_urls`` (كتالوج Copernicus) عبر Process API مثبَّت على تاريخ المشهد.
-    المشاهد ذات ``bands_urls`` (ارتداد Element84) تبقى على مسار الـVRT."""
-    import stac_vrt
+    المشاهد ذات ``bands_urls`` (Element84) **محجوبة**: ``radiometry_unresolved`` قبل أيّ VRT
+    أو معالجة أو حفظ، بسببٍ دائم لا يُعاد صفُّه لهذه النسخة (``radiometry_containment``)."""
 
     try:
         if (scene.get("provider") or "").startswith("landsat") or scene.get("thermal_urls"):
@@ -703,30 +710,17 @@ def _process_scene_index(
             # مشهد CDSE أو truecolor: معالجة خادميّة عبر Process API.
             _process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
             return _outcome_from_job(jid)
-        safe_hrefs = {
-            k: _safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
-        }
-        vrt_path, index_map = stac_vrt.build_band_vrt(
-            safe_hrefs, out_dir=raster_settings.UPLOAD_DIR
+        # مشهد Element84 (ذو bands_urls): محجوب قبل بناء الـVRT وقبل أيّ معالجة أو كتابة
+        # COG أو حفظ — radiometry_containment. لا ارتداد إلى CDSE: هويّةُ المشهد تُطلَب صراحةً.
+        radiometry_containment.reject_element84_vrt(
+            (scene.get("bands_urls") or {}).keys(), entry_point="backfill_scan_worker"
         )
-        preq = api_models.ProcessRequest(
-            tenant_id=tenant,
-            field_id=field,
-            raster_url=vrt_path,
-            indicator=api_models.IndicatorKind(index),
-            source_format=api_models.SourceFormat.sentinel2_l2a,
-            bands=api_models.BandMapping(
-                **{k: v for k, v in index_map.items() if k in api_models.BandMapping.model_fields}
-            ),
-            clip_polygon_geojson=clip,
-            apply_cloud_mask=bool(apply_cloud_mask),
-            scene_id=scene.get("item_id"),
-            capture_datetime=scene.get("datetime"),
-            provider="element84",
-            geometry_revision=geom_rev,
+    except radiometry_containment.RadiometryUnresolved as e:
+        # سببٌ ثابت لا نصّ استثناء؛ والبادئة يقرؤها مسارُ إعادة الصفّ فلا يُعاد العنصر.
+        logger.warning(
+            "backfill scene %s/%s محجوب: %s", scene.get("item_id"), index, e.detail["code"]
         )
-        raster_processing_runtime.run_processing(jid, preq)
-        return _outcome_from_job(jid)
+        return SceneOutcome(False, radiometry_containment.ITEM_ERROR)
     except Exception as e:  # noqa: BLE001
         import uuid as _uuid_local
 

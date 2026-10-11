@@ -1,0 +1,95 @@
+{
+  "kind": "auxiliary ASR screen — not a verdict; not read by score.py",
+  "run_id": "flite-owner",
+  "engine": "flite (English, owner run)",
+  "network_probe": {
+    "host": "pypi.org:443",
+    "result": "reachable",
+    "proves_isolation": false
+  },
+  "clips": [
+    {
+      "sentence_id": "E01",
+      "clip_sha256": "5c4417b0905d684bdfe17a38f404bfd9281fb2b164a8f791db46b1c89c584fbe",
+      "evaluator": {
+        "name": "pocketsphinx",
+        "version": "5.1.1",
+        "adapter": "pocketsphinx",
+        "binary": null,
+        "binary_sha256": null,
+        "model_path": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us",
+        "model_sha256": "52497f3603ebc982bda0ad8ebd5ea2a15c411b6aad4e5efab667dfe4b9a55eb3",
+        "language": "en",
+        "params": {},
+        "python": "3.11.15",
+        "timeout_s": 60,
+        "load_timeout_s": 120,
+        "isolation": "subprocess with own session; timeout enforced by killing the process group",
+        "worker_python": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/bin/python",
+        "isolate_net": true,
+        "semantic_py_sha256": "fde0a0ca088aee55a7770a9b3bcbdf6bfca05812846bef35549ea398645c0d31",
+        "facts_sha256": "02b39467bffad2fb2f916869dc0d1f6a5e95877d4e7e583561a0215d7ae7cd13"
+      },
+      "invocation": {
+        "kwargs": {
+          "hmm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us",
+          "lm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us.lm.bin",
+          "dict": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/cmudict-en-us.dict",
+          "loglevel": "FATAL",
+          "full_utt": true
+        },
+        "process": "subprocess",
+        "pid": 21671,
+        "worker_python": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/bin/python",
+        "isolate_net": true
+      },
+      "reference_text_in_invocation": false,
+      "seconds": 1.203,
+      "transcript": "this is a synthetic the ph test for cider lol now field operation is requested",
+      "evaluator_error": null,
+      "timeout": null,
+      "flags": [
+        "نفيٌ مفقود أو تغيّر فعلُه: «no field» (الموجود [])"
+      ],
+      "uncovered_content": [
+        "this",
+        "is",
+        "a",
+        "the",
+        "ph",
+        "for",
+        "cider",
+        "lol",
+        "now",
+        "is"
+      ],
+      "screen": "FLAGGED"
+    }
+  ],
+  "evaluator_runtime": {
+    "kwargs": {
+      "hmm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us",
+      "lm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us.lm.bin",
+      "dict": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/cmudict-en-us.dict",
+      "loglevel": "FATAL",
+      "full_utt": true
+    },
+    "decoder_config_actual": {
+      "hmm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us",
+      "lm": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/en-us.lm.bin",
+      "dict": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/venv_ps/lib/python3.11/site-packages/pocketsphinx/model/en-us/cmudict-en-us.dict"
+    },
+    "network_probe": "unreachable",
+    "library": "pocketsphinx",
+    "library_version": "5.1.1",
+    "python": "3.11.15"
+  },
+  "evaluator_network_isolation": "PROVEN",
+  "summary": {
+    "NO_FLAG_ON_DECLARED_CHECKS": 0,
+    "REVIEW_UNCOVERED_CONTENT": 0,
+    "FLAGGED": 1,
+    "EVALUATOR_FAILED": 0,
+    "EVALUATOR_TIMEOUT": 0
+  }
+}

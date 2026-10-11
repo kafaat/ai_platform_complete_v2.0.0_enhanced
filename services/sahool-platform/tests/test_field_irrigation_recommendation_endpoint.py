@@ -599,3 +599,103 @@ async def test_submission_without_proof_of_persistence_is_not_pending_approval(m
     assert out["approval_state"] == "submit_unproven"
     assert out["decision_id"] is None
     assert any("fail-closed" in lim for lim in out["limitations"])
+
+
+# ── IRRIGATION-CANDIDATE-HAS-NO-LINEAGE-01 ─────────────────────────────────────────────
+async def _snap_dry(_lat, _lon):
+    return {
+        "t_min_c": 17.0,
+        "t_max_c": 33.0,
+        "wind_2m_ms": 2.0,
+        "solar_rad_mj_m2": 22.0,
+        "rh_mean_pct": None,
+        "rain_recent_mm": 0.0,
+        "forecast_rain_mm": 0.0,
+        "day_of_year": 191,
+        "valid_time": "2026-07-10",
+        "source": "weather-engine-forecast",
+    }
+
+
+class _TenantUser:
+    tenant_id = "tenant-irr"
+    user_id = "u-irr"
+    username = "u-irr"
+
+
+@pytest.mark.asyncio
+async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_id(monkeypatch):
+    import hashlib
+    import json
+
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    seen: list[dict] = []
+
+    async def _submit(payload, _tenant):
+        seen.append(payload)
+        return {
+            "decision_id": payload["decision_id"],
+            "authoritative": True,
+            "persisted": True,
+            "stage": "candidate",
+        }
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _submit)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_dry)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    out1 = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+    out2 = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+
+    value = seen[0]["decision_value"]
+    body = {k: v for k, v in value.items() if k not in ("content_digest", "candidate_lineage_id")}
+    digest = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+    assert value["content_digest"] == digest
+    assert value["candidate_lineage_id"] == "irr_" + digest[:16]
+    assert value["recommendation"]["should_irrigate"] is True
+    assert seen[0]["season_id"] == value["season_id"]  # AC-6 identity at the top level
+    # Same content ⇒ same decision id ⇒ a resubmit is a replay, not a second candidate.
+    assert seen[0]["decision_id"] == seen[1]["decision_id"] == out1["decision_id"]
+    assert out1["approval_state"] == out2["approval_state"] == "pending_approval"
+
+
+@pytest.mark.asyncio
+async def test_a_candidate_that_does_not_recommend_irrigation_is_not_submitted(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=5.0))
+    called = []
+
+    async def _submit(payload, _tenant):
+        called.append(payload)
+        return {}
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _submit)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_dry)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    out = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+    assert out["recommendation"]["should_irrigate"] is False
+    assert out["approval_state"] == "blocked_not_recommending_irrigation"
+    assert called == []
+
+
+@pytest.mark.asyncio
+async def test_a_candidate_requiring_expert_review_is_not_submitted(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    real = mod.recommend_irrigation
+
+    def _expert(**kw):
+        return {**real(**kw), "requires_expert_review": True}
+
+    called = []
+
+    async def _submit(payload, _tenant):
+        called.append(payload)
+        return {}
+
+    monkeypatch.setattr(mod, "recommend_irrigation", _expert)
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _submit)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_dry)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    out = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+    assert out["approval_state"] == "blocked_requires_expert_review"
+    assert called == []

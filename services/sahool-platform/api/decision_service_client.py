@@ -213,6 +213,17 @@ async def review_decision(
     )
 
 
+async def get_execution_plan_state(
+    execution_plan_id: str, *, tenant_id: str | None = None
+) -> dict[str, Any]:
+    """Live plan state for the manual start/confirm re-check (read-only). decision-service owns
+    the verdict (``bound``); mirror mode is 503 there and must fail the caller closed."""
+    return await decision_get_json(
+        f"/v1/execution-plans/{execution_plan_id}",
+        tenant_id=tenant_id,
+    )
+
+
 async def create_execution_plan(
     decision_id: str,
     payload: dict[str, Any],

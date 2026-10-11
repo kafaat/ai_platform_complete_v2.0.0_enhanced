@@ -1,0 +1,27 @@
+إعادةُ إثبات مراجعة المالك لـv12 على مضيفٍ مقيَّد — محاكاةٌ بشروطٍ حقيقيّة (restricted_host_sim.sh) — 2026-10-04
+
+الشروط داخل المحاكاة (مقيسة):
+   CapEff:	0000000000000000
+   CapBnd:	0000000000000000
+   NoNewPrivs:	1
+   mkdir: cannot create directory '/sys/fs/cgroup/memory/x': Read-only file system
+   unshare: unshare failed: Operation not permitted
+
+v12 (sha256 e925ea92…00c0c) في المحاكاة نفسها — ينهار كما عند المالك:
+     File "/usr/lib/python3.11/subprocess.py", line 571, in run
+       raise CalledProcessError(retcode, process.args,
+   subprocess.CalledProcessError: Command '['/usr/local/bin/python3', '/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/tts_bakeoff_v12_frozen/blind.py', '/tmp/bakeoff-selftest-cnz0gtsp/runs/fake-20261004T175150Z-a5418f07', '--out', '/tmp/bakeoff-selftest-cnz0gtsp/review-score']' returned non-zero exit status 1.
+   rc=1
+
+السبب: selftest.py:50 في v12 — isolated = os.geteuid() == 0 and shutil.which("unshare") is not None
+   يستنتج العزلَ من root ووجود الأداة، فيُمرّر blind.py بلا --allow-unverified-network على سجلٍّ BLOCKED فيرفضه، ثمّ check=True ينهي الاختبار.
+
+v13 في المحاكاة نفسها:
+   المضيف: netns=لا (unshare: unshare failed: Operation not permitted) · cgroup_v1=لا (OSError: [Errno 30] Read-only file system: '/sys/fs/cgroup/memory/bakeoff-probe-24008') · bwrap=لا (bwrap: Creating new namespace failed: Operation not permitted)
+   48 حالة · فشل 0 · BLOCKED 7
+   rc=0
+
+v13 على المضيف غير المقيَّد:
+   المضيف: netns=نعم (ok) · cgroup_v1=نعم (ok) · bwrap=نعم (ok)
+   65 حالة · فشل 0 · BLOCKED 0
+   rc=0

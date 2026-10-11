@@ -38,6 +38,9 @@ export interface ManualExecutionRecord {
     actual_runtime_h?: number;
     actual_volume_m3?: number;
     actual_depth_mm?: number;
+    target_depth_mm?: number;
+    deviation_pct?: number | null;
+    deviation_reason?: string | null;
     quality?: string;
     blocking_reasons?: string[];
   } | null;
@@ -59,6 +62,8 @@ export interface ManualExecutionConfirmationInput {
   pressure_bar?: number;
   evidence_digests: string[];
   notes?: string;
+  /** لازمٌ حين يتجاوز انحرافُ العمق المُطبَّق عن المُخطَّط ±15% (الخادم يرفض بـ422 بدونه). */
+  deviation_reason?: string;
 }
 
 export interface ManualVerificationInput {

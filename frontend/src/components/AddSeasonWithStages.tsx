@@ -398,7 +398,7 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
 
           {/* ⑤ WOFOST info */}
           <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background:'#172032', border:'1px solid #1e3a4a' }}>
-            <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+            <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
             <p className="text-slate-400">
               عند الحفظ سيتم تشغيل محاكاة <strong className="text-blue-400">WOFOST-RUE-v8</strong> تلقائياً لحساب:
               إنتاجية متوقعة، GDD، LAI، احتياجات الري والتسميد. قد يستغرق ذلك حتى دقيقة.

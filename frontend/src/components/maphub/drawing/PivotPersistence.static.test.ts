@@ -6,6 +6,9 @@ const root = process.cwd();
 const mapHub = fs.readFileSync(path.join(root, 'src/sections/MapHub.tsx'), 'utf8');
 const api = fs.readFileSync(path.join(root, 'src/components/maphub/drawing/drawingFeatureApi.ts'), 'utf8');
 const router = fs.readFileSync(path.join(root, '../services/sahool-platform/api/routers/drawing_features.py'), 'utf8');
+// #990 نقل DDL الجدول من الراوتر إلى هجرةٍ مُرقّمة؛ والشاهدُ الخلفيّ
+// (test_drawing_features_v38_static.py) يقرأ الهجرةَ نفسَها منذئذ.
+const migration = fs.readFileSync(path.join(root, '../migrations/v230_drawing_features.sql'), 'utf8');
 
 describe('v37/v38 pivot persistence contract', () => {
   it('links pivot drafts to the selected field and active season before saving', () => {
@@ -23,7 +26,8 @@ describe('v37/v38 pivot persistence contract', () => {
   });
 
   it('adds tenant-scoped backend CRUD routes for drawing features', () => {
-    expect(router).toContain('CREATE TABLE IF NOT EXISTS drawing_features');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS drawing_features');
+    expect(router).not.toContain('CREATE TABLE');
     expect(router).toContain('@router.get("/api/v1/fields/{field_id}/drawing-features"');
     expect(router).toContain('@router.post("/api/v1/drawing-features"');
     expect(router).toContain('@router.patch("/api/v1/drawing-features/{feature_id}"');

@@ -126,7 +126,7 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
           borderRadius: RADIUS.sm, padding: 8, fontSize: 11,
         }}
       >
-        <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" aria-hidden="true" />
+        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           هذا النموذج <strong>يُسجِّل بيانات وصفيّة + مرجع تخزين (storage_ref)</strong> — وليس رفعاً للملفّ.
           الملفّ الفعليّ يبقى في تخزين الكائنات، ويُدخَل هنا مساره أو رابطه.
@@ -290,7 +290,7 @@ export default function DocumentsPage() {
             style={{ color: T.info, fontSize: 12 }}
             dir="ltr" title={d.storage_ref}
           >
-            <ExternalLink className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <ExternalLink className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span className="truncate">فتح</span>
           </a>
         ) : (

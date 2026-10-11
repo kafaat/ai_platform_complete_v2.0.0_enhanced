@@ -1,0 +1,6 @@
+{
+  "_doc": "حقائقُ يدويّة للمقطع الإنجليزيّ fixtures/sahool_flite_test.wav (من تشغيل المالك لـFlite). النصُّ الأصليّ غيرُ مسجَّل في ملفّ نتيجة المالك؛ الحقائقُ مكتوبةٌ من نصّ المالك في رسالته: «No field operation». اختبارُ تشغيلٍ حقيقيّ لسلسلة الفرز، لا تقييمٌ للعربيّة.",
+  "sentences": {
+    "E01": {"negations": ["No field"], "content": ["synthetic", "test", "field operation", "requested"]}
+  }
+}

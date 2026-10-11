@@ -511,7 +511,7 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
                   {guidanceQ.data.adaptation_summary_ar && <div className="text-[11px]" style={{ color: T.muted }}>{guidanceQ.data.adaptation_summary_ar}</div>}
                   {guidanceQ.data.phenology_ar && <div className="text-[10px]" style={{ color: T.faint }}>الفينولوجيا: {guidanceQ.data.phenology_ar}</div>}
                   {keyParams.map((k, i) => (
-                    <div key={`${k.param}-${i}`} className="text-[11px] rounded border p-1" style={{ borderColor: T.line, color: T.muted }}>
+                    <div key={`${k.param}-${i}`} className="text-[11px] rounded-sm border p-1" style={{ borderColor: T.line, color: T.muted }}>
                       <span className="font-semibold" style={{ color: T.ink }}>{k.name_ar ?? k.param}</span>
                       {k.range && <span style={{ color: T.faint }}> · المدى {k.range}</span>}
                       {k.default_wheat && <span style={{ color: T.faint }}> · القمح {k.default_wheat}</span>}

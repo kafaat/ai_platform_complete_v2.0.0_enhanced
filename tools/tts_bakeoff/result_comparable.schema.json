@@ -1,0 +1,520 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sahool-tts-bakeoff/result_comparable.schema.json",
+  "title": "عقدُ سجلّ قياسٍ قابلٍ لمقارنة الأداء",
+  "description": "بنيةُ result.json التي يقبلها perf.py. البنيةُ الصالحة لا تُثبت أنّ القياس نُفِّذ: الاتّساقُ بين الحقول (p95 ≥ الوسيط، الطلبات = النجاح + الأخطاء + المهل، الفعليّ = المطلوب، عددُ الجمل) في perf.evidence_problems، ومطابقةُ الملفّات بالبصمات في العامل والمنسّق. وفي التزامن: لا أخطاء ولا مهلات (errors = timeouts = 0)، والكمونُ كاملٌ بـp95.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "engine",
+    "harness_status",
+    "network_isolation",
+    "files_readonly",
+    "pinned_integrity_after",
+    "performance_comparable",
+    "resource_limits",
+    "environment",
+    "verified_files",
+    "load",
+    "sentences",
+    "sequential",
+    "concurrency",
+    "coordinator",
+    "isolation_control"
+  ],
+  "not": {
+    "required": [
+      "file_inventory"
+    ]
+  },
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engine": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harness_status": {
+      "const": "ok"
+    },
+    "network_isolation": {
+      "const": "PROVEN"
+    },
+    "files_readonly": {
+      "const": "ENFORCED"
+    },
+    "pinned_integrity_after": {
+      "const": "INTACT"
+    },
+    "performance_comparable": {
+      "const": true
+    },
+    "isolation_control": {
+      "type": "object",
+      "required": [
+        "isolated",
+        "probes"
+      ],
+      "properties": {
+        "isolated": {
+          "const": true
+        },
+        "probes": {
+          "type": "object",
+          "minProperties": 2,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^blocked"
+          }
+        }
+      }
+    },
+    "resource_limits": {
+      "type": "object",
+      "required": [
+        "status",
+        "requested",
+        "in_effect"
+      ],
+      "properties": {
+        "status": {
+          "const": "ENFORCED"
+        },
+        "requested": {
+          "type": "object",
+          "required": [
+            "memory_limit_mb",
+            "cpu_quota",
+            "cpu_cores",
+            "threads"
+          ],
+          "properties": {
+            "memory_limit_mb": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "cpu_quota": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "cpu_cores": {
+              "type": "string",
+              "pattern": "^[0-9]+(,[0-9]+)*$"
+            },
+            "threads": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "in_effect": {
+          "type": "object",
+          "required": [
+            "memory_limit_mb",
+            "cpu_quota",
+            "cpu_affinity"
+          ],
+          "properties": {
+            "memory_limit_mb": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "cpu_quota": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "cpu_affinity": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "corpus_sha256",
+        "scripts_sha256",
+        "packages",
+        "limits"
+      ],
+      "properties": {
+        "corpus_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scripts_sha256": {
+          "type": "object",
+          "required": [
+            "audio.py",
+            "engines.py",
+            "worker.py",
+            "run.py",
+            "blind.py",
+            "score.py",
+            "perf.py",
+            "procs.py"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "==."
+          }
+        },
+        "limits": {
+          "type": "object"
+        }
+      }
+    },
+    "verified_files": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/sha256"
+      }
+    },
+    "load": {
+      "type": "object",
+      "required": [
+        "seconds"
+      ],
+      "properties": {
+        "seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "sentences": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "ok",
+          "sha256",
+          "wall_s",
+          "audio_s"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ok": {
+            "const": true
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "wall_s": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "audio_s": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "sequential": {
+      "type": "object",
+      "required": [
+        "ok",
+        "failed",
+        "cold_request",
+        "warm_requests",
+        "rtf_warm_median"
+      ],
+      "properties": {
+        "ok": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "failed": {
+          "const": 0
+        },
+        "cold_request": {
+          "$ref": "#/$defs/latency"
+        },
+        "warm_requests": {
+          "$ref": "#/$defs/latency"
+        },
+        "rtf_warm_median": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "concurrency": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[1-9][0-9]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "requests",
+          "succeeded",
+          "errors",
+          "timeouts",
+          "span_s",
+          "throughput_rps",
+          "latency"
+        ],
+        "properties": {
+          "requests": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "succeeded": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "errors": {
+            "const": 0
+          },
+          "timeouts": {
+            "const": 0
+          },
+          "throughput_rps": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "latency": {
+            "$ref": "#/$defs/latency"
+          },
+          "span_s": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "coordinator": {
+      "type": "object",
+      "required": [
+        "exit_code",
+        "killed_at_hard_timeout",
+        "survivors_after_exit",
+        "negative_control",
+        "cgroup",
+        "cgroup_stats",
+        "sandbox"
+      ],
+      "properties": {
+        "exit_code": {
+          "const": 0
+        },
+        "killed_at_hard_timeout": {
+          "const": false
+        },
+        "survivors_after_exit": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "negative_control": {
+          "type": "object",
+          "required": [
+            "reached"
+          ],
+          "properties": {
+            "reached": {
+              "const": true
+            }
+          }
+        },
+        "cgroup": {
+          "type": "object",
+          "required": [
+            "backend",
+            "paths"
+          ],
+          "not": {
+            "required": [
+              "teardown_leaked"
+            ]
+          },
+          "properties": {
+            "backend": {
+              "enum": [
+                "cgroup-v1",
+                "cgroup-v2"
+              ]
+            },
+            "paths": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2,
+              "items": {
+                "type": "string"
+              }
+            },
+            "partial_cleanup": {
+              "type": "object",
+              "properties": {
+                "leaked": {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "backend"
+                ],
+                "properties": {
+                  "backend": {
+                    "const": "cgroup-v1"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "paths": {
+                    "minItems": 2
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "backend"
+                ],
+                "properties": {
+                  "backend": {
+                    "const": "cgroup-v2"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "paths": {
+                    "maxItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "cgroup_stats": {
+          "type": "object",
+          "required": [
+            "memory_peak_mb",
+            "cpu_periods",
+            "cpu_throttled_periods",
+            "cpu_throttled_ratio",
+            "oom_kill_events"
+          ],
+          "not": {
+            "required": [
+              "error"
+            ]
+          },
+          "properties": {
+            "memory_peak_mb": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "cpu_periods": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cpu_throttled_periods": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cpu_throttled_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "oom_kill_events": {
+              "const": 0
+            }
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "required": [
+            "kind",
+            "binds"
+          ],
+          "properties": {
+            "kind": {
+              "const": "bwrap"
+            },
+            "binds": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "engine": {
+        "const": "fake"
+      }
+    }
+  },
+  "then": {},
+  "else": {
+    "properties": {
+      "verified_files": {
+        "minProperties": 1
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "latency": {
+      "type": "object",
+      "required": [
+        "n",
+        "median_s",
+        "p95_s"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "median_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "p95_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    }
+  }
+}

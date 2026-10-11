@@ -1,0 +1,28 @@
+id	category	synthetic_example	critical_facts	text
+C01	crop	yes - synthetic test sentence, not field advice	-	Sorghum planting in the coastal plain begins with the first summer rain.
+C02	crop	yes - synthetic test sentence, not field advice	-	Highland coffee needs light shade and regular irrigation on terraces.
+C03	crop	yes - synthetic test sentence, not field advice	-	Transplant the seedlings once the soil has warmed through.
+C04	crop	yes - synthetic test sentence, not field advice	May; August	The nursery window opens in May and closes in August.
+C05	crop	yes - synthetic test sentence, not field advice	-	Rotate legumes with cereals to rebuild soil nitrogen.
+C06	crop	yes - synthetic test sentence, not field advice	-	Mulch the beds to slow evaporation during the dry season.
+P01	pest	yes - synthetic test sentence, not field advice	-	Check the underside of the leaves for whitefly before you spray.
+P02	pest	yes - synthetic test sentence, not field advice	-	Pheromone traps tell you when the moth flight has started.
+P03	pest	yes - synthetic test sentence, not field advice	-	Remove and burn the infested stalks rather than ploughing them in.
+D01	dose	yes - synthetic test sentence, not field advice	two point five (2.5); per litre	Mix two point five millilitres of the concentrate per litre of water.
+D02	dose	yes - synthetic test sentence, not field advice	50; kilograms; per hectare	Apply 50 kilograms of potassium sulphate per hectare.
+D03	dose	yes - synthetic test sentence, not field advice	2.5 (two point five, not 25); millilitres; per litre; the negation do not exceed	Do not exceed 2.5 millilitres per litre.
+D04	dose	yes - synthetic test sentence, not field advice	120; litres; every 7 days	Give each tree 120 litres every 7 days.
+D05	dose	yes - synthetic test sentence, not field advice	3.2; decisiemens per metre	The drainage water reads 3.2 decisiemens per metre.
+D06	dose	yes - synthetic test sentence, not field advice	38 degrees Celsius; 45 percent	Stop the application above 38 degrees Celsius or below 45 percent humidity.
+N01	prohibition	yes - synthetic test sentence, not field advice	the negation do not spray; 14 days	Do not spray within 14 days of harvest.
+N02	prohibition	yes - synthetic test sentence, not field advice	the negation do not irrigate; midday	Do not irrigate at midday.
+N03	prohibition	yes - synthetic test sentence, not field advice	the negation do not mix	Do not mix the copper product with the oil.
+N04	prohibition	yes - synthetic test sentence, not field advice	the negation do not spray; more than 15; kilometres per hour	Do not spray when the wind is more than 15 kilometres per hour.
+N05	prohibition	yes - synthetic test sentence, not field advice	the negation do not enter; 48 hours	Workers must not enter the block for 48 hours.
+N06	prohibition	yes - synthetic test sentence, not field advice	the negation do not spray; six hours	Do not spray if rain is expected within six hours.
+T01	time	yes - synthetic test sentence, not field advice	Tuesday; six in the morning	Irrigate on Tuesday at six in the morning.
+T02	time	yes - synthetic test sentence, not field advice	the third week; October 2026	Harvest in the third week of October 2026.
+T03	time	yes - synthetic test sentence, not field advice	every 3 hours; from 6 to 18	Log the readings every 3 hours from 6 to 18.
+M01	mixed	yes - synthetic test sentence, not field advice	0.62; 0.41; two weeks	The index fell from 0.62 to 0.41 over two weeks.
+M02	mixed	yes - synthetic test sentence, not field advice	5 percent	Only 5 percent of the plot shows the symptom.
+M03	mixed	yes - synthetic test sentence, not field advice	22 percent; 12 percent; two days	Soil moisture dropped from 22 percent to 12 percent in two days.

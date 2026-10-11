@@ -127,7 +127,7 @@ export default function NlGisPage() {
 
       {/* بانر قراءة فقط (بارز) */}
       <div className="rounded-xl border p-3 flex items-center gap-2" style={{ background: '#1a1400', borderColor: '#f59e0b55' }}>
-        <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
         <span className="text-sm font-semibold text-amber-200">قراءة فقط — مبنيّ على بياناتك، لا تنفيذ ولا تعديل.</span>
       </div>
 
@@ -169,7 +169,7 @@ export default function NlGisPage() {
       {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
       {featureOff && (
         <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_NATURAL_LANGUAGE_GIS)</div>
             <div className="text-[12px] text-slate-400">
@@ -220,7 +220,7 @@ export default function NlGisPage() {
           {isUnsupported && (
             <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-200">
                   {res.reason_ar || 'لم أتعرّف على طلب مدعوم. جرّب أحد الأمثلة أدناه.'}
                 </div>
@@ -240,7 +240,7 @@ export default function NlGisPage() {
           {/* الحاجة للبيانات (needs_data) — لا جدول فارغ مُضلِّل */}
           {isNeedsData && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <Info className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+              <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
               <div className="text-sm text-slate-300">
                 {res.note_ar || 'المصدر غير متاح حاليّاً — لا يمكن عرض نتيجة موثوقة الآن.'}
               </div>
@@ -250,7 +250,7 @@ export default function NlGisPage() {
           {/* فراغ صادق (ok مع count=0) */}
           {isOkEmpty && (
             <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-              <Info className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+              <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
               <div className="text-sm text-slate-300">
                 {res.note_ar || 'لا حقول تطابق هذا الاستعلام.'}
               </div>

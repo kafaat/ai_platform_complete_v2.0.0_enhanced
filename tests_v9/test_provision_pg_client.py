@@ -22,6 +22,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 
@@ -111,19 +112,105 @@ def test_every_call_site_exports_the_shim_directory_in_its_own_step():
 
     سقوطُ `Integration Tests` في 32280469751 كان هذا بعينه — وكانت خضراء قبله.
     """
-    ci = CI.read_text(encoding="utf-8")
-    assert "resilient_apt_install.sh postgresql-client" not in ci, (
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    assert "resilient_apt_install.sh postgresql-client" not in CI.read_text(encoding="utf-8"), (
         "عودةُ طريق apt تُعيد رهان الشبكة الذي سقط خمس مرّات مقيسة، وتترك مصدرَي "
         "حقيقةٍ لكيفيّة وصول `psql`: الصورة المسحوبة ومرآةُ Ubuntu — فيصير أيّ عطلٍ "
         "لاحق قابلاً للنسبة إلى أيّهما بلا قياس"
     )
-    lines = ci.splitlines()
-    sites = [i for i, line in enumerate(lines) if "provision_pg_client.sh" in line]
-    assert len(sites) == 3, f"مواضع الاستدعاء = {len(sites)}"
-    for i in sites:
-        assert 'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"' in lines[i + 1], (
-            f"السطر {i + 1} لا يُصدِّر دليل الأغلفة في الخطوة نفسها"
-        )
+    _assert_each_pg_client_callsite_exports_before_use(workflow)
+
+
+def _logical_shell_commands(script):
+    """اجمع أسطر استمرار الصدفة كي يُفحص الأمر المنطقي لا موضع السطر الفيزيائي."""
+    commands = []
+    pending = ""
+    for line in script.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if pending:
+            pending += " " + stripped
+        else:
+            pending = stripped
+        if pending.endswith("\\"):
+            pending = pending[:-1].rstrip()
+            continue
+        commands.append(pending)
+        pending = ""
+    if pending:
+        commands.append(pending)
+    return commands
+
+
+def _assert_each_pg_client_callsite_exports_before_use(workflow):
+    jobs = workflow["jobs"]
+    job_ids = ("integration-tests", "decision-service-tests", "live-pg-fake-connection-proofs")
+    expected_callsites = 0
+    for job_id in job_ids:
+        steps = jobs[job_id]["steps"]
+        for step in steps:
+            script = step.get("run", "")
+            commands = _logical_shell_commands(script)
+            provision_indexes = [
+                index
+                for index, command in enumerate(commands)
+                if "scripts/ci/provision_pg_client.sh" in command
+            ]
+            for provision_index in provision_indexes:
+                expected_callsites += 1
+                export_indexes = [
+                    index
+                    for index, command in enumerate(commands)
+                    if 'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"' in command
+                ]
+                client_indexes = [
+                    index
+                    for index, command in enumerate(commands)
+                    if "pg_isready " in command or "psql " in command
+                ]
+                assert any(index > provision_index for index in export_indexes), (
+                    f"{job_id}: لا يُصدّر PATH بعد تجهيز عميل PostgreSQL داخل الخطوة نفسها"
+                )
+                export_index = next(index for index in export_indexes if index > provision_index)
+                assert any(index > export_index for index in client_indexes), (
+                    f"{job_id}: لا يوجد استخدام عميل بعد تصدير PATH"
+                )
+                assert not any(
+                    provision_index < index < export_index for index in client_indexes
+                ), f"{job_id}: استخدام العميل يسبق تصدير PATH"
+    assert expected_callsites == 3
+
+
+def test_pg_client_contract_accepts_multiline_failure_handling_but_rejects_removed_or_moved_export():
+    workflow = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    decision_steps = workflow["jobs"]["decision-service-tests"]["steps"]
+    setup = next(step for step in decision_steps if "provision_pg_client.sh" in step.get("run", ""))
+    assert "|| {" in setup["run"]
+    _assert_each_pg_client_callsite_exports_before_use(workflow)
+
+    missing_export = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    setup = next(
+        step
+        for step in missing_export["jobs"]["decision-service-tests"]["steps"]
+        if "provision_pg_client.sh" in step.get("run", "")
+    )
+    setup["run"] = setup["run"].replace(
+        'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"\n', ""
+    )
+    with pytest.raises(AssertionError, match="لا يُصدّر PATH"):
+        _assert_each_pg_client_callsite_exports_before_use(missing_export)
+
+    moved_export = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    steps = moved_export["jobs"]["decision-service-tests"]["steps"]
+    setup = next(step for step in steps if "provision_pg_client.sh" in step.get("run", ""))
+    export_line = 'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"\n'
+    setup["run"] = setup["run"].replace(export_line, "")
+    next(step for step in steps if step is not setup and isinstance(step.get("run"), str))[
+        "run"
+    ] += "\n" + export_line
+    with pytest.raises(AssertionError, match="لا يُصدّر PATH"):
+        _assert_each_pg_client_callsite_exports_before_use(moved_export)
 
 
 # ملاحظة: كانت هنا حالةٌ تفرض أنّ الغلاف لا يصل `-i` مع `-f`. ورفض المالك ذلك

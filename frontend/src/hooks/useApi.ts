@@ -1752,7 +1752,7 @@ export function useDecisionLearning(minSample = 5, enabled = true): UseQueryResu
   });
 }
 
-/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر) — قياس لا تنبّؤ. */
+/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، فرق المطلوب عن المُنفَّذ — لا وفر) — قياس لا تنبّؤ. */
 export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQueryResult<DecisionImpactResponse> {
   return useQuery<DecisionImpactResponse>({
     queryKey: ['decision-impact', fieldId ?? 'all'],
@@ -1761,7 +1761,7 @@ export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQ
       .catch((e) => {
         if (isDisabled404(e)) return {
           total_decisions: 0, executed: 0, failed: 0, success_rate: 0,
-          water_requested_mm: 0, water_applied_mm: 0, water_saved_mm: 0, water_records: 0,
+          water_requested_mm: 0, water_applied_mm: 0, requested_minus_applied_mm: 0, water_records: 0,
           by_action: {}, disabled: true,
         };
         throw e;
@@ -1960,12 +1960,13 @@ export function useDecisionAgronomicEvidence(
 /** Approve/reject a pending candidate. The decision-service owns and proves the transition. */
 export function useReviewDecisionCandidate(): ReturnType<typeof useMutation<DecisionReviewResult, Error, DecisionReviewInput>> {
   return useMutation<DecisionReviewResult, Error, DecisionReviewInput>({
-    mutationFn: ({ decisionId, action, reason, candidateLineageId, idempotencyKey }) => kongApi
+    mutationFn: ({ decisionId, action, reason, candidateLineageId, decisionValueDigest, idempotencyKey }) => kongApi
       .post(`/api/v1/decisions/${encodeURIComponent(decisionId)}/review`, {
         action,
         reason,
         expected_state: 'pending_approval',
         candidate_lineage_id: candidateLineageId,
+        decision_value_digest: decisionValueDigest,
         idempotency_key: idempotencyKey,
         policy_version: 'wx-10.8-reviewer-ui-v1',
       })

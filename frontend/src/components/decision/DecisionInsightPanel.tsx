@@ -102,7 +102,7 @@ export default function DecisionInsightPanel() {
               <div className="mt-1">
                 <span className="font-semibold" style={{ color: T.ink }}>النتائج المُدامة ({explainQ.data.outcome_count}):</span>
                 {(explainQ.data.outcomes ?? []).slice(0, 3).map((o) => (
-                  <span key={o.outcome_id} className="mr-1 px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: outcomeSuccessColor(o.success) }}>
+                  <span key={o.outcome_id} className="mr-1 px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: outcomeSuccessColor(o.success) }}>
                     {outcomeSuccessLabel(o.success)}
                   </span>
                 ))}
@@ -117,7 +117,7 @@ export default function DecisionInsightPanel() {
       <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
         <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
           <GraduationCap className="w-4 h-4 text-violet-300" aria-hidden="true" /> اقتراحات التعلُّم
-          <span className="text-[11px] font-normal px-1.5 rounded" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
+          <span className="text-[11px] font-normal px-1.5 rounded-sm" style={{ border: `1px solid ${T.line}`, color: T.faint }}>
             استشاريّة — لا تُطبَّق آليّاً
           </span>
         </div>
@@ -168,12 +168,12 @@ export default function DecisionInsightPanel() {
               <span style={{ color: T.faint }}> · نجاح {percentLabel(impactQ.data.success_rate)}</span>
             </div>
             <div>
-              ماء موفَّر <span style={{ color: '#7dd3fc' }}>{impactQ.data.water_saved_mm}مم</span>
+              فرق المطلوب عن المُنفَّذ (ليس وفراً) <span style={{ color: '#7dd3fc' }}>{impactQ.data.requested_minus_applied_mm}مم</span>
               <span style={{ color: T.faint }}> (من {impactQ.data.water_records} سجلّاً اكتملت كمّيّاته — الناقص لا يُحتسَب)</span>
             </div>
             {Object.entries(impactQ.data.by_action ?? {}).slice(0, 4).map(([action, a]) => (
               <div key={action} style={{ color: T.faint }}>
-                <span style={{ color: T.ink }}>{action}</span> · نُفِّذ {a.executed} · فشل {a.failed} · وفّر {a.water_saved_mm}مم
+                <span style={{ color: T.ink }}>{action}</span> · نُفِّذ {a.executed} · فشل {a.failed} · الفرق {a.requested_minus_applied_mm}مم
               </div>
             ))}
           </div>

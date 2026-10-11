@@ -1,0 +1,19 @@
+إعادةُ إثبات ثغراتٍ كشفها البحثُ والبناء على نسخة v7 المجمّدة (sha256 الحزمة 714504c3…24a5) ثمّ على v8 — 2026-10-04
+
+١. بوّابة الأداء — سجلّاتٌ تخالف عقدَ البنية وتمرّ بفحوص الاتّساق:
+   بصمةُ مقطعٍ غيرُ صالحة       v7 rc=0   v8 rc=2
+   مقطعٌ فاشلٌ داخل سجلٍّ ناجح  v7 rc=0   v8 rc=2
+   نسبةُ تباطؤٍ 4.2 (> 1)       v7 rc=0   v8 rc=2
+   مسبارُ عزلٍ «REACHED»        v7 rc=0   v8 rc=2
+٢ و٤. ملفٌّ تحت /usr/share يقرؤه المحرّك (نموذجٌ .onnx · وملفٌّ نصّيّ بلا امتداد أوزان):
+   voice.onnx   v7  --inventory      stage=undeclared_files_opened  undeclared=True error=None
+   voice.onnx   v8  --inventory      stage=undeclared_files_opened  undeclared=True error=None
+   voice.onnx   v8  --sandbox bwrap  stage=load_failed              undeclared=False error=FileNotFoundError: [Errno 2] No such file or 
+   lexicon.txt  v7  --inventory      stage=complete                 undeclared=False error=None
+   lexicon.txt  v8  --inventory      stage=undeclared_files_opened  undeclared=True error=None
+   lexicon.txt  v8  --sandbox bwrap  stage=load_failed              undeclared=False error=FileNotFoundError: [Errno 2] No such file or 
+٣. faster_whisper بمجلّد نموذجٍ بلا tokenizer.json (المكتبةُ تجلبه من الشبكة بصمت):
+   v7: rc=0 قُبل الإعداد
+   v8: rc=1 اً فيه tokenizer.json (/tmp/tmppe_wkk8o/fw) — وإلّا جلبت المكتبةُ مُرمِّزاً من الشبكة بصمت
+
+لم يُقَس: أيُّ محرّكٍ حقيقيّ، ولا نموذج ASR حقيقيّ، ولا NsJail.

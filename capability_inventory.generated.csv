@@ -69,6 +69,7 @@ decision-service.decisions.review-queue,query,decision-service,GET /v1/decisions
 decision-service.dispatch-authorizations.dispatch_authorization_id.execute,command,decision-service,POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute,,route,False
 decision-service.dispatch.decisions,mixed,decision-service,GET /v1/dispatch/decisions|POST /v1/dispatch/decisions,,route,False
 decision-service.evidence.vegetation-snapshots,command,decision-service,POST /v1/evidence/vegetation-snapshots,,route,False
+decision-service.execution-plans.execution_plan_id,query,decision-service,GET /v1/execution-plans/{execution_plan_id},,route,False
 decision-service.execution-plans.execution_plan_id.authorize-dispatch,command,decision-service,POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch,,route,False
 decision-service.execution-requests,query,decision-service,GET /v1/execution-requests,,route,False
 decision-service.execution-requests.execution_request_id.claim,command,decision-service,POST /v1/execution-requests/{execution_request_id}/claim,,route,False

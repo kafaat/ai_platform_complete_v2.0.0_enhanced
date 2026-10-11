@@ -494,3 +494,116 @@ pytestmark = [
     pytest.mark.unit,
     pytest.mark.skipif(find_spec("fastapi") is None, reason="requires fastapi (platform runtime)"),
 ]
+
+
+# CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01 — شاهدٌ تنفيذيّ من مُخرَج الطقس الحقيقيّ إلى نواة ET0 الحقيقيّة:
+# حمولةُ مزوّدٍ بشكل Open-Meteo ⇒ ``normalize_daily`` ⇒ ``build_canonical_weather_state`` ⇒ ``forecast_view``
+# (ما يُرجِعه ``/v1/weather/forecast`` فعلاً) ⇒ ``resolve_canonical_water_state`` ⇒ ``et0_series_product``
+# (نواة المحرّك نفسها، بلا HTTP). لا يُزيَّف طرفٌ يحمل أسماءَ الحقول.
+_WEATHER_SERVICE = (
+    __import__("pathlib").Path(__file__).resolve().parents[1] / "services/weather-service"
+)
+
+
+def _provider_daily(n, *, with_rh=True, with_mean_wind=True):
+    start = datetime.now(UTC).date()
+    daily = {
+        "time": [(start + timedelta(days=i)).isoformat() for i in range(n)],
+        "temperature_2m_max": [32.0] * n,
+        "temperature_2m_min": [18.0] * n,
+        "precipitation_sum": [0.0] * n,
+        "et0_fao_evapotranspiration": [6.1] * n,
+        "wind_speed_10m_max": [36.0] * n,  # كم/س ⇒ 10 م/ث — القصوى، لا تُستعمَل
+        "shortwave_radiation_sum": [24.0] * n,
+    }
+    if with_rh:
+        daily["relative_humidity_2m_mean"] = [40.0] * n
+    if with_mean_wind:
+        daily["wind_speed_10m_mean"] = [10.8] * n  # كم/س ⇒ 3 م/ث على 10م
+    return {"daily": daily, "timezone": "UTC"}
+
+
+@pytest.fixture
+def real_weather_chain(monkeypatch, canonical_patches):
+    import sys
+
+    import api.canonical_water_state as c
+
+    sys.path.insert(0, str(_WEATHER_SERVICE))
+    from canonical_weather_state import build_canonical_weather_state, forecast_view
+    from et0 import et0_series_product
+    from open_meteo import normalize_daily
+
+    seen = {}
+
+    def install(**provider_kw):
+        async def forecast(lat, lon, *, days, **_):
+            series = normalize_daily(
+                _provider_daily(days, **provider_kw),
+                lat=lat,
+                lon=lon,
+                source="open-meteo",
+                model="best_match",
+            )
+            state = build_canonical_weather_state(
+                lat_deg=lat, valid_time=series["range"]["start"], forecast_series=series
+            )
+            return forecast_view(state)
+
+        async def et0(**kwargs):
+            seen.update(kwargs)
+            kwargs.pop("tenant_id", None)
+            return et0_series_product(**kwargs)
+
+        monkeypatch.setattr(c, "get_weather_forecast", forecast)
+        monkeypatch.setattr(c, "get_et0_series", et0)
+        return seen
+
+    return install
+
+
+def _resolve(horizon=3):
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    return asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=horizon
+        )
+    )
+
+
+def test_the_real_forecast_reaches_penman_monteith_with_converted_wind(real_weather_chain):
+    seen = real_weather_chain()
+    out = _resolve()
+    # المفاتيحُ التي يُصدِرها المُطبِّع فعلاً تصل إلى المحرّك.
+    assert seen["daily_rh_mean_pct"] == [40.0] * 3
+    # 10.8 كم/س ⇒ 3.0 م/ث على 10م ⇒ ×4.87/ln(67.8·10−5.42) ≈ 0.748 ⇒ 2.244 م/ث على 2م.
+    assert seen["daily_wind_2m_ms"] == [pytest.approx(2.244, abs=1e-3)] * 3
+    # لا القصوى (10 م/ث) ولا المتوسّطُ غيرُ المحوَّل (3 م/ث).
+    assert all(w not in (10.0, 3.0) for w in seen["daily_wind_2m_ms"])
+    assert [d["et0_method"] for d in out.forecast] == ["fao56_penman_monteith"] * 3
+    assert out.quality_status == "verified"
+    assert not any("et0_reference_unavailable" in x for x in out.limitations)
+
+
+@pytest.mark.parametrize(
+    "provider_kw", [{"with_rh": False}, {"with_mean_wind": False}], ids=["no-rh", "no-mean-wind"]
+)
+def test_a_missing_pm_input_degrades_and_never_borrows_the_max_wind(
+    real_weather_chain, provider_kw
+):
+    seen = real_weather_chain(**provider_kw)
+    out = _resolve()
+    assert [d["et0_method"] for d in out.forecast] == ["hargreaves_fallback"] * 3
+    if not provider_kw.get("with_mean_wind", True):
+        assert seen["daily_wind_2m_ms"] == [None] * 3  # القصوى لا تملأ الغياب
+    assert out.quality_status == "degraded"
+    assert out.operational_eligible is True  # ET0 متدهورٌ لا غائب
+    assert any("et0_reference_unavailable: 3/3" in x for x in out.limitations)
+
+
+def test_an_engine_that_does_not_declare_its_method_is_not_reference(canonical_patches):
+    """مُنتِجٌ لا يُعلِن ``methods`` (كالبديل في الحزمة أعلاه) يُعدّ متدهوراً — لا «verified» افتراضاً."""
+    out = _resolve(horizon=1)
+    assert out.forecast[0]["et0_method"] is None
+    assert out.quality_status == "degraded"

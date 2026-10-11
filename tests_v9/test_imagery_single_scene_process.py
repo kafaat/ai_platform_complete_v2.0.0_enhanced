@@ -109,7 +109,10 @@ def test_p1_ready_asset_preflight_matches_scene_id() -> None:
     src = DB_PERSIST.read_text(encoding="utf-8")
     # Locate the enqueue preflight query and assert scene_id is part of the ready-asset match.
     idx = src.index("async def enqueue_single_scene_process(")
-    body = src[idx : idx + 4000]
+    # جسمُ الدالّة كلُّه لا نافذةٌ ثابتة: نافذةُ 4000 محرفٍ قطعت الاستعلام عند «AND asset_statu»
+    # حين أُضيف سطرُ استيرادٍ قبله — فحصٌ يحمرّ بطول الكود لا بسلوكه.
+    end = src.find("\nasync def ", idx + 1)
+    body = src[idx : end if end != -1 else len(src)]
     assert "asset_status='ready'" in body
     assert "AND scene_id=$5" in body, "ready-asset preflight must match scene_id"
 

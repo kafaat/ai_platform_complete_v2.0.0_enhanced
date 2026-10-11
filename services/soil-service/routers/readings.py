@@ -17,6 +17,11 @@ from fastapi import APIRouter, Header, HTTPException
 from shared.contracts.soil import SoilObservation, SoilObservationQuality, SoilObservationSource
 
 router = APIRouter()
+_OBSERVATION_KEY_MAX_LENGTH = next(
+    constraint.max_length
+    for constraint in SoilObservation.model_fields["idempotency_key"].metadata
+    if getattr(constraint, "max_length", None) is not None
+)
 
 
 @router.get("/v1/soil/readings/{field_id}")
@@ -60,32 +65,6 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
         # fail-closed: قاعدة البيانات غير موصولة ⇒ 503 (لا 200 بجسم خطأ يخدع
         # المستدعي ويُمرَّر للمكوّنات كأنّه نجاح). متّسق مع بقيّة الخدمات.
         raise HTTPException(503, "قاعدة البيانات غير متاحة — حاول لاحقاً")
-    async with main._pool.acquire() as conn:
-        # H5 FIX: نكتب الأعمدة الفعليّة بما فيها NPK. tenant_id عمود UUID
-        # nullable ⇒ نحوّل "" إلى NULL لتفادي فشل الإدخال. نكتب المالك المُشتقّ
-        # الموثوق لا قيمة الجسم (إغلاق ثقة المُدخَل).
-        await conn.execute(
-            """
-            INSERT INTO soil_readings
-            (field_id, sensor_id, temperature_c, moisture_pct,
-             ph, ec_ds_m, nitrogen_mg_kg, phosphorus_mg_kg, potassium_mg_kg,
-             recorded_at, tenant_id, depth_cm)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-            ON CONFLICT DO NOTHING
-        """,
-            reading.field_id,
-            reading.sensor_id,
-            reading.temperature,
-            reading.moisture_pct,
-            reading.ph_level,
-            reading.ec_level,
-            reading.n_ppm,
-            reading.p_ppm,
-            reading.k_ppm,
-            reading.observed_at,
-            resolved_tenant,
-            reading.depth_cm,
-        )
 
     # Canonical dual-write: one immutable observation per property. Legacy wide row remains
     # compatibility-only during migration; soil_observations is the governed evidence store.
@@ -98,13 +77,16 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
         "phosphorus": (reading.p_ppm, "mg/kg"),
         "potassium": (reading.k_ppm, "mg/kg"),
     }
-    canonical_ids = []
+    observations: list[SoilObservation] = []
     base_key = (
         reading.idempotency_key or f"legacy:{reading.sensor_id}:{reading.observed_at.isoformat()}"
     )
     for property_name, (value, unit) in property_values.items():
         if value is None:
             continue
+        observation_key = f"{base_key}:{property_name}"
+        if len(observation_key) > _OBSERVATION_KEY_MAX_LENGTH:
+            raise HTTPException(422, "idempotency_key is too long for this measurement")
         observation = SoilObservation(
             tenant_id=str(resolved_tenant),
             field_id=reading.field_id,
@@ -119,14 +101,81 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
             quality_status=SoilObservationQuality.UNCALIBRATED,
             quality_flags=["legacy_wide_ingest", "calibration_not_provided"],
             confidence=0.65,
-            idempotency_key=f"{base_key}:{property_name}",
+            idempotency_key=observation_key,
             provenance={"legacy_contract": "SoilReading.v9.1"},
         )
-        await soil_store.persist_observation(main._pool, observation)
-        canonical_ids.append(observation.observation_id)
-    snapshot = await soil_store.rebuild_snapshot_locked(
-        main._pool, tenant_id=str(resolved_tenant), field_id=reading.field_id
-    )
+        observations.append(observation)
+
+    if not observations:
+        raise HTTPException(422, "at least one soil measurement is required")
+
+    canonical_ids: list[str] = []
+    async with soil_store.tenant_transaction(main._pool, str(resolved_tenant)) as conn:
+        # A key is tenant-wide; two fields must not claim different subsets of it.
+        # Always take this lock before the field/projection lock.
+        await conn.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+            f"soil-ingest:{resolved_tenant}:{base_key}",
+        )
+        # Serialise this field before taking the projection-job row lock. Evidence,
+        # the compatibility row and the current profile commit together.
+        await conn.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+            f"soil-profile:{resolved_tenant}:{reading.field_id}",
+        )
+
+        any_inserted = False
+        try:
+            canonical_ids = await soil_store.ingest_retry_ids(
+                conn,
+                observations,
+                base_key,
+                check_observed_at="observed_at" in reading.model_fields_set,
+            )
+            if canonical_ids is None:
+                for observation in observations:
+                    inserted = await soil_store.persist_observation_in_transaction(
+                        conn, observation
+                    )
+                    any_inserted = any_inserted or inserted
+                canonical_ids = await soil_store.ingest_retry_ids(
+                    conn,
+                    observations,
+                    base_key,
+                    check_observed_at="observed_at" in reading.model_fields_set,
+                )
+                if canonical_ids is None:
+                    raise RuntimeError("soil_ingest_persist_or_load_failed")
+        except soil_store.SoilIngestConflict:
+            raise HTTPException(409, "idempotency_key conflicts with soil reading") from None
+        # soil_readings has no natural-key uniqueness constraint. An idempotent
+        # canonical retry must not append another compatibility row.
+        if any_inserted:
+            await conn.execute(
+                """
+                INSERT INTO soil_readings
+                (field_id, sensor_id, temperature_c, moisture_pct,
+                 ph, ec_ds_m, nitrogen_mg_kg, phosphorus_mg_kg, potassium_mg_kg,
+                 recorded_at, tenant_id, depth_cm)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+                ON CONFLICT DO NOTHING
+            """,
+                reading.field_id,
+                reading.sensor_id,
+                reading.temperature,
+                reading.moisture_pct,
+                reading.ph_level,
+                reading.ec_level,
+                reading.n_ppm,
+                reading.p_ppm,
+                reading.k_ppm,
+                reading.observed_at,
+                resolved_tenant,
+                reading.depth_cm,
+            )
+        snapshot = await soil_store.rebuild_snapshot_in_transaction(
+            conn, tenant_id=str(resolved_tenant), field_id=reading.field_id
+        )
     return {
         "status": "ingested",
         "canonical_observation_ids": canonical_ids,

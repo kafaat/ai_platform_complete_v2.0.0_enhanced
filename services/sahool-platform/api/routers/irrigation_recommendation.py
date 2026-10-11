@@ -13,6 +13,8 @@ ET0 يُجلَب من **منتج محرّك الطقس** (``get_et0_product``) �
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -591,6 +593,21 @@ async def field_irrigation_recommendation(
             "forecast_rain_hold_requires_reassessment — لم يُقدَّم: مطرٌ متوقَّعٌ يؤجّل الريّ "
             "بينما بلغ الاستنزافُ عتبةَ الإطلاق. أعِد التقييم بعد المطر."
         )
+    elif req.submit_to_decision and (
+        rec["should_irrigate"] is not True or rec.get("requires_expert_review")
+    ):
+        # IRRIGATION-CANDIDATE-HAS-NO-LINEAGE-01: مرشّحٌ لا يوصي بالريّ، أو يشترط خبيراً (ملوحةٌ حرجة)،
+        # ليس شيئاً يعتمده المراجِع العامّ — كان يُقدَّم ويُعتمَد لأنّ المرشّح لا يحمل هذين الحقلين.
+        approval_state = (
+            "blocked_requires_expert_review"
+            if rec.get("requires_expert_review")
+            else "blocked_not_recommending_irrigation"
+        )
+        submit_limitation = (
+            "لم يُقدَّم: المرشّح يشترط مراجعةَ خبير (ملوحة حرجة)"
+            if rec.get("requires_expert_review")
+            else "لم يُقدَّم: التوصية لا تقترح ريّاً — لا شيء يُعتمَد"
+        )
     elif req.submit_to_decision:
         # **عقدُ التسجيل هو عقدُ `crop_decision_bridge` نفسُه.** كان هذا المسار يرسل
         # `recommendation` و`status` — حقلين لا يقرؤهما المُسجِّل — فتُحفَظ قيمةٌ فارغة،
@@ -622,9 +639,23 @@ async def field_irrigation_recommendation(
                 "taw_source": taw_source,
             },
             "calibrated": False,
+            "policy": rec.get("policy"),
+            "requires_expert_review": bool(rec.get("requires_expert_review")),
         }
+        # IRRIGATION-CANDIDATE-HAS-NO-LINEAGE-01: بلا `candidate_lineage_id` كان الاعتمادُ يفشل دائماً
+        # (`candidate_lineage_mismatch` — NULL لا يساوي شيئاً). النَّسَبُ بصمةُ المحتوى نفسِه (نمطُ MPC)،
+        # والمعرّفُ حتميٌّ منه، فإعادةُ التقديم بالمحتوى نفسِه إعادةٌ لا مرشّحٌ ثانٍ.
+        content_digest = hashlib.sha256(
+            json.dumps(candidate, sort_keys=True, separators=(",", ":"), default=str).encode()
+        ).hexdigest()
+        candidate["content_digest"] = content_digest
+        candidate["candidate_lineage_id"] = "irr_" + content_digest[:16]
+        tenant_key = str(getattr(user, "tenant_id", "") or "")
         record_payload = {
+            "decision_id": "dec_irr_"
+            + hashlib.sha256(f"{tenant_key}:{field_id}:{content_digest}".encode()).hexdigest()[:24],
             "field_id": field_id,
+            "season_id": season_id,
             "decision_type": "irrigation",
             "stage": CANDIDATE_STAGE,
             "decision_value": candidate,

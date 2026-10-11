@@ -121,7 +121,7 @@ export default function EvidenceMapPage() {
             className="rounded-xl border p-4 flex items-start gap-3"
             style={{ background: '#1a1400', borderColor: '#f59e0b33' }}
           >
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="space-y-1">
               <div className="text-sm font-semibold text-amber-200">
                 🟡 مستوى الدليل من القرارات/القياسات المُدامة فقط — عتبة التحقّق الميدانيّ تقديريّة
@@ -149,7 +149,7 @@ export default function EvidenceMapPage() {
                     style={{ background: '#1e293b', borderColor: '#334155' }}
                   >
                     <span
-                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      className="w-3 h-3 rounded-full shrink-0"
                       style={{ background: hex }}
                       aria-hidden="true"
                     />

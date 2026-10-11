@@ -65,7 +65,7 @@ export default function SeasonEvidenceCard({ fieldId, seasonId, enabled = true }
   if (!enabled || !fieldId || !seasonId) return null;
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm" dir="rtl">
+    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-xs" dir="rtl">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-bold text-stone-800">🌱 حالة الموسم (حقيقة تشغيليّة موحّدة)</h3>
         {data && (

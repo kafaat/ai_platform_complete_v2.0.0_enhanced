@@ -21,11 +21,13 @@ import os
 import time
 from collections import defaultdict
 
+from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from api.main import Permission, UserSchema, require_permission
+from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.nl_sql_validate import SYSTEM_PROMPT, extract_sql, validate_select
+from shared.ai.provider_contract import normalize_provider
 
 router = APIRouter()
 
@@ -77,6 +79,27 @@ async def nl_sql_endpoint(
     key = _api_key()
     if not key:  # flag مُفعَّل لكن لا مفتاح ⇒ 503 صادق (لا تلفيق)
         raise HTTPException(status_code=503, detail="مساعد الذكاء غير مُهيّأ (مفتاح مفقود)")
+
+    try:
+        async with tenant_connection(user) as conn:
+            policy_row = await load_tenant_ai_policy_row(conn, user.tenant_id)
+    except Exception:  # noqa: BLE001 — لا خروجَ خارجيّاً دون إثبات سياسة المستأجر
+        raise HTTPException(status_code=503, detail="تعذّر التحقّق من سياسة الذكاء") from None
+    policy = build_ai_policy_envelope(user.tenant_id, policy_row)
+    # السؤال خامّ؛ لا يوجد مسار تنقيح مُثبت هنا. redacted_external لا يجيز
+    # تمريره كما هو، ووجود المفتاح/العلم لا يقوم مقام موافقة المستأجر.
+    if policy["policy_mode"] != "full_external" or policy["external_llm_allowed"] is not True:
+        raise HTTPException(status_code=403, detail="سياسة المستأجر لا تسمح بإرسال السؤال خارجياً")
+    providers = policy_row.get("allowed_providers", [])
+    models = policy_row.get("allowed_models", [])
+    model = _model()
+    if (
+        not isinstance(providers, list)
+        or not isinstance(models, list)
+        or (providers and not any(normalize_provider(item) == "anthropic" for item in providers))
+        or (models and model not in models)
+    ):
+        raise HTTPException(status_code=403, detail="المزوّد أو النموذج غير مسموح في سياسة المستأجر")
     if not _check_rate_limit(str(user.tenant_id)):
         raise HTTPException(status_code=429, detail="طلبات كثيرة — حاول بعد قليل")
 
@@ -86,13 +109,13 @@ async def nl_sql_endpoint(
         raise HTTPException(status_code=503, detail="مكتبة الذكاء غير متاحة") from None
 
     try:
-        client = anthropic.Anthropic(api_key=key)
-        resp = client.messages.create(
-            model=_model(),
-            max_tokens=_MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": body.question}],
-        )
+        async with anthropic.AsyncAnthropic(api_key=key, timeout=20.0, max_retries=0) as client:
+            resp = await client.messages.create(
+                model=model,
+                max_tokens=_MAX_TOKENS,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": body.question}],
+            )
         text = "".join(
             getattr(b, "text", "") for b in resp.content if getattr(b, "type", None) == "text"
         )

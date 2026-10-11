@@ -592,7 +592,7 @@ export default function SatellitePage() {
                   disabled={visibleDates.length < 2}
                   title={visibleDates.length < 2 ? 'يحتاج تاريخين على الأقلّ' : (playing ? 'إيقاف العرض الزمنيّ' : 'تشغيل العرض الزمنيّ للصور السابقة')}
                   aria-pressed={playing}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: playing ? '#16a34a' : '#16a34a22', color: playing ? '#fff' : '#4ade80', border: '1px solid #16a34a44' }}>
                   {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                   {playing ? 'إيقاف' : 'تشغيل'}
@@ -600,7 +600,7 @@ export default function SatellitePage() {
                 <div className="flex gap-1 mr-auto">
                   {[14,30,60].map(d=>(
                     <button key={d} onClick={()=>setDays(d)}
-                      className="px-2 py-0.5 rounded text-[11px]"
+                      className="px-2 py-0.5 rounded-sm text-[11px]"
                       style={{ background:days===d?'#16a34a22':'transparent', color:days===d?'#4ade80':'#64748b', border:`1px solid ${days===d?'#16a34a44':'#334155'}` }}>
                       {d}ي
                     </button>
@@ -624,7 +624,7 @@ export default function SatellitePage() {
                     لا توجد قيم زمنيّة بعد لهذا الحقل — اضغط «تحليل الآن» لمعالجة صور Sentinel-2 وعرض الشريط الزمنيّ.
                   </p>
                   <button onClick={handleAnalyze} disabled={analyzing || !fieldId}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold text-white disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[11px] font-semibold text-white disabled:opacity-50"
                     style={{ background:'#16a34a' }}>
                     {analyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                     تحليل الآن
@@ -721,7 +721,7 @@ export default function SatellitePage() {
                     <div className="space-y-1.5">
                       {rxZones.map((z) => (
                         <div key={z.zone} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background:'#0f1117' }}>
-                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: zoneColor(z.zone) }} />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: zoneColor(z.zone) }} />
                           <span className="text-xs text-slate-200 flex-1">{z.zone}</span>
                           <span className="text-[10px] text-slate-400">{z.pct}%</span>
                           <span className="text-[10px] text-slate-500">
@@ -864,7 +864,7 @@ export default function SatellitePage() {
           <Satellite className="w-4 h-4 text-emerald-400" />
           <span className="text-sm font-semibold text-slate-200">السلسلة الزمنية — {idx.name}</span>
           {rasterPoints.length > 0 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-900">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-emerald-950 text-emerald-400 border border-emerald-900">
               متوسّطات COG حقيقيّة
             </span>
           )}

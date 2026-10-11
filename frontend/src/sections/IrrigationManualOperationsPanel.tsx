@@ -68,6 +68,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
           pressure_bar: form.pressure_bar ? Number(form.pressure_bar) : undefined,
           evidence_digests: form.evidence_digests ? form.evidence_digests.split(',').map(v => v.trim()).filter(Boolean) : [],
           notes: form.notes || undefined,
+          deviation_reason: form.deviation_reason || undefined,
         });
       }
       if (action === 'verify') {
@@ -116,7 +117,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
                 {item.state === 'approved' && <ActionButton onClick={() => mutation.mutate({ execution: item, action: 'start' })}><Play className="h-4 w-4"/>بدء الري</ActionButton>}
                 {item.state === 'started' && <ActionButton onClick={() => mutation.mutate({ execution: item, action: 'stop' })}><CircleStop className="h-4 w-4"/>إيقاف الري</ActionButton>}
                 {item.state === 'stopped' && <ActionButton onClick={() => { setSelected(item); setMode('confirm'); setForm({ started_at: toLocalInput(item.started_at), stopped_at: toLocalInput(item.stopped_at), completion_ratio: '1', interruptions_minutes: '0' }); }}>تأكيد التنفيذ</ActionButton>}
-                {item.state === 'confirmed' && item.execution_mode === 'manual_measured' && <ActionButton onClick={() => { setSelected(item); setMode('verify'); setForm({ volume_verified: 'true', timing_verified: 'true', field_verified: 'true' }); }}><ShieldCheck className="h-4 w-4"/>تحقق مستقل</ActionButton>}
+                {item.state === 'confirmed' && item.execution_mode === 'manual_measured' && <ActionButton onClick={() => { setSelected(item); setMode('verify'); setForm({ volume_verified: 'false', timing_verified: 'false', field_verified: 'false' }); }}><ShieldCheck className="h-4 w-4"/>تحقق مستقل</ActionButton>}
                 {item.state === 'verified' && <ActionButton onClick={() => mutation.mutate({ execution: item, action: 'reconcile' })}><WalletCards className="h-4 w-4"/>ترحيل للدفتر</ActionButton>}
               </div>
             </article>
@@ -127,7 +128,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
       {selected && mode && <div className="rounded-2xl border border-emerald-800/50 bg-slate-950 p-4">
         <h3 className="font-semibold text-slate-100">{mode === 'confirm' ? 'تأكيد التنفيذ الميداني' : 'التحقق المستقل'}</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(mode === 'confirm' ? ['started_at','stopped_at','completion_ratio','meter_start_m3','meter_end_m3','measured_flow_m3_h','manual_volume_m3','estimated_flow_m3_h','interruptions_minutes','pressure_bar','evidence_digests','notes'] : ['volume_verified','timing_verified','field_verified','evidence_digests','notes']).map(name => <label key={name} className="text-xs text-slate-400">{name}<input type={name.includes('_at') ? 'datetime-local' : name.endsWith('_verified') ? 'checkbox' : name === 'notes' || name === 'evidence_digests' ? 'text' : 'number'} step="any" value={name.endsWith('_verified') ? undefined : (form[name] ?? '')} checked={name.endsWith('_verified') ? form[name] === 'true' : undefined} onChange={e => setForm(v => ({ ...v, [name]: name.endsWith('_verified') ? String(e.target.checked) : e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"/></label>)}
+          {(mode === 'confirm' ? ['started_at','stopped_at','completion_ratio','meter_start_m3','meter_end_m3','measured_flow_m3_h','manual_volume_m3','estimated_flow_m3_h','interruptions_minutes','pressure_bar','evidence_digests','notes','deviation_reason'] : ['volume_verified','timing_verified','field_verified','evidence_digests','notes']).map(name => <label key={name} className="text-xs text-slate-400">{name}<input type={name.includes('_at') ? 'datetime-local' : name.endsWith('_verified') ? 'checkbox' : name === 'notes' || name === 'evidence_digests' || name === 'deviation_reason' ? 'text' : 'number'} step="any" value={name.endsWith('_verified') ? undefined : (form[name] ?? '')} checked={name.endsWith('_verified') ? form[name] === 'true' : undefined} onChange={e => setForm(v => ({ ...v, [name]: name.endsWith('_verified') ? String(e.target.checked) : e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"/></label>)}
         </div>
         {mutation.isError && <p className="mt-3 text-sm text-red-300">فشل الطلب؛ لم تتغير حالة التنفيذ.</p>}
         <div className="mt-4 flex gap-2"><ActionButton disabled={mutation.isPending} onClick={() => mutation.mutate({ execution: selected, action: mode })}>حفظ</ActionButton><ActionButton onClick={() => { setSelected(null); setMode(null); }}>إغلاق</ActionButton></div>

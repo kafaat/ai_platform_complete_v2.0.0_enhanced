@@ -482,8 +482,11 @@ async def irrigation_mpc_recommendation(
         max_application_mm=req.max_application_mm,
         season_budget_mm=req.season_budget_mm,
         water_price_per_m3=req.water_price_per_m3,
-        depletion_confidence=None,
-        data_degraded=False,
+        # MPC-OPERATIONAL-ROUTE-DROPS-CONFIDENCE-AND-DEGRADATION-01: كانت قيمتان ثابتتان (None/False)، فقيدُ
+        # دفترٍ بثقة 0.4 أو لقطةٌ متدهورةُ ET0 تُنتِج NORMAL_OPTIMIZATION بثقة 0.7. السياسةُ قائمةٌ في
+        # المُحلِّل (ثقة < 0.5 أو تدهور ⇒ DATA_DEGRADED وسقفُ ثقة 0.4) — ينقصها أن يصلها حكمُ المُنتِج.
+        depletion_confidence=canonical.depletion_confidence,
+        data_degraded=canonical.quality_status != "verified",
     )
 
     out: dict = {
@@ -499,6 +502,12 @@ async def irrigation_mpc_recommendation(
             "weather_snapshot_hash": weather_snapshot_hash,
             "soil_snapshot_hash": soil_snapshot_hash,
             "water_salinity": salinity_provenance,
+            "canonical_quality_status": canonical.quality_status,
+            # طريقةُ ET0 لكلّ يوم (PM أو احتياط) — شرطُ إغلاق CANONICAL-WATER-STATE-ET0-INPUT-KEYS-01
+            # يُقرأ من استجابة المسار نفسه؛ المُحلِّل لا يحملها فتُؤخذ من اللقطة القانونيّة.
+            "et0_methods": [d.get("et0_method") for d in canonical.forecast],
+            "depletion_confidence": canonical.depletion_confidence,
+            "canonical_limitations": list(canonical.limitations),
         },
     }
     if req.submit:

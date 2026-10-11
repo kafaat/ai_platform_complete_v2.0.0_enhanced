@@ -43,7 +43,7 @@ export function SoilSamplingPlannerPanel({
 }: SoilSamplingPlannerPanelProps) {
   if (!plan || !samplePoints.length) return null;
   return (
-    <div className="rounded-2xl border border-sky-100 bg-white/95 p-3 shadow-sm" data-testid="soil-sampling-planner-panel">
+    <div className="rounded-2xl border border-sky-100 bg-white/95 p-3 shadow-xs" data-testid="soil-sampling-planner-panel">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">

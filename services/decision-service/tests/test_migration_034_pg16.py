@@ -11,6 +11,7 @@ import pytest
 from test_migration_033_pg16 import (
     COMPOSITION_VERSION,
     HARDENING_VERSIONS,
+    LATER_VERSIONS,
     OTHER,
     TABLES,
     TENANT,
@@ -49,7 +50,10 @@ async def test_034_closes_legacy_policy_union(database, monkeypatch, table, owns
         finally:
             await tx.rollback()
 
-        assert (await runner.apply_migrations())["applied_now"] == [COMPOSITION_VERSION]
+        assert (await runner.apply_migrations())["applied_now"] == [
+            COMPOSITION_VERSION,
+            *LATER_VERSIONS,
+        ]
         if owns_table:
             await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
         assert (
@@ -135,7 +139,7 @@ async def test_034_failure_restores_policies_and_journal(database, monkeypatch, 
         with pytest.raises(asyncpg.DivisionByZeroError):
             await runner.apply_migrations()
     assert await snapshot() == before, "034 failure must restore policies, RLS flags and journal"
-    pending = [COMPOSITION_VERSION] if prior_033 else HARDENING_VERSIONS
+    pending = ([COMPOSITION_VERSION] if prior_033 else HARDENING_VERSIONS) + LATER_VERSIONS
     status = await runner.check_migrations()
     assert status["pending"] == pending and status["checksum_mismatches"] == []
     assert (await runner.apply_migrations())["applied_now"] == pending

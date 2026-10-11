@@ -48,7 +48,7 @@ function KV({ data }: { data: Record<string, unknown> }) {
     <div className="space-y-1">
       {entries.map(([k, v]) => (
         <div key={k} className="flex items-start justify-between gap-3 text-xs py-1 border-b last:border-0" style={{ borderColor: '#334155' }}>
-          <span className="text-slate-500 flex-shrink-0">{k}</span>
+          <span className="text-slate-500 shrink-0">{k}</span>
           <span className="text-slate-300 text-left break-all">{asText(v) || '—'}</span>
         </div>
       ))}

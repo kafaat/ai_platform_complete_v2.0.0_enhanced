@@ -68,9 +68,9 @@ const SEVERITIES: { value: Severity | ''; label: string }[] = [
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0"
+      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0"
       style={{ background: checked ? '#16a34a' : '#475569' }}>
-      <span className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform"
+      <span className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
         style={{ transform: checked ? 'translateX(18px)' : 'translateX(2px)' }} />
     </button>
   );
@@ -314,7 +314,7 @@ export default function NotificationSettingsPage() {
                 style={{ background: active ? '#1e3a1e' : '#0f1117', border: `1px solid ${active ? '#16a34a44' : '#334155'}`, color: active ? '#4ade80' : '#64748b' }}>
                 <span className="text-base">{ev.emoji}</span>
                 <span className="flex-1">{ev.label}</span>
-                {active && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                {active && <Check className="w-3.5 h-3.5 shrink-0" />}
               </button>
             );
           })}

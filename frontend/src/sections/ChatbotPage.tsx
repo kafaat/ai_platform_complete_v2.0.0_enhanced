@@ -190,7 +190,7 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
 
   return (
     <div className="flex gap-3">
-      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
         <Bot className="w-4 h-4 text-emerald-600" />
       </div>
       <div className="max-w-[82%]">
@@ -529,10 +529,10 @@ export function ChatbotPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
+    <div className="h-[calc(100vh-140px)] flex flex-col bg-white rounded-xl shadow-xs border border-slate-200 font-tajawal overflow-hidden" dir="rtl">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-gradient-to-l from-emerald-50 to-white">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-linear-to-l/srgb from-emerald-50 to-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-md">
             <Bot className="w-5 h-5 text-white" />
@@ -626,7 +626,7 @@ export function ChatbotPage() {
         {messages.map((msg) => (
           msg.role === 'user' ? (
             <div key={msg.id} className="flex gap-3 justify-start flex-row-reverse">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
                 <User className="w-4 h-4 text-blue-500" />
               </div>
               <div className="max-w-[75%] bg-emerald-600 text-white rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm leading-relaxed">
@@ -640,7 +640,7 @@ export function ChatbotPage() {
 
         {loading && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tr-sm px-4 py-3 flex items-center gap-2">
@@ -689,7 +689,7 @@ export function ChatbotPage() {
               disabled={loading} />
           </div>
           <button type="submit" disabled={loading || !input.trim()}
-            className="w-11 h-11 flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-40 transition-colors shadow-md flex-shrink-0">
+            className="w-11 h-11 flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-40 transition-colors shadow-md shrink-0">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>

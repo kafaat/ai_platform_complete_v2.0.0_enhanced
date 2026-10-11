@@ -1,0 +1,28 @@
+KILLED   semantic.py    no_sentence_boundary       FAIL  يكشف [N04] الشرطُ عن الجهاز، والكمّيّةُ في جملةٍ مستقلّة  رُفض لسببٍ آخر لا «جملةٍ م
+KILLED   semantic.py    no_condition_subject       FAIL  يكشف [N04] موضوعُ الشرط صار الجهاز (بالواو)  لم يُكشف!
+KILLED   semantic.py    copula_any_lead            FAIL  يكشف [N04] موضوعُ الشرط صار الجهاز (بالواو)  لم يُكشف!
+KILLED   semantic.py    verdict_hides_uncovered    FAIL  ASR: تفريغٌ يجتاز المعلن وفيه محتوى غيرُ مغطّى ⇒ REVIEW_UNCOVERED_CONTENT لا «بلا عل
+KILLED   asr_screen.py  fw_inprocess_no_timeout    FAIL  ASR faster_whisper: طلبٌ يكتمل بعد 0.20s ومهلتُه 0.05s ⇒ EVALUATOR_TIMEOUT قبل اكتما
+KILLED   asr_screen.py  cpp_no_timeout             FAIL  ASR whisper_cpp: مقيِّمٌ عالقٌ له ابن ⇒ EVALUATOR_TIMEOUT، والمجموعةُ والابنُ قُتلا 
+KILLED   asr_screen.py  kill_only_leader           FAIL  ASR whisper_cpp: مقيِّمٌ عالقٌ له ابن ⇒ EVALUATOR_TIMEOUT، والمجموعةُ والابنُ قُتلا 
+SURVIVED asr_screen.py  zombie_counted_alive       
+KILLED   asr_screen.py  uncovered_not_recorded     FAIL  ASR: تفريغٌ يجتاز المعلن وفيه محتوى غيرُ مغطّى ⇒ REVIEW_UNCOVERED_CONTENT لا «بلا عل
+KILLED   asr_screen.py  review_screen_hidden       FAIL  ASR: تفريغٌ يجتاز المعلن وفيه محتوى غيرُ مغطّى ⇒ REVIEW_UNCOVERED_CONTENT لا «بلا عل
+KILLED   asr_screen.py  timeout_unvalidated        FAIL  ASR: timeout_s غيرُ عدديّ ⇒ رفضٌ بسببه  rc=0 
+KILLED   perf.py        flag_trusted               sequential
+SURVIVED perf.py        no_measurements            
+KILLED   perf.py        no_stats_error             إحصاءات المجموعة
+KILLED   perf.py        no_leak_check              تسرّبُ تنظيف
+KILLED   perf.py        no_in_effect_match         in_effect.cpu_quota
+KILLED   perf.py        no_script_hashes           بصماتُ سكربتاتٍ
+KILLED   perf.py        no_p95_check               warm_requests
+KILLED   perf.py        no_verified_files          verified_files
+KILLED   perf.py        no_concurrency_latency     concurrency
+
+18/20 أعطالٍ مزروعة في شيفرة v7 أحمرّت لها حالة
+
+(إعادة الناجيَين بعد إضافة حالتين تعزلانهما)
+KILLED   asr_screen.py  zombie_counted_alive        FAIL  ASR: عضوٌ زومبي في مجموعة المقيِّم لا يُعدّ حيّاً (الحالة Z من /proc)  s
+   perf على سجلٍّ فيه failed=3 — أصل v7: rc=2 يُرفض بسببه=True
+   perf على سجلٍّ فيه failed=3 — طفرة: rc=0 يُرفض بسببه=False
+KILLED   perf.py        no_measurements (sequential.failed) — الأصل يرفض والطفرة تقبل

@@ -32,6 +32,11 @@ OTHER = "00000000-0000-0000-0000-000000000034"
 VERSION = "033_tenant_boundary_hardening.sql"
 COMPOSITION_VERSION = "034_tenant_boundary_policy_composition.sql"
 HARDENING_VERSIONS = [VERSION, COMPOSITION_VERSION]
+# Migrations shipped after the hardening pair (035+). They are applied by the same runner call, so
+# "pending after the 032 baseline" is the hardening pair followed by these — computed from the
+# tree, so a new migration does not silently redefine what this witness proves.
+LATER_VERSIONS = [m.version for m in runner.load_migrations() if m.version > COMPOSITION_VERSION]
+PENDING_AFTER_BASELINE = HARDENING_VERSIONS + LATER_VERSIONS
 TABLES = ("decision_outbox_events", "decision_reviews")
 
 
@@ -55,6 +60,10 @@ async def _connect(dsn):
         command_timeout=20,
         server_settings={"lock_timeout": "5s", "statement_timeout": "15s"},
     )
+
+
+# 035: approval binds to the server digest of the version reviewed.
+_CI_DIGEST = "d" * 64
 
 
 @pytest_asyncio.fixture
@@ -162,7 +171,7 @@ async def _insert(conn, table, row_id, tenant):
 @pytest.mark.parametrize("table", TABLES)
 @pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
 async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_table):
-    assert (await runner.apply_migrations())["applied_now"] == HARDENING_VERSIONS
+    assert (await runner.apply_migrations())["applied_now"] == PENDING_AFTER_BASELINE
     if owns_table:
         await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
     app = await database.app_connection()
@@ -201,10 +210,10 @@ async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_ta
 @pytest.mark.asyncio
 async def test_033_runner_check_apply_and_reapply(database):
     before = await runner.check_migrations()
-    assert before["pending"] == HARDENING_VERSIONS and not before["ok"]
+    assert before["pending"] == PENDING_AFTER_BASELINE and not before["ok"]
     assert before["checksum_mismatches"] == []
     first = await runner.apply_migrations()
-    assert first["ok"] and first["applied_now"] == HARDENING_VERSIONS
+    assert first["ok"] and first["applied_now"] == PENDING_AFTER_BASELINE
     second = await runner.apply_migrations()
     assert second["ok"] and second["applied_now"] == []
     assert (await runner.check_migrations())["pending"] == []
@@ -328,7 +337,7 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
         )
         with pytest.raises(asyncpg.DivisionByZeroError):
             await runner.apply_migrations()
-    assert (await runner.check_migrations())["pending"] == HARDENING_VERSIONS
+    assert (await runner.check_migrations())["pending"] == PENDING_AFTER_BASELINE
     for table in TABLES:
         assert not await database.admin.fetchval(
             "SELECT relrowsecurity OR relforcerowsecurity FROM pg_class WHERE oid=$1::regclass",
@@ -402,11 +411,19 @@ async def test_review_idempotency_replay_survives_033_under_restricted_login(dat
         candidate_lineage_id="ci-lineage",
         idempotency_key="ci-review",
         policy_version="ci-policy",
+        decision_value_digest=_CI_DIGEST,
     )
     request_hash = persistence._request_hash(
         **{
             key: request[key]
-            for key in ("decision_id", "action", "new_state", "reason", "candidate_lineage_id")
+            for key in (
+                "decision_id",
+                "action",
+                "new_state",
+                "reason",
+                "candidate_lineage_id",
+                "decision_value_digest",
+            )
         }
     )
     await database.admin.execute(
@@ -438,10 +455,11 @@ async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database, obse
     assert (await runner.apply_migrations())["ok"]
     await database.admin.execute(
         "INSERT INTO decision_record (decision_id,tenant_id,stage,decision_type,"
-        "review_state,candidate_lineage_id) "
+        "review_state,candidate_lineage_id,decision_value_digest) "
         "VALUES ('ci-new-review',$1::uuid,'candidate','crop_decision_candidate',"
-        "'pending_approval','ci-lineage')",
+        "'pending_approval','ci-lineage',$2)",
         TENANT,
+        _CI_DIGEST,
     )
     request = dict(
         tenant_id=TENANT,
@@ -453,6 +471,7 @@ async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database, obse
         candidate_lineage_id="ci-lineage",
         idempotency_key="ci-new-review",
         policy_version="ci-policy",
+        decision_value_digest=_CI_DIGEST,
     )
     # Another tenant must neither transition the decision nor learn its state.
     assert await persistence.review_decision(**{**request, "tenant_id": OTHER}) == {

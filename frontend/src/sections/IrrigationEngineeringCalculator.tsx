@@ -14,7 +14,7 @@ function fmt(value: unknown, digits = 2): string {
 }
 
 function NumberField({ label, value, onChange, unit, min = 0, step = 'any' }: { label: string; value: string; onChange: (v: string) => void; unit?: string; min?: number; step?: string }) {
-  return <label className="space-y-1 text-xs text-slate-400"><span>{label}</span><div className="flex rounded-lg border border-slate-700 bg-slate-950"><input className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none" type="number" min={min} step={step} value={value} onChange={e => onChange(e.target.value)} />{unit && <span className="border-r border-slate-700 px-2 py-2 text-slate-500">{unit}</span>}</div></label>;
+  return <label className="space-y-1 text-xs text-slate-400"><span>{label}</span><div className="flex rounded-lg border border-slate-700 bg-slate-950"><input className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-hidden" type="number" min={min} step={step} value={value} onChange={e => onChange(e.target.value)} />{unit && <span className="border-r border-slate-700 px-2 py-2 text-slate-500">{unit}</span>}</div></label>;
 }
 
 export default function IrrigationEngineeringCalculator({ fieldId, seasonId }: { fieldId: string; seasonId?: string | null }) {

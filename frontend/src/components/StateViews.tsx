@@ -87,7 +87,7 @@ export function ErrorState({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sahool-border text-sm text-sahool-text hover:border-sahool-green focus:outline-none focus:ring-2 focus:ring-sahool-border-focus"
+          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sahool-border text-sm text-sahool-text hover:border-sahool-green focus:outline-hidden focus:ring-2 focus:ring-sahool-border-focus"
         >
           <RefreshCw className="w-4 h-4" aria-hidden="true" />
           إعادة المحاولة
@@ -141,7 +141,7 @@ export function FeatureDisabledState({
       role="status"
       aria-live="polite"
     >
-      <ShieldAlert className="w-5 h-5 text-sahool-muted flex-shrink-0 mt-0.5" aria-hidden="true" />
+      <ShieldAlert className="w-5 h-5 text-sahool-muted shrink-0 mt-0.5" aria-hidden="true" />
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-semibold text-sahool-text">{title}</span>

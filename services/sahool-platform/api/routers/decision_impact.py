@@ -2,12 +2,12 @@
 
 ثلاث نقاط قراءة تُغلِق حلقة «هل نفع؟» فوق سجلّ التنفيذ (execution_ledger، المرحلة A):
 
-  • `GET  …/decision/impact`   — الأثر المُحقَّق (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر) من
+  • `GET  …/decision/impact`   — الأثر المُحقَّق (نُفِّذ/فشل، نسبة نجاح، فرق المطلوب عن المُنفَّذ) من
     سجلّ التنفيذ، بربط القرار بأمره (الماء المطلوب) ونتيجته (المُطبَّق). الشريحة 8.
   • `GET  …/decision/learning` — اقتراحات معايرة مُسنَدة بالأثر (human-in-the-loop، لا
     تُطبَّق آليّاً) عبر core.decision_learning. الشريحة 9.
-  • `GET  …/decision/economics`— ترجمة الأثر إلى قيمة اقتصاديّة (ماء موفَّر ⇒ تكلفة
-    متجنَّبة) عبر core.economic_intelligence. الشريحة 10.
+  • `GET  …/decision/economics`— تسعيرُ فرق المطلوب عن المُنفَّذ (قيمةٌ اسميّة لا
+    وفر) عبر core.economic_intelligence. الشريحة 10.
 
 محروسة بعلم `SAHOOL_DECISION_DISPATCH`. قراءة فقط، معزولة بـRLS، المنطق نقيّ في core/.
 """
@@ -105,7 +105,7 @@ async def get_impact(
     limit: int = Query(200, ge=1, le=1000),
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ) -> dict:
-    """الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر). الشريحة 8."""
+    """الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، فرق المطلوب عن المُنفَّذ — لا وفر). الشريحة 8."""
     _require_enabled()
     try:
         async with tenant_connection(user) as conn:
@@ -159,7 +159,7 @@ async def get_learning(
             "failed": failure,
             # Water-efficiency learning is omitted unless the verified dataset exposes a
             # canonical aggregate for it; zero is safer than deriving from delivery rows.
-            "water_saved_mm": 0.0,
+            "requested_minus_applied_mm": 0.0,
         }
 
     suggestions = derive_learning_suggestions(by_action, min_sample=min_sample)
@@ -190,7 +190,7 @@ async def get_decision_economics(
     limit: int = Query(500, ge=1, le=2000),
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ) -> dict:
-    """ترجمة الأثر إلى قيمة اقتصاديّة (ماء موفَّر ⇒ تكلفة متجنَّبة). الشريحة 10.
+    """تسعيرُ فرق المطلوب عن المُنفَّذ — قيمةٌ اسميّة لا تكلفةٌ متجنَّبة. الشريحة 10.
 
     صدق: الحجم/القيمة يُحسَبان فقط مع المساحة/التكلفة — وإلّا None + ملاحظة صريحة.
     """
@@ -206,6 +206,7 @@ async def get_decision_economics(
         currency=currency,
         area_ha=area_ha,
         water_cost_per_m3=water_cost_per_m3,
+        single_field=field_id is not None,
     )
     out = econ.to_dict()
     out["impact"] = impact.to_dict()

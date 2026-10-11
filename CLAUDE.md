@@ -47,7 +47,7 @@ bash scripts/ci/preflight.sh --full   # ~١٢د · يضيف bandit وpip-audit �
 - **قبل** إضافة أو ترقية أيّ شيء في `requirements*.txt`، شغّل فحص ثغرات/استشارة تبعيّات (`pip-audit -r <file>`) محليّاً. الفشل المتأخّر في CI مكلِف.
 - **بوّابة CI (*Security Scan*):**
   - `pip-audit` يحجب الدمج على **١٩ ملفّ متطلّبات** (توسعة C1: كان أربعة فقط فتفلت خدمات كاملة) — منها `services/sahool-platform/api/requirements.txt` و`services/auth/requirements.txt` و`services/guardrails-engine/requirements.txt` و`requirements_real.txt`. القائمة القانونيّة في `.github/workflows/ci.yml` تحت `pip-audit (gating — critical path)`؛ لا تُقلَّص.
-  - استثناء واحد موثَّق: `--ignore-vuln PYSEC-2026-1325` (`ecdsa` — تبعيّة عبوريّة لـ`python-jose`، صنّفها صانعوها WONTFIX، ومسارنا يوقّع عبر خلفيّة `cryptography`). تُشغَّل محلّيّاً بنفس الراية وإلّا ظهرت نتيجة حمراء كاذبة.
+  - استثناءان موثَّقان: `--ignore-vuln PYSEC-2026-1325` (`ecdsa` — تبعيّة عبوريّة لـ`python-jose`، صنّفها صانعوها WONTFIX، ومسارنا يوقّع عبر خلفيّة `cryptography`) و`--ignore-vuln CVE-2026-85394` (`python-jose` ≤3.5.0، مؤقّت بلا إصدارٍ مُصلِح؛ كلُّ `jwt.decode` عندنا يقيّد الخوارزميّة). كلاهما بانقضاءٍ في `config/security_exceptions.json`. تُشغَّل محلّيّاً بالرايتين وإلّا ظهرت نتيجة حمراء كاذبة.
   - `bandit -r services/ bots/ agents/ --severity-level high` يحجب على HIGH (الباقي إرشاديّ، لا يحجب).
 - **مثال واقعيّ حديث:** `python-multipart` 0.0.27 حمل ثغرة CVE حجبت CI حتى رُفِع إلى `0.0.31` في المسار الحرج. افحص أوّلاً تتجنّب التكرار.
 

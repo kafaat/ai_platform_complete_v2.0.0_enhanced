@@ -136,7 +136,7 @@ export default function TasksPage() {
     return (
       <Card style={{ border: `1px solid ${isOld ? T.danger : T.line}` }}>
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `${cfg.color}22` }}>
             <Icon className="w-5 h-5" style={{ color: cfg.color }} />
           </div>
@@ -164,7 +164,7 @@ export default function TasksPage() {
             )}
           </div>
           {mutateAllowed && task.status !== 'completed' && task.status !== 'cancelled' && (
-            <div className="flex flex-col gap-1.5 flex-shrink-0">
+            <div className="flex flex-col gap-1.5 shrink-0">
               {task.status === 'pending' && (
                 <Button tone="gold" full={false} onClick={() => startTask(task.task_id)}
                   style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700 }}>
@@ -184,7 +184,7 @@ export default function TasksPage() {
               </label>
             </div>
           )}
-          {task.status === 'completed' && <CheckCircle className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: T.ok }} />}
+          {task.status === 'completed' && <CheckCircle className="w-5 h-5 shrink-0 mt-1" style={{ color: T.ok }} />}
         </div>
       </Card>
     );

@@ -1,5 +1,5 @@
 {
-  "edge_count": 836,
+  "edge_count": 842,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -973,6 +973,16 @@
     },
     {
       "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_element84_vrt_containment_runtime.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -2692,6 +2702,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_nl_sql_policy.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_operations_summary_endpoint.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2997,6 +3017,16 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "READS",
+      "resource": "db://irrigation_manual_execution_events",
+      "to": "db://irrigation_manual_execution_events",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/irrigation_engineering.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
       "resource": "db://irrigation_manual_execution_sources",
       "to": "db://irrigation_manual_execution_sources",
       "to_kind": "resource"
@@ -3009,6 +3039,16 @@
       "relation": "READS",
       "resource": "db://irrigation_manual_executions",
       "to": "db://irrigation_manual_executions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://irrigation_manual_ledger_reconciliations",
+      "to": "db://irrigation_manual_ledger_reconciliations",
       "to_kind": "resource"
     },
     {
@@ -5892,6 +5932,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/test_element84_vrt_containment_runtime.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://backfill_run_items",
+      "to": "db://backfill_run_items",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/test_single_scene_concurrent_pg.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -5913,6 +5963,16 @@
     },
     {
       "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://backfill_runs",
+      "to": "db://backfill_runs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_element84_vrt_containment_runtime.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8380,9 +8440,9 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 429,
+    "READS": 433,
     "ROUTES_TO": 72,
-    "WRITES": 290
+    "WRITES": 292
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8397,8 +8457,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 720,
-      "resolved": 719,
+      "observed": 726,
+      "resolved": 725,
       "unresolved_component_paths": 0
     }
   }

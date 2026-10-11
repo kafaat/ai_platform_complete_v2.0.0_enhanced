@@ -738,6 +738,14 @@ jobs:
       # ESLint يخرج بـ2 على تثبيت بائت، فلا يبقى الأساس متضخّماً بصمت.
       - run: npm run lint
         working-directory: frontend
+      # FRONTEND-VITEST-SUITE-NEVER-RUNS-IN-CI-01: جناحُ vitest الكامل (٢٠٣ ملفّاً) لم
+      # يُشغِّله أيُّ workflow — CI كان يُشغِّل ملفّاتٍ مُسمّاة فقط — فاحمرّ ملفّان على main
+      # (شاهدان لم يُحدَّثا بعد #990 و#1007) ولم يرَهما أحد. مقيس محلّيّاً ~١٦٦ث
+      # (`--no-file-parallelism --maxWorkers=1` كما في `test:ci`)؛ السقفُ هامشٌ لعدّاءٍ أبطأ.
+      - name: Frontend unit suite (vitest, full)
+        timeout-minutes: 15
+        run: npm run test:ci
+        working-directory: frontend
       # **والتحذير ليس خطأً هنا — وتلك هي الثغرة.** `no-explicit-any` و
       # `no-unused-vars` تُبلَّغ تحذيراً، فتخرج هذه الوظيفة **خضراء** ومعها ٨٢
       # تحذيراً؛ وGitHub يعرض **عشرة** منها في التعليقات، فيقرأ المالك «عشرة»
@@ -1032,29 +1040,18 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: tests_v9/requirements-test.txt
-      # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
-      # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
-      # تبقى الـ٦ محاولات أدناه خطّ دفاع ثانٍ. (إعادة إصلاح #538 الذي ضاع في إعادة كتابة main.)
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start Postgres+PostGIS and Redis, then provision the client from the image
         run: |
-          set -e
-          pull() {
-            for i in 1 2 3 4 5 6; do
-              docker pull "$1" && return 0
-              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
-            done
-            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
-          }
-          pull postgis/postgis:15-3.4
-          pull redis:7-alpine
+          set -euo pipefail
+          postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
+          postgis_image=sahool-postgis-15:ci
+          redis_image=public.ecr.aws/docker/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+          scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 15 "$postgis_image"
+          scripts/ci/resilient_docker_pull.sh "$redis_image"
           docker run -d --name sahool-pg \
             -e POSTGRES_DB=sahool_test -e POSTGRES_USER=sahool_test \
-            -e POSTGRES_PASSWORD=test_password -p 5433:5432 postgis/postgis:15-3.4
-          docker run -d --name sahool-redis -p 6380:6379 redis:7-alpine
+            -e POSTGRES_PASSWORD=test_password -p 5433:5432 --pull=never "$postgis_image"
+          docker run -d --name sahool-redis -p 6380:6379 --pull=never "$redis_image"
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
@@ -1066,6 +1063,11 @@ jobs:
             echo "بانتظار Postgres ($i)"; sleep 2
           done
           pg_isready -h localhost -p 5433 -U sahool_test
+          for i in $(seq 1 30); do
+            docker exec sahool-redis redis-cli ping | grep -qx PONG && break
+            echo "بانتظار Redis ($i)"; sleep 2
+          done
+          docker exec sahool-redis redis-cli ping | grep -qx PONG
       - run: pip install -r tests_v9/requirements-test.txt
       # تطبيق مخطّط الترحيلات على قاعدة الاختبار قبل اختبارات التكامل (RLS/DB)،
       # وإلّا تفشل الاختبارات التي تُدرج في field_boundaries/ndvi_timeseries… (الجداول غير موجودة).
@@ -1103,6 +1105,19 @@ jobs:
         run: |
           bash scripts/ci/apply_migration_manifest.sh \
             --port 5433 --user sahool_test --db sahool_test
+      # تشخيصٌ لا يحجب (طلبُ المالك بعد التشغيل 38092839653، #1160): psql هنا غلافُ حاويةٍ من
+      # provision_pg_client.sh يمرّر PGPASSWORD/PGHOST/PGPORT/PGUSER/PGDATABASE ولا يمرّر PGOPTIONS،
+      # فمسارُ PGOPTIONS يُعيد off بينما مسارُ SET داخل الجلسة يُعيد on. يُطبَع المساران ليبقى السببُ
+      # مقيساً في السجلّ؛ العقدُ الحاجب هو الاختبارُ الحيّ (tests_v9/test_apply_in_compose_live_pg.py).
+      - name: Read-only session diagnostic — PGOPTIONS route vs in-session SET route (report-only)
+        env:
+          PGPASSWORD: test_password
+        run: |
+          q="SELECT current_setting('transaction_read_only'), current_setting('default_transaction_read_only'), current_user, current_database()"
+          echo "PGOPTIONS route (on|on only if the client forwards PGOPTIONS):"
+          PGOPTIONS="-c default_transaction_read_only=on" psql -X -h localhost -p 5433 -U sahool_test -d sahool_test -At -F '|' -c "$q" || true
+          echo "in-session SET route (the probe's contract; expected on|on):"
+          psql -X -h localhost -p 5433 -U sahool_test -d sahool_test -At -F '|' -c "SET SESSION default_transaction_read_only = on" -c "$q" || true
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
@@ -1119,6 +1134,10 @@ jobs:
           # flag, dropping TEST_DATABASE_URL one day would turn the certification into a
           # green skip — the class this repository keeps closing.
           RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED: "1"
+          # MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 (#1160): the live migrator
+          # certification (tests_v9/test_apply_in_compose_live_pg.py) must not turn into a green
+          # skip when the DB is unreachable or the DSN is dropped — a skip is a HARD failure here.
+          MIGRATOR_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation
@@ -1243,35 +1262,31 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: services/decision-service/requirements.txt
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start Postgres, then provision the client from the image
+        env:
+          HARNESS_PRIMARY_CAUSE_FILE: decision_service_primary_cause.txt
         run: |
-          set -e
-          pull() {
-            for i in 1 2 3 4 5 6; do
-              docker pull "$1" && return 0
-              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
-            done
-            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
-          }
-          pull postgres:15
+          set -euo pipefail
+          postgres_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
+          scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name ds-pg \
             -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
-            -e POSTGRES_PASSWORD=test_password -p 5434:5432 postgres:15
+            -e POSTGRES_PASSWORD=test_password -p 5434:5432 --pull=never "$postgres_image" \
+            || { printf '%s\n' POSTGRES_CONTAINER_START_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          bash scripts/ci/provision_pg_client.sh ds-pg
+          bash scripts/ci/provision_pg_client.sh ds-pg \
+            || { printf '%s\n' POSTGRES_CLIENT_PROVISIONING_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
-          command -v pg_isready >/dev/null
+          command -v pg_isready >/dev/null \
+            || { printf '%s\n' POSTGRES_CLIENT_MISSING >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
             echo "بانتظار Postgres ($i)"; sleep 2
           done
-          pg_isready -h localhost -p 5434 -U decision_test
+          pg_isready -h localhost -p 5434 -U decision_test \
+            || { printf '%s\n' POSTGRES_TCP_READINESS_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"; exit 1; }
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
@@ -1546,6 +1561,20 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest ../model-registry-adapter/tests -q -p no:cacheprovider
+      - name: Classify Decision Service harness setup evidence
+        if: always()
+        run: |
+          if [ -s decision_service_primary_cause.txt ]; then
+            primary_cause="$(head -n1 decision_service_primary_cause.txt)"
+            echo "::error::HARNESS_INVALID root_cause=${primary_cause}"
+          fi
+      - name: Preserve Decision Service harness setup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: decision-service-harness-${{ github.run_id }}-${{ github.run_attempt }}
+          path: decision_service_primary_cause.txt
+          if-no-files-found: ignore
 
   decision-033-pg16-proof:
     name: Decision 033 Restricted Role Proof (PG16)
@@ -1563,15 +1592,13 @@ jobs:
       - name: Start isolated PostgreSQL 16 (no external secrets)
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            if docker pull postgres:16; then break; fi
-            if [ "$attempt" -eq 3 ]; then exit 1; fi
-            sleep "$((attempt * 5))"
-          done
+          postgres_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          scripts/ci/resilient_docker_pull.sh "$postgres_image"
           docker run -d --name decision-033-pg16 \
             -e POSTGRES_DB=decision033_test -e POSTGRES_USER=decision033_admin \
-            -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 postgres:16
-          for attempt in $(seq 1 30); do
+            -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 \
+            --pull=never "$postgres_image"
+          for _ in $(seq 1 30); do
             if docker exec decision-033-pg16 pg_isready -U decision033_admin -d decision033_test; then break; fi
             sleep 2
           done
@@ -1620,12 +1647,10 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: tests_v9/requirements-test.txt
-      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
-        run: |
-          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
       - name: Start PostgreSQL 16 + PostGIS, then provision the client from the image
         id: live_pg_harness
+        env:
+          HARNESS_PRIMARY_CAUSE_FILE: live_pg_primary_cause.txt
         # حلقة السحب انتقلت إلى `scripts/ci/resilient_docker_pull.sh` كي **تُختبَر**:
         # منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً، فيبقى
         # «مقيسٌ بمحاكاة» ادّعاءً في رسالة التزام. الاختبار في
@@ -1633,11 +1658,15 @@ jobs:
         # `docker run` **لم يُنفَّذ** بعد استنفاد المحاولات.
         run: |
           set -euo pipefail
-          scripts/ci/resilient_docker_pull.sh postgis/postgis:16-3.4
-          docker run -d --name sahool-pg16 \
+          postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          postgis_image=sahool-postgis-16:ci
+          scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 16 "$postgis_image"
+          if ! docker run -d --name sahool-pg16 \
             -e POSTGRES_DB=sahool -e POSTGRES_USER=sahool_user \
-            -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never \
-            postgis/postgis:16-3.4
+            -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never "$postgis_image"; then
+            printf '%s\n' POSTGRES_CONTAINER_START_FAILED >"$HARNESS_PRIMARY_CAUSE_FILE"
+            exit 1
+          fi
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
@@ -2017,10 +2046,16 @@ jobs:
       # cryptography بديلاً). مسارنا يستعمل python-jose[cryptography] ⇒ توقيع/تحقّق JWT
       # عبر خلفيّة cryptography/OpenSSL لا خلفيّة ecdsa، فالمسار المُصاب غير مُستخدَم.
       # يبقى ecdsa مرئيّاً في المسح الإرشاديّ أدناه (غير حاجب) للشفافيّة.
+      # استثناءٌ موثَّق ثانٍ مؤقّت (CVE-2026-85394 في python-jose ≤3.5.0، نُشر 2026-10-05
+      # بلا إصدارٍ مُصلِح): خلطُ مفتاحٍ عامّ بسرّ HMAC لا يُستغَلّ إلّا إن لم تُقيَّد
+      # الخوارزميّات. كلُّ `jwt.decode` من jose عندنا يمرّر خوارزميّةً واحدة مقترنةً بمفتاحها،
+      # والضبطُ الجزئيّ لمفاتيح RSA يُرفَض عند الإقلاع (validate_rsa_key_pair). قرارُ المالك؛
+      # ينقضي في config/security_exceptions.json ويُزال حين يصدر إصلاح.
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
           --ignore-vuln PYSEC-2026-1325
+          --ignore-vuln CVE-2026-85394
           -r services/sahool-platform/api/requirements.txt
           -r services/auth/requirements.txt
           -r services/guardrails-engine/requirements.txt
@@ -2043,12 +2078,13 @@ jobs:
           --progress-spinner off
       # Every requirements file consumed by a service/bot/agent image is blocking.
       # Resolve images independently; unrelated runtime pins need not share a venv.
-      # The documented python-jose/cryptography ecdsa exception above still applies.
+      # The documented python-jose/cryptography ecdsa exception above still applies,
+      # as does the temporary python-jose CVE-2026-85394 exception (no fixed release).
       - name: pip-audit (gating — each runtime image)
         run: |
           set -euo pipefail
           while IFS= read -r -d '' requirements_file; do
-            pip-audit -r "$requirements_file" --ignore-vuln PYSEC-2026-1325 --progress-spinner off
+            pip-audit -r "$requirements_file" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off
           done < <(find services bots agents -name 'requirements*.txt' -print0)
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.

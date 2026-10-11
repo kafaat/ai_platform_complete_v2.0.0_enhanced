@@ -5,6 +5,12 @@ on:
   push:
     branches: [main, develop]
 
+# عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
+# غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   p1-main-decomposition:
     runs-on: ubuntu-latest

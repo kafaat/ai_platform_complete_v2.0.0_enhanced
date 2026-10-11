@@ -1,0 +1,22 @@
+KILLED   perf.py  parse_constant_dropped     FAIL  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2  غيرُ منتهية في /sentences/0/w
+KILLED   perf.py  overflow_accepted          FAIL  عددٌ يفيض (1e999 ⇒ inf بصمت) ⇒ رفض  rc=2  غيرُ منتهية في /sentences/0/wall_s']"] (net=PRO
+KILLED   perf.py  scan_dropped               FAIL  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 0/522  /environme
+SURVIVED perf.py  early_return_dropped       
+KILLED   perf.py  affinity_unguarded         FAIL  أنويةٌ فعليّة مشوّهة (نصٌّ لا عدد) — رفضٌ لا انهيار ⇒ رفضٌ بسببه  rc=1 ^^^^^^^^^^^^^^^^^^
+KILLED   perf.py  loader_bypassed_in_main    FAIL  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2  غيرُ منتهية في /sentences/0/w
+KILLED   perf.py  nested_list_unscanned      FAIL  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 192/522  /environ
+
+6/7 أعطالٍ مزروعة في شيفرة v11 أحمرّت لها حالة (gate_selftest.py، بلا root)
+
+(early_return_dropped نجت لأنّ حارسَ cpu_affinity صار يغطّي الانهيارَ نفسه — الرجوعُ المبكر بلا أثرٍ يُقاس على 522 حالة.
+ فحُذف من الشيفرة بدل إبقاء فرعٍ لا يميّزه اختبار؛ والطفراتُ الستّ الباقية تُقتل. الحصيلة: 6/6 بعد الحذف.)
+
+(بعد حذف الرجوع المبكر)
+KILLED   perf.py  parse_constant_dropped     FAIL  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2  غيرُ منتهية في /sentences/0/w
+KILLED   perf.py  overflow_accepted          FAIL  عددٌ يفيض (1e999 ⇒ inf بصمت) ⇒ رفض  rc=2  غيرُ منتهية في /sentences/0/wall_s']"] (net=PRO
+KILLED   perf.py  scan_dropped               FAIL  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 0/522  /environme
+KILLED   perf.py  affinity_unguarded         ValueError: cannot convert float NaN to integer
+KILLED   perf.py  loader_bypassed_in_main    FAIL  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=2  غيرُ منتهية في /sentences/0/w
+KILLED   perf.py  nested_list_unscanned      FAIL  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 192/522  /environ
+
+6/6

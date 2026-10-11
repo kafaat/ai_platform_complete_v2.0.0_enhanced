@@ -27,7 +27,7 @@ interface ContextBarProps {
 
 // نمط موحّد لمحدّد سياقيّ بسيط (<select>) — نفس رموز اللوحة الداكنة.
 const selectClass =
-  'hidden lg:inline-flex text-xs rounded-xl px-3 py-2 bg-[rgb(var(--sahool-surface-2))] text-[rgb(var(--sahool-text))] border border-[rgb(var(--sahool-border))] focus:outline-none focus:border-[rgb(var(--sahool-border-focus))]';
+  'hidden lg:inline-flex text-xs rounded-xl px-3 py-2 bg-[rgb(var(--sahool-surface-2))] text-[rgb(var(--sahool-text))] border border-[rgb(var(--sahool-border))] focus:outline-hidden focus:border-[rgb(var(--sahool-border-focus))]';
 
 export default function ContextBar({ onMenu, theme, setTheme, tenantName, tenantLogo }: ContextBarProps) {
   const location = useLocation();
@@ -52,16 +52,16 @@ export default function ContextBar({ onMenu, theme, setTheme, tenantName, tenant
       {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة). */}
       {tenantLogo && (
         <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'} loading="lazy" decoding="async"
-          className="h-6 w-auto max-w-[120px] object-contain flex-shrink-0" />
+          className="h-6 w-auto max-w-[120px] object-contain shrink-0" />
       )}
 
       {/* الفُتات: القسم ‹ الصفحة */}
-      <Icon className="w-5 h-5 text-emerald-500 flex-shrink-0" aria-hidden="true" />
+      <Icon className="w-5 h-5 text-emerald-500 shrink-0" aria-hidden="true" />
       <div className="flex items-center gap-1.5 min-w-0">
         {section && (
           <>
             <span className="hidden sm:inline text-xs text-[rgb(var(--sahool-muted))] truncate">{section.label}</span>
-            <ChevronLeft className="hidden sm:inline w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+            <ChevronLeft className="hidden sm:inline w-3.5 h-3.5 text-slate-600 shrink-0" />
           </>
         )}
         <h1 className="text-base font-bold text-[rgb(var(--sahool-text))] truncate">{route?.label ?? 'لوحة المعلومات'}</h1>

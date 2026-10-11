@@ -744,6 +744,7 @@ async def enqueue_single_scene_process(
     _svc = str(_Path(__file__).resolve().parent)
     if _svc not in sys.path:
         sys.path.insert(0, _svc)
+    import radiometry_containment
     from imagery_product_identity import ImageryProductIdentity, canonical_processing_version
 
     identity = ImageryProductIdentity.create(
@@ -797,11 +798,27 @@ async def enqueue_single_scene_process(
                 }
             # ٢. عنصر قائم بنفس المفتاح؟ إعادة استعمال حيّ (queued/processing) أو جاهز (persisted).
             existing = await conn.fetchrow(
-                "SELECT id, run_id, status FROM backfill_run_items "
+                "SELECT id, run_id, status, error FROM backfill_run_items "
                 "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 str(tenant_id),
                 key,
             )
+            # فشلٌ دائم لنسخة المعالجة هذه (احتواء Element84→VRT): لا تشغيلة ولا إعادة صفّ —
+            # المفتاح يحمل processing_version، فيُرفَع الحجب بنسخة معالجة جديدة لا بنقرة.
+            # (مراجعة Copilot على #1135: هذا المسار كان يمسح الخطأ ويُعيد العنصر إلى queued.)
+            if (
+                existing is not None
+                and str(existing["status"]) == "failed"
+                and str(existing["error"] or "").startswith(radiometry_containment.ITEM_ERROR)
+            ):
+                return {
+                    "status": radiometry_containment.RADIOMETRY_UNRESOLVED,
+                    "run_id": int(existing["run_id"]) if existing["run_id"] is not None else None,
+                    "item_id": int(existing["id"]),
+                    "reused_existing_job": True,
+                    "retryable": False,
+                    "error": str(existing["error"]),
+                }
             if existing is not None and str(existing["status"]) in (
                 "queued",
                 "processing",
@@ -844,11 +861,29 @@ async def enqueue_single_scene_process(
                 item_id = await conn.fetchval(
                     "UPDATE backfill_run_items SET run_id=$1, status='queued', job_id=NULL, "
                     "error=NULL, processed_at=NULL WHERE tenant_id=$2::uuid AND idempotency_key=$3 "
+                    "AND (error IS NULL OR NOT starts_with(error, $4)) "
                     "RETURNING id",
                     int(run_id),
                     str(tenant_id),
                     key,
+                    radiometry_containment.ITEM_ERROR,
                 )
+                if item_id is None:
+                    # لم يُعَد الصفّ: العنصر صار فشلاً دائماً بين القراءة والتحديث. تشغيلتنا يتيمة
+                    # (P1-2) فتُحذف، والنتيجة غيرُ قابلة لإعادة المحاولة — لا «planned» بلا عنصر.
+                    await conn.execute(
+                        "DELETE FROM backfill_runs WHERE id=$1 AND run_kind='single_scene' "
+                        "AND NOT EXISTS (SELECT 1 FROM backfill_run_items WHERE run_id=$1)",
+                        int(run_id),
+                    )
+                    return {
+                        "status": radiometry_containment.RADIOMETRY_UNRESOLVED,
+                        "run_id": None,
+                        "item_id": int(existing["id"]),
+                        "reused_existing_job": True,
+                        "retryable": False,
+                        "error": radiometry_containment.ITEM_ERROR,
+                    }
             else:
                 item_id = await conn.fetchval(
                     """

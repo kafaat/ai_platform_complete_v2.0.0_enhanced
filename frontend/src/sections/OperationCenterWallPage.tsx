@@ -65,7 +65,7 @@ function Tile({
       className={`rounded-2xl border p-4 flex flex-col ${className}`}
       style={{ background: '#10151f', borderColor: '#25303f' }}
     >
-      <header className="flex items-center gap-2 mb-3 flex-shrink-0">
+      <header className="flex items-center gap-2 mb-3 shrink-0">
         <Icon className="w-5 h-5 text-emerald-400" aria-hidden="true" />
         <h2 className="text-base font-bold text-slate-100">{title}</h2>
         {hint && <span className="text-[11px] text-slate-500 mr-auto">{hint}</span>}
@@ -219,7 +219,7 @@ function AlertsTile() {
                   return (
                     <li key={a.alert_id} className="flex items-center gap-2 rounded-lg px-2 py-1.5"
                       style={{ background: '#0d1117', borderRight: `3px solid ${s.border}` }}>
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.border }} />
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.border }} />
                       <span className="text-sm text-slate-200 truncate">
                         {a.title_ar || a.message_ar || a.alert_type || 'تنبيه'}
                       </span>
@@ -257,7 +257,7 @@ function FleetTile() {
               <ul className="space-y-1 max-h-28 overflow-auto">
                 {data.silent_devices.slice(0, 5).map((d) => (
                   <li key={d.device_id} className="flex items-center gap-2 text-[12px] text-slate-300">
-                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ background: d.criticality === 'critical' ? '#dc2626' : '#f59e0b' }} />
                     <span className="truncate">{d.name}</span>
                     <span className="text-slate-500 mr-auto truncate">{d.detail_ar}</span>
@@ -362,7 +362,7 @@ function DecisionsTile() {
             {decisions.slice(0, 7).map((d) => (
               <li key={d.decision_id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px]"
                 style={{ background: '#0d1117', border: '1px solid #25303f' }}>
-                <Activity className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" aria-hidden="true" />
+                <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
                 <span className="text-slate-200 truncate">{d.decision_type || 'قرار'}</span>
                 <span className="text-slate-500 mr-auto truncate">{d.region || 'غير محدّد'}</span>
               </li>
@@ -403,7 +403,7 @@ function KpiCard({
       }}
     >
       <Icon
-        className={`w-6 h-6 flex-shrink-0 ${critical ? 'text-red-400' : 'text-emerald-400'}`}
+        className={`w-6 h-6 shrink-0 ${critical ? 'text-red-400' : 'text-emerald-400'}`}
         aria-hidden="true"
       />
       <div className="min-w-0">

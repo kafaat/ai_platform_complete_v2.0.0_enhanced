@@ -77,7 +77,7 @@ export default function AcceptInvitationPage({ onLogin }: { onLogin?: () => void
 
           {!token && (
             <div className="flex items-center gap-2 p-3 rounded-xl text-sm mb-4" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
-              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
               <span className="text-red-300">رابط الدعوة غير صالح — تأكّد من فتح الرابط كاملاً.</span>
             </div>
           )}
@@ -111,7 +111,7 @@ export default function AcceptInvitationPage({ onLogin }: { onLogin?: () => void
 
             {error && (
               <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
-                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
                 <span className="text-red-300">{error}</span>
               </div>
             )}

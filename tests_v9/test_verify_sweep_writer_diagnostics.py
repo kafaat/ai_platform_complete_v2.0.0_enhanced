@@ -121,7 +121,7 @@ def test_my_own_commit_during_the_sweep_is_not_blamed_on_a_guard(repo: Path) -> 
     """إعادةُ إنتاج الحادثة بـgit حقيقيّ: ملفٌّ مُعدَّل عند البدء، يُودَع أثناء «الفحص»."""
     (repo / "release.sha256").write_text("b\n", encoding="utf-8")
     before, head_before = sweep.tree_state(), sweep.head_sha()
-    _git(repo, "commit", "-q", "-am", "إيداعي أنا أثناء التشغيل")
+    _git(repo, "commit", "-q", "-am", "operator commit during sweep")
     after, head_after = sweep.tree_state(), sweep.head_sha()
 
     report = "\n".join(sweep.tree_change_report(before, after, head_before, head_after))
@@ -159,7 +159,7 @@ def test_main_blocks_and_names_my_commit_not_a_guard(repo: Path, monkeypatch, ca
     (repo / "release.sha256").write_text("b\n", encoding="utf-8")
 
     def commit_during_checks(_steps):
-        _git(repo, "commit", "-q", "-am", "إيداعي أنا أثناء التشغيل")
+        _git(repo, "commit", "-q", "-am", "operator commit during sweep")
         return []
 
     for name, value in {

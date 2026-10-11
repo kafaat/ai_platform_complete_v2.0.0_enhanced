@@ -108,7 +108,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
       {/* ملاحظة HIL */}
       <div className="flex items-start gap-2 mb-3 rounded-lg p-2.5 border text-[11px] text-amber-300"
         style={{ background: '#2a1a00', borderColor: '#f59e0b33' }}>
-        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+        <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         <span>
           فتح/إغلاق الصمّام هنا يسجّل النيّة فقط. التشغيل الفيزيائيّ الفعليّ يمرّ عبر
           موافقة بشريّة (HIL) قبل أن يُنفَّذ على الجهاز.
@@ -199,7 +199,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
                       {v.field_id && <span className="text-slate-600">· حقل {v.field_id}</span>}
                     </div>
                   </div>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                  <span className="text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0"
                     style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}44` }}>
                     {st.label}
                   </span>
@@ -424,7 +424,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
                 <button onClick={() => deleteSchedule.mutate(s.schedule_id)}
                   disabled={deleteSchedule.isPending}
                   title="حذف الجدول"
-                  className="p-2 rounded-lg flex-shrink-0 text-slate-500 hover:text-red-400 disabled:opacity-60"
+                  className="p-2 rounded-lg shrink-0 text-slate-500 hover:text-red-400 disabled:opacity-60"
                   style={{ border: '1px solid #334155' }}>
                   <Trash2 className="w-4 h-4" />
                 </button>

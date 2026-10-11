@@ -1,0 +1,27 @@
+تحقّقٌ من ادّعاءات مراجعة المالك (أُجريت على v7) — على نسختَي v7 وv8 المجمّدتين، ثمّ على v9 — 2026-10-04
+
+١. perf.py وفشلُ التزامن (سجلٌّ حقيقيٌّ قابلٌ للمقارنة عُدِّل):
+   كلُّ طلبات التزامن فشلت           v7 rc=0   v8 rc=0   ← مؤكَّد، وبقي مفتوحاً في v8
+   غيابُ p95 في التزامن              v7 rc=0   v8 rc=2 (العقد)
+   نسبةُ تباطؤ 9                     v7 rc=0   v8 rc=2 (العقد)
+   v9: الثلاثُ مرفوضةٌ (rc=2) **بفحص الاتّساق نفسه** وبالعقد معاً، ومعها: مهلةٌ واحدة بعدّاتٍ متّسقة · نسبةُ تباطؤٍ
+       لا تتّسق مع عدّاتها · فتراتُ تباطؤٍ > الفترات · إنتاجيّةٌ لا تتّسق مع النجاحات والمدّة · ذروةُ ذاكرةٍ فوق الحدّ.
+
+٢. مهلةُ ASR مع حرفٍ بلا نهاية سطر (timeout_s=0.1، والعاملُ يكتب «x» ثمّ يعلّق 5s):
+   v7: دام المقطعُ 5.053s ⇒ EVALUATOR_FAILED (لا TIMEOUT)
+   v8: دام المقطعُ 5.072s ⇒ EVALUATOR_FAILED (لا TIMEOUT)          ← مؤكَّد في النسختين
+   v9: 0.174s ⇒ EVALUATOR_TIMEOUT، والمجموعةُ قُتلت (group_gone)؛ وأثناء التحميل (load_timeout_s=0.5): 0.506s ⇒ EVALUATOR_TIMEOUT
+
+٣. semantic_selftest.py:279 ينهار:
+   السبب المقيس: مشغّلٌ ورث SIGCHLD=SIG_IGN — النواةُ تحصد الابنَ فوراً، فلا زومبي، ويختفي /proc/<pid>/stat:
+     SIGCHLD=DFL ⇒ stat موجود والحالة Z   ·   SIGCHLD=IGN ⇒ stat غيرُ موجود
+٤. مشغّلٌ ورث SIGCHLD=SIG_IGN (يفسّر انهيارَ semantic_selftest.py:279 في بيئة المالك):
+   semantic_selftest v8: rc=1  FileNotFoundError: [Errno 2] No such file or directory: '/proc/16923/stat'
+   run.py v8 عاملٌ فاشل (header_only): coordinator.exit_code=0 sigchld_inherited=— harness_status=failed
+   semantic_selftest v9: rc=0 78 حالة · فشل 0 · BLOCKED 0 
+   run.py v9 عاملٌ فاشل (header_only): coordinator.exit_code=1 sigchld_inherited=SIG_IGN harness_status=failed
+   **أثرٌ أوسع من الحالة:** تحت SIG_IGN الموروث يصير رمزُ خروج **كلِّ** ابنٍ 0 (waitpid ⇒ ECHILD) — في v8 سجّل
+   run.py عاملاً فاشلاً بـexit_code=0؛ وعلى نسخة العمل قبل الإصلاح (بعد إصلاح حالة الزومبي وحدها) صارت 13 حالةَ رفضٍ
+   في semantic_selftest «rc=0» (v8 نفسه ينهار قبلها عند الزومبي). v9 يُعيد SIGCHLD إلى
+   الافتراضيّ في كلّ نقطة دخولٍ تُنشئ عمليّات (run · worker · asr_screen · selftest · semantic_selftest) ويُسجّل
+   الموروثَ في coordinator.sigchld_inherited.

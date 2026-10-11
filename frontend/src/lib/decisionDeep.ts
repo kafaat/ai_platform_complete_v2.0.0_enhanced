@@ -104,9 +104,10 @@ export interface DecisionEconomicsResult {
   currency: string;
   executed_decisions: number;
   success_rate: number; // [0,1]
-  water_saved_mm: number;
-  water_saved_m3: number | null; // يُحسَب فقط مع المساحة — وإلّا null (لا تلفيق)
-  water_cost_avoided: number | null; // يُحسَب فقط مع التكلفة — وإلّا null
+  requested_minus_applied_mm: number; // فرقُ المطلوب عن المُنفَّذ — ليس وفراً
+  requested_minus_applied_m3: number | null; // مع مساحة حقلٍ واحد فقط — وإلّا null
+  requested_minus_applied_value: number | null; // قيمةٌ اسميّة للفرق، لا تكلفةٌ متجنَّبة
+  savings_claim?: import('./decisionInsight').SavingsClaim;
   notes_ar: string[] | null;
   impact?: {
     total_decisions: number;
@@ -115,9 +116,9 @@ export interface DecisionEconomicsResult {
     success_rate: number;
     water_requested_mm: number;
     water_applied_mm: number;
-    water_saved_mm: number;
+    requested_minus_applied_mm: number;
     water_records: number;
-    by_action: Record<string, { executed: number; failed: number; water_saved_mm: number }>;
+    by_action: Record<string, { executed: number; failed: number; requested_minus_applied_mm: number }>;
   };
   disabled?: boolean; // 404 ⇒ العلم مُطفأ (تُضيفها الواجهة، ليست من الخادم)
 }

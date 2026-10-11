@@ -158,12 +158,12 @@ def test_prescriptions():
     else:
         results.append(("✗", "sandy soil should have split warning"))
 
-    # ٤. الـconfidence أعلى لما lab data متوفّرة
+    # ٤. لا ثقةَ رقميّة فوق جدولٍ غير مُتحقَّق — حتّى مع فحص التربة (الأساس نفسه لم يُراجَع)
     z1 = next(z for z in rx.zones if z.zone_id == "z1")
-    if z1.confidence >= 0.85:
-        results.append(("✓", f"lab data → high confidence ({z1.confidence})"))
+    if z1.confidence is None and rx.requires_agronomist_review is True:
+        results.append(("✓", "unvalidated base table → no fabricated confidence, review required"))
     else:
-        results.append(("✗", f"confidence should be ≥0.85 with lab: {z1.confidence}"))
+        results.append(("✗", f"fabricated confidence over an unvalidated table: {z1.confidence}"))
 
     # ٥. CSV export يعمل
     csv_str = prescription_to_csv(rx)

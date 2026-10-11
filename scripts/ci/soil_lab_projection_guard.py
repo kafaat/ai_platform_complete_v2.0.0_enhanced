@@ -20,12 +20,16 @@ checks = {
     "services/sahool-platform/api/lab_store.py": ["insert_soil_results", "latest_soil_analysis"],
     "services/soil-service/soil_store.py": [
         "rebuild_snapshot_locked",
+        "rebuild_snapshot_in_transaction",
         "pg_advisory_xact_lock",
         "canonical_sensor_readings",
     ],
+    # الإدخالُ يُعيد بناء اللقطة داخل معاملته هو (rebuild_snapshot_in_transaction يأخذ
+    # pg_advisory_xact_lock نفسه): rebuild_snapshot_locked يفتح معاملةً ثانية فيُثبّت
+    # القراءات قبل اللقطة جزئيّاً (SOIL-WIDE-INGEST-COMMITS-PARTIAL-EVIDENCE-01).
     "services/soil-service/routers/readings.py": [
         "canonical_sensor_readings",
-        "rebuild_snapshot_locked",
+        "rebuild_snapshot_in_transaction",
     ],
 }
 for filename, needles in checks.items():

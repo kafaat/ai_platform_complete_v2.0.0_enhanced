@@ -11,7 +11,7 @@ const num = (v: string, fallback = 0) => Number.isFinite(Number(v)) ? Number(v) 
 const show = (v: unknown) => typeof v === 'number' && Number.isFinite(v) ? v.toFixed(2) : '—';
 
 function F({ label, value, onChange, unit }: {label:string;value:string;onChange:(v:string)=>void;unit?:string}) {
-  return <label className="space-y-1 text-xs text-slate-400"><span>{label}</span><div className="flex rounded-lg border border-slate-700 bg-slate-950"><input type="number" min="0" step="any" value={value} onChange={e=>onChange(e.target.value)} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none"/>{unit && <span className="border-r border-slate-700 px-2 py-2 text-slate-500">{unit}</span>}</div></label>;
+  return <label className="space-y-1 text-xs text-slate-400"><span>{label}</span><div className="flex rounded-lg border border-slate-700 bg-slate-950"><input type="number" min="0" step="any" value={value} onChange={e=>onChange(e.target.value)} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-hidden"/>{unit && <span className="border-r border-slate-700 px-2 py-2 text-slate-500">{unit}</span>}</div></label>;
 }
 
 const systemLabels: Record<NetworkIrrigationSystemType, string> = {

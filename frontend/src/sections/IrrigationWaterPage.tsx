@@ -129,8 +129,8 @@ export default function IrrigationWaterPage() {
           <div className="rounded-xl border p-4 flex items-start gap-3"
             style={{ background: res.hazard_flags_ar.length ? '#1a0800' : '#04140a', borderColor: res.hazard_flags_ar.length ? '#f9731633' : '#16a34a33' }}>
             {res.hazard_flags_ar.length
-              ? <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-              : <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />}
+              ? <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+              : <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />}
             <div>
               <div className="text-sm font-semibold text-slate-100">{res.suitable_ar}</div>
               {res.hazard_flags_ar.length > 0 && (

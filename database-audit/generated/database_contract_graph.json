@@ -2035,6 +2035,7 @@
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "created_in": "v144_backfill_runs.sql",
@@ -2056,6 +2057,7 @@
       "code_writers": [
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "created_in": "v144_backfill_runs.sql",
@@ -3717,6 +3719,7 @@
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+        "services/sahool-platform/tests/test_nl_sql_policy.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py",
         "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
@@ -4432,7 +4435,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/routers/irrigation_engineering.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/routers/irrigation_engineering.py"
       ],
@@ -4482,6 +4487,7 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py"
       ],
       "code_writers": [
@@ -5758,6 +5764,7 @@
       "code_readers": [
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
       "code_writers": [

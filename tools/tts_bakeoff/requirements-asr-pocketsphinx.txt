@@ -1,0 +1,6 @@
+# محوّلُ pocketsphinx لفرز ASR — في بيئةٍ منفصلة (python في إعداد المقيِّم). pip-audit: No known vulnerabilities found (2026-10-04)
+# الترخيص: BSD (pocketsphinx-5.1.1.dist-info/licenses/LICENSE، CMU)؛ النموذجُ المضمَّن en-us: BSD (Alpha Cephei، en-us/README)
+pocketsphinx==5.1.1
+sounddevice==0.5.6
+cffi==2.1.1
+pycparser==3.0

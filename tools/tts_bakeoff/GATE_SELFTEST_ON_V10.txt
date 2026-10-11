@@ -1,0 +1,23 @@
+gate_selftest.py (v12) مشغَّلاً على perf.py من v10 المجمّدة — يُثبت أنّ الاختبار يميّز (2026-10-04):
+
+PASS  الضابطُ الإيجابيّ: السجلُّ الحقيقيّ كما هو يُقبل  rc=0 
+FAIL  sentences[0].wall_s = NaN ⇒ رفضٌ عند القراءة (رمز 2)  rc=0 
+FAIL  sentences[0].wall_s = Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=0 
+FAIL  sentences[0].wall_s = -Infinity ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 s than or equal to the minimum of 0']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+FAIL  sentences[0].wall_s = 1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=0 
+FAIL  sentences[0].wall_s = -1e309 ⇒ رفضٌ عند القراءة (رمز 2)  rc=2 s than or equal to the minimum of 0']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+FAIL  عددٌ يفيض (1e999 ⇒ inf بصمت) ⇒ رفض  rc=0 
+FAIL  perf.py بلا قارئٍ صارم (load_result/NonFiniteJSON) — NaN/Infinity تُقبل عند القراءة  
+FAIL  كلُّ حقلٍ عدديّ (0) × NaN/±Infinity/±1e309 ⇒ القارئُ الصارم يرفض 0/0  
+FAIL  والسجلُّ نفسه في الذاكرة (كما يقرؤه run.py) ⇒ فحصُ الأدلّة يسمّي المسار 0/0  
+PASS  كلُّ طلبات التزامن فشلت ⇒ رفضٌ بسببه  rc=2 — لا مقارنةَ أداءٍ مع طلباتٍ فاشلة\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  غيابُ p95 في التزامن ⇒ رفضٌ بسببه  rc=2 سيط {\'n\': 3, \'median_s\': 0.023}"]'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  نسبةُ تباطؤ 9 ⇒ رفضٌ بسببه  rc=2 _throttled_ratio=9 لا تتّسق مع 0/14']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  نسبةُ تباطؤٍ لا تتّسق مع عدّاتها ⇒ رفضٌ بسببه  rc=2 hrottled_ratio=0.5 لا تتّسق مع 0/14']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  إنتاجيّةٌ لا تتّسق ⇒ رفضٌ بسببه  rc=2 hput_rps=999.0 لا تتّسق مع 3/0.073s']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  ذروةُ ذاكرةٍ فوق الحدّ ⇒ رفضٌ بسببه  rc=2 _peak_mb=1000000 > حدّ الذاكرة 1024']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  مقطعٌ فاشلٌ داخل سجلٍّ ناجح ⇒ رفضٌ بسببه  rc=2 :/sentences/3/ok: True was expected']"] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+PASS  حالاتُ نجاحٍ بلا قياسات ⇒ رفضٌ بسببه  rc=2 _median=None\', \'concurrency فارغ\']'] (net=PROVEN limits=ENFORCED ro=ENFORCED status=ok)
+FAIL  أنويةٌ فعليّة مشوّهة (نصٌّ لا عدد) — رفضٌ لا انهيار ⇒ رفضٌ بسببه  rc=1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ValueError: invalid literal for int() with base 10: 'x'
+19 حالة · فشل 10
+rc=1

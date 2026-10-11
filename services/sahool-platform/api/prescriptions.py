@@ -83,7 +83,7 @@ class ZonePrescription:
     zone_id: str
     rate: float  # kg/ha أو seeds/m²
     unit: str  # "kg/ha", "seeds/m2", "L/ha"
-    confidence: float  # 0-1
+    confidence: float | None  # 0-1 — None حين لا مرجعَ مُتحقَّقاً تُقاس عليه الثقة
     rationale_ar: str  # لماذا هذه القيمة بالعربيّة
     rationale_en: str
     warnings: list[str] = field(default_factory=list)
@@ -103,6 +103,10 @@ class Prescription:
     average_rate: float
     created_at: str
     notes_ar: str = ""
+    # صدق الجرعة: أساسُ المعدّل، وهل هي سلطةٌ للتنفيذ، وهل تلزمها مراجعة مهندس زراعيّ.
+    rate_basis: str | None = None
+    authoritative: bool | None = None
+    requires_agronomist_review: bool | None = None
 
 
 # ─── Knowledge Base (agronomic rules) ───────────────────────────
@@ -175,14 +179,26 @@ class PrescriptionGenerator:
         total_n = 0.0
 
         for zone in zones:
-            zclass = self._zone_to_class(zone)
+            # NDVI مؤشّرٌ تشخيصيّ لا يحدّد جرعة: صنفُ الجرعة هو الصنف المُعلَن للزون فقط.
+            # كان ``_zone_to_class`` يُحوّل NDVI < 0.4 / > 0.65 مباشرةً إلى معدّل N أدنى/أعلى،
+            # أي أنّ مؤشّر الأقمار وحده كان يختار الجرعة (وNDVI من مسار Element84 محجوبٌ
+            # لعيوب NoData والمحاذاة). يبقى اقتراحُه ظاهراً تحذيراً لا معدّلاً.
+            zclass = zone.zone_class
+            ndvi_class = self._zone_to_class(zone)
             # PROBLEM zone: تبدأ من "low" rate ثمّ تتعدّل
             base_key = zclass.value if zclass.value in base_rates else "low"
             base = base_rates[base_key]
             rate = float(base)
             warnings: list[str] = []
             adjustments: list[str] = []
-            confidence = 0.75  # baseline من crop tables
+            if ndvi_class != zclass:
+                warnings.append(
+                    f"NDVI ({zone.ndvi_mean}) يقترح صنف «{ndvi_class.value}» — تشخيصيّ: لم يُغيّر "
+                    "الجرعة. ثبّت صنف الزون بتحليل تربة أو معاينة قبل تعديل المعدّل."
+                )
+            # لا ثقةَ رقميّة: جدولُ المعدّلات الأساسيّ غير مُتحقَّق (UNVALIDATED DEFAULT)،
+            # فرقمُ 0.75/0.90 كان ثقةً مختلَقة فوق أساسٍ لم يُراجَع.
+            confidence = None
 
             # تعديل ١: لو لدينا N test (لاب) — هذا أدقّ
             if zone.soil_n_ppm is not None:
@@ -191,7 +207,6 @@ class PrescriptionGenerator:
                 required_total = base + 30  # crop need + buffer
                 rate = max(20, required_total - existing_n_kg)
                 adjustments.append(f"خُصِم ٤×{zone.soil_n_ppm}={existing_n_kg:.0f} kg/ha من الفحص")
-                confidence = 0.90  # ثقة أعلى مع lab data
 
             # تعديل ٢: لو منطقة "problem" (ملوحة)، خفّض
             if zone.zone_class == ZoneClass.PROBLEM:
@@ -219,7 +234,7 @@ class PrescriptionGenerator:
                     zone_id=zone.zone_id,
                     rate=rate,
                     unit="kg/ha (N)",
-                    confidence=round(confidence, 2),
+                    confidence=confidence,
                     rationale_ar=" · ".join(rationale_parts),
                     rationale_en=f"crop:{crop} zone:{zclass.value}",
                     warnings=warnings,
@@ -239,7 +254,14 @@ class PrescriptionGenerator:
             if (_total_area := sum(z.area_ha for z in zones)) > 0
             else 0,
             created_at=_now_iso(),
-            notes_ar="تطبيق متغيّر — راجع الـzones قبل التنفيذ. قد تحتاج تحاليل تربة حديثة للزونات الفقيرة.",
+            notes_ar=(
+                "مسوّدة غير مُتحقَّقة: المعدّلات من جدول افتراضيّ لم يُراجعه مهندس زراعيّ "
+                "(UNVALIDATED DEFAULT) — ليست جرعةً للتنفيذ. NDVI تشخيصيّ لا يحدّد الجرعة. "
+                "راجع الـzones وتحاليل التربة الحديثة قبل أيّ تطبيق."
+            ),
+            rate_basis="unvalidated_default_table",
+            authoritative=False,
+            requires_agronomist_review=True,
         )
 
     def generate_seeding(
@@ -350,7 +372,8 @@ def prescription_to_csv(prescription: Prescription) -> str:
     for z in prescription.zones:
         # CSV-safe (no commas in rationale)
         rationale = z.rationale_en.replace(",", ";")
-        lines.append(f"{z.zone_id},{z.rate},{z.unit},{z.confidence},{rationale}")
+        conf = "" if z.confidence is None else z.confidence
+        lines.append(f"{z.zone_id},{z.rate},{z.unit},{conf},{rationale}")
     return "\n".join(lines)
 
 
@@ -366,6 +389,9 @@ def prescription_to_dict(prescription: Prescription) -> dict:
         "average_rate": prescription.average_rate,
         "created_at": prescription.created_at,
         "notes_ar": prescription.notes_ar,
+        "rate_basis": prescription.rate_basis,
+        "authoritative": prescription.authoritative,
+        "requires_agronomist_review": prescription.requires_agronomist_review,
         "zones": [
             {
                 "zone_id": z.zone_id,

@@ -1,0 +1,31 @@
+إعادةُ إثبات ثغرات مراجعة المالك على نسخة v5 المجمّدة (sha256 الحزمة 9e7b7851…5d6d) ثمّ على v6 — 2026-10-04
+
+١. جردُ الملفّات — نموذجٌ غيرُ معلن تحت /usr/share (file_inventory على سجلّ strace يفتح …/voice.onnx):
+   falsify_v5   undeclared=False   ← يُصنَّف «نظاماً»
+   v6           undeclared=True    (weight_extension)
+
+٢. perf.py — سجلٌّ حقيقيّ ناجح عُدِّل إلى harness_status=failed · network_isolation=BLOCKED مع performance_comparable=true:
+   v5 perf rc=0   ← قُبلت المقارنة
+   v6 perf rc=2   سجلٌّ متناقض: performance_comparable=true مع ['harness_status', 'network_isolation']
+
+٣. cgroup — فشلُ الحصّة (cpus=0.0001 ⇒ cfs_quota_us=10 مرفوضة) بعد إنشاء مجموعة الذاكرة:
+   falsify_v5   backend=UNAVAILABLE memory_dir_left=True  paths_for_cleanup=[]   ← مجموعةٌ يتيمة
+   v6           backend=UNAVAILABLE memory_dir_left=False (partial_cleanup.created يسجّلها، leaked=[])
+
+٤. ASR — command حرٌّ فيه --initial-prompt بالنصّ المرجعيّ لـD03، ومقيِّمٌ يردّده:
+   falsify_v5   rc=0 accepted=True screen=NO_FLAG  evaluator.reference_text_given_to_asr=false   ← ادّعاءٌ ثابت
+   v6           rc=1 مرفوض: مفاتيحُ غيرُ معروفة في إعداد المقيِّم ['backend', 'command']
+
+٥. فحوصُ الحقائق — حالاتُ MUST_FAIL الجديدة على محلّل v5 (بحقائق v6):
+   v5 كشف 21/29؛ فاتته:
+     M03 تبديلُ الإسناد · N04 «ليست» داخل الشرط · D03 «زد عليها» بعد النهي · C01 محصولٌ ومكانٌ وموسمٌ آخر
+     C03 اتّجاهُ المقارنة · N04 سقوطُ «إذا» · M01 «ارتفع» بدل «انخفض» · C04 (مخطّطُ «words» صار «content»)
+   v5 يقبل جملةً بلا حقائق: True
+   v6: 60/60 (semantic_selftest.py)، ومنها كلُّ ما سبق.
+
+٦. أعطالٌ مزروعة في v6 نفسه (semantic_mutations_v6.txt): 22/22 أحمرّت لها حالة
+   (21 من الجولة الأولى، وtype_unchecked أُعيدت بطفرةٍ تُزيل الشرط كاملاً — الأولى أزالت نصفه فقط).
+   ومن الجولة السابقة للتشديد: 5 نجت لأنّ الحالات كانت تفحص رمزَ الخروج لا سببَ الرفض، أو لأنّ طبقةً أخرى
+   كانت تلتقطها؛ أُضيفت حالاتٌ تعزلها وتفحص السبب.
+
+لم يُقَس: أيُّ محرّكٍ حقيقيّ، ولا أيُّ نموذج ASR حقيقيّ، ولا ما يُسمع من أيّ نصّ.

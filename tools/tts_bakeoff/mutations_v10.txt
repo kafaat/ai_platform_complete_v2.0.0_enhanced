@@ -1,0 +1,23 @@
+SURVIVED asr_screen.py  isolate_prefix_dropped     
+SURVIVED asr_screen.py  isolation_check_dropped    
+KILLED   asr_screen.py  lang_any                   FAIL  ASR: لغةٌ تحمل وسيطاً ⇒ رفضٌ بسببه  rc=1 nt', '-np', '-f', '/tmp/tmpsmx5mpfs/run/wav/D03.
+KILLED   asr_screen.py  ps_parts_unchecked         FAIL  pocketsphinx: نموذجٌ بلا قاموس (Decoder يفكّ بالمضمَّن بصمت) ⇒ رفضٌ بسببه  قُبل
+SURVIVED asr_screen.py  decoder_default_model      
+KILLED   asr_screen.py  latin_leak_ignored         FAIL  ASR: تسريبُ نصٍّ **إنجليزيّ** في الاستدعاء يُكشف (v9 كان يتجاوز اللاتينيّة)، وكلماتُ المس
+SURVIVED asr_screen.py  paths_counted_as_leak      
+KILLED   asr_screen.py  python_unchecked           FAIL  pocketsphinx: python غيرُ موجود ⇒ رفضٌ بسببه  t صراحةً (['dict=cmudict-en-us.dict']) — وإ
+SURVIVED asr_screen.py  worker_python_ignored      
+KILLED   semantic.py    no_lowercase               FAIL  ASR الإنجليزيّ — ضابطٌ إيجابيّ: «No field» محفوظٌ في التفريغ ⇒ لا علَمَ نفي (يبقى غيرُ ال
+KILLED   semantic.py    english_negations_removed  FAIL  ASR الإنجليزيّ — ضابطٌ إيجابيّ: «No field» محفوظٌ في التفريغ ⇒ لا علَمَ نفي (يبقى غيرُ ال
+
+6/11 أعطالٍ مزروعة في شيفرة v10 أحمرّت لها حالة
+
+(إعادةُ الناجين مع BAKEOFF_PS_PYTHON — في الجولة الأولى وجد الاختبارُ الحقيقيّ مفسّرَه غائباً داخل نسخ الطفرات فسُجِّل BLOCKED لا FAIL؛ ومسارُ الاختبار بلا مسافات فلم يُختبر استثناءُ المسارات)
+KILLED   asr_screen.py  isolate_prefix_dropped     FAIL  pocketsphinx **حقيقيّ** على مقطع Flite (بلا نصٍّ مرجعيّ): «No field» فُرِّغ «now field» ⇒
+SURVIVED asr_screen.py  isolation_check_dropped    
+KILLED   asr_screen.py  decoder_default_model      FAIL  pocketsphinx **حقيقيّ** على مقطع Flite (بلا نصٍّ مرجعيّ): «No field» فُرِّغ «now field» ⇒
+KILLED   asr_screen.py  paths_counted_as_leak      FAIL  ASR: تسريبُ نصٍّ **إنجليزيّ** في الاستدعاء يُكشف (v9 كان يتجاوز اللاتينيّة)، وكلماتُ المس
+KILLED   asr_screen.py  worker_python_ignored      FAIL  pocketsphinx **حقيقيّ** على مقطع Flite (بلا نصٍّ مرجعيّ): «No field» فُرِّغ «now field» ⇒
+
+(إعادةٌ بعد إضافة «unshare» لا يعزل)
+KILLED   asr_screen.py  isolation_check_dropped    FAIL  ASR isolate_net: «unshare» لا يعزل فعلاً ⇒ المسبارُ داخل المقيِّم يبلغ الهدف ⇒ رفض (لا اد

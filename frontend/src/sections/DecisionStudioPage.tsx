@@ -67,7 +67,7 @@ function SignalCard({ s }: { s: DecisionSignal }) {
         <div className="text-[11px] text-slate-400 truncate">{s.label_ar}</div>
         <div className="text-sm font-semibold text-slate-200 truncate">{fmtValue(s.value)}</div>
       </div>
-      <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0"
+      <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0"
         style={{ background: st.bg, color: st.color }}>
         {s.status}
       </span>
@@ -195,7 +195,7 @@ function ExplanationBody({ ex }: { ex: DecisionExplanation }) {
           <div className="space-y-2">
             {Object.entries(ex.final).map(([k, v]) => (
               <div key={k} className="flex items-start gap-2 text-sm">
-                <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 mt-0.5"
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold shrink-0 mt-0.5"
                   style={{ background: '#16a34a18', color: '#4ade80' }}>{k}</span>
                 <span className="text-slate-200">{fmtValue(v)}</span>
               </div>
@@ -208,7 +208,7 @@ function ExplanationBody({ ex }: { ex: DecisionExplanation }) {
       {ex.warnings_ar.length > 0 && (
         <div className="rounded-xl border p-3 flex items-start gap-3"
           style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             {ex.warnings_ar.map((w, i) => (
               <div key={i} className="text-[12px] text-amber-200/90">• {w}</div>
@@ -297,7 +297,7 @@ export default function DecisionStudioPage() {
           {!data.found || !data.explanation ? (
             <div className="rounded-xl border p-4 flex items-start gap-3"
               style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm text-amber-200">
                 شرح القرار غير متاح: القرار غير مُدام (قد يكون حُسِب عبر المسار النقيّ، أو الإدامة مُطفأة).
                 لا نختلق شرحاً — هذه الحالة معروضة كما هي.
