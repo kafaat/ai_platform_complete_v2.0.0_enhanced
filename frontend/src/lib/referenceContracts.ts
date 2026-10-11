@@ -22,14 +22,52 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** يفكّ ``{<key>: [...]}``؛ وغيرُه خطأُ عقدٍ لا قائمةٌ فارغة. */
-export function unwrapList<T>(
+/** يفكّ ``{<key>: [...]}``؛ وغيرُه خطأُ عقدٍ لا قائمةٌ فارغة. العناصرُ ``unknown`` حتّى تُفحَص. */
+export function unwrapList(
   data: unknown,
   key: string,
   endpoint: string,
-): T[] {
-  if (isRecord(data) && Array.isArray(data[key])) return data[key] as T[];
+): unknown[] {
+  if (isRecord(data) && Array.isArray(data[key])) return data[key] as unknown[];
   throw new ApiShapeError(endpoint, `كائناً فيه مصفوفة «${key}»`);
+}
+
+type FieldKind = "number" | "string";
+
+function hasField(
+  item: Record<string, unknown>,
+  field: string,
+  kind: FieldKind,
+): boolean {
+  const value = item[field];
+  return kind === "number"
+    ? typeof value === "number" && Number.isFinite(value)
+    : typeof value === "string" && value.trim() !== "";
+}
+
+/**
+ * يفكّ الغلاف ثمّ يفحص كلَّ عنصرٍ بحقول الخادم الإلزاميّة. فحصُ الغلاف وحده كان يقبل
+ * ``{mansions:[null]}`` فتنهار اللوحةُ عند ``m.order``، و``{months:[{index:1}]}`` فيختفي
+ * الحقلُ المُعاد تسميتُه خلف بدائل العرض — والعنصرُ المنحرف انحرافُ عقدٍ كالغلاف المنحرف.
+ */
+function itemsWith<T>(
+  data: unknown,
+  key: string,
+  endpoint: string,
+  required: Record<string, FieldKind>,
+): T[] {
+  const fields = Object.keys(required).join(" و");
+  return unwrapList(data, key, endpoint).map((item) => {
+    if (
+      !isRecord(item) ||
+      !Object.entries(required).every(([field, kind]) =>
+        hasField(item, field, kind),
+      )
+    ) {
+      throw new ApiShapeError(endpoint, `عناصرَ فيها ${fields}`);
+    }
+    return item as T;
+  });
 }
 
 // ── التقاويم (/api/v1/calendars/*) ────────────────────────────────────────────
@@ -61,24 +99,35 @@ export interface RegionalProfile {
 }
 
 export const parseLunarMansions = (data: unknown): LunarMansion[] =>
-  unwrapList<LunarMansion>(
+  itemsWith<LunarMansion>(
     data,
     "mansions",
     "/api/v1/calendars/lunar-mansions",
+    {
+      order: "number",
+      name_ar: "string",
+    },
   );
 
 export const parseHimyariteMonths = (data: unknown): HimyariteMonth[] =>
-  unwrapList<HimyariteMonth>(
+  itemsWith<HimyariteMonth>(
     data,
     "months",
     "/api/v1/calendars/himyarite-months",
+    {
+      order: "number",
+      name_ar: "string",
+    },
   );
 
 export const parseRegionalProfiles = (data: unknown): RegionalProfile[] =>
-  unwrapList<RegionalProfile>(
+  itemsWith<RegionalProfile>(
     data,
     "profiles",
     "/api/v1/calendars/regional-profiles",
+    {
+      region_ar: "string",
+    },
   );
 
 // ── النظائر المناخيّة (/api/v1/climate-analogs/*) ─────────────────────────────
@@ -97,7 +146,7 @@ export function parseClimateAnalogRegions(
   data: unknown,
 ): ClimateAnalogRegion[] {
   const endpoint = "/api/v1/climate-analogs/list";
-  return unwrapList<unknown>(data, "regions", endpoint).map((raw) => {
+  return unwrapList(data, "regions", endpoint).map((raw) => {
     if (
       !isRecord(raw) ||
       typeof raw.region_ar !== "string" ||

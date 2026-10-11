@@ -28,10 +28,13 @@ export interface QueryLike<T> {
   fetchStatus: "fetching" | "paused" | "idle";
 }
 
+// الجلبُ الجاري يسبق الخطأَ السابق: بعد فشلٍ يبقى ``status="error"`` طوال إعادة المحاولة التالية
+// (``fetchStatus`` = fetching أو paused)، فقراءةُ الخطأ أوّلاً تُبقي فشلاً قديماً معروضاً وتُخفي
+// محاولةً جارية أو انقطاعاً قائماً. الخطأُ يُقال حين يكون هو الحالَ الأحدث — لا جلبَ بعده.
 function refreshNote(q: QueryLike<unknown>): RefreshNote {
-  if (q.status === "error") return "failed";
   if (q.fetchStatus === "paused") return "paused";
   if (q.fetchStatus === "fetching") return "refreshing";
+  if (q.status === "error") return "failed";
   return "none";
 }
 
@@ -41,8 +44,8 @@ export function queryView<T>(q: QueryLike<T>): QueryView {
     return { kind: empty ? "empty" : "data", refresh: refreshNote(q) };
   }
   if (q.fetchStatus === "paused") return { kind: "offline" };
-  if (q.status === "error") return { kind: "error" };
   if (q.fetchStatus === "fetching") return { kind: "loading" };
+  if (q.status === "error") return { kind: "error" };
   return { kind: "idle" };
 }
 

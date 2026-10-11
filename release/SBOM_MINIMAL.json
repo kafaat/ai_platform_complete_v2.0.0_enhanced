@@ -4505,7 +4505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d4fa7b5120a4f054fb17d9aa1a2c3eff782fc36ed03f02e8689c254fc822b4f"
+          "content": "4572006b7be8e21bf9a3983969f25254bec7ca86440eada4d39875b68e13157f"
         }
       ],
       "name": "frontend/src/lib/queryView.test.ts",
@@ -4515,7 +4515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccc99ffe37e244c6c6d2ad5ee98eb93c1129000ebb517d3a623bb927afeb1342"
+          "content": "af3e4fd918465a0c949f0e4e106ad3bc035979f6051fa18049f7d2a7abb9fb8a"
         }
       ],
       "name": "frontend/src/lib/queryView.ts",
@@ -4565,7 +4565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7648cba19a760ab5e80cdb43a28d572b88d74d10ce51e30a2630e7dbabca6afe"
+          "content": "ed8388086c9998a503a7d64937b32f7acf90acd6c9923a10c9d4eeec35ba4a29"
         }
       ],
       "name": "frontend/src/lib/referenceContracts.test.ts",
@@ -4575,7 +4575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0aebb9653b1eda4a42b9e312256734b635049ebf00025b9852a0964959e1ec34"
+          "content": "59fb46988de64bf20c320d5f74f62cb3af62cf0e87d6b550a42e0477737b654d"
         }
       ],
       "name": "frontend/src/lib/referenceContracts.ts",

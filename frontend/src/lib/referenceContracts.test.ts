@@ -90,6 +90,44 @@ describe("التقاويم: يُفكّ الغلافُ المعروف", () => {
     },
   );
 
+  // العنصرُ المنحرف انحرافُ عقدٍ كالغلاف المنحرف: ``[null]`` كان يمرّ فتنهار اللوحة عند
+  // ``m.order``، والحقلُ المُعاد تسميتُه كان يختفي خلف بدائل العرض.
+  it.each([
+    ["عنصرٌ null", { mansions: [null] }],
+    [
+      "حقلٌ أُعيدت تسميتُه (index بدل order)",
+      { mansions: [{ index: 1, name_ar: "الشرطان" }] },
+    ],
+    ["order نصٌّ لا رقم", { mansions: [{ order: "1", name_ar: "الشرطان" }] }],
+    ["name_ar فارغ", { mansions: [{ order: 1, name_ar: " " }] }],
+    ["عنصرٌ سليم يليه منحرف", { mansions: [mansionsBody.mansions[0], {}] }],
+  ])("المنازل: %s خطأُ عقد", (_label, body) => {
+    expect(() => parseLunarMansions(body)).toThrow(ApiShapeError);
+  });
+
+  it.each([
+    ["عنصرٌ null", { months: [null] }],
+    ["حقلٌ أُعيدت تسميتُه (index بدل order)", { months: [{ index: 1 }] }],
+    ["مصفوفةٌ داخل مصفوفة", { months: [[1, "ذو الثابة"]] }],
+  ])("الشهور: %s خطأُ عقد", (_label, body) => {
+    expect(() => parseHimyariteMonths(body)).toThrow(ApiShapeError);
+  });
+
+  it.each([
+    ["عنصرٌ null", { profiles: [null] }],
+    ["بلا region_ar", { profiles: [{ primary_system_ar: "أنواء" }] }],
+    ["region_ar ليس نصّاً", { profiles: [{ region_ar: 5 }] }],
+  ])("الملفّات الإقليميّة: %s خطأُ عقد", (_label, body) => {
+    expect(() => parseRegionalProfiles(body)).toThrow(ApiShapeError);
+  });
+
+  it("الحقولُ الزائدة على الإلزاميّة تمرّ كما هي — العقدُ يفرض الإلزاميّ لا يحظر الإضافة", () => {
+    const [m] = parseLunarMansions({
+      mansions: [{ order: 2, name_ar: "البطين", extra: true }],
+    });
+    expect(m).toMatchObject({ order: 2, name_ar: "البطين", extra: true });
+  });
+
   it("المصفوفةُ العارية — الشكلُ الذي افترضته الواجهة خطأً — مرفوضةٌ أيضاً", () => {
     expect(() => parseLunarMansions(mansionsBody.mansions)).toThrow(
       /lunar-mansions/,

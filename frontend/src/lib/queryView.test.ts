@@ -55,6 +55,22 @@ describe("queryView", () => {
       q([1], "error", "idle"),
       { kind: "data", refresh: "failed" },
     ],
+    // الجلبُ الجاري يسبق الخطأَ السابق: v5 تُبقي status="error" طوال المحاولة التالية.
+    [
+      "بيانات + error/fetching (محاولةٌ بعد فشل) ⇒ بيانات + تحديث لا فشلٌ قديم",
+      q([1], "error", "fetching"),
+      { kind: "data", refresh: "refreshing" },
+    ],
+    [
+      "بيانات + error/paused (محاولةٌ بعد فشل بلا اتّصال) ⇒ بيانات + توقّف",
+      q([1], "error", "paused"),
+      { kind: "data", refresh: "paused" },
+    ],
+    [
+      "لا بيانات + error/fetching (محاولةٌ بعد فشل) ⇒ تحميل لا خطأٌ قديم",
+      q(undefined, "error", "fetching"),
+      { kind: "loading" },
+    ],
     [
       "[] صحيحة ⇒ فراغ لا خطأ",
       q([], "success", "idle"),
