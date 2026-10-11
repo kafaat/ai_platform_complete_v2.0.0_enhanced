@@ -17,7 +17,8 @@
     "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
     "name": "sahool-migrate-main",
     "restartPolicyType": "NEVER",
-    "SAHOOL_MIGRATE_APPLY_in_service_variables": false
+    "SAHOOL_MIGRATE_APPLY_in_service_variables": false,
+    "SAHOOL_MIGRATE_APPLY_effective_in_process_env": "not_measured (shared/environment-level variables not read by the recorder; scenario B not run; in scenario A the readiness failure precedes the permission check)"
   },
   "deployments": [
     {
@@ -71,6 +72,7 @@
     "behaviour": "after 30 failed pg_isready attempts the old script proceeded to psql and failed on DNS resolution (apply line for init_v8.sql present)"
   },
   "not_measured": [
+    "effective SAHOOL_MIGRATE_APPLY value in the migrator's process environment — only its absence from the service-level variable names was measured (describe-service); an inherited shared/environment value is possible and untested (Copilot review on #1161)",
     "exit code is not exposed by the Railway API; inferred 1 from the script and the CRASHED status under restartPolicy NEVER",
     "scenario B (ready database, no permission, read-only inspection, inventory before/after) — requires a live staging postgres",
     "backup integrity and production restoration — outside this evidence"
