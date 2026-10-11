@@ -3740,3 +3740,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** تنبيه Gap Watch 2026-10-11 طلب تسجيلَ القيمة الفعليّة وضمانَ تنفيذ كلّ استعلامٍ داخل معاملة READ ONLY مؤكَّدة من PostgreSQL. قبل ذلك كان التأكيدُ في جلسة الهويّة فقط، واستعلامُ الغياب في جلسةٍ ثانية بلا تأكيدٍ خاصّ بها.
 
 **المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_live_pg.py` · `tests_v9/test_apply_in_compose_fail_closed.py` · التشغيل 38092839653 · PR #1160.
+
+## 2026-10-11 — حارسُ MinIO: صورةُ MinIO من أيّ مصدرٍ تُلزَم بالإبرة، ولا يُوسَّع معنى «المحذوف»
+
+**القرار:** يُضاف إلى `minio_s3_contract_gate.py` تعرّفٌ على مستودع MinIO أيّاً كان السجلّ أو المساحة (`is_minio_image`)، فيُلزَم كلُّ مرجعٍ كهذا بصيغة `${MINIO_IMAGE:-…}` أو `${MINIO_MC_IMAGE:-…}` مع الإبرة المثبَّتة؛ ويُرفَض فحصُ الصحّة بـcurl أو wget أيّاً كان المسار، بقراءة قسم `healthcheck:` وحده بلا تعليقات. ولا يُوسَّع `is_deleted_repo`. ويُضاف فحصُ `minio-images` إلى `scripts/runtime/env_doctor.py` القائم، لا حارسٌ جديد: يحجب المستودعين المحذوفين في `.env` أو الصدفة، وينبّه على صورةٍ غير الإبرة.
+
+**السبب:** الحارسُ كان يقبل `quay.io/minio/minio` و`bitnami/minio` وفحصاً بـwget أو بـcurl على مسارٍ غير `minio/health` — وكلُّها تفشل على آلةٍ جديدة أو تُبقي الخادم unhealthy. و`quay.io/minio/minio` مُدرَجٌ عمداً في `KEPT_FORMS` لأنّه ليس محذوفاً بل يشترط الدخول، فالرفضُ الصادق له «ليس الإبرة» لا «محذوف». مقيسٌ على حارس main (`32a000bd`): 19 من 23 اختباراً جديداً أحمر، ستّةٌ منها سلوكيّة؛ بعد التغيير 51/51. والقالبُ قبل #1139 ضبط المتغيّرين صراحةً على المستودعين المحذوفين، و`.env` المنسوخ منه يغلب الافتراضيّ ولا يتتبّعه git فلا يراه CI — فموضعُ فحصه الطبيبُ الذي يُشغّله المشغّل قبل compose.
+
+**المصدر:** `scripts/ci/minio_s3_contract_gate.py` · `tests_v9/test_minio_image_source.py` · `scripts/runtime/env_doctor.py` · `tests/runtime/test_phase17_runtime_bootstrap_doctor.py` · `MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01` · فرع `claude/wip-minio-guard-provenance` على `32a000bd`.

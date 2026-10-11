@@ -45,6 +45,41 @@ def is_deleted_repo(ref: str) -> bool:
     return bool(_DELETED_REPO.match(ref.strip().strip("'\"")))
 
 
+# MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 (توسيعٌ 2026-10-11): ``is_deleted_repo`` يبقى على معناه —
+# المحذوفُ من Docker Hub؛ و``quay.io/minio/minio`` موجودٌ لكنّه يشترط الدخول، فلا يُعَدّ محذوفاً.
+# غير أنّ سحبه يفشل كذلك على آلةٍ جديدة، ومثلُه صورةُ MinIO من مساحةٍ أخرى أو بوسمٍ بلا دايجست:
+# فأيُّ مرجعٍ مستودعُه MinIO — أيّاً كان السجلّ أو المساحة — يجب أن يكون الإبرةَ المثبَّتة عبر متغيّرها.
+_MINIO_REPO = re.compile(r"(?:^|/)(?:minio|minio-client|minio/mc)(?=[:@]|$)")
+# فحصُ الصحّة: الصورة بلا curl **ولا wget** (مقيسٌ من طبقاتها)، فأيٌّ منهما يُبقي الخادم unhealthy
+# أيّاً كان المسارُ الذي يطلبه — لا ``minio/health`` وحده.
+_HTTP_CLIENT = re.compile(r"(?<![\w.-])(?:curl|wget)(?![\w.-])")
+_TRAILING_COMMENT = re.compile(r"\s+#.*$")
+
+
+def is_minio_image(ref: str) -> bool:
+    return bool(_MINIO_REPO.search(ref.strip().strip("'\"")))
+
+
+def healthcheck_probe(block: list[str]) -> str:
+    """نصُّ قسم ``healthcheck:`` وحده من كتلة خدمة، بلا تعليقات — التعليقُ الذي يشرح غيابَ curl
+    (كما في ``sahool-minio``) ليس فحصاً، وما بعد القسم (``volumes:`` …) ليس منه."""
+    out: list[str] = []
+    indent: int | None = None
+    for raw in block:
+        body = raw.strip()
+        if indent is None:
+            if body.startswith("healthcheck:"):
+                indent = len(raw) - len(raw.lstrip())
+                out.append(_TRAILING_COMMENT.sub("", body))
+            continue
+        if not body or body.startswith("#"):
+            continue
+        if len(raw) - len(raw.lstrip()) <= indent:
+            break
+        out.append(_TRAILING_COMMENT.sub("", body))
+    return "\n".join(out)
+
+
 def service_blocks(lines: list[str]) -> list[list[str]]:
     """كتلُ الخدمات بالإزاحة **داخل ``services:`` وحده** — مفتاحٌ علويّ آخر (``volumes:`` …) يُنهي الكتلة
     الأخيرة، فلا تبتلع ما بعد القسم (مراجعة Copilot على #1139)."""
@@ -192,9 +227,15 @@ def main() -> int:
                     f"{cf.name}:{idx + 1}: {s} — minio/minio and minio/mc were deleted from "
                     "Docker Hub; a fresh pull fails (MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01)"
                 )
-            if "MINIO_IMAGE" in s or "MINIO_MC_IMAGE" in s or "coollabsio/minio" in s:
-                # Must use the override form with the pinned default — a bare hardcode or a
-                # floating tag risks shipping a console-stripped / CVE / swapped image.
+            if (
+                "MINIO_IMAGE" in s
+                or "MINIO_MC_IMAGE" in s
+                or "coollabsio/minio" in s
+                or is_minio_image(ref)
+            ):
+                # Must use the override form with the pinned default — a bare hardcode, a
+                # floating tag, or MinIO from another registry/namespace (quay.io needs a login)
+                # risks a failed pull or a console-stripped / CVE / swapped image.
                 if (
                     not ("${MINIO_IMAGE" in s or "${MINIO_MC_IMAGE" in s)
                     or FULL_CONSOLE_PIN not in s
@@ -202,20 +243,23 @@ def main() -> int:
                     var = "MINIO_MC_IMAGE" if "MINIO_MC_IMAGE" in s else "MINIO_IMAGE"
                     fail(
                         f"{cf.name}:{idx + 1}: MinIO image must be ${{{var}:-{FULL_CONSOLE_PIN}}} "
-                        f"(no bare hardcode / no undigested tag) — got: {s}"
+                        f"(no bare hardcode / no undigested tag / no other registry or namespace) — got: {s}"
                     )
-        # The pinned image has no curl/wget: a curl healthcheck keeps sahool-minio unhealthy
+        # The pinned image has no curl/wget: such a healthcheck keeps sahool-minio unhealthy
         # forever, and service_healthy dependents (sahool-minio-init) never start.
         # Service blocks by indentation, not by name (`minio`, `evidence-minio`, `sahool-minio`
         # all exist across these files); the MinIO block is the one whose image is the pin.
+        # Only the healthcheck section is read, without comments: a comment explaining that
+        # the image lacks curl is not a probe, and a curl probe on any path is still curl.
         for blk in service_blocks(lines):
             svc = "\n".join(blk)
-            if "MINIO_IMAGE" not in svc:
+            if "MINIO_IMAGE" not in svc and "MINIO_MC_IMAGE" not in svc:
                 continue
-            if "curl" in svc and "minio/health" in svc:
+            client = _HTTP_CLIENT.search(healthcheck_probe(blk))
+            if client:
                 fail(
-                    f"{cf.name}: MinIO healthcheck uses curl, which the pinned image does not "
-                    "ship — use `mc ready local`"
+                    f"{cf.name}: MinIO healthcheck uses {client.group(0)}, which the pinned image "
+                    "does not ship — use `mc ready local`"
                 )
 
     # TiTiler should be able to inspect local file COGs in dev and S3 COGs in prod.

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import subprocess
@@ -187,3 +188,72 @@ def test_command_available_ignores_unreadable_path_entries(monkeypatch, tmp_path
         assert command_available("definitely-not-installed") is False
     finally:
         unreadable.chmod(0o700)
+
+
+# ── MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01: a local `.env` from the old template overrides the fix ──
+# The template before #1139 set both variables explicitly to the repositories MinIO deleted from Docker
+# Hub, and compose lets the shell and `.env` override the default — so the fix in the compose files and
+# `.env.example` never reaches a machine whose `.env` was copied from the old template.
+OLD_TEMPLATE_MINIO_IMAGES = (
+    "MINIO_IMAGE=minio/minio:RELEASE.2025-04-22T22-12-26Z\n"
+    "MINIO_MC_IMAGE=minio/mc:RELEASE.2025-04-16T18-13-26Z\n"
+)
+
+
+def _doctor():
+    spec = importlib.util.spec_from_file_location("env_doctor_under_test", DOCTOR)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod  # @dataclass resolves annotations through sys.modules
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _minio_images_check(tmp_path, monkeypatch, local_env=None, shell=None):
+    for key in ("MINIO_IMAGE", "MINIO_MC_IMAGE"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in (shell or {}).items():
+        monkeypatch.setenv(key, value)
+    (tmp_path / ".env.example").write_bytes((ROOT / ".env.example").read_bytes())
+    if local_env is not None:
+        (tmp_path / ".env").write_text(local_env, encoding="utf-8")
+    checks: list = []
+    _doctor().check_minio_images(tmp_path, checks)
+    (check,) = checks
+    assert check.name == "minio-images"
+    return check
+
+
+def test_minio_images_fail_when_the_local_env_keeps_the_deleted_repositories(tmp_path, monkeypatch):
+    check = _minio_images_check(tmp_path, monkeypatch, OLD_TEMPLATE_MINIO_IMAGES)
+    assert check.status == "fail", check
+    assert set(check.detail["stale"]) == {"MINIO_IMAGE", "MINIO_MC_IMAGE"}
+    assert ".env.example" in check.message
+
+
+def test_minio_images_pass_without_a_local_override(tmp_path, monkeypatch):
+    assert _minio_images_check(tmp_path, monkeypatch).status == "pass"
+
+
+def test_minio_images_pass_when_the_local_env_carries_the_template_pin(tmp_path, monkeypatch):
+    template = (ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+    pinned = "".join(
+        line + "\n" for line in template if line.startswith(("MINIO_IMAGE=", "MINIO_MC_IMAGE="))
+    )
+    assert pinned.count("@sha256:") == 2, pinned
+    assert _minio_images_check(tmp_path, monkeypatch, pinned).status == "pass"
+
+
+def test_a_stale_minio_image_in_the_shell_fails_even_with_a_clean_env_file(tmp_path, monkeypatch):
+    check = _minio_images_check(
+        tmp_path, monkeypatch, shell={"MINIO_MC_IMAGE": "minio/mc:RELEASE.2025-04-16T18-13-26Z"}
+    )
+    assert check.status == "fail", check
+    assert set(check.detail["stale"]) == {"MINIO_MC_IMAGE"}
+
+
+def test_a_minio_image_away_from_the_pin_is_a_warning_not_a_failure(tmp_path, monkeypatch):
+    check = _minio_images_check(
+        tmp_path, monkeypatch, "MINIO_IMAGE=quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\n"
+    )
+    assert check.status == "warn", check
+    assert set(check.detail["differs_from_template"]) == {"MINIO_IMAGE"}
