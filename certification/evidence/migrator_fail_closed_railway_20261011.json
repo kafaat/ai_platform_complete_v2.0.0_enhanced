@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MIGRATOR-FAIL-CLOSED-RAILWAY-20261011",
+  "verdict": "fail_closed_observed_on_railway_both_environments",
+  "scope": "runbook sahool-brain/runbooks/migrator-staging-fail-closed-test.md — scenario A only (database absent). Scenario B (ready database without permission) NOT measured: no live postgres in either environment.",
+  "method": "read-only: Railway MCP list-deployments + get-logs per deployment; no Railway or database change by the recorder. Deployments were created by Railway's GitHub integration from the squash merge of PR #1160 (watchPatterns /migrations/**), not by a manual deploy. Build logs read for the image digests (separate builds per environment, same commit).",
+  "measured_at_utc": "2026-10-11T15:33Z",
+  "trigger": {
+    "pr": 1160,
+    "merge_commit": "32a000bd9483a723faa1f4a9ff04ba7097ae55b2",
+    "merged_at_utc": "2026-10-11T15:30:27Z",
+    "merge_method": "squash",
+    "approval": "owner explicit approval in session after being told the merge would trigger migrator deployments"
+  },
+  "project": "33c50993-1110-43eb-8e92-04c15edae51e",
+  "service": {
+    "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+    "name": "sahool-migrate-main",
+    "restartPolicyType": "NEVER",
+    "SAHOOL_MIGRATE_APPLY_in_service_variables": false
+  },
+  "deployments": [
+    {
+      "environment": "production",
+      "environment_id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+      "deployment_id": "7e1ed1e8-4b31-44ab-9e57-561089676c76",
+      "created_at_utc": "2026-10-11T15:30:30.277Z",
+      "container_started_utc": "2026-10-11T15:31:02.104Z",
+      "terminal_lines_utc": "2026-10-11T15:32:00.974Z",
+      "final_status": "CRASHED",
+      "readiness_attempt_lines": 30,
+      "apply_lines": 0,
+      "psql_lines": 0,
+      "terminal_lines": [
+        "MIGRATIONS_NOT_APPLIED reason=database_unreachable host=sahool-postgres.railway.internal:5432 attempts=30",
+        "✗ لم تُثبَت جاهزيّةُ القاعدة sahool-postgres.railway.internal:5432 بعد 30 محاولة — لا تُطبَّق أيُّ هجرة (fail-closed)."
+      ],
+      "build": {
+        "containerimage_digest": "sha256:722529d360a00f13bd42816341343d203f44f37c4c088a12c340733ebe78281c",
+        "containerimage_config_digest": "sha256:0501008105d17457ff3ce0a977709cf17fcf15b137e653fe61263a3b5b359abe",
+        "image_created_utc": "2026-10-11T15:30:44Z",
+        "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
+      }
+    },
+    {
+      "environment": "staging",
+      "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+      "deployment_id": "7bf045df-dca9-41c2-bf8b-635317237670",
+      "created_at_utc": "2026-10-11T15:30:30.275Z",
+      "container_started_utc": "2026-10-11T15:31:43.389Z",
+      "terminal_lines_utc": "2026-10-11T15:32:42.937Z",
+      "final_status": "CRASHED",
+      "readiness_attempt_lines": 30,
+      "apply_lines": 0,
+      "psql_lines": 0,
+      "terminal_lines": [
+        "MIGRATIONS_NOT_APPLIED reason=database_unreachable host=sahool-postgres.railway.internal:5432 attempts=30",
+        "✗ لم تُثبَت جاهزيّةُ القاعدة sahool-postgres.railway.internal:5432 بعد 30 محاولة — لا تُطبَّق أيُّ هجرة (fail-closed)."
+      ],
+      "build": {
+        "containerimage_digest": "sha256:7e890ba12805f5feb995247184da174fd66dec391d3b370623e910bf245b0dbe",
+        "containerimage_config_digest": "sha256:c96e20fa2d1560b4e10ed22975f101aaafdd86e658194c2799bf7eaba12e9509",
+        "image_created_utc": "2026-10-11T15:31:04Z",
+        "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
+      }
+    }
+  ],
+  "comparison_before_fix": {
+    "deployment_id": "87cc687b",
+    "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+    "behaviour": "after 30 failed pg_isready attempts the old script proceeded to psql and failed on DNS resolution (apply line for init_v8.sql present)"
+  },
+  "not_measured": [
+    "exit code is not exposed by the Railway API; inferred 1 from the script and the CRASHED status under restartPolicy NEVER",
+    "scenario B (ready database, no permission, read-only inspection, inventory before/after) — requires a live staging postgres",
+    "backup integrity and production restoration — outside this evidence"
+  ],
+  "gap_state_effect": "MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 stays fixed; runbook §3 requires scenario B before any state transition"
+}
