@@ -231,9 +231,12 @@ def main() -> int:
     # MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 (2026-10-05): MinIO deleted `minio/minio` and
     # `minio/mc` from Docker Hub (2026-09-11..14) and quay.io now requires a login, so every
     # fresh `docker compose up` failed with "pull access denied for minio/mc". The pin keeps
-    # the SAME release from a community mirror, digest-pinned so it cannot drift. Measured
-    # from its layers: it ships `minio`, `mc` and bash but NO curl/wget — so the init job runs
-    # on the same image and the healthcheck is `mc ready local`, never curl.
+    # the SAME release tag from a third party, digest-pinned so it cannot drift. It is not
+    # MinIO's own image: coollabsio's CI rebuilt the server from that tag (its unsigned
+    # attestation claims so) and ships MinIO's signed `mc` — MINIO-MIRROR-PROVENANCE-UNVERIFIED-01, checked
+    # by .github/workflows/minio-image-provenance.yml. Measured from its layers: it ships
+    # `minio`, `mc` and bash but NO curl/wget — so the init job runs on the same image and the
+    # healthcheck is `mc ready local`, never curl.
     FULL_CONSOLE_PIN = (
         "coollabsio/minio:2025-04-22T22-12-26Z"
         "@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68"
