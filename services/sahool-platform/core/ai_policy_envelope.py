@@ -16,7 +16,21 @@ Envelope shape (a plain, JSON-serialisable dict — a data contract, not a class
       "external_llm_allowed": bool,  # may an *external* LLM be called at all?
       "tenant_id":            "...",
       "version":              "v52",
+      # ── contract v2 (additive; v52 consumers ignore these keys) ──
+      "contract":             "sahool.ai_policy_envelope",
+      "contract_version":     2,
+      "external_tts_allowed": bool,  # may the raw text be sent to an *external* TTS?
+      "external_tts_providers": [...external TTS provider names the tenant listed...],
     }
+
+**External TTS is its own permission (contract v2).** ``external_llm_allowed`` speaks for
+an external *language model*; TTS sends the tenant's raw text to a *speech* provider, which
+is a different data flow. So TTS never reads the LLM flag on a v2 envelope: it needs
+``external_tts_allowed`` — true only when the mode is ``full_external`` (raw text cannot be
+redacted before it is spoken) **and** ``allowed_providers`` names the speech provider
+explicitly as ``tts:<provider>``. An empty provider list grants nothing here (unlike the LLM
+path, where it means "no extra restriction"): absence never means allow. No new column —
+``allowed_providers`` (v124) already carries the tenant's explicit provider list.
 
 Fail-closed contract: when no policy row exists (or a field is missing/illegal) the
 builder returns the **most restrictive** envelope — ``local_only``,
@@ -31,6 +45,17 @@ from __future__ import annotations
 from typing import Any
 
 ENVELOPE_VERSION = "v52"
+
+#: Contract identity, versioned separately from the policy version above: consumers check
+#: this, and a consumer that needs a v2 field fails closed on an envelope without it.
+ENVELOPE_CONTRACT = "sahool.ai_policy_envelope"
+ENVELOPE_CONTRACT_VERSION = 2
+
+#: ``allowed_providers`` token prefix that names an *external speech* provider.
+TTS_PROVIDER_PREFIX = "tts:"
+#: External TTS providers a tenant may name (the tts service's ``TTSProvider.name`` with
+#: ``external = True``). An unknown name grants nothing.
+EXTERNAL_TTS_PROVIDERS: tuple[str, ...] = ("edge_tts",)
 
 POLICY_MODE_LOCAL_ONLY = "local_only"
 POLICY_MODE_REDACTED_EXTERNAL = "redacted_external"
@@ -82,6 +107,25 @@ _DATA_CLASSES_BY_MODE: dict[str, tuple[str, ...]] = {
 }
 
 
+def external_tts_providers(policy_row: dict[str, Any] | None, mode: str) -> list[str]:
+    """External speech providers this tenant named explicitly — ``[]`` unless ``full_external``.
+
+    Reads ``tts:<provider>`` tokens from ``allowed_providers``; anything else (LLM provider
+    names, unknown speech providers, a non-list column) grants nothing.
+    """
+    if mode != POLICY_MODE_FULL_EXTERNAL or not isinstance(policy_row, dict):
+        return []
+    raw = policy_row.get("allowed_providers")
+    if not isinstance(raw, (list, tuple)):
+        return []
+    named = {
+        str(item).strip().lower()[len(TTS_PROVIDER_PREFIX) :]
+        for item in raw
+        if isinstance(item, str) and item.strip().lower().startswith(TTS_PROVIDER_PREFIX)
+    }
+    return [name for name in EXTERNAL_TTS_PROVIDERS if name in named]
+
+
 def normalize_policy_mode(raw: Any) -> str:
     """Coerce any stored/legacy sharing level to a legal mode; unknown ⇒ ``local_only``."""
     mode = str(raw or "").strip().lower()
@@ -99,6 +143,10 @@ def most_restrictive_envelope(tenant_id: Any) -> dict[str, Any]:
         "external_llm_allowed": False,
         "tenant_id": str(tenant_id),
         "version": ENVELOPE_VERSION,
+        "contract": ENVELOPE_CONTRACT,
+        "contract_version": ENVELOPE_CONTRACT_VERSION,
+        "external_tts_allowed": False,
+        "external_tts_providers": [],
     }
 
 
@@ -129,6 +177,7 @@ def build_ai_policy_envelope(
         str(policy_row.get("redaction_profile") or DEFAULT_REDACTION_PROFILE).strip()
         or DEFAULT_REDACTION_PROFILE
     )
+    tts_providers = external_tts_providers(policy_row, mode)
     max_bytes = (
         REDACTED_MAX_CONTEXT_BYTES
         if mode == POLICY_MODE_REDACTED_EXTERNAL
@@ -143,6 +192,10 @@ def build_ai_policy_envelope(
         "external_llm_allowed": external_llm_allowed,
         "tenant_id": str(tenant_id),
         "version": ENVELOPE_VERSION,
+        "contract": ENVELOPE_CONTRACT,
+        "contract_version": ENVELOPE_CONTRACT_VERSION,
+        "external_tts_allowed": bool(tts_providers),
+        "external_tts_providers": tts_providers,
     }
 
 

@@ -8784,6 +8784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_platform_policy_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_providers_20260702.py",
     "kind": "tests"
   },

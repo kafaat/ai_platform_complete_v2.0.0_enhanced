@@ -112,11 +112,12 @@ def _policy(
     tenant=_TENANT,
     raises=False,
     external_llm_allowed=_AS_PLATFORM_BUILDS,
+    envelope_extra=None,
 ):
     """يحقن ردَّ ``/api/v1/me`` بغلافٍ بالوضع المُعطى، ويُرجِع عدّادَ قراءات المنصّة.
 
     ``external_llm_allowed`` افتراضاً كما تبنيه المنصّة لصفٍّ يأذن بالتوليد: صحيحٌ للوضعين
-    الخارجيّين وحدهما.
+    الخارجيّين وحدهما. ``envelope_extra`` يُضاف إلى الغلاف كما هو (حقولُ عقد v2).
     """
     if external_llm_allowed is _AS_PLATFORM_BUILDS:
         external_llm_allowed = mode in ("full_external", "redacted_external")
@@ -132,6 +133,7 @@ def _policy(
         envelope = {"policy_mode": mode, "tenant_id": tenant}
         if external_llm_allowed is not _MISSING:
             envelope["external_llm_allowed"] = external_llm_allowed
+        envelope.update(envelope_extra or {})
         return {
             "tenant_id": _TENANT,
             "ai_policy_envelope": envelope,
@@ -306,6 +308,112 @@ def test_local_only_uses_an_available_local_provider_and_never_edge(monkeypatch,
     assert expected != raw, "نصُّ الاختبار يجب أن يتغيّر بالتطبيع كي يكون الفحصُ ذا معنى"
     assert spoken == [expected]
     assert resp.headers["content-type"].startswith("audio/wav")
+
+
+# ── عقد v2: إذنُ TTS الخارجيّ منفصلٌ عن إذن LLM، والمزوّدُ مُسمّى ─────────────────────
+# الطبقةُ نفسُها التي تحرس v52 (الموجّه، لا الوحدة وحدها): كلُّ رفضٍ = 503 وصفرُ نداءات.
+
+_V2 = {"contract": "sahool.ai_policy_envelope", "contract_version": 2}
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+@pytest.mark.parametrize(
+    "tts_fields",
+    [
+        {},
+        {"external_tts_allowed": False, "external_tts_providers": []},
+        {"external_tts_allowed": True},
+        {"external_tts_allowed": True, "external_tts_providers": []},
+        {"external_tts_allowed": "true", "external_tts_providers": ["edge_tts"]},
+    ],
+    ids=["fields-missing", "denied", "no-providers", "empty-providers", "non-bool"],
+)
+def test_v2_llm_permission_alone_never_sends_text_to_external_tts(monkeypatch, path, tts_fields):
+    """غلافُ v2 يأذن بـLLM الخارجيّ ولا يمنح TTS صراحةً ⇒ لا خروجَ للنصّ (الافتراضيُّ رفض)."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    _policy(
+        monkeypatch,
+        tts_policy,
+        "full_external",
+        external_llm_allowed=True,
+        envelope_extra={**_V2, **tts_fields},
+    )
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    _assert_blocked(resp, "local_only")
+    assert ext.calls == 0
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_v2_grant_for_an_unregistered_provider_never_reaches_edge(monkeypatch, path):
+    """الإذنُ مُسمّى: مزوّدٌ خارجيٌّ لم يُسمَّ لا يُختار ولو كان الوحيدَ المتاح."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    _policy(
+        monkeypatch,
+        tts_policy,
+        "full_external",
+        envelope_extra={
+            **_V2,
+            "external_tts_allowed": True,
+            "external_tts_providers": ["another_cloud_tts"],
+        },
+    )
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    _assert_blocked(resp, "full_external")
+    assert ext.calls == 0
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+@pytest.mark.parametrize("llm", [True, False])
+def test_v2_explicit_tts_grant_reaches_the_named_provider(monkeypatch, path, llm):
+    """منحُ TTS الصريح يكفي وحده — ولا يتوقّف على إذن LLM (فصلُ الإذنين في الاتّجاهين)."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _policy(
+        monkeypatch,
+        tts_policy,
+        "full_external",
+        external_llm_allowed=llm,
+        envelope_extra={
+            **_V2,
+            "external_tts_allowed": True,
+            "external_tts_providers": ["edge_tts"],
+        },
+    )
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    assert resp.status_code == 200, resp.text
+    assert ext.calls == 1
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_v2_denial_still_uses_an_available_local_provider(monkeypatch, path):
+    """رفضُ مشاركة النصّ لا يُعطّل الخدمة حين يتوفّر محلّيّ — يُستعمَل، وedge لا يُلمَس."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    monkeypatch.setattr(providers.PiperProvider, "available", lambda self: True)
+
+    async def piper(self, text, voice, rate, pitch, volume):
+        return b"RIFF-LOCAL-WAV"
+
+    monkeypatch.setattr(providers.PiperProvider, "synthesize", piper)
+    _policy(
+        monkeypatch,
+        tts_policy,
+        "full_external",
+        external_llm_allowed=True,
+        envelope_extra={**_V2, "external_tts_allowed": False, "external_tts_providers": []},
+    )
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    assert resp.status_code == 200, resp.text
+    assert resp.content == b"RIFF-LOCAL-WAV" and ext.calls == 0
 
 
 def _valid_wav() -> bytes:

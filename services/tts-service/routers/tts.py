@@ -26,9 +26,10 @@ async def _provider_allowed_by_policy(user: dict, authorization: str | None, req
     السياسةُ من المنصّة (``tts_tenant_policy``، فشلٌ مغلق)، والمزوّدُ ممّا تسمح به وحدَه.
     لا مزوّدَ مسموح ⇒ 503 مُسمّى **بلا أيّ نداءٍ خارجيّ** (قرار المالك).
     """
-    mode = await tts_tenant_policy.resolve_policy_mode(user, authorization)
+    policy = await tts_tenant_policy.resolve_policy(user, authorization)
+    mode = policy.mode
     chosen = select_provider_for_policy(
-        requested, main._PROVIDER_REGISTRY, tts_tenant_policy.external_allowed(mode)
+        requested, main._PROVIDER_REGISTRY, policy.external_allowed, policy.external_providers
     )
     if chosen is None:
         raise HTTPException(
