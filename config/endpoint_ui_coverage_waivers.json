@@ -232,7 +232,7 @@
         "post@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-10.9 approved-decision to planned execution-plan boundary; machine-consumed and explicitly non-executing. Planner UI is deferred to WX-10.11.",
+      "reason": "WX-10.9 approved-decision to planned execution-plan boundary; machine-consumed and explicitly non-executing. Planner UI is deferred to WX-10.11. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -242,7 +242,7 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-10.11",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
@@ -268,7 +268,7 @@
         "post@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-10.10 planned execution-plan to dispatch-authorization boundary; records authorization only and performs no dispatch/task/equipment side effect. Execution UI is deferred to WX-10.11.",
+      "reason": "WX-10.10 planned execution-plan to dispatch-authorization boundary; records authorization only and performs no dispatch/task/equipment side effect. Execution UI is deferred to WX-10.11. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -278,7 +278,7 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-10.11",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
@@ -288,7 +288,7 @@
         "post@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-10.12 machine/operator verification boundary writes one immutable canonical outcome_record with receipt and evidence lineage; dedicated outcome UI is deferred to WX-10.13.",
+      "reason": "WX-10.12 machine/operator verification boundary writes one immutable canonical outcome_record with receipt and evidence lineage; dedicated outcome UI is deferred to WX-10.13. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -298,7 +298,7 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-10.13",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
@@ -565,7 +565,7 @@
         "get@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-11.1 exposes a read-only authoritative calibration dataset; training evaluation and governed model-promotion UI are deferred to later WX-11 increments.",
+      "reason": "WX-11.1 exposes a read-only authoritative calibration dataset; training evaluation and governed model-promotion UI are deferred to later WX-11 increments. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -575,7 +575,7 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-11.2",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
@@ -585,7 +585,7 @@
         "post@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-11.2 registers immutable evaluation evidence and candidate artifact metadata; governed promotion UI is deferred to WX-11.3.",
+      "reason": "WX-11.2 registers immutable evaluation evidence and candidate artifact metadata; governed promotion UI is deferred to WX-11.3. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -595,15 +595,15 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-11.3",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
       "method": "POST",
-      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands. RENEWED 2026-09-01 (was 2026-08-31, expired): renewal is deliberate, not a date bump to clear a red gate. Measured at renewal: zero UI consumers reference this endpoint across frontend/ and mobile/. NOT reclassified as permanently no-UI, because the record contradicts itself -- the classification fields say no-ui-required while this reason and tracking WX-11.4 say a governance UI is still planned. Removing the expiry would delete the forcing function on the strength of the disputed side; renewing keeps it. Horizon aligned to the sibling WX-11.x waiver in this file (2026-10-11), not invented. decision-service must either ship WX-11.4 or settle the contradiction before that date.",
+      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands. RENEWED 2026-09-01 (was 2026-08-31, expired): renewal is deliberate, not a date bump to clear a red gate. Measured at renewal: zero UI consumers reference this endpoint across frontend/ and mobile/. NOT reclassified as permanently no-UI, because the record contradicts itself -- the classification fields say no-ui-required while this reason and tracking WX-11.4 say a governance UI is still planned. Removing the expiry would delete the forcing function on the strength of the disputed side; renewing keeps it. Horizon aligned to the sibling WX-11.x waiver in this file (2026-10-11), not invented. decision-service must either ship WX-11.4 or settle the contradiction before that date. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "owner": "decision-service",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "tracking": "WX-11.4",
       "intended_consumer": "machine",
       "reason_category": "operational",
@@ -653,7 +653,7 @@
         "post@services/sahool-platform/api/routers/decision_review.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-10.13 creates immutable verified-outcome attribution lineage only; learning dashboard and optimization controls are deferred to WX-11.",
+      "reason": "WX-10.13 creates immutable verified-outcome attribution lineage only; learning dashboard and optimization controls are deferred to WX-11. RENEWED 2026-10-12 (was 2026-10-11), owner decision: measured on main@32a000bd, no file in frontend/src or mobile references this route, so the deferred UI has not landed; one month keeps the forcing function instead of a long silent extension.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -663,7 +663,7 @@
       "intended_consumer": "machine",
       "owner": "decision-service",
       "tracking": "WX-11",
-      "expiry": "2026-10-11",
+      "expiry": "2026-10-31",
       "temporary": true
     },
     {
