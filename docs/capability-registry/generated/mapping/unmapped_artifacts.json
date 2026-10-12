@@ -120,6 +120,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/SpeakButton.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/SpeakButton.tsx",
     "kind": "web"
   },
@@ -5676,6 +5680,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_measurement.py",
     "kind": "tests"
   },
@@ -6345,6 +6353,10 @@
   },
   {
     "path": "services/tts-service/arabic_normalizer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/critical_speech.py",
     "kind": "backend"
   },
   {
@@ -8408,6 +8420,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recovery_smoke_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_redis_mandatory_in_production.py",
     "kind": "tests"
   },
@@ -8676,6 +8692,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sqlite_live_backup.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
     "kind": "tests"
   },
@@ -8701,6 +8721,10 @@
   },
   {
     "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telegram_voice_audio_boundary.py",
     "kind": "tests"
   },
   {
@@ -8736,7 +8760,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_critical_speech.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_edge_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_piper_provider.py",
     "kind": "tests"
   },
   {
@@ -8745,6 +8777,10 @@
   },
   {
     "path": "tests_v9/test_tts_request_pitch_validation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_voice_delivery_receipt.py",
     "kind": "tests"
   },
   {

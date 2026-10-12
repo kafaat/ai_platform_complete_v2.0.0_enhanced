@@ -180,34 +180,69 @@ def _md2(text: str) -> str:
 
 # ── TTS Voice Helper (Yemeni Arabic) ────────────────────────────
 TTS_URL = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
-TTS_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")  # service-to-service token
 
 
-async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") -> bool:
+async def send_voice_alert(
+    chat_id: int, text: str, voice: str = "yemeni_male", *, user_id: int
+) -> bool:
+    """Send MP3 voice and require a matching Telegram provider receipt.
+
+    True means provider acceptance, not recipient listening or exactly-once
+    delivery. WAV needs explicit conversion; never label Piper WAV as MP3.
+    The caller binds chat_id to the authenticated user supplied as user_id.
     """
-    Synthesize Arabic text via TTS service and send as voice to Telegram.
-    Returns True on success, False on failure (caller may fallback to text).
-    """
-    if not TTS_TOKEN:
+    if not (
+        type(chat_id) is int
+        and chat_id != 0
+        and type(user_id) is int
+        and user_id > 0
+        and isinstance(text, str)
+        and text.strip()
+        and len(text) <= 1000
+    ):
         return False
-    import httpx
-    from aiogram.types import BufferedInputFile
-
     try:
+        # Preserve the authenticated sender's tenant policy. Shared service
+        # credentials cannot authorize an external TTS provider for that tenant.
+        token = await get_user_token(user_id)
+        if not token:
+            return False
+        import httpx
+        from aiogram.types import BufferedInputFile
+
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
                 f"{TTS_URL}/v1/tts/synthesize",
-                json={"text": text[:1000], "voice": voice},
-                headers={"X-Agent-Token": TTS_TOKEN},
+                json={"text": text, "voice": voice},
+                headers={"Authorization": f"Bearer {token}"},
             )
         if resp.status_code != 200:
-            logger.warning(f"TTS failed: {resp.status_code}")
+            logger.warning("TTS synthesis rejected (%s)", resp.status_code)
             return False
-        audio_file = BufferedInputFile(resp.content, filename="sahool_voice.mp3")
-        await bot.send_voice(chat_id=chat_id, voice=audio_file, caption=text[:200])
-        return True
-    except Exception as e:
-        logger.error(f"TTS send failed: {e}")
+        audio = resp.content
+        if (
+            resp.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "audio/mpeg"
+            or not audio
+            or len(audio) > 10 * 1024 * 1024
+        ):
+            return False
+        audio_file = BufferedInputFile(audio, filename="sahool_voice.mp3")
+        receipt = await bot.send_voice(chat_id=chat_id, voice=audio_file, caption=text)
+        message_id = getattr(receipt, "message_id", None)
+        chat = getattr(receipt, "chat", None)
+        voice_receipt = getattr(receipt, "voice", None)
+        file_id = getattr(voice_receipt, "file_id", None)
+        return bool(
+            type(message_id) is int
+            and message_id > 0
+            and type(getattr(chat, "id", None)) is int
+            and chat.id == chat_id
+            and isinstance(file_id, str)
+            and file_id.strip()
+        )
+    except Exception as exc:
+        # Provider errors may contain credentials or private recommendation text.
+        logger.warning("TTS voice provider acceptance failed (%s)", type(exc).__name__)
         return False
 
 
@@ -927,7 +962,9 @@ async def cb_dismiss(callback: CallbackQuery):
 async def cmd_voice(message: Message):
     """Send a sample voice message in Yemeni Arabic."""
     text = "مرحباً بك في منصة سهول الزراعية الذكية. هذه رسالة صوتية تجريبية بصوت يمني أصيل."
-    sent = await send_voice_alert(message.chat.id, text, voice="yemeni_male")
+    sent = await send_voice_alert(
+        message.chat.id, text, voice="yemeni_male", user_id=message.from_user.id
+    )
     if not sent:
         await message.answer("تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\.")
 

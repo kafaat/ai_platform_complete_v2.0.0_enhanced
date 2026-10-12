@@ -19,7 +19,7 @@ SQLite كافٍ حتى ~100 مزرعة. الترقية لـ PostgreSQL/Timescale
 from __future__ import annotations
 
 import sqlite3
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 DEFAULT_DB = Path(__file__).parent / "sahool.db"
@@ -725,17 +725,67 @@ def record_consent(tenant_id, consent_type, version, db_path: Path = DEFAULT_DB)
 
 # ── مراجعة v9.1 #12: نسخة احتياطية بسيطة (مناسبة لـ 50 مزرعة) ──
 def backup_db(db_path: Path = DEFAULT_DB, backup_dir: str = "backups") -> str:
-    """ينسخ قاعدة البيانات بطابع زمني. بسيط — لا S3/MinIO الآن (مبكر).
-    يُستدعى دورياً (cron) أو قبل الترقيات."""
-    import shutil
+    """Publish a validated, self-contained snapshot including committed WAL rows.
+
+    The private temporary file is published only after backup and validation.
+    A no-overwrite hard link makes publication atomic even for concurrent calls.
+    On POSIX, success also requires syncing the containing directory.
+    """
+    import os
+    import tempfile
     from datetime import datetime
+    from uuid import uuid4
 
     bdir = Path(backup_dir)
     bdir.mkdir(exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dst = bdir / f"sahool_{stamp}.db"
-    shutil.copy2(db_path, dst)
-    return str(dst)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    dst = bdir / f"sahool_{stamp}_{uuid4().hex}.db"
+    fd, temporary_name = tempfile.mkstemp(prefix=".sahool_", suffix=".tmp", dir=bdir)
+    os.close(fd)
+    temporary = Path(temporary_name)
+    directory_fd = None
+    published = False
+    try:
+        # mode=ro fails for a missing source instead of backing up a new empty DB.
+        source_uri = Path(db_path).resolve().as_uri() + "?mode=ro"
+        with closing(sqlite3.connect(source_uri, uri=True)) as source:
+            with closing(sqlite3.connect(temporary)) as target:
+                source.backup(target)
+                # A standalone snapshot must not depend on a WAL sidecar.
+                if target.execute("PRAGMA journal_mode = DELETE").fetchone()[0] != "delete":
+                    raise sqlite3.DatabaseError("SQLite backup could not disable WAL")
+                if target.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+                    raise sqlite3.DatabaseError("SQLite backup failed integrity check")
+                if target.execute("PRAGMA foreign_key_check").fetchone() is not None:
+                    raise sqlite3.IntegrityError("SQLite backup failed foreign key check")
+        with temporary.open("rb") as completed:
+            os.fsync(completed.fileno())
+        # Directory descriptors/fsync are not supported by Windows. On POSIX,
+        # open before publication so an unsupported filesystem fails closed.
+        if os.name == "posix":
+            directory_fd = os.open(bdir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+        os.link(temporary, dst)
+        published = True
+        temporary.unlink()
+        if directory_fd is not None:
+            os.fsync(directory_fd)
+        return str(dst)
+    except BaseException:
+        if published:
+            dst.unlink(missing_ok=True)
+            if directory_fd is not None:
+                try:
+                    os.fsync(directory_fd)
+                except OSError:
+                    # Preserve the failure; never report this snapshot as complete.
+                    pass
+        raise
+    finally:
+        if directory_fd is not None:
+            os.close(directory_fd)
+        temporary.unlink(missing_ok=True)
+        for suffix in ("-wal", "-shm", "-journal"):
+            Path(str(temporary) + suffix).unlink(missing_ok=True)
 
 
 # ── مراجعة v9.1 #1 (مبسّط): تعقيم المعرّفات حيث تُستخدم في مسارات ──

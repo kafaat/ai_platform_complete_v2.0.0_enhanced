@@ -254,9 +254,9 @@
   {
     "service": "sahool-platform",
     "domain": "Core Field Platform",
-    "python_files": 1148,
-    "python_loc": 169508,
-    "tests": 467,
+    "python_files": 1149,
+    "python_loc": 169632,
+    "tests": 468,
     "routes": 639,
     "main": "services/sahool-platform/api/main.py",
     "dockerfile": "services/sahool-platform/Dockerfile",
@@ -314,8 +314,8 @@
   {
     "service": "tts-service",
     "domain": "Voice & Notifications",
-    "python_files": 8,
-    "python_loc": 876,
+    "python_files": 10,
+    "python_loc": 1362,
     "tests": 1,
     "routes": 8,
     "main": "services/tts-service/main.py",
