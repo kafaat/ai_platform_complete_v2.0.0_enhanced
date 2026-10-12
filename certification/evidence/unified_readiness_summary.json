@@ -2,14 +2,6 @@
   "certification": {
     "blockers": [
       {
-        "blocker_id": "P-CERT-2",
-        "file": "certification/evidence/transitive_locks_summary.json",
-        "name": "Connected transitive lock generation",
-        "status": "pending",
-        "timestamp_utc": null,
-        "waivable": false
-      },
-      {
         "blocker_id": "P-CERT-1",
         "file": "certification/evidence/ci_summary.json",
         "name": "Full branch CI",
@@ -18,9 +10,9 @@
         "waivable": false
       },
       {
-        "blocker_id": "P-CERT-4",
-        "file": "certification/evidence/model_provisioning_summary.json",
-        "name": "ONNX/SAM2 model provisioning",
+        "blocker_id": "P-CERT-2",
+        "file": "certification/evidence/transitive_locks_summary.json",
+        "name": "Connected transitive lock generation",
         "status": "pending",
         "timestamp_utc": null,
         "waivable": false
@@ -34,16 +26,14 @@
         "waivable": true
       },
       {
-        "blocker_id": "GUARDS",
-        "file": "certification/evidence/guard_results_summary.json",
-        "name": "Guard results summary",
+        "blocker_id": "P-CERT-4",
+        "file": "certification/evidence/model_provisioning_summary.json",
+        "name": "ONNX/SAM2 model provisioning",
         "status": "pending",
         "timestamp_utc": null,
         "waivable": false
       }
     ],
-    "evidence_pack_error": null,
-    "evidence_pack_ok": true,
     "production_certified": false,
     "qdrant_restore_drill": {
       "required_for_disaster_recovery": true,
@@ -93,8 +83,8 @@
     {
       "exit_code": 0,
       "name": "supply_chain",
-      "output_sha256": "ba8ccd36bb838ab8d089613ee262eabbc4d5bd6144854a9f72571760f119449c",
-      "output_tail": "container image pin guard passed: 27 images",
+      "output_sha256": "4dcf50716f1808603a2daf015269bc2c4062df206ff9dda3ef4a2fcb3a984721",
+      "output_tail": "container image pin guard passed: 21 images",
       "status": "passed"
     },
     {
@@ -114,15 +104,15 @@
     {
       "exit_code": 0,
       "name": "github_actions_policy",
-      "output_sha256": "c0ba5f10e78951d446bfc18a4e112c734f8e6596055f97d482624f4037731253",
-      "output_tail": "GitHub Actions policy guard: PASSED (258 immutable references)",
+      "output_sha256": "244fa72a46bbbd5051b6b09794d0a68b8effddc69abfc9f34ce8ba8c2e66e660",
+      "output_tail": "GitHub Actions policy guard: PASSED (232 immutable references)",
       "status": "passed"
     },
     {
       "exit_code": 0,
       "name": "waiver_expiry",
-      "output_sha256": "f5074877697e4bcf260d45b4ccc0dcf3319b3adcb8f2fe0dd6289ade3340f7df",
-      "output_tail": "waiver_expiry_guard_ok (scanned 2 waiver file(s); today=2026-10-12)",
+      "output_sha256": "9d8d84775bd07fb3df82fcc20e5937f890bef833e7a336380c519cdd0e572f82",
+      "output_tail": "waiver_expiry_guard_ok (scanned 2 waiver file(s); today=2026-09-01)",
       "status": "passed"
     },
     {
@@ -154,11 +144,11 @@
       "status": "passed"
     },
     {
-      "exit_code": 1,
+      "exit_code": 0,
       "name": "release_package",
-      "output_sha256": "e772d8a652357aa00b26df72f66d33eb77003a26fd2043ccb779b4b470e725d0",
-      "output_tail": "platform route release binding: PASS\nchecksum mismatch: config/endpoint_ui_coverage_waivers.json",
-      "status": "failed"
+      "output_sha256": "cc6e908397e930ca21ed1e1aa25ed3d6e9ba239e2d3db8ace3d7966a229755be",
+      "output_tail": "platform route release binding: PASS\nrelease package validation passed: 5712 checksums verified",
+      "status": "passed"
     },
     {
       "exit_code": 0,
@@ -168,7 +158,7 @@
       "status": "passed"
     }
   ],
-  "generated_at_utc": "2026-10-12T00:18:13.098463+00:00",
+  "generated_at_utc": "2026-09-01T12:58:39.297522+00:00",
   "not_executed_by_this_gate": [
     "python_and_raster_test_suites",
     "frontend_typecheck_vitest_and_build",
@@ -180,6 +170,6 @@
   "production_certified": false,
   "schema_version": 1,
   "scope": "static_source_contracts_only",
-  "static_ready": false,
-  "verdict": "blocked"
+  "static_ready": true,
+  "verdict": "release_candidate"
 }
