@@ -152,5 +152,19 @@
     "Makefile:183": "CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -tags kqueue -trimpath --ldflags \"$(LDFLAGS)\"",
     "buildscripts/gen-ldflags.go:35-42": "-s -w + -X cmd.Version, cmd.CopyrightYear, cmd.ReleaseTag, cmd.CommitID, cmd.ShortCommitID, cmd.GOPATH, cmd.GOROOT",
     "Dockerfile.release:18-30": "MinIO's own image downloaded the release binary from dl.min.io and checked it with minisign — the image coollabsio replaced did not build from source"
-  }
+  },
+  "subsequent_observations": [
+    {
+      "file": "certification/evidence/minio_mirror_provenance_rebuild_20261011.json",
+      "evidence_id": "MINIO-MIRROR-PROVENANCE-REBUILD-20261011",
+      "observed_utc": "2026-10-11T22:09Z",
+      "summary": "ci_verification's first run: run 38179145132, attempt 1, on PR #1162's head 80b766a3 (checked out as the synthetic merge 18921fc5 with main@32a000bd) — match: the rebuilt linux/amd64 server is fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64, as extracted. Accepted within that scope by an independent review of the original artifact, relayed by the owner."
+    },
+    {
+      "file": "certification/evidence/minio_mirror_provenance_layers_20261011.json",
+      "evidence_id": "MINIO-MIRROR-PROVENANCE-LAYERS-20261011",
+      "observed_utc": "2026-10-11T23:16Z",
+      "summary": "the rest of the linux/amd64 image, every tar attribute of all eight layers: the chmod layer changes modes only (to 0777), the CA bundle equals the builder's, the entrypoint and licence files equal the source; the UBI base layer's origin is not measured."
+    }
+  ]
 }

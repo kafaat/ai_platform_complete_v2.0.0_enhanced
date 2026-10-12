@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MINIO-MIRROR-PROVENANCE-LAYERS-20261011",
+  "gap_id": "MINIO-MIRROR-PROVENANCE-UNVERIFIED-01",
+  "observation_of": "certification/evidence/minio_mirror_provenance_20261011.json — a later observation; that file's measurement stands as written.",
+  "measured_at_utc": "2026-10-11T23:16Z (all eight layers with every attribute); the builder's CA bundle at ~22:19Z and the config fields at ~22:25Z in the same session",
+  "scope": "the pinned index's linux/amd64 manifest sha256:d8cfccee3f7bf0182d89c223b2ff53b94c9a88237bc0dd5733dd49fa0f4dab4c: its config and all eight layers. Not linux/arm64.",
+  "method": "Docker Hub over HTTPS, in memory: the manifest, the config and every layer blob re-hashed against their digests, every uncompressed layer against the config's diff_ids; every tar member read with Python's tarfile for type, mode, uid, gid, uname, gname, link target, sha256 of regular files, mtime and PAX headers (extended attributes included). Nothing written to disk, nothing executed. listing_digest = sha256 over the sorted lines name⇥type⇥mode⇥uid⇥gid⇥uname⇥gname⇥linkname⇥sha256⇥xattrs⇥other-PAX, so a later measurement can be compared layer by layer.",
+  "config": {
+    "digest": "sha256:3d5ffffec36e6efdda5ed906939f1b4d0976f03fc33d1ea31ddcc67833089691",
+    "diff_ids_match_layers": true,
+    "User": null,
+    "WorkingDir": "/",
+    "Entrypoint": [
+      "/usr/bin/docker-entrypoint.sh"
+    ],
+    "Cmd": [
+      "minio"
+    ],
+    "Volumes": [
+      "/data"
+    ],
+    "ExposedPorts": [
+      "9000/tcp",
+      "9001/tcp"
+    ],
+    "Env": [
+      "MINIO_ACCESS_KEY_FILE=access_key",
+      "MINIO_SECRET_KEY_FILE=secret_key",
+      "MINIO_ROOT_USER_FILE=access_key",
+      "MINIO_ROOT_PASSWORD_FILE=secret_key",
+      "MINIO_KMS_SECRET_KEY_FILE=kms_master_key",
+      "MINIO_UPDATE_MINISIGN_PUBKEY=RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav",
+      "MINIO_CONFIG_ENV_FILE=config.env",
+      "MC_CONFIG_DIR=/tmp/.mc"
+    ],
+    "versus_Dockerfile.release_at_the_release_commit": "same ENV values, VOLUME, ENTRYPOINT and CMD, and no USER in either; differences: EXPOSE adds 9001, and MinIO's static curl copy (Dockerfile.release:63) is absent"
+  },
+  "layers": [
+    {
+      "index": 0,
+      "role": "base: registry.access.redhat.com/ubi9/ubi-micro per the SLSA claim",
+      "digest": "sha256:7d0737898ab0e39437d06df65284214e20726894f41190bad590568d64e5a15c",
+      "diff_id": "sha256:e53c8b8f1e829bd7c5a7cf7a36602940b5c71caa82cbc18d2a02863eeb285904",
+      "members": 885,
+      "types": {
+        "dir": 325,
+        "symlink": 108,
+        "file": 431,
+        "hardlink": 21
+      },
+      "owners_uid_gid": [
+        "0:0",
+        "0:12"
+      ],
+      "setuid_setgid_sticky": [
+        "tmp",
+        "var/tmp"
+      ],
+      "world_writable_non_symlink": 2,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:81e37c4b3fea8f9c9342ea7ed2be458d2045bd192d6ff5b50fcdaa416eb24ed3"
+    },
+    {
+      "index": 1,
+      "role": "RUN chmod -R 777 /usr/bin",
+      "digest": "sha256:38179165808516180d4889b23c6ca8056bec61b02b6a3a88277d5f9f54954d14",
+      "diff_id": "sha256:892ddb13cd01c77345f914017b597f62406a527cab5a72b54a69816760c47d2c",
+      "members": 137,
+      "types": {
+        "dir": 2,
+        "file": 135
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 136,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:e8203241d0216ce4091663ad0496c578ea4c6ca6dec04ae8d248108839eb9ef9",
+      "vs_base": {
+        "paths_also_in_base": 137,
+        "identical_in_all_compared_attributes": 1,
+        "attribute_differences": {
+          "mode": 136
+        },
+        "not_in_base": [],
+        "mode_transitions": [
+          "0o555->0o777",
+          "0o755->0o777"
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "role": "COPY /etc/ssl/certs/ca-certificates.crt from the build stage",
+      "digest": "sha256:c00136280bd8bfc902dff07bcdab1e52ebc43ce7d0b6ebc01677efd2f2fe3872",
+      "diff_id": "sha256:9fdb49edefbd510fed512cb72d7d002c30e3d7afcbcdcb552acd43888f2a05a5",
+      "members": 4,
+      "types": {
+        "dir": 3,
+        "file": 1
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 0,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:42393dad8bdb327a59ddd6f6d82d8adb09c71520a894c1a272d2adbe6e1845bd",
+      "vs_base": {
+        "paths_also_in_base": 1,
+        "identical_in_all_compared_attributes": 1,
+        "attribute_differences": {},
+        "not_in_base": [
+          "etc/ssl",
+          "etc/ssl/certs",
+          "etc/ssl/certs/ca-certificates.crt"
+        ]
+      },
+      "key_files": {
+        "etc/ssl/certs/ca-certificates.crt": {
+          "sha256": "657ca6ba4bc43138f89de75fb63794cbfaa897e0e110b069fd1367bd66a5bb6c",
+          "mode": "0o644",
+          "owner": "0:0"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "role": "COPY /usr/bin/minio*",
+      "digest": "sha256:83434e0df4abf14e44bce4b838646bc42ada8f2f4113d57712fc464291c36d2b",
+      "diff_id": "sha256:0dd3b6512c5ed7005966cdd391fe9f55eacccfced322d6609aa312c4e9502d12",
+      "members": 3,
+      "types": {
+        "dir": 2,
+        "file": 1
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 1,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:43ae3ae7de508f7982f87d6a5d7dee62ade42122976576a0beb18db01d536652",
+      "vs_base": {
+        "paths_also_in_base": 2,
+        "identical_in_all_compared_attributes": 1,
+        "attribute_differences": {
+          "mode": 1
+        },
+        "not_in_base": [
+          "usr/bin/minio"
+        ],
+        "mode_transitions": [
+          "0o555->0o777"
+        ]
+      },
+      "key_files": {
+        "usr/bin/minio": {
+          "sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+          "mode": "0o755",
+          "owner": "0:0"
+        }
+      }
+    },
+    {
+      "index": 4,
+      "role": "COPY /usr/bin/mc*",
+      "digest": "sha256:112e7564bb5c78eaaf10173074a0f852fd13172e8f7885fffd44de3022054a39",
+      "diff_id": "sha256:fdf0c7878cd6169a5c9ace97a121ac3ddd313f52bca57346fad047e17211a6c6",
+      "members": 5,
+      "types": {
+        "dir": 2,
+        "file": 3
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 1,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:3f94bc0d0863d30b5e226e00cc2f6b5c47b22e9a95a81ccbf1697e56171b96d4",
+      "vs_base": {
+        "paths_also_in_base": 2,
+        "identical_in_all_compared_attributes": 1,
+        "attribute_differences": {
+          "mode": 1
+        },
+        "not_in_base": [
+          "usr/bin/mc",
+          "usr/bin/mc.minisig",
+          "usr/bin/mc.sha256sum"
+        ],
+        "mode_transitions": [
+          "0o555->0o777"
+        ]
+      },
+      "key_files": {
+        "usr/bin/mc": {
+          "sha256": "01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891",
+          "mode": "0o755",
+          "owner": "0:0"
+        }
+      }
+    },
+    {
+      "index": 5,
+      "role": "COPY CREDITS",
+      "digest": "sha256:43074f494a1182a1a47357b3dcc61a5e4df6fa1c5b5242493448a58bdfe10ac3",
+      "diff_id": "sha256:b9127d9b91e69cb19e69c6491fe19e5237e31bb635d1b5baffaa58618cdff6e6",
+      "members": 2,
+      "types": {
+        "dir": 1,
+        "file": 1
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 0,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:eb4d7000b67c718a43e4749048e2dd496cb0b9505d30500bfe147b2207385378",
+      "vs_base": {
+        "paths_also_in_base": 0,
+        "identical_in_all_compared_attributes": 0,
+        "attribute_differences": {},
+        "not_in_base": [
+          "licenses",
+          "licenses/CREDITS"
+        ]
+      },
+      "source_copies": {
+        "licenses/CREDITS": {
+          "equals_source_at_release_commit": true,
+          "mode": "0o644",
+          "owner": "0:0"
+        }
+      }
+    },
+    {
+      "index": 6,
+      "role": "COPY LICENSE",
+      "digest": "sha256:3f207be62b8a9f76c67fe3337fe0f3204bcf12ffe7b7eeb59b2b2fdd076d0857",
+      "diff_id": "sha256:811da54bc3152c31997bad8894a0b4d97f2a76a17b4ae83201a54c5aa071f9fc",
+      "members": 2,
+      "types": {
+        "dir": 1,
+        "file": 1
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 0,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:47919b89e88c60fe45892402ac9dd1e96fd98d9bac52d61bf139ca94cf240af9",
+      "vs_base": {
+        "paths_also_in_base": 0,
+        "identical_in_all_compared_attributes": 0,
+        "attribute_differences": {},
+        "not_in_base": [
+          "licenses",
+          "licenses/LICENSE"
+        ]
+      },
+      "source_copies": {
+        "licenses/LICENSE": {
+          "equals_source_at_release_commit": true,
+          "mode": "0o644",
+          "owner": "0:0"
+        }
+      }
+    },
+    {
+      "index": 7,
+      "role": "COPY dockerscripts/docker-entrypoint.sh",
+      "digest": "sha256:13f80f35922e90c996fbfc03a8786d84927496f9b46b53bb5fcbe87e31aeb702",
+      "diff_id": "sha256:2b2bc6563c767da08d80b9f81d70383cc198366a9225efb304ffa2e7b1599bfa",
+      "members": 3,
+      "types": {
+        "dir": 2,
+        "file": 1
+      },
+      "owners_uid_gid": [
+        "0:0"
+      ],
+      "setuid_setgid_sticky": [],
+      "world_writable_non_symlink": 1,
+      "with_xattrs": [],
+      "with_other_pax_headers": [],
+      "whiteouts": [],
+      "listing_digest": "sha256:800e31f3449a28fc9e7a722547717f1b8b27421e287b1b2ed2e320277e982e15",
+      "vs_base": {
+        "paths_also_in_base": 2,
+        "identical_in_all_compared_attributes": 1,
+        "attribute_differences": {
+          "mode": 1
+        },
+        "not_in_base": [
+          "usr/bin/docker-entrypoint.sh"
+        ],
+        "mode_transitions": [
+          "0o555->0o777"
+        ]
+      },
+      "source_copies": {
+        "usr/bin/docker-entrypoint.sh": {
+          "equals_source_at_release_commit": true,
+          "mode": "0o755",
+          "owner": "0:0"
+        }
+      }
+    }
+  ],
+  "findings": {
+    "base": "Red Hat Enterprise Linux 9.6 (Plow) ubi-micro by its os-release; owners 0:0 and 0:12; the only special bits are the sticky /tmp and /var/tmp; no extended attributes, no whiteouts.",
+    "base_origin": "NOT measured: the layer was not compared with registry.access.redhat.com/ubi9/ubi-micro@sha256:aff810919642215e15c993b9bbc110dbcc446608730ad24499dafd9df7a8f8f4 — the agent proxy here rejects that host. A GitHub-hosted runner can make the comparison.",
+    "chmod_layer": "Every one of its 137 entries is also in the base. Compared attribute by attribute, they differ from the base in mode alone: 136 entries go 0555 or 0755 to 0777 (135 files and the usr/bin directory); content, ownership, owner names, link targets, extended attributes and other PAX headers are identical. The same RUN is at Dockerfile.release:58 in MinIO's source at the release commit.",
+    "permission_effect": "Material, though not a provenance finding. In the final image /usr/bin is a world-writable directory without the sticky bit, and its 135 base programs are world-writable. minio, mc and docker-entrypoint.sh are 0755 root, but they sit in that directory, so anyone who can write it can replace them. SAHOOL runs this image as root: none of docker-compose.v9.yml, .fixed, .light, .unified or .evidence-lab sets `user:`, and the image has no USER. The main process could write there anyway; the bits matter for any non-root process in the container.",
+    "ca_bundle": "sha256 657ca6ba4bc43138f89de75fb63794cbfaa897e0e110b069fd1367bd66a5bb6c (146 certificates, 219404 bytes, 0644 root) — byte-identical to the bundle in the pinned builder golang:1.24-alpine@sha256:8f8959f38530d159bf71d0b3eb0c547dc61e7959d8225d1599cf762477384923 (its linux/amd64 manifest sha256:54619f7dc324d135c07d55ae19f84801c45c05f86cd1b3eded177ea26d240dcf, layers 2d35ebdb… and 85e8836f… both carry those bytes). That is equality with that reference, not independent trust in it.",
+    "source_copies": "docker-entrypoint.sh (0755 root), licenses/LICENSE and licenses/CREDITS (0644 root) are byte-identical to MinIO's source at commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e, read from the module fetched with go mod download under GOSUMDB=sum.golang.org.",
+    "binaries": "/usr/bin/minio (sha256 fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64) and /usr/bin/mc (sha256 01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891) are 0755 root without extended attributes; their provenance is in the other two files.",
+    "extended_attributes": "none in any of the eight layers"
+  },
+  "not_measured": [
+    "the base layer's origin (above)",
+    "linux/arm64",
+    "the builder image's CA bundle on its own merits — only equality with it was measured",
+    "running the image"
+  ],
+  "gap_state_effect": "None. This file accounts for the rest of the amd64 image as context; the row's state rests on the two binaries only, and the UBI origin and arm64 stay explicitly outside that closure."
+}
