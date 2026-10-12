@@ -589,3 +589,38 @@ def test_a_content_digest_is_not_read_as_a_repair_commit():
     row = "| MINIO-01 | x | **fixed** (`minio/minio@sha256:a4938f37…` مُثبَّت) |\n"
     assert _flagged(_HEAD + row) == []
     assert mod()._shas("`sha256:a4938f37` و`0726a887`") == ["0726a887"]
+
+
+# BRAIN-TABLE-STATE-CONFLICTS-NOT-MEASURED-01 (DG-01): rows and sections are read together.
+def test_two_table_rows_of_one_id_with_different_states_are_a_cross_source_conflict():
+    text = _HEAD + "| GAP-A-01 | x | **open** |\n| GAP-A-01 | y | **verified** |\n"
+    report = mod().measure(text)
+    assert list(report["cross_source_state_conflicts"]) == ["GAP-A-01"]
+    assert report["contradictory_section_id_count"] == 0  # the section-only field keeps its meaning
+
+
+def test_a_table_row_that_disagrees_with_its_section_is_a_conflict_and_agreement_is_not():
+    section = "\n## GAP-B-01 — x\n\n- **الحالة:** open (2026-09-21)\n"
+    disagree = _HEAD + "| GAP-B-01 | x | **fixed** |\n" + section
+    agree = _HEAD + "| GAP-B-01 | x | **open** |\n" + section
+    assert list(mod().measure(disagree)["cross_source_state_conflicts"]) == ["GAP-B-01"]
+    assert mod().measure(agree)["cross_source_state_conflict_count"] == 0
+
+
+# DG-03: with a PR resolver, a reachable SHA links a squashed repair only if it is a cited PR's merge.
+def test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_known():
+    m = mod()
+    status = "**fixed** (`0726a887`) · **canonical على `main`:** `0726a887` في #1149 ⇒ squash `c56db557`"
+    text = _HEAD + f"| GAP-A-01 | x | {status} |\n"
+    records = m.measure(text)["fixed_records"]
+    prs = {"ab07ceb8cccc": 1149, "c56db557aaaa": 999}
+
+    def pr_of(sha):
+        return next((pr for full, pr in prs.items() if full.startswith(sha)), None)
+
+    found = m.fixed_provenance(text, records, {}, _reach, pr_of)
+    assert [f["id"] for f in found] == ["GAP-A-01"]
+    assert found[0]["canonical_not_a_cited_merge"] == ["c56db557"]
+    good = text.replace("squash `c56db557`", "squash `ab07ceb8`")
+    assert m.fixed_provenance(good, m.measure(good)["fixed_records"], {}, _reach, pr_of) == []
+    assert m.fixed_provenance(text, records, {}, _reach) == []  # without a resolver: the old rule

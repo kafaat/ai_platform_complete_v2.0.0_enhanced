@@ -1129,6 +1129,20 @@
           "replace": "        elif False:\n",
           "test": "tests_v9/test_brain_annotated_supersession_guard.py",
           "why": "قبولُ لقبٍ هدفُه لقبٌ بدوره ⇒ سلسلةٌ تُخفي أين تعيش الحالة، والمعرِّفان كلاهما خارج كلّ عدّ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
+        },
+        {
+          "expect": "test_two_table_rows_of_one_id_with_different_states_are_a_cross_source_conflict",
+          "find": "        if len({entry[\"state\"] for entry in entries}) > 1\n",
+          "replace": "        if False\n",
+          "why": "عودةُ العمى عن تعارض المصادر (BRAIN-TABLE-STATE-CONFLICTS-NOT-MEASURED-01) ⇒ صفّان أو صفٌّ وقسمٌ بحالتين مختلفتين لا يظهران",
+          "test": "tests/architecture/test_gap_registry_measure.py"
+        },
+        {
+          "expect": "test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_known",
+          "find": "            if any(pr_of(sha) in cited for sha in linked):",
+          "replace": "            if linked:",
+          "why": "عودةُ قبول أيّ commit مبلوغ ربطاً (DG-03) ⇒ commit لا علاقة له بإصلاح الفجوة يُسقط تحذيرَ المصالحة",
+          "test": "tests/architecture/test_gap_registry_measure.py"
         }
       ]
     },
