@@ -3,9 +3,16 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost}"
 JWT="${SAHOOL_JWT:-}"
 if [[ -n "$JWT" ]]; then
-  curl -skf -H "Authorization: Bearer $JWT" "${BASE_URL%/}/api/v1/admin/outbox/dead-letter" >/tmp/sahool_outbox_dlq.json \
-    && echo "OK: admin DLQ endpoint reachable" \
-    || echo "WARN: admin DLQ endpoint unavailable or unauthorized"
+  if ! code=$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $JWT" \
+    "${BASE_URL%/}/api/v1/admin/outbox/dead-letter"); then
+    echo "FAIL: admin DLQ transport error" >&2
+    exit 1
+  fi
+  if [[ ! "$code" =~ ^2[0-9][0-9]$ ]]; then
+    echo "FAIL: admin DLQ endpoint unavailable or unauthorized ($code)" >&2
+    exit 1
+  fi
+  echo "OK: admin DLQ endpoint reachable"
 else
   echo "SKIP: SAHOOL_JWT not set; admin DLQ HTTP check skipped"
 fi

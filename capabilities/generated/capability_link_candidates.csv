@@ -158,6 +158,7 @@ DEC-005,test,tests_v9/test_wx10_10_dispatch_authorization_contract.py,7,applied
 DEC-006,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1863,5,applied
 DEC-006,service,services/decision-service/main.py,10,applied
 DEC-006,test,services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py,3,applied
+DEC-006,test,tests_v9/test_tts_voice_delivery_receipt.py,3,applied
 DEC-006,test,tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py,3,applied
 DEC-007,api,POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580,2,applied
 DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458,2,applied
@@ -333,6 +334,7 @@ FM-001,test,tests_v9/test_tenant_provisioning.py,3,applied
 FM-001,test,tests_v9/test_tenant_query_audit.py,3,applied
 FM-001,test,tests_v9/test_tile_auth_cookie_guard.py,3,applied
 FM-001,test,tests_v9/test_tts_notification_service_auth.py,3,applied
+FM-001,test,tests_v9/test_tts_tenant_policy_gate.py,3,applied
 FM-001,test,tests_v9/test_v87_audit_tenant.py,3,applied
 FM-001,test,tests_v9/test_video_stream_tenant_authz.py,3,applied
 FM-001,ui,frontend/src/services/api/auth.ts,2,applied
@@ -768,6 +770,7 @@ FM-003,test,tests_v9/test_segmentation_boundary_metadata_contract_20260703.py,3,
 FM-003,test,tests_v9/test_sentinel_field_source.py,3,applied
 FM-003,test,tests_v9/test_soil_field_tenant_authz.py,3,applied
 FM-003,test,tests_v9/test_soil_lab_field_state_emit.py,3,applied
+FM-003,test,tests_v9/test_telegram_voice_audio_boundary.py,3,applied
 FM-003,test,tests_v9/test_v204_field_forms_static.py,3,applied
 FM-003,test,tests_v9/test_weather_solar_fields.py,3,applied
 FM-003,test,tests_v9/test_yield_field_state_feed.py,3,applied
@@ -1034,6 +1037,7 @@ GIS-001,test,tests_v9/test_rag_operational_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_sam2_polygon_cleaning_20260702.py,3,applied
 GIS-001,test,tests_v9/test_sam2_polygon_postprocessing_20260703.py,3,applied
 GIS-001,test,tests_v9/test_segmentation_boundary_metadata_contract_20260703.py,3,applied
+GIS-001,test,tests_v9/test_telegram_voice_audio_boundary.py,3,applied
 GIS-001,test,tests_v9/test_weather_polygon_worker.py,3,applied
 GIS-002,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88,2,applied
 GIS-002,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290,2,applied

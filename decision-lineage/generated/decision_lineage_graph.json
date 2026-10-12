@@ -1388,7 +1388,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 268,
+      "evidence_count": 269,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1402,6 +1402,7 @@
         "shared",
         "soil-service",
         "supervisor-agent",
+        "tts-service",
         "vegetation-analysis-service"
       ],
       "primary_owner": "sahool-platform",
@@ -1644,6 +1645,7 @@
         "services/soil-service/test_soil_p4_governance.py",
         "services/supervisor-agent/main.py",
         "services/supervisor-agent/tool_contracts.py",
+        "services/tts-service/critical_speech.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
         "shared/ai/recommendation_runtime/flags.py",
         "shared/ai/recommendation_runtime/human_review_repository.py",
@@ -1735,7 +1737,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 132,
+      "evidence_count": 134,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1873,6 +1875,8 @@
         "services/supervisor-agent/test_ai_orchestration_forensic.py",
         "services/supervisor-agent/test_graceful_degradation.py",
         "services/tts-service/main.py",
+        "services/tts-service/routers/tts.py",
+        "services/tts-service/tts_tenant_policy.py",
         "services/vegetation-analysis-service/decision_bridge.py",
         "services/vegetation-analysis-service/ground_verification_bridge.py",
         "services/vegetation-analysis-service/main.py",
@@ -2694,7 +2698,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 176,
-      "target_evidence_count": 268,
+      "target_evidence_count": 269,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2728,7 +2732,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 268,
+      "source_evidence_count": 269,
       "target_evidence_count": 35,
       "static_supported": true,
       "runtime_verified": false
@@ -2766,7 +2770,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 35,
-      "target_evidence_count": 132,
+      "target_evidence_count": 134,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2795,7 +2799,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 132,
+      "source_evidence_count": 134,
       "target_evidence_count": 30,
       "static_supported": true,
       "runtime_verified": false
@@ -2895,5 +2899,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "391b98fc0cda09333025e7ecd747c9425454962c4f643c10c2fb6c207454d28e"
+  "content_sha256": "71c3eae6cb474f1c5ef833c03f045063819eb43285e8e18a88ce342d8d76d1c2"
 }

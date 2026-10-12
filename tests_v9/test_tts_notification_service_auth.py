@@ -4,7 +4,7 @@
   (أ) tts يقبل X-Agent-Token صالحاً، يرفض الخاطئ/الغائب، ويظلّ يقبل JWT aud=sahool.
   (ب) مفتاح الذاكرة يختلف باختلاف المستأجِر (لا تسميم/تسريب عابر للمستأجرين).
   (ج) Cache-Control = private (لا تخزين عامّ في وسطاء/CDN مشتركة).
-  (د) وكيل الإشعارات يُرسل رأس X-Agent-Token (لا Bearer) إلى tts.
+  (د) إشعارات الصوت تمرّر هوية المستخدم إلى سياسة TTS (لا هوية خدمة مشتركة).
   (هـ) WebSocket يرفض حين غياب/بطلان إطار المصادقة (auth-frame).
 
 اختبارات منطق صرف (بلا خدمات): نرقّع edge_tts غير المتوفّر في بيئة الوحدات
@@ -183,52 +183,60 @@ def test_cache_control_is_private_not_public():
         assert "public" not in head, f"Cache-Control لا يزال public: {head!r}"
 
 
-# ── (د) وكيل الإشعارات يُرسل X-Agent-Token (لا Bearer) إلى tts ────────────────
-def test_notification_sends_x_agent_token_source():
+# ── (د) إشعار الصوت يحفظ هوية المستأجر ولا يتجاوز سياسة TTS بهوية خدمة ──────
+def test_notification_sends_caller_identity_source():
     src = open(os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8").read()
     block = src[src.index("async def send_tts_voice") :]
     block = block[: block.index("async def send_telegram")]
-    assert '"X-Agent-Token"' in block, "نداء tts لا يُرسل رأس X-Agent-Token"
-    # لا حاملة Bearer فعليّة في رؤوس النداء (نتجاهل ذكر الكلمة في التعليق).
-    assert 'f"Bearer {tts_token}"' not in block, (
-        "نداء tts لا يزال يستخدم حاملة Bearer (الاعتماد الخاطئ)"
-    )
-    assert '"Authorization"' not in block, "نداء tts لا يزال يبني رأس Authorization"
+    assert '"Authorization": f"Bearer {caller_token}"' in block
+    assert '"X-Agent-Token"' not in block
+    assert '"SAHOOL_AGENT_TOKEN"' not in block
 
 
 @pytest.mark.skipif(
     importlib.util.find_spec("httpx") is None, reason="httpx غير متاح في بيئة الوحدات الخفيفة"
 )
 @pytest.mark.asyncio
-async def test_notification_tts_call_sends_agent_token_header(monkeypatch):
-    """سلوكيّ: send_tts_voice يبني الرأس X-Agent-Token == SAHOOL_AGENT_TOKEN فعليّاً."""
-    if ROOT not in sys.path:
-        sys.path.insert(0, ROOT)
-    # نرقّع التبعيّات الثقيلة لوكيل الإشعارات كي يُستورَد في بيئة الوحدات.
-    for name in ("asyncpg", "nats", "nats.aio", "nats.aio.client", "nats.js"):
-        if name not in sys.modules:
-            sys.modules[name] = types.ModuleType(name)
-    sys.modules["nats.aio.client"].Client = object  # type: ignore[attr-defined]
-    sys.modules["nats.js"].JetStreamContext = object  # type: ignore[attr-defined]
+async def test_notification_tts_call_sends_caller_token_header(monkeypatch):
+    """الناقل يمرّر هوية المستخدم: توكن الخدمة لا يتجاوز local-only."""
+    import ast
+    import logging
 
     import httpx
 
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", AGENT_TOKEN)
     monkeypatch.setenv("TTS_URL", "http://tts-test:8000")
-
-    spec = importlib.util.spec_from_file_location(
-        "sahool_notif_agent", os.path.join(ROOT, "agents/notification/agent.py")
+    # Execute the real production function without unrelated DB/NATS startup.
+    tree = ast.parse(
+        open(os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8").read()
     )
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["sahool_notif_agent"] = mod
-    spec.loader.exec_module(mod)
+    function = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "send_tts_voice"
+    )
+    namespace = {
+        "os": os,
+        "httpx": httpx,
+        "TG_TOKEN": "test-bot-token",
+        "logger": logging.getLogger("test-notification-tts"),
+    }
+    exec(compile(ast.Module(body=[function], type_ignores=[]), "agent.py", "exec"), namespace)
 
     captured: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
-        captured["X-Agent-Token"] = request.headers.get("X-Agent-Token")
-        captured["Authorization"] = request.headers.get("Authorization")
-        return httpx.Response(200, content=b"\x00\x01audio")
+        if request.url.host == "tts-test":
+            captured["X-Agent-Token"] = request.headers.get("X-Agent-Token")
+            captured["Authorization"] = request.headers.get("Authorization")
+            return httpx.Response(200, content=b"ID3audio", headers={"Content-Type": "audio/mpeg"})
+        return httpx.Response(
+            200,
+            json={
+                "ok": True,
+                "result": {"message_id": 42, "chat": {"id": 123}, "voice": {"file_id": "voice-42"}},
+            },
+        )
 
     real_async_client = httpx.AsyncClient
     monkeypatch.setattr(
@@ -237,10 +245,12 @@ async def test_notification_tts_call_sends_agent_token_header(monkeypatch):
         lambda *a, **k: real_async_client(transport=httpx.MockTransport(handler)),
     )
 
-    ok = await mod.send_tts_voice("مرحبا", telegram_chat_id=123, voice="yemeni_male")
+    ok = await namespace["send_tts_voice"](
+        "مرحبا", telegram_chat_id=123, voice="yemeni_male", caller_token="caller-jwt"
+    )
     assert ok is True
-    assert captured["X-Agent-Token"] == AGENT_TOKEN
-    assert captured["Authorization"] is None, "يجب ألّا يُرسَل توكن الوكيل كحاملة Bearer"
+    assert captured["X-Agent-Token"] is None
+    assert captured["Authorization"] == "Bearer caller-jwt"
 
 
 # ── (هـ) WebSocket: رفض حين غياب/بطلان إطار المصادقة ─────────────────────────
@@ -260,9 +270,16 @@ async def test_ws_rejects_missing_and_invalid_auth_frame(monkeypatch):
         sys.path.insert(0, ROOT)
     for name in ("asyncpg", "nats", "nats.aio", "nats.aio.client", "nats.js"):
         if name not in sys.modules:
-            sys.modules[name] = types.ModuleType(name)
-    sys.modules["nats.aio.client"].Client = object  # type: ignore[attr-defined]
-    sys.modules["nats.js"].JetStreamContext = object  # type: ignore[attr-defined]
+            monkeypatch.setitem(sys.modules, name, types.ModuleType(name))
+    monkeypatch.setattr(sys.modules["nats.aio.client"], "Client", object, raising=False)
+    monkeypatch.setattr(sys.modules["nats.js"], "JetStreamContext", object, raising=False)
+    # Queue provisioning is outside this WebSocket authentication test. Isolate
+    # that import rather than exposing an incomplete fake nats.js package to it.
+    consumers = types.ModuleType("shared.notification_consumers")
+    consumers.SUBSCRIPTIONS = ()
+    consumers.queue_name = lambda name: name
+    consumers.validate_queue = lambda name: name
+    monkeypatch.setitem(sys.modules, "shared.notification_consumers", consumers)
 
     monkeypatch.setenv("JWT_SECRET", JWT_SECRET)
     spec = importlib.util.spec_from_file_location(

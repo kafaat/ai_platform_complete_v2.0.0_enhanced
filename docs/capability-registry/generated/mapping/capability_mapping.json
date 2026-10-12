@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5539,
+    "files_scanned": 5551,
     "files_by_kind": {
-      "backend": 1220,
+      "backend": 1222,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1569,
-      "tests": 1888,
-      "web": 458
+      "other": 1570,
+      "tests": 1896,
+      "web": 459
     },
-    "unmapped_artifacts": 2234,
+    "unmapped_artifacts": 2243,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -3433,6 +3433,14 @@
           ]
         },
         {
+          "path": "services/tts-service/tts_tenant_policy.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/farm_map.yaml",
           "score": 13,
           "signals": [
@@ -3891,6 +3899,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tts_tenant_policy_gate.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_v87_audit_tenant.py",
           "score": 14,
           "signals": [
@@ -4019,13 +4035,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 15,
+        "backend": 16,
         "routes": 2,
         "database": 26,
         "events": 6,
         "web": 1,
         "mobile": 0,
-        "tests": 28,
+        "tests": 29,
         "governance": 0,
         "other_evidence": 13
       },
@@ -11495,27 +11511,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:737",
+          "value": "/health @ agents/notification/agent.py:817",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:738",
+          "value": "/healthz @ agents/notification/agent.py:818",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:788",
+          "value": "/metrics @ agents/notification/agent.py:868",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:801",
+          "value": "/notification/test @ agents/notification/agent.py:881",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:723",
+          "value": "/notifications/test @ agents/notification/agent.py:803",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:743",
+          "value": "/readyz @ agents/notification/agent.py:823",
           "score": 12
         },
         {
@@ -11715,7 +11731,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:514",
+          "value": "sahool.> @ agents/notification/agent.py:594",
           "score": 12
         },
         {
@@ -11775,7 +11791,7 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:463",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:543",
           "score": 12
         },
         {
@@ -11963,14 +11979,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_tts_notification_service_auth.py",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "tests_v9/test_operational_evidence_artefacts.py",
           "score": 9,
           "signals": [
@@ -11983,6 +11991,14 @@
           "score": 9,
           "signals": [
             "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_tts_notification_service_auth.py",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -14045,7 +14061,7 @@
           "score": 9
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:229",
           "score": 9
         }
       ],
@@ -31179,7 +31195,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:229",
           "score": 12
         },
         {
@@ -36645,6 +36661,10 @@
     {
       "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/SpeakButton.test.tsx",
+      "kind": "web"
     },
     {
       "path": "frontend/src/components/SpeakButton.tsx",
@@ -42203,6 +42223,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_measurement.py",
       "kind": "tests"
     },
@@ -42872,6 +42896,10 @@
     },
     {
       "path": "services/tts-service/arabic_normalizer.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/tts-service/critical_speech.py",
       "kind": "backend"
     },
     {
@@ -44935,6 +44963,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_recovery_smoke_truth.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_redis_mandatory_in_production.py",
       "kind": "tests"
     },
@@ -45203,6 +45235,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_sqlite_live_backup.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
       "kind": "tests"
     },
@@ -45228,6 +45264,10 @@
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_telegram_voice_audio_boundary.py",
       "kind": "tests"
     },
     {
@@ -45263,7 +45303,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_tts_critical_speech.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_tts_edge_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_piper_provider.py",
       "kind": "tests"
     },
     {
@@ -45272,6 +45320,10 @@
     },
     {
       "path": "tests_v9/test_tts_request_pitch_validation.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_voice_delivery_receipt.py",
       "kind": "tests"
     },
     {

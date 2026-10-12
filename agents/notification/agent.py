@@ -46,6 +46,45 @@ logging.basicConfig(
     format='{"time":"%(asctime)s","svc":"notification-agent","msg":"%(message)s"}',
 )
 
+
+class _TelegramHTTPLogFilter(logging.Filter):
+    """Redact Telegram URL credentials in HTTPX's own request log records.
+
+    The filter stores no credentials and leaves unrelated HTTP log messages
+    intact. Sanitized records propagate to all handlers, including root INFO
+    logging; logger levels and handler configuration are not changed.
+    """
+
+    _sahool_telegram_redaction = True
+    _url_pattern = re.compile(r"(https?://api\.telegram\.org/bot)[^/\s\"']+(/)", re.IGNORECASE)
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        safe = self._url_pattern.sub(r"\1[REDACTED]\2", message)
+        if safe != message:
+            record.msg = safe
+            record.args = ()
+        # Exception formatting is separate from getMessage(). Do not mutate the
+        # caller's exception object, and preserve diagnostics with URLs redacted.
+        if record.exc_info:
+            detail = logging.Formatter().formatException(record.exc_info)
+            safe_detail = self._url_pattern.sub(r"\1[REDACTED]\2", detail)
+            if safe_detail != detail:
+                record.exc_text = safe_detail
+                record.exc_info = None
+        if record.exc_text:
+            record.exc_text = self._url_pattern.sub(r"\1[REDACTED]\2", record.exc_text)
+        return True
+
+
+def _install_telegram_http_log_redaction() -> None:
+    http_logger = logging.getLogger("httpx")
+    if not any(getattr(item, "_sahool_telegram_redaction", False) for item in http_logger.filters):
+        http_logger.addFilter(_TelegramHTTPLogFilter())
+
+
+_install_telegram_http_log_redaction()
+
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 DB_URL = os.getenv("DATABASE_URL", "")
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -112,38 +151,78 @@ def _send_email_blocking(to: str, subject: str, html: str) -> bool:
 
 
 # ── TTS Voice Notification (Yemeni Arabic) ──────────────────────
-async def send_tts_voice(text: str, telegram_chat_id: int, voice: str = "yemeni_male") -> bool:
-    """Generate TTS voice via tts-service for high-priority alerts.
+async def send_tts_voice(
+    text: str, telegram_chat_id: int, voice: str = "yemeni_male", *, caller_token: str = ""
+) -> bool:
+    """Synthesize and upload voice; True means Telegram accepted a matching receipt.
 
-    Returns True on success, False otherwise (caller may fallback to text).
+    Provider acceptance is not proof of recipient listening or exactly-once
+    delivery. A timeout after upload leaves an unknown outcome; no retry occurs
+    here. Callers must bind the numeric chat to the intended recipient. WAV from
+    local-only Piper needs explicit codec conversion; it fails closed here.
     """
     tts_url = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
-    tts_token = os.getenv("SAHOOL_AGENT_TOKEN", "")
-    if not (tts_token and telegram_chat_id):
+    if not (
+        TG_TOKEN
+        and isinstance(caller_token, str)
+        and caller_token.strip()
+        and type(telegram_chat_id) is int
+        and telegram_chat_id != 0
+        and isinstance(text, str)
+        and text.strip()
+        and len(text) <= 1000
+    ):
         return False
     try:
-        import httpx
-
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
                 f"{tts_url}/v1/tts/synthesize",
-                json={"text": text[:1000], "voice": voice},
-                # مصادقة خدمة-لخدمة: tts يتحقّق من السرّ المشترك X-Agent-Token
-                # (== SAHOOL_AGENT_TOKEN)، لا من حاملة Bearer لتوكن وكيل. كان
-                # Bearer هو نوع الاعتماد الخاطئ (tts يتوقّع JWT بـaud=sahool في
-                # حاملة Bearer) فيُرفَض دوماً. نُرسل الاعتماد الذي يتحقّق منه tts.
-                headers={"X-Agent-Token": tts_token},
+                json={"text": text, "voice": voice},
+                # Preserve caller/tenant identity so TTS provider policy applies.
+                # The shared service identity must not bypass local-only tenants.
+                headers={"Authorization": f"Bearer {caller_token}"},
             )
-        if resp.status_code != 200:
-            return False
-        logger.info(
-            f"TTS voice ready: chat={telegram_chat_id} bytes={len(resp.content)} voice={voice}"
-        )
-        # Forward bytes to telegram-bot service for delivery
-        # (telegram-bot exposes internal /push-voice for service-to-service)
-        return True
-    except Exception as e:
-        logger.error(f"TTS voice failed: {e}")
+            if resp.status_code != 200:
+                return False
+            # tts-service produces MP3; refuse empty/error bodies and cap uploads
+            # at 10 MiB, below Telegram's provider limit for multipart voice.
+            audio = resp.content
+            if (
+                resp.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+                != "audio/mpeg"
+                or not audio
+                or len(audio) > 10 * 1024 * 1024
+            ):
+                return False
+            sent = await client.post(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendVoice",
+                data={"chat_id": str(telegram_chat_id), "caption": text},
+                files={"voice": ("recommendation.mp3", audio, "audio/mpeg")},
+            )
+            if sent.status_code != 200:
+                return False
+            receipt = sent.json()
+            if not isinstance(receipt, dict) or receipt.get("ok") is not True:
+                return False
+            message = receipt.get("result")
+            if not isinstance(message, dict):
+                return False
+            message_id = message.get("message_id")
+            chat = message.get("chat")
+            voice_receipt = message.get("voice")
+            return bool(
+                type(message_id) is int
+                and message_id > 0
+                and isinstance(chat, dict)
+                and type(chat.get("id")) is int
+                and chat["id"] == telegram_chat_id
+                and isinstance(voice_receipt, dict)
+                and isinstance(voice_receipt.get("file_id"), str)
+                and voice_receipt["file_id"].strip()
+            )
+    except Exception as exc:
+        # HTTP exceptions can contain the bot URL/token or private text.
+        logger.warning("TTS voice provider acceptance failed (%s)", type(exc).__name__)
         return False
 
 
@@ -157,8 +236,9 @@ async def send_telegram(chat_id: str, text: str) -> bool:
                 json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
             )
             return r.status_code == 200
-    except Exception as e:
-        logger.warning(f"Telegram failed: {e}")
+    except Exception as exc:
+        # HTTP errors can embed the credential-bearing Telegram request URL.
+        logger.warning("Telegram provider request failed (%s)", type(exc).__name__)
         return False
 
 

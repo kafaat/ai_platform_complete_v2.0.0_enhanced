@@ -1,13 +1,20 @@
 // SpeakButton — زرّ استماع (TTS). يحوّل نصّاً عربيّاً إلى صوت يمنيّ عبر
 // /tts/synthesize ويشغّله في المتصفّح. قيمة وصوليّة: قراءة التوصيات/التنبيهات
 // لأمّيّي القراءة وضعاف البصر. صدق: تعذّر التوليد لا يُعطّل الواجهة (الزرّ يعود).
-import { useEffect, useRef, useState } from 'react';
-import { Volume2, Loader2, Square } from 'lucide-react';
-import { synthesizeSpeech } from '../services/api';
+import { useEffect, useRef, useState } from "react";
+import { Volume2, Loader2, Square } from "lucide-react";
+import { synthesizeSpeech } from "../services/api";
 
-export default function SpeakButton({ text, className }: { text: string; className?: string }) {
+export default function SpeakButton({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
 
@@ -36,6 +43,7 @@ export default function SpeakButton({ text, className }: { text: string; classNa
       return;
     }
     if (!text.trim() || loading) return;
+    setUnavailable(false);
     setLoading(true);
     try {
       const blob = await synthesizeSpeech(text);
@@ -44,14 +52,22 @@ export default function SpeakButton({ text, className }: { text: string; classNa
       urlRef.current = url;
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => { setPlaying(false); cleanup(); };
-      audio.onerror = () => { setPlaying(false); cleanup(); };
+      audio.onended = () => {
+        setPlaying(false);
+        cleanup();
+      };
+      audio.onerror = () => {
+        setPlaying(false);
+        setUnavailable(true);
+        cleanup();
+      };
       await audio.play();
       setPlaying(true);
     } catch {
-      // تعذّر التوليد الصوتيّ — نتجاهل بهدوء (لا نُعطّل التجربة).
+      // Keep the written recommendation available when speech is blocked or fails.
       cleanup();
       setPlaying(false);
+      setUnavailable(true);
     } finally {
       setLoading(false);
     }
@@ -61,9 +77,18 @@ export default function SpeakButton({ text, className }: { text: string; classNa
     <button
       type="button"
       onClick={speak}
-      title="استماع"
-      aria-label={playing ? 'إيقاف الاستماع' : 'استماع'}
-      className={className ?? 'inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-400'}
+      title={unavailable ? "الصوت غير متاح؛ اقرأ التوصية المكتوبة" : "استماع"}
+      aria-label={
+        unavailable
+          ? "الصوت غير متاح؛ اقرأ التوصية المكتوبة"
+          : playing
+            ? "إيقاف الاستماع"
+            : "استماع"
+      }
+      className={
+        className ??
+        "inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-400"
+      }
     >
       {loading ? (
         <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -72,7 +97,13 @@ export default function SpeakButton({ text, className }: { text: string; classNa
       ) : (
         <Volume2 className="w-4 h-4" aria-hidden="true" />
       )}
-      {playing ? 'إيقاف' : 'استماع'}
+      <span aria-live="polite">
+        {unavailable
+          ? "الصوت غير متاح؛ اقرأ النص"
+          : playing
+            ? "إيقاف"
+            : "استماع"}
+      </span>
     </button>
   );
 }

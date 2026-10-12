@@ -6,14 +6,16 @@
   • ``EdgeTTSProvider`` — Microsoft edge-tts (المحرّك الإلزاميّ الوحيد والافتراضيّ؛
     متاح دوماً ما دام ``edge_tts`` يُستورَد). سلوكه أمينُ-البايت لمسار التركيب القائم.
   • ``PiperProvider`` — Piper (شبكة عصبيّة على المعالِج، اختياريّ). استيراد محروس؛
-    ``available()`` = False حين تغيب المكتبة أو مسار نموذج الصوت (``PIPER_VOICE_PATH``).
+    ``available()`` = False حين تغيب المكتبة أو ملفُّ النموذج (``PIPER_VOICE_PATH``) أو ملفُّ
+    إعداده المجاور (``<النموذج>.json``، المسارُ الذي يقرؤه ``PiperVoice.load`` افتراضاً).
   • ``XTTSProvider`` — Coqui XTTS (اختياريّ، يفضّل المعالِج الرسوميّ). استيراد محروس؛
     ``available()`` = False ما لم تُستورَد المكتبة **و** يُفعَّل صراحةً
     (``TTS_GPU_PROVIDER=xtts`` أو ``XTTS_ENABLE=1``) — تماشياً مع overlay الـGPU.
 
 قاعدة صارمة: piper/coqui **تبعيّات اختياريّة** لا تُضاف إلى ``requirements.txt`` (كي
 لا تكسر طبقة الوحدات/pip-audit). الخدمة تُستورَد وتُختبَر بدونها؛ edge يبقى الآمن.
-لتفعيل piper محليّاً: ``pip install piper-tts`` + ضبط ``PIPER_VOICE_PATH``.
+لتفعيل piper محليّاً: ``pip install piper-tts`` + ضبط ``PIPER_VOICE_PATH`` إلى ``voice.onnx``
+وبجانبه ``voice.onnx.json``.
 لتفعيل xtts (GPU): ``pip install TTS`` + ``TTS_GPU_PROVIDER=xtts``.
 """
 
@@ -21,11 +23,15 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import contextlib
+import importlib.metadata
 import io
 import logging
 import math
 import os
+import threading
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 # ── المحرّك الإلزاميّ الوحيد: edge_tts ─────────────────────────────────────────
 try:
@@ -60,6 +66,12 @@ class TTSProvider(abc.ABC):
     """عقد مزوّد TTS: اسمٌ، فحصُ توفّر، وتركيبٌ غير متزامن يُرجِع بايتات صوت."""
 
     name: str = "abstract"
+    #: هل يُرسِل المزوّدُ النصَّ خارج حدّ المستأجِر؟ (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01)
+    #: الافتراضيّ محلّيّ؛ كلُّ مزوّدٍ شبكيٍّ يُعلنه صراحةً فيُحجَب حين لا تسمح السياسة.
+    external: bool = False
+    #: نوعُ وعاء الصوت الذي يُرجِعه ``synthesize`` — تُعلِنه الاستجابةُ كما هو (مراجعة #1122:
+    #: Piper يكتب WAV؛ وسمُه ``audio/mpeg`` كان يكذب على المُشغِّل). الافتراضيّ لا يدّعي صيغة.
+    media_type: str = "application/octet-stream"
 
     @abc.abstractmethod
     def available(self) -> bool:
@@ -183,6 +195,8 @@ class EdgeTTSProvider(TTSProvider):
     """
 
     name = "edge_tts"
+    external = True  # يُرسِل النصَّ إلى خدمة Microsoft — خارج حدّ المستأجِر.
+    media_type = "audio/mpeg"
 
     def __init__(self, sleep: Callable[[float], Awaitable[object]] | None = None) -> None:
         self._sleep = sleep or asyncio.sleep
@@ -230,38 +244,179 @@ class EdgeTTSProvider(TTSProvider):
         raise AssertionError("unreachable")  # pragma: no cover - الحلقة تُعيد أو ترمي
 
 
+#: الإصدارُ الوحيد الذي فُحصت واجهتُه (توقيعات ``load``/``synthesize``/``synthesize_wav``).
+PIPER_TTS_TARGET_VERSION = "1.8.0"
+
+
+class PiperLoadError(RuntimeError):
+    """النموذجُ موجودٌ لكنّه لا يُحمَّل (تالف/غير متوافق) — خطأٌ صريح، لا رجوعَ إلى مزوّدٍ آخر."""
+
+
+def _require_audible_wav(audio: bytes) -> None:
+    """ترويسةُ RIFF/WAVE صحيحة + معاملاتٌ معقولة + إطاراتٌ موجودةٌ فعلاً بطولها المُعلَن."""
+    import wave
+
+    if audio[:4] != b"RIFF" or audio[8:12] != b"WAVE":
+        raise PiperLoadError("مخرجُ Piper ليس RIFF/WAVE")
+    try:
+        with wave.open(io.BytesIO(audio), "rb") as w:
+            channels, width, rate, frames = (
+                w.getnchannels(),
+                w.getsampwidth(),
+                w.getframerate(),
+                w.getnframes(),
+            )
+            data = w.readframes(frames)
+    except (wave.Error, EOFError) as exc:
+        raise PiperLoadError(f"WAV تالف: {exc}") from exc
+    if channels < 1 or width not in (1, 2, 3, 4) or rate <= 0:
+        raise PiperLoadError("معاملاتُ WAV غير صالحة")
+    if frames <= 0 or len(data) != frames * channels * width:
+        raise PiperLoadError("Piper أعاد WAV بلا إطاراتٍ صوتيّة كاملة")
+
+
+def _release_after_thread(
+    semaphore: asyncio.Semaphore, future: asyncio.Future, abandoned: dict[str, bool]
+) -> None:
+    """يُحرِّر المقعد عند انتهاء الخيط ويقرأ استثناءه دائماً. فشلُ خيطٍ أُلغي طلبُه لا يقرؤه أحدٌ
+    غيرُ هذا، فيُسجَّل بالاسم بدل «Future exception was never retrieved»؛ وفشلُ طلبٍ قائم
+    يصل المُعالِجَ نفسَه فلا يُكرَّر هنا."""
+    semaphore.release()
+    exc = None if future.cancelled() else future.exception()
+    if exc is not None and abandoned["value"]:
+        logger.warning(
+            "piper synthesis failed after its request was cancelled: %s", type(exc).__name__
+        )
+
+
 class PiperProvider(TTSProvider):
     """Piper — شبكة عصبيّة على المعالِج (اختياريّ). لا يُتاح إلّا بالمكتبة + نموذج.
 
     مسار النموذج يُقرأ وقت النداء من ``PIPER_VOICE_PATH`` (أو تجاوز في الباني) كي
     تلتقط الاختبارات ضبط البيئة (monkeypatch) دون إعادة بناء.
+
+    TTS-PIPER-PROVIDER-CALLS-THE-PRE-1.3-API-01: ``piper-tts`` ≥ 1.3 جعل ``synthesize`` مولِّدَ
+    ``AudioChunk`` ونقل الكتابةَ إلى ``synthesize_wav(text, wav_file)``؛ النداءُ القديم
+    ``synthesize(text, wav)`` يُمرِّر ملفَّ WAV مكانَ ``syn_config`` فلا يُكتب صوت. لذا:
+      • ``synthesize_wav`` وحدَه، ورفضٌ صريح لمكتبةٍ لا تحمله (لا تخمينَ واجهة).
+      • النموذجُ يُحمَّل **مرّةً لكلّ عمليّة** لكلّ مسار (قفلٌ يمنع التحميل المزدوج).
+      • التركيبُ الثقيل في خيطٍ (``run_in_executor``) لا في حلقة الطلبات، وبحدٍّ للتزامن
+        (``PIPER_MAX_CONCURRENCY``، افتراضاً 1) لكلّ نسخة مزوّد — والخدمةُ تستعمل نسخةَ
+        السجلّ الواحدة (``main._PROVIDER_REGISTRY``)، فالحدُّ عمليّاً لكلّ عمليّة.
+      • فشلُ التحميل أو مخرجٌ بلا إطارات ⇒ ``PiperLoadError`` صريح؛ والمُعالِجُ لا يرجع إلى edge.
+      • الإصدارُ المستهدف صريح (``PIPER_TTS_TARGET_VERSION``): وجودُ ``synthesize_wav`` لا يُثبت
+        توافقَ كلّ ≥ 1.3، فغيرُ المستهدف يُرفض بالاسم بدل أن يُفترض متوافقاً.
+      • إلغاءُ الطلب لا يوقف خيطَ التركيب؛ لذا يُحرَّر مقعدُ التزامن عند **انتهاء الخيط** لا عند
+        الإلغاء، فلا يتجاوز عددُ الخيوط العاملة الحدَّ.
     """
 
     name = "piper"
+    media_type = "audio/wav"  # ``wave.open(buf, "wb")`` أدناه — وعاءُ RIFF/WAV.
+
+    #: نماذجُ محمَّلة لكلّ مسار — مشتركة بين نسخ المزوّد في العمليّة نفسها.
+    _voices: dict[str, Any] = {}
+    _load_lock = threading.Lock()
 
     def __init__(self, voice_path: str | None = None) -> None:
         self._voice_path_override = voice_path
+        self._semaphore: asyncio.Semaphore | None = None
 
     def _voice_path(self) -> str:
         return self._voice_path_override or os.getenv("PIPER_VOICE_PATH", "")
 
+    @staticmethod
+    def _config_path(path: str) -> str:
+        """إعدادُ النموذج حيث يبحث عنه ``PiperVoice.load(path)`` حين لا يُمرَّر ``config_path``."""
+        return f"{path}.json"
+
     def available(self) -> bool:
+        # الملفّان شرطان: النموذجُ وحده بلا إعداده يُعلِن توافراً كاذباً ثمّ يفشل عند أوّل تحميل.
+        # وجودُهما لا يُثبت سلامتَهما — التحميلُ الحقيقيّ يكشف التالف (``PiperLoadError``).
         path = self._voice_path()
-        return bool(_PIPER_LIB_AVAILABLE and path and os.path.exists(path))
+        return bool(
+            _PIPER_LIB_AVAILABLE
+            and path
+            and os.path.exists(path)
+            and os.path.exists(self._config_path(path))
+        )
+
+    @staticmethod
+    def _installed_version() -> str | None:
+        try:
+            return importlib.metadata.version("piper-tts")
+        except importlib.metadata.PackageNotFoundError:
+            return None
+
+    def _max_concurrency(self) -> int:
+        try:
+            return max(1, int(os.getenv("PIPER_MAX_CONCURRENCY", "1")))
+        except ValueError:
+            return 1
+
+    def _load(self, path: str) -> Any:
+        voice = self._voices.get(path)
+        if voice is not None:
+            return voice
+        with self._load_lock:
+            voice = self._voices.get(path)
+            if voice is None:
+                from piper import PiperVoice  # type: ignore[import-not-found]
+
+                installed = self._installed_version()
+                if installed != PIPER_TTS_TARGET_VERSION:
+                    raise PiperLoadError(
+                        f"piper-tts {installed or 'غير معروف'} ليس الإصدارَ المستهدف "
+                        f"{PIPER_TTS_TARGET_VERSION} (لم يُتحقَّق من توافقه)"
+                    )
+                if not hasattr(PiperVoice, "synthesize_wav"):
+                    raise PiperLoadError("piper-tts غير مدعوم: لا synthesize_wav (يلزم ≥ 1.3)")
+                try:
+                    voice = PiperVoice.load(path)
+                except Exception as exc:  # noqa: BLE001 - أيُّ فشل تحميل ⇒ خطأٌ مُسمّى
+                    raise PiperLoadError(f"تعذّر تحميل نموذج Piper: {type(exc).__name__}") from exc
+                self._voices[path] = voice
+        return voice
+
+    def _synthesize_blocking(self, path: str, text: str) -> bytes:
+        import wave
+
+        voice = self._load(path)
+        buf = io.BytesIO()
+        wav = wave.open(buf, "wb")
+        try:
+            voice.synthesize_wav(text, wav)
+        except BaseException:
+            # ``close()`` على كاتبٍ لم تُضبط معاملاتُه يرمي «# channels not specified» فيُخفي
+            # السببَ الحقيقيّ (مقيس). يُكتم ذاك وحده؛ و``close`` يُصفّر الملفّ في ``finally``.
+            with contextlib.suppress(wave.Error):
+                wav.close()
+            raise
+        wav.close()
+        audio = buf.getvalue()
+        _require_audible_wav(audio)
+        return audio
 
     async def synthesize(self, text: str, voice: str, rate: str, pitch: str, volume: str) -> bytes:
         if not self.available():
             raise RuntimeError("Piper غير متاح (المكتبة أو PIPER_VOICE_PATH مفقود)")
-        # مسار فعليّ (يُنفَّذ فقط حين تتوفّر المكتبة والنموذج — غير مُغطّى بالوحدات).
-        import wave  # pragma: no cover
-
-        from piper import PiperVoice  # type: ignore[import-not-found]  # pragma: no cover
-
-        pv = PiperVoice.load(self._voice_path())  # pragma: no cover
-        buf = io.BytesIO()  # pragma: no cover
-        with wave.open(buf, "wb") as wav:  # pragma: no cover
-            pv.synthesize(text, wav)  # pragma: no cover
-        return buf.getvalue()  # pragma: no cover
+        if self._semaphore is None:
+            self._semaphore = asyncio.Semaphore(self._max_concurrency())
+        semaphore = self._semaphore
+        await semaphore.acquire()
+        try:
+            loop = asyncio.get_running_loop()
+            future = loop.run_in_executor(None, self._synthesize_blocking, self._voice_path(), text)
+        except BaseException:
+            semaphore.release()
+            raise
+        # المقعدُ يُحرَّر حين ينتهي الخيطُ فعلاً — لا حين يُلغى الطلبُ المنتظِر (shield).
+        abandoned = {"value": False}
+        future.add_done_callback(lambda f: _release_after_thread(semaphore, f, abandoned))
+        try:
+            return await asyncio.shield(future)
+        except asyncio.CancelledError:
+            abandoned["value"] = True
+            raise
 
 
 class XTTSProvider(TTSProvider):
@@ -340,3 +495,22 @@ def select_provider(requested: str | None, registry: list[TTSProvider]) -> TTSPr
     if chosen is not None and chosen.available():
         return chosen
     return default
+
+
+def select_provider_for_policy(
+    requested: str | None, registry: list[TTSProvider], external_allowed: bool
+) -> TTSProvider | None:
+    """يختار مزوّداً **تسمح به السياسة** أو ``None`` — لا سقوطَ صامتاً إلى مزوّدٍ خارجيّ.
+
+    TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01: ``select_provider`` يسقط إلى edge
+    حين يتعذّر المطلوب، وهذا صحيحٌ فقط حين يُسمَح بالإرسال الخارجيّ. حين لا يُسمَح:
+    مزوّدٌ محلّيٌّ متاح (المطلوبُ إن كان محلّيّاً متاحاً، وإلّا أوّلُ محلّيٍّ متاح)، وإلّا
+    ``None`` ليُعيد المُعالِج 503 مُسمّى بلا أيّ نداءٍ خارجيّ.
+    """
+    if external_allowed:
+        return select_provider(requested, registry)
+    local = [p for p in registry if not p.external and p.available()]
+    for p in local:
+        if p.name == requested:
+            return p
+    return local[0] if local else None
