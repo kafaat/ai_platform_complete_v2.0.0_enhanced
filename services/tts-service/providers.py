@@ -355,7 +355,7 @@ def select_provider_for_policy(
     requested: str | None,
     registry: list[TTSProvider],
     external_allowed: bool,
-    allowed_external: frozenset[str] | None = None,
+    allowed_external: frozenset[str] = frozenset(),
 ) -> TTSProvider | None:
     """يختار مزوّداً **تسمح به السياسة** أو ``None`` — لا سقوطَ صامتاً إلى مزوّدٍ خارجيّ.
 
@@ -364,9 +364,6 @@ def select_provider_for_policy(
     مزوّدٌ محلّيٌّ متاح (المطلوبُ إن كان محلّيّاً متاحاً، وإلّا أوّلُ محلّيٍّ متاح)، وإلّا
     ``None`` ليُعيد المُعالِج 503 مُسمّى بلا أيّ نداءٍ خارجيّ.
     """
-    if external_allowed and allowed_external is None:
-        # غلافٌ قديم: أيُّ مزوّدٍ خارجيّ كما كان قبل عقد v2.
-        return select_provider(requested, registry)
     if external_allowed:
         # عقد v2: المزوّدُ الخارجيّ مسموحٌ فقط إن سمّاه المستأجِر (``external_tts_providers``).
         eligible = [

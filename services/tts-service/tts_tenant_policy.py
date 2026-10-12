@@ -13,17 +13,16 @@ TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01 · TTS-STREAM-BYPASSES-PROVIDE
   • تعذّر القراءة (شبكة/مهلة/رمز غير 200/JSON تالف) — **بلا رجوعٍ إلى قيمةٍ سابقة**:
     لا ذاكرةَ للسياسة هنا أصلاً، فلا نسخةَ قديمة تسمح بالإرسال حين يتعذّر التحديث.
   • مستأجِرُ الغلاف أو الهويّة يخالف مستأجِرَ التوكن، أو ``policy_mode`` غير قانونيّ.
-  • ``external_llm_allowed`` ليس ``true`` صراحةً — الوضعُ وحده لا يأذن (مراجعة Copilot).
+  • غلافٌ بلا ``contract_version`` (منصّةٌ لا تُصدر العقد v2) — لا يُقرأ ``external_llm_allowed``.
 
 ولا يسمح بالإرسال الخارجيّ إلّا ``full_external``: ``redacted_external`` يسمح بسياقٍ
 منقّح، وTTS يُرسِل **النصَّ الخامَ كاملاً** فلا تنقيحَ ممكن.
 
-**عقدُ الغلاف v2 (``contract_version`` ≥ 2) — إذنُ TTS منفصلٌ عن إذن LLM:** على غلافٍ v2
-لا يُقرأ ``external_llm_allowed`` إطلاقاً؛ الإرسالُ الخارجيّ يشترط ``external_tts_allowed``
-صريحاً، والمزوّدُ الخارجيّ يجب أن يكون في ``external_tts_providers``. غيابُ الحقل، أو رقمُ
-عقدٍ تالف، أو قائمةُ مزوّدين فارغة ⇒ ``local_only``. **والغلافُ القديم بلا رقم عقد** (منصّةٌ
-لم تُرقَّ بعد) يبقى على القاعدة القائمة (``external_llm_allowed`` + ``full_external``) —
-مرحلةُ انتقالٍ لا تمنح شيئاً لم يكن ممنوحاً، وإزالتُها قرارٌ لاحق حين تخدم كلُّ منصّةٍ v2.
+**عقدُ الغلاف v2 (``contract_version`` ≥ 2) هو العقدُ الوحيد — إذنُ TTS منفصلٌ عن إذن LLM:**
+الإرسالُ الخارجيّ يشترط ``external_tts_allowed`` صريحاً، والمزوّدُ الخارجيّ يجب أن يكون في
+``external_tts_providers``. غيابُ الحقل، أو رقمُ عقدٍ تالف، أو قائمةُ مزوّدين فارغة ⇒
+``local_only``. ``external_llm_allowed`` لا يُقرأ هنا أبداً: إذنُ LLM لا يفتح TTS. (أُزيل مسارُ
+التوافق مع الغلاف القديم بقرار المالك 2026-10-12 — المنصّةُ والخدمةُ تعملان من نسخةٍ واحدة.)
 
 وحدةٌ بالمكتبة القياسيّة وحدها (لا ``httpx`` في تبعيّات الخدمة)، ولا تستورد ``main``.
 """
@@ -62,12 +61,12 @@ TTS_CONTRACT_VERSION = 2
 class TTSPolicy:
     """قرارُ السياسة لطلبٍ واحد: الوضع، والمزوّدون الخارجيّون المسموحون.
 
-    ``external_providers``: ``None`` = غلافٌ قديم (أيُّ مزوّدٍ خارجيّ حين يُسمَح، كما كان)؛
-    مجموعةٌ = غلاف v2 (المزوّدُ الخارجيّ خارجها محجوب). الوضعُ غيرُ ``full_external`` لا يأذن.
+    ``external_providers``: المزوّدون الخارجيّون المُسمَّون في الغلاف؛ أيُّ مزوّدٍ خارجيٍّ
+    خارجها محجوب، والمجموعةُ الفارغة تحجبها كلَّها. الوضعُ غيرُ ``full_external`` لا يأذن.
     """
 
     mode: str
-    external_providers: frozenset[str] | None = None
+    external_providers: frozenset[str] = frozenset()
 
     @property
     def external_allowed(self) -> bool:
@@ -98,15 +97,13 @@ def policy_from_me(payload: Any, tenant_id: str) -> TTSPolicy:
     mode = envelope.get("policy_mode")
     if mode not in POLICY_MODES:
         return LOCAL_ONLY_POLICY
-    if "contract_version" in envelope:
-        return _policy_from_v2(envelope, mode)
-    # غلافٌ قديم (منصّةٌ بلا عقد v2): القاعدةُ القائمة كما هي — مرحلةُ انتقال.
-    return TTSPolicy(_legacy_mode(envelope, mode), None)
+    # غلافٌ بلا رقم عقد ⇒ الأشدّ: لا رجوعَ إلى ``external_llm_allowed`` (قرار المالك).
+    return _policy_from_v2(envelope, mode)
 
 
 def _policy_from_v2(envelope: dict[str, Any], mode: str) -> TTSPolicy:
     """غلافُ v2: إذنُ TTS الصريح وحده يفتح الإرسال الخارجيّ، ولا يُقرأ إذنُ LLM."""
-    version = envelope.get("contract_version")
+    version = envelope.get("contract_version")  # غائبٌ ⇒ None ⇒ الأشدّ
     if isinstance(version, bool) or not isinstance(version, int) or version < TTS_CONTRACT_VERSION:
         return LOCAL_ONLY_POLICY
     if mode != POLICY_FULL_EXTERNAL or envelope.get("external_tts_allowed") is not True:
@@ -123,16 +120,6 @@ def _policy_from_v2(envelope: dict[str, Any], mode: str) -> TTSPolicy:
 def policy_mode_from_me(payload: Any, tenant_id: str) -> str:
     """الوضعُ وحده (للمستدعين القائمين) — ``policy_from_me(...).mode``."""
     return policy_from_me(payload, tenant_id).mode
-
-
-def _legacy_mode(envelope: dict[str, Any], mode: str) -> str:
-    # الوضعُ وحده لا يأذن: المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false``
-    # حين لا يقول الصفُّ ``ai_generation_allowed=true`` صراحةً (``core/ai_policy_envelope.py``)،
-    # والمستهلكُ القائم يرفض تلك الحالة (``services/ai_agronomist/policy_envelope.py``).
-    # فبلا إذنٍ صريح ⇒ الأشدّ، وإلّا خرج نصُّ مستأجِرٍ عطّل التوليد إلى مزوّدٍ خارجيّ.
-    if envelope.get("external_llm_allowed") is not True:
-        return POLICY_LOCAL_ONLY
-    return mode
 
 
 def _get_json(url: str, authorization: str) -> dict[str, Any]:

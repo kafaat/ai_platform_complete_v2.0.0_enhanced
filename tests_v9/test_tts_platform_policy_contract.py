@@ -6,8 +6,8 @@
 إن غيّر أحدُ الطرفين الشكلَ دون الآخر احمرّ هنا.
 
 المصفوفة (قرار المالك 2026-10-12): فقدانُ الحقل · توكنُ مستأجِرٍ مختلف · انقطاعُ المنصّة ·
-رفضُ مشاركة النصّ · توفّرُ المزوّد المحلّيّ — مع فصل إذن TTS الخارجيّ عن إذن LLM الخارجيّ،
-والغلافِ القديم (منصّةٌ لم تُرقَّ) على القاعدة القائمة بلا توسيع.
+رفضُ مشاركة النصّ · توفّرُ المزوّد المحلّيّ — مع فصل إذن TTS الخارجيّ عن إذن LLM الخارجيّ.
+v2 هو العقدُ الوحيد: غلافٌ بلا رقم عقد مرفوض (أُزيل مسارُ التوافق القديم بقرار المالك).
 """
 
 from __future__ import annotations
@@ -75,19 +75,20 @@ def test_the_platform_stamps_contract_v2_on_every_envelope():
         )
 
 
-@pytest.mark.parametrize(
-    ("row", "allowed", "providers"),
-    [
-        (None, False, []),  # لا صفّ ⇒ الأشدّ
-        (_row("local_only", ["tts:edge_tts"]), False, []),
-        (_row("redacted_external", ["tts:edge_tts"]), False, []),  # النصُّ الخام لا يُنقَّح
-        (_row("full_external"), False, []),  # قائمةٌ فارغة لا تمنح شيئاً هنا
-        (_row("full_external", ["anthropic"]), False, []),  # مزوّدُ LLM ليس مزوّدَ صوت
-        (_row("full_external", ["tts:unknown"]), False, []),  # اسمٌ مجهول لا يمنح شيئاً
-        (_row("full_external", ["TTS:Edge_TTS"]), True, ["edge_tts"]),
-        (_row("full_external", ["tts:edge_tts"], generation=False), True, ["edge_tts"]),
-    ],
-)
+_MATRIX = [
+    (None, False, []),  # لا صفّ ⇒ الأشدّ
+    (_row("local_only", ["tts:edge_tts"]), False, []),
+    (_row("redacted_external", ["tts:edge_tts"]), False, []),  # النصُّ الخام لا يُنقَّح
+    (_row("full_external"), False, []),  # قائمةٌ فارغة لا تمنح شيئاً هنا
+    (_row("full_external", ["anthropic"]), False, []),  # مزوّدُ LLM ليس مزوّدَ صوت
+    (_row("full_external", ["tts:unknown"]), False, []),  # اسمٌ مجهول لا يمنح شيئاً
+    (_row("full_external", ["TTS:Edge_TTS"]), True, ["edge_tts"]),
+    (_row("full_external", ["tts:edge_tts"], generation=False), True, ["edge_tts"]),
+]
+_GRANT_ROWS = [row for row, _allowed, _providers in _MATRIX]
+
+
+@pytest.mark.parametrize(("row", "allowed", "providers"), _MATRIX)
 def test_external_tts_is_granted_only_by_an_explicit_speech_provider(row, allowed, providers):
     envelope = ENV.build_ai_policy_envelope(_TENANT, row)
     assert envelope["external_tts_allowed"] is allowed
@@ -130,19 +131,38 @@ def test_the_old_platform_me_without_an_envelope_is_local_only():
     assert TTS.policy_from_me(_me(None), _TENANT) == TTS.LOCAL_ONLY_POLICY
 
 
-def test_a_legacy_v52_envelope_keeps_the_existing_rule_and_grants_nothing_new():
-    """منصّةٌ لم تُرقَّ إلى v2: القاعدةُ القائمة كما هي — لا توسيع."""
-    legacy = {
-        k: v
-        for k, v in ENV.build_ai_policy_envelope(
-            _TENANT, _row("full_external", ["anthropic"])
-        ).items()
-        if not k.startswith(("contract", "external_tts"))
-    }
-    assert legacy["external_llm_allowed"] is True
-    assert TTS.policy_from_me(_me(legacy), _TENANT) == TTS.TTSPolicy("full_external", None)
-    legacy["external_llm_allowed"] = False
-    assert TTS.policy_from_me(_me(legacy), _TENANT).mode == "local_only"
+@pytest.mark.parametrize("strip", [("contract_version",), ("contract", "external_tts")])
+def test_an_envelope_without_a_contract_version_is_local_only(strip):
+    """لا رجوعَ إلى ``external_llm_allowed``: غلافٌ بلا رقم عقد ⇒ الأشدّ ولو منح كلَّ شيء."""
+    full = ENV.build_ai_policy_envelope(
+        _TENANT, _row("full_external", ["anthropic", "tts:edge_tts"])
+    )
+    assert full["external_llm_allowed"] is True and full["external_tts_allowed"] is True
+    legacy = {k: v for k, v in full.items() if not k.startswith(strip)}
+    assert TTS.policy_from_me(_me(legacy), _TENANT) == TTS.LOCAL_ONLY_POLICY
+
+
+@pytest.mark.parametrize("row", _GRANT_ROWS)
+def test_every_envelope_the_local_platform_builds_is_read_as_v2(row):
+    """المنصّةُ المحلّيّة تُصدر v2 دائماً، وTTS المحلّيّ يقرؤه v2: نزعُ رقم العقد وحده يُسقط
+    أيَّ منحٍ إلى الأشدّ — فالقرارُ معلَّقٌ بالعقد لا بحقلٍ قديم."""
+    envelope = ENV.build_ai_policy_envelope(_TENANT, row)
+    assert envelope["contract_version"] == TTS.TTS_CONTRACT_VERSION
+    stripped = {k: v for k, v in envelope.items() if k != "contract_version"}
+    assert TTS.policy_from_me(_me(stripped), _TENANT) == TTS.LOCAL_ONLY_POLICY
+
+
+def test_the_tts_reader_never_consults_the_llm_permission():
+    """قارئُ TTS لا يقرأ ``external_llm_allowed`` في أيّ موضعٍ من شيفرته (لا من التعليقات)."""
+    import ast
+
+    tree = ast.parse((ROOT / "services/tts-service/tts_tenant_policy.py").read_text("utf-8"))
+    used = [
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Constant) and n.value == "external_llm_allowed"
+    ]
+    assert used == []
 
 
 @pytest.mark.parametrize(
@@ -220,6 +240,9 @@ def test_v2_external_is_limited_to_the_named_provider(providers):
     assert _choose(providers, TTS.TTSPolicy("full_external", frozenset({"x"})), [edge]) is None
 
 
-def test_legacy_external_keeps_the_previous_selection(providers):
-    edge = _P("edge_tts", True)
-    assert _choose(providers, TTS.TTSPolicy("full_external", None), [edge]) is edge
+def test_an_external_grant_naming_no_provider_selects_only_local(providers):
+    """لا مسارَ «أيّ مزوّدٍ خارجيّ» بعد الآن: منحٌ بلا اسمٍ لا يصل إلى edge."""
+    edge, piper = _P("edge_tts", True), _P("piper", False)
+    unnamed = TTS.TTSPolicy("full_external")
+    assert _choose(providers, unnamed, [edge]) is None
+    assert _choose(providers, unnamed, [edge, piper]) is piper

@@ -97,6 +97,8 @@ class _External:
 _MISSING = object()
 #: لم يُمرَّر — فيُبنى كما تبنيه المنصّة لصفٍّ يأذن بالتوليد.
 _AS_PLATFORM_BUILDS = object()
+#: ختمُ العقد كما تُصدره المنصّة (``core/ai_policy_envelope.ENVELOPE_CONTRACT_VERSION``).
+_V2 = {"contract": "sahool.ai_policy_envelope", "contract_version": 2}
 
 
 def _no_local_providers(monkeypatch, providers) -> None:
@@ -112,15 +114,21 @@ def _policy(
     tenant=_TENANT,
     raises=False,
     external_llm_allowed=_AS_PLATFORM_BUILDS,
+    external_tts_allowed=_AS_PLATFORM_BUILDS,
+    contract=True,
     envelope_extra=None,
 ):
     """يحقن ردَّ ``/api/v1/me`` بغلافٍ بالوضع المُعطى، ويُرجِع عدّادَ قراءات المنصّة.
 
-    ``external_llm_allowed`` افتراضاً كما تبنيه المنصّة لصفٍّ يأذن بالتوليد: صحيحٌ للوضعين
-    الخارجيّين وحدهما. ``envelope_extra`` يُضاف إلى الغلاف كما هو (حقولُ عقد v2).
+    الغلافُ افتراضاً كما تبنيه المنصّة (عقد v2) لصفٍّ يأذن بالتوليد ويُسمّي ``tts:edge_tts``:
+    ``external_llm_allowed`` صحيحٌ للوضعين الخارجيّين، و``external_tts_allowed`` لـ``full_external``
+    وحده. ``contract=False`` يحذف رقمَ العقد (غلافٌ قديم)؛ و``envelope_extra`` — إن مُرِّر —
+    يحلّ محلَّ حقول v2 الافتراضيّة كلِّها فيُضاف كما هو.
     """
     if external_llm_allowed is _AS_PLATFORM_BUILDS:
         external_llm_allowed = mode in ("full_external", "redacted_external")
+    if external_tts_allowed is _AS_PLATFORM_BUILDS:
+        external_tts_allowed = mode == "full_external"
     monkeypatch.setenv("PLATFORM_API_URL", "http://sahool-platform:8000")
     asked = {"n": 0}
 
@@ -133,7 +141,15 @@ def _policy(
         envelope = {"policy_mode": mode, "tenant_id": tenant}
         if external_llm_allowed is not _MISSING:
             envelope["external_llm_allowed"] = external_llm_allowed
-        envelope.update(envelope_extra or {})
+        if envelope_extra is not None:
+            envelope.update(envelope_extra)
+        elif contract:
+            envelope.update(_V2)
+            if external_tts_allowed is not _MISSING:
+                envelope["external_tts_allowed"] = external_tts_allowed
+            envelope["external_tts_providers"] = (
+                ["edge_tts"] if external_tts_allowed is True else []
+            )
         return {
             "tenant_id": _TENANT,
             "ai_policy_envelope": envelope,
@@ -182,7 +198,8 @@ def test_a_policy_that_forbids_raw_text_out_makes_zero_external_calls(monkeypatc
     _no_local_providers(monkeypatch, providers)
     _policy(monkeypatch, tts_policy, mode)
     resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
-    _assert_blocked(resp, "local_only" if mode == "local_only" else mode)
+    # v2: ``redacted_external`` لا يمنح TTS (النصُّ الخام لا يُنقَّح) ⇒ قرارُه local_only.
+    _assert_blocked(resp, "local_only")
     assert ext.calls == 0
 
 
@@ -191,16 +208,35 @@ def test_a_policy_that_forbids_raw_text_out_makes_zero_external_calls(monkeypatc
 def test_full_external_without_explicit_permission_makes_zero_external_calls(
     monkeypatch, path, flag
 ):
-    """الإرسالُ يتطلّب ``full_external`` **و**``external_llm_allowed is True`` معاً.
+    """الإرسالُ يتطلّب ``full_external`` **و**``external_tts_allowed is True`` معاً.
 
-    المنصّةُ تبني ``full_external`` مع ``external_llm_allowed=false`` لمستأجِرٍ عطّل التوليد؛
-    وغيابُ الحقل أو قيمةٌ غيرُ منطقيّة (نصٌّ، رقم) لا تُقرأ إذناً.
+    وإذنُ LLM صحيحٌ هنا عمداً: لا يفتح TTS. غيابُ الحقل أو قيمةٌ غيرُ منطقيّة (نصٌّ، رقم)
+    لا تُقرأ إذناً.
     """
     main, providers, tts_policy = _load(monkeypatch)
     ext = _External()
     ext.install(monkeypatch, main, providers)
     _no_local_providers(monkeypatch, providers)
-    _policy(monkeypatch, tts_policy, "full_external", external_llm_allowed=flag)
+    _policy(
+        monkeypatch,
+        tts_policy,
+        "full_external",
+        external_llm_allowed=True,
+        external_tts_allowed=flag,
+    )
+    resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    _assert_blocked(resp, "local_only")
+    assert ext.calls == 0
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_an_envelope_without_a_contract_version_never_reaches_edge(monkeypatch, path):
+    """مسارُ التوافق القديم أُزيل (قرار المالك): غلافٌ بلا رقم عقد ⇒ الأشدّ ولو أذن بـLLM."""
+    main, providers, tts_policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    _policy(monkeypatch, tts_policy, "full_external", external_llm_allowed=True, contract=False)
     resp = _client(main).post(path, json=_BODY, headers=_bearer(main))
     _assert_blocked(resp, "local_only")
     assert ext.calls == 0
@@ -311,9 +347,7 @@ def test_local_only_uses_an_available_local_provider_and_never_edge(monkeypatch,
 
 
 # ── عقد v2: إذنُ TTS الخارجيّ منفصلٌ عن إذن LLM، والمزوّدُ مُسمّى ─────────────────────
-# الطبقةُ نفسُها التي تحرس v52 (الموجّه، لا الوحدة وحدها): كلُّ رفضٍ = 503 وصفرُ نداءات.
-
-_V2 = {"contract": "sahool.ai_policy_envelope", "contract_version": 2}
+# الطبقةُ نفسُها (الموجّه، لا الوحدة وحدها): كلُّ رفضٍ = 503 وصفرُ نداءات.
 
 
 @pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
@@ -516,20 +550,26 @@ def test_policy_mode_from_me_rejects_malformed_or_foreign_payloads(monkeypatch):
     ok = {
         "tenant_id": "t",
         "ai_policy_envelope": {
+            **_V2,
             "tenant_id": "t",
             "policy_mode": "full_external",
-            "external_llm_allowed": True,
+            "external_tts_allowed": True,
+            "external_tts_providers": ["edge_tts"],
         },
     }
     assert tts_policy.policy_mode_from_me(ok, "t") == "full_external"
     for flag in (False, None, "true", 1):
         denied = {
             **ok,
-            "ai_policy_envelope": {**ok["ai_policy_envelope"], "external_llm_allowed": flag},
+            "ai_policy_envelope": {**ok["ai_policy_envelope"], "external_tts_allowed": flag},
         }
         assert tts_policy.policy_mode_from_me(denied, "t") == "local_only", flag
     missing = {**ok, "ai_policy_envelope": {"tenant_id": "t", "policy_mode": "full_external"}}
     assert tts_policy.policy_mode_from_me(missing, "t") == "local_only"
+    # بلا رقم عقد ⇒ الأشدّ، حتّى مع إذن LLM الصريح (أُزيل مسارُ التوافق القديم).
+    legacy = {k: v for k, v in ok["ai_policy_envelope"].items() if k != "contract_version"}
+    legacy["external_llm_allowed"] = True
+    assert tts_policy.policy_mode_from_me({**ok, "ai_policy_envelope": legacy}, "t") == "local_only"
     assert tts_policy.policy_mode_from_me(ok, "other") == "local_only"
     assert tts_policy.policy_mode_from_me({"tenant_id": "t"}, "t") == "local_only"
     bad_mode = {"tenant_id": "t", "ai_policy_envelope": {"tenant_id": "t", "policy_mode": "x"}}
