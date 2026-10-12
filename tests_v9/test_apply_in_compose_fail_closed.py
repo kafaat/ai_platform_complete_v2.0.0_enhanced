@@ -59,7 +59,7 @@ def _write_contract(
     )
 
 
-def _run(tmp_path: Path, **extra_env: str) -> subprocess.CompletedProcess[str]:
+def _run(tmp_path: Path, **extra_env: str | None) -> subprocess.CompletedProcess[str]:
     env = {
         "PATH": f"{tmp_path}:/usr/bin:/bin",
         "PGHOST": "sahool-postgres.railway.internal",
@@ -71,6 +71,8 @@ def _run(tmp_path: Path, **extra_env: str) -> subprocess.CompletedProcess[str]:
         "INGEST_DB_PASSWORD": "x",  # السكربت يرفض الافتراضيّ التطويريّ المعروف
         **extra_env,
     }
+    for name in [k for k, v in env.items() if v is None]:
+        del env[name]  # None = the variable is absent, not empty
     return subprocess.run(
         ["bash", str(SCRIPT)],
         capture_output=True,
@@ -496,3 +498,23 @@ def test_the_integration_job_makes_the_migrator_certification_mandatory():
     """بلا هذا العَلَم يصير نزعُ TEST_DATABASE_URL يوماً ما تحويلاً صامتاً للشهادة إلى تخطٍّ أخضر."""
     ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     assert 'MIGRATOR_CERTIFICATION_REQUIRED: "1"' in ci
+
+
+@pytest.mark.parametrize("ingest", [None, ""], ids=["absent", "empty"])
+def test_a_permitted_run_without_the_ingest_secret_fails_before_any_write(tmp_path, ingest):
+    """DG-05: the check sat after the migrations and two role scripts, so a permitted run without the
+    secret failed only after writing. Now it fails before the first psql call."""
+    log = _workspace(tmp_path, ready=True)
+    result = _run(tmp_path, SAHOOL_MIGRATE_APPLY="1", INGEST_DB_PASSWORD=ingest)
+    assert result.returncode != 0, result.stdout
+    assert "INGEST_DB_PASSWORD is required" in result.stderr
+    assert _psql_calls(log) == [], "psql ran before the missing secret was refused"
+    assert "طُبّقت" not in result.stdout
+
+
+def test_the_read_only_inspection_does_not_need_the_ingest_secret(tmp_path):
+    """The no-permission branch only reads; requiring a write secret there would fail it for nothing."""
+    _workspace(tmp_path, ready=True)
+    result = _run(tmp_path, INGEST_DB_PASSWORD=None)
+    assert "INGEST_DB_PASSWORD is required" not in result.stderr
+    assert "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted" in result.stdout
