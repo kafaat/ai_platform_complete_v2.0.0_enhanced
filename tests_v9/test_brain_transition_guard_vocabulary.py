@@ -602,3 +602,60 @@ def test_a_row_that_stays_verified_is_not_a_transition():
     head = registry(alpha="**verified** (`def5678`)")
     assert guard.verified_transitions(head, head) == []
     guard.check_verified(BRAIN_ONLY, head, head)
+
+
+# مراجعةُ Copilot على #1166: الوسمُ يُخرج الخليّةَ من الحالات بقرار القياس وحده — وسمٌ واحد من
+# ``alias``/``policy``/``adjudicated`` — لا أيُّ وسم.
+@pytest.mark.parametrize("state", ["verified", "fixed"])
+def test_a_cell_with_a_non_exempting_annotation_is_still_read_as_its_state(state):
+    cell = f"<!-- gap-registry: current --> `{state}`"
+    base, head = registry(), registry(alpha=cell)
+    assert guard.gap_ids_in_state(head, state) >= {"GAP-ALPHA-01"}
+    moved = guard.verified_transitions if state == "verified" else guard.fixed_transitions
+    assert moved(base, head) == ["GAP-ALPHA-01"]
+
+
+@pytest.mark.parametrize("kind", ["alias", "policy", "adjudicated"])
+def test_a_single_non_state_annotation_still_exempts_the_cell(kind):
+    head = registry(alpha=f"<!-- gap-registry: {kind} --> `verified`")
+    assert guard.verified_transitions(registry(), head) == []
+
+
+# مراجعةُ Copilot على #1166: الاختباراتُ أعلاه تستدعي ``check_verified`` مباشرةً، فنزعُ ربطه في ``main()`` كان يُبقيها
+# خضراء. هذا يشغّل الحارسَ نفسَه على مستودعٍ مؤقّت كما يشغّله CI.
+@pytest.mark.parametrize(
+    ("with_test", "rejected"), [(False, True), (True, False)], ids=["brain-only", "with-test"]
+)
+def test_the_cli_rejects_a_brain_only_backticked_verified_row(tmp_path, with_test, rejected):
+    import subprocess
+    import sys
+
+    (tmp_path / "sahool-brain/gaps").mkdir(parents=True)
+    (tmp_path / "tests_v9").mkdir()
+    reg = tmp_path / guard.REGISTRY
+    reg.write_text(registry(), encoding="utf-8")
+    _git(tmp_path, "init", "-q", "-b", "base")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    reg.write_text(registry(alpha="`verified`"), encoding="utf-8")
+    if with_test:
+        (tmp_path / "tests_v9/test_new.py").write_text(
+            "def test_y():\n    pass\n", encoding="utf-8"
+        )
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "head")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/brain_state_transition_guard.py"),
+            "--base",
+            "HEAD~1",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert "Traceback" not in result.stderr, result.stderr
+    assert (result.returncode != 0) is rejected, result.stdout + result.stderr
+    assert ("verified transition rejected for GAP-ALPHA-01" in result.stderr) is rejected

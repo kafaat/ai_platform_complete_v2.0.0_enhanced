@@ -3587,6 +3587,18 @@
           "find": "    if verified and not _has_executable_evidence(paths):",
           "replace": "    if False:",
           "why": "نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ"
+        },
+        {
+          "expect": "test_the_cli_rejects_a_brain_only_backticked_verified_row",
+          "find": "        check_verified(evidence, *texts)\n",
+          "replace": "",
+          "why": "نزعُ ربط check_verified من main() ⇒ الاختباراتُ المباشرة تبقى خضراء والحارسُ في CI لا يرى verified (مراجعةُ Copilot على #1166)"
+        },
+        {
+          "expect": "test_a_cell_with_a_non_exempting_annotation_is_still_read_as_its_state",
+          "find": "    if len(annotations) == 1 and annotations[0] in g.NON_STATE_KINDS:",
+          "replace": "    if annotations:",
+          "why": "إسقاطُ كلِّ خليّةٍ موسومة ⇒ `<!-- gap-registry: current --> \\`verified\\`` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166)"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"

@@ -237,14 +237,12 @@ def gap_ids_in_state(text: str, state: str) -> set[str]:
                 or len(cells) != len(schema)
             ):
                 continue
-            raw = cells[columns[0]]
-            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == state:
+            if _canonical_state(cells[columns[0]]) == state:
                 out.add(label.group("id"))
             continue
         section = g.SECTION_STATE.match(line)
         if section and heading:
-            raw = section.group("value")
-            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == state:
+            if _canonical_state(section.group("value")) == state:
                 sections.append(len(entries) - 1)
     # وسمُ ``historical`` لا يُسقط الحالةَ إلّا في سلسلةٍ مُراجَعة بقاعدة gap_registry_measure.measure() نفسها:
     # أكثرُ من مدخلٍ للمعرّف، مدخلٌ حاليٌّ واحد، والباقي كلُّه تاريخيّ. مدخلٌ منفردٌ موسومٌ تاريخيّاً
@@ -264,6 +262,20 @@ def gap_ids_in_state(text: str, state: str) -> set[str]:
             continue
         out.add(gap_id)
     return out
+
+
+def _canonical_state(raw: str) -> str | None:
+    """حالةُ خليّةٍ أو سطرِ حالة بقرار ``gap_registry_measure`` نفسه، لا بقاعدةٍ ثانية.
+
+    القياسُ يُخرج المدخلَ من الحالات حين يحمل وسماً واحداً من ``NON_STATE_KINDS`` وحده؛ وأيُّ وسمٍ آخر (أو أكثرُ
+    من وسم) يُنزَع ثمّ تُصنَّف الخليّة. كان الحارسُ يُسقط **كلَّ** خليّةٍ موسومة، فـ``<!-- gap-registry: current -->
+    `verified``` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166).
+    """
+    g = _measure_module()
+    annotations = g.ANNOTATION.findall(raw)
+    if len(annotations) == 1 and annotations[0] in g.NON_STATE_KINDS:
+        return None
+    return g.classify(g.ANNOTATION.sub("", raw))[0]
 
 
 def fixed_gap_ids(text: str) -> set[str]:
