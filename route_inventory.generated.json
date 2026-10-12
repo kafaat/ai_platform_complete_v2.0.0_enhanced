@@ -1746,7 +1746,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 31,
+    "line": 77,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1754,7 +1754,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 31,
+    "line": 77,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1762,7 +1762,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 41,
+    "line": 87,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1770,7 +1770,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 76,
+    "line": 121,
     "method": "GET",
     "path": "/v1/readyz/capabilities",
     "function": "readyz_capabilities"
@@ -1778,7 +1778,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 78,
+    "line": 79,
     "method": "POST",
     "path": "/v1/sync",
     "function": "trigger_sync"

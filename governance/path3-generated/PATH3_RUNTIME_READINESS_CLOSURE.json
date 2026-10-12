@@ -10,7 +10,7 @@
     "target_plan_hash_matches": true
   },
   "closed": true,
-  "closure_sha256": "d476a76b4b712366de9164e8fe0c28ac2d45948abcee5cedbd33b75af30e923d",
+  "closure_sha256": "ffb50cd175c0f3e9955b8aa44f4399ae97ee8a9626adf798abe048e73ddb2827",
   "fanout_targets": {
     "mcp_servers": 4
   },
@@ -18,6 +18,9 @@
   "planned_services": 28,
   "production_certified_services": 0,
   "required_profiles": {
+    "erp-bridge": [
+      "odoo"
+    ],
     "model-registry-adapter": [
       "model-lifecycle"
     ],

@@ -802,17 +802,17 @@
       "apis": [
         "GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:305",
         "GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:762",
-        "GET /health @ services/odoo-bridge/routers/health.py:31",
-        "GET /healthz @ services/odoo-bridge/routers/health.py:31",
-        "GET /readyz @ services/odoo-bridge/routers/health.py:41",
+        "GET /health @ services/odoo-bridge/routers/health.py:77",
+        "GET /healthz @ services/odoo-bridge/routers/health.py:77",
+        "GET /readyz @ services/odoo-bridge/routers/health.py:87",
         "GET /v1/config @ services/odoo-bridge/routers/catalog.py:33",
         "GET /v1/erp/provider @ services/odoo-bridge/routers/catalog.py:17",
         "GET /v1/logs @ services/odoo-bridge/routers/catalog.py:50",
         "GET /v1/products @ services/odoo-bridge/routers/catalog.py:71",
-        "GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:76",
+        "GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:121",
         "GET /v1/suppliers @ services/odoo-bridge/routers/catalog.py:78",
         "POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:222",
-        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:78",
+        "POST /v1/sync @ services/odoo-bridge/routers/sync.py:79",
         "POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:21"
       ],
       "ui_consumers": [],
@@ -826,6 +826,7 @@
         "tests_v9/test_erp_bridge_alias_contract.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_erp_bridge_healthcheck_guard.py",
+        "tests_v9/test_erp_bridge_requires_erp.py",
         "tests_v9/test_erp_sync_recovery.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py"
@@ -858,7 +859,7 @@
           "path": "services/odoo-bridge/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=12, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

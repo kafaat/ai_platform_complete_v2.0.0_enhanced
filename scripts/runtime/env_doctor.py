@@ -220,6 +220,59 @@ def check_env(root: Path, checks: list[Check]) -> None:
     )
 
 
+# MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01: MinIO deleted `minio/minio` and `minio/mc` from Docker Hub
+# (2026-09-11..14). #1139 moved the compose defaults and `.env.example` to a digest-pinned mirror, but
+# the old template set MINIO_IMAGE / MINIO_MC_IMAGE explicitly to the deleted repositories, and compose
+# lets the shell and `.env` override the default. A `.env` copied from the old template therefore keeps
+# `docker compose up` failing with "pull access denied for minio/mc" after the code is updated — and
+# `.env` is untracked, so no CI gate can see it. Same pattern as `_DELETED_REPO` in
+# scripts/ci/minio_s3_contract_gate.py, kept local because this doctor is dependency-free.
+_DELETED_MINIO_REPO = re.compile(r"^(?:docker\.io/)?minio/(?:minio|mc)(?=[:@]|$)")
+MINIO_IMAGE_KEYS = ("MINIO_IMAGE", "MINIO_MC_IMAGE")
+
+
+def check_minio_images(root: Path, checks: list[Check]) -> None:
+    template = load_env_file(root / ".env.example")
+    local = load_env_file(root / ".env")
+    effective: dict[str, str] = {}
+    for key in MINIO_IMAGE_KEYS:
+        # Compose interpolation order: the shell, then `.env`, then the compose default. A shell
+        # value wins even when empty, and `${VAR:-pin}` then selects the pin (Copilot on #1162).
+        value = os.environ[key] if key in os.environ else local.get(key, "")
+        if value:
+            effective[key] = value
+    stale = {k: v for k, v in effective.items() if _DELETED_MINIO_REPO.match(v)}
+    drift = {
+        k: v
+        for k, v in effective.items()
+        if k not in stale and template.get(k) and v != template[k]
+    }
+    if stale:
+        status = "fail"
+        message = (
+            "MinIO image in .env or the shell names a repository MinIO deleted from Docker Hub "
+            "(pull access denied for minio/mc); copy MINIO_IMAGE and MINIO_MC_IMAGE from "
+            ".env.example or delete both lines from .env"
+        )
+    elif drift:
+        status = "warn"
+        message = "MinIO image overridden away from the digest pin in .env.example"
+    else:
+        status = "pass"
+        message = "MinIO images resolve to the digest pin from .env.example or the compose default"
+    add(
+        checks,
+        "minio-images",
+        status,
+        message,
+        {
+            "stale": stale,
+            "differs_from_template": drift,
+            "template": {k: template.get(k, "") for k in MINIO_IMAGE_KEYS},
+        },
+    )
+
+
 def check_migrations(root: Path, checks: list[Check]) -> None:
     manifest_path = root / "migrations/MANIFEST.txt"
     manifest = (
@@ -464,6 +517,7 @@ def main() -> int:
     checks: list[Check] = []
     check_required_files(root, checks)
     check_env(root, checks)
+    check_minio_images(root, checks)
     check_migrations(root, checks)
     check_compose_static(root, checks)
     check_compose_config(root, checks)
