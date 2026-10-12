@@ -59,5 +59,43 @@
     "acceptance test on an isolated PostgreSQL"
   ],
   "not_required": "proving that the 231 files changed no byte; required: identify effective changes and verify data and operational contracts",
-  "read_only_inspection_scope": "builds a new baseline, not a forensic reconstruction of 16:26Z; stats counters do not rebuild history; rows invisible to the account are not evidence of absence"
+  "read_only_inspection_scope": "builds a new baseline, not a forensic reconstruction of 16:26Z; stats counters do not rebuild history; rows invisible to the account are not evidence of absence",
+  "staging_same_pattern": {
+    "environment": "staging 70cc51f8-b11f-4506-87b2-4b6615e472be",
+    "service": "sahool-migrate-main",
+    "deployments": [
+      {
+        "id": "e2ab37f6",
+        "commit": "32a000bd",
+        "created_utc": "2026-10-12T16:23:31.370Z",
+        "status": "REMOVED"
+      },
+      {
+        "id": "7913ca6d",
+        "commit": "2a8903ab",
+        "created_utc": "2026-10-12T16:23:24.956Z",
+        "status": "REMOVED"
+      },
+      {
+        "id": "0bb2ede4",
+        "commit": "7310de85",
+        "created_utc": "2026-10-12T16:23:38.628Z",
+        "status": "SUCCESS (active)"
+      }
+    ],
+    "log_tail": "role management (REVOKE CONNECT FROM PUBLIC, odoo_app ALTER ROLE, managed-role attribute check) then 'التهيئة اكتملت — الهجرات مُطبَّقة' at 2026-10-12T16:28:43.755Z",
+    "full_log_preserved": false
+  },
+  "railway_source_branches_2026_10_12": {
+    "production": {
+      "main": "guardrails, field-management, auth-main, frontend, migrate-main, raster, decision, vegetation, notification, tts, raster-main-candidate",
+      "deploy/sahool-staging-fa92a1f7": "platform, auth"
+    },
+    "staging": {
+      "main": "notification, auth-main, field-management, raster, migrate-main, frontend, guardrails, raster-main-candidate, decision, vegetation",
+      "deploy/sahool-platform-db-ready-eb6da9df": "platform",
+      "claude/project-exploration-dtjw3p": "tts (pinned to a commit)"
+    },
+    "note": "no service builds from claude/wip-* branches"
+  }
 }
