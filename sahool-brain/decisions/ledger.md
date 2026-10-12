@@ -3741,6 +3741,13 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 
 **المصدر:** `migrations/probe_schema_state.sh` · `tests_v9/test_apply_in_compose_live_pg.py` · `tests_v9/test_apply_in_compose_fail_closed.py` · التشغيل 38092839653 · PR #1160.
 
+## 2026-10-11 — النشرُ المُطلَق من دمج #1160 يُحتسَب برهاناً للسيناريو أ، ولا يُرقّي الحالة
+
+**القرار:** نشرا المُهاجر 7e1ed1e8 (الإنتاج) و7bf045df (staging) اللذان أنشأهما تكاملُ GitHub من squash `32a000bd` يُسجَّلان شاهداً على البرهان (١) من الرَّنبوك (قاعدةٌ غائبة ⇒ خروجٌ غيرُ صفريّ بلا psql) في البيئتين، لأنّ الدليلَ هو سجلُّ النشر بمعرّفه كما يشترط الرَّنبوك. الحالةُ تبقى fixed لأنّ البرهان (٢) جزءٌ من الشرط ولم يُقَس.
+
+**السبب:** الرَّنبوك يشترط الدليلَ من سجلّ نشرٍ حقيقيّ لا وصفَه، ولا يشترط أن يكون النشرُ يدويّاً؛ والمالكُ وافق على الدمج بعد إبلاغه صراحةً أنّ الدمج يُطلق هذا النشر. أمّا الترقيةُ فمشروطةٌ ببرهانين.
+
+**المصدر:** `certification/evidence/migrator_fail_closed_railway_20261011.json` · `sahool-brain/runbooks/migrator-staging-fail-closed-test.md` §3 · PR #1160.
 ## 2026-10-12 — سبعةُ إعفاءاتِ واجهة انتهت معاً عند منتصف الليل: تُجدَّد إلى 2026-10-31 بشرطٍ مقيس لا بالعادة
 
 **القرار (المالك، بين: تجديدٌ إلى 2026-10-31 · تجديدٌ إلى 2026-11-30 · تركُها حمراء):** تجديدُ السبعة إلى **2026-10-31**. **السبب:** كلُّها في `config/endpoint_ui_coverage_waivers.json` (المالك decision-service؛ التتبّع WX-10.11 · WX-10.13 · WX-11 · WX-11.2 · WX-11.3 · WX-11.4) تنتهي `2026-10-11`، فأحمر `waiver_expiry_guard` في `Repository Structural Lint` و`unified-readiness-evidence` على main وعلى كلّ PR من 00:00Z (مقيسٌ على #1162 في التشغيل 38187214595). **وشرطُ الإغلاق ما زال قائماً، مقيساً اليوم على `main@32a000bd`:** لا ملفَّ في `frontend/src` ولا `mobile` يذكر أيّاً من المسارات السبعة (`execution-plan` · `authorize-dispatch` · `verify-outcome` · `calibration-dataset` · `evaluation-runs` · `promotion-decisions` · `learning-attribution`)، فالواجهةُ المؤجَّلة لم تهبط والإعفاءُ لا يُزال.

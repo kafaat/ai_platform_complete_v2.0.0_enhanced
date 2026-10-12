@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5529,
+    "files_scanned": 5530,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
-      "other": 1563,
+      "other": 1564,
       "tests": 1886,
       "web": 458
     },
@@ -28186,7 +28186,16 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "certification/evidence/migrator_fail_closed_railway_20261011.json",
+          "score": 14,
+          "signals": [
+            "path:fail closed",
+            "content:fail closed"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -28200,7 +28209,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 3,
       "mapped": true

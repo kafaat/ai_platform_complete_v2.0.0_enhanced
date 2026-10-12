@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MIGRATOR-FAIL-CLOSED-RAILWAY-20261011",
+  "verdict": "fail_closed_observed_on_railway_both_environments",
+  "scope": "runbook sahool-brain/runbooks/migrator-staging-fail-closed-test.md — scenario A only (database absent). Scenario B (ready database without permission) NOT measured: no live postgres in either environment.",
+  "method": "read-only: Railway MCP list-deployments + get-logs per deployment; no Railway or database change by the recorder. Deployments were created by Railway's GitHub integration from the squash merge of PR #1160 (watchPatterns /migrations/**), not by a manual deploy. Build logs read for the image digests (separate builds per environment, same commit).",
+  "measured_at_utc": "2026-10-11T15:33Z",
+  "trigger": {
+    "pr": 1160,
+    "merge_commit": "32a000bd9483a723faa1f4a9ff04ba7097ae55b2",
+    "merged_at_utc": "2026-10-11T15:30:27Z",
+    "merge_method": "squash",
+    "approval": "owner explicit approval in session after being told the merge would trigger migrator deployments"
+  },
+  "project": "33c50993-1110-43eb-8e92-04c15edae51e",
+  "service": {
+    "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+    "name": "sahool-migrate-main",
+    "restartPolicyType": "NEVER",
+    "SAHOOL_MIGRATE_APPLY_in_service_variables": false,
+    "SAHOOL_MIGRATE_APPLY_effective_in_process_env": "not_measured (shared/environment-level variables not read by the recorder; scenario B not run; in scenario A the readiness failure precedes the permission check)"
+  },
+  "deployments": [
+    {
+      "environment": "production",
+      "environment_id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+      "deployment_id": "7e1ed1e8-4b31-44ab-9e57-561089676c76",
+      "created_at_utc": "2026-10-11T15:30:30.277Z",
+      "container_started_utc": "2026-10-11T15:31:02.104Z",
+      "terminal_lines_utc": "2026-10-11T15:32:00.974Z",
+      "final_status": "CRASHED",
+      "readiness_attempt_lines": 30,
+      "apply_lines": 0,
+      "psql_lines": 0,
+      "terminal_lines": [
+        "MIGRATIONS_NOT_APPLIED reason=database_unreachable host=sahool-postgres.railway.internal:5432 attempts=30",
+        "✗ لم تُثبَت جاهزيّةُ القاعدة sahool-postgres.railway.internal:5432 بعد 30 محاولة — لا تُطبَّق أيُّ هجرة (fail-closed)."
+      ],
+      "build": {
+        "containerimage_digest": "sha256:722529d360a00f13bd42816341343d203f44f37c4c088a12c340733ebe78281c",
+        "containerimage_config_digest": "sha256:0501008105d17457ff3ce0a977709cf17fcf15b137e653fe61263a3b5b359abe",
+        "image_created_utc": "2026-10-11T15:30:44Z",
+        "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
+      },
+      "later_status": "REMOVED",
+      "removed_at_utc": "2026-10-11T16:07:37.917Z"
+    },
+    {
+      "environment": "staging",
+      "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+      "deployment_id": "7bf045df-dca9-41c2-bf8b-635317237670",
+      "created_at_utc": "2026-10-11T15:30:30.275Z",
+      "container_started_utc": "2026-10-11T15:31:43.389Z",
+      "terminal_lines_utc": "2026-10-11T15:32:42.937Z",
+      "final_status": "CRASHED",
+      "readiness_attempt_lines": 30,
+      "apply_lines": 0,
+      "psql_lines": 0,
+      "terminal_lines": [
+        "MIGRATIONS_NOT_APPLIED reason=database_unreachable host=sahool-postgres.railway.internal:5432 attempts=30",
+        "✗ لم تُثبَت جاهزيّةُ القاعدة sahool-postgres.railway.internal:5432 بعد 30 محاولة — لا تُطبَّق أيُّ هجرة (fail-closed)."
+      ],
+      "build": {
+        "containerimage_digest": "sha256:7e890ba12805f5feb995247184da174fd66dec391d3b370623e910bf245b0dbe",
+        "containerimage_config_digest": "sha256:c96e20fa2d1560b4e10ed22975f101aaafdd86e658194c2799bf7eaba12e9509",
+        "image_created_utc": "2026-10-11T15:31:04Z",
+        "source": "Railway build log (get-logs types=build), Dockerfile deploy/railway/Dockerfile.migrate, commit 32a000bd"
+      },
+      "later_status": "REMOVED",
+      "removed_at_utc": "2026-10-11T16:07:37.812Z"
+    }
+  ],
+  "comparison_before_fix": {
+    "deployment_id": "87cc687b",
+    "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+    "behaviour": "after 30 failed pg_isready attempts the old script proceeded to psql and failed on DNS resolution (apply line for init_v8.sql present)"
+  },
+  "not_measured": [
+    "effective SAHOOL_MIGRATE_APPLY value in the migrator's process environment — only its absence from the service-level variable names was measured (describe-service); an inherited shared/environment value is possible and untested (Copilot review on #1161)",
+    "exit code is not exposed by the Railway API; inferred 1 from the script and the CRASHED status under restartPolicy NEVER",
+    "scenario B (ready database, no permission, read-only inspection, inventory before/after) — requires a live staging postgres",
+    "backup integrity and production restoration — outside this evidence"
+  ],
+  "gap_state_effect": "MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01 stays fixed; runbook §3 requires scenario B before any state transition",
+  "post_run_removal": {
+    "observed_utc": "2026-10-11T16:07:37Z",
+    "spread_seconds": 0.105,
+    "actor": "not exposed by the Railway API",
+    "not_github_actions": "no workflow run in the repository started or finished 16:04–16:11Z (listing covers all runs since 13:53Z); no Railway mutation call in the tree",
+    "pending_patch_073447ea": "still staged, unchanged since 2026-10-01 — not committed",
+    "health_view_after_removal": "environment-status reports 0 recent failures for sahool-migrate-main in both environments (removal erases the crash signal)",
+    "railway_agent_read_only_query": "timed out at the connector after 60 s, no answer",
+    "tracked_in": "RAILWAY-DEPLOYMENT-STOPPED-BY-EXTERNAL-SIGTERM-AFTER-SUCCESS-01 (open)",
+    "removal_actor_narrowing": {
+      "measured_at_utc": "2026-10-11T17:00Z/17:25Z",
+      "method": "read-only: GitHub REST deployments and deployment statuses; Railway MCP list-webhooks, get-deployment-diagnosis, list-workspaces, whoami, describe-service; Railway docs search and fetch",
+      "github_mirror": {
+        "20261011": [
+          {
+            "deployment": 6997694137,
+            "environment": "production",
+            "sha": "32a000bd",
+            "inactive_at_utc": "2026-10-11T16:07:40Z",
+            "by": "railway-app[bot]"
+          },
+          {
+            "deployment": 6997694180,
+            "environment": "staging",
+            "sha": "32a000bd",
+            "inactive_at_utc": "2026-10-11T16:07:40Z",
+            "by": "railway-app[bot]"
+          }
+        ],
+        "railway_removed_updated_at_utc": [
+          "2026-10-11T16:07:37.812Z",
+          "2026-10-11T16:07:37.917Z"
+        ],
+        "20261005_scan": {
+          "records_created_before_2026-10-05T11:10Z": 110,
+          "earliest_record_utc": "2026-09-15T19:58:07Z",
+          "latest_status_inside_removal_window": 6,
+          "window_utc": "2026-10-05T11:06:17Z/2026-10-05T11:09:02Z",
+          "all_by": "railway-app[bot]",
+          "records": [
+            {
+              "deployment": 6854797682,
+              "environment": "production",
+              "sha": "e29401ac",
+              "statuses_in_window_utc": [
+                "11:06:13 success",
+                "11:06:37 success",
+                "11:07:01 success",
+                "11:07:48 success",
+                "11:08:05 success",
+                "11:08:38 inactive",
+                "11:09:02 inactive"
+              ]
+            },
+            {
+              "deployment": 6854797608,
+              "environment": "staging",
+              "sha": "e29401ac",
+              "statuses_in_window_utc": [
+                "11:05:54 failure",
+                "11:06:14 failure",
+                "11:06:17 failure",
+                "11:07:44 failure",
+                "11:08:17 failure",
+                "11:08:41 failure",
+                "11:09:02 failure"
+              ]
+            },
+            {
+              "deployment": 6811519032,
+              "environment": "staging",
+              "last_status_utc": "11:08:37 inactive"
+            },
+            {
+              "deployment": 6809324270,
+              "environment": "staging",
+              "last_status_utc": "11:07:45 inactive"
+            },
+            {
+              "deployment": 6720656531,
+              "environment": "staging",
+              "last_status_utc": "11:06:17 inactive"
+            },
+            {
+              "deployment": 6467281600,
+              "environment": "production",
+              "last_status_utc": "11:08:41 failure"
+            }
+          ],
+          "railway_side_alignment": {
+            "source": "removed_at in certification/evidence/railway_production_outage_20261010.json against the GitHub statuses of 6854797608 (staging) and 6854797682 (production)",
+            "staging": "13 of 13 repo-built removals followed by a railway-app[bot] status within -0.7..+2.9 s",
+            "production": "11 of 11 repo-built removals followed by a railway-app[bot] status within -0.4..+3.4 s",
+            "image_based_without_github_record": [
+              "sahool-redis",
+              "sahool-nats",
+              "sahool-redis-state",
+              "sahool-postgres"
+            ],
+            "note": "GitHub status timestamps are truncated to the second, hence the small negative lags"
+          }
+        },
+        "reading": "Railway's GitHub app follows each removal of a repo-built service within ~3 s on both days; it reflects the removal, it does not cause it"
+      },
+      "railway_webhooks": [],
+      "deployment_diagnosis_7e1ed1e8": {
+        "status": "REMOVED",
+        "failedReason": null,
+        "failureStage": null,
+        "failureError": null,
+        "diagnosis": null
+      },
+      "workspaces": {
+        "count": 1,
+        "type": "personal",
+        "project_count": 6
+      },
+      "plan_or_billing_visible_to_connector": false,
+      "documented_account_level_stop_reasons": {
+        "source": "https://docs.railway.com/pricing/faqs#my-services-were-stopped-what-do-i-do",
+        "reasons": [
+          "usage limits reached",
+          "trial credits exhausted",
+          "failed payment",
+          "unpaid invoice"
+        ],
+        "quote_removal": "Railway will remove your deployment for any of the above reasons",
+        "quote_volume": "Railway will not remove the volume attached to the service",
+        "quote_recovery": "Railway will automatically redeploy your services once the underlying issue is resolved, as long as it is resolved within a period of 30 days",
+        "hard_limit_source": "https://docs.railway.com/pricing/cost-control#hard-limit",
+        "hard_limit_quote": "Once your resource usage hits the specified hard limit, all your workloads will be taken offline",
+        "hard_limit_alerts": "emails at 75%, 90% and 100% of the hard limit",
+        "next_cycle_quote": "Railway will try to automatically restart your resources during the next billing cycle"
+      },
+      "trial_credits_reason": "not applicable if the plan is PRO, as the Railway agent reported on 2026-10-09",
+      "production_postgres_volume": {
+        "service": "sahool-postgres",
+        "volume": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+        "name": "sahool-postgres-data",
+        "state": "live",
+        "sizeMB": 1024,
+        "region": "asia-southeast1-eqsg3a",
+        "mount_path": "/var/lib/postgresql/data",
+        "latest_deployment": null,
+        "read_at_utc": "~2026-10-11T17:19Z"
+      },
+      "hypothesis_not_measured": "an account-level stop (usage limit, failed payment or unpaid invoice) matches the pattern: 15 production and 13 staging deployments removed within ~3 minutes on 2026-10-05, every later deployment removed within minutes, no failure reason recorded",
+      "owner_checks": [
+        "railway usage limit status (or the Workspace Usage page)",
+        "the Billing page: an open invoice or a failed payment",
+        "email around 2026-10-05: usage alerts at 75/90/100% or payment-failure warnings"
+      ],
+      "ordering_hazard": "fixing the account-level cause, or a new billing cycle under a usage limit, may redeploy all production services including sahool-postgres before the volume snapshot and the owner's explicit approval; the docs do not say which deployment each service returns on; the 30-day window from 2026-10-05 ~11:05Z ends around 2026-11-04"
+    }
+  }
+}
