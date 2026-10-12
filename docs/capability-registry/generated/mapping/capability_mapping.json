@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5529,
+    "files_scanned": 5536,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
       "other": 1563,
-      "tests": 1886,
-      "web": 458
+      "tests": 1888,
+      "web": 463
     },
-    "unmapped_artifacts": 2233,
+    "unmapped_artifacts": 2240,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -36625,6 +36625,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/ReferenceQueryState.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
       "kind": "tests"
     },
@@ -36661,7 +36665,15 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
       "kind": "web"
     },
     {
@@ -37725,6 +37737,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/queryView.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/queryView.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/realData.test.ts",
       "kind": "tests"
     },
@@ -37738,6 +37758,14 @@
     },
     {
       "path": "frontend/src/lib/recommendationsLifecycle.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.ts",
       "kind": "web"
     },
     {
