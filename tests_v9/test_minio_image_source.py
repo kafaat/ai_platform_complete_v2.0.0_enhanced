@@ -128,3 +128,158 @@ def test_the_minio_healthcheck_does_not_need_curl():
     assert minio == ["sahool-minio"], f"خدمةُ خادم MinIO في v9 غير متعيّنة: {minio}"
     test = services["sahool-minio"].get("healthcheck", {}).get("test")
     assert test == ["CMD", "mc", "ready", "local"], test
+
+
+# ── توسيعٌ 2026-10-11: صورةُ MinIO من أيّ سجلٍّ أو مساحة يجب أن تكون الإبرة، وفحصُ الصحّة بلا curl ولا wget ──
+# ``quay.io/minio/minio`` يبقى في ``KEPT_FORMS`` أعلاه: ليس «محذوفاً» بل يشترط الدخول، فيُرفَض هنا
+# لأنّه ليس الإبرةَ المثبَّتة، لا لأنّه محذوف.
+MINIO_FORMS = [
+    PIN,
+    "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+    "quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z",
+    "bitnami/minio:2025.4.22",
+    "bitnami/minio-client:2025.4.16",
+    "coollabsio/minio:2025-04-22T22-12-26Z",
+    "minio/mc",
+]
+NOT_MINIO_FORMS = [
+    "postgres:16",
+    "redis:7-alpine",
+    "minio/minio-extra:1",
+    "mcr.microsoft.com/dotnet/runtime:8.0",
+    "itzg/minecraft-server",
+]
+
+
+@pytest.mark.parametrize("ref", MINIO_FORMS)
+def test_a_minio_image_is_recognised_from_any_registry_or_namespace(ref):
+    assert _gate().is_minio_image(ref)
+
+
+@pytest.mark.parametrize("ref", NOT_MINIO_FORMS)
+def test_unrelated_images_are_not_taken_for_minio(ref):
+    assert not _gate().is_minio_image(ref)
+
+
+def _gate_on_probe_tree(tmp_path, capsys, services_yaml):
+    """``main()`` الحارسِ نفسُه على شجرةٍ دنيا: ملفّاته الثلاثة الحقيقيّة + ملفّ compose مِسبارٌ واحد.
+
+    داخل العمليّة لا عبر subprocess (الشجرةُ الحقيقيّة يغطّيها ``test_the_contract_gate_passes_on_the_tree``):
+    ``fail()`` يرفع ``SystemExit(1)`` ويطبع السبب، و``main()`` يُرجع 0 عند المرور."""
+    for rel in ("scripts/minio/provision.sh", "docker-compose.v9.yml", ".env.example"):
+        dst = tmp_path / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_bytes((ROOT / rel).read_bytes())
+    (tmp_path / "docker-compose.probe.yml").write_text(
+        "services:\n" + services_yaml, encoding="utf-8"
+    )
+    gate = _gate()
+    gate.ROOT = tmp_path
+    gate.COMPOSE = tmp_path / "docker-compose.v9.yml"
+    gate.ENV_EXAMPLE = tmp_path / ".env.example"
+    try:
+        code = gate.main()
+    except SystemExit as exc:
+        code = exc.code
+    return code, capsys.readouterr().out
+
+
+def test_the_probe_tree_passes_with_the_pinned_image_and_an_mc_healthcheck(tmp_path, capsys):
+    """ضابط: المِسبارُ السليم يمرّ — فكلُّ حمرةٍ أدناه سببُها المرجعُ أو الفحصُ وحده لا الشجرةُ المصغّرة."""
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        f"  probe-minio:\n    image: ${{MINIO_IMAGE:-{PIN}}}\n"
+        '    healthcheck:\n      test: ["CMD", "mc", "ready", "local"]\n',
+    )
+    assert code == 0, out
+
+
+@pytest.mark.parametrize("ref", [r for r in MINIO_FORMS if r != PIN])
+def test_the_gate_rejects_a_minio_image_that_is_not_the_pin(tmp_path, capsys, ref):
+    code, out = _gate_on_probe_tree(tmp_path, capsys, f"  probe-minio:\n    image: {ref}\n")
+    assert code == 1, out
+    assert "docker-compose.probe.yml" in out, out
+
+
+@pytest.mark.parametrize(
+    "probe",
+    [
+        '["CMD", "wget", "-q", "--spider", "http://localhost:9000/minio/health/live"]',
+        '["CMD", "curl", "-f", "http://localhost:9000/"]',
+        '["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/ready || exit 1"]',
+    ],
+    ids=["wget-on-health-path", "curl-on-root-path", "curl-in-shell-form"],
+)
+def test_the_gate_rejects_an_http_client_healthcheck_on_minio(tmp_path, capsys, probe):
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        f"  probe-minio:\n    image: ${{MINIO_IMAGE:-{PIN}}}\n    healthcheck:\n      test: {probe}\n",
+    )
+    assert code == 1, out
+    assert "healthcheck" in out, out
+
+
+def test_a_comment_about_curl_inside_the_healthcheck_is_not_a_probe():
+    """``sahool-minio`` في v9 يشرح غيابَ curl بتعليقٍ داخل قسم الفحص نفسه — لا يُقرأ فحصاً."""
+    block = [
+        "  sahool-minio:",
+        "    image: ${MINIO_IMAGE:-x}",
+        "    healthcheck:",
+        "      # الصورة بلا curl ولا wget",
+        '      test: ["CMD", "mc", "ready", "local"]  # not curl',
+        "      interval: 30s",
+        "    volumes:",
+        "    - curl-cache:/x",
+    ]
+    gate = _gate()
+    probe = gate.healthcheck_probe(block)
+    assert "ready" in probe and "interval" in probe, probe
+    assert not gate._HTTP_CLIENT.search(probe), probe
+
+
+# ── مراجعة Copilot على #1162: المرجعُ قيمةُ مفتاح ``image:`` وحده، لا كلُّ نصٍّ فيه «image:» ──
+@pytest.mark.parametrize(
+    "line",
+    [
+        "    # migrate from image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+        '    command: echo "image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"',
+        "    image: postgres:16  # was image: bitnami/minio:2025.4.22",
+    ],
+    ids=["comment", "other-key-text", "trailing-comment"],
+)
+def test_text_that_is_not_an_image_key_is_not_read_as_a_minio_reference(line):
+    gate = _gate()
+    ref = gate.image_ref(line)
+    assert ref is None or not gate.is_minio_image(ref), ref
+
+
+def test_an_image_set_through_an_extension_field_anchor_is_still_read():
+    ref = _gate().image_ref(
+        "x-minio-image: &minio quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"
+    )
+    assert ref == "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z"
+
+
+def test_a_comment_naming_another_minio_image_does_not_fail_the_gate(tmp_path, capsys):
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        "  probe-app:\n"
+        "    # migrate from image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\n"
+        "    image: postgres:16\n",
+    )
+    assert code == 0, out
+
+
+def test_a_service_that_only_mentions_the_variable_keeps_its_own_healthcheck(tmp_path, capsys):
+    code, out = _gate_on_probe_tree(
+        tmp_path,
+        capsys,
+        "  probe-app:\n"
+        "    # writes objects to the bucket that MINIO_IMAGE serves\n"
+        "    image: nginx:1.27.5-alpine\n"
+        '    healthcheck:\n      test: ["CMD", "curl", "-f", "http://localhost/"]\n',
+    )
+    assert code == 0, out
