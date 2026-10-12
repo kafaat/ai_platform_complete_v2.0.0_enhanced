@@ -1139,9 +1139,16 @@
         },
         {
           "expect": "test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_known",
-          "find": "            if any(pr_of(sha) in cited for sha in linked):",
+          "find": "            if not cited or any(pr_of(sha) in cited for sha in linked):",
           "replace": "            if linked:",
           "why": "عودةُ قبول أيّ commit مبلوغ ربطاً (DG-03) ⇒ commit لا علاقة له بإصلاح الفجوة يُسقط تحذيرَ المصالحة",
+          "test": "tests/architecture/test_gap_registry_measure.py"
+        },
+        {
+          "expect": "test_a_canonical_segment_without_a_pr_keeps_the_reachable_sha_rule",
+          "find": "            if not cited or any(pr_of(sha) in cited for sha in linked):",
+          "replace": "            if any(pr_of(sha) in cited for sha in linked):",
+          "why": "مقطعُ canonical بلا رقم PR يُرفض كلُّه حين يُعرف pr_of ⇒ تحذيراتُ مصالحةٍ كاذبة لربطٍ صحيح (مراجعةُ Copilot على #1167)",
           "test": "tests/architecture/test_gap_registry_measure.py"
         }
       ]

@@ -487,9 +487,12 @@ def resolve_aliases(rows: list[dict], section_states: list[dict], headings: list
 # #1112 والصفّ يذكر #993 · `fd850a06` ∈ #987 والصفّ يذكر #988) لأنّ الـPR المذكورَ موضعُ القياس لا
 # الإصلاح. فلو طُلب «commit دمج الـPR المذكور» لدُفع القارئُ إلى ربطٍ خاطئ. لذا ``cited_pr_merges``
 # يُعرَض للقارئ ولا يدخل الحكم، والربطُ الصحيح يُستخرج من الـSHA نفسه (`commits/{sha}/pulls`).
+# **هذا عن `#N` في نثر الحالة، لا في مقطع canonical:** منذ DG-03 (2026-10-12) حين يذكر **مقطعُ canonical**
+# رقمَ PR يُشترط أن يكون أحدُ SHAات المقطع المبلوغة دمجَ PR مذكورٍ فيه (``pr_of``)، وإلّا
+# ``canonical_not_a_cited_merge``؛ والمقطعُ بلا رقم PR يبقى على القاعدة أدناه.
 #
-# **حدٌّ مُعلَن:** أيُّ SHA يُبلَغ **داخل مقطع canonical** يُعَدّ ربطاً — القياسُ يرى **غيابَ** الربط
-# لا صحّتَه. و`GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01` (مقيسٌ على
+# **حدٌّ مُعلَن (ضُيِّق في DG-03):** في مقطع canonical **بلا رقم PR** أيُّ SHA يُبلَغ يُعَدّ ربطاً — القياسُ يرى
+# **غيابَ** الربط لا صحّتَه؛ وفي مقطعٍ يذكر PR يُشترط أن يكون الـSHA دمجَه (أعلاه). و`GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01` (مقيسٌ على
 # `main@c1760e9e`): نثرُ خليّة الحالة نفسِها قد يذكر SHA مبلوغاً (`main@94e6e07a` أساسَ مقارنةٍ بصريّة)
 # فستر إصلاحين مُسحَقين (`71191cd5` · `90b8c697`)؛ لذا يُقرأ الربطُ من مقاطع `**canonical …:**` وحدها
 # — داخل الخليّة (حتّى الفاصل ` · **` التالي أو نهايتها) أو سطراً `- **canonical …:**` في القسم — ولا
@@ -566,7 +569,8 @@ def fixed_provenance(
         unbound = False
         if pr_of is not None and linked:
             cited = {int(n) for n in STATUS_PR.findall("\n".join(links))}
-            if any(pr_of(sha) in cited for sha in linked):
+            # مقطعٌ لا يذكر PR يبقى على القاعدة السابقة (SHA مبلوغ يكفي) — مراجعةُ Copilot على #1167.
+            if not cited or any(pr_of(sha) in cited for sha in linked):
                 continue
             unbound = True
         prs = sorted({int(n) for n in STATUS_PR.findall(status)})
@@ -588,8 +592,8 @@ def _git(root: Path, *args: str) -> str:
     ).stdout
 
 
-def git_history(root: Path) -> tuple[dict[int, str], list[str]] | str:
-    """(دمجات الـPR على السلسلة الأولى، كلُّ SHA يُبلَغ من HEAD) — أو سببُ عدم القياس."""
+def git_history(root: Path) -> tuple[dict[int, str], list[str], dict[str, int]] | str:
+    """(دمجات الـPR على السلسلة الأولى، كلُّ SHA يُبلَغ من HEAD، SHA ⇒ رقمُ الـPR في عنوانه) — أو سببُ عدم القياس."""
     try:
         if _git(root, "rev-parse", "--is-shallow-repository").strip() == "true":
             return "shallow_clone"

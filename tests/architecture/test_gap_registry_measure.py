@@ -626,3 +626,16 @@ def test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_know
     good = text.replace("squash `c56db557`", "squash `ab07ceb8`")
     assert m.fixed_provenance(good, m.measure(good)["fixed_records"], {}, _reach, pr_of) == []
     assert m.fixed_provenance(text, records, {}, _reach) == []  # without a resolver: the old rule
+
+
+def test_a_canonical_segment_without_a_pr_keeps_the_reachable_sha_rule():
+    """مراجعةُ Copilot على #1167: مقطعٌ لا يذكر PR لا يُسقط في ``canonical_not_a_cited_merge``."""
+    m = mod()
+    status = "**fixed** (`0726a887`) · **canonical على `main`:** `0726a887` ⇒ squash `c56db557`"
+    text = _HEAD + f"| GAP-A-01 | x | {status} |\n"
+    records = m.measure(text)["fixed_records"]
+
+    def pr_of(sha):
+        return 999 if "c56db557aaaa".startswith(sha) else None
+
+    assert m.fixed_provenance(text, records, {}, _reach, pr_of) == []
