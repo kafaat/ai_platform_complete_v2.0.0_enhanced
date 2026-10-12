@@ -12,7 +12,7 @@
 #   ٤. يتحقّق: extensions + عدد الجداول + جداول مفتاحيّة
 #
 # متغيّرات (اختياريّة):
-#   PGPASSWORD (افتراضي: sahool_dev_pw)، PGPORT (5432)، PGDATABASE (sahool)
+#   PGPASSWORD (غيابُه ⇒ كلمةٌ عشوائيّة لهذه الحاوية تُطبَع في الخاتمة)، PGPORT (5432)، PGDATABASE (sahool)
 #
 # ── نموذج الدورين (مهمّ لأمان RLS) ────────────────────────────────
 #   مالك الهجرات (PGUSER، الافتراضي sahool_user) دور مُمتاز (superuser في صورة
@@ -22,18 +22,21 @@
 #   (NOSUPERUSER NOBYPASSRLS LOGIN) بصلاحيّات DML + EXECUTE + USAGE فقط.
 #   على المُشغّل توجيه DATABASE_URL للتطبيق نحو sahool_app (لا sahool_user)
 #   ليبقى RLS فعّالاً وقت التشغيل.
-#   APP_DB_PASSWORD (افتراضي: sahool_app_pw) كلمة سرّ دور التطبيق المقيّد.
+#   APP_DB_PASSWORD كلمة سرّ دور التطبيق المقيّد (غيابُه ⇒ عشوائيّة تُطبَع في الخاتمة).
+#   لا كلمةَ مرورٍ مكتوبة هنا: المكتوبُ في المستودع سرٌّ منشور يقبله المنفذ المحلّيّ
+#   (MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01). الحاويةُ تُعاد إنشاؤها في كلّ تشغيل.
 # ══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
 PG_CONTAINER="${PG_CONTAINER:-sahool-postgres-dev}"
 PG_IMAGE="postgis/postgis:15-3.4"
-PG_PASSWORD="${PGPASSWORD:-sahool_dev_pw}"
+_random_pw() { od -An -N16 -tx1 /dev/urandom | tr -d ' \n'; }
+PG_PASSWORD="${PGPASSWORD:-$(_random_pw)}"
 PG_PORT="${PGPORT:-5432}"
 PG_DB="${PGDATABASE:-sahool}"
 PG_USER="${PGUSER:-sahool_user}"
 APP_ROLE="${APP_DB_ROLE:-sahool_app}"
-APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"
+APP_PASSWORD="${APP_DB_PASSWORD:-$(_random_pw)}"
 MIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "═══ SAHOOL PostgreSQL Bootstrap ═══"

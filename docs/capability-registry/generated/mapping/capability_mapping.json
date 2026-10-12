@@ -28131,19 +28131,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:173",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:175",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:168",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:170",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:169",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:171",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:287",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:289",
           "score": 8
         }
       ],

@@ -617,6 +617,8 @@ services:
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
       INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
+      # المتغيّرُ نفسُه الذي يقرؤه odoo-init (فارغاً ⇒ دور odoo_app بلا كلمة مرور، لا افتراضيٌّ منشور).
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-}
       # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
       SAHOOL_MIGRATE_APPLY: "1"
     volumes:

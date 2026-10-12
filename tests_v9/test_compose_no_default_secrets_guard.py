@@ -101,6 +101,47 @@ def test_a_new_compose_file_on_the_surface_is_seen_by_the_guard(tmp_path, monkey
     )
 
 
+# ── السطح الثاني: سكربتاتُ الهجرة (MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01) ──
+
+
+def test_the_shell_surface_equals_the_git_tracked_migration_scripts():
+    tracked = subprocess.run(
+        ["git", "ls-files", "--", "migrations/*.sh"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=ROOT,
+    ).stdout.split()
+    assert tracked, "no tracked migration script — the shell surface would pass on nothing"
+    assert {str(p.relative_to(ROOT)) for p in guard.shell_files()} == set(tracked)
+
+
+def _shell_probe(tmp_path, monkeypatch, body: str) -> list[str]:
+    probe = tmp_path / "migrations" / "probe.sh"
+    probe.parent.mkdir()
+    probe.write_text("#!/usr/bin/env bash\n" + body, encoding="utf-8")
+    monkeypatch.setattr(guard, "compose_files", lambda: [])
+    monkeypatch.setattr(guard, "shell_files", lambda: [probe])
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    return [key for key, _ in guard.findings()]
+
+
+def test_a_published_default_in_a_migration_script_is_seen(tmp_path, monkeypatch):
+    """The shape that sat in apply_in_compose.sh while Compose was already clean."""
+    keys = _shell_probe(tmp_path, monkeypatch, 'APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"\n')
+    assert keys == ["migrations/probe.sh::APP_DB_PASSWORD"]
+
+
+def test_a_computed_default_is_not_a_published_secret(tmp_path, monkeypatch):
+    keys = _shell_probe(
+        tmp_path,
+        monkeypatch,
+        'PG_PASSWORD="${PGPASSWORD:-$(_random_pw)}"\n'
+        'PROBE="${PROBE_PGPASSWORD:-${PGPASSWORD:-}}"\n',
+    )
+    assert keys == []
+
+
 # ── العقد نفسه ───────────────────────────────────────────────────────────────
 
 

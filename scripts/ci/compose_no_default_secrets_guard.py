@@ -21,12 +21,20 @@ profile** يكسر `docker compose config` للمكدّس الافتراضيّ �
 
 النطاق من `compose_surface.py` — مصدرٌ واحد يستهلكه كلّ حارسٍ يمسّ Compose، فلا
 يعود كلُّ حارسٍ يحمل قائمته وتنحرف الأربع عن بعضها.
+
+**وسكربتاتُ الهجرة سطحٌ ثانٍ** (`MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01`): كان Compose
+نظيفاً و`apply_in_compose.sh` — نقطةُ دخول صورة المُهاجر على Railway — يحمل
+`${APP_DB_PASSWORD:-sahool_app_pw}` و`sahool_jobs_pw` و`odoo_app_pw`. فالسرُّ المنشور
+انتقل من الملفّ المفحوص إلى الملفّ الذي يُنفَّذ. السطحُ مشتقٌّ من git
+(`SHELL_UNIVERSE_SOURCE`) لا قائمةً، والافتراضيُّ المحسوب (`$(…)` أو `${…}` متداخل)
+ليس قيمةً منشورة.
 """
 
 from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -38,6 +46,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from compose_surface import ROOT, compose_files, discovery_witness  # noqa: E402
 
 EXCEPTIONS = ROOT / "docs" / "architecture" / "compose_secret_exceptions.json"
+
+#: السطحُ الثاني: سكربتاتُ الهجرة التي تُنشئ أدوارَ القاعدة بكلمات مرورها.
+SHELL_UNIVERSE_SOURCE = "git ls-files :(glob)migrations/*.sh"
+
+
+def shell_files() -> list[Path]:
+    """سكربتاتُ الهجرة المتعقَّبة. `ROOT` يُقرأ وقتَ الاستدعاء (الشواهد تُبدّله)."""
+    out = subprocess.run(
+        ["git", "ls-files", "--", "migrations/*.sh"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=ROOT,
+    )
+    if out.returncode != 0:
+        return []
+    return [ROOT / rel for rel in out.stdout.split()]
+
 
 #: اسمُ متغيّرٍ يُعَدّ سرّاً. المطابقة على الاسم لا القيمة: القيمة قد تبدو بريئة
 #: (`local`, `dev`) وتكون مفتاحاً يقبله خادمٌ حقيقيّ.
@@ -69,14 +95,15 @@ def findings() -> list[tuple[str, str]]:
     يدّعي» الذي يحرسه هذا الملفّ.
     """
     out: list[tuple[str, str]] = []
-    for path in compose_files():
+    for path in [*compose_files(), *shell_files()]:
         rel = str(path.relative_to(ROOT))
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
             for name, default in _DEFAULTED.findall(line):
-                if not _is_secret(name) or default == "":
+                # `$(…)` أو `${…}` متداخل: قيمةٌ تُحسَب وقتَ التشغيل، لا سرٌّ مكتوب.
+                if not _is_secret(name) or default == "" or default.startswith("$"):
                     continue
                 out.append(
                     (
@@ -143,6 +170,7 @@ def main() -> int:
     print(
         f"compose_no_default_secrets_guard: PASS "
         f"({len(witness['discovered_paths'])} ملفّاً على السطح · "
+        f"{len(shell_files())} سكربتَ هجرة ({SHELL_UNIVERSE_SOURCE}) · "
         f"{len(_exceptions())} استثناءً مُسمّى · المصدر: {witness['universe_source']})"
     )
     return 0

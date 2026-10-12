@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed1cf3be988090d8ac95c752197e2526c25550d70ee0e966ff988a679a2797d5"
+          "content": "92e906e6924bf494f1e0f95baf052b6c59a7ca072417dccf0063dcd877c60d78"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0231d6900a56a5cf1c6fb727067d676fd340dc576f940ce072fd979d15e302d4"
+          "content": "4d5f40903eb89ed050dfb3075b374b106cda8a4ea982dc6b0e0ceb1a24809d90"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6865,7 +6865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e26f2b6b13aac6bb98edb5d5f9abb0700c5705321b6c4b0331f4e749c13f4c4d"
+          "content": "bfdb1af3cb57fd264788e048dddaaab289a2b1ab32d7c9563501a6246f8fd6fa"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6875,7 +6875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8118180d2da4d7ff1e87103006e09be51aa8ee242b58c66ff80dc91c6831d3e"
+          "content": "11101db60041cdb3984c5a74d8df72c035a135ab4cf10111b5729cbbd19890f4"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
