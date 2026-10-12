@@ -28102,19 +28102,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:171",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:173",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:166",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:168",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:167",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:169",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:285",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:287",
           "score": 8
         }
       ],
