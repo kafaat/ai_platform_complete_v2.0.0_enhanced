@@ -119,7 +119,9 @@
       "port": 8126,
       "port_source": "healthcheck_url",
       "production_certified": false,
-      "profiles": [],
+      "profiles": [
+        "odoo"
+      ],
       "resolved": true,
       "runtime_verified": false,
       "service": "erp-bridge",
@@ -523,5 +525,5 @@
       "source_service": "weather-service"
     }
   ],
-  "targets_sha256": "dfb1307cadeeea9daa088b8e544a2a2ccaf12a78466b0697ae4eea3851cbbd35"
+  "targets_sha256": "1448274cc950553f237e70dd2fbcedd4196d135deedd7d4b5c909216bbfe552f"
 }

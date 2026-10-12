@@ -182,7 +182,7 @@
         },
         {
           "function": "healthz",
-          "line": 31,
+          "line": 77,
           "method": "GET",
           "module": "services/odoo-bridge/routers/health.py",
           "path": "/health",
@@ -381,7 +381,7 @@
         },
         {
           "function": "healthz",
-          "line": 31,
+          "line": 77,
           "method": "GET",
           "module": "services/odoo-bridge/routers/health.py",
           "path": "/healthz",
@@ -747,7 +747,7 @@
         },
         {
           "function": "readyz",
-          "line": 41,
+          "line": 87,
           "method": "GET",
           "module": "services/odoo-bridge/routers/health.py",
           "path": "/readyz",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1106,
-  "route_inventory_sha256": "691e1722e88aad693f27779c6d21a7e4367fec20f123d89be1be174d316248a6",
+  "route_inventory_sha256": "27bbd68576ec38f72af7939a7a1333f23853df27c50e71926805c997c96cbf30",
   "runtime_verified": false,
   "schema_version": 1
 }
