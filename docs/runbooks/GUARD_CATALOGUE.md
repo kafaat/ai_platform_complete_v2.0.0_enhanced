@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **430**
+- إجماليّ الطفرات المُسجَّلة: **432**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **372** على 129 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -170,6 +170,8 @@
 - احتسابُ كلّ مسارٍ مُغيَّر دليلاً بالاسم ⇒ git mv لاختبارٍ قائم (R100) أو نسخُه (C100) أو تغييرُ صلاحيّاته يُمرِّر انتقالاً إلى fixed بلا سطرٍ جديد (فحصُ المالك على #1138) — يُسقِط `test_a_pure_rename_or_copy_of_a_test_is_not_executable_evidence`
 - عودةُ العمى عن verified (BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01) ⇒ خليّةُ جدولٍ تكتب `verified` بين علامتَي الشيفرة في تعديلٍ للدماغ وحده تمرّ — يُسقِط `test_brain_only_table_row_moved_to_verified_is_rejected_whatever_its_typography`
 - نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ — يُسقِط `test_brain_only_section_state_moved_to_verified_is_rejected`
+- نزعُ ربط check_verified من main() ⇒ الاختباراتُ المباشرة تبقى خضراء والحارسُ في CI لا يرى verified (مراجعةُ Copilot على #1166) — يُسقِط `test_the_cli_rejects_a_brain_only_backticked_verified_row`
+- إسقاطُ كلِّ خليّةٍ موسومة ⇒ `<!-- gap-registry: current --> \`verified\`` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166) — يُسقِط `test_a_cell_with_a_non_exempting_annotation_is_still_read_as_its_state`
 
 ### `branch_protection_contract_guard.py`
 
