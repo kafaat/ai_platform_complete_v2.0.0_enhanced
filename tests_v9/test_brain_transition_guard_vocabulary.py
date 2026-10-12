@@ -575,3 +575,30 @@ def test_raw_parsing_keeps_the_new_name_and_the_similarity_score():
     # R100 يحمل بصمةَ مصدره، فهي في شجرة الأساس بالضرورة؛ و``A`` ببصمةٍ قائمة نسخٌ (C100).
     base_blobs = {"a" * 40, "b" * 40, "c" * 40}
     assert guard.content_evidence(entries, base_blobs) == ["y.py"]
+
+
+# BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01 (DG-02): the typography of the state cell no longer decides.
+@pytest.mark.parametrize("cell", ["`verified`", "**verified**", "verified (`def5678`)"])
+def test_brain_only_table_row_moved_to_verified_is_rejected_whatever_its_typography(cell):
+    base, head = registry(), registry(alpha=cell)
+    assert guard.verified_transitions(base, head) == ["GAP-ALPHA-01"]
+    with pytest.raises(SystemExit) as exc:
+        guard.check_verified(BRAIN_ONLY, base, head)
+    assert "verified transition rejected for GAP-ALPHA-01" in str(exc.value)
+
+
+def test_brain_only_section_state_moved_to_verified_is_rejected():
+    base, head = registry(), registry(gamma="**verified** (2026-10-12)")
+    assert guard.verified_transitions(base, head) == ["GAP-GAMMA-01"]
+    with pytest.raises(SystemExit):
+        guard.check_verified(BRAIN_ONLY, base, head)
+
+
+def test_a_verified_transition_with_executable_evidence_passes_the_guard():
+    guard.check_verified(WITH_TEST, registry(), registry(alpha="`verified`"))
+
+
+def test_a_row_that_stays_verified_is_not_a_transition():
+    head = registry(alpha="**verified** (`def5678`)")
+    assert guard.verified_transitions(head, head) == []
+    guard.check_verified(BRAIN_ONLY, head, head)

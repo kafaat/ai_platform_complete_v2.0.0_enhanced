@@ -3575,6 +3575,18 @@
           "find": "if blob not in base_blobs]",
           "replace": "]",
           "why": "احتسابُ كلّ مسارٍ مُغيَّر دليلاً بالاسم ⇒ git mv لاختبارٍ قائم (R100) أو نسخُه (C100) أو تغييرُ صلاحيّاته يُمرِّر انتقالاً إلى fixed بلا سطرٍ جديد (فحصُ المالك على #1138)"
+        },
+        {
+          "expect": "test_brain_only_table_row_moved_to_verified_is_rejected_whatever_its_typography",
+          "find": "    return sorted(gap_ids_in_state(head_text, \"verified\") - gap_ids_in_state(base_text, \"verified\"))",
+          "replace": "    return []",
+          "why": "عودةُ العمى عن verified (BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01) ⇒ خليّةُ جدولٍ تكتب `verified` بين علامتَي الشيفرة في تعديلٍ للدماغ وحده تمرّ"
+        },
+        {
+          "expect": "test_brain_only_section_state_moved_to_verified_is_rejected",
+          "find": "    if verified and not _has_executable_evidence(paths):",
+          "replace": "    if False:",
+          "why": "نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"

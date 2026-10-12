@@ -175,8 +175,8 @@ def _measure_module():
     return gap_registry_measure
 
 
-def fixed_gap_ids(text: str) -> set[str]:
-    """معرّفاتُ الفجوات التي حالتُها ``fixed`` في مواضع الحالة القانونيّة (لا السرد، ولا المداخل التاريخيّة)."""
+def gap_ids_in_state(text: str, state: str) -> set[str]:
+    """معرّفاتُ الفجوات التي حالتُها ``state`` في مواضع الحالة القانونيّة (لا السرد، ولا المداخل التاريخيّة)."""
     g = _measure_module()
     out: set[str] = set()
     schema: list[str] | None = None
@@ -238,13 +238,13 @@ def fixed_gap_ids(text: str) -> set[str]:
             ):
                 continue
             raw = cells[columns[0]]
-            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == "fixed":
+            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == state:
                 out.add(label.group("id"))
             continue
         section = g.SECTION_STATE.match(line)
         if section and heading:
             raw = section.group("value")
-            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == "fixed":
+            if not g.ANNOTATION.search(raw) and g.classify(raw)[0] == state:
                 sections.append(len(entries) - 1)
     # وسمُ ``historical`` لا يُسقط الحالةَ إلّا في سلسلةٍ مُراجَعة بقاعدة gap_registry_measure.measure() نفسها:
     # أكثرُ من مدخلٍ للمعرّف، مدخلٌ حاليٌّ واحد، والباقي كلُّه تاريخيّ. مدخلٌ منفردٌ موسومٌ تاريخيّاً
@@ -266,6 +266,21 @@ def fixed_gap_ids(text: str) -> set[str]:
     return out
 
 
+def fixed_gap_ids(text: str) -> set[str]:
+    """معرّفاتُ الفجوات التي حالتُها ``fixed`` في مواضع الحالة القانونيّة (لا السرد، ولا المداخل التاريخيّة)."""
+    return gap_ids_in_state(text, "fixed")
+
+
+# BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01 (مراجعةٌ معمَّقة 2026-10-12، DG-02). الانتقالُ إلى verified كان
+# يُقرأ من شكل الكلمة في الفرق وحده (``_is_claim``)، وخليّةُ جدولٍ تكتب `verified` بين علامتَي الشيفرة ليست موضعَ
+# ادّعاءٍ قانونيّاً فيُفرَّغ الاقتباسُ ويمرّ — بينما يقرؤها ``classify`` حالةَ verified. الآن يُقرأ verified كما يُقرأ
+# fixed: من مواضع الحالة القانونيّة في الأساس والرأس، فلا يغيّر التنسيقُ الحكم. **الحدُّ نفسُه معلن:** الحارسُ يرى
+# دليلاً تنفيذيّاً في الـPR، لا أنّه يفي بشرط verified التشغيليّ — ذلك للمراجعة.
+def verified_transitions(base_text: str, head_text: str) -> list[str]:
+    """ما صار verified في الرأس ولم يكن verified في الأساس (ومنه المسجَّلُ verified لأوّل مرّة)."""
+    return sorted(gap_ids_in_state(head_text, "verified") - gap_ids_in_state(base_text, "verified"))
+
+
 def fixed_transitions(base_text: str, head_text: str) -> list[str]:
     """ما صار fixed في الرأس ولم يكن fixed في الأساس (ومنه المسجَّلُ fixed لأوّل مرّة)."""
     return sorted(fixed_gap_ids(head_text) - fixed_gap_ids(base_text))
@@ -279,6 +294,16 @@ def check_fixed(paths: list[str], base_text: str, head_text: str) -> None:
             + ", ".join(moved)
             + "; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — "
             "include its executable code/test outside the brain knowledge base"
+        )
+
+
+def check_verified(paths: list[str], base_text: str, head_text: str) -> None:
+    verified = verified_transitions(base_text, head_text)
+    if verified and not _has_executable_evidence(paths):
+        raise SystemExit(
+            "sahool-brain-only verified transition rejected for "
+            + ", ".join(verified)
+            + "; verified needs the evidence its closing condition names, carried outside the brain knowledge base"
         )
 
 
@@ -376,6 +401,7 @@ def main():
             for ref in (base, a.head)
         ]
         check_fixed(evidence, *texts)
+        check_verified(evidence, *texts)
     check(evidence, diff)
 
 
