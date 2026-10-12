@@ -192,11 +192,11 @@ def test_v25_live_audit_wiring_regressions():
         "docker-compose.unified.yml": ("supervisor-agent", "local-ai-rag"),
     }
 
-    # Finding #6: raster tiler must recover after Docker daemon/container restarts
-    # in every maintained compose variant.
-    for compose in variants:
-        source = _source(compose)
-        assert "restart: unless-stopped" in _service_block(source, "raster-tiler-service")
+    # Finding #6: the tiler must recover after daemon restarts; it is v9-only — fixed/unified
+    # dropped it (no consumer: TILER-IN-FIXED-AND-UNIFIED-HAS-NO-CONSUMER-AND-CANNOT-BUILD-01).
+    tiler = _service_block(_source("docker-compose.v9.yml"), "raster-tiler-service")
+    assert "restart: unless-stopped" in tiler
+    assert not [c for c in variants if "v9" not in c and "\n  raster-tiler-service:" in _source(c)]
 
     # Finding #5: scope the RAG wiring assertion to the supervisor service itself,
     # so an unrelated variable elsewhere cannot make this test pass.
