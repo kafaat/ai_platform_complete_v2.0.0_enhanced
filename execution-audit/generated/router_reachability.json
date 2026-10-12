@@ -343,7 +343,7 @@
     },
     {
       "kind": "router",
-      "line": 26,
+      "line": 31,
       "module": "services.odoo-bridge.routers.health",
       "node_id": "services.odoo-bridge.routers.health:router",
       "route_count": 4,
@@ -2676,7 +2676,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f7bbfb4868a35e0865ab922ea370ac6351c9c2e6877c33929f8ba9834745532d",
+  "inventory_sha256": "26938a65cfda3c324196ad5cdf27ea708f0bb83b204e4e293488622df4da717c",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -2842,7 +2842,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 26,
+      "line": 31,
       "module": "services.odoo-bridge.routers.health",
       "node_id": "services.odoo-bridge.routers.health:router",
       "route_count": 4,
