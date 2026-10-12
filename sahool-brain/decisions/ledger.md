@@ -3748,3 +3748,10 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** الرَّنبوك يشترط الدليلَ من سجلّ نشرٍ حقيقيّ لا وصفَه، ولا يشترط أن يكون النشرُ يدويّاً؛ والمالكُ وافق على الدمج بعد إبلاغه صراحةً أنّ الدمج يُطلق هذا النشر. أمّا الترقيةُ فمشروطةٌ ببرهانين.
 
 **المصدر:** `certification/evidence/migrator_fail_closed_railway_20261011.json` · `sahool-brain/runbooks/migrator-staging-fail-closed-test.md` §3 · PR #1160.
+## 2026-10-12 — سبعةُ إعفاءاتِ واجهة انتهت معاً عند منتصف الليل: تُجدَّد إلى 2026-10-31 بشرطٍ مقيس لا بالعادة
+
+**القرار (المالك، بين: تجديدٌ إلى 2026-10-31 · تجديدٌ إلى 2026-11-30 · تركُها حمراء):** تجديدُ السبعة إلى **2026-10-31**. **السبب:** كلُّها في `config/endpoint_ui_coverage_waivers.json` (المالك decision-service؛ التتبّع WX-10.11 · WX-10.13 · WX-11 · WX-11.2 · WX-11.3 · WX-11.4) تنتهي `2026-10-11`، فأحمر `waiver_expiry_guard` في `Repository Structural Lint` و`unified-readiness-evidence` على main وعلى كلّ PR من 00:00Z (مقيسٌ على #1162 في التشغيل 38187214595). **وشرطُ الإغلاق ما زال قائماً، مقيساً اليوم على `main@32a000bd`:** لا ملفَّ في `frontend/src` ولا `mobile` يذكر أيّاً من المسارات السبعة (`execution-plan` · `authorize-dispatch` · `verify-outcome` · `calibration-dataset` · `evaluation-runs` · `promotion-decisions` · `learning-attribution`)، فالواجهةُ المؤجَّلة لم تهبط والإعفاءُ لا يُزال.
+
+**لماذا أفقٌ قصير:** على سابقة 2026-10-01 — شهرٌ يُجبر مراجعةً ثانية بدل تمديدٍ طويلٍ صامت، ويُحاذي إعفاءَ WX-11.6 المجاور (2026-10-31)؛ والتجديدُ يحمل دليلَه في حقل `reason` لكلّ إعفاء.
+
+**المصدر:** `scripts/ci/waiver_expiry_guard.py` (rc=1 قبل، rc=0 بعد) · PR #1164 (رأسُ القرار `33790f11`).
