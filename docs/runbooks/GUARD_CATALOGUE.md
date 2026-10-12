@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **428**
+- إجماليّ الطفرات المُسجَّلة: **430**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **372** على 129 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -168,6 +168,8 @@
 - وسمُ historical يُسقط الحالةَ بلا سلسلةٍ مُراجَعة ⇒ مدخلٌ منفردٌ موسومٌ تاريخيّاً يُسجِّل fixed في الدماغ وحده (مراجعة Copilot على #1138) — يُسقِط `test_a_historical_tag_outside_a_reviewed_sequence_does_not_hide_a_fixed_state`
 - احتسابُ الملفّات المحذوفة دليلاً ⇒ حذفُ أيّ ملفٍّ تحت tests_v9/ يُمرِّر انتقالاً إلى fixed بلا إصلاح (مراجعة Copilot على #1138) — يُسقِط `test_a_deleted_test_file_is_not_executable_evidence`
 - احتسابُ كلّ مسارٍ مُغيَّر دليلاً بالاسم ⇒ git mv لاختبارٍ قائم (R100) أو نسخُه (C100) أو تغييرُ صلاحيّاته يُمرِّر انتقالاً إلى fixed بلا سطرٍ جديد (فحصُ المالك على #1138) — يُسقِط `test_a_pure_rename_or_copy_of_a_test_is_not_executable_evidence`
+- عودةُ العمى عن verified (BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01) ⇒ خليّةُ جدولٍ تكتب `verified` بين علامتَي الشيفرة في تعديلٍ للدماغ وحده تمرّ — يُسقِط `test_brain_only_table_row_moved_to_verified_is_rejected_whatever_its_typography`
+- نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ — يُسقِط `test_brain_only_section_state_moved_to_verified_is_rejected`
 
 ### `branch_protection_contract_guard.py`
 
