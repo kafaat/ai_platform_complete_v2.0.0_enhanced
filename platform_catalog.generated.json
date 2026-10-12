@@ -17268,7 +17268,9 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "sahool-platform"
+        ]
       },
       "deployment_units": [
         "sahool-tts-service"
@@ -17856,7 +17858,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2245260e94bfbae167d95a47a2a35df1e10df6db8a06bc87d0b021718ff1dcd5",
+  "fingerprint": "ccf49a2ce447d90dc5adf86151476a7e4121733211c3c5bd1ea4e31dddf0dd2f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17906,11 +17908,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 844,
+      "edge_count": 843,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 45,
+        "CALLS": 44,
         "CONSUMES": 1,
         "EMITS": 1,
         "READS": 433,
