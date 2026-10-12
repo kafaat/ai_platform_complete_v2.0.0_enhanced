@@ -156,7 +156,9 @@ def test_the_tts_reader_never_consults_the_llm_permission():
     """قارئُ TTS لا يقرأ ``external_llm_allowed`` في أيّ موضعٍ من شيفرته (لا من التعليقات)."""
     import ast
 
-    tree = ast.parse((ROOT / "services/tts-service/tts_tenant_policy.py").read_text("utf-8"))
+    tree = ast.parse(
+        (ROOT / "services/tts-service/tts_tenant_policy.py").read_text(encoding="utf-8")
+    )
     used = [
         n
         for n in ast.walk(tree)
