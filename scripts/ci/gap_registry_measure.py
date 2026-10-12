@@ -305,7 +305,9 @@ def measure(text: str) -> dict:
     cross_sources: dict[str, list[dict]] = defaultdict(list)
     for row in gap_rows:
         if row["state"] is not None:
-            cross_sources[row["id"]].append({"source": "table", "line": row["line"], "state": row["state"]})
+            cross_sources[row["id"]].append(
+                {"source": "table", "line": row["line"], "state": row["state"]}
+            )
     for gap_id, items in states_by_id.items():
         active = (
             [item for item in items if item["entry_role"] != "historical"]
@@ -314,7 +316,9 @@ def measure(text: str) -> dict:
         )
         for item in active:
             if item["state"] is not None and item.get("kind", "gap") == "gap":
-                cross_sources[gap_id].append({"source": "section", "line": item["line"], "state": item["state"]})
+                cross_sources[gap_id].append(
+                    {"source": "section", "line": item["line"], "state": item["state"]}
+                )
     cross_source_conflicts = {
         gap_id: entries
         for gap_id, entries in sorted(cross_sources.items())

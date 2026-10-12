@@ -610,7 +610,9 @@ def test_a_table_row_that_disagrees_with_its_section_is_a_conflict_and_agreement
 # DG-03: with a PR resolver, a reachable SHA links a squashed repair only if it is a cited PR's merge.
 def test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_known():
     m = mod()
-    status = "**fixed** (`0726a887`) · **canonical على `main`:** `0726a887` في #1149 ⇒ squash `c56db557`"
+    status = (
+        "**fixed** (`0726a887`) · **canonical على `main`:** `0726a887` في #1149 ⇒ squash `c56db557`"
+    )
     text = _HEAD + f"| GAP-A-01 | x | {status} |\n"
     records = m.measure(text)["fixed_records"]
     prs = {"ab07ceb8cccc": 1149, "c56db557aaaa": 999}
