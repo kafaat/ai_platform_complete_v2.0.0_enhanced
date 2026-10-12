@@ -112,10 +112,13 @@ jobs:
         run: |
           set -euo pipefail
           echo extract > out/stage.txt
+          # The reference lives in ref/, which no build container ever mounts: the builder
+          # cannot rewrite what it is compared against (review 2026-10-12, DG-04).
+          mkdir -p ref
           cid="$(docker create "coollabsio/minio@$PINNED_AMD64_MANIFEST")"
-          docker cp "$cid:/usr/bin/minio" out/minio.pinned
+          docker cp "$cid:/usr/bin/minio" ref/minio.pinned
           docker rm "$cid" >/dev/null
-          sha256sum out/minio.pinned | cut -d' ' -f1 > out/pinned_sha256.txt
+          sha256sum ref/minio.pinned | cut -d' ' -f1 > out/pinned_sha256.txt
           if [ "$(cat out/pinned_sha256.txt)" != "$PINNED_SHA256" ]; then
             echo "::error::the extracted binary is $(cat out/pinned_sha256.txt), not the $PINNED_SHA256 measured on 2026-10-11 — the comparison would test something else"
             exit 1
@@ -125,9 +128,12 @@ jobs:
         run: |
           set -euo pipefail
           echo rebuild > out/stage.txt
+          # The builder sees one empty directory and nothing else of the run: not ref/, not out/.
+          # What it writes there is its own report (toolchain, commit, go mod verify) and the binary.
+          rm -rf build && mkdir build
           docker run --rm -i --platform linux/amd64 \
             -e MINIO_REPO -e MINIO_TAG -e MINIO_COMMIT \
-            -v "$PWD/out:/out" "$BUILDER_IMAGE" sh -eu <<'BUILD' 2>&1 | tee out/build.log
+            -v "$PWD/build:/out" "$BUILDER_IMAGE" sh -eu <<'BUILD' 2>&1 | tee out/build.log
           apk add -U --no-cache git >/dev/null
           git --version > /out/git_version.txt
           go version > /out/go_version.txt
@@ -138,16 +144,38 @@ jobs:
           test "$(cat /out/upstream_commit.txt)" = "$MINIO_COMMIT"
           CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X github.com/minio/minio/cmd.ReleaseTag=$MINIO_TAG" -o /out/minio.rebuilt .
           go mod verify > /out/go_mod_verify.txt 2>&1
-          go version -m /out/minio.rebuilt > /out/buildinfo.rebuilt.txt
-          go version -m /out/minio.pinned > /out/buildinfo.pinned.txt
           BUILD
+          # The builder's own report, copied as plain files; the binary is checked, not trusted.
+          for f in git_version.txt go_version.txt go_env.txt upstream_commit.txt go_mod_verify.txt; do
+            if [ -f "build/$f" ] && [ ! -L "build/$f" ]; then cp "build/$f" "out/$f"; fi
+          done
+          if [ ! -f build/minio.rebuilt ] || [ -L build/minio.rebuilt ] || [ ! -s build/minio.rebuilt ]; then
+            echo "::error::the build left no regular, non-empty minio.rebuilt"
+            exit 1
+          fi
+          # Build info of both binaries, read (never executed) with no network and read-only mounts.
+          for side in pinned rebuilt; do
+            if [ "$side" = pinned ]; then src="$PWD/ref/minio.pinned"; else src="$PWD/build/minio.rebuilt"; fi
+            docker run --rm --network none --platform linux/amd64 \
+              -v "$src:/inspect/minio.$side:ro" "$BUILDER_IMAGE" \
+              go version -m "/inspect/minio.$side" > "out/buildinfo.$side.txt"
+          done
 
       - name: "Stage compare: byte for byte"
         run: |
           set -euo pipefail
           echo compare > out/stage.txt
-          sha256sum out/minio.rebuilt | cut -d' ' -f1 > out/rebuilt_sha256.txt
-          if [ "$(cat out/rebuilt_sha256.txt)" = "$(cat out/pinned_sha256.txt)" ]; then
+          # Both sides are hashed here, on the host, against the pin in this file — not against
+          # any file a container could have written.
+          ref_sha="$(sha256sum ref/minio.pinned | cut -d' ' -f1)"
+          rebuilt_sha="$(sha256sum build/minio.rebuilt | cut -d' ' -f1)"
+          echo "$ref_sha" > out/pinned_sha256.txt
+          echo "$rebuilt_sha" > out/rebuilt_sha256.txt
+          if [ "$ref_sha" != "$PINNED_SHA256" ]; then
+            echo "::error::the reference changed after extraction ($ref_sha)"
+            exit 1
+          fi
+          if [ "$rebuilt_sha" = "$PINNED_SHA256" ]; then
             echo match > out/verdict.txt
           else
             echo mismatch > out/verdict.txt
