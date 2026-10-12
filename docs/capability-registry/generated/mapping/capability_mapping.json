@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5530,
+    "files_scanned": 5531,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 65,
       "mobile": 55,
-      "other": 1564,
+      "other": 1565,
       "tests": 1886,
       "web": 458
     },
