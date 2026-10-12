@@ -64,6 +64,11 @@ if [ "${SAHOOL_MIGRATE_APPLY:-0}" != "1" ]; then
   exit 0
 fi
 
+# متطلّباتُ وضع التطبيق تُفحص هنا، قبل أوّل استدعاءٍ يكتب — لا بعد الهجرات وأدوار التشغيل.
+# كان الشرطُ عند إنشاء دور الإدخال، فاستدعاءٌ مأذونٌ بلا السرّ يفشل بعد أن طبّق الهجراتِ وأنشأ أدواراً
+# (مراجعةٌ معمَّقة 2026-10-12، DG-05). وفرعُ «لا إذن» أعلاه لا يحتاجه: الفحصُ قراءةٌ فقط.
+: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
+
 psql_exec() { psql -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" -d "$PGDATABASE" "$@"; }
 
 # حارس وقت التشغيل (حزمة 72 ساعة): v206_rls_final_hardening.sql يجب أن يبقى
@@ -182,7 +187,6 @@ SQL
 # ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
 echo "─ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
-: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
 psql_exec -v ing_pw="${INGEST_DB_PASSWORD}" <<'SQL'
 SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
