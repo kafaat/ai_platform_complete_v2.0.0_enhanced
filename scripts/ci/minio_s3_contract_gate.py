@@ -50,6 +50,8 @@ def is_deleted_repo(ref: str) -> bool:
 # غير أنّ سحبه يفشل كذلك على آلةٍ جديدة، ومثلُه صورةُ MinIO من مساحةٍ أخرى أو بوسمٍ بلا دايجست:
 # فأيُّ مرجعٍ مستودعُه MinIO — أيّاً كان السجلّ أو المساحة — يجب أن يكون الإبرةَ المثبَّتة عبر متغيّرها.
 _MINIO_REPO = re.compile(r"(?:^|/)(?:minio|minio-client|minio/mc)(?=[:@]|$)")
+# العميلُ (`mc`) لا الخادم: يحدّد متغيّرَ التجاوز الصحيح في رسالة الإصلاح حين يكون المرجعُ عارياً.
+_MINIO_CLIENT_REPO = re.compile(r"(?:^|/)(?:minio-client|mc)(?=[:@]|$)")
 # فحصُ الصحّة: الصورة بلا curl **ولا wget** (مقيسٌ من طبقاتها)، فأيٌّ منهما يُبقي الخادم unhealthy
 # أيّاً كان المسارُ الذي يطلبه — لا ``minio/health`` وحده.
 _HTTP_CLIENT = re.compile(r"(?<![\w.-])(?:curl|wget)(?![\w.-])")
@@ -274,7 +276,9 @@ def main() -> int:
                     not ("${MINIO_IMAGE" in s or "${MINIO_MC_IMAGE" in s)
                     or FULL_CONSOLE_PIN not in s
                 ):
-                    var = "MINIO_MC_IMAGE" if "MINIO_MC_IMAGE" in s else "MINIO_IMAGE"
+                    # من السطر إن سمّى المتغيّر، وإلّا من المرجع نفسِه (مرجعٌ عارٍ لا يسمّي شيئاً).
+                    client = "MINIO_MC_IMAGE" in s or bool(_MINIO_CLIENT_REPO.search(ref))
+                    var = "MINIO_MC_IMAGE" if client else "MINIO_IMAGE"
                     fail(
                         f"{cf.name}:{idx + 1}: MinIO image must be ${{{var}:-{FULL_CONSOLE_PIN}}} "
                         f"(no bare hardcode / no undigested tag / no other registry or namespace) — got: {s}"

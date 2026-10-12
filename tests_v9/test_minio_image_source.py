@@ -203,6 +203,22 @@ def test_the_gate_rejects_a_minio_image_that_is_not_the_pin(tmp_path, capsys, re
 
 
 @pytest.mark.parametrize(
+    ("ref", "var"),
+    [
+        ("quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z", "MINIO_MC_IMAGE"),
+        ("bitnami/minio-client:2025.4.16", "MINIO_MC_IMAGE"),
+        ("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z", "MINIO_IMAGE"),
+        ("bitnami/minio:2025.4.22", "MINIO_IMAGE"),
+    ],
+)
+def test_the_remediation_names_the_override_for_the_image_kind(tmp_path, capsys, ref, var):
+    """مراجعة Copilot على #1169: مرجعُ عميلٍ عارٍ كان يُرشَد إلى ``MINIO_IMAGE`` (متغيّرِ الخادم)."""
+    code, out = _gate_on_probe_tree(tmp_path, capsys, f"  probe-minio:\n    image: {ref}\n")
+    assert code == 1, out
+    assert f"${{{var}:-" in out, out
+
+
+@pytest.mark.parametrize(
     "probe",
     [
         '["CMD", "wget", "-q", "--spider", "http://localhost:9000/minio/health/live"]',
