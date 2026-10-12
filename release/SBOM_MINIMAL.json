@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "033ab2e46999fe93ceaf1d7c0a55d4dcc532a6d9c5a3f28063679a12ec944bc2"
+          "content": "ed1cf3be988090d8ac95c752197e2526c25550d70ee0e966ff988a679a2797d5"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f3e24b4f3ec58262bcfb7b47002831885f18485b0ea4633896d003bb507399b"
+          "content": "254bf3988110196771812858c62188ed13d3b704642b03119b9b011916e77c7d"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5544c0a8ccee1d6ee5a8372c2fb99ac645b82e6ae26c34a0bfbac2794c08816"
+          "content": "17a7d8102cf258ab97143f24771563ae0f44853ba3e47e256777354c460026a9"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -13925,7 +13925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f1488325ed4b77f8c9e5e7729ec6bc0be2271c63c6c0c3bda4a48b8e4ee5bee6"
+          "content": "7a8d5372f8c7d3fec690f5065b8a10b23a9b6e71a07f5fa9680a4b415f1ba098"
         }
       ],
       "name": "services/odoo-bridge/erp_provider.py",
@@ -13995,7 +13995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abc7d9a85f8caec8a3701fa83ac673134d5a1badde1659490d6a01ca4df3f5f5"
+          "content": "1060cbd8e26bbf114d8da7cdc5c60a7ddbd1a4a43b2c5c5ff817b0697880cc42"
         }
       ],
       "name": "services/odoo-bridge/routers/health.py",
@@ -14005,7 +14005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d55aa56c918d3f0021295fc305c40b76718346a31252b3fd8f53f21716e24ea"
+          "content": "a71165a4c8feea8f875e877c6d160b37c1a3de163f0ab1d095519b981ca6f745"
         }
       ],
       "name": "services/odoo-bridge/routers/sync.py",
@@ -28845,7 +28845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c31623191c2d399daad6d775e8e76fe89e90850d19785fc395beab2e24ee6b96"
+          "content": "0e48d6c32e085d808ec11f552a4f37430b46f8fdd7d95cfc15bdc893faffc6bb"
         }
       ],
       "name": "services/sam2-inference/Dockerfile",
