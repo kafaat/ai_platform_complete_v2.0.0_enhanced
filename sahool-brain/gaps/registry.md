@@ -7280,26 +7280,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `migrations/apply_in_compose.sh:21` · `:26` · `:269` على main؛ مراجعةُ المالك الجنائيّة 2026-10-12.
 - **شرط الإغلاق:** السكربتُ يفشل مغلقاً حين يغيب المتغيّرُ أو يفرغ (لا قيمةَ افتراضيّة لسرّ)، ونطاقُ الحارس القائم يشمل سكربتَ المُهاجر (توسيعٌ لا حارسٌ جديد)، وتحقّقُ المالك دون كشف القيم من أنّ Production لا يستعمل القيمَ المنشورة؛ وإن ثبت استعمالُها فتدويرٌ منسَّقٌ مع الخدمات المستهلكة لا تدويرٌ عشوائيّ. والإصلاحُ يمسّ `migrations/**` فدمجُه يُطلق نشرَ المُهاجر — لا يُدمج قبل رفع التجميد.
 
-## SQLITE-LIVE-BACKUP-IGNORES-WAL-01 — نسخة lite_store الخام تهمل الكتابات المثبتة في WAL
-<!-- gap-registry: current -->
-- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
-- **المصدر:** `services/sahool-platform/storage/lite_store.py:727`؛ `tests_v9/test_sqlite_live_backup.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
-- **حد الحكم:** إصلاح دالة واحدة لا يثبت جرد واستعادة كل مخازن SQLite.
-
 ## TTS-VOICE-SUCCESS-WITHOUT-PROVIDER-RECEIPT-01 — نجاح توليد الصوت لا يثبت قبول Telegram
 <!-- gap-registry: current -->
-- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
-- **المصدر:** `agents/notification/agent.py:115`؛ `tests_v9/test_tts_voice_delivery_receipt.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
+- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الإصلاح في PR #1171 عند `b0bc2b9e7bb79a1b37ae8e1cb6624311e84346eb` (2026-10-13)، ولم يُدمج أو يُتحقق منه تشغيليًا.
+- **المصدر:** `agents/notification/agent.py:154`؛ `tests_v9/test_tts_voice_delivery_receipt.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
 - **حد الحكم:** قبول مزود فقط وليس تسليمًا نهائيًا؛ لا مستدعٍ إنتاجي جديد.
 
 ## TTS-CRITICAL-NUMBERS-HAVE-NO-STRUCTURED-SPEECH-01 — الكميات الحرجة تمر نصًا حرًا إلى الصوت
 <!-- gap-registry: current -->
-- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
+- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الإصلاح في PR #1171 عند `b0bc2b9e7bb79a1b37ae8e1cb6624311e84346eb` (2026-10-13)، ولم يُدمج أو يُتحقق منه تشغيليًا.
 - **المصدر:** `services/tts-service/critical_speech.py:1`؛ `tests_v9/test_tts_critical_speech.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
 - **حد الحكم:** بوابة اتساق مدخلات فقط، لا صحة زراعية ولا كشف شامل للمعنى أو ASR.
-
-## RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01 — فحص استعادة يقبل redirects ويخفي إخفاقات مطلوبة
-<!-- gap-registry: current -->
-- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
-- **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `tests_v9/test_recovery_smoke_truth.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
-- **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
