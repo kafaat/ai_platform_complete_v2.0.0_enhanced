@@ -211,21 +211,26 @@ async def send_voice_alert(
         from aiogram.types import BufferedInputFile
 
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                f"{TTS_URL}/v1/tts/synthesize",
+            async with client.stream(
+                "POST", f"{TTS_URL}/v1/tts/synthesize",
                 json={"text": text, "voice": voice},
                 headers={"Authorization": f"Bearer {token}"},
-            )
-        if resp.status_code != 200:
-            logger.warning("TTS synthesis rejected (%s)", resp.status_code)
-            return False
-        audio = resp.content
-        if (
-            resp.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "audio/mpeg"
-            or not audio
-            or len(audio) > 10 * 1024 * 1024
-        ):
-            return False
+            ) as resp:
+                if resp.status_code != 200:
+                    logger.warning("TTS synthesis rejected (%s)", resp.status_code)
+                    return False
+                if resp.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "audio/mpeg":
+                    return False
+                if int(resp.headers.get("content-length", "0")) > 10 * 1024 * 1024:
+                    return False
+                audio_parts = bytearray()
+                async for chunk in resp.aiter_bytes():
+                    if len(audio_parts) + len(chunk) > 10 * 1024 * 1024:
+                        return False
+                    audio_parts.extend(chunk)
+                if not audio_parts:
+                    return False
+                audio = bytes(audio_parts)
         audio_file = BufferedInputFile(audio, filename="sahool_voice.mp3")
         receipt = await bot.send_voice(chat_id=chat_id, voice=audio_file, caption=text)
         message_id = getattr(receipt, "message_id", None)
