@@ -124,6 +124,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/SpeakButton.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/SpeakButton.tsx",
     "kind": "web"
   },
@@ -1552,6 +1556,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationWaterPage.tsx",
     "kind": "web"
   },
@@ -1773,6 +1785,10 @@
   },
   {
     "path": "frontend/src/services/api/irrigationNetworkCalculator.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationScenarioComparison.ts",
     "kind": "web"
   },
   {
@@ -5644,6 +5660,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
     "kind": "tests"
   },
@@ -6377,6 +6397,10 @@
   },
   {
     "path": "services/tts-service/arabic_normalizer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/critical_speech.py",
     "kind": "backend"
   },
   {
@@ -8752,6 +8776,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_telegram_voice_audio_boundary.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
     "kind": "tests"
   },
@@ -8788,11 +8816,23 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_critical_speech.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_edge_retry.py",
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_tts_piper_provider.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tts_platform_policy_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_policy_proxy_guard.py",
     "kind": "tests"
   },
   {
@@ -8801,6 +8841,10 @@
   },
   {
     "path": "tests_v9/test_tts_request_pitch_validation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_voice_delivery_receipt.py",
     "kind": "tests"
   },
   {

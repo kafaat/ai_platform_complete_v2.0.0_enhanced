@@ -12,11 +12,20 @@ from __future__ import annotations
 
 import main
 import tts_tenant_policy
+from critical_speech import CriticalSpeechError, prepare_critical_speech
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import Response, StreamingResponse
 from providers import select_provider_for_policy
 
 router = APIRouter()
+
+
+def _prepared_text(req: main.TTSRequest) -> str:
+    try:
+        rendered = prepare_critical_speech(req.text, req.critical_slots)
+        return main.ArabicTextNormalizer().normalize(rendered) if req.normalize else rendered
+    except CriticalSpeechError as exc:
+        raise HTTPException(422, detail={"error": "critical_speech_invalid"}) from exc
 
 
 async def _provider_allowed_by_policy(user: dict, authorization: str | None, requested: str | None):
@@ -41,6 +50,20 @@ async def _provider_allowed_by_policy(user: dict, authorization: str | None, req
             },
         )
     return chosen
+
+
+def _local_provider_failed(chosen, exc: Exception) -> HTTPException:
+    main.logger.error(
+        f"local TTS provider failed: provider={chosen.name} error={type(exc).__name__}"
+    )
+    return HTTPException(
+        503,
+        detail={
+            "error": "local_provider_failed",
+            "provider": chosen.name,
+            "message_ar": "تعذّر التركيبُ بالمزوّد المحلّيّ؛ لم يُرسَل النصّ إلى أيّ مزوّدٍ خارجيّ.",
+        },
+    )
 
 
 @router.get("/v1/tts/voices", response_model=main.VoicesResponse)
@@ -77,11 +100,12 @@ async def synthesize(
 
     Cached by content hash for 24h to reduce API calls.
     """
+    speak_text = _prepared_text(req)
     chosen = await _provider_allowed_by_policy(user, authorization, req.provider)
     tenant_id = user.get("tenant_id", "")
     cache_key = main._cache_key(
         tenant_id,
-        req.text,
+        speak_text,
         req.voice,
         req.rate,
         req.pitch,
@@ -115,17 +139,19 @@ async def synthesize(
     # Generate
     try:
         audio = await main._generate_speech(
-            req.text,
+            speak_text,
             req.voice,
             req.rate,
             req.pitch,
             req.volume,
             provider=req.provider,
-            normalize=req.normalize,
+            normalize=False,  # Prepared once before cache lookup and provider dispatch.
             chosen=chosen,
         )
     except Exception as e:
         main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="miss").inc()
+        if not chosen.external:
+            raise _local_provider_failed(chosen, e) from e
         main.logger.error(f"TTS generation failed: {e}")
         raise HTTPException(500, "Speech synthesis failed") from e
 
@@ -162,38 +188,59 @@ async def stream(
 
     البوّابةُ قبل بناء الاستجابة: 503 حقيقيّ لا 200 يفشل في منتصفه (TTS-STREAM-…-01).
     """
+    speak_text = _prepared_text(req)
     chosen = await _provider_allowed_by_policy(user, authorization, req.provider)
 
     if not chosen.external:
         # مزوّدٌ محلّيّ: لا بثَّ تدريجيّ عنده — يُركَّب كاملاً ويُبثّ دفعةً واحدة.
-        audio = await main._generate_speech(
-            req.text,
-            req.voice,
-            req.rate,
-            req.pitch,
-            req.volume,
-            normalize=req.normalize,
-            chosen=chosen,
-        )
+        try:
+            audio = await main._generate_speech(
+                speak_text,
+                req.voice,
+                req.rate,
+                req.pitch,
+                req.volume,
+                normalize=False,
+                chosen=chosen,
+            )
+        except Exception as e:
+            main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="stream").inc()
+            raise _local_provider_failed(chosen, e) from e
 
         async def local_stream():
-            yield audio
+            try:
+                yield audio
+            except Exception:
+                main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="stream").inc()
+                raise
+            else:
+                main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-        main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
         return StreamingResponse(local_stream(), media_type=chosen.media_type)
 
     async def audio_stream():
         voice = main.VOICES[req.voice]
         communicate = main.edge_tts.Communicate(
-            text=req.text,
+            text=speak_text,
             voice=voice,
             rate=req.rate,
             pitch=req.pitch,
             volume=req.volume,
         )
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                yield chunk["data"]
+        sent = 0
+        try:
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    sent += len(chunk["data"])
+                    yield chunk["data"]
+        except Exception as e:
+            main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="stream").inc()
+            main.logger.error(
+                f"TTS stream aborted after start: provider={chosen.name} "
+                f"bytes_sent={sent} error={type(e).__name__}"
+            )
+            raise
+        else:
+            main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-    main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
     return StreamingResponse(audio_stream(), media_type=chosen.media_type)

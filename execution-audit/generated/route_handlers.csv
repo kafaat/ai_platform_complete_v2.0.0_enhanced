@@ -754,7 +754,7 @@ sahool-platform,GET,/api/v1/erp/reconciliations,list_erp_reconciliations,service
 sahool-platform,GET,/api/v1/operations/summary,operations_summary_endpoint,services/sahool-platform/api/routers/operations.py,93
 sahool-platform,GET,/api/v1/orchard/plan,orchard_plan_endpoint,services/sahool-platform/api/routers/orchard.py,24
 sahool-platform,GET,/api/v1/orchard/economics,orchard_economics_endpoint,services/sahool-platform/api/routers/orchard.py,30
-sahool-platform,POST,/api/v1/outcome/measure,measure_decision_outcome,services/sahool-platform/api/routers/outcome.py,43
+sahool-platform,POST,/api/v1/outcome/measure,measure_decision_outcome,services/sahool-platform/api/routers/outcome.py,72
 sahool-platform,POST,/api/v1/pest-escalation/run,pest_escalation_run,services/sahool-platform/api/routers/pest_escalation.py,34
 sahool-platform,GET,/api/v1/fields/{field_id}/phenology,field_phenology,services/sahool-platform/api/routers/phenology.py,159
 sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,services/sahool-platform/api/routers/phenology.py,181
@@ -1022,10 +1022,10 @@ supervisor-agent,GET,/runtime-identity,runtime_identity,services/supervisor-agen
 tts-service,GET,/healthz,health,services/tts-service/routers/health.py,22
 tts-service,GET,/readyz,readyz,services/tts-service/routers/health.py,27
 tts-service,GET,/metrics,metrics,services/tts-service/routers/health.py,43
-tts-service,GET,/v1/tts/voices,list_voices,services/tts-service/routers/tts.py,47
-tts-service,GET,/v1/tts/status,tts_status,services/tts-service/routers/tts.py,57
-tts-service,POST,/v1/tts/synthesize,synthesize,services/tts-service/routers/tts.py,70
-tts-service,POST,/v1/tts/stream,stream,services/tts-service/routers/tts.py,156
+tts-service,GET,/v1/tts/voices,list_voices,services/tts-service/routers/tts.py,70
+tts-service,GET,/v1/tts/status,tts_status,services/tts-service/routers/tts.py,80
+tts-service,POST,/v1/tts/synthesize,synthesize,services/tts-service/routers/tts.py,93
+tts-service,POST,/v1/tts/stream,stream,services/tts-service/routers/tts.py,182
 vegetation-analysis-service,GET,/v1/analyze,analyze,services/vegetation-analysis-service/routers/analysis.py,22
 vegetation-analysis-service,GET,/v1/timeseries/{field_id},timeseries,services/vegetation-analysis-service/routers/analysis.py,46
 vegetation-analysis-service,GET,/v1/ndvi/current/{field_id},current_ndvi,services/vegetation-analysis-service/routers/analysis.py,91

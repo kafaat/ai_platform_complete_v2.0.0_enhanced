@@ -7223,6 +7223,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الأثر:** لا يُجاب سؤالا «هل تحسّنت النتيجة» و«كم يُنسَب للتدخّل»؛ ولا تكلفة لكلّ قرار.
 - **شرط الإغلاق إلى verified:** مشاهدةٌ بعد الريّ مربوطةٌ بالتنفيذ، وتصميمُ مقارنة، ومصدرُ تعرفةٍ أو طاقةٍ مقيسة.
 
+- **تقدم برمجي (2026-10-13، المصدر #1173 عند `230c8ed2`):** مقارنة وصفية لتنفيذين مقاسين ومتحقق منهما في `api/outcome_measurement.py` وواجهة الري اليدوي؛ الطاقة والكلفة غير مقاستين والأثر السببي غير مثبت. `docs/runbooks/IRRIGATION_SCENARIO_VALUE_PILOT.md` يحدد التجربة ودفتر القيمة. **الحالة تبقى open**؛ الاختبارات على رأس التكامل قيد القياس.
+
 ## IRRIGATION-SLICE-NOT-PRODUCTION-PROVEN-01 — شريحةُ الريّ اليدويّ غيرُ مُثبَتةٍ إنتاجيّاً
 <!-- gap-registry: current -->
 - **الحالة:** **open** (2026-10-06) — لم يُقدَّم في هذه الجلسة أيُّ قياسٍ إنتاجيّ.
@@ -7311,3 +7313,49 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
 - **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
 - **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
+
+## TTS-VOICE-SUCCESS-WITHOUT-PROVIDER-RECEIPT-01 — نجاح توليد الصوت لا يثبت قبول Telegram
+<!-- gap-registry: current -->
+- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). التنفيذ منقول من #1171 إلى فرع التكامل ولم يُدمج أو يُتحقق منه تشغيليًا.
+- **التتبّع التاريخي:** مصدر التنفيذ #1171 عند `b0bc2b9e7bb79a1b37ae8e1cb6624311e84346eb`؛ نقله المحلي في `11e81f2e699b63fa61d7e35d22167836aed4b1f0` مع عقد v2، لا دليل وصوله إلى main.
+- **المصدر:** `agents/notification/agent.py:154`؛ `tests_v9/test_tts_voice_delivery_receipt.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
+- **حد الحكم:** قبول مزود فقط وليس تسليمًا نهائيًا؛ لا مستدعٍ إنتاجي جديد.
+
+## TTS-CRITICAL-NUMBERS-HAVE-NO-STRUCTURED-SPEECH-01 — الكميات الحرجة تمر نصًا حرًا إلى الصوت
+<!-- gap-registry: current -->
+- **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). التنفيذ منقول من #1171 إلى فرع التكامل ولم يُدمج أو يُتحقق منه تشغيليًا.
+- **التتبّع التاريخي:** مصدر التنفيذ #1171 عند `b0bc2b9e7bb79a1b37ae8e1cb6624311e84346eb`؛ نقله المحلي في `11e81f2e699b63fa61d7e35d22167836aed4b1f0` مع عقد v2، لا دليل وصوله إلى main.
+- **المصدر:** `services/tts-service/critical_speech.py:1`؛ `tests_v9/test_tts_critical_speech.py`؛ `docs/audits/SPEECH_STORAGE_REPAIR_20261013.md`.
+- **حد الحكم:** بوابة اتساق مدخلات فقط، لا صحة زراعية ولا كشف شامل للمعنى أو ASR.
+
+## TTS-POLICY-FETCH-EXPOSES-BEARER-VIA-PROXY-OR-REDIRECT-01 — جلب سياسة TTS الحامل JWT قد يمر عبر وكيل البيئة أو إعادة توجيه
+<!-- gap-registry: current -->
+- **الحالة:** fixed في الشيفرة المنقولة محليًا؛ لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). فحص الرأس بعد استكمال التسجيل قيد التنفيذ.
+- **المصدر:** `services/tts-service/tts_tenant_policy.py:154` (`ProxyHandler({})`)؛ `agents/notification/agent.py:179` و`bots/telegram/main.py:214` (`trust_env=False`).
+- **اختبارات الانحدار:** `tests_v9/test_tts_policy_proxy_guard.py::test_policy_fetch_disables_environment_proxy`؛ `tests_v9/test_tts_voice_delivery_receipt.py::test_credential_bearing_tts_request_disables_environment_proxies`؛ `tests_v9/test_telegram_voice_audio_boundary.py::test_sender_jwt_request_disables_environment_proxies`.
+- **التتبّع:** مصدر الإصلاح التاريخي #1171 عند `8fa8dd038cd33f2491132764cd6bc6488ec62f3a`؛ المصدر الموحد المنقول عند `11e81f2e699b63fa61d7e35d22167836aed4b1f0` يحفظ عقد v2.
+- **حد الحكم:** تعطيل وكلاء البيئة على هذه الطلبات فقط؛ لا شهادة تدقيق شبكة إنتاجية أو منع كل مسارات تسرب الرموز.
+
+## VOICE-AUDIO-DOWNLOAD-UNBOUNDED-IN-TELEGRAM-CONSUMERS-01 — مستهلكا الصوت قد يستقبلان حجمًا يتجاوز 10 MiB
+<!-- gap-registry: current -->
+- **الحالة:** fixed في الشيفرة المنقولة محليًا؛ لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). فحص الرأس بعد استكمال التسجيل قيد التنفيذ.
+- **المصدر:** `agents/notification/agent.py:193` و`bots/telegram/main.py:229`؛ رفض Content-Length فوق الحد ووقف القراءة المجزأة عند تجاوزه قبل رفع الملف.
+- **اختبارات الانحدار:** `tests_v9/test_tts_voice_delivery_receipt.py::test_oversize_chunked_audio_stops_before_consuming_full_response`؛ `tests_v9/test_telegram_voice_audio_boundary.py::test_chunked_audio_over_limit_aborts_without_upload`.
+- **التتبّع:** مصدر الإصلاح التاريخي #1171 عند `8fa8dd038cd33f2491132764cd6bc6488ec62f3a`؛ المصدر الموحد المنقول عند `11e81f2e699b63fa61d7e35d22167836aed4b1f0` يحفظ عقد v2.
+- **حد الحكم:** سجل واحد للمستهلكين وحد الاستقبال؛ لا قبول WAV في مسار MP3 ولا رسالة فعلية.
+
+## TTS-STREAM-COUNTED-OK-BEFORE-COMPLETION-01 — مقاييس البث قد تحتسب النجاح قبل اكتمال النقل
+<!-- gap-registry: current -->
+- **الحالة:** fixed في الشيفرة المنقولة محليًا؛ لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). فحص الرأس بعد استكمال التسجيل قيد التنفيذ.
+- **المصدر:** `services/tts-service/routers/tts.py:210` (`local_stream`) و`:221` (`audio_stream`)؛ زيادة ok بعد استنفاد iterator وerror عند الاستثناء.
+- **اختبارات الانحدار:** `tests_v9/test_tts_piper_provider.py::test_stream_metrics_count_only_the_completed_outcome` (failure وcompletion): الحالتان خضراوان على الإصلاح وحمراوان عند إرجاع زيادة ok المبكرة من main؛ ملف Piper 32/32. فحص الرأس الكامل قيد التنفيذ.
+- **التتبّع:** مصدر الإصلاح التاريخي #1171 عند `8fa8dd038cd33f2491132764cd6bc6488ec62f3a`؛ المصدر الموحد المنقول عند `11e81f2e699b63fa61d7e35d22167836aed4b1f0` يحفظ عقد v2.
+- **حد الحكم:** اكتمال مولد البايتات لا يثبت وصول الصوت للمستلم أو الاستماع إليه؛ إلغاء الاتصال ليس قبولًا.
+
+## SPEAK-BUTTON-FAILURE-STATE-SURVIVES-A-NEW-RECOMMENDATION-01 — حالة فشل زر الصوت قد تستمر بعد تغيير التوصية
+<!-- gap-registry: current -->
+- **الحالة:** fixed في الشيفرة المنقولة محليًا؛ لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). فحص الرأس بعد استكمال التسجيل قيد التنفيذ.
+- **المصدر:** `frontend/src/components/SpeakButton.tsx:17`؛ إعادة الحالة عند تغيير النص وربط الطلب وتشغيل الصوت والأحداث بجيل التوصية.
+- **اختبارات الانحدار:** `frontend/src/components/SpeakButton.test.tsx` (`clears failure for a different recommendation` و`ignores delayed playback completion for a replaced recommendation` و`keeps new audio and its URL when old audio emits late events`).
+- **التتبّع:** مصدر الإصلاح التاريخي #1171 عند `8fa8dd038cd33f2491132764cd6bc6488ec62f3a`؛ المصدر الموحد المنقول عند `11e81f2e699b63fa61d7e35d22167836aed4b1f0` يحفظ عقد v2.
+- **حد الحكم:** اختبارات واجهة محلية؛ لا اختبار تشغيل صوت حقيقي على جهاز أو شهادة نشر.

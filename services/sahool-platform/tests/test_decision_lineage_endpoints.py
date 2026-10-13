@@ -95,7 +95,7 @@ async def test_decision_reuses_passed_id():
 
 
 async def test_outcome_links_to_decision():
-    out = measure_decision_outcome(
+    out = await measure_decision_outcome(
         req=OutcomeRequest(
             field_id="f1",
             decision_id="dec_fixed123",  # نفس معرّف القرار
@@ -129,7 +129,7 @@ async def test_full_chain_shares_one_id():
     # سلسلة كاملة بمعرّف واحد: قرار ⇒ قياس ⇒ تكيّف.
     dec = await compose_crop_decision(req=_decision_req(), user=_USER)
     did = dec["decision_id"]
-    oc = measure_decision_outcome(
+    oc = await measure_decision_outcome(
         req=OutcomeRequest(
             field_id="f1",
             decision_id=did,

@@ -24,13 +24,13 @@ _USER = UserSchema(
 )
 
 
-def test_shape_and_evaluation():
+async def test_shape_and_evaluation():
     req = OutcomeRequest(
         field_id="f1",
         planned=OutcomePlanned(recommended_irrigation_mm=100.0, predicted_stress_days=3),
         actual=OutcomeActual(actual_irrigation_mm=100.0, observed_stress_days=1),
     )
-    out = measure_decision_outcome(req=req, user=_USER)
+    out = await measure_decision_outcome(req=req, user=_USER)
     assert set(out) >= {"metrics", "success_flags", "data_completeness", "field_id"}
     assert out["field_id"] == "f1"
     by = {m["key"]: m for m in out["metrics"]}
@@ -39,12 +39,12 @@ def test_shape_and_evaluation():
     assert "stress_better" in out["success_flags"]
 
 
-def test_missing_actual_needs_data():
+async def test_missing_actual_needs_data():
     req = OutcomeRequest(
         planned=OutcomePlanned(expected_yield_t_ha=5.0),
         actual=OutcomeActual(),
     )
-    out = measure_decision_outcome(req=req, user=_USER)
+    out = await measure_decision_outcome(req=req, user=_USER)
     by = {m["key"]: m for m in out["metrics"]}
     assert by["yield"]["status"] == "needs_data"
     assert out["data_completeness"] == 0.0

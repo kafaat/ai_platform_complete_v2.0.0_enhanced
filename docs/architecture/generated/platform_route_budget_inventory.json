@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e9cf23fde57d03c3fea6c7a723333e1a95ea126ef0f74a31e10822b68aa58bba",
+  "inventory_sha256": "df57cad9e3f605f0b82d951d76f67854c4b2e96f208ae5f51b78ef43f23b9e70",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "71798e2cbf404191f00fa7188ba3470c5db309149509be7a8d7e25a9c4245381"
+    "policy_sha256": "c6d9677d07dfaa79507ae5eb71090c9b007375617beb24707f1455d200699f2a"
   },
   "routes": [
     {
@@ -4146,7 +4146,7 @@
     {
       "classification": "domain",
       "function": "measure_decision_outcome",
-      "line": 42,
+      "line": 71,
       "method": "POST",
       "path": "/api/v1/outcome/measure",
       "source": "api/routers/outcome.py"

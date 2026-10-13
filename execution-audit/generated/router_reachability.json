@@ -1576,7 +1576,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.outcome",
       "node_id": "services.sahool-platform.api.routers.outcome:router",
       "route_count": 1,
@@ -2260,7 +2260,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,
@@ -2685,7 +2685,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3da1e4281a58b09d67d21a628a5be13cba6623a4c6869673504ae0bb3bb6aada",
+  "inventory_sha256": "26a6659cf7d342feed220c9b8942999fa6582d2194a7a44054514f83c0b9ff45",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4191,7 +4191,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.outcome",
       "node_id": "services.sahool-platform.api.routers.outcome:router",
       "route_count": 1,
@@ -4871,7 +4871,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,

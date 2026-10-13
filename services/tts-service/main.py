@@ -204,6 +204,10 @@ class TTSRequest(BaseModel):
         default=None, description="Explicit TTS provider (edge_tts/piper/xtts)"
     )
     normalize: bool = Field(default=False, description="Normalize Arabic text before synthesis")
+    critical_slots: dict[str, str] | None = Field(
+        default=None,
+        description="Structured quantities and units for a critical speech template",
+    )
 
     @field_validator("voice")
     @classmethod
@@ -293,7 +297,10 @@ async def _generate_speech(
     prov = chosen or select_provider(provider, _PROVIDER_REGISTRY)
     voice = VOICES[voice_key]
     with TTS_LATENCY.labels(voice=voice_key).time():
-        return await prov.synthesize(speak_text, voice, rate, pitch, volume)
+        audio = await prov.synthesize(speak_text, voice, rate, pitch, volume)
+    if not isinstance(audio, (bytes, bytearray, memoryview)) or not audio:
+        raise RuntimeError("TTS provider returned invalid encoded audio")
+    return bytes(audio)
 
 
 # ── Endpoints ────────────────────────────────────────────────
