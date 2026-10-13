@@ -7295,3 +7295,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `migrations/apply_in_compose.sh:21` · `:26` · `:269` على main؛ مراجعةُ المالك الجنائيّة 2026-10-12.
 - **شرط الإغلاق:** السكربتُ يفشل مغلقاً حين يغيب المتغيّرُ أو يفرغ (لا قيمةَ افتراضيّة لسرّ)، ونطاقُ الحارس القائم يشمل سكربتَ المُهاجر (توسيعٌ لا حارسٌ جديد)، وتحقّقُ المالك دون كشف القيم من أنّ Production لا يستعمل القيمَ المنشورة؛ وإن ثبت استعمالُها فتدويرٌ منسَّقٌ مع الخدمات المستهلكة لا تدويرٌ عشوائيّ. والإصلاحُ يمسّ `migrations/**` فدمجُه يُطلق نشرَ المُهاجر — لا يُدمج قبل رفع التجميد.
 - **تقدّم 2026-10-12 (على فرع التكامل B `claude/wip-integration-b-runtime`، #1170، غير مدموج):** الجزءان البرمجيّان من شرط الإغلاق منفَّذان، والجزءُ الثالث يبقى للمالك فالحالةُ تبقى open. (١) `apply_in_compose.sh` بلا قيمةٍ افتراضيّة لأيّ كلمة مرور: `APP_DB_PASSWORD` و`JOBS_DB_PASSWORD` إلزاميّان بـ`:?` في وضع التطبيق وحده، قبل أوّل استدعاء psql وبعد بوّابة الإذن (فالفحصُ القرائيّ لا يحتاجهما)؛ و`ODOO_DB_PASSWORD` الغائب يجعل كلمةَ مرور `odoo_app` NULL ويُعلَن بسطر `ODOO_ROLE_PASSWORD_UNSET`، مُتحقَّقٌ على PostgreSQL 16 محلّيّ بتشغيل كتلة SQL نفسها (فارغاً: `pg_shadow.passwd IS NULL`؛ مضبوطاً: غير NULL). و`bootstrap_postgres.sh` يولّد كلمتين عشوائيّتين لحاويته المحلّيّة بدل `sahool_dev_pw` و`sahool_app_pw`. (٢) `compose_no_default_secrets_guard.py` يفحص سطحاً ثانياً مشتقّاً من git (`migrations/*.sh`) بالقاعدة نفسها؛ على السكربت القديم يُدين الأسطرَ الثلاثة، وعلى الجديد يمرّ. عشرةُ اختباراتٍ جديدة حمراء على الشيفرة السابقة وخضراء بعدها. والمكدّسان المحلّيّان يمرّران `ODOO_DB_PASSWORD` إلى المُهاجر، و`docker-compose.fixed.yml` يمرّر `INGEST_DB_PASSWORD` الذي كان غائباً عنه. (٣) للمالك: التحقّق دون كشف القيم من أنّ المتغيّرات الأربعة غيرُ فارغة في `sahool-migrate-main` بالبيئتين — فبعد الدمج يرفض المُهاجرُ التطبيقَ بدونها.
+
+## SQLITE-LIVE-BACKUP-IGNORES-WAL-01 — نسخة lite_store الخام تهمل الكتابات المثبتة في WAL
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
+- **المصدر:** `services/sahool-platform/storage/lite_store.py:727` (`backup_db`)؛ `tests_v9/test_sqlite_live_backup.py`؛ الإصلاح مأخوذٌ كما هو من #1171 (`b0bc2b9e`) في شريحةٍ لا تنشر.
+- **القياس:** اختبارات النسخ والاستعادة الـ18 (مع `test_recovery_smoke_truth.py`) حمراءُ كلُّها على شيفرة main السابقة وخضراء بعد الإصلاح.
+- **حد الحكم:** إصلاح دالة واحدة لا يثبت جرد واستعادة كل مخازن SQLite.
+
+## RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01 — فحص استعادة يقبل redirects ويخفي إخفاقات مطلوبة
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
+- **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
+- **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.

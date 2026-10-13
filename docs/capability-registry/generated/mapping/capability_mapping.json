@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5554,
+    "files_scanned": 5556,
     "files_by_kind": {
       "backend": 1221,
       "database": 282,
       "governance": 67,
       "mobile": 55,
       "other": 1569,
-      "tests": 1897,
+      "tests": 1899,
       "web": 463
     },
-    "unmapped_artifacts": 2247,
+    "unmapped_artifacts": 2249,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -44995,6 +44995,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_recovery_smoke_truth.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_redis_mandatory_in_production.py",
       "kind": "tests"
     },
@@ -45260,6 +45264,10 @@
     },
     {
       "path": "tests_v9/test_spatial_e2e_smoke.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sqlite_live_backup.py",
       "kind": "tests"
     },
     {

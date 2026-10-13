@@ -3789,3 +3789,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** A لم يمسّ أيَّ watchPattern (68 ملفّاً، صفر تطابق)، وأُثبت ذلك بعد الدمج: كلُّ نشرات Railway له SKIPPED. أمّا B فيمسّ `/migrations/**` و`/services/tts-service/**` و`/frontend/**` و`services/vegetation-analysis-service/**`، وكلُّها مراقَبةٌ في خدماتٍ تتتبّع main، فدمجُه يشغّل المُهاجر في الإنتاج أثناء تجميد الحادثة. وكلماتُ المرور الافتراضيّة في المُهاجر كانت أسراراً منشورة يأخذها `:-` إن غاب المتغيّرُ أو فرغ، والحارسُ القائم كان يفحص Compose وحده بينما الملفُّ الذي يُنفَّذ هو السكربت.
 
 **المصدر:** `3a8689f6` · PR #1169 · PR #1170 · `migrations/apply_in_compose.sh` · `migrations/bootstrap_postgres.sh` · `scripts/ci/compose_no_default_secrets_guard.py` · `tests_v9/test_apply_in_compose_fail_closed.py` · `tests_v9/test_compose_no_default_secrets_guard.py` · `MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01`.
+
+## 2026-10-13 — #1171 يُجزَّأ: شريحةٌ بلا نشر الآن، والصوتُ فوق عقد v2 لاحقاً
+
+**القرار:** تُستخلص من #1171 (`b0bc2b9e`) الملفّاتُ الخمسة التي لا تمسّ أيَّ watchPattern — `lite_store.py` و`recovery_smoke.sh` و`outbox_reliability_check.sh` واختباراها — في طلبٍ مستقلّ. ولا يُدمج #1171 كما هو، ويبقى Draft.
+
+**السبب:** سياسةُ TTS في #1171 تمنح الإذن الخارجيّ بـ`external_llm_allowed` بلا `contract_version` ولا مزوّدٍ مسمّى (`services/tts-service/tts_tenant_policy.py:77` فيه)، وهو المسار الذي أزاله قرارُ المالك في B؛ ودمجُه ينشر وكيلَ الإشعارات في البيئتين والواجهةَ في البيئتين وTTS الإنتاج أثناء تجميد الحادثة؛ ويتعارض مع B في تسعة ملفّات مصدر. أمّا نسخُ SQLite الاحتياطيّ فسليم: واجهة النسخ المباشر من اتّصال قراءة، وDELETE journal، وفحصا السلامة والمفاتيح الأجنبيّة، ونشرٌ ذرّيّ لا يستبدل.
+
+**المصدر:** PR #1171 · `b0bc2b9e` · `services/sahool-platform/storage/lite_store.py` · `tests_v9/test_sqlite_live_backup.py` · `tests_v9/test_recovery_smoke_truth.py` · `SQLITE-LIVE-BACKUP-IGNORES-WAL-01` · `RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01`.
