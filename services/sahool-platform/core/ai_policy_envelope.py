@@ -42,7 +42,10 @@ RLS-scoped reader used by the context-pack router.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger("sahool.ai_policy_envelope")
 
 ENVELOPE_VERSION = "v52"
 
@@ -216,6 +219,13 @@ async def load_tenant_ai_policy_row(conn: Any, tenant_id: Any) -> dict[str, Any]
     """
     try:
         row = await conn.fetchrow(_POLICY_SELECT_SQL, str(tenant_id))
-    except Exception:  # noqa: BLE001 - fail closed: unreadable policy ⇒ restrictive default
+    except Exception as exc:  # noqa: BLE001 - fail closed: unreadable policy ⇒ restrictive default
+        # Fail closed, but not silently: without this line an outage reads exactly like a tenant
+        # with no policy row (a normal local_only), and TTS honours it as the tenant's intent.
+        logger.warning(
+            "AI_POLICY_ROW_UNREADABLE tenant=%s error=%s ⇒ most restrictive envelope",
+            tenant_id,
+            type(exc).__name__,
+        )
         return None
     return dict(row) if row is not None else None
