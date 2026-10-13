@@ -76,7 +76,11 @@ NOT_SECRET = re.compile(r"(_KEY_ID|_KEY_FILE|_KEY_PATH|_TOKEN_URL|REQUIRE_AUTH_T
 #: كانت تقطع ``${A_PASSWORD:-${LEGACY_PASSWORD:-سرّ}}`` عند أوّل ``}`` فتقرأ الافتراضيَّ
 #: ``${LEGACY_PASSWORD:-سرّ`` ويُستثنى لأنّه يبدأ بـ``$`` — والسرُّ المنشور داخله لا يُرى
 #: (مراجعةُ #1170 بعد دمجه، مُعادٌ إنتاجُها على 18b64ed0).
-_DEFAULT_OPEN = re.compile(r"\$\{([A-Z0-9_]+):-")
+_DEFAULT_OPEN = re.compile(r"\$\{([A-Z0-9_]+)(?::?[-=])")
+#: داخل الافتراضيّ: كلُّ عاملٍ يُنتج قيمةً حرفيّة يُقرأ — ``-``/``=`` (افتراضٌ وإسناد) و``+``
+#: (بديلٌ حين يُضبط المتغيّر: ``${A:-${B:+سرّ}}`` يُسند السرَّ حين يغيب A ويُضبط B — مراجعةُ
+#: Copilot على #1175)؛ و``?`` وحده لا يُنتج قيمة (يُفشل التوسيع).
+_NESTED_OPEN = re.compile(r"\$\{([A-Za-z0-9_]+)(:?[-=+?])")
 _SHELL_NAME = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*")
 _LITERAL = re.compile(r"^\s*(?:-\s+)?([A-Z0-9_]+)\s*[:=]\s*(?!\$)(\S.*?)\s*$")
 
@@ -111,8 +115,9 @@ def _defaulted(line: str) -> list[tuple[str, str]]:
 def _literal_fallback(default: str) -> str:
     """النصُّ الذي يبلغ المتغيّرَ حين يغيب كلُّ متغيّرٍ متداخل.
 
-    ``${X:-d}`` يُسهم بحرفيِّ ``d`` نفسِه (تكراراً)، وأيُّ توسيعٍ آخر (``${X}`` · ``${X:?…}`` ·
-    ``$X`` · ``$(…)``) لا يُسهم بشيء: قيمتُه تُحسب وقتَ التشغيل لا تُكتب في المستودع.
+    ``${X:-d}`` و``${X-d}`` و``${X:=d}`` و``${X=d}`` و``${X:+d}`` و``${X+d}`` تُسهم بحرفيِّ ``d``
+    (تكراراً)، وأيُّ توسيعٍ آخر (``${X}`` · ``${X:?…}`` · ``$X`` · ``$(…)``) لا يُسهم بشيء:
+    قيمتُه تُحسب وقتَ التشغيل لا تُكتب في المستودع.
     """
     out = []
     i = 0
@@ -121,8 +126,8 @@ def _literal_fallback(default: str) -> str:
             end = _close(default, i + 2, "{", "}")
             if end is None:
                 return default[i:]
-            inner = _DEFAULT_OPEN.match(default, i)
-            if inner:
+            inner = _NESTED_OPEN.match(default, i)
+            if inner and not inner.group(2).endswith("?"):
                 out.append(_literal_fallback(default[inner.end() : end - 1]))
             i = end
         elif default.startswith("$(", i):
