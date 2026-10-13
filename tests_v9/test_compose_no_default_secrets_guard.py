@@ -142,6 +142,47 @@ def test_a_computed_default_is_not_a_published_secret(tmp_path, monkeypatch):
     assert keys == []
 
 
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        # مراجعةُ #1170: الحرفيُّ داخل افتراضيٍّ متداخل كان يُستثنى لأنّ ما قُرئ يبدأ بـ`$`.
+        (
+            'APP_PASSWORD="${APP_DB_PASSWORD:-${LEGACY_PASSWORD:-published-secret}}"\n',
+            ["migrations/probe.sh::APP_DB_PASSWORD", "migrations/probe.sh::LEGACY_PASSWORD"],
+        ),
+        # والمتغيّرُ الداخليّ ليس اسمَ سرّ: السرُّ المنشور يبلغ الخارجيَّ مع ذلك.
+        (
+            'X="${APP_DB_PASSWORD:-${FOO:-published-secret}}"\n',
+            ["migrations/probe.sh::APP_DB_PASSWORD"],
+        ),
+        ('X="${APP_DB_PASSWORD:-${A:-${B:-deep}}}"\n', ["migrations/probe.sh::APP_DB_PASSWORD"]),
+        ('X="${APP_DB_PASSWORD:-prefix${OTHER}}"\n', ["migrations/probe.sh::APP_DB_PASSWORD"]),
+        # كلُّ عاملٍ يُنتج قيمةً يُقرأ داخل الافتراضيّ (مراجعةُ Copilot على #1175): `:+`/`+` بديلٌ
+        # حين يُضبط الداخليّ، و`=`/`-` بلا نقطتين افتراضٌ أيضاً.
+        (
+            'X="${APP_DB_PASSWORD:-${LEGACY_PASSWORD:+published-secret}}"\n',
+            ["migrations/probe.sh::APP_DB_PASSWORD"],
+        ),
+        (
+            'X="${APP_DB_PASSWORD:-${OTHER+published-secret}}"\n',
+            ["migrations/probe.sh::APP_DB_PASSWORD"],
+        ),
+        (
+            'X="${APP_DB_PASSWORD:-${OTHER:=published-secret}}"\n',
+            ["migrations/probe.sh::APP_DB_PASSWORD"],
+        ),
+        ('X="${APP_DB_PASSWORD-published-secret}"\n', ["migrations/probe.sh::APP_DB_PASSWORD"]),
+        ('X="${APP_DB_PASSWORD:=published-secret}"\n', ["migrations/probe.sh::APP_DB_PASSWORD"]),
+        # ما يُحسَب وقتَ التشغيل يبقى مقبولاً على كلّ عمق.
+        ('X="${APP_DB_PASSWORD:-${OTHER_PASSWORD:-$(_random_pw)}}"\n', []),
+        ('X="${APP_DB_PASSWORD:-$OTHER}"\n', []),
+        ('X="${APP_DB_PASSWORD:-${OTHER:?required}}"\n', []),
+    ],
+)
+def test_a_nested_default_is_read_to_its_innermost_literal(tmp_path, monkeypatch, line, expected):
+    assert sorted(_shell_probe(tmp_path, monkeypatch, line)) == expected
+
+
 # ── العقد نفسه ───────────────────────────────────────────────────────────────
 
 
