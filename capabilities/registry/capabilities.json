@@ -4653,7 +4653,6 @@
       "mobile_consumers": [],
       "tests": [
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
-        "tests_v9/test_tts_voice_delivery_receipt.py",
         "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py"
       ],
       "runtime": {
@@ -4662,7 +4661,6 @@
         "receipts": [
           "receipt:api:POST_/v1/execution-requests/{execution_request_id}/receipt",
           "receipt:test:services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
-          "receipt:test:tests_v9/test_tts_voice_delivery_receipt.py",
           "receipt:test:tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py"
         ],
         "audit_events": []
@@ -4673,7 +4671,7 @@
           "path": "services/decision-service/migrations/006_execution_delivery_receipt.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

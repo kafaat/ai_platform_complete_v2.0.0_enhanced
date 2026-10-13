@@ -341,4 +341,3 @@ def test_dec006_links_execution_receipts_not_a_voice_provider_receipt() -> None:
         assert linker.score_file(path, tokens, "DEC-006") >= threshold, path
     voice = "tests_v9/test_tts_voice_delivery_receipt.py"
     assert linker.score_file(voice, tokens, "DEC-006") < threshold
-
