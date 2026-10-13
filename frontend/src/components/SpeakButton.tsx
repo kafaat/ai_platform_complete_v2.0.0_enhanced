@@ -14,7 +14,9 @@ export default function SpeakButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [unavailable, setUnavailable] = useState(false);
+  const [failedText, setFailedText] = useState<string | null>(null);
+  const unavailable = failedText === text;
+  const generationRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
 
@@ -28,12 +30,18 @@ export default function SpeakButton({
   };
 
   useEffect(() => {
-    // تنظيف عند إزالة المكوّن.
+    generationRef.current += 1;
+    audioRef.current?.pause();
+    cleanup();
+    setLoading(false);
+    setPlaying(false);
+    setFailedText(null);
     return () => {
+      generationRef.current += 1;
       audioRef.current?.pause();
       cleanup();
     };
-  }, []);
+  }, [text]);
 
   const speak = async () => {
     if (playing) {
@@ -43,10 +51,12 @@ export default function SpeakButton({
       return;
     }
     if (!text.trim() || loading) return;
-    setUnavailable(false);
+    setFailedText(null);
     setLoading(true);
+    const generation = ++generationRef.current;
     try {
       const blob = await synthesizeSpeech(text);
+      if (generation !== generationRef.current) return;
       cleanup();
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
@@ -58,18 +68,19 @@ export default function SpeakButton({
       };
       audio.onerror = () => {
         setPlaying(false);
-        setUnavailable(true);
+        if (generation !== generationRef.current) return;
+        setFailedText(text);
         cleanup();
       };
       await audio.play();
       setPlaying(true);
     } catch {
-      // Keep the written recommendation available when speech is blocked or fails.
+      if (generation !== generationRef.current) return;
       cleanup();
       setPlaying(false);
-      setUnavailable(true);
+      setFailedText(text);
     } finally {
-      setLoading(false);
+      if (generation === generationRef.current) setLoading(false);
     }
   };
 
