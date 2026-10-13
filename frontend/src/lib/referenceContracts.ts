@@ -189,12 +189,12 @@ function cropsFromMap(
 ): DesertCrop[] {
   if (!isRecord(map))
     throw new ApiShapeError(endpoint, "خريطةَ «محصول ← تقييم»");
-  return Object.entries(map).map(([name, rating]) => ({
-    crop: name,
-    name_ar: name,
-    rating: typeof rating === "string" ? rating : undefined,
-    category,
-  }));
+  return Object.entries(map).map(([name, rating]) => {
+    // تقييمٌ غيرُ نصّيّ عطلُ شكلٍ من الخادم كغيره — لا يُخفى بـundefined فيظهر صفّاً سليماً.
+    if (typeof rating !== "string")
+      throw new ApiShapeError(endpoint, `تقييماً نصّيّاً للمحصول «${name}»`);
+    return { crop: name, name_ar: name, rating, category };
+  });
 }
 
 /** ``{crops:{…}}`` لفئةٍ واحدة، أو ``{all_categories:{trees_ar:{…},…}}`` للكلّ. */

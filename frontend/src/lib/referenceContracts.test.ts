@@ -191,6 +191,18 @@ describe("النظائر المناخيّة", () => {
     expect(() => parseDesertCrops(body)).toThrow(ApiShapeError);
   });
 
+  it.each([42, null, { level: "ممتاز" }])(
+    "تقييمٌ غيرُ نصّيّ (%j) خطأٌ صريح لا صفٌّ بلا تقييم",
+    (rating) => {
+      expect(() => parseDesertCrops({ crops: { النخيل: rating } })).toThrow(
+        ApiShapeError,
+      );
+      expect(() =>
+        parseDesertCrops({ all_categories: { trees_ar: { النخيل: rating } } }),
+      ).toThrow(ApiShapeError);
+    },
+  );
+
   it("crops ليست خريطة ⇒ خطأ", () => {
     expect(() => parseDesertCrops({ crops: ["النخيل"] })).toThrow(
       ApiShapeError,
