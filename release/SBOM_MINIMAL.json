@@ -24115,7 +24115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc3d9ecb638861825cea0cbf08c895609018d17a93cd3e49ec72ed6726eac577"
+          "content": "d4f0de4cb2bcc74480c59fb9dec916cfde0df4eefcaea835c63969bd794a81f0"
         }
       ],
       "name": "services/sahool-platform/storage/lite_store.py",

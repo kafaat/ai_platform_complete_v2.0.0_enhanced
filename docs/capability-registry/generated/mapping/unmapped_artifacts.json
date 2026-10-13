@@ -8408,6 +8408,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recovery_smoke_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_redis_mandatory_in_production.py",
     "kind": "tests"
   },
@@ -8673,6 +8677,10 @@
   },
   {
     "path": "tests_v9/test_spatial_e2e_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sqlite_live_backup.py",
     "kind": "tests"
   },
   {

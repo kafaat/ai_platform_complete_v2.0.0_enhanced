@@ -3762,3 +3762,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** الحارسُ كان يقبل `quay.io/minio/minio` و`bitnami/minio` وفحصاً بـwget أو بـcurl على مسارٍ غير `minio/health` — وكلُّها تفشل على آلةٍ جديدة أو تُبقي الخادم unhealthy. و`quay.io/minio/minio` مُدرَجٌ عمداً في `KEPT_FORMS` لأنّه ليس محذوفاً بل يشترط الدخول، فالرفضُ الصادق له «ليس الإبرة» لا «محذوف». مقيسٌ على حارس main (`32a000bd`): 19 من 23 اختباراً جديداً أحمر، ستّةٌ منها سلوكيّة؛ بعد التغيير 51/51. والقالبُ قبل #1139 ضبط المتغيّرين صراحةً على المستودعين المحذوفين، و`.env` المنسوخ منه يغلب الافتراضيّ ولا يتتبّعه git فلا يراه CI — فموضعُ فحصه الطبيبُ الذي يُشغّله المشغّل قبل compose.
 
 **المصدر:** `scripts/ci/minio_s3_contract_gate.py` · `tests_v9/test_minio_image_source.py` · `scripts/runtime/env_doctor.py` · `tests/runtime/test_phase17_runtime_bootstrap_doctor.py` · `MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01` · فرع `claude/wip-minio-guard-provenance` على `32a000bd`.
+
+## 2026-10-13 — #1171 يُجزَّأ: شريحةٌ بلا نشر الآن، والصوتُ فوق عقد v2 لاحقاً
+
+**القرار:** تُستخلص من #1171 (`b0bc2b9e`) الملفّاتُ الخمسة التي لا تمسّ أيَّ watchPattern — `lite_store.py` و`recovery_smoke.sh` و`outbox_reliability_check.sh` واختباراها — في طلبٍ مستقلّ. ولا يُدمج #1171 كما هو، ويبقى Draft.
+
+**السبب:** سياسةُ TTS في #1171 تمنح الإذن الخارجيّ بـ`external_llm_allowed` بلا `contract_version` ولا مزوّدٍ مسمّى (`services/tts-service/tts_tenant_policy.py:77` فيه)، وهو المسار الذي أزاله قرارُ المالك في B؛ ودمجُه ينشر وكيلَ الإشعارات في البيئتين والواجهةَ في البيئتين وTTS الإنتاج أثناء تجميد الحادثة؛ ويتعارض مع B في تسعة ملفّات مصدر. أمّا نسخُ SQLite الاحتياطيّ فسليم: واجهة النسخ المباشر من اتّصال قراءة، وDELETE journal، وفحصا السلامة والمفاتيح الأجنبيّة، ونشرٌ ذرّيّ لا يستبدل.
+
+**المصدر:** PR #1171 · `b0bc2b9e` · `services/sahool-platform/storage/lite_store.py` · `tests_v9/test_sqlite_live_backup.py` · `tests_v9/test_recovery_smoke_truth.py` · `SQLITE-LIVE-BACKUP-IGNORES-WAL-01` · `RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01`.
