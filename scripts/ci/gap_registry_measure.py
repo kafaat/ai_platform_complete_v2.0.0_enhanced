@@ -324,6 +324,25 @@ def measure(text: str) -> dict:
         for gap_id, entries in sorted(cross_sources.items())
         if len({entry["state"] for entry in entries}) > 1
     }
+    # تنبيه Gap Watch (2026-10-13) بعد دمج #1172: ``row_state_counts`` يعدّ صفوفَ الجداول وحدها،
+    # فالفجوةُ المسجَّلة في قسمٍ بلا صفّ (``SQLITE-LIVE-BACKUP-IGNORES-WAL-01`` مثلاً) لا تدخل أيَّ
+    # عدّادٍ بالحالة — ``section_state_count`` عددُ سطورٍ لا معرّفات. هنا كلُّ معرِّفٍ مرّةً واحدة
+    # من المصادر نفسِها التي يقرؤها فحصُ التعارض أعلاه: حالةٌ واحدة ⇒ هي، وأكثرُ ⇒ ``conflicting``،
+    # وسجلٌّ بلا حالةٍ مفهومة ⇒ ``unclassified``. حقلٌ جديد، لا تغييرَ لمعنى ``row_state_counts``.
+    recorded_ids = {row["id"] for row in gap_rows} | {
+        item["id"] for item in section_states if item.get("kind", "gap") == "gap"
+    }
+    gap_id_states = {
+        gap_id: (
+            "unclassified"
+            if not cross_sources.get(gap_id)
+            else "conflicting"
+            if len({entry["state"] for entry in cross_sources[gap_id]}) > 1
+            else cross_sources[gap_id][0]["state"]
+        )
+        for gap_id in recorded_ids
+    }
+    section_only_ids = sorted(recorded_ids - {row["id"] for row in gap_rows})
     non_state_rows = [row for row in rows if row["kind"] != "gap"]
     counts = Counter(row["state"] or "unclassified" for row in gap_rows)
 
@@ -397,6 +416,10 @@ def measure(text: str) -> dict:
         "annotation_errors": annotation_errors,
         "heading_count": len(headings),
         "row_state_counts": dict(sorted(counts.items())),
+        "gap_id_count": len(gap_id_states),
+        "gap_id_state_counts": dict(sorted(Counter(gap_id_states.values()).items())),
+        "section_only_gap_ids": section_only_ids,
+        "section_only_gap_id_count": len(section_only_ids),
         "unclassified_rows": [row for row in gap_rows if row["state"] is None],
         "duplicate_heading_ids": duplicates,
         "duplicate_heading_id_count": len(duplicates),

@@ -7311,3 +7311,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
 - **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
 - **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
+
+## GAP-REGISTRY-STATE-COUNTS-OMIT-SECTION-ONLY-GAPS-01 — عدّادُ الحالات يقرأ صفوفَ الجداول وحدها
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified — الإصلاح `714ebc35` في PR #1175 (الأساس `18b64ed0`، 2026-10-13).
+- **المصدر:** `scripts/ci/gap_registry_measure.py` (`row_state_counts`)؛ تنبيه Gap Watch بعد دمج #1172.
+- **القياس على `18b64ed0`:** `row_state_counts` = fixed 282 · open 114 · verified 3 (399 صفّاً)، بينما المعرّفاتُ الفريدة في الصفوف والأقسام 514، منها 115 في أقسامٍ بلا صفّ — أي 78 fixed و37 open خارج كلّ عدٍّ بالحالة، ومنها `SQLITE-LIVE-BACKUP-IGNORES-WAL-01` و`RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01`.
+- **الإصلاح:** حقولٌ جديدة `gap_id_count` و`gap_id_state_counts` و`section_only_gap_ids` تعدّ كلَّ معرِّفٍ مرّةً من مصادر فحص التعارض نفسِها (حالةٌ واحدة ⇒ هي، وأكثرُ ⇒ `conflicting`، وبلا حالةٍ مفهومة ⇒ `unclassified`)؛ معنى `row_state_counts` لم يتغيّر. اختبارا `tests/architecture/test_gap_registry_measure.py` الجديدان أحمران على الشيفرة السابقة وأخضران بعدها.
+- **حد الحكم:** حقلٌ في التقرير لا بوّابةٌ حاجبة؛ ولا يقرّر أيُّ العدّادين يُنقل في الملخّصات.
+
+## COMPOSE-SECRET-GUARD-SKIPS-NESTED-DEFAULT-LITERALS-01 — حارسُ الأسرار يستثني الحرفيَّ داخل افتراضيٍّ متداخل
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified — الإصلاح `2a1b0383` + `3f300e62` في PR #1175 (الأساس `18b64ed0`، 2026-10-13).
+- **المصدر:** `scripts/ci/compose_no_default_secrets_guard.py` (`_DEFAULTED` = `\$\{([A-Z0-9_]+):-([^}]*)\}` واستثناءُ ما يبدأ بـ`$`)؛ مراجعةُ #1170 بعد دمجه.
+- **العطل (مُعادٌ إنتاجُه):** `${APP_DB_PASSWORD:-${LEGACY_PASSWORD:-published-secret}}` ⇒ صفرُ نتائج: النمطُ يقطع عند أوّل `}` فيقرأ الافتراضيَّ `${LEGACY_PASSWORD:-published-secret` ويستثنيه لأنّه يبدأ بـ`$`، والتطابقُ الداخليّ مستهلَكٌ فلا يُرى.
+- **الإصلاح:** الافتراضيُّ يُقرأ بأقواسٍ متوازنة، وكلُّ `${NAME:-` يُفحص ولو متداخلاً، ويُحكم على الحرفيّ الذي يبلغ المتغيّرَ حين يغيب الكلّ؛ ما يُحسب وقتَ التشغيل (`$(…)` · `$X` · `${X}` · `${X:?…}`) يبقى مقبولاً. سبعُ حالاتٍ جديدة، ثلاثٌ منها حمراء على الشيفرة السابقة. الشجرةُ الحيّة: PASS بلا نتيجةٍ جديدة والاستثناءاتُ الـ11 كما هي.
+- **حد الحكم:** قراءةٌ نصّيّة لصيغة Bash/Compose لا مُفسِّرٌ كامل؛ الاقتباسُ المتداخل والهروبُ خارجها.
+- **توسيعٌ بعد مراجعة Copilot على #1175 (`3f300e62`):** التداخلُ كان يُتبَع لـ`:-` وحده، فـ`${APP_DB_PASSWORD:-${LEGACY_PASSWORD:+published-secret}}` يمرّ. الآن داخل الافتراضيّ `:-`/`-`/`:=`/`=`/`:+`/`+` تُسهم بحرفيِّها و`?` لا، والافتراضيُّ الخارجيّ يشمل `-`/`=`/`:=`؛ خمسُ حالاتٍ جديدة حمراء على `b7086375`، والشجرةُ الحيّة PASS بلا جديد.
