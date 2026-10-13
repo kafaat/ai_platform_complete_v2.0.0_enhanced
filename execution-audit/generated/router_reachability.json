@@ -1468,7 +1468,7 @@
     },
     {
       "kind": "router",
-      "line": 24,
+      "line": 22,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -1576,7 +1576,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.outcome",
       "node_id": "services.sahool-platform.api.routers.outcome:router",
       "route_count": 1,
@@ -2260,7 +2260,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,
@@ -2560,7 +2560,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 58,
+      "line": 55,
       "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "prefix": null,
       "resolved": false,
@@ -2685,7 +2685,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "c75c46fea04acb0903f2c1b4bbb2e64dbcba0de763cc1a38e7c8d37a599d9e9c",
+  "inventory_sha256": "26a6659cf7d342feed220c9b8942999fa6582d2194a7a44054514f83c0b9ff45",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4071,7 +4071,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 24,
+      "line": 22,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -4191,7 +4191,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 28,
       "module": "services.sahool-platform.api.routers.outcome",
       "node_id": "services.sahool-platform.api.routers.outcome:router",
       "route_count": 1,
@@ -4871,7 +4871,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.tts-service.routers.tts",
       "node_id": "services.tts-service.routers.tts:router",
       "route_count": 4,
@@ -5139,7 +5139,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
-      "line": 58,
+      "line": 55,
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"

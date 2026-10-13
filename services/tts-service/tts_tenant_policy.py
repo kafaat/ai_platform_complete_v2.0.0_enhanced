@@ -37,6 +37,7 @@ import urllib.request
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlsplit
 
 logger = logging.getLogger("tts.tenant_policy")
 
@@ -52,6 +53,7 @@ SERVICE_TENANT = "__service__"
 POLICY_BLOCKED_ERROR = "local_provider_unavailable_for_policy"
 
 _TIMEOUT_SECONDS = 3.0
+_MAX_RESPONSE_BYTES = 64 * 1024
 
 #: أدنى رقمِ عقدٍ يحمل إذنَ TTS المنفصل (``core/ai_policy_envelope.ENVELOPE_CONTRACT_VERSION``).
 TTS_CONTRACT_VERSION = 2
@@ -122,12 +124,41 @@ def policy_mode_from_me(payload: Any, tenant_id: str) -> str:
     return policy_from_me(payload, tenant_id).mode
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # Never forward a user's bearer token to a redirected policy endpoint.
+        raise RuntimeError("platform policy redirects are forbidden")
+
+
+def _policy_url(base: str) -> str:
+    parts = urlsplit(base)
+    if (
+        parts.scheme not in {"http", "https"}
+        or not parts.hostname
+        or parts.username is not None
+        or parts.password is not None
+        or parts.path not in {"", "/"}
+        or parts.query
+        or parts.fragment
+        or any(char.isspace() for char in base)
+        or "\\" in base
+    ):
+        raise ValueError("PLATFORM_API_URL must be an HTTP(S) origin")
+    # Force validation of malformed/out-of-range ports before sending credentials.
+    _ = parts.port
+    return f"{parts.scheme}://{parts.netloc}/api/v1/me"
+
+
 def _get_json(url: str, authorization: str) -> dict[str, Any]:
     request = urllib.request.Request(url, headers={"Authorization": authorization})
-    with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:  # noqa: S310 - عنوانٌ داخليّ من الإعداد
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
+    with opener.open(request, timeout=_TIMEOUT_SECONDS) as response:  # noqa: S310 - validated operator-configured origin
         if response.status != 200:
             raise RuntimeError(f"platform /me returned {response.status}")
-        return json.loads(response.read().decode("utf-8"))
+        raw = response.read(_MAX_RESPONSE_BYTES + 1)
+        if len(raw) > _MAX_RESPONSE_BYTES:
+            raise RuntimeError("platform policy response exceeds size limit")
+        return json.loads(raw.decode("utf-8"))
 
 
 async def _fetch_me(url: str, authorization: str) -> dict[str, Any]:
@@ -146,11 +177,11 @@ async def resolve_policy(
         return LOCAL_ONLY_POLICY
     if not authorization or not authorization.lower().startswith("bearer "):
         return LOCAL_ONLY_POLICY
-    base = os.getenv("PLATFORM_API_URL", "").strip().rstrip("/")
+    base = os.getenv("PLATFORM_API_URL", "").strip()
     if not base:
         return LOCAL_ONLY_POLICY
     try:
-        payload = await (fetch or _fetch_me)(f"{base}/api/v1/me", authorization)
+        payload = await (fetch or _fetch_me)(_policy_url(base), authorization)
     except Exception as exc:  # noqa: BLE001 - تعذّر القراءة ⇒ الأشدّ، لا قيمةٌ سابقة
         logger.warning("tenant policy unavailable (fail-closed local_only): %s", exc)
         return LOCAL_ONLY_POLICY

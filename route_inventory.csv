@@ -785,7 +785,7 @@ sahool-platform,services/sahool-platform/api/routers/operational_truth.py,305,GE
 sahool-platform,services/sahool-platform/api/routers/operations.py,93,GET,/api/v1/operations/summary,operations_summary_endpoint
 sahool-platform,services/sahool-platform/api/routers/orchard.py,24,GET,/api/v1/orchard/plan,orchard_plan_endpoint
 sahool-platform,services/sahool-platform/api/routers/orchard.py,30,GET,/api/v1/orchard/economics,orchard_economics_endpoint
-sahool-platform,services/sahool-platform/api/routers/outcome.py,43,POST,/api/v1/outcome/measure,measure_decision_outcome
+sahool-platform,services/sahool-platform/api/routers/outcome.py,72,POST,/api/v1/outcome/measure,measure_decision_outcome
 sahool-platform,services/sahool-platform/api/routers/pest_escalation.py,34,POST,/api/v1/pest-escalation/run,pest_escalation_run
 sahool-platform,services/sahool-platform/api/routers/phenology.py,159,GET,/api/v1/fields/{field_id}/phenology,field_phenology
 sahool-platform,services/sahool-platform/api/routers/phenology.py,181,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions
@@ -1057,10 +1057,10 @@ tts-service,services/tts-service/routers/health.py,22,GET,/healthz,health
 tts-service,services/tts-service/routers/health.py,22,GET,/health,health
 tts-service,services/tts-service/routers/health.py,27,GET,/readyz,readyz
 tts-service,services/tts-service/routers/health.py,43,GET,/metrics,metrics
-tts-service,services/tts-service/routers/tts.py,47,GET,/v1/tts/voices,list_voices
-tts-service,services/tts-service/routers/tts.py,57,GET,/v1/tts/status,tts_status
-tts-service,services/tts-service/routers/tts.py,70,POST,/v1/tts/synthesize,synthesize
-tts-service,services/tts-service/routers/tts.py,156,POST,/v1/tts/stream,stream
+tts-service,services/tts-service/routers/tts.py,70,GET,/v1/tts/voices,list_voices
+tts-service,services/tts-service/routers/tts.py,80,GET,/v1/tts/status,tts_status
+tts-service,services/tts-service/routers/tts.py,93,POST,/v1/tts/synthesize,synthesize
+tts-service,services/tts-service/routers/tts.py,182,POST,/v1/tts/stream,stream
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,22,GET,/v1/analyze,analyze
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,46,GET,/v1/timeseries/{field_id},timeseries
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,91,GET,/v1/ndvi/current/{field_id},current_ndvi
