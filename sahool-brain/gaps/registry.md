@@ -7316,7 +7316,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## REFERENCE-CROPS-PARSER-HIDES-NON-STRING-RATING-01 — محلّلُ المحاصيل يُخفي تقييماً غيرَ نصّيّ
 <!-- gap-registry: current -->
-- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا نشر؛ الأساس `18b64ed0` (2026-10-13).
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified؛ الأساس `18b64ed0` (2026-10-13). دخل main في `b62c0533` (PR #1177، squash 2026-10-13T22:45Z بموافقة المالك على `819b3251`؛ CI أخضر: 70 ناجحاً · 2 متخطّى)، ونُشرت الواجهة SUCCESS في الإنتاج (`bc2489ed`) وstaging (`e53d3783`) — النشرُ ليس تحقّقاً.
 - **المصدر:** `frontend/src/lib/referenceContracts.ts` (`cropsFromMap`)؛ مراجعةُ #1170 بعد دمجه.
 - **العطل:** تقييمٌ غيرُ نصّيّ (`{crops:{النخيل:42}}`) كان يصير `undefined` فيُعرض صفّاً سليماً بلا تقييم، والوحدةُ وُضعت لتُظهر أشكالَ الخادم غيرَ المتوقّعة بـ`ApiShapeError`. الخادمُ الحاليّ (`desert_proven_crops`) يُعيد كلَّ تقييمٍ نصّاً، فالتشديدُ لا يكسر استجابةً قائمة.
 - **الإصلاح:** تقييمٌ غيرُ نصّيّ ⇒ `ApiShapeError` في الفئة الواحدة والكلّ؛ ثلاثُ حالاتٍ جديدة (42 · null · كائن) حمراءُ على الشيفرة السابقة وخضراء بعدها (44/44).
@@ -7324,7 +7324,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## TENANT-AI-POLICY-OUTAGE-INDISTINGUISHABLE-FROM-NO-POLICY-01 — عطلُ قراءة سياسة المستأجِر يُعاد local_only صامتاً
 <!-- gap-registry: current -->
-- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا نشر؛ الأساس `18b64ed0` (2026-10-13).
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا نشر؛ الأساس `18b64ed0` (2026-10-13). دخل main في `b62c0533` (PR #1177، squash 2026-10-13T22:45Z بموافقة المالك على `819b3251`؛ CI أخضر: 70 ناجحاً · 2 متخطّى)؛ ولا نشرَ لخدمة المنصّة لهذا الالتزام في أيٍّ من البيئتين (قائمةُ نشرات Railway للدمج، قراءةً فقط).
 - **المصدر:** `services/sahool-platform/core/ai_policy_envelope.py` (`load_tenant_ai_policy_row`) · `services/sahool-platform/api/routers/me.py`؛ مراجعةُ #1170 بعد دمجه.
 - **العطل:** المُحمِّل يبتلع خطأَ الاستعلام ويُعيد `None`، والموجِّه يبتلع خطأَ الاتّصال؛ فانقطاعُ القاعدة يُعاد 200 `local_only` بلا سجلٍّ ولا مقياس، مطابقاً لمستأجِرٍ بلا صفّ، ويعامله TTS سياسةً مقصودة.
 - **الإصلاح:** الإغلاقُ باقٍ (`local_only`)، ويُكتب تحذيرٌ مسمّى: `AI_POLICY_ROW_UNREADABLE` لعطل الاستعلام و`AI_POLICY_CONNECTION_UNAVAILABLE` لعطل الاتّصال، بنوع الخطأ لا نصّه. ثلاثةُ اختبارات: العطلان يُسجَّلان (أحمران على الشيفرة السابقة)، وغيابُ الصفّ لا يُسجَّل عطلاً.

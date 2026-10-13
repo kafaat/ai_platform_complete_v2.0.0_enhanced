@@ -3840,3 +3840,11 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** تنبيهُ Gap Watch (2026-10-14 01:12 عدن) — السجلُّ على main يناقض الواقع المقيس. والترقيةُ إلى verified تتطلّب دليلاً حيّاً لا دمجاً (قاعدةُ الدماغ). و`/healthz` يُعيد `ok` بلا شرط (`agents/notification/agent.py:823-826`) فنجاحُه لا يقيس ربطَ المستهلكين التسعة.
 
 **المصدر:** PR #1176 · `a0c5c920` · PR #1178 · نشرا Railway staging `b889bd1e` و`a3caad64` · `NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01`.
+
+## 2026-10-14 — دمج #1177 (محلّلُ المحاصيل وتسجيلُ عطل سياسة المستأجِر)
+
+**القرار:** دُمج #1177 (squash `b62c0533`) بموافقة المالك الصريحة على الرأس `819b3251`، مع علمه أنّ الدمج ينشر الواجهة في البيئتين.
+
+**السبب:** CI أخضر على الرأس (70 ناجحاً · 2 متخطّى؛ الإخفاقاتُ الثلاثة قبلها حدُّ 429 على ECR قبل أيّ اختبار) وpreflight 0/0؛ وخطرُ رمي `ApiShapeError` على الصفحة الحيّة مُستبعَدٌ بالقياس: `desert_proven_crops` يُعيد جدولاً ثابتاً كلُّ تقييماته نصوص (`services/sahool-platform/api/climate_analogs.py:268`).
+
+**المصدر:** PR #1177 · `b62c0533` · نشرا Railway `bc2489ed` و`e53d3783` · `REFERENCE-CROPS-PARSER-HIDES-NON-STRING-RATING-01` · `TENANT-AI-POLICY-OUTAGE-INDISTINGUISHABLE-FROM-NO-POLICY-01`.
