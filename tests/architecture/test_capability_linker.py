@@ -322,3 +322,22 @@ def test_the_declaration_field_is_allowed_by_the_registry_schema() -> None:
     props = schema["$defs"]["capability"]["properties"]
     assert "evidence_truncated" in props, "الرابط يكتب حقلاً لا يُصرّح به المخطَّط"
     assert props["evidence_truncated"]["additionalProperties"]["type"] == "integer"
+
+
+def test_dec006_links_execution_receipts_not_a_voice_provider_receipt() -> None:
+    """DEC-006 إيصالُ طلب التنفيذ في خدمة القرار، لا إيصالُ مزوّد الصوت (مراجعة Copilot على #1176).
+
+    كان الرمزُ ``delivery-receipt`` يطابق ``tests_v9/test_tts_voice_delivery_receipt.py``
+    فيُضخّم أدلّةَ DEC-006 باختبارٍ لا يمسّ مسارَ التنفيذ. شهودُ التنفيذ تبقى مربوطة.
+    """
+    linker = _load_module()
+    tokens = linker.RULES["DEC-006"]["tokens"]
+    threshold = 2
+    execution_witnesses = [
+        "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+        "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py",
+    ]
+    for path in execution_witnesses:
+        assert linker.score_file(path, tokens, "DEC-006") >= threshold, path
+    voice = "tests_v9/test_tts_voice_delivery_receipt.py"
+    assert linker.score_file(voice, tokens, "DEC-006") < threshold

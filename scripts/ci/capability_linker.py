@@ -191,8 +191,11 @@ RULES: dict[str, dict[str, list[str]]] = {
         "tokens": ["dispatch-authorization", "dispatch_authorization", "dispatch"],
         "services": ["decision-service"],
     },
+    # «delivery-receipt» وحده كان يطابق إيصالَ مزوّد الصوت (test_tts_voice_delivery_receipt.py)
+    # فيُنسَب إلى إيصال طلب التنفيذ — DEC-006 هو POST /v1/execution-requests/{id}/receipt فقط
+    # (domains/decision.yaml؛ مراجعةُ Copilot على #1176). المقيَّد يُبقي شهودَ التنفيذ كلَّها.
     "DEC-006": {
-        "tokens": ["execution-receipt", "execution_receipt", "delivery-receipt"],
+        "tokens": ["execution-receipt", "execution_receipt", "execution-delivery-receipt"],
         "services": ["decision-service"],
     },
     "DEC-007": {"tokens": ["outcome", "outcome-record"], "services": ["decision-service"]},
