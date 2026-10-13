@@ -7359,3 +7359,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **اختبارات الانحدار:** `frontend/src/components/SpeakButton.test.tsx` (`clears failure for a different recommendation` و`ignores delayed playback completion for a replaced recommendation` و`keeps new audio and its URL when old audio emits late events`).
 - **التتبّع:** مصدر الإصلاح التاريخي #1171 عند `8fa8dd038cd33f2491132764cd6bc6488ec62f3a`؛ المصدر الموحد المنقول عند `11e81f2e699b63fa61d7e35d22167836aed4b1f0` يحفظ عقد v2.
 - **حد الحكم:** اختبارات واجهة محلية؛ لا اختبار تشغيل صوت حقيقي على جهاز أو شهادة نشر.
+
+## TTS-PIPER-PROVIDER-CALLS-THE-PRE-1.3-API-01 — مزوّدُ Piper يستدعي واجهةً أُزيلت، فلا يصلح مزوّداً محلّيّاً
+<!-- gap-registry: current -->
+- **الحالة:** fixed على مستوى الشيفرة والاختبارات — الإصلاح `4a428008` في PR #1176 (غير مدموج، الأساس `12d93bf9`)، لا verified ولا نشر. المعرّفُ الأصليّ من #1129 (أُغلق بقرار المالك 2026-10-13؛ شيفرتُه وصلت عبر نقل #1171)، وتذكره `services/tts-service/providers.py:298` دون صفٍّ في السجلّ حتّى الآن.
+- **العطل (من #1129):** `PiperProvider.synthesize` كان يُنادي `PiperVoice.synthesize(text, wav)`، وفي `piper-tts` ≥ 1.3 صار `synthesize` مولِّدَ `AudioChunk` وانتقلت الكتابةُ إلى `synthesize_wav` ⇒ `wave.Error` ⇒ 500؛ والنموذجُ يُحمَّل في كلّ طلب بلا حدّ تزامن.
+- **الإصلاح:** `services/tts-service/providers.py:292` (`PiperProvider`: `synthesize_wav` وحده ورفضٌ مُسمّى لمكتبةٍ بلا تلك الواجهة `:371-372`، تحميلٌ مرّةً بقفل، تزامنٌ محدود، فحصُ WAV)؛ `:248` (`PIPER_TTS_TARGET_VERSION = "1.8.0"` وغيرُه يُرفض بالاسم)؛ `:332` (`available()` يشترط `<model>.json`، `:330`).
+- **اختبارات الانحدار:** `tests_v9/test_tts_piper_provider.py` على رأس #1176 — 32 ناجحة؛ والملفُّ نفسُه على شيفرة `12d93bf9` — 28 فاشلة و4 ناجحة (قياسُ هذه الجلسة 2026-10-13).
+- **حد الحكم:** المكتبةُ والنموذجُ **ليسا في الصورة** (قرارُ ترخيص: `piper-tts` ≥ 1.3 = GPL-3.0-or-later، وترخيصُ بيانات `ar_JO-kareem` مفتوح — `TTS-PIPER-KAREEM-DATASET-HAS-NO-LICENSE-01`)، فلا يصلح Piper مزوّداً في الإنتاج بعد؛ ولا تركيبَ حقيقيّ بنموذجٍ عربيّ مثبَّت البصمة، ولا قياسُ ذاكرةٍ أو كمونٍ أو جودة.
