@@ -97,5 +97,13 @@
       "claude/project-exploration-dtjw3p": "tts (pinned to a commit)"
     },
     "note": "no service builds from claude/wip-* branches"
-  }
+  },
+  "batch_trigger_reason": {
+    "meta_reason": "redeploy",
+    "production": "28 of 28 deployments created 16:23:17Z-16:23:42Z carry meta.reason=redeploy, including the migrator 95bed641 (commit 7310de85)",
+    "staging": "3 of 3 migrator deployments in the same window carry meta.reason=redeploy, including 0bb2ede4 (commit 7310de85)",
+    "meaning": "Railway re-ran existing deployments (their recorded commits and images); the batch was not a build triggered by a GitHub push. This narrows the cause class; it does not identify the actor.",
+    "source": "Railway MCP list-deployments, read-only, 2026-10-12; no change made"
+  },
+  "pending_patch_recheck_2026_10_12T23_00Z": "get-staged-changes: staged=null in production and in staging; 073447ea is no longer staged. No deployment exists after the 20:32Z SKIPPED set, so it was not applied by a deploy. Who removed it is not identified."
 }
