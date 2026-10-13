@@ -207,9 +207,14 @@ async def stream(
             raise _local_provider_failed(chosen, e) from e
 
         async def local_stream():
-            yield audio
+            try:
+                yield audio
+            except Exception:
+                main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="stream").inc()
+                raise
+            else:
+                main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-        main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
         return StreamingResponse(local_stream(), media_type=chosen.media_type)
 
     async def audio_stream():
@@ -234,6 +239,7 @@ async def stream(
                 f"bytes_sent={sent} error={type(e).__name__}"
             )
             raise
+        else:
+            main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-    main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
     return StreamingResponse(audio_stream(), media_type=chosen.media_type)
