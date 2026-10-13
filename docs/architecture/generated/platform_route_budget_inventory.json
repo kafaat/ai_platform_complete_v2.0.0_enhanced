@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "71798e2cbf404191f00fa7188ba3470c5db309149509be7a8d7e25a9c4245381"
+    "policy_sha256": "8164d4d4892a1d0cd752b6a54a2faf140a86b53e0526f954fb535bf4eb357460"
   },
   "routes": [
     {
