@@ -7279,3 +7279,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **ما ليس مُثبَتاً:** أنّ Production استعمل القيمَ الافتراضيّة — أسماءُ المتغيّرات الثلاثة موجودةٌ في إعداد `sahool-migrate-main` (قراءةُ الأسماء فقط، 2026-10-12)، والقيمُ لم تُقرأ ولن تُقرأ هنا.
 - **المصدر:** `migrations/apply_in_compose.sh:21` · `:26` · `:269` على main؛ مراجعةُ المالك الجنائيّة 2026-10-12.
 - **شرط الإغلاق:** السكربتُ يفشل مغلقاً حين يغيب المتغيّرُ أو يفرغ (لا قيمةَ افتراضيّة لسرّ)، ونطاقُ الحارس القائم يشمل سكربتَ المُهاجر (توسيعٌ لا حارسٌ جديد)، وتحقّقُ المالك دون كشف القيم من أنّ Production لا يستعمل القيمَ المنشورة؛ وإن ثبت استعمالُها فتدويرٌ منسَّقٌ مع الخدمات المستهلكة لا تدويرٌ عشوائيّ. والإصلاحُ يمسّ `migrations/**` فدمجُه يُطلق نشرَ المُهاجر — لا يُدمج قبل رفع التجميد.
+
+## SQLITE-LIVE-BACKUP-IGNORES-WAL-01 — نسخة lite_store الخام تهمل الكتابات المثبتة في WAL
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
+- **المصدر:** `services/sahool-platform/storage/lite_store.py:727` (`backup_db`)؛ `tests_v9/test_sqlite_live_backup.py`؛ الإصلاح مأخوذٌ كما هو من #1171 (`b0bc2b9e`) في شريحةٍ لا تنشر.
+- **القياس:** اختبارات النسخ والاستعادة الـ18 (مع `test_recovery_smoke_truth.py`) حمراءُ كلُّها على شيفرة main السابقة وخضراء بعد الإصلاح.
+- **حد الحكم:** إصلاح دالة واحدة لا يثبت جرد واستعادة كل مخازن SQLite.
+
+## RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01 — فحص استعادة يقبل redirects ويخفي إخفاقات مطلوبة
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
+- **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
+- **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
