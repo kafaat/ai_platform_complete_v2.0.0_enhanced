@@ -106,7 +106,7 @@ def _policy_url(base: str) -> str:
 
 def _get_json(url: str, authorization: str) -> dict[str, Any]:
     request = urllib.request.Request(url, headers={"Authorization": authorization})
-    opener = urllib.request.build_opener(_NoRedirect())
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
     with opener.open(request, timeout=_TIMEOUT_SECONDS) as response:  # noqa: S310 - validated operator-configured origin
         if response.status != 200:
             raise RuntimeError(f"platform /me returned {response.status}")
