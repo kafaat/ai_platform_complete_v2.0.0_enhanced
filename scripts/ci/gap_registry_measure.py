@@ -298,6 +298,32 @@ def measure(text: str) -> dict:
             historical_variations[gap_id] = items
 
     gap_rows = [row for row in rows if row["kind"] == "gap"]
+    # BRAIN-TABLE-STATE-CONFLICTS-NOT-MEASURED-01 (مراجعةٌ معمَّقة 2026-10-12، DG-01). ``contradictory_sections``
+    # يقرأ أقسامَ الفجوات وحدها، وصفوفُ الجداول تدخل العدّاداتِ لا فحصَ التعارض — فصفّان للمعرّف نفسه بحالتين
+    # مختلفتين، أو صفٌّ يخالف قسمَه، لا يظهران. هنا مصادرُ الحالة كلُّها معاً: صفوفُ الجداول، وأقسامٌ بقاعدة
+    # التاريخ نفسِها أعلاه. ملخّصٌ وتفصيلٌ بالحالة نفسِها ليسا تعارضاً. حقلٌ جديد للتقرير، لا تغييرَ لمعنى الحقل القائم.
+    cross_sources: dict[str, list[dict]] = defaultdict(list)
+    for row in gap_rows:
+        if row["state"] is not None:
+            cross_sources[row["id"]].append(
+                {"source": "table", "line": row["line"], "state": row["state"]}
+            )
+    for gap_id, items in states_by_id.items():
+        active = (
+            [item for item in items if item["entry_role"] != "historical"]
+            if gap_id in reviewed
+            else items
+        )
+        for item in active:
+            if item["state"] is not None and item.get("kind", "gap") == "gap":
+                cross_sources[gap_id].append(
+                    {"source": "section", "line": item["line"], "state": item["state"]}
+                )
+    cross_source_conflicts = {
+        gap_id: entries
+        for gap_id, entries in sorted(cross_sources.items())
+        if len({entry["state"] for entry in entries}) > 1
+    }
     non_state_rows = [row for row in rows if row["kind"] != "gap"]
     counts = Counter(row["state"] or "unclassified" for row in gap_rows)
 
@@ -380,6 +406,8 @@ def measure(text: str) -> dict:
         },
         "contradictory_sections": contradictions,
         "contradictory_section_id_count": len(contradictions),
+        "cross_source_state_conflicts": cross_source_conflicts,
+        "cross_source_state_conflict_count": len(cross_source_conflicts),
         "historical_state_variations": historical_variations,
         "section_state_count": len(section_states),
         "unscoped_section_states": unscoped_states,
@@ -459,9 +487,12 @@ def resolve_aliases(rows: list[dict], section_states: list[dict], headings: list
 # #1112 والصفّ يذكر #993 · `fd850a06` ∈ #987 والصفّ يذكر #988) لأنّ الـPR المذكورَ موضعُ القياس لا
 # الإصلاح. فلو طُلب «commit دمج الـPR المذكور» لدُفع القارئُ إلى ربطٍ خاطئ. لذا ``cited_pr_merges``
 # يُعرَض للقارئ ولا يدخل الحكم، والربطُ الصحيح يُستخرج من الـSHA نفسه (`commits/{sha}/pulls`).
+# **هذا عن `#N` في نثر الحالة، لا في مقطع canonical:** منذ DG-03 (2026-10-12) حين يذكر **مقطعُ canonical**
+# رقمَ PR يُشترط أن يكون أحدُ SHAات المقطع المبلوغة دمجَ PR مذكورٍ فيه (``pr_of``)، وإلّا
+# ``canonical_not_a_cited_merge``؛ والمقطعُ بلا رقم PR يبقى على القاعدة أدناه.
 #
-# **حدٌّ مُعلَن:** أيُّ SHA يُبلَغ **داخل مقطع canonical** يُعَدّ ربطاً — القياسُ يرى **غيابَ** الربط
-# لا صحّتَه. و`GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01` (مقيسٌ على
+# **حدٌّ مُعلَن (ضُيِّق في DG-03):** في مقطع canonical **بلا رقم PR** أيُّ SHA يُبلَغ يُعَدّ ربطاً — القياسُ يرى
+# **غيابَ** الربط لا صحّتَه؛ وفي مقطعٍ يذكر PR يُشترط أن يكون الـSHA دمجَه (أعلاه). و`GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01` (مقيسٌ على
 # `main@c1760e9e`): نثرُ خليّة الحالة نفسِها قد يذكر SHA مبلوغاً (`main@94e6e07a` أساسَ مقارنةٍ بصريّة)
 # فستر إصلاحين مُسحَقين (`71191cd5` · `90b8c697`)؛ لذا يُقرأ الربطُ من مقاطع `**canonical …:**` وحدها
 # — داخل الخليّة (حتّى الفاصل ` · **` التالي أو نهايتها) أو سطراً `- **canonical …:**` في القسم — ولا
@@ -514,8 +545,15 @@ def _split_inline_canonical(status: str) -> tuple[str, list[str]]:
     return "".join(prose), segments
 
 
-def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], reachable) -> list:
-    """``merges``: رقمُ PR ⇒ SHA دمجه الكامل على HEAD. ``reachable(sha)``: هل يُبلَغ من HEAD."""
+def fixed_provenance(
+    text: str, records: list[dict], merges: dict[int, str], reachable, pr_of=None
+) -> list:
+    """``merges``: رقمُ PR ⇒ SHA دمجه الكامل على HEAD. ``reachable(sha)``: هل يُبلَغ من HEAD.
+
+    ``pr_of(sha)`` (اختياريّ): رقمُ الـPR الذي يحمله commit مبلوغ في عنوانه ``(#N)``. حين يُعطى، لا يكفي أن يكون
+    في مقطع canonical SHA مبلوغ: يجب أن يكون دمجَ PR مذكورٍ في المقطع نفسه (DG-03،
+    مراجعةٌ معمَّقة 2026-10-12) — فـcommit مبلوغ لا علاقة له بالإصلاح لا يُسقط التحذير. بدونه السلوكُ القديم.
+    """
     del text  # السجلّاتُ تحمل سطورَ canonical مقروءةً بقواعد ``measure()`` (السياج)
     out: list[dict] = []
     for record in records:
@@ -525,8 +563,16 @@ def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], rea
         if not repair:
             continue
         links = [*inline_links, *record["canonical"]]
-        if any(reachable(sha) for sha in _shas("\n".join(links))):
+        linked = [sha for sha in _shas("\n".join(links)) if reachable(sha)]
+        if pr_of is None and linked:
             continue
+        unbound = False
+        if pr_of is not None and linked:
+            cited = {int(n) for n in STATUS_PR.findall("\n".join(links))}
+            # مقطعٌ لا يذكر PR يبقى على القاعدة السابقة (SHA مبلوغ يكفي) — مراجعةُ Copilot على #1167.
+            if not cited or any(pr_of(sha) in cited for sha in linked):
+                continue
+            unbound = True
         prs = sorted({int(n) for n in STATUS_PR.findall(status)})
         out.append(
             {
@@ -534,6 +580,7 @@ def fixed_provenance(text: str, records: list[dict], merges: dict[int, str], rea
                 "line": record["line"],
                 "repair_shas": repair,
                 "cited_pr_merges": {str(pr): merges[pr] for pr in prs if pr in merges},
+                **({"canonical_not_a_cited_merge": linked} if unbound else {}),
             }
         )
     return out
@@ -545,8 +592,8 @@ def _git(root: Path, *args: str) -> str:
     ).stdout
 
 
-def git_history(root: Path) -> tuple[dict[int, str], list[str]] | str:
-    """(دمجات الـPR على السلسلة الأولى، كلُّ SHA يُبلَغ من HEAD) — أو سببُ عدم القياس."""
+def git_history(root: Path) -> tuple[dict[int, str], list[str], dict[str, int]] | str:
+    """(دمجات الـPR على السلسلة الأولى، كلُّ SHA يُبلَغ من HEAD، SHA ⇒ رقمُ الـPR في عنوانه) — أو سببُ عدم القياس."""
     try:
         if _git(root, "rev-parse", "--is-shallow-repository").strip() == "true":
             return "shallow_clone"
@@ -556,7 +603,15 @@ def git_history(root: Path) -> tuple[dict[int, str], list[str]] | str:
             match = SQUASH_SUBJECT.search(subject)
             if match:
                 merges.setdefault(int(match.group(1)), sha)
-        return merges, sorted(_git(root, "rev-list", "HEAD").split())
+        # كلُّ commit مبلوغ يحمل (#N) في عنوانه، لا السلسلةُ الأولى وحدها: دمجُ #632 (`10a8fae4`) مبلوغٌ
+        # وليس عليها، ويستشهد به ستّةُ صفوف — مقيسٌ على main@32a000bd.
+        prs: dict[str, int] = {}
+        for line in _git(root, "log", "--format=%H%x00%s", "HEAD").splitlines():
+            sha, _, subject = line.partition("\0")
+            match = SQUASH_SUBJECT.search(subject)
+            if match:
+                prs[sha] = int(match.group(1))
+        return merges, sorted(_git(root, "rev-list", "HEAD").split()), prs
     except (OSError, subprocess.CalledProcessError):
         return "no_git_history"
 
@@ -584,8 +639,14 @@ def main() -> int:
         report["unreconciled_fixed_provenance"] = None
         report["unreconciled_fixed_provenance_count"] = None
     else:
-        merges, all_shas = history
-        found = fixed_provenance(text, report["fixed_records"], merges, _prefix_lookup(all_shas))
+        merges, all_shas, prs = history
+        lookup = _prefix_lookup(all_shas)
+
+        def pr_of(sha: str) -> int | None:
+            full = [candidate for candidate in prs if candidate.startswith(sha.lower())]
+            return prs[full[0]] if len(full) == 1 else None
+
+        found = fixed_provenance(text, report["fixed_records"], merges, lookup, pr_of)
         report["provenance_measured"] = True
         report["unreconciled_fixed_provenance"] = found
         report["unreconciled_fixed_provenance_count"] = len(found)

@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MINIO-MIRROR-PROVENANCE-REBUILD-20261011",
+  "gap_id": "MINIO-MIRROR-PROVENANCE-UNVERIFIED-01",
+  "observation_of": "certification/evidence/minio_mirror_provenance_20261011.json — a later observation; that file's measurement stands as written.",
+  "verdict": "match",
+  "claim": "The independently rebuilt linux/amd64 MinIO server matches the server extracted from the specified pinned image.",
+  "scope": "linux/amd64 /usr/bin/minio only. Not linux/arm64, not /usr/bin/mc (its signature is in the first file), not the rest of the image, not the compiler, not the unsigned SLSA record.",
+  "ci_run": {
+    "workflow": ".github/workflows/minio-image-provenance.yml",
+    "job": "MinIO server rebuild vs pinned image (linux/amd64)",
+    "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38179145132",
+    "run_id": 38179145132,
+    "run_attempt": 1,
+    "job_id": 114587784854,
+    "event": "pull_request",
+    "workflow_ref": "kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/minio-image-provenance.yml@refs/pull/1162/merge",
+    "job_started_utc": "2026-10-11T22:07:26Z",
+    "job_completed_utc": "2026-10-11T22:09:21Z",
+    "runner": "GitHub-hosted ubuntu-24.04, image 20261004.327.1",
+    "token_permissions": "contents: read, metadata: read (job log header)",
+    "pr": 1162,
+    "pr_head_sha": "80b766a35107dd1564494c5a87a540971c97a4dd",
+    "checked_out_sha": "18921fc5007d6b6cffd42ab599406b1c1bc01696",
+    "checked_out_is": "GitHub's synthetic merge of the PR head 80b766a35107dd1564494c5a87a540971c97a4dd into main@32a000bd9483a723faa1f4a9ff04ba7097ae55b2 (job log: 'HEAD is now at 18921fc Merge 80b766a3… into 32a000bd…'). The run tested that merge, not the PR head alone; both identities are recorded."
+  },
+  "inputs": {
+    "pinned_image": "coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68",
+    "linux_amd64_manifest": "sha256:d8cfccee3f7bf0182d89c223b2ff53b94c9a88237bc0dd5733dd49fa0f4dab4c",
+    "index_check": "the bytes returned for the pin hash to the pin's own digest, and their linux/amd64 entry is exactly the manifest above (job log line: index ['sha256:a4938f37…'] linux/amd64 sha256:d8cfccee…)",
+    "server_path": "/usr/bin/minio",
+    "expected_sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+    "source": "https://github.com/minio/minio.git",
+    "tag": "RELEASE.2025-04-22T22-12-26Z",
+    "expected_commit": "0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+    "checked_out_commit": "0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+    "builder_image": "golang:1.24-alpine@sha256:8f8959f38530d159bf71d0b3eb0c547dc61e7959d8225d1599cf762477384923",
+    "platform": "linux/amd64",
+    "build": "CGO_ENABLED=0 go build -trimpath -ldflags \"-s -w -X github.com/minio/minio/cmd.ReleaseTag=$MINIO_TAG\"",
+    "go_version": "go version go1.24.9 linux/amd64",
+    "go_env": {
+      "GOVERSION": "go1.24.9",
+      "GOOS": "linux",
+      "GOARCH": "amd64",
+      "GOAMD64": "v1",
+      "CGO_ENABLED": "0",
+      "GOFLAGS": "",
+      "GOPROXY": "https://proxy.golang.org,direct",
+      "GOSUMDB": "sum.golang.org",
+      "GONOSUMDB": "",
+      "GOPRIVATE": "",
+      "GOTOOLCHAIN": "local"
+    },
+    "git_version": "git version 2.49.1",
+    "go_mod_verify": "all modules verified",
+    "network_provisioned": "git via apk (affects no output: build info records only the commit), Go modules from proxy.golang.org checked against the source's go.sum and sum.golang.org"
+  },
+  "outputs": {
+    "extracted_sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+    "rebuilt_sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+    "byte_identical": true,
+    "buildinfo_equal": true,
+    "buildinfo_comparison": "`go version -m` of both, compared after the first line, which only names the file (/out/minio.pinned vs /out/minio.rebuilt — hence 22214 vs 22215 bytes)",
+    "buildinfo_only_in_pinned": [],
+    "buildinfo_only_in_rebuilt": [],
+    "evidence_files_missing": [],
+    "failure_paths_exercised_in_ci": "no — the first run matched; mismatch, missing evidence and a failed pull were exercised only with synthetic inputs before the push"
+  },
+  "artifact": {
+    "name": "minio-rebuild-38179145132-1",
+    "id": 11716988371,
+    "zip_sha256": "5a7cd2a0a5584855ef9373c4aa1a60a437b633f3cb4b5d92bb8709fbce698890",
+    "zip_sha256_source": "printed by the upload step and returned by the artifacts API",
+    "zip_bytes": 32093,
+    "expires_at_utc": "2027-01-09T22:07:24Z",
+    "contains": "records, logs, the raw index and both build infos — not the two server binaries; the byte comparison itself ran in CI",
+    "files": [
+      {
+        "name": "build.log",
+        "bytes": 13693,
+        "sha256": "773991082a376f6cd9dee5d537d9071469b91862f8b4e8172b7bd6007bcf6a6b",
+        "reproduced_here_from_the_job_log": false
+      },
+      {
+        "name": "buildinfo.rebuilt.txt",
+        "bytes": 22215,
+        "sha256": "81dd23c0062bfa0cbdc46e84ae8e7a7808b74eb82a36e5ad5a11f9b68533f980",
+        "reproduced_here_from_the_job_log": false
+      },
+      {
+        "name": "buildinfo.pinned.txt",
+        "bytes": 22214,
+        "sha256": "f30ef34494d993e25310ef91d5981f9b3167d5112e9e5e9122f044350f761e12",
+        "reproduced_here_from_the_job_log": false
+      },
+      {
+        "name": "git_version.txt",
+        "bytes": 19,
+        "sha256": "f4e872970e5396ef02ae6ecf2f2a199a793f981ffb36215983f249bb429c93ba",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "go_env.txt",
+        "bytes": 82,
+        "sha256": "3b0ee69dadb877a27c3ddb3996ac932b43b7e29d3f58d4eb0170792ca4e12ef2",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "go_mod_verify.txt",
+        "bytes": 21,
+        "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "go_version.txt",
+        "bytes": 32,
+        "sha256": "f6e496c0e12f2f5c4332494a4f746728568da77e4d19edaefa30ea71fded082c",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "index.json",
+        "bytes": 1609,
+        "sha256": "a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "minio_rebuild_result.json",
+        "bytes": 2463,
+        "sha256": "5da80a38f0ef513ae3f24f81162fc6c448009eb13a51558e22c2c46d0c5a7ac7",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "pinned_sha256.txt",
+        "bytes": 65,
+        "sha256": "3037b118dda7bbbca9e360a8965fcdb55a3433838b73253f7367ae12c6f49cb3",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "pull.log",
+        "bytes": 2540,
+        "sha256": "b6d5f484c96253175a6a5bfcf3a32ddf50bf893d028364a8ad330e114e1ac703",
+        "reproduced_here_from_the_job_log": false
+      },
+      {
+        "name": "rebuilt_sha256.txt",
+        "bytes": 65,
+        "sha256": "3037b118dda7bbbca9e360a8965fcdb55a3433838b73253f7367ae12c6f49cb3",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "sahool_checkout_sha.txt",
+        "bytes": 41,
+        "sha256": "3a3557dc4a5810f12790d3debfa36a65f24922f9eae1cd0029895d999d13b430",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "stage.txt",
+        "bytes": 8,
+        "sha256": "8e15eacd04f6a2f17aa1497453df195fbc78b13f572addbba3635e3f776e4166",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "upstream_commit.txt",
+        "bytes": 41,
+        "sha256": "9dc45cb3b2398d8d623a2a5f97a2691d0df67de4ccc87351ccf3e92eca792e36",
+        "reproduced_here_from_the_job_log": true
+      },
+      {
+        "name": "verdict.txt",
+        "bytes": 6,
+        "sha256": "40d3f08df962ecc666f7df69a9b3aaab9a615a9b52807f958c0f734d2e7f33f9",
+        "reproduced_here_from_the_job_log": true
+      }
+    ]
+  },
+  "review": {
+    "by": "an independent reviewer, relayed by the owner (review_date 2026-10-12)",
+    "method": "downloaded the original Actions ZIP, checked its sha256 against the upload log and the artifact metadata, inspected all 16 files; no local rebuild, no binary executed, no remote writes",
+    "accepted": "the CI demonstration of server reproducibility, within the scope above",
+    "not_accepted_as": [
+      "a certification of the compiler or the builder image",
+      "authentication of the unsigned SLSA record",
+      "linux/arm64",
+      "the whole container image"
+    ],
+    "cross_check_here": "12 of the 16 file hashes in the review agree with this repository's own record of the run: 11 reproduced byte for byte from the values the job printed (every file marked true above except index.json), and index.json's sha256 is the pin's index digest, which the job's index check required. build.log, pull.log and the two build infos are taken from the review; the agent proxy here rejects the artifact storage host."
+  },
+  "residual_trust": [
+    "golang:1.24-alpine@sha256:8f8959f38530d159bf71d0b3eb0c547dc61e7959d8225d1599cf762477384923 — the builder both builds used, so a defect in it would reproduce in both",
+    "the Go modules — pinned by the source's go.sum and checked against sum.golang.org (`go mod verify`: all modules verified)",
+    "the GitHub-hosted runner"
+  ],
+  "gap_state_effect": "Meets the server half of the row's closing condition — an independent rebuild that gives fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64. With the mc signature in the first file, the row moves to fixed for the explicitly scoped linux/amd64 binary-provenance claim: not verified, not the whole image. Outside that closure, and not added to it as new conditions after it was met: the UBI base layer's origin, linux/arm64, the toolchain, and the SLSA record's authenticity.",
+  "later_runs": [
+    {
+      "run_id": 38187214716,
+      "run_attempt": 1,
+      "pr_head_sha": "0f0dfd4583570a16fe48964004ea1b3fde793d27",
+      "conclusion": "success (verdict match)",
+      "artifact_id": 11720431456,
+      "artifact_zip_sha256": "d93f8843655dccf27a3e0813783791abead62f4b91708387c4c3955d3ed46140",
+      "note": "same workflow as run 38179145132, re-run because this commit's evidence files are in its paths"
+    }
+  ],
+  "comparison_integrity": {
+    "limit_in_these_runs": "In runs 38179145132 and 38187214716 the build container mounted the run's whole out/ directory read-write, and the compare step read the expected hash from out/pinned_sha256.txt, a file that container could have rewritten (independent review relayed 2026-10-12, DG-04). The artifacts are internally consistent and show no sign of tampering; the matches hold under the assumption that the builder did not interfere, not as proof against a hostile builder.",
+    "hardened_in": "the commit that adds this field: the pinned binary is extracted to ref/, which no container mounts; the builder gets only an empty build/ directory; the host checks the output is a regular non-empty file, hashes both sides itself and compares against the pin written in the workflow; build info is read in a container with no network and read-only mounts, never executed.",
+    "still_outside": "the builder image itself: a compromised builder could fetch the pinned image and emit its server as the rebuilt one. Isolating the reference does not stop that; restricting the build's network would be a separate change."
+  }
+}

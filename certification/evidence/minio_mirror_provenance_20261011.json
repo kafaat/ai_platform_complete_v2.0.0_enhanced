@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MINIO-MIRROR-PROVENANCE-20261011",
+  "gap_id": "MINIO-MIRROR-PROVENANCE-UNVERIFIED-01",
+  "verdict": "mc_signature_valid_for_the_measured_amd64_binary__minio_server_unproven_pending_independent_rebuild",
+  "scope": "coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68 — the pin in .env.example and the compose files — linux/amd64 only.",
+  "method": "read-only, no Docker, nothing from the image executed: Docker Hub registry HTTP API (auth.docker.io token, registry-1.docker.io manifests/blobs), each manifest, config and layer body re-hashed against its digest; binaries hashed and read with `go version -m` (reads build info, does not run the file); release tags resolved with `git ls-remote` against github.com; MinIO's minisign key read from MinIO's own source fetched from proxy.golang.org, the module zip's h1 dirhash recomputed and matched with sum.golang.org; Ed25519 verification with the Python cryptography package.",
+  "measured_at_utc": "2026-10-11T20:20Z",
+  "image": {
+    "index_digest": "sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68",
+    "index_media_type": "application/vnd.oci.image.index.v1+json",
+    "index_body_matches_digest": true,
+    "platform_manifests": {
+      "linux/amd64": "sha256:d8cfccee3f7bf0182d89c223b2ff53b94c9a88237bc0dd5733dd49fa0f4dab4c",
+      "linux/arm64": "sha256:cebc474f3e8f4d92bd3e7eab97181042c9ebf03af453ce318d4e9e495a7f4717"
+    },
+    "attestation_manifests": [
+      "sha256:b569bbfb22239a3b2be9047ce49a3c429d7295a3cecd287d037d856223221953",
+      "sha256:fc51c937cf69f89323468f8f469cdf745e2544aaab8bd22f56e3ad180a0e5893"
+    ],
+    "amd64_config_created": "2025-10-22T12:43:47.83016652Z",
+    "amd64_layers_digest_verified": true,
+    "amd64_paths": 896,
+    "amd64_tools_present": [
+      "bash",
+      "sh",
+      "minio",
+      "mc"
+    ],
+    "amd64_tools_absent": [
+      "curl",
+      "wget",
+      "nc",
+      "busybox",
+      "python3",
+      "openssl"
+    ],
+    "labels_caveat": "labels name 'MinIO Inc <dev@min.io>' as vendor and maintainer — copied from MinIO's Dockerfile; the image was built by coollabsio's CI, not MinIO. org.opencontainers.image.revision / vcs-ref da2e68be8d27b8fc647e4849048e9b39990407c6 belong to the Red Hat UBI base image, not to MinIO.",
+    "docker_hub_repository": {
+      "namespace": "coollabsio",
+      "date_registered": "2025-10-21T20:01:44Z",
+      "last_updated": "2025-10-27T15:40:53Z",
+      "pull_count_at_measurement": 112375
+    },
+    "official_repositories_on_docker_hub": "minio/minio and minio/mc: manifest requests 401 with an anonymous pull token, hub API 404 for minio/minio — consistent with MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01.",
+    "layers_of_interest": {
+      "/usr/bin/minio": "sha256:83434e0df4abf14e44bce4b838646bc42ada8f2f4113d57712fc464291c36d2b",
+      "/usr/bin/mc, mc.minisig, mc.sha256sum": "sha256:112e7564bb5c78eaaf10173074a0f852fd13172e8f7885fffd44de3022054a39"
+    }
+  },
+  "slsa_provenance": {
+    "predicate_type": "https://slsa.dev/provenance/v0.2",
+    "signed": false,
+    "integrity": "unsigned BuildKit attestation: no signature, so the builder identity and the build parameters are claims, not authenticated provenance. It is an entry of the pinned index, so the pin makes it tamper-evident, which is not the same as authentic. Not done: signature or trusted-builder verification (none is attached), and GitHub's own attestations for coollabsio/minio (outside this session's reach).",
+    "builder": "https://github.com/coollabsio/minio/actions/runs/18716483277/attempts/1",
+    "dockerfile_repository": "https://github.com/coollabsio/minio",
+    "dockerfile_revision": "aa6eebc2643046a6311a0611736b09d4281effef",
+    "build_started_on": "2025-10-22T12:41:37.705267654Z",
+    "build_finished_on": "2025-10-22T12:43:51.675921434Z",
+    "build_arg_MINIO_VERSION": "RELEASE.2025-04-22T22-12-26Z",
+    "builder_image": "docker.io/library/golang:1.24-alpine@sha256:8f8959f38530d159bf71d0b3eb0c547dc61e7959d8225d1599cf762477384923",
+    "runtime_base_image": "registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:aff810919642215e15c993b9bbc110dbcc446608730ad24499dafd9df7a8f8f4",
+    "minio_steps": [
+      "git clone https://github.com/minio/minio.git . && if [ \"$MINIO_VERSION\" != \"latest\" ]; then echo \"Checking out version: $MINIO_VERSION\" && git checkout ${MINIO_VERSION}; else echo \"Building from latest master\"; fi",
+      "COMMIT_ID=$(git rev-parse --short HEAD) && CGO_ENABLED=0 go build -trimpath -ldflags \"-s -w -X github.com/minio/minio/cmd.ReleaseTag=${MINIO_VERSION}\" -o /usr/bin/minio ."
+    ],
+    "mc_steps": [
+      "curl -s -q https://dl.min.io/client/mc/release/linux-${TARGETARCH}/mc -o /usr/bin/mc && curl -s -q https://dl.min.io/client/mc/release/linux-${TARGETARCH}/mc.minisig -o /usr/bin/mc.minisig && curl -s -q https://dl.min.io/client/mc/release/linux-${TARGETARCH}/mc.sha256sum -o /usr/bin/mc.sha256sum && chmod +x /usr/bin/mc",
+      "/go/bin/minisign -Vqm /usr/bin/mc -x /usr/bin/mc.minisig -P RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav"
+    ],
+    "subject_digest_equals_amd64_manifest": true,
+    "subject": "pkg:docker/coollabsio/minio@RELEASE.2025-04-22T22-12-26Z-amd64?platform=linux%2Famd64 → sha256:d8cfccee3f7bf0182d89c223b2ff53b94c9a88237bc0dd5733dd49fa0f4dab4c"
+  },
+  "binaries": {
+    "/usr/bin/minio": {
+      "sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+      "size": 118853816,
+      "origin": "claimed, not proven: the attached SLSA record (unsigned) says coollabsio's CI ran `go build` from a git clone of github.com/minio/minio at the release tag; the binary's own build info agrees (go1.24.9, vcs.revision = the tag's commit, vcs.modified=false). Both are assertions. An independent rebuild tests the bytes whoever built them.",
+      "go_version": "go1.24.9",
+      "module": "github.com/minio/minio v0.0.0-20250422221226-0d7408fc9969",
+      "build_settings": "-trimpath=true CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 (with -trimpath Go does not record -ldflags; the provenance gives -s -w -X github.com/minio/minio/cmd.ReleaseTag=RELEASE.2025-04-22T22-12-26Z)",
+      "vcs_revision": "0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+      "vcs_time": "2025-04-22T22:12:26Z",
+      "vcs_modified": false,
+      "official_tag": "RELEASE.2025-04-22T22-12-26Z",
+      "official_tag_commit": "0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+      "official_tag_commit_source": "git ls-remote https://github.com/minio/minio 'refs/tags/RELEASE.2025-04-22T22-12-26Z*' → tag object f19c534b9f457773dcd043d977433e1a71525c3b, peeled ^{} 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+      "embedded_revision_matches_official_tag": true,
+      "proof_status": "unproven. Closing test: rebuild from the authenticated source (git over HTTPS, commit checked) with the pinned builder image and the claimed flags, modules verified by go.sum and sum.golang.org, and compare with fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64 — the target binary is the artifact under test, never an input to the rebuild.",
+      "comparison_with_minio_published_checksum": "not expected to match, and not required: MinIO's release recipe at the tag builds with `-tags kqueue` and seven -X values (Makefile:183; buildscripts/gen-ldflags.go:35-42: Version, CopyrightYear, ReleaseTag, CommitID, ShortCommitID, GOPATH, GOROOT), the claimed recipe with no build tag and -X ReleaseTag only. A mismatch there is not evidence of tampering. Identical inputs would give identical bytes; these inputs differ."
+    },
+    "/usr/bin/mc": {
+      "sha256": "01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891",
+      "size": 30535864,
+      "origin": "MinIO's release binary, downloaded from dl.min.io/client/mc/release/linux-amd64/mc at build time (2025-10-22) — the latest mc then, RELEASE.2025-08-13T08-35-41Z, not the image tag's 2025-04-22.",
+      "go_version": "go1.24.6",
+      "module": "github.com/minio/mc v0.0.0-20250813083541-7394ce0dd2a8+dirty",
+      "vcs_revision": "7394ce0dd2a80935aded936b09fa12cbb3cb8096",
+      "official_tag": "RELEASE.2025-08-13T08-35-41Z",
+      "official_tag_commit": "7394ce0dd2a80935aded936b09fa12cbb3cb8096",
+      "official_tag_commit_source": "git ls-remote https://github.com/minio/mc 'refs/tags/RELEASE.2025-08-13T08-35-41Z*' → tag object d6541ea280b73a834b64d4097e21f2be77676104, peeled ^{} 7394ce0dd2a80935aded936b09fa12cbb3cb8096",
+      "shipped_sha256sum": "01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891 mc.RELEASE.2025-08-13T08-35-41Z (equals the file)",
+      "minisign": {
+        "result": "VALID",
+        "algorithm": "ED (Ed25519 over BLAKE2b-512 of the file)",
+        "key_id": "2FD021B6F59AE5F1",
+        "public_key": "RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav",
+        "public_key_source": "github.com/minio/minio@v0.0.0-20250422221226-0d7408fc9969, cmd/update.go:555 (defaultMinisignPubkey, under the comment 'Update this whenever the official minisign pubkey is rotated'). Fetched with `go mod download -json` under GOSUMDB=sum.golang.org, GOPROXY=https://proxy.golang.org, GOFLAGS/GONOSUMDB/GOPRIVATE empty, go1.24.7: the go command authenticated the checksum-database lookup against the signed tree head and checked the inclusion proof before accepting h1:XqfWRNtM5qMJyGQ4IFsnfHb83fCaRYhrKxJJ0ajXdrQ= (origin commit 0d7408fc9969caf07de6a8c3a84f9fbb10a6739e). Lookup record 36613772 in tree 68321517, root aSSzLwIdRAkQYPm+n1KCuOxG+oTuchts1g/Y3FHV8kc=. A first pass had only compared the h1 with the lookup text, which is not the full procedure; this replaces it. The log proves the module content, not the binary — the binary is proven by the signature below.",
+        "trusted_comment": "timestamp:1757203863\tfilename:mc.RELEASE.2025-08-13T08-35-41Z",
+        "trusted_comment_signature": "VALID",
+        "signature_file": [
+          "untrusted comment: signature from minisign secret key",
+          "RUTx5Zr1tiHQL7j1A4GI5SKcflB/oRiWJ3cNQhrBv7Iq4mooegoIb80hOGTl4ZdezsW3xvwJOj4JW3Vjw03bqv5O2hln2EY5TAU=",
+          "trusted comment: timestamp:1757203863\tfilename:mc.RELEASE.2025-08-13T08-35-41Z",
+          "ht1zxZDkEws7Sfwyi9XeaJMOEhBt6eGca3QnQ5yZ0nMjPuU1dliRDv3JuznQQsXNkKFAvllcWj/RVhYWkxb1Dw=="
+        ],
+        "reproduce": "minisign -Vm mc -x mc.minisig -P RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav (mc and mc.minisig from layer sha256:112e7564…; the signed file is mc.RELEASE.2025-08-13T08-35-41Z)",
+        "verification_output": [
+          "file signature: VALID (alg=ED, key id=2FD021B6F59AE5F1)",
+          "trusted comment signature: VALID — timestamp:1757203863\tfilename:mc.RELEASE.2025-08-13T08-35-41Z",
+          "mc sha256: 01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891"
+        ]
+      },
+      "proof_status": "signature valid: MinIO's release key signed these exact bytes. Scope: this mc binary on linux/amd64 only — says nothing about the server binary, the rest of the image, or the arm64 variant."
+    }
+  },
+  "not_measured": [
+    "an independent rebuild of /usr/bin/minio — now a CI job (ci_verification); needs Go 1.24.9 and about 3 GB, the session had 1.2 GB.",
+    "authentication of the SLSA record — it carries no signature.",
+    "the linux/arm64 variant of the index.",
+    "the rest of the image beyond the two binaries (base UBI layers, entrypoint script).",
+    "dl.min.io archive checksums — the agent proxy blocks dl.min.io; not expected to match the server (different recipe), superseded for mc by the signature."
+  ],
+  "reproduce_minio_rebuild": {
+    "command": "docker run --rm --platform linux/amd64 golang:1.24-alpine@sha256:8f8959f38530d159bf71d0b3eb0c547dc61e7959d8225d1599cf762477384923 sh -c 'apk add -U --no-cache git >/dev/null && git clone -q https://github.com/minio/minio.git /workspace && cd /workspace && git checkout -q RELEASE.2025-04-22T22-12-26Z && CGO_ENABLED=0 go build -trimpath -ldflags \"-s -w -X github.com/minio/minio/cmd.ReleaseTag=RELEASE.2025-04-22T22-12-26Z\" -o /tmp/minio . && sha256sum /tmp/minio'",
+    "expected_sha256": "fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64",
+    "meaning": "equal ⇒ the pinned server binary is exactly MinIO's source at the release tag built with the recorded toolchain and flags; different ⇒ not proof of tampering by itself (toolchain image or module drift), compare `go version -m` of both first."
+  },
+  "gap_state_effect": "MINIO-MIRROR-PROVENANCE-UNVERIFIED-01 stays open. The mc result is a signature over one amd64 binary; the server binary is unproven until the independent rebuild matches. MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 (the pull fix) and MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01 (maintenance) keep their states. The earlier closing condition — the server's sha256 equal to MinIO's published checksum — was the wrong test for a separately compiled binary and was replaced.",
+  "ci_verification": {
+    "workflow": ".github/workflows/minio-image-provenance.yml",
+    "job": "MinIO server rebuild vs pinned image (linux/amd64)",
+    "what_it_does": "re-hashes the pinned index bytes against the pin, takes its linux/amd64 entry (sha256:d8cfccee…) and pulls by that digest; extracts /usr/bin/minio and checks it is the measured binary; rebuilds tag RELEASE.2025-04-22T22-12-26Z (commit 0d7408fc, verified after clone) in the pinned builder with the claimed flags, records go version, go env, git version and `go mod verify`; compares sha256 byte for byte; build info is a supplement.",
+    "result_states": "match | mismatch | not_measured (with the stage that failed); missing evidence turns a reported comparison into not_measured; never read as success",
+    "positive_claim_if_match": "The independently rebuilt linux/amd64 MinIO server matches the server extracted from the specified pinned image.",
+    "evidence_kept": "minio_rebuild_result.json, both build infos, build and pull logs, the raw index, go version/env, git version, go mod verify, both sha256 — uploaded unless the run is cancelled (if-no-files-found: error), 90 days",
+    "not_a_gate": "contents:read; builds and publishes no image; changes no pin; not one of the 20 required contexts on main (read 2026-10-11) nor in docs/architecture/required_status_checks_contract.json; adds no blocking-surface triple (guard_mutation_guard --blocking-surface: ok). A red run blocks nothing by itself.",
+    "result": "not yet run when this file was written — the first run is on #1162's next head; its run id and verdict are recorded afterwards, and the row's state changes only by stating which closing condition was met and that arm64 stays outside it."
+  },
+  "release_recipe_at_tag": {
+    "source": "github.com/minio/minio@v0.0.0-20250422221226-0d7408fc9969 (the authenticated module above)",
+    "Makefile:183": "CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -tags kqueue -trimpath --ldflags \"$(LDFLAGS)\"",
+    "buildscripts/gen-ldflags.go:35-42": "-s -w + -X cmd.Version, cmd.CopyrightYear, cmd.ReleaseTag, cmd.CommitID, cmd.ShortCommitID, cmd.GOPATH, cmd.GOROOT",
+    "Dockerfile.release:18-30": "MinIO's own image downloaded the release binary from dl.min.io and checked it with minisign — the image coollabsio replaced did not build from source"
+  },
+  "subsequent_observations": [
+    {
+      "file": "certification/evidence/minio_mirror_provenance_rebuild_20261011.json",
+      "evidence_id": "MINIO-MIRROR-PROVENANCE-REBUILD-20261011",
+      "observed_utc": "2026-10-11T22:09Z",
+      "summary": "ci_verification's first run: run 38179145132, attempt 1, on PR #1162's head 80b766a3 (checked out as the synthetic merge 18921fc5 with main@32a000bd) — match: the rebuilt linux/amd64 server is fc3c2ecce583d33ef14485495f91d816492abad564cc3268139a90720775bb64, as extracted. Accepted within that scope by an independent review of the original artifact, relayed by the owner."
+    },
+    {
+      "file": "certification/evidence/minio_mirror_provenance_layers_20261011.json",
+      "evidence_id": "MINIO-MIRROR-PROVENANCE-LAYERS-20261011",
+      "observed_utc": "2026-10-11T23:16Z",
+      "summary": "the rest of the linux/amd64 image, every tar attribute of all eight layers: the chmod layer changes modes only (to 0777), the CA bundle equals the builder's, the entrypoint and licence files equal the source; the UBI base layer's origin is not measured."
+    }
+  ]
+}

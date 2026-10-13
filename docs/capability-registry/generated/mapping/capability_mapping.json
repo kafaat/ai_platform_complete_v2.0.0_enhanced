@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5532,
+    "files_scanned": 5544,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
-      "governance": 65,
+      "governance": 67,
       "mobile": 55,
-      "other": 1566,
-      "tests": 1886,
+      "other": 1572,
+      "tests": 1890,
       "web": 458
     },
-    "unmapped_artifacts": 2233,
+    "unmapped_artifacts": 2236,
     "ambiguous_artifacts": 433
   },
   "capabilities": [
@@ -8692,7 +8692,7 @@
           "score": 12
         },
         {
-          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:77",
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:78",
           "score": 10
         }
       ],
@@ -9044,6 +9044,14 @@
           ]
         },
         {
+          "path": "services/odoo-bridge/routers/health.py",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "path:odoo bridge"
+          ]
+        },
+        {
           "path": "services/odoo-bridge/routers/sync.py",
           "score": 12,
           "signals": [
@@ -9057,14 +9065,6 @@
           "signals": [
             "path:odoo bridge",
             "content:odoo bridge"
-          ]
-        },
-        {
-          "path": "services/odoo-bridge/routers/health.py",
-          "score": 11,
-          "signals": [
-            "content:erp bridge",
-            "path:odoo bridge"
           ]
         },
         {
@@ -9099,24 +9099,24 @@
       ],
       "routes": [
         {
-          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:77",
+          "value": "/health @ services/odoo-bridge/routers/health.py:76",
           "score": 12
         },
         {
-          "value": "/health @ services/odoo-bridge/routers/health.py:30",
-          "score": 11
+          "value": "/healthz @ services/odoo-bridge/routers/health.py:75",
+          "score": 12
         },
         {
-          "value": "/healthz @ services/odoo-bridge/routers/health.py:29",
-          "score": 11
+          "value": "/readyz @ services/odoo-bridge/routers/health.py:86",
+          "score": 12
         },
         {
-          "value": "/readyz @ services/odoo-bridge/routers/health.py:40",
-          "score": 11
+          "value": "/v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:120",
+          "score": 12
         },
         {
-          "value": "/v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:75",
-          "score": 11
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:78",
+          "score": 12
         },
         {
           "value": "/health @ services/mcp_servers/market_server.py:708",
@@ -9246,6 +9246,15 @@
         },
         {
           "path": "tests_v9/test_erp_bridge_healthcheck_guard.py",
+          "score": 17,
+          "signals": [
+            "path:erp bridge",
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "path": "tests_v9/test_erp_bridge_requires_erp.py",
           "score": 17,
           "signals": [
             "path:erp bridge",
@@ -9397,7 +9406,7 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 10
       },
@@ -28237,7 +28246,16 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "certification/evidence/migrator_fail_closed_railway_20261011.json",
+          "score": 14,
+          "signals": [
+            "path:fail closed",
+            "content:fail closed"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -28251,7 +28269,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -44968,6 +44986,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_recovery_smoke_truth.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_redis_mandatory_in_production.py",
       "kind": "tests"
     },
@@ -45073,6 +45095,10 @@
     },
     {
       "path": "tests_v9/test_sam2_polygon_postprocessing_20260703.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sam2_ref_pinned.py",
       "kind": "tests"
     },
     {
@@ -45229,6 +45255,10 @@
     },
     {
       "path": "tests_v9/test_spatial_e2e_smoke.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sqlite_live_backup.py",
       "kind": "tests"
     },
     {

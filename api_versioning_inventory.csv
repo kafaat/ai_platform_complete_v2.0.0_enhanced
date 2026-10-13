@@ -216,11 +216,11 @@ odoo-bridge,services/odoo-bridge/routers/catalog.py,33,GET,/v1/config,get_config
 odoo-bridge,services/odoo-bridge/routers/catalog.py,50,GET,/v1/logs,get_logs,versioned
 odoo-bridge,services/odoo-bridge/routers/catalog.py,71,GET,/v1/products,list_erp_products,versioned
 odoo-bridge,services/odoo-bridge/routers/catalog.py,78,GET,/v1/suppliers,list_erp_suppliers,versioned
-odoo-bridge,services/odoo-bridge/routers/health.py,31,GET,/healthz,healthz,infra
-odoo-bridge,services/odoo-bridge/routers/health.py,31,GET,/health,healthz,infra
-odoo-bridge,services/odoo-bridge/routers/health.py,41,GET,/readyz,readyz,infra
-odoo-bridge,services/odoo-bridge/routers/health.py,76,GET,/v1/readyz/capabilities,readyz_capabilities,versioned
-odoo-bridge,services/odoo-bridge/routers/sync.py,78,POST,/v1/sync,trigger_sync,versioned
+odoo-bridge,services/odoo-bridge/routers/health.py,77,GET,/healthz,healthz,infra
+odoo-bridge,services/odoo-bridge/routers/health.py,77,GET,/health,healthz,infra
+odoo-bridge,services/odoo-bridge/routers/health.py,87,GET,/readyz,readyz,infra
+odoo-bridge,services/odoo-bridge/routers/health.py,121,GET,/v1/readyz/capabilities,readyz_capabilities,versioned
+odoo-bridge,services/odoo-bridge/routers/sync.py,79,POST,/v1/sync,trigger_sync,versioned
 odoo-bridge,services/odoo-bridge/routers/webhooks.py,21,POST,/v1/webhook/odoo,odoo_webhook,versioned
 rag-retrieval,services/rag-retrieval/main.py,145,GET,/healthz,healthz,infra
 rag-retrieval,services/rag-retrieval/main.py,150,GET,/metrics,metrics,infra

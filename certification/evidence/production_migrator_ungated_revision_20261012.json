@@ -1,0 +1,101 @@
+{
+  "incident": "PRODUCTION-MIGRATOR-OLD-UNGATED-REVISION-EXECUTED-20261012-01",
+  "collected": "2026-10-12, Railway MCP read-only (list-deployments, get-logs, environment-status); no change made",
+  "project": "33c50993-1110-43eb-8e92-04c15edae51e",
+  "environment": "production 79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+  "service": "sahool-migrate-main 5659ab3d-2bff-4bba-93b3-95678233a613",
+  "batch": {
+    "window_utc": [
+      "2026-10-12T16:23:17Z",
+      "2026-10-12T16:23:42Z"
+    ],
+    "deployments_created": 28,
+    "creator_field": "owner Railway account (same field appears on GitHub-triggered deploys; does not identify the actor)",
+    "first_railway_call_of_this_agent_session_utc": "2026-10-12T16:40:52Z"
+  },
+  "gated_revision": {
+    "deployment": "04540d66-a341-49f1-900d-2345b80c1bd2",
+    "commit": "32a000bd9483a723faa1f4a9ff04ba7097ae55b2",
+    "created_utc": "2026-10-12T16:23:32.1Z",
+    "final_status": "REMOVED",
+    "ran_utc": "2026-10-12T16:26:05Z",
+    "log": [
+      "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted",
+      "transaction_read_only=on · PostgreSQL 15.8 · db=sahool",
+      "SCHEMA_STATE readable=true read_only=on tables=341/341 columns=179/179 first_missing=none scope=tables_and_columns_only",
+      "SCHEMA_INSPECTION status=PASS manifest_sha256=533070e5b37ebe12a55133ab13cde43cfdc7ec14ce21f38416dc30bae2e0d0c5 files_parsed=231",
+      "MIGRATION_INSPECTION_COMPLETED apply=false"
+    ]
+  },
+  "ungated_revision": {
+    "deployment": "95bed641-2e38-4304-8914-7633eb9f8cc6",
+    "commit": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+    "created_utc": "2026-10-12T16:23:33.9Z",
+    "final_status": "SUCCESS (active)",
+    "container_start_utc": "2026-10-12T16:26:29.9Z",
+    "finished_utc": "2026-10-12T16:26:50.5Z",
+    "log": [
+      "applied MIGRATIONS in MANIFEST order init_v8 … v206 (231 files)",
+      "v206: سياسات شُدّدت = 128",
+      "roles re-asserted incl. PASSWORD from service variables: sahool_app, sahool_ingest_resolver, sahool_ingest, sahool_jobs, odoo_app",
+      "REVOKE CONNECT FROM PUBLIC + explicit grants",
+      "no ERROR/WARNING/FATAL lines in 1,348 deploy log lines read"
+    ],
+    "blind_spot": "migrations/apply_in_compose.sh:51 at 7310de85 sends each file's stdout to /dev/null — INSERT/UPDATE/DELETE tags are not in the log"
+  },
+  "not_proven": [
+    "who triggered the batch",
+    "why the older snapshot became active after the gated one",
+    "absence of data change (no row-count baseline; output suppressed)",
+    "whether role passwords changed (values not read)",
+    "existence of a backup before 16:26Z"
+  ],
+  "pending_patch": "073447ea staged, changes []; untouched",
+  "closure_conditions_owner_2026_10_12": [
+    "current state of schema, data and roles proven (incl. connect/privilege test for the five roles after password re-assertion)",
+    "backup verified by isolated restore",
+    "cause of the old-revision redeploy and actor of the 16:23Z batch identified",
+    "re-execution of an unapproved migrator prevented (pre-gate deployment cannot become active; migrator autodeploy disabled in both environments)",
+    "acceptance test on an isolated PostgreSQL"
+  ],
+  "not_required": "proving that the 231 files changed no byte; required: identify effective changes and verify data and operational contracts",
+  "read_only_inspection_scope": "builds a new baseline, not a forensic reconstruction of 16:26Z; stats counters do not rebuild history; rows invisible to the account are not evidence of absence",
+  "staging_same_pattern": {
+    "environment": "staging 70cc51f8-b11f-4506-87b2-4b6615e472be",
+    "service": "sahool-migrate-main",
+    "deployments": [
+      {
+        "id": "e2ab37f6",
+        "commit": "32a000bd",
+        "created_utc": "2026-10-12T16:23:31.370Z",
+        "status": "REMOVED"
+      },
+      {
+        "id": "7913ca6d",
+        "commit": "2a8903ab",
+        "created_utc": "2026-10-12T16:23:24.956Z",
+        "status": "REMOVED"
+      },
+      {
+        "id": "0bb2ede4",
+        "commit": "7310de85",
+        "created_utc": "2026-10-12T16:23:38.628Z",
+        "status": "SUCCESS (active)"
+      }
+    ],
+    "log_tail": "role management (REVOKE CONNECT FROM PUBLIC, odoo_app ALTER ROLE, managed-role attribute check) then 'التهيئة اكتملت — الهجرات مُطبَّقة' at 2026-10-12T16:28:43.755Z",
+    "full_log_preserved": false
+  },
+  "railway_source_branches_2026_10_12": {
+    "production": {
+      "main": "guardrails, field-management, auth-main, frontend, migrate-main, raster, decision, vegetation, notification, tts, raster-main-candidate",
+      "deploy/sahool-staging-fa92a1f7": "platform, auth"
+    },
+    "staging": {
+      "main": "notification, auth-main, field-management, raster, migrate-main, frontend, guardrails, raster-main-candidate, decision, vegetation",
+      "deploy/sahool-platform-db-ready-eb6da9df": "platform",
+      "claude/project-exploration-dtjw3p": "tts (pinned to a commit)"
+    },
+    "note": "no service builds from claude/wip-* branches"
+  }
+}

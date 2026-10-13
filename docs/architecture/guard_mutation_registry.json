@@ -1129,6 +1129,27 @@
           "replace": "        elif False:\n",
           "test": "tests_v9/test_brain_annotated_supersession_guard.py",
           "why": "قبولُ لقبٍ هدفُه لقبٌ بدوره ⇒ سلسلةٌ تُخفي أين تعيش الحالة، والمعرِّفان كلاهما خارج كلّ عدّ (BRAIN-HISTORICAL-GAP-ID-ALIAS-01)"
+        },
+        {
+          "expect": "test_two_table_rows_of_one_id_with_different_states_are_a_cross_source_conflict",
+          "find": "        if len({entry[\"state\"] for entry in entries}) > 1\n",
+          "replace": "        if False\n",
+          "why": "عودةُ العمى عن تعارض المصادر (BRAIN-TABLE-STATE-CONFLICTS-NOT-MEASURED-01) ⇒ صفّان أو صفٌّ وقسمٌ بحالتين مختلفتين لا يظهران",
+          "test": "tests/architecture/test_gap_registry_measure.py"
+        },
+        {
+          "expect": "test_a_reachable_but_unrelated_commit_no_longer_reconciles_when_prs_are_known",
+          "find": "            if not cited or any(pr_of(sha) in cited for sha in linked):",
+          "replace": "            if linked:",
+          "why": "عودةُ قبول أيّ commit مبلوغ ربطاً (DG-03) ⇒ commit لا علاقة له بإصلاح الفجوة يُسقط تحذيرَ المصالحة",
+          "test": "tests/architecture/test_gap_registry_measure.py"
+        },
+        {
+          "expect": "test_a_canonical_segment_without_a_pr_keeps_the_reachable_sha_rule",
+          "find": "            if not cited or any(pr_of(sha) in cited for sha in linked):",
+          "replace": "            if any(pr_of(sha) in cited for sha in linked):",
+          "why": "مقطعُ canonical بلا رقم PR يُرفض كلُّه حين يُعرف pr_of ⇒ تحذيراتُ مصالحةٍ كاذبة لربطٍ صحيح (مراجعةُ Copilot على #1167)",
+          "test": "tests/architecture/test_gap_registry_measure.py"
         }
       ]
     },
@@ -3575,6 +3596,30 @@
           "find": "if blob not in base_blobs]",
           "replace": "]",
           "why": "احتسابُ كلّ مسارٍ مُغيَّر دليلاً بالاسم ⇒ git mv لاختبارٍ قائم (R100) أو نسخُه (C100) أو تغييرُ صلاحيّاته يُمرِّر انتقالاً إلى fixed بلا سطرٍ جديد (فحصُ المالك على #1138)"
+        },
+        {
+          "expect": "test_brain_only_table_row_moved_to_verified_is_rejected_whatever_its_typography",
+          "find": "    return sorted(gap_ids_in_state(head_text, \"verified\") - gap_ids_in_state(base_text, \"verified\"))",
+          "replace": "    return []",
+          "why": "عودةُ العمى عن verified (BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01) ⇒ خليّةُ جدولٍ تكتب `verified` بين علامتَي الشيفرة في تعديلٍ للدماغ وحده تمرّ"
+        },
+        {
+          "expect": "test_brain_only_section_state_moved_to_verified_is_rejected",
+          "find": "    if verified and not _has_executable_evidence(paths):",
+          "replace": "    if False:",
+          "why": "نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ"
+        },
+        {
+          "expect": "test_the_cli_rejects_a_brain_only_backticked_verified_row",
+          "find": "        check_verified(evidence, *texts)\n",
+          "replace": "",
+          "why": "نزعُ ربط check_verified من main() ⇒ الاختباراتُ المباشرة تبقى خضراء والحارسُ في CI لا يرى verified (مراجعةُ Copilot على #1166)"
+        },
+        {
+          "expect": "test_a_cell_with_a_non_exempting_annotation_is_still_read_as_its_state",
+          "find": "    if len(annotations) == 1 and annotations[0] in g.NON_STATE_KINDS:",
+          "replace": "    if annotations:",
+          "why": "إسقاطُ كلِّ خليّةٍ موسومة ⇒ `<!-- gap-registry: current --> \\`verified\\`` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166)"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"

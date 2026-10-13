@@ -1955,7 +1955,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 31,
+    "line": 77,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1964,7 +1964,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 31,
+    "line": 77,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -1973,7 +1973,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 41,
+    "line": 87,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1982,7 +1982,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 76,
+    "line": 121,
     "method": "GET",
     "path": "/v1/readyz/capabilities",
     "handler": "readyz_capabilities",
@@ -1991,7 +1991,7 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 78,
+    "line": 79,
     "method": "POST",
     "path": "/v1/sync",
     "handler": "trigger_sync",
