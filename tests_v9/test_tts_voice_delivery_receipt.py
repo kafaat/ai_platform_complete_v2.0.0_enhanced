@@ -296,3 +296,24 @@ def test_text_telegram_exception_does_not_expose_credential_url(delivery, monkey
     assert BOT_TOKEN not in caplog.text
     assert "private-text" not in caplog.text
     assert "ReadTimeout" in caplog.text
+
+
+def test_oversize_chunked_audio_stops_before_consuming_full_response(delivery, monkeypatch):
+    class Chunks(httpx.AsyncByteStream):
+        def __init__(self):
+            self.reads = 0
+
+        async def __aiter__(self):
+            for chunk in (b"x" * (6 * 1024 * 1024), b"y" * (5 * 1024 * 1024), b"z"):
+                self.reads += 1
+                yield chunk
+
+        async def aclose(self):
+            pass
+
+    chunks = Chunks()
+    response = httpx.Response(200, stream=chunks, headers={"content-type": "audio/mpeg"})
+    accepted, requests = invoke(delivery, monkeypatch, tts_response=response)
+    assert accepted is False
+    assert len(requests) == 1
+    assert chunks.reads == 2
