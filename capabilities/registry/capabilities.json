@@ -4700,7 +4700,7 @@
       "apis": [
         "POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580",
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
-        "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43",
+        "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:72",
         "POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:453",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526",

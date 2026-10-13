@@ -161,7 +161,7 @@ DEC-006,test,services/decision-service/tests/test_wx10_11b_execution_delivery_re
 DEC-006,test,tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py,3,applied
 DEC-007,api,POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580,2,applied
 DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458,2,applied
-DEC-007,api,POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43,2,applied
+DEC-007,api,POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:72,2,applied
 DEC-007,api,POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:453,2,applied
 DEC-007,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521,2,applied
 DEC-007,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526,2,applied

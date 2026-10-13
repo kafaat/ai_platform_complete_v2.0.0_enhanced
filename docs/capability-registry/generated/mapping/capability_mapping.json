@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5539,
+    "files_scanned": 5544,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1569,
-      "tests": 1888,
-      "web": 458
+      "other": 1570,
+      "tests": 1889,
+      "web": 461
     },
-    "unmapped_artifacts": 2234,
+    "unmapped_artifacts": 2238,
     "ambiguous_artifacts": 431
   },
   "capabilities": [
@@ -38051,6 +38051,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/IrrigationWaterPage.tsx",
       "kind": "web"
     },
@@ -38272,6 +38280,10 @@
     },
     {
       "path": "frontend/src/services/api/irrigationNetworkCalculator.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/services/api/irrigationScenarioComparison.ts",
       "kind": "web"
     },
     {
@@ -42140,6 +42152,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_irrigation_method_endpoint.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_irrigation_scenario_value.py",
       "kind": "tests"
     },
     {

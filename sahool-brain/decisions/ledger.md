@@ -3762,3 +3762,7 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** الحارسُ كان يقبل `quay.io/minio/minio` و`bitnami/minio` وفحصاً بـwget أو بـcurl على مسارٍ غير `minio/health` — وكلُّها تفشل على آلةٍ جديدة أو تُبقي الخادم unhealthy. و`quay.io/minio/minio` مُدرَجٌ عمداً في `KEPT_FORMS` لأنّه ليس محذوفاً بل يشترط الدخول، فالرفضُ الصادق له «ليس الإبرة» لا «محذوف». مقيسٌ على حارس main (`32a000bd`): 19 من 23 اختباراً جديداً أحمر، ستّةٌ منها سلوكيّة؛ بعد التغيير 51/51. والقالبُ قبل #1139 ضبط المتغيّرين صراحةً على المستودعين المحذوفين، و`.env` المنسوخ منه يغلب الافتراضيّ ولا يتتبّعه git فلا يراه CI — فموضعُ فحصه الطبيبُ الذي يُشغّله المشغّل قبل compose.
 
 **المصدر:** `scripts/ci/minio_s3_contract_gate.py` · `tests_v9/test_minio_image_source.py` · `scripts/runtime/env_doctor.py` · `tests/runtime/test_phase17_runtime_bootstrap_doctor.py` · `MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01` · فرع `claude/wip-minio-guard-provenance` على `32a000bd`.
+
+## 2026-10-13 — قياس سيناريو الري قبل ادعاء القيمة
+
+**القرار:** تنفيذ مقارنة تاريخية وصفية في نقطة النتيجة القائمة، بكمّيات من سجلات التنفيذ المقاسة والمتحقّق منها في نطاق المستأجر، مع إبقاء الأثر السببي والطاقة والتكلفة غير مثبتة. **السبب:** المقال يوجّه نحو قيمة الأعمال، لكن فرق الاستهلاك بين تنفيذين لا يثبت وفرًا أو أثرًا سببيًا. لا نقطة تشغيل أو هجرة أو نشر جديدة. **المصدر:** أساس `3a8689f6`، فرع `codex/irrigation-scenario-value-20261013`؛ `api/outcome_measurement.py`؛ `docs/runbooks/IRRIGATION_SCENARIO_VALUE_PILOT.md`.

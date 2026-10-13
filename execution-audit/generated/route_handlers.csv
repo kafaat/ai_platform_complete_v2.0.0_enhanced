@@ -754,7 +754,7 @@ sahool-platform,GET,/api/v1/erp/reconciliations,list_erp_reconciliations,service
 sahool-platform,GET,/api/v1/operations/summary,operations_summary_endpoint,services/sahool-platform/api/routers/operations.py,93
 sahool-platform,GET,/api/v1/orchard/plan,orchard_plan_endpoint,services/sahool-platform/api/routers/orchard.py,24
 sahool-platform,GET,/api/v1/orchard/economics,orchard_economics_endpoint,services/sahool-platform/api/routers/orchard.py,30
-sahool-platform,POST,/api/v1/outcome/measure,measure_decision_outcome,services/sahool-platform/api/routers/outcome.py,43
+sahool-platform,POST,/api/v1/outcome/measure,measure_decision_outcome,services/sahool-platform/api/routers/outcome.py,72
 sahool-platform,POST,/api/v1/pest-escalation/run,pest_escalation_run,services/sahool-platform/api/routers/pest_escalation.py,34
 sahool-platform,GET,/api/v1/fields/{field_id}/phenology,field_phenology,services/sahool-platform/api/routers/phenology.py,159
 sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,services/sahool-platform/api/routers/phenology.py,181
