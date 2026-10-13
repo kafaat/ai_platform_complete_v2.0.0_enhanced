@@ -7314,6 +7314,21 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
 - **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
 
+## REFERENCE-CROPS-PARSER-HIDES-NON-STRING-RATING-01 — محلّلُ المحاصيل يُخفي تقييماً غيرَ نصّيّ
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا نشر؛ الأساس `18b64ed0` (2026-10-13).
+- **المصدر:** `frontend/src/lib/referenceContracts.ts` (`cropsFromMap`)؛ مراجعةُ #1170 بعد دمجه.
+- **العطل:** تقييمٌ غيرُ نصّيّ (`{crops:{النخيل:42}}`) كان يصير `undefined` فيُعرض صفّاً سليماً بلا تقييم، والوحدةُ وُضعت لتُظهر أشكالَ الخادم غيرَ المتوقّعة بـ`ApiShapeError`. الخادمُ الحاليّ (`desert_proven_crops`) يُعيد كلَّ تقييمٍ نصّاً، فالتشديدُ لا يكسر استجابةً قائمة.
+- **الإصلاح:** تقييمٌ غيرُ نصّيّ ⇒ `ApiShapeError` في الفئة الواحدة والكلّ؛ ثلاثُ حالاتٍ جديدة (42 · null · كائن) حمراءُ على الشيفرة السابقة وخضراء بعدها (44/44).
+- **حد الحكم:** دمجُه ينشر الواجهة في البيئتين — قرارُ المالك.
+
+## TENANT-AI-POLICY-OUTAGE-INDISTINGUISHABLE-FROM-NO-POLICY-01 — عطلُ قراءة سياسة المستأجِر يُعاد local_only صامتاً
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا نشر؛ الأساس `18b64ed0` (2026-10-13).
+- **المصدر:** `services/sahool-platform/core/ai_policy_envelope.py` (`load_tenant_ai_policy_row`) · `services/sahool-platform/api/routers/me.py`؛ مراجعةُ #1170 بعد دمجه.
+- **العطل:** المُحمِّل يبتلع خطأَ الاستعلام ويُعيد `None`، والموجِّه يبتلع خطأَ الاتّصال؛ فانقطاعُ القاعدة يُعاد 200 `local_only` بلا سجلٍّ ولا مقياس، مطابقاً لمستأجِرٍ بلا صفّ، ويعامله TTS سياسةً مقصودة.
+- **الإصلاح:** الإغلاقُ باقٍ (`local_only`)، ويُكتب تحذيرٌ مسمّى: `AI_POLICY_ROW_UNREADABLE` لعطل الاستعلام و`AI_POLICY_CONNECTION_UNAVAILABLE` لعطل الاتّصال، بنوع الخطأ لا نصّه. ثلاثةُ اختبارات: العطلان يُسجَّلان (أحمران على الشيفرة السابقة)، وغيابُ الصفّ لا يُسجَّل عطلاً.
+- **حد الحكم:** سجلٌّ لا مقياس؛ ومنصّةُ الإنتاج تُبنى من `deploy/*` فلا يبلغها الإصلاحُ بدمجه في main.
 ## TTS-VOICE-SUCCESS-WITHOUT-PROVIDER-RECEIPT-01 — نجاح توليد الصوت لا يثبت قبول Telegram
 <!-- gap-registry: current -->
 - **الحالة:** fixed محليًا بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `18b64ed0` (2026-10-13). التنفيذ منقول من #1171 عبر فرع التكامل، ودخل main في `a0c5c920` (PR #1176، squash 2026-10-13T20:57Z؛ CI أخضر على الرأس المُختبَر `b5831542`: 73 ناجحاً · 2 متخطّى)؛ الدمجُ والنشرُ لا يُعدّان تحقّقاً.
