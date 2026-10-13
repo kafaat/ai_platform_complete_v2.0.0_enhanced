@@ -33,6 +33,41 @@ def test_measure_does_not_guess_noncanonical_states():
     assert report["unclassified_rows"][0]["id"] == "GAP-B-01"
 
 
+def test_gap_id_state_counts_include_section_only_gaps_once():
+    """تنبيه Gap Watch بعد #1172: فجوةٌ في قسمٍ بلا صفّ كانت خارج كلِّ عدّادٍ بالحالة."""
+    report = mod().measure(
+        "| ID | Detail | Status |\n| --- | --- | --- |\n"
+        "| GAP-ROW-01 | x | **open** |\n"
+        "| GAP-BOTH-01 | x | **fixed** |\n"
+        "| GAP-SPLIT-01 | x | **open** |\n\n"
+        "## GAP-SECTION-ONLY-01 — قسمٌ بلا صفّ\n\n"
+        "- **الحالة:** fixed — بالشيفرة\n\n"
+        "## GAP-BOTH-01 — صفٌّ وقسمٌ متّفقان\n\n"
+        "- **الحالة:** fixed\n\n"
+        "## GAP-SPLIT-01 — صفٌّ وقسمٌ مختلفان\n\n"
+        "- **الحالة:** fixed\n\n"
+        "## GAP-ODD-01 — حالةٌ غيرُ مفهومة\n\n"
+        "- **الحالة:** BLOCKED_BY_ENVIRONMENT\n"
+    )
+    assert report["row_state_counts"] == {"fixed": 1, "open": 2}
+    assert report["gap_id_count"] == 5
+    assert report["gap_id_state_counts"] == {
+        "conflicting": 1,
+        "fixed": 2,
+        "open": 1,
+        "unclassified": 1,
+    }
+    assert report["section_only_gap_ids"] == ["GAP-ODD-01", "GAP-SECTION-ONLY-01"]
+    assert report["section_only_gap_id_count"] == 2
+
+
+def test_registry_gap_id_state_counts_cover_every_recorded_id():
+    report = mod().measure((ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8"))
+    assert sum(report["gap_id_state_counts"].values()) == report["gap_id_count"]
+    assert report["gap_id_count"] > report["section_only_gap_id_count"] > 0
+    assert "SQLITE-LIVE-BACKUP-IGNORES-WAL-01" in report["section_only_gap_ids"]
+
+
 def test_measure_reports_nonadjacent_duplicate_headings():
     report = mod().measure(
         "## GAP-A-01 — first\n\n"

@@ -72,12 +72,75 @@ SECRET_NAME = re.compile(r"(PASSWORD|PASSWD|SECRET|_KEY|APIKEY|API_KEY|TOKEN|CRE
 #: أسماءٌ تحمل الكلمة ولا تحمل سرّاً — تُستثنى **بالبنية** لا بقائمةٍ في ملفّ.
 NOT_SECRET = re.compile(r"(_KEY_ID|_KEY_FILE|_KEY_PATH|_TOKEN_URL|REQUIRE_AUTH_TOKEN)\b")
 
-_DEFAULTED = re.compile(r"\$\{([A-Z0-9_]+):-([^}]*)\}")
+#: بدايةُ ``${NAME:-`` — والافتراضيُّ يُقرأ بأقواسٍ متوازنة لا بـ``[^}]*``: الصيغةُ القديمة
+#: كانت تقطع ``${A_PASSWORD:-${LEGACY_PASSWORD:-سرّ}}`` عند أوّل ``}`` فتقرأ الافتراضيَّ
+#: ``${LEGACY_PASSWORD:-سرّ`` ويُستثنى لأنّه يبدأ بـ``$`` — والسرُّ المنشور داخله لا يُرى
+#: (مراجعةُ #1170 بعد دمجه، مُعادٌ إنتاجُها على 18b64ed0).
+_DEFAULT_OPEN = re.compile(r"\$\{([A-Z0-9_]+)(?::?[-=])")
+#: داخل الافتراضيّ: كلُّ عاملٍ يُنتج قيمةً حرفيّة يُقرأ — ``-``/``=`` (افتراضٌ وإسناد) و``+``
+#: (بديلٌ حين يُضبط المتغيّر: ``${A:-${B:+سرّ}}`` يُسند السرَّ حين يغيب A ويُضبط B — مراجعةُ
+#: Copilot على #1175)؛ و``?`` وحده لا يُنتج قيمة (يُفشل التوسيع).
+_NESTED_OPEN = re.compile(r"\$\{([A-Za-z0-9_]+)(:?[-=+?])")
+_SHELL_NAME = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*")
 _LITERAL = re.compile(r"^\s*(?:-\s+)?([A-Z0-9_]+)\s*[:=]\s*(?!\$)(\S.*?)\s*$")
 
 
 def _is_secret(name: str) -> bool:
     return bool(SECRET_NAME.search(name)) and not NOT_SECRET.search(name)
+
+
+def _close(text: str, start: int, open_ch: str, close_ch: str) -> int | None:
+    """موضعُ ما بعد إغلاقٍ متوازن لفتحةٍ سبقت ``start``، أو ``None`` إن لم يُغلَق."""
+    depth = 1
+    for i in range(start, len(text)):
+        if text[i] == open_ch:
+            depth += 1
+        elif text[i] == close_ch:
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return None
+
+
+def _defaulted(line: str) -> list[tuple[str, str]]:
+    """``(اسم، افتراضيّ)`` لكلّ ``${NAME:-…}`` في السطر، والمتداخلُ منها أيضاً."""
+    out = []
+    for match in _DEFAULT_OPEN.finditer(line):
+        end = _close(line, match.end(), "{", "}")
+        if end is not None:
+            out.append((match.group(1), line[match.end() : end - 1]))
+    return out
+
+
+def _literal_fallback(default: str) -> str:
+    """النصُّ الذي يبلغ المتغيّرَ حين يغيب كلُّ متغيّرٍ متداخل.
+
+    ``${X:-d}`` و``${X-d}`` و``${X:=d}`` و``${X=d}`` و``${X:+d}`` و``${X+d}`` تُسهم بحرفيِّ ``d``
+    (تكراراً)، وأيُّ توسيعٍ آخر (``${X}`` · ``${X:?…}`` · ``$X`` · ``$(…)``) لا يُسهم بشيء:
+    قيمتُه تُحسب وقتَ التشغيل لا تُكتب في المستودع.
+    """
+    out = []
+    i = 0
+    while i < len(default):
+        if default.startswith("${", i):
+            end = _close(default, i + 2, "{", "}")
+            if end is None:
+                return default[i:]
+            inner = _NESTED_OPEN.match(default, i)
+            if inner and not inner.group(2).endswith("?"):
+                out.append(_literal_fallback(default[inner.end() : end - 1]))
+            i = end
+        elif default.startswith("$(", i):
+            end = _close(default, i + 2, "(", ")")
+            if end is None:
+                return default[i:]
+            i = end
+        elif name := _SHELL_NAME.match(default, i):
+            i = name.end()
+        else:
+            out.append(default[i])
+            i += 1
+    return "".join(out)
 
 
 def _exceptions() -> dict[str, dict]:
@@ -101,9 +164,10 @@ def findings() -> list[tuple[str, str]]:
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
-            for name, default in _DEFAULTED.findall(line):
-                # `$(…)` أو `${…}` متداخل: قيمةٌ تُحسَب وقتَ التشغيل، لا سرٌّ مكتوب.
-                if not _is_secret(name) or default == "" or default.startswith("$"):
+            for name, default in _defaulted(line):
+                # ما يُحسَب وقتَ التشغيل (`$(…)` · `$X` · `${X}`) ليس سرّاً مكتوباً؛ أمّا
+                # الحرفيُّ — ولو داخل `${…:-…}` متداخل — فيبلغ المتغيّرَ حين يغيب الكلّ.
+                if not _is_secret(name) or _literal_fallback(default) == "":
                     continue
                 out.append(
                     (
