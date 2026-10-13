@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "e9cf23fde57d03c3fea6c7a723333e1a95ea126ef0f74a31e10822b68aa58bba",
+  "inventory_sha256": "b4771174435a0823edc949cc032b07add161e8e387f54db0dc968f7c567dbb5c",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -1746,7 +1746,7 @@
     {
       "classification": "domain",
       "function": "me",
-      "line": 25,
+      "line": 28,
       "method": "GET",
       "path": "/api/v1/me",
       "source": "api/routers/me.py"
