@@ -47,4 +47,15 @@ describe("SpeakButton unavailable audio", () => {
     expect(synthesizeSpeech).toHaveBeenCalledTimes(2);
     expect(synthesizeSpeech).toHaveBeenNthCalledWith(2, text);
   });
+
+  it("clears failure for a different recommendation", async () => {
+    vi.mocked(synthesizeSpeech).mockRejectedValue(new Error("blocked"));
+    const view = render(<SpeakButton text="النص الأول" />);
+    fireEvent.click(screen.getByRole("button", { name: "استماع" }));
+    await screen.findByRole("button", {
+      name: "الصوت غير متاح؛ اقرأ التوصية المكتوبة",
+    });
+    view.rerender(<SpeakButton text="النص الثاني" />);
+    expect(screen.getByRole("button", { name: "استماع" })).toBeTruthy();
+  });
 });
