@@ -7308,3 +7308,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** fixed بالشيفرة والاختبارات، لا verified ولا شهادة نشر؛ الأساس `3a8689f6` (2026-10-13).
 - **المصدر:** `scripts/recovery/recovery_smoke.sh:1`؛ `scripts/outbox_reliability_check.sh`؛ `tests_v9/test_recovery_smoke_truth.py`؛ مأخوذٌ كما هو من #1171 (`b0bc2b9e`).
 - **حد الحكم:** smoke فقط، لا RTO/RPO أو T7 كامل.
+
+## GAP-REGISTRY-STATE-COUNTS-OMIT-SECTION-ONLY-GAPS-01 — عدّادُ الحالات يقرأ صفوفَ الجداول وحدها
+<!-- gap-registry: current -->
+- **الحالة:** fixed بالشيفرة والاختبارات، لا verified؛ الأساس `18b64ed0` (2026-10-13).
+- **المصدر:** `scripts/ci/gap_registry_measure.py` (`row_state_counts`)؛ تنبيه Gap Watch بعد دمج #1172.
+- **القياس على `18b64ed0`:** `row_state_counts` = fixed 282 · open 114 · verified 3 (399 صفّاً)، بينما المعرّفاتُ الفريدة في الصفوف والأقسام 514، منها 115 في أقسامٍ بلا صفّ — أي 78 fixed و37 open خارج كلّ عدٍّ بالحالة، ومنها `SQLITE-LIVE-BACKUP-IGNORES-WAL-01` و`RECOVERY-SMOKE-SUPPRESSES-REQUESTED-FAILURES-01`.
+- **الإصلاح:** حقولٌ جديدة `gap_id_count` و`gap_id_state_counts` و`section_only_gap_ids` تعدّ كلَّ معرِّفٍ مرّةً من مصادر فحص التعارض نفسِها (حالةٌ واحدة ⇒ هي، وأكثرُ ⇒ `conflicting`، وبلا حالةٍ مفهومة ⇒ `unclassified`)؛ معنى `row_state_counts` لم يتغيّر. اختبارا `tests/architecture/test_gap_registry_measure.py` الجديدان أحمران على الشيفرة السابقة وأخضران بعدها.
+- **حد الحكم:** حقلٌ في التقرير لا بوّابةٌ حاجبة؛ ولا يقرّر أيُّ العدّادين يُنقل في الملخّصات.
