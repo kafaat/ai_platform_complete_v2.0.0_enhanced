@@ -185,36 +185,76 @@ TTS_URL = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
 async def send_voice_alert(
     chat_id: int, text: str, voice: str = "yemeni_male", *, user_id: int
 ) -> bool:
-    """
-    Synthesize Arabic text via TTS service and send as voice to Telegram.
-    Returns True on success, False on failure (caller may fallback to text).
+    """Send MP3 voice and require a matching Telegram provider receipt.
 
-    TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01: يُرسَل توكنُ **المُرسِل** المربوط
-    (``user_id`` من ``from_user``، لا معرّفُ المحادثة) وحده، فتقرأ tts-service سياسةَ
-    مستأجِره. لا ``X-Agent-Token`` معه: توكنُ الخدمة يغلب في المصادقة فيصير الطلبُ
-    ``__service__`` بلا مستأجِر ⇒ الأشدّ. غيرُ مربوط ⇒ لا صوت (نصٌّ بديل).
+    True means provider acceptance, not recipient listening or exactly-once
+    delivery. WAV needs explicit conversion; never label Piper WAV as MP3.
+    The caller binds chat_id to the authenticated user supplied as user_id.
     """
-    token = await get_user_token(user_id)
-    if not token:
+    if not (
+        type(chat_id) is int
+        and chat_id != 0
+        and type(user_id) is int
+        and user_id > 0
+        and isinstance(text, str)
+        and text.strip()
+        and len(text) <= 1000
+    ):
         return False
-    import httpx
-    from aiogram.types import BufferedInputFile
-
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                f"{TTS_URL}/v1/tts/synthesize",
-                json={"text": text[:1000], "voice": voice},
-                headers={"Authorization": f"Bearer {token}"},
-            )
-        if resp.status_code != 200:
-            logger.warning(f"TTS failed: {resp.status_code}")
+        # Preserve the authenticated sender's tenant policy. Shared service
+        # credentials cannot authorize an external TTS provider for that tenant.
+        token = await get_user_token(user_id)
+        if not token:
             return False
-        audio_file = BufferedInputFile(resp.content, filename="sahool_voice.mp3")
-        await bot.send_voice(chat_id=chat_id, voice=audio_file, caption=text[:200])
-        return True
-    except Exception as e:
-        logger.error(f"TTS send failed: {e}")
+        import httpx
+        from aiogram.types import BufferedInputFile
+
+        # Keep this credential-bearing internal request off environment proxies.
+        async with httpx.AsyncClient(timeout=15.0, trust_env=False) as client:
+            async with client.stream(
+                "POST",
+                f"{TTS_URL}/v1/tts/synthesize",
+                json={"text": text, "voice": voice},
+                headers={"Authorization": f"Bearer {token}"},
+            ) as resp:
+                if resp.status_code != 200:
+                    logger.warning("TTS synthesis rejected (%s)", resp.status_code)
+                    return False
+                if (
+                    resp.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+                    != "audio/mpeg"
+                ):
+                    return False
+                if int(resp.headers.get("content-length", "0")) > 10 * 1024 * 1024:
+                    return False
+                audio_parts = bytearray()
+                async for chunk in resp.aiter_bytes():
+                    if len(audio_parts) + len(chunk) > 10 * 1024 * 1024:
+                        return False
+                    audio_parts.extend(chunk)
+                if not audio_parts:
+                    return False
+                audio = bytes(audio_parts)
+        audio_file = BufferedInputFile(audio, filename="sahool_voice.mp3")
+        receipt = await bot.send_voice(
+            chat_id=chat_id, voice=audio_file, caption=text, parse_mode=None
+        )
+        message_id = getattr(receipt, "message_id", None)
+        chat = getattr(receipt, "chat", None)
+        voice_receipt = getattr(receipt, "voice", None)
+        file_id = getattr(voice_receipt, "file_id", None)
+        return bool(
+            type(message_id) is int
+            and message_id > 0
+            and type(getattr(chat, "id", None)) is int
+            and chat.id == chat_id
+            and isinstance(file_id, str)
+            and file_id.strip()
+        )
+    except Exception as exc:
+        # Provider errors may contain credentials or private recommendation text.
+        logger.warning("TTS voice provider acceptance failed (%s)", type(exc).__name__)
         return False
 
 

@@ -388,7 +388,7 @@
       },
       "evidence_truncated": {
         "apis": 202,
-        "tests": 103
+        "tests": 104
       }
     },
     {
@@ -1001,7 +1001,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 12
+        "tests": 13
       }
     },
     {
@@ -4653,6 +4653,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+        "tests_v9/test_tts_voice_delivery_receipt.py",
         "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py"
       ],
       "runtime": {
@@ -4661,6 +4662,7 @@
         "receipts": [
           "receipt:api:POST_/v1/execution-requests/{execution_request_id}/receipt",
           "receipt:test:services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+          "receipt:test:tests_v9/test_tts_voice_delivery_receipt.py",
           "receipt:test:tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py"
         ],
         "audit_events": []
@@ -4671,7 +4673,7 @@
           "path": "services/decision-service/migrations/006_execution_delivery_receipt.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4700,7 +4702,7 @@
       "apis": [
         "POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:580",
         "POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:458",
-        "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43",
+        "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:72",
         "POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:453",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:521",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526",

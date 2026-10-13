@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5559,
+    "files_scanned": 5572,
     "files_by_kind": {
-      "backend": 1221,
+      "backend": 1222,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1572,
-      "tests": 1899,
-      "web": 463
+      "other": 1574,
+      "tests": 1905,
+      "web": 467
     },
-    "unmapped_artifacts": 2249,
+    "unmapped_artifacts": 2260,
     "ambiguous_artifacts": 433
   },
   "capabilities": [
@@ -11515,27 +11515,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:737",
+          "value": "/health @ agents/notification/agent.py:823",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:738",
+          "value": "/healthz @ agents/notification/agent.py:824",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:788",
+          "value": "/metrics @ agents/notification/agent.py:874",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:801",
+          "value": "/notification/test @ agents/notification/agent.py:887",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:723",
+          "value": "/notifications/test @ agents/notification/agent.py:809",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:743",
+          "value": "/readyz @ agents/notification/agent.py:829",
           "score": 12
         },
         {
@@ -11735,7 +11735,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:514",
+          "value": "sahool.> @ agents/notification/agent.py:600",
           "score": 12
         },
         {
@@ -11795,7 +11795,7 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:463",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:549",
           "score": 12
         },
         {
@@ -11983,14 +11983,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_tts_notification_service_auth.py",
-          "score": 10,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "tests_v9/test_operational_evidence_artefacts.py",
           "score": 9,
           "signals": [
@@ -12003,6 +11995,14 @@
           "score": 9,
           "signals": [
             "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_tts_notification_service_auth.py",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -14065,7 +14065,7 @@
           "score": 9
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:239",
           "score": 9
         }
       ],
@@ -31250,7 +31250,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:239",
           "score": 12
         },
         {
@@ -36722,6 +36722,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/components/SpeakButton.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/SpeakButton.tsx",
       "kind": "web"
     },
@@ -38150,6 +38154,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/IrrigationScenarioComparisonPanel.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/IrrigationWaterPage.tsx",
       "kind": "web"
     },
@@ -38371,6 +38383,10 @@
     },
     {
       "path": "frontend/src/services/api/irrigationNetworkCalculator.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/services/api/irrigationScenarioComparison.ts",
       "kind": "web"
     },
     {
@@ -42242,6 +42258,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
       "kind": "tests"
     },
@@ -42975,6 +42995,10 @@
     },
     {
       "path": "services/tts-service/arabic_normalizer.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/tts-service/critical_speech.py",
       "kind": "backend"
     },
     {
@@ -45350,6 +45374,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_telegram_voice_audio_boundary.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
       "kind": "tests"
     },
@@ -45386,11 +45414,23 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_tts_critical_speech.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_tts_edge_retry.py",
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_tts_piper_provider.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_tts_platform_policy_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_policy_proxy_guard.py",
       "kind": "tests"
     },
     {
@@ -45399,6 +45439,10 @@
     },
     {
       "path": "tests_v9/test_tts_request_pitch_validation.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_voice_delivery_receipt.py",
       "kind": "tests"
     },
     {

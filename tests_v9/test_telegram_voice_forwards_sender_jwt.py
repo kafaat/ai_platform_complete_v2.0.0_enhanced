@@ -13,13 +13,14 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import os
 import sys
 import types
 from pathlib import Path
 
 import pytest
+
+from tests_v9.service_module import load_service_main
 
 pytestmark = [pytest.mark.unit, pytest.mark.security]
 
@@ -33,14 +34,9 @@ def _load_bot():
     os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
     if str(_BOT_DIR) not in sys.path:
         sys.path.insert(0, str(_BOT_DIR))
-    existing = sys.modules.get("sahool_tg_voice_main")
-    if existing is not None:
-        return existing
-    spec = importlib.util.spec_from_file_location("sahool_tg_voice_main", _BOT_DIR / "main.py")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["sahool_tg_voice_main"] = module
-    spec.loader.exec_module(module)
-    return module
+    return load_service_main(
+        str(_BOT_DIR), required_attrs=("send_voice_alert", "cmd_voice", "user_cache")
+    )
 
 
 class _Recorder:
@@ -52,7 +48,16 @@ class _Recorder:
 
         class _Resp:
             status_code = 200
-            content = b"AUDIO"
+            headers = {"content-type": "audio/mpeg"}
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
+            async def aiter_bytes(self):
+                yield b"AUDIO"
 
         class _Client:
             def __init__(self, *a, **k):
@@ -64,7 +69,8 @@ class _Recorder:
             async def __aexit__(self, *exc):
                 return False
 
-            async def post(self, url, json=None, headers=None):
+            def stream(self, method, url, json=None, headers=None):
+                assert method == "POST"
                 recorder.posts.append({"url": url, "json": json, "headers": dict(headers or {})})
                 return _Resp()
 
@@ -78,8 +84,13 @@ def _wire(monkeypatch, bot):
     monkeypatch.setattr(httpx, "AsyncClient", rec.client_factory())
     sent: list[int] = []
 
-    async def send_voice(chat_id, voice, caption=None):
+    async def send_voice(chat_id, voice, caption=None, parse_mode=None):
         sent.append(chat_id)
+        return types.SimpleNamespace(
+            message_id=42,
+            chat=types.SimpleNamespace(id=chat_id),
+            voice=types.SimpleNamespace(file_id="voice-file"),
+        )
 
     monkeypatch.setattr(bot.bot, "send_voice", send_voice)
     return rec, sent

@@ -582,3 +582,194 @@ def test_resolve_without_bearer_never_asks_the_platform(monkeypatch):
     asked = _policy(monkeypatch, tts_policy, "full_external")
     mode = asyncio.run(tts_policy.resolve_policy_mode({"tenant_id": _TENANT}, None))
     assert mode == "local_only" and asked["n"] == 0
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_critical_free_text_rejected_before_provider_or_cache(monkeypatch, path):
+    main, providers, policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    asked = _policy(monkeypatch, policy, "full_external")
+
+    class ForbiddenCache:
+        async def get(self, key):
+            raise AssertionError("invalid critical speech reached cache")
+
+    monkeypatch.setattr(main, "_redis", ForbiddenCache())
+    response = _client(main).post(
+        path, json={"text": "استخدم 0.75 مل", "voice": "yemeni_male"}, headers=_bearer(main)
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["error"] == "critical_speech_invalid"
+    assert ext.calls == 0 and asked["n"] == 0
+
+
+def test_critical_slot_changes_do_not_reuse_cached_audio(monkeypatch):
+    main, providers, policy = _load(monkeypatch)
+    _policy(monkeypatch, policy, "local_only")
+    spoken = _piper_only(monkeypatch, providers, _valid_wav())
+    monkeypatch.setattr(main, "_redis", _FakeRedis())
+    client = _client(main)
+    body = {
+        "text": "استخدم {quantity} {unit}",
+        "critical_slots": {"quantity": "0.75", "unit": "ml"},
+    }
+    first = client.post("/v1/tts/synthesize", json=body, headers=_bearer(main))
+    repeated = client.post("/v1/tts/synthesize", json=body, headers=_bearer(main))
+    body["critical_slots"]["quantity"] = "0.25"
+    changed = client.post("/v1/tts/synthesize", json=body, headers=_bearer(main))
+    assert (first.status_code, repeated.status_code, changed.status_code) == (200, 200, 200)
+    assert [r.headers["x-cache"] for r in (first, repeated, changed)] == ["MISS", "HIT", "MISS"]
+    assert len(spoken) == 2 and spoken[0] != spoken[1]
+    assert all("صفر" in text and "فاصلة" in text for text in spoken)
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+def test_critical_template_is_rendered_before_local_dispatch(monkeypatch, path):
+    main, providers, policy = _load(monkeypatch)
+    _policy(monkeypatch, policy, "local_only")
+    spoken = _piper_only(monkeypatch, providers, _valid_wav())
+    response = _client(main).post(
+        path,
+        json={
+            "text": "استخدم {quantity} {unit}",
+            "critical_slots": {"quantity": "0.75", "unit": "ml"},
+        },
+        headers=_bearer(main),
+    )
+    assert response.status_code == 200
+    assert len(spoken) == 1 and "صفر فاصلة" in spoken[0]
+    assert "{" not in spoken[0] and not any(char.isdecimal() for char in spoken[0])
+
+
+def test_external_stream_normalizes_before_dispatch(monkeypatch):
+    main, providers, policy = _load(monkeypatch)
+    _policy(monkeypatch, policy, "full_external")
+    captured = []
+
+    class Communicate:
+        def __init__(self, *, text, **kwargs):
+            captured.append(text)
+
+        async def stream(self):
+            yield {"type": "audio", "data": b"audio"}
+
+    monkeypatch.setattr(main.edge_tts, "Communicate", Communicate)
+    response = _client(main).post(
+        "/v1/tts/stream", json={"text": "طقسـك 20°C", "normalize": True}, headers=_bearer(main)
+    )
+    assert response.status_code == 200
+    assert captured == ["طقسك 20 درجة مئويّة"]
+
+
+def test_cached_external_audio_does_not_bypass_changed_policy(monkeypatch):
+    main, providers, policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _no_local_providers(monkeypatch, providers)
+    _policy(monkeypatch, policy, "full_external")
+    monkeypatch.setattr(main, "_redis", _FakeRedis())
+    client = _client(main)
+    initial = client.post("/v1/tts/synthesize", json=_BODY, headers=_bearer(main))
+    assert initial.status_code == 200 and ext.calls == 1
+    _policy(monkeypatch, policy, "local_only")
+    blocked = client.post("/v1/tts/synthesize", json=_BODY, headers=_bearer(main))
+    _assert_blocked(blocked, "local_only")
+    assert ext.calls == 1
+
+
+@pytest.mark.parametrize("path", ["/v1/tts/synthesize", "/v1/tts/stream"])
+@pytest.mark.parametrize("invalid_audio", [[0.0, 0.2], b""])
+def test_invalid_local_audio_fails_before_response_or_cache(monkeypatch, path, invalid_audio):
+    main, providers, policy = _load(monkeypatch)
+    ext = _External()
+    ext.install(monkeypatch, main, providers)
+    _policy(monkeypatch, policy, "local_only")
+    _piper_only(monkeypatch, providers, invalid_audio)
+    cache = _FakeRedis()
+    monkeypatch.setattr(main, "_redis", cache)
+    response = _client(main).post(path, json=_BODY, headers=_bearer(main))
+    assert response.status_code == 503
+    assert response.json()["detail"]["error"] == "local_provider_failed"
+    assert cache.store == {} and ext.calls == 0
+
+
+@pytest.mark.parametrize(
+    "base",
+    [
+        "file:///tmp/policy",
+        "https://user:pass@platform",
+        "http://platform/prefix",
+        "http://platform?target=other",
+        "http://platform#fragment",
+        "http://platform:99999",
+        "http://platform\\@other",
+        "http://platform/path//",
+        "http://platform host",
+    ],
+)
+def test_invalid_policy_origin_fails_closed_without_fetch(monkeypatch, base):
+    _main, _providers, policy = _load(monkeypatch)
+    monkeypatch.setenv("PLATFORM_API_URL", base)
+    calls = []
+
+    async def fetch(*args):
+        calls.append(args)
+        raise AssertionError("invalid origin must not receive credentials")
+
+    mode = asyncio.run(
+        policy.resolve_policy_mode({"tenant_id": _TENANT}, "Bearer fixture", fetch=fetch)
+    )
+    assert mode == "local_only" and calls == []
+
+
+def test_redirect_does_not_forward_authorization(monkeypatch):
+    import io
+    import urllib.request
+    import urllib.response
+    from email.message import Message
+
+    _main, _providers, policy = _load(monkeypatch)
+    calls = []
+
+    def redirect_response(self, request):
+        calls.append(request.full_url)
+        headers = Message()
+        headers["Location"] = "http://untrusted.example/policy"
+        response = urllib.response.addinfourl(io.BytesIO(b""), headers, request.full_url, 302)
+        response.msg = "Found"
+        return response
+
+    monkeypatch.setattr(urllib.request.HTTPHandler, "http_open", redirect_response)
+    monkeypatch.setenv("PLATFORM_API_URL", "http://platform")
+    mode = asyncio.run(policy.resolve_policy_mode({"tenant_id": _TENANT}, "Bearer fixture"))
+    assert mode == "local_only"
+    assert calls == ["http://platform/api/v1/me"]
+
+
+def test_oversized_policy_response_fails_closed_with_bounded_read(monkeypatch):
+    _main, _providers, policy = _load(monkeypatch)
+    sizes = []
+
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def read(self, size):
+            sizes.append(size)
+            return b" " * size
+
+    class Opener:
+        def open(self, *args, **kwargs):
+            return Response()
+
+    monkeypatch.setattr(policy.urllib.request, "build_opener", lambda *args: Opener())
+    monkeypatch.setenv("PLATFORM_API_URL", "http://platform")
+    mode = asyncio.run(policy.resolve_policy_mode({"tenant_id": _TENANT}, "Bearer fixture"))
+    assert mode == "local_only"
+    assert sizes == [64 * 1024 + 1]
