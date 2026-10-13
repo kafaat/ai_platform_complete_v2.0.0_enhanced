@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5541,
+    "files_scanned": 5544,
     "files_by_kind": {
       "backend": 1220,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1569,
+      "other": 1572,
       "tests": 1890,
       "web": 458
     },
     "unmapped_artifacts": 2236,
-    "ambiguous_artifacts": 431
+    "ambiguous_artifacts": 433
   },
   "capabilities": [
     {
@@ -15503,6 +15503,14 @@
           ]
         },
         {
+          "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/testing/unmarked_tests_baseline.json",
           "score": 12,
           "signals": [
@@ -15548,7 +15556,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 6
+        "other_evidence": 7
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -18022,6 +18030,15 @@
           ]
         },
         {
+          "path": "docs/audits/branch_archive_20261012/branches_20261012.md",
+          "score": 14,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "sentinel_hub/vegetation_real.py",
           "score": 14,
           "signals": [
@@ -18212,7 +18229,7 @@
         "mobile": 0,
         "tests": 47,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 34
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21609,6 +21626,14 @@
           ]
         },
         {
+          "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 12,
           "signals": [
@@ -22075,7 +22100,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 87
+        "other_evidence": 88
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -24002,6 +24027,15 @@
           ]
         },
         {
+          "path": "docs/audits/branch_archive_20261012/branches_20261012.md",
+          "score": 17,
+          "signals": [
+            "content:cog",
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "docs/testing/connectivity_repairs_20260910.md",
           "score": 17,
           "signals": [
@@ -24093,6 +24127,15 @@
           "signals": [
             "path:cog",
             "content:cog"
+          ]
+        },
+        {
+          "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+          "score": 12,
+          "signals": [
+            "content:cog",
+            "content:raster tile",
+            "content:tilejson"
           ]
         },
         {
@@ -24239,7 +24282,7 @@
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 28
+        "other_evidence": 30
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26006,6 +26049,14 @@
           ]
         },
         {
+          "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+          "score": 12,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/specs/SCOUT-INGEST-01_B1.3_projection_spec.md",
           "score": 12,
           "signals": [
@@ -26473,7 +26524,7 @@
         "mobile": 0,
         "tests": 71,
         "governance": 0,
-        "other_evidence": 75
+        "other_evidence": 76
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47025,6 +47076,69 @@
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/audits/branch_archive_20261012/branches_20261012.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 17,
+          "signals": [
+            "content:cog",
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 14,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "capability_id": "SAT-009",
+          "score": 12,
+          "signals": [
+            "content:cog",
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
           ]
         }
       ]

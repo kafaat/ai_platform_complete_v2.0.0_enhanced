@@ -1557,6 +1557,69 @@
     ]
   },
   {
+    "path": "docs/audits/branch_archive_20261012/branches_20261012.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 17,
+        "signals": [
+          "content:cog",
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 14,
+        "signals": [
+          "content:cdse",
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 12,
+        "signals": [
+          "content:cog",
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
     "kind": "other",
     "candidates": [
