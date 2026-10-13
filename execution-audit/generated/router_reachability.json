@@ -1468,7 +1468,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -2560,7 +2560,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 55,
+      "line": 58,
       "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "prefix": null,
       "resolved": false,
@@ -2685,7 +2685,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "26a6659cf7d342feed220c9b8942999fa6582d2194a7a44054514f83c0b9ff45",
+  "inventory_sha256": "f783abf9a2855914512443dea1fbc4d39a51ea06a9c8eeaa724c6dd0b547083c",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4071,7 +4071,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -5139,7 +5139,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
-      "line": 55,
+      "line": 58,
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"
