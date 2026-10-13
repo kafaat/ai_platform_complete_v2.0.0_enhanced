@@ -7383,3 +7383,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الإصلاح:** الافتراضيُّ يُقرأ بأقواسٍ متوازنة، وكلُّ `${NAME:-` يُفحص ولو متداخلاً، ويُحكم على الحرفيّ الذي يبلغ المتغيّرَ حين يغيب الكلّ؛ ما يُحسب وقتَ التشغيل (`$(…)` · `$X` · `${X}` · `${X:?…}`) يبقى مقبولاً. سبعُ حالاتٍ جديدة، ثلاثٌ منها حمراء على الشيفرة السابقة. الشجرةُ الحيّة: PASS بلا نتيجةٍ جديدة والاستثناءاتُ الـ11 كما هي.
 - **حد الحكم:** قراءةٌ نصّيّة لصيغة Bash/Compose لا مُفسِّرٌ كامل؛ الاقتباسُ المتداخل والهروبُ خارجها.
 - **توسيعٌ بعد مراجعة Copilot على #1175 (`3f300e62`):** التداخلُ كان يُتبَع لـ`:-` وحده، فـ`${APP_DB_PASSWORD:-${LEGACY_PASSWORD:+published-secret}}` يمرّ. الآن داخل الافتراضيّ `:-`/`-`/`:=`/`=`/`:+`/`+` تُسهم بحرفيِّها و`?` لا، والافتراضيُّ الخارجيّ يشمل `-`/`=`/`:=`؛ خمسُ حالاتٍ جديدة حمراء على `b7086375`، والشجرةُ الحيّة PASS بلا جديد.
+
+## CAPABILITY-LINKER-ATTRIBUTES-VOICE-RECEIPT-TO-DEC-006-01 — رابطُ القدرات ينسب إيصالَ مزوّد الصوت إلى إيصال طلب التنفيذ
+<!-- gap-registry: current -->
+- **الحالة:** fixed — الإصلاح `8461c197` في PR #1178 (الأساس `a0c5c920`)؛ مصنوعٌ مولَّد لا يحتاج نشراً، ولا verified حتّى يدخل main.
+- **المصدر:** مراجعة Copilot على #1176 (`capabilities/registry/capabilities.json` في DEC-006 عند `a0c5c920`)؛ `scripts/ci/capability_linker.py` (قاعدة DEC-006).
+- **العلّة:** الرمز `delivery-receipt` كان يطابق اسم الملفّ `tests_v9/test_tts_voice_delivery_receipt.py` (2 للرمز + 1 للاختبار ⇒ 3 ≥ العتبة 2)، فدخل اختبارُ قبول مزوّد الصوت في `tests` و`runtime.receipts` لـDEC-006، وDEC-006 هو `POST /v1/execution-requests/{execution_request_id}/receipt` في خدمة القرار وحده؛ فتضخّمت أدلّتُه بتغطيةٍ لا تمسّ مسارَ التنفيذ.
+- **الإصلاح:** الرمز صار `execution-delivery-receipt`، فيبقى شاهدا التنفيذ (`services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py` و`tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py`) ويخرج اختبارُ الصوت وحده؛ المولَّد: DEC-006 من 3 اختبارات إلى 2 ولا رابطَ آخر تغيّر.
+- **الاختبار:** `tests/architecture/test_capability_linker.py::test_dec006_links_execution_receipts_not_a_voice_provider_receipt` — أحمر على رابط `a0c5c920` وأخضر بعد الإصلاح.
+- **ما لا يُغلقه:** رموزٌ معجميّة عامّة أخرى تربط اختباراتٍ لا صلةَ لها — `boundary` في FM-003 وGIS-001 (منها `test_telegram_voice_audio_boundary.py` و`test_p1_weather_boundary_guard.py`)، و`tenant`/`auth` في FM-001 — قائمةٌ قبل #1176 وخارج هذه الشريحة؛ الرابطُ معجميٌّ بالتصميم.
