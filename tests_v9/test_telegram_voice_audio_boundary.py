@@ -203,3 +203,25 @@ def test_maximum_length_text_is_not_clipped(voice_sender, monkeypatch):
     result, _ = invoke(voice_sender, monkeypatch, text=text)
     assert result is True
     assert voice_sender["bot"].send_voice.call_args.kwargs["caption"] == text
+
+
+def test_chunked_audio_over_limit_aborts_without_upload(voice_sender, monkeypatch):
+    class Chunks(httpx.AsyncByteStream):
+        def __init__(self):
+            self.reads = 0
+
+        async def __aiter__(self):
+            for chunk in (b"x" * (6 * 1024 * 1024), b"y" * (5 * 1024 * 1024), b"z"):
+                self.reads += 1
+                yield chunk
+
+        async def aclose(self):
+            pass
+
+    chunks = Chunks()
+    response = httpx.Response(200, stream=chunks, headers={"content-type": "audio/mpeg"})
+    result, requests = invoke(voice_sender, monkeypatch, response=response)
+    assert result is False
+    assert len(requests) == 1
+    assert chunks.reads == 2
+    voice_sender["bot"].send_voice.assert_not_awaited()
