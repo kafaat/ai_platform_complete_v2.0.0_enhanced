@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5544,
+    "files_scanned": 5559,
     "files_by_kind": {
-      "backend": 1220,
+      "backend": 1221,
       "database": 282,
       "governance": 67,
       "mobile": 55,
       "other": 1572,
-      "tests": 1890,
-      "web": 458
+      "tests": 1899,
+      "web": 463
     },
-    "unmapped_artifacts": 2236,
+    "unmapped_artifacts": 2249,
     "ambiguous_artifacts": 433
   },
   "capabilities": [
@@ -3433,6 +3433,14 @@
           ]
         },
         {
+          "path": "services/tts-service/tts_tenant_policy.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/farm_map.yaml",
           "score": 13,
           "signals": [
@@ -3655,6 +3663,10 @@
         },
         {
           "value": "raster_field_runtime.py @ tests_v9/test_raster_field_tenant_authz.py:248",
+          "score": 14
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ tests_v9/test_tts_tenant_policy_gate.py:101",
           "score": 14
         },
         {
@@ -3891,6 +3903,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tts_tenant_policy_gate.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_v87_audit_tenant.py",
           "score": 14,
           "signals": [
@@ -4019,13 +4039,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 15,
+        "backend": 16,
         "routes": 2,
         "database": 26,
-        "events": 6,
+        "events": 7,
         "web": 1,
         "mobile": 0,
-        "tests": 28,
+        "tests": 29,
         "governance": 0,
         "other_evidence": 13
       },
@@ -14045,7 +14065,7 @@
           "score": 9
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
           "score": 9
         }
       ],
@@ -28162,19 +28182,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:171",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:175",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:166",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:170",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:167",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:171",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:285",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:289",
           "score": 8
         }
       ],
@@ -31230,7 +31250,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:213",
           "score": 12
         },
         {
@@ -36694,6 +36714,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/ReferenceQueryState.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
       "kind": "tests"
     },
@@ -36730,7 +36754,15 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
       "kind": "web"
     },
     {
@@ -37794,6 +37826,14 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/lib/queryView.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/queryView.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/realData.test.ts",
       "kind": "tests"
     },
@@ -37807,6 +37847,14 @@
     },
     {
       "path": "frontend/src/lib/recommendationsLifecycle.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/referenceContracts.ts",
       "kind": "web"
     },
     {
@@ -42254,6 +42302,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_measurement.py",
       "kind": "tests"
     },
@@ -44598,6 +44650,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_nginx_runtime_pull_retry.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_nginx_weather_routing_guard.py",
       "kind": "tests"
     },
@@ -44715,6 +44771,10 @@
     },
     {
       "path": "tests_v9/test_pip_audit_resolution_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_crypto_dependency.py",
       "kind": "tests"
     },
     {
@@ -45290,6 +45350,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_test_impact_selector.py",
       "kind": "tests"
     },
@@ -45323,6 +45387,10 @@
     },
     {
       "path": "tests_v9/test_tts_edge_retry.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_tts_platform_policy_contract.py",
       "kind": "tests"
     },
     {
@@ -45403,6 +45471,10 @@
     },
     {
       "path": "tests_v9/test_vegetation_container_contract_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_vegetation_crypto_dependency.py",
       "kind": "tests"
     },
     {

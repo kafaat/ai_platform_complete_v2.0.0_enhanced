@@ -8,7 +8,9 @@
 # التهيئة: قبله كان الإقلاع يفشل (auth يُدرج في users غير الموجود ⇒ ينهار).
 #
 # متغيّرات (تُمرَّر من compose): PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE،
-#   APP_DB_ROLE (افتراضي sahool_app)، APP_DB_PASSWORD.
+#   APP_DB_ROLE (افتراضي sahool_app)، وفي وضع التطبيق إلزاماً بلا افتراضيّ:
+#   APP_DB_PASSWORD · JOBS_DB_PASSWORD · INGEST_DB_PASSWORD؛ وODOO_DB_PASSWORD اختياريّ
+#   (غيابُه ⇒ دور odoo_app بلا كلمة مرور، لا كلمةٌ منشورة).
 #
 # نموذج الدورين (أمان RLS): مالك الهجرات (PGUSER=sahool_user) مُمتاز يُنشئ
 # الكائنات؛ لكنّ superuser يتجاوز RLS حتى مع FORCE — لذا نُنشئ دور تشغيل مقيّداً
@@ -18,12 +20,14 @@ set -euo pipefail
 
 MIG_DIR="${MIG_DIR:-/migrations}"
 APP_ROLE="${APP_DB_ROLE:-sahool_app}"
-APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"
+# لا كلمةَ مرورٍ افتراضيّة: الافتراضيّ المكتوب هنا كان سرّاً منشوراً يعمل به كلُّ نشرٍ لم يضبطه
+# (MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01). الإلزامُ في وضع التطبيق وحده، أسفل بوّابة الإذن.
+APP_PASSWORD="${APP_DB_PASSWORD:-}"
 APP_ALLOW_SCHEMA_CREATE="${APP_ALLOW_SCHEMA_CREATE:-false}"
 # دور المهامّ الخلفيّة (المرسِل/المجدوِل): BYPASSRLS مقصود — يقرأ عابراً للمستأجرين
 # (event_outbox/الطقس). يُستعمَل فقط من مسارات الوظائف عبر JOBS_DATABASE_URL، لا التطبيق.
 JOBS_ROLE="${JOBS_DB_ROLE:-sahool_jobs}"
-JOBS_PASSWORD="${JOBS_DB_PASSWORD:-sahool_jobs_pw}"
+JOBS_PASSWORD="${JOBS_DB_PASSWORD:-}"
 
 # انتظار جاهزيّة القاعدة (depends_on: service_healthy يكفي عادةً — تأمين إضافيّ).
 # MIGRATOR-PROCEEDS-TO-APPLY-AFTER-READINESS-TIMEOUT-01: كانت الحلقة تنتهي بعد ٣٠ محاولةً فاشلة
@@ -63,6 +67,13 @@ if [ "${SAHOOL_MIGRATE_APPLY:-0}" != "1" ]; then
   fi
   exit 0
 fi
+
+# متطلّباتُ وضع التطبيق تُفحص هنا، قبل أوّل استدعاءٍ يكتب — لا بعد الهجرات وأدوار التشغيل.
+# كان الشرطُ عند إنشاء دور الإدخال، فاستدعاءٌ مأذونٌ بلا السرّ يفشل بعد أن طبّق الهجراتِ وأنشأ أدواراً
+# (مراجعةٌ معمَّقة 2026-10-12، DG-05). وفرعُ «لا إذن» أعلاه لا يحتاجه: الفحصُ قراءةٌ فقط.
+: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
+: "${APP_DB_PASSWORD:?APP_DB_PASSWORD is required; refusing known development fallback}"
+: "${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD is required; refusing known development fallback}"
 
 psql_exec() { psql -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" -d "$PGDATABASE" "$@"; }
 
@@ -182,7 +193,6 @@ SQL
 # ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
 echo "─ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
-: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
 psql_exec -v ing_pw="${INGEST_DB_PASSWORD}" <<'SQL'
 SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
@@ -266,8 +276,9 @@ SQL
 
 # ── دور Odoo المقيَّد (DB-P0-03) ──
 ODOO_ROLE="${ODOO_DB_ROLE:-odoo_app}"
-ODOO_ROLE_PW="${ODOO_DB_PASSWORD:-odoo_app_pw}"
+ODOO_ROLE_PW="${ODOO_DB_PASSWORD:-}"
 echo "─ دور Odoo المقيَّد (${ODOO_ROLE} — لا اتّصال بقواعد المنصّة) ─"
+[ -n "$ODOO_ROLE_PW" ] || echo "ODOO_ROLE_PASSWORD_UNSET role=${ODOO_ROLE} — كلمة المرور NULL (لا دخول بكلمة مرور حتى يُضبط ODOO_DB_PASSWORD)"
 # Odoo كان يعمل باعتماد مالك الهجرات (sahool_user superuser) — اختراق ERP كان
 # يعني المنصّة كلّها. هذا الدور: CREATEDB فقط (لينشئ sahool_erp عبر odoo-init)،
 # مسحوب منه كلّ امتيازات قاعدة المنصّة، وبلا BYPASSRLS/SUPERUSER.
@@ -277,7 +288,15 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'odoo_role')
 \gexec
 
 ALTER ROLE :"odoo_role"
-  LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS CREATEDB NOCREATEROLE PASSWORD :'odoo_pw';
+  LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS CREATEDB NOCREATEROLE;
+
+-- بلا ODOO_DB_PASSWORD تصير كلمةُ المرور NULL: لا دخولَ بكلمة مرور، بدل افتراضيٍّ منشور
+-- مكتوبٍ في المستودع يقبله الخادم. والمكدّسُ المحلّيّ يمرّر المتغيّرَ نفسَه إلى odoo-init.
+SELECT CASE WHEN :'odoo_pw' = ''
+            THEN format('ALTER ROLE %I PASSWORD NULL', :'odoo_role')
+            ELSE format('ALTER ROLE %I PASSWORD %L', :'odoo_role', :'odoo_pw')
+       END
+\gexec
 
 -- حاسم: سحب **كلّ** امتيازات قاعدة المنصّة (لا CONNECT فقط — REVOKE CONNECT
 -- وحده يُبقي أيّ منح سابقة وTEMP). CREATEDB يكفيه: sahool_erp التي ينشئها

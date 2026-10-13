@@ -278,6 +278,7 @@ async def _generate_speech(
     *,
     provider: str | None = None,
     normalize: bool = False,
+    chosen=None,
 ) -> bytes:
     """Generate audio bytes via the selected TTS provider (edge default).
 
@@ -287,7 +288,9 @@ async def _generate_speech(
     ثمّ يُختار المزوّد المتاح (غير المتاح ⇒ سقوطٌ آمن إلى edge).
     """
     speak_text = ArabicTextNormalizer().normalize(text) if normalize else text
-    prov = select_provider(provider, _PROVIDER_REGISTRY)
+    # ``chosen``: مزوّدٌ اختارته بوّابةُ السياسة سلفاً (TTS-LOCAL-ONLY-…-01) — لا يُعاد اختيارُه
+    # هنا فلا يسقط إلى edge. غيابُه يحفظ السلوك السابق أمينَ-البايت.
+    prov = chosen or select_provider(provider, _PROVIDER_REGISTRY)
     voice = VOICES[voice_key]
     with TTS_LATENCY.labels(voice=voice_key).time():
         return await prov.synthesize(speak_text, voice, rate, pitch, volume)

@@ -274,6 +274,9 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       TTS_CACHE_TTL: ${TTS_CACHE_TTL:-86400}
       TTS_MAX_TEXT_LEN: ${TTS_MAX_TEXT_LEN:-1000}
+      # سلطةُ سياسة مشاركة البيانات (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01):
+      # tts يقرأ غلافَ المستأجِر من /api/v1/me؛ غيابُه ⇒ local_only (فشلٌ مغلق).
+      PLATFORM_API_URL: http://sahool-platform:8000
     depends_on:
       sahool-redis:
         condition: service_healthy
@@ -614,6 +617,8 @@ services:
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
       INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
+      # المتغيّرُ نفسُه الذي يقرؤه odoo-init (فارغاً ⇒ دور odoo_app بلا كلمة مرور، لا افتراضيٌّ منشور).
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-}
       # إذنُ التطبيق الصريح — في compose المحلّيّ الهجرةُ جزءٌ من الإقلاع (apply_in_compose.sh).
       SAHOOL_MIGRATE_APPLY: "1"
     volumes:

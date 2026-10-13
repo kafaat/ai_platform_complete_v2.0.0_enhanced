@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed1cf3be988090d8ac95c752197e2526c25550d70ee0e966ff988a679a2797d5"
+          "content": "92e906e6924bf494f1e0f95baf052b6c59a7ca072417dccf0063dcd877c60d78"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17a7d8102cf258ab97143f24771563ae0f44853ba3e47e256777354c460026a9"
+          "content": "4d5f40903eb89ed050dfb3075b374b106cda8a4ea982dc6b0e0ceb1a24809d90"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -685,6 +685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5d16c5f1e4cdc61a16d0e8b62157a42dc44565a6f4b73f203b9e16934b389105"
+        }
+      ],
+      "name": "frontend/src/components/ReferenceQueryState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f8767e46461e842f02e6d8cd6c4036fdb000c18b552f26f2fbcc0572479e181c"
         }
       ],
@@ -775,7 +785,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a80a7eaf20fec40ef7e73cbc3c4a7928c0848305cb14bd6ffb96a7e14700780b"
+          "content": "ef199a96125e0618ad09412fb48f870ca138956960a9e79248ecff73ef39bf1a"
+        }
+      ],
+      "name": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "409804d0c8add52f87fbe03b3a37f398f2092b588e87f28f073c1a20f604a3ab"
         }
       ],
       "name": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
@@ -785,7 +805,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1bbb3c9379e1120eef52a75fdf7c7d0a864b9d5caad4644a759d0286e0f7eb9a"
+          "content": "919002f6fb3672321627c768d6219aea84888a1df3e37aab317f0288c6fe5c70"
+        }
+      ],
+      "name": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c0542c84416b9445efa100f6ca34469ef5a06e928328f491bfb5e7df2c354573"
         }
       ],
       "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
@@ -2715,7 +2745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdf7e993cf9cc859ba7e8701bf1df7823bfff137f1c2d710cbe81c7e72b2d27b"
+          "content": "ea4a1202cbd96dfb3198a7c283b58d1393c8155141e1b6365188cbd4ee283960"
         }
       ],
       "name": "frontend/src/hooks/useClimateAnalogs.ts",
@@ -3025,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "666b4b6dff683c3eacd5a305a1e8000ff1c2c2ab5f7703bb0d34a6998bf799d9"
+          "content": "3fa0aaa60704a6db9b22ac289299ca8eaf62e528746f94a2c798ebc31dd5d17c"
         }
       ],
       "name": "frontend/src/hooks/useYemeniCalendars.ts",
@@ -4425,7 +4455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b6b846e6834af9f59095471433c8a8988b4102c29a72df142bb3fc4811223a1"
+          "content": "007d8d08fce0518211d71154db4dd7c57e14303d914f6410076fff08a5c9a5b7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -4475,6 +4505,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4572006b7be8e21bf9a3983969f25254bec7ca86440eada4d39875b68e13157f"
+        }
+      ],
+      "name": "frontend/src/lib/queryView.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af3e4fd918465a0c949f0e4e106ad3bc035979f6051fa18049f7d2a7abb9fb8a"
+        }
+      ],
+      "name": "frontend/src/lib/queryView.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1bc6e2282d7c43c7d3c7e76dc60087dd234b844e0c65de898552e0e64c6df80c"
         }
       ],
@@ -4509,6 +4559,26 @@
         }
       ],
       "name": "frontend/src/lib/recommendationsLifecycle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed8388086c9998a503a7d64937b32f7acf90acd6c9923a10c9d4eeec35ba4a29"
+        }
+      ],
+      "name": "frontend/src/lib/referenceContracts.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59fb46988de64bf20c320d5f74f62cb3af62cf0e87d6b550a42e0477737b654d"
+        }
+      ],
+      "name": "frontend/src/lib/referenceContracts.ts",
       "type": "file"
     },
     {
@@ -6715,7 +6785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a8bdabc37e7ec56c15e78d9b5f8461b428f1764bb1235d1603bcb881041d4aa"
+          "content": "f246aa51e32a537778ec3ec8e82676ea56b24e0ae5e828e0f24d93d8cada2b59"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -6795,7 +6865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93596cea0e2a127da00bdd775a8e73147797cbb58537953ea6a88634921ba5dd"
+          "content": "bfdb1af3cb57fd264788e048dddaaab289a2b1ab32d7c9563501a6246f8fd6fa"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6805,7 +6875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8118180d2da4d7ff1e87103006e09be51aa8ee242b58c66ff80dc91c6831d3e"
+          "content": "11101db60041cdb3984c5a74d8df72c035a135ab4cf10111b5729cbbd19890f4"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -18055,7 +18125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e3e562c4be0f876198c68282c52fb567a80c9cb2d92c24908e456be9dd85c11"
+          "content": "a1246f14a2197c45e65c807024b3a3354284820ae08ccda9af7e96af43f20c6d"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -19105,7 +19175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ea63d3788408a471cf2f9cb2bcd2c73af2eb089d596244a51796e2eae045f13"
+          "content": "76492f82e7cafd67b5a6edd25c0998221fe57d230fb053928c28a4e6de40e8e8"
         }
       ],
       "name": "services/sahool-platform/api/routers/me.py",
@@ -20485,7 +20555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b0e2676bd0d76df9a498f5a229a94b2699dec6203a70d7035c33fcde71bd5de"
+          "content": "36bcad13cedbf661f3bb26e11e278eb5c69eefae3556582bdd69f9e91ead3eec"
         }
       ],
       "name": "services/sahool-platform/core/ai_policy_envelope.py",
@@ -26745,6 +26815,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a6a5e1d917f23eab34901db16165708d4926c55e54fd35e64839d453cf18ef21"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1da6c6b1ab237baacefb81a4e0c0c3088966c403c51b2778d1a047092750eb24"
         }
       ],
@@ -29805,7 +29885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2252395aaab47bc69773e08c1eac24ccba95e90adc9e27d5115dc6bf7887da32"
+          "content": "afb8e99e687082ffaec08635dff6d03d0223f70ea3ce9cd6f5d4fa4991c54ea2"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -29815,7 +29895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0629a673a30eb4816547beb3a1afbc32f4e926eca3cce392283ae1ccd59d973b"
+          "content": "e1a898c12953b6ab3d484550e6e5251152922b6332eae2956d066776e1528464"
         }
       ],
       "name": "services/tts-service/providers.py",
@@ -29865,7 +29945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "760888b21eda3166e32f0a1d538484fae71df5ceec18f17ee8f4d4ae3670cdd8"
+          "content": "0b05166ca558de5dfbeaa6a883abf9b75901b25e3b13c3f8c7a1e32cbe5c0cfa"
         }
       ],
       "name": "services/tts-service/routers/tts.py",
@@ -29879,6 +29959,16 @@
         }
       ],
       "name": "services/tts-service/test_tts_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "56bfb09431ef4f39b70ca8f2baeeb4079ff3aea43d89f462793f523d5fd3b2ac"
+        }
+      ],
+      "name": "services/tts-service/tts_tenant_policy.py",
       "type": "file"
     },
     {
@@ -30045,7 +30135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "549bdbebf531b85b27f3908f30c1519a0435d4caa8066ecb4b8a4a506a9b8676"
+          "content": "51b878cf434f8c2ec1f5a2e0ec0f83ca35ade68e7bd62f99ad567f6d27fd796e"
         }
       ],
       "name": "services/vegetation-analysis-service/requirements.txt",

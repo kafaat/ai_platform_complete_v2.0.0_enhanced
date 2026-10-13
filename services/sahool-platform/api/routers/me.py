@@ -23,11 +23,29 @@ router = APIRouter()
 
 
 @router.get("/api/v1/me")
-def me(user: UserSchema = Depends(get_current_user)):
-    """بيانات المستخدم الحالي (الهوية + المستأجر + الدور)."""
+async def me(user: UserSchema = Depends(get_current_user)):
+    """بيانات المستخدم الحالي (الهوية + المستأجر + الدور) + غلافُ سياسة الذكاء للمستأجِر.
+
+    ``ai_policy_envelope`` (TTS-LOCAL-ONLY-FALLS-BACK-TO-EXTERNAL-PROVIDER-01): الخدماتُ التي
+    تُرسِل بيانات المستأجِر خارجاً (tts-service) تقرأ سياستَه من هنا بتوكن المستخدم نفسه —
+    المنصّةُ سلطةُ السياسة، ولا مسارَ جديد (ميزانيّةُ المسارات 629/629). الغلافُ نفسُه الذي
+    يُختَم في حزمة سياق الحقل: صفٌّ غائب أو تعذّرُ القراءة ⇒ الأشدّ (``local_only``)،
+    والهويّةُ تُعاد مهما حدث للقراءة.
+    """
+    from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
+
+    from api.main import tenant_connection
+
+    policy_row = None
+    try:
+        async with tenant_connection(user) as conn:
+            policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
+    except Exception:  # noqa: BLE001 - تعذّر الاتّصال ⇒ الغلافُ الأشدّ، والهويّةُ لا تسقط
+        policy_row = None
     return {
         "user_id": user.user_id,
         "tenant_id": user.tenant_id,
         "role": user.role.value,
         "name_ar": user.name_ar,
+        "ai_policy_envelope": build_ai_policy_envelope(str(user.tenant_id), policy_row),
     }

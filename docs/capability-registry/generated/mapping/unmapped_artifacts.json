@@ -116,6 +116,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/ReferenceQueryState.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
     "kind": "tests"
   },
@@ -152,7 +156,15 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/calendars/YemeniCalendarPanel.query.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/climate/ClimateAnalogsPanel.query.test.tsx",
     "kind": "web"
   },
   {
@@ -1216,6 +1228,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/lib/queryView.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/queryView.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/lib/realData.test.ts",
     "kind": "tests"
   },
@@ -1229,6 +1249,14 @@
   },
   {
     "path": "frontend/src/lib/recommendationsLifecycle.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/referenceContracts.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/referenceContracts.ts",
     "kind": "web"
   },
   {
@@ -5676,6 +5704,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_measurement.py",
     "kind": "tests"
   },
@@ -8020,6 +8052,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_nginx_runtime_pull_retry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_nginx_weather_routing_guard.py",
     "kind": "tests"
   },
@@ -8137,6 +8173,10 @@
   },
   {
     "path": "tests_v9/test_pip_audit_resolution_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_platform_crypto_dependency.py",
     "kind": "tests"
   },
   {
@@ -8712,6 +8752,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_telegram_voice_forwards_sender_jwt.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_test_impact_selector.py",
     "kind": "tests"
   },
@@ -8745,6 +8789,10 @@
   },
   {
     "path": "tests_v9/test_tts_edge_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_platform_policy_contract.py",
     "kind": "tests"
   },
   {
@@ -8825,6 +8873,10 @@
   },
   {
     "path": "tests_v9/test_vegetation_container_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_vegetation_crypto_dependency.py",
     "kind": "tests"
   },
   {

@@ -9452,7 +9452,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 21,
+    "line": 47,
     "method": "GET",
     "path": "/v1/tts/voices",
     "handler": "list_voices",
@@ -9461,7 +9461,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 31,
+    "line": 57,
     "method": "GET",
     "path": "/v1/tts/status",
     "handler": "tts_status",
@@ -9470,7 +9470,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 44,
+    "line": 70,
     "method": "POST",
     "path": "/v1/tts/synthesize",
     "handler": "synthesize",
@@ -9479,7 +9479,7 @@
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
-    "line": 125,
+    "line": 156,
     "method": "POST",
     "path": "/v1/tts/stream",
     "handler": "stream",
