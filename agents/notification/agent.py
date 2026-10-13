@@ -175,25 +175,25 @@ async def send_tts_voice(
         return False
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                f"{tts_url}/v1/tts/synthesize",
+            async with client.stream(
+                "POST", f"{tts_url}/v1/tts/synthesize",
                 json={"text": text, "voice": voice},
-                # Preserve caller/tenant identity so TTS provider policy applies.
-                # The shared service identity must not bypass local-only tenants.
                 headers={"Authorization": f"Bearer {caller_token}"},
-            )
-            if resp.status_code != 200:
-                return False
-            # tts-service produces MP3; refuse empty/error bodies and cap uploads
-            # at 10 MiB, below Telegram's provider limit for multipart voice.
-            audio = resp.content
-            if (
-                resp.headers.get("content-type", "").split(";", 1)[0].strip().lower()
-                != "audio/mpeg"
-                or not audio
-                or len(audio) > 10 * 1024 * 1024
-            ):
-                return False
+            ) as resp:
+                if resp.status_code != 200:
+                    return False
+                if resp.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "audio/mpeg":
+                    return False
+                if int(resp.headers.get("content-length", "0")) > 10 * 1024 * 1024:
+                    return False
+                audio_parts = bytearray()
+                async for chunk in resp.aiter_bytes():
+                    if len(audio_parts) + len(chunk) > 10 * 1024 * 1024:
+                        return False
+                    audio_parts.extend(chunk)
+                if not audio_parts:
+                    return False
+                audio = bytes(audio_parts)
             sent = await client.post(
                 f"https://api.telegram.org/bot{TG_TOKEN}/sendVoice",
                 data={"chat_id": str(telegram_chat_id), "caption": text},
