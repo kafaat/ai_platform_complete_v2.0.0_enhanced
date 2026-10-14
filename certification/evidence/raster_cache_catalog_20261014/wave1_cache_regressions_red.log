@@ -1,0 +1,470 @@
+<scratch>/cache-wave/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+  class ProvenanceRecord(BaseModel):
+<scratch>/cache-wave/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+  class ValidatedRasterProduct(BaseModel):
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: <scratch>/cache-wave
+configfile: pytest.ini
+plugins: Faker-40.43.0, cov-7.1.0, asyncio-1.4.0, platformdirs-4.13.0, respx-0.23.1, xdist-3.8.0, hypothesis-6.169.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 48 items / 12 deselected / 36 selected
+
+services/raster-service/test_element84_vrt_defect_witnesses.py FFFFFFF.F [ 25%]
+FFFFFFFFF..FFF.F.F.FFFFFFFF                                              [100%]
+
+=================================== FAILURES ===================================
+__________ test_the_shared_cache_does_not_reuse_a_different_transform __________
+services/raster-service/test_element84_vrt_defect_witnesses.py:188: in test_the_shared_cache_does_not_reuse_a_different_transform
+    assert second["mean"] == pytest.approx(0.32786885, abs=1e-6)
+E   assert 0.9521995782852173 == 0.32786885 ± 1.0e-06
+E     
+E     comparison failed
+E     Obtained: 0.9521995782852173
+E     Expected: 0.32786885 ± 1.0e-06
+_________ test_shared_cache_transform_matches_a_fresh_read[scale-evi] __________
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.22...alized': True} == {'mean': 0.32...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.222757950425148} != {'mean': 0.3208255171775818}
+E     Use -v to get more diff
+______ test_shared_cache_transform_matches_a_fresh_read[scale-truecolor] _______
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 48 / 64 (75%)
+E   Max absolute difference: 51
+E   Max relative difference: 0.52
+E    x: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+E    y: array([[[ 50,  50, 101, 101],
+E           [ 50,  50, 101, 101],
+E           [ 50,  50, 101, 101],...
+_________ test_shared_cache_transform_matches_a_fresh_read[offset-evi] _________
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.22...alized': True} == {'mean': 0.22...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.222757950425148} != {'mean': 0.22973249852657318}
+E     Use -v to get more diff
+______ test_shared_cache_transform_matches_a_fresh_read[offset-truecolor] ______
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 48 / 64 (75%)
+E   Max absolute difference: 26
+E   Max relative difference: 0.68421053
+E    x: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+E    y: array([[[ 50,  50,  76,  76],
+E           [ 50,  50,  76,  76],
+E           [ 50,  50,  76,  76],...
+________ test_shared_cache_transform_matches_a_fresh_read[metadata-evi] ________
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.58...alized': True} == {'mean': 0.32...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.5872009992599487} != {'mean': 0.328125}
+E     Use -v to get more diff
+_____ test_shared_cache_transform_matches_a_fresh_read[metadata-truecolor] _____
+services/raster-service/test_element84_vrt_defect_witnesses.py:293: in test_shared_cache_transform_matches_a_fresh_read
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 48 / 64 (75%)
+E   Max absolute difference: 77
+E   Max relative difference: 0.76
+E    x: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+E    y: array([[[ 76,  76, 127, 127],
+E           [ 76,  76, 127, 127],
+E           [ 76,  76, 127, 127],...
+__ test_shared_cache_keeps_pixels_and_clip_transform_together[same-truecolor] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:271: in _assert_same_cache_output
+    assert transform == fresh_transform
+E   AssertionError: assert Affine(0.01, ..., -0.01, 16.0) == Affine(0.01, ... -0.01, 15.99)
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing attributes:
+E     ['f']
+E     
+E     Drill down into differing attribute f:
+E       f: 16.0 != 15.99
+E     Use -v to get more diff
+____ test_shared_cache_keeps_pixels_and_clip_transform_together[shift-evi] _____
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'mean': 0.11...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.32786884903907776} != {'mean': 0.11764705181121826}
+E     Use -v to get more diff
+_ test_shared_cache_keeps_pixels_and_clip_transform_together[shift-truecolor] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   (shapes (4, 3, 3), (4, 3, 2) mismatch)
+E    x: array([[[  0,   0,   0],
+E           [ 25,  25,   0],
+E           [ 25,  25,   0]],...
+E    y: array([[[  0,   0],
+E           [ 50,  50],
+E           [ 50,  50]],...
+____ test_shared_cache_keeps_pixels_and_clip_transform_together[larger-evi] ____
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'mean': 0.22...alized': True}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'valid_pixels': 4} != {'valid_pixels': 8}
+E     {'mean': 0.32786884903907776} != {'mean': 0.222757950425148}
+E     Use -v to get more diff
+_ test_shared_cache_keeps_pixels_and_clip_transform_together[larger-truecolor] _
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.0,...alized': None} == {'mean': 0.0,...alized': None}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'valid_pixels': 4} != {'valid_pixels': 8}
+E     Use -v to get more diff
+_____ test_shared_cache_keeps_pixels_and_clip_transform_together[none-evi] _____
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'mean': 0.22...alized': True}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'valid_pixels': 4} != {'valid_pixels': 16}
+E     {'mean': 0.32786884903907776} != {'mean': 0.222757950425148}
+E     Use -v to get more diff
+__ test_shared_cache_keeps_pixels_and_clip_transform_together[none-truecolor] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:316: in test_shared_cache_keeps_pixels_and_clip_transform_together
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.0,...alized': None} == {'mean': 0.0,...alized': None}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'valid_pixels': 4} != {'valid_pixels': 16}
+E     Use -v to get more diff
+____________ test_shared_cache_raw_qa_does_not_inherit_another_clip ____________
+services/raster-service/test_element84_vrt_defect_witnesses.py:330: in test_shared_cache_raw_qa_does_not_inherit_another_clip
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'status': 42...d_pixels': 0}}
+E     
+E     Left contains 3 more items:
+E     {'mean': 0.32786884903907776, 'reflectance_normalized': True, 'valid_pixels': 4}
+E     Right contains 2 more items:
+E     {'detail': {'code': 'raw_raster_no_valid_pixels', 'valid_pixels': 0},
+E      'status': 422}
+E     Use -v to get more diff
+________ test_shared_cache_is_bound_to_the_dataset_and_grid[pixels-evi] ________
+services/raster-service/test_element84_vrt_defect_witnesses.py:349: in test_shared_cache_is_bound_to_the_dataset_and_grid
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.22...alized': True} == {'mean': 0.45...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.222757950425148} != {'mean': 0.4511454105377197}
+E     Use -v to get more diff
+_____ test_shared_cache_is_bound_to_the_dataset_and_grid[pixels-truecolor] _____
+services/raster-service/test_element84_vrt_defect_witnesses.py:349: in test_shared_cache_is_bound_to_the_dataset_and_grid
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 16 / 64 (25%)
+E   Max absolute difference: 25
+E   Max relative difference: 0.3968254
+E    x: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+E    y: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+____ test_shared_cache_is_bound_to_the_dataset_and_grid[reopened_path-evi] _____
+services/raster-service/test_element84_vrt_defect_witnesses.py:349: in test_shared_cache_is_bound_to_the_dataset_and_grid
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.22...alized': True} == {'mean': 0.45...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.222757950425148} != {'mean': 0.4511454105377197}
+E     Use -v to get more diff
+_ test_shared_cache_is_bound_to_the_dataset_and_grid[reopened_path-truecolor] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:349: in test_shared_cache_is_bound_to_the_dataset_and_grid
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 16 / 64 (25%)
+E   Max absolute difference: 25
+E   Max relative difference: 0.3968254
+E    x: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+E    y: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+________ test_truecolor_cache_uses_the_effective_source_format_fallback ________
+services/raster-service/test_element84_vrt_defect_witnesses.py:361: in test_truecolor_cache_uses_the_effective_source_format_fallback
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 48 / 64 (75%)
+E   Max absolute difference: 51
+E   Max relative difference: 1.08333333
+E    x: array([[[255, 255, 255, 255],
+E           [255, 255, 255, 255],
+E           [255, 255, 255, 255],...
+E    y: array([[[ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],
+E           [ 25,  25,  50,  50],...
+____________ test_identical_context_reuses_band_reads[0-truecolor] _____________
+services/raster-service/test_element84_vrt_defect_witnesses.py:388: in test_identical_context_reuses_band_reads
+    _assert_same_cache_output(second, first)
+services/raster-service/test_element84_vrt_defect_witnesses.py:271: in _assert_same_cache_output
+    assert transform == fresh_transform
+E   AssertionError: assert Affine(0.01, ..., -0.01, 16.0) == Affine(0.01, ... -0.01, 15.99)
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing attributes:
+E     ['f']
+E     
+E     Drill down into differing attribute f:
+E       f: 16.0 != 15.99
+E     Use -v to get more diff
+___________ test_identical_context_reuses_band_reads[nan-truecolor] ____________
+services/raster-service/test_element84_vrt_defect_witnesses.py:388: in test_identical_context_reuses_band_reads
+    _assert_same_cache_output(second, first)
+services/raster-service/test_element84_vrt_defect_witnesses.py:271: in _assert_same_cache_output
+    assert transform == fresh_transform
+E   AssertionError: assert Affine(0.01, ..., -0.01, 16.0) == Affine(0.01, ... -0.01, 15.99)
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing attributes:
+E     ['f']
+E     
+E     Drill down into differing attribute f:
+E       f: 16.0 != 15.99
+E     Use -v to get more diff
+__ test_shared_cache_restores_original_clip_after_other_grid_reads[truecolor] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:402: in test_shared_cache_restores_original_clip_after_other_grid_reads
+    _assert_same_cache_output(actual, expected)
+services/raster-service/test_element84_vrt_defect_witnesses.py:271: in _assert_same_cache_output
+    assert transform == fresh_transform
+E   AssertionError: assert Affine(0.01, ..., -0.01, 16.0) == Affine(0.01, ... -0.01, 15.99)
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing attributes:
+E     ['f']
+E     
+E     Drill down into differing attribute f:
+E       f: 16.0 != 15.99
+E     Use -v to get more diff
+_ test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels[evi] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:412: in test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels
+    with pytest.raises(ValueError, match="do not overlap"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels[truecolor] _
+services/raster-service/test_element84_vrt_defect_witnesses.py:412: in test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels
+    with pytest.raises(ValueError, match="do not overlap"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_______________ test_shared_cache_raw_qa_is_bound_to_the_source ________________
+services/raster-service/test_element84_vrt_defect_witnesses.py:428: in test_shared_cache_raw_qa_is_bound_to_the_source
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'status': 42...d_pixels': 0}}
+E     
+E     Left contains 3 more items:
+E     {'mean': 0.32786884903907776, 'reflectance_normalized': True, 'valid_pixels': 4}
+E     Right contains 2 more items:
+E     {'detail': {'code': 'raw_raster_no_valid_pixels', 'valid_pixels': 0},
+E      'status': 422}
+E     Use -v to get more diff
+__ test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[transform-evi] __
+services/raster-service/test_element84_vrt_defect_witnesses.py:445: in test_shared_cache_rechecks_mutable_grid_and_nodata_metadata
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'mean': 0.22...alized': True}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mean': 0.32786884903907776} != {'mean': 0.222757950425148}
+E     Use -v to get more diff
+_ test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[transform-truecolor] _
+services/raster-service/test_element84_vrt_defect_witnesses.py:445: in test_shared_cache_rechecks_mutable_grid_and_nodata_metadata
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   (shapes (4, 3, 3), (4, 3, 4) mismatch)
+E    x: array([[[  0,   0,   0],
+E           [ 25,  25,   0],
+E           [ 25,  25,   0]],...
+E    y: array([[[  0,   0,   0,   0],
+E           [  0,  25,  50,   0],
+E           [  0,  25,  50,   0]],...
+___ test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[nodata-evi] ____
+services/raster-service/test_element84_vrt_defect_witnesses.py:445: in test_shared_cache_rechecks_mutable_grid_and_nodata_metadata
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:265: in _assert_same_cache_output
+    assert actual[0] == expected[0]
+E   AssertionError: assert {'mean': 0.32...alized': True} == {'status': 42...d_pixels': 0}}
+E     
+E     Left contains 3 more items:
+E     {'mean': 0.32786884903907776, 'reflectance_normalized': True, 'valid_pixels': 4}
+E     Right contains 2 more items:
+E     {'detail': {'code': 'raw_raster_no_valid_pixels', 'valid_pixels': 0},
+E      'status': 422}
+E     Use -v to get more diff
+------------------------------ Captured log call -------------------------------
+WARNING  rasterio._env:test_element84_vrt_defect_witnesses.py:442 CPLE_AppDefined in cache.tif, band 1: Setting nodata to 500 on band 1, but band 2 has nodata at 0. The TIFFTAG_GDAL_NODATA only support one value per dataset. This value of 500 will be used for all bands on re-opening
+_ test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[nodata-truecolor] _
+services/raster-service/test_element84_vrt_defect_witnesses.py:445: in test_shared_cache_rechecks_mutable_grid_and_nodata_metadata
+    _assert_same_cache_output(actual, fresh)
+services/raster-service/test_element84_vrt_defect_witnesses.py:270: in _assert_same_cache_output
+    np.testing.assert_array_equal(pixels, fresh_pixels)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 
+E   Arrays are not equal
+E   
+E   Mismatched elements: 4 / 36 (11.1%)
+E   Max absolute difference: 12
+E   Max relative difference: 0.
+E    x: array([[[  0,   0,   0],
+E           [ 25,  25,   0],
+E           [ 25,  25,   0]],...
+E    y: array([[[  0,   0,   0],
+E           [ 25,  25,   0],
+E           [ 25,  25,   0]],...
+------------------------------ Captured log call -------------------------------
+WARNING  rasterio._env:test_element84_vrt_defect_witnesses.py:442 CPLE_AppDefined in cache.tif, band 1: Setting nodata to 500 on band 1, but band 2 has nodata at 0. The TIFFTAG_GDAL_NODATA only support one value per dataset. This value of 500 will be used for all bands on re-opening
+=============================== warnings summary ===============================
+../../7e02e5ed5cb5/sahool-venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1345
+  <scratch>/sahool-venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_the_shared_cache_does_not_reuse_a_different_transform
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[scale-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[scale-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[offset-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[offset-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[metadata-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_transform_matches_a_fresh_read[metadata-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[same-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[shift-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[shift-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[larger-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[larger-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[none-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_keeps_pixels_and_clip_transform_together[none-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_raw_qa_does_not_inherit_another_clip
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_is_bound_to_the_dataset_and_grid[pixels-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_is_bound_to_the_dataset_and_grid[pixels-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_is_bound_to_the_dataset_and_grid[reopened_path-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_is_bound_to_the_dataset_and_grid[reopened_path-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_truecolor_cache_uses_the_effective_source_format_fallback
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_identical_context_reuses_band_reads[0-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_identical_context_reuses_band_reads[nan-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_restores_original_clip_after_other_grid_reads[truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels[evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_cannot_turn_a_nonoverlapping_clip_into_cached_pixels[truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_raw_qa_is_bound_to_the_source
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[transform-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[transform-truecolor]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[nodata-evi]
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_shared_cache_rechecks_mutable_grid_and_nodata_metadata[nodata-truecolor]
+============ 30 failed, 6 passed, 12 deselected, 1 warning in 1.04s ============

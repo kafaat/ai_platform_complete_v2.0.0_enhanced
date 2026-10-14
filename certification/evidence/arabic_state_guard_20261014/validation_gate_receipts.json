@@ -1,0 +1,344 @@
+{
+  "scope": "Historical measured opening-candidate local gates; raw logs retained in scratch, hashes preserved here. No final-head remote CI claimed.",
+  "receipts": {
+    "full_preflight_fix": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "bash",
+        "scripts/ci/preflight.sh",
+        "--full",
+        "--fix",
+        "--no-fetch"
+      ],
+      "started_utc": "2026-10-14T15:16:37.286185+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "586df28df85a24ed6580568a6cb6e2e4d575afc3",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/full_preflight_fix.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:49:03.364706+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "00908fba65f68d05efa7037ee7a416a1b04aa33a5f06a156ca4bd7d23ac47917"
+    },
+    "security_bandit": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "/workspace/scratch/7e02e5ed5cb5/security-venv/bin/bandit",
+        "-r",
+        "services/",
+        "bots/",
+        "agents/",
+        "--severity-level",
+        "high",
+        "-q"
+      ],
+      "started_utc": "2026-10-14T15:49:20.065939+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/security_bandit.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:49:38.859139+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "security_pip_native": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "/workspace/scratch/7e02e5ed5cb5/security-venv/bin/pip-audit",
+        "-r",
+        "requirements_real.txt",
+        "--ignore-vuln",
+        "PYSEC-2026-1325",
+        "--ignore-vuln",
+        "CVE-2026-85394"
+      ],
+      "started_utc": "2026-10-14T15:49:38.920168+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/security_pip_native.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:50:08.145068+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "15950a68a7ed99c59779717acefdceb3f69cfd31bde67d2c954f2a3cea4d7955"
+    },
+    "security_pip_ci19": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "/workspace/scratch/7e02e5ed5cb5/security-venv/bin/pip-audit",
+        "--ignore-vuln",
+        "PYSEC-2026-1325",
+        "--ignore-vuln",
+        "CVE-2026-85394",
+        "-r",
+        "services/sahool-platform/api/requirements.txt",
+        "-r",
+        "services/auth/requirements.txt",
+        "-r",
+        "services/guardrails-engine/requirements.txt",
+        "-r",
+        "requirements_real.txt",
+        "-r",
+        "services/actuator-service/requirements.txt",
+        "-r",
+        "services/agriai-engine/requirements.txt",
+        "-r",
+        "services/edge-inference/requirements.txt",
+        "-r",
+        "services/indicators-service/requirements.txt",
+        "-r",
+        "services/local-ai-rag/requirements.txt",
+        "-r",
+        "services/mcp_servers/requirements.txt",
+        "-r",
+        "services/odoo-bridge/requirements.txt",
+        "-r",
+        "services/qdrant-seed/requirements.txt",
+        "-r",
+        "services/raster-service/requirements.txt",
+        "-r",
+        "services/soil-service/requirements.txt",
+        "-r",
+        "services/supervisor-agent/requirements.txt",
+        "-r",
+        "services/tts-service/requirements.txt",
+        "-r",
+        "services/vegetation-analysis-service/requirements.txt",
+        "-r",
+        "services/video-processor/requirements.txt",
+        "-r",
+        "services/weather-service/requirements.txt",
+        "--progress-spinner",
+        "off"
+      ],
+      "started_utc": "2026-10-14T15:50:08.208498+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/security_pip_ci19.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:51:06.294640+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "2ae6e38b3adf21bbeaa1b73423badbbfa05903c79702ca6a7b9403f9ddb886ac"
+    },
+    "extra_no_report_only": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "bash",
+        "-o",
+        "pipefail",
+        "-c",
+        "git diff --name-only --cached 9a50aac3bf71ed42f4fad91a036d49e61d151a52 | python scripts/ci/no_report_only_change_guard.py --stdin"
+      ],
+      "started_utc": "2026-10-14T15:52:54.820555+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_no_report_only.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:52:54.867596+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "195cc76aa11bdd6dada87d32fa6a7cb16c67b479e9619171c1aa7b77de370390"
+    },
+    "extra_gap_heading": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/ci/gap_heading_state_guard.py"
+      ],
+      "started_utc": "2026-10-14T15:52:54.916919+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_gap_heading.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:52:55.146628+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "adf2bb6ce576716140e6434487ac167b1a45ef2c3717c592aead5bacac1cff54"
+    },
+    "extra_gap_claim": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/ci/gap_registry_claim_guard.py"
+      ],
+      "started_utc": "2026-10-14T15:52:55.197685+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_gap_claim.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:06.894218+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "65bb443963b6a7088cc93c2b4226f5aa6cf1255434744c9edaa74ff7f92b5e6d"
+    },
+    "extra_gate01": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "bash",
+        "-o",
+        "pipefail",
+        "-c",
+        "git diff --name-only --cached 9a50aac3bf71ed42f4fad91a036d49e61d151a52 | python scripts/ci/gate01_frozen_path_guard.py --stdin"
+      ],
+      "started_utc": "2026-10-14T15:53:06.938980+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_gate01.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:07.025171+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "373042a73272a27a7fb976ab603716570e2a33fcdf0df80c70635d1984acfcf9"
+    },
+    "extra_evidence_producer": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/ci/certification_evidence_producer_guard.py"
+      ],
+      "started_utc": "2026-10-14T15:53:07.072928+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_evidence_producer.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:07.119939+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "dfc8ac9c67f66510a9ed175fe265c510c238bec48f7104e448e98ae3398d354f"
+    },
+    "extra_probe_leak": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/ci/probe_leak_guard.py"
+      ],
+      "started_utc": "2026-10-14T15:53:07.173613+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/extra_probe_leak.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:07.650673+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "260bc68dc6caa34834a00002431d55265aef06e23d91ad41a446a5fe7a3009a5"
+    },
+    "release_build_last": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/release/build_release_bundle.py"
+      ],
+      "started_utc": "2026-10-14T15:53:07.699699+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/release_build_last.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:08.143650+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "release_validate_last": {
+      "cwd": "/workspace/scratch/0d3e46cc4148/guard-wave",
+      "command": [
+        "python",
+        "scripts/release/validate_release_package.py"
+      ],
+      "started_utc": "2026-10-14T15:53:08.214385+00:00",
+      "status": "completed",
+      "before": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "/workspace/scratch/7e02e5ed5cb5/analysis/wave1_guard_gate_receipts/release_validate_last.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T15:53:08.490463+00:00",
+      "after": {
+        "head": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+        "index_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "5e8411377c178abcc77a849131f15ce83102c6cab50af59def8940acf429f7af"
+    }
+  }
+}

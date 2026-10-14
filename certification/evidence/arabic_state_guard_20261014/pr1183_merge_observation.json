@@ -1,0 +1,16 @@
+{
+  "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "pr_number": 1183,
+  "merged": true,
+  "merged_at": "2026-10-14T17:11:21Z",
+  "merge_commit_sha": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+  "base_ref": "main",
+  "head_sha": "0126ae7894b18cd4f3e3ebcc1afcc7dd19392374",
+  "base_sha": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "observed_at": "2026-10-14T17:11:31.614Z",
+  "raw_api_kind": "github_rest_pull_request",
+  "raw_receipt_path": "<scratch>/analysis/pr1183_merged_rest_raw.json",
+  "raw_receipt_sha256": "4a05943ca0ffdf52e3add796d93a6bad9e19423fb3adcc4d195aeba6b880f79b",
+  "tested_tree": "6a297aae1272217b9e73e055312d7554f851568c",
+  "actual_merge_tree": "6a297aae1272217b9e73e055312d7554f851568c"
+}

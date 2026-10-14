@@ -1,0 +1,9 @@
+# Raster cache and CDSE catalogue source evidence — 2026-10-14
+
+Combined runtime source: `6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70`; branch codex/raster-cache-catalog-wave1-20261014. No PR existed when this source-phase record was prepared. Local development commits 334662bd (cache) and 0702866c (catalogue), combined at 490f4076, are historical preparation references, not substituted for the real API source SHA.
+
+Cache: 37 focused passes/11 strict xfails; independent red/green and 19 contract passes. The earlier raster gate had 440 passes/2 skips/11 xfails before the final fixture-only strengthening; the integrated full raster gate remains required. Only the cache witness graduated from xfail: the remaining VRT scaling, normalization claim, nodata and grid gaps remain open. Production triggering of transform variation was not observed. Source pixels are immutable during the short-lived batch; concurrent mutation of an already-open raster is outside the contract.
+
+Catalogue: 104 related tests passed, with timeout, transport, HTTP and malformed failures reproduced against the baseline. An independent real-client/adapter/route replay distinguishes failure503 from genuine-empty/scene200. Retry budget and optional-filter fallback remain; failed later pages raise. Configured page-cap behavior and cloud eligibility policy remain; this is not proof of complete catalogue history. Public failure details are sanitized; existing lower-level logs are not globally sanitized. The older CDSE historical-cause gap remains OPEN and is not repaired by this change.
+
+All provider calls were injected local fixtures. No production volume/provider, deployment, database integration or live cache proof is claimed. Test groups overlap and must not be added as unique-case counts. Final-head full protocol/CI and deployment checks are subsequent receipts. Copy manifest and SHA256SUMS bind sanitized evidence without rewriting historical test-time hashes.

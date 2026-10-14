@@ -1,0 +1,71 @@
+{
+  "results": [
+    {
+      "case": "empty",
+      "status": 200,
+      "body": {
+        "best": null,
+        "candidates": 0,
+        "note": "لا مشاهد ضمن المعايير — وسّع lookback أو max_cloud"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "timeout",
+      "status": 503,
+      "body": {
+        "code": "cdse_catalog_unavailable",
+        "provider": "cdse",
+        "reason": "timeout"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "malformed",
+      "status": 503,
+      "body": {
+        "code": "cdse_catalog_unavailable",
+        "provider": "cdse",
+        "reason": "invalid_response"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "http403",
+      "status": 503,
+      "body": {
+        "code": "cdse_catalog_unavailable",
+        "provider": "cdse",
+        "reason": "http_error",
+        "upstream_status": 403
+      },
+      "provider_attempts": 2
+    },
+    {
+      "case": "scene",
+      "status": 200,
+      "body": {
+        "best": {
+          "item_id": "scene-one",
+          "datetime": "2026-10-14T00:00:00Z",
+          "cloud_cover_pct": 5.0,
+          "bbox": null,
+          "bands_urls": {},
+          "thumbnail_url": null,
+          "preview_url": null,
+          "platform": "sentinel-2",
+          "provider": "cdse"
+        },
+        "candidates": 1,
+        "selection": "أقلّ غيوم مع تفضيل الحداثة",
+        "cache": "miss"
+      },
+      "provider_attempts": 1
+    }
+  ],
+  "live_calls": false,
+  "source_sha256": {
+    "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+    "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c"
+  }
+}

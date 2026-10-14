@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: <scratch>/cache-wave
+configfile: pytest.ini
+plugins: Faker-40.43.0, cov-7.1.0, asyncio-1.4.0, platformdirs-4.13.0, respx-0.23.1, xdist-3.8.0, hypothesis-6.169.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 48 items
+
+services/raster-service/test_element84_vrt_defect_witnesses.py xxxxxxx.x [ 18%]
+x.xx...................................                                  [100%]
+
+=============================== warnings summary ===============================
+services/raster-service/test_element84_vrt_defect_witnesses.py::test_the_vrt_path_computes_reflectance_indices[evi]
+  <scratch>/cache-wave/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+services/raster-service/test_element84_vrt_defect_witnesses.py::test_the_vrt_path_computes_reflectance_indices[evi]
+  <scratch>/cache-wave/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: <scratch>/analysis/wave1_cache_candidate.xml -
+================== 37 passed, 11 xfailed, 2 warnings in 1.05s ==================
