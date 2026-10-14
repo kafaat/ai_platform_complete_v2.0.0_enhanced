@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "basis": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "copies": [
+    {
+      "source": "analysis/wave1_remaining_135_plan.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_remaining_135_plan.json",
+      "original_sha256": "2b245bf09117bc349e843a35c3372d8116ffd0f9fbdc0d6b406c118f5d161217",
+      "copied_sha256": "3eb917eecaa5dd46326de393dee253d6376057b8b63c4e2dd4879357d3f279e3",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/wave1_remaining_135_coverage.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_remaining_135_coverage.json",
+      "original_sha256": "15e5875627871343809d15bafb116aac53c4aa32aa99948f11ff408fcda0916e",
+      "copied_sha256": "15e5875627871343809d15bafb116aac53c4aa32aa99948f11ff408fcda0916e",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/wave1_operator_action_overrides.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_operator_action_overrides.json",
+      "original_sha256": "c44a76c97f925c00347cb6d71138f752b00b38d92d466c8e7ef7b2a370800312",
+      "copied_sha256": "781ff1e01cbfce610a01733518af1557540f240449dbae9ff8e2a972001cc17a",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/wave1_live_configs_initial.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_live_configs_initial.json",
+      "original_sha256": "42cc888d2f463c037855fce5746d1a3f6f2ac38d54ac212b313660799c2ccd7e",
+      "copied_sha256": "42cc888d2f463c037855fce5746d1a3f6f2ac38d54ac212b313660799c2ccd7e",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/wave1_inventory_deployments_initial.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_inventory_deployments_initial.json",
+      "original_sha256": "f2964dfd2d6c64d2dda0e6e4c59e33b1ec8f84723d829859fbc9eb93d0dcfa2e",
+      "copied_sha256": "f2964dfd2d6c64d2dda0e6e4c59e33b1ec8f84723d829859fbc9eb93d0dcfa2e",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/wave1_deploy_impact_initial.json",
+      "destination": "certification/evidence/gap_wave1_plan_20261014/wave1_deploy_impact_initial.json",
+      "original_sha256": "26c4427c1ba7b66b80cbce5d2ea12d0ca1c4f6dfbd270e5c3d5c9de996329220",
+      "copied_sha256": "85c1ff8ca8c22b9d3171fd34c8567284dac9fa72f94c35b37b4d4a2db57f7996",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    }
+  ],
+  "preserved": "timestamps, source/head/tree hashes, states, counts, review/CI outcomes and service/environment/deployment identities",
+  "privacy": "No credential/secret-valued keys or workspace paths found in raw operational/CI inputs. Necessary service/environment/deployment identifiers retained."
+}

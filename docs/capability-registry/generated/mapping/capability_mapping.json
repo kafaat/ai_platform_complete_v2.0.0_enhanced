@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5624,
+    "files_scanned": 5644,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1623,
+      "other": 1643,
       "tests": 1907,
       "web": 467
     },
@@ -9084,6 +9084,20 @@
           ]
         },
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/wave1_guard_real_heading_inventory.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
+          "path": "certification/evidence/gap_wave1_plan_20261014/wave1_inventory_deployments_initial.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
           "path": "docs/openapi/ROUTE_INVENTORY.json",
           "score": 8,
           "signals": [
@@ -9111,7 +9125,7 @@
         "mobile": 1,
         "tests": 6,
         "governance": 4,
-        "other_evidence": 15
+        "other_evidence": 17
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -12612,6 +12626,13 @@
           ]
         },
         {
+          "path": "certification/evidence/gap_wave1_plan_20261014/wave1_remaining_135_coverage.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/gap_registry_measurement_20260919.md",
           "score": 20,
           "signals": [
@@ -12653,7 +12674,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -13946,6 +13967,14 @@
           ]
         },
         {
+          "path": "certification/evidence/gap_wave1_plan_20261014/wave1_remaining_135_plan.json",
+          "score": 24,
+          "signals": [
+            "content:salinity",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
           "score": 20,
           "signals": [
@@ -14006,7 +14035,7 @@
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -18147,6 +18176,15 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json",
+          "score": 20,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/history/RADAR_SENTINEL1_REVIEW.md",
           "score": 19,
           "signals": [
@@ -18265,7 +18303,23 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/postmerge_copy_manifest.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/publication_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/verify_a_final_main_9a50_verification.json",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -18323,6 +18377,14 @@
         },
         {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE2_20260706.md",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/gap_wave1_plan_20261014/wave1_deploy_impact_initial.json",
           "score": 12,
           "signals": [
             "content:cdse",
@@ -18451,6 +18513,13 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json",
+          "score": 8,
+          "signals": [
+            "path:cdse"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/cdse_verify_b_dedup_four_regressions.json",
           "score": 8,
           "signals": [
@@ -18554,7 +18623,7 @@
         "mobile": 0,
         "tests": 49,
         "governance": 0,
-        "other_evidence": 52
+        "other_evidence": 57
       },
       "coverage_dimensions": 6,
       "mapped": true

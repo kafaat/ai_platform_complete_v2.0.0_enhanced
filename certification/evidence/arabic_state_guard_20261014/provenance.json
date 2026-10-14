@@ -1,0 +1,15 @@
+{
+  "gap": "BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01",
+  "base_main_sha": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "repair_source_sha": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+  "repair_tree": "f8bc0d056d9c115e764402fe80779f2383b97353",
+  "source_paths": [
+    "scripts/ci/brain_state_transition_guard.py",
+    "tests_v9/test_brain_transition_guard_vocabulary.py"
+  ],
+  "pull_request": null,
+  "pr_status": "not_created_yet",
+  "merge_status": "not_merged",
+  "claim": "source_fixed; not_live_verified",
+  "independent_review": "wave1_guard_verify_a_review.json"
+}

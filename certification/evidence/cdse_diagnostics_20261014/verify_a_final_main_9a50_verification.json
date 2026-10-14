@@ -1,0 +1,45 @@
+{
+  "observed_at_utc": "2026-10-14T14:38:47.039659+00:00",
+  "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "main_commit": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "main_tree": "ddc35b6f4dadd552abf9a30df1fd12e24fcf1285",
+  "final_pr_head": "02fbc3107e0dfbedef025117b83e657192133228",
+  "final_pr_tree": "ddc35b6f4dadd552abf9a30df1fd12e24fcf1285",
+  "tree_matches_final_pr": true,
+  "gap_ids": 526,
+  "state_counts": {
+    "fixed": 388,
+    "open": 135,
+    "verified": 3
+  },
+  "cdse_state": "open",
+  "qdrant_state": "fixed",
+  "qdrant_canonical_provenance_errors": [],
+  "qdrant_merge_reachable": true,
+  "source_sha256": {
+    "services/raster-service/cdse_diagnostics.py": "c64d2e2eb039348e56b0b606aa9219ca58314cf63be5948b786fc7edfdb67aa2",
+    "services/raster-service/test_cdse_durable_diagnostics.py": "46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8",
+    "services/raster-service/raster_cdse_tile_runtime.py": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527",
+    "services/raster-service/tile_render.py": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd",
+    "services/sahool-platform/core/rag/production_qdrant.py": "f3dd2c6c4d525b4804b1c90470bdf166565c029f91c50bb08d611d3b99afa8b2",
+    "tests_v9/test_qdrant_probe_classification.py": "4fe20f7d7674954e86feeafd7db548ce7ad7931bf6df12150cc8fe049708adf3"
+  },
+  "evidence_checksums": {
+    "gap_reconciliation_20261014": {
+      "entries": 54,
+      "mismatches": []
+    },
+    "qdrant_tenant_index_20261014": {
+      "entries": 18,
+      "mismatches": []
+    },
+    "cdse_diagnostics_20261014": {
+      "entries": 31,
+      "mismatches": []
+    }
+  },
+  "evidence_total": 103,
+  "release_checksum_entries": 6288,
+  "scope": "Read-only committed main audit. Main received reviewed runtime and current test bytes; merge/build success does not establish live deployment, durable production receipt persistence, historical CDSE cause, or live Qdrant tenant-index reconciliation. No tests, generators, repository edits or remote mutations performed.",
+  "blockers": []
+}

@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-14T15:06:19.892242+00:00",
+  "main_basis": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "status": "INITIAL_PROPOSED_PATH_SCOPE",
+  "configs_file": "certification/evidence/gap_wave1_plan_20261014/wave1_live_configs_initial.json",
+  "inventory_file": "certification/evidence/gap_wave1_plan_20261014/wave1_inventory_deployments_initial.json",
+  "service_environment_instances": 43,
+  "watch_patterns": 60,
+  "main_instances": 24,
+  "config_times": [
+    "2026-10-14T15:04:57.130Z",
+    "2026-10-14T15:04:58.399Z"
+  ],
+  "impact": {
+    "arabic_guard": {
+      "proposed_paths": [
+        "scripts/ci/brain_state_transition_guard.py",
+        "tests_v9/test_brain_transition_guard_vocabulary.py"
+      ],
+      "path_scope_final": false,
+      "matching_instances": [],
+      "main_trigger_count": 0,
+      "gate01_frozen_intersection": []
+    },
+    "raster_cache": {
+      "proposed_paths": [
+        "services/raster-service/raster_pixel_processing.py",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py"
+      ],
+      "path_scope_final": false,
+      "matching_instances": [
+        {
+          "environment": "staging",
+          "service": {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/raster_pixel_processing.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "1a3c8b86-9b6a-4939-80ee-557d2e7fc1c4",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.486Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "staging",
+          "service": {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/raster_pixel_processing.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "5120e7aa-5c5c-459b-84ae-7439a4bd7357",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.066Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/raster_pixel_processing.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "511d5719-1891-4940-978a-8ec08123dcfc",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.067Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/raster_pixel_processing.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "24b25af7-a575-4597-8e8b-93fff710e5ef",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:48.214Z",
+            "url": null
+          }
+        }
+      ],
+      "main_trigger_count": 4,
+      "gate01_frozen_intersection": []
+    },
+    "cdse_catalog": {
+      "proposed_paths": [
+        "services/raster-service/cdse_client.py",
+        "services/raster-service/stac_search.py",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py"
+      ],
+      "path_scope_final": false,
+      "matching_instances": [
+        {
+          "environment": "staging",
+          "service": {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/cdse_client.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/stac_search.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "1a3c8b86-9b6a-4939-80ee-557d2e7fc1c4",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.486Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "staging",
+          "service": {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/cdse_client.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/stac_search.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "5120e7aa-5c5c-459b-84ae-7439a4bd7357",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.066Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/cdse_client.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/stac_search.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "511d5719-1891-4940-978a-8ec08123dcfc",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:47.067Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/raster-service/cdse_client.py",
+              "pattern": "/services/raster-service/**"
+            },
+            {
+              "path": "services/raster-service/stac_search.py",
+              "pattern": "/services/raster-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "24b25af7-a575-4597-8e8b-93fff710e5ef",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-14T14:36:48.214Z",
+            "url": null
+          }
+        }
+      ],
+      "main_trigger_count": 4,
+      "gate01_frozen_intersection": []
+    },
+    "readiness": {
+      "proposed_paths": [
+        "services/decision-service/main.py",
+        "services/tts-service/routers/health.py",
+        "services/tts-service/main.py"
+      ],
+      "path_scope_final": false,
+      "matching_instances": [
+        {
+          "environment": "staging",
+          "service": {
+            "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "name": "sahool-tts-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "claude/project-exploration-dtjw3p",
+            "commitSha": "0eaa1e4e2e1deee237ef7238bcd88ea07919a0e4",
+            "rootDirectory": "/"
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/tts-service/routers/health.py",
+              "pattern": "/services/tts-service/**"
+            }
+          ],
+          "main_merge_trigger": false,
+          "current_deployment": {
+            "id": "2705c13b-c1bc-4d92-9e19-9331a963f6bb",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:35.371Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "staging",
+          "service": {
+            "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "name": "sahool-decision-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/decision-service/main.py",
+              "pattern": "/services/decision-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "cafa91d3-4f99-4bfe-a1be-dc45441ed4a2",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:36.861Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "name": "sahool-tts-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/tts-service/routers/health.py",
+              "pattern": "/services/tts-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "e5407e39-48bd-44ef-be1d-5e748ff192bc",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-13T20:57:05.511Z",
+            "url": null
+          }
+        },
+        {
+          "environment": "production",
+          "service": {
+            "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "name": "sahool-decision-service",
+            "state": "live"
+          },
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "checkSuites": false
+          },
+          "healthcheck": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300
+          },
+          "matching_paths": [
+            {
+              "path": "services/decision-service/main.py",
+              "pattern": "/services/decision-service/**"
+            }
+          ],
+          "main_merge_trigger": true,
+          "current_deployment": {
+            "id": "3389c236-c65b-43fa-9a54-8e8a00d098b5",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:23.892Z",
+            "url": null
+          }
+        }
+      ],
+      "main_trigger_count": 3,
+      "gate01_frozen_intersection": []
+    }
+  },
+  "readiness_rollout_assessment": [
+    {
+      "finding": "Decision both environments and TTS production currently deploy from main with checkSuites=false and /readyz healthcheck timeout300. A503 honest-readiness repair affects three immediate main deployments; staging TTS is separately pinned0eaa1e4e on another branch.",
+      "evidence": "wave1_live_configs_initial.json"
+    },
+    {
+      "finding": "Decision current ready predicate requires DB reachability/migration currency only in enabled SoR mode. Mirror mode with configured DB failure may still be ready under current contract; preserve or separately justify predicate changes. Missing auth in production already prevents startup.",
+      "evidence": "services/decision-service/main.py:416-554 at9a50aac3"
+    },
+    {
+      "finding": "Decision check_migrations reads existing migration-table state and does not apply migrations. Readiness failure cannot authorize applying033/034 or changing DB roles/config.",
+      "evidence": "services/decision-service/migration_runner.py:111-133 at9a50aac3"
+    },
+    {
+      "finding": "TTS readiness implementation is routers/health.py, currently statusready regardless Redis. Startup sets _redis=None on connection failure without retry; a strict503 fix can correctly withhold rollout, and restored Redis alone may not revive a startup-discarded client. This is an implementation/operational concern to assess rather than masking health with/healthz.",
+      "evidence": "services/tts-service/routers/health.py:25-39; services/tts-service/main.py:121-134"
+    },
+    {
+      "finding": "Current SUCCESS does not reveal current ready body, effectiveSoR flag, migration currency, Redis reachability or external-provider policy. No values or application probes requested here.",
+      "evidence": "Control-plane-only scope"
+    },
+    {
+      "finding": "Root confirmed planned TTS repair retains the constructed Redis client after initial PING failure, adds bounded socket and readiness PING timeouts, and tests startup failure then recovery. Decision ready predicate remains unchanged with explicit mirror-mode tests. This is a stated implementation plan, not independently reviewed source at this point.",
+      "evidence": "Root coordination message in current session"
+    }
+  ],
+  "freeze": {
+    "gate01": "CLOSED",
+    "historical_owner_source": "sahool-brain/gaps/registry.md:7325 at9a50aac3",
+    "historical_owner_text": "تجميد الدمج والنشر وتعديلات Railway؛ لا إعادة تشغيل للمهاجر ولا تراجع عن الهجرات قبل فحص القاعدة؛ لا حذف لنشر أو حجم أو نسخة.",
+    "current_authorization": "User explicitly authorizes scoped tested gap fixes through PR/green CI/merge; not a global freeze revocation, incident closure or DBapply/manual infrastructure permission."
+  },
+  "mutations": 0,
+  "limits": [
+    "Proposed source scope only; final evidence/brain/generated/release paths must all be measured on final commit.",
+    "No provider requests, application probes, secret reads, manual deployments or infrastructure/database changes.",
+    "/readyz503 is real rollout gating; if deployment fails retain evidence and old working instance rather than weaken healthcheck or bypass dependency gates."
+  ]
+}
