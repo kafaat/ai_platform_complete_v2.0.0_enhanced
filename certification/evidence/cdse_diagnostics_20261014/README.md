@@ -88,3 +88,16 @@ different from the historical `f35bf6b…` test hash at fbd. Independent review 
 no weakening. The complete raster-quality recovery passed 404 tests with 2 skipped
 and 12 expected failures. This supersedes only the child-import failure; previous
 65 focused tests and source review retain their original hashes and scope.
+
+## Postmerge provenance — PR #1182
+
+PR#1182 merged to main `9a50aac3bf71ed42f4fad91a036d49e61d151a52`. The merged tree matches final reviewed
+head `02fbc3107e0dfbedef025117b83e657192133228`: `ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`.
+`pr1182_final_ci_review.json` records71 successful checks,2 expected skips and
+all20 required checks passed. `cdse_pr1182_postmerge_9a50aac3_railway.json` records
+fourSUCCESS deployments (raster-service and raster-main-candidate, staging and
+production) and twentySKIPPED records. `verify_a_final_main_9a50_verification.json`
+checks the actual merged source/test hashes,103 evidence hashes and135/388/3
+registry baseline. These are scoped receipts; the historical publication and
+pre-repair reviews above remain unchanged. No live receipt-write, provider-cause,
+retention/restart durability or backup acceptance was measured. CDSE staysOPEN.
