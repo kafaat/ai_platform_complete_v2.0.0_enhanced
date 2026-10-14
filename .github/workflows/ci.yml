@@ -92,6 +92,12 @@ jobs:
       # WAIVER-EXPIRY-GUARD: fail once any time-boxed governance waiver has expired
       - name: waiver-expiry-guard
         run: python scripts/ci/waiver_expiry_guard.py
+      # UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01 — الحارسُ الوحيد الذي يرى فجوةً
+      # بحالتين بعد دمج `merge=union` كان يعمل في `no-report-only-change` وحدها، وليست في
+      # `required_contexts`: يحمرّ ولا يمنع الدمج. هنا يعمل أيضاً داخل وظيفةٍ مطلوبة؛ لا يقرأ
+      # الفرق بل الشجرة كلّها، فتكراره لا يغيّر حكمه.
+      - name: brain-duplicate-gap-identity-guard
+        run: python scripts/ci/brain_duplicate_gap_identity_guard.py
 
       # WX-10.7: reviewer/decision path stays a state transition, never execution
       - name: decision-review-boundary-gate

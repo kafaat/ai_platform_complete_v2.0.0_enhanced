@@ -3873,6 +3873,13 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 
 **المصدر:** `main@53652e02` (PR #1178) · إصلاح `959e9730a5770e3728a3ce504522615820cb7991` · `certification/evidence/gap_reconciliation_20261014/README.md` · طلب المالك: «تحقق من الادعاءات و تنفيذ ما هو صحيح و ما يمكن تنفيذه بشكل كامل وفتح pr وإصلاح اي فشل إلى ان ينجح و دمجة».
 
+## 2026-10-14 — موجة الإغلاق ٢: خمسُ فجواتٍ إلى fixed في PR بلا نشر
+
+**القرار:** نقلُ خمس فجوات من open إلى fixed: اثنتان بإصلاحٍ في `62b81409` (`REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01` · `UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01`؛ وأُخرج `BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01` لأنّ وكيل ChatGPT يتولّاه) وثلاثٌ إصلاحُها على main منذ PRs سابقة (`REPORT3-RAG-09-01` · `GUARD-MUTATION-RUN-FLAKED-ONCE-UNREPRODUCED-01` · `LIVE-20260908-MUTATION-TIMING-01`). وإغلاقُ صفّ الحارس المكرَّر بخطوةٍ في وظيفةٍ مطلوبة بدل تغيير قواعد الحماية التي بيد المالك.
+
+**السبب:** كلٌّ منها أُعيد قياسُه بشاهدٍ يعمل، والاثنتان الأوليان بشاهدٍ أحمرَ على `main@421a0e7a`. وخطوةٌ في `Repository Structural Lint` تجعل الحارسَ حاجباً دون انتظار قرار قواعد الحماية، ولا تغيّر حكمَه لأنّه يقرأ الشجرة كلّها لا الفرق.
+
+**المصدر:** `main@421a0e7a` (PR #1180) · الإصلاح `62b81409` · أربعةُ وكلاء قياسٍ قرائيّين على 35 صفّاً من W2 في خطّة ChatGPT.
 ## 2026-10-14 — ربط إصلاح Qdrant بمسوّدة #1181
 <!-- qdrant-pr-publication: 1181 663ed97d1bfeb5783fdb5550f23bdff73459ff2f -->
 

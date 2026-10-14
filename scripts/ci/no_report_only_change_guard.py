@@ -207,12 +207,22 @@ def is_report_like(path: str) -> bool:
     return p.suffix in {".csv", ".json"} and "generated" in p.name
 
 
+# REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01 — `tools/` شيفرةُ أدواتٍ تُشغَّل (`.py` · `.sh`)،
+# وتعديلُها مع مصنوعٍ مولَّد كان يُحجَب «report-only» — صنفُ #857 مرّةً سادسة. **ولا بادئةَ
+# للشجرة كلّها:** `tools/tts_bakeoff/` يحمل 34 ملفَّ نتائج `.txt` (مثل `FALSIFICATION_V8.txt`)
+# هي تقاريرُ بعينها، فالإعفاءُ باللاحقة لا بالدليل.
+SUBSTANTIVE_CODE_TREES = {"tools/": (".py", ".sh")}
+
+
 def is_substantive(path: str) -> bool:
     if path in SUBSTANTIVE_EXACT:
         return True
     if any(path.startswith(prefix) for prefix in SUBSTANTIVE_PREFIXES):
         return True
-    return False
+    return any(
+        path.startswith(tree) and path.endswith(suffixes)
+        for tree, suffixes in SUBSTANTIVE_CODE_TREES.items()
+    )
 
 
 def is_regeneration_artifact(path: str) -> bool:
