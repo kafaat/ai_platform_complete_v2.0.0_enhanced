@@ -3848,3 +3848,20 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 **السبب:** CI أخضر على الرأس (70 ناجحاً · 2 متخطّى؛ الإخفاقاتُ الثلاثة قبلها حدُّ 429 على ECR قبل أيّ اختبار) وpreflight 0/0؛ وخطرُ رمي `ApiShapeError` على الصفحة الحيّة مُستبعَدٌ بالقياس: `desert_proven_crops` يُعيد جدولاً ثابتاً كلُّ تقييماته نصوص (`services/sahool-platform/api/climate_analogs.py:268`).
 
 **المصدر:** PR #1177 · `b62c0533` · نشرا Railway `bc2489ed` و`e53d3783` · `REFERENCE-CROPS-PARSER-HIDES-NON-STRING-RATING-01` · `TENANT-AI-POLICY-OUTAGE-INDISTINGUISHABLE-FROM-NO-POLICY-01`.
+
+## 2026-10-14 — مصالحة keyword index في Qdrant دون تغيير عقد العزل
+
+**القرار التنفيذي:** إصلاح `QDRANT-TENANT-FILTER-HAS-NO-PAYLOAD-INDEX-01` في الفرع codex/qdrant-index-reconciliation (لم يُفتح PR بعد) عند `f0f2ee711e4426451d7708b03479affbe34b41e2` بمصالحة فهرس `keyword` لـ`metadata.tenant_id` للمجموعة الموجودة والجديدة، مع قبول الموجود الموافق دون إعادة ضبط خياراته، ورفض النوع المختلف أو الاستجابة غير المفهومة دون حذف أو إعادة إنشاء. الحالة fixed للكود؛ لا حكم verified أو نشر.
+
+**السبب:** كانت العودة المبكرة من `ensure_collection` تجعل إنشاء الفهرس للمجموعات الجديدة وحدها إصلاحاً ناقصاً. `keyword` هو نوع الفهرس الذي يخدم شرط المطابقة الحالي؛ `is_tenant` خيار تحسين إضافي لا مرادف للنوع، وHNSW rebuild عمل مستقل. حد التوافق المختار لا يفرض هذين التغييرين على المجموعات القائمة أو نسخ Compose الأقدم. كما أنّ البحث يبقى مقيداً بالمستأجر و`__global__`؛ لا تغيير لسلطة البيانات أو التنفيذ الزراعي.
+
+**حدود القرار:** التهيئة التلقائية تُستدعى عند ingest فقط. المجموعة القائمة التي لا يدخلها ingest لا تُعد مصلحة تشغيلياً بمجرد نشر الكود؛ يلزم هدف معلوم واستدعاء مأذون ودليل مخطط حي، وقياس أداء إن أُريد ادعاء تحسن. الخطأ قبل upsert يمنع تعديل BM25/cache، ولا تُستبدل استجابة الفشل بادعاء نجاح. لا رفع للتجميد، ولا موافقة نشر أو تعديل بنية تحتية ضمن هذا القرار التقني.
+
+**المصدر:** `f0f2ee711e4426451d7708b03479affbe34b41e2` · الفرع codex/qdrant-index-reconciliation (لم يُفتح PR بعد) · `services/sahool-platform/core/rag/production_qdrant.py:1119,1144` · `tests_v9/test_qdrant_probe_classification.py:148,213,244,251` · `certification/evidence/qdrant_tenant_index_20261014/qdrant_index_repair_result.json` · `certification/evidence/qdrant_tenant_index_20261014/qdrant_verify_b_review.json` · Qdrant REST v1.17: https://api.qdrant.tech/v-1-17-x/api-reference/indexes/create-field-index .
+## 2026-10-14 — تنفيذ ما ثبت من خطة v3 مع حفظ شروط الإغلاق
+
+**القرار:** تنفيذ مصالحة الحالات المبنية على المصدر والشواهد، وإصلاح أداتي الدمج وشهادة RAG في `959e9730`، ثم إخضاع الشريحة لبوابات المستودع قبل الدمج حسب تفويض المالك الصريح في هذه الجلسة. لا تغيير لتعريف verified أو لقرارات GATE-01 أو الاستثناءات أو صلاحيات الإنتاج.
+
+**السبب:** مجموعة الـ151 مكتملة عددياً لكن فيها حالات بائتة وأوامر تحتاج تصحيح تبعيات؛ لا تكفي التغطية العددية لإجازة التنفيذ. ملاحظات التسميد وSAR وSoR وTLS/ACL موثقة في `certification/evidence/gap_reconciliation_20261014/classified_v3_independent_qa.json`. عودة نشر ناجح لا تحسم سبب الحذف أو سلامة البيانات، ونجاح المهاجر المقيس امتناع عن التطبيق.
+
+**المصدر:** `main@53652e02` (PR #1178) · إصلاح `959e9730a5770e3728a3ce504522615820cb7991` · `certification/evidence/gap_reconciliation_20261014/README.md` · طلب المالك: «تحقق من الادعاءات و تنفيذ ما هو صحيح و ما يمكن تنفيذه بشكل كامل وفتح pr وإصلاح اي فشل إلى ان ينجح و دمجة».

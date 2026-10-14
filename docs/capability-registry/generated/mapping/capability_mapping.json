@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5572,
+    "files_scanned": 5602,
     "files_by_kind": {
       "backend": 1222,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1574,
+      "other": 1604,
       "tests": 1905,
       "web": 467
     },
-    "unmapped_artifacts": 2260,
+    "unmapped_artifacts": 2259,
     "ambiguous_artifacts": 433
   },
   "capabilities": [
@@ -740,6 +740,10 @@
           "score": 10
         },
         {
+          "value": "SAHOOL_gap_closure_plan_v3_bundle_20261014.zip @ certification/evidence/gap_reconciliation_20261014/claims.json:94",
+          "score": 8
+        },
+        {
           "value": "irrigation.reservation.dispatch_failed @ tests_v9/test_irr_f01_reservation_live_pg.py:559",
           "score": 8
         },
@@ -966,6 +970,14 @@
           ]
         },
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/claims.json",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
           "path": "config/service_feature_ui_contracts.json",
           "score": 8,
           "signals": [
@@ -998,12 +1010,12 @@
         "backend": 9,
         "routes": 20,
         "database": 24,
-        "events": 30,
+        "events": 31,
         "web": 0,
         "mobile": 0,
         "tests": 16,
         "governance": 1,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -3930,6 +3942,22 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_index_repair_result.json",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_verify_b_review.json",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "docs/adr/ADR-0033-field-management-tenant-claim-trust.md",
           "score": 14,
           "signals": [
@@ -4032,6 +4060,36 @@
             "path:tenant",
             "content:tenant"
           ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/README.md",
+          "score": 13,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/provenance.json",
+          "score": 11,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/evidence_manifest.json",
+          "score": 8,
+          "signals": [
+            "path:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_verify_b_api_witness.json",
+          "score": 8,
+          "signals": [
+            "path:tenant"
+          ]
         }
       ],
       "ambiguous": [],
@@ -4047,7 +4105,7 @@
         "mobile": 0,
         "tests": 29,
         "governance": 0,
-        "other_evidence": 13
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -9334,6 +9392,22 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/open_a_test_results_initial.json",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "path": "certification/evidence/gap_reconciliation_20261014/reconcile_open_a.json",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
           "path": "docker-compose.fixed.yml",
           "score": 12,
           "signals": [
@@ -9428,7 +9502,7 @@
         "mobile": 0,
         "tests": 9,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 12
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -11811,6 +11885,10 @@
           "score": 12
         },
         {
+          "value": "sahool.wave0.reconcile.readonly.v1 @ certification/evidence/gap_reconciliation_20261014/reconcile_open_b.json:2",
+          "score": 12
+        },
+        {
           "value": "sahool.weather.field.overlay.completed @ event_publish_contracts.yaml:76",
           "score": 12
         },
@@ -12097,6 +12175,14 @@
           ]
         },
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/reconcile_open_b.json",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docker-compose.fixed.yml",
           "score": 12,
           "signals": [
@@ -12252,12 +12338,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 77,
+        "events": 78,
         "web": 0,
         "mobile": 0,
         "tests": 14,
         "governance": 0,
-        "other_evidence": 27
+        "other_evidence": 28
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12493,6 +12579,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/gap_registry_measurement_20260919.md",
           "score": 20,
           "signals": [
@@ -12534,7 +12627,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -17353,6 +17446,10 @@
           "score": 26
         },
         {
+          "value": "sahool.ci-impact-review.v1 @ certification/evidence/gap_reconciliation_20261014/ci_impact_review.json:2",
+          "score": 25
+        },
+        {
           "value": "fields.py @ tests_v9/test_historical_search_cdse_v30_8.py:122",
           "score": 23
         },
@@ -17952,6 +18049,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/ci_impact_review.json",
+          "score": 25,
+          "signals": [
+            "content:stac",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/CDSE_PROVIDER_INTEGRATION.md",
           "score": 21,
           "signals": [
@@ -18189,6 +18294,14 @@
           ]
         },
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/classified_v3_independent_qa.json",
+          "score": 8,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/SAM2_DEPLOYMENT.md",
           "score": 8,
           "signals": [
@@ -18244,12 +18357,12 @@
         "backend": 36,
         "routes": 65,
         "database": 3,
-        "events": 40,
+        "events": 41,
         "web": 5,
         "mobile": 0,
         "tests": 47,
         "governance": 0,
-        "other_evidence": 34
+        "other_evidence": 36
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21388,6 +21501,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/measurement_after.json",
+          "score": 32,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/NDVI_RASTER_BACKEND_SIMULATION_FIX_20260626.md",
           "score": 28,
           "signals": [
@@ -22120,7 +22242,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 88
+        "other_evidence": 89
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -35961,6 +36083,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_ai_rag_live_certification.py",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests_v9/test_qualification_suite.py",
           "score": 8,
           "signals": [
@@ -36159,7 +36289,7 @@
         "events": 29,
         "web": 17,
         "mobile": 0,
-        "tests": 47,
+        "tests": 48,
         "governance": 0,
         "other_evidence": 22
       },
@@ -43579,10 +43709,6 @@
     },
     {
       "path": "tests_v9/test_ai_rag_delta_p0.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_ai_rag_live_certification.py",
       "kind": "tests"
     },
     {

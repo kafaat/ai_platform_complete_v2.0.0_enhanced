@@ -1,0 +1,136 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: sahool
+configfile: pytest.ini
+plugins: respx-0.23.1, cov-7.1.0, Faker-40.43.0, anyio-4.15.1, hypothesis-6.169.0, platformdirs-4.13.0, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 25 items
+
+tests_v9/test_ai_rag_live_certification.py FF.FFFFFFFFFFFFFFFFFFFFFF     [100%]
+
+=================================== FAILURES ===================================
+_____________ test_live_certification_passes_read_only_local_chain _____________
+tests_v9/test_ai_rag_live_certification.py:121: in test_live_certification_passes_read_only_local_chain
+    assert result["audit_write_requested"] is False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'audit_write_requested'
+________ test_generation_requirement_is_evidence_required_not_fake_pass ________
+tests_v9/test_ai_rag_live_certification.py:214: in test_generation_requirement_is_evidence_required_not_fake_pass
+    assert result["audit_write_requested"] is False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'audit_write_requested'
+____ test_grounded_certification_accepts_the_actual_published_fact_contract ____
+tests_v9/test_ai_rag_live_certification.py:450: in test_grounded_certification_accepts_the_actual_published_fact_contract
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates0] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates1] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates2] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates3] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates4] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates5] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates6] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates7] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates8] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates9] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates10] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates11] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates12] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates13] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates14] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates15] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates16] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates17] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates18] _
+tests_v9/test_ai_rag_live_certification.py:495: in test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts
+    assert result["read_only"] is False
+E   assert True is False
+_ test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only[False] _
+tests_v9/test_ai_rag_live_certification.py:518: in test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only
+    assert result["audit_write_requested"] is (None if require_generation else False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'audit_write_requested'
+_ test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only[True] _
+tests_v9/test_ai_rag_live_certification.py:517: in test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only
+    assert result["read_only"] is (not require_generation)
+E   assert True is not True
+=========================== short test summary info ============================
+FAILED tests_v9/test_ai_rag_live_certification.py::test_live_certification_passes_read_only_local_chain
+FAILED tests_v9/test_ai_rag_live_certification.py::test_generation_requirement_is_evidence_required_not_fake_pass
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_accepts_the_actual_published_fact_contract
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates0]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates1]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates2]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates3]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates4]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates5]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates6]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates7]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates8]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates9]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates10]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates11]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates12]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates13]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates14]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates15]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates16]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates17]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_grounded_certification_rejects_attempts_fallbacks_and_invalid_receipts[updates18]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only[False]
+FAILED tests_v9/test_ai_rag_live_certification.py::test_harness_failure_does_not_claim_a_possible_audit_write_was_read_only[True]
+========================= 24 failed, 1 passed in 1.36s =========================

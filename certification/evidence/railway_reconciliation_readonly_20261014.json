@@ -1,0 +1,2992 @@
+{
+  "schema_version": 1,
+  "title": "Sanitized authentic Railway read-only observations — verification agent C",
+  "scope": {
+    "project_id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "main_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+    "no_mutations": true,
+    "no_secrets_requested": true,
+    "live_probes_executed": false
+  },
+  "sanitization": [
+    "Creator identities/emails, commit messages, workspace name, variable names and unused domains/proxies omitted.",
+    "Runtime log private database hostname replaced with [private-db-host]; timestamp/message reason/deployment ID unchanged.",
+    "Selected logs are bounded filtered streams, not a complete audit trail.",
+    "Production agronomist INVALID_ARGUMENT is retained as failed lookup; absence assertion relies on full inventory, not this error."
+  ],
+  "records": [
+    {
+      "environment": "production",
+      "tool": "environment_status",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "includeSuccessful": true
+      },
+      "captured_at": "2026-10-14T00:01:55.612Z",
+      "data": {
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production"
+        },
+        "services": [
+          {
+            "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "serviceName": "sahool-frontend",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "bc2489ed-8caf-48cc-8d01-c5e5670844d9",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T22:45:12.253Z",
+                "statusUpdatedAt": "2026-10-13T22:46:28.293Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "serviceName": "sahool-notification-agent",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "22a09f31-a800-4754-b5d5-1955964808bf",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T20:57:07.000Z",
+                "statusUpdatedAt": "2026-10-13T20:57:57.760Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "serviceName": "sahool-tts-service",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "e5407e39-48bd-44ef-be1d-5e748ff192bc",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T20:57:05.511Z",
+                "statusUpdatedAt": "2026-10-13T20:57:56.225Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "serviceName": "sahool-vegetation-analysis",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "c9582865-bf35-4bfc-894b-cc9a1dc975f7",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T14:58:57.915Z",
+                "statusUpdatedAt": "2026-10-13T15:01:17.672Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "serviceName": "sahool-migrate-main",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "fa12dcbc-c730-4100-9160-4a051391f321",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T14:58:56.467Z",
+                "statusUpdatedAt": "2026-10-13T14:59:59.416Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 0,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+            "serviceName": "sahool-postgres",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "5c2667f5-76c9-40fd-a1a4-2e58705b2605",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:42.603Z",
+                "statusUpdatedAt": "2026-10-12T16:24:01.034Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": true
+          },
+          {
+            "serviceId": "f37b4995-25cc-4f9b-a5f9-14d6759ccd1a",
+            "serviceName": "sahool-auth",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "23b97306-4f8b-4e11-bc15-33d8f04d4ab3",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:40.892Z",
+                "statusUpdatedAt": "2026-10-12T16:30:08.524Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "serviceName": "sahool-field-management-service",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "1a551ce3-f4d0-4243-915e-d1705c7a284c",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:40.506Z",
+                "statusUpdatedAt": "2026-10-12T16:29:19.705Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "serviceName": "sahool-raster-service",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "f7e3e065-88f8-4662-aa33-4c68469c65b2",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:38.318Z",
+                "statusUpdatedAt": "2026-10-12T16:29:15.632Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": true
+          },
+          {
+            "serviceId": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+            "serviceName": "sahool-platform",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "b83c0808-b980-491e-add2-4d5e0755adb1",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:37.453Z",
+                "statusUpdatedAt": "2026-10-12T16:28:41.932Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          }
+        ],
+        "pendingWork": [
+          {
+            "id": "patch:073447ea-bbed-47d2-a7a9-807847d7b293",
+            "kind": "EnvironmentPatch",
+            "status": "staged",
+            "changes": [],
+            "startedAt": "2026-10-01T21:27:12.796Z",
+            "workflowId": "commitChanges/79de27a7-dae8-4cae-b37e-e9f7fae66c1d/073447ea-bbed-47d2-a7a9-807847d7b293"
+          }
+        ],
+        "summary": {
+          "totalServices": 20,
+          "servicesWithIssues": 0,
+          "totalFailures": 0
+        }
+      },
+      "evidence_id": "production_status"
+    },
+    {
+      "env": "production",
+      "key": "full_status",
+      "tool": "get_status",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d"
+      },
+      "captured_at": "2026-10-14T00:02:39.663Z",
+      "data": {
+        "project": {
+          "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+          "name": "sahool-staging"
+        },
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production",
+          "unmergedChangesCount": null,
+          "stagedChanges": null
+        },
+        "services": [
+          {
+            "id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+            "name": "sahool-platform",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "b83c0808-b980-491e-add2-4d5e0755adb1",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:37.453Z",
+              "url": null
+            }
+          },
+          {
+            "id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+            "name": "sahool-postgres",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+                "name": "sahool-postgres-data",
+                "mountPath": "/var/lib/postgresql/data",
+                "sizeMB": 1024,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "5c2667f5-76c9-40fd-a1a4-2e58705b2605",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:42.603Z",
+              "url": null
+            }
+          },
+          {
+            "id": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+            "name": "sahool-redis",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "3d9deadb-1740-4702-b9ad-d0980d7838d6",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:19.889Z",
+              "url": null
+            }
+          },
+          {
+            "id": "cae85573-5316-40b9-bf62-ccda465e4228",
+            "name": "sahool-redis-state",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "7470ec43-a8c2-4d76-b134-7842bc724fc8",
+                "name": "sahool-redis-state-data-_SII",
+                "mountPath": "/data",
+                "sizeMB": 1024,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "402d5831-1117-48ef-8275-9f7c83a04c61",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:35.254Z",
+              "url": null
+            }
+          },
+          {
+            "id": "9c477b50-c083-4eae-9c7f-18594245c0e4",
+            "name": "sahool-redis-state-0zaK",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "a96fe30b-1a87-4648-85c0-b24e5a6485de",
+                "name": "sahool-redis-state-data-qTA9",
+                "mountPath": "/data",
+                "sizeMB": 5000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "940ed50c-b09a-420f-b8b6-ba8b18ef9c88",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:35.985Z",
+              "url": null
+            }
+          },
+          {
+            "id": "f37b4995-25cc-4f9b-a5f9-14d6759ccd1a",
+            "name": "sahool-auth",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "23b97306-4f8b-4e11-bc15-33d8f04d4ab3",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:40.892Z",
+              "url": null
+            }
+          },
+          {
+            "id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "name": "sahool-frontend",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "bc2489ed-8caf-48cc-8d01-c5e5670844d9",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T22:45:12.253Z",
+              "url": null
+            }
+          },
+          {
+            "id": "81c84fcf-fbe9-498e-bff6-9c7d576af81f",
+            "name": "sahool-migrate",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": null
+          },
+          {
+            "id": "01de1a7c-3a4a-4772-aff2-080b3a78c58a",
+            "name": "sahool-nats",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "12ec3de9-6173-48fb-832c-aabfa604d085",
+                "name": "sahool-nats-volume",
+                "mountPath": "/data",
+                "sizeMB": 5000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "4b6cc83d-d8f8-48f5-a342-0458b540d874",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:17.076Z",
+              "url": null
+            }
+          },
+          {
+            "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "name": "sahool-migrate-main",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "fa12dcbc-c730-4100-9160-4a051391f321",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T14:58:56.467Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+            "name": "sahool-auth-main",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "13d2d4d9-9120-4e14-a986-5b60023781c0",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:31.050Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "name": "sahool-tts-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "e5407e39-48bd-44ef-be1d-5e748ff192bc",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T20:57:05.511Z",
+              "url": null
+            }
+          },
+          {
+            "id": "65cee1c0-8473-4219-b246-1b4015190938",
+            "name": "sahool-guardrails-engine",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "563b547c-acd3-41de-b80e-b3922d2e354d",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:20.721Z",
+              "url": null
+            }
+          },
+          {
+            "id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "name": "sahool-notification-agent",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "22a09f31-a800-4754-b5d5-1955964808bf",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T20:57:07.000Z",
+              "url": null
+            }
+          },
+          {
+            "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "name": "sahool-field-management-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "1a551ce3-f4d0-4243-915e-d1705c7a284c",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:40.506Z",
+              "url": null
+            }
+          },
+          {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+                "name": "sahool-raster-service-volume",
+                "mountPath": "/data/rasters",
+                "sizeMB": 5000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "f7e3e065-88f8-4662-aa33-4c68469c65b2",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:38.318Z",
+              "url": null
+            }
+          },
+          {
+            "id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "name": "sahool-vegetation-analysis",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "c9582865-bf35-4bfc-894b-cc9a1dc975f7",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T14:58:57.915Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b17a9fe6-4f07-4670-a2d2-c9fb3111196d",
+            "name": "wc005-postgres-live-proof",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "36471c1b-deed-4067-9f70-4143695ef915",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:36.104Z",
+              "url": null
+            }
+          },
+          {
+            "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "name": "sahool-decision-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "3389c236-c65b-43fa-9a54-8e8a00d098b5",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:23.892Z",
+              "url": null
+            }
+          },
+          {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "9d7a0a1c-69d0-41e2-9837-6e6a4ee89d8c",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:32.829Z",
+              "url": null
+            }
+          }
+        ],
+        "buckets": [],
+        "pendingWork": [
+          {
+            "id": "patch:073447ea-bbed-47d2-a7a9-807847d7b293",
+            "kind": "EnvironmentPatch",
+            "status": "staged",
+            "changes": [],
+            "startedAt": "2026-10-01T21:27:12.796Z",
+            "workflowId": "commitChanges/79de27a7-dae8-4cae-b37e-e9f7fae66c1d/073447ea-bbed-47d2-a7a9-807847d7b293"
+          }
+        ]
+      },
+      "evidence_id": "production_full_status"
+    },
+    {
+      "environment": "production",
+      "key": "staged",
+      "tool": "get_staged_changes",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d"
+      },
+      "captured_at": "2026-10-14T00:02:08.912Z",
+      "data": {
+        "project": {
+          "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+          "name": "sahool-staging"
+        },
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production"
+        },
+        "staged": null,
+        "destructive": false,
+        "resources": [],
+        "privateNetworkDisabled": null
+      },
+      "evidence_id": "production_staged"
+    },
+    {
+      "environment": "production",
+      "key": "migrator_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613"
+      },
+      "captured_at": "2026-10-14T00:02:08.905Z",
+      "data": {
+        "service": {
+          "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+          "name": "sahool-migrate-main",
+          "state": "live"
+        },
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/migrations/**",
+              "/deploy/railway/Dockerfile.migrate"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+          },
+          "deploy": {
+            "startCommand": "",
+            "restartPolicyType": "NEVER",
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [],
+        "latestDeployment": {
+          "id": "fa12dcbc-c730-4100-9160-4a051391f321",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-13T14:58:56.467Z",
+          "url": null
+        }
+      },
+      "evidence_id": "production_migrator_config"
+    },
+    {
+      "env": "production",
+      "key": "migrator_success",
+      "tool": "list_deployments",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "status": "SUCCESS",
+        "limit": 2
+      },
+      "captured_at": "2026-10-14T00:02:26.599Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "fa12dcbc-c730-4100-9160-4a051391f321",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-13T14:58:56.467Z",
+            "updatedAt": "2026-10-13T15:00:09.735Z",
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": "7ddb2053-18ac-41d1-9de2-0ac372aa0d49",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "branch": "main",
+              "commitHash": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+              "reason": "deploy"
+            }
+          }
+        ]
+      },
+      "evidence_id": "production_migrator_success"
+    },
+    {
+      "env": "production",
+      "key": "migrator_build",
+      "tool": "get_logs",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "deploymentId": "fa12dcbc-c730-4100-9160-4a051391f321",
+        "types": [
+          "build"
+        ],
+        "limit": 100,
+        "filter": "Dockerfile"
+      },
+      "captured_at": "2026-10-14T00:02:27.264Z",
+      "data": {
+        "scope": "deployment",
+        "deploymentId": "fa12dcbc-c730-4100-9160-4a051391f321",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "status": "SUCCESS",
+        "build": [
+          {
+            "timestamp": "2026-10-13T14:59:11.797655290Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:41d138b3a9b68d77b1c6ae713e9df538f6deaa7bb70a57f19f0ed7b9875e7959\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:11.797737803Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:41d138b3a9b68d77b1c6ae713e9df538f6deaa7bb70a57f19f0ed7b9875e7959\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.797493527Z\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:11.797763152Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:41d138b3a9b68d77b1c6ae713e9df538f6deaa7bb70a57f19f0ed7b9875e7959\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.797493527Z\""
+              },
+              {
+                "key": "completed",
+                "value": "\"2026-10-13T14:59:11.797598304Z\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:11.798273447Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:41d138b3a9b68d77b1c6ae713e9df538f6deaa7bb70a57f19f0ed7b9875e7959\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.797970012Z\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:12.106392217Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:41d138b3a9b68d77b1c6ae713e9df538f6deaa7bb70a57f19f0ed7b9875e7959\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.797970012Z\""
+              },
+              {
+                "key": "completed",
+                "value": "\"2026-10-13T14:59:12.105928671Z\""
+              }
+            ]
+          }
+        ]
+      },
+      "evidence_id": "production_migrator_build"
+    },
+    {
+      "env": "production",
+      "key": "migrator_runtime",
+      "tool": "get_logs",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "deploymentId": "fa12dcbc-c730-4100-9160-4a051391f321",
+        "types": [
+          "deploy"
+        ],
+        "limit": 50,
+        "filter": "apply_not_permitted"
+      },
+      "captured_at": "2026-10-14T00:02:26.963Z",
+      "data": {
+        "scope": "deployment",
+        "deploymentId": "fa12dcbc-c730-4100-9160-4a051391f321",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "status": "SUCCESS",
+        "deploy": [
+          {
+            "timestamp": "2026-10-13T14:59:59.391633736Z",
+            "severity": "info",
+            "message": "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted host=[private-db-host]:5432",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              }
+            ]
+          }
+        ]
+      },
+      "evidence_id": "production_migrator_runtime"
+    },
+    {
+      "env": "production",
+      "key": "field_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f"
+      },
+      "captured_at": "2026-10-14T00:02:39.689Z",
+      "data": {
+        "service": {
+          "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+          "name": "sahool-field-management-service",
+          "state": "live"
+        },
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/services/field-management-service/**",
+              "/shared/**"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "services/field-management-service/Dockerfile"
+          },
+          "deploy": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300,
+            "restartPolicyMaxRetries": 3,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            },
+            "drainingSeconds": 20
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [],
+        "latestDeployment": {
+          "id": "1a551ce3-f4d0-4243-915e-d1705c7a284c",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-12T16:23:40.506Z",
+          "url": null
+        }
+      },
+      "evidence_id": "production_field_config"
+    },
+    {
+      "env": "production",
+      "key": "raster_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e"
+      },
+      "captured_at": "2026-10-14T00:02:39.685Z",
+      "data": {
+        "service": {
+          "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+          "name": "sahool-raster-service",
+          "state": "live"
+        },
+        "environment": {
+          "id": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+          "name": "production"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/services/raster-service/**",
+              "/shared/**"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "services/raster-service/Dockerfile"
+          },
+          "deploy": {
+            "startCommand": "",
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300,
+            "restartPolicyMaxRetries": 3,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            },
+            "drainingSeconds": 20
+          },
+          "volumeMounts": {
+            "b7ff889f-f91c-4088-962f-537e79f2fcfd": {
+              "mountPath": "/data/rasters"
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [
+          {
+            "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+            "name": "sahool-raster-service-volume",
+            "mountPath": "/data/rasters",
+            "sizeMB": 5000,
+            "region": "asia-southeast1-eqsg3a",
+            "state": "live"
+          }
+        ],
+        "latestDeployment": {
+          "id": "f7e3e065-88f8-4662-aa33-4c68469c65b2",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-12T16:23:38.318Z",
+          "url": null
+        }
+      },
+      "evidence_id": "production_raster_config"
+    },
+    {
+      "env": "production",
+      "key": "agronomist_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0"
+      },
+      "captured_at": "2026-10-14T00:02:39.690Z",
+      "data": {
+        "error_code": "INVALID_ARGUMENT"
+      },
+      "evidence_id": "production_agronomist_config"
+    },
+    {
+      "env": "production",
+      "key": "field_deployment",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+        "status": "SUCCESS",
+        "limit": 1
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "1a551ce3-f4d0-4243-915e-d1705c7a284c",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:40.506Z",
+            "updatedAt": "2026-10-12T16:29:19.705Z",
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": "1e1049a2-b6c2-446e-90fa-732b15e46072",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "reason": "redeploy",
+              "commitHash": "e29401acec751e377328a1aa18706b266e78e5e9",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "production_field_deployment"
+    },
+    {
+      "env": "production",
+      "key": "raster_deployment",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+        "status": "SUCCESS",
+        "limit": 1
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "f7e3e065-88f8-4662-aa33-4c68469c65b2",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:38.318Z",
+            "updatedAt": "2026-10-12T16:29:15.633Z",
+            "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": "9beeb376-cf1b-468f-a748-0de655ca2284",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "reason": "redeploy",
+              "commitHash": "e29401acec751e377328a1aa18706b266e78e5e9",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "production_raster_deployment"
+    },
+    {
+      "env": "production",
+      "key": "merge_all",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+        "limit": 50
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "c1859272-46be-433c-b74d-4041515fb89c",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:30.362Z",
+            "updatedAt": "2026-10-13T23:42:30.362Z",
+            "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "a290dcc8-d3f0-433e-9d1b-ef18bc99cb8e",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.836Z",
+            "updatedAt": "2026-10-13T23:42:29.836Z",
+            "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "bd683964-d8e7-484d-bab9-684890f94173",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.701Z",
+            "updatedAt": "2026-10-13T23:42:29.701Z",
+            "serviceId": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "2cd629f0-d5f6-49d0-abb2-a39be4deed7e",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.650Z",
+            "updatedAt": "2026-10-13T23:42:29.650Z",
+            "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "de41a3bd-919e-4400-bcb4-6768321c9f6a",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.451Z",
+            "updatedAt": "2026-10-13T23:42:29.451Z",
+            "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "f603ad8c-c767-42c6-9dcf-c0bd252f1f39",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.020Z",
+            "updatedAt": "2026-10-13T23:42:29.020Z",
+            "serviceId": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "295d5835-723b-4e1d-a207-9677ccbd7bc5",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.986Z",
+            "updatedAt": "2026-10-13T23:42:28.986Z",
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "e97b330c-bd05-4545-beed-8170dd248d73",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.951Z",
+            "updatedAt": "2026-10-13T23:42:28.951Z",
+            "serviceId": "65cee1c0-8473-4219-b246-1b4015190938",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "91734c6e-f9d6-432f-ab50-923b84885cc9",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.902Z",
+            "updatedAt": "2026-10-13T23:42:28.902Z",
+            "serviceId": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "5d7533ed-7cb3-4769-8185-2869037f32bb",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.874Z",
+            "updatedAt": "2026-10-13T23:42:28.874Z",
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "a3c347af-9ce7-4f20-8afb-7eec6c98e60e",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.867Z",
+            "updatedAt": "2026-10-13T23:42:28.867Z",
+            "serviceId": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+            "environmentId": "79de27a7-dae8-4cae-b37e-e9f7fae66c1d",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "production_merge_all",
+      "projection_note": "Tool returned 50 latest deployments without status filter; retain exact target-SHA entries and oldest returned timestamp; omit unrelated historical entries and all creator/commit-message fields.",
+      "returned_count": 50,
+      "oldest_returned_created_at": "2026-10-13T17:08:31.915Z"
+    },
+    {
+      "environment": "staging",
+      "tool": "environment_status",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "includeSuccessful": true
+      },
+      "captured_at": "2026-10-14T00:01:56.032Z",
+      "data": {
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "services": [
+          {
+            "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "serviceName": "sahool-notification-agent",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "a3caad64-cf95-496d-981e-ab71d166613c",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T21:30:59.156Z",
+                "statusUpdatedAt": "2026-10-13T21:31:44.468Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 1,
+            "recentFailedDeployments": [
+              {
+                "id": "b889bd1e-60d2-42e4-8234-8fcf13b9ce78",
+                "status": "FAILED",
+                "createdAt": "2026-10-13T20:57:05.511Z"
+              }
+            ],
+            "hasIssues": true,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "serviceName": "sahool-frontend",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "e53d3783-f542-4499-90d0-d2951011bafd",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T22:45:12.293Z",
+                "statusUpdatedAt": "2026-10-13T22:45:50.246Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "serviceName": "sahool-vegetation-analysis",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "83c918e2-5712-4216-9976-cf50c393fcea",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T14:58:57.558Z",
+                "statusUpdatedAt": "2026-10-13T15:01:34.535Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "serviceName": "sahool-migrate-main",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-13T14:58:56.467Z",
+                "statusUpdatedAt": "2026-10-13T14:59:57.909Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 0,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+            "serviceName": "sahool-weather-service",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "e17a93f2-cdbe-4e02-9b70-9dc8b9662d0b",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:42.707Z",
+                "statusUpdatedAt": "2026-10-12T16:30:00.405Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "serviceName": "sahool-field-management-service",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "9eca8012-2f04-474a-bedf-7f67991f5c72",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:41.246Z",
+                "statusUpdatedAt": "2026-10-12T16:29:14.204Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+            "serviceName": "sahool-platform",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "611c4fb7-aba7-4f82-bc7f-fffbb0ed5768",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:38.966Z",
+                "statusUpdatedAt": "2026-10-12T16:29:56.915Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+            "serviceName": "sahool-redis",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "68ceea21-81a7-40e5-98b0-fccc2343111f",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:38.214Z",
+                "statusUpdatedAt": "2026-10-12T16:23:55.319Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0",
+            "serviceName": "sahool-ai-agronomist",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "37df59af-b9ab-4b1c-924c-339be3149333",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:37.956Z",
+                "statusUpdatedAt": "2026-10-12T16:28:58.660Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          },
+          {
+            "serviceId": "65cee1c0-8473-4219-b246-1b4015190938",
+            "serviceName": "sahool-guardrails-engine",
+            "state": "online",
+            "statusText": "Online",
+            "activeDeployments": [
+              {
+                "id": "63cec7f9-3a97-4730-ac61-de25e3512201",
+                "status": "SUCCESS",
+                "createdAt": "2026-10-12T16:23:37.231Z",
+                "statusUpdatedAt": "2026-10-12T16:28:29.346Z"
+              }
+            ],
+            "replicaStatus": {
+              "running": 1,
+              "crashed": 0,
+              "total": 1
+            },
+            "cronJob": null,
+            "issues": {
+              "warningCount": 0,
+              "criticalCount": 0
+            },
+            "recentFailures": 0,
+            "recentFailedDeployments": [],
+            "hasIssues": false,
+            "isCronJob": false,
+            "hasVolume": false
+          }
+        ],
+        "pendingWork": [
+          {
+            "id": "patch:f3b88021-4a2e-43c8-81e1-85caf241dd0e",
+            "kind": "EnvironmentPatch",
+            "status": "staged",
+            "changes": [],
+            "startedAt": "2026-10-13T21:32:38.358Z",
+            "workflowId": "commitChanges/70cc51f8-b11f-4506-87b2-4b6615e472be/f3b88021-4a2e-43c8-81e1-85caf241dd0e"
+          }
+        ],
+        "summary": {
+          "totalServices": 23,
+          "servicesWithIssues": 1,
+          "totalFailures": 1
+        }
+      },
+      "evidence_id": "staging_status"
+    },
+    {
+      "env": "staging",
+      "key": "full_status",
+      "tool": "get_status",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be"
+      },
+      "captured_at": "2026-10-14T00:02:39.732Z",
+      "data": {
+        "project": {
+          "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+          "name": "sahool-staging"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging",
+          "unmergedChangesCount": null,
+          "stagedChanges": null
+        },
+        "services": [
+          {
+            "id": "01de1a7c-3a4a-4772-aff2-080b3a78c58a",
+            "name": "sahool-nats",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "12ec3de9-6173-48fb-832c-aabfa604d085",
+                "name": "sahool-nats-volume",
+                "mountPath": "/data",
+                "sizeMB": 50000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "4b043a2c-cc8f-42fa-8f25-19f5a905d39a",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:26.464Z",
+              "url": null
+            }
+          },
+          {
+            "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "name": "sahool-raster-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+                "name": "sahool-raster-service-volume",
+                "mountPath": "/data/rasters",
+                "sizeMB": 50000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "5898c151-b228-4898-8fa9-93eb8445cf76",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:30.493Z",
+              "url": null
+            }
+          },
+          {
+            "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "name": "sahool-decision-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "cafa91d3-4f99-4bfe-a1be-dc45441ed4a2",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:36.861Z",
+              "url": null
+            }
+          },
+          {
+            "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "name": "sahool-field-management-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "9eca8012-2f04-474a-bedf-7f67991f5c72",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:41.246Z",
+              "url": null
+            }
+          },
+          {
+            "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "name": "sahool-migrate-main",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T14:58:56.467Z",
+              "url": null
+            }
+          },
+          {
+            "id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "name": "sahool-frontend",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "e53d3783-f542-4499-90d0-d2951011bafd",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T22:45:12.293Z",
+              "url": null
+            }
+          },
+          {
+            "id": "65cee1c0-8473-4219-b246-1b4015190938",
+            "name": "sahool-guardrails-engine",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "63cec7f9-3a97-4730-ac61-de25e3512201",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:37.231Z",
+              "url": null
+            }
+          },
+          {
+            "id": "81c84fcf-fbe9-498e-bff6-9c7d576af81f",
+            "name": "sahool-migrate",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": null
+          },
+          {
+            "id": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+            "name": "sahool-redis",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "68ceea21-81a7-40e5-98b0-fccc2343111f",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:38.214Z",
+              "url": null
+            }
+          },
+          {
+            "id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "name": "sahool-vegetation-analysis",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "83c918e2-5712-4216-9976-cf50c393fcea",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T14:58:57.558Z",
+              "url": null
+            }
+          },
+          {
+            "id": "9c477b50-c083-4eae-9c7f-18594245c0e4",
+            "name": "sahool-redis-state-0zaK",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "a96fe30b-1a87-4648-85c0-b24e5a6485de",
+                "name": "sahool-redis-state-data-qTA9",
+                "mountPath": "/data",
+                "sizeMB": 50000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "e363512f-4087-4f12-a059-1c78d1b16fb2",
+              "status": "SLEEPING",
+              "createdAt": "2026-10-12T16:23:24.355Z",
+              "url": null
+            }
+          },
+          {
+            "id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+            "name": "sahool-postgres",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+                "name": "sahool-postgres-data",
+                "mountPath": "/var/lib/postgresql/data",
+                "sizeMB": 50000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "524e3c82-ea3e-415b-aeaa-f2253fc92887",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:22.481Z",
+              "url": null
+            }
+          },
+          {
+            "id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "name": "sahool-notification-agent",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "a3caad64-cf95-496d-981e-ab71d166613c",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-13T21:30:59.156Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+            "name": "sahool-auth-main",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "8571caee-5f22-4a5d-96fa-e5fd317610d1",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:18.605Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b17a9fe6-4f07-4670-a2d2-c9fb3111196d",
+            "name": "wc005-postgres-live-proof",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "60b6ca6b-4a1c-4fde-8c7c-c804d60aa587",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:26.134Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+            "name": "sahool-tts-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "2705c13b-c1bc-4d92-9e19-9331a963f6bb",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:35.371Z",
+              "url": null
+            }
+          },
+          {
+            "id": "cae85573-5316-40b9-bf62-ccda465e4228",
+            "name": "sahool-redis-state",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [
+              {
+                "id": "7470ec43-a8c2-4d76-b134-7842bc724fc8",
+                "name": "sahool-redis-state-data-_SII",
+                "mountPath": "/data",
+                "sizeMB": 50000,
+                "region": "asia-southeast1-eqsg3a"
+              }
+            ],
+            "latestDeployment": {
+              "id": "af769dbe-f311-4bf2-bac3-c2f20f029fb1",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:32.737Z",
+              "url": null
+            }
+          },
+          {
+            "id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+            "name": "sahool-platform",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "611c4fb7-aba7-4f82-bc7f-fffbb0ed5768",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:38.966Z",
+              "url": null
+            }
+          },
+          {
+            "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "name": "sahool-raster-main-candidate",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "df50c49e-c8f2-48b6-82b5-b7e2ee3e68e1",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:22.198Z",
+              "url": null
+            }
+          },
+          {
+            "id": "92c68962-8878-49e7-9b71-50908f0d1d5e",
+            "name": "platform-db-proof-20260927",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "31f65eae-6565-4ada-b9ce-c1208ecbf810",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:18.122Z",
+              "url": null
+            }
+          },
+          {
+            "id": "b92d960f-c267-47d7-a730-5c542d41c791",
+            "name": "sahool-soil-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "cf7e45c8-0b95-449c-b3f6-09bc4f5e9ca3",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:34.256Z",
+              "url": null
+            }
+          },
+          {
+            "id": "671188de-2a64-4233-8be5-1ac1718b38f0",
+            "name": "sahool-ai-agronomist",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "37df59af-b9ab-4b1c-924c-339be3149333",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:37.956Z",
+              "url": null
+            }
+          },
+          {
+            "id": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+            "name": "sahool-weather-service",
+            "numReplicas": null,
+            "cronSchedule": null,
+            "volumes": [],
+            "latestDeployment": {
+              "id": "e17a93f2-cdbe-4e02-9b70-9dc8b9662d0b",
+              "status": "SUCCESS",
+              "createdAt": "2026-10-12T16:23:42.707Z",
+              "url": null
+            }
+          }
+        ],
+        "buckets": [],
+        "pendingWork": [
+          {
+            "id": "patch:f3b88021-4a2e-43c8-81e1-85caf241dd0e",
+            "kind": "EnvironmentPatch",
+            "status": "staged",
+            "changes": [],
+            "startedAt": "2026-10-13T21:32:38.358Z",
+            "workflowId": "commitChanges/70cc51f8-b11f-4506-87b2-4b6615e472be/f3b88021-4a2e-43c8-81e1-85caf241dd0e"
+          }
+        ]
+      },
+      "evidence_id": "staging_full_status"
+    },
+    {
+      "environment": "staging",
+      "key": "staged",
+      "tool": "get_staged_changes",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be"
+      },
+      "captured_at": "2026-10-14T00:02:08.871Z",
+      "data": {
+        "project": {
+          "id": "33c50993-1110-43eb-8e92-04c15edae51e",
+          "name": "sahool-staging"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "staged": null,
+        "destructive": false,
+        "resources": [],
+        "privateNetworkDisabled": null
+      },
+      "evidence_id": "staging_staged"
+    },
+    {
+      "environment": "staging",
+      "key": "migrator_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613"
+      },
+      "captured_at": "2026-10-14T00:02:08.856Z",
+      "data": {
+        "service": {
+          "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+          "name": "sahool-migrate-main",
+          "state": "live"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/migrations/**",
+              "/deploy/railway/Dockerfile.migrate"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+          },
+          "deploy": {
+            "startCommand": "",
+            "restartPolicyType": "NEVER",
+            "sleepApplication": true,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [],
+        "latestDeployment": {
+          "id": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-13T14:58:56.467Z",
+          "url": null
+        }
+      },
+      "evidence_id": "staging_migrator_config"
+    },
+    {
+      "env": "staging",
+      "key": "migrator_success",
+      "tool": "list_deployments",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "status": "SUCCESS",
+        "limit": 2
+      },
+      "captured_at": "2026-10-14T00:02:26.589Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-13T14:58:56.467Z",
+            "updatedAt": "2026-10-13T14:59:57.910Z",
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": "f5ab9b19-69b9-4eae-abcd-d5fed4c3a098",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "branch": "main",
+              "commitHash": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+              "reason": "deploy"
+            }
+          }
+        ]
+      },
+      "evidence_id": "staging_migrator_success"
+    },
+    {
+      "env": "staging",
+      "key": "migrator_build",
+      "tool": "get_logs",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "deploymentId": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+        "types": [
+          "build"
+        ],
+        "limit": 100,
+        "filter": "Dockerfile"
+      },
+      "captured_at": "2026-10-14T00:02:26.760Z",
+      "data": {
+        "scope": "deployment",
+        "deploymentId": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "status": "SUCCESS",
+        "build": [
+          {
+            "timestamp": "2026-10-13T14:59:11.921739094Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:eb64957017d07945d956fc107054970b51ac8232983699da659000193c870361\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:11.921882369Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:eb64957017d07945d956fc107054970b51ac8232983699da659000193c870361\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.921395308Z\""
+              },
+              {
+                "key": "completed",
+                "value": "\"2026-10-13T14:59:11.921524211Z\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:11.922312915Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:eb64957017d07945d956fc107054970b51ac8232983699da659000193c870361\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.921879555Z\""
+              }
+            ]
+          },
+          {
+            "timestamp": "2026-10-13T14:59:12.170185792Z",
+            "severity": "info",
+            "message": "[internal] load build definition from deploy/railway/Dockerfile.migrate",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              },
+              {
+                "key": "source",
+                "value": "\"buildkit\""
+              },
+              {
+                "key": "type",
+                "value": "\"vertex\""
+              },
+              {
+                "key": "digest",
+                "value": "\"sha256:eb64957017d07945d956fc107054970b51ac8232983699da659000193c870361\""
+              },
+              {
+                "key": "started",
+                "value": "\"2026-10-13T14:59:11.921879555Z\""
+              },
+              {
+                "key": "completed",
+                "value": "\"2026-10-13T14:59:12.169649016Z\""
+              }
+            ]
+          }
+        ]
+      },
+      "evidence_id": "staging_migrator_build"
+    },
+    {
+      "env": "staging",
+      "key": "migrator_runtime",
+      "tool": "get_logs",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "deploymentId": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+        "types": [
+          "deploy"
+        ],
+        "limit": 50,
+        "filter": "apply_not_permitted"
+      },
+      "captured_at": "2026-10-14T00:02:26.985Z",
+      "data": {
+        "scope": "deployment",
+        "deploymentId": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+        "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "status": "SUCCESS",
+        "deploy": [
+          {
+            "timestamp": "2026-10-13T14:59:55.837395533Z",
+            "severity": "info",
+            "message": "MIGRATIONS_NOT_APPLIED reason=apply_not_permitted host=[private-db-host]:5432",
+            "attributes": [
+              {
+                "key": "level",
+                "value": "\"info\""
+              }
+            ]
+          }
+        ]
+      },
+      "evidence_id": "staging_migrator_runtime"
+    },
+    {
+      "env": "staging",
+      "key": "field_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f"
+      },
+      "captured_at": "2026-10-14T00:02:39.682Z",
+      "data": {
+        "service": {
+          "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+          "name": "sahool-field-management-service",
+          "state": "live"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/services/field-management-service/**",
+              "/shared/**"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "services/field-management-service/Dockerfile"
+          },
+          "deploy": {
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300,
+            "restartPolicyMaxRetries": 3,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [],
+        "latestDeployment": {
+          "id": "9eca8012-2f04-474a-bedf-7f67991f5c72",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-12T16:23:41.246Z",
+          "url": null
+        }
+      },
+      "evidence_id": "staging_field_config"
+    },
+    {
+      "env": "staging",
+      "key": "raster_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e"
+      },
+      "captured_at": "2026-10-14T00:02:39.716Z",
+      "data": {
+        "service": {
+          "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+          "name": "sahool-raster-service",
+          "state": "live"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+            "branch": "main",
+            "rootDirectory": "/",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/services/raster-service/**",
+              "/shared/**"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "services/raster-service/Dockerfile"
+          },
+          "deploy": {
+            "startCommand": "uvicorn main:app --host 0.0.0.0 --port 8001",
+            "healthcheckPath": "/readyz",
+            "healthcheckTimeout": 300,
+            "restartPolicyMaxRetries": 3,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            }
+          },
+          "volumeMounts": {
+            "b7ff889f-f91c-4088-962f-537e79f2fcfd": {
+              "mountPath": "/data/rasters"
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [
+          {
+            "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+            "name": "sahool-raster-service-volume",
+            "mountPath": "/data/rasters",
+            "sizeMB": 50000,
+            "region": "asia-southeast1-eqsg3a",
+            "state": "live"
+          }
+        ],
+        "latestDeployment": {
+          "id": "5898c151-b228-4898-8fa9-93eb8445cf76",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-12T16:23:30.493Z",
+          "url": null
+        }
+      },
+      "evidence_id": "staging_raster_config"
+    },
+    {
+      "env": "staging",
+      "key": "agronomist_config",
+      "tool": "describe_service",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0"
+      },
+      "captured_at": "2026-10-14T00:02:39.703Z",
+      "data": {
+        "service": {
+          "id": "671188de-2a64-4233-8be5-1ac1718b38f0",
+          "name": "sahool-ai-agronomist",
+          "state": "live"
+        },
+        "environment": {
+          "id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+          "name": "staging"
+        },
+        "staged": null,
+        "config": {
+          "source": {
+            "branch": "main",
+            "checkSuites": false
+          },
+          "build": {
+            "builder": "DOCKERFILE",
+            "watchPatterns": [
+              "/services/ai_agronomist/**",
+              "/shared/**"
+            ],
+            "buildEnvironment": "V3",
+            "dockerfilePath": "services/ai_agronomist/Dockerfile"
+          },
+          "deploy": {
+            "preDeployCommand": [],
+            "healthcheckPath": "/healthz",
+            "healthcheckTimeout": 300,
+            "restartPolicyMaxRetries": 3,
+            "useLegacyStacker": false,
+            "ipv6EgressEnabled": false,
+            "runtime": "V2",
+            "multiRegionConfig": {
+              "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+              }
+            }
+          }
+        },
+        "stagedChanges": [],
+        "volumes": [],
+        "latestDeployment": {
+          "id": "37df59af-b9ab-4b1c-924c-339be3149333",
+          "status": "SUCCESS",
+          "createdAt": "2026-10-12T16:23:37.956Z",
+          "url": null
+        }
+      },
+      "evidence_id": "staging_agronomist_config"
+    },
+    {
+      "env": "staging",
+      "key": "field_deployment",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+        "status": "SUCCESS",
+        "limit": 1
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "9eca8012-2f04-474a-bedf-7f67991f5c72",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:41.246Z",
+            "updatedAt": "2026-10-12T16:29:14.205Z",
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": "a5cc772f-58da-4e22-b386-c5cc508fc163",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "reason": "redeploy",
+              "commitHash": "e29401acec751e377328a1aa18706b266e78e5e9",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "staging_field_deployment"
+    },
+    {
+      "env": "staging",
+      "key": "raster_deployment",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+        "status": "SUCCESS",
+        "limit": 1
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "5898c151-b228-4898-8fa9-93eb8445cf76",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:30.493Z",
+            "updatedAt": "2026-10-12T16:27:42.911Z",
+            "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": "64b0709f-b0c8-4d47-a419-7ea817c0fb79",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "reason": "redeploy",
+              "commitHash": "e29401acec751e377328a1aa18706b266e78e5e9",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "staging_raster_deployment"
+    },
+    {
+      "env": "staging",
+      "key": "agronomist_deployment",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0",
+        "status": "SUCCESS",
+        "limit": 1
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:09.771Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "37df59af-b9ab-4b1c-924c-339be3149333",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-12T16:23:37.956Z",
+            "updatedAt": "2026-10-12T16:28:58.661Z",
+            "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": "eda42fe3-c6fa-4936-ba56-4254ad9336d0",
+            "canRollback": true,
+            "canRedeploy": true,
+            "regions": [
+              "asia-southeast1-eqsg3a"
+            ],
+            "meta": {
+              "reason": "redeploy",
+              "commitHash": "e29401acec751e377328a1aa18706b266e78e5e9",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "staging_agronomist_deployment"
+    },
+    {
+      "env": "staging",
+      "key": "merge_all",
+      "args": {
+        "projectId": "33c50993-1110-43eb-8e92-04c15edae51e",
+        "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+        "limit": 50
+      },
+      "tool": "list_deployments",
+      "captured_at": "2026-10-14T00:04:21.324Z",
+      "data": {
+        "deployments": [
+          {
+            "id": "ecb999cf-132f-4e68-a2d1-7ec5ceb74877",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:30.189Z",
+            "updatedAt": "2026-10-13T23:42:30.189Z",
+            "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "14981b88-662c-42a7-b605-8ebc20046d33",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:30.187Z",
+            "updatedAt": "2026-10-13T23:42:30.187Z",
+            "serviceId": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "aa91a6e8-856a-48ad-ba9e-849da00abe0e",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:30.146Z",
+            "updatedAt": "2026-10-13T23:42:30.146Z",
+            "serviceId": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "a398272c-3a22-4f09-92aa-b3044075bcf8",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.789Z",
+            "updatedAt": "2026-10-13T23:42:29.789Z",
+            "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "eb3beb26-42a5-4c70-97a3-108e8d0bd04b",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.719Z",
+            "updatedAt": "2026-10-13T23:42:29.719Z",
+            "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "4cae7b71-1f19-4ebe-bf02-b1c18d9ab244",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.679Z",
+            "updatedAt": "2026-10-13T23:42:29.679Z",
+            "serviceId": "65cee1c0-8473-4219-b246-1b4015190938",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "fcc59e76-a6c6-44f8-b130-a4973f49e23e",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.678Z",
+            "updatedAt": "2026-10-13T23:42:29.678Z",
+            "serviceId": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "c08c1743-7800-49f0-8a12-abd9101afa79",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.623Z",
+            "updatedAt": "2026-10-13T23:42:29.623Z",
+            "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "e4efcb85-ae4e-4ebd-8458-ee29648838dc",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.570Z",
+            "updatedAt": "2026-10-13T23:42:29.570Z",
+            "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "37fd03e9-fdc3-4b6f-a93c-eea88d26b413",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.157Z",
+            "updatedAt": "2026-10-13T23:42:29.157Z",
+            "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "251e566c-eb93-40fe-be2d-064711908549",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:29.022Z",
+            "updatedAt": "2026-10-13T23:42:29.022Z",
+            "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "f8bfda38-b507-4298-8fa9-6cc82bc8633c",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.972Z",
+            "updatedAt": "2026-10-13T23:42:28.972Z",
+            "serviceId": "b92d960f-c267-47d7-a730-5c542d41c791",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          },
+          {
+            "id": "74a9b8c7-516f-4246-8e31-fd93b456effb",
+            "status": "SKIPPED",
+            "createdAt": "2026-10-13T23:42:28.874Z",
+            "updatedAt": "2026-10-13T23:42:28.874Z",
+            "serviceId": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+            "environmentId": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+            "url": null,
+            "snapshotId": null,
+            "canRollback": false,
+            "canRedeploy": false,
+            "regions": [],
+            "meta": {
+              "commitHash": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+              "branch": "main"
+            }
+          }
+        ]
+      },
+      "evidence_id": "staging_merge_all",
+      "projection_note": "Tool returned 50 latest deployments without status filter; retain exact target-SHA entries and oldest returned timestamp; omit unrelated historical entries and all creator/commit-message fields.",
+      "returned_count": 50,
+      "oldest_returned_created_at": "2026-10-13T18:51:16.675Z"
+    }
+  ]
+}

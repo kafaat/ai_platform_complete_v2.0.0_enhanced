@@ -1,0 +1,55 @@
+from pathlib import Path
+import importlib.util, json, shutil, tempfile, subprocess, sys
+REPO=Path('sahool'); OUT=Path('analysis')
+sys.path.insert(0,str(REPO)); results=[]
+def load(rel,name):
+ spec=importlib.util.spec_from_file_location(name,REPO/rel);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
+
+def measure(name,fn,want_fail):
+ try:fn()
+ except AssertionError as e:
+  results.append({'case':name,'observed':'assertion_failure','expected_failure':want_fail,'satisfied':want_fail,'reason':str(e)[:450]})
+ except Exception as e:
+  results.append({'case':name,'observed':'unexpected_exception','expected_failure':want_fail,'satisfied':False,'reason':type(e).__name__+': '+str(e)[:450]})
+ else:results.append({'case':name,'observed':'pass','expected_failure':want_fail,'satisfied':not want_fail})
+
+with tempfile.TemporaryDirectory(prefix='reconcile-vb-',dir=OUT) as td:
+ root=Path(td)
+ # Same shipped identity witness, external scratch tree; source remains a read-only symlink.
+ ident=load('tests/architecture/test_runtime_build_identity_attestation.py','_wave0_identity')
+ (root/'services').symlink_to(REPO/'services',target_is_directory=True)
+ (root/'.github/workflows').mkdir(parents=True)
+ workflow=root/'.github/workflows/runtime-image-provenance.yml'
+ original=(REPO/'.github/workflows/runtime-image-provenance.yml').read_text();workflow.write_text(original)
+ shutil.copytree(REPO/'runtime-verification/functional_probes',root/'runtime-verification/functional_probes')
+ ident.ROOT=root
+ measure('raster_identity_current_all_six_surfaces',ident.test_every_identity_service_is_attested_and_probed,False)
+ workflow.write_text(original.replace('          - service: raster-service\n','',1))
+ measure('raster_removed_attestation_matrix_entry',ident.test_every_identity_service_is_attested_and_probed,True);workflow.write_text(original)
+ workflow.write_text(original.replace("expected={'weather-service','soil-service','raster-service'","expected={'weather-service','soil-service'",1))
+ measure('raster_removed_publish_manifest_expected_service',ident.test_every_identity_service_is_attested_and_probed,True);workflow.write_text(original)
+ probe=root/'runtime-verification/functional_probes/raster-service.json';text=probe.read_text();probe.unlink()
+ measure('raster_removed_probe_plan',ident.test_every_identity_service_is_attested_and_probed,True);probe.write_text(text)
+ doc=json.loads(text);doc.pop('identity_path');probe.write_text(json.dumps(doc))
+ measure('raster_removed_probe_identity_path',ident.test_every_identity_service_is_attested_and_probed,True);probe.write_text(text)
+ # Existing SAM2 default pin witness with only the Dockerfile input replaced in scratch.
+ sam=load('tests_v9/test_sam2_ref_pinned.py','_wave0_sam2')
+ target=root/'sam2-Dockerfile';target.write_text((REPO/'services/sam2-inference/Dockerfile').read_text());sam.DOCKERFILE=target
+ measure('sam2_pinned_default_current',sam.test_sam2_ref_default_is_a_full_commit_sha_not_a_branch,False)
+ target.write_text(target.read_text().replace('ARG SAM2_REF=2b90b9f5ceec907a1c18123530e92e794ad901a4','ARG SAM2_REF=main'))
+ measure('sam2_historical_floating_default',sam.test_sam2_ref_default_is_a_full_commit_sha_not_a_branch,True)
+ # Existing compose regression witness; reinsert only the historical orphan block.
+ wiring=load('tests_v9/test_e2e_findings_regressions.py','_wave0_tiler');wiring.ROOT=root
+ files={*wiring._NGINX_BUNDLES,'frontend/src/hooks/useApi.ts',*(c for c,_ in wiring._NGINX_BUNDLES.values())}
+ for rel in files:
+  dest=root/rel;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(REPO/rel,dest)
+ measure('tiler_current_compose_wiring',wiring.test_v25_live_audit_wiring_regressions,False)
+ for rel in ('docker-compose.fixed.yml','docker-compose.unified.yml'):
+  old=subprocess.check_output(['git','show',f'3a8689f6^:{rel}'],cwd=REPO,text=True)
+  body=wiring._service_block(old,'raster-tiler-service')
+  dest=root/rel;current=dest.read_text();dest.write_text(current.replace('services:\n','services:\n\n  raster-tiler-service:\n'+body,1))
+  measure('tiler_reintroduced_historical_block_'+rel,wiring.test_v25_live_audit_wiring_regressions,True);dest.write_text(current)
+
+payload={'source_sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),'method':'existing shipped test functions run on isolated scratch inputs; no repository mutation; semantic counterexamples, not runtime image proof','cases':results,'all_satisfied':all(r['satisfied'] for r in results)}
+(OUT/'reconcile_verify_b_counterfactual.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps(payload,ensure_ascii=False,indent=2));raise SystemExit(0 if payload['all_satisfied'] else 1)

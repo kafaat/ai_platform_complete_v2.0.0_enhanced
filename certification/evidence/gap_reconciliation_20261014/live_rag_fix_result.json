@@ -1,0 +1,94 @@
+{
+  "id": "LIVE-RAG-CERTIFICATION-ASSERTS-AN-UNREACHABLE-RESPONSE-01",
+  "base_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "implementation_state": "local_uncommitted_fix",
+  "proposed_registry_state": "open until this patch merges, then fixed; not verified",
+  "files": [
+    {
+      "path": "scripts/ci/ai_rag_live_certification.py",
+      "sha256": "c273b88a4ea61e2a3045f52c7ec65adb7b3c1d80a6cddb747ec20e7360413d60"
+    },
+    {
+      "path": "tests_v9/test_ai_rag_live_certification.py",
+      "sha256": "6329288dc8bf87e837e49d442da8b2cc5712b71850b5a18d55ec6fa5247c79c6"
+    },
+    {
+      "path": "scripts/staging/ai_rag_live_acceptance.sh",
+      "sha256": "b5a253edd735e4f1118fa30c59b2c1d2e147f7a3d3401fdffa3132a29f88ba89"
+    }
+  ],
+  "behavior": "Certifies only actual validated_field_facts / validated_structured_facts with generation_surfaced is True; attempted and surfaced attribution must both identify configured local model. Requires current owner receipt persisted, scoped to tenant/field, no action/decision/candidate previews, nonempty claims and matching surfaced answer. Existing RAG and decision authority constraints remain. Metadata/docs/CLI help now disclose the optional audit write; scope is advisor_chat (including configured tools and advice/tool audit/approval persistence), not authority promotion. A requested write does not claim persistence.",
+  "sources": [
+    {
+      "path": "services/ai_agronomist/ai_evidence_runtime.py",
+      "lines": [
+        670,
+        704
+      ]
+    },
+    {
+      "path": "services/ai_agronomist/ai_evidence_runtime.py",
+      "lines": [
+        960,
+        1028
+      ]
+    },
+    {
+      "path": "services/ai_agronomist/ai_evidence_runtime.py",
+      "lines": [
+        1079,
+        1120
+      ]
+    },
+    {
+      "path": "shared/ai/structured_advisory.py",
+      "lines": [
+        340,
+        439
+      ]
+    }
+  ],
+  "tests": {
+    "command": "env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. sahool-venv/bin/python -m pytest -q -p no:cacheprovider tests_v9/test_ai_rag_live_certification.py",
+    "red": {
+      "exit_code": 1,
+      "failed": 2,
+      "passed": 21,
+      "log": "analysis/live_rag_regression_red.log",
+      "failure_meaning": "Real published runtime response falsely rejected; fabricated old generated_grounded+succeeded response falsely accepted."
+    },
+    "green": {
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 25,
+      "log": "analysis/live_rag_regression_green.log",
+      "duration_seconds": 1.01
+    },
+    "positive": "Runs real build_evidence_response and shared owner fact validator on canonical fixture. HTTP provider, retrieval and receipt persistence are replaced. No live I/O.",
+    "negative": "Legacy unreachable contract, evidence-only mode, suppressed/failed/blocked/not-attempted status, false/string/absent surfaced flag, missing/wrong attribution, empty RAG, invalid guardrail, blocked owner receipt, unpersisted receipt all reject.",
+    "metadata_red": {
+      "exit_code": 1,
+      "failed": 24,
+      "passed": 1,
+      "log": "analysis/live_rag_metadata_red.log",
+      "scope": "New metadata assertions against pre-metadata patch"
+    },
+    "metadata": "Default and disabled generation remain read_only=True/audit_write_requested=False; every reached chat request, even failed certification, marks read_only=False/audit_write_requested=True. HARNESS_INVALID with generation requested uses audit_write_requested=null and read_only=False conservatively."
+  },
+  "validation": {
+    "ruff_check": "pass (sorted imports)",
+    "ruff_format": "pass (applied to assigned test only)",
+    "git_diff_check": "pass"
+  },
+  "limitations": [
+    "No commit, PR, merge or deployment performed by agent.",
+    "No live LLM/provider/DB calls; source tests cannot establish runtime verified."
+  ],
+  "registry_update_ar": "بعد دمج هذه الشريحة: fixed — يصادق العقد الفعلي validated_field_facts/validated_structured_facts وgeneration_surfaced=True، ويفصل قياس المحاولة عن نسبة الجواب، مع شهادة المالك المحفوظة ونطاق المستأجر والحقل؛ 25 اختباراً مرّت. قبل الإصلاح: شاهدان أحمران (رفض الرد الفعلي وقبول الشكل القديم غير القابل للإنتاج). لا verified ولا إثبات تشغيل حي. وصُحح إعلان read_only: مسار التوليد يشغل advisor_chat بسياساته وأدواته وإيصالات حفظ المشورة والتدقيق وطلبات الموافقة، ويصرح التقرير بطلب الأثر دون ادعاء الحفظ ما لم يثبت.",
+  "consumer_inspection": [
+    "scripts/staging/ai_rag_live_acceptance.sh consumes status/checks but imposes no read_only=True expectation for this report.",
+    "docs/architecture/guard_mutation_registry.json existing mutation for this file concerns collection_vector_schema_parity and remains intact.",
+    "No additional report-schema consumers asserting read_only=True found by targeted rg."
+  ],
+  "documentation": "CLI/docstring and staging wrapper comment distinguish default probes from --require-generation using advisor policies/tools/persistence; no live calls were made."
+}

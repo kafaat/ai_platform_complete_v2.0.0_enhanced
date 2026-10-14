@@ -260,7 +260,7 @@ def test_the_live_registry_satisfies_both_clauses():
     assert GUARD.findings(text, ROOT, GUARD._wired_guards(), MEASURE) == []
 
 
-def test_the_live_tree_has_exactly_one_closing_supersession_to_pay_for():
+def test_the_live_tree_has_exactly_four_closing_supersessions_to_pay_for():
     """رقمٌ مقيسٌ لا مظنون — ولو نما، نما معه ما يُدفَع ثمنُه."""
     text = (ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8")
     report = MEASURE(text)
@@ -271,7 +271,12 @@ def test_the_live_tree_has_exactly_one_closing_supersession_to_pay_for():
         and next((e for e in entries if e["entry_role"] == "current"), {}).get("state")
         in GUARD.CLOSING
     ]
-    assert closing == ["GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01"]
+    assert closing == [
+        "CAPABILITY-CORES-NOT-WIRED",
+        "GATEWAY-READINESS-PATHS-FALL-TO-SPA-01",
+        "GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01",
+        "ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01",
+    ]
     assert report["contradictory_sections"] == {}
 
 

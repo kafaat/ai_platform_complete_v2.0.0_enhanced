@@ -229,10 +229,52 @@ def in_progress_operation(root: Path = ROOT) -> str | None:
     return None
 
 
+def _table_cells(line: str) -> list[str] | None:
+    """صفّ ذو حافتَي pipe؛ المسافة الرابعة تعني كوداً لا جدولاً."""
+    row = re.fullmatch(r" {0,3}\|(.*)\|[ \t]*", line)
+    return re.split(r"(?<!\\)\|", row.group(1)) if row else None
+
+
+def _table_header(header: str, delimiter: str) -> bool:
+    cells, rules = _table_cells(header), _table_cells(delimiter)
+    return bool(
+        cells
+        and rules
+        and len(cells) == len(rules)
+        and all(re.fullmatch(r"[ \t]*:?-+:?[ \t]*", rule) for rule in rules)
+    )
+
+
+def _ends_in_table(text: str) -> bool:
+    """يثبت رأساً ومسطرته خارج أسوار الكود، ثمّ صفوفاً بلا انقطاع."""
+    fence = ""
+    previous = ""
+    in_table = False
+    for line in text.splitlines():
+        marker = re.fullmatch(r" {0,3}(`{3,}|~{3,})(.*)", line)
+        if fence:
+            if (
+                marker
+                and marker.group(1)[0] == fence[0]
+                and len(marker.group(1)) >= len(fence)
+                and not marker.group(2).strip()
+            ):
+                fence = ""
+            continue
+        if marker:
+            fence = marker.group(1)
+            previous, in_table = "", False
+            continue
+        in_table = _table_header(previous, line) or (in_table and _table_cells(line) is not None)
+        previous = line
+    return in_table and not fence
+
+
 def merge_keeping_both(text: str, main_side: str) -> tuple[str, int]:
     """يُبقي الجانبين، جانبَ `main` أوّلاً. يُرجِع (النصّ، عدد الكتل المحلولة).
 
-    الجانبان يشملان سطر النهاية، فيكفي `\\n` بينهما لفصلهما بسطر فارغ.
+    يفصل الفقرات بسطر فارغ، لكنّ صفوف الجدول المتجاورة تُوصَل مباشرةً: السطر
+    الفارغ ينهي جدول Markdown. لا تُحذَف فواصل موجودة داخل أيّ جانب.
     """
     resolved = 0
     pos = 0
@@ -241,8 +283,21 @@ def merge_keeping_both(text: str, main_side: str) -> tuple[str, int]:
         if not m:
             return text, resolved
         ours, theirs = m.group(1), m.group(2)
+        # النصّ وحده لا يميّز سلف diff3 من سطر مثله داخل عيّنة موثّقة.
+        # لا نخمن فنحذف الدليل؛ التوقّف يبقي الملفّ كما هو، حتى داخل fence.
+        if re.search(r"^\|{7}(?:[ \t]|$)", ours + theirs, flags=re.M):
+            raise ValueError("diff3 أو علامة سلف ملتبسة؛ يلزم حلّ يدويّ يحفظ المحتوى")
         first, second = (ours, theirs) if main_side == "ours" else (theirs, ours)
-        body = first + "\n" + second
+        following = second.splitlines()
+        # شكل pipe وحده قد يكون نثراً. يلزم جدول فعليّ عند الوصل، وألا
+        # يكون الجانب التالي بدايةَ جدول مستقلّ برأس ومسطرته الخاصّين.
+        table_join = bool(first and second) and (
+            _ends_in_table(text[: m.start()] + first)
+            and _table_cells(following[0]) is not None
+            and not (len(following) > 1 and _table_header(following[0], following[1]))
+        )
+        separator = "" if not first or not second or table_join else "\n"
+        body = first + separator + second
         text = text[: m.start()] + body + text[m.end() :]
         # الاستئناف بعد المُدرَج لا من الصفر: البحث من الصفر يُعيد فحص نصٍّ
         # قد يذكر الرمز نصّيّاً، وهو ما لا يُفتَح كتلةً بعد التثبيت أصلاً —
@@ -309,7 +364,11 @@ def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
     # العمل سابقاً: ملفّ محلول غير مُفهرَس يبقى في `--diff-filter=U` فيُداس عليه.
     for p in buckets["append_only"]:
         f = root / p
-        merged, n = merge_keeping_both(f.read_text(encoding="utf-8"), main_side)
+        try:
+            merged, n = merge_keeping_both(f.read_text(encoding="utf-8"), main_side)
+        except ValueError as exc:
+            print(f"  ✗ {p}: {exc} — لم يُكتب أو يُفهرس هذا الملفّ", file=sys.stderr)
+            return 1
         if dry_run:
             print(f"  [append-only] {p}: سيُبقي الجانبين ({n} كتلة)")
             continue
