@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Live AI/RAG acceptance harness for a deployed docker-compose.v9 stack.
-# Read-only against data; optional --restart-rag restarts only the retrieval process
-# to prove sparse-index rehydration after process restart.
+# Default probes read data. Optional --require-generation requests /v1/chat and
+# uses the advisor's policies, tools and persistence (advice/tool audit/approval
+# records). Optional --restart-rag restarts only retrieval to prove sparse-index
+# rehydration after process restart.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)

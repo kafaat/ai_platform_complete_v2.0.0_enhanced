@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Read-only live certification for SAHOOL's local AI/RAG runtime.
+"""Live certification for SAHOOL's local AI/RAG runtime.
 
-This probe validates the deployed chain without mutating production data:
+The default probes validate the deployed chain without mutating production data:
   Ollama version/models/chat/embed
   -> Qdrant auth + vector schema
   -> canonical RAG readiness + tenant guards
@@ -9,9 +9,16 @@ This probe validates the deployed chain without mutating production data:
   -> AI Agronomist provider snapshot
   -> optional grounded chat proof when a canonical field/policy is supplied.
 
-It never pulls models, ingests chunks, edits Qdrant, changes authority policy, or
-executes tools.  A missing canonical field/policy for grounded generation is
-EVIDENCE_REQUIRED, not a fabricated PASS.
+--require-generation requests /v1/chat with the advisor's configured policies,
+tool loop and persistence, including advice, tool audit and pending approval
+records. Reports label the advisor_chat request as a possible write even if the
+answer fails certification; a request alone does not prove persistence.
+On a harness error, a generation-enabled run conservatively reports read_only
+false and audit_write_requested null because the request stage may be unknown.
+
+The default probes never pull models, ingest chunks, edit Qdrant, change
+authority policy, or execute tools. A missing canonical field/policy for grounded
+generation is EVIDENCE_REQUIRED, not a fabricated PASS.
 
 Exit codes:
   0  PASS
@@ -145,6 +152,7 @@ def certify(
     timeout_s: float,
 ) -> dict[str, Any]:
     checks: list[Check] = []
+    audit_write_requested = False
 
     # Ollama: exact version and model inventory.
     version = _request("GET", f"{ollama_url.rstrip('/')}/api/version", timeout_s=timeout_s)
@@ -407,6 +415,9 @@ def certify(
                 )
             )
         else:
+            # Chat can persist advice and tool/approval records. A timeout or
+            # rejected answer cannot establish that persistent data is unchanged.
+            audit_write_requested = True
             generated = _request(
                 "POST",
                 f"{ai_url.rstrip('/')}/v1/chat",
@@ -422,24 +433,59 @@ def certify(
                 timeout_s=max(timeout_s, 60.0),
             )
             g = generated.body or {}
+            annotations = g.get("annotations")
+            rag_evidence = annotations.get("rag") if isinstance(annotations, dict) else None
+            guardrail = g.get("guardrail_result")
+            validation = g.get("advisory_validation")
+            audit_event = g.get("audit_event")
+            # A provider attempt is not a published answer. The advisor only
+            # surfaces structured facts after the owner verifies and persists
+            # the receipt; suppressed/failed output remains evidence-only.
             gen_ok = (
                 generated.status == 200
                 and g.get("status") == "ok"
-                and g.get("mode") == "generated_grounded"
-                and g.get("generation_status") == "succeeded"
+                and g.get("mode") == "validated_field_facts"
+                and g.get("generation_status") == "validated_structured_facts"
+                and g.get("generation_surfaced") is True
+                and g.get("generation_attempted_provider") == "local"
+                and g.get("generation_attempted_model") == chat_model
                 and g.get("generation_provider") == "local"
                 and g.get("generation_model") == chat_model
+                and g.get("tenant_id") == tenant_id
+                and g.get("field_id") == field_id
                 and g.get("decision_authority") == "field_intelligence_coordinator"
-                and ((g.get("guardrail_result") or {}).get("status") == "not_executed")
-                and isinstance(((g.get("annotations") or {}).get("rag")), list)
-                and bool((g.get("annotations") or {}).get("rag"))
+                and isinstance(guardrail, dict)
+                and guardrail.get("status") == "validated_field_facts"
+                and guardrail.get("decision_validation") == "not_requested"
+                and guardrail.get("executes_action") is False
+                and isinstance(validation, dict)
+                and validation.get("status") == "verified"
+                and validation.get("schema_version") == "sahool.structured_advisory.v1"
+                and validation.get("tenant_id") == tenant_id
+                and validation.get("field_id") == field_id
+                and validation.get("executes_action") is False
+                and validation.get("creates_decision") is False
+                and validation.get("candidate_previews") == []
+                and isinstance(validation.get("claims"), list)
+                and bool(validation["claims"])
+                and isinstance(g.get("answer_ar"), str)
+                and bool(g["answer_ar"].strip())
+                and g["answer_ar"] == validation.get("answer_ar")
+                and isinstance(audit_event, dict)
+                and audit_event.get("persisted") is True
+                and audit_event.get("advisory_validation") == validation
+                and isinstance(rag_evidence, list)
+                and bool(rag_evidence)
             )
             checks.append(
                 _pass(
                     "grounded_generation",
-                    f"mode={g.get('mode')} evidence={len((g.get('annotations') or {}).get('rag') or [])}",
+                    f"mode={g.get('mode')} evidence={len(rag_evidence)}",
                     mode=g.get("mode"),
                     generation_status=g.get("generation_status"),
+                    generation_surfaced=g.get("generation_surfaced"),
+                    generation_attempted_provider=g.get("generation_attempted_provider"),
+                    generation_attempted_model=g.get("generation_attempted_model"),
                     generation_provider=g.get("generation_provider"),
                     generation_model=g.get("generation_model"),
                 )
@@ -461,7 +507,9 @@ def certify(
         "schema": "sahool.ai-rag-live-certification/v1",
         "observed_at": datetime.now(UTC).isoformat(),
         "status": status,
-        "read_only": True,
+        "read_only": not audit_write_requested,
+        "audit_write_requested": audit_write_requested,
+        "audit_write_scope": "advisor_chat" if audit_write_requested else None,
         "authority_promotion": False,
         "tenant_id": tenant_id,
         "field_id": field_id,
@@ -488,7 +536,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--embed-model", default=os.getenv("EMBEDDING_MODEL", DEFAULT_EMBED_MODEL))
     ap.add_argument("--hybrid-query", default=DEFAULT_HYBRID_QUERY)
     ap.add_argument("--timeout", type=float, default=20.0)
-    ap.add_argument("--require-generation", action="store_true")
+    ap.add_argument(
+        "--require-generation",
+        action="store_true",
+        help="Request grounded chat certification with advisor policies, tools and persistence",
+    )
     ap.add_argument("--out", default="-")
     args = ap.parse_args(argv)
 
@@ -521,7 +573,11 @@ def main(argv: list[str] | None = None) -> int:
             "schema": "sahool.ai-rag-live-certification/v1",
             "observed_at": datetime.now(UTC).isoformat(),
             "status": "HARNESS_INVALID",
-            "read_only": True,
+            # An exception does not reveal whether chat persisted advice or
+            # tool/approval records. Do not call that uncertainty read-only.
+            "read_only": not args.require_generation,
+            "audit_write_requested": None if args.require_generation else False,
+            "audit_write_scope": "advisor_chat" if args.require_generation else None,
             "authority_promotion": False,
             "error": str(exc),
         }
