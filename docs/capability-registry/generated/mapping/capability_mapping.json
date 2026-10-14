@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5668,
+    "files_scanned": 5674,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1667,
+      "other": 1673,
       "tests": 1907,
       "web": 467
     },
@@ -18190,6 +18190,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/actual_pr_provenance.json",
+          "score": 29,
+          "signals": [
+            "content:cdse",
+            "content:stac",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/arabic_state_guard_20261014/opening_capability_gate.json",
           "score": 26,
           "signals": [
@@ -18457,6 +18466,14 @@
           ]
         },
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/full_gate_receipts.json",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_green.json",
           "score": 12,
           "signals": [
@@ -18492,6 +18509,14 @@
         },
         {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/full_gate_summary.json",
           "score": 10,
           "signals": [
             "content:cdse",
@@ -18730,7 +18755,7 @@
         "mobile": 0,
         "tests": 49,
         "governance": 0,
-        "other_evidence": 65
+        "other_evidence": 68
       },
       "coverage_dimensions": 6,
       "mapped": true

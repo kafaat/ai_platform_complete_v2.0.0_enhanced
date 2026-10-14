@@ -4,8 +4,8 @@
       "id": "PYSEC-2026-1325",
       "temporary": true,
       "owner": "platform-security",
-      "expiry": "2026-10-31",
-      "reason": "No fixed ecdsa release is available; JWT uses the cryptography backend. Remove when python-jose no longer resolves ecdsa or a fixed release exists. Renewed 2026-10-01 by owner decision: pip-audit on ecdsa==0.19.2 (latest, 2026-03-26) still reports PYSEC-2026-1325 with no fix version; python-jose 3.5.0 (latest) still requires ecdsa!=0.15.",
+      "expiry": "2026-11-30",
+      "reason": "No fixed ecdsa release is available; JWT uses the cryptography backend. Remove when python-jose no longer resolves ecdsa or a fixed release exists. Renewed 2026-10-01 by owner decision: pip-audit on ecdsa==0.19.2 (latest, 2026-03-26) still reports PYSEC-2026-1325 with no fix version; python-jose 3.5.0 (latest) still requires ecdsa!=0.15. Renewed 2026-10-14 (was 2026-10-31): PyPI on 2026-10-14 still lists ecdsa 0.19.2 and python-jose 3.5.0 as latest, so neither a fixed ecdsa nor a python-jose free of it exists; renewal takes effect only through the owner's merge of this change. The exit is the python-jose → PyJWT migration tracked with CVE-2026-85394.",
       "scope": ".github/workflows/ci.yml:pip-audit-critical-path"
     },
     {
