@@ -384,7 +384,7 @@ services:
       retries: 3
 
   ollama:
-    image: ollama/ollama:0.3.0  # HIGH-DOCKER-03: pinned
+    image: ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131  # OLLAMA-UNIFIED-PINNED-0-3-0-01: نفسُ بصمة v9
     container_name: sahool-unified-ollama
     restart: unless-stopped
     ports: ["127.0.0.1:11434:11434"]  # loopback فقط — Ollama (LLM بلا مصادقة) يجب ألّا يُكشف أبداً
