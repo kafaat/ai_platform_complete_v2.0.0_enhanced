@@ -9335,6 +9335,11 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 في #1182، كشفت بوابة raster المطلوبة فشل استيراد shared في العمليات الفرعية للشاهد الجديد عند تشغيله من مجلد الخدمة. إضافة cwd صريح إلى جذر المستودع أصلحت إعداد الاختبار دون تغيير المصدر التشغيلي `fbd121fc4631cc4a4ff75c6d9b22eb25c2d70fcc` أو تخفيف شروط ثلاث عمليات ومعرف واحد وإيصال واحد. بصمة الاختبار الحالية `46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8` تختلف عن بصمته التاريخية عند fbd؛ يحفظ `certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json` الدليل الأحمر والتعافي 404 نجاحاً و2 تخطٍّ و12 xfailed ومراجعة مستقلة. تبقى فجوة السبب التاريخي open؛ لا قياس حي أو ادعاء نشر.
 
+## 2026-10-14 — موجة الإغلاق ٢: `PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01`
+
+خفضُ الريّ المخطَّط في التحسين متعدّد المجالات صار `planned_reduction_mm` مع `savings_claim` غيرِ مثبت (عقد #1142)، لا `water_saved_mm`. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. يعيد نشر المنصّة عند الدمج. خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3ac13509` · الشاهد `services/sahool-platform/tests/test_decision_dispatch_endpoint.py::test_optimization_names_a_planned_reduction_not_water_saved`.
 ## 2026-10-14 — وصول CDSE المقيس وخطة ما تبقى على أساس main
 
 إسناد الوصول المقيس لاحقاً: دُمج #1182 في main عبر `9a50aac3bf71ed42f4fad91a036d49e61d151a52`، وشجرته تطابق الرأس النهائي المختبر `02fbc3107e0dfbedef025117b83e657192133228` (`ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`). على ذلك الرأس 71 فحصاً ناجحاً و2 متخطيان، والعشرون المطلوبة ناجحة. أصل التشخيص 33616 وإصلاح التكرار fbd121fc وبصمة اختبار التصحيح 46b8 محفوظة في إيصالاتها التاريخية. سجلات Railway لهذا الدمج: 4 SUCCESS لخدمتي raster-service وraster-main-candidate في staging وproduction، و20 SKIPPED؛ هذا وصول إصدار لا إثبات كتابة إيصال أو دوام volume أو سبب الواقعة القديمة. الدليل `certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json` و`certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json`. تبقى open ولا verified.
@@ -9353,3 +9358,9 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 ## 2026-10-14 — مزامنة PR #1184 وحفظ تحديثات التركيز
 
 دُمج أساس main `56de3d316fd5243253b6f6d38dc38b331bbddf95` في رأس PR #1184 `1088546d49fbbabf030540492c4350144a54480a` لحل تعارض `sahool-brain/hot.md`؛ حُفظت مداخل الطرفين دون حذف. لم تُغيَّر ملفات الاستثناءات عن رأس PR. هذه مزامنة للفرع وليست دمج PR إلى main أو إثبات نشر.
+
+## 2026-10-14 — دمج #1186 (حوكمة الموجة الثانية)
+
+- **الدمج:** [#1186](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1186) squash عند `698a1c53` بموافقة المالك على الرأس `cf43f555`؛ شجرة main `3b7a5d25` = شجرة الرأس المُختبَر. CI على الرأس: 66 ناجحاً · 2 متخطّى · 0 فشل.
+- **النشر:** Railway — 24/24 نشراً للالتزام `698a1c53` بحالة SKIPPED (13 في بيئة و11 في الأخرى)؛ لا خدمة أُعيد نشرها.
+- **الأثر على الفروع المفتوحة:** محاكاة دمج #1185 و#1187 و#1188 فوق #1186: لا تعارض في الكود، و`brain_duplicate_gap_identity_guard` يمرّ على الشجرة المدمجة.
