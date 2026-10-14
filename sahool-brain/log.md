@@ -9280,6 +9280,6 @@ NDVI · `value`/`ndvi` مكان `mean` مع `scene_id` لا تحمله النق�
 
 ## 2026-10-14 — تجديدُ الاستثناءات المنقضية قبل أن تُسقط CI
 
-وُجد أحدَ عشرَ استثناءً ينقضي قبل 2026-11-01: عشرةٌ في `config/endpoint_ui_coverage_waivers.json` (أقربُها `/api/v1/scenario/economics` في 2026-10-28، وقد فاتت قائمةَ «٩ إعفاءات» التي اقترحها ChatGPT) و`PYSEC-2026-1325` في `config/security_exceptions.json`. لكلّ مسارٍ بُحث بـ`git grep -F` عن مقطعه المميّز في `frontend/src` و`mobile`: صفرُ ملفّات للعشرة. مُدِّدت إلى 2026-11-30 مع تسجيل القياس في سبب كلّ استثناء؛ ويسري التمديد بدمج المالك فقط.
+وُجد أحدَ عشرَ استثناءً ينقضي قبل 2026-11-01: عشرةٌ في `config/endpoint_ui_coverage_waivers.json` (أقربُها `/api/v1/scenario/economics` في 2026-10-28، وقد فاتت قائمةَ «٩ إعفاءات» التي اقترحها ChatGPT) و`PYSEC-2026-1325` في `config/security_exceptions.json`. لكلّ مسارٍ بُحث بـ`git grep -F` عن مقطعه المميّز في `frontend/src` و`mobile`: صفرُ ملفّات للعشرة. مُدِّدت إلى 2026-11-30 (و`/api/v1/scenario/economics` إلى 2026-11-27: طفرةُ `guard_mutation_registry` مُرساةٌ على تاريخٍ فريدٍ في الملفّ، والتجديدُ الموحَّد أبار مرساتها فأمسكها `test_real_registry_passes_the_static_check`) مع تسجيل القياس في سبب كلّ استثناء؛ ويسري التمديد بدمج المالك فقط.
 
 **المصدر:** `main@421a0e7a` (PR #1180) · `config/endpoint_ui_coverage_waivers.json` · `config/security_exceptions.json` · `scripts/ci/waiver_expiry_guard.py`.

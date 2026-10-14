@@ -881,7 +881,7 @@
         "post@services/sahool-platform/api/routers/scenario.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "مقارنة سيناريوهات اقتصاديّة (economic_scenario_comparison.v2) — الواجهة الطبيعيّة هي بطاقة «ماذا لو» القائمة التي تستهلك سلفاً scenario/planting-date و rainfall و temperature و water-twin. لم تُبنَ بعد: هذه الشريحة ربطت النواة بمستهلك إنتاجيّ فقط. الدَّين مُعلَن هنا صراحةً بدل ادّعاء تغطية واجهة غير موجودة — إضافته إلى core كانت ستفشل البوّابة الأماميّة أصلاً لغياب أيّ إشارة في الواجهة. RENEWED 2026-10-14 (was 2026-10-28): measured on main@421a0e7a, `git grep -F` of the route's distinctive segment finds no file in frontend/src or mobile, so the deferred UI has not landed; renewal takes effect only through the owner's merge of this change, and one month keeps the forcing function.",
+      "reason": "مقارنة سيناريوهات اقتصاديّة (economic_scenario_comparison.v2) — الواجهة الطبيعيّة هي بطاقة «ماذا لو» القائمة التي تستهلك سلفاً scenario/planting-date و rainfall و temperature و water-twin. لم تُبنَ بعد: هذه الشريحة ربطت النواة بمستهلك إنتاجيّ فقط. الدَّين مُعلَن هنا صراحةً بدل ادّعاء تغطية واجهة غير موجودة — إضافته إلى core كانت ستفشل البوّابة الأماميّة أصلاً لغياب أيّ إشارة في الواجهة. RENEWED 2026-10-14 (was 2026-10-28): measured on main@421a0e7a, `git grep -F` of the route's distinctive segment finds no file in frontend/src or mobile, so the deferred UI has not landed; renewal takes effect only through the owner's merge of this change; 30 days from the old date (2026-11-27) keeps the forcing function and stays the file's one unique expiry, which guard_mutation_registry anchors on.",
       "priority": "medium",
       "ui_effort": "panel",
       "ui_surface_hint": "host:frontend/src/components/fieldview/WhatIfScenariosCard.tsx",
@@ -891,7 +891,7 @@
       "intended_consumer": "human",
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
-      "expiry": "2026-11-30",
+      "expiry": "2026-11-27",
       "temporary": true
     }
   ]
