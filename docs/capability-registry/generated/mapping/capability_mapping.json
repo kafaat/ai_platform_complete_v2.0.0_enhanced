@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5589,
+    "files_scanned": 5596,
     "files_by_kind": {
       "backend": 1222,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1591,
+      "other": 1598,
       "tests": 1905,
       "web": 467
     },
@@ -9346,6 +9346,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/open_a_test_results_initial.json",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/reconcile_open_a.json",
           "score": 12,
           "signals": [
@@ -9448,7 +9456,7 @@
         "mobile": 0,
         "tests": 9,
         "governance": 0,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12525,6 +12533,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/gap_registry_measurement_20260919.md",
           "score": 20,
           "signals": [
@@ -12566,7 +12581,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -17385,6 +17400,10 @@
           "score": 26
         },
         {
+          "value": "sahool.ci-impact-review.v1 @ certification/evidence/gap_reconciliation_20261014/ci_impact_review.json:2",
+          "score": 25
+        },
+        {
           "value": "fields.py @ tests_v9/test_historical_search_cdse_v30_8.py:122",
           "score": 23
         },
@@ -17984,6 +18003,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_reconciliation_20261014/ci_impact_review.json",
+          "score": 25,
+          "signals": [
+            "content:stac",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/CDSE_PROVIDER_INTEGRATION.md",
           "score": 21,
           "signals": [
@@ -18284,12 +18311,12 @@
         "backend": 36,
         "routes": 65,
         "database": 3,
-        "events": 40,
+        "events": 41,
         "web": 5,
         "mobile": 0,
         "tests": 47,
         "governance": 0,
-        "other_evidence": 35
+        "other_evidence": 36
       },
       "coverage_dimensions": 6,
       "mapped": true

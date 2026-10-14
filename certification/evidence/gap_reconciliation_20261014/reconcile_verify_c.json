@@ -3,7 +3,7 @@
   "agent": "verify_c",
   "review_mode": "read-only wave0 reconciliation",
   "base_commit": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
-  "generated_at": "2026-10-14T00:06:18.832Z",
+  "reviewed_at": "2026-10-14T00:06:18.832Z",
   "scope": {
     "repository": ".",
     "records_reviewed": 3,

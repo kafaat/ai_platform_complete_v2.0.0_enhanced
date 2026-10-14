@@ -1,5 +1,5 @@
 {
-  "README.md": "bae79488c2c4c841371397d6d8da2970161430035232248d3930247e401ef9d5",
+  "README.md": "a86557492ea7801f1e198650cae7a9b0e8ad1f296eb73929869d6adaf3a40744",
   "ci_impact_review.json": "27ea8c6abb3be2aedceda4042a25320037c88937d640d01f71dff70af0d46158",
   "claims.json": "29639e36db2a3b6adc0dfe159ccb6cb59d9c62af99640f08e309803bf9832d18",
   "classified_v3_independent_qa.json": "ffba2dd4cd8f576983dbbaef713a3c143874e491763c9ab42d0b2e8d105d5b43",
@@ -43,8 +43,14 @@
   "reconcile_verify_b_counterfactual_source.txt": "7989cf3c685e8d474c4076191e845ff415f401ff7f7ea344f580b573f2b81f76",
   "reconcile_verify_b_tests.log": "834cfffb051d04da5edbccc88e7fecc66e5082fcf60c40b0921327380cdef1bc",
   "reconcile_verify_b_tests.xml": "d372dacba53c61bd0237e78ce838d6f570b2b987eb2c7f39cb04538ba3556c8e",
-  "reconcile_verify_c.json": "13f83a8a0136351c15426b5499bf426f22b748fa303a4fc3b1d7ab90ba8b76d5",
+  "reconcile_verify_c.json": "f498ea418e09d2a1267c5bc3a11076a0d397566e37a1813499ff6577fe67956a",
   "reconcile_verify_c_tests.xml": "2201de2b02989f8a463a0759f98642e0abe7f81267add02ff3aa221f4e7a60e5",
   "remaining_136_open_delta.json": "808509305084a088ca590a237b0fb2261673756ad86e99ed668010fc5a7d9f55",
-  "resolver_verify_b_review.json": "b43a92bb7c376f3b2f70f0aaa43df4f76759898557df84e2b4bcda5ddf89c4a1"
+  "resolver_verify_b_review.json": "b43a92bb7c376f3b2f70f0aaa43df4f76759898557df84e2b4bcda5ddf89c4a1",
+  "wave0_corrections_normal.log": "72fb9896884eb0b7f527653a4ac39d9bc3125c05fc124809e14f75a9ec795fc9",
+  "preflight_wave0_resume.log": "5b5ff21aad0af6c2aff4cc68415ee7f9885bc6c1fe3dc351fd4b137ba5e1b01b",
+  "wave0_corrections_c.log": "d891d3ebd9a88ddf496278875d3ffa5f6e74cb2f3ed8566b2cc8bc882a6617ad",
+  "prepublication_validation.json": "485cfa8a62c00f6e0ea1c8efa4ee99a5143a444b37fd5ba45f9838b727926172",
+  "wave0_pip_audit.log": "15950a68a7ed99c59779717acefdceb3f69cfd31bde67d2c954f2a3cea4d7955",
+  "wave0_bandit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 }
