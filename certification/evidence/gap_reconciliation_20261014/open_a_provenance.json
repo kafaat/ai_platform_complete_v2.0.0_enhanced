@@ -1,0 +1,53 @@
+[
+  {
+    "commit": "ac36c03a",
+    "ancestor_of_base": true
+  },
+  {
+    "commit": "fce91a90",
+    "ancestor_of_base": true
+  },
+  {
+    "commit": "4eded7af",
+    "ancestor_of_base": true
+  },
+  {
+    "commit": "247c69c7",
+    "ancestor_of_base": true
+  },
+  {
+    "commit": "158534a1",
+    "ancestor_of_base": true
+  },
+  {
+    "commit": "3a8689f6",
+    "ancestor_of_base": true
+  },
+  {
+    "file": "services/odoo-bridge/routers/health.py",
+    "blob_ids": {
+      "cec3d92b": "e0c42dc08f4ad413debf40b1648663ce429feb75",
+      "3a8689f6": "e0c42dc08f4ad413debf40b1648663ce429feb75",
+      "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b": "e0c42dc08f4ad413debf40b1648663ce429feb75"
+    },
+    "unchanged_from_source_to_main": true
+  },
+  {
+    "file": "services/odoo-bridge/erp_provider.py",
+    "blob_ids": {
+      "cec3d92b": "d82c2d7409be5a2835bd44a9ff8196d70ec5f919",
+      "3a8689f6": "d82c2d7409be5a2835bd44a9ff8196d70ec5f919",
+      "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b": "d82c2d7409be5a2835bd44a9ff8196d70ec5f919"
+    },
+    "unchanged_from_source_to_main": true
+  },
+  {
+    "file": "tests_v9/test_erp_bridge_requires_erp.py",
+    "blob_ids": {
+      "cec3d92b": "11697976664b0a9f8ac5cc4fc96519e85ee01fc7",
+      "3a8689f6": "11697976664b0a9f8ac5cc4fc96519e85ee01fc7",
+      "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b": "11697976664b0a9f8ac5cc4fc96519e85ee01fc7"
+    },
+    "unchanged_from_source_to_main": true
+  }
+]

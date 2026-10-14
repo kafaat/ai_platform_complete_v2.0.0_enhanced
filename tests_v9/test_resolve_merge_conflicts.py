@@ -163,6 +163,94 @@ def test_merge_keeping_both_is_a_noop_without_conflicts() -> None:
     assert (merged, n) == ("لا تعارض هنا\n", 0)
 
 
+# MERGE-RESOLVER-INSERTS-BLANK-LINE-INSIDE-REGISTRY-TABLE-01: يُقاس النصّ
+# الناتج كاملاً؛ مجرّد بقاء المعرّفات لا يكشف خروجَ الصفوف من الجدول.
+_TABLE_HEAD = "| ID | الحالة |\n| --- | --- |\n| anchor | fixed |\n"
+
+
+@pytest.mark.parametrize("main_side", ["ours", "theirs"])
+def test_table_conflict_keeps_one_contiguous_table(main_side: str) -> None:
+    ours = "| A1 | open |\n| A2 | fixed |\n"
+    theirs = "| B1 | open |\n| B2 | fixed |\n"
+    text = (
+        _TABLE_HEAD
+        + "<<<<<<< HEAD\n"
+        + ours
+        + "=======\n"
+        + theirs
+        + ">>>>>>> main\n| tail | fixed |\n"
+    )
+    first, second = (ours, theirs) if main_side == "ours" else (theirs, ours)
+    assert rmc.merge_keeping_both(text, main_side) == (
+        _TABLE_HEAD + first + second + "| tail | fixed |\n",
+        1,
+    )
+
+
+@pytest.mark.parametrize("main_side", ["ours", "theirs"])
+@pytest.mark.parametrize("empty_side", ["ours", "theirs"])
+def test_empty_conflict_side_does_not_break_a_table(main_side: str, empty_side: str) -> None:
+    row = "| surviving | open |\n"
+    ours, theirs = ("", row) if empty_side == "ours" else (row, "")
+    text = _TABLE_HEAD + "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> main\n"
+    assert rmc.merge_keeping_both(text, main_side) == (_TABLE_HEAD + row, 1)
+
+
+@pytest.mark.parametrize("main_side", ["ours", "theirs"])
+def test_prose_conflict_keeps_a_paragraph_separator(main_side: str) -> None:
+    ours = "فقرة من الفرع تتضمّن `||||||| base` نصّاً.\n"
+    theirs = "فقرة من main تتضمّن a | b داخل السطر.\n"
+    text = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> main\n"
+    first, second = (ours, theirs) if main_side == "ours" else (theirs, ours)
+    assert rmc.merge_keeping_both(text, main_side) == (first + "\n" + second, 1)
+
+
+@pytest.mark.parametrize("main_side", ["ours", "theirs"])
+@pytest.mark.parametrize("prefix", ["", "```text\n", "~~~text\n"])
+def test_pipe_prose_and_fenced_rows_keep_their_separator(main_side: str, prefix: str) -> None:
+    ours = "| first prose |\n"
+    theirs = "| second prose |\n"
+    # A header inside a code fence must not create table context either.
+    before = prefix + _TABLE_HEAD if prefix else ""
+    suffix = prefix[:3] + "\n" if prefix else ""
+    text = before + "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> main\n" + suffix
+    first, second = (ours, theirs) if main_side == "ours" else (theirs, ours)
+    assert rmc.merge_keeping_both(text, main_side) == (before + first + "\n" + second + suffix, 1)
+
+
+@pytest.mark.parametrize("main_side", ["ours", "theirs"])
+@pytest.mark.parametrize("fence", ["", "```text\n", "~~~text\n"])
+def test_ambiguous_diff3_marker_is_rejected_without_dropping_content(
+    main_side: str, fence: str
+) -> None:
+    closing = fence[:3] + "\n" if fence else ""
+    ours = fence + "||||||| example-label\nDO-NOT-LOSE-EVIDENCE\n" + closing
+    text = "<<<<<<< HEAD\n" + ours + "=======\nmain paragraph\n>>>>>>> main\n"
+    with pytest.raises(ValueError, match="diff3"):
+        rmc.merge_keeping_both(text, main_side)
+
+
+def test_separate_tables_keep_their_paragraph_separator() -> None:
+    ours = "| A | open |\n"
+    theirs = "| second | table |\n| --- | --- |\n| B | open |\n"
+    text = _TABLE_HEAD + "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> main\n"
+    assert rmc.merge_keeping_both(text, "ours") == (_TABLE_HEAD + ours + "\n" + theirs, 1)
+
+
+@pytest.mark.parametrize(
+    "ours,theirs",
+    [
+        ("| A | open |\n\n", "| B | open |\n"),
+        ("| A | open |\n", "\n| B | open |\n"),
+        ("| A | open |\n", "فقرة تالية.\n"),
+        ("    | عيّنة كود |\n", "    | عيّنة أخرى |\n"),
+    ],
+)
+def test_existing_boundaries_are_not_rewritten(ours: str, theirs: str) -> None:
+    text = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> main\n"
+    assert rmc.merge_keeping_both(text, "ours") == (ours + "\n" + theirs, 1)
+
+
 # ------------------------------------- العلامة في بداية السطر فقط (نصّ ≠ علامة)
 
 
@@ -240,6 +328,33 @@ def test_a_real_block_ending_at_end_of_file_is_resolved() -> None:
 
 
 # ------------------------------------------------------- السلوك على مستودع حيّ
+
+
+@pytest.mark.parametrize("operation", ["merge", "rebase"])
+@pytest.mark.parametrize("conflict_style", ["merge", "diff3"])
+def test_registry_table_stays_contiguous_after_real_git_conflict(
+    tmp_path: Path, operation: str, conflict_style: str
+) -> None:
+    registry = "sahool-brain/gaps/registry.md"
+    main_rows = "| main-1 | open |\n| main-2 | fixed |\n"
+    feature_rows = "| feature-1 | open |\n| feature-2 | fixed |\n"
+    repo = _diverge(
+        tmp_path,
+        {registry: _TABLE_HEAD},
+        {registry: _TABLE_HEAD + main_rows},
+        {registry: _TABLE_HEAD + feature_rows},
+        operation=operation,
+    )
+    _run(repo, "checkout", "--conflict=" + conflict_style, "--", registry)
+    if conflict_style == "diff3":
+        original = (repo / registry).read_bytes()
+        assert rmc.resolve(root=repo) == 1
+        assert (repo / registry).read_bytes() == original
+        assert rmc.conflicted_paths(repo) == [registry]
+        return
+    assert rmc.resolve(root=repo) == 0
+    assert (repo / registry).read_text(encoding="utf-8") == (_TABLE_HEAD + main_rows + feature_rows)
+    assert rmc.conflicted_paths(repo) == []
 
 
 def test_append_only_keeps_both_entries(tmp_path: Path) -> None:

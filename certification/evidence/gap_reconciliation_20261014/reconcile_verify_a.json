@@ -1,0 +1,298 @@
+{
+  "schema_version": "1.0",
+  "agent": "verify_a",
+  "task": "wave0_readonly_reconciliation",
+  "recorded_at": "2026-10-14T00:04:36.349278+00:00",
+  "repository": ".",
+  "reviewed_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "repository_modified": false,
+  "production_actions": false,
+  "sources_manifest": "analysis/reconcile_verify_a_sources.json",
+  "results": {
+    "total_gaps": 3,
+    "proposed_open_to_fixed": 3,
+    "proposed_verified": 0,
+    "tests": 43,
+    "passed": 43,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_runs": [
+    {
+      "id": "bff",
+      "tested_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "command": "PYTHONDONTWRITEBYTECODE=1 ../sahool-venv/bin/python -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_soil_proxy_authorization.py --junitxml=../analysis/reconcile_verify_a_bff_junit.xml > ../analysis/reconcile_verify_a_bff_tests.log 2>&1",
+      "cwd": ".",
+      "exit_code": 0,
+      "counts": {
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 2.88,
+      "result": "PASS",
+      "log": "analysis/reconcile_verify_a_bff_tests.log",
+      "log_sha256": "33495f8a81cdedd99c1bb828dcc170a49c424a6a2fdcd43a04d2ce02a1b2f461",
+      "junit": "analysis/reconcile_verify_a_bff_junit.xml",
+      "junit_sha256": "2180b8c38eeeaaface2c7ebbd7125dc53475b334e3f2ea07f0ec6dcaf32c8f60",
+      "scope": "ASGI router + real RBAC with overridden authenticated user and mock upstream; no real JWT or deployed service"
+    },
+    {
+      "id": "ingest",
+      "tested_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "command": "PYTHONDONTWRITEBYTECODE=1 ../sahool-venv/bin/python -m pytest -q -p no:cacheprovider tests_v9/test_soil_ingest_atomic.py --junitxml=../analysis/reconcile_verify_a_ingest_junit.xml > ../analysis/reconcile_verify_a_ingest_tests.log 2>&1",
+      "cwd": ".",
+      "exit_code": 0,
+      "counts": {
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 0.62,
+      "result": "PASS",
+      "log": "analysis/reconcile_verify_a_ingest_tests.log",
+      "log_sha256": "218015a4e36f231fcbaa4d212d148e3d6551a57fcc16f12307dd815613ae72fa",
+      "junit": "analysis/reconcile_verify_a_ingest_junit.xml",
+      "junit_sha256": "95059ad1cb669db91fdb43624fd5ee1a3ee03c512425c56227a093affa554d1a",
+      "scope": "real soil handler/store/composer with transactional DB adapter; no PostgreSQL engine exercised in this rerun"
+    }
+  ],
+  "historical_evidence": {
+    "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+    "recorded_fixed_sha": "650596c12095609a4f095a6e8ae5d880198e9cab",
+    "readings_sha256_matches_current": true,
+    "soil_store_sha256_matches_current": false,
+    "soil_store_delta": "SELECT idempotency_key; by_property replaced by by_key; key-set and property comparison; exact source diff reviewed.",
+    "not_exercised_in_historical_proof": [
+      "PostGIS",
+      "full MANIFEST",
+      "live field ownership",
+      "real JWT",
+      "deployed image",
+      "production data",
+      "Railway"
+    ],
+    "not_rerun_here": true
+  },
+  "entries": [
+    {
+      "id": "SOIL-BFF-WRITE-TOKEN-BYPASSES-ROLE-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "verdict": "CODE_REPAIR_COMPLETE_RUNTIME_ACCEPTANCE_PENDING",
+      "canonical_repair_sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+      "canonical_pr": 1127,
+      "reviewed_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "canonical_repair_is_ancestor": true,
+      "repair_present_in_main": true,
+      "full_code_scope_repaired": true,
+      "runtime_verified": false,
+      "residual_code_defect_found": false,
+      "findings_ar": [
+        "القائمة المغلقة والصلاحية قبل التفويض تغلق العيب المسمى في BFF للتربة ضمن المصدر الحالي.",
+        "لا يصح إبقاء «لا دمج» ادعاءً عن main الحالي؛ يمكن الإبقاء عليه كسرد مؤرخ.",
+        "فحص edge/segmentation مستقل ولا يمنع fixed لمعرف SOIL-BFF المحدد."
+      ],
+      "sources": [
+        {
+          "path": "services/sahool-platform/api/routers/service_proxy.py",
+          "line_start": 35,
+          "line_end": 67,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/sahool-platform/api/routers/service_proxy.py",
+          "line_start": 92,
+          "line_end": 123,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/sahool-platform/api/routers/service_proxy.py",
+          "line_start": 191,
+          "line_end": 201,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/sahool-platform/tests/test_soil_proxy_authorization.py",
+          "line_start": 66,
+          "line_end": 144,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        }
+      ],
+      "test_run_ids": [
+        "bff"
+      ],
+      "state_policy_source": {
+        "path": "sahool-brain/README.md",
+        "line_start": 46,
+        "line_end": 62,
+        "rule": "fixed = repaired source + adequate regression witness; merge provenance does not define state; verified requires stated operational acceptance"
+      },
+      "proposed_edit": {
+        "operation": "replace_exact_line",
+        "path": "sahool-brain/gaps/registry.md",
+        "line_number_at_review": 41,
+        "old_line": "| SOIL-BFF-WRITE-TOKEN-BYPASSES-ROLE-01 | بوابة التربة تحوّل JWT إلى توكن كتابة خدمة دون فحص صلاحية الدور؛ المشاهد يُمرّر POST للابتلاع. | platform · soil · authorization | [`service_proxy.py`](../../services/sahool-platform/api/routers/service_proxy.py) (`proxy_soil` · `_filtered_headers`) · [`test_soil_proxy_authorization.py`](../../services/sahool-platform/tests/test_soil_proxy_authorization.py) | **open** — مُعاد إنتاجه على `main@f60f0635`. مقترح محلي: قائمة BFF مغلقة + observation:view/record + هوية فاعل موثوقة؛ edge وsegmentation يحتاجان مراجعة مستقلة. لا دمج ولا قياس خدمة تربة حيّة. |",
+        "new_line": "| SOIL-BFF-WRITE-TOKEN-BYPASSES-ROLE-01 | بوابة التربة تحوّل JWT إلى توكن كتابة خدمة دون فحص صلاحية الدور؛ المشاهد يُمرّر POST للابتلاع. | platform · soil · authorization | [`service_proxy.py`](../../services/sahool-platform/api/routers/service_proxy.py) (`proxy_soil` · `_filtered_headers`) · [`test_soil_proxy_authorization.py`](../../services/sahool-platform/tests/test_soil_proxy_authorization.py) | **fixed** — مُصالحة حالة على `main@53652e02` (2026-10-14): الإصلاح مدموج في #1127 عند `76a5ca58af8911f7a3a07c218690624bfdf2e22f`؛ `service_proxy.py` يفرض قائمة مسارات وأفعال التربة وصلاحيّتي `observation:view/record` قبل تحويل الهوية إلى توكن خدمة، ويحقن `X-Actor-Id` من المستخدم الموثوق. أُعيد تشغيل `test_soil_proxy_authorization.py` على هذا الرأس: **19 ناجحة، صفر فشل وصفر تخطٍّ**؛ تشمل رفض viewer وعدم تمرير الطلب واستبدال هوية العميل ورفض المسارات الداخلية. **لا verified:** المصادقة والمنبع بديلان اختباريّان؛ يبقى قبول JWT حقيقي وصورة المنصّة وخدمة التربة المنشورتين وملكيّة الحقل. edge وsegmentation خارج هذا المعرّف. **السرد التالي تاريخيّ على أساسه، ولا يصف حالة الدمج الآن:** **open** — مُعاد إنتاجه على `main@f60f0635`. مقترح محلي: قائمة BFF مغلقة + observation:view/record + هوية فاعل موثوقة؛ edge وsegmentation يحتاجان مراجعة مستقلة. لا دمج ولا قياس خدمة تربة حيّة. |",
+        "preserves_old_narrative": true,
+        "interpretation": "The original open text is retained as explicitly historical; operational acceptance remains outstanding, not erased."
+      },
+      "acceptance_remaining": [
+        "صورة منشورة بهوية مصدر مثبتة.",
+        "JWT حقيقي ودور viewer يرفض قبل الوصول للمنبع؛ writer مصرح ينجح مع منع انتحال actor/tenant.",
+        "حقل مملوك لمستأجر وحقل مستأجر ثان يثبتان الفصل دون تجاوز التحقق."
+      ]
+    },
+    {
+      "id": "SOIL-LEGACY-INGEST-MISSES-TENANT-TRANSACTION-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "verdict": "CODE_REPAIR_COMPLETE_RUNTIME_ACCEPTANCE_PENDING",
+      "canonical_repair_sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+      "canonical_pr": 1127,
+      "reviewed_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "canonical_repair_is_ancestor": true,
+      "repair_present_in_main": true,
+      "full_code_scope_repaired": true,
+      "runtime_verified": false,
+      "residual_code_defect_found": false,
+      "findings_ar": [
+        "كل الكتابات في ingest_reading تملك معاملة المستأجر نفسها؛ لا residual code defect مثبت داخل العيب المسمى.",
+        "دليل PostgreSQL16.13 السابق يثبت RLS لنطاقه المحلي فقط، ويشمل دور audit_app بلا BYPASSRLS وFORCE RLS للجداول الخمسة.",
+        "الحد الباقي قبول الصورة وJWT وملكية الحقل والهجرات في بيئة التشغيل."
+      ],
+      "sources": [
+        {
+          "path": "services/soil-service/routers/readings.py",
+          "line_start": 113,
+          "line_end": 178,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/soil-service/soil_store.py",
+          "line_start": 78,
+          "line_end": 83,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "tests_v9/test_soil_ingest_atomic.py",
+          "line_start": 223,
+          "line_end": 236,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "line_start": 1,
+          "line_end": 291,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        }
+      ],
+      "test_run_ids": [
+        "ingest"
+      ],
+      "state_policy_source": {
+        "path": "sahool-brain/README.md",
+        "line_start": 46,
+        "line_end": 62,
+        "rule": "fixed = repaired source + adequate regression witness; merge provenance does not define state; verified requires stated operational acceptance"
+      },
+      "proposed_edit": {
+        "operation": "replace_exact_line",
+        "path": "sahool-brain/gaps/registry.md",
+        "line_number_at_review": 44,
+        "old_line": "| SOIL-LEGACY-INGEST-MISSES-TENANT-TRANSACTION-01 | INSERT soil_readings القديم خارج معاملة ولا يضبط app.current_tenant؛ بعد v206 يُتوقّع رفضه بدور لا يتجاوز RLS. | soil · persistence · rls | [`readings.py`](../../services/soil-service/routers/readings.py) (`ingest_reading`) · [`v206_rls_final_hardening.sql`](../../migrations/v206_rls_final_hardening.sql) · [`test_soil_ingest_atomic.py`](../../tests_v9/test_soil_ingest_atomic.py) | **open** — ترتيب الاستدعاءات مُعاد إنتاجه على `main@f60f0635` بمحوّل قاعدة اختباري. ثمّ قِيس في #1127 على PostgreSQL 16.13 أصليّ بدورٍ NOBYPASSRLS وFORCE RLS على الجداول الخمسة: الأساسُ يفشل بـ`InsufficientPrivilegeError`؛ والمقترحُ يبتلع، ولا يرى المستأجرُ الآخر شيئاً، ويُرفَض الإدخالُ العابر للمستأجر، وبلا سياقٍ صفرُ صفوف — [`soil_ingest_native_postgres_20261003.json`](../../certification/evidence/soil_ingest_native_postgres_20261003.json). يبقى open حتى الدمج والقياس على صورةٍ منشورة (لا PostGIS ولا MANIFEST كامل ولا JWT حقيقيّ في القياس). |",
+        "new_line": "| SOIL-LEGACY-INGEST-MISSES-TENANT-TRANSACTION-01 | INSERT soil_readings القديم خارج معاملة ولا يضبط app.current_tenant؛ بعد v206 يُتوقّع رفضه بدور لا يتجاوز RLS. | soil · persistence · rls | [`readings.py`](../../services/soil-service/routers/readings.py) (`ingest_reading`) · [`v206_rls_final_hardening.sql`](../../migrations/v206_rls_final_hardening.sql) · [`test_soil_ingest_atomic.py`](../../tests_v9/test_soil_ingest_atomic.py) | **fixed** — مُصالحة حالة على `main@53652e02` (2026-10-14): إصلاح #1127 قانونيّ على main عند `76a5ca58af8911f7a3a07c218690624bfdf2e22f`؛ `readings.py:113` يدخل `soil_store.tenant_transaction` قبل الكتابات، ويضبط المخزن `app.current_tenant` محليّاً داخل المعاملة (`soil_store.py:78-83`). جناح `test_soil_ingest_atomic.py` على الرأس الحالي **24 ناجحة، صفر فشل وصفر تخطٍّ**، ومنه شاهد معاملة واحدة بسياق مطابق. دليل PG الأصلي المذكور أدناه محفوظ بنطاقه؛ لم نُعِد PostgreSQL في هذه المصالحة. **لا verified:** لا قبول جديد على صورة منشورة ولا JWT/ملكيّة حقل حقيقية ولا PostGIS وMANIFEST كامل؛ شرط القبول التشغيلي باقٍ. تسمية open السابقة كانت تربط الحالة بالدمج والنشر، وتُصالح الآن مع قاموس الحالات الجاري: إصلاح الشيفرة fixed والتحقق التشغيلي verified. **السرد التالي تاريخيّ ولا ينفي دمج #1127:** **open** — ترتيب الاستدعاءات مُعاد إنتاجه على `main@f60f0635` بمحوّل قاعدة اختباري. ثمّ قِيس في #1127 على PostgreSQL 16.13 أصليّ بدورٍ NOBYPASSRLS وFORCE RLS على الجداول الخمسة: الأساسُ يفشل بـ`InsufficientPrivilegeError`؛ والمقترحُ يبتلع، ولا يرى المستأجرُ الآخر شيئاً، ويُرفَض الإدخالُ العابر للمستأجر، وبلا سياقٍ صفرُ صفوف — [`soil_ingest_native_postgres_20261003.json`](../../certification/evidence/soil_ingest_native_postgres_20261003.json). يبقى open حتى الدمج والقياس على صورةٍ منشورة (لا PostGIS ولا MANIFEST كامل ولا JWT حقيقيّ في القياس). |",
+        "preserves_old_narrative": true,
+        "interpretation": "The original open text is retained as explicitly historical; operational acceptance remains outstanding, not erased."
+      },
+      "acceptance_remaining": [
+        "صورة تربة منشورة ومخطط MANIFEST كامل بدور تطبيق NOBYPASSRLS؛ إثبات FORCE RLS للجداول المعنية.",
+        "JWT/بوابة حقيقية وملكية حقل حقيقية مع مستأجرين، وغياب السياق يفشل مغلقاً.",
+        "طلب إدخال حقيقي يصل للصف القديم والأدلة داخل سياق المستأجر؛ المستأجر الآخر لا يرى صفوفه والكتابة العابرة ترفض."
+      ]
+    },
+    {
+      "id": "SOIL-WIDE-INGEST-COMMITS-PARTIAL-EVIDENCE-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "verdict": "CODE_REPAIR_COMPLETE_RUNTIME_ACCEPTANCE_PENDING",
+      "canonical_repair_sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+      "canonical_pr": 1127,
+      "reviewed_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "canonical_repair_is_ancestor": true,
+      "repair_present_in_main": true,
+      "full_code_scope_repaired": true,
+      "runtime_verified": false,
+      "residual_code_defect_found": false,
+      "findings_ar": [
+        "الإخفاق والإلغاء يرجعان الكتابات داخل معاملة واحدة؛ الإعادة تحمل هوية الأدلة المخزنة وتمنع الصف التوافقي المكرر.",
+        "المصدر الحالي يقارن by_key ويختبر property؛ الدليل الحي القديم كان by_property، لذلك ليس شهادة كاملة لنفس بايتات الرأس الحالي.",
+        "لا residual code defect مثبت في نطاق المعاملة/الإعادة؛ قبول التزامن وRLS بصورة منشورة يبقى منفصلاً."
+      ],
+      "sources": [
+        {
+          "path": "services/soil-service/routers/readings.py",
+          "line_start": 113,
+          "line_end": 178,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/soil-service/soil_store.py",
+          "line_start": 17,
+          "line_end": 67,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "services/soil-service/soil_store.py",
+          "line_start": 305,
+          "line_end": 397,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "tests_v9/test_soil_ingest_atomic.py",
+          "line_start": 239,
+          "line_end": 453,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        },
+        {
+          "path": "certification/evidence/soil_ingest_native_postgres_20261003.json",
+          "line_start": 1,
+          "line_end": 291,
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        }
+      ],
+      "test_run_ids": [
+        "ingest"
+      ],
+      "state_policy_source": {
+        "path": "sahool-brain/README.md",
+        "line_start": 46,
+        "line_end": 62,
+        "rule": "fixed = repaired source + adequate regression witness; merge provenance does not define state; verified requires stated operational acceptance"
+      },
+      "proposed_edit": {
+        "operation": "replace_exact_line",
+        "path": "sahool-brain/gaps/registry.md",
+        "line_number_at_review": 45,
+        "old_line": "| SOIL-WIDE-INGEST-COMMITS-PARTIAL-EVIDENCE-01 | صف القراءة القديم وكل خاصية canonical تُلتزم منفردة؛ فشل الخاصية الثانية أو الإسقاط يترك حفظاً جزئياً. وإعادة الطلب تولّد IDs غير محفوظة وتكرّر الصف القديم الذي بلا قيد طبيعي فريد. | soil · persistence · idempotency | [`readings.py`](../../services/soil-service/routers/readings.py) (`ingest_reading`) · [`soil_store.py`](../../services/soil-service/soil_store.py) (`persist_observation`) · [`init_v8.sql`](../../migrations/init_v8.sql) (`soil_readings`) · [`test_soil_ingest_atomic.py`](../../tests_v9/test_soil_ingest_atomic.py) | **open** — حقن أخطاء بمحوّل قاعدة اختباري على `main@f60f0635`. مقترح محلي: معاملة واحدة للأدلة والصف والإسقاط والمؤشر والمهمة؛ إعادة هوية القياس المخزّن وعدم تكرار الصف عند إعادة الطلب. ثمّ قِيس في #1127 على PostgreSQL 16.13 أصليّ بدورٍ NOBYPASSRLS: الأساسُ يترك صفوفاً جزئيّة (`[1,1,1,0,0]` · `[1,0,0,0,0]` · `[1,2,1,0,0]`) وتُكرّر إعادةُ الطلب `soil_readings` بمعرّفاتٍ جديدة؛ والمقترحُ يُرجِع كلَّ إخفاقٍ وإلغاءً في منتصف الطلب إلى صفر، وتتقارب الإعاداتُ والمفاتيحُ المتطابقة المتزامنة على مجموعة صفوفٍ واحدة — [`soil_ingest_native_postgres_20261003.json`](../../certification/evidence/soil_ingest_native_postgres_20261003.json). ومراجعةُ #1127: مطابقةُ الإعادة بالمفتاح لا بالخاصيّة (`soil_store.py::ingest_retry_ids`). لم يُدمج؛ يبقى open حتى القياس على صورةٍ منشورة. |",
+        "new_line": "| SOIL-WIDE-INGEST-COMMITS-PARTIAL-EVIDENCE-01 | صف القراءة القديم وكل خاصية canonical تُلتزم منفردة؛ فشل الخاصية الثانية أو الإسقاط يترك حفظاً جزئياً. وإعادة الطلب تولّد IDs غير محفوظة وتكرّر الصف القديم الذي بلا قيد طبيعي فريد. | soil · persistence · idempotency | [`readings.py`](../../services/soil-service/routers/readings.py) (`ingest_reading`) · [`soil_store.py`](../../services/soil-service/soil_store.py) (`persist_observation`) · [`init_v8.sql`](../../migrations/init_v8.sql) (`soil_readings`) · [`test_soil_ingest_atomic.py`](../../tests_v9/test_soil_ingest_atomic.py) | **fixed** — مُصالحة حالة على `main@53652e02` (2026-10-14): إصلاح #1127 مدموج عند `76a5ca58af8911f7a3a07c218690624bfdf2e22f`؛ معاملة واحدة للصف التوافقي والأدلة ومهمة الإسقاط واللقطة والمؤشر، وقفل مفتاح المستأجر يسبق قفل الحقل. `ingest_retry_ids` يعيد IDs المخزنة ويطابق المفتاح ثم الخاصية، ولا يضيف الصف القديم عند الإعادة. جناح `test_soil_ingest_atomic.py` الحالي **24 ناجحة، صفر فشل وصفر تخطٍّ**، بما فيه rollback والإلغاء وتضارب الحمولة والمفتاح وحدود الطول. **لا verified:** دليل PG القديم عند `650596c1` سابق لتصحيح مطابقة المفتاح؛ `readings.py` مطابق لبصمته لكن `soil_store.py` تغيّر في هذا التصحيح، فيلزم قبول PG/تزامن على الصورة المنشورة الحالية، لا نقل نتيجة الشاهد القديم إلى الرأس الجديد. شرط الصورة المنشورة باقٍ للترقية إلى verified. **السرد التالي تاريخيّ وعبارة «لم يُدمج» فيه انتهت بدمج #1127:** **open** — حقن أخطاء بمحوّل قاعدة اختباري على `main@f60f0635`. مقترح محلي: معاملة واحدة للأدلة والصف والإسقاط والمؤشر والمهمة؛ إعادة هوية القياس المخزّن وعدم تكرار الصف عند إعادة الطلب. ثمّ قِيس في #1127 على PostgreSQL 16.13 أصليّ بدورٍ NOBYPASSRLS: الأساسُ يترك صفوفاً جزئيّة (`[1,1,1,0,0]` · `[1,0,0,0,0]` · `[1,2,1,0,0]`) وتُكرّر إعادةُ الطلب `soil_readings` بمعرّفاتٍ جديدة؛ والمقترحُ يُرجِع كلَّ إخفاقٍ وإلغاءً في منتصف الطلب إلى صفر، وتتقارب الإعاداتُ والمفاتيحُ المتطابقة المتزامنة على مجموعة صفوفٍ واحدة — [`soil_ingest_native_postgres_20261003.json`](../../certification/evidence/soil_ingest_native_postgres_20261003.json). ومراجعةُ #1127: مطابقةُ الإعادة بالمفتاح لا بالخاصيّة (`soil_store.py::ingest_retry_ids`). لم يُدمج؛ يبقى open حتى القياس على صورةٍ منشورة. |",
+        "preserves_old_narrative": true,
+        "interpretation": "The original open text is retained as explicitly historical; operational acceptance remains outstanding, not erased."
+      },
+      "acceptance_remaining": [
+        "صورة تربة منشورة ومخطط MANIFEST كامل بدور تطبيق NOBYPASSRLS؛ إثبات FORCE RLS للجداول المعنية.",
+        "JWT/بوابة حقيقية وملكية حقل حقيقية مع مستأجرين، وغياب السياق يفشل مغلقاً.",
+        "إعادة اختبارات الفشل/الإلغاء/الطلبات المتزامنة والمفاتيح المتطابقة على بايتات الصورة الحالية، مع عد صفوف وإيصالات وجرد قبل/بعد."
+      ]
+    }
+  ],
+  "integration_notes": [
+    "No source or brain edits made. Exact proposed row replacements are review artifacts only.",
+    "The raw logs/JUnit are outside sahool-brain and have content hashes. Code-regression tests were rerun on53652e02; they are not live deployment acceptance.",
+    "brain_state_transition_guard also requires executable evidence outside the brain for open→fixed in a PR. A documentation-only status edit may be blocked. Do not invent trivial code/test changes merely to bypass that guard; package this real existing-test evidence under the repository-approved reconciliation workflow.",
+    "Initial attempts before the shared environment installation failed with No module named pytest; these were harness setup failures and are superseded by the two successful archived runs, not counted as product failures."
+  ]
+}

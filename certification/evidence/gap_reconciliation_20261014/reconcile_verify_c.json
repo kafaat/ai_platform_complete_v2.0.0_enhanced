@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "agent": "verify_c",
+  "review_mode": "read-only wave0 reconciliation",
+  "base_commit": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "reviewed_at": "2026-10-14T00:06:18.832Z",
+  "scope": {
+    "repository": ".",
+    "records_reviewed": 3,
+    "repository_mutations": 0,
+    "cloud_mutations": 0,
+    "database_mutations": 0,
+    "live_http_probes": 0,
+    "secret_values_requested": 0,
+    "source_instructions_read": [
+      "CLAUDE.md",
+      "sahool-brain/hot.md (current relevant entries)",
+      "sahool-brain/index.md",
+      "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
+      "Railway use-railway SKILL.md",
+      "Railway references/operate.md"
+    ],
+    "working_tree": "clean before and after tests"
+  },
+  "evidence": {
+    "sanitized_observations": "analysis/railway_reconciliation_readonly_20261014.json",
+    "proposed_repository_location": "certification/evidence/railway_reconciliation_readonly_20261014.json",
+    "warning": "Evidence file is currently outside repository, not committed; copy it only in the parent's authorized reconciliation change before using repository-relative evidence links.",
+    "integrity": "Captured original MCP metadata plus filtered build/runtime logs; identities, unnecessary domains/variable names and log private DB hostname redacted. No fabricated probes.",
+    "limitations": [
+      "SUCCESS is a deployment status, not whole-domain acceptance.",
+      "Environment-status default returned only 10 services, so all-service counts come from get_status full inventory.",
+      "describe-service production agronomist failed INVALID_ARGUMENT; no absence inference is made from that error; full production inventory is the basis.",
+      "Historical activity actor, billing state, backup inventory/restore and database ledger were not available in these authorized read-only tools.",
+      "Config overlays show no per-service staged changes; environment pendingWork and get-staged-changes disagree. Keep unresolved.",
+      "Two initial deployment-list requests used incorrect field/raster IDs and returned empty lists; corrected requests used IDs from the authentic full inventory and yielded the evidence retained. No conclusion relies on those empty responses."
+    ]
+  },
+  "source_verification": {
+    "ancestor_commits": [
+      "7dce8ff1122b163ae2d7e31b5897784d84dfedb4",
+      "dac2cb0c5624555e3255199f9fdd0c9712c66ee8",
+      "a00f9f11821fef158eb27db1e5added0a4adc2e1",
+      "e29401acec751e377328a1aa18706b266e78e5e9"
+    ],
+    "deployment_sha": "e29401acec751e377328a1aa18706b266e78e5e9",
+    "identical_blobs_at_deployment_sha_and_main": {
+      "shared/dependency_readiness.py": "b02eedc9993dd3a78494170cd04eac5524ae7f42",
+      "services/ai_agronomist/main.py": "62b7cde85690e475bcc94a83ada8e8be60a488c7",
+      "services/field-management-service/main.py": "ff937a0ad7d53d9cefd485cf0de42572d135593b",
+      "services/raster-service/routers/observability.py": "9a25f508a19755850bd7d1916c450f5e8c8a4788"
+    },
+    "method": "git merge-base --is-ancestor COMMIT HEAD; git rev-parse COMMIT:PATH and HEAD:PATH; no source mutation"
+  },
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='' .-venv/bin/python -m pytest -q -p no:cacheprovider tests_v9/test_ai_runtime_readiness.py services/field-management-service/tests/test_field_management_service_contract.py tests/deploy/test_railway_migration_runner.py tests_v9/test_railway_dockerfile_pr_build_plan.py --junitxml=analysis/reconcile_verify_c_tests.xml",
+    "exit_code": 0,
+    "passed": 64,
+    "failed": 0,
+    "duration_seconds": 2.61,
+    "warnings": 1,
+    "warning": "Starlette TestClient httpx deprecation",
+    "initial_environment_attempt": "Default runtime Python lacked pytest; reran with existing sahool-venv. No packages installed.",
+    "scope": "Local isolated regression evidence; no live acceptance implied."
+  },
+  "merge_1178": {
+    "commit": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+    "claim": "All 24 observed Railway deployment records for the merge were SKIPPED.",
+    "result": "SUPPORTED within both environments' complete current merge windows",
+    "production_records": 11,
+    "staging_records": 13,
+    "total": 24,
+    "all_status": "SKIPPED",
+    "window_start": "2026-10-13T23:42:28.867Z",
+    "window_end": "2026-10-13T23:42:30.362Z",
+    "query_basis": "Unfiltered list_deployments limit=50 in each environment; returned windows extend to 17:08Z production and 18:51Z staging before the 23:42Z merge. Filtered locally by exact commitHash; no non-SKIPPED match.",
+    "source_ids": [
+      "production_merge_all",
+      "staging_merge_all"
+    ],
+    "does_not_prove": [
+      "No historical/manual deployments outside these queried environments or time window.",
+      "Production freeze revoked.",
+      "Dependency source repair or main fully deployed due to this docs merge."
+    ]
+  },
+  "decisions": [
+    {
+      "id": "PRODUCTION-ENVIRONMENT-ALL-DEPLOYMENTS-REMOVED-SINCE-20261005-01",
+      "source_line": 122,
+      "prior_state": "open",
+      "proposed_state": "open",
+      "verdict": "Correct stale present tense and append current availability, retain incident closure gates.",
+      "evidence_ids": [
+        "production_full_status",
+        "production_status",
+        "production_staged",
+        "production_migrator_success",
+        "production_migrator_runtime"
+      ],
+      "remaining": [
+        "Identify removal and restoration actor/cause with owner-accessible Activity/Usage/Billing evidence; do not infer cause from recovery.",
+        "Backup/restore and current database integrity evidence remain unknown; obtain approved independent snapshot/restore proof and least-privilege database identity/ledger.",
+        "Preserve owner decision, migration guard and pending patch reconciliation; later automatic success is not retroactive approval."
+      ],
+      "exact_replacements": [
+        {
+          "find": "بيئةُ production على Railway 20/20 offline الآن",
+          "replace": "بيئةُ production على Railway كانت 20/20 offline في قياس 2026-10-10",
+          "expected_occurrences": 1
+        }
+      ],
+      "append_status_cell": " · **مصالحة قراءة فقط 2026-10-14 ~00:02Z:** جرد Railway الحالي للإنتاج يضم 20 خدمة: آخر نشر لـ19 منها SUCCESS، و`sahool-migrate` بلا آخر نشر؛ هذا عدّ لحالات النشر لا شهادة جاهزية لكل الخدمات. `sahool-postgres` له النشر `5c2667f5-76c9-40fd-a1a4-2e58705b2605` منذ 2026-10-12 16:23:42Z، والحجم `d88ef422` ما زال مركّباً على `/var/lib/postgresql/data` بسعة 1024MB. تنتهي هنا صلاحية عبارة «20/20 offline الآن» بوصفها حالة راهنة؛ تبقى حادثة الإزالة وتاريخها محفوظين. لا تُثبت هذه العودة سبب الإزالة أو فاعلها أو فاعل الاستعادة أو سلامة النسخة الاحتياطية/البيانات أو موافقة المالك، ولذلك تبقى الحالة **open**. الرقعة `073447ea` ما زالت تظهر pendingWork=staged مع changes=[]، بينما get-staged-changes يعيد staged=null؛ لا حسم أو تعديل لها. آخر مهاجر ناجح `fa12dcbc` على `18b64ed0` قال `MIGRATIONS_NOT_APPLIED reason=apply_not_permitted`؛ ذلك امتناع محمي عن التطبيق، ولا يمحو تشغيل النسخة القديمة في 10-12. دليل منقّح: `certification/evidence/railway_reconciliation_readonly_20261014.json` (production_full_status، production_status، production_staged، production_migrator_success، production_migrator_runtime). لا نشر ولا تغيير إعدادات أو قاعدة بيانات، ولا استنتاج برفع التجميد من نجاح نشر لاحق."
+    },
+    {
+      "id": "RAILWAY-BUILT-WITH-RAILPACK-DESPITE-DOCKERFILE-CONFIG-01",
+      "source_line": 5891,
+      "prior_state": "open",
+      "proposed_state": "open",
+      "verdict": "Subsequent actual Dockerfile builds verified in both environments; original Railpack-selection cause and historical config remain unknown. Preserve current broad incident scope.",
+      "evidence_ids": [
+        "production_migrator_config",
+        "staging_migrator_config",
+        "production_migrator_success",
+        "staging_migrator_success",
+        "production_migrator_build",
+        "staging_migrator_build",
+        "production_migrator_runtime",
+        "staging_migrator_runtime"
+      ],
+      "remaining": [
+        "Obtain build-time config/audit for original 600fa8bb and 90e48979, or formally narrow/close the resolved current-builder symptom and carry root-cause uncertainty in a separately accepted incident record.",
+        "Do not redeploy a database writer merely to reproduce evidence already available.",
+        "Do not use SUCCESS to claim migrations applied; read-only refusal is the observed runtime outcome."
+      ],
+      "exact_replacements": [
+        {
+          "find": "**والأثرُ في الإنتاج:** لا نشرَ ناجحاً حيّاً لـmigrate-main",
+          "replace": "**والأثرُ في الإنتاج في قياس 2026-09-30:** لم يكن نشرٌ ناجحٌ حيٌّ لـmigrate-main",
+          "expected_occurrences": 1
+        }
+      ],
+      "append_status_cell": " · **مصالحة قراءة فقط 2026-10-14:** لم يعد وصف فشل البناء الحالي مطابقاً لآخر بناء مقيس: آخر نشر ناجح للمهاجر في production هو `fa12dcbc-c730-4100-9160-4a051391f321`، وفي staging `4b295609-a6f7-4c5d-8db2-41a970bea8d5`، وكلاهما من `18b64ed0f0ef11be90341cb3c304a194db63bfaa` بتاريخ 2026-10-13. سجل build في كل منهما يسجل `[internal] load build definition from deploy/railway/Dockerfile.migrate` مع source=buildkit؛ هذا دليل على استعمال Dockerfile فعلاً في هذين البناءين، وليس استنتاجاً من الإعداد فقط. describe-service يطابق builder=DOCKERFILE وdockerfilePath نفسه وrestartPolicyType=NEVER في البيئتين. سجلا runtime يعلنان `MIGRATIONS_NOT_APPLIED reason=apply_not_permitted`؛ SUCCESS لا يعني تطبيق الهجرات. يبقى أصل اختلاف 09-28 وتاريخ إعداد البناء غير مثبتين، وتبقى الحالة **open** في نطاقها الحالي؛ لا إعادة نشر إضافية لأجل هذا الإثبات ولا ادعاء إصلاح السبب الجذري. دليل منقّح: `certification/evidence/railway_reconciliation_readonly_20261014.json` (migrator_config، migrator_success، migrator_build، migrator_runtime في البيئتين)."
+    },
+    {
+      "id": "RAILWAY-DEPENDENCY-READINESS-20260920-01",
+      "source_line": 6675,
+      "prior_state": "open",
+      "proposed_state": "open",
+      "verdict": "Source publication and current recorded deployment SHA can now be evidenced; no runtime attestation or full domain acceptance.",
+      "evidence_ids": [
+        "production_field_deployment",
+        "staging_field_deployment",
+        "production_raster_deployment",
+        "staging_raster_deployment",
+        "staging_agronomist_deployment",
+        "production_field_config",
+        "staging_field_config",
+        "production_raster_config",
+        "staging_raster_config",
+        "staging_agronomist_config",
+        "production_full_status"
+      ],
+      "remaining": [
+        "Verify runtime/image identity and read-only readiness components with actual payloads at approved scope; Raster /readyz includes a write and must be treated accordingly.",
+        "Staging agronomist deployment healthcheck remains /healthz; capture its actual dependency /readyz before any readiness claim.",
+        "Run separate approved corpus, raster pixel/S3, tenant and replay-persistence acceptance; PING and HTTP health are insufficient.",
+        "Notification queue/consumer checkpoint handoff remains separately scoped and cannot close from healthz success."
+      ],
+      "exact_replacements": [
+        {
+          "find": "This readiness patch is still unpublished.",
+          "replace": "At that continuation point, this readiness patch was unpublished.",
+          "expected_occurrences": 1
+        },
+        {
+          "find": "The readiness repair is still unpublished.",
+          "replace": "At that continuation point, the readiness repair was unpublished.",
+          "expected_occurrences": 1
+        },
+        {
+          "find": "The gap remains open; source publication, notification handoff and domain acceptance are not established.",
+          "replace": "The gap remains open; at that follow-up point, source publication, notification handoff and domain acceptance had not been established.",
+          "expected_occurrences": 1
+        }
+      ],
+      "append_section": "\n- **Read-only reconciliation, 2026-10-14:** Source publication is now established on main `53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b`; the three continuation bases above are ancestors of this main. Railway records the current successful field/raster deployments in both environments, and agronomist in staging, against `e29401acec751e377328a1aa18706b266e78e5e9` (redeployed 2026-10-12). The four source files listed above have identical Git blobs at that deployment source SHA and current main. This establishes source inclusion and Railway's recorded deployment revision, not independent runtime/image attestation. Field/raster healthcheckPath is `/readyz` in both environments; staging agronomist remains `/healthz`, and agronomist is absent from the production service inventory. No live application readiness endpoint was called in this read-only review; the Raster readiness handler writes a temporary filesystem probe, so running it would exceed this observation scope. Local regression selection: 64 passed (2026-10-14), including malformed/4xx/timeout dependency rejection, DB/RLS and replay-store failure paths, writable-directory preservation and field readiness failures. Keep **open**: runtime identity, live dependency readiness, real corpus/domain acceptance and the scoped notification handoff remain separate evidence obligations. `SUCCESS` and source publication do not certify the full workspace. Evidence: `certification/evidence/railway_reconciliation_readonly_20261014.json` and the locally recorded `analysis/reconcile_verify_c_tests.xml`; no Railway/database mutation and no implied revocation of the production freeze.\n"
+    }
+  ],
+  "apply_validation": [
+    "Check each exact replacement occurs exactly once inside its identified record, then append text within the existing table status cell or section. Never duplicate status markers or lose rows.",
+    "Copy the sanitized evidence file to the proposed repository location before linking it, or adjust the link to the actual committed path.",
+    "Preserve all three canonical states as open and retain historical evidence/closure conditions.",
+    "Re-run registry parser/census and confirm 526 canonical IDs / 372 fixed /151 open /3 verified unchanged, plus no omissions in aliases/orphans.",
+    "Run required repository governance checks for the actual changed files before committing; this review changed no repository files."
+  ]
+}

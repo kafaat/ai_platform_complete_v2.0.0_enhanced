@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: <repo>
+configfile: pytest.ini
+plugins: respx-0.23.1, cov-7.1.0, Faker-40.43.0, anyio-4.15.1, hypothesis-6.169.0, platformdirs-4.13.0, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 45 items
+
+tests_v9/test_brain_annotated_supersession_guard.py .................... [ 44%]
+.....                                                                    [ 55%]
+tests_v9/test_deterministic_generation.py ....................           [100%]
+
+============================== 45 passed in 4.36s ==============================

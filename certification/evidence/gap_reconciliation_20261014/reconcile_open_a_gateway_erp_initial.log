@@ -1,0 +1,136 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: sahool
+configfile: pytest.ini
+plugins: respx-0.23.1, cov-7.1.0, Faker-40.43.0, anyio-4.15.1, hypothesis-6.169.0, platformdirs-4.13.0, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 17 items
+
+tests_v9/test_erp_bridge_requires_erp.py ........FFFF.F                  [ 82%]
+tests_v9/test_gateway_operational_endpoints_contract.py ...              [100%]
+
+=================================== FAILURES ===================================
+_________ test_readyz_503_when_odoo_has_no_credentials_without_network _________
+tests_v9/test_erp_bridge_requires_erp.py:159: in test_readyz_503_when_odoo_has_no_credentials_without_network
+    monkeypatch.setattr(rt, "_odoo", _odoo_client(rt, handler, password=None))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests_v9/test_erp_bridge_requires_erp.py:103: in _odoo_client
+    client = rt.OdooClient(url, "sahool_erp", "admin", password, "")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/odoo-bridge/erp_runtime.py:102: in __init__
+    self._session = httpx.AsyncClient(timeout=30.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1415: in __init__
+    else self._init_proxy_transport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1464: in _init_proxy_transport
+    return AsyncHTTPTransport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_transports/default.py:335: in __init__
+    raise ImportError(
+E   ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-14T00:03:13.381085+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.catalog"}
+{"ts": "2026-10-14T00:03:13.382403+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-14T00:03:13.385039+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.sync"}
+{"ts": "2026-10-14T00:03:13.386812+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.webhooks"}
+____________________ test_readyz_503_when_odoo_unreachable _____________________
+tests_v9/test_erp_bridge_requires_erp.py:170: in test_readyz_503_when_odoo_unreachable
+    monkeypatch.setattr(rt, "_odoo", _odoo_client(rt, url=url))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests_v9/test_erp_bridge_requires_erp.py:103: in _odoo_client
+    client = rt.OdooClient(url, "sahool_erp", "admin", password, "")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/odoo-bridge/erp_runtime.py:102: in __init__
+    self._session = httpx.AsyncClient(timeout=30.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1415: in __init__
+    else self._init_proxy_transport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1464: in _init_proxy_transport
+    return AsyncHTTPTransport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_transports/default.py:335: in __init__
+    raise ImportError(
+E   ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-14T00:03:13.494146+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.catalog"}
+{"ts": "2026-10-14T00:03:13.495501+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-14T00:03:13.497281+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.sync"}
+{"ts": "2026-10-14T00:03:13.498785+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.webhooks"}
+________________ test_readyz_503_when_odoo_rejects_credentials _________________
+tests_v9/test_erp_bridge_requires_erp.py:185: in test_readyz_503_when_odoo_rejects_credentials
+    monkeypatch.setattr(rt, "_odoo", _odoo_client(rt, _jsonrpc(False)))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests_v9/test_erp_bridge_requires_erp.py:103: in _odoo_client
+    client = rt.OdooClient(url, "sahool_erp", "admin", password, "")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/odoo-bridge/erp_runtime.py:102: in __init__
+    self._session = httpx.AsyncClient(timeout=30.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1415: in __init__
+    else self._init_proxy_transport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1464: in _init_proxy_transport
+    return AsyncHTTPTransport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_transports/default.py:335: in __init__
+    raise ImportError(
+E   ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-14T00:03:13.545827+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.catalog"}
+{"ts": "2026-10-14T00:03:13.547222+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-14T00:03:13.550069+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.sync"}
+{"ts": "2026-10-14T00:03:13.551498+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.webhooks"}
+_________________ test_readyz_probe_is_bounded_when_odoo_hangs _________________
+tests_v9/test_erp_bridge_requires_erp.py:197: in test_readyz_probe_is_bounded_when_odoo_hangs
+    monkeypatch.setattr(rt, "_odoo", _odoo_client(rt, hang))
+                                     ^^^^^^^^^^^^^^^^^^^^^^
+tests_v9/test_erp_bridge_requires_erp.py:103: in _odoo_client
+    client = rt.OdooClient(url, "sahool_erp", "admin", password, "")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/odoo-bridge/erp_runtime.py:102: in __init__
+    self._session = httpx.AsyncClient(timeout=30.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1415: in __init__
+    else self._init_proxy_transport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1464: in _init_proxy_transport
+    return AsyncHTTPTransport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_transports/default.py:335: in __init__
+    raise ImportError(
+E   ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-14T00:03:13.595837+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.catalog"}
+{"ts": "2026-10-14T00:03:13.597226+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-14T00:03:13.599195+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.sync"}
+{"ts": "2026-10-14T00:03:13.600559+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.webhooks"}
+______________ test_readyz_200_when_odoo_configured_and_reachable ______________
+tests_v9/test_erp_bridge_requires_erp.py:217: in test_readyz_200_when_odoo_configured_and_reachable
+    monkeypatch.setattr(rt, "_odoo", _odoo_client(rt, _jsonrpc(2)))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests_v9/test_erp_bridge_requires_erp.py:103: in _odoo_client
+    client = rt.OdooClient(url, "sahool_erp", "admin", password, "")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/odoo-bridge/erp_runtime.py:102: in __init__
+    self._session = httpx.AsyncClient(timeout=30.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1415: in __init__
+    else self._init_proxy_transport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_client.py:1464: in _init_proxy_transport
+    return AsyncHTTPTransport(
+../sahool-venv/lib/python3.12/site-packages/httpx/_transports/default.py:335: in __init__
+    raise ImportError(
+E   ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-14T00:03:13.672073+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.catalog"}
+{"ts": "2026-10-14T00:03:13.673407+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-14T00:03:13.675232+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.sync"}
+{"ts": "2026-10-14T00:03:13.676675+00:00", "level": "INFO", "service": "erp-bridge", "logger": "odoo-bridge", "message": "راوتر مُسجَّل تلقائيّاً: routers.webhooks"}
+=============================== warnings summary ===============================
+../sahool-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  sahool-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: analysis/reconcile_open_a_gateway_erp.xml -
+=========================== short test summary info ============================
+FAILED tests_v9/test_erp_bridge_requires_erp.py::test_readyz_503_when_odoo_has_no_credentials_without_network
+FAILED tests_v9/test_erp_bridge_requires_erp.py::test_readyz_503_when_odoo_unreachable
+FAILED tests_v9/test_erp_bridge_requires_erp.py::test_readyz_503_when_odoo_rejects_credentials
+FAILED tests_v9/test_erp_bridge_requires_erp.py::test_readyz_probe_is_bounded_when_odoo_hangs
+FAILED tests_v9/test_erp_bridge_requires_erp.py::test_readyz_200_when_odoo_configured_and_reachable
+=================== 5 failed, 12 passed, 1 warning in 1.78s ====================

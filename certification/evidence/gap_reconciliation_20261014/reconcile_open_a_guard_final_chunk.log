@@ -1,0 +1,8 @@
+.                                                               [100%]
+=============================== warnings summary ===============================
+tests/architecture/test_capability_core_consumption_guard.py:24
+  analysis/open_a_guard_snapshot/tests/architecture/test_capability_core_consumption_guard.py:24: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+10 passed, 1 warning in 0.78s

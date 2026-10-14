@@ -1,0 +1,317 @@
+{
+  "reviewed_at_utc": "2026-10-14T00:05:25.132242+00:00",
+  "repo": ".",
+  "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "read_only": true,
+  "registry_blob_sha256": "6bf8a63b1256de8ac38a481fb9ce3cd9d9f23e9e71334a021617f96c76c90f86",
+  "instructions_read": [
+    "CLAUDE.md",
+    "sahool-brain/index.md",
+    "sahool-brain/README.md",
+    "current entries of sahool-brain/hot.md (large historical file not read in entirety)",
+    "three target registry entries"
+  ],
+  "policy_limits": [
+    "No repo files changed; tests disable bytecode/cache and place outputs/tmp outside repository.",
+    "No cloud mutation, deployment, Docker build, weight download, GPU run or external messages.",
+    "fixed is code+regression scope; no verified status proposed. Brain transition policy still requires linked executable witness outside brain in any actual state-change PR; this JSON is a proposal."
+  ],
+  "test_execution": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 .-venv/bin/python -m pytest -p no:cacheprovider tests/architecture/test_runtime_build_identity_attestation.py tests_v9/test_sam2_ref_pinned.py tests_v9/test_sam2_artifact_digest.py tests_v9/test_e2e_findings_regressions.py::test_v25_live_audit_wiring_regressions --basetemp=analysis/pytest_reconcile_verify_b --junitxml=analysis/reconcile_verify_b_tests.xml",
+    "cwd": ".",
+    "exit_code": 0,
+    "passed": 31,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_seconds": 3.19,
+    "warnings": 9,
+    "warning_summary": "existing FastAPI on_event and Starlette TestClient deprecations",
+    "log": "analysis/reconcile_verify_b_tests.log",
+    "junit": "analysis/reconcile_verify_b_tests.xml",
+    "log_sha256": "fd472790f9e8c7caf2e5aab218942a11a9d75fab3e189e4535fc26410b87a415",
+    "junit_sha256": "d372dacba53c61bd0237e78ce838d6f570b2b987eb2c7f39cb04538ba3556c8e",
+    "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+    "initial_attempt": "Default python lacked pytest; reran successfully with parent-provided sahool-venv after dependency install completed. Failed environment attempt is not a test failure."
+  },
+  "counterfactual_execution": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 .-venv/bin/python analysis/reconcile_verify_b_counterfactual.py",
+    "exit_code": 0,
+    "all_satisfied": true,
+    "cases": 10,
+    "planted_defects_detected": 7,
+    "healthy_controls_passed": 3,
+    "evidence": "analysis/reconcile_verify_b_counterfactual.json",
+    "evidence_sha256": "946953e9bf1696c68362eee3303108a1b9606032982b1f2bb59de57855850d9b",
+    "method": "existing shipped test functions run on isolated scratch inputs; no repository mutation; semantic counterexamples, not runtime image proof"
+  },
+  "entries": [
+    {
+      "id": "RASTER-IMAGE-SHA-NOT-INJECTED-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "judgment": "full source closure; stale canonical status",
+      "repair_sha": "615c4874b0797aa9b10c1c0363e82531ba94e175",
+      "repair_pr": 773,
+      "repair_is_ancestor_of_reviewed_head": true,
+      "sources": [
+        {
+          "path": "services/raster-service/Dockerfile",
+          "line_start": 24,
+          "line_end": 42,
+          "finding": "ARG, immutable metadata, OCI labels and read-only file",
+          "blob_sha256": "c21adaa028ebdf8462eb9bbe0e27e6ebfa5f6ef72e8dec83145bc70bbad9a68a"
+        },
+        {
+          "path": "services/raster-service/main.py",
+          "line_start": 63,
+          "line_end": 67,
+          "finding": "runtime endpoint reads immutable identity",
+          "blob_sha256": "622527e9b22c0e9501ab0baa228e2dcd7697f2bb817f4a338d64f451e378c505"
+        },
+        {
+          "path": "docker-compose.v9.yml",
+          "line_start": 1324,
+          "line_end": 1334,
+          "finding": "raster build args fail closed without tested SHA/build ID",
+          "blob_sha256": "4d5f40903eb89ed050dfb3075b374b106cda8a4ea982dc6b0e0ceb1a24809d90"
+        },
+        {
+          "path": ".github/workflows/runtime-image-provenance.yml",
+          "line_start": 43,
+          "line_end": 45,
+          "finding": "raster image matrix",
+          "blob_sha256": "f93340d11f100d203e87a1d95fec571a62f927c512a8baf43f1e39f8dac550cb"
+        },
+        {
+          "path": ".github/workflows/runtime-image-provenance.yml",
+          "line_start": 228,
+          "line_end": 228,
+          "finding": "publish manifest expected set includes raster",
+          "blob_sha256": "f93340d11f100d203e87a1d95fec571a62f927c512a8baf43f1e39f8dac550cb"
+        },
+        {
+          "path": "runtime-verification/functional_probes/raster-service.json",
+          "line_start": 1,
+          "line_end": 73,
+          "finding": "identity_path /runtime-identity and compute-only probe",
+          "blob_sha256": "d4e1c6d22dec98af04447af02452f3ecfb196372cb6bc320709578c9022373bd"
+        },
+        {
+          "path": "tests/architecture/test_runtime_build_identity_attestation.py",
+          "line_start": 22,
+          "line_end": 354,
+          "finding": "15 passed whole file; dynamic stamp program and cross-surface reconciliation",
+          "blob_sha256": "30871b23abaf582d4708b6f20c3f5169d94513e4c29422049e2042b8e28261ee"
+        }
+      ],
+      "tests": [
+        "tests/architecture/test_runtime_build_identity_attestation.py"
+      ],
+      "test_count": 15,
+      "counterfactuals": [
+        "raster_removed_attestation_matrix_entry",
+        "raster_removed_publish_manifest_expected_service",
+        "raster_removed_probe_plan",
+        "raster_removed_probe_identity_path"
+      ],
+      "residual_for_verified": [
+        "Build and attest real raster image linked to tested SHA/digest; inspect runtime identity service=raster-service, git_sha=TESTED_SHA, metadata_source=immutable-image-file.",
+        "Execute the designated probe and confirm wrong/missing identity fails build. Current extracted build-program tests are executable local evidence, not whole-image/build/deployment evidence."
+      ],
+      "exact_proposed_edits": [
+        {
+          "path": "sahool-brain/gaps/registry.md",
+          "operation": "replace_exact_once",
+          "old": "- **الحالة:** OPEN. لا شيفرة ولا ادّعاء إغلاق. والأصحّ توسيعها لتشمل **كلّ** الصور لا الرستر وحده، منعاً لخليط SHA.",
+          "new": "- **الحالة:** **fixed** في المصدر — الإصلاح القانونيّ `615c4874b0797aa9b10c1c0363e82531ba94e175` (PR #773) وصل الأسطح الستة: Dockerfile ونقطة الهويّة ووسائط compose ومصفوفة التوثيق ومجموعة publish-manifest وخطّة المسبار. أُعيدت شواهد `tests/architecture/test_runtime_build_identity_attestation.py` على `53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b` في 2026-10-14: 15 ناجحة بلا تخطٍّ؛ وإعادة زرع فقد المصفوفة أو المجموعة أو الخطّة أو identity_path في مدخلات معزولة تُسقِط الشاهد المسمّى أربع مرّات. لا verified: لم تُبنَ صورة في هذه المراجعة ولم يُشغَّل المسبار على نشر حيّ.\n- **النصّ التاريخيّ للحالة عند الفتح، لا الحالة الحاليّة:** «OPEN. لا شيفرة ولا ادّعاء إغلاق. والأصحّ توسيعها لتشمل كلّ الصور لا الرستر وحده، منعاً لخليط SHA.» كان يسبق الإصلاحَ الموصوف بعده، وبقاؤه موضعَ الحالة أبقى العدّاد مفتوحاً رغم هبوط #773.\n- **canonical على main:** `615c4874b0797aa9b10c1c0363e82531ba94e175` هو squash #773 وسلف الرأس المقيس؛ شرط الإغلاق الحيّ في آخر المدخل باقٍ بلا توسعة للدعوى."
+        }
+      ],
+      "new_source_change_required": false
+    },
+    {
+      "id": "SAM2-REF-FLOATS-ON-MAIN-AND-WEIGHTS-UNVERIFIED-01",
+      "current_state": "open",
+      "proposed_state": "open",
+      "judgment": "partial source closure; pin merged, approved real-weight digest/provisioning residual remains",
+      "repair_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+      "repair_pr": 1169,
+      "historical_source_sha": "3d8e41d0f5506170e1df8301c416a66c4087d4fd",
+      "earlier_runtime_digest_guard_sha": "38366e46844aee98fb3a4a421554691d2d5681d8",
+      "earlier_runtime_digest_guard_pr": 1021,
+      "repair_is_ancestor_of_reviewed_head": true,
+      "sources": [
+        {
+          "path": "services/sam2-inference/Dockerfile",
+          "line_start": 31,
+          "line_end": 49,
+          "finding": "Default pinned full ref; build uses same variable",
+          "blob_sha256": "0e48d6c32e085d808ec11f552a4f37430b46f8fdd7d95cfc15bdc893faffc6bb"
+        },
+        {
+          "path": ".github/workflows/sam2-ref-freshness.yml",
+          "line_start": 1,
+          "line_end": 32,
+          "finding": "scheduled/dispatch only non-merge gate",
+          "blob_sha256": "4c45cd2066be4fc377e294b6282ffe0b6df0ce086ba664607a238c6d8c39c4f1"
+        },
+        {
+          "path": "services/sam2-inference/sam2_runtime.py",
+          "line_start": 64,
+          "line_end": 67,
+          "finding": "expected digest from env, empty default",
+          "blob_sha256": "6d5da317e9bcf0c9cc1705a35e6541c930788691d7dd558108659a79299463ee"
+        },
+        {
+          "path": "services/sam2-inference/sam2_runtime.py",
+          "line_start": 104,
+          "line_end": 115,
+          "finding": "exact bytes checked vs supplied digest",
+          "blob_sha256": "6d5da317e9bcf0c9cc1705a35e6541c930788691d7dd558108659a79299463ee"
+        },
+        {
+          "path": "services/sam2-inference/sam2_runtime.py",
+          "line_start": 151,
+          "line_end": 162,
+          "finding": "verification precedes torch load",
+          "blob_sha256": "6d5da317e9bcf0c9cc1705a35e6541c930788691d7dd558108659a79299463ee"
+        },
+        {
+          "path": "docs/SAM2_DEPLOYMENT.md",
+          "line_start": 48,
+          "line_end": 62,
+          "finding": "raw download has no fixed published approved digest",
+          "blob_sha256": "676aa0237f1f2d496e1b970f78ece4cc9f8d4694898e026755f22b03ac0f9387"
+        },
+        {
+          "path": "docs/SAM2_DEPLOYMENT.md",
+          "line_start": 89,
+          "line_end": 97,
+          "finding": "placeholder digest plus manual verify step",
+          "blob_sha256": "676aa0237f1f2d496e1b970f78ece4cc9f8d4694898e026755f22b03ac0f9387"
+        },
+        {
+          "path": "tests_v9/test_sam2_ref_pinned.py",
+          "line_start": 42,
+          "line_end": 77,
+          "finding": "5 pin/freshness tests passed",
+          "blob_sha256": "1dc900e7bc129f1e0adf970fda463cc87363780f53648b01f3d552dd59b33570"
+        },
+        {
+          "path": "tests_v9/test_sam2_artifact_digest.py",
+          "line_start": 28,
+          "line_end": 229,
+          "finding": "10 byte/fail-closed/metadata/startup tests passed",
+          "blob_sha256": "8c50b5653287f4b6abba11a5377063bda05e0c5a064f545c0952be44c3efb7ea"
+        },
+        {
+          "path": ".env.example",
+          "line_start": 461,
+          "line_end": 461,
+          "finding": "template digest explicitly empty; no approved model identity supplied",
+          "blob_sha256": "4f26e86796afdd7948b6f09a114e793b1d4477b835396196d2e063c6127736fc"
+        },
+        {
+          "path": "sam2-models/README.md",
+          "line_start": 16,
+          "line_end": 30,
+          "finding": "download examples use URL only, no approved digest check",
+          "blob_sha256": "d5deb61e9470b8c249f2d61d0584ff1e1242e7e933ffef034181d1950da912dc"
+        }
+      ],
+      "tests": [
+        "tests_v9/test_sam2_ref_pinned.py",
+        "tests_v9/test_sam2_artifact_digest.py"
+      ],
+      "test_count": 15,
+      "counterfactuals": [
+        "sam2_historical_floating_default"
+      ],
+      "residual_for_fixed": [
+        "Obtain exact approved checkpoint through authorized source, record byte size and SHA256 with provenance; a supplied env digest is not itself proof of source.",
+        "Enforce approved digest during download/provisioning before final destination is accepted; preserve fail-closed runtime hash gate.",
+        "Prove genuine file acceptance and corrupted/absent/wrong digest rejection with non-fabricated approved bytes; no need to repeat completed default ref pin."
+      ],
+      "residual_for_verified": [
+        "GPU build/inference and runtime artifact digest on deployment matching approved checkpoint and source revision."
+      ],
+      "exact_proposed_edits": [
+        {
+          "path": "sahool-brain/gaps/registry.md",
+          "operation": "replace_exact_once",
+          "old": "- **الحالة:** open — على `main@29c09d0b` ما زال `services/sam2-inference/Dockerfile:41` يحمل `ARG SAM2_REF=main` (فرعٌ عائم يُثبَّت عند البناء في `Dockerfile:47`)، فصورتان بُنيتا في يومين مختلفين قد تحملان شيفرةً مختلفة بلا أثرٍ في الشجرة.",
+          "new": "- **الحالة:** **open** — تثبيت المصدر أُنجز على main في `3a8689f6b13b158405ab000baec12284ea29541f` (PR #1169)، من الإصلاح `3d8e41d0f5506170e1df8301c416a66c4087d4fd`: `SAM2_REF=2b90b9f5ceec907a1c18123530e92e794ad901a4` عند `services/sam2-inference/Dockerfile:43`. المتبقّي هو اعتماد بصمة SHA256 مقيسة من checkpoint فعلي وتوثيق مصدرها وإنفاذها في مسار التزويد/التنزيل؛ لا بصمة معتمدة لهذا الوزن في المصدر المفحوص. لا يُعاد فتح إصلاح التثبيت ولا يُدّعى اكتمال بند الأوزان.\n- **القياس التاريخيّ على `main@29c09d0b`:** كان `ARG SAM2_REF=main` فرعاً عائماً عند البناء؛ هذا الوصف لم يعد يصف الرأس المقيس `53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b` بعد #1169."
+        },
+        {
+          "path": "sahool-brain/gaps/registry.md",
+          "operation": "replace_exact_once",
+          "old": "- **إصلاحٌ مكتوب غير مدموج:** الفرع claude/wip-v25b-sam2 (commit 3d8e41d0) يثبّت `SAM2_REF` على SHA التزامٍ كامل (2b90b9f5، رأس main في facebookresearch/sam2 كما قُرِئ 2026-09-30) ويضيف `.github/workflows/sam2-ref-freshness.yml` (أسبوعيّ، غير حاجب) و`tests_v9/test_sam2_ref_pinned.py`. يدخل main عبر فرع التكامل claude/wip-integration-a-nodeploy إن وافق المالك.",
+          "new": "- **إصلاح المصدر واصل إلى main:** الوصف السابق «إصلاح مكتوب غير مدموج، يدخل main إن وافق المالك» أصبح تاريخيّاً بعد #1169؛ الفرع `claude/wip-v25b-sam2` عند `3d8e41d0f5506170e1df8301c416a66c4087d4fd` أصل التثبيت والتنبيه الأسبوعي غير الحاجب، وsquash القانوني `3a8689f6b13b158405ab000baec12284ea29541f`.\n- **فصل إنفاذ البصمة عن اعتماد الوزن:** `services/sam2-inference/sam2_runtime.py:104-115,151-160` يجزّئ الملفّ ويرفض غياب/خطأ/اختلاف `SAM2_CHECKPOINT_SHA256` قبل تحميل Torch؛ أُدخل هذا في `38366e46844aee98fb3a4a421554691d2d5681d8` (PR #1021). الإعداد الافتراضي فارغ و`docs/SAM2_DEPLOYMENT.md:93` يحمل placeholder، وتعليمات التنزيل لا تحمل digest معتمداً مسبقاً. فلا يقال «لا يتحقق وقت التشغيل»؛ المفقود أصل الوزن والبصمة المعتمدة وحدّ التزويد.\n- **شواهد الرأس المقيس (2026-10-14):** `test_sam2_ref_pinned.py` خمس ناجحة و`test_sam2_artifact_digest.py` عشر ناجحة بلا تخطٍّ؛ إعادة `SAM2_REF=main` في نسخة مدخل معزولة تُحمِّر الشاهد. الشواهد تثبت العقد والرفض الصادق، لا أصل وزن Meta أو صحة استدلال GPU أو نشره. يبقى شرط fixed جامعاً للجزأين، لذلك لا انتقال حالة في هذه المصالحة."
+        }
+      ],
+      "new_source_change_required": "only residual provisioning/approval enforcement, no reimplementation of runtime digest gate or source pin"
+    },
+    {
+      "id": "TILER-IN-FIXED-AND-UNIFIED-HAS-NO-CONSUMER-AND-CANNOT-BUILD-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "judgment": "full narrow source closure by removal, owner-choice wait stale",
+      "repair_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+      "repair_pr": 1169,
+      "historical_source_sha": "bb7c05fb25f26f84f04c0fe56c30ae01f4b7667a",
+      "repair_is_ancestor_of_reviewed_head": true,
+      "sources": [
+        {
+          "path": "docker-compose.fixed.yml",
+          "line_start": 27,
+          "line_end": 34,
+          "finding": "services now starts with nginx; orphan tiler removed",
+          "blob_sha256": "92e906e6924bf494f1e0f95baf052b6c59a7ca072417dccf0063dcd877c60d78"
+        },
+        {
+          "path": "docker-compose.unified.yml",
+          "line_start": 49,
+          "line_end": 57,
+          "finding": "services now starts with nginx; orphan tiler removed",
+          "blob_sha256": "254bf3988110196771812858c62188ed13d3b704642b03119b9b011916e77c7d"
+        },
+        {
+          "path": "docker-compose.v9.yml",
+          "line_start": 11,
+          "line_end": 24,
+          "finding": "canonical v9 retains correct tiler build root and identity args",
+          "blob_sha256": "4d5f40903eb89ed050dfb3075b374b106cda8a4ea982dc6b0e0ceb1a24809d90"
+        },
+        {
+          "path": "tests_v9/test_e2e_findings_regressions.py",
+          "line_start": 188,
+          "line_end": 199,
+          "finding": "assert v9 restart and absent tiler in both noncanonical variants",
+          "blob_sha256": "ec6333a98c36e9280480c3b331890bf9ba884b64097ee60ef2255bab4d810f23"
+        }
+      ],
+      "history_evidence": "git show 3a8689f6 removes the entire old build: ./services/raster-tiler-service blocks in both variants and updates the regression witness in the same commit.",
+      "tests": [
+        "tests_v9/test_e2e_findings_regressions.py::test_v25_live_audit_wiring_regressions"
+      ],
+      "test_count": 1,
+      "counterfactuals": [
+        "tiler_reintroduced_historical_block_docker-compose.fixed.yml",
+        "tiler_reintroduced_historical_block_docker-compose.unified.yml"
+      ],
+      "residual_for_verified": [
+        "Only an actual operational use/render/build path can provide live operational proof under registry policy; no whole fixed/unified build claimed here.",
+        "Other image build-arg gaps in noncanonical compose are not fixed by deleting this tiler."
+      ],
+      "exact_proposed_edits": [
+        {
+          "path": "sahool-brain/gaps/registry.md",
+          "operation": "replace_exact_once",
+          "old": "| TILER-IN-FIXED-AND-UNIFIED-HAS-NO-CONSUMER-AND-CANNOT-BUILD-01 | **fixed/unified: `raster-tiler-service` بلا مستهلك وبلا سياقِ بناءٍ صالح** — لا خدمةَ تتلقّى `TITILER_URL` ولا تعتمد عليه؛ و`build: ./services/raster-tiler-service` بينما الـDockerfile ينسخ مساراتٍ من جذر المستودع؛ ولا تمرّر أيٌّ من الحزمتين `SAHOOL_GIT_SHA`/`SAHOOL_BUILD_ID` فلا تُبنى أيُّ صورةٍ مختومة الهويّة. دليلٌ ساكن (لا Docker daemon). | compose/fixed·unified | `docker-compose.fixed.yml:30` · `docker-compose.unified.yml:50` · `services/raster-tiler-service/Dockerfile:63` | **open — قرارُ مالك** (2026-09-30): هل fixed/unified هدفا بناءٍ مدعومان؟ نعم ⇒ سياق `.` + مسار الـDockerfile + وسائطُ الهويّة ثمّ الربط؛ لا ⇒ حذفُ كتلة الـtiler منهما (أُضيفت في استيراد #1002، `db8a570d`). |",
+          "new": "| TILER-IN-FIXED-AND-UNIFIED-HAS-NO-CONSUMER-AND-CANNOT-BUILD-01 | **fixed/unified: `raster-tiler-service` بلا مستهلك وبلا سياقِ بناءٍ صالح** — لا خدمةَ تتلقّى `TITILER_URL` ولا تعتمد عليه؛ و`build: ./services/raster-tiler-service` بينما الـDockerfile ينسخ مساراتٍ من جذر المستودع؛ ولا تمرّر أيٌّ من الحزمتين `SAHOOL_GIT_SHA`/`SAHOOL_BUILD_ID` فلا تُبنى أيُّ صورةٍ مختومة الهويّة. دليلٌ ساكن (لا Docker daemon). | compose/fixed·unified | `docker-compose.fixed.yml:30` · `docker-compose.unified.yml:50` · `services/raster-tiler-service/Dockerfile:63` | **fixed** — اختير الحذفُ ونُفّذ: أُزيلت كتلة `raster-tiler-service` من `docker-compose.fixed.yml` و`docker-compose.unified.yml` في `bb7c05fb25f26f84f04c0fe56c30ae01f4b7667a`، ودخل الإصلاح main مع #1169 (squash `3a8689f6b13b158405ab000baec12284ea29541f`). الحزمة القانونيّة v9 أبقته موصولاً. الشاهد القائم `tests_v9/test_e2e_findings_regressions.py::test_v25_live_audit_wiring_regressions` نجح على `53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b` في 2026-10-14؛ إعادة كتلة ما قبل #1169 لكل من fixed وunified منفردة في نسخة معزولة تُسقطه. **حد الدليل:** حذف عائق بناء لا شهادة بناء الحزمتين أو تشغيلهما؛ لا verified ولا ادعاء إصلاح سائر وسائط الهوية في fixed/unified. **سياق القرار السابق محفوظ:** في 2026-09-30 طُرح خيار دعم الربط والبناء أو حذف الكتلتين اللتين جاءتا في استيراد #1002 `db8a570d`؛ ينهي #1169 الانتظارَ لهذا الخيار المحدّد. |"
+        }
+      ],
+      "new_source_change_required": false
+    }
+  ]
+}

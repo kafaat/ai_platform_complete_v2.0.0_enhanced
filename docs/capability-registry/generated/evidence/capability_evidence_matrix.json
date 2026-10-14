@@ -10353,6 +10353,7 @@
         "tests/test_real_data.py",
         "tests_v9/test_agriai_engine_features_20260702.py",
         "tests_v9/test_agronomic_state_production_consumers.py",
+        "tests_v9/test_ai_rag_live_certification.py",
         "tests_v9/test_canonical_phenology_state.py",
         "tests_v9/test_crop_model_uncertainty_v64.py",
         "tests_v9/test_crop_twin.py",
