@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5650,
+    "files_scanned": 5652,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
-      "mobile": 55,
+      "mobile": 56,
       "other": 1649,
-      "tests": 1907,
+      "tests": 1908,
       "web": 467
     },
-    "unmapped_artifacts": 2259,
+    "unmapped_artifacts": 2261,
     "ambiguous_artifacts": 435
   },
   "capabilities": [
@@ -39234,6 +39234,10 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/pubspec.yaml",
       "kind": "mobile"
     },
@@ -39243,6 +39247,10 @@
     },
     {
       "path": "mobile/sahool_app/test/auth_service_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
       "kind": "tests"
     },
     {

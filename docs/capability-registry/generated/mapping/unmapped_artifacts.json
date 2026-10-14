@@ -2200,6 +2200,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/pubspec.yaml",
     "kind": "mobile"
   },
@@ -2209,6 +2213,10 @@
   },
   {
     "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
     "kind": "tests"
   },
   {
