@@ -9324,3 +9324,9 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 ## 2026-10-14 — تصحيح استقلال شاهد عمليات CDSE عن مجلد التشغيل
 
 في #1182، كشفت بوابة raster المطلوبة فشل استيراد shared في العمليات الفرعية للشاهد الجديد عند تشغيله من مجلد الخدمة. إضافة cwd صريح إلى جذر المستودع أصلحت إعداد الاختبار دون تغيير المصدر التشغيلي `fbd121fc4631cc4a4ff75c6d9b22eb25c2d70fcc` أو تخفيف شروط ثلاث عمليات ومعرف واحد وإيصال واحد. بصمة الاختبار الحالية `46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8` تختلف عن بصمته التاريخية عند fbd؛ يحفظ `certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json` الدليل الأحمر والتعافي 404 نجاحاً و2 تخطٍّ و12 xfailed ومراجعة مستقلة. تبقى فجوة السبب التاريخي open؛ لا قياس حي أو ادعاء نشر.
+
+## 2026-10-14 — موجة الإغلاق ٢: `PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01`
+
+خفضُ الريّ المخطَّط في التحسين متعدّد المجالات صار `planned_reduction_mm` مع `savings_claim` غيرِ مثبت (عقد #1142)، لا `water_saved_mm`. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. يعيد نشر المنصّة عند الدمج. خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3ac13509` · الشاهد `services/sahool-platform/tests/test_decision_dispatch_endpoint.py::test_optimization_names_a_planned_reduction_not_water_saved`.
