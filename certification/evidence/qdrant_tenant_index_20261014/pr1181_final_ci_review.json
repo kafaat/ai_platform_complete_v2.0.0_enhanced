@@ -1,0 +1,2191 @@
+{
+  "observed_at_utc": "2026-10-14T12:14:56.834Z",
+  "pr": 1181,
+  "head": "733c5be65c55a3677191cfc149873d8cadfb2767",
+  "state": "all_current_checks_passed",
+  "checks": [
+    {
+      "id": 115844402374,
+      "name": "Security Scan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844402374",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:23Z"
+    },
+    {
+      "id": 115844399944,
+      "name": "Live PG Proofs (fake-connection debt)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844399944",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:49:04Z"
+    },
+    {
+      "id": 115844397021,
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844397021",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:28Z"
+    },
+    {
+      "id": 115844396194,
+      "name": "Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844396194",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T12:09:44Z"
+    },
+    {
+      "id": 115844393031,
+      "name": "Integration Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844393031",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:50:58Z"
+    },
+    {
+      "id": 115844385377,
+      "name": "Repository Structural Lint",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844385377",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:48:18Z"
+    },
+    {
+      "id": 115844381531,
+      "name": "Weather Service Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844381531",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:27Z"
+    },
+    {
+      "id": 115844381097,
+      "name": "Platform Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844381097",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:49:45Z"
+    },
+    {
+      "id": 115844375453,
+      "name": "Raster Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844375453",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:47:45Z"
+    },
+    {
+      "id": 115844375231,
+      "name": "Platform Structure Inspector",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844375231",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:47:12Z"
+    },
+    {
+      "id": 115844374868,
+      "name": "Mutation Sweep 1/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844374868",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:53:27Z"
+    },
+    {
+      "id": 115844372380,
+      "name": "Repository Tests (tests/)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844372380",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:56:08Z"
+    },
+    {
+      "id": 115844337952,
+      "name": "Mutation Sweep 5/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337952",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:55:43Z"
+    },
+    {
+      "id": 115844337580,
+      "name": "Mutation Sweep 4/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337580",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:29Z"
+    },
+    {
+      "id": 115844337055,
+      "name": "Decision 033 Restricted Role Proof (PG16)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337055",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:49Z"
+    },
+    {
+      "id": 115844337037,
+      "name": "Mutation Sweep 3/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337037",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:55:09Z"
+    },
+    {
+      "id": 115844336758,
+      "name": "Decision Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336758",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:48:11Z"
+    },
+    {
+      "id": 115844336617,
+      "name": "Mutation Sweep 2/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336617",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:54:19Z"
+    },
+    {
+      "id": 115844336441,
+      "name": "Flutter Analyze & Test",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336441",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:02Z"
+    },
+    {
+      "id": 115844336118,
+      "name": "Frontend E2E (Playwright · MapLibre/WebGL QA)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336118",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:48:39Z"
+    },
+    {
+      "id": 115844335656,
+      "name": "Validate Docker Compose",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844335656",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:16Z"
+    },
+    {
+      "id": 115844333867,
+      "name": "Frontend Typecheck",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844333867",
+      "started_at": "2026-10-14T12:09:57Z",
+      "completed_at": "2026-10-14T12:14:02Z"
+    },
+    {
+      "id": 115835155452,
+      "name": "Repository Tests (tests/)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155452",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:56:08Z"
+    },
+    {
+      "id": 115835155415,
+      "name": "Mutation Sweep 3/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155415",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:55:09Z"
+    },
+    {
+      "id": 115835155405,
+      "name": "Integration Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155405",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:50:58Z"
+    },
+    {
+      "id": 115835155389,
+      "name": "Mutation Sweep 4/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155389",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:29Z"
+    },
+    {
+      "id": 115835155381,
+      "name": "Decision Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155381",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:48:11Z"
+    },
+    {
+      "id": 115835155373,
+      "name": "Raster Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155373",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:47:45Z"
+    },
+    {
+      "id": 115835155359,
+      "name": "Frontend E2E (Playwright · MapLibre/WebGL QA)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155359",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:48:39Z"
+    },
+    {
+      "id": 115835155348,
+      "name": "Security Scan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155348",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:23Z"
+    },
+    {
+      "id": 115835155346,
+      "name": "Decision 033 Restricted Role Proof (PG16)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155346",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:49Z"
+    },
+    {
+      "id": 115835155261,
+      "name": "Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155261",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T12:09:44Z"
+    },
+    {
+      "id": 115835155195,
+      "name": "Mutation Sweep 1/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155195",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:53:27Z"
+    },
+    {
+      "id": 115835155191,
+      "name": "Mutation Sweep 2/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155191",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:54:19Z"
+    },
+    {
+      "id": 115835155172,
+      "name": "Platform Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155172",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:49:45Z"
+    },
+    {
+      "id": 115835155169,
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155169",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:28Z"
+    },
+    {
+      "id": 115835155166,
+      "name": "Flutter Analyze & Test",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155166",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:52:02Z"
+    },
+    {
+      "id": 115835155154,
+      "name": "Live PG Proofs (fake-connection debt)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155154",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:49:04Z"
+    },
+    {
+      "id": 115835155147,
+      "name": "Platform Structure Inspector",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155147",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:47:12Z"
+    },
+    {
+      "id": 115835155104,
+      "name": "Mutation Sweep 5/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155104",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:55:43Z"
+    },
+    {
+      "id": 115835155084,
+      "name": "Repository Structural Lint",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155084",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:48:18Z"
+    },
+    {
+      "id": 115835155072,
+      "name": "Weather Service Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155072",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:27Z"
+    },
+    {
+      "id": 115835155033,
+      "name": "Validate Docker Compose",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835155033",
+      "started_at": "2026-10-14T11:47:06Z",
+      "completed_at": "2026-10-14T11:47:16Z"
+    },
+    {
+      "id": 115835154772,
+      "name": "Frontend Typecheck",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115835154772",
+      "started_at": "2026-10-14T11:47:05Z",
+      "completed_at": "2026-10-14T11:51:02Z"
+    },
+    {
+      "id": 115835121260,
+      "name": "verdict",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115835121260",
+      "started_at": "2026-10-14T11:47:00Z",
+      "completed_at": "2026-10-14T11:47:04Z"
+    },
+    {
+      "id": 115834822869,
+      "name": "build (sahool-platform, services/sahool-platform/Dockerfile)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115834822869",
+      "started_at": "2026-10-14T11:46:14Z",
+      "completed_at": "2026-10-14T11:46:58Z"
+    },
+    {
+      "id": 115834733680,
+      "name": "runtime-stack-e2e-chaos",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834733680",
+      "started_at": "2026-10-14T11:45:58Z",
+      "completed_at": "2026-10-14T11:45:57Z"
+    },
+    {
+      "id": 115834731547,
+      "name": "unified-readiness-evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834731547",
+      "started_at": "2026-10-14T11:45:59Z",
+      "completed_at": "2026-10-14T11:46:09Z"
+    },
+    {
+      "id": 115834591597,
+      "name": "Conversation resolution must be required before merging",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591597",
+      "started_at": "2026-10-14T11:45:48Z",
+      "completed_at": "2026-10-14T11:46:27Z"
+    },
+    {
+      "id": 115834591285,
+      "name": "capability-registry",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591285",
+      "started_at": "2026-10-14T11:45:48Z",
+      "completed_at": "2026-10-14T11:55:26Z"
+    },
+    {
+      "id": 115834591233,
+      "name": "Blocking surface freeze (advisory)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591233",
+      "started_at": "2026-10-14T11:45:47Z",
+      "completed_at": "2026-10-14T11:45:54Z"
+    },
+    {
+      "id": 115834591047,
+      "name": "Gap registry measurement (report-only)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591047",
+      "started_at": "2026-10-14T11:45:47Z",
+      "completed_at": "2026-10-14T11:46:26Z"
+    },
+    {
+      "id": 115834589084,
+      "name": "platform-main-subinventory / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558839484/job/115834589084",
+      "started_at": "2026-10-14T11:45:47Z",
+      "completed_at": "2026-10-14T11:45:56Z"
+    },
+    {
+      "id": 115834587953,
+      "name": "docker-build",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838866/job/115834587953",
+      "started_at": "2026-10-14T11:45:36Z",
+      "completed_at": "2026-10-14T11:45:35Z"
+    },
+    {
+      "id": 115834587385,
+      "name": "pip-mirror-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838981/job/115834587385",
+      "started_at": "2026-10-14T11:45:38Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834587197,
+      "name": "contract-capabilities-schema",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838953/job/115834587197",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834586691,
+      "name": "pytest-contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586691",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:51Z"
+    },
+    {
+      "id": 115834586641,
+      "name": "security-audit",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586641",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834586607,
+      "name": "production-validation-gate",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586607",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:57Z"
+    },
+    {
+      "id": 115834586585,
+      "name": "helm-readiness",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586585",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:50Z"
+    },
+    {
+      "id": 115834586549,
+      "name": "release-package",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586549",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:45Z"
+    },
+    {
+      "id": 115834586529,
+      "name": "supply-chain-static-scan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586529",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:49Z"
+    },
+    {
+      "id": 115834586472,
+      "name": "classify-main-route-residuals",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838947/job/115834586472",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834586454,
+      "name": "drift",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838926/job/115834586454",
+      "started_at": "2026-10-14T11:45:38Z",
+      "completed_at": "2026-10-14T11:45:52Z"
+    },
+    {
+      "id": 115834586376,
+      "name": "health-readiness-schema",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838843/job/115834586376",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834586374,
+      "name": "observability-assets",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586374",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834586338,
+      "name": "report-index",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838961/job/115834586338",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834586181,
+      "name": "edge-model-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838698/job/115834586181",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834586142,
+      "name": "provenance-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838852/job/115834586142",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:24Z"
+    },
+    {
+      "id": 115834585969,
+      "name": "python-compile-sweep",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834585969",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:50Z"
+    },
+    {
+      "id": 115834585929,
+      "name": "platform-route-budget",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838875/job/115834585929",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:59Z"
+    },
+    {
+      "id": 115834585852,
+      "name": "production-certification-checklist / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838868/job/115834585852",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:50Z"
+    },
+    {
+      "id": 115834585755,
+      "name": "evidence-pack",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838974/job/115834585755",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834585692,
+      "name": "indicators-container-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838819/job/115834585692",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834585531,
+      "name": "raster-topographic-qa",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838762/job/115834585531",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:20Z"
+    },
+    {
+      "id": 115834585521,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838866/job/115834585521",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:16Z"
+    },
+    {
+      "id": 115834585439,
+      "name": "no-report-only-change",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838841/job/115834585439",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:44Z"
+    },
+    {
+      "id": 115834585400,
+      "name": "nginx-weather-edge-paths",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838782/job/115834585400",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834585349,
+      "name": "field-workspace-closure",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838793/job/115834585349",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:48Z"
+    },
+    {
+      "id": 115834585328,
+      "name": "raw-weather-processing-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838758/job/115834585328",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834585246,
+      "name": "gate01-physical-effect-freeze",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838841/job/115834585246",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:13Z"
+    },
+    {
+      "id": 115834585058,
+      "name": "p1-main-decomposition",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838746/job/115834585058",
+      "started_at": "2026-10-14T11:45:38Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834585055,
+      "name": "p2-main-decomposition",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838737/job/115834585055",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834585030,
+      "name": "runtime-real-smoke",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838662/job/115834585030",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:21Z"
+    },
+    {
+      "id": 115834585010,
+      "name": "raster-validated-product",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838773/job/115834585010",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:10Z"
+    },
+    {
+      "id": 115834584842,
+      "name": "honesty",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838791/job/115834584842",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:46Z"
+    },
+    {
+      "id": 115834584818,
+      "name": "Notification queue and receipt certification",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838647/job/115834584818",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:05Z"
+    },
+    {
+      "id": 115834584736,
+      "name": "diagnostic-inventory",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838741/job/115834584736",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:47:20Z"
+    },
+    {
+      "id": 115834584621,
+      "name": "raw-data-processing-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838682/job/115834584621",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:15Z"
+    },
+    {
+      "id": 115834584475,
+      "name": "ai-agronomist-main-decomposition / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838764/job/115834584475",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834584457,
+      "name": "plan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115834584457",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:11Z"
+    },
+    {
+      "id": 115834584315,
+      "name": "gitleaks-full-history",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838738/job/115834584315",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:46:19Z"
+    },
+    {
+      "id": 115834584198,
+      "name": "auth-main-decomposition / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838640/job/115834584198",
+      "started_at": "2026-10-14T11:45:39Z",
+      "completed_at": "2026-10-14T11:45:47Z"
+    },
+    {
+      "id": 115834582751,
+      "name": "Gap registry measurement (report-only)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558837924/job/115834582751",
+      "started_at": "2026-10-14T11:45:35Z",
+      "completed_at": "2026-10-14T11:45:35Z"
+    },
+    {
+      "id": 115834582744,
+      "name": "capability-registry",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558837924/job/115834582744",
+      "started_at": "2026-10-14T11:45:35Z",
+      "completed_at": "2026-10-14T11:45:35Z"
+    },
+    {
+      "id": 115834582731,
+      "name": "Conversation resolution must be required before merging",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558837924/job/115834582731",
+      "started_at": "2026-10-14T11:45:35Z",
+      "completed_at": "2026-10-14T11:45:35Z"
+    },
+    {
+      "id": 115834582470,
+      "name": "Blocking surface freeze (advisory)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558837924/job/115834582470",
+      "started_at": "2026-10-14T11:45:35Z",
+      "completed_at": "2026-10-14T11:45:35Z"
+    }
+  ],
+  "check_pages": [
+    97,
+    0
+  ],
+  "statuses": [],
+  "status_pages": [
+    0,
+    0
+  ],
+  "formal_reviews": [],
+  "review_pages": [
+    0,
+    0
+  ],
+  "comments": [],
+  "comment_pages": [
+    0,
+    0
+  ],
+  "inline_comment_pages": [
+    0,
+    0
+  ],
+  "review_threads": [],
+  "notes": [
+    "Four cancelled capability-governance rows superseded by successful current rows; old rows retained.",
+    "Old663 Decision Service failure not counted for final733; final Decision Service passed.",
+    "Final733 frontend attempt1 failed solely pinned-nginx ECR data-rate limit after1455frontend tests; one actual targeted rerun accepted after workflow finished.",
+    "Initial rerun call403 said workflow already running; no job started until successful later call.",
+    "No code changes or weakened guards; no merge performed by open_a.",
+    "All published-head CI and review checks complete. CI success does not prove live Qdrant indexing/deployment."
+  ],
+  "required_contexts": [
+    {
+      "name": "Decision Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844336758
+    },
+    {
+      "name": "Flutter Analyze & Test",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844336441
+    },
+    {
+      "name": "Frontend E2E (Playwright · MapLibre/WebGL QA)",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844336118
+    },
+    {
+      "name": "Frontend Typecheck",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844333867
+    },
+    {
+      "name": "Integration Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844393031
+    },
+    {
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844397021
+    },
+    {
+      "name": "Live PG Proofs (fake-connection debt)",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844399944
+    },
+    {
+      "name": "Mutation Sweep 1/5",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844374868
+    },
+    {
+      "name": "Mutation Sweep 2/5",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844336617
+    },
+    {
+      "name": "Mutation Sweep 3/5",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844337037
+    },
+    {
+      "name": "Mutation Sweep 4/5",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844337580
+    },
+    {
+      "name": "Mutation Sweep 5/5",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844337952
+    },
+    {
+      "name": "Platform Structure Inspector",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844375231
+    },
+    {
+      "name": "Platform Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844381097
+    },
+    {
+      "name": "Repository Structural Lint",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844385377
+    },
+    {
+      "name": "Repository Tests (tests/)",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844372380
+    },
+    {
+      "name": "Security Scan",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844402374
+    },
+    {
+      "name": "Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844396194
+    },
+    {
+      "name": "Validate Docker Compose",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844335656
+    },
+    {
+      "name": "Weather Service Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "job": 115844381531
+    }
+  ],
+  "check_filter": "all",
+  "frontend_retry": {
+    "head": "733c5be65c55a3677191cfc149873d8cadfb2767",
+    "run": 38558838701,
+    "job": 115835154772,
+    "name": "Frontend Typecheck",
+    "classification": "External registry rate limit fetching pinned nginx after successful frontend unit/lint stages",
+    "lines": [
+      "2026-10-14T11:50:30.4039039Z \u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m210 passed\u001b[39m\u001b[22m\u001b[90m (210)\u001b[39m",
+      "2026-10-14T11:50:30.4046247Z \u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1455 passed\u001b[39m\u001b[22m\u001b[90m (1455)\u001b[39m",
+      "2026-10-14T11:50:40.6276784Z frontend_lint_debt_guard: PASS (2 قاعدة مُراقَبة · 38 تحذيراً عند السقف، لكلٍّ سببٌ مكتوب)",
+      "2026-10-14T11:50:40.9706118Z Error response from daemon: toomanyrequests: Data limit exceeded",
+      "2026-10-14T11:50:40.9944861Z docker pull public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 failed (attempt 1/3: CalledProcessError); retrying in 5s",
+      "2026-10-14T11:50:46.0731644Z Error response from daemon: toomanyrequests: Data limit exceeded",
+      "2026-10-14T11:50:46.1089547Z docker pull public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 failed (attempt 2/3: CalledProcessError); retrying in 15s",
+      "2026-10-14T11:51:01.1839032Z Error response from daemon: toomanyrequests: Data limit exceeded",
+      "2026-10-14T11:51:01.3187539Z subprocess.CalledProcessError: Command '['docker', 'pull', 'public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10']' returned non-zero exit status 1."
+    ],
+    "rerun_attempt": {
+      "job_id": 115835154772,
+      "result": {
+        "error": "GitHub API error 403: {\"message\":\"The workflow run containing this job is already running\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflow-runs#re-run-a-job-from-a-workflow-run\",\"status\":\"403\"}",
+        "error_code": "FORBIDDEN",
+        "error_data": {
+          "message": "The workflow run containing this job is already running",
+          "documentation_url": "https://docs.github.com/rest/actions/workflow-runs#re-run-a-job-from-a-workflow-run",
+          "status": "403"
+        }
+      },
+      "error_is_terminal": false,
+      "awaiting": "workflow completion"
+    },
+    "rerun_attempt_after_completion": {
+      "observed_at_utc": "2026-10-14T12:10:03.687Z",
+      "old_job": 115835154772,
+      "new_job": 115844333867,
+      "result": {
+        "success": true
+      }
+    },
+    "rerun_completed": {
+      "job": 115844333867,
+      "status": "completed",
+      "conclusion": "success",
+      "evidence": [
+        "2026-10-14T12:13:15.1381622Z \u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m210 passed\u001b[39m\u001b[22m\u001b[90m (210)\u001b[39m",
+        "2026-10-14T12:13:15.1387785Z \u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1455 passed\u001b[39m\u001b[22m\u001b[90m (1455)\u001b[39m",
+        "2026-10-14T12:13:26.3493842Z f18232174bc9: Pull complete",
+        "2026-10-14T12:13:26.5327183Z 61ca4f733c80: Pull complete",
+        "2026-10-14T12:13:26.5423732Z b464cfdf2a63: Pull complete",
+        "2026-10-14T12:13:26.5490797Z d7e507024086: Pull complete",
+        "2026-10-14T12:13:26.5553151Z 81bd8ed7ec67: Pull complete",
+        "2026-10-14T12:13:26.5610943Z 197eb75867ef: Pull complete",
+        "2026-10-14T12:13:26.5687935Z 34a64644b756: Pull complete",
+        "2026-10-14T12:13:26.9433106Z 39c2ddfd6010: Pull complete",
+        "2026-10-14T12:14:00.9388114Z OK"
+      ],
+      "checked_head": "733c5be65c55a3677191cfc149873d8cadfb2767"
+    }
+  },
+  "pr_metadata": {
+    "number": 1181,
+    "draft": false,
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "head_before": "733c5be65c55a3677191cfc149873d8cadfb2767",
+    "head_after": "733c5be65c55a3677191cfc149873d8cadfb2767",
+    "base": "421a0e7afcecf1de967bf4a26ea9d64788baf1e1"
+  },
+  "current_contexts": [
+    {
+      "id": 115844402374,
+      "name": "Security Scan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844402374"
+    },
+    {
+      "id": 115844399944,
+      "name": "Live PG Proofs (fake-connection debt)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844399944"
+    },
+    {
+      "id": 115844397021,
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844397021"
+    },
+    {
+      "id": 115844396194,
+      "name": "Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844396194"
+    },
+    {
+      "id": 115844393031,
+      "name": "Integration Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844393031"
+    },
+    {
+      "id": 115844385377,
+      "name": "Repository Structural Lint",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844385377"
+    },
+    {
+      "id": 115844381531,
+      "name": "Weather Service Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844381531"
+    },
+    {
+      "id": 115844381097,
+      "name": "Platform Unit Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844381097"
+    },
+    {
+      "id": 115844375453,
+      "name": "Raster Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844375453"
+    },
+    {
+      "id": 115844375231,
+      "name": "Platform Structure Inspector",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844375231"
+    },
+    {
+      "id": 115844374868,
+      "name": "Mutation Sweep 1/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844374868"
+    },
+    {
+      "id": 115844372380,
+      "name": "Repository Tests (tests/)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844372380"
+    },
+    {
+      "id": 115844337952,
+      "name": "Mutation Sweep 5/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337952"
+    },
+    {
+      "id": 115844337580,
+      "name": "Mutation Sweep 4/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337580"
+    },
+    {
+      "id": 115844337055,
+      "name": "Decision 033 Restricted Role Proof (PG16)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337055"
+    },
+    {
+      "id": 115844337037,
+      "name": "Mutation Sweep 3/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844337037"
+    },
+    {
+      "id": 115844336758,
+      "name": "Decision Service Tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336758"
+    },
+    {
+      "id": 115844336617,
+      "name": "Mutation Sweep 2/5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336617"
+    },
+    {
+      "id": 115844336441,
+      "name": "Flutter Analyze & Test",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336441"
+    },
+    {
+      "id": 115844336118,
+      "name": "Frontend E2E (Playwright · MapLibre/WebGL QA)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844336118"
+    },
+    {
+      "id": 115844335656,
+      "name": "Validate Docker Compose",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844335656"
+    },
+    {
+      "id": 115844333867,
+      "name": "Frontend Typecheck",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838701/job/115844333867"
+    },
+    {
+      "id": 115835121260,
+      "name": "verdict",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115835121260"
+    },
+    {
+      "id": 115834822869,
+      "name": "build (sahool-platform, services/sahool-platform/Dockerfile)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115834822869"
+    },
+    {
+      "id": 115834733680,
+      "name": "runtime-stack-e2e-chaos",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834733680"
+    },
+    {
+      "id": 115834731547,
+      "name": "unified-readiness-evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834731547"
+    },
+    {
+      "id": 115834591597,
+      "name": "Conversation resolution must be required before merging",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591597"
+    },
+    {
+      "id": 115834591285,
+      "name": "capability-registry",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591285"
+    },
+    {
+      "id": 115834591233,
+      "name": "Blocking surface freeze (advisory)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591233"
+    },
+    {
+      "id": 115834591047,
+      "name": "Gap registry measurement (report-only)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838775/job/115834591047"
+    },
+    {
+      "id": 115834589084,
+      "name": "platform-main-subinventory / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558839484/job/115834589084"
+    },
+    {
+      "id": 115834587953,
+      "name": "docker-build",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838866/job/115834587953"
+    },
+    {
+      "id": 115834587385,
+      "name": "pip-mirror-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838981/job/115834587385"
+    },
+    {
+      "id": 115834587197,
+      "name": "contract-capabilities-schema",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838953/job/115834587197"
+    },
+    {
+      "id": 115834586691,
+      "name": "pytest-contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586691"
+    },
+    {
+      "id": 115834586641,
+      "name": "security-audit",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586641"
+    },
+    {
+      "id": 115834586607,
+      "name": "production-validation-gate",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586607"
+    },
+    {
+      "id": 115834586585,
+      "name": "helm-readiness",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586585"
+    },
+    {
+      "id": 115834586549,
+      "name": "release-package",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586549"
+    },
+    {
+      "id": 115834586529,
+      "name": "supply-chain-static-scan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586529"
+    },
+    {
+      "id": 115834586472,
+      "name": "classify-main-route-residuals",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838947/job/115834586472"
+    },
+    {
+      "id": 115834586454,
+      "name": "drift",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838926/job/115834586454"
+    },
+    {
+      "id": 115834586376,
+      "name": "health-readiness-schema",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838843/job/115834586376"
+    },
+    {
+      "id": 115834586374,
+      "name": "observability-assets",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834586374"
+    },
+    {
+      "id": 115834586338,
+      "name": "report-index",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838961/job/115834586338"
+    },
+    {
+      "id": 115834586181,
+      "name": "edge-model-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838698/job/115834586181"
+    },
+    {
+      "id": 115834586142,
+      "name": "provenance-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838852/job/115834586142"
+    },
+    {
+      "id": 115834585969,
+      "name": "python-compile-sweep",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838853/job/115834585969"
+    },
+    {
+      "id": 115834585929,
+      "name": "platform-route-budget",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838875/job/115834585929"
+    },
+    {
+      "id": 115834585852,
+      "name": "production-certification-checklist / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838868/job/115834585852"
+    },
+    {
+      "id": 115834585755,
+      "name": "evidence-pack",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838974/job/115834585755"
+    },
+    {
+      "id": 115834585692,
+      "name": "indicators-container-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838819/job/115834585692"
+    },
+    {
+      "id": 115834585531,
+      "name": "raster-topographic-qa",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838762/job/115834585531"
+    },
+    {
+      "id": 115834585521,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838866/job/115834585521"
+    },
+    {
+      "id": 115834585439,
+      "name": "no-report-only-change",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838841/job/115834585439"
+    },
+    {
+      "id": 115834585400,
+      "name": "nginx-weather-edge-paths",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838782/job/115834585400"
+    },
+    {
+      "id": 115834585349,
+      "name": "field-workspace-closure",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838793/job/115834585349"
+    },
+    {
+      "id": 115834585328,
+      "name": "raw-weather-processing-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838758/job/115834585328"
+    },
+    {
+      "id": 115834585246,
+      "name": "gate01-physical-effect-freeze",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838841/job/115834585246"
+    },
+    {
+      "id": 115834585058,
+      "name": "p1-main-decomposition",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838746/job/115834585058"
+    },
+    {
+      "id": 115834585055,
+      "name": "p2-main-decomposition",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838737/job/115834585055"
+    },
+    {
+      "id": 115834585030,
+      "name": "runtime-real-smoke",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838662/job/115834585030"
+    },
+    {
+      "id": 115834585010,
+      "name": "raster-validated-product",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838773/job/115834585010"
+    },
+    {
+      "id": 115834584842,
+      "name": "honesty",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838791/job/115834584842"
+    },
+    {
+      "id": 115834584818,
+      "name": "Notification queue and receipt certification",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838647/job/115834584818"
+    },
+    {
+      "id": 115834584736,
+      "name": "diagnostic-inventory",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838741/job/115834584736"
+    },
+    {
+      "id": 115834584621,
+      "name": "raw-data-processing-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838682/job/115834584621"
+    },
+    {
+      "id": 115834584475,
+      "name": "ai-agronomist-main-decomposition / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838764/job/115834584475"
+    },
+    {
+      "id": 115834584457,
+      "name": "plan",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838719/job/115834584457"
+    },
+    {
+      "id": 115834584315,
+      "name": "gitleaks-full-history",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838738/job/115834584315"
+    },
+    {
+      "id": 115834584198,
+      "name": "auth-main-decomposition / guard",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38558838640/job/115834584198"
+    }
+  ],
+  "current_context_summary": {
+    "success": 69,
+    "skipped": 2,
+    "failed": 0,
+    "pending": 0,
+    "total": 71
+  },
+  "required_pass_count": 20,
+  "legacy_combined_status_note": "state=pending with total_count=0 is the empty legacy-status response; all check-run contexts separately successful or expected skipped.",
+  "expected_skips": [
+    {
+      "name": "docker-build",
+      "condition": "github.event_name == 'workflow_dispatch'",
+      "workflow": ".github/workflows/docker-build-matrix-verifier.yml"
+    },
+    {
+      "name": "runtime-stack-e2e-chaos",
+      "condition": "github.event_name == 'workflow_dispatch' && vars.RUN_LIVE_RUNTIME_TESTS == 'true'",
+      "workflow": ".github/workflows/sahool-production-gates.yml"
+    }
+  ],
+  "post_merge": {
+    "observed_at_utc": "2026-10-14T12:15:59.589Z",
+    "pr": {
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-14T12:14:59Z",
+      "merge_commit_sha": "e849f3279a56b2a7c80f399f1e5c746d7ff5abe9"
+    },
+    "main_sha": "e849f3279a56b2a7c80f399f1e5c746d7ff5abe9",
+    "merge_commit": {
+      "sha": "e849f3279a56b2a7c80f399f1e5c746d7ff5abe9",
+      "tree": "d656e3cdbf44ee1a8b4b3e3058942b812682469b",
+      "parents": [
+        "421a0e7afcecf1de967bf4a26ea9d64788baf1e1"
+      ]
+    },
+    "tree_matches_reviewed_pr_head": true,
+    "history_note": "Merge result is a single-parent squash commit, not a two-parent merge preserving the source-repair commit as main ancestry. Exact tree equality proves integrated content; source SHA provenance remains in PR history/evidence.",
+    "ci": {
+      "state": "in_progress",
+      "check_pages": [
+        66,
+        0
+      ],
+      "checks": [
+        {
+          "id": 115846609463,
+          "name": "runtime-stack-e2e-chaos",
+          "status": "completed",
+          "conclusion": "skipped",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846609463"
+        },
+        {
+          "id": 115846607756,
+          "name": "unified-readiness-evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846607756"
+        },
+        {
+          "id": 115846469319,
+          "name": "indicators-container-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398586/job/115846469319"
+        },
+        {
+          "id": 115846468604,
+          "name": "Blocking surface freeze (advisory)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562399541/job/115846468604"
+        },
+        {
+          "id": 115846468496,
+          "name": "Conversation resolution must be required before merging",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562399541/job/115846468496"
+        },
+        {
+          "id": 115846468485,
+          "name": "Gap registry measurement (report-only)",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562399541/job/115846468485"
+        },
+        {
+          "id": 115846468478,
+          "name": "capability-registry",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562399541/job/115846468478"
+        },
+        {
+          "id": 115846465447,
+          "name": "nginx-weather-edge-paths",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398687/job/115846465447"
+        },
+        {
+          "id": 115846465268,
+          "name": "platform-route-budget",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398764/job/115846465268"
+        },
+        {
+          "id": 115846465208,
+          "name": "honesty",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398667/job/115846465208"
+        },
+        {
+          "id": 115846465132,
+          "name": "report-index",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398665/job/115846465132"
+        },
+        {
+          "id": 115846465075,
+          "name": "classify-main-route-residuals",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398653/job/115846465075"
+        },
+        {
+          "id": 115846465067,
+          "name": "Integration Tests",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846465067"
+        },
+        {
+          "id": 115846464966,
+          "name": "evidence-pack",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398544/job/115846464966"
+        },
+        {
+          "id": 115846464926,
+          "name": "Notification queue and receipt certification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398712/job/115846464926"
+        },
+        {
+          "id": 115846464898,
+          "name": "p2-main-decomposition",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398331/job/115846464898"
+        },
+        {
+          "id": 115846464787,
+          "name": "raster-topographic-qa",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398598/job/115846464787"
+        },
+        {
+          "id": 115846464773,
+          "name": "runtime-real-smoke",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398577/job/115846464773"
+        },
+        {
+          "id": 115846464704,
+          "name": "platform-main-subinventory / guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398597/job/115846464704"
+        },
+        {
+          "id": 115846464526,
+          "name": "vegetation-agriai-production / contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398662/job/115846464526"
+        },
+        {
+          "id": 115846464471,
+          "name": "raster-validated-product",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398644/job/115846464471"
+        },
+        {
+          "id": 115846464345,
+          "name": "p1-main-decomposition",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398623/job/115846464345"
+        },
+        {
+          "id": 115846464307,
+          "name": "Mutation Sweep 5/5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464307"
+        },
+        {
+          "id": 115846464291,
+          "name": "ai-agronomist-main-decomposition / guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398526/job/115846464291"
+        },
+        {
+          "id": 115846464286,
+          "name": "Live PG Proofs (fake-connection debt)",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464286"
+        },
+        {
+          "id": 115846464256,
+          "name": "Platform Unit Tests",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464256"
+        },
+        {
+          "id": 115846464203,
+          "name": "Mutation Sweep 4/5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464203"
+        },
+        {
+          "id": 115846464201,
+          "name": "Mutation Sweep 1/5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464201"
+        },
+        {
+          "id": 115846464200,
+          "name": "Repository Tests (tests/)",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464200"
+        },
+        {
+          "id": 115846464195,
+          "name": "raw-weather-processing-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398516/job/115846464195"
+        },
+        {
+          "id": 115846464178,
+          "name": "Mutation Sweep 3/5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464178"
+        },
+        {
+          "id": 115846464173,
+          "name": "Raster Service Tests",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464173"
+        },
+        {
+          "id": 115846464133,
+          "name": "Mutation Sweep 2/5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464133"
+        },
+        {
+          "id": 115846464123,
+          "name": "drift",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398596/job/115846464123"
+        },
+        {
+          "id": 115846464109,
+          "name": "Frontend E2E (Playwright · MapLibre/WebGL QA)",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464109"
+        },
+        {
+          "id": 115846464102,
+          "name": "Decision 033 Restricted Role Proof (PG16)",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464102"
+        },
+        {
+          "id": 115846464094,
+          "name": "Weather Service Unit Tests",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464094"
+        },
+        {
+          "id": 115846464067,
+          "name": "Flutter Analyze & Test",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464067"
+        },
+        {
+          "id": 115846464047,
+          "name": "Decision Service Tests",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464047"
+        },
+        {
+          "id": 115846464039,
+          "name": "Validate Docker Compose",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464039"
+        },
+        {
+          "id": 115846464022,
+          "name": "Security Scan",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846464022"
+        },
+        {
+          "id": 115846463974,
+          "name": "Lint & Format",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846463974"
+        },
+        {
+          "id": 115846463962,
+          "name": "Frontend Typecheck",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846463962"
+        },
+        {
+          "id": 115846463953,
+          "name": "release-package",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463953"
+        },
+        {
+          "id": 115846463941,
+          "name": "Repository Structural Lint",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846463941"
+        },
+        {
+          "id": 115846463919,
+          "name": "edge-model-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398606/job/115846463919"
+        },
+        {
+          "id": 115846463870,
+          "name": "Platform Structure Inspector",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846463870"
+        },
+        {
+          "id": 115846463743,
+          "name": "auth-main-decomposition / guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398499/job/115846463743"
+        },
+        {
+          "id": 115846463712,
+          "name": "provenance-contract",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398382/job/115846463712"
+        },
+        {
+          "id": 115846463696,
+          "name": "supply-chain-static-scan",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463696"
+        },
+        {
+          "id": 115846463639,
+          "name": "Unit Tests",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398435/job/115846463639"
+        },
+        {
+          "id": 115846463616,
+          "name": "python-compile-sweep",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463616"
+        },
+        {
+          "id": 115846463564,
+          "name": "helm-readiness",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463564"
+        },
+        {
+          "id": 115846463545,
+          "name": "observability-assets",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463545"
+        },
+        {
+          "id": 115846463528,
+          "name": "gitleaks-full-history",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398519/job/115846463528"
+        },
+        {
+          "id": 115846463525,
+          "name": "production-validation-gate",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463525"
+        },
+        {
+          "id": 115846463499,
+          "name": "health-readiness-schema",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398458/job/115846463499"
+        },
+        {
+          "id": 115846463489,
+          "name": "field-workspace-closure",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398430/job/115846463489"
+        },
+        {
+          "id": 115846463460,
+          "name": "security-audit",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463460"
+        },
+        {
+          "id": 115846463432,
+          "name": "ai-container-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398407/job/115846463432"
+        },
+        {
+          "id": 115846463404,
+          "name": "pytest-contracts",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398334/job/115846463404"
+        },
+        {
+          "id": 115846463396,
+          "name": "vegetation-container-contract / guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398371/job/115846463396"
+        },
+        {
+          "id": 115846463324,
+          "name": "pip-mirror-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398418/job/115846463324"
+        },
+        {
+          "id": 115846463240,
+          "name": "contract-capabilities-schema",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398302/job/115846463240"
+        },
+        {
+          "id": 115846463086,
+          "name": "production-certification-checklist / guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398467/job/115846463086"
+        },
+        {
+          "id": 115846463060,
+          "name": "raw-data-processing-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38562398439/job/115846463060"
+        }
+      ],
+      "legacy_status_pages": [
+        14,
+        0
+      ],
+      "legacy_statuses": [
+        {
+          "context": "sahool-staging - sahool-migrate-main",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/5659ab3d-2bff-4bba-93b3-95678233a613"
+        },
+        {
+          "context": "sahool-staging - sahool-soil-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/b92d960f-c267-47d7-a730-5c542d41c791"
+        },
+        {
+          "context": "sahool-staging - sahool-raster-main-candidate",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/ed81bfb8-781f-4901-8329-fb5bbd604412"
+        },
+        {
+          "context": "sahool-staging - sahool-tts-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/b909eb4a-dcae-4e4c-b814-f45970c74447"
+        },
+        {
+          "context": "sahool-staging - sahool-guardrails-engine",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/65cee1c0-8473-4219-b246-1b4015190938"
+        },
+        {
+          "context": "sahool-staging - sahool-ai-agronomist",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/671188de-2a64-4233-8be5-1ac1718b38f0"
+        },
+        {
+          "context": "sahool-staging - sahool-weather-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/08b2cb3a-e22e-4f72-95e7-498635550de4"
+        },
+        {
+          "context": "sahool-staging - sahool-notification-agent",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/a1e03071-668e-49fb-9725-bfcae6a82cfc"
+        },
+        {
+          "context": "sahool-staging - sahool-frontend",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/64048c16-7510-44ab-9ded-4e1c1bc74c56"
+        },
+        {
+          "context": "sahool-staging - sahool-raster-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/475f79b4-b8a5-4d04-9284-ad3150c3f90e"
+        },
+        {
+          "context": "sahool-staging - sahool-field-management-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f"
+        },
+        {
+          "context": "sahool-staging - sahool-auth-main",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/b56ddf76-56a4-405d-b47e-be715e3ebb45"
+        },
+        {
+          "context": "sahool-staging - sahool-decision-service",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/090d3067-f378-4e53-9dc9-3c67c46d35db"
+        },
+        {
+          "context": "sahool-staging - sahool-vegetation-analysis",
+          "state": "success",
+          "target_url": "https://railway.com/project/33c50993-1110-43eb-8e92-04c15edae51e/service/91f77e1d-df19-47dc-8bdb-180122c417a8"
+        }
+      ],
+      "operational_note": "14 Railway commit statuses are success. These statuses do not establish actual deployment, runtime image identity, index creation or applied migrations; separate Railway evidence is required."
+    }
+  }
+}

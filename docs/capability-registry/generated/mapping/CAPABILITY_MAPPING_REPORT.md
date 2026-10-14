@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5602**
+- Files scanned: **5616**
 - Ambiguous artifacts queued: **433**
 - Unmapped artifacts queued: **2259**
 
@@ -30,7 +30,7 @@
 | DEC-008 | decision | 5 | 95 | 14 | 5 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 90 | 49 | 7 | 0 | 0 | 6 | 5 |
-| FM-001 | farm_management | 16 | 2 | 26 | 7 | 1 | 0 | 29 | 6 |
+| FM-001 | farm_management | 16 | 2 | 26 | 8 | 1 | 0 | 29 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 15 | 2 | 28 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 58 | 13 | 1 | 34 | 7 |
@@ -69,7 +69,7 @@
 | PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 36 | 65 | 3 | 41 | 5 | 0 | 47 | 6 |
+| SAT-001 | satellite | 37 | 65 | 3 | 44 | 5 | 0 | 48 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
 | SAT-003 | satellite | 100 | 92 | 42 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 20 | 10 | 5 | 15 | 7 | 0 | 21 | 6 |

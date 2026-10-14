@@ -1,0 +1,29 @@
+{
+  "exit_code": 0,
+  "duration_seconds": 1.919,
+  "before_sha256": {
+    "services/raster-service/cdse_diagnostics.py": "52ef0ec7466e668b29cc17c198aa6b50e6bd71094390962345ec1eb948507b7e",
+    "services/raster-service/raster_cdse_tile_runtime.py": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527",
+    "services/raster-service/tile_render.py": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd",
+    "services/raster-service/test_cdse_durable_diagnostics.py": "bad6978115c16852971ee9c171af7dadebe0e54b7ee3c80502c9e1523e8eecac"
+  },
+  "after_sha256": {
+    "services/raster-service/cdse_diagnostics.py": "52ef0ec7466e668b29cc17c198aa6b50e6bd71094390962345ec1eb948507b7e",
+    "services/raster-service/raster_cdse_tile_runtime.py": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527",
+    "services/raster-service/tile_render.py": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd",
+    "services/raster-service/test_cdse_durable_diagnostics.py": "bad6978115c16852971ee9c171af7dadebe0e54b7ee3c80502c9e1523e8eecac"
+  },
+  "command": [
+    "/workspace/scratch/7e02e5ed5cb5/sahool-venv/bin/python",
+    "-m",
+    "pytest",
+    "-c",
+    "/dev/null",
+    "-p",
+    "no:cacheprovider",
+    "-q",
+    "/workspace/scratch/7e02e5ed5cb5/analysis/test_cdse_privacy_review.py",
+    "--junitxml=/workspace/scratch/7e02e5ed5cb5/analysis/cdse_privacy_review_final.xml"
+  ],
+  "source_stable": true
+}

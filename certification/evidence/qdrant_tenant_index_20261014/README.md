@@ -48,3 +48,18 @@ patch is not included in this evidence directory.
 Actual main was integrated from #1180 at `421a0e7afcecf1de967bf4a26ea9d64788baf1e1`.
 The original wave-zero draft #1179 is closed; its source repair remains
 `959e9730a5770e3728a3ce504522615820cb7991`. This changes provenance only.
+
+## Canonical merge and observed deployment disposition
+
+PR #1181 merged by squash at `e849f3279a56b2a7c80f399f1e5c746d7ff5abe9`.
+Its tree is identical to reviewed PR head `733c5be65c55a3677191cfc149873d8cadfb2767`.
+The copied PR-head CI snapshot records 69 successes, two expected skips and all
+20 required checks successful. It is not a statement about the later main CI
+run or this CDSE candidate. The copied Railway snapshot records 24 SKIPPED
+merge records and unchanged settled deployment identifiers in the 43-entry
+inventory. No live index creation or performance improvement is established.
+
+`postmerge_evidence_copy_manifest.json` binds the two copied provider receipts
+to their reviewed snapshot hashes. Original scratch filenames are mutable;
+the immutable copied bytes and hashes identify this snapshot. Earlier draft
+and pending-gate statements above describe their historical preparation stage.
