@@ -8140,6 +8140,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ollama_image_matches_v9_pin.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ollama_model_provisioning.py",
     "kind": "tests"
   },
