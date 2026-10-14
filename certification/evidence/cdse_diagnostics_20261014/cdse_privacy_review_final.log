@@ -1,0 +1,20 @@
+......                                                                   [100%]
+=============================== warnings summary ===============================
+::test_actual_app_does_not_mount_or_serve_diagnostic_files
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_api_models.py:120: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+    class RawDataProcessResponse(BaseModel):
+
+::test_actual_app_does_not_mount_or_serve_diagnostic_files
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+::test_actual_app_does_not_mount_or_serve_diagnostic_files
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+::test_actual_app_does_not_mount_or_serve_diagnostic_files
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_indicator_product.py:43: UserWarning: Field name "schema" in "ValidatedIndicatorProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedIndicatorProduct(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+6 passed, 4 warnings in 1.13s

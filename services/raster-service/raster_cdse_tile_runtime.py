@@ -15,6 +15,7 @@ import time as _t
 from datetime import UTC, datetime, timedelta
 
 import cdse_client as _cdse
+import cdse_diagnostics
 import cdse_singleflight
 import db_persist as _db
 import layer_lookup
@@ -257,6 +258,39 @@ async def ensure_field_cog(
             geom_sig = "err"
 
     selected: scene_policy.SelectedScene | None = None
+    geotiff_bytes = None
+    before_mask = None
+    after_mask = None
+    diagnostic_stage = "client"
+
+    async def record_failure(outcome: str, error: Exception | None = None) -> None:
+        try:
+            receipt = cdse_diagnostics.failure_receipt(
+                tenant=tenant,
+                field_id=field_id,
+                index=internal,
+                date_from=date_from,
+                date_to=date_to,
+                bbox=field_bbox,
+                geometry=field_geom,
+                max_cloud_pct=MAX_CLOUD_PCT,
+                outcome=outcome,
+                payload=geotiff_bytes,
+                before_mask=before_mask,
+                after_mask=after_mask,
+                error=error,
+                scene_id=selected.scene_id if selected else None,
+                quota_exhausted=isinstance(error, _cdse.CdseQuotaExhausted),
+                stage=diagnostic_stage,
+            )
+            receipt_id = await asyncio.to_thread(cdse_diagnostics.persist, receipt)
+            logger.info("CDSE failure receipt retained: id=%s outcome=%s", receipt_id, outcome)
+        except Exception as storage_error:  # noqa: BLE001 — diagnostics cannot make a failed tile valid
+            # Never log provider exception text or claim a failed write was durable.
+            logger.warning(
+                "CDSE failure receipt persistence unconfirmed: %s", type(storage_error).__name__
+            )
+
     mosaicking_order = _cdse.MOSAIC_LEAST_CLOUD
     client = None
     latest_window = window_spans_multiple_days(date_from, date_to)
@@ -269,6 +303,7 @@ async def ensure_field_cog(
         try:
             client = _cdse.get_client()
         except Exception as e:  # noqa: BLE001
+            await record_failure("client_unavailable", e)
             logger.warning(
                 "CDSE latest client unavailable (%s/%s): %s — fail-closed",
                 field_id,
@@ -277,6 +312,7 @@ async def ensure_field_cog(
             )
             return None
         if not field_bbox:
+            await record_failure("request_invalid")
             logger.warning(
                 "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
                 field_id,
@@ -286,6 +322,7 @@ async def ensure_field_cog(
 
         for probe_from, probe_to in backward_probe_windows(date_from, date_to):
             try:
+                diagnostic_stage = "catalogue"
                 scenes = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda pf=probe_from, pt=probe_to: client.search_scenes(
@@ -298,6 +335,7 @@ async def ensure_field_cog(
                     ),
                 )
             except Exception as e:  # noqa: BLE001
+                await record_failure("provider_error", e)
                 logger.warning(
                     "CDSE latest binding failed (%s/%s): %s — fail-closed",
                     field_id,
@@ -311,6 +349,9 @@ async def ensure_field_cog(
                 break
 
         if selected is None:
+            # The legacy search API returns [] for outages too. No catalogue
+            # response evidence was supplied, so attribution must stay unknown.
+            await record_failure("no_selected_scene")
             logger.warning(
                 "CDSE latest unavailable (%s/%s): no eligible scene — fail-closed",
                 field_id,
@@ -362,6 +403,7 @@ async def ensure_field_cog(
             if client is None:
                 client = _cdse.get_client()
             if not field_bbox:
+                await record_failure("request_invalid")
                 logger.warning(
                     "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
                     field_id,
@@ -369,6 +411,7 @@ async def ensure_field_cog(
                 )
                 return None
 
+            diagnostic_stage = "process"
             geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.process_index(
@@ -381,6 +424,7 @@ async def ensure_field_cog(
                     mosaicking_order=mosaicking_order,
                 ),
             )
+            diagnostic_stage = "local_file"
             tf = tempfile.NamedTemporaryFile(
                 suffix=".tif", delete=False, prefix=f"cdse_{field_id[:8]}_{internal}_"
             )
@@ -389,13 +433,16 @@ async def ensure_field_cog(
             cog_path = tf.name
             if field_geom:
                 try:
+                    diagnostic_stage = "mask"
                     import tile_render as _tr
 
+                    before_mask = _tr.raster_content_observation(cog_path)
                     if _cdse.is_truecolor(internal):
                         _tr.apply_polygon_mask_rgba(cog_path, field_geom)
                     else:
                         _tr.apply_polygon_mask(cog_path, field_geom)
                 except Exception as e:  # noqa: BLE001
+                    await record_failure("mask_failed", e)
                     logger.warning(
                         "polygon mask failed (%s/%s): %s — fail-closed (بلاطة مُهمَلة)",
                         field_id,
@@ -416,10 +463,20 @@ async def ensure_field_cog(
                         )
                     return None
             # نجاح النقل ليس نجاحاً للمحتوى (IMAGERY-BLANK-THUMBNAIL-01).
+            content_outcome = "content_check_failed"
             try:
+                diagnostic_stage = "content_check"
                 import tile_render as _tr
 
                 observable = _tr.raster_has_observable_content(cog_path)
+                if not observable:
+                    after_mask = _tr.raster_content_observation(cog_path)
+                    if after_mask["readable"]:
+                        content_outcome = (
+                            "empty_raster"
+                            if after_mask["observable_pixels"] == 0
+                            else "content_rejected"
+                        )
             except Exception as e:  # noqa: BLE001 — تعذّر القياس ⇒ لا نُخزّن المجهول
                 logger.warning(
                     "content check failed (%s/%s): %s — fail-closed",
@@ -429,17 +486,19 @@ async def ensure_field_cog(
                 )
                 observable = False
             if not observable:
+                await record_failure(content_outcome)
                 # تشخيص المشهد الفارغ: البايتات تُحذَف بعد قليل ولا تُؤرشَف، فلو لم
                 # يُسجَّل **طلبُها** هنا صار السببُ غيرَ منسوب لاحقاً — وهذا ما حدث في
                 # واقعة CDSE المفتوحة: سطرٌ بلا bbox ولا نافذة ولا عتبة سُحُب، فتعذّر
                 # الفصلُ بين «لا مشهد في النافذة» و«السُّحُب أقصتها» و«القناع أفرغها».
                 # المُسجَّل هنا طلبٌ لا محتوى: لا بايتات ولا أسرار.
                 logger.info(
-                    "CDSE returned an empty raster (%s/%s) — not cached: "
+                    "CDSE raster rejected (%s/%s) — not cached: outcome=%s "
                     "window=%s..%s bbox=%s max_cloud_pct=%s mosaicking=%s "
                     "bytes=%s polygon_mask=%s",
                     field_id,
                     internal,
+                    content_outcome,
                     date_from,
                     date_to,
                     list(field_bbox),
@@ -450,6 +509,7 @@ async def ensure_field_cog(
                 )
                 _unlink_best_effort(cog_path, "راستر فارغ من CDSE ⇒ لا يُخزَّن")
                 return None
+            diagnostic_stage = "cache"
             async with cdse_singleflight.cdse_lock():
                 cdse_singleflight.cdse_tile_cache[cache_key] = (
                     _t.monotonic() + 3600.0,
@@ -458,7 +518,10 @@ async def ensure_field_cog(
                 cdse_singleflight.cdse_prune_key_locks_locked()
             return cog_path
         except Exception as e:  # noqa: BLE001
-            logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
+            await record_failure(
+                "provider_error" if diagnostic_stage == "process" else "runtime_failure", e
+            )
+            logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, type(e).__name__)
             return None
 
 

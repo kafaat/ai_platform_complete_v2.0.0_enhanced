@@ -1300,6 +1300,7 @@
         "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
         "services/raster-service/test_backfill_scene_policy.py",
         "services/raster-service/test_cdse_date_normalization.py",
+        "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
@@ -1318,8 +1319,7 @@
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
-        "tests_v9/test_historical_search_cdse_v30_8.py",
-        "tests_v9/test_imagery_single_scene_process.py"
+        "tests_v9/test_historical_search_cdse_v30_8.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1347,6 +1347,10 @@
         {
           "type": "repository",
           "path": "services/raster-service/cdse_singleflight.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/raster-service/cdse_diagnostics.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
@@ -1358,7 +1362,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 3
+        "tests": 4
       }
     },
     {
@@ -1911,6 +1915,7 @@
         "services/raster-service/test_batch_single_open_metrics.py",
         "services/raster-service/test_c7_latest_cache_provenance.py",
         "services/raster-service/test_cdse_date_normalization.py",
+        "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
@@ -1925,8 +1930,7 @@
         "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
         "services/raster-service/test_enterprise_imagery_best_practices.py",
-        "services/raster-service/test_field_terrain.py",
-        "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py"
+        "services/raster-service/test_field_terrain.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1966,7 +1970,7 @@
       },
       "evidence_truncated": {
         "apis": 61,
-        "tests": 105
+        "tests": 106
       }
     },
     {

@@ -1,0 +1,25 @@
+from pathlib import Path
+import sys,tempfile,json,os,stat,hashlib,subprocess
+ROOT=Path('<scratch>/cdse-worktree')
+sys.path[:0]=[str(ROOT/'services/raster-service'),str(ROOT)]
+import cdse_diagnostics as d
+import raster_settings
+calls={'file':0,'directory':0}
+real_fsync=os.fsync
+def tracked(fd):
+ calls['directory' if stat.S_ISDIR(os.fstat(fd).st_mode) else 'file']+=1
+ return real_fsync(fd)
+def receipt(field):
+ return d.failure_receipt(tenant='review-tenant',field_id=field,index='ndvi',date_from='2026-10-14',date_to='2026-10-14',bbox=[0,0,2,2],geometry=None,max_cloud_pct=40,outcome='provider_error',stage='process')
+with tempfile.TemporaryDirectory(prefix='cdse-dedup-review-') as tmp:
+ raster_settings.UPLOAD_DIR=tmp
+ d.os.fsync=tracked
+ initial_ids=[d.persist(receipt('distinct-'+str(i))) for i in range(5)]
+ before=dict(calls)
+ repeated_ids=[d.persist(receipt('repeating')) for _ in range(256)]
+ paths=list((Path(tmp)/'cdse_diagnostics').glob('*.json'))
+ records=[json.loads(p.read_text()) for p in paths]
+ report={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'source_sha256':hashlib.sha256((ROOT/'services/raster-service/cdse_diagnostics.py').read_bytes()).hexdigest(),'initial_distinct_fields':5,'additional_repeated_failures':256,'final_receipts':len(paths),'final_distinct_fields':len({r['request']['field_sha256'] for r in records}),'initial_receipts_remaining':sum((Path(tmp)/'cdse_diagnostics'/(rid+'.json')).exists() for rid in initial_ids),'repeat_fsync_calls':{k:calls[k]-before[k] for k in calls},'all_repeat_returned_ids_unique':len(set(repeated_ids))==256,'live_calls':False}
+ assert report['final_receipts']==6 and report['final_distinct_fields']==6 and report['initial_receipts_remaining']==5
+ assert report['repeat_fsync_calls']=={'file':1,'directory':259}
+out=ROOT.parent/'analysis/cdse_verify_b_duplicate_preservation_witness.json';out.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report))

@@ -1,0 +1,56 @@
+{
+  "schema": "sahool.qdrant-postmerge-evidence-copy.v1",
+  "reviewer": "verify_a",
+  "source_scope": "Read-only provider CI/deployment receipts supplied by root/open_a/verify_c. Copy review performs no provider access or mutation.",
+  "files": [
+    {
+      "file": "pr1181_final_ci_review.json",
+      "original_filename": "pr1181_final_ci_review.json",
+      "original_sha256": "c73f1b3d7cb332cc3f698aed87bb5c19d4ed006db5af0b8fddccd5fd06396afc",
+      "copied_sha256": "c73f1b3d7cb332cc3f698aed87bb5c19d4ed006db5af0b8fddccd5fd06396afc",
+      "bytes": 85083,
+      "byte_identical": true,
+      "redaction_count": 0,
+      "redactions": [],
+      "destination": "certification/evidence/qdrant_tenant_index_20261014/pr1181_final_ci_review.json"
+    },
+    {
+      "file": "qdrant_pr1181_postmerge_e849f327_railway.json",
+      "original_filename": "qdrant_pr1181_postmerge_e849f327_railway.json",
+      "original_sha256": "5e7ae92be28e361e2f9c2a94153fa32f9012105571d4d0608be2af674a69f2fb",
+      "copied_sha256": "5e7ae92be28e361e2f9c2a94153fa32f9012105571d4d0608be2af674a69f2fb",
+      "bytes": 104512,
+      "byte_identical": true,
+      "redaction_count": 0,
+      "redactions": [],
+      "destination": "certification/evidence/qdrant_tenant_index_20261014/qdrant_pr1181_postmerge_e849f327_railway.json"
+    }
+  ],
+  "sanitization_review": {
+    "private_workspace_path_matches": 0,
+    "credential_pattern_matches": 0,
+    "sensitive_key_matches": 0,
+    "bytes_changed": false,
+    "policy": "No detected private scratch paths or credential fields/patterns. Preserve exact original bytes when no redaction is needed; service/project/environment/deployment identifiers and necessary labels retained as evidence. This is a scoped pattern/content review, not proof that arbitrary identifiers cannot be sensitive."
+  },
+  "preserved_assertions": {
+    "tested_head": "733c5be65c55a3677191cfc149873d8cadfb2767",
+    "merge_sha": "e849f3279a56b2a7c80f399f1e5c746d7ff5abe9",
+    "ci_current_contexts": {
+      "success": 69,
+      "skipped": 2,
+      "failed": 0,
+      "pending": 0,
+      "total": 71
+    },
+    "required_success": 20,
+    "railway_merge_records": 24,
+    "railway_states": [
+      "SKIPPED"
+    ],
+    "inventory_services": 43,
+    "settled_deployment_changes": 0,
+    "timestamps_and_raw_outcomes": "byte-identical copies"
+  },
+  "publication_note": "After copying these files and this inventory into the evidence directory, owner refreshes its SHA256SUMS and final generated artifacts. Existing historical raw-test manifest remains unchanged."
+}

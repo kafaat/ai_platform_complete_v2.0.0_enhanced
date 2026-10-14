@@ -1,0 +1,15 @@
+{
+  "head": "a15f73dba458032a08fd2616aeed6b543cc92703",
+  "source_sha256": "52ef0ec7466e668b29cc17c198aa6b50e6bd71094390962345ec1eb948507b7e",
+  "initial_distinct_fields": 5,
+  "additional_repeated_failures": 256,
+  "final_receipts": 256,
+  "final_distinct_fields": 1,
+  "initial_receipts_remaining": 0,
+  "repeat_fsync_calls": {
+    "file": 256,
+    "directory": 1024
+  },
+  "all_repeat_returned_ids_unique": true,
+  "live_calls": false
+}

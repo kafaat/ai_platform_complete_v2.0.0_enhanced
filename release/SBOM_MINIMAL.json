@@ -14315,6 +14315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c64d2e2eb039348e56b0b606aa9219ca58314cf63be5948b786fc7edfdb67aa2"
+        }
+      ],
+      "name": "services/raster-service/cdse_diagnostics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1f6b32aeffe573c1c85e57c8837dc5510f7568067895280efb03a6068bdee1b3"
         }
       ],
@@ -14615,7 +14625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd0557d22cded472d055248e7fd74dd1b299e835b30df99a5abd7ce1be7ad67d"
+          "content": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527"
         }
       ],
       "name": "services/raster-service/raster_cdse_tile_runtime.py",
@@ -15229,6 +15239,16 @@
         }
       ],
       "name": "services/raster-service/test_cdse_date_normalization.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_durable_diagnostics.py",
       "type": "file"
     },
     {
@@ -15925,7 +15945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42728edbe9b2910a82331df96b9b7cd19ee734c742564d2f8205bbada317be4d"
+          "content": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd"
         }
       ],
       "name": "services/raster-service/tile_render.py",

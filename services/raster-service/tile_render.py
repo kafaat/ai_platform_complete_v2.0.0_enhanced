@@ -731,26 +731,43 @@ def raster_has_observable_content(cog_path: str) -> bool:
     القصد **قياس لا ترشيح**: تُستدعى قبل الكاش فقط، ولا تُعدِّل الملفّ ولا تحكم على
     الجودة — سلسلة كلّها NaN تعني «لا مشاهدة»، لا «مشاهدة رديئة».
     """
+    observation = raster_content_observation(cog_path)
+    return observation.get("field_shape_eligible", False) and bool(observation["observable_pixels"])
+
+
+def raster_content_observation(cog_path: str) -> dict:
+    """Measure content without equating an unreadable raster with empty pixels.
+
+    Shared by the cache guard and durable diagnostics; no pixels are retained.
+    ``observable_pixels=None`` means the measurement failed, never a measured zero.
+    """
+    unavailable = {"readable": False, "observable_pixels": None}
     try:
         import numpy as np
         import rasterio
     except Exception:  # noqa: BLE001 — لا rasterio ⇒ لا تحقّق ⇒ لا تخزين
-        return False
+        return unavailable
 
     try:
         with rasterio.open(cog_path) as src:
-            if src.width <= 1 or src.height <= 1:
-                return False
+            # Shape policy is separate from the measured pixel count: a 1x1
+            # raster may contain a valid pixel while remaining cache-ineligible.
+            shape = {"field_shape_eligible": src.width > 1 and src.height > 1}
             if src.count >= 4 and str(src.dtypes[0]) == "uint8":
                 # RGBA: قناة ألفا هي سلطة الصلاحيّة (خارج القناع = 0).
-                return bool((src.read(4) > 0).any())
+                count = int(np.count_nonzero(src.read(4) > 0))
+                return {"readable": True, "observable_pixels": count, **shape}
             band = src.read(1, masked=True)
             if band.mask is not np.ma.nomask and bool(band.mask.all()):
-                return False
+                return {"readable": True, "observable_pixels": 0, **shape}
             values = band.filled(np.nan).astype("float64")
-            return bool(np.isfinite(values).any())
+            return {
+                "readable": True,
+                "observable_pixels": int(np.count_nonzero(np.isfinite(values))),
+                **shape,
+            }
     except Exception:  # noqa: BLE001 — تالف/غير مقروء ⇒ لا يُخزَّن
-        return False
+        return unavailable
 
 
 def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
