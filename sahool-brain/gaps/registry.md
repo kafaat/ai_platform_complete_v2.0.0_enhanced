@@ -7442,7 +7442,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## CAPABILITY-LINKER-ATTRIBUTES-VOICE-RECEIPT-TO-DEC-006-01 — رابطُ القدرات ينسب إيصالَ مزوّد الصوت إلى إيصال طلب التنفيذ
 <!-- gap-registry: current -->
-- **الحالة:** fixed — الإصلاح `8461c197` في PR #1178 (الأساس `a0c5c920`)؛ مصنوعٌ مولَّد لا يحتاج نشراً، ولا verified حتّى يدخل main.
+- **الحالة:** fixed — الإصلاح `8461c197` في PR #1178 (الأساس `a0c5c920`)؛ مصنوعٌ مولَّد لا يحتاج نشراً؛ دخل main في `53652e02` (PR #1178، squash 2026-10-13T23:42Z، شجرتُه = الرأس المُختبَر `ff12e038`)، ولا verified لأنّ الدخول إلى main ليس تحقّقاً حيّاً (تنبيه Gap Watch 2026-10-14).
 - **المصدر:** مراجعة Copilot على #1176 (`capabilities/registry/capabilities.json` في DEC-006 عند `a0c5c920`)؛ `scripts/ci/capability_linker.py` (قاعدة DEC-006).
 - **العلّة:** الرمز `delivery-receipt` كان يطابق اسم الملفّ `tests_v9/test_tts_voice_delivery_receipt.py` (2 للرمز + 1 للاختبار ⇒ 3 ≥ العتبة 2)، فدخل اختبارُ قبول مزوّد الصوت في `tests` و`runtime.receipts` لـDEC-006، وDEC-006 هو `POST /v1/execution-requests/{execution_request_id}/receipt` في خدمة القرار وحده؛ فتضخّمت أدلّتُه بتغطيةٍ لا تمسّ مسارَ التنفيذ.
 - **الإصلاح:** الرمز صار `execution-delivery-receipt`، فيبقى شاهدا التنفيذ (`services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py` و`tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py`) ويخرج اختبارُ الصوت وحده؛ المولَّد: DEC-006 من 3 اختبارات إلى 2 ولا رابطَ آخر تغيّر.
