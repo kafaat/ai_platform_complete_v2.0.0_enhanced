@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "gap_id": "QDRANT-TENANT-FILTER-HAS-NO-PAYLOAD-INDEX-01",
+  "repair_sha": "f0f2ee711e4426451d7708b03479affbe34b41e2",
+  "source_tree": "516a4a08fdb23ef36a712edad65364d851bdc7ea",
+  "base_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "branch": "codex/qdrant-index-reconciliation",
+  "pr_number": 1181,
+  "publication_state": "draft_pr_open_unmerged_final_head_ci_pending",
+  "finalization_required": "Run final artifact generation and required committed-range/CI gates after this edit; PR creation does not establish merge or live deployment.",
+  "source_sha256": {
+    "services/sahool-platform/core/rag/production_qdrant.py": "f3dd2c6c4d525b4804b1c90470bdf166565c029f91c50bb08d611d3b99afa8b2",
+    "tests_v9/test_qdrant_probe_classification.py": "4fe20f7d7674954e86feeafd7db548ce7ad7931bf6df12150cc8fe049708adf3"
+  },
+  "evidence_scope": "Offline code/tests and independent review; no live Qdrant or deployment measurement. Historical receipts retain their original pre-commit state; this file binds their exact source hashes to the real repair commit.",
+  "sanitization": [
+    "Replace absolute scratch root with workspace-redacted in copied reports and witness text (XML-safe plain text).",
+    "Replace XML hostname attributes with redacted-local-host.",
+    "Do not change assertions, counts, test names, outcomes, timestamps or source hashes.",
+    "Witness script preserved as .py.txt historical evidence; not a new executable script."
+  ],
+  "integrated_main_sha": "421a0e7afcecf1de967bf4a26ea9d64788baf1e1",
+  "integrated_main_pr": 1180,
+  "wave0_source_sha": "959e9730a5770e3728a3ce504522615820cb7991",
+  "wave0_origin_pr": 1179,
+  "wave0_origin_pr_state": "closed",
+  "pr_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1181",
+  "pr_opening_head_sha": "663ed97d1bfeb5783fdb5550f23bdff73459ff2f"
+}

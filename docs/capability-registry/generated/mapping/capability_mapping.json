@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5596,
+    "files_scanned": 5602,
     "files_by_kind": {
       "backend": 1222,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1598,
+      "other": 1604,
       "tests": 1905,
       "web": 467
     },
@@ -3942,6 +3942,22 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_index_repair_result.json",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_verify_b_review.json",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "docs/adr/ADR-0033-field-management-tenant-claim-trust.md",
           "score": 14,
           "signals": [
@@ -4044,6 +4060,36 @@
             "path:tenant",
             "content:tenant"
           ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/README.md",
+          "score": 13,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/provenance.json",
+          "score": 11,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/evidence_manifest.json",
+          "score": 8,
+          "signals": [
+            "path:tenant"
+          ]
+        },
+        {
+          "path": "certification/evidence/qdrant_tenant_index_20261014/qdrant_verify_b_api_witness.json",
+          "score": 8,
+          "signals": [
+            "path:tenant"
+          ]
         }
       ],
       "ambiguous": [],
@@ -4059,7 +4105,7 @@
         "mobile": 0,
         "tests": 29,
         "governance": 0,
-        "other_evidence": 13
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true

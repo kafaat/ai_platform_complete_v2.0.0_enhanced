@@ -1,0 +1,166 @@
+{
+  "reviewer": "verify_b",
+  "stage": "completed",
+  "worktree": "workspace-redacted/qdrant-worktree",
+  "base_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "gap_id": "QDRANT-TENANT-FILTER-HAS-NO-PAYLOAD-INDEX-01",
+  "original_state": "open",
+  "scope_ar": "الفجوة أداء وفهرسة حمولة؛ عزل المستأجر قائم بمرشح الخادم. لا ادعاء تسرب ولا تعديل مرشح البحث.",
+  "acceptance": [
+    "New collection: create only after proven 404, then create metadata.tenant_id keyword index before first point upsert.",
+    "Existing collection missing the index: add only that index after vector dimension validation; preserve points, vector schema, optimizer and HNSW configuration.",
+    "Existing keyword index, including parameterized keyword/is_tenant/on_disk configuration: no index PUT, DELETE, collection recreation, or downgrade on repeated ensure_collection.",
+    "Missing payload_schema, malformed response or incompatible existing index type: fail clearly without destructive repair or treating uncertain state as absence.",
+    "Index creation uses wait=true and confirms the keyword postcondition; absent or wrong postcondition must not be reported as success.",
+    "Qdrant HTTP errors preserve status and exception compatibility; index creation or validation failure prevents point upsert and process-local BM25/chunk mutations.",
+    "Search still requests metadata.tenant_id match.any with trusted tenant and __global__; tenant index work neither broadens nor substitutes this filter.",
+    "Tests witness behavior and call ordering for new/existing/idempotent/error cases, not presence of implementation strings."
+  ],
+  "callgraph_sources": [
+    {
+      "path": "services/sahool-platform/core/rag/production_qdrant.py",
+      "symbol": "QdrantHttpClient.ensure_collection",
+      "base_line": 1101
+    },
+    {
+      "path": "services/sahool-platform/core/rag/production_qdrant.py",
+      "symbol": "HybridQdrantRetriever.ingest",
+      "base_line": 1184,
+      "observation": "only production caller of ensure_collection; embedding then ensure then upsert then BM25"
+    },
+    {
+      "path": "services/rag-retrieval/main.py",
+      "symbol": "ingest",
+      "base_line": 239,
+      "observation": "storage exceptions converted to HTTP 502; sparse readiness invalidated only on successful ingest"
+    },
+    {
+      "path": "services/rag-retrieval/main.py",
+      "symbol": "readyz / search",
+      "observation": "read paths do not invoke ensure_collection"
+    },
+    {
+      "path": "services/qdrant-seed/seed.py",
+      "symbol": "seed collection provisioning",
+      "base_line": 304,
+      "observation": "separate AsyncQdrantClient collection/create/upsert path; no call to canonical HTTP ensure_collection"
+    },
+    {
+      "path": "services/local-ai-rag/main.py",
+      "symbol": "init_vectorstore",
+      "base_line": 189,
+      "observation": "separate LangChain from_existing_collection read path"
+    }
+  ],
+  "deployment_boundary": [
+    "No live Qdrant deployment or existing collection mutation is performed by this review.",
+    "A code repair reached only from ingest cannot imply all existing read-only/seeded collections are indexed after deployment; operator may call the explicit ensure path after verifying dimension, with no fake ingest required.",
+    "Payload index creation over old data does not prove HNSW filter-aware edges were rebuilt, latency improved, or any live tenant isolation receipt exists.",
+    "Do not change HNSW settings, drop/recreate a collection or index, reseed, rewrite payloads, or alter embedding provenance within this repair.",
+    "Any justified state transition is fixed at the repair SHA, not verified. Live verification needs a real Qdrant schema receipt and measurements on an authorized collection."
+  ],
+  "version_surface": {
+    "docker-compose.v9.yml": "1.17.1",
+    "docker-compose.fixed.yml": "1.17.1",
+    "docker-compose.unified.yml": "1.11.0",
+    "docker-compose.test.yml": "1.9.2",
+    "decision": "keyword baseline avoids requiring tenant-index extension; existing extra parameters must be preserved"
+  },
+  "primary_sources": [
+    {
+      "url": "https://api.qdrant.tech/v-1-17-x/api-reference/indexes/create-field-index",
+      "retrieved": true,
+      "supports": "PUT collection/index, keyword field schema, wait semantics"
+    },
+    {
+      "url": "https://api.qdrant.tech/v-1-17-x/api-reference/collections/get-collection",
+      "retrieved": true,
+      "supports": "GET collection details exposes result.payload_schema"
+    },
+    {
+      "url": "https://api.qdrant.tech/v-1-11-x/api-reference/indexes/create-field-index",
+      "retrieved": true,
+      "supports": "keyword and wait available on unified version"
+    },
+    {
+      "url": "https://qdrant.tech/documentation/manage-data/indexing/",
+      "retrieved": true,
+      "supports": "nested dot notation, indexing cost, create before ingest, HNSW rebuilding is separate"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "nonblocking_existing_test_isolation",
+      "summary": "Collecting tests/test_production_rag_kg_mcp.py with the selected v9 modules loads a colliding shared package and causes two shared.ai import failures; warm-index tests also skip without platform core path.",
+      "baseline_confirmed": true,
+      "patch_relation": "Same two failures and four skips reproduced against unmodified production_qdrant.py on baseline main. Separate-process suites with explicit core path pass 69/69 without skips.",
+      "action": "Report honestly; do not expand payload-index repair to unrelated test-import setup."
+    }
+  ],
+  "tests": [
+    {
+      "name": "mixed_first",
+      "cwd": "workspace-redacted/qdrant-worktree",
+      "command": "PYTHONDONTWRITEBYTECODE=1 workspace-redacted/sahool-venv/bin/python -m pytest -p no:cacheprovider tests_v9/test_qdrant_probe_classification.py tests_v9/test_rag_warm_index_revalidation.py tests_v9/test_ai_rag_delta_p0.py tests/test_production_rag_kg_mcp.py --basetemp=workspace-redacted/analysis/pytest_qdrant_verify_b --junitxml=workspace-redacted/analysis/qdrant_verify_b_tests.xml",
+      "rc": 1,
+      "total": 69,
+      "passed": 63,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 4,
+      "artifact": "workspace-redacted/analysis/qdrant_verify_b_tests.xml"
+    },
+    {
+      "name": "v9_isolated",
+      "cwd": "workspace-redacted/qdrant-worktree",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=workspace-redacted/qdrant-worktree:workspace-redacted/qdrant-worktree/services/sahool-platform workspace-redacted/sahool-venv/bin/python -m pytest -p no:cacheprovider tests_v9/test_qdrant_probe_classification.py tests_v9/test_rag_warm_index_revalidation.py tests_v9/test_ai_rag_delta_p0.py --basetemp=workspace-redacted/analysis/pytest_qdrant_verify_b_isolated --junitxml=workspace-redacted/analysis/qdrant_verify_b_isolated_tests.xml",
+      "rc": 0,
+      "total": 63,
+      "passed": 63,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "artifact": "workspace-redacted/analysis/qdrant_verify_b_isolated_tests.xml"
+    },
+    {
+      "name": "legacy_isolated",
+      "cwd": "workspace-redacted/qdrant-worktree",
+      "command": "PYTHONDONTWRITEBYTECODE=1 workspace-redacted/sahool-venv/bin/python -m pytest -p no:cacheprovider tests/test_production_rag_kg_mcp.py --basetemp=workspace-redacted/analysis/pytest_qdrant_verify_b_legacy --junitxml=workspace-redacted/analysis/qdrant_verify_b_legacy_tests.xml",
+      "rc": 0,
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "artifact": "workspace-redacted/analysis/qdrant_verify_b_legacy_tests.xml"
+    },
+    {
+      "name": "same_failure_on_baseline",
+      "cwd": "workspace-redacted/sahool",
+      "command": "PYTHONDONTWRITEBYTECODE=1 workspace-redacted/sahool-venv/bin/python -m pytest -p no:cacheprovider tests_v9/test_rag_warm_index_revalidation.py tests_v9/test_ai_rag_delta_p0.py tests/test_production_rag_kg_mcp.py --basetemp=workspace-redacted/analysis/pytest_qdrant_verify_b_baseline --junitxml=workspace-redacted/analysis/qdrant_verify_b_baseline_tests.xml",
+      "rc": 1,
+      "total": 24,
+      "passed": 18,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 4,
+      "artifact": "workspace-redacted/analysis/qdrant_verify_b_baseline_tests.xml"
+    },
+    {
+      "name": "independent_api_witness",
+      "command": "PYTHONDONTWRITEBYTECODE=1 workspace-redacted/sahool-venv/bin/python workspace-redacted/analysis/qdrant_verify_b_api_witness.py",
+      "rc": 0,
+      "passed": 7,
+      "failed": 0,
+      "artifact": "workspace-redacted/analysis/qdrant_verify_b_api_witness.json",
+      "scope": "Real API route/retriever/client with injected Qdrant responses; preserves typed original exception cause and 502 conversion, points/BM25/cache/readiness unchanged on failure. No real server or auth middleware exercised."
+    }
+  ],
+  "verdict": "No material blocker in the reviewed patch; acceptance satisfied by code and offline execution. Recommend fixed at repair SHA only, not verified.",
+  "reviewed_head": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "worktree_sha256": {
+    "services/sahool-platform/core/rag/production_qdrant.py": "f3dd2c6c4d525b4804b1c90470bdf166565c029f91c50bb08d611d3b99afa8b2",
+    "tests_v9/test_qdrant_probe_classification.py": "4fe20f7d7674954e86feeafd7db548ce7ad7931bf6df12150cc8fe049708adf3"
+  },
+  "summary_ar": "اجتازت الرقعة 63 اختبار v9 و6 اختبارات legacy بعمليات منفصلة، مع 7 شواهد API مستقلة. لا حذف/إعادة إنشاء ولا تعديل HNSW ولا نقاط ولا مرشحات. existing keyword محفوظ بلا كتابة والمفقود يضاف مع completed وقراءة لاحقة. existing read-only/seed-only collections تحتاج استدعاء مسار التهيئة الصريح؛ لا دليل نشر أو تحسن أداء."
+}
