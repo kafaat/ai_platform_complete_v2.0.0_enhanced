@@ -26,8 +26,9 @@ import asyncpg
 import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi import FastAPI, Header, HTTPException
 from jose import JWTError as _JE
-from jose import jwt as _jwt
 from pydantic import BaseModel, Field
+
+from shared.security.access_tokens import decode_access_token
 
 try:
     from shared.logging_config import setup_logging
@@ -130,7 +131,9 @@ if (
 def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
-        payload = _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
+        payload = decode_access_token(
+            token, _JWT_SECRET, algorithm=_JWT_ALG, backend="jose", site="erp-bridge:verify_token"
+        )
     except _JE as e:
         raise ValueError(f"Invalid token: {e}") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.

@@ -17,7 +17,6 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 import httpx
-import jwt as _jwt
 from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from prometheus_client import (
@@ -29,6 +28,7 @@ from prometheus_client import (
 )
 from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
 
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.service_tenant_assertion import create_tenant_assertion
 
@@ -174,8 +174,12 @@ def _verify_claims(token) -> dict:
     if not _VEG_JWT_SECRET or len(_VEG_JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط")
     try:
-        payload = _jwt.decode(
-            token.credentials, _VEG_JWT_SECRET, algorithms=[_VEG_JWT_ALG], audience="sahool"
+        payload = decode_access_token(
+            token.credentials,
+            _VEG_JWT_SECRET,
+            algorithm=_VEG_JWT_ALG,
+            backend="pyjwt",
+            site="vegetation-analysis:_verify_claims",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None

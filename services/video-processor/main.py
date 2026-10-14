@@ -25,8 +25,9 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
 from jose import JWTError as _v_JE
-from jose import jwt as _v_jwt
 from pydantic import BaseModel, Field, field_validator
+
+from shared.security.access_tokens import decode_access_token
 
 # ── حارس SSRF لمصادر البثّ ────────────────────────────────────
 # الخدمة تتّصل بكاميرات ميدانيّة تعيش غالباً على شبكات LAN خاصّة، فلا نحظر
@@ -425,11 +426,14 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
         raise HTTPException(401, "Authentication required")
     try:
         _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
-        payload = _v_jwt.decode(
+        # المفتاحُ الفارغ يُرفَض في المُفكِّك المشترك: python-jose كان يقبل توكناً موقَّعاً
+        # بمفتاح HMAC فارغ حين يغيب JWT_SECRET (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
+        payload = decode_access_token(
             creds.credentials,
             _v_pub or os.getenv("JWT_SECRET", ""),
-            algorithms=["RS256" if _v_pub else "HS256"],
-            audience="sahool",
+            algorithm="RS256" if _v_pub else "HS256",
+            backend="jose",
+            site="video-processor:_get_current_user",
         )
     except _v_JE as e:
         raise HTTPException(401, "Invalid token") from e
