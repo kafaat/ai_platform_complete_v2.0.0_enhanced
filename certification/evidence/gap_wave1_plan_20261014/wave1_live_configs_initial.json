@@ -1,0 +1,1641 @@
+[
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.046Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+        "name": "sahool-weather-service",
+        "state": "live"
+      },
+      "source": {
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/weather-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/weather-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "e17a93f2-cdbe-4e02-9b70-9dc8b9662d0b",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:42.707Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.930Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+        "name": "sahool-tts-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "claude/project-exploration-dtjw3p",
+        "commitSha": "0eaa1e4e2e1deee237ef7238bcd88ea07919a0e4",
+        "rootDirectory": "/"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/tts-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/tts-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "2705c13b-c1bc-4d92-9e19-9331a963f6bb",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:35.371Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.416Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "9c477b50-c083-4eae-9c7f-18594245c0e4",
+        "name": "sahool-redis-state-0zaK",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": {
+        "id": "e363512f-4087-4f12-a059-1c78d1b16fb2",
+        "status": "SLEEPING",
+        "createdAt": "2026-10-12T16:23:24.355Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "a96fe30b-1a87-4648-85c0-b24e5a6485de",
+          "name": "sahool-redis-state-data-qTA9",
+          "mountPath": "/data",
+          "sizeMB": 50000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.149Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+        "name": "sahool-platform",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "deploy/sahool-platform-db-ready-eb6da9df",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/sahool-platform/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/sahool-platform/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "611c4fb7-aba7-4f82-bc7f-fffbb0ed5768",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:38.966Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.132Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "81c84fcf-fbe9-498e-bff6-9c7d576af81f",
+        "name": "sahool-migrate",
+        "state": "live"
+      },
+      "source": {
+        "rootDirectory": "/"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": null,
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.073Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+        "name": "sahool-decision-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/decision-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/decision-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "cafa91d3-4f99-4bfe-a1be-dc45441ed4a2",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:36.861Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.071Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+        "name": "sahool-raster-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/raster-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/raster-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "1a3c8b86-9b6a-4939-80ee-557d2e7fc1c4",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-14T14:36:47.486Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+          "name": "sahool-raster-service-volume",
+          "mountPath": "/data/rasters",
+          "sizeMB": 50000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.689Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+        "name": "sahool-field-management-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/field-management-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/field-management-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "9eca8012-2f04-474a-bedf-7f67991f5c72",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:41.246Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.471Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "01de1a7c-3a4a-4772-aff2-080b3a78c58a",
+        "name": "sahool-nats",
+        "state": "live"
+      },
+      "source": {
+        "image": "nats:2-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "4b043a2c-cc8f-42fa-8f25-19f5a905d39a",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:26.464Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "12ec3de9-6173-48fb-832c-aabfa604d085",
+          "name": "sahool-nats-volume",
+          "mountPath": "/data",
+          "sizeMB": 50000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.372Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+        "name": "sahool-postgres",
+        "state": "live"
+      },
+      "source": {
+        "image": "postgis/postgis:15-3.4"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "524e3c82-ea3e-415b-aeaa-f2253fc92887",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:22.481Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+          "name": "sahool-postgres-data",
+          "mountPath": "/var/lib/postgresql/data",
+          "sizeMB": 50000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.462Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "92c68962-8878-49e7-9b71-50908f0d1d5e",
+        "name": "platform-db-proof-20260927",
+        "state": "live"
+      },
+      "source": {
+        "image": "python@sha256:a36c24f9cbdf4fd0f52d67f0823eeac19c2028c637cecc392d97f980d4fec56b"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": {
+        "id": "31f65eae-6565-4ada-b9ce-c1208ecbf810",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:18.122Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.374Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+        "name": "sahool-raster-main-candidate",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/raster-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/raster-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "5120e7aa-5c5c-459b-84ae-7439a4bd7357",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-14T14:36:47.066Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.923Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+        "name": "sahool-notification-agent",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/agents/notification/**",
+          "/agents/base_agent.py",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "agents/notification/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "a3caad64-cf95-496d-981e-ab71d166613c",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T21:30:59.156Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.595Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+        "name": "sahool-vegetation-analysis",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/vegetation-analysis-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/vegetation-analysis-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "83c918e2-5712-4216-9976-cf50c393fcea",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T14:58:57.558Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.681Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "cae85573-5316-40b9-bf62-ccda465e4228",
+        "name": "sahool-redis-state",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "af769dbe-f311-4bf2-bac3-c2f20f029fb1",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:32.737Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "7470ec43-a8c2-4d76-b134-7842bc724fc8",
+          "name": "sahool-redis-state-data-_SII",
+          "mountPath": "/data",
+          "sizeMB": 50000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.217Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "65cee1c0-8473-4219-b246-1b4015190938",
+        "name": "sahool-guardrails-engine",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/guardrails-engine/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/guardrails-engine/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "63cec7f9-3a97-4730-ac61-de25e3512201",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:37.231Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.215Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "name": "sahool-migrate-main",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/migrations/**",
+          "/deploy/railway/Dockerfile.migrate"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": {
+        "id": "4b295609-a6f7-4c5d-8db2-41a970bea8d5",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T14:58:56.467Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.423Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+        "name": "sahool-auth-main",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/auth/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/auth/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "8571caee-5f22-4a5d-96fa-e5fd317610d1",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:18.605Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.658Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+        "name": "sahool-frontend",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/frontend/**",
+          "/deploy/railway/Dockerfile.frontend",
+          "/deploy/railway/render_frontend.py"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.frontend"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "e53d3783-f542-4499-90d0-d2951011bafd",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T22:45:12.293Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.170Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+        "name": "sahool-redis",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "68ceea21-81a7-40e5-98b0-fccc2343111f",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:38.214Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.627Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "671188de-2a64-4233-8be5-1ac1718b38f0",
+        "name": "sahool-ai-agronomist",
+        "state": "live"
+      },
+      "source": {
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/ai_agronomist/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/ai_agronomist/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "37df59af-b9ab-4b1c-924c-339be3149333",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:37.956Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:58.166Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b92d960f-c267-47d7-a730-5c542d41c791",
+        "name": "sahool-soil-service",
+        "state": "live"
+      },
+      "source": {
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/soil-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/soil-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "cf7e45c8-0b95-449c-b3f6-09bc4f5e9ca3",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:34.256Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "staging",
+    "captured_at": "2026-10-14T15:04:57.603Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b17a9fe6-4f07-4670-a2d2-c9fb3111196d",
+        "name": "wc005-postgres-live-proof",
+        "state": "live"
+      },
+      "source": {
+        "image": "postgres:16-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": {
+        "id": "60b6ca6b-4a1c-4fde-8c7c-c804d60aa587",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:26.134Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.601Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "9c477b50-c083-4eae-9c7f-18594245c0e4",
+        "name": "sahool-redis-state-0zaK",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "940ed50c-b09a-420f-b8b6-ba8b18ef9c88",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:35.985Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "a96fe30b-1a87-4648-85c0-b24e5a6485de",
+          "name": "sahool-redis-state-data-qTA9",
+          "mountPath": "/data",
+          "sizeMB": 5000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:58.069Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "ab01995b-761f-4f8b-9d0b-e9a62a0876bd",
+        "name": "sahool-postgres",
+        "state": "live"
+      },
+      "source": {
+        "image": "postgis/postgis:15-3.4"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "5c2667f5-76c9-40fd-a1a4-2e58705b2605",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:42.603Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "d88ef422-c299-4ed9-b31d-1dc668a1d35b",
+          "name": "sahool-postgres-data",
+          "mountPath": "/var/lib/postgresql/data",
+          "sizeMB": 1024,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.913Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+        "name": "sahool-raster-main-candidate",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/raster-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/raster-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "511d5719-1891-4940-978a-8ec08123dcfc",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-14T14:36:47.067Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:58.095Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "81c84fcf-fbe9-498e-bff6-9c7d576af81f",
+        "name": "sahool-migrate",
+        "state": "live"
+      },
+      "source": {
+        "rootDirectory": "/"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": null,
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.908Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "fa8afb01-d0c4-468f-852d-8a75ea97a6c3",
+        "name": "sahool-platform",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "deploy/sahool-staging-fa92a1f7",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/sahool-platform/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/sahool-platform/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "b83c0808-b980-491e-add2-4d5e0755adb1",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:37.453Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.902Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "5659ab3d-2bff-4bba-93b3-95678233a613",
+        "name": "sahool-migrate-main",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/migrations/**",
+          "/deploy/railway/Dockerfile.migrate"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.migrate"
+      },
+      "deploy": {
+        "restartPolicyType": "NEVER"
+      },
+      "latestDeployment": {
+        "id": "fa12dcbc-c730-4100-9160-4a051391f321",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T14:58:56.467Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.811Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+        "name": "sahool-raster-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/raster-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/raster-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "24b25af7-a575-4597-8e8b-93fff710e5ef",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-14T14:36:48.214Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "b7ff889f-f91c-4088-962f-537e79f2fcfd",
+          "name": "sahool-raster-service-volume",
+          "mountPath": "/data/rasters",
+          "sizeMB": 5000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:58.399Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+        "name": "sahool-tts-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/tts-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/tts-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "e5407e39-48bd-44ef-be1d-5e748ff192bc",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T20:57:05.511Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.991Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+        "name": "sahool-decision-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/decision-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/decision-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "3389c236-c65b-43fa-9a54-8e8a00d098b5",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:23.892Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:58.132Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+        "name": "sahool-frontend",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/frontend/**",
+          "/deploy/railway/Dockerfile.frontend",
+          "/deploy/railway/render_frontend.py"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "deploy/railway/Dockerfile.frontend"
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "bc2489ed-8caf-48cc-8d01-c5e5670844d9",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T22:45:12.253Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.542Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "65cee1c0-8473-4219-b246-1b4015190938",
+        "name": "sahool-guardrails-engine",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/guardrails-engine/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/guardrails-engine/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "563b547c-acd3-41de-b80e-b3922d2e354d",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:20.721Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.591Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "f37b4995-25cc-4f9b-a5f9-14d6759ccd1a",
+        "name": "sahool-auth",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "deploy/sahool-staging-fa92a1f7",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/auth/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/auth/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "23b97306-4f8b-4e11-bc15-33d8f04d4ab3",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:40.892Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.761Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+        "name": "sahool-vegetation-analysis",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/vegetation-analysis-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/vegetation-analysis-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "c9582865-bf35-4bfc-894b-cc9a1dc975f7",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T14:58:57.915Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.354Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+        "name": "sahool-notification-agent",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/agents/notification/**",
+          "/agents/base_agent.py",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "agents/notification/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "22a09f31-a800-4754-b5d5-1955964808bf",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-13T20:57:07.000Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.191Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+        "name": "sahool-field-management-service",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/field-management-service/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/field-management-service/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "1a551ce3-f4d0-4243-915e-d1705c7a284c",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:40.506Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.567Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "cae85573-5316-40b9-bf62-ccda465e4228",
+        "name": "sahool-redis-state",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "402d5831-1117-48ef-8275-9f7c83a04c61",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:35.254Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "7470ec43-a8c2-4d76-b134-7842bc724fc8",
+          "name": "sahool-redis-state-data-_SII",
+          "mountPath": "/data",
+          "sizeMB": 1024,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.958Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "8a7ba915-122e-45b7-9b40-ee517e676a1e",
+        "name": "sahool-redis",
+        "state": "live"
+      },
+      "source": {
+        "image": "redis:7-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "3d9deadb-1740-4702-b9ad-d0980d7838d6",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:19.889Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.130Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b17a9fe6-4f07-4670-a2d2-c9fb3111196d",
+        "name": "wc005-postgres-live-proof",
+        "state": "live"
+      },
+      "source": {
+        "image": "postgres:16-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "36471c1b-deed-4067-9f70-4143695ef915",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:36.104Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.408Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "01de1a7c-3a4a-4772-aff2-080b3a78c58a",
+        "name": "sahool-nats",
+        "state": "live"
+      },
+      "source": {
+        "image": "nats:2-alpine"
+      },
+      "build": {
+        "builder": "RAILPACK",
+        "buildEnvironment": "V3"
+      },
+      "deploy": {},
+      "latestDeployment": {
+        "id": "4b6cc83d-d8f8-48f5-a342-0458b540d874",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:17.076Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": [
+        {
+          "id": "12ec3de9-6173-48fb-832c-aabfa604d085",
+          "name": "sahool-nats-volume",
+          "mountPath": "/data",
+          "sizeMB": 5000,
+          "region": "asia-southeast1-eqsg3a",
+          "state": "live"
+        }
+      ]
+    }
+  },
+  {
+    "environment": "production",
+    "captured_at": "2026-10-14T15:04:57.482Z",
+    "error": false,
+    "data": {
+      "service": {
+        "id": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+        "name": "sahool-auth-main",
+        "state": "live"
+      },
+      "source": {
+        "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "branch": "main",
+        "rootDirectory": "/",
+        "checkSuites": false
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "watchPatterns": [
+          "/services/auth/**",
+          "/shared/**"
+        ],
+        "buildEnvironment": "V3",
+        "dockerfilePath": "services/auth/Dockerfile"
+      },
+      "deploy": {
+        "healthcheckPath": "/readyz",
+        "healthcheckTimeout": 300
+      },
+      "latestDeployment": {
+        "id": "13d2d4d9-9120-4e14-a986-5b60023781c0",
+        "status": "SUCCESS",
+        "createdAt": "2026-10-12T16:23:31.050Z",
+        "url": null
+      },
+      "staged": null,
+      "stagedChanges": [],
+      "volumes": []
+    }
+  }
+]

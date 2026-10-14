@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/0d3e46cc4148/guard-wave
+configfile: pytest.ini
+plugins: Faker-40.43.0, cov-7.1.0, asyncio-1.4.0, platformdirs-4.13.0, respx-0.23.1, xdist-3.8.0, hypothesis-6.169.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 152 items
+
+tests_v9/test_brain_transition_guard_vocabulary.py ..................... [ 13%]
+........................................................................ [ 61%]
+........................................................                 [ 98%]
+tests/architecture/test_brain_state_transition_guard.py ...              [100%]
+
+============================= 152 passed in 3.03s ==============================
