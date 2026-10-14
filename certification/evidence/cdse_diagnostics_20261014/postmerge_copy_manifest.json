@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "basis": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "copies": [
+    {
+      "source": "analysis/pr1182_final_ci_review.json",
+      "destination": "certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json",
+      "original_sha256": "357ff9db0e75273c366d7b51e727e39f384e1da7c80929c9b81057f04fa14d03",
+      "copied_sha256": "357ff9db0e75273c366d7b51e727e39f384e1da7c80929c9b81057f04fa14d03",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/cdse_pr1182_postmerge_9a50aac3_railway.json",
+      "destination": "certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json",
+      "original_sha256": "8c4bbc109e98741475f8cfed128856af048ec926e0c70b5f1644baf4572e0694",
+      "copied_sha256": "8c4bbc109e98741475f8cfed128856af048ec926e0c70b5f1644baf4572e0694",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    },
+    {
+      "source": "analysis/verify_a_final_main_9a50_verification.json",
+      "destination": "certification/evidence/cdse_diagnostics_20261014/verify_a_final_main_9a50_verification.json",
+      "original_sha256": "f429e579174b01527048435d096fa009178ef5df77b0ab9e8585466638fd639a",
+      "copied_sha256": "f429e579174b01527048435d096fa009178ef5df77b0ab9e8585466638fd639a",
+      "normalization": "Exact known analysis evidence references mapped to committed destinations; scratch prefixes removed if present. All data outcomes preserved. Unchanged objects copied byte-for-byte."
+    }
+  ],
+  "preserved": "timestamps, source/head/tree hashes, states, counts, review/CI outcomes and service/environment/deployment identities",
+  "privacy": "No credential/secret-valued keys or workspace paths found in raw operational/CI inputs. Necessary service/environment/deployment identifiers retained."
+}

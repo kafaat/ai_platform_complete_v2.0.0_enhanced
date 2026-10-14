@@ -7,6 +7,7 @@ import argparse
 import re
 import subprocess
 import sys
+import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -166,6 +167,50 @@ def _has_executable_evidence(paths: list[str]) -> bool:
 REGISTRY = "sahool-brain/gaps/registry.md"
 
 
+# Arabic is read only in registry state positions, never added to CLOSED_RE:
+# "يفشل مُغلَقاً" is a design description. The measured headings also use
+# backticked IDs and a parenthesized status after their descriptive title.
+def _status_text(raw: str) -> str:
+    return (
+        "".join(
+            char
+            for char in unicodedata.normalize("NFD", raw)
+            if unicodedata.category(char) != "Mn" and char != "ـ"
+        )
+        .strip()
+        .lstrip("*` ")
+    )
+
+
+def _arabic_state(raw: str) -> str | None:
+    match = re.match(r"^(مغلق|مغلقة|مصلح|مصلحة|متحقق|متحققة)(?![\w-])", _status_text(raw))
+    if not match:
+        return None
+    return "verified" if match.group(1).startswith("متحقق") else "fixed"
+
+
+def _arabic_heading_state(tail: str) -> str | None:
+    # Status must start the suffix or a parenthesis; a predicate in a title,
+    # a negation, or a narrative mention is not promoted to a whole-gap state.
+    suffix = tail.lstrip().lstrip("—–- ")
+    # An explicit English state is handled by the existing English guards;
+    # neither it nor an Arabic open state inherits a later historical status.
+    if re.match(
+        r"^(open|fixed|verified|closed(?:_[a-z_]+)?|runtime_verified|production_certified|مفتوح|مفتوحة)(?![\w-])",
+        _status_text(suffix),
+        re.I,
+    ):
+        return None
+    direct = _arabic_state(suffix)
+    if direct:
+        return direct
+    for match in re.finditer(r"\(([^()]*)\)", suffix):
+        state = _arabic_state(match.group(1))
+        if state:
+            return state
+    return None
+
+
 def _measure_module():
     here = str(Path(__file__).resolve().parent)
     if here not in sys.path:
@@ -182,6 +227,7 @@ def gap_ids_in_state(text: str, state: str) -> set[str]:
     schema: list[str] | None = None
     heading: str | None = None
     role: str | None = None
+    heading_line = 0
     fence: str | None = None
     # كلُّ عنوانٍ بدوره النهائيّ، وكلُّ سطرِ حالةٍ fixed بعنوانه — يُحسم التاريخيّ بعد القراءة كاملةً.
     entries: list[list[str]] = []
@@ -206,13 +252,16 @@ def gap_ids_in_state(text: str, state: str) -> set[str]:
             schema = None
         if re.match(r"^#{1,2}\s", line):
             heading, role = None, None
-        found = g.HEADING.match(line)
+        found = re.match(rf"^##\s+`?(?P<id>{g.ID})`?(?=\s|$)(?P<tail>.*)$", line)
         if found:
             heading, role = found.group("id"), "unreviewed"
             entries.append([heading, role])
+            heading_line = number
+            if _arabic_heading_state(found.group("tail")) == state:
+                sections.append(len(entries) - 1)
             continue
         annotation = g.ANNOTATION.fullmatch(line.strip())
-        if annotation and heading and role == "unreviewed":
+        if annotation and heading and role == "unreviewed" and number == heading_line + 1:
             if annotation.group("role") in ("current", "historical"):
                 role = annotation.group("role")
                 entries[-1][1] = role
@@ -265,7 +314,7 @@ def gap_ids_in_state(text: str, state: str) -> set[str]:
 
 
 def _canonical_state(raw: str) -> str | None:
-    """حالةُ خليّةٍ أو سطرِ حالة بقرار ``gap_registry_measure`` نفسه، لا بقاعدةٍ ثانية.
+    """Canonical English state plus structurally anchored Arabic closure vocabulary.
 
     القياسُ يُخرج المدخلَ من الحالات حين يحمل وسماً واحداً من ``NON_STATE_KINDS`` وحده؛ وأيُّ وسمٍ آخر (أو أكثرُ
     من وسم) يُنزَع ثمّ تُصنَّف الخليّة. كان الحارسُ يُسقط **كلَّ** خليّةٍ موسومة، فـ``<!-- gap-registry: current -->
@@ -275,7 +324,11 @@ def _canonical_state(raw: str) -> str | None:
     annotations = g.ANNOTATION.findall(raw)
     if len(annotations) == 1 and annotations[0] in g.NON_STATE_KINDS:
         return None
-    return g.classify(g.ANNOTATION.sub("", raw))[0]
+    value = g.ANNOTATION.sub("", raw)
+    # Measurement retains its English canonical vocabulary; this enforcement
+    # guard additionally recognizes the Arabic closure vocabulary actually used
+    # in the registry. It does not rewrite measurement or confer live proof.
+    return g.classify(value)[0] or _arabic_state(value)
 
 
 def fixed_gap_ids(text: str) -> set[str]:

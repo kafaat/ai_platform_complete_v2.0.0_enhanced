@@ -1,0 +1,328 @@
+{
+  "guard": "/workspace/scratch/0d3e46cc4148/guard-wave/scripts/ci/brain_state_transition_guard.py",
+  "cases": 40,
+  "matching": 40,
+  "mismatches": [],
+  "results": [
+    {
+      "name": "heading_مُغلَقة",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_مغلق",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_مُصلَحة",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_مُــغــلَقة",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_**مُغلَقة**",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_`مُغلَقة`",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "section_مُغلَقة",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "table_مُغلَقة",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "section_**مُصلَحة**",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "table_**مُصلَحة**",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "section_`متحققة`",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only verified transition rejected for REVIEW-ARABIC-01; verified needs the evidence its closing condition names, carried outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "table_`متحققة`",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only verified transition rejected for REVIEW-ARABIC-01; verified needs the evidence its closing condition names, carried outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "parenthetical_actual",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "stronger_verification",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only verified transition rejected for REVIEW-ARABIC-01; verified needs the evidence its closing condition names, carried outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "executable_content",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "documentation_not_evidence",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "existing_blob_copy_not_evidence",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "unchanged_closed_new_prose",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "ordinary_prose",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "quoted_prose",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "heading_design_fail_closed",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "state_open_then_design",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "negated_heading",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "negative_release_heading",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "fenced_example",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "longer_fence",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "non_registry_doc",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "nonstatus_column",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "suffix_word_not_status",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "standalone_historical_not_exempt",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "reviewed_history_preserved",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "malformed_delayed_history_marker",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "two_current_no_history_exemption",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "alias_state_exempt",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "current_cell_not_exempt",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "mixed_annotations_not_exempt",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "foreign_table_cannot_inherit_parent_history",
+      "expected_reject": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "sahool-brain-only fixed transition rejected for REVIEW-ARABIC-01; fixed is declared in the PR that carries the fix (decisions/ledger.md, #1136) — include its executable code/test outside the brain knowledge base\n",
+      "matches_expected": true
+    },
+    {
+      "name": "explicit_open_heading_wins_over_old_parenthetical",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "english_open_heading_wins_over_old_parenthetical",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    },
+    {
+      "name": "english_fixed_heading_wins_over_old_arabic_verified",
+      "expected_reject": false,
+      "exit_code": 0,
+      "stdout": "brain_state_transition_guard_ok\n",
+      "stderr": "",
+      "matches_expected": true
+    }
+  ]
+}

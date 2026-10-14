@@ -1,0 +1,45 @@
+{
+  "gap": "BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01",
+  "base_sha": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "local_source_sha": "244b1bc16199d10c842b47567c67d4ab9eb43bac",
+  "tree_sha": "f8bc0d056d9c115e764402fe80779f2383b97353",
+  "source_paths": [
+    "scripts/ci/brain_state_transition_guard.py",
+    "tests_v9/test_brain_transition_guard_vocabulary.py"
+  ],
+  "red_witness": {
+    "log": "wave1_guard_red.log",
+    "source": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+    "result": "4 failed,4passed; real CLI returns0 for brain-only Arabic heading/parenthetical heading/section/table transitions"
+  },
+  "green": {
+    "focused": "152passed before final exact-ID assertion added; final addedassertion targeted1passed; source unchanged",
+    "logs": [
+      "wave1_guard_focused.log",
+      "wave1_guard_final_assertion.log"
+    ],
+    "ruff": "pass",
+    "assertion_presence": "pass frozen205current205",
+    "guard_mutation_static": "pass existing432guard+375behavioral mutations unchanged",
+    "independent_review": "verify_a40realCLI cases pass; no blockers; finalsourcehash19dda7c208aa95a2b3fff6de03e182fcbc930db4ddc33733cdb59f64eef65346"
+  },
+  "scope": [
+    "Full-registry base/head state transitions in declared table status column and explicit section status lines",
+    "Arabic leading heading status or parenthesized status with optional code-wrapped ID; leading explicit state takes precedence over history",
+    "Diacritics and tatweel normalized; closed/repaired→fixed, متحقق/متحققة→verified for stronger transition enforcement",
+    "Only immediately annotated onecurrent/allotherhistorical chains exempt heading/section records; tables retain independent canonical row semantics",
+    "English diff behavior and executable-content/rename/delete evidence semantics retained"
+  ],
+  "limits": [
+    "No free-prose Arabic claim classification; no arbitrary Arabic synonyms or predicate-partial-title inference",
+    "Parser enforcement recognizes Arabic statuses but measurement canonical vocabulary remains English; no registry rewrites",
+    "Executable evidence presence is required, not proof it fixes same gap or meets live verified acceptance",
+    "No fullpreflight/generation/remote ref/PR/merge performed by subagent"
+  ],
+  "review_followups_fixed": [
+    "Unrelated historical parent cannot hide new canonical table row",
+    "Explicit leading open/English status takes precedence over later historical Arabic parenthetical"
+  ],
+  "repair_source_sha": "cc15632d0d5f200d0660a8b41cd576efbdfab5a1",
+  "local_source_sha_note": "Local immutable review commit244b is tree-identical to GitHub API repaircc156; it is not a remote repair provenance reference."
+}
