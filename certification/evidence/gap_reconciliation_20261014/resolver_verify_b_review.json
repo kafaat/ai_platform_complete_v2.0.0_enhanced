@@ -1,0 +1,62 @@
+{
+  "reviewer": "verify_b",
+  "source_base_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "worktree_sha256": {
+    "scripts/ci/resolve_merge_conflicts.py": "fd879530c4d54c74f5113696c835cfeefc5a2a6adbd8e1c70d7d347f41a1a905",
+    "tests_v9/test_resolve_merge_conflicts.py": "43e64f47a517b91b1883282dac63eb7cd574da8007052b6552c513751124abb4"
+  },
+  "suite": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 sahool-venv/bin/python -m pytest -p no:cacheprovider tests_v9/test_resolve_merge_conflicts.py --basetemp=analysis/pytest_resolver_verify_b --junitxml=analysis/resolver_verify_b_tests.xml",
+    "return_code": 0,
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 1.67
+  },
+  "independent_command": "PYTHONDONTWRITEBYTECODE=1 sahool-venv/bin/python analysis/verify_resolver_review.py",
+  "independent_results": [
+    {
+      "operation": "merge",
+      "shape": "literal_fence_after_good_block",
+      "rc": 1,
+      "file_byte_identical": true,
+      "index_stage_identical": true,
+      "still_unmerged": true,
+      "message": "resolve_merge_conflicts: merge — جانب main هو --theirs\n  ✗ sahool-brain/log.md: diff3 أو علامة سلف ملتبسة؛ يلزم حلّ يدويّ يحفظ المحتوى — لم يُكتب أو يُفهرس هذا الملفّ\n"
+    },
+    {
+      "operation": "merge",
+      "shape": "git_diff3",
+      "rc": 1,
+      "file_byte_identical": true,
+      "index_stage_identical": true,
+      "still_unmerged": true,
+      "message": "resolve_merge_conflicts: merge — جانب main هو --theirs\n  ✗ sahool-brain/log.md: diff3 أو علامة سلف ملتبسة؛ يلزم حلّ يدويّ يحفظ المحتوى — لم يُكتب أو يُفهرس هذا الملفّ\n"
+    },
+    {
+      "operation": "rebase",
+      "shape": "literal_fence_after_good_block",
+      "rc": 1,
+      "file_byte_identical": true,
+      "index_stage_identical": true,
+      "still_unmerged": true,
+      "message": "resolve_merge_conflicts: rebase — جانب main هو --ours\n  ✗ sahool-brain/log.md: diff3 أو علامة سلف ملتبسة؛ يلزم حلّ يدويّ يحفظ المحتوى — لم يُكتب أو يُفهرس هذا الملفّ\n"
+    },
+    {
+      "operation": "rebase",
+      "shape": "git_diff3",
+      "rc": 1,
+      "file_byte_identical": true,
+      "index_stage_identical": true,
+      "still_unmerged": true,
+      "message": "resolve_merge_conflicts: rebase — جانب main هو --ours\n  ✗ sahool-brain/log.md: diff3 أو علامة سلف ملتبسة؛ يلزم حلّ يدويّ يحفظ المحتوى — لم يُكتب أو يُفهرس هذا الملفّ\n"
+    }
+  ],
+  "verdict": "No remaining material blocker for the narrow pipe-delimited registry-table repair. Initial data-loss and pipe-prose defects corrected.",
+  "limits": [
+    "Diff3 conflicts are intentionally rejected safely, not automatically supported.",
+    "Markdown recognizer is conservative and scoped to pipe-edged tables, not a complete GFM parser.",
+    "Files resolved before a later refusal remain staged by existing design; the refused file stays byte-identical and unmerged.",
+    "No shared-repository files were modified by this independent reviewer."
+  ]
+}

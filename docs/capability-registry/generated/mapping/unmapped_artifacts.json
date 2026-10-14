@@ -6984,10 +6984,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_ai_rag_live_certification.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_ai_rag_pre_adoption_review.py",
     "kind": "tests"
   },

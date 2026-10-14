@@ -1,0 +1,17 @@
+{
+  "reviewed_head": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "recorded_at": "2026-10-14T00:03:01.273504+00:00",
+  "source_sha256": {
+    "services/sahool-platform/api/routers/service_proxy.py": "add432f7083db29bd0f59308c4a2056363558e9dd6ef15e3caaab117479bd056",
+    "services/sahool-platform/tests/test_soil_proxy_authorization.py": "46d5110a390c943783b9e5ec26fe812e99e56b66b122f97da67dd05d344017bb",
+    "services/soil-service/routers/readings.py": "718bb61d727872454fea4656c003cb97c84e6121dfa4c280d618f4f6b54d99d5",
+    "services/soil-service/soil_store.py": "e880ddd933fbdb27ad46e434400bf3745bfa36c68d7304b4cb839778c9f48418",
+    "tests_v9/test_soil_ingest_atomic.py": "38a63be6f7d35914fd29434233c0452f1d459a879e4a155e1921b37d9207466f",
+    "certification/evidence/soil_ingest_native_postgres_20261003.json": "5a5039d3d11508f54ceb1b4a9373726f413c1049ba0befd60f3c52904508e0da"
+  },
+  "canonical_merge_sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+  "canonical_pr": 1127,
+  "canonical_ancestor_of_reviewed_head": true,
+  "repo_worktree_status": "",
+  "historical_live_evidence_limit": "soil_store differs from historical native PG fixed source in the key/property retry-match correction; readings source is byte-identical. Deployed image, real JWT, live field ownership, PostGIS/full MANIFEST were not exercised in the historical proof."
+}

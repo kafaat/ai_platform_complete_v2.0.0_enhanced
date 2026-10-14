@@ -1,0 +1,231 @@
+{
+  "agent": "open_a",
+  "review_source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "repo_mutations_by_agent": false,
+  "reviewed_instructions": [
+    "CLAUDE.md",
+    "sahool-brain/README.md",
+    "current hot.md summary",
+    "sahool-brain/index.md"
+  ],
+  "summary": "3 source-fixed candidates; 0 live verified; 90 unique targeted tests passed after resolving environment-only SOCKS dependency (63 core + 10 guard + 3 gateway + 14 ERP).",
+  "replacements_strategy": "Each original top-level section is retained unchanged and marked historical; one new current section has the sole canonical fixed state. This preserves both historical open status lines under CAPABILITY without conflicting current statuses.",
+  "results": [
+    {
+      "id": "CAPABILITY-CORES-NOT-WIRED",
+      "source_state": "open",
+      "recommended_state": "fixed",
+      "verdict": "العيب الأصلي للربط مغلق في الكود: الأربع لها مستهلكون منفذون داخل راوترات مسجلة؛ تسوية حالة متأخرة، لا ربط جديد.",
+      "repair_provenance": [
+        {
+          "sha": "ac36c03aa5c550658241ddf156b5230e9a1a6328",
+          "pr": 677,
+          "scope": "equipment"
+        },
+        {
+          "sha": "fce91a90fb4ea98c557b6804382bffd1654f7ec1",
+          "pr": 678,
+          "scope": "economics"
+        },
+        {
+          "sha": "4eded7af1f99f360eba0e54ae586e06dcbf79e9c",
+          "pr": 680,
+          "scope": "yield"
+        },
+        {
+          "sha": "247c69c760887bf2267d2926a6430bd6d534ab6f",
+          "pr": 682,
+          "scope": "canonical field state; completes 4/4"
+        }
+      ],
+      "replacements": [
+        {
+          "old": "## CAPABILITY-CORES-NOT-WIRED — OPEN (groundwork لا integration lifecycle) — رُصِد عند دمج حزمة «القدرات العشر»\n",
+          "new": "## CAPABILITY-CORES-NOT-WIRED — fixed في الكود؛ تسوية حالة الربط (2026-10-14)\n<!-- gap-registry: current -->\n- **الحالة:** **fixed** — اكتمل ربط النوى الأربع عند `247c69c760887bf2267d2926a6430bd6d534ab6f` (#682)، بعد المعدات `ac36c03a` (#677) والاقتصاد `fce91a90` (#678) والغلّة `4eded7af` (#680). جميعها أسلاف `main@53652e02`. بقي الوصف OPEN تاريخياً رغم أن آخر تحديث فيه يقرّ 4/4؛ هذه تسوية بالدليل، لا تنفيذ ربط جديد ولا ترقية حيّة.\n- **الدليل الحالي:** [`capability_core_consumption_registry.json`](../../docs/architecture/capability_core_consumption_registry.json) يسجل الأربع `wired`؛ والراوترات تستورد **وتستدعي** `summarize_equipment` (`equipment.py:134`) و`compare_economic_scenarios` (`scenario.py:154`) و`summarize_yield_scope` (`yield_map_ingestion.py:391`) و`compose_canonical_field_state` (`internal_service.py:303`). التسجيل التلقائي في [`router_registry.py:41`](../../services/sahool-platform/api/router_registry.py) يشملها، ولا يحجب إلا `service_proxy` المسجل منفصلاً.\n- **شواهد المراجعة على `53652e02`:** [`capability_core_consumption_guard.py`](../../scripts/ci/capability_core_consumption_guard.py) ⇒ PASS (4/4)؛ اختبارات الربط الأربعة في `services/sahool-platform/tests/test_{equipment_intelligence,economic_scenarios,yield_intelligence,canonical_field_state}_wiring.py` ⇒ **63 passed**؛ و[`test_capability_core_consumption_guard.py`](../../tests/architecture/test_capability_core_consumption_guard.py) ⇒ **10 passed** في لقطة معزولة، بما فيها نزع الاستيراد وذكر الرمز في docstring وادعاء wired بلا مستهلك. لا طفرة في شجرة العمل المشتركة.\n- **حدّ الإغلاق:** `fixed` للربط فقط؛ لا `runtime_verified` ولا اعتماد قيمة زراعية من مجرد 4/4. مصدر حالة المنتج مستقل في `FIELD-STATE-PRODUCERS-MISSING-01`. لا تُعاد ملاحظة غياب الطقس/التربة التاريخية كحقيقة حالية: `internal_service.py:271-300` يستدعي محللات التربة والطيف والماء وعميل الطقس الآن، لكن هذه المراجعة لم تجمع دليلاً حيّاً على منتجات الحقول أو أهليتها.\n\n## CAPABILITY-CORES-NOT-WIRED — OPEN (groundwork لا integration lifecycle) — رُصِد عند دمج حزمة «القدرات العشر»\n<!-- gap-registry: historical -->\n"
+        }
+      ],
+      "sources": [
+        "docs/architecture/capability_core_consumption_registry.json:5-43",
+        "services/sahool-platform/api/routers/equipment.py:15,93-134",
+        "services/sahool-platform/api/routers/scenario.py:21,142-160",
+        "services/sahool-platform/api/routers/yield_map_ingestion.py:16,391",
+        "services/sahool-platform/api/routers/internal_service.py:9,265-314",
+        "services/sahool-platform/api/router_registry.py:21,44-50",
+        "scripts/ci/capability_core_consumption_guard.py:42-133"
+      ],
+      "tests": [
+        {
+          "name": "capability_core_consumption_guard.py --check",
+          "result": "PASS 4/4",
+          "exit_code": 0
+        },
+        {
+          "junit": "reconcile_open_a_core.xml",
+          "passed": 63,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "junit": "reconcile_open_a_guard.xml",
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0,
+          "isolation": "analysis/open_a_guard_snapshot; 12 exact files copied; mutation cases never touched shared repo"
+        }
+      ],
+      "residual": [
+        "لم يُنفذ مسار HTTP حي للراوترات أو قاعدة إنتاج؛ لا ترقية verified.",
+        "ملاحظة canonical_field_state في سجل الاستهلاك متأخرة عن استدعاءات resolvers الحالية؛ تصحح كتوثيق عند الحاجة، ولا تجعلها برهان غياب منتج.",
+        "المدخل التاريخي يحتوي سطرَي الحالة open؛ الحل المقترح يحفظهما داخل قسم historical واحد ويضيف قسماً current واحداً fixed، لا يعيد كتابة التاريخ ولا يترك حالتين قانونيتين."
+      ],
+      "promotion_gate": "",
+      "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "live_verified": false
+    },
+    {
+      "id": "ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01",
+      "source_state": "open",
+      "recommended_state": "fixed",
+      "verdict": "إصلاح النطاق كاملاً موجود في main وله شاهد 14/14 محلياً؛ لا دليل نشر/ERP حي في هذه المراجعة.",
+      "repair_provenance": [
+        {
+          "sha": "cec3d92bc19a3e3447a7ea77dde686e8d8a15f58",
+          "pr": null,
+          "scope": "original repair"
+        },
+        {
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "pr": 1169,
+          "scope": "integration A merged repair; ancestor of measured main"
+        }
+      ],
+      "replacements": [
+        {
+          "old": "## ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 — جسرُ ERP يعمل في المكدّس الافتراضيّ بلا ERP و`/readyz` يقول «جاهز»\n<!-- gap-registry: current -->\n",
+          "new": "## ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 — fixed في main، بلا اعتماد نشر حيّ (2026-10-14)\n<!-- gap-registry: current -->\n- **الحالة:** **fixed** — إصلاح `cec3d92bc19a3e3447a7ea77dde686e8d8a15f58` دخل `main` عبر `3a8689f6b13b158405ab000baec12284ea29541f` (#1169). تطابق blobs لـ`routers/health.py` و`erp_provider.py` وشاهد الاختبار بين التزام الإصلاح والدمج و`main@53652e02` قِيس مباشرة؛ عبارة «غير مدموج» أدناه تاريخية.\n- **الإصلاح:** الجسر خلف profile `odoo` في v9/fixed/unified، ومعتمده يذكر `required: false`؛ [`routers/health.py:40-70`](../../services/odoo-bridge/routers/health.py) يفحص ERP المختار بمهلة 3ث، و[`readyz:89-119`](../../services/odoo-bridge/routers/health.py) يرفض غير المهيأ/غير المستجيب بـ503؛ `OdooProvider` يستعمل `bool(self.odoo.uid)` في [`erp_provider.py`](../../services/odoo-bridge/erp_provider.py)، فيرفض `false` لاعتماد مرفوض. `/healthz` مستقل عن ERP.\n- **الدليل الحالي:** [`tests_v9/test_erp_bridge_requires_erp.py`](../../tests_v9/test_erp_bridge_requires_erp.py) ⇒ **14 passed، 0 failed، 0 skipped** على `53652e02`. الجولة الأولى كانت 9 passed/5 failed قبل منطق الاختبار بسبب حزمة `socksio` الغائبة في بيئة Work؛ بعد تثبيتها في بيئة الاختبار وحدها مرت الـ14، دون تعطيل proxy أو تعديل المستودع. الشواهد تشمل عدم التهيئة، رفض الاعتماد، منفذاً محلياً مغلقاً، انتهاء المهلة وحالة نجاح عبر ناقل HTTP اختباري.\n- **حدّ الإغلاق:** `fixed` للشيفرة والـCompose؛ لا `verified` ولا ادعاء تشغيل Odoo أو ERPNext حي. يبقى إثبات الصورة المستهدفة وإعداد ERP الحقيقي والاستجابة/الرفض عبر `/readyz` مسار التحقق التشغيلي؛ نجاح اختبار MockTransport ليس ذلك الإثبات.\n\n## ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 — جسرُ ERP يعمل في المكدّس الافتراضيّ بلا ERP و`/readyz` يقول «جاهز»\n<!-- gap-registry: historical -->\n"
+        }
+      ],
+      "sources": [
+        "docker-compose.v9.yml:124-128,2087-2096",
+        "docker-compose.fixed.yml:63-67,918-925",
+        "docker-compose.unified.yml:63-70,488-493",
+        "services/odoo-bridge/routers/health.py:40-70,89-119",
+        "services/odoo-bridge/erp_provider.py:343",
+        "tests_v9/test_erp_bridge_requires_erp.py:1-224",
+        ".github/workflows/ci.yml:tests_v9/test_erp_bridge_requires_erp.py included in Unit Tests through pytest -m unit",
+        "git show 3a8689f6 --format=fuller: merge message records 78 checks success/3 skipped at d6c53f6f; not independently reread as GitHub check output by this agent"
+      ],
+      "tests": [
+        {
+          "junit": "reconcile_open_a_gateway_erp.xml",
+          "erp_passed": 9,
+          "erp_failed": 5,
+          "gateway_passed": 3,
+          "exit_code": 1,
+          "cause": "environment: SOCKS configured but socksio missing; all five failures in httpx.AsyncClient constructor before functional assertions"
+        },
+        {
+          "junit": "reconcile_open_a_erp_final.xml",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 0,
+          "exit_code": 0,
+          "log": "reconcile_open_a_erp_final.log",
+          "remediation": "root installed socksio into shared venv; no proxy removal/no repo change"
+        }
+      ],
+      "residual": [
+        "شهادة CI التي يشترطها المدخل الأصلي: رسالة الدمج تسجل خضرة 78 checks تاريخياً، لكن هذا الوكيل لم يعاود قراءة GitHub check API. على القائد ربط إيصال CI الفعلي عند تطبيق التسوية أو انتظار CI دفعة التسوية.",
+        "لا قياس حي لخادم Odoo؛ لا promote verified.",
+        "لا تعديل profile/متغيرات/إعادة نشر ضمن هذه المراجعة."
+      ],
+      "promotion_gate": "قبل اعتماد fixed النهائي التزم بشرط المدخل الخاص (main+CI): اربط خضرة CI من provider أو من CI دفعة التسوية؛ local14 مثبتة وليست CI مفترضة.",
+      "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "live_verified": false
+    },
+    {
+      "id": "GATEWAY-READINESS-PATHS-FALL-TO-SPA-01",
+      "source_state": "open",
+      "recommended_state": "fixed",
+      "verdict": "أصل العيب والعقد المعلق أصلحا منذ #774؛ fixed في الكود، مع بقاء الشهادة الحية للبيئة والشبكة.",
+      "repair_provenance": [
+        {
+          "sha": "158534a195cc1fbb7d6381a49405676452c00044",
+          "pr": 774,
+          "scope": "accepted external contract; exact paths; private production ACL; errors not intercepted"
+        }
+      ],
+      "replacements": [
+        {
+          "old": "## GATEWAY-READINESS-PATHS-FALL-TO-SPA-01 — مفتوحة (P2 تشغيل، 2026-08-02)\n",
+          "new": "## GATEWAY-READINESS-PATHS-FALL-TO-SPA-01 — fixed في الكود منذ #774؛ لا شهادة حيّة (2026-10-14)\n<!-- gap-registry: current -->\n- **الحالة:** **fixed** عند `158534a195cc1fbb7d6381a49405676452c00044` (#774)، وهو سلف `main@53652e02`. حُسم العقد الذي أبقى المدخلة مفتوحة، وأضيفت المسارات الدقيقة قبل SPA؛ السرد أدناه وصف ما قبل الإصلاح.\n- **العقد والمصدر:** [`GATEWAY_OPERATIONAL_ENDPOINT_CONTRACT.md`](../../docs/architecture/GATEWAY_OPERATIONAL_ENDPOINT_CONTRACT.md) **Accepted 2026-08-03**: `/healthz` حياة عامة، و`/readyz` و`/runtime-identity` خاصان بالمشغّل في بوابة الإنتاج. [`frontend/nginx.conf:382-400`](../../frontend/nginx.conf) يوجّههما إلى platform؛ و[`nginx/nginx.v9.conf:542-555`](../../nginx/nginx.v9.conf) يقيّدهما بـloopback/RFC1918 ثم `deny all`؛ كلا المسارين exact-match و`proxy_intercept_errors off`. `/api/v1/healthz` ليس مساراً قانونياً في العقد المقبول؛ لا ادعاء إضافة alias له.\n- **الشاهد:** [`tests_v9/test_gateway_operational_endpoints_contract.py`](../../tests_v9/test_gateway_operational_endpoints_contract.py) ⇒ **3 passed** على `53652e02`: المطابقة الدقيقة قبل SPA، قيد الإنتاج وعدم اعتراض الخطأ، وعقد منع `200 text/html`.\n- **حدّ الإغلاق:** هذا دليل مصدر وعقد، لا فحص nginx حيّ. `verified` يحتاج طلبات فعلية عبر البوابتين تثبت JSON/خطأ أو منعاً صريحاً بلا SPA، وتمرير 503، وهوية backend المقصود، واختبار طرف غير مسموح. خصوصية ACL تعتمد على `$remote_addr`: إضافة proxy/CDN أمامها تستلزم real-IP موثوقاً أو listener داخلياً حسب العقد؛ هذه المراجعة لا تشهد خصوصية طوبولوجيا Railway أو شبكة غير مفحوصة.\n\n## GATEWAY-READINESS-PATHS-FALL-TO-SPA-01 — مفتوحة (P2 تشغيل، 2026-08-02)\n<!-- gap-registry: historical -->\n"
+        }
+      ],
+      "sources": [
+        "docs/architecture/GATEWAY_OPERATIONAL_ENDPOINT_CONTRACT.md:3-39",
+        "frontend/nginx.conf:377-400",
+        "nginx/nginx.v9.conf:539-555",
+        "tests_v9/test_gateway_operational_endpoints_contract.py:15-41",
+        "git show 158534a1: commit explains contract and explicitly says still static/no live stack"
+      ],
+      "tests": [
+        {
+          "junit": "reconcile_open_a_gateway_erp.xml",
+          "test_file": "tests_v9/test_gateway_operational_endpoints_contract.py",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "overall_run_exit_code": 1,
+          "overall_failure_reason": "ERP test environment dependency only"
+        }
+      ],
+      "residual": [
+        "اختبار حي لعدم HTML fallback وتمرير 503 والهوية الفعلية لم ينفذ.",
+        "خصوصية ACL مقيدة بطوبولوجيا direct termination؛ مصدر frontend المحلي لا يحمل ACL الإنتاج، وهذا معلن في العقد ولا يثبت خصوصية أي نشر خارجي.",
+        "المسار /api/v1/healthz خارج العقد المتفق؛ الإغلاق يعالج المسارات القانونية لا يصنع alias بلا قرار."
+      ],
+      "promotion_gate": "",
+      "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+      "live_verified": false
+    }
+  ],
+  "commands": [
+    {
+      "name": "core",
+      "cwd": "services/sahool-platform",
+      "cmd": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_equipment_intelligence_wiring.py tests/test_economic_scenarios_wiring.py tests/test_yield_intelligence_wiring.py tests/test_canonical_field_state_wiring.py --junitxml=analysis/reconcile_open_a_core.xml",
+      "rc": 0,
+      "passed": 63
+    },
+    {
+      "name": "guard_isolated",
+      "cwd": "analysis/open_a_guard_snapshot",
+      "cmd": "PYTHONDONTWRITEBYTECODE=1 .-venv/bin/python -m pytest -q -p no:cacheprovider tests/architecture/test_capability_core_consumption_guard.py --junitxml=analysis/reconcile_open_a_guard.xml",
+      "rc": 0,
+      "passed": 10
+    },
+    {
+      "name": "gateway_erp_initial",
+      "cwd": ".",
+      "cmd": "PYTHONDONTWRITEBYTECODE=1 .-venv/bin/python -m pytest -q -p no:cacheprovider tests_v9/test_erp_bridge_requires_erp.py tests_v9/test_gateway_operational_endpoints_contract.py --junitxml=analysis/reconcile_open_a_gateway_erp.xml",
+      "rc": 1,
+      "passed": 12,
+      "failed": 5,
+      "scope": "gateway3 passed; ERP9 passed/5 environment failures"
+    },
+    {
+      "name": "erp_final",
+      "cwd": ".",
+      "cmd": "PYTHONDONTWRITEBYTECODE=1 .-venv/bin/python -m pytest -q -p no:cacheprovider tests_v9/test_erp_bridge_requires_erp.py --junitxml=analysis/reconcile_open_a_erp_final.xml",
+      "rc": 0,
+      "passed": 14
+    }
+  ],
+  "provenance_file": "open_a_provenance.json",
+  "raw_test_results_file": "open_a_test_results_initial.json",
+  "notes": [
+    "Initial system-Python test attempts failed immediately because pytest was absent; later shared venv supplied dependencies.",
+    "Core and isolated guard stdout first chunk is not in final-chunk logs, but full case counts and status are preserved in JUnit; do not label final-chunk logs complete stdout.",
+    "No new general guard, no CI lowering, no deployment, no cloud mutation."
+  ]
+}

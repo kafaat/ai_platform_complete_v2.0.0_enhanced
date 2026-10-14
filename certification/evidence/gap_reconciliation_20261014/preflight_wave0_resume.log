@@ -1,0 +1,129 @@
+═══ preflight (full) — أساس المقارنة: 53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b ═══
+── ٠) قاعدة المقارنة وحداثة الفرع
+   ✓ base=53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b merge-base=53652e02 behind=0
+── ٠أ) عقد المتطلّبات (docs/architecture/preflight_required.json)
+   ✓ كلّ ما يُعلِنه العقد موجود
+── ٠ب) الفهرس قبل التوليد
+   ✓ لا ملفّات غير متعقَّبة
+   ✓ الشجرة والفهرس نظيفان
+── ٠ج) probe_leak
+   ✓
+── ١أ) ruff check .
+   ✓
+── ١ب) ruff format .
+   ✓
+── ٢ب) no_merge_conflict_markers
+   ✓
+── ٢أ) no_manual_backup_files
+   ✓
+── ٢ز) cross_service_path_contract
+   ✓
+── ٢ج) bidi_control_char
+   ✓
+── ٢د) non_ascii_fixture_path
+   ✓
+── ٢ﻫ) json_duplicate_key
+   ✓
+── ٢و) text_encoding_locale
+   ✓
+── ٣أ) claim_base_guard
+   ✓
+── ٣ب) guard_mutation (ساكن)
+   ✓
+── ٣ج) guard_mutation --run --only scripts/ci/ai_rag_live_certification.py
+   ✓
+── ٣ج) guard_mutation --run --only scripts/ci/resolve_merge_conflicts.py
+   ✓
+── ٤أ) compose_env_contract
+   ✓
+── ٤د) compose_no_default_secrets
+   ✓
+── ٤ﻫ) compose_auth_sink
+   ✓
+── ٤و) generated_write_targets
+   ✓
+── ٤ب) env_compose_drift
+   ✓
+── ٤ج) compose_runtime_target
+   ✓
+── ٤ز) db_writer_ownership
+   ✓
+── ٥أ) arch_test_ci_coverage
+   ✓
+── ٥ب) marker_coverage
+   ✓
+── ٥ج) platform_module_budget
+   ✓
+── ٦أ) brain_deferral
+   ✓
+── ٦د) brain_duplicate_gap_identity
+   ✓
+── ٦و) brain_annotated_supersession
+   ✓
+── ٦ب) brain_state_transition
+   ✓
+── ٦ج) brain_commit_claim
+   ✓
+── ٦هـ) brain_append_only
+   ✓
+     ملاحظة: ٦ج تقرأ الرسائل **المُلتزَمة**. التزِم ثمّ أعِد هذه الخطوة وحدها.
+── ٧أ) verify_all_generated --fix
+   ✓
+── ٧ب) verify_all_generated --check (إثبات التقارب)
+   ✓
+── ٨أ) pytest -m unit
+   ✗ فشل (1)
+       Did you mean to use `assert` instead of `return`?
+       See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+         warnings.warn(
+     
+     tests_v9/test_wired_endpoints.py::test_replay_reconstruct_endpoint
+       <test-env>/lib/python3.12/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests_v9/test_wired_endpoints.py::test_replay_reconstruct_endpoint returned <class 'list'>.
+       Did you mean to use `assert` instead of `return`?
+       See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+         warnings.warn(
+     
+     -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+     =========================== short test summary info ============================
+     FAILED tests_v9/test_brain_annotated_supersession_guard.py::test_the_live_tree_has_exactly_one_closing_supersession_to_pay_for
+     FAILED tests_v9/test_deterministic_generation.py::test_no_committed_generated_artifact_carries_a_wall_clock_stamp
+     = 2 failed, 8789 passed, 39 skipped, 468 deselected, 139 warnings in 486.50s (0:08:06) =
+── ٨ب) pytest tests/
+   ✓
+── ٨ج) pytest services/sahool-platform/tests (شكل CI)
+   ✓
+── ٩أ) bandit
+   ⊘ متخطّاة: 'bandit' غير مثبَّت — هذه البوّابة **لم تُقَس**
+── ٩ب) pip-audit
+   ⊘ متخطّاة: 'pip-audit' غير مثبَّت — هذه البوّابة **لم تُقَس**
+── ١٠) pytest -m unit تحت لغة C
+   ✗ فشل (1)
+       Did you mean to use `assert` instead of `return`?
+       See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+         warnings.warn(
+     
+     tests_v9/test_wired_endpoints.py::test_replay_reconstruct_endpoint
+       <test-env>/lib/python3.12/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests_v9/test_wired_endpoints.py::test_replay_reconstruct_endpoint returned <class 'list'>.
+       Did you mean to use `assert` instead of `return`?
+       See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+         warnings.warn(
+     
+     -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+     =========================== short test summary info ============================
+     FAILED tests_v9/test_brain_annotated_supersession_guard.py::test_the_live_tree_has_exactly_one_closing_supersession_to_pay_for
+     FAILED tests_v9/test_deterministic_generation.py::test_no_committed_generated_artifact_carries_a_wall_clock_stamp
+     = 2 failed, 8789 passed, 39 skipped, 468 deselected, 139 warnings in 462.47s (0:07:42) =
+── ١٠ب) كلّ حارسٍ يُشعَل تحت لغة C
+   ✓
+── ١١ب) Capability-Impact المقترح لمتن الـPR
+   Capability-Impact: DEC-004,FM-008,INT-002,INT-004,IRR-003,IRR-009,SAT-001,SAT-003,SEC-003,WX-006
+   تذكير: البوّابة لا تستمع لـ edited ⇒ تعديل المتن لا يُطلِقها. لكنّها
+   منذ #907 تقرأ المتن حيّاً من الـAPI زمنَ التنفيذ: rerun يلتقط متناً
+   محدَّثاً (وSHAs تبقى من الحدث عمداً — البوّابة تحكم على شيفرة الحدث).
+
+⚠ 2 بوّابة لم تُقَس — «لم أنظر» ليس «لا يوجد».
+أصلِح الساقطةَ أدناه. كلّ فشل هنا كان سيكلّف جولة CI كاملة.
+الساقطة (2) — بأسمائها:
+   ✗ ٨أ) pytest -m unit (1)
+   ✗ ١٠) pytest -m unit تحت لغة C (1)
+═══ إخفاقات: 2 · متخطّاة: 2 ═══
