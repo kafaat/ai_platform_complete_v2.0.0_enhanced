@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.212" timestamp="2026-10-14T09:20:20.440482+09:00" hostname="redacted-local-host"><testcase classname="tests_v9.test_qdrant_probe_classification" name="test_tenant_index_reconciles_existing_and_new_collection_idempotently[True]" time="0.042"><failure message="KeyError: 'metadata.tenant_id'">tests_v9/test_qdrant_probe_classification.py:153: in test_tenant_index_reconciles_existing_and_new_collection_idempotently
+    assert server.payload_schema["metadata.tenant_id"]["data_type"] == "keyword"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'metadata.tenant_id'</failure></testcase><testcase classname="tests_v9.test_qdrant_probe_classification" name="test_tenant_index_reconciles_existing_and_new_collection_idempotently[False]" time="0.001"><failure message="KeyError: 'metadata.tenant_id'">tests_v9/test_qdrant_probe_classification.py:153: in test_tenant_index_reconciles_existing_and_new_collection_idempotently
+    assert server.payload_schema["metadata.tenant_id"]["data_type"] == "keyword"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'metadata.tenant_id'</failure></testcase></testsuite></testsuites>

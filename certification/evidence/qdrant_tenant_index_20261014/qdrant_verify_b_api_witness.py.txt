@@ -1,0 +1,67 @@
+"""Independent exception-contract witness. No HTTP calls or repository writes."""
+from __future__ import annotations
+
+import asyncio
+import copy
+import importlib.util
+import json
+import sys
+import urllib.error
+from pathlib import Path
+
+ROOT = Path('workspace-redacted/qdrant-worktree')
+sys.path[:0] = [str(ROOT), str(ROOT / 'services/sahool-platform')]
+from core.rag import production_qdrant as pq
+
+spec = importlib.util.spec_from_file_location('qdrant_review_rag_api', ROOT / 'services/rag-retrieval/main.py')
+rag = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = rag
+spec.loader.exec_module(rag)
+
+results = []
+for scenario in ('http401', 'http503', 'network', 'invalid_json', 'wrong_type', 'acknowledged', 'missing_readback'):
+    calls = []
+    errors = {
+        'http401': pq.QdrantHTTPError(401, 'review-denied'),
+        'http503': pq.QdrantHTTPError(503, 'review-unavailable'),
+        'network': urllib.error.URLError('review-offline'),
+        'invalid_json': json.JSONDecodeError('review-invalid', '{', 0),
+    }
+    def request(method, path, payload=None):
+        calls.append((method, path))
+        if method == 'GET' and path == '/collections/review':
+            schema = {'metadata.tenant_id': {'data_type': 'integer'}} if scenario == 'wrong_type' else {}
+            return {'status': 'ok', 'result': {'config': {'params': {'vectors': {'size': 4}}}, 'payload_schema': schema}}
+        if method == 'PUT' and path == '/collections/review/index?wait=true':
+            if scenario in errors:
+                raise errors[scenario]
+            return {'status': 'ok', 'result': {'status': 'acknowledged' if scenario == 'acknowledged' else 'completed'}}
+        raise AssertionError(f'Unexpected point mutation/recreation: {method} {path}')
+    client = pq.QdrantHttpClient('http://not-contacted.invalid', 'review', vector_size=4)
+    client._request = request
+    retriever = pq.HybridQdrantRetriever(client, pq.HashEmbeddingProvider(4))
+    old = pq.KnowledgeChunk('existing', 'tenant-a', 'retained corpus evidence', 'internal_document', 'old-doc', 0, 1, {'evidence_level': 'document'})
+    retriever.bm25.add(old)
+    retriever._chunks[old.chunk_id] = old
+    before_bm25 = copy.deepcopy(retriever.bm25.__dict__)
+    before_chunks = copy.deepcopy(retriever._chunks)
+    rag._qdrant, rag._retriever, rag._sparse_ready = client, retriever, True
+    req = rag.IngestRequest(chunks=[rag.ChunkIn(chunk_id='incoming', tenant_id='tenant-a', text='new evidence', source_type='internal_document', document_id='new-doc', chunk_index=0, total_chunks=1)])
+    try:
+        asyncio.run(rag.ingest(req, x_tenant_id='tenant-a', _token=None))
+    except rag.HTTPException as exc:
+        assert exc.status_code == 502, (scenario, exc.status_code, exc.detail)
+        assert 'Qdrant' in str(exc.detail) or scenario in ('network', 'invalid_json'), (scenario, exc.detail)
+        if scenario in errors:
+            assert exc.__cause__ is errors[scenario], scenario
+        result = {'scenario': scenario, 'api_status': exc.status_code, 'cause': type(exc.__cause__).__name__, 'calls': calls}
+    else:
+        raise AssertionError(f'False success: {scenario}')
+    assert retriever.bm25.__dict__ == before_bm25, scenario
+    assert retriever._chunks == before_chunks and rag._sparse_ready, scenario
+    result.update({'bm25_unchanged': True, 'chunk_cache_unchanged': True, 'sparse_readiness_unchanged': True, 'no_point_mutation': all('/points' not in p for _, p in calls)})
+    results.append(result)
+
+path = ROOT.parent / 'analysis/qdrant_verify_b_api_witness.json'
+path.write_text(json.dumps({'results': results, 'all_passed': True, 'live_server': False, 'scope': 'Direct invocation of the real FastAPI route with real retriever/client and injected Qdrant HTTP responses; authentication middleware not exercised.'}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print(json.dumps({'passed': len(results), 'failed': 0, 'evidence': str(path)}))

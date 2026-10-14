@@ -15,6 +15,7 @@ import importlib.util
 import json
 import sys
 import urllib.error
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -49,6 +50,49 @@ def _client_ok() -> pq.QdrantHttpClient:
     client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
     client._request = lambda *_a, **_k: {"result": {}}  # type: ignore[method-assign]
     return client
+
+
+class _CollectionServer:
+    """Small HTTP-state fixture: index writes cannot replace collection data."""
+
+    def __init__(self, *, exists=True):
+        self.exists = exists
+        self.payload_schema = {}
+        self.points = {"retained": {"metadata": {"tenant_id": "tenant-a"}}} if exists else {}
+        self.calls = []
+        self.index_reply = {"status": "ok", "result": {"status": "completed"}}
+        self.persist_index = True
+        self.index_error = None
+
+    def request(self, method, path, payload=None):
+        self.calls.append((method, path, deepcopy(payload)))
+        if method == "GET" and path == "/collections/sahool":
+            if not self.exists:
+                raise pq.QdrantHTTPError(404, "not found")
+            return {
+                "status": "ok",
+                "result": {
+                    "config": {"params": {"vectors": {"size": 384, "distance": "Cosine"}}},
+                    "payload_schema": deepcopy(self.payload_schema),
+                },
+            }
+        if method == "PUT" and path == "/collections/sahool":
+            assert not self.exists, "existing collections must never be recreated"
+            self.exists = True
+            return {"status": "ok", "result": True}
+        if method == "PUT" and path == "/collections/sahool/index?wait=true":
+            assert payload == {"field_name": "metadata.tenant_id", "field_schema": "keyword"}
+            if self.index_error:
+                raise self.index_error
+            if self.persist_index:
+                self.payload_schema["metadata.tenant_id"] = {"data_type": "keyword", "points": 1}
+            return deepcopy(self.index_reply)
+        raise AssertionError(f"unexpected or destructive request: {method} {path}")
+
+    def client(self):
+        client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
+        client._request = self.request
+        return client
 
 
 # ───────────────── كلّ صنف خطأ يُصنَّف على حدة ─────────────────
@@ -91,12 +135,130 @@ def test_network_failure_is_unavailable_not_absent():
 
 
 def test_ensure_collection_creates_only_on_proven_absence():
-    created: list[str] = []
-    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
-    client.probe_collection = lambda: Status.NOT_FOUND  # type: ignore[method-assign]
-    client._request = lambda method, *_a, **_k: created.append(method) or {}  # type: ignore[method-assign]
+    server = _CollectionServer(exists=False)
+    server.client().ensure_collection()
+    writes = [(method, path) for method, path, _ in server.calls if method != "GET"]
+    assert writes == [
+        ("PUT", "/collections/sahool"),
+        ("PUT", "/collections/sahool/index?wait=true"),
+    ], "غياب مُثبَت (404) ⇒ مجموعة ثمّ فهرس، بلا مساس بالنقاط"
+
+
+@pytest.mark.parametrize("exists", [True, False])
+def test_tenant_index_reconciles_existing_and_new_collection_idempotently(exists):
+    server = _CollectionServer(exists=exists)
+    points_before = deepcopy(server.points)
+    client = server.client()
     client.ensure_collection()
-    assert created == ["PUT"], "غياب مُثبَت (404) ⇒ يُنشأ"
+    assert server.payload_schema["metadata.tenant_id"]["data_type"] == "keyword"
+    writes_after_first = [call for call in server.calls if call[0] != "GET"]
+    client.ensure_collection()
+    assert [call for call in server.calls if call[0] != "GET"] == writes_after_first
+    assert len(writes_after_first) == (1 if exists else 2)
+    assert server.points == points_before
+
+
+@pytest.mark.parametrize("params", [None, {"type": "keyword", "is_tenant": True}])
+def test_existing_keyword_tenant_index_is_preserved_without_any_write(params):
+    server = _CollectionServer()
+    server.payload_schema = {
+        "metadata.tenant_id": {"data_type": "keyword", "params": params, "points": 1},
+        "other_field": {"data_type": "integer", "points": 1},
+    }
+    before = deepcopy(server.payload_schema)
+    server.client().ensure_collection()
+    assert all(method == "GET" for method, _, _ in server.calls)
+    assert server.payload_schema == before
+
+
+@pytest.mark.parametrize("schema", [None, [], "unknown"])
+def test_unknown_payload_schema_does_not_trigger_a_write(schema):
+    server = _CollectionServer()
+    server.payload_schema = schema
+    with pytest.raises(ValueError, match="payload schema"):
+        server.client().ensure_collection()
+    assert all(method == "GET" for method, _, _ in server.calls)
+
+
+@pytest.mark.parametrize(
+    "index",
+    [
+        None,
+        "keyword",
+        {},
+        {"data_type": "integer"},
+        {"data_type": "text"},
+        {"data_type": "keyword", "params": {"type": "integer"}},
+    ],
+)
+def test_incompatible_tenant_index_is_rejected_without_replacing_it(index):
+    server = _CollectionServer()
+    server.payload_schema["metadata.tenant_id"] = index
+    with pytest.raises(ValueError, match="tenant payload index"):
+        server.client().ensure_collection()
+    assert all(method == "GET" for method, _, _ in server.calls)
+    assert server.payload_schema["metadata.tenant_id"] == index
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        pq.QdrantHTTPError(401, "denied"),
+        pq.QdrantHTTPError(403, "forbidden"),
+        pq.QdrantHTTPError(503, "unavailable"),
+        urllib.error.URLError("offline"),
+        json.JSONDecodeError("invalid", "{", 0),
+    ],
+)
+def test_payload_index_api_errors_propagate_without_claiming_success(error):
+    server = _CollectionServer()
+    server.index_error = error
+    with pytest.raises(type(error)) as exc:
+        server.client().ensure_collection()
+    assert exc.value is error
+    assert server.payload_schema == {}
+    assert [(m, p) for m, p, _ in server.calls if m != "GET"] == [
+        ("PUT", "/collections/sahool/index?wait=true")
+    ]
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        None,
+        [],
+        {},
+        {"status": "error", "result": {"status": "completed"}},
+        {"status": "ok", "result": None},
+        {"status": "ok", "result": {"status": "acknowledged"}},
+        {"status": "ok", "result": {"status": "wait_timeout"}},
+    ],
+)
+def test_incomplete_index_creation_is_not_reported_as_success(reply):
+    server = _CollectionServer()
+    server.index_reply = reply
+    with pytest.raises(RuntimeError, match="payload index"):
+        server.client().ensure_collection()
+
+
+def test_index_creation_requires_schema_readback_not_just_success_reply():
+    server = _CollectionServer()
+    server.persist_index = False
+    with pytest.raises(RuntimeError, match="payload index"):
+        server.client().ensure_collection()
+
+
+def test_index_reconciliation_does_not_change_tenant_and_global_search_filters():
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
+    calls = []
+    client._request = lambda *args: calls.append(args) or {"result": []}
+    assert client.search([0.1], tenant_id="tenant-a", filters={"crop": "wheat"}) == []
+    assert calls[0][2]["filter"] == {
+        "must": [
+            {"key": "metadata.tenant_id", "match": {"any": ["tenant-a", "__global__"]}},
+            {"key": "metadata.crop", "match": {"value": "wheat"}},
+        ]
+    }
 
 
 @pytest.mark.parametrize(
