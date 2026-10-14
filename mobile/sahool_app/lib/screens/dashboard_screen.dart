@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../services/api_service.dart';
 import '../widgets/state_views.dart';
+import '../widgets/water_usage_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   // يُستدعى من حالة «لا حقول» للانتقال إلى تبويب الحقول لإنشاء أوّل حقل.
@@ -164,16 +165,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             color: const Color(0xFF10B981),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.water_drop,
-            label: 'توفير المياه',
-            value: '${data['water_usage']['savings_pct']}%',
-            subtitle: 'هذا الشهر',
-            color: const Color(0xFF3B82F6),
-          ),
-        ),
+        // «توفير المياه هذا الشهر» أُزيل: لا مُنتِج خلفيّ لـwater_usage.savings_pct
+        // (MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01) — كان يقرأ مفتاحاً غائباً
+        // بلا حارس فينهار البناء، ويعرض ادّعاءَ توفيرٍ بلا قياس.
         const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
@@ -496,42 +490,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildResourceCards(Map<String, dynamic> data) {
-    final water = (data['water_usage'] as Map<String, dynamic>?) ?? const {};
     final carbon = (data['carbon'] as Map<String, dynamic>?) ?? const {};
 
     return Row(
       children: [
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.water_drop, color: Color(0xFF3B82F6), size: 28),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${water['this_month_m3']} م³',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 22),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'استهلاك المياه',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'توفير ${water['savings_pct']}% عن الشهر الماضي',
-                    style: const TextStyle(
-                      color: Color(0xFF10B981),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // صدق: لا مُنتِج لـwater_usage (this_month_m3/savings_pct) ⇒ «غير مقيس» صريح
+        // لا يقرأ أيّ مفتاح من الحمولة ولا يعرض نسبةَ توفير.
+        const Expanded(child: WaterUsageNotMeasuredCard()),
         const SizedBox(width: 12),
         Expanded(
           child: Card(
