@@ -1,0 +1,64 @@
+{
+  "basis": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "audit_scope": "Staged manualbrain/evidence while fullpreflight running; no edits/test/generator",
+  "state_counts": {
+    "fixed": 389,
+    "open": 134,
+    "verified": 3
+  },
+  "gap_count": 526,
+  "state_changes": [
+    {
+      "id": "BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01",
+      "from": "open",
+      "to": "fixed"
+    }
+  ],
+  "cdse_state": "open",
+  "old_id_set_unchanged": true,
+  "manifests": {
+    "gap_reconciliation_20261014": {
+      "count": 54,
+      "invalid": []
+    },
+    "qdrant_tenant_index_20261014": {
+      "count": 18,
+      "invalid": []
+    },
+    "cdse_diagnostics_20261014": {
+      "count": 35,
+      "invalid": []
+    },
+    "arabic_state_guard_20261014": {
+      "count": 13,
+      "invalid": []
+    },
+    "gap_wave1_plan_20261014": {
+      "count": 8,
+      "invalid": []
+    }
+  },
+  "historical103_entries": 103,
+  "historical_entry_byte_changes": [
+    {
+      "path": "certification/evidence/cdse_diagnostics_20261014/README.md",
+      "unchanged": false,
+      "prefix_preserved": true
+    }
+  ],
+  "journal_history": {
+    "sahool-brain/log.md": true,
+    "sahool-brain/decisions/ledger.md": true,
+    "hot_old_text_contained": true
+  },
+  "plan_basis": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "plan_exact135_basecoverage": true,
+  "plan_review_depth": {
+    "current_registry_reconciled_prior_execution_plan_retained": 123,
+    "independent_baseline_cli_defect_reproduced": 1,
+    "independent_source_evidence_and_control_plane_partial_repair_rechecked": 1,
+    "current_control_plane_scope_rechecked_remainder_retained": 10
+  },
+  "source_phase_pr_pending": true,
+  "blockers": []
+}

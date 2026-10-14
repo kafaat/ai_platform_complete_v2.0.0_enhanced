@@ -32,3 +32,11 @@ verification, deployment, database change, or provider call is claimed.
 review receipts remain labeled as such; `wave1_guard_independent_final.json` and
 `wave1_guard_verify_a_review.json` bind final source hashes. The witness is stored
 as `.py.txt` for reproducibility without registering an executable evidence script.
+
+## PR provenance and completed local validation
+
+The preceding preparation checkpoint is historical. Draft [PR #1183](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1183) opened at `a00ff740b09c0a20976b231920ecf72d74b3a8a7`, exactly matching tested tree `36fa76cae2768bf08f94e0fc046ea29f94092482`. Repair source and test bytes are unchanged. `provenance.json` retains both checkpoints.
+
+`validation_summary.json` and `validation_gate_receipts.json` preserve actual commands, exit codes, tree identities, complete stdout result counts and log hashes. Native full preflight exited 0 with two explicit security PATH skips; high-severity Bandit and the exact native pip-audit command subsequently passed in the existing security environment. The workflow's separate 19-requirements audit passed too, without changing its exception IDs. Normal and C-locale unit suites each passed 8878 with 39 skips; repository 996 with 8 skips; platform 4586; guard locale 169/169. Six extra guards passed and final opening release packaging verified 6315 checksums. No JUnit output was generated. Raw logs remain scratch receipts; compact command results and hashes are retained here.
+
+`opening_api_identity.json`, `opening_api_range_gates.json`, and `opening_capability_gate.json` bind the actual opening API commit, three committed-range guards, and the checked draft-body hash. The later final provenance commit still requires generation/convergence, release validation, fresh committed-range gates and final-head GitHub CI. This checkpoint claims neither completed final-head CI nor merge/deployment. The separately retained `staged_brain_evidence_review.json` audited the pre-PR evidence and exact one-gap transition; it is not relabeled as a review of these new provenance files.

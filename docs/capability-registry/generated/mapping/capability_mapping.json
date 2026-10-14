@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5644,
+    "files_scanned": 5650,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1643,
+      "other": 1649,
       "tests": 1907,
       "web": 467
     },
     "unmapped_artifacts": 2259,
-    "ambiguous_artifacts": 433
+    "ambiguous_artifacts": 435
   },
   "capabilities": [
     {
@@ -8986,6 +8986,14 @@
           ]
         },
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_capability_gate.json",
+          "score": 26,
+          "signals": [
+            "content:inventory",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/ODOO_INTEGRATION.md",
           "score": 17,
           "signals": [
@@ -9125,7 +9133,7 @@
         "mobile": 1,
         "tests": 6,
         "governance": 4,
-        "other_evidence": 17
+        "other_evidence": 18
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -12935,7 +12943,15 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -12949,7 +12965,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -13975,6 +13991,13 @@
           ]
         },
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
           "score": 20,
           "signals": [
@@ -14035,7 +14058,7 @@
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 9
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -18148,6 +18171,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_capability_gate.json",
+          "score": 26,
+          "signals": [
+            "content:cdse",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/ci_impact_review.json",
           "score": 25,
           "signals": [
@@ -18173,6 +18204,13 @@
             "content:cdse",
             "content:sentinel",
             "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
           ]
         },
         {
@@ -18623,7 +18661,7 @@
         "mobile": 0,
         "tests": 49,
         "governance": 0,
-        "other_evidence": 57
+        "other_evidence": 59
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -27024,6 +27062,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
           "score": 20,
           "signals": [
@@ -27061,7 +27106,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 2,
       "mapped": true
@@ -46419,6 +46464,62 @@
           "signals": [
             "content:Work orders",
             "content:work order"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/arabic_state_guard_20261014/opening_api_range_gates.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-003",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-009",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-003",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/arabic_state_guard_20261014/opening_capability_gate.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 26,
+          "signals": [
+            "content:cdse",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 26,
+          "signals": [
+            "content:inventory",
+            "explicit_id"
           ]
         }
       ]

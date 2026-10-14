@@ -7,9 +7,21 @@
     "scripts/ci/brain_state_transition_guard.py",
     "tests_v9/test_brain_transition_guard_vocabulary.py"
   ],
-  "pull_request": null,
-  "pr_status": "not_created_yet",
+  "pull_request": 1183,
+  "pr_status": "draft_opened_final_provenance_pending",
   "merge_status": "not_merged",
   "claim": "source_fixed; not_live_verified",
-  "independent_review": "wave1_guard_verify_a_review.json"
+  "independent_review": "wave1_guard_verify_a_review.json",
+  "pre_pr_checkpoint": {
+    "pull_request": null,
+    "pr_status": "not_created_yet",
+    "merge_status": "not_merged"
+  },
+  "pr_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1183",
+  "opening_head": "a00ff740b09c0a20976b231920ecf72d74b3a8a7",
+  "opening_tree": "36fa76cae2768bf08f94e0fc046ea29f94092482",
+  "local_validation": "validation_summary.json",
+  "local_gate_receipts": "validation_gate_receipts.json",
+  "opening_range_validation": "opening_api_range_gates.json",
+  "final_head_ci": "pending_not_claimed"
 }
