@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: <scratch>/cdse-worktree
+configfile: pytest.ini
+plugins: Faker-40.43.0, cov-7.1.0, asyncio-1.4.0, platformdirs-4.13.0, respx-0.23.1, xdist-3.8.0, hypothesis-6.169.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 65 items
+
+services/raster-service/test_cdse_durable_diagnostics.py ............... [ 23%]
+..................................................                       [100%]
+
+=============================== warnings summary ===============================
+services/raster-service/test_cdse_durable_diagnostics.py::test_mask_attribution_requires_observed_pixels_before_and_none_after
+  <scratch>/sahool-venv/lib/python3.12/site-packages/rasterio/mask.py:88: UserWarning: shapes are outside bounds of raster. Are they in different coordinate reference systems?
+    warnings.warn('shapes are outside bounds of raster. '
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: <scratch>/analysis/cdse_duplicate_targeted_final.xml -
+======================== 65 passed, 1 warning in 1.33s =========================

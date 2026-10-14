@@ -1,0 +1,67 @@
+{
+  "reviewer": "verify_b",
+  "at_utc": "2026-10-14T13:18:16.687765+00:00",
+  "base_head": "a15f73dba458032a08fd2616aeed6b543cc92703",
+  "reviewed_worktree_sha256": {
+    "services/raster-service/cdse_diagnostics.py": "c64d2e2eb039348e56b0b606aa9219ca58314cf63be5948b786fc7edfdb67aa2",
+    "services/raster-service/test_cdse_durable_diagnostics.py": "f35bf6b0407bf91318c274c4359f327bd9b8a068cdd356ad03ea9da37b37bb7d",
+    "services/raster-service/raster_cdse_tile_runtime.py": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527",
+    "services/raster-service/tile_render.py": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd"
+  },
+  "owner_comment": 6168991949,
+  "verdict": "APPROVED_SOURCE_SCOPE_NO_BLOCKER",
+  "finding_confirmed": {
+    "before_distinct_fields_retained": 1,
+    "initial_receipts_lost": 5,
+    "fsync_calls_per_failure": 5,
+    "correction_to_comment": "Four directory fsyncs plus one file fsync, five total."
+  },
+  "independent_green_witness": {
+    "path": "analysis/cdse_verify_b_duplicate_preservation_witness.json",
+    "original_distinct_receipts_retained": 5,
+    "final_distinct_fields": 6,
+    "repeat_attempts": 256,
+    "repeat_fsync_calls": {
+      "file": 1,
+      "directory": 259
+    },
+    "meaning": "One new distinct failure uses prior full write path; remaining255 matches reuse existing ID with one directory fsync each, no file rewrites."
+  },
+  "prior_four_defects": {
+    "path": "analysis/cdse_verify_b_dedup_four_regressions.json",
+    "remaining": 0,
+    "witness_change": "Prior failed-replace ring reproduction now creates two semantically distinct fields, preventing dedup from bypassing fault path; source/reviewer no repo edits."
+  },
+  "implementation_review": [
+    "Exact semantic key includes schema/provider/outcome/stage/attribution/history plus entire request and response; tenant, field, index, time range, bbox, geometry, cloud, payload hash/length, scene, status and observations remain distinct.",
+    "Fixed60second TTL from original observation; no timestamp refresh or repeat count claim.",
+    "Bounded8193byte reads of at most256 candidates, regular files only, O_NOFOLLOW and O_NONBLOCK; malformed, unsupported, expired, future, naive-time and duplicate-key JSON cannot suppress evidence.",
+    "Exclusive existing lock serializes processes; duplicates retain one directory fsync to confirm prior renamed-but-unconfirmed receipt, with recovered rotation synced before return.",
+    "Existing failed-write, cleanup-lock and rotation tests retain fault assertions and use distinct request fields so duplicate handling does not bypass them.",
+    "Runtime catches persistence failure as unconfirmed diagnostic evidence and keeps failed raster noncacheable; runtime source unchanged."
+  ],
+  "owner_targeted_tests_reviewed": {
+    "reported_passed": 65,
+    "reported_skipped": 0,
+    "rerun_by_reviewer": false,
+    "coverage_reviewed": [
+      "TTL59/60 boundary",
+      "15 distinct semantic request/response cases",
+      "HTTP status and attribution distinctions",
+      "15 damaged receipt forms",
+      "symlink/FIFO safety",
+      "three concurrent processes",
+      "duplicate fsync failure",
+      "prior failed-post-rename fsync confirmation",
+      "interrupted rotation recovery"
+    ]
+  },
+  "limits": [
+    "Offline local scratch witnesses; no live provider, deployment or volume validation.",
+    "Shared global receipt window remains, no per-tenant allocation or age-based deletion. Unique failure floods can still evict older receipts.",
+    "Duplicate window is sampling; retained record does not count all occurrences or represent latest failure time.",
+    "One directory fsync and bounded scan remain per duplicate; no measured production latency claim.",
+    "Historical CDSE incident remains unattributable and original gap not fully closed."
+  ],
+  "reviewer_repository_mutations": false
+}

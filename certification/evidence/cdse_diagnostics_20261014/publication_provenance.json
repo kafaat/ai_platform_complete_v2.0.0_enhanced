@@ -1,0 +1,34 @@
+{
+  "schema": "sahool.cdse-publication-provenance.v1",
+  "observed_at": "2026-10-14T13:00:17.982996+00:00",
+  "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "pr_number": 1182,
+  "pr_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1182",
+  "pr_head_observed_before_provenance_update": "2c2345263dc4028594d44ac9b5a3f00105e76855",
+  "source_commit": "33616dbb5f20c7b56b62f3799fadc2d667803962",
+  "source_sha256": {
+    "services/raster-service/cdse_diagnostics.py": "52ef0ec7466e668b29cc17c198aa6b50e6bd71094390962345ec1eb948507b7e",
+    "services/raster-service/raster_cdse_tile_runtime.py": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527",
+    "services/raster-service/tile_render.py": "9cf1d584d9864b889cb394ad91ed87799315c81c6e65f75d7fa528e4e2ed8efd",
+    "services/raster-service/test_cdse_durable_diagnostics.py": "bad6978115c16852971ee9c171af7dadebe0e54b7ee3c80502c9e1523e8eecac"
+  },
+  "later_root_test_contract": {
+    "path": "tests_v9/test_readiness_followup_fixes_20260916.py",
+    "sha256": "16365e5c50a5a1a7c7a77c88e3c6e2092d0dfab8f4ed070bd4d5fe5fdc2c4ccc",
+    "included_in_original_source_commit": false
+  },
+  "gap": {
+    "id": "CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01",
+    "state": "open",
+    "historical_cause": "not_reconstructed"
+  },
+  "deployment_scope": {
+    "possible_main_tracking_instances_in_previous_snapshot": 4,
+    "fresh_config_check_required": true,
+    "deployment_verified": false
+  },
+  "claims": {
+    "production_durability_verified": false,
+    "final_head_ci_recorded_here": false
+  }
+}

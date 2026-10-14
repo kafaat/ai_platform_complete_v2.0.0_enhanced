@@ -1,0 +1,175 @@
+"""Independent operator-only receipt/privacy witnesses. No live I/O."""
+import hashlib
+import json
+from pathlib import Path
+
+import httpx
+import pytest
+
+
+@pytest.fixture
+def service(monkeypatch, tmp_path):
+    import cdse_diagnostics
+    import raster_settings
+    import raster_security_context
+    import raster_app_factory
+    from routers import cdse_tiles, storage
+
+    monkeypatch.setattr(raster_settings, 'UPLOAD_DIR', str(tmp_path))
+    monkeypatch.setattr(raster_settings, 'OFFLINE_PACKS_DIR', str(tmp_path / 'offline_packs'))
+    monkeypatch.setattr(raster_settings, 'AGENT_TOKEN', 'review-service-token')
+    monkeypatch.setattr(storage, 'UPLOAD_DIR', str(tmp_path))
+    monkeypatch.setattr(storage, 'OFFLINE_PACKS_DIR', str(tmp_path / 'offline_packs'))
+    app = raster_app_factory.create_raster_app(title='privacy-review', version='test', lifespan=None, cors_origins=[])
+    # Factory registers the real production routers; fail if a dependency prevented registration.
+    assert any(getattr(r, 'path', '') == '/v1/storage/stats' for r in app.routes)
+    assert any(getattr(r, 'path', '') == '/v1/fields/{field_id}/cdse-thumbnail.png' for r in app.routes)
+    return app, tmp_path, cdse_diagnostics, raster_security_context, cdse_tiles
+
+
+def _record(diagnostics, tenant, field='private-field', bbox=None):
+    record = diagnostics.failure_receipt(
+        tenant=tenant, field_id=field, index='ndvi',
+        date_from='2026-10-14', date_to='2026-10-14',
+        bbox=bbox or [1, 2, 3, 4], geometry=None, max_cloud_pct=40,
+        outcome='empty_raster', payload=b'private-raster-bytes',
+    )
+    diagnostics.persist(record)
+    return record
+
+
+@pytest.mark.asyncio
+async def test_actual_app_does_not_mount_or_serve_diagnostic_files(service):
+    app, root, diagnostics, _, _ = service
+    record = _record(diagnostics, 'tenant-a')
+    filename = record['receipt_id'] + '.json'
+    from starlette.routing import Mount
+    assert not any(isinstance(route, Mount) for route in app.routes)
+    paths = [f'/cdse_diagnostics/{filename}', f'/uploads/cdse_diagnostics/{filename}',
+             f'/data/rasters/cdse_diagnostics/{filename}', f'/v1/storage/cdse_diagnostics/{filename}',
+             f'/v1/offline/packs/{filename}', f'/v1/offline/packs/%2e%2e%2fcdse_diagnostics%2f{filename}']
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        for tenant in ('tenant-a', 'tenant-b'):
+            for path in paths:
+                response = await client.get(path, headers={'X-Tenant-Id': tenant, 'X-Agent-Token': 'review-service-token'})
+                assert response.status_code in (400, 404), (path, response.status_code)
+                assert filename not in response.text
+                assert 'tenant_sha256' not in response.text
+                assert 'private-field' not in response.text
+
+
+@pytest.mark.asyncio
+async def test_storage_inventory_needs_service_token_and_returns_no_receipt_context(service):
+    app, root, diagnostics, _, _ = service
+    record = _record(diagnostics, 'tenant-a')
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        for headers in ({}, {'X-Tenant-Id': 'tenant-b'}, {'X-Agent-Token': 'wrong'}):
+            response = await client.get('/v1/storage/stats', headers=headers)
+            assert response.status_code == 401
+        response = await client.get('/v1/storage/stats', headers={'X-Agent-Token': 'review-service-token'})
+        assert response.status_code == 200
+        assert set(response.json()) == {'total_mb', 'files', 'by_type_mb'}
+        assert record['receipt_id'] not in response.text
+        assert record['request']['tenant_sha256'] not in response.text
+        assert 'bbox' not in response.text
+
+
+@pytest.mark.asyncio
+async def test_cross_tenant_denial_precedes_provider_or_receipt_creation(service, monkeypatch):
+    app, root, diagnostics, security, router = service
+    async def owner(_field):
+        return 'tenant-a'
+    monkeypatch.setattr(security, 'field_owner', owner)
+    async def forbidden_normalize(*args, **kwargs):
+        raise AssertionError('unauthorized request reached CDSE normalization')
+    monkeypatch.setattr(router, '_normalize_cdse_request', forbidden_normalize)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        for headers in ({}, {'X-Tenant-Id': 'tenant-b'}):
+            response = await client.get('/v1/fields/private-field/cdse-thumbnail.png', headers=headers)
+            assert response.status_code == 403
+    assert not (root / 'cdse_diagnostics').exists()
+
+
+@pytest.mark.asyncio
+async def test_request_context_remains_distinct_in_authorized_failures(service, monkeypatch):
+    app, root, diagnostics, security, router = service
+    import raster_cdse_tile_runtime as runtime
+    async def owner(field):
+        return {'field-a':'tenant-a','field-b':'tenant-b'}[field]
+    monkeypatch.setattr(security, 'field_owner', owner)
+    async def normalize(*args, **kwargs):
+        return {'internal':'ndvi','today':'2026-10-14',
+                'date_from':'2026-10-14T00:00:00Z','date_to':'2026-10-14T23:59:59Z',
+                'field_bbox':[1,2,3,4], 'field_geom':None, 'has_poly':False}
+    monkeypatch.setattr(router, '_normalize_cdse_request', normalize)
+    class OfflineFailure:
+        def process_index(self, **kwargs):
+            raise httpx.ReadTimeout('SECRET-do-not-record')
+    monkeypatch.setattr(runtime._cdse, 'get_client', OfflineFailure)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        for suffix in ('a', 'b'):
+            response = await client.get(f'/v1/fields/field-{suffix}/cdse-thumbnail.png', headers={'X-Tenant-Id':f'tenant-{suffix}'})
+            assert response.status_code == 200  # preserved transparent-PNG legacy failure contract
+            assert response.headers['content-type'].startswith('image/png')
+            assert 'tenant_sha256' not in response.text
+    records = [json.loads(p.read_text()) for p in (root/'cdse_diagnostics').glob('*.json')]
+    expected = {hashlib.sha256(json.dumps('tenant-'+t, sort_keys=True).encode()).hexdigest() for t in ('a','b')}
+    assert {r['request']['tenant_sha256'] for r in records} == expected
+    assert len({r['request']['field_sha256'] for r in records}) == 2
+    for r in records:
+        encoded = json.dumps(r)
+        assert 'tenant-a' not in encoded and 'tenant-b' not in encoded
+        assert 'field-a' not in encoded and 'field-b' not in encoded
+        assert 'SECRET-do-not-record' not in encoded
+    assert security.REQ_TENANT.get() is None
+
+
+def test_files_are_owner_only_and_operator_window_does_not_export_identifiers(service):
+    app, root, diagnostics, _, _ = service
+    record = _record(diagnostics, '../../tenant-private', '../field-private')
+    directory = root/'cdse_diagnostics'
+    assert directory.stat().st_mode & 0o777 == 0o700
+    assert (directory/'write.lock').stat().st_mode & 0o777 == 0o600
+    assert (directory/(record['receipt_id']+'.json')).stat().st_mode & 0o777 == 0o600
+    assert sorted(p.name for p in root.iterdir()) == ['cdse_diagnostics']
+    assert 'tenant-private' not in json.dumps(record)
+    assert 'field-private' not in json.dumps(record)
+
+
+@pytest.mark.asyncio
+async def test_concurrent_requests_keep_context_when_provider_threads_interleave(service, monkeypatch):
+    app, root, diagnostics, security, router = service
+    import raster_cdse_tile_runtime as runtime
+    async def owner(field):
+        return {'field-a':'tenant-a','field-b':'tenant-b'}[field]
+    monkeypatch.setattr(security, 'field_owner', owner)
+    async def normalize(*args, **kwargs):
+        return {'internal':'ndvi','today':'2026-10-14',
+                'date_from':'2026-10-14T00:00:00Z','date_to':'2026-10-14T23:59:59Z',
+                'field_bbox':[1,2,3,4], 'field_geom':None, 'has_poly':False}
+    monkeypatch.setattr(router, '_normalize_cdse_request', normalize)
+    import asyncio
+    import threading
+    rendezvous = threading.Barrier(2, timeout=5)
+    class OfflineFailure:
+        def process_index(self, **kwargs):
+            rendezvous.wait()
+            raise httpx.ReadTimeout('SECRET-do-not-record')
+    monkeypatch.setattr(runtime._cdse, 'get_client', OfflineFailure)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        requests = [client.get(f'/v1/fields/field-{suffix}/cdse-thumbnail.png', headers={'X-Tenant-Id':f'tenant-{suffix}'}) for suffix in ('a', 'b')]
+        responses = await asyncio.gather(*requests)
+        for response in responses:
+            assert response.status_code == 200  # preserved transparent-PNG legacy failure contract
+            assert response.headers['content-type'].startswith('image/png')
+            assert 'tenant_sha256' not in response.text
+    records = [json.loads(p.read_text()) for p in (root/'cdse_diagnostics').glob('*.json')]
+    expected = {hashlib.sha256(json.dumps('tenant-'+t, sort_keys=True).encode()).hexdigest() for t in ('a','b')}
+    assert {r['request']['tenant_sha256'] for r in records} == expected
+    assert len({r['request']['field_sha256'] for r in records}) == 2
+    for r in records:
+        encoded = json.dumps(r)
+        assert 'tenant-a' not in encoded and 'tenant-b' not in encoded
+        assert 'field-a' not in encoded and 'field-b' not in encoded
+        assert 'SECRET-do-not-record' not in encoded
+    assert security.REQ_TENANT.get() is None

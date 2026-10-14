@@ -399,9 +399,23 @@ def test_irrigation_hint_does_not_say_zero_millimetres_for_an_uncomputed_amount(
 
 def test_empty_cdse_scene_log_carries_the_request_that_produced_it():
     src = (ROOT / "services/raster-service/raster_cdse_tile_runtime.py").read_text(encoding="utf-8")
-    block = src.split("CDSE returned an empty raster")[1].split("_unlink_best_effort")[0]
-    for token in ("window=", "bbox=", "max_cloud_pct=", "mosaicking=", "bytes=", "polygon_mask="):
+    # Empty pixels, rejected shape and failed inspection share a rejection path;
+    # only a measured zero count may be described as an empty raster.
+    rejected = src.split("            if not observable:\n")[-1].split(
+        '            diagnostic_stage = "cache"'
+    )[0]
+    receipt = rejected.index("await record_failure(content_outcome)")
+    log = rejected.index("CDSE raster rejected")
+    cleanup = rejected.index("_unlink_best_effort(cog_path")
+    assert receipt < log < cleanup, "Attempt diagnostic persistence before deleting rejected bytes"
+    block = rejected[log:cleanup]
+    for token in (
+        "outcome=",
+        "window=",
+        "bbox=",
+        "max_cloud_pct=",
+        "mosaicking=",
+        "bytes=",
+        "polygon_mask=",
+    ):
         assert token in block, f"سطرُ المشهد الفارغ بلا {token} ⇒ السببُ غير منسوب بعد حذف البايتات"
-    assert "_unlink_best_effort(cog_path" in src, (
-        "البايتات الفارغة لا تُخزَّن — والسطر يبقى الأثر الوحيد"
-    )

@@ -1407,6 +1407,7 @@ SAT-001,test,services/decision-service/tests/test_satellite_cdse_activation_gate
 SAT-001,test,services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py,5,applied
 SAT-001,test,services/raster-service/test_backfill_scene_policy.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_date_normalization.py,3,applied
+SAT-001,test,services/raster-service/test_cdse_durable_diagnostics.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_poly_contract.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied
@@ -1666,6 +1667,7 @@ SAT-009,test,services/raster-service/test_batch_single_open_certification.py,3,a
 SAT-009,test,services/raster-service/test_batch_single_open_metrics.py,3,applied
 SAT-009,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_date_normalization.py,3,applied
+SAT-009,test,services/raster-service/test_cdse_durable_diagnostics.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_poly_contract.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied

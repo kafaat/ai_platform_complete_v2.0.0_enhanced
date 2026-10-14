@@ -1,0 +1,44 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/7e02e5ed5cb5/cdse-worktree
+configfile: pytest.ini
+plugins: respx-0.23.1, cov-7.1.0, Faker-40.43.0, anyio-4.15.1, hypothesis-6.169.0, platformdirs-4.13.0, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 103 items
+
+services/raster-service/test_cdse_durable_diagnostics.py ............... [ 14%]
+...........                                                              [ 25%]
+services/raster-service/test_raster_observable_content.py .............  [ 37%]
+services/raster-service/test_cdse_empty_raster_not_cached.py .....       [ 42%]
+services/raster-service/test_cdse_poly_contract.py .......               [ 49%]
+services/raster-service/test_cdse_date_normalization.py ........         [ 57%]
+services/raster-service/test_cdse_process_rate_limit.py ....             [ 61%]
+tests_v9/test_cdse_latest_selection_semantics.py .....................   [ 81%]
+tests_v9/test_cdse_latest_window_singleflight_guard.py ..                [ 83%]
+tests_v9/test_cdse_latest_scene_day_binding.py ............              [ 95%]
+tests_v9/test_cdse_process_throttle_retry_guard.py .....                 [100%]
+
+=============================== warnings summary ===============================
+services/raster-service/raster_api_models.py:120
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_api_models.py:120: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+    class RawDataProcessResponse(BaseModel):
+
+services/raster-service/raster_validated_product.py:32
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+services/raster-service/raster_validated_product.py:55
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+services/raster-service/raster_indicator_product.py:43
+  /workspace/scratch/7e02e5ed5cb5/cdse-worktree/services/raster-service/raster_indicator_product.py:43: UserWarning: Field name "schema" in "ValidatedIndicatorProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedIndicatorProduct(BaseModel):
+
+services/raster-service/test_cdse_durable_diagnostics.py::test_mask_attribution_requires_observed_pixels_before_and_none_after
+  /workspace/scratch/7e02e5ed5cb5/sahool-venv/lib/python3.12/site-packages/rasterio/mask.py:88: UserWarning: shapes are outside bounds of raster. Are they in different coordinate reference systems?
+    warnings.warn('shapes are outside bounds of raster. '
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /workspace/scratch/7e02e5ed5cb5/analysis/cdse_resume_tests.xml -
+======================= 103 passed, 5 warnings in 1.53s ========================
