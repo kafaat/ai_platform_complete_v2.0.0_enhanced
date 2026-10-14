@@ -9345,6 +9345,11 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 لوحةُ تطبيق الجوّال لم تعد تقرأ `water_usage.savings_pct` الذي لا يُنتجه أيّ خادم، وتعرض «غير مقيس»؛ وبقي `carbon.sequestered_kg` بلا منتِج حدّاً معلناً. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. لا نشرَ على Railway (بناءُ التطبيق وحده). خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
 
 **المصدر:** `main@9a50aac3` · الإصلاح `a1730e2c` · الشاهد `mobile/sahool_app/test/dashboard_water_not_measured_test.dart (يعمل في وظيفة Flutter في CI، ولم يُشغَّل محلّيّاً)`.
+## 2026-10-14 — موجة الإغلاق ٢: `OLLAMA-UNIFIED-PINNED-0-3-0-01`
+
+ملفّا compose البديلان (unified على 0.3.0، وfixed على 0.30.8 بلا بصمة) صارا على بصمة v9 نفسِها، بشاهدٍ يقارن كلَّ ملفّ compose يشغّل Ollama بـv9. لا نشرَ على Railway. وتحقّقُ إصلاح CVE-2026-7482 في بصمة v9 باقٍ حدّاً معلناً لأنّ OSV وNVD محجوبان. خارج شرائح وكيل ChatGPT الأربع.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3c6ecd59` · الشاهد `tests_v9/test_ollama_image_matches_v9_pin.py`.
 ## 2026-10-14 — وصول CDSE المقيس وخطة ما تبقى على أساس main
 
 إسناد الوصول المقيس لاحقاً: دُمج #1182 في main عبر `9a50aac3bf71ed42f4fad91a036d49e61d151a52`، وشجرته تطابق الرأس النهائي المختبر `02fbc3107e0dfbedef025117b83e657192133228` (`ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`). على ذلك الرأس 71 فحصاً ناجحاً و2 متخطيان، والعشرون المطلوبة ناجحة. أصل التشخيص 33616 وإصلاح التكرار fbd121fc وبصمة اختبار التصحيح 46b8 محفوظة في إيصالاتها التاريخية. سجلات Railway لهذا الدمج: 4 SUCCESS لخدمتي raster-service وraster-main-candidate في staging وproduction، و20 SKIPPED؛ هذا وصول إصدار لا إثبات كتابة إيصال أو دوام volume أو سبب الواقعة القديمة. الدليل `certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json` و`certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json`. تبقى open ولا verified.
