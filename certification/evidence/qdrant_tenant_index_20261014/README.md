@@ -33,14 +33,13 @@ listed in `provenance.json`; original and copied hashes are in
 `evidence_manifest.json`. Test outcomes, timestamps and assertions are retained.
 The witness script is historical text (`.py.txt`), not a newly installed runner.
 
-## Interim PR reference
+## PR publication reference
 
-No PR exists yet. Brain entries truthfully identify the repair SHA and local
-branch. Once a PR exists, update current registry/hot, append actual publication
-provenance to log/ledger, and set its number in `provenance.json` before final gates. This
-interim form does not claim to satisfy the final README requirement for an
-explicit PR reference in a fixed row. No generated artifacts or preflight were
-run while packaging this evidence.
+Draft PR #1181 was opened at `663ed97d1bfeb5783fdb5550f23bdff73459ff2f` with repair `f0f2ee711e4426451d7708b03479affbe34b41e2`.
+This records PR creation, not merge, service deployment, live index verification
+or final-head CI success. Final artifact generation and required gates remain
+pending after this provenance edit. Prior no-PR journal entries describe evidence
+preparation; the appended publication entries record the later state.
 
 The historical repair patch path in the receipt remains a historical reference;
 source bytes are recoverable from the immutable repair commit. The redundant
