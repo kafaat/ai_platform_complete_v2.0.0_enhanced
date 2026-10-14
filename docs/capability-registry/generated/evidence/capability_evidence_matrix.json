@@ -6510,6 +6510,7 @@
       "runtime_verified": false,
       "title": "Satellite scene search",
       "unit_test_paths": [
+        "certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json",
         "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
         "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
         "services/raster-service/test_cdse_date_normalization.py",

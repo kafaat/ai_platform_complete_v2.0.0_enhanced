@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5617,
+    "files_scanned": 5624,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1617,
-      "tests": 1906,
+      "other": 1623,
+      "tests": 1907,
       "web": 467
     },
     "unmapped_artifacts": 2259,
@@ -17560,7 +17560,11 @@
           "score": 14
         },
         {
-          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:123",
+          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:160",
+          "score": 14
+        },
+        {
+          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:219",
           "score": 14
         },
         {
@@ -17845,6 +17849,14 @@
             "content:cdse",
             "content:sentinel",
             "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
           ]
         },
         {
@@ -18237,6 +18249,14 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/duplicate_suppression_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/open_c_resume.json",
           "score": 14,
           "signals": [
@@ -18246,6 +18266,14 @@
         },
         {
           "path": "certification/evidence/cdse_diagnostics_20261014/publication_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_dedup_review.json",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -18279,6 +18307,14 @@
         },
         {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_log_contract_review.json",
+          "score": 13,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_process_cwd_review.json",
           "score": 13,
           "signals": [
             "path:cdse",
@@ -18415,6 +18451,27 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/cdse_verify_b_dedup_four_regressions.json",
+          "score": 8,
+          "signals": [
+            "path:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/cdse_verify_b_duplicate_eviction_witness.json",
+          "score": 8,
+          "signals": [
+            "path:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_diagnostics_20261014/cdse_verify_b_duplicate_preservation_witness.json",
+          "score": 8,
+          "signals": [
+            "path:cdse"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/cdse_verify_b_initial_witness.json",
           "score": 8,
           "signals": [
@@ -18492,12 +18549,12 @@
         "backend": 37,
         "routes": 65,
         "database": 3,
-        "events": 45,
+        "events": 46,
         "web": 5,
         "mobile": 0,
-        "tests": 48,
+        "tests": 49,
         "governance": 0,
-        "other_evidence": 46
+        "other_evidence": 52
       },
       "coverage_dimensions": 6,
       "mapped": true

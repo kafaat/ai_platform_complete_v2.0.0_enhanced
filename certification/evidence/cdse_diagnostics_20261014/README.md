@@ -42,3 +42,49 @@ historical cause, prove deployment or replace final-head CI.
 ## CDSE publication provenance — PR #1182
 
 Tracking PR: [1182](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1182). The original preparation preceded this PR; raw results remain unchanged. Source: `33616dbb5f20c7b56b62f3799fadc2d667803962`. Observed PR head before this provenance update: `2c2345263dc4028594d44ac9b5a3f00105e76855`. This is not a final-head CI, merge or deployment receipt. The historical gap remains **open**. Four service/environment instances matched main-tracking deploy patterns in the earlier snapshot; this is possible automatic deployment scope and must be re-read before merge.
+
+## Repeated-failure suppression repair — PR #1182
+
+Current receipt-writer/test source is `fbd121fc4631cc4a4ff75c6d9b22eb25c2d70fcc`,
+parent `a15f73dba458032a08fd2616aeed6b543cc92703`. The original `33616…`
+source and publication reports above are historical; runtime and raster measurement
+source hashes remain unchanged. `duplicate_suppression_provenance.json` binds the
+new hashes, 65 passing focused tests (zero skipped), independent review, copied
+evidence hashes and the owner review comment 6168991949.
+
+The independent red witness lost all five earlier distinct receipts after 256
+identical failures; the repaired burst retains all five and one new distinct
+receipt. A fixed 60-second window, measured from the original observation without
+refresh, reuses the existing ID for the exact semantic request/outcome/attribution
+(including tenant, bbox and response). It does not record a new observation or
+count repeats. The 256-attempt burst uses one file fsync and 259 directory fsyncs:
+one full new write plus 255 matches. Each match retains a directory fsync to
+confirm an earlier rename whose sync might have failed. This reduces writes,
+not a measured production latency result.
+
+Readers use bounded allowlisted-schema JSON, nofollow regular-file reads and the
+existing process lock. Unsupported, malformed, future, naive and expired receipts
+cannot suppress evidence. The four earlier failure-path invariants were replayed
+independently; rotation fault fixtures use distinct fields so suppression cannot
+bypass their injected write failures. The global 256/257 retention bound remains;
+unique failure floods can still evict older evidence. The 60-second matching
+window is not age-based deletion, per-tenant retention or a permanent deduplication
+key. Permissions, sensitive bbox and production-volume limits above remain.
+
+The historical gap remains **open**. This is offline source/test proof; final
+full protocol and final-head GitHub CI are subsequent gates, and no provider,
+volume persistence, merge or deployment was measured by this repair evidence.
+
+## Service-cwd test portability correction
+
+`test_portability_provenance.json` and the preserved red/green raster-quality logs
+record a one-line test correction after the runtime commit `fbd121fc…`. The child
+process witness previously inherited the caller cwd and could not import shared
+modules when the required raster gate started in the service directory. An explicit
+repository-root child cwd preserves all three concurrent processes, exit checks,
+one-ID and one-receipt assertions. Runtime hash `c64d2e2…` is unchanged; the current
+test hash is `46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8`,
+different from the historical `f35bf6b…` test hash at fbd. Independent review confirms
+no weakening. The complete raster-quality recovery passed 404 tests with 2 skipped
+and 12 expected failures. This supersedes only the child-import failure; previous
+65 focused tests and source review retain their original hashes and scope.

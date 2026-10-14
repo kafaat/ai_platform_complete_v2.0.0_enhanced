@@ -1,0 +1,20 @@
+{
+  "reviewer": "verify_b",
+  "at_utc": "2026-10-14T13:57:08.132896+00:00",
+  "verdict": "APPROVED_TEST_PORTABILITY_CORRECTION_NO_WEAKENING",
+  "change": "Popen child cwd explicitly set to Path(diagnostics.__file__).resolve().parents[2], the repository root",
+  "test_sha256": "46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8",
+  "runtime_sha256": "c64d2e2eb039348e56b0b606aa9219ca58314cf63be5948b786fc7edfdb67aa2",
+  "findings": [
+    "Original domain gate failed because child process cannot import shared.security from service cwd; no evidence of dedup or locking defect in traceback.",
+    "Resolved module path yields deterministic repository root independent of invoking cwd. Existing explicit service directory sys.path insertion stays intact.",
+    "All three subprocesses still launched before collecting results; all child return codes must be0; same returned ID and exactly one durable receipt assertions preserved.",
+    "Only one added test line; production runtime source unchanged.",
+    "Owner rerun artifact confirms404 passed,2 skipped,12 xfailed and Raster quality gate passed."
+  ],
+  "red_evidence": "analysis/cdse_dedup_gate_receipts/domain_raster_quality.log",
+  "green_evidence": "analysis/cdse_dedup_gate_receipts/domain_raster_quality_recovery.log",
+  "green_status_receipt": "analysis/cdse_dedup_gate_receipts/domain_raster_quality_recovery.json",
+  "reviewer_tests_run": false,
+  "repository_mutations_by_reviewer": false
+}

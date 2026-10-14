@@ -591,6 +591,7 @@ def test_concurrent_processes_reuse_the_same_recent_receipt(tmp_path):
                 str(tmp_path),
                 json.dumps(_new_receipt()),
             ],
+            cwd=Path(diagnostics.__file__).resolve().parents[2],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
