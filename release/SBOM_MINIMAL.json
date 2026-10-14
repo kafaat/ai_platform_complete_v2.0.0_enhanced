@@ -10155,7 +10155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f32603eb946137bfa59111bdf131108b40e5901c263dfbbc15492092b67565c"
+          "content": "fea5fd702ceb85bb253b3f1a3b649319a04273544afa7429ac0f5e40f3101c3b"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/dashboard_screen.dart",
@@ -10455,6 +10455,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eb74e215dfd1376a287b0a3fa4a26007ea47556ef889570b6b6a54e463a2de59"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb9a1d5427b005678716cbcecf3190c56ff77a94036042cd6e215d2eb71eb9b3"
         }
       ],
@@ -10499,6 +10509,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/auth_service_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "347d49b055280ea08f5b69c0eed98068adbe805a196cf486a7c3a39d302db089"
+        }
+      ],
+      "name": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
       "type": "file"
     },
     {

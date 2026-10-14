@@ -9340,6 +9340,11 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 خفضُ الريّ المخطَّط في التحسين متعدّد المجالات صار `planned_reduction_mm` مع `savings_claim` غيرِ مثبت (عقد #1142)، لا `water_saved_mm`. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. يعيد نشر المنصّة عند الدمج. خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
 
 **المصدر:** `main@9a50aac3` · الإصلاح `3ac13509` · الشاهد `services/sahool-platform/tests/test_decision_dispatch_endpoint.py::test_optimization_names_a_planned_reduction_not_water_saved`.
+## 2026-10-14 — موجة الإغلاق ٢: `MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01`
+
+لوحةُ تطبيق الجوّال لم تعد تقرأ `water_usage.savings_pct` الذي لا يُنتجه أيّ خادم، وتعرض «غير مقيس»؛ وبقي `carbon.sequestered_kg` بلا منتِج حدّاً معلناً. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. لا نشرَ على Railway (بناءُ التطبيق وحده). خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `a1730e2c` · الشاهد `mobile/sahool_app/test/dashboard_water_not_measured_test.dart (يعمل في وظيفة Flutter في CI، ولم يُشغَّل محلّيّاً)`.
 ## 2026-10-14 — وصول CDSE المقيس وخطة ما تبقى على أساس main
 
 إسناد الوصول المقيس لاحقاً: دُمج #1182 في main عبر `9a50aac3bf71ed42f4fad91a036d49e61d151a52`، وشجرته تطابق الرأس النهائي المختبر `02fbc3107e0dfbedef025117b83e657192133228` (`ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`). على ذلك الرأس 71 فحصاً ناجحاً و2 متخطيان، والعشرون المطلوبة ناجحة. أصل التشخيص 33616 وإصلاح التكرار fbd121fc وبصمة اختبار التصحيح 46b8 محفوظة في إيصالاتها التاريخية. سجلات Railway لهذا الدمج: 4 SUCCESS لخدمتي raster-service وraster-main-candidate في staging وproduction، و20 SKIPPED؛ هذا وصول إصدار لا إثبات كتابة إيصال أو دوام volume أو سبب الواقعة القديمة. الدليل `certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json` و`certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json`. تبقى open ولا verified.
@@ -9364,3 +9369,4 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 - **الدمج:** [#1186](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1186) squash عند `698a1c53` بموافقة المالك على الرأس `cf43f555`؛ شجرة main `3b7a5d25` = شجرة الرأس المُختبَر. CI على الرأس: 66 ناجحاً · 2 متخطّى · 0 فشل.
 - **النشر:** Railway — 24/24 نشراً للالتزام `698a1c53` بحالة SKIPPED (13 في بيئة و11 في الأخرى)؛ لا خدمة أُعيد نشرها.
 - **الأثر على الفروع المفتوحة:** محاكاة دمج #1185 و#1187 و#1188 فوق #1186: لا تعارض في الكود، و`brain_duplicate_gap_identity_guard` يمرّ على الشجرة المدمجة.
+- **إضافة على فرع الموبايل (2026-10-14):** حارس `brain_state_transition` رفض الانتقال إلى fixed لأنّ `mobile/` ليس ضمن مسارات الدليل التنفيذيّ؛ أُضيف شاهد جناح الوحدة `tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py` (٥ قراءات على `main@e6145c10` ⇒ صفر على الفرع). وسُجِّل الحدّ المعلن فجوةً مستقلّة `MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01` (open): `dashboard_screen.dart:176` يقرأ `carbon.sequestered_kg` ولا مُنتِج له.

@@ -7068,10 +7068,17 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01 — «توفير X% عن الشهر الماضي» بلا مُنتِجٍ خلفيّ
 <!-- gap-registry: current -->
-- **الحالة:** **open** (2026-10-06) — بقيّةٌ مُعلَنة في صفّ #1142 بلا هويّةٍ مستقلّة حتّى الآن.
+- **الحالة:** **fixed** (2026-10-14، عند `a1730e2cb`) — أُزيل العرض: بطاقةُ «توفير المياه / هذا الشهر» حُذِفت من صفّ الإحصاءات، وبطاقةُ استهلاك المياه صارت `WaterUsageNotMeasuredCard` (`mobile/sahool_app/lib/widgets/water_usage_card.dart`) التي لا تأخذ حمولةً فتعرض «غير مقيس» بلا نسبةٍ ولا حجم؛ و`dashboard_screen.dart` لم يعد يقرأ `water_usage` ولا `savings_pct` ولا `this_month_m3`. لا تغييرَ خلفيّ. الشاهد التنفيذيّ في جناح الوحدة `tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py` (يمسح مصدر Dart تحت `lib/` بلا تعليقات: على `main@e6145c10` يلتقط ٥ قراءات للمفاتيح الثلاثة، وعلى الفرع صفراً؛ ويتحقّق أنّ اللوحة تبني `WaterUsageNotMeasuredCard`)، وشاهدُ Flutter `mobile/sahool_app/test/dashboard_water_not_measured_test.dart` (التعبيرُ القديم يرمي `NoSuchMethodError` على شكل حمولة المُنتِج · البطاقةُ تُبنى بلا استثناء ولا نصَّ فيها يحوي `%`/«توفير»/«م³»/`null` · مسحُ مصدر الشاشة خالٍ من المفاتيح الثلاثة). **لم يُنفَّذ الشاهدُ محلّيّاً** (لا `flutter` ولا `dart` في بيئة الإصلاح)؛ يعمل في وظيفة CI `flutter-analyze` (`flutter test` في `.github/workflows/ci.yml`)، والتصريفُ مراجَعٌ يدويّاً لا مقيس. **حدٌّ معلن:** الشاشة ما تزال تقرأ `data['carbon']['sequestered_kg']` بلا حارس (`dashboard_screen.dart:176`) والمُنتِجُ لا يُصدِر `carbon` أيضاً، فالبناءُ على الحمولة الحيّة قد ينهار هناك — خارج هذه الفجوة، ومُسجَّلٌ فجوةً مستقلّة `MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01` (open). · **سابقاً (open):** (2026-10-06) — بقيّةٌ مُعلَنة في صفّ #1142 بلا هويّةٍ مستقلّة حتّى الآن.
 - **المصدر:** `mobile/sahool_app/lib/screens/dashboard_screen.dart:524` يعرض `'توفير ${water['savings_pct']}% عن الشهر الماضي'` (والسطر 172 بحسب صفّ #1142) على `main@9801d076`.
 - **الخلل:** الشاشة تعرض نسبةَ توفيرٍ شهريّة لا يُنتجها أيُّ مسارٍ خلفيّ مقيس، فإمّا تظهر فارغةً أو قيمةً بلا أساس — ادّعاءُ توفيرٍ بلا دليل.
 - **شرطُ الإغلاق:** إمّا مُنتِجٌ خلفيّ يحسب الفرقَ المقيس فعلاً بوحداته وأساسه (لا «توفيراً» قبل إثبات الإسناد)، وإمّا إزالةُ العرض؛ مع شاهد.
+## MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01 — «الكربون المُخزَّن» يُقرأ من مفتاحٍ لا يُصدِره المُنتِج
+<!-- gap-registry: current -->
+- **الحالة:** **open** (سُجِّلت 2026-10-14 من الحدّ المعلن في MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01؛ قياسٌ مصدريّ لا حيّ).
+- **المصدر:** `mobile/sahool_app/lib/screens/dashboard_screen.dart:176` يقرأ `data['carbon']['sequestered_kg']` بلا حارس، و`:511` يعرض `carbon['sequestered_kg']`؛ والمُنتِج `GET /api/v1/indicators/dashboard` (`services/sahool-platform/api/routers/indicators.py:65`) لا يُصدِر `carbon`، ولا يذكر `sequestered_kg` أيُّ ملفّ تحت `services/` أو `shared/`.
+- **الخلل:** القراءة الأولى بلا حارس ترمي على الحمولة الحيّة فينهار بناء اللوحة، والثانية تعرض `null` رقماً — ادّعاءُ قياسٍ بلا مُنتِج، من صنف فجوة توفير المياه نفسه.
+- **شرطُ الإغلاق:** إمّا مُنتِجٌ خلفيّ يحسب الكربون المُخزَّن بوحداته وأساسه، وإمّا عرضٌ «غير مقيس» لا يقرأ المفتاح، مع شاهدٍ يحمرّ إن عادت القراءة.
+
 ## MANUAL-COMPLETION-RATIO-SCALES-MEASURED-VOLUME-01 — نسبةُ الإكمال تُعيد تحجيمَ حجمٍ مقيس
 <!-- gap-registry: current -->
 - **الحالة:** **fixed** (2026-10-06، عند `fc50290e1e41c666d1108ddea2d8eeb782e4eb93`) — الشواهد `tests_v9/test_irrx1_2_manual_execution_lifecycle.py` (ستُّ حالاتٍ حمراء على `f160f7e0`). **ليس fixed على `main`** حتّى يُدمَج.
