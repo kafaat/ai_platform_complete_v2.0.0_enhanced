@@ -17858,7 +17858,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f054344969a8ed59bad46e6b68b354b5ab59d88077d0d719a62d2f01c4817952",
+  "fingerprint": "934fae3409364152e74e40b1f3284807341ecaa7201d2aff3dff421989b27bc1",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18297,7 +18297,7 @@
     },
     {
       "endpoint": "/api/v1/scenario/economics",
-      "expires_on": "2026-11-30",
+      "expires_on": "2026-11-27",
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
       "waiver_id": "ui-waiver-053"
