@@ -2,8 +2,10 @@
 
 Only allowlisted observations and hashes are retained, never provider bodies,
 headers, exception text, credentials or raster bytes. This is a rolling window
-of 256 failures after successful rotation (at most one extra after interruption),
-not an archive or proof of a durable production mount.
+of 256 distinct/recent failures after successful rotation (at most one extra
+after interruption). Exact repeated observations reuse a receipt for 60 seconds
+without refreshing its timestamp or counting repetitions. This is not an archive
+or proof of a durable production mount.
 The historical empty-scene incident cannot be reconstructed by this recorder.
 """
 
@@ -15,6 +17,7 @@ import json
 import math
 import os
 import re
+import stat
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -24,6 +27,7 @@ import raster_settings
 
 MAX_RECEIPTS = 256
 MAX_RECEIPT_BYTES = 8192
+DUPLICATE_WINDOW_SECONDS = 60
 _RECEIPT_NAME = re.compile(r"^[0-9a-f]{32}\.json$")
 _TEMP_NAME = re.compile(r"^[0-9a-f]{32}\.tmp$")
 _OUTCOMES = {
@@ -37,6 +41,39 @@ _OUTCOMES = {
     "request_invalid",
     "runtime_failure",
 }
+_SEMANTIC_FIELDS = (
+    "schema",
+    "provider",
+    "outcome",
+    "stage",
+    "attribution",
+    "historical_cause",
+    "request",
+    "response",
+)
+_REQUEST_FIELDS = {
+    "tenant_sha256",
+    "field_sha256",
+    "index_sha256",
+    "date_from",
+    "date_to",
+    "bbox",
+    "geometry_sha256",
+    "max_cloud_pct",
+}
+_RESPONSE_FIELDS = {
+    "http_status",
+    "bytes",
+    "sha256",
+    "scene_id_sha256",
+    "catalogue_evidence",
+    "before_mask",
+    "after_mask",
+}
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 def _digest(value) -> str:
@@ -122,7 +159,7 @@ def failure_receipt(
     return {
         "schema": "sahool.cdse-failure-receipt.v1",
         "receipt_id": uuid4().hex,
-        "observed_at": datetime.now(UTC).isoformat(),
+        "observed_at": _utc_now().isoformat(),
         "provider": "cdse",
         "outcome": outcome if outcome in _OUTCOMES else "unknown",
         "stage": stage
@@ -157,6 +194,7 @@ def failure_receipt(
             "max_receipts": MAX_RECEIPTS,
             "max_unrotated_receipts": MAX_RECEIPTS + 1,
             "max_receipt_bytes": MAX_RECEIPT_BYTES,
+            "duplicate_window_seconds": DUPLICATE_WINDOW_SECONDS,
         },
     }
 
@@ -169,6 +207,82 @@ def _sync_directory(root: Path) -> None:
         os.close(dir_fd)
 
 
+def _semantic_key(receipt) -> str | None:
+    """Compare only the supported allowlisted schema, never arbitrary disk data."""
+    if not isinstance(receipt, dict) or set(receipt) != set(_SEMANTIC_FIELDS) | {
+        "receipt_id",
+        "observed_at",
+        "retention",
+    }:
+        return None
+    if (
+        receipt["schema"] != "sahool.cdse-failure-receipt.v1"
+        or receipt["provider"] != "cdse"
+        or receipt["historical_cause"] != "not_reconstructed"
+        or not isinstance(receipt["outcome"], str)
+        or receipt["outcome"] not in _OUTCOMES | {"unknown"}
+        or not isinstance(receipt["request"], dict)
+        or set(receipt["request"]) != _REQUEST_FIELDS
+        or not isinstance(receipt["response"], dict)
+        or set(receipt["response"]) != _RESPONSE_FIELDS
+        or not isinstance(receipt["retention"], dict)
+    ):
+        return None
+    retention = receipt["retention"]
+    limits = {"max_receipts", "max_unrotated_receipts", "max_receipt_bytes"}
+    required = limits | {"kind"}
+    if (
+        set(retention) not in (required, required | {"duplicate_window_seconds"})
+        or retention["kind"] != "rolling_failure_window"
+        or any(type(retention[k]) is not int or retention[k] < 1 for k in limits)
+        or retention["max_unrotated_receipts"] != retention["max_receipts"] + 1
+        or retention.get("duplicate_window_seconds", DUPLICATE_WINDOW_SECONDS)
+        != DUPLICATE_WINDOW_SECONDS
+    ):
+        return None
+    return json.dumps({k: receipt[k] for k in _SEMANTIC_FIELDS}, sort_keys=True, allow_nan=False)
+
+
+def _unique_keys(pairs) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("diagnostic_duplicate_json_key")
+        result[key] = value
+    return result
+
+
+def _recent_duplicate(files: list[tuple[int, Path]], receipt: dict) -> str | None:
+    expected = _semantic_key(receipt)
+    if expected is None:
+        return None
+    now = _utc_now()
+    # Disk reads and parsing are bounded, and special files/symlinks are never
+    # followed. No receipt contents or parse errors are copied into logs.
+    for _, path in reversed(files[-MAX_RECEIPTS:]):
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(fd, "rb") as stream:
+                if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                    continue
+                data = stream.read(MAX_RECEIPT_BYTES + 1)
+            if len(data) > MAX_RECEIPT_BYTES:
+                continue
+            previous = json.loads(data, object_pairs_hook=_unique_keys)
+            if _semantic_key(previous) != expected or previous["receipt_id"] != path.stem:
+                continue
+            observed = datetime.fromisoformat(previous["observed_at"])
+            if observed.tzinfo is None:
+                continue
+            age = (now - observed).total_seconds()
+            if 0 <= age < DUPLICATE_WINDOW_SECONDS:
+                return path.stem
+        except (OSError, ValueError, TypeError, UnicodeError, RecursionError):
+            # Damaged or unsupported historical data cannot suppress evidence.
+            continue
+    return None
+
+
 def persist(receipt: dict) -> str:
     """Atomically retain a bounded receipt; raise if durability cannot be established.
 
@@ -179,6 +293,10 @@ def persist(receipt: dict) -> str:
     Commit the replacement before rotation: an interrupted rotation may retain
     one extra record, reconciled before another append. Never discard old
     evidence to make room for a write whose durability is not established.
+    An exact semantic duplicate within a fixed 60-second window returns the
+    earlier receipt ID. Its original observation time is not refreshed; no new
+    observation or repetition count is claimed. Directory fsync still confirms
+    durability even if the preceding writer failed after its atomic rename.
     """
     data = (
         json.dumps(receipt, ensure_ascii=False, sort_keys=True, allow_nan=False) + "\n"
@@ -204,15 +322,21 @@ def persist(receipt: dict) -> str:
             if _TEMP_NAME.fullmatch(path.name):
                 path.unlink()
         files = sorted(
-            ((p.stat().st_mtime_ns, p) for p in root.iterdir() if _RECEIPT_NAME.fullmatch(p.name)),
+            ((p.lstat().st_mtime_ns, p) for p in root.iterdir() if _RECEIPT_NAME.fullmatch(p.name)),
             key=lambda item: item[0],
         )
         # Reconcile a previously committed write interrupted during rotation.
         # Sync first: a previous caller may have failed at directory fsync.
         _sync_directory(root)
+        recovered_rotation = len(files) > MAX_RECEIPTS
         while len(files) > MAX_RECEIPTS:
             _, oldest = files.pop(0)
             oldest.unlink()
+        duplicate = _recent_duplicate(files, receipt)
+        if duplicate is not None:
+            if recovered_rotation:
+                _sync_directory(root)
+            return duplicate
         _sync_directory(root)
         fd = os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         with os.fdopen(fd, "wb") as stream:

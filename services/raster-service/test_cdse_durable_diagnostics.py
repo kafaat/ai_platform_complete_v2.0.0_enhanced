@@ -211,10 +211,10 @@ async def test_receipt_survives_a_fresh_interpreter(monkeypatch, tmp_path):
     assert path.parent.stat().st_mode & 0o777 == 0o700
 
 
-def _new_receipt():
+def _new_receipt(**changes):
     import cdse_diagnostics
 
-    return cdse_diagnostics.failure_receipt(
+    values = dict(
         tenant=SECRET,
         field_id="../../" + SECRET,
         index=SECRET,
@@ -229,6 +229,8 @@ def _new_receipt():
         before_mask={"readable": True, "observable_pixels": 4, "Authorization": SECRET},
         after_mask={"readable": True, "observable_pixels": 0, "access_token": SECRET},
     )
+    values.update(changes)
+    return cdse_diagnostics.failure_receipt(**values)
 
 
 def test_allowlist_hashes_identifiers_and_does_not_copy_arbitrary_provider_or_request_text():
@@ -252,7 +254,11 @@ def test_concurrent_writers_bound_retention_and_recover_interrupted_files(monkey
     unrelated = directory / "operator-note.txt"
     unrelated.write_text("retain this file")
     with ThreadPoolExecutor(max_workers=8) as workers:
-        ids = list(workers.map(lambda _: cdse_diagnostics.persist(_new_receipt()), range(16)))
+        ids = list(
+            workers.map(
+                lambda n: cdse_diagnostics.persist(_new_receipt(field_id=f"field-{n}")), range(16)
+            )
+        )
     files = list(directory.glob("*.json"))
     assert len(files) == 4
     assert not stale.exists()
@@ -321,8 +327,8 @@ def test_failed_commit_preserves_all_previous_receipts(monkeypatch, tmp_path, fa
     import cdse_diagnostics
 
     monkeypatch.setattr(cdse_diagnostics, "MAX_RECEIPTS", 2)
-    for _ in range(2):
-        cdse_diagnostics.persist(_new_receipt())
+    for n in range(2):
+        cdse_diagnostics.persist(_new_receipt(field_id=f"old-{n}"))
     directory = tmp_path / "cdse_diagnostics"
     before = {p.name: p.read_bytes() for p in directory.glob("*.json")}
     original_fsync = os.fsync
@@ -347,7 +353,7 @@ def test_failed_commit_preserves_all_previous_receipts(monkeypatch, tmp_path, fa
     monkeypatch.setattr(cdse_diagnostics.os, "replace", replace)
     monkeypatch.setattr(cdse_diagnostics.os, "fsync", fsync)
     with pytest.raises(OSError, match="commit failed"):
-        cdse_diagnostics.persist(_new_receipt())
+        cdse_diagnostics.persist(_new_receipt(field_id="new"))
     after = {p.name: p.read_bytes() for p in directory.glob("*.json")}
     assert all(after.get(name) == content for name, content in before.items())
     assert len(after) <= 3  # a committed but unconfirmed replacement may remain
@@ -357,8 +363,8 @@ def test_rotation_failure_stops_growth_then_recovers(monkeypatch, tmp_path):
     import cdse_diagnostics
 
     monkeypatch.setattr(cdse_diagnostics, "MAX_RECEIPTS", 2)
-    for _ in range(2):
-        cdse_diagnostics.persist(_new_receipt())
+    for n in range(2):
+        cdse_diagnostics.persist(_new_receipt(field_id=f"old-{n}"))
     directory = tmp_path / "cdse_diagnostics"
     original_unlink = Path.unlink
 
@@ -369,13 +375,319 @@ def test_rotation_failure_stops_growth_then_recovers(monkeypatch, tmp_path):
 
     with monkeypatch.context() as fault:
         fault.setattr(Path, "unlink", fail_rotation)
-        for _ in range(3):
+        for n in range(3):
             with pytest.raises(PermissionError, match="rotation failed"):
-                cdse_diagnostics.persist(_new_receipt())
+                cdse_diagnostics.persist(_new_receipt(field_id=f"new-{n}"))
             assert len(list(directory.glob("*.json"))) == 3
-    latest = cdse_diagnostics.persist(_new_receipt())
+    latest = cdse_diagnostics.persist(_new_receipt(field_id="recovered"))
     assert len(list(directory.glob("*.json"))) == 2
     assert (directory / (latest + ".json")).exists()
+
+
+def test_duplicate_burst_preserves_other_fields_and_avoids_file_fsync(monkeypatch, tmp_path):
+    import os
+    import stat
+    from datetime import UTC, datetime
+
+    import cdse_diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "_utc_now", lambda: datetime(2026, 10, 14, tzinfo=UTC))
+    previous = {diagnostics.persist(_new_receipt(field_id=f"other-{n}")) for n in range(5)}
+    repeated = diagnostics.persist(_new_receipt(field_id="repeated"))
+    directory = tmp_path / "cdse_diagnostics"
+    before = {p.name: p.read_bytes() for p in directory.glob("*.json")}
+    sync_kinds = []
+    original_fsync = os.fsync
+
+    def fsync(fd):
+        sync_kinds.append(stat.S_ISDIR(os.fstat(fd).st_mode))
+        original_fsync(fd)
+
+    monkeypatch.setattr(diagnostics.os, "fsync", fsync)
+    for _ in range(256):
+        assert diagnostics.persist(_new_receipt(field_id="repeated")) == repeated
+    after = {p.name: p.read_bytes() for p in directory.glob("*.json")}
+    assert before == after, "Duplicates must not evict, refresh or rewrite any retained observation"
+    assert set(p.removesuffix(".json") for p in after) == previous | {repeated}
+    assert sync_kinds == [True] * 256, "Confirm existing directory durability without file rewrites"
+
+
+def test_duplicate_window_expires_without_sliding_on_each_repeat(monkeypatch, tmp_path):
+    from datetime import UTC, datetime, timedelta
+
+    import cdse_diagnostics as diagnostics
+
+    clock = [datetime(2026, 10, 14, tzinfo=UTC)]
+    monkeypatch.setattr(diagnostics, "_utc_now", lambda: clock[0])
+    original = diagnostics.persist(_new_receipt())
+    clock[0] += timedelta(seconds=59)
+    assert diagnostics.persist(_new_receipt()) == original
+    clock[0] += timedelta(seconds=1)
+    renewed = diagnostics.persist(_new_receipt())
+    assert renewed != original
+    paths = list((tmp_path / "cdse_diagnostics").glob("*.json"))
+    assert len(paths) == 2
+    clock[0] += timedelta(seconds=59)
+    assert diagnostics.persist(_new_receipt()) == renewed
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"tenant": "another-tenant"},
+        {"field_id": "another-field"},
+        {"index": "evi"},
+        {"date_from": "2026-10-01"},
+        {"date_to": "2026-10-14"},
+        {"bbox": [1, 1, 3, 3]},
+        {"geometry": {"different": "geometry"}},
+        {"max_cloud_pct": 0},
+        {"outcome": "content_check_failed"},
+        {"stage": "process"},
+        {"payload": b"different observed response"},
+        {"scene_id": "different-scene"},
+        {"before_mask": {"readable": True, "observable_pixels": 5}},
+        {"after_mask": {"readable": False, "observable_pixels": None}},
+        {"quota_exhausted": True, "before_mask": None},
+    ],
+)
+def test_different_semantic_observations_are_not_suppressed(tmp_path, change):
+    import cdse_diagnostics as diagnostics
+
+    original = diagnostics.persist(_new_receipt())
+    distinct = diagnostics.persist(_new_receipt(**change))
+    assert distinct != original
+    assert len(list((tmp_path / "cdse_diagnostics").glob("*.json"))) == 2
+
+
+def test_same_status_with_changed_attribution_and_changed_status_remain_distinct(tmp_path):
+    import cdse_diagnostics as diagnostics
+
+    ids = []
+    for status, headers in [
+        (403, {}),
+        (403, {"WWW-Authenticate": 'error="insufficient_scope"'}),
+        (404, {}),
+        (501, {}),
+    ]:
+        response = httpx.Response(
+            status, headers=headers, request=httpx.Request("POST", "https://cdse.invalid")
+        )
+        error = httpx.HTTPStatusError("not retained", request=response.request, response=response)
+        ids.append(diagnostics.persist(_new_receipt(error=error, before_mask=None)))
+    assert len(set(ids)) == 4
+    assert len(list((tmp_path / "cdse_diagnostics").glob("*.json"))) == 4
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "json",
+        "oversized",
+        "schema",
+        "extra",
+        "missing_request",
+        "id",
+        "naive",
+        "future",
+        "expired",
+        "duplicate_key",
+        "retention",
+        "deep",
+        "nonfinite",
+        "nonobject",
+        "invalid_utf8",
+    ],
+)
+def test_malformed_or_unusable_previous_receipt_cannot_suppress(monkeypatch, tmp_path, damage):
+    from datetime import UTC, datetime, timedelta
+
+    import cdse_diagnostics as diagnostics
+
+    now = datetime(2026, 10, 14, tzinfo=UTC)
+    monkeypatch.setattr(diagnostics, "_utc_now", lambda: now)
+    old = _new_receipt()
+    diagnostics.persist(old)
+    path = tmp_path / "cdse_diagnostics" / (old["receipt_id"] + ".json")
+    if damage == "json":
+        data = b"not json"
+    elif damage == "oversized":
+        data = b" " * (diagnostics.MAX_RECEIPT_BYTES + 1)
+    elif damage == "deep":
+        data = b"[" * 1100 + b"]" * 1100
+    elif damage == "nonobject":
+        data = b"null"
+    elif damage == "invalid_utf8":
+        data = b"\xff"
+    else:
+        if damage == "schema":
+            old["schema"] = "unsupported.v2"
+        elif damage == "extra":
+            old["untrusted"] = SECRET
+        elif damage == "missing_request":
+            del old["request"]["tenant_sha256"]
+        elif damage == "id":
+            old["receipt_id"] = "0" * 32
+        elif damage == "naive":
+            old["observed_at"] = now.replace(tzinfo=None).isoformat()
+        elif damage == "future":
+            old["observed_at"] = (now + timedelta(seconds=1)).isoformat()
+        elif damage == "expired":
+            old["observed_at"] = (now - timedelta(seconds=60)).isoformat()
+        elif damage == "retention":
+            old["retention"] = {}
+        elif damage == "nonfinite":
+            old["request"]["bbox"] = [float("nan")] * 4
+        data = json.dumps(old).encode()
+        if damage == "duplicate_key":
+            data = b'{"provider":"cdse",' + data[1:]
+    path.write_bytes(data)
+    current = _new_receipt()
+    assert diagnostics.persist(current) == current["receipt_id"]
+    assert path.read_bytes() == data
+    assert len(list(path.parent.glob("*.json"))) == 2
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo"])
+def test_duplicate_scan_never_follows_symlinks_or_blocks_on_special_files(tmp_path, kind):
+    import os
+
+    import cdse_diagnostics as diagnostics
+
+    old = _new_receipt()
+    directory = tmp_path / "cdse_diagnostics"
+    directory.mkdir()
+    path = directory / (old["receipt_id"] + ".json")
+    outside = tmp_path / "operator-private.json"
+    outside.write_text(json.dumps(old))
+    if kind == "symlink":
+        path.symlink_to(outside)
+    else:
+        os.mkfifo(path)
+    current = _new_receipt()
+    assert diagnostics.persist(current) == current["receipt_id"]
+    assert outside.read_text() == json.dumps(old)
+
+
+def test_concurrent_processes_reuse_the_same_recent_receipt(tmp_path):
+    import subprocess
+    import sys
+
+    import cdse_diagnostics as diagnostics
+
+    code = (
+        "import sys,json;sys.path.insert(0,sys.argv[1]);"
+        "import raster_settings,cdse_diagnostics;"
+        "raster_settings.UPLOAD_DIR=sys.argv[2];"
+        "print(cdse_diagnostics.persist(json.loads(sys.argv[3])))"
+    )
+    processes = [
+        subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                code,
+                str(Path(diagnostics.__file__).parent),
+                str(tmp_path),
+                json.dumps(_new_receipt()),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for _ in range(3)
+    ]
+    ids = []
+    for process in processes:
+        stdout, stderr = process.communicate(timeout=15)
+        assert process.returncode == 0, stderr
+        ids.append(stdout.strip())
+    assert len(set(ids)) == 1
+    assert len(list((tmp_path / "cdse_diagnostics").glob("*.json"))) == 1
+
+
+def test_duplicate_directory_fsync_failure_is_not_success_and_releases_lock(monkeypatch, tmp_path):
+    import fcntl
+    import os
+
+    import cdse_diagnostics as diagnostics
+
+    receipt_id = diagnostics.persist(_new_receipt())
+
+    def fail(_fd):
+        raise OSError("directory sync unavailable")
+
+    monkeypatch.setattr(diagnostics.os, "fsync", fail)
+    with pytest.raises(OSError, match="directory sync unavailable"):
+        diagnostics.persist(_new_receipt())
+    directory = tmp_path / "cdse_diagnostics"
+    assert [p.stem for p in directory.glob("*.json")] == [receipt_id]
+    fd = os.open(directory / "write.lock", os.O_RDWR)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    finally:
+        os.close(fd)
+
+
+def test_duplicate_confirms_a_previous_rename_whose_directory_sync_failed(monkeypatch, tmp_path):
+    import os
+    import stat
+
+    import cdse_diagnostics as diagnostics
+
+    original_sync = diagnostics._sync_directory
+    calls = 0
+
+    def fail_after_rename(root):
+        nonlocal calls
+        calls += 1
+        if calls == 3:
+            raise OSError("unconfirmed rename")
+        original_sync(root)
+
+    old = _new_receipt()
+    with monkeypatch.context() as fault:
+        fault.setattr(diagnostics, "_sync_directory", fail_after_rename)
+        with pytest.raises(OSError, match="unconfirmed rename"):
+            diagnostics.persist(old)
+    directory = tmp_path / "cdse_diagnostics"
+    before = {p.name: p.read_bytes() for p in directory.glob("*.json")}
+    assert len(before) == 1
+    sync_kinds = []
+    original_fsync = os.fsync
+
+    def fsync(fd):
+        sync_kinds.append(stat.S_ISDIR(os.fstat(fd).st_mode))
+        original_fsync(fd)
+
+    monkeypatch.setattr(diagnostics.os, "fsync", fsync)
+    assert diagnostics.persist(_new_receipt()) == old["receipt_id"]
+    assert sync_kinds == [True]
+    assert {p.name: p.read_bytes() for p in directory.glob("*.json")} == before
+
+
+def test_duplicate_reconciles_interrupted_rotation_before_returning(monkeypatch, tmp_path):
+    import cdse_diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "MAX_RECEIPTS", 2)
+    for n in range(2):
+        diagnostics.persist(_new_receipt(field_id=f"old-{n}"))
+    original_unlink = Path.unlink
+
+    def fail_rotation(path, *args, **kwargs):
+        if path.suffix == ".json":
+            raise OSError("interrupted rotation")
+        return original_unlink(path, *args, **kwargs)
+
+    recent = _new_receipt(field_id="recent")
+    with monkeypatch.context() as fault:
+        fault.setattr(Path, "unlink", fail_rotation)
+        with pytest.raises(OSError, match="interrupted rotation"):
+            diagnostics.persist(recent)
+    directory = tmp_path / "cdse_diagnostics"
+    assert len(list(directory.glob("*.json"))) == 3
+    assert diagnostics.persist(_new_receipt(field_id="recent")) == recent["receipt_id"]
+    assert len(list(directory.glob("*.json"))) == 2
 
 
 async def test_content_inspection_failure_is_not_recorded_as_empty(monkeypatch, tmp_path):
