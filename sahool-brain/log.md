@@ -9353,3 +9353,4 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 ## 2026-10-14 — مزامنة PR #1184 وحفظ تحديثات التركيز
 
 دُمج أساس main `56de3d316fd5243253b6f6d38dc38b331bbddf95` في رأس PR #1184 `1088546d49fbbabf030540492c4350144a54480a` لحل تعارض `sahool-brain/hot.md`؛ حُفظت مداخل الطرفين دون حذف. لم تُغيَّر ملفات الاستثناءات عن رأس PR. هذه مزامنة للفرع وليست دمج PR إلى main أو إثبات نشر.
+- **إضافة على فرع الموبايل (2026-10-14):** حارس `brain_state_transition` رفض الانتقال إلى fixed لأنّ `mobile/` ليس ضمن مسارات الدليل التنفيذيّ؛ أُضيف شاهد جناح الوحدة `tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py` (٥ قراءات على `main@e6145c10` ⇒ صفر على الفرع). وسُجِّل الحدّ المعلن فجوةً مستقلّة `MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01` (open): `dashboard_screen.dart:176` يقرأ `carbon.sequestered_kg` ولا مُنتِج له.
