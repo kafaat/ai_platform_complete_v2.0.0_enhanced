@@ -8056,6 +8056,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_modbus_decoder_20260703.py",
     "kind": "tests"
   },
