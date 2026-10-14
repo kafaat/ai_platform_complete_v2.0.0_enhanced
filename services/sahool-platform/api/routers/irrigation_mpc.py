@@ -38,7 +38,7 @@ from api.canonical_water_state import CanonicalWaterState, resolve_canonical_wat
 from api.canonical_well_capability import evaluate_water_salinity_gate
 from api.irrigation_mpc import ForecastDay
 from api.irrigation_runtime_orchestrator import orchestrate_irrigation_recommendation
-from api.irrigation_source_binding import resolve_active_bindings
+from api.irrigation_source_binding import resolve_active_bindings, summarize_blend_water_quality
 from api.lexicographic_irrigation_mpc import solve_lexicographic_irrigation
 from api.lexicographic_mpc_bridge import bridge_enabled, emit_mpc_candidate
 from api.main import UserSchema, get_current_user, tenant_connection
@@ -389,12 +389,16 @@ async def irrigation_mpc_recommendation(
             )
             if gate["status"] == "blocked":
                 any_blocked = True
+        # جودةُ الخليط المطبَّق فعلاً (EC مرجَّح بالحجم · SAR من الأيونات المخلوطة) — نَسَبٌ
+        # إرشاديّ لا يُرخي بوّابة أسوأ مصدر أعلاه.
+        blend_water_quality = summarize_blend_water_quality(bindings)
         if any_blocked:
             return {
                 "status": "blocked",
                 "reason": "water_salinity_gate_blocked",
                 "field_id": field_id,
                 "source_verdicts": source_verdicts,
+                "blend_water_quality": blend_water_quality,
                 "requires_expert_review": True,
                 "detail": (
                     "ملوحة ماء الريّ تتجاوز الحدّ (أو لا عيّنة قرار-درجة / عيّنة قديمة) على مصدر "
@@ -405,6 +409,7 @@ async def irrigation_mpc_recommendation(
             "mode": "server_bound_sources",
             "enforced": True,
             "source_verdicts": source_verdicts,
+            "blend_water_quality": blend_water_quality,
         }
     else:
         # لا ربط نشِط: الحقل بلا مصدر ماء مُنمذَج ⇒ لا حدّ ملوحة يُفرَض. يُسجَّل بصدق — وليس تجاوزاً

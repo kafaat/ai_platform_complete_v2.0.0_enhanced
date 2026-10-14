@@ -137,3 +137,143 @@ def analyze_water_sample(sample: WaterSample) -> dict:
         "missing_inputs": missing,  # صدق: نُعلن ما لم يُقَس
         "data_complete": len(missing) == 0,
     }
+
+
+# ─── جودة خليط المصادر (WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01) ─────────────
+#
+# الحقل يُروى من خليطٍ بنسبٍ حجميّة (`mixing_ratio`)، وجودةُ الخليط غيرُ جودة أيّ مصدر:
+#
+# - EC: متوسّطٌ مرجَّح بالحجم Σ fᵢ·ECᵢ. المزج الخطّيّ للتوصيليّة تقريبٌ مقبول زراعيّاً
+#   (يُهمل ترسّب الأملاح وتأثيرات الأزواج الأيونيّة) — يُعلَن تقريباً لا قياساً.
+# - SAR: **ليس خطّيّاً** في النسب. يُحسَب من تراكيز الخليط الأيونيّة (كلُّ أيونٍ مرجَّحٌ
+#   بالحجم بـmeq/L) ثمّ SAR = Na / √((Ca+Mg)/2). متوسّطُ SAR المصادر المرجَّح جوابٌ مختلف
+#   وخاطئ، فلا يُحسَب أبداً بديلاً؛ ونقصُ أيٍّ من Na/Ca/Mg ⇒ «غير محسوب» لا صفرٌ ولا تقدير.
+#
+# النسب: مصدرٌ وحيد بنسبةٍ غير معلنة (NULL) = المصدر كلّه (عقد v214: NULL = sole/undeclared).
+# أكثر من مصدر ⇒ كلُّ نسبةٍ معلنةٌ، منتهيةٌ، ضمن [0, 1]، ومجموعُها 1 ضمن تفاوتٍ صغير
+# (يُطبَّع ضمنه فقط)؛ وإلّا فالخليط غير محسوب — لا تطبيعَ يخترع نسباً لم تُعلَن.
+
+BLEND_RATIO_SUM_TOLERANCE = 1e-3
+BLEND_ION_FIELDS = ("sodium_meq_l", "calcium_meq_l", "magnesium_meq_l")
+
+BLEND_COMPUTED = "computed"
+BLEND_PARTIAL = "partial"
+BLEND_NOT_COMPUTABLE = "not_computable"
+
+
+def _finite_non_negative(value: object) -> bool:
+    return (
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        and value >= 0
+    )
+
+
+def _not_computable(reason: str, **extra: object) -> dict:
+    return {"status": BLEND_NOT_COMPUTABLE, "value": None, "reason": reason, **extra}
+
+
+def _blend_fractions(components: list[dict]) -> tuple[list[float] | None, str | None]:
+    """نسبُ المزج المُتحقَّق منها، أو (None, سبب). لا تطبيعَ إلّا ضمن التفاوت."""
+    if not components:
+        return None, "no_active_sources"
+    ratios = [c.get("mixing_ratio") for c in components]
+    if len(components) == 1 and ratios[0] is None:
+        return [1.0], None  # مصدرٌ وحيد بلا نسبة معلنة = المصدر كلّه
+    if any(r is None for r in ratios):
+        return None, "mixing_ratio_undeclared"
+    if any(not _finite_non_negative(r) or r > 1 for r in ratios):
+        return None, "mixing_ratio_invalid"
+    total = float(sum(ratios))
+    if abs(total - 1.0) > BLEND_RATIO_SUM_TOLERANCE:
+        return None, "mixing_ratios_do_not_sum_to_one"
+    return [float(r) / total for r in ratios], None
+
+
+def compute_blend_water_quality(components: list[dict]) -> dict:
+    """EC وSAR لخليط مصادر ريّ من نسب المزج الحجميّة.
+
+    ``components``: عنصرٌ لكلّ مصدر — ``source_id`` · ``mixing_ratio`` (0..1 أو None) ·
+    ``ec_ds_m`` (dS/m) · ``sodium_meq_l``/``calcium_meq_l``/``magnesium_meq_l`` (meq/L، اختياريّة).
+    مصدرٌ نسبتُه صفر لا يدخل الخليط فلا تُشترط بياناتُه.
+
+    صدق: كلُّ مؤشّرٍ ينقصه مدخلٌ يُعاد ``not_computable`` بسببٍ مسمّى ومصادرَ ناقصة، و``value``
+    فيه None — لا صفر ولا متوسّطُ SAR مرجَّح.
+    """
+    fractions, ratio_reason = _blend_fractions(components)
+    if fractions is None:
+        return {
+            "status": BLEND_NOT_COMPUTABLE,
+            "reason": ratio_reason,
+            "fractions": [],
+            "ec_ds_m": _not_computable(ratio_reason),
+            "sar": _not_computable(ratio_reason),
+            "ions_meq_l": None,
+        }
+
+    parts = [(c, f) for c, f in zip(components, fractions, strict=True) if f > 0]
+
+    # EC: Σ fᵢ·ECᵢ (تقريبٌ خطّيّ مُعلَن)
+    ec_missing = [str(c.get("source_id")) for c, _ in parts if c.get("ec_ds_m") is None]
+    ec_invalid = [
+        str(c.get("source_id"))
+        for c, _ in parts
+        if c.get("ec_ds_m") is not None and not _finite_non_negative(c.get("ec_ds_m"))
+    ]
+    if ec_invalid:
+        ec = _not_computable("source_ec_invalid", source_ids=ec_invalid)
+    elif ec_missing:
+        ec = _not_computable("source_ec_missing", source_ids=ec_missing)
+    else:
+        ec = {
+            "status": BLEND_COMPUTED,
+            "value": round(sum(f * float(c["ec_ds_m"]) for c, f in parts), 3),
+            "method": "volume_weighted_linear_mixing_approximation",
+        }
+
+    # SAR: من الأيونات المخلوطة لا من SAR المصادر
+    ion_missing = [
+        str(c.get("source_id")) for c, _ in parts if any(c.get(k) is None for k in BLEND_ION_FIELDS)
+    ]
+    ion_invalid = [
+        str(c.get("source_id"))
+        for c, _ in parts
+        if any(
+            c.get(k) is not None and not _finite_non_negative(c.get(k)) for k in BLEND_ION_FIELDS
+        )
+    ]
+    ions: dict | None = None
+    if ion_invalid:
+        sar = _not_computable("source_ions_invalid", source_ids=ion_invalid)
+    elif ion_missing:
+        sar = _not_computable("source_ions_missing", source_ids=ion_missing)
+    else:
+        ions = {k: sum(f * float(c[k]) for c, f in parts) for k in BLEND_ION_FIELDS}
+        value = compute_sar(ions["sodium_meq_l"], ions["calcium_meq_l"], ions["magnesium_meq_l"])
+        sar = (
+            _not_computable("calcium_plus_magnesium_zero")
+            if value is None
+            else {"status": BLEND_COMPUTED, "value": value, "method": "sar_from_blended_ions"}
+        )
+        ions = {k: round(v, 4) for k, v in ions.items()}
+
+    computed = [m["status"] == BLEND_COMPUTED for m in (ec, sar)]
+    status = (
+        BLEND_COMPUTED
+        if all(computed)
+        else BLEND_PARTIAL
+        if any(computed)
+        else BLEND_NOT_COMPUTABLE
+    )
+    return {
+        "status": status,
+        "reason": None,
+        "fractions": [
+            {"source_id": str(c.get("source_id")), "fraction": round(f, 6)}
+            for c, f in zip(components, fractions, strict=True)
+        ],
+        "ec_ds_m": ec,
+        "sar": sar,
+        "ions_meq_l": ions,
+    }
