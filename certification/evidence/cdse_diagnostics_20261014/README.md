@@ -38,3 +38,7 @@ ended without a summary and cannot be attributed to the stale-literal failure;
 that incomplete run is retained separately from the concrete C-locale failure.
 This test correction does not close the historical CDSE gap, establish the
 historical cause, prove deployment or replace final-head CI.
+
+## CDSE publication provenance — PR #1182
+
+Tracking PR: [1182](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1182). The original preparation preceded this PR; raw results remain unchanged. Source: `33616dbb5f20c7b56b62f3799fadc2d667803962`. Observed PR head before this provenance update: `2c2345263dc4028594d44ac9b5a3f00105e76855`. This is not a final-head CI, merge or deployment receipt. The historical gap remains **open**. Four service/environment instances matched main-tracking deploy patterns in the earlier snapshot; this is possible automatic deployment scope and must be re-read before merge.

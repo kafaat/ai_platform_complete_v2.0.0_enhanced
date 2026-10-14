@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5616,
+    "files_scanned": 5617,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1616,
+      "other": 1617,
       "tests": 1906,
       "web": 467
     },
@@ -17568,6 +17568,10 @@
           "score": 14
         },
         {
+          "value": "sahool.cdse-publication-provenance.v1 @ certification/evidence/cdse_diagnostics_20261014/publication_provenance.json:2",
+          "score": 14
+        },
+        {
           "value": "sahool.cdse-resume.v1 @ certification/evidence/cdse_diagnostics_20261014/open_c_resume.json:2",
           "score": 14
         },
@@ -18241,6 +18245,14 @@
           ]
         },
         {
+          "path": "certification/evidence/cdse_diagnostics_20261014/publication_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_resume.json",
           "score": 14,
           "signals": [
@@ -18480,12 +18492,12 @@
         "backend": 37,
         "routes": 65,
         "database": 3,
-        "events": 44,
+        "events": 45,
         "web": 5,
         "mobile": 0,
         "tests": 48,
         "governance": 0,
-        "other_evidence": 45
+        "other_evidence": 46
       },
       "coverage_dimensions": 6,
       "mapped": true
