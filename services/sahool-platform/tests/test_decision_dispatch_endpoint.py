@@ -194,11 +194,53 @@ def test_unified_applies_water_optimization(monkeypatch):
     )
     out = unified_decision_endpoint(req=req, user=_USER)
     irr = next(a for a in out["action_plan"] if "irrig" in a["action"])
-    # أُمثِلت الكمّيّة إلى حدّ الغلّة تقريباً (وُفِّر ماء) مع إرفاق المفاضلة.
+    # أُمثِلت الكمّيّة إلى حدّ الغلّة تقريباً (خفضٌ مُخطَّط) مع إرفاق المفاضلة.
     assert irr["params"]["water_mm"] <= 20.0
     assert "optimization" in irr
     assert irr["optimization"]["requested_water_mm"] == 20.0
-    assert irr["optimization"]["water_saved_mm"] >= 0
+    assert irr["optimization"]["planned_reduction_mm"] >= 0
+
+
+def test_optimization_names_a_planned_reduction_not_water_saved(monkeypatch):
+    """PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01: الخفضُ المُخطَّط ليس وفراً.
+
+    كان ``optimization.water_saved_mm`` يعرض «المطلوب − المُخطَّط» ماءً موفَّراً قبل أيّ تطبيقٍ
+    أو قياس. يُسمّى الآن خفضاً مُخطَّطاً ويحمل ``savings_claim`` غيرَ مُثبَت بعقد #1142.
+    """
+    from api.routers.decision_dispatch import (
+        DomainSignalIn,
+        UnifiedDecisionRequest,
+        unified_decision_endpoint,
+    )
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    req = UnifiedDecisionRequest(
+        field_id="f1",
+        signals=[
+            DomainSignalIn(
+                domain="irrigation", action="irrigate", urgency="high", params={"water_mm": 20.0}
+            ),
+        ],
+        min_mm_for_yield=12.0,
+    )
+    out = unified_decision_endpoint(req=req, user=_USER)
+    irr = next(a for a in out["action_plan"] if "irrig" in a["action"])
+    opt = irr["optimization"]
+    assert "water_saved_mm" not in opt
+    assert opt["planned_reduction_mm"] == round(
+        opt["requested_water_mm"] - opt["applied_water_mm"], 2
+    )
+    assert opt["planned_reduction_mm"] > 0  # الحالة تُنتِج خفضاً فعلاً، فالشاهدُ ليس فارغاً
+    claim = opt["savings_claim"]
+    assert claim["status"] == "not_established"
+    assert claim["basis"] == "requested_minus_planned"
+    assert set(claim["evidence_required"]) == {
+        "withdrawal_reduction",
+        "consumption_reduction",
+        "attribution",
+        "economic_impact",
+    }
+    assert not any("وُفِّر" in t for t in opt["tradeoffs_ar"])
 
 
 def test_unified_halt_blocks(monkeypatch):

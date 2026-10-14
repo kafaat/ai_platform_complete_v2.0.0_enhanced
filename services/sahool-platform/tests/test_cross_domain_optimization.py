@@ -29,7 +29,7 @@ def test_exact_optimum_balanced():
     # مطلوب 20، حدّ غلّة 10، أوزان متساوية، 10 خطوات ⇒ الأمثل عند الحدّ تماماً = 10.0
     r = optimize_irrigation(20.0, min_mm_for_yield=10.0, steps=10)
     assert r.applied_water_mm == 10.0  # دقيق لا تقريبيّ
-    assert r.water_saved_mm == 10.0
+    assert r.planned_reduction_mm == 10.0
     assert r.objective_scores == {"water_efficiency": 0.5, "yield_security": 1.0}
     assert r.candidates_evaluated == 11  # steps+1 بالضبط (يقتل طفرة Add→Sub / const)
 
@@ -39,14 +39,14 @@ def test_exact_budget_cap_value():
     r = optimize_irrigation(20.0, min_mm_for_yield=18.0, budget_mm=8.0, steps=8)
     assert r.applied_water_mm == 8.0
     assert r.requested_water_mm == 20.0
-    assert r.water_saved_mm == 12.0
+    assert r.planned_reduction_mm == 12.0
 
 
 def test_optimum_at_yield_minimum_when_equal_weights():
     # بأوزان متساوية: الأمثل = الحدّ الأدنى للغلّة (يؤمّن الغلّة ويوفّر الباقي).
     r = optimize_irrigation(20.0, min_mm_for_yield=12.0, steps=20)
     assert r.applied_water_mm == pytest.approx(12.0, abs=1.0)
-    assert r.water_saved_mm > 0
+    assert r.planned_reduction_mm > 0
     assert r.objective_scores["yield_security"] == pytest.approx(1.0, abs=0.05)
     assert any("حدّ الغلّة" in t for t in r.tradeoffs_ar)
 
@@ -105,5 +105,5 @@ def test_result_serializable():
     r = optimize_irrigation(20.0, min_mm_for_yield=12.0)
     blob = json.dumps(r.to_dict(), ensure_ascii=False)
     parsed = json.loads(blob)
-    assert parsed["water_saved_mm"] == r.water_saved_mm
+    assert parsed["planned_reduction_mm"] == r.planned_reduction_mm
     assert "objective_scores" in parsed
