@@ -73,6 +73,14 @@
       "positive_witness": "test_a_change_outside_every_build_context_builds_nothing and test_a_file_in_the_service_directory_that_is_not_copied_builds_nothing: a PR touching only brain/compose/tests plans zero builds and the verdict job passes with a named 'no Dockerfile or COPY context touched' result.",
       "impact": "merge",
       "$scope_limit_ar": "يبني ما يبنيه Railway (13 Dockerfile) حين يمسّ الـPR الملفَّ أو سياقَ COPY؛ لا يُشغّل الصورة ولا يختبر سلوكها، ولا يُغني عن «Wait for CI» على Railway."
+    },
+    "scripts/ci/brain_duplicate_gap_identity_guard.py::ci.yml::structural-lint": {
+      "counterexample": "UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01, measured on main 421a0e7a: the guard's only job, no-report-only-change (no-report-only-change.yml), is not in docs/architecture/required_status_checks_contract.json required_contexts, so a gap left wearing two states by a silent merge=union turned the check red without blocking the merge. Its first catch was already in the tree before it was wired (BRANCH-GRAVEYARD-POLICY, two adjacent rows).",
+      "mutation": "test_a_non_adjacent_row_duplicate_is_caught_globally",
+      "$mutation_ar": "الطفراتُ الثلاث المسجَّلة للحارس نفسِه في guard_mutation_registry.json (التلاصق · الفحص العالميّ · المعرّف المنقوط) يقتل كلّاً منها اختبارُه المسمّى؛ ولم تتغيّر الشيفرة — زِيد موضعُ تشغيلها وحده.",
+      "positive_witness": "test_a_deliberate_history_chain_passes: an intended historical chain of the same gap ID passes; and the guard reads the whole tree, not the diff, so running it in a second job cannot change its verdict.",
+      "impact": "merge",
+      "$scope_limit_ar": "يُضاف الحارسُ نفسُه دون تغيير إلى وظيفةٍ مطلوبة (Repository Structural Lint)؛ بقيّةُ خطوات no-report-only-change تبقى في وظيفةٍ غير مطلوبة."
     }
   }
 }
