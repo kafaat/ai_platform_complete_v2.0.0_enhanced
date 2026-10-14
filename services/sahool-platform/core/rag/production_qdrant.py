@@ -1098,8 +1098,55 @@ class QdrantHttpClient:
                 return rows
         raise RuntimeError("Qdrant scroll exceeded max_pages")
 
+    def _tenant_payload_index_present(self) -> bool:
+        data = self._request("GET", f"/collections/{self.collection}")
+        result = data.get("result") if isinstance(data, dict) else None
+        if not isinstance(result, dict) or data.get("status") != "ok":
+            raise ValueError("Qdrant payload schema response missing/invalid")
+        schema = result.get("payload_schema")
+        if not isinstance(schema, dict):
+            raise ValueError("Qdrant payload schema missing/invalid")
+        if "metadata.tenant_id" not in schema:
+            return False
+        index = schema["metadata.tenant_id"]
+        if not isinstance(index, dict) or index.get("data_type") != "keyword":
+            raise ValueError("Qdrant tenant payload index is not a keyword index")
+        params = index.get("params")
+        if params is not None and (not isinstance(params, dict) or params.get("type") != "keyword"):
+            raise ValueError("Qdrant tenant payload index parameters are incompatible")
+        return True
+
+    def ensure_tenant_payload_index(self) -> None:
+        """Reconcile the tenant filter's keyword index without replacing any data.
+
+        QDRANT-TENANT-FILTER-HAS-NO-PAYLOAD-INDEX-01: existing collections need
+        this too. Existing keyword options are preserved; ``is_tenant`` and
+        HNSW tuning are separate optimizations, not requirements for this index.
+        HTTP/network/config errors propagate; an unproved index is not success.
+        """
+        if self._tenant_payload_index_present():
+            return
+        data = self._request(
+            "PUT",
+            f"/collections/{self.collection}/index?wait=true",
+            {"field_name": "metadata.tenant_id", "field_schema": "keyword"},
+        )
+        result = data.get("result") if isinstance(data, dict) else None
+        if (
+            not isinstance(result, dict)
+            or data.get("status") != "ok"
+            or result.get("status") != "completed"
+        ):
+            raise RuntimeError("Qdrant tenant payload index creation was not completed")
+        if not self._tenant_payload_index_present():
+            raise RuntimeError("Qdrant tenant payload index missing after creation")
+
     def ensure_collection(self, *, vector_size: int | None = None) -> None:
-        """Create only on proven 404 and verify vector-size parity when known."""
+        """Create only on proven 404; verify vector size and reconcile tenant index.
+
+        Called by ingest, not by search/readiness: deploying this code alone
+        does not reconcile a collection that receives no subsequent ingest.
+        """
         expected = int(vector_size or self.vector_size)
         if expected <= 0:
             raise ValueError("positive vector size is required to create/verify collection")
@@ -1110,6 +1157,7 @@ class QdrantHttpClient:
                 raise ValueError(
                     f"Qdrant vector-size mismatch: collection={actual}, embedding={expected}"
                 )
+            self.ensure_tenant_payload_index()
             self.vector_size = expected
             return
         if status is not CollectionProbeStatus.NOT_FOUND:
@@ -1126,6 +1174,7 @@ class QdrantHttpClient:
                 "optimizers_config": {"default_segment_number": 2},
             },
         )
+        self.ensure_tenant_payload_index()
 
     def upsert(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> None:
         points = []
