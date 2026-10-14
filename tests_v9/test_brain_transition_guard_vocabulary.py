@@ -659,3 +659,171 @@ def test_the_cli_rejects_a_brain_only_backticked_verified_row(tmp_path, with_tes
     assert "Traceback" not in result.stderr, result.stderr
     assert (result.returncode != 0) is rejected, result.stdout + result.stderr
     assert ("verified transition rejected for GAP-ALPHA-01" in result.stderr) is rejected
+
+
+# BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01: exercise the real CLI, not
+# merely an Arabic regexp. The full registry context carries scope and history.
+@pytest.mark.parametrize(
+    "template",
+    [
+        "## GAP-ARABIC-01 — {state}\n",
+        "## `GAP-ARABIC-01` — وصف العطل ({state} 2026-10-14)\n",
+        "## GAP-ARABIC-01 — وصف العطل\n- **الحالة:** {state}\n",
+        "| id | الحالة |\n|---|---|\n| GAP-ARABIC-01 | {state} |\n",
+    ],
+    ids=["heading", "backticked-heading-parenthesis", "section", "table"],
+)
+@pytest.mark.parametrize("with_test", [False, True], ids=["brain-only", "with-evidence"])
+def test_cli_arabic_closure_requires_executable_evidence(tmp_path, template, with_test):
+    import subprocess
+    import sys
+
+    reg = tmp_path / guard.REGISTRY
+    reg.parent.mkdir(parents=True)
+    reg.write_text(template.format(state="مفتوحة"), encoding="utf-8")
+    _git(tmp_path, "init", "-q", "-b", "base")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    reg.write_text(template.format(state="**مُغلَقة**"), encoding="utf-8")
+    if with_test:
+        proof = tmp_path / "tests_v9/test_proof.py"
+        proof.parent.mkdir()
+        proof.write_text("def test_proof():\n    assert 2 + 2 == 4\n", encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "head")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/ci/brain_state_transition_guard.py"),
+            "--base",
+            "HEAD~1",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert "Traceback" not in result.stderr, result.stderr
+    assert result.returncode == (0 if with_test else 1), result.stdout + result.stderr
+    assert ("GAP-ARABIC-01" in result.stderr) is not with_test
+
+
+@pytest.mark.parametrize("state", ["مُغلَقة", "مغلقة", "مُغلَق", "مُصلَحة", "مصلح", "مـُغْلَقة"])
+@pytest.mark.parametrize("wrap", ["{}", "**{}**", "`{}`"])
+def test_arabic_fixed_status_typography_and_diacritics(state, wrap):
+    head = registry(alpha=wrap.format(state) + " — دليل الإصلاح")
+    assert guard.fixed_transitions(registry(), head) == ["GAP-ALPHA-01"]
+    with pytest.raises(SystemExit, match="GAP-ALPHA-01"):
+        guard.check_fixed(BRAIN_ONLY, registry(), head)
+
+
+def test_arabic_verification_is_a_separate_stronger_transition():
+    base, head = registry(alpha="مُصلَحة"), registry(alpha="`مُتحقَّقة` حيّاً")
+    assert guard.fixed_transitions(base, head) == []
+    assert guard.verified_transitions(base, head) == ["GAP-ALPHA-01"]
+    with pytest.raises(SystemExit, match="verified transition rejected for GAP-ALPHA-01"):
+        guard.check_verified(BRAIN_ONLY, base, head)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "open — كانت مُغلَقة سابقاً",
+        "مفتوحة — مُصلَحة جزئيّاً فقط",
+        "غير مُغلقة",
+        "ليست مُصلَحة",
+        "مُسجَّل لا مُصلَح",
+        "مغلقاً عند الفشل",
+        "مغلقة_افتراضياً",
+        "مغلق-بالتصميم",
+        "يفشل مُغلَقاً",
+        "بلا إصدارٍ مُصلِح",
+    ],
+)
+def test_arabic_state_does_not_search_prose_or_match_token_prefixes(value):
+    assert guard.fixed_transitions(registry(), registry(alpha=value, gamma=value)) == []
+
+
+@pytest.mark.parametrize("kind", ["alias", "policy", "adjudicated"])
+def test_arabic_non_state_annotation_is_preserved(kind):
+    assert (
+        guard.fixed_transitions(registry(), registry(alpha=f"<!-- gap-registry: {kind} --> مُغلَقة"))
+        == []
+    )
+
+
+def test_arabic_history_is_excluded_only_for_a_reviewed_chain():
+    base = SECTION.format(gamma="open", old="open")
+    head = SECTION.format(gamma="open", old="مُغلَقة")
+    assert guard.fixed_transitions(base, head) == []
+    assert guard.fixed_transitions("", head.replace("<!-- gap-registry: current -->", "")) == [
+        "GAP-GAMMA-01"
+    ]
+    assert guard.fixed_transitions(
+        "", head.replace("<!-- gap-registry: historical -->", "\n<!-- gap-registry: historical -->")
+    ) == ["GAP-GAMMA-01"]
+
+
+def test_arabic_historical_heading_cannot_hide_a_canonical_table_row():
+    base = "## GAP-HISTORY-01 — مفتوحة\n<!-- gap-registry: current -->\n"
+    history = "## GAP-HISTORY-01 — مُغلَقة\n<!-- gap-registry: historical -->\n"
+    table = "| id | الحالة |\n|---|---|\n| GAP-OLD-01 | مُصلَحة |\n"
+    assert guard.fixed_transitions(base, base + history + table) == ["GAP-OLD-01"]
+    assert guard.fixed_transitions("", history + table) == ["GAP-HISTORY-01", "GAP-OLD-01"]
+
+
+@pytest.mark.parametrize("fence", ["```", "~~~~"])
+def test_arabic_fenced_examples_are_not_registry_claims(fence):
+    example = "## GAP-EXAMPLE-01 — مُغلَقة\n- **الحالة:** مُصلَحة\n"
+    assert guard.fixed_transitions("", fence + "markdown\n" + example + fence + "\n") == []
+
+
+def test_arabic_unchanged_status_rewording_is_not_a_transition():
+    base = "## GAP-ARABIC-01 — مُغلَقة (2026-10-14)\n"
+    assert guard.fixed_transitions(base, base + "نثرٌ يشرح لماذا يفشل مُغلَقاً.\n") == []
+    assert guard.fixed_transitions(base, base.replace("مُغلَقة", "**مغلقة**")) == []
+
+
+@pytest.mark.parametrize(
+    "tail",
+    ["الحارس مُغلَق عند الفشل", "مفتوحة — كانت مُغلقة سابقاً", "وصف (غير مُصلَحة)", "وصف (مُسجَّل لا مُصلَح)"],
+)
+def test_arabic_narrative_heading_is_not_a_status(tail):
+    assert guard.fixed_transitions("", f"## GAP-ARABIC-01 — {tail}\n") == []
+
+
+def test_arabic_table_reads_the_declared_column_and_requires_a_header():
+    table = "| id | الحالة | الوصف |\n|---|---|---|\n| GAP-ARABIC-01 | open | مُغلَقة |\n"
+    assert guard.fixed_transitions("", table) == []
+    assert guard.fixed_transitions("", "| GAP-ARABIC-01 | مُغلَقة |\n") == []
+    assert guard.fixed_transitions("", table.replace("| open | مُغلَقة |", "| مُغلَقة | وصف |")) == [
+        "GAP-ARABIC-01"
+    ]
+
+
+def test_cli_arabic_table_does_not_inherit_an_unrelated_headings_history(tmp_path):
+    template = (
+        "## PARENT-01 — وصف\n<!-- gap-registry: historical -->\n"
+        "| id | الحالة |\n|---|---|\n| GAP-ARABIC-01 | {state} |\n"
+        "## PARENT-01 — وصف حالي\n<!-- gap-registry: current -->\n- **الحالة:** open\n"
+    )
+    assert guard.fixed_transitions(
+        template.format(state="open"), template.format(state="مُغلَقة")
+    ) == ["GAP-ARABIC-01"]
+    test_cli_arabic_closure_requires_executable_evidence(tmp_path, template, False)
+
+
+@pytest.mark.parametrize("state", ["مفتوح", "**مفتوحة**", "`open`", "OPEN"])
+def test_arabic_heading_leading_open_state_wins_over_old_parenthesis(state):
+    assert guard.fixed_transitions("", f"## GAP-ARABIC-01 — {state} (مُغلَقة سابقاً)\n") == []
+
+
+def test_arabic_heading_leading_fixed_state_wins_over_old_verified_parenthesis():
+    text = "## GAP-ARABIC-01 — مُصلَحة (مُتحقَّقة سابقاً)\n"
+    assert guard.fixed_transitions("", text) == ["GAP-ARABIC-01"]
+    assert guard.verified_transitions("", text) == []
+
+
+@pytest.mark.parametrize("state", ["fixed", "`verified`", "**CLOSED_IN_CODE**", "runtime_verified"])
+def test_leading_english_state_does_not_inherit_an_arabic_historical_parenthesis(state):
+    assert guard._arabic_heading_state(f" — {state} (مُتحقَّقة سابقاً)") is None

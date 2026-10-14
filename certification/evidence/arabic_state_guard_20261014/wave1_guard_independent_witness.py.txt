@@ -1,0 +1,129 @@
+"""Independent CLI witnesses, isolated git histories; never edits target repository."""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REG = 'sahool-brain/gaps/registry.md'
+GAP = 'REVIEW-ARABIC-01'
+
+
+def heading(value):
+    return f'## {GAP} — {value}\n'
+
+
+def section(value):
+    return heading('وصف السبب') + f'- **الحالة:** {value}\n'
+
+
+def table(value):
+    return '| id | الوصف | الحالة والدليل |\n|---|---|---|\n' + f'| {GAP} | عيب | {value} |\n'
+
+
+OPEN = section('open')
+CASES = []
+
+
+def case(name, before, after, reject, extra=None, registry=True):
+    CASES.append({'name': name, 'base': before, 'head': after, 'reject': reject,
+                  'extra': extra, 'registry': registry})
+
+
+for value in ['مُغلَقة', 'مغلق', 'مُصلَحة', 'مُــغــلَقة', '**مُغلَقة**', '`مُغلَقة`']:
+    case('heading_' + value, heading('مفتوحة'), heading(value), True)
+for value in ['مُغلَقة', '**مُصلَحة**', '`متحققة`']:
+    case('section_' + value, OPEN, section(value), True)
+    case('table_' + value, table('open'), table(value), True)
+case('parenthetical_actual', heading('الوصف (مفتوحة 2026)'), heading('الوصف (مُغلَقة 2026)'), True)
+case('stronger_verification', section('مُصلَحة'), section('متحققة'), True)
+case('executable_content', OPEN, section('مغلقة'), False, 'test')
+case('documentation_not_evidence', OPEN, section('مغلقة'), True, 'docs')
+case('existing_blob_copy_not_evidence', OPEN, section('مغلقة'), True, 'copy')
+case('unchanged_closed_new_prose', section('مغلقة'), section('مغلقة') + '\nتفصيل جديد بلا حالة.\n', False)
+case('ordinary_prose', OPEN, OPEN + '\nهذه الآلية تفشل مُغلَقاً.\n', False)
+case('quoted_prose', OPEN, OPEN + '\nنذكر «مغلقة» و`متحققة` اسمي حالة.\n', False)
+case('heading_design_fail_closed', OPEN, OPEN + '\n### تصميم يفشل مُغلَقاً\n', False)
+case('state_open_then_design', OPEN, section('open — تفشل الآلية مُغلَقة عند الخطأ'), False)
+case('negated_heading', OPEN, heading('الوصف (مُسجَّل لا مُصلَح)') + '- **الحالة:** open\n', False)
+case('negative_release_heading', OPEN, heading('بلا إصدارٍ مُصلِح') + '- **الحالة:** open\n', False)
+case('fenced_example', OPEN, OPEN + '\n```markdown\n' + section('مغلقة') + '```\n', False)
+case('longer_fence', OPEN, OPEN + '\n````md\n```\n' + section('مغلقة') + '````\n', False)
+case('non_registry_doc', 'شرح\n', heading('مغلقة'), False, registry=False)
+case('nonstatus_column', table('open'), table('open').replace('| عيب |', '| مغلقة |'), False)
+case('suffix_word_not_status', OPEN, section('مغلقات غير حقيقية'), False)
+case('standalone_historical_not_exempt', OPEN, heading('مغلقة') + '<!-- gap-registry: historical -->\n', True)
+case('reviewed_history_preserved', OPEN,
+     heading('مغلقة') + '<!-- gap-registry: historical -->\n- **الحالة:** مغلقة\n'
+     + heading('وصف السبب') + '<!-- gap-registry: current -->\n- **الحالة:** open\n', False)
+case('malformed_delayed_history_marker', OPEN,
+     heading('مغلقة') + '\n<!-- gap-registry: historical -->\n- **الحالة:** مغلقة\n'
+     + heading('وصف السبب') + '<!-- gap-registry: current -->\n- **الحالة:** open\n', True)
+case('two_current_no_history_exemption', OPEN,
+     heading('مغلقة') + '<!-- gap-registry: historical -->\n'
+     + heading('وصف') + '<!-- gap-registry: current -->\n- **الحالة:** open\n'
+     + heading('وصف آخر') + '<!-- gap-registry: current -->\n- **الحالة:** open\n', True)
+case('alias_state_exempt', table('open'), table('<!-- gap-registry: alias --> مغلقة'), False)
+case('current_cell_not_exempt', table('open'), table('<!-- gap-registry: current --> مغلقة'), True)
+case('mixed_annotations_not_exempt', table('open'), table('<!-- gap-registry: alias --> <!-- gap-registry: current --> مغلقة'), True)
+case('foreign_table_cannot_inherit_parent_history', OPEN,
+     '## PARENT-REVIEW-01 — وصف\n<!-- gap-registry: historical -->\n'
+     + table('مغلقة') + '\n## PARENT-REVIEW-01 — الحالي\n'
+     '<!-- gap-registry: current -->\n- **الحالة:** open\n', True)
+case('explicit_open_heading_wins_over_old_parenthetical', OPEN,
+     heading('مفتوحة (مُغلقة سابقاً)') + '- **الحالة:** open\n', False)
+case('english_open_heading_wins_over_old_parenthetical', OPEN,
+     heading('open (مُغلقة سابقاً)') + '- **الحالة:** open\n', False)
+case('english_fixed_heading_wins_over_old_arabic_verified',
+     heading('fixed') + '- **الحالة:** fixed\n',
+     heading('fixed (متحققة سابقاً)') + '- **الحالة:** fixed\n', False)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--guard', required=True)
+    parser.add_argument('--output', required=True)
+    args = parser.parse_args()
+    guard = str(Path(args.guard).resolve())
+    results = []
+    env = dict(os.environ, GIT_AUTHOR_NAME='Independent witness', GIT_AUTHOR_EMAIL='witness@example.invalid',
+               GIT_COMMITTER_NAME='Independent witness', GIT_COMMITTER_EMAIL='witness@example.invalid')
+    for item in CASES:
+        with tempfile.TemporaryDirectory(prefix='arabic-guard-review-') as temp:
+            root = Path(temp)
+            def git(*argv):
+                subprocess.run(['git', *argv], cwd=root, env=env, check=True, capture_output=True)
+            path = root / (REG if item['registry'] else 'sahool-brain/log.md')
+            path.parent.mkdir(parents=True)
+            path.write_text(item['base'])
+            (root / 'tests_v9').mkdir()
+            proof = 'def test_existing():\n    assert 1 == 1\n'
+            (root / 'tests_v9/test_existing.py').write_text(proof)
+            git('init', '-q', '-b', 'main')
+            git('add', '-A')
+            git('commit', '-qm', 'base')
+            path.write_text(item['head'])
+            if item['extra'] == 'test':
+                (root / 'tests_v9/test_proof.py').write_text('def test_proof():\n    assert 2 + 3 == 5\n')
+            elif item['extra'] == 'copy':
+                (root / 'tests_v9/test_copy.py').write_text(proof)
+            elif item['extra'] == 'docs':
+                (root / 'notes.md').write_text('Notes only.\n')
+            git('add', '-A')
+            git('commit', '-qm', 'candidate')
+            run = subprocess.run([sys.executable, guard, '--base', 'HEAD~1'], cwd=root,
+                                 env=env, text=True, capture_output=True)
+            results.append({'name': item['name'], 'expected_reject': item['reject'],
+                            'exit_code': run.returncode, 'stdout': run.stdout,
+                            'stderr': run.stderr,
+                            'matches_expected': (run.returncode != 0) == item['reject'] and 'Traceback' not in run.stderr})
+    report = {'guard': guard, 'cases': len(results), 'matching': sum(row['matches_expected'] for row in results),
+              'mismatches': [row['name'] for row in results if not row['matches_expected']], 'results': results}
+    Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+    print(json.dumps({key: value for key, value in report.items() if key != 'results'}, ensure_ascii=False))
+
+
+if __name__ == '__main__':
+    main()
