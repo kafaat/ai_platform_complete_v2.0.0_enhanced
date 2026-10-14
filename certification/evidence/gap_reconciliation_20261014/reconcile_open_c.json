@@ -1,0 +1,236 @@
+{
+  "agent": "open_c",
+  "review_date": "2026-10-14",
+  "base_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+  "repo_unchanged_at_review_finish": true,
+  "review_method": "Read-only source/history inspection; existing isolated targeted tests only. No implementation, cloud calls, DB writes, or live providers for these three IDs.",
+  "conclusion": {
+    "open_to_fixed": 3,
+    "to_verified": 0
+  },
+  "rows": [
+    {
+      "id": "NL-SQL-EXTERNAL-QUESTION-BYPASSES-TENANT-POLICY-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "closure_scope": "merged_source_and_isolated_tests",
+      "confidence": "high",
+      "repair_shas": [
+        {
+          "sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+          "pr": 1127,
+          "merged_into_reviewed_head": true
+        }
+      ],
+      "finding_ar": "النص «مقترح محلي لم يُدمج» قديم: القراءة داخل tenant_connection والموافقة full_external مع True حرفية وفحص القيود غير الفارغة مدمجة. local_only/redacted_external/غياب السياسة/قوائم غير صالحة أو مانعة لا ترسل. القوائم الفارغة تظل بلا قيد إضافي وفق العقد الحالي، ولا نبدل هذا القرار.",
+      "sources": [
+        {
+          "path": "services/sahool-platform/api/routers/nl_sql.py",
+          "lines": [
+            83,
+            102
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/ai_policy_envelope.py",
+          "symbol": "load_tenant_ai_policy_row / build_ai_policy_envelope"
+        },
+        {
+          "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
+          "lines": [
+            86,
+            170
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "command": "env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=services/sahool-platform:. .-venv/bin/python -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_nl_sql_policy.py",
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+          "exit_code": 0,
+          "passed": 22,
+          "failed": 0,
+          "duration_seconds": 4.26,
+          "log": "analysis/reconcile_open_c_nl_sql.log",
+          "evidence": "15 سياسة رفض، فشل الاتصال503، تعذر القراءة403: صفر نداء مزود؛ السماح الصريح يعيد SQL المدقق؛ alias وmodel مسموحان يعملان.",
+          "boundary": "Actual endpoint, SQL validator and policy builder; DB connection and provider replaced."
+        }
+      ],
+      "remaining_for_verified": "إثبات تشغيل النسخة المصححة بمستأجر اصطناعي وإذن صريح وسياسات رفض، وسجل منقح يثبت عدم الإرسال عند المنع. لم تُجرَ مكالمة مزود أو فحوص إنتاج.",
+      "exact_registry_edits": [
+        {
+          "operation": "replace_exact",
+          "old": "| NL-SQL-EXTERNAL-QUESTION-BYPASSES-TENANT-POLICY-01 | NL→SQL يرسل السؤال الخام إلى Anthropic عند وجود العلم والمفتاح دون قراءة موافقة المستأجر أو قائمة المزوّدات والنماذج. | platform · ai · privacy | [`nl_sql.py`](../../services/sahool-platform/api/routers/nl_sql.py) (`nl_sql_endpoint`) · [`ai_policy_envelope.py`](../../services/sahool-platform/core/ai_policy_envelope.py) · [`test_nl_sql_policy.py`](../../services/sahool-platform/tests/test_nl_sql_policy.py) | **open** — المصدر والاختبار على `main@f60f0635`. مقترح محلي: قراءة داخل tenant_connection، full_external وإذن true صريح، وفرض القيود غير الفارغة. redacted_external يُرفض لأن التنقيح غير منفذ في هذا المسار؛ لم يُدمج. |",
+          "new": "| NL-SQL-EXTERNAL-QUESTION-BYPASSES-TENANT-POLICY-01 | NL→SQL يرسل السؤال الخام إلى Anthropic عند وجود العلم والمفتاح دون قراءة موافقة المستأجر أو قائمة المزوّدات والنماذج. | platform · ai · privacy | [`nl_sql.py`](../../services/sahool-platform/api/routers/nl_sql.py) (`nl_sql_endpoint`) · [`ai_policy_envelope.py`](../../services/sahool-platform/core/ai_policy_envelope.py) · [`test_nl_sql_policy.py`](../../services/sahool-platform/tests/test_nl_sql_policy.py) | **fixed** — #1127، squash `76a5ca58af8911f7a3a07c218690624bfdf2e22f`، موجود في `main@53652e02`. قراءة سياسة المستأجر داخل `tenant_connection`؛ لا إرسال إلا مع `full_external` وإذن `True` صريح، وفرض قيود المزوّد/النموذج غير الفارغة؛ `redacted_external` مرفوض لأن التنقيح غير منفذ. تحقق 2026-10-14: `test_nl_sql_policy.py` **22 passed**، منها منع الإرسال في الحالات المرفوضة. **ليس verified:** الأدلة مصدر واختبارات معزولة، بلا مكالمة مزوّد حيّة أو إثبات نشر. |"
+        }
+      ],
+      "rollback": "إرجاع تعديل التوثيق فقط إذا لم تتطابق شجرة المصدر أو أدلة الاختبار؛ لا رجوع تلقائي للكود الأمني."
+    },
+    {
+      "id": "NL-SQL-SYNC-SDK-BLOCKS-EVENT-LOOP-01",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "closure_scope": "merged_source_and_isolated_tests",
+      "confidence": "high",
+      "repair_shas": [
+        {
+          "sha": "76a5ca58af8911f7a3a07c218690624bfdf2e22f",
+          "pr": 1127,
+          "merged_into_reviewed_head": true
+        }
+      ],
+      "finding_ar": "المسار الحالي يستخدم AsyncAnthropic داخل async with وawait messages.create؛ أزيل SDK المتزامن من المعالج. timeout=20.0 وmax_retries=0 حدود SDK وليست deadline شامل للطلب؛ الاختبار يثبت yielding أثناء I/O ولا يقيس SLA إنتاجياً.",
+      "sources": [
+        {
+          "path": "services/sahool-platform/api/routers/nl_sql.py",
+          "lines": [
+            107,
+            124
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
+          "lines": [
+            140,
+            146
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_nl_sql_policy.py",
+          "lines": [
+            173,
+            215
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "command": "env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=services/sahool-platform:. .-venv/bin/python -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_nl_sql_policy.py",
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+          "exit_code": 0,
+          "passed": 22,
+          "failed": 0,
+          "duration_seconds": 4.26,
+          "log": "analysis/reconcile_open_c_nl_sql.log",
+          "evidence": "اختبار peer ينتظر بدء المزود ثم يعمل قبل انتهائه؛ guard يغلق AsyncAnthropic context بعد النجاح.",
+          "boundary": "Actual endpoint, SQL validator and policy builder; DB connection and provider replaced."
+        }
+      ],
+      "remaining_for_verified": "إثبات تشغيل النسخة المصححة بمستأجر اصطناعي وإذن صريح وسياسات رفض، وسجل منقح يثبت عدم الإرسال عند المنع. لم تُجرَ مكالمة مزود أو فحوص إنتاج.",
+      "exact_registry_edits": [
+        {
+          "operation": "replace_exact",
+          "old": "| NL-SQL-SYNC-SDK-BLOCKS-EVENT-LOOP-01 | المعالج async يستعمل Anthropic المتزامن؛ انتظار المزوّد يحجب حلقة الأحداث. | platform · ai · availability | [`nl_sql.py`](../../services/sahool-platform/api/routers/nl_sql.py) (`Anthropic.messages.create`) · [`test_nl_sql_policy.py`](../../services/sahool-platform/tests/test_nl_sql_policy.py) (`test_provider_io_yields_to_other_requests`) | **open** — مقيس بمزوّد اختباري فقط على `main@f60f0635`. مقترح محلي: AsyncAnthropic مع إغلاق العميل وحد انتظار لكل اتصال، بلا قياس كمون شبكة حيّة ولا دمج. |",
+          "new": "| NL-SQL-SYNC-SDK-BLOCKS-EVENT-LOOP-01 | المعالج async يستعمل Anthropic المتزامن؛ انتظار المزوّد يحجب حلقة الأحداث. | platform · ai · availability | [`nl_sql.py`](../../services/sahool-platform/api/routers/nl_sql.py) (`Anthropic.messages.create`) · [`test_nl_sql_policy.py`](../../services/sahool-platform/tests/test_nl_sql_policy.py) (`test_provider_io_yields_to_other_requests`) | **fixed** — #1127، squash `76a5ca58af8911f7a3a07c218690624bfdf2e22f`، موجود في `main@53652e02`. صار المعالج `async with anthropic.AsyncAnthropic(..., timeout=20.0, max_retries=0)` ثم `await client.messages.create(...)`. تحقق 2026-10-14: **22 passed** في `test_nl_sql_policy.py`، ومنها شاهد أن I/O المزود يفسح للحلقة وشاهد إغلاق العميل. مهلة SDK ليست deadline للطلب كله. **ليس verified:** لا قياس تزامن أو زمن استجابة في الإنتاج. |"
+        }
+      ],
+      "rollback": "إرجاع تعديل التوثيق فقط إذا لم تتطابق شجرة المصدر أو أدلة الاختبار؛ لا رجوع تلقائي للكود الأمني."
+    },
+    {
+      "id": "WEATHER-NORMALIZER-ZERO-COERCION",
+      "current_state": "open",
+      "proposed_state": "fixed",
+      "closure_scope": "weather-service_normalization_source_only",
+      "confidence": "high",
+      "repair_shas": [
+        {
+          "sha": "7508702a44b0194092eea53a2529d68d1f41f5b1",
+          "pr": 948,
+          "scope": "current absent wind/rain preserve None"
+        },
+        {
+          "sha": "d3471e39e4902d3861ad0c3291c1405a62b183b9",
+          "pr": 979,
+          "scope": "daily absent precipitation preserves None"
+        },
+        {
+          "sha": "ea24696409a0fa09371d1a4aea6865bafdb7e9f5",
+          "pr": 1068,
+          "scope": "final daily wind removal and canonical declaration correction",
+          "merged_into_reviewed_head": true
+        }
+      ],
+      "finding_ar": "بقايا تحديث أغسطس أُصلحت لاحقاً. الحرارة اليومية والريح/المطر الآنيان واليوميان يحفظون None؛ declarations فارغة فلا تعلن canonical coercion قديماً. تبقى الريح في موصل المنصة قضية مستقلة.",
+      "sources": [
+        {
+          "path": "services/weather-service/open_meteo.py",
+          "lines": [
+            174,
+            180
+          ]
+        },
+        {
+          "path": "services/weather-service/open_meteo.py",
+          "lines": [
+            348,
+            480
+          ]
+        },
+        {
+          "path": "services/weather-service/canonical_weather_state.py",
+          "lines": [
+            165,
+            235
+          ]
+        },
+        {
+          "path": "services/weather-service/canonical_weather_state.py",
+          "lines": [
+            297,
+            378
+          ]
+        },
+        {
+          "path": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+          "lines": [
+            40,
+            184
+          ]
+        },
+        {
+          "path": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
+          "lines": [
+            68,
+            226
+          ]
+        },
+        {
+          "path": "services/weather-service/tests/test_operation_fail_closed.py",
+          "lines": [
+            27,
+            92
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "command": "env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=services/weather-service:. .-venv/bin/python -m pytest -q -p no:cacheprovider services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py services/weather-service/tests/test_missing_temperature_is_not_zero.py services/weather-service/tests/test_canonical_weather_state.py services/weather-service/tests/test_operation_fail_closed.py",
+          "source_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+          "exit_code": 0,
+          "passed": 79,
+          "failed": 0,
+          "duration_seconds": 0.74,
+          "log": "analysis/reconcile_open_c_weather.log",
+          "boundary": "No network; normalizers/canonical/operations with representative local payloads."
+        }
+      ],
+      "remaining_for_verified": "دليل منشور يربط SHA والاستجابة nullable في current/forecast/history إلى المستهلك الحقيقي، مع غياب الريح/المطر/الحرارة ⇒ غير مكتمل/ممنوع وصفر مرصود ⇒ محفوظ؛ لا يكفي healthz.",
+      "residual_ids": [
+        "PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01"
+      ],
+      "exact_registry_edits": [
+        {
+          "operation": "replace_exact",
+          "old": "## WEATHER-NORMALIZER-ZERO-COERCION — OPEN (صدق بيانات؛ يحتاج قرار مالك لأنّه يغيّر شكل ردّ عامّ) — رُصِد أثناء WX-10.4",
+          "new": "## WEATHER-NORMALIZER-ZERO-COERCION — fixed (اكتمل إصلاح المصدر؛ الدليل الحي لم يُجمع) — رُصِد أثناء WX-10.4"
+        },
+        {
+          "operation": "replace_exact",
+          "old": "- **الحالة:** **open** — **PARTIAL** لا `fixed`. الباقي مفتوحٌ بنصّه: `normalize_current` (`or 0.0`/`or 0`) · `precipitation_mm`/`wind_max_ms` في اليوميّ · وقرار «شكل ردّ نقطة عامّة» الذي بُنِي عليه التأجيل الأصليّ لم يُمَسّ لأنّ النطاق لم يبلغه.",
+          "new": "- **الحالة السابقة في 2026-08-25:** **open / PARTIAL** — كان المتبقي آنذاك `normalize_current` والمطر والريح اليوميان؛ التحديث التالي يصحح الحالة بأدلة الدمج اللاحقة.\n\n### تحديث WEATHER-NORMALIZER-ZERO-COERCION (2026-10-14): اكتمل إصلاح المصدر\n\n- **المُنجز اللاحق:** #948 (`7508702a44b0194092eea53a2529d68d1f41f5b1`) أبقى غياب الريح والمطر الآنيين `None`؛ #979 (`d3471e39e4902d3861ad0c3291c1405a62b183b9`) أزال تصفير المطر اليومي؛ #1068 (`ea24696409a0fa09371d1a4aea6865bafdb7e9f5`) أزال آخر تصفير للريح اليومية وحدّث قوائم القيود الفارغة. جميعها ضمن `main@53652e02`. `normalize_daily` يخدم التوقع والأرشيف؛ الصفر المرصود يبقى صفراً، والغياب يبقى `None`.\n- **الدليل المعاد تشغيله:** 2026-10-14، **79 passed**: `test_absent_reading_is_not_a_zero_measurement.py` و`test_missing_temperature_is_not_zero.py` و`test_canonical_weather_state.py` و`test_operation_fail_closed.py`. تشمل حفظ الغياب، حفظ الصفر الحقيقي، تسمية البيانات الناقصة، ومنع الإذن بالرش حين يغيب القياس.\n- **حد النطاق:** موصل المنصة مستقل؛ `PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01` لا يغلق بهذه الأدلة. لم يُجمع إثبات نشر أو استجابة حية من endpoints أو تطبيقات المستهلكين.\n- **الحالة:** **fixed** — إصلاح المصدر كامل ضمن هذا النطاق؛ **ليس verified** حتى جمع دليل تشغيل النسخة ونقل null إلى المستهلك الفعلي مع شاهد موجب وسالب."
+        }
+      ],
+      "rollback": "تعديل توثيقي فقط؛ لا إعادة افتراض الصفر في كود الطقس."
+    }
+  ]
+}
