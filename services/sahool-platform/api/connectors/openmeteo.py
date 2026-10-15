@@ -195,7 +195,7 @@ GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 # ─── Data models ──────────────────────────────────────────────────
 
 
-# **العقدُ يقبل الغيابَ في كلّ قياسٍ إلّا الريح — والريحُ مؤجَّلةٌ بقرار مالكٍ مُسمّى.**
+# **الريح تقبل الغياب أيضاً؛ المجهول لا يتحول إلى صفر، ولا يعطي إذن رشّ.**
 # كان `float` غيرُ الاختياريّ يُلزِم الحافّةَ بـ`c.get(k, 0)` و`_daily_at(..., i, 0)`.
 # أُغلِق المطرُ أوّلاً (`IRRIGATION-READS-MISSING-RAIN-AS-NO-RAIN-01`: أمرُ ريٍّ حيث القراءةُ
 # تقول «لا حاجة»)، ثمّ الباقي في `TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01`
@@ -206,13 +206,13 @@ GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 #   • الحرارةُ/الرطوبةُ الآنيّتان غائبتان ⇒ `0°م`/`0٪` ⇒ خطرُ مرضٍ مُهدَّفٌ من لا بيانات.
 # والنمطُ الصادقُ كان في الملفّ نفسِه (`et0_mm` · `sunshine_hours` · `wind_gusts_ms`)، فهو
 # تفاوتٌ في تطبيقه لا جهلٌ به. **وما لم يُمَسّ عمداً:** `wind_speed_ms`/`wind_max_ms` ما
-# يزالان `float` بصفرٍ عند الغياب — حكمُها مؤجَّلٌ للمالك في
-# `PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01`، لا منسيّ.
+# تقبل قيم الريح None الآن؛ غياب القياس يؤدي إلى unknown للرَّش.
+# `PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01`.
 @dataclass
 class CurrentWeather:
     temperature_c: float | None
     humidity_pct: float | None
-    wind_speed_ms: float
+    wind_speed_ms: float | None
     wind_direction_deg: float | None
     wind_direction_source: str | None
     wind_gusts_ms: float | None
@@ -232,7 +232,7 @@ class DailyForecast:
     precipitation_mm: float | None
     et0_mm: float | None  # FAO-56 reference ET₀ (في النموذج!)
     sunshine_hours: float | None
-    wind_max_ms: float
+    wind_max_ms: float | None
     weather_code: int | None
     # شمسيّ/نهاريّ — مفيد لجدولة الريّ بالطاقة الشمسيّة (مضخّات شمسيّة) وتقدير
     # الإنتاج الشمسيّ: وقت الشروق/الغروب، مدّة النهار، ومجموع الإشعاع القصير الموجة.
@@ -282,7 +282,7 @@ def _build_daily(d: dict, i: int, date: str) -> DailyForecast:
         precipitation_mm=_daily_at(d, "precipitation_sum", i, None),
         et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
         sunshine_hours=(_sun / 3600 if _sun is not None else None),
-        wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
+        wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, None),
         weather_code=_daily_at(d, "weather_code", i, None),
         sunrise=_daily_at(d, "sunrise", i, None),
         sunset=_daily_at(d, "sunset", i, None),
@@ -340,7 +340,7 @@ async def fetch_current(
     return CurrentWeather(
         temperature_c=c.get("temperature_2m"),
         humidity_pct=c.get("relative_humidity_2m"),
-        wind_speed_ms=c.get("wind_speed_10m", 0),
+        wind_speed_ms=c.get("wind_speed_10m"),
         wind_direction_deg=wind_direction,
         wind_direction_source=wind_direction_source,
         wind_gusts_ms=c.get("wind_gusts_10m"),
@@ -400,7 +400,7 @@ async def fetch_current_batch(
             CurrentWeather(
                 temperature_c=c.get("temperature_2m"),
                 humidity_pct=c.get("relative_humidity_2m"),
-                wind_speed_ms=c.get("wind_speed_10m", 0),
+                wind_speed_ms=c.get("wind_speed_10m"),
                 wind_direction_deg=wd,
                 wind_direction_source="open-meteo" if wd is not None else None,
                 wind_gusts_ms=c.get("wind_gusts_10m"),
@@ -828,24 +828,24 @@ def spraying_condition_score(forecast: DailyForecast) -> tuple[str, str]:
     **الغيابُ لا يصير إذناً:** المطرُ والحرارةُ يقبلان `None` في العقد، ومقارنتُهما بالعتبة
     كانت سترمي `TypeError` (المطرُ منذ شريحته) أو — لو صُفِّرا — تُعطي «مناسب» على قياسٍ لم
     يقع. فالمنعُ المقيسُ يحكم وحدَه، والإذنُ يشترط حضورَهما وإلّا `unknown` يُسمّي الناقص.
-    **والريحُ لم تُمَسّ** (قرارُ مالكٍ مؤجَّل: `PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01`).
+    الريح المفقودة تعطي unknown ولا تعتبر سكوناً أو إذناً بالرش.
 
     Returns:
         (status, reason_ar)
         status ∈ {very_bad, bad, reasonable, good, very_good, unknown}
     """
     rain, tmax = forecast.precipitation_mm, forecast.temp_max_c
-    if forecast.wind_max_ms > 8 or (rain is not None and rain > 5):
+    if (forecast.wind_max_ms is not None and forecast.wind_max_ms > 8) or (rain is not None and rain > 5):
         return "very_bad", "رياح قويّة أو مطر متوقّع"
-    if forecast.wind_max_ms > 5:
+    if forecast.wind_max_ms is not None and forecast.wind_max_ms > 5:
         return "bad", "رياح متوسّطة فوق ٥ م/ث"
     if tmax is not None and tmax > 35:
         return "bad", "حرارة عالية > ٣٥°م"
-    missing = [name for name, value in (("المطر", rain), ("الحرارة", tmax)) if value is None]
+    missing = [name for name, value in (("المطر", rain), ("الحرارة", tmax), ("الريح", forecast.wind_max_ms)) if value is None]
     if missing:
         return "unknown", "لا حكمَ رشٍّ: " + " و".join(missing) + " غيرُ مقيسة"
     if rain > 0:
         return "reasonable", "مطر متوقّع لكن خفيف"
-    if forecast.wind_max_ms < 2:
+    if forecast.wind_max_ms is not None and forecast.wind_max_ms < 2:
         return "very_good", "ظروف مثاليّة للرشّ"
     return "good", "ظروف مناسبة"
