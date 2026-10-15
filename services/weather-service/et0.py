@@ -22,6 +22,7 @@ import math
 from datetime import datetime
 
 from vapor_pressure import (
+    _RH_SENSOR_TOLERANCE_PCT,
     actual_vapor_pressure_from_rh_kpa,
     mean_saturation_vapor_pressure_kpa,
     svp_slope_kpa_per_c,
@@ -32,6 +33,20 @@ PRODUCT_ID = "et0"
 SNAPSHOT_SCHEME = "wsnap/sha1/1"
 
 _MJ_TO_MM = 0.408  # تحويل الطاقة (MJ/m²/يوم) إلى مكافئ تبخّر (mm/يوم) — FAO-56.
+
+# ── حدود المعقوليّة الفيزيائيّة للمُدخَلات (قرارات تُراجَع، مُسمّاة في موضع واحد) ──
+# المُدخَل خارجها قراءةٌ مكسورة لا قياس: يُعلَن في ``invalid_inputs`` ولا يدخل الحساب.
+# الحرارة: أدنى وأعلى ما سُجِّل على الأرض (−89.2°م، 56.7°م) بهامش.
+_T_PLAUSIBLE_MIN_C = -90.0
+_T_PLAUSIBLE_MAX_C = 60.0
+# الارتفاع: ساحل البحر الميّت (≈−430 م) إلى قمّة إيفرست (≈8849 م) بهامش.
+_ELEVATION_PLAUSIBLE_MIN_M = -450.0
+_ELEVATION_PLAUSIBLE_MAX_M = 9000.0
+# متوسّط الرياح اليوميّ على 2 م — ما فوقه خطأ وحدة/مستشعر لا طقس.
+_WIND_2M_PLAUSIBLE_MAX_MS = 50.0
+# الإشعاع الشمسيّ اليوميّ لا يتجاوز إشعاع السماء الصافية Rso (FAO-56 Eq. 37) إلّا
+# بهامش قياس؛ ما فوقه خطأ وحدة (W/m² بدل MJ/m²/يوم مثلاً).
+_SOLAR_OVER_RSO_TOLERANCE = 1.10
 
 
 # ── بدائيّات الإشعاع ──
@@ -114,6 +129,13 @@ def _finite(v) -> float | None:
     return f if math.isfinite(f) else None
 
 
+def _valid_doy(v) -> int | None:
+    """يوم السنة الصالح: عدد صحيح (لا bool) في [1, 366]، وإلّا ``None``."""
+    if isinstance(v, bool) or not isinstance(v, int):
+        return None
+    return v if 1 <= v <= 366 else None
+
+
 def compute_et0(
     *,
     t_max_c: float | None,
@@ -132,7 +154,7 @@ def compute_et0(
     """
     tmax, tmin = _finite(t_max_c), _finite(t_min_c)
     solar, rh, wind = _finite(solar_rad_mj_m2), _finite(rh_mean_pct), _finite(wind_2m_ms)
-    lat, elev, doy = _finite(lat_deg), _finite(elevation_m), day_of_year
+    lat, elev = _finite(lat_deg), _finite(elevation_m)
     tmean = _finite(t_mean_c)
 
     base = {
@@ -142,23 +164,89 @@ def compute_et0(
         "et0_mm": None,
     }
 
+    # ── المعقوليّة الفيزيائيّة: قراءةٌ مكسورة تُعلَن ولا تدخل الحساب ──
+    # (مفقود ≠ مكسور: المفقود في ``missing_inputs``، والمكسور في ``invalid_inputs``
+    # بسببه — فلا يُحسب ET0 «validated» من مُدخَل مستحيل، ولا ترمي الدالّة.)
+    invalid: list[str] = []
+    reasons: list[str] = []
+
+    def _reject(name: str, why: str) -> None:
+        invalid.append(name)
+        reasons.append(f"{name} rejected: {why}")
+
+    doy = None
+    if day_of_year is not None:
+        doy = _valid_doy(day_of_year)
+        if doy is None:
+            _reject("day_of_year", "must be an integer in [1, 366]")
+    if lat is not None and not -90.0 <= lat <= 90.0:
+        _reject("lat_deg", "outside [-90, 90]")
+        lat = None
+    for name, val in (("t_max_c", tmax), ("t_min_c", tmin)):
+        if val is not None and not _T_PLAUSIBLE_MIN_C <= val <= _T_PLAUSIBLE_MAX_C:
+            _reject(name, f"outside plausible [{_T_PLAUSIBLE_MIN_C}, {_T_PLAUSIBLE_MAX_C}] °C")
+    if "t_max_c" in invalid:
+        tmax = None
+    if "t_min_c" in invalid:
+        tmin = None
+    if tmax is not None and tmin is not None and tmax < tmin:
+        _reject("t_max_c", "t_max_c < t_min_c")
+        _reject("t_min_c", "t_max_c < t_min_c")
+        tmax = tmin = None
+
     # الحدّ الأدنى المطلق: حرارتان + جغرافيا (خطّ عرض + يوم) لحساب Ra.
     missing_core = [
-        n for n, v in (("t_max_c", tmax), ("t_min_c", tmin), ("lat_deg", lat)) if v is None
-    ] + ([] if doy is not None else ["day_of_year"])
-    if missing_core:
+        n
+        for n, v in (("t_max_c", tmax), ("t_min_c", tmin), ("lat_deg", lat), ("day_of_year", doy))
+        if v is None and n not in invalid
+    ]
+    if missing_core or invalid:
         return {
             **base,
             "method": "insufficient",
             "input_completeness": 0.0,
             "quality_status": "insufficient",
             "missing_inputs": missing_core,
-            "limitations": ["cannot compute ET0 without temperature + geography"],
+            "invalid_inputs": invalid,
+            "limitations": ["cannot compute ET0 without temperature + geography", *reasons],
         }
 
+    if tmean is not None and not tmin <= tmean <= tmax:
+        _reject("t_mean_c", "outside [t_min_c, t_max_c]; derived from t_max_c/t_min_c instead")
+        tmean = None
     if tmean is None:
         tmean = (tmax + tmin) / 2.0
+    if elev is not None and not _ELEVATION_PLAUSIBLE_MIN_M <= elev <= _ELEVATION_PLAUSIBLE_MAX_M:
+        _reject(
+            "elevation_m",
+            f"outside plausible [{_ELEVATION_PLAUSIBLE_MIN_M}, {_ELEVATION_PLAUSIBLE_MAX_M}] m",
+        )
+        elev = None
     elev_v = elev if elev is not None else 0.0
+
+    # مُدخَلات PM: المكسور منها يُعامَل كغائب عن المسار المرجعيّ (لا يُقصّ إلى قيمة).
+    if rh is not None and not (-_RH_SENSOR_TOLERANCE_PCT <= rh <= 100.0 + _RH_SENSOR_TOLERANCE_PCT):
+        _reject("rh_mean_pct", "outside sensor-noise range; a broken reading is not clamped")
+        rh = None
+    if wind is not None and not 0.0 <= wind <= _WIND_2M_PLAUSIBLE_MAX_MS:
+        _reject("wind_2m_ms", f"outside plausible [0, {_WIND_2M_PLAUSIBLE_MAX_MS}] m/s")
+        wind = None
+    if solar is not None:
+        ra_mj = extraterrestrial_radiation_mj(lat, doy)
+        rso_mj = (0.75 + 2e-5 * elev_v) * ra_mj
+        if solar < 0.0:
+            _reject("solar_rad_mj_m2", "negative")
+            solar = None
+        elif solar == 0.0 and ra_mj > 0.0:
+            _reject(
+                "solar_rad_mj_m2", "zero daily radiation while Ra > 0 (absence, not a measurement)"
+            )
+            solar = None
+        elif solar > _SOLAR_OVER_RSO_TOLERANCE * rso_mj:
+            _reject(
+                "solar_rad_mj_m2", "exceeds clear-sky Rso (FAO-56 Eq. 37); unit or sensor error"
+            )
+            solar = None
 
     # مدخلات PM الإضافيّة (إشعاع + RH + رياح). اكتمالها ⇒ المسار المرجعيّ.
     pm_missing = [
@@ -187,22 +275,27 @@ def compute_et0(
             "input_completeness": 1.0,
             "quality_status": "validated",
             "missing_inputs": [],
-            "limitations": limitations,
+            "invalid_inputs": invalid,
+            "limitations": [*limitations, *reasons],
         }
 
     # احتياط Hargreaves — صريح، degraded، لا يُقدَّم كـFAO-56.
+    # المرفوض ليس «مفقوداً»: يبقى في ``invalid_inputs`` وحده، ويُحسب غيابه في الاكتمال.
     et0 = hargreaves_et0_mm(t_max_c=tmax, t_min_c=tmin, lat_deg=lat, doy=doy)
+    label = "missing or rejected" if any(n in invalid for n in pm_missing) else "missing"
     return {
         **base,
         "et0_mm": round(et0, 3),
         "method": "hargreaves_fallback",
         "input_completeness": round((3 - len(pm_missing)) / 3.0, 2),
         "quality_status": "degraded",
-        "missing_inputs": pm_missing,
+        "missing_inputs": [n for n in pm_missing if n not in invalid],
+        "invalid_inputs": invalid,
         "limitations": [
-            "Penman-Monteith inputs missing ("
+            f"Penman-Monteith inputs {label} ("
             + ", ".join(pm_missing)
-            + ") — Hargreaves fallback used; NOT full FAO-56."
+            + ") — Hargreaves fallback used; NOT full FAO-56.",
+            *reasons,
         ],
     }
 
