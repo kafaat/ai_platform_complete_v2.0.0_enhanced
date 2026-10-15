@@ -168,7 +168,7 @@ async def run() -> None:
     # Poll with a bounded timeout so absence of events never ages out liveness.
     while True:
         try:
-            msg = await asyncio.wait_for(sub.next_msg(), timeout=60)
+            msg = await asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)
         except asyncio.TimeoutError:
             _touch_worker_file(HEARTBEAT_FILE)
             continue
