@@ -1,4 +1,6 @@
 
+> **2026-10-15 — `UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01` fixed عند `5e7faae1d`:** `brain_duplicate_gap_identity_guard.py` يقرأ نصَّ المدخل في `log.md`/`ledger.md` (حرفيّ أو بادئة داخل المدخل، تشابه ≥0.9 داخل الكتلة، عنوانٌ منسوخ بمتنه)؛ أربعةُ أزواجٍ قائمة مُجمَّدة في `NEAR_DUPLICATE_BASELINE`؛ الشاهد `test_union_on_an_edited_last_entry_is_caught`. كشفُ عَرَضٍ لا منعُ سبب (`BRAIN-FRAGMENTED-SOURCE-OF-TRUTH-01`). يلزم توليدُ `GUARD_CATALOGUE.md`.
+
 > **2026-10-15 — مراجعة وإصلاح sahool-qa في [PR #1191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1191) (مسوّدة، غير مدموجة):**
 > - **الأسباب:** ruff، و`apt-get` غير مسقوف، وconcurrency غير قياسية، وانجراف التوليد. أصلحها `0b5f0d0ede45b03013c2bb93503344dabf88eab8` و`881497b7164728a597ad8e1df3b17959a5dbaa70` و`493909ea424a2d0cf1fd375ebbbadc88e0657e46` فوق `main@f558b40`.
 > - **وجدتها المراجعة:** محرّك `psql` صار مستقلاً عن لغة الآلة، وأُضيفت خريطة أعمدة `migrations/init_v8.sql`.
