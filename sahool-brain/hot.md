@@ -1,4 +1,6 @@
 
+> **2026-10-15 — sahool-qa 0.4.2 في [PR #1192](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1192) (أداة تقييم مستقلة، غير مدموجة):** `tools/sahool_qa/` مع وظيفة CI غير مطلوبة «SAHOOL QA Tool Tests» (129 اختباراً، منها 8 PostgreSQL)، وخريطة أعمدة `migrations/init_v8.sql`. المصدر `5dadceb51a321d3e14c2247ceac842b3570a9ca1`. محلياً: preflight --fast صفر/صفر، و`-m unit` مطابق لـmain. الجسر إلى جداول `irrigation_*` لم يُبنَ؛ فروقها في README الأداة.
+
 ### دمج مصدر الحوكمة في PR #1185 — 2026-10-14
 
 دُمج `main@698a1c53744f1096118688c1dfc1b5f42c269c2a` الحامل لـPR #1186 ومصدر تصحيح الإسناد `69d37cf3cefe2ab9179b21e4da12bf32cdceacdb` من PR #1189 محلياً عند `15c610418ef912bf886ae53e97b9eec82c9acf6f`؛ لم يُرصد دمج #1189 بعد عند إعداد هذا الدليل. القياس لهذه الشجرة: 127 open و396 fixed و3 verified؛ يبقى نطاق الراستر إغلاق الفجوتين الأصليتين فقط. بصمات ملفات إصلاح الراستر الستة وسطر فجوة سبب CDSE التاريخية ثابتة، ولا ترقية إلى verified أو ادعاء تشغيل حي. المصدر والدليل: `certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json`. السبب: إزالة تعارضات البيانات مع حفظ التاريخ وعدم إعادة نسبة الأجنحة الشاملة القديمة إلى شجرة لم تعمل عليها.

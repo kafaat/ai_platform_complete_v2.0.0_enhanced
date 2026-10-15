@@ -9376,3 +9376,20 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 ### دمج مصدر الحوكمة في PR #1185 — 2026-10-14
 
 دُمج `main@698a1c53744f1096118688c1dfc1b5f42c269c2a` الحامل لـPR #1186 ومصدر تصحيح الإسناد `69d37cf3cefe2ab9179b21e4da12bf32cdceacdb` من PR #1189 محلياً عند `15c610418ef912bf886ae53e97b9eec82c9acf6f`؛ لم يُرصد دمج #1189 بعد عند إعداد هذا الدليل. القياس لهذه الشجرة: 127 open و396 fixed و3 verified؛ يبقى نطاق الراستر إغلاق الفجوتين الأصليتين فقط. بصمات ملفات إصلاح الراستر الستة وسطر فجوة سبب CDSE التاريخية ثابتة، ولا ترقية إلى verified أو ادعاء تشغيل حي. المصدر والدليل: `certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json`. السبب: إزالة تعارضات البيانات مع حفظ التاريخ وعدم إعادة نسبة الأجنحة الشاملة القديمة إلى شجرة لم تعمل عليها.
+
+## 2026-10-15 — #1192: أداة التقييم sahool-qa 0.4.2 تحت `tools/`
+
+أُضيفت `tools/sahool_qa/` في [PR #1192](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1192): مصدر الأداة `5dadceb51a321d3e14c2247ceac842b3570a9ca1`، ثم التوليد `24dcaf5dcc64341cb2c6bc741c85183d29904d79`، على أساس `main@a02c341`. هي مولّد أسئلة اختيار من متعدد بالعربية، وإجاباته محسوبة بالقواعد من `field_boundaries` و`soil_readings` و`field_indicators`، ومعها تحقيق الماء بموازنة FAO-56.
+- **الحدود:** لا تستوردها أي خدمة، وجلساتها للقراءة فقط ومقيّدة بالمستأجر.
+- **CI:** وظيفة جديدة «SAHOOL QA Tool Tests» في `.github/workflows/ci.yml`، وليست فحصاً مطلوباً. تشغّل 129 اختباراً بـunittest، منها 8 على خادم PostgreSQL 16 في صورة العدّاء.
+- **المخطط:** `tools/sahool_qa/examples/schema_map.init_v8.json` يطابق أعمدة `migrations/init_v8.sql` (`gov`/`lat`/`lon` و`category`).
+- **ما قيس محلياً:**
+  - preflight --fast: صفر إخفاقات وصفر متخطّاة.
+  - `pytest -m unit` مطابق لـ`origin/main` اختباراً اختباراً.
+  - في `tests/` اختلف اختبارا انجراف توليد فقط، وزالا بعد إعادة التوليد.
+- **ما لم يُقَس:** وظيفة CI الجديدة لم تعمل بعد على GitHub.
+- **جداول الري:** وصفها في `tools/sahool_qa/README.md`، والجسر إليها لم يُبنَ:
+  - `migrations/v170_water_source_well_digital_twin.sql:35` تحمل قياسات تدفق ومدة تشغيل، لا عدادات تراكمية.
+  - السطر 71 من الملف نفسه: `daily_used_m3` قيمته الافتراضية 0.
+  - `migrations/v196_irrigation_target_binding.sql:8` يربط عقدة هيدروليكية بالحقل، لا بئراً.
+- لا انتقال لأي فجوة.
