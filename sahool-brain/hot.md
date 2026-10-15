@@ -1,3 +1,5 @@
+> **2026-10-15 — `/readyz` بوّابة الواجهة صار جاهزيّتَها لا جاهزيّةَ المنصّة (`78e981da`، غير مدفوع):** `FRONTEND-READYZ-IMPERSONATES-PLATFORM-READINESS-01` ⇒ fixed؛ `frontend/nginx.conf` يُجيب /readyz من nginx نفسه (200 `frontend-gateway`، أو 503 إن غابت قشرة SPA) بلا وكيل وبلا حدّ معدّل. الشاهد `tests_v9/test_gateway_operational_endpoints_contract.py` (أحمر على `main@5472740e` ⇒ أخضر). فحصُ Railway للواجهة باقٍ على `/healthz`؛ الدمج يُعيد بناء الواجهة في staging والإنتاج.
+
 
 > **2026-10-15 — مراجعة وإصلاح sahool-qa في [PR #1191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1191) (مسوّدة، غير مدموجة):**
 > - **الأسباب:** ruff، و`apt-get` غير مسقوف، وconcurrency غير قياسية، وانجراف التوليد. أصلحها `0b5f0d0ede45b03013c2bb93503344dabf88eab8` و`881497b7164728a597ad8e1df3b17959a5dbaa70` و`493909ea424a2d0cf1fd375ebbbadc88e0657e46` فوق `main@f558b40`.
