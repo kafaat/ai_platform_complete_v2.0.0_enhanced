@@ -45,9 +45,11 @@ jobs:
       - name: Converge and validate generated artifacts
         run: |
           set -euo pipefail
-          # Delegate to the existing mutation-proven fixed-point orchestrator:
-          # it executes --fix, then --check, then validates the release package.
-          bash scripts/ci/regenerate_all_generated.sh
+          # Use the same fixed-point engine through its module entrypoint.
+          # The workflow scanner must not recursively register the generator
+          # as a child of itself; both actual passes remain mandatory.
+          python -m scripts.ci.verify_all_generated --fix
+          python -m scripts.ci.verify_all_generated --check
       - name: Build release bundle last, validate and record exact tree
         run: |
           set -euo pipefail
