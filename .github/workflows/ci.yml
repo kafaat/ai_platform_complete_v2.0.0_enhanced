@@ -724,6 +724,9 @@ jobs:
   frontend-typecheck:
     name: Frontend Typecheck
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -762,6 +765,8 @@ jobs:
         run: python3 scripts/ci/frontend_lint_debt_guard.py
       - name: Frontend nginx cold start, authenticated RAG and TTS routing
         timeout-minutes: 5
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 frontend/tests/test_nginx_runtime.py --docker
 
   frontend-e2e:
