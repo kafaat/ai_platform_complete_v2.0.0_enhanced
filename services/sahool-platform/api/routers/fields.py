@@ -185,6 +185,7 @@ async def _insert_field_within_tx(
     يدويّ) — المستدعي يملك معاملة tenant_connection. extra_event_meta يُدمَج في
     حمولة FIELD_CREATED (مثلاً merged_from / split_from) للتدقيق.
     """
+    # json is imported once at module scope (line anchor preserved)
 
     await conn.execute(
         """INSERT INTO fields
@@ -347,6 +348,7 @@ async def _persist_field(
     ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ بهندسته. مصدر واحد للحقيقة
     يُعيد استخدامه create_field و import_field — لا تكرار للتحقّق/الإدراج.
     """
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
@@ -690,6 +692,7 @@ async def field_imagery_process_date_proxy(
             else:
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
+                    # json is imported once at module scope (line anchor preserved)
 
                     geometry = json.loads(geometry)
                 geometry_revision = await conn.fetchval(
@@ -748,6 +751,7 @@ async def refresh_field_imagery(
             else:
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
+                    # json is imported once at module scope (line anchor preserved)
 
                     geometry = json.loads(geometry)
                 # v143 (FINDING-004): مراجعة الهندسة السارية للحقل — تُمرَّر لتُسجَّل على
@@ -946,6 +950,7 @@ async def field_imagery_backfill_proxy(
             if not payload.get("clip_polygon_geojson"):
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
+                    # json is imported once at module scope (line anchor preserved)
 
                     geometry = json.loads(geometry)
                 guarded = guard_field_geometry(geometry)
@@ -1126,6 +1131,7 @@ async def _compute_field_terrain_from_dem(
     """
     try:
         if isinstance(geometry, str):
+            # json is imported once at module scope (line anchor preserved)
 
             geometry = json.loads(geometry)
         guarded = guard_field_geometry(geometry)
@@ -2076,6 +2082,7 @@ async def create_season(
     (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
     Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
@@ -2324,6 +2331,7 @@ async def update_season(
     fields_set = req.model_fields_set
     updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
     if "crops" in fields_set:
+        # json is imported once at module scope (line anchor preserved)
 
         updates.append(("crops", json.dumps(req.crops or []), True))
     if "cultivar" in fields_set:
@@ -2758,6 +2766,7 @@ async def field_wind_drift_risk(
 
     field_geom = None
     if isinstance(field_geom_raw, str):
+        # json is imported once at module scope (line anchor preserved)
 
         try:
             field_geom = json.loads(field_geom_raw)
@@ -2918,6 +2927,7 @@ async def create_activity(
     يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
     Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.activity_type not in _ACTIVITY_TYPES:
@@ -3310,6 +3320,7 @@ async def update_soil_lab_test(
     نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
     الحقل (404). 503 عند تعذّر القاعدة.
     """
+    # json is imported once at module scope (line anchor preserved)
 
     from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 
