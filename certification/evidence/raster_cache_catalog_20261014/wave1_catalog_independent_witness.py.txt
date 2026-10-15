@@ -1,0 +1,31 @@
+from pathlib import Path
+import sys,os,json,asyncio,hashlib
+ROOT=Path('<scratch>/catalog-wave')
+sys.path[:0]=[str(ROOT/'services/raster-service'),str(ROOT)]
+import cdse_client,stac_search,httpx
+from routers import imagery_search
+from fastapi import HTTPException
+os.environ['CDSE_PROCESS_MAX_RETRIES']='0'
+client=cdse_client.CdseClient(base_url='https://cdse.invalid');client.token=lambda:'test-token'
+cdse_client.get_client=lambda:client
+imagery_search.stac_search=stac_search.stac_search_cdse
+async def run():
+ records=[]
+ for case in ('empty','timeout','malformed','http403','scene'):
+  calls=[]
+  def post(url,**kw):
+   calls.append(url)
+   if case=='timeout':raise httpx.ReadTimeout('private-error-marker')
+   body={'features':[]} if case=='empty' else {'features':[{'id':'scene-one','properties':{'datetime':'2026-10-14T00:00:00Z','eo:cloud_cover':5.0}}]}
+   if case=='malformed':body={'features':None}
+   status=403 if case=='http403' else 200
+   return httpx.Response(status,json=body,request=httpx.Request('POST',url))
+  httpx.post=post
+  try:
+   body=await imagery_search.imagery_best_scene(44.,15.,44.1,15.1,lookback_days=30,max_cloud_pct=40)
+   status=200
+  except HTTPException as exc:status,body=exc.status_code,exc.detail
+  records.append({'case':case,'status':status,'body':body,'provider_attempts':len(calls)})
+ return records
+report={'results':asyncio.run(run()),'live_calls':False,'source_sha256':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in ['services/raster-service/cdse_client.py','services/raster-service/stac_search.py']}}
+out=ROOT.parent/'analysis'/sys.argv[1];out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n');print(json.dumps(report,ensure_ascii=False))

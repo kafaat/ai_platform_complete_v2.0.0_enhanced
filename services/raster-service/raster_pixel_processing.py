@@ -8,6 +8,7 @@ runtime state and private helpers.
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 
@@ -349,6 +350,30 @@ def process_precomputed_truecolor(ctx, req):
     return stats, bounds, res_m, meta
 
 
+def _pixel_read_context(src, clip_geom_src):
+    """Identity for a read-only batch dataset and its exact output grid/mask.
+
+    Retain the dataset itself, not its filename or id: another open of the same
+    path may contain different pixels, and an id can be reused after collection.
+    The caller owns this short-lived cache and must not mutate source pixels
+    during the batch. Metadata and clipping changes still get separate entries.
+    """
+    return (
+        src,
+        tuple(src.transform),
+        str(src.crs),
+        tuple(src.shape),
+        tuple(src.nodatavals),
+        tuple(src.dtypes),
+        json.dumps(clip_geom_src, sort_keys=True, separators=(",", ":")),
+    )
+
+
+def _reflectance_cache_params(scale, offset):
+    """Use the same effective numeric transform as band_math.to_reflectance."""
+    return (1.0 if scale is None else float(scale), 0.0 if offset is None else float(offset))
+
+
 def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, shared_cache=None):
     """مسار Element84 للصورة الخام (truecolor): يقرأ نطاقات RGB من VRT،
     يحوّلها إلى RGBA uint8، ويكتب COG ويرجع (stats, bounds_4326, res_m, meta)."""
@@ -393,13 +418,33 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
             target_crs = src_crs if src_crs is not None else "EPSG:4326"
             clip_geom_src = transform_geom("EPSG:4326", target_crs, geom_in)
 
+        read_context = _pixel_read_context(src, clip_geom_src)
+
         def _read_uint8(idx):
             if not idx:
                 shape = _clip_out.get("shape") or src.shape
                 return np.zeros(shape, dtype=np.uint8)
-            cache_key = ("truecolor_uint8", int(idx))
+            _sc = req.reflectance_scale
+            _of = req.reflectance_offset
+            if _sc is None and src.scales:
+                _sc = src.scales[idx - 1]
+            if _of is None and src.offsets:
+                _of = src.offsets[idx - 1]
+            # Preserve the existing truecolor-only Sentinel-2 fallback.
+            if (
+                _sc is None or float(_sc) == 1.0
+            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
+                _sc = 0.0001
+            cache_key = (
+                "truecolor_uint8",
+                read_context,
+                int(idx),
+                _reflectance_cache_params(_sc, _of),
+            )
             if shared_cache is not None and cache_key in shared_cache:
-                return shared_cache[cache_key]
+                out, transform = shared_cache[cache_key]
+                _clip_out.update(transform=transform, shape=out.shape)
+                return out
             if clip_geom_src is not None:
                 # filled=False → masked array؛ يُجنِّب OverflowError حين nodata خارج uint16
                 arr_b, t = _rio_mask(
@@ -416,25 +461,11 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
                 raw = src.read(idx).astype("float32")
             if src.nodata is not None:
                 raw = np.where(raw == src.nodata, np.nan, raw)
-            _sc = req.reflectance_scale
-            _of = req.reflectance_offset
-            if _sc is None and src.scales:
-                _sc = src.scales[idx - 1]
-            if _of is None and src.offsets:
-                _of = src.offsets[idx - 1]
-            # VRTs built by stac_vrt.build_band_vrt don't carry scale metadata from
-            # source COGs — GDAL fills the field with the default 1.0 (identity).
-            # Without this fallback, Sentinel-2 L2A DN values (0-10000) pass through
-            # to_reflectance unchanged and clip(raw, 0, 1) → all-white image.
-            if (
-                _sc is None or float(_sc) == 1.0
-            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
-                _sc = 0.0001
             raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
             raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)
             out = (raw * 255).astype(np.uint8)
             if shared_cache is not None:
-                shared_cache[cache_key] = out
+                shared_cache[cache_key] = (out, _clip_out.get("transform", src.transform))
             return out
 
         r = _read_uint8(b.red)
@@ -543,6 +574,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
 
         from rasterio.mask import mask as _rio_mask
 
+        read_context = _pixel_read_context(src, clip_geom_src)
+
         def _refl_params(idx):
             """(scale, offset) لتحويل DN→انعكاس: تجاوز الطلب أوّلاً، وإلّا المُعلَن في الراستر.
 
@@ -564,11 +597,16 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             """
             if not idx:
                 return None
-            cache_key = ("reflectance", int(idx))
+            _sc, _of = _refl_params(idx)
+            cache_key = (
+                "reflectance",
+                read_context,
+                int(idx),
+                _reflectance_cache_params(_sc, _of),
+            )
             if cache_key in shared_cache:
-                cached = shared_cache[cache_key]
-                if "clip_transform" in shared_cache:
-                    _out["transform"] = shared_cache["clip_transform"]
+                cached, transform = shared_cache[cache_key]
+                _out["transform"] = transform
                 return cached
             if clip_geom_src is not None:
                 # filled=False → masked array؛ يُجنِّب OverflowError حين dtype=uint16
@@ -581,7 +619,6 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                     indexes=[idx],
                 )
                 _out["transform"] = t
-                shared_cache["clip_transform"] = t
                 a = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
                 a = src.read(idx).astype("float32")
@@ -590,16 +627,15 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 a = np.where(a == src.nodata, np.nan, a)
             a = np.where(a == nodata_val, np.nan, a)
             # تحويل DN→انعكاس [0,1] لصحّة المؤشّرات المعتمِدة على المقياس (EVI/SAVI/MSAVI).
-            _sc, _of = _refl_params(idx)
             a = ctx.band_math.to_reflectance(a, _sc, _of, np)
-            shared_cache[cache_key] = a
+            shared_cache[cache_key] = (a, _out["transform"])
             return a
 
         def band_raw(idx):
             """يقرأ نطاقاً (مثل SCL) دون تحويل nodata→NaN، مع نفس القصّ."""
             if not idx:
                 return None
-            cache_key = ("raw", int(idx))
+            cache_key = ("raw", read_context, int(idx))
             if cache_key in shared_cache:
                 return shared_cache[cache_key]
             if clip_geom_src is not None:

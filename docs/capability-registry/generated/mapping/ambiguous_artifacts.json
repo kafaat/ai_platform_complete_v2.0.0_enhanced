@@ -453,6 +453,41 @@
     ]
   },
   {
+    "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 23,
+        "signals": [
+          "content:cdse",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "SEC-003",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-009",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-003",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
     "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
     "kind": "other",
     "candidates": [
@@ -5682,19 +5717,19 @@
         ]
       },
       {
+        "capability_id": "SAT-001",
+        "score": 11,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
         "capability_id": "SAT-005",
         "score": 9,
         "signals": [
           "content:cloud mask",
           "content:scl"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 9,
-        "signals": [
-          "content:sentinel",
-          "content:stac"
         ]
       }
     ]

@@ -14325,7 +14325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1b705bce0bccf873b5bf0f3854bbadb70645050dbc515ea928f3f2e015cc045"
+          "content": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -14745,7 +14745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcb9ac8ac5471be3077b327363473c1c83cdbd30a20bed8f015a19e613d0aa1b"
+          "content": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -15125,7 +15125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de40704e46e0ac67b201117b7a7131e16e38c9b311aaa4cf795e33a99ac0b18d"
+          "content": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -15395,7 +15395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cc07b5333f076258d2a7a9345abeb0bf62fc5193b6e53bc662539db3d6d02de"
+          "content": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318"
         }
       ],
       "name": "services/raster-service/test_element84_vrt_defect_witnesses.py",
