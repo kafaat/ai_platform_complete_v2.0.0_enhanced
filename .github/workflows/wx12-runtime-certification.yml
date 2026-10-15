@@ -38,6 +38,8 @@ jobs:
         with: {python-version: '3.12'}
       - run: pip install asyncpg
       - name: Start digest-pinned PostgreSQL 16 with PostGIS packages
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d

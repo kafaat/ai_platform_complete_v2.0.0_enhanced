@@ -81,6 +81,13 @@
       "positive_witness": "test_a_deliberate_history_chain_passes: an intended historical chain of the same gap ID passes; and the guard reads the whole tree, not the diff, so running it in a second job cannot change its verdict.",
       "impact": "merge",
       "$scope_limit_ar": "يُضاف الحارسُ نفسُه دون تغيير إلى وظيفةٍ مطلوبة (Repository Structural Lint)؛ بقيّةُ خطوات no-report-only-change تبقى في وظيفةٍ غير مطلوبة."
+    },
+    "scripts/ci/regenerate_all_generated.sh::ci-immutable-mirror-regenerate.yml::regeneration": {
+      "counterexample": "PR #1193 initial unit job 116355238908 failed three blocking-surface tests because the newly added immutable-mirror workflow ran the fixed-point verifier as an unadjudicated new blocking invocation. Use the existing mutation-tested orchestrator, which runs --fix and a separate final --check and validates the release package before Git commit; missing any step would leave stale generated artifacts hidden by a green PR.",
+      "mutation": "test_regenerate_orchestrator_delegates_to_the_fixed_point_engine",
+      "positive_witness": "test_regenerate_orchestrator_delegates_to_the_fixed_point_engine: the existing orchestrator passes when both fixed-point phases and release validation are present; tests_v9/test_ci_image_mirror.py::test_regeneration_sweep_does_not_recursively_discover_its_own_check also verifies the new workflow delegates to it.",
+      "impact": "merge",
+      "$scope_limit_ar": "This blocks only the PR branch's evidence/regeneration workflow and does not modify production Dockerfiles, service deployments, or required status-check rules. It introduces no claim of live application readiness."
     }
   }
 }
