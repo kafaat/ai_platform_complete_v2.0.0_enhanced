@@ -10987,6 +10987,28 @@
     ]
   },
   {
+    "path": "tools/sahool_qa/sahool_qa/demo.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
     "path": "vegetation_real/indicators_real.py",
     "kind": "other",
     "candidates": [

@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5680,
+    "files_scanned": 5729,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
-      "governance": 67,
+      "governance": 68,
       "mobile": 56,
-      "other": 1674,
-      "tests": 1911,
+      "other": 1713,
+      "tests": 1920,
       "web": 467
     },
-    "unmapped_artifacts": 2264,
-    "ambiguous_artifacts": 436
+    "unmapped_artifacts": 2272,
+    "ambiguous_artifacts": 437
   },
   "capabilities": [
     {
@@ -9084,6 +9084,14 @@
           ]
         },
         {
+          "path": "tools/sahool_qa/examples/water_inventory.rules.json",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "docs/UNIFIED_SETUP.md",
           "score": 9,
           "signals": [
@@ -9133,7 +9141,7 @@
         "mobile": 1,
         "tests": 6,
         "governance": 4,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -11277,6 +11285,14 @@
           ]
         },
         {
+          "path": "tools/sahool_qa/sahool_qa/demo.py",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
           "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
           "score": 13,
           "signals": [
@@ -11437,7 +11453,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 34
+        "other_evidence": 35
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -22617,6 +22633,14 @@
           ]
         },
         {
+          "path": "tools/sahool_qa/examples/rules.example.json",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/semantic_facts.json",
           "score": 8,
           "signals": [
@@ -22643,7 +22667,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 89
+        "other_evidence": 90
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -26377,6 +26401,15 @@
           ]
         },
         {
+          "path": "tools/sahool_qa/tests/test_postgres.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/tests/test_ingest_live.py",
           "score": 8,
           "signals": [
@@ -27056,7 +27089,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 776
+        "database": 783
       },
       "evidence_counts": {
         "backend": 13,
@@ -27065,7 +27098,7 @@
         "events": 51,
         "web": 0,
         "mobile": 0,
-        "tests": 71,
+        "tests": 72,
         "governance": 0,
         "other_evidence": 76
       },
@@ -34366,6 +34399,38 @@
           ]
         },
         {
+          "path": "tools/sahool_qa/sahool_qa/config.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "tools/sahool_qa/sahool_qa/demo.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "tools/sahool_qa/sahool_qa/generators/water.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "tools/sahool_qa/sahool_qa/waterbal.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
@@ -34523,7 +34588,7 @@
         "mobile": 0,
         "tests": 61,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 30
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -46197,6 +46262,38 @@
     {
       "path": "tests_v9/test_zone_sampling_behavior_v66.py",
       "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_geo.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_investigation.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_items_score.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_pipeline.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_regressions.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_water.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_water_041.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tools/sahool_qa/tests/test_water_042.py",
+      "kind": "tests"
     }
   ],
   "ambiguous_artifacts": [
@@ -57183,6 +57280,28 @@
           "signals": [
             "content:Execution request",
             "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tools/sahool_qa/sahool_qa/demo.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "path:dem",
+            "content:dem"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
           ]
         }
       ]
