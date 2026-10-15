@@ -12,12 +12,13 @@ Defaults match the SAHOOL v9.x init.sql schema:
 Both mappings can be overridden with a JSON file (--schema-map / --rules), so a
 renamed column does not require a code change.
 """
+
 from __future__ import annotations
 
 import copy
-import math
 import datetime as dt
 import json
+import math
 from pathlib import Path
 
 DEFAULT_SCHEMA: dict = {
@@ -37,7 +38,11 @@ DEFAULT_SCHEMA: dict = {
     },
     "soil": {
         "table": "soil_readings",
-        "required": {"field_id": "field_id", "sample_id": "sensor_id", "recorded_at": "recorded_at"},
+        "required": {
+            "field_id": "field_id",
+            "sample_id": "sensor_id",
+            "recorded_at": "recorded_at",
+        },
         "optional": {
             "ph": "ph",
             "ec": "ec_ds_m",
@@ -55,7 +60,12 @@ DEFAULT_SCHEMA: dict = {
     },
     "indicators": {
         "table": "field_indicators",
-        "required": {"field_id": "field_id", "indicator_id": "indicator_id", "value": "value", "recorded_at": "recorded_at"},
+        "required": {
+            "field_id": "field_id",
+            "indicator_id": "indicator_id",
+            "value": "value",
+            "recorded_at": "recorded_at",
+        },
         "optional": {
             "category": "indicator_cat",
             "unit": "unit",
@@ -105,29 +115,42 @@ DEFAULT_RULES: dict = {
         "vegetation": ["savi%", "ndvi%", "evi%", "ndwi%"],
         # water investigation (0.4.0). The text after the literal prefix names the
         # rain source (rain_mm_<source>) or the well (meter_total_<well>, pump_hours_<well>).
-        "rain": ["rain_mm_%"],                      # daily rainfall, mm
-        "et0": ["et0_mm%"],                         # daily reference ET (FAO Penman-Monteith), mm
-        "kc": ["kc", "kc_%"],                       # crop coefficient, holds from its date until the next record
-        "soil_moisture": ["soil_moisture_vol%"],    # volumetric soil water content (probe)
-        "meter": ["meter_total_%"],                 # cumulative well flow meter (totalizer), m3
-        "pump_hours": ["pump_hours_%"],             # cumulative pump hour meter, h
-        "plan_week": ["irrigation_plan_week%"],     # planned gross depth for the 7 days starting that date, mm
-        "well_status": ["well_status_%"],           # 1 = in service, 0 = out of service; holds until the next record
+        "rain": ["rain_mm_%"],  # daily rainfall, mm
+        "et0": ["et0_mm%"],  # daily reference ET (FAO Penman-Monteith), mm
+        "kc": ["kc", "kc_%"],  # crop coefficient, holds from its date until the next record
+        "soil_moisture": ["soil_moisture_vol%"],  # volumetric soil water content (probe)
+        "meter": ["meter_total_%"],  # cumulative well flow meter (totalizer), m3
+        "pump_hours": ["pump_hours_%"],  # cumulative pump hour meter, h
+        "plan_week": [
+            "irrigation_plan_week%"
+        ],  # planned gross depth for the 7 days starting that date, mm
+        "well_status": [
+            "well_status_%"
+        ],  # 1 = in service, 0 = out of service; holds until the next record
     },
     # Accepted units per water record kind (normalised: lower case, no spaces) and the
     # factor to the working unit; plausible range after conversion. Anything else is
     # flagged by QC and the questions that need it become abstentions.
     "water_units": {
-        "rain": {"mm": 1.0}, "et0": {"mm": 1.0, "mm/day": 1.0, "mm/d": 1.0},
+        "rain": {"mm": 1.0},
+        "et0": {"mm": 1.0, "mm/day": 1.0, "mm/d": 1.0},
         "kc": {"": 1.0, "-": 1.0, "index": 1.0, "ratio": 1.0},
         "soil_moisture": {"%": 0.01, "%vol": 0.01, "vol%": 0.01, "m3/m3": 1.0, "m³/m³": 1.0},
-        "meter": {"m3": 1.0, "m³": 1.0}, "pump_hours": {"h": 1.0, "hr": 1.0, "hours": 1.0},
+        "meter": {"m3": 1.0, "m³": 1.0},
+        "pump_hours": {"h": 1.0, "hr": 1.0, "hours": 1.0},
         "plan_week": {"mm": 1.0},
         "well_status": {"": 1.0, "-": 1.0, "status": 1.0},
     },
-    "water_ranges": {"rain": [0.0, 500.0], "et0": [0.0, 20.0], "kc": [0.0, 1.6], "soil_moisture": [0.0, 0.6],
-                     "meter": [0.0, 1e10], "pump_hours": [0.0, 1e7], "plan_week": [0.0, 500.0],
-                     "well_status": [0.0, 1.0]},
+    "water_ranges": {
+        "rain": [0.0, 500.0],
+        "et0": [0.0, 20.0],
+        "kc": [0.0, 1.6],
+        "soil_moisture": [0.0, 0.6],
+        "meter": [0.0, 1e10],
+        "pump_hours": [0.0, 1e7],
+        "plan_week": [0.0, 500.0],
+        "well_status": [0.0, 1.0],
+    },
     # Vegetation index used for coverage questions and its "vegetated" threshold.
     "vegetation_threshold": {"SAVI": 0.20, "NDVI": 0.30, "EVI": 0.20, "NDWI": 0.0},
     # Index change bands for trend questions (absolute index units).
@@ -135,7 +158,12 @@ DEFAULT_RULES: dict = {
     # EC change bands between years (relative change).
     "ec_change_bands": [0.25, 1.00],
     # Shape classification thresholds.
-    "shape": {"circle_compactness": 0.95, "rect_fill": 0.90, "strip_fill": 0.85, "strip_aspect": 4.0},
+    "shape": {
+        "circle_compactness": 0.95,
+        "rect_fill": 0.90,
+        "strip_fill": 0.85,
+        "strip_aspect": 4.0,
+    },
     # Skip numeric-bin questions whose value sits within this relative distance
     # of a bin edge (protects against spheroid/rounding disagreement).
     "edge_margin_rel": 0.02,
@@ -150,8 +178,14 @@ DEFAULT_RULES: dict = {
     # Plausible measurement ranges. Values outside are removed from use (QC)
     # and questions about them become abstentions; the audit lists them.
     "qc_ranges": {
-        "ph": [3.0, 11.0], "ec": [0.0, 100.0], "moisture": [0.0, 100.0], "om": [0.0, 100.0],
-        "n": [0.0, 20000.0], "p": [0.0, 20000.0], "k": [0.0, 20000.0], "depth_cm": [0.0, 500.0],
+        "ph": [3.0, 11.0],
+        "ec": [0.0, 100.0],
+        "moisture": [0.0, 100.0],
+        "om": [0.0, 100.0],
+        "n": [0.0, 20000.0],
+        "p": [0.0, 20000.0],
+        "k": [0.0, 20000.0],
+        "depth_cm": [0.0, 500.0],
         "vegetation_index": [-1.0, 1.0],
     },
     # Points closer than this to a field boundary are ambiguous (GPS error) and
@@ -165,13 +199,28 @@ DEFAULT_RULES: dict = {
     # each other; sector: the mirror case; field-wide / none: everything within
     # uniform_tol and the field share low / high. Cases within `margin` of any
     # threshold are not asked.
-    "pattern": {"n_rings": 5, "anomaly_deficit": 0.25, "uniform_tol": 0.12, "healthy_min": 0.80,
-                "fieldwide_max": 0.50, "margin": 0.03, "min_valid_frac": 0.95, "min_bin_pixels": 30},
+    "pattern": {
+        "n_rings": 5,
+        "anomaly_deficit": 0.25,
+        "uniform_tol": 0.12,
+        "healthy_min": 0.80,
+        "fieldwide_max": 0.50,
+        "margin": 0.03,
+        "min_valid_frac": 0.95,
+        "min_bin_pixels": 30,
+    },
     # Divergence onset: a scene counts only if >= min_field_valid of the field and
     # >= min_sector_valid of the sector are valid; a divergence is reliable when the
     # sector is >= deficit below the rest of the field in `persist` consecutive valid scenes.
-    "divergence": {"deficit": 0.25, "persist": 2, "min_field_valid": 0.90, "min_sector_valid": 0.80,
-                   "margin": 0.03, "min_scenes": 4, "max_gap_days": 60},
+    "divergence": {
+        "deficit": 0.25,
+        "persist": 2,
+        "min_field_valid": 0.90,
+        "min_sector_valid": 0.80,
+        "margin": 0.03,
+        "min_scenes": 4,
+        "max_gap_days": 60,
+    },
     # Green-up: first observation at or above the vegetation threshold that is
     # followed by another one (two consecutive daily values).
     "green_up": {"min_points": 5, "margin": 0.01},
@@ -218,30 +267,40 @@ DEFAULT_RULES: dict = {
         # CR = 0 when the water table is > ~1 m below the root zone). Days with more rain
         # than this make RO = 0 unsafe, so those balances are not asked.
         "runoff_free_max_mm": 20.0,
-        "check_every_days": 7,                       # stress questions every N days after a moisture reading
-        "stress_margin_mm": 3.0,                     # |Dr - RAW| below this is not asked
-        "ks_severe": 0.5, "ks_margin": 0.05,
-        "depth_rel_width": 0.20, "depth_min_width_mm": 2.0,
-        "plan_tolerance_rel": 0.10, "plan_margin_rel": 0.02,
+        "check_every_days": 7,  # stress questions every N days after a moisture reading
+        "stress_margin_mm": 3.0,  # |Dr - RAW| below this is not asked
+        "ks_severe": 0.5,
+        "ks_margin": 0.05,
+        "depth_rel_width": 0.20,
+        "depth_min_width_mm": 2.0,
+        "plan_tolerance_rel": 0.10,
+        "plan_margin_rel": 0.02,
         # Rain corroboration: an event (>= event_mm on one day in one source) is confirmed when
         # a source with an independent lineage, complete over ±window_days, sums >= confirm_mm.
-        "rain_event_mm": 5.0, "rain_confirm_mm": 2.0, "rain_window_days": 1, "rain_margin_mm": 0.5,
+        "rain_event_mm": 5.0,
+        "rain_confirm_mm": 2.0,
+        "rain_window_days": 1,
+        "rain_margin_mm": 0.5,
         # Source lineage: two sources are independent only when these sets do not intersect.
         # CHIRPS v3 daily ("rnl") takes its daily split from ERA5, and ERA5-Land precipitation
         # is the ERA5 forcing, so on a given day the two are not independent of each other.
         "rain_sources": {
             "station": {"label": "مقياس مطر المزرعة", "lineage": ["gauge"]},
-            "chirps_v3_rnl": {"label": "CHIRPS v3 اليومي (التوزيع اليومي من ERA5)", "lineage": ["era5"]},
+            "chirps_v3_rnl": {
+                "label": "CHIRPS v3 اليومي (التوزيع اليومي من ERA5)",
+                "lineage": ["era5"],
+            },
             "era5land": {"label": "ERA5-Land", "lineage": ["era5"]},
         },
         "rain_priority": ["station", "chirps_v3_rnl", "era5land"],  # source used by the balance
         "min_refill_deficit_mm": 5.0,
-        "max_pump_hours_per_day": 10.0,              # assumption: hours a well may run per day
-        "flow_window_days": 7,                       # well flow = Δ meter / Δ pump hours over this window
+        "max_pump_hours_per_day": 10.0,  # assumption: hours a well may run per day
+        "flow_window_days": 7,  # well flow = Δ meter / Δ pump hours over this window
         # Hour meter advanced by at least this much while the volume meter of the same well did not:
         # the two instruments disagree (stuck meter, dry well or closed valve cannot be told apart).
         "stall_min_hours": 1.0,
-        "refill_days": [2.0, 5.0], "refill_margin_rel": 0.10,
+        "refill_days": [2.0, 5.0],
+        "refill_margin_rel": 0.10,
     },
 }
 
@@ -327,7 +386,10 @@ def validate_water_rules(rules: dict):
         if isinstance(w[key], bool) or not isinstance(w[key], int) or w[key] < 1:
             raise ValueError(f"water.{key} must be a positive integer")
     lo, hi = w["refill_days"]
-    if not all(isinstance(x, (int, float)) and math.isfinite(x) for x in (lo, hi)) or not 0 < lo < hi:
+    if (
+        not all(isinstance(x, (int, float)) and math.isfinite(x) for x in (lo, hi))
+        or not 0 < lo < hi
+    ):
         raise ValueError("refill_days must be finite increasing positive thresholds")
     for key, periods in w.get("well_inventory", {}).items():
         if "::" not in key or not isinstance(periods, list):
@@ -337,7 +399,9 @@ def validate_water_rules(rules: dict):
             a, b = dt.date.fromisoformat(v["from"]), dt.date.fromisoformat(v["to"])
             if b < a or (last is not None and a <= last):
                 raise ValueError("overlapping or reversed well inventory dates")
-            if not isinstance(v["wells"], list) or any(not isinstance(x, str) or not x for x in v["wells"]):
+            if not isinstance(v["wells"], list) or any(
+                not isinstance(x, str) or not x for x in v["wells"]
+            ):
                 raise ValueError("inventory wells must be non-empty string suffixes")
             if len({x.lower() for x in v["wells"]}) != len(v["wells"]):
                 raise ValueError("duplicate wells in inventory")

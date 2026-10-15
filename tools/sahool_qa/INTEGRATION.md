@@ -23,6 +23,36 @@ CI uses `--require-postgres`: a skipped database test fails acceptance. Local ru
 - README/CHANGELOG statements about past blind checks and PostgreSQL runs describe the original release. Archived verification files and previews remain in the supplied release archive; they are excluded from the source import.
 - `run_checks.py` produces current test/demo evidence in an ignored verification directory. CI publishes that directory as an artifact.
 
+- Schema: `migrations/init_v8.sql` names three columns differently from the tool defaults (`gov`/`lat`/`lon` on `field_boundaries`, `category` on `field_indicators`). Use `--schema-map examples/schema_map.init_v8.json`. `soil_readings` and `field_indicators` have no `geom` there; records attach to their field by `(tenant_id, field_id)`.
+- The platform's `irrigation_*` tables are not a drop-in source for the water investigation. The differences are listed in README; a bridge must declare them rather than fill them:
+  - per-measurement flow and runtime instead of totalizers;
+  - `daily_used_m3` defaults to 0;
+  - field bindings point at hydraulic nodes, not wells;
+  - `live_state` has no history.
+
 ## Local import verification
 
 Original 0.4.2 suite: 126 tests, 120 passed, 6 PostgreSQL tests skipped because server binaries are absent in this workspace. No claim of 126 local passes or production readiness.
+
+## Review fixes (2026-10-15)
+
+Behaviour and answers are unchanged: the train/val/test SHA-256 of the demo equal the release's.
+
+Fixes:
+- **Lint:** formatted with the pinned ruff 0.15.8 and the repository `ruff.toml`. There were 115 lint errors and 37 unformatted files.
+- **Locale:** text I/O is UTF-8 regardless of locale.
+  - Under `LC_ALL=C PYTHONUTF8=0` the `psql` driver failed 5 of the 8 PostgreSQL tests with `UnicodeDecodeError`.
+  - Two test files failed the same way.
+- **Workflow:** removed the uncapped `apt-get`, which `ci_unbounded_wait_guard` rejects and which broke *Unit Tests*. PostgreSQL 16 ships in the ubuntu-24.04 image.
+- **Schema:** added the init_v8 schema map and two PostgreSQL tests for it.
+
+Measured with PostgreSQL 16.15, Python 3.13:
+
+| Check | Result |
+|---|---|
+| `run_checks.py --require-postgres` | 128 run, 0 failed, 0 skipped; two demo runs byte-identical, 538 items |
+| Same suite under `LC_ALL=C PYTHONUTF8=0` | 128 OK |
+| `check_patch_mutations_042.py` | 14/14 caught |
+| `check_patch_mutations.py` | 6/6 caught |
+
+This consolidates PR #1192, which imported the same release under the same path. #1192 is superseded by this PR.

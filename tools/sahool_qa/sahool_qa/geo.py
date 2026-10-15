@@ -8,6 +8,7 @@
 * UTM forward projection (Krüger series, mm-level) so polygons can be matched
   against Sentinel-2 rasters delivered in EPSG:326xx / 327xx.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,11 +21,12 @@ B = A * (1 - F)
 E2 = F * (2 - F)
 RAD = math.pi / 180.0
 
-Ring = list[tuple[float, float]]           # [(lon, lat), ...] closed or open
-PolygonRings = list[Ring]                    # exterior first, then holes
+Ring = list[tuple[float, float]]  # [(lon, lat), ...] closed or open
+PolygonRings = list[Ring]  # exterior first, then holes
 
 
 # ─────────────────────────── distances ────────────────────────────
+
 
 def vincenty_inverse(lon1: float, lat1: float, lon2: float, lat2: float) -> tuple[float, float]:
     """Ellipsoidal distance (m) and initial azimuth (deg, 0=N clockwise)."""
@@ -43,21 +45,33 @@ def vincenty_inverse(lon1: float, lat1: float, lon2: float, lat2: float) -> tupl
         cos_sigma = sinU1 * sinU2 + cosU1 * cosU2 * cos_lam
         sigma = math.atan2(sin_sigma, cos_sigma)
         sin_alpha = cosU1 * cosU2 * sin_lam / sin_sigma
-        cos2_alpha = 1 - sin_alpha ** 2
+        cos2_alpha = 1 - sin_alpha**2
         cos2_sm = cos_sigma - 2 * sinU1 * sinU2 / cos2_alpha if cos2_alpha else 0.0
         C = F / 16 * cos2_alpha * (4 + F * (4 - 3 * cos2_alpha))
         lam_prev = lam
         lam = L + (1 - C) * F * sin_alpha * (
-            sigma + C * sin_sigma * (cos2_sm + C * cos_sigma * (-1 + 2 * cos2_sm ** 2)))
+            sigma + C * sin_sigma * (cos2_sm + C * cos_sigma * (-1 + 2 * cos2_sm**2))
+        )
         if abs(lam - lam_prev) < 1e-12:
             break
     else:  # near-antipodal: fall back to haversine (never happens at farm scale)
         return haversine(lon1, lat1, lon2, lat2), _planar_bearing(lon1, lat1, lon2, lat2)
-    u2 = cos2_alpha * (A ** 2 - B ** 2) / B ** 2
+    u2 = cos2_alpha * (A**2 - B**2) / B**2
     Ak = 1 + u2 / 16384 * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)))
     Bk = u2 / 1024 * (256 + u2 * (-128 + u2 * (74 - 47 * u2)))
-    d_sigma = Bk * sin_sigma * (cos2_sm + Bk / 4 * (
-        cos_sigma * (-1 + 2 * cos2_sm ** 2) - Bk / 6 * cos2_sm * (-3 + 4 * sin_sigma ** 2) * (-3 + 4 * cos2_sm ** 2)))
+    d_sigma = (
+        Bk
+        * sin_sigma
+        * (
+            cos2_sm
+            + Bk
+            / 4
+            * (
+                cos_sigma * (-1 + 2 * cos2_sm**2)
+                - Bk / 6 * cos2_sm * (-3 + 4 * sin_sigma**2) * (-3 + 4 * cos2_sm**2)
+            )
+        )
+    )
     dist = B * Ak * (sigma - d_sigma)
     az = math.atan2(cosU2 * math.sin(lam), cosU1 * sinU2 - sinU1 * cosU2 * math.cos(lam))
     return dist, (math.degrees(az) + 360) % 360
@@ -78,6 +92,7 @@ def _planar_bearing(lon1, lat1, lon2, lat2) -> float:
 
 # ─────────────────────────── local frame ───────────────────────────
 
+
 class LocalFrame:
     """Equal-area sinusoidal frame around (lon0, lat0) using WGS84 radii."""
 
@@ -86,11 +101,13 @@ class LocalFrame:
         s = math.sin(lat0 * RAD)
         w = 1 - E2 * s * s
         self.N0 = A / math.sqrt(w)
-        self.M0 = A * (1 - E2) / w ** 1.5
+        self.M0 = A * (1 - E2) / w**1.5
 
     def fwd(self, lon: float, lat: float) -> tuple[float, float]:
-        return ((lon - self.lon0) * RAD * self.N0 * math.cos(lat * RAD),
-                (lat - self.lat0) * RAD * self.M0)
+        return (
+            (lon - self.lon0) * RAD * self.N0 * math.cos(lat * RAD),
+            (lat - self.lat0) * RAD * self.M0,
+        )
 
     def inv(self, x: float, y: float) -> tuple[float, float]:
         lat = self.lat0 + y / (self.M0 * RAD)
@@ -100,16 +117,18 @@ class LocalFrame:
 
 # ─────────────────────────── geometry ──────────────────────────────
 
+
 @dataclass
 class Geometry:
     """Polygon or MultiPolygon in lon/lat (EPSG:4326)."""
+
     polygons: list[PolygonRings]
     _frame: LocalFrame | None = field(default=None, repr=False)
     _xy: list | None = field(default=None, repr=False)
 
     # -- construction --
     @staticmethod
-    def from_geojson(obj) -> "Geometry | None":
+    def from_geojson(obj) -> Geometry | None:
         if obj is None:
             return None
         if isinstance(obj, (str, bytes)):
@@ -140,9 +159,13 @@ class Geometry:
         def ring_out(r):
             pts = [[round(x, ndigits), round(y, ndigits)] for x, y in r]
             return pts + [pts[0]] if pts else pts
+
         if len(self.polygons) == 1:
             return {"type": "Polygon", "coordinates": [ring_out(r) for r in self.polygons[0]]}
-        return {"type": "MultiPolygon", "coordinates": [[ring_out(r) for r in p] for p in self.polygons]}
+        return {
+            "type": "MultiPolygon",
+            "coordinates": [[ring_out(r) for r in p] for p in self.polygons],
+        }
 
     # -- helpers --
     def all_points(self):
@@ -159,13 +182,15 @@ class Geometry:
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:
-        xs, ys = zip(*self.all_points())
+        xs, ys = zip(*self.all_points(), strict=False)
         return min(xs), min(ys), max(xs), max(ys)
 
     def _xy_rings(self):
         if self._xy is None:
             fr = self.frame
-            self._xy = [[[fr.fwd(lon, lat) for lon, lat in ring] for ring in poly] for poly in self.polygons]
+            self._xy = [
+                [[fr.fwd(lon, lat) for lon, lat in ring] for ring in poly] for poly in self.polygons
+            ]
         return self._xy
 
     @staticmethod
@@ -222,7 +247,7 @@ class Geometry:
                 cy += gy * w
                 at += w
         if at == 0:
-            xs, ys = zip(*self.all_points())
+            xs, ys = zip(*self.all_points(), strict=False)
             return sum(xs) / len(xs), sum(ys) / len(ys)
         return self.frame.inv(cx / at, cy / at)
 
@@ -268,7 +293,10 @@ class Geometry:
                     seg2 = dx * dx + dy * dy
                     cross = dx * (lat - ay) - dy * (lon - ax)
                     dot = (lon - ax) * dx + (lat - ay) * dy
-                    if abs(cross) <= eps_deg * math.sqrt(seg2) and -eps_deg <= dot <= seg2 + eps_deg:
+                    if (
+                        abs(cross) <= eps_deg * math.sqrt(seg2)
+                        and -eps_deg <= dot <= seg2 + eps_deg
+                    ):
                         return True
         return False
 
@@ -283,7 +311,11 @@ class Geometry:
                     (ax, ay), (bx, by) = ring[i], ring[(i + 1) % n]
                     dx, dy = bx - ax, by - ay
                     seg2 = dx * dx + dy * dy
-                    t = 0.0 if seg2 == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg2))
+                    t = (
+                        0.0
+                        if seg2 == 0
+                        else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg2))
+                    )
                     best = min(best, math.hypot(px - (ax + t * dx), py - (ay + t * dy)))
         return best
 
@@ -323,6 +355,7 @@ def _segments_cross(p1, p2, p3, p4) -> bool:
     def orient(a, b, c):
         v = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
         return 0 if abs(v) < 1e-18 else (1 if v > 0 else -1)
+
     o1, o2, o3, o4 = orient(p1, p2, p3), orient(p1, p2, p4), orient(p3, p4, p1), orient(p3, p4, p2)
     return o1 * o2 < 0 and o3 * o4 < 0
 
@@ -346,6 +379,7 @@ def convex_hull(points):
 
     def cross(o, a, b):
         return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
     lower, upper = [], []
     for p in pts:
         while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
@@ -389,10 +423,12 @@ def direction_ambiguity(azimuth_deg: float) -> float:
 # ─────────────────────────── UTM ───────────────────────────────────
 
 _N = F / (2 - F)
-_AK = A / (1 + _N) * (1 + _N ** 2 / 4 + _N ** 4 / 64)
-_ALPHA = (_N / 2 - 2 / 3 * _N ** 2 + 5 / 16 * _N ** 3,
-          13 / 48 * _N ** 2 - 3 / 5 * _N ** 3,
-          61 / 240 * _N ** 3)
+_AK = A / (1 + _N) * (1 + _N**2 / 4 + _N**4 / 64)
+_ALPHA = (
+    _N / 2 - 2 / 3 * _N**2 + 5 / 16 * _N**3,
+    13 / 48 * _N**2 - 3 / 5 * _N**3,
+    61 / 240 * _N**3,
+)
 
 
 def utm_forward(lon: float, lat: float, zone: int, north: bool = True) -> tuple[float, float]:
@@ -405,8 +441,12 @@ def utm_forward(lon: float, lat: float, zone: int, north: bool = True) -> tuple[
     t = math.sinh(math.atanh(sphi) - c * math.atanh(c * sphi))
     xi = math.atan2(t, math.cos(lam))
     eta = math.atanh(math.sin(lam) / math.sqrt(1 + t * t))
-    e = eta + sum(a * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, a in enumerate(_ALPHA, 1))
-    nn = xi + sum(a * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, a in enumerate(_ALPHA, 1))
+    e = eta + sum(
+        a * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, a in enumerate(_ALPHA, 1)
+    )
+    nn = xi + sum(
+        a * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, a in enumerate(_ALPHA, 1)
+    )
     return 500000 + k0 * _AK * e, (0 if north else 10_000_000) + k0 * _AK * nn
 
 

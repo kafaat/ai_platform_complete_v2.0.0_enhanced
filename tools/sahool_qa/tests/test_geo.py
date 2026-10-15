@@ -1,7 +1,15 @@
 import math
 import unittest
 
-from sahool_qa.geo import (A, E2, Geometry, LocalFrame, direction_index, utm_forward, vincenty_inverse)
+from sahool_qa.geo import (
+    E2,
+    A,
+    Geometry,
+    LocalFrame,
+    direction_index,
+    utm_forward,
+    vincenty_inverse,
+)
 
 
 def dms(d, m, s, neg=False):
@@ -16,6 +24,7 @@ def quad_area_exact(lon0, lat0, lon1, lat1):
     def q(phi):
         s = math.sin(phi)
         return s / (1 - E2 * s * s) + (1 / (2 * e)) * math.log((1 + e * s) / (1 - e * s))
+
     b2 = (A * math.sqrt(1 - E2)) ** 2
     return 0.5 * b2 * math.radians(lon1 - lon0) * (q(math.radians(lat1)) - q(math.radians(lat0)))
 
@@ -23,8 +32,12 @@ def quad_area_exact(lon0, lat0, lon1, lat1):
 class TestGeodesy(unittest.TestCase):
     def test_vincenty_flinders_buninyong(self):
         # Vincenty (1975) / Geoscience Australia reference pair
-        d, az = vincenty_inverse(dms(144, 25, 29.52440), dms(37, 57, 3.72030, True),
-                                 dms(143, 55, 35.38390), dms(37, 39, 10.15610, True))
+        d, az = vincenty_inverse(
+            dms(144, 25, 29.52440),
+            dms(37, 57, 3.72030, True),
+            dms(143, 55, 35.38390),
+            dms(37, 39, 10.15610, True),
+        )
         self.assertAlmostEqual(d, 54972.271, delta=0.01)
         self.assertAlmostEqual(az, dms(306, 52, 5.37), delta=1 / 3600)
 
@@ -69,18 +82,40 @@ class TestGeodesy(unittest.TestCase):
 
     def test_shapes(self):
         fr = LocalFrame(44.94, 16.09)
-        circ = Geometry([[[fr.inv(401 * math.sin(2 * math.pi * i / 96), 401 * math.cos(2 * math.pi * i / 96))
-                           for i in range(96)]]])
+        circ = Geometry(
+            [
+                [
+                    [
+                        fr.inv(
+                            401 * math.sin(2 * math.pi * i / 96),
+                            401 * math.cos(2 * math.pi * i / 96),
+                        )
+                        for i in range(96)
+                    ]
+                ]
+            ]
+        )
         self.assertGreater(circ.compactness, 0.99)
         self.assertAlmostEqual(math.sqrt(circ.area_m2 / math.pi), 401, delta=1.0)
         ang = math.radians(25)
         pts = [(-200, -125), (200, -125), (200, 125), (-200, 125)]
-        rect = Geometry([[[fr.inv(x * math.cos(ang) - y * math.sin(ang), x * math.sin(ang) + y * math.cos(ang))
-                           for x, y in pts]]])
+        rect = Geometry(
+            [
+                [
+                    [
+                        fr.inv(
+                            x * math.cos(ang) - y * math.sin(ang),
+                            x * math.sin(ang) + y * math.cos(ang),
+                        )
+                        for x, y in pts
+                    ]
+                ]
+            ]
+        )
         area, short, long_ = rect.min_area_rect()
         self.assertAlmostEqual(short, 250, delta=0.5)
         self.assertAlmostEqual(long_, 400, delta=0.5)
-        self.assertAlmostEqual(rect.compactness, math.pi * 4 * 100000 / (1300 ** 2), delta=1e-3)
+        self.assertAlmostEqual(rect.compactness, math.pi * 4 * 100000 / (1300**2), delta=1e-3)
 
     def test_self_intersection_detected(self):
         bow = Geometry([[[(0, 0), (0.01, 0.01), (0.01, 0), (0, 0.01)]]])

@@ -15,10 +15,10 @@ total water, weather or crop stage. Answers stay rule-computed; the
 recommendation family is labelled "inferred" because it still needs a
 field check.
 """
+
 from __future__ import annotations
 
 from ..arabic import quote
-from ..config import ABSTAIN_TEXT
 from ..geo import DIRECTIONS_AR
 from ..items import GenContext, make_item
 from ..raster import SECTOR_KEYS, polar_stats
@@ -39,11 +39,19 @@ MEASUREMENTS = {
     "none": "لا يلزم قياس تمييزي الآن؛ متابعة المشهد الصالح التالي",
     "insufficient_valid": "الحصول على مشهد صالح أو صورة بديلة أولاً؛ المشهد الحالي لا يحدد النمط",
 }
-SECTOR_AR = dict(zip(SECTOR_KEYS, DIRECTIONS_AR))
+SECTOR_AR = dict(zip(SECTOR_KEYS, DIRECTIONS_AR, strict=False))
 
 
-SECTOR_TOWARD = {"N": "الشمال", "NE": "الشمال الشرقي", "E": "الشرق", "SE": "الجنوب الشرقي", "S": "الجنوب",
-                 "SW": "الجنوب الغربي", "W": "الغرب", "NW": "الشمال الغربي"}
+SECTOR_TOWARD = {
+    "N": "الشمال",
+    "NE": "الشمال الشرقي",
+    "E": "الشرق",
+    "SE": "الجنوب الشرقي",
+    "S": "الجنوب",
+    "SW": "الجنوب الغربي",
+    "W": "الغرب",
+    "NW": "الشمال الغربي",
+}
 
 
 def sector_phrase(k: str) -> str:
@@ -60,6 +68,7 @@ def pct(x) -> str:
 
 # ───────────────────────── classification ─────────────────────────
 
+
 def classify_pattern(polar: dict, rules: dict) -> tuple[str | None, dict]:
     """(class, detail) or (None, {"reason": ...}) when the case is ambiguous."""
     pr = rules["pattern"]
@@ -73,10 +82,18 @@ def classify_pattern(polar: dict, rules: dict) -> tuple[str | None, dict]:
     F = fld["frac_above"]
     rings = [r["frac_above"] for r in polar["rings"]]
     sectors = {k: v["frac_above"] for k, v in polar["sectors"].items()}
-    ring_spread, sector_spread = max(rings) - min(rings), max(sectors.values()) - min(sectors.values())
+    ring_spread, sector_spread = (
+        max(rings) - min(rings),
+        max(sectors.values()) - min(sectors.values()),
+    )
     ring_def, sector_def = F - min(rings), F - min(sectors.values())
-    detail = {"field_share": round(F, 4), "ring_spread": round(ring_spread, 4), "sector_spread": round(sector_spread, 4),
-              "ring_deficit": round(ring_def, 4), "sector_deficit": round(sector_def, 4)}
+    detail = {
+        "field_share": round(F, 4),
+        "ring_spread": round(ring_spread, 4),
+        "sector_spread": round(sector_spread, 4),
+        "ring_deficit": round(ring_def, 4),
+        "sector_deficit": round(sector_def, 4),
+    }
     # only the thresholds that decide this case must be clear of the margin
     near = [abs(ring_spread - tol), abs(sector_spread - tol)]
     if ring_spread < tol and sector_spread < tol:
@@ -93,7 +110,11 @@ def classify_pattern(polar: dict, rules: dict) -> tuple[str | None, dict]:
         return None, {**detail, "reason": "uniform_but_intermediate"}
     if ring_def > A and sector_spread < tol:
         k = rings.index(min(rings))
-        return "ring", {**detail, "weak_ring": k, "weak_ring_m": [polar["rings"][k]["r_from"], polar["rings"][k]["r_to"]]}
+        return "ring", {
+            **detail,
+            "weak_ring": k,
+            "weak_ring_m": [polar["rings"][k]["r_from"], polar["rings"][k]["r_to"]],
+        }
     if sector_def > A and ring_spread < tol:
         k = min(sectors, key=lambda s: (sectors[s], s))
         return "sector", {**detail, "weak_sector": k}
@@ -103,19 +124,27 @@ def classify_pattern(polar: dict, rules: dict) -> tuple[str | None, dict]:
 def pattern_rule_text(rules: dict) -> str:
     pr = rules["pattern"]
     A, tol = int(100 * pr["anomaly_deficit"]), int(100 * pr["uniform_tol"])
-    return (f"قاعدة النمط — أولاً، قبل أي بند آخر: إذا كان أقل من {int(100 * pr['min_valid_frac'])}% من بكسلات المحور صالحاً "
-            "(الرمادي = سحب أو بلا بيانات) فالنمط غير قابل للتحديد من هذا المشهد. وإلا (النسب = حصة البكسلات الصالحة التي "
-            f"بلغت العتبة): حلقة إذا قلّت حلقة واحدة عن الحقل بأكثر من {A} نقطة وكان الفرق بين أعلى قطاع وأدناه أقل من {tol} "
-            f"نقطة؛ قطاع إذا قلّ قطاع عن الحقل بأكثر من {A} نقطة وكان الفرق بين أعلى حلقة وأدناها أقل من {tol} نقطة؛ إذا "
-            f"تقاربت الحلقات والقطاعات (أقل من {tol} نقطة) فالضعف عام إن كانت حصة الحقل أقل من "
-            f"{int(100 * pr['fieldwide_max'])}%، ولا ضعف واضح إن زادت على {int(100 * pr['healthy_min'])}%")
+    return (
+        f"قاعدة النمط — أولاً، قبل أي بند آخر: إذا كان أقل من {int(100 * pr['min_valid_frac'])}% من بكسلات المحور صالحاً "
+        "(الرمادي = سحب أو بلا بيانات) فالنمط غير قابل للتحديد من هذا المشهد. وإلا (النسب = حصة البكسلات الصالحة التي "
+        f"بلغت العتبة): حلقة إذا قلّت حلقة واحدة عن الحقل بأكثر من {A} نقطة وكان الفرق بين أعلى قطاع وأدناه أقل من {tol} "
+        f"نقطة؛ قطاع إذا قلّ قطاع عن الحقل بأكثر من {A} نقطة وكان الفرق بين أعلى حلقة وأدناها أقل من {tol} نقطة؛ إذا "
+        f"تقاربت الحلقات والقطاعات (أقل من {tol} نقطة) فالضعف عام إن كانت حصة الحقل أقل من "
+        f"{int(100 * pr['fieldwide_max'])}%، ولا ضعف واضح إن زادت على {int(100 * pr['healthy_min'])}%"
+    )
 
 
 def measurement_rule_text() -> str:
     return "قاعدة القياس التالي في سهول: " + "؛ ".join(
-        f"{lab} ← {MEASUREMENTS[k]}" for k, lab in (("ring", "حلقة"), ("sector", "قطاع"), ("field_wide", "ضعف عام"),
-                                                   ("none", "لا ضعف واضح"),
-                                                   ("insufficient_valid", "نمط غير قابل للتحديد")))
+        f"{lab} ← {MEASUREMENTS[k]}"
+        for k, lab in (
+            ("ring", "حلقة"),
+            ("sector", "قطاع"),
+            ("field_wide", "ضعف عام"),
+            ("none", "لا ضعف واضح"),
+            ("insufficient_valid", "نمط غير قابل للتحديد"),
+        )
+    )
 
 
 def pattern_rows(ctx: GenContext):
@@ -140,13 +169,20 @@ def pattern_rows(ctx: GenContext):
 
 
 def polar_table(polar: dict) -> str:
-    rings = "؛ ".join(f"{r['r_from']:.0f}-{r['r_to']:.0f} م: {pct(r['frac_above'])}" for r in polar["rings"])
-    sectors = "؛ ".join(f"{SECTOR_AR[k]}: {pct(v['frac_above'])}" for k, v in polar["sectors"].items())
-    return (f"جدول التغطية المحسوب من الطبقة — الحقل كله: {pct(polar['field']['frac_above'])} "
-            f"(الصالح {pct(polar['field']['valid_frac'])})\nالحلقات من المركز: {rings}\nالقطاعات: {sectors}")
+    rings = "؛ ".join(
+        f"{r['r_from']:.0f}-{r['r_to']:.0f} م: {pct(r['frac_above'])}" for r in polar["rings"]
+    )
+    sectors = "؛ ".join(
+        f"{SECTOR_AR[k]}: {pct(v['frac_above'])}" for k, v in polar["sectors"].items()
+    )
+    return (
+        f"جدول التغطية المحسوب من الطبقة — الحقل كله: {pct(polar['field']['frac_above'])} "
+        f"(الصالح {pct(polar['field']['valid_frac'])})\nالحلقات من المركز: {rings}\nالقطاعات: {sectors}"
+    )
 
 
 # ───────────────────────── families ─────────────────────────
+
 
 def gen_pivot_anomaly_pattern(ctx: GenContext):
     fam = "reasoning.pivot_anomaly_pattern"
@@ -157,23 +193,41 @@ def gen_pivot_anomaly_pattern(ctx: GenContext):
             continue
         cls = "insufficient_valid" if cloudy else cls
         it = make_item(
-            ctx, family=fam, level="scene_reasoning",
-            question=(f"في طبقة {layer.index_name} بتاريخ {layer.date}، ما النمط الأدق لتوزيع الضعف داخل المحور "
-                      f"{quote(f.display)}؟ (الضعف = {layer.index_name} أقل من {thr})"),
-            correct=None if cloudy else PATTERNS[cls], answerable=not cloudy,
+            ctx,
+            family=fam,
+            level="scene_reasoning",
+            question=(
+                f"في طبقة {layer.index_name} بتاريخ {layer.date}، ما النمط الأدق لتوزيع الضعف داخل المحور "
+                f"{quote(f.display)}؟ (الضعف = {layer.index_name} أقل من {thr})"
+            ),
+            correct=None if cloudy else PATTERNS[cls],
+            answerable=not cloudy,
             # for a half-clouded pivot the visible half often looks healthy: keep "none" among the options
-            distractors=([PATTERNS["none"]] if cloudy else []) + [t for k, t in PATTERNS.items() if k not in (cls, "none")]
+            distractors=([PATTERNS["none"]] if cloudy else [])
+            + [t for k, t in PATTERNS.items() if k not in (cls, "none")]
             + ([] if cloudy else [PATTERNS["none"]]),
-            evidence={"kind": "derived", "records": [field_ref(f)],
-                      "values": {"class": cls, **detail, "field_valid_frac": r4(polar["field"]["valid_frac"]),
-                                 "rings": [r4(r["frac_above"]) for r in polar["rings"]],
-                                 "sectors": {k: r4(v["frac_above"]) for k, v in polar["sectors"].items()}},
-                      "rule": pattern_rule_text(ctx.rules),
-                      "computation": "تقسيم المحور إلى 5 حلقات متساوية العرض و8 قطاعات بعرض 45° حول مركزه، ثم مقارنة حصة "
-                                     "البكسلات البالغة العتبة في كل منها بحصة الحقل",
-                      "synthetic_raster": layer.synthetic},
-            context=Cards().field(f, True).text(image_legend(layer, thr, f)).text(pattern_rule_text(ctx.rules)),
-            key={"field": f.key, "raster": layer.key}, answer_value=cls)
+            evidence={
+                "kind": "derived",
+                "records": [field_ref(f)],
+                "values": {
+                    "class": cls,
+                    **detail,
+                    "field_valid_frac": r4(polar["field"]["valid_frac"]),
+                    "rings": [r4(r["frac_above"]) for r in polar["rings"]],
+                    "sectors": {k: r4(v["frac_above"]) for k, v in polar["sectors"].items()},
+                },
+                "rule": pattern_rule_text(ctx.rules),
+                "computation": "تقسيم المحور إلى 5 حلقات متساوية العرض و8 قطاعات بعرض 45° حول مركزه، ثم مقارنة حصة "
+                "البكسلات البالغة العتبة في كل منها بحصة الحقل",
+                "synthetic_raster": layer.synthetic,
+            },
+            context=Cards()
+            .field(f, True)
+            .text(image_legend(layer, thr, f))
+            .text(pattern_rule_text(ctx.rules)),
+            key={"field": f.key, "raster": layer.key},
+            answer_value=cls,
+        )
         if it:
             it["image_ref"] = image_ref(layer, f, thr)
             it["related_group"] = related_group(f, layer)
@@ -182,29 +236,46 @@ def gen_pivot_anomaly_pattern(ctx: GenContext):
 
 def gen_next_measurement(ctx: GenContext):
     fam = "reasoning.next_measurement"
-    for f, layer, thr, polar, cls, detail in pattern_rows(ctx):
+    for f, layer, _thr, polar, cls, detail in pattern_rows(ctx):
         if cls is None and detail["reason"] == "too_little_valid_data":
             cls = "insufficient_valid"
         elif cls is None:
             ctx.skip(fam, detail["reason"])
             continue
         it = make_item(
-            ctx, family=fam, level="scene_reasoning",
-            question=(f"بحسب جدول تغطية {layer.index_name} للمحور {quote(f.display)} في مشهد {layer.date} وقاعدتي النمط "
-                      "والقياس في سهول، ما القياس التالي الأقدر على التمييز بين الفرضيات؟"),
+            ctx,
+            family=fam,
+            level="scene_reasoning",
+            question=(
+                f"بحسب جدول تغطية {layer.index_name} للمحور {quote(f.display)} في مشهد {layer.date} وقاعدتي النمط "
+                "والقياس في سهول، ما القياس التالي الأقدر على التمييز بين الفرضيات؟"
+            ),
             correct=MEASUREMENTS[cls],
             distractors=([MEASUREMENTS["none"]] if cls == "insufficient_valid" else [])
-            + sorted((t for k, t in MEASUREMENTS.items() if k not in (cls, "none")),
-                     key=lambda t: ctx.rng(f"{fam}:{f.key}:{layer.key}:{t}").random())
+            + sorted(
+                (t for k, t in MEASUREMENTS.items() if k not in (cls, "none")),
+                key=lambda t: ctx.rng(f"{fam}:{f.key}:{layer.key}:{t}").random(),
+            )
             + ([] if cls == "insufficient_valid" else [MEASUREMENTS["none"]]),
-            evidence={"kind": "inferred", "records": [field_ref(f)], "values": {"class": cls, **detail},
-                      "rule": pattern_rule_text(ctx.rules) + " — " + measurement_rule_text(),
-                      "computation": "تصنيف النمط من الجدول ← اختيار القياس الذي يميّز فرضيات ذلك النمط",
-                      "caveats": ["القياس المقترح يميّز بين الفرضيات ولا يثبت السبب؛ الحكم النهائي بعد الفحص الميداني"],
-                      "synthetic_raster": layer.synthetic},
-            context=Cards().field(f, True).text(polar_table(polar)).text(pattern_rule_text(ctx.rules))
+            evidence={
+                "kind": "inferred",
+                "records": [field_ref(f)],
+                "values": {"class": cls, **detail},
+                "rule": pattern_rule_text(ctx.rules) + " — " + measurement_rule_text(),
+                "computation": "تصنيف النمط من الجدول ← اختيار القياس الذي يميّز فرضيات ذلك النمط",
+                "caveats": [
+                    "القياس المقترح يميّز بين الفرضيات ولا يثبت السبب؛ الحكم النهائي بعد الفحص الميداني"
+                ],
+                "synthetic_raster": layer.synthetic,
+            },
+            context=Cards()
+            .field(f, True)
+            .text(polar_table(polar))
+            .text(pattern_rule_text(ctx.rules))
             .text(measurement_rule_text()),
-            key={"field": f.key, "raster": layer.key}, answer_value=cls)
+            key={"field": f.key, "raster": layer.key},
+            answer_value=cls,
+        )
         if it:
             it["related_group"] = related_group(f, layer)
             yield it
@@ -214,6 +285,7 @@ def related_group(f, layer) -> str:
     """Items built from the same field and scene. The table in next_measurement reveals the
     pattern asked in the image item, so never show both in one prompt or few-shot context."""
     import hashlib
+
     return "rg-" + hashlib.sha1(f"{f.key}|{layer.key}".encode()).hexdigest()[:10]
 
 
@@ -226,11 +298,13 @@ def _window(a, b) -> str:
 
 def onset_rule_text(rules: dict) -> str:
     dv = rules["divergence"]
-    return (f"قاعدة الانحراف الموثوق: يُعتدّ بالمشهد فقط إذا كان {int(100 * dv['min_field_valid'])}% على الأقل من بكسلات الحقل "
-            f"و{int(100 * dv['min_sector_valid'])}% من بكسلات القطاع صالحة؛ والانحراف موثوق إذا قلّت تغطية القطاع عن بقية الحقل "
-            f"بـ {int(100 * dv['deficit'])} نقطة أو أكثر في مشهدين صالحين متتاليين (الانخفاض في مشهد صالح واحد لا يُعدّ). "
-            "بداية الانحراف تقع بين المشهد الصالح السابق لأول زوج منحرف وأول مشاهد ذلك الزوج؛ وإذا بدأ أول زوج منحرف عند "
-            "أول مشهد صالح في السلسلة فالبداية سبقت البيانات المتاحة ولا يمكن تحديدها منها")
+    return (
+        f"قاعدة الانحراف الموثوق: يُعتدّ بالمشهد فقط إذا كان {int(100 * dv['min_field_valid'])}% على الأقل من بكسلات الحقل "
+        f"و{int(100 * dv['min_sector_valid'])}% من بكسلات القطاع صالحة؛ والانحراف موثوق إذا قلّت تغطية القطاع عن بقية الحقل "
+        f"بـ {int(100 * dv['deficit'])} نقطة أو أكثر في مشهدين صالحين متتاليين (الانخفاض في مشهد صالح واحد لا يُعدّ). "
+        "بداية الانحراف تقع بين المشهد الصالح السابق لأول زوج منحرف وأول مشاهد ذلك الزوج؛ وإذا بدأ أول زوج منحرف عند "
+        "أول مشهد صالح في السلسلة فالبداية سبقت البيانات المتاحة ولا يمكن تحديدها منها"
+    )
 
 
 def gen_divergence_onset(ctx: GenContext):
@@ -257,14 +331,29 @@ def gen_divergence_onset(ctx: GenContext):
                 def scene_row(t, k):
                     _, _, _, p = t
                     sec, rest = p["sectors"][k], p["rest_of_field"][k]
-                    ok = (p["field"]["valid_frac"] >= dv["min_field_valid"] and sec["valid_frac"] >= dv["min_sector_valid"]
-                          and sec["frac_above"] is not None and rest["frac_above"] is not None)
+                    ok = (
+                        p["field"]["valid_frac"] >= dv["min_field_valid"]
+                        and sec["valid_frac"] >= dv["min_sector_valid"]
+                        and sec["frac_above"] is not None
+                        and rest["frac_above"] is not None
+                    )
                     deficit = (rest["frac_above"] - sec["frac_above"]) if ok else None
-                    return {"valid": ok, "deficit": deficit, "field_valid": p["field"]["valid_frac"],
-                            "sector_valid": sec["valid_frac"], "sector": sec["frac_above"], "rest": rest["frac_above"]}
+                    return {
+                        "valid": ok,
+                        "deficit": deficit,
+                        "field_valid": p["field"]["valid_frac"],
+                        "sector_valid": sec["valid_frac"],
+                        "sector": sec["frac_above"],
+                        "rest": rest["frac_above"],
+                    }
 
-                best = {k: max((r["deficit"] for r in (scene_row(t, k) for t in seg) if r["valid"]), default=-1.0)
-                        for k in SECTOR_KEYS}
+                best = {
+                    k: max(
+                        (r["deficit"] for r in (scene_row(t, k) for t in seg) if r["valid"]),
+                        default=-1.0,
+                    )
+                    for k in SECTOR_KEYS
+                }
                 ranked = sorted(best, key=lambda k: (-best[k], k))
                 k = ranked[0]
                 if best[k] < D - mg:
@@ -299,38 +388,80 @@ def gen_divergence_onset(ctx: GenContext):
                 # starts at an invalid scene, or the one around a one-off dip)
                 order = sorted(range(len(dates) - 1), key=lambda i: (abs(i + 1 - focus), i))
                 windows = [_window(dates[i], dates[i + 1]) for i in order]
-                distractors = ([NO_DIVERGENCE] if correct != NO_DIVERGENCE else []) + [w for w in windows if w != correct]
+                distractors = ([NO_DIVERGENCE] if correct != NO_DIVERGENCE else []) + [
+                    w for w in windows if w != correct
+                ]
                 head, tail = distractors[:1], distractors[1:]
                 table = "\n".join(
                     f"مشهد {dates[i]}: الصالح من الحقل {pct(r['field_valid'])}، الصالح من القطاع {pct(r['sector_valid'])}، "
-                    f"تغطية القطاع {pct(r['sector'])}، بقية الحقل {pct(r['rest'])}" for i, r in enumerate(rows))
+                    f"تغطية القطاع {pct(r['sector'])}، بقية الحقل {pct(r['rest'])}"
+                    for i, r in enumerate(rows)
+                )
                 it = make_item(
-                    ctx, family=fam, level="scene_understanding",
-                    question=(f"في سلسلة مشاهد {name} للمحور {quote(f.display)} من {dates[0]} إلى {dates[-1]}، متى بدأ أول "
-                              f"انحراف موثوق في {sector_phrase(k)}؟"),
-                    correct=correct, distractors=head + tail, answerable=answerable, allow_abstain=False,
-                    evidence={"kind": "derived", "records": [field_ref(f)],
-                              "values": {"sector": k, "onset_window": val,
-                                         "scenes": [{"date": dates[i], "valid": r["valid"],
-                                                     "deficit": None if r["deficit"] is None else round(r["deficit"], 4)}
-                                                    for i, r in enumerate(rows)],
-                                         "scene_ids": [t[1].scene_id for t in seg]},
-                              "rule": onset_rule_text(ctx.rules),
-                              "computation": "لكل مشهد: حصة البكسلات البالغة العتبة في القطاع وفي بقية الحقل؛ استبعاد المشاهد غير "
-                                             "الصالحة؛ أول مشهدين صالحين متتاليين بفارق ≥ العتبة"
-                                             + ("" if answerable else "؛ الانحراف قائم منذ أول مشهد صالح، فبدايته غير معروفة"),
-                              "synthetic_raster": any(t[1].synthetic for t in seg)},
-                    context=Cards().field(f, True).text(onset_rule_text(ctx.rules)).text(
-                        f"جدول المحسوب من الطبقات لـ{sector_phrase(k)} (العتبة {name} ≥ {seg[0][2]}):\n{table}"),
-                    key={"field": f.key, "index": name, "from": dates[0], "to": dates[-1], "sector": k}, answer_value=val)
+                    ctx,
+                    family=fam,
+                    level="scene_understanding",
+                    question=(
+                        f"في سلسلة مشاهد {name} للمحور {quote(f.display)} من {dates[0]} إلى {dates[-1]}، متى بدأ أول "
+                        f"انحراف موثوق في {sector_phrase(k)}؟"
+                    ),
+                    correct=correct,
+                    distractors=head + tail,
+                    answerable=answerable,
+                    allow_abstain=False,
+                    evidence={
+                        "kind": "derived",
+                        "records": [field_ref(f)],
+                        "values": {
+                            "sector": k,
+                            "onset_window": val,
+                            "scenes": [
+                                {
+                                    "date": dates[i],
+                                    "valid": r["valid"],
+                                    "deficit": None
+                                    if r["deficit"] is None
+                                    else round(r["deficit"], 4),
+                                }
+                                for i, r in enumerate(rows)
+                            ],
+                            "scene_ids": [t[1].scene_id for t in seg],
+                        },
+                        "rule": onset_rule_text(ctx.rules),
+                        "computation": "لكل مشهد: حصة البكسلات البالغة العتبة في القطاع وفي بقية الحقل؛ استبعاد المشاهد غير "
+                        "الصالحة؛ أول مشهدين صالحين متتاليين بفارق ≥ العتبة"
+                        + (
+                            ""
+                            if answerable
+                            else "؛ الانحراف قائم منذ أول مشهد صالح، فبدايته غير معروفة"
+                        ),
+                        "synthetic_raster": any(t[1].synthetic for t in seg),
+                    },
+                    context=Cards()
+                    .field(f, True)
+                    .text(onset_rule_text(ctx.rules))
+                    .text(
+                        f"جدول المحسوب من الطبقات لـ{sector_phrase(k)} (العتبة {name} ≥ {seg[0][2]}):\n{table}"
+                    ),
+                    key={
+                        "field": f.key,
+                        "index": name,
+                        "from": dates[0],
+                        "to": dates[-1],
+                        "sector": k,
+                    },
+                    answer_value=val,
+                )
                 if it:
                     yield it
 
 
 def green_rule_text(name, thr) -> str:
-    return (f"قاعدة تجاوز العتبة: أول قيمة يومية لـ{name} ≥ {thr} تتبعها قيمة أخرى ≥ {thr} مباشرة؛ "
-            "التجاوز يقع بين تلك الرصدة والرصدة التي قبلها؛ وإذا كانت أول رصدة في الفترة فوق العتبة فالتجاوز سبق الفترة "
-            "والبيانات المتاحة لا تكفي لتحديد نافذته")
+    return (
+        f"قاعدة تجاوز العتبة: أول قيمة يومية لـ{name} ≥ {thr} تتبعها قيمة أخرى ≥ {thr} مباشرة؛ "
+        "التجاوز يقع بين تلك الرصدة والرصدة التي قبلها؛ وإذا كانت أول رصدة في الفترة فوق العتبة فالتجاوز سبق الفترة "
+        "والبيانات المتاحة لا تكفي لتحديد نافذته"
+    )
 
 
 def gen_green_up_window(ctx: GenContext):
@@ -347,7 +478,9 @@ def gen_green_up_window(ctx: GenContext):
                 continue
             vals = [v for _, v, _ in pts]
             dates = [str(d) for d, _, _ in pts]
-            k = next((i for i in range(len(vals) - 1) if vals[i] >= thr and vals[i + 1] >= thr), None)
+            k = next(
+                (i for i in range(len(vals) - 1) if vals[i] >= thr and vals[i + 1] >= thr), None
+            )
             upto = len(vals) if k is None else k + 2
             if any(abs(v - thr) < gu["margin"] for v in vals[:upto]):
                 ctx.skip(fam, "value_near_threshold")
@@ -365,20 +498,38 @@ def gen_green_up_window(ctx: GenContext):
             distractors = ([never] if correct != never else []) + list(dict.fromkeys(pool))
             inds = [i for _, _, day in pts for i in day]
             it = make_item(
-                ctx, family=fam, level="scene_understanding",
-                question=(f"خلال الفترة من {dates[0]} إلى {dates[-1]}، متى تجاوز مؤشر {name} في الحقل {quote(f.display)} "
-                          f"العتبة {thr} لأول مرة بشكل مستمر؟"),
-                correct=correct, distractors=distractors, answerable=k != 0, allow_abstain=False,
-                evidence={"kind": "derived", "records": [field_ref(f)] + [indicator_ref(i) for i in inds],
-                          "values": {"threshold": thr, "first_sustained_index": k, "window": val,
-                                     "daily_values": dict(zip(dates, [round(v, 4) for v in vals]))},
-                          "rule": green_rule_text(name, thr),
-                          "computation": f"مسح القيم اليومية بالترتيب حتى أول قيمتين متتاليتين ≥ العتبة؛ {DAILY_NOTE}"
-                                         + ("" if k != 0 else "؛ أول رصدة فوق العتبة فبداية التجاوز قبل الفترة"),
-                          "caveats": ["تجاوز العتبة مؤشر على تكوّن الغطاء النباتي لا على تاريخ الإنبات نفسه؛ "
-                                      "دقة النافذة محدودة بتباعد الرصدات"]},
+                ctx,
+                family=fam,
+                level="scene_understanding",
+                question=(
+                    f"خلال الفترة من {dates[0]} إلى {dates[-1]}، متى تجاوز مؤشر {name} في الحقل {quote(f.display)} "
+                    f"العتبة {thr} لأول مرة بشكل مستمر؟"
+                ),
+                correct=correct,
+                distractors=distractors,
+                answerable=k != 0,
+                allow_abstain=False,
+                evidence={
+                    "kind": "derived",
+                    "records": [field_ref(f)] + [indicator_ref(i) for i in inds],
+                    "values": {
+                        "threshold": thr,
+                        "first_sustained_index": k,
+                        "window": val,
+                        "daily_values": dict(zip(dates, [round(v, 4) for v in vals], strict=False)),
+                    },
+                    "rule": green_rule_text(name, thr),
+                    "computation": f"مسح القيم اليومية بالترتيب حتى أول قيمتين متتاليتين ≥ العتبة؛ {DAILY_NOTE}"
+                    + ("" if k != 0 else "؛ أول رصدة فوق العتبة فبداية التجاوز قبل الفترة"),
+                    "caveats": [
+                        "تجاوز العتبة مؤشر على تكوّن الغطاء النباتي لا على تاريخ الإنبات نفسه؛ "
+                        "دقة النافذة محدودة بتباعد الرصدات"
+                    ],
+                },
                 context=Cards().field(f).indicators(inds).text(green_rule_text(name, thr)),
-                key={"field": fk, "index": name, "from": dates[0], "to": dates[-1]}, answer_value=val)
+                key={"field": fk, "index": name, "from": dates[0], "to": dates[-1]},
+                answer_value=val,
+            )
             if it:
                 yield it
 

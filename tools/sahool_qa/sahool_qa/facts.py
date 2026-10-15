@@ -11,6 +11,7 @@ Contracts (0.2.0):
 * Measurements failing quality control are removed from the usable value and
   kept in `qc` with the reason, so questions become abstentions.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -52,7 +53,9 @@ def parse_ts(v) -> dt.datetime | None:
     if len(s) > 10 and s[10] == " ":
         m = _TIME_OFFSET.match(s[11:])
         if m:
-            s = f"{s[:10]} {m.group(1)}" + (f"{m.group(2)}:{m.group(3) or '00'}" if m.group(2) else "")
+            s = f"{s[:10]} {m.group(1)}" + (
+                f"{m.group(2)}:{m.group(3) or '00'}" if m.group(2) else ""
+            )
     try:
         return dt.datetime.fromisoformat(s)
     except ValueError:
@@ -83,7 +86,14 @@ def to_float_raw(v) -> float | None:
         return float("nan")
 
 
-EC_UNIT_FACTORS = {"ds/m": 1.0, "ms/cm": 1.0, "mmhos/cm": 1.0, "µs/cm": 0.001, "us/cm": 0.001, "μs/cm": 0.001}
+EC_UNIT_FACTORS = {
+    "ds/m": 1.0,
+    "ms/cm": 1.0,
+    "mmhos/cm": 1.0,
+    "µs/cm": 0.001,
+    "us/cm": 0.001,
+    "μs/cm": 0.001,
+}
 # TDS reported as ppm / mg/L: EC (dS/m) ≈ TDS / 640 (FAO 29 Rev.1, valid roughly for EC < 5 dS/m).
 # Approximate, so answers near a class boundary are not generated from it.
 TDS_UNITS = {"ppm", "mg/l", "mg/liter", "ppmtds", "tds(ppm)"}
@@ -101,9 +111,9 @@ class Field:
     area_ha_stored: float | None = None
     lat: float | None = None
     lon: float | None = None
-    geom: Geometry | None = None             # usable geometry (None when missing or quarantined)
-    db_area_m2: float | None = None          # PostGIS ST_Area(geography), if cross-checked
-    geom_raw: Geometry | None = None         # as loaded, kept for audit when quarantined
+    geom: Geometry | None = None  # usable geometry (None when missing or quarantined)
+    db_area_m2: float | None = None  # PostGIS ST_Area(geography), if cross-checked
+    geom_raw: Geometry | None = None  # as loaded, kept for audit when quarantined
     geom_problems: list = field(default_factory=list)
 
     @property
@@ -136,7 +146,7 @@ class SoilSample:
     point: tuple[float, float] | None = None
     tenant: str | None = None
     record_id: str | None = None
-    qc: dict = field(default_factory=dict)   # attr -> {"raw": value, "code": reason}
+    qc: dict = field(default_factory=dict)  # attr -> {"raw": value, "code": reason}
 
     MEASURES = ("ph", "ec", "moisture", "n", "p", "k", "om", "depth_cm")
 
@@ -154,7 +164,9 @@ class SoilSample:
 
     @property
     def key(self) -> str:
-        return f"{self.field_key}|{self.sample_id}|{_ts_iso(self.recorded_ts)}|{self.record_id or ''}"
+        return (
+            f"{self.field_key}|{self.sample_id}|{_ts_iso(self.recorded_ts)}|{self.record_id or ''}"
+        )
 
     @property
     def label(self) -> str:
@@ -175,8 +187,10 @@ class Indicator:
     tenant: str | None = None
     record_id: str | None = None
     qc: dict = field(default_factory=dict)
-    water_kind: str | None = None     # rain / et0 / kc / soil_moisture / meter / pump_hours / plan_week
-    conv: float | None = None         # value in the working unit of its water kind, after QC
+    water_kind: str | None = (
+        None  # rain / et0 / kc / soil_moisture / meter / pump_hours / plan_week
+    )
+    conv: float | None = None  # value in the working unit of its water kind, after QC
 
     @property
     def recorded_at(self) -> dt.date | None:
@@ -212,26 +226,30 @@ class Indicator:
 @dataclass
 class RasterLayer:
     path: str
-    index_name: str            # e.g. "SAVI"
+    index_name: str  # e.g. "SAVI"
     date: dt.date | None
-    crs: str                   # "EPSG:4326" or "EPSG:326xx"
-    transform: tuple           # GDAL geotransform (x0, dx, rx, y0, ry, dy)
+    crs: str  # "EPSG:4326" or "EPSG:326xx"
+    transform: tuple  # GDAL geotransform (x0, dx, rx, y0, ry, dy)
     nodata: float | None = None
     scene_id: str | None = None
     synthetic: bool = False
-    role: str = "all"                 # "all" | "timeline-only" (used only by season-timeline families)
-    product_version: str | None = None  # processing baseline / collection, for "as known then" replays
+    role: str = "all"  # "all" | "timeline-only" (used only by season-timeline families)
+    product_version: str | None = (
+        None  # processing baseline / collection, for "as known then" replays
+    )
     _array: object = field(default=None, repr=False)
 
     @property
     def key(self) -> str:
         """Location-independent identity (item ids must not depend on file paths)."""
         from pathlib import Path
+
         return f"{self.index_name}:{self.date}:{self.scene_id or Path(self.path).name}"
 
     def array(self):
         if self._array is None:
             import numpy as np
+
             self._array = np.load(self.path, allow_pickle=False)
         return self._array
 
@@ -247,7 +265,7 @@ class RasterLayer:
 
 @dataclass
 class FactStore:
-    fields: dict[str, Field] = field(default_factory=dict)      # key = "<tenant>::<field_id>"
+    fields: dict[str, Field] = field(default_factory=dict)  # key = "<tenant>::<field_id>"
     soil: list[SoilSample] = field(default_factory=list)
     indicators: list[Indicator] = field(default_factory=list)
     rasters: list[RasterLayer] = field(default_factory=list)
@@ -255,7 +273,7 @@ class FactStore:
     source: str = ""
     tenant_scope: str = ""
     provenance: dict = field(default_factory=dict)
-    rejected: Counter = field(default_factory=Counter)          # reason -> count of records not admitted
+    rejected: Counter = field(default_factory=Counter)  # reason -> count of records not admitted
     boundary_tolerance_m: float = 1.0
     prepared: bool = False
 
@@ -292,7 +310,9 @@ class FactStore:
         for rec in (*self.soil, *self.indicators):
             if rec.recorded_ts is not None:
                 ts = rec.recorded_ts
-                rec.recorded_ts = ts.replace(tzinfo=local) if ts.tzinfo is None else ts.astimezone(local)
+                rec.recorded_ts = (
+                    ts.replace(tzinfo=local) if ts.tzinfo is None else ts.astimezone(local)
+                )
         lim = rules["qc_ranges"]
         for s in self.soil:
             for attr in SoilSample.MEASURES:
@@ -313,7 +333,9 @@ class FactStore:
             if not math.isfinite(i.value):
                 i.qc["value"] = {"raw": str(i.value), "code": "value_not_finite"}
                 i.value = None
-            elif match_any(i.indicator_id, veg) and not (lim["vegetation_index"][0] <= i.value <= lim["vegetation_index"][1]):
+            elif match_any(i.indicator_id, veg) and not (
+                lim["vegetation_index"][0] <= i.value <= lim["vegetation_index"][1]
+            ):
                 i.qc["value"] = {"raw": i.value, "code": "index_out_of_range"}
                 i.value = None
             elif match_any(i.indicator_id, wat):
@@ -329,7 +351,9 @@ class FactStore:
         pats = rules["indicator_patterns"]
         units, ranges = rules.get("water_units", {}), rules.get("water_ranges", {})
         for i in self.indicators:
-            i.water_kind = next((k for k in units if match_any(i.indicator_id, pats.get(k, []))), None)
+            i.water_kind = next(
+                (k for k in units if match_any(i.indicator_id, pats.get(k, []))), None
+            )
             if i.water_kind is None or i.value is None:
                 continue
             factor = units[i.water_kind].get(i.unit_norm or "")
@@ -357,7 +381,10 @@ class FactStore:
 
     # ── association between records and fields ──
     def _spatial(self, f: Field, point) -> bool:
-        return f.geom.contains(*point) and f.geom.boundary_distance_m(*point) >= self.boundary_tolerance_m
+        return (
+            f.geom.contains(*point)
+            and f.geom.boundary_distance_m(*point) >= self.boundary_tolerance_m
+        )
 
     def samples_for(self, f: Field) -> list[tuple[SoilSample, str]]:
         """Samples of the same tenant belonging to a field.
@@ -379,7 +406,9 @@ class FactStore:
                 out.append((s, "field_id"))
         return out
 
-    def indicators_for(self, f: Field, patterns: list[str] | None = None) -> list[tuple[Indicator, str]]:
+    def indicators_for(
+        self, f: Field, patterns: list[str] | None = None
+    ) -> list[tuple[Indicator, str]]:
         tk = tenant_key(f.tenant)
         out = []
         for ind in self.indicators:

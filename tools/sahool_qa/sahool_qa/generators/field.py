@@ -1,6 +1,7 @@
 """Level 2 — فهم الهدف: field shape, pivot radius, crop, soil/water classes,
 nutrients. Missing values AND values rejected by quality control yield
 abstention items (correct answer = no reliable data)."""
+
 from __future__ import annotations
 
 import math
@@ -20,9 +21,25 @@ SHAPES = {
     "rect": "مستطيل أو قريب من المستطيل",
     "irregular": "مضلع غير منتظم",
 }
-SHAPE_RULE = ("قاعدة الشكل: دائري إذا كان التراصّ 4πA/P² ≥ 0.95؛ وإلا شريط ضيق إذا ملأ المضلع ≥ 85% من أصغر "
-              "مستطيل يحيط به وكان طوله ≥ 4 أضعاف عرضه؛ وإلا مستطيل إذا ملأ ≥ 90% منه؛ وإلا مضلع غير منتظم")
-YEMEN_CROPS = ["قمح", "ذرة رفيعة", "شعير", "دخن", "برسيم", "طماطم", "بصل", "بطاطس", "سمسم", "بن", "نخيل", "مانجو", "قات"]
+SHAPE_RULE = (
+    "قاعدة الشكل: دائري إذا كان التراصّ 4πA/P² ≥ 0.95؛ وإلا شريط ضيق إذا ملأ المضلع ≥ 85% من أصغر "
+    "مستطيل يحيط به وكان طوله ≥ 4 أضعاف عرضه؛ وإلا مستطيل إذا ملأ ≥ 90% منه؛ وإلا مضلع غير منتظم"
+)
+YEMEN_CROPS = [
+    "قمح",
+    "ذرة رفيعة",
+    "شعير",
+    "دخن",
+    "برسيم",
+    "طماطم",
+    "بصل",
+    "بطاطس",
+    "سمسم",
+    "بن",
+    "نخيل",
+    "مانجو",
+    "قات",
+]
 
 
 def shape_class(f, rules) -> tuple[str | None, dict]:
@@ -55,13 +72,26 @@ def gen_shape(ctx: GenContext):
             ctx.skip(fam, "shape_metric_near_threshold")
             continue
         it = make_item(
-            ctx, family=fam, level=LEVEL,
+            ctx,
+            family=fam,
+            level=LEVEL,
             question=f"ما الوصف الأدق لشكل حدود الحقل {quote(f.display)} كما هي مرسومة في المنصة؟",
-            correct=SHAPES[cls], distractors=[t for k, t in SHAPES.items() if k != cls],
-            evidence={"kind": "derived", "records": [field_ref(f)], "values": m,
-                      "computation": ("تراصّ Polsby–Popper = 4πA/P²؛ نسبة الملء = المساحة ÷ مساحة أصغر مستطيل محيط؛ "
-                                      "دائري إذا التراصّ ≥ 0.95، شريط إذا الملء ≥ 0.85 والاستطالة ≥ 4، مستطيل إذا الملء ≥ 0.90")},
-            context=Cards().field(f, True).text(SHAPE_RULE), key={"field": f.key}, allow_abstain=False, answer_value=cls)
+            correct=SHAPES[cls],
+            distractors=[t for k, t in SHAPES.items() if k != cls],
+            evidence={
+                "kind": "derived",
+                "records": [field_ref(f)],
+                "values": m,
+                "computation": (
+                    "تراصّ Polsby–Popper = 4πA/P²؛ نسبة الملء = المساحة ÷ مساحة أصغر مستطيل محيط؛ "
+                    "دائري إذا التراصّ ≥ 0.95، شريط إذا الملء ≥ 0.85 والاستطالة ≥ 4، مستطيل إذا الملء ≥ 0.90"
+                ),
+            },
+            context=Cards().field(f, True).text(SHAPE_RULE),
+            key={"field": f.key},
+            allow_abstain=False,
+            answer_value=cls,
+        )
         if it:
             yield it
 
@@ -75,12 +105,27 @@ def gen_pivot_radius(ctx: GenContext):
         r = math.sqrt(f.geom.area_m2 / math.pi)
         correct, dists, meta = bin_options(r, 0.06, "م", ctx.rng(f"{fam}:{f.key}"), min_width=25)
         it = make_item(
-            ctx, family=fam, level=LEVEL,
+            ctx,
+            family=fam,
+            level=LEVEL,
             question=f"حدود الحقل {quote(f.display)} دائرية. ما نصف القطر المكافئ لمساحتها (الطول التقريبي لذراع المحور)؟",
-            correct=correct, distractors=dists,
-            evidence={"kind": "derived", "records": [field_ref(f)], "values": {"radius_m": round(r, 1), "area_m2": round(f.geom.area_m2, 1), **m, **meta},
-                      "computation": "r = √(A/π) من المساحة الإهليلجية التقريبية للمضلع"},
-            context=Cards().field(f, True), key={"field": f.key}, answer_value=round(r, 1))
+            correct=correct,
+            distractors=dists,
+            evidence={
+                "kind": "derived",
+                "records": [field_ref(f)],
+                "values": {
+                    "radius_m": round(r, 1),
+                    "area_m2": round(f.geom.area_m2, 1),
+                    **m,
+                    **meta,
+                },
+                "computation": "r = √(A/π) من المساحة الإهليلجية التقريبية للمضلع",
+            },
+            context=Cards().field(f, True),
+            key={"field": f.key},
+            answer_value=round(r, 1),
+        )
         if it:
             yield it
 
@@ -93,12 +138,24 @@ def gen_crop(ctx: GenContext):
         pool = [c for c in dict.fromkeys(known + YEMEN_CROPS) if c != f.crop]
         rng.shuffle(pool)
         it = make_item(
-            ctx, family=fam, level=LEVEL,
+            ctx,
+            family=fam,
+            level=LEVEL,
             question=f"ما المحصول المسجّل حالياً للحقل {quote(f.display)} في المنصة؟",
-            correct=f.crop, distractors=pool[:3], answerable=bool(f.crop),
-            evidence={"kind": "observed", "records": [field_ref(f)], "values": {"crop": f.crop},
-                      "computation": "قراءة مباشرة لعمود crop" + ("" if f.crop else " — القيمة فارغة، فالإجابة الصحيحة هي الامتناع")},
-            context=Cards().field(f), key={"field": f.key, "crop": f.crop}, answer_value=f.crop)
+            correct=f.crop,
+            distractors=pool[:3],
+            answerable=bool(f.crop),
+            evidence={
+                "kind": "observed",
+                "records": [field_ref(f)],
+                "values": {"crop": f.crop},
+                "computation": "قراءة مباشرة لعمود crop"
+                + ("" if f.crop else " — القيمة فارغة، فالإجابة الصحيحة هي الامتناع"),
+            },
+            context=Cards().field(f),
+            key={"field": f.key, "crop": f.crop},
+            answer_value=f.crop,
+        )
         if it:
             yield it
 
@@ -110,7 +167,9 @@ def _missing_reason(rec, attr: str) -> str:
     return f"قيمة {attr} غير مسجّلة (NULL وليست صفراً)، فالإجابة الصحيحة هي الامتناع"
 
 
-def _class_family(ctx, fam, attr, label_ar, unit, classes_key, *, upper_inclusive=False, caveats=None):
+def _class_family(
+    ctx, fam, attr, label_ar, unit, classes_key, *, upper_inclusive=False, caveats=None
+):
     classes = ctx.rules[classes_key]
     labels = [c["label"] for c in classes]
     rule = describe_classes(classes, unit, upper_inclusive)
@@ -122,22 +181,41 @@ def _class_family(ctx, fam, attr, label_ar, unit, classes_key, *, upper_inclusiv
         answerable = val is not None
         correct = classify(val, classes, upper_inclusive) if answerable else None
         it = make_item(
-            ctx, family=fam, level=LEVEL,
+            ctx,
+            family=fam,
+            level=LEVEL,
             question=f"ما تصنيف {label_ar} للعينة {quote(s.label)} وفق قواعد سهول؟",
-            correct=correct, distractors=[x for x in labels if x != correct][:3],
+            correct=correct,
+            distractors=[x for x in labels if x != correct][:3],
             answerable=answerable,
-            evidence={"kind": "derived", "records": [sample_ref(s)], "values": {attr: val, "qc": s.qc.get(attr)}, "rule": rule,
-                      "computation": "تطبيق جدول العتبات على القيمة المخبرية المسجّلة" if answerable else _missing_reason(s, attr),
-                      "caveats": caveats or []},
+            evidence={
+                "kind": "derived",
+                "records": [sample_ref(s)],
+                "values": {attr: val, "qc": s.qc.get(attr)},
+                "rule": rule,
+                "computation": "تطبيق جدول العتبات على القيمة المخبرية المسجّلة"
+                if answerable
+                else _missing_reason(s, attr),
+                "caveats": caveats or [],
+            },
             context=Cards().samples([s]).text(f"قاعدة التصنيف: {rule}"),
-            key={"sample": s.key, "attr": attr}, answer_value=val)
+            key={"sample": s.key, "attr": attr},
+            answer_value=val,
+        )
         if it:
             yield it
 
 
 def gen_salinity_class(ctx: GenContext):
-    yield from _class_family(ctx, "soil.salinity_class", "ec", "ملوحة التربة", "dS/m", "soil_salinity_classes",
-                             caveats=[EC_CAVEAT])
+    yield from _class_family(
+        ctx,
+        "soil.salinity_class",
+        "ec",
+        "ملوحة التربة",
+        "dS/m",
+        "soil_salinity_classes",
+        caveats=[EC_CAVEAT],
+    )
 
 
 def gen_ph_class(ctx: GenContext):
@@ -163,17 +241,30 @@ def gen_nutrient(ctx: GenContext):
             name, min_w = NUTRIENTS[a]
             val = getattr(s, a)
             base = val if val is not None else typical[a]
-            correct, dists, meta = bin_options(base, 0.2, "mg/kg", ctx.rng(f"{fam}:{s.key}:{a}"), min_width=min_w)
+            correct, dists, meta = bin_options(
+                base, 0.2, "mg/kg", ctx.rng(f"{fam}:{s.key}:{a}"), min_width=min_w
+            )
             answerable = val is not None
             it = make_item(
-                ctx, family=fam, level=LEVEL,
+                ctx,
+                family=fam,
+                level=LEVEL,
                 question=f"ما تركيز {name} في عينة التربة {quote(s.label)} (mg/kg)؟",
                 correct=correct if answerable else None,
                 distractors=dists if answerable else [correct] + dists[:2],
                 answerable=answerable,
-                evidence={"kind": "observed", "records": [sample_ref(s)], "values": {a: val, "qc": s.qc.get(a), **(meta if answerable else {})},
-                          "computation": "قراءة مباشرة مع تحويلها إلى فئة" if answerable else _missing_reason(s, a)},
-                context=Cards().samples([s]), key={"sample": s.key, "nutrient": a}, answer_value=val)
+                evidence={
+                    "kind": "observed",
+                    "records": [sample_ref(s)],
+                    "values": {a: val, "qc": s.qc.get(a), **(meta if answerable else {})},
+                    "computation": "قراءة مباشرة مع تحويلها إلى فئة"
+                    if answerable
+                    else _missing_reason(s, a),
+                },
+                context=Cards().samples([s]),
+                key={"sample": s.key, "nutrient": a},
+                answer_value=val,
+            )
             if it:
                 yield it
 
@@ -195,8 +286,10 @@ def gen_water_class(ctx: GenContext):
             if min(abs(ec - e) / e for e in edges) < 0.10:
                 ctx.skip(fam, "approx_tds_conversion_near_boundary")
                 continue
-            caveats.append("القيمة TDS بوحدة ppm حُوّلت تقريبياً: EC ≈ TDS ÷ 640 (FAO 29 Rev.1)؛ "
-                           "لا يُولَّد السؤال إذا كانت النتيجة ضمن 10% من حدّ فئة")
+            caveats.append(
+                "القيمة TDS بوحدة ppm حُوّلت تقريبياً: EC ≈ TDS ÷ 640 (FAO 29 Rev.1)؛ "
+                "لا يُولَّد السؤال إذا كانت النتيجة ضمن 10% من حدّ فئة"
+            )
         correct = classify(ec, classes) if answerable else None
         if answerable:
             why = "تحويل القيمة إلى dS/m ثم تطبيق عتبات USSL"
@@ -205,16 +298,30 @@ def gen_water_class(ctx: GenContext):
         else:
             why = _missing_reason(ind, "value")
         it = make_item(
-            ctx, family=fam, level=LEVEL,
+            ctx,
+            family=fam,
+            level=LEVEL,
             question=f"ما فئة خطر الملوحة لمياه الري في المؤشر {quote(ind.indicator_id)} حسب تصنيف مختبر الملوحة الأمريكي (USSL)؟",
-            correct=correct, distractors=[c["label"] for c in classes if c["label"] != correct][:3],
+            correct=correct,
+            distractors=[c["label"] for c in classes if c["label"] != correct][:3],
             answerable=answerable,
-            evidence={"kind": "derived", "records": [indicator_ref(ind)], "values": {"ec_dsm": ec, "raw_value": ind.value, "unit": ind.unit or NA,
-                                                                  "qc": qc}, "rule": rule, "computation": why,
-                      "caveats": caveats},
-            context=Cards().indicators([ind]).text(f"قاعدة التصنيف: {rule}؛ تحويل الوحدات: µS/cm ÷ 1000؛ "
-                                                   "mS/cm = dS/m؛ TDS بوحدة ppm أو mg/L ≈ 640 × EC (تقريبي)"),
-            key={"ind": ind.key}, answer_value=ec if answerable else None)
+            evidence={
+                "kind": "derived",
+                "records": [indicator_ref(ind)],
+                "values": {"ec_dsm": ec, "raw_value": ind.value, "unit": ind.unit or NA, "qc": qc},
+                "rule": rule,
+                "computation": why,
+                "caveats": caveats,
+            },
+            context=Cards()
+            .indicators([ind])
+            .text(
+                f"قاعدة التصنيف: {rule}؛ تحويل الوحدات: µS/cm ÷ 1000؛ "
+                "mS/cm = dS/m؛ TDS بوحدة ppm أو mg/L ≈ 640 × EC (تقريبي)"
+            ),
+            key={"ind": ind.key},
+            answer_value=ec if answerable else None,
+        )
         if it:
             yield it
 

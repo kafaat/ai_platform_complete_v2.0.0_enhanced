@@ -10,6 +10,7 @@ matters for SAHOOL's recommendation confidence:
   * false abstention   — chose "no data" when the answer was available;
 and the chance baseline, so a score can be read against random guessing.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,8 +21,8 @@ from pathlib import Path
 from .arabic import LETTERS, normalize
 from .config import ABSTAIN_TEXT, LEVELS
 
-_LATIN = dict(zip("ABCDE", LETTERS))
-_NLET = {normalize(l): l for l in LETTERS}
+_LATIN = dict(zip("ABCDE", LETTERS, strict=False))
+_NLET = {normalize(ln): ln for ln in LETTERS}
 
 
 def read_jsonl(paths) -> list[dict]:
@@ -84,17 +85,35 @@ def score(gold: list[dict], preds: list[dict]) -> dict:
             abstain_key = it["answer"]
         else:
             abstain_key = next((o["key"] for o in it["options"] if o["text"] == ABSTAIN_TEXT), None)
-        rows.append({
-            "id": it["id"], "split": it.get("split", "?"), "level": it["level"], "family": it["family"],
-            "answerable": it["answerable"], "abstain_offered": abstain_key is not None,
-            "missing": it["id"] not in pmap, "unparsed": it["id"] in pmap and chosen is None,
-            "valid": chosen is not None, "chosen": chosen,
-            "chose_abstain": chosen is not None and chosen == abstain_key,
-            "correct": chosen is not None and chosen == it["answer"], "chance": 1 / len(it["options"]),
-        })
-    by = lambda key: {k: {"n": len(v), "valid": sum(r["valid"] for r in v), "accuracy": _acc(v),  # noqa: E731
-                          "accuracy_on_valid": _acc([r for r in v if r["valid"]])}
-                      for k, v in sorted(_group(rows, key).items())}
+        rows.append(
+            {
+                "id": it["id"],
+                "split": it.get("split", "?"),
+                "level": it["level"],
+                "family": it["family"],
+                "answerable": it["answerable"],
+                "abstain_offered": abstain_key is not None,
+                "missing": it["id"] not in pmap,
+                "unparsed": it["id"] in pmap and chosen is None,
+                "valid": chosen is not None,
+                "chosen": chosen,
+                "chose_abstain": chosen is not None and chosen == abstain_key,
+                "correct": chosen is not None and chosen == it["answer"],
+                "chance": 1 / len(it["options"]),
+            }
+        )
+
+    def by(key):
+        return {
+            k: {
+                "n": len(v),
+                "valid": sum(r["valid"] for r in v),
+                "accuracy": _acc(v),  # noqa: E731
+                "accuracy_on_valid": _acc([r for r in v if r["valid"]]),
+            }
+            for k, v in sorted(_group(rows, key).items())
+        }
+
     valid = [r for r in rows if r["valid"]]
     unans = [r for r in rows if not r["answerable"]]
     unans_valid = [r for r in unans if r["valid"]]
@@ -114,11 +133,19 @@ def score(gold: list[dict], preds: list[dict]) -> dict:
             "unanswerable_items": len(unans),
             "valid_predictions": len(unans_valid),
             "invalid_predictions": len(unans) - len(unans_valid),
-            "correct_abstention_rate": _rate(sum(r["chose_abstain"] for r in unans_valid), len(unans_valid)),
-            "hallucination_rate": _rate(sum(not r["chose_abstain"] for r in unans_valid), len(unans_valid)),
-            "abstention_failure_incl_invalid": _rate(sum(not r["chose_abstain"] for r in unans), len(unans)),
+            "correct_abstention_rate": _rate(
+                sum(r["chose_abstain"] for r in unans_valid), len(unans_valid)
+            ),
+            "hallucination_rate": _rate(
+                sum(not r["chose_abstain"] for r in unans_valid), len(unans_valid)
+            ),
+            "abstention_failure_incl_invalid": _rate(
+                sum(not r["chose_abstain"] for r in unans), len(unans)
+            ),
             "answerable_with_abstain_offered_valid": len(ans_off_valid),
-            "false_abstention_rate": _rate(sum(r["chose_abstain"] for r in ans_off_valid), len(ans_off_valid)),
+            "false_abstention_rate": _rate(
+                sum(r["chose_abstain"] for r in ans_off_valid), len(ans_off_valid)
+            ),
         },
         "predicted_letters": dict(Counter(r["chosen"] for r in valid)),
         "rows": rows,
@@ -134,16 +161,23 @@ def _group(rows, key):
 
 def render(report: dict) -> str:
     pct = lambda x: "—" if x is None else f"{100 * x:.1f}%"  # noqa: E731
-    out = [f"الأسئلة: {report['n_items']} | التغطية: {pct(report['coverage'])} | الدقة: {pct(report['accuracy'])} "
-           f"(على التنبؤات الصالحة {pct(report['accuracy_on_valid'])}) | خط الصدفة: {pct(report['chance_accuracy'])}",
-           f"تنبؤات مفقودة: {report['missing_predictions']} | غير مفهومة: {report['unparsed_predictions']}", "",
-           "| المستوى | العدد | الدقة |", "|---|---|---|"]
+    out = [
+        f"الأسئلة: {report['n_items']} | التغطية: {pct(report['coverage'])} | الدقة: {pct(report['accuracy'])} "
+        f"(على التنبؤات الصالحة {pct(report['accuracy_on_valid'])}) | خط الصدفة: {pct(report['chance_accuracy'])}",
+        f"تنبؤات مفقودة: {report['missing_predictions']} | غير مفهومة: {report['unparsed_predictions']}",
+        "",
+        "| المستوى | العدد | الدقة |",
+        "|---|---|---|",
+    ]
     out += [f"| {k} | {v['n']} | {pct(v['accuracy'])} |" for k, v in report["by_level"].items()]
     out += ["", "| العائلة | العدد | الدقة |", "|---|---|---|"]
     out += [f"| {k} | {v['n']} | {pct(v['accuracy'])} |" for k, v in report["by_family"].items()]
     a = report["abstention"]
-    out += ["", f"الامتناع: {a['unanswerable_items']} سؤالاً بلا بيانات موثوقة، منها {a['valid_predictions']} بتنبؤ صالح — "
-                f"امتناع صحيح {pct(a['correct_abstention_rate'])}، هلوسة {pct(a['hallucination_rate'])} (من التنبؤات الصالحة)؛ "
-                f"إخفاق الامتناع شاملاً غير الصالح {pct(a['abstention_failure_incl_invalid'])} | "
-                f"امتناع خاطئ عند توفر البيانات: {pct(a['false_abstention_rate'])}"]
+    out += [
+        "",
+        f"الامتناع: {a['unanswerable_items']} سؤالاً بلا بيانات موثوقة، منها {a['valid_predictions']} بتنبؤ صالح — "
+        f"امتناع صحيح {pct(a['correct_abstention_rate'])}، هلوسة {pct(a['hallucination_rate'])} (من التنبؤات الصالحة)؛ "
+        f"إخفاق الامتناع شاملاً غير الصالح {pct(a['abstention_failure_incl_invalid'])} | "
+        f"امتناع خاطئ عند توفر البيانات: {pct(a['false_abstention_rate'])}",
+    ]
     return "\n".join(out)

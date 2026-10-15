@@ -23,17 +23,18 @@ FAO-56 balance (eqs 82-88), daily, from the end of the day of a soil-moisture re
            field capacity leaves as deep percolation. RO = 0 and CR = 0 are assumed.
     Dr,0 = 1000 (θFC - θ0) Zr  clipped to [0, TAW]   (eq 87)
 """
+
 from __future__ import annotations
 
 import datetime as dt
-import statistics
 import math
+import statistics
 from dataclasses import dataclass, field
 
 from .facts import FactStore, Field, Indicator, tenant_key
 
 KINDS = ("rain", "et0", "kc", "soil_moisture", "meter", "pump_hours", "plan_week", "well_status")
-STEP_KINDS = ("kc", "plan_week", "well_status")      # records that hold until the next one
+STEP_KINDS = ("kc", "plan_week", "well_status")  # records that hold until the next one
 TOTALIZERS = ("meter", "pump_hours")
 DAY = dt.timedelta(days=1)
 
@@ -50,16 +51,17 @@ def suffix(indicator_id: str, patterns: list[str]) -> str:
         if "%" in p:
             pre = p.lower().split("%")[0]
             if v.startswith(pre) and len(v) > len(pre):
-                return v[len(pre):]
+                return v[len(pre) :]
     return v
 
 
 @dataclass
 class Series:
     """One indicator id for one field, by local calendar day (records include QC-rejected ones)."""
+
     kind: str
     indicator_id: str
-    records: dict = field(default_factory=dict)        # date -> [Indicator]
+    records: dict = field(default_factory=dict)  # date -> [Indicator]
 
     def value(self, d: dt.date) -> float | None:
         """Usable value of a day, or None. Daily quantities: mean of the day's usable records;
@@ -93,16 +95,21 @@ class Series:
     def ref(self, a: dt.date | None = None, b: dt.date | None = None) -> dict:
         recs = self.between(a, b) if a and b else [r for rs in self.records.values() for r in rs]
         f0 = recs[0] if recs else None
-        return {"table": "field_indicators", "field_key": f0.field_key if f0 else None,
-                "field_id": f0.field_id if f0 else None, "indicator_id": self.indicator_id,
-                "from": str(a) if a else str(self.days()[0]), "to": str(b) if b else str(self.days()[-1]),
-                "n_records": len(recs)}
+        return {
+            "table": "field_indicators",
+            "field_key": f0.field_key if f0 else None,
+            "field_id": f0.field_id if f0 else None,
+            "indicator_id": self.indicator_id,
+            "from": str(a) if a else str(self.days()[0]),
+            "to": str(b) if b else str(self.days()[-1]),
+            "n_records": len(recs),
+        }
 
 
 @dataclass
 class FieldWater:
     field: Field
-    series: dict                                         # kind -> {suffix: Series}
+    series: dict  # kind -> {suffix: Series}
 
     def of(self, kind: str) -> dict:
         return self.series.get(kind, {})
@@ -110,7 +117,15 @@ class FieldWater:
     def all_days(self) -> list[dt.date]:
         """Days of the daily series. Kc and plan records are left out: a Kc record often
         precedes the window it applies to, and a plan week runs past its record date."""
-        return sorted({d for k in KINDS if k not in STEP_KINDS for s in self.of(k).values() for d in s.records})
+        return sorted(
+            {
+                d
+                for k in KINDS
+                if k not in STEP_KINDS
+                for s in self.of(k).values()
+                for d in s.records
+            }
+        )
 
     def has_any(self) -> bool:
         return any(self.of(k) for k in KINDS)
@@ -145,23 +160,31 @@ def meter_owners(store: FactStore, rules: dict) -> dict:
 
 # ───────────────────────── cumulative meters ─────────────────────────
 
+
 def meter_records(s: Series, a: dt.date, b: dt.date) -> list[Indicator]:
     """Raw usable readings between the selected end-of-day endpoints, inclusive.
     A reset before the starting endpoint or after the ending endpoint is irrelevant.
     """
+
     def endpoint(day):
         rows = [r for r in s.records.get(day, []) if r.conv is not None]
         return max(rows, key=lambda r: (r.recorded_ts, r.key)) if rows else None
+
     first, last = endpoint(a), endpoint(b)
     if first is None or last is None:
         return []
-    return sorted((r for r in s.between(a, b) if r.conv is not None
-                   and first.recorded_ts <= r.recorded_ts <= last.recorded_ts),
-                  key=lambda r: (r.recorded_ts, r.key))
+    return sorted(
+        (
+            r
+            for r in s.between(a, b)
+            if r.conv is not None and first.recorded_ts <= r.recorded_ts <= last.recorded_ts
+        ),
+        key=lambda r: (r.recorded_ts, r.key),
+    )
 
 
 def meter_sequence_problem(rows: list[Indicator]) -> str | None:
-    for x, y in zip(rows, rows[1:]):
+    for x, y in zip(rows, rows[1:], strict=False):
         if x.recorded_ts == y.recorded_ts and x.conv != y.conv:
             return "meter_timestamp_conflict"
         if y.conv < x.conv:
@@ -188,7 +211,11 @@ def coverage_problem(store: FactStore, fw: FieldWater, rules: dict, a: dt.date, 
         return "well_inventory_missing", fw.field.key
     expected = None
     for day in days_between(a, b):
-        active = [v for v in inventory if dt.date.fromisoformat(v["from"]) <= day <= dt.date.fromisoformat(v["to"])]
+        active = [
+            v
+            for v in inventory
+            if dt.date.fromisoformat(v["from"]) <= day <= dt.date.fromisoformat(v["to"])
+        ]
         if len(active) != 1:
             return "well_inventory_gap", str(day)
         wells = {x.lower() for x in active[0]["wells"]}
@@ -218,10 +245,12 @@ def naive_delta(s: Series, a: dt.date, b: dt.date) -> float:
     """What a reader who ignores gaps and resets would report: the sum of the non-negative
     steps between the usable readings that do exist in [a, b]."""
     vals = [s.value(d) for d in s.usable_days() if a <= d <= b]
-    return sum(max(0.0, y - x) for x, y in zip(vals, vals[1:]))
+    return sum(max(0.0, y - x) for x, y in zip(vals, vals[1:], strict=False))
 
 
-def daily_increments(s: Series, a: dt.date, b: dt.date) -> tuple[dict | None, str | None, dt.date | None]:
+def daily_increments(
+    s: Series, a: dt.date, b: dt.date
+) -> tuple[dict | None, str | None, dt.date | None]:
     """{day: volume between the reading of day-1 and of day} for a < day <= b."""
     prev = s.value(a)
     if prev is None:
@@ -240,6 +269,7 @@ def daily_increments(s: Series, a: dt.date, b: dt.date) -> tuple[dict | None, st
 
 
 # ───────────────────────── parameters and balance ─────────────────────────
+
 
 def norm_soil(s: str | None) -> str | None:
     if not s:
@@ -261,10 +291,21 @@ def field_params(f: Field, rules: dict) -> tuple[dict | None, str | None]:
         return None, "crop_not_in_rules"
     sw, cp = w["soil_water"][soil], w["crops"][crop]
     fc, wp = round(sum(sw["fc"]) / 2, 4), round(sum(sw["wp"]) / 2, 4)
-    zr = {"low": cp["zr"][0], "high": cp["zr"][1]}.get(w.get("zr_choice", "low"), round(sum(cp["zr"]) / 2, 3))
+    zr = {"low": cp["zr"][0], "high": cp["zr"][1]}.get(
+        w.get("zr_choice", "low"), round(sum(cp["zr"]) / 2, 3)
+    )
     taw = 1000 * (fc - wp) * zr
-    return {"soil": soil, "crop": crop, "fao_crop": cp.get("fao"), "fc": fc, "wp": wp, "zr": zr,
-            "p_table": cp["p"], "ea": w["application_efficiency"], "taw": round(taw, 4)}, None
+    return {
+        "soil": soil,
+        "crop": crop,
+        "fao_crop": cp.get("fao"),
+        "fc": fc,
+        "wp": wp,
+        "zr": zr,
+        "p_table": cp["p"],
+        "ea": w["application_efficiency"],
+        "taw": round(taw, 4),
+    }, None
 
 
 def p_adjusted(p_table: float, etc: float) -> float:
@@ -276,11 +317,13 @@ def ks_of(dr: float, taw: float, p: float) -> float:
     return 1.0 if dr <= raw else max(0.0, (taw - dr) / ((1 - p) * taw))
 
 
-def balance(prm: dict, theta0: float, days: list[dt.date], et0: dict, kc: dict, rain: dict,
-            irr_gross: dict) -> tuple[float, list[dict]]:
+def balance(
+    prm: dict, theta0: float, days: list[dt.date], et0: dict, kc: dict, rain: dict, irr_gross: dict
+) -> tuple[float, list[dict]]:
     taw, ea = prm["taw"], prm["ea"]
     if not all(math.isfinite(prm[k]) for k in ("fc", "wp", "zr", "taw", "ea", "p_table")) or not (
-            prm["fc"] > prm["wp"] >= 0 and prm["zr"] > 0 and taw > 0 and 0 < ea <= 1):
+        prm["fc"] > prm["wp"] >= 0 and prm["zr"] > 0 and taw > 0 and 0 < ea <= 1
+    ):
         raise ValueError("invalid root-zone parameters")
     dr = min(max(1000 * (prm["fc"] - theta0) * prm["zr"], 0.0), taw)
     dr0 = dr
@@ -296,9 +339,24 @@ def balance(prm: dict, theta0: float, days: list[dt.date], et0: dict, kc: dict, 
         x = dr - rain[d] - inet + eta
         dp = max(0.0, -x)
         dr = min(max(x, 0.0), taw)
-        rows.append({"date": str(d), "et0": et0[d], "kc": kc[d], "etc": etc, "p": p, "raw": p * taw,
-                     "ks_start": ks, "eta": eta, "eta_unlimited": eta_potential, "rain": rain[d], "irr_gross": irr_gross[d], "irr_net": inet,
-                     "dp": dp, "dr_end": dr})
+        rows.append(
+            {
+                "date": str(d),
+                "et0": et0[d],
+                "kc": kc[d],
+                "etc": etc,
+                "p": p,
+                "raw": p * taw,
+                "ks_start": ks,
+                "eta": eta,
+                "eta_unlimited": eta_potential,
+                "rain": rain[d],
+                "irr_gross": irr_gross[d],
+                "irr_net": inet,
+                "dp": dp,
+                "dr_end": dr,
+            }
+        )
     return dr0, rows
 
 
@@ -314,14 +372,17 @@ kc_on = step_value
 
 # ───────────────────────── well status and the two meters of a well ─────────────────────────
 
-def out_of_service(fw: "FieldWater", well: str, a: dt.date, b: dt.date) -> bool:
+
+def out_of_service(fw: FieldWater, well: str, a: dt.date, b: dt.date) -> bool:
     """True only when a well_status record in force says 0 on every pumping day a+1..b."""
     s = fw.of("well_status").get(well)
     days = days_between(a + DAY, b)
     return s is not None and bool(days) and all(step_value(s, d) == 0 for d in days)
 
 
-def instrument_problem(fw: "FieldWater", well: str, a: dt.date, b: dt.date, rules: dict) -> tuple[str | None, str | None]:
+def instrument_problem(
+    fw: FieldWater, well: str, a: dt.date, b: dt.date, rules: dict
+) -> tuple[str | None, str | None]:
     """Compare the volume meter and the hour meter of one well between consecutive end-of-day
     readings that both exist in [a, b].
 
@@ -337,23 +398,28 @@ def instrument_problem(fw: "FieldWater", well: str, a: dt.date, b: dt.date, rule
         return None, None
     min_h = rules["water"].get("stall_min_hours", 1.0)
     days = [d for d in days_between(a, b) if ms.value(d) is not None]
-    for x, y in zip(days, days[1:]):
+    for x, y in zip(days, days[1:], strict=False):
         dv = ms.value(y) - ms.value(x)
         if dv > 0 and out_of_service(fw, well, x, y):
             return "well_status_conflict", f"{well} {x}..{y}"
     if hs is None:
         return None, None
     days = [d for d in days if hs.value(d) is not None]
-    for x, y in zip(days, days[1:]):
+    for x, y in zip(days, days[1:], strict=False):
         dv, dh = ms.value(y) - ms.value(x), hs.value(y) - hs.value(x)
-        if dh >= min_h and dv == 0 and not out_of_service(fw, well, x, y):     # a drop is a reset, not a stall
+        if (
+            dh >= min_h and dv == 0 and not out_of_service(fw, well, x, y)
+        ):  # a drop is a reset, not a stall
             return "volume_meter_stalled", f"{well} {x}..{y}"
         if dv > 0 and dh <= 0:
             return "hour_meter_stalled", f"{well} {x}..{y}"
     return None, None
 
 
-VOLUME_PROBLEMS = ("volume_meter_stalled", "well_status_conflict")     # make the metered volume unknown
+VOLUME_PROBLEMS = (
+    "volume_meter_stalled",
+    "well_status_conflict",
+)  # make the metered volume unknown
 
 
 def inventory_report(store: FactStore, rules: dict) -> dict:
@@ -381,5 +447,11 @@ def kc_refs(series: Series, a: dt.date, b: dt.date) -> list[dict]:
     dates = series.days()
     preceding = [d for d in dates if d <= a]
     used = ([preceding[-1]] if preceding else []) + [d for d in dates if a < d <= b]
-    return [{**series.ref(d, d), "record_keys": [r.key for r in series.records[d]],
-             "recorded_at": [r.recorded_ts.isoformat() for r in series.records[d]]} for d in used]
+    return [
+        {
+            **series.ref(d, d),
+            "record_keys": [r.key for r in series.records[d]],
+            "recorded_at": [r.recorded_ts.isoformat() for r in series.records[d]],
+        }
+        for d in used
+    ]

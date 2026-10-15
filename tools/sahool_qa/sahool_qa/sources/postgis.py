@@ -12,6 +12,7 @@ Driver: psycopg 3 when installed, otherwise the `psql` client over stdin with
 psql variables (:'name') for every value. Geometry is fetched as GeoJSON and
 measured in Python, so PostGIS is only needed for ST_AsGeoJSON / ST_Transform.
 """
+
 from __future__ import annotations
 
 import csv
@@ -44,14 +45,18 @@ def qident(name: str) -> str:
 
 @dataclass
 class TenantScope:
-    mode: str                 # "tenant" | "null" | "all"
+    mode: str  # "tenant" | "null" | "all"
     value: str | None = None
 
     def describe(self) -> str:
-        return {"tenant": f"tenant_id = {self.value}", "null": "tenant_id IS NULL", "all": "ALL TENANTS"}[self.mode]
+        return {
+            "tenant": f"tenant_id = {self.value}",
+            "null": "tenant_id IS NULL",
+            "all": "ALL TENANTS",
+        }[self.mode]
 
 
-_CUSTOM_GUC = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z0-9_.]+$")   # e.g. app.current_tenant
+_CUSTOM_GUC = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z0-9_.]+$")  # e.g. app.current_tenant
 _BUILTIN_ALLOWED = {"timezone": "TimeZone"}
 _VALUE = re.compile(r"^[\w\-.:/@+]+$")
 
@@ -66,7 +71,13 @@ class Db:
     verified on first use. Use a read-only database role as well.
     """
 
-    def __init__(self, dsn: str, pg_options: list[str] | None = None, timeout_s: int = 120, verify: bool = True):
+    def __init__(
+        self,
+        dsn: str,
+        pg_options: list[str] | None = None,
+        timeout_s: int = 120,
+        verify: bool = True,
+    ):
         self.dsn = dsn
         opts = []
         for o in pg_options or []:
@@ -78,13 +89,16 @@ class Db:
             elif name.lower() in _BUILTIN_ALLOWED:
                 opts.append(f"-c {_BUILTIN_ALLOWED[name.lower()]}={value}")
             else:
-                raise SchemaError(f"--pg-option {name!r} is not allowed: only custom settings such as "
-                                  "app.current_tenant and TimeZone may be set")
+                raise SchemaError(
+                    f"--pg-option {name!r} is not allowed: only custom settings such as "
+                    "app.current_tenant and TimeZone may be set"
+                )
         opts += ["-c default_transaction_read_only=on", f"-c statement_timeout={timeout_s * 1000}"]
         self.options = " ".join(opts)
         self.driver = None
         try:
             import psycopg  # noqa: F401
+
             self.driver = "psycopg"
         except ImportError:
             if shutil.which("psql"):
@@ -95,8 +109,11 @@ class Db:
         self._verified = not verify
 
     def verify_read_only(self):
-        r = self._raw("SELECT current_setting('default_transaction_read_only') AS d, "
-                      "current_setting('transaction_read_only') AS t", {})
+        r = self._raw(
+            "SELECT current_setting('default_transaction_read_only') AS d, "
+            "current_setting('transaction_read_only') AS t",
+            {},
+        )
         if not r or r[0]["d"] != "on" or r[0]["t"] != "on":
             raise SchemaError(f"database session is not read-only: {r}")
         self._verified = True
@@ -108,11 +125,14 @@ class Db:
 
     def _raw(self, sql, params):
         params = {k: (None if v is None else str(v)) for k, v in (params or {}).items()}
-        return self._q_psycopg(sql, params) if self.driver == "psycopg" else self._q_psql(sql, params)
+        return (
+            self._q_psycopg(sql, params) if self.driver == "psycopg" else self._q_psql(sql, params)
+        )
 
     def _q_psycopg(self, sql, params):
         import psycopg
         from psycopg.rows import dict_row
+
         if self._conn is None:
             self._conn = psycopg.connect(self.dsn, options=self.options, autocommit=False)
             self._conn.read_only = True
@@ -129,16 +149,23 @@ class Db:
         if missing:
             raise SchemaError(f"missing SQL parameters: {sorted(missing)}")
         text = _PARAM.sub(lambda m: f":'{m.group(1)}'", sql)
-        script = ("BEGIN TRANSACTION READ ONLY;\n"
-                  f"COPY ({text}) TO STDOUT WITH (FORMAT csv, HEADER true, NULL '\\N');\n"
-                  "ROLLBACK;\n")
+        script = (
+            "BEGIN TRANSACTION READ ONLY;\n"
+            f"COPY ({text}) TO STDOUT WITH (FORMAT csv, HEADER true, NULL '\\N');\n"
+            "ROLLBACK;\n"
+        )
         cmd = ["psql", "-d", self.dsn, "-X", "-q", "-v", "ON_ERROR_STOP=1", "-f", "-"]
         for k in sorted(used):
             if params[k] is None:
                 raise SchemaError(f"NULL parameter {k} not supported by the psql driver")
             cmd[1:1] = ["-v", f"{k}={params[k]}"]
-        env = dict(os.environ, PGOPTIONS=self.options)
-        res = subprocess.run(cmd, input=script, capture_output=True, text=True, env=env)
+        # UTF-8 on both sides of the pipe, independent of the caller's locale: under
+        # LC_ALL=C with UTF-8 mode off, text=True alone encodes and decodes as ASCII and
+        # any Arabic value fails.
+        env = dict(os.environ, PGOPTIONS=self.options, PGCLIENTENCODING="UTF8")
+        res = subprocess.run(
+            cmd, input=script, capture_output=True, text=True, encoding="utf-8", env=env
+        )
         if res.returncode != 0:
             raise RuntimeError(f"psql failed: {res.stderr.strip()}")
         reader = csv.DictReader(io.StringIO(res.stdout))
@@ -151,6 +178,7 @@ class Db:
 
 # ───────────────────────── introspection ─────────────────────────
 
+
 def _split_table(name: str) -> tuple[str | None, str]:
     return tuple(name.split(".", 1)) if "." in name else (None, name)  # type: ignore[return-value]
 
@@ -161,11 +189,15 @@ def table_columns(db: Db, table: str) -> dict[str, str]:
     if schema:
         rows = db.query(
             "SELECT column_name, udt_name FROM information_schema.columns "
-            "WHERE table_schema = %(s)s AND table_name = %(t)s", {"s": schema, "t": tname})
+            "WHERE table_schema = %(s)s AND table_name = %(t)s",
+            {"s": schema, "t": tname},
+        )
     else:
         rows = db.query(
             "SELECT column_name, udt_name FROM information_schema.columns "
-            "WHERE table_name = %(t)s AND table_schema = ANY (current_schemas(false))", {"t": tname})
+            "WHERE table_name = %(t)s AND table_schema = ANY (current_schemas(false))",
+            {"t": tname},
+        )
     return {r["column_name"]: r["udt_name"] for r in rows}
 
 
@@ -185,11 +217,16 @@ def introspect(db: Db, schema: dict, scope: TenantScope | None = None) -> dict:
             "geometry_type": cols.get(opt.get("geom", ""), None),
         }
         _, tname = _split_table(spec["table"])
-        r = db.query("SELECT relrowsecurity::text AS rls, relforcerowsecurity::text AS force "
-                     "FROM pg_class WHERE relname = %(t)s AND relkind = 'r' LIMIT 1", {"t": tname})
+        r = db.query(
+            "SELECT relrowsecurity::text AS rls, relforcerowsecurity::text AS force "
+            "FROM pg_class WHERE relname = %(t)s AND relkind = 'r' LIMIT 1",
+            {"t": tname},
+        )
         if r:
-            report["rls"][spec["table"]] = {"enabled": r[0]["rls"] in ("true", "t", True),
-                                            "forced": r[0]["force"] in ("true", "t", True)}
+            report["rls"][spec["table"]] = {
+                "enabled": r[0]["rls"] in ("true", "t", True),
+                "forced": r[0]["force"] in ("true", "t", True),
+            }
     ind = schema["indicators"]
     icols = table_columns(db, ind["table"])
     if icols:
@@ -203,12 +240,15 @@ def introspect(db: Db, schema: dict, scope: TenantScope | None = None) -> dict:
         rows = db.query(
             f"SELECT {cat_expr}::text AS category, "
             f"regexp_replace(lower({id_col}::text), '_?[a-z]*[0-9]+[a-z0-9-]*$', '') AS stem, count(*)::text AS n "
-            f"FROM {qident(ind['table'])} WHERE {where} GROUP BY 1, 2 ORDER BY count(*) DESC LIMIT 60", params)
+            f"FROM {qident(ind['table'])} WHERE {where} GROUP BY 1, 2 ORDER BY count(*) DESC LIMIT 60",
+            params,
+        )
         report["indicator_stems"] = rows
     return report
 
 
 # ───────────────────────── loading ─────────────────────────
+
 
 def _tenant_clause(col: str, scope: TenantScope) -> tuple[str, dict]:
     if scope.mode == "tenant":
@@ -254,11 +294,15 @@ def _select_list(spec: dict, cols: dict[str, str], postgis: bool, with_area: boo
     return ", ".join(parts)
 
 
-def load(db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True) -> tuple[FactStore, dict]:
+def load(
+    db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True
+) -> tuple[FactStore, dict]:
     report = introspect(db, schema, scope)
     for key, info in report["tables"].items():
         if key == "fields" and (not info["exists"] or info["missing_required"]):
-            raise SchemaError(f"{info['table']}: missing required columns {info['missing_required'] or 'table not found'}")
+            raise SchemaError(
+                f"{info['table']}: missing required columns {info['missing_required'] or 'table not found'}"
+            )
     postgis = report["postgis"] is not None
     store = FactStore(source=f"postgres ({db.driver})", tenant_scope=scope.describe())
 
@@ -267,16 +311,27 @@ def load(db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True)
     fcols = table_columns(db, fs["table"])
     tcol = fs["optional"].get("tenant")
     if scope.mode != "all" and tcol not in fcols:
-        raise SchemaError(f"{fs['table']} has no tenant column '{tcol}'; use --all-tenants explicitly")
+        raise SchemaError(
+            f"{fs['table']} has no tenant column '{tcol}'; use --all-tenants explicitly"
+        )
     where, params = _tenant_clause(qident(tcol), scope) if tcol in fcols else ("TRUE", {})
     sel = _select_list(fs, fcols, postgis, with_area=crosscheck_area and postgis)
     for r in db.query(f"SELECT {sel} FROM {qident(fs['table'])} WHERE {where}", params):
-        store.add_field(Field(
-            id=str(r["id"]), name=r.get("name") or str(r["id"]), tenant=r.get("tenant"),
-            governorate=r.get("governorate"), crop=r.get("crop"), soil_type=r.get("soil_type"),
-            area_ha_stored=to_float(r.get("area_ha")), lat=to_float(r.get("latitude")),
-            lon=to_float(r.get("longitude")), geom=Geometry.from_geojson(r.get("geom")),
-            db_area_m2=to_float(r.get("db_area_m2"))))
+        store.add_field(
+            Field(
+                id=str(r["id"]),
+                name=r.get("name") or str(r["id"]),
+                tenant=r.get("tenant"),
+                governorate=r.get("governorate"),
+                crop=r.get("crop"),
+                soil_type=r.get("soil_type"),
+                area_ha_stored=to_float(r.get("area_ha")),
+                lat=to_float(r.get("latitude")),
+                lon=to_float(r.get("longitude")),
+                geom=Geometry.from_geojson(r.get("geom")),
+                db_area_m2=to_float(r.get("db_area_m2")),
+            )
+        )
     field_ids = _SEP.join(sorted({f.id for f in store.fields.values()}))
 
     # soil + indicators: tenant clause (when the table has a tenant column) AND
@@ -287,7 +342,9 @@ def load(db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True)
         if not info["exists"] or info["missing_required"] or not store.fields:
             continue
         cols = table_columns(db, spec["table"])
-        conds = [f"{qident(spec['required']['field_id'])}::text = ANY (string_to_array(%(fids)s, chr(31)))"]
+        conds = [
+            f"{qident(spec['required']['field_id'])}::text = ANY (string_to_array(%(fids)s, chr(31)))"
+        ]
         params = {"fids": field_ids}
         tcol = spec["optional"].get("tenant")
         has_tenant = tcol in cols
@@ -295,8 +352,11 @@ def load(db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True)
             c, p = _tenant_clause(qident(tcol), scope)
             conds.append(c)
             params.update(p)
-        rows = db.query(f"SELECT {_select_list(spec, cols, postgis)} FROM {qident(spec['table'])} "
-                        f"WHERE {' AND '.join(conds)}", params)
+        rows = db.query(
+            f"SELECT {_select_list(spec, cols, postgis)} FROM {qident(spec['table'])} "
+            f"WHERE {' AND '.join(conds)}",
+            params,
+        )
         for r in rows:
             if has_tenant:
                 tenant = r.get("tenant")
@@ -305,14 +365,28 @@ def load(db: Db, schema: dict, scope: TenantScope, crosscheck_area: bool = True)
                 if not ok:
                     store.rejected["ambiguous_owner"] += 1
                     continue
-            common = dict(field_id=str(r["field_id"]), recorded_ts=parse_ts(r.get("recorded_at")),
-                          source=r.get("source"), point=parse_point(r.get("geom")), tenant=tenant,
-                          record_id=r.get("record_id"))
+            common = dict(
+                field_id=str(r["field_id"]),
+                recorded_ts=parse_ts(r.get("recorded_at")),
+                source=r.get("source"),
+                point=parse_point(r.get("geom")),
+                tenant=tenant,
+                record_id=r.get("record_id"),
+            )
             if key == "soil":
-                rec = SoilSample(sample_id=str(r["sample_id"]),
-                                 **{a: to_float_raw(r.get(a)) for a in SoilSample.MEASURES}, **common)
+                rec = SoilSample(
+                    sample_id=str(r["sample_id"]),
+                    **{a: to_float_raw(r.get(a)) for a in SoilSample.MEASURES},
+                    **common,
+                )
             else:
-                rec = Indicator(indicator_id=str(r["indicator_id"]), value=to_float_raw(r.get("value")),
-                                category=r.get("category"), unit=r.get("unit"), status=r.get("status"), **common)
+                rec = Indicator(
+                    indicator_id=str(r["indicator_id"]),
+                    value=to_float_raw(r.get("value")),
+                    category=r.get("category"),
+                    unit=r.get("unit"),
+                    status=r.get("status"),
+                    **common,
+                )
             store.admit(rec)
     return store, report

@@ -1,4 +1,5 @@
 """Item construction: options, distractors, abstention, deterministic ids."""
+
 from __future__ import annotations
 
 import hashlib
@@ -17,7 +18,7 @@ class GenContext:
     rules: dict
     seed: int = 7
     split_unit: str = "site"
-    stats: dict = field(default_factory=dict)   # family -> {"made": n, "skipped": {reason: n}}
+    stats: dict = field(default_factory=dict)  # family -> {"made": n, "skipped": {reason: n}}
     cache: dict = field(default_factory=dict)
 
     def rng(self, key: str) -> random.Random:
@@ -36,8 +37,14 @@ def item_id(family: str, params: dict) -> str:
     return "sq-" + hashlib.sha1(blob.encode("utf-8")).hexdigest()[:12]
 
 
-def numeric_bins(value: float, width: float, n: int, rng: random.Random, floor: float | None = 0.0,
-                 ceil: float | None = None) -> tuple[list[tuple[float, float]], int]:
+def numeric_bins(
+    value: float,
+    width: float,
+    n: int,
+    rng: random.Random,
+    floor: float | None = 0.0,
+    ceil: float | None = None,
+) -> tuple[list[tuple[float, float]], int]:
     """n consecutive bins of `width` with `value` inside one of them.
 
     The grid offset (0 or width/2) is chosen so the value sits at least a
@@ -45,6 +52,7 @@ def numeric_bins(value: float, width: float, n: int, rng: random.Random, floor: 
     computed (spheroid vs local frame, rounding) cannot flip the answer.
     """
     import math
+
     if ceil is not None and value >= ceil:
         value = ceil - width * 1e-6
     if floor is not None and ceil is not None:
@@ -60,7 +68,7 @@ def numeric_bins(value: float, width: float, n: int, rng: random.Random, floor: 
         if ceil is not None and lo + width > ceil + 1e-12:
             continue
         margin = min(value - lo, lo + width - value)
-        extra = decimals_for(off) > dec_w            # offset would need more display decimals
+        extra = decimals_for(off) > dec_w  # offset would need more display decimals
         cands.append((lo, margin, extra, k))
     if not cands:  # only the floor-aligned grid fits
         cands = [(math.floor((value - base) / width) * width + base, 0.0, False, 0)]
@@ -68,7 +76,13 @@ def numeric_bins(value: float, width: float, n: int, rng: random.Random, floor: 
     # tidiest offset that keeps the value at least a fifth of a width from an edge
     natural = [c for c in cands if c[3] == 0 and c[1] >= 0.25 * width]
     tidy = [c for c in cands if not c[2] and c[1] >= 0.2 * width]
-    best = natural[0] if natural else max(tidy, key=lambda c: c[1]) if tidy else max(cands, key=lambda c: c[1])
+    best = (
+        natural[0]
+        if natural
+        else max(tidy, key=lambda c: c[1])
+        if tidy
+        else max(cands, key=lambda c: c[1])
+    )
     lo = best[0]
     pos = rng.randrange(n)
     start = lo - pos * width
@@ -81,9 +95,18 @@ def numeric_bins(value: float, width: float, n: int, rng: random.Random, floor: 
     return bins, idx
 
 
-def bin_options(value: float, rel_width: float, unit: str, rng: random.Random, *, min_width: float = 0.0,
-                floor: float | None = 0.0, ceil: float | None = None, width: float | None = None,
-                n: int = 4) -> tuple[str, list[str], dict]:
+def bin_options(
+    value: float,
+    rel_width: float,
+    unit: str,
+    rng: random.Random,
+    *,
+    min_width: float = 0.0,
+    floor: float | None = 0.0,
+    ceil: float | None = None,
+    width: float | None = None,
+    n: int = 4,
+) -> tuple[str, list[str], dict]:
     w = width or max(nice_width(abs(value) * rel_width), min_width)
     bins, idx = numeric_bins(value, w, n, rng, floor=floor, ceil=ceil)
     d = min(4, max(decimals_for(round(e, 6)) for ab in bins for e in ab))
@@ -92,9 +115,23 @@ def bin_options(value: float, rel_width: float, unit: str, rng: random.Random, *
     return texts[idx], [t for i, t in enumerate(texts) if i != idx], meta
 
 
-def make_item(ctx: GenContext, *, family: str, level: str, question: str, correct: str | None,
-              distractors: list[str], evidence: dict, context, key: dict, field_refs: list[str] | None = None,
-              answerable: bool = True, allow_abstain: bool = True, answer_value=None, max_options: int = 4) -> dict | None:
+def make_item(
+    ctx: GenContext,
+    *,
+    family: str,
+    level: str,
+    question: str,
+    correct: str | None,
+    distractors: list[str],
+    evidence: dict,
+    context,
+    key: dict,
+    field_refs: list[str] | None = None,
+    answerable: bool = True,
+    allow_abstain: bool = True,
+    answer_value=None,
+    max_options: int = 4,
+) -> dict | None:
     """Assemble one multiple-choice item. Returns None (and records why) when
     there are not enough distinct options.
 
@@ -105,7 +142,9 @@ def make_item(ctx: GenContext, *, family: str, level: str, question: str, correc
     # a computed value silently recorded as a measurement is exactly the error
     # the observed / derived / inferred split exists to prevent.
     if evidence.get("kind") not in EVIDENCE_KINDS:
-        raise ValueError(f"{family}: evidence['kind'] must be one of {sorted(EVIDENCE_KINDS)}, got {evidence.get('kind')!r}")
+        raise ValueError(
+            f"{family}: evidence['kind'] must be one of {sorted(EVIDENCE_KINDS)}, got {evidence.get('kind')!r}"
+        )
     deps = set(field_refs or [])
     if hasattr(context, "keys"):
         deps |= context.keys
@@ -127,9 +166,14 @@ def make_item(ctx: GenContext, *, family: str, level: str, question: str, correc
             uniq.append(d)
     if not 2 <= max_options <= len(LETTERS):
         raise ValueError("max_options exceeds supported answer letters")
-    uniq = uniq[:max_options - 1]
-    if answerable and allow_abstain and ABSTAIN_TEXT not in uniq and rng.random() < ctx.rules["abstain_option_rate"]:
-        uniq = uniq[:max_options - 2] + [ABSTAIN_TEXT]
+    uniq = uniq[: max_options - 1]
+    if (
+        answerable
+        and allow_abstain
+        and ABSTAIN_TEXT not in uniq
+        and rng.random() < ctx.rules["abstain_option_rate"]
+    ):
+        uniq = uniq[: max_options - 2] + [ABSTAIN_TEXT]
     if len(uniq) < 1 or (len(uniq) < 2 and answerable):
         ctx.skip(family, "too_few_distinct_options")
         return None

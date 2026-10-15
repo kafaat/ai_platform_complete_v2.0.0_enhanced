@@ -6,6 +6,7 @@
   as LTR blocks; contexts are one block per line.
 * One example per family, plus coverage per split and the data-issue summary.
 """
+
 from __future__ import annotations
 
 import base64
@@ -16,10 +17,11 @@ from pathlib import Path
 from .config import EVIDENCE_KINDS, LEVELS
 
 _LTR = re.compile(
-    r"(\[[^\]\n]{1,200}\]"                                  # bracketed lists (bbox)
-    r"|\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2}(?:[+-]\d{2}:\d{2})?)?)?"   # ISO dates / timestamps
-    r"|[A-Za-z_][A-Za-z0-9_\-./=:]*(?:\s?\([A-Za-z0-9 ,.]+\))?"     # Latin tokens (SA-3, demo-tenant, dS/m, Vincenty)
-    r"|±?[\d٠-٩][\d٠-٩.,٫٬]*(?:[–\-][\d٠-٩][\d٠-٩.,٫٬]*)?%?)")
+    r"(\[[^\]\n]{1,200}\]"  # bracketed lists (bbox)
+    r"|\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2}(?:[+-]\d{2}:\d{2})?)?)?"  # ISO dates / timestamps
+    r"|[A-Za-z_][A-Za-z0-9_\-./=:]*(?:\s?\([A-Za-z0-9 ,.]+\))?"  # Latin tokens (SA-3, demo-tenant, dS/m, Vincenty)
+    r"|±?[\d٠-٩][\d٠-٩.,٫٬]*(?:[–\-][\d٠-٩][\d٠-٩.,٫٬]*)?%?)"
+)
 
 
 _GEOJSON = re.compile(r'\{"type":"(?:Multi)?Polygon","coordinates":(\[.*?\]{3,4})\}')
@@ -27,8 +29,14 @@ _GEOJSON = re.compile(r'\{"type":"(?:Multi)?Polygon","coordinates":(\[.*?\]{3,4}
 
 def short_context(text: str, limit: int = 420) -> str:
     """Preview only: polygons summarised, long contexts truncated (full text is in the JSONL)."""
-    text = _GEOJSON.sub(lambda m: f"[مضلع: {m.group(1).count('],[') + 1} رأساً — كاملاً في ملف JSONL]", text)
-    return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + " … (السياق الكامل في ملف JSONL)"
+    text = _GEOJSON.sub(
+        lambda m: f"[مضلع: {m.group(1).count('],[') + 1} رأساً — كاملاً في ملف JSONL]", text
+    )
+    return (
+        text
+        if len(text) <= limit
+        else text[:limit].rsplit(" ", 1)[0] + " … (السياق الكامل في ملف JSONL)"
+    )
 
 
 def ltr(text: str) -> str:
@@ -40,7 +48,7 @@ def ltr(text: str) -> str:
         return f'<span class="n" dir="ltr">{html.escape(text)}</span>'
     out, pos = [], 0
     for m in _LTR.finditer(text):
-        out.append(html.escape(text[pos:m.start()]))
+        out.append(html.escape(text[pos : m.start()]))
         out.append(f'<span class="n" dir="ltr">{html.escape(m.group(0))}</span>')
         pos = m.end()
     out.append(html.escape(text[pos:]))
@@ -52,8 +60,11 @@ def plain(text: str) -> str:
 
 
 def evidence_line(text: str) -> str:
-    if re.match(r"^(TAW|ETc|p|RAW|Dr0|Ks|I_net|ET_actual|DP|Dr_end|Ks_end|V_gross|Q_well|Q_total|pump_days"
-                r"|θFC|θWP|Zr|p_table|Ea|fao_crop) = ", text):
+    if re.match(
+        r"^(TAW|ETc|p|RAW|Dr0|Ks|I_net|ET_actual|DP|Dr_end|Ks_end|V_gross|Q_well|Q_total|pump_days"
+        r"|θFC|θWP|Zr|p_table|Ea|fao_crop) = ",
+        text,
+    ):
         return f'<div class="formula" dir="ltr">{html.escape(text)}</div>'
     return f"<div>{ltr(text)}</div>"
 
@@ -92,7 +103,7 @@ ol.opts li .v[dir=ltr]{display:inline-block;direction:ltr;unicode-bidi:embed}
 """
 
 
-_ARABIC = re.compile("[\u0600-\u06FF]")
+_ARABIC = re.compile("[\u0600-\u06ff]")
 
 
 def _opt(text: str) -> str:
@@ -112,34 +123,52 @@ def _img(out: Path, rel: str) -> str:
 
 def render_preview(items: list[dict], manifest: dict, out: Path) -> str:
     c = manifest["counts"]
-    parts = ['<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">',
-             '<meta name="viewport" content="width=device-width,initial-scale=1">',
-             f"<title>معاينة أسئلة سهول</title><style>{CSS}</style></head><body><main>",
-             "<h1>معاينة أسئلة سهول</h1>",
-             f'<div class="meta">{ltr(manifest["generator"])} · {ltr(manifest["created_utc"])} · '
-             f'المصدر {ltr(manifest["source"])} · النطاق {html.escape(manifest["tenant_scope"])} · '
-             f'بصمة المدخلات <bdi dir="ltr">{manifest["input_fingerprint"]}</bdi></div>']
+    parts = [
+        '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width,initial-scale=1">',
+        f"<title>معاينة أسئلة سهول</title><style>{CSS}</style></head><body><main>",
+        "<h1>معاينة أسئلة سهول</h1>",
+        f'<div class="meta">{ltr(manifest["generator"])} · {ltr(manifest["created_utc"])} · '
+        f"المصدر {ltr(manifest['source'])} · النطاق {html.escape(manifest['tenant_scope'])} · "
+        f'بصمة المدخلات <bdi dir="ltr">{manifest["input_fingerprint"]}</bdi></div>',
+    ]
     if manifest["synthetic"] or manifest.get("synthetic_rasters"):
-        parts.append('<div class="banner"><b>مدخلات اصطناعية</b> — هذه الأسئلة لاختبار خط الإنتاج، لا لتقييم المعرفة الزراعية.</div>')
+        parts.append(
+            '<div class="banner"><b>مدخلات اصطناعية</b> — هذه الأسئلة لاختبار خط الإنتاج، لا لتقييم المعرفة الزراعية.</div>'
+        )
     for w in manifest["warnings"]:
         parts.append(f'<div class="banner">{ltr(w)}</div>')
-    parts.append(f'<p>عدد الأسئلة {ltr(str(c["items_total"]))} — منها {ltr(str(c["abstention_correct"]))} إجابتها الصحيحة الامتناع، '
-                 f'و{ltr(str(c["with_image"]))} بصورة. خط الصدفة لكل تقسيم: '
-                 + "، ".join(f"{s} {ltr(str(round(100 * v, 1)))}%" for s, v in manifest["chance_accuracy"].items())
-                 + "؛ ودقة من يختار الامتناع دائماً: "
-                 + "، ".join(f"{s} {ltr(str(round(100 * v, 1)))}%" for s, v in manifest.get("always_abstain_accuracy", {}).items())
-                 + "</p>")
+    parts.append(
+        f"<p>عدد الأسئلة {ltr(str(c['items_total']))} — منها {ltr(str(c['abstention_correct']))} إجابتها الصحيحة الامتناع، "
+        f"و{ltr(str(c['with_image']))} بصورة. خط الصدفة لكل تقسيم: "
+        + "، ".join(
+            f"{s} {ltr(str(round(100 * v, 1)))}%" for s, v in manifest["chance_accuracy"].items()
+        )
+        + "؛ ودقة من يختار الامتناع دائماً: "
+        + "، ".join(
+            f"{s} {ltr(str(round(100 * v, 1)))}%"
+            for s, v in manifest.get("always_abstain_accuracy", {}).items()
+        )
+        + "</p>"
+    )
 
     splits = list(manifest["coverage"])
     fams = sorted({f for s in splits for f in manifest["coverage"][s]})
-    parts.append("<h2>التغطية حسب العائلة والتقسيم</h2><table><tr><th>العائلة</th>" +
-                 "".join(f"<th>{s}<br><small>أسئلة / وحدات مصدر / امتناع / صور</small></th>" for s in splits) + "</tr>")
+    parts.append(
+        "<h2>التغطية حسب العائلة والتقسيم</h2><table><tr><th>العائلة</th>"
+        + "".join(
+            f"<th>{s}<br><small>أسئلة / وحدات مصدر / امتناع / صور</small></th>" for s in splits
+        )
+        + "</tr>"
+    )
     for f in fams:
         row = f"<tr><td><bdi dir='ltr'>{f}</bdi></td>"
         for s in splits:
             v = manifest["coverage"][s].get(f)
             if v:
-                cell = "{} / {} / {} / {}".format(v["items"], v["units"], v["abstention"], v["with_image"])
+                cell = "{} / {} / {} / {}".format(
+                    v["items"], v["units"], v["abstention"], v["with_image"]
+                )
                 row += "<td>" + ltr(cell) + "</td>"
             else:
                 row += "<td>—</td>"
@@ -148,20 +177,40 @@ def render_preview(items: list[dict], manifest: dict, out: Path) -> str:
 
     di = manifest["data_issues"]["by_code"]
     if di:
-        parts.append("<h2>مشكلات البيانات</h2><table><tr><th>الرمز</th><th>العدد</th></tr>" +
-                     "".join(f"<tr><td><bdi dir='ltr'>{k}</bdi></td><td>{v}</td></tr>" for k, v in sorted(di.items())) + "</table>")
+        parts.append(
+            "<h2>مشكلات البيانات</h2><table><tr><th>الرمز</th><th>العدد</th></tr>"
+            + "".join(
+                f"<tr><td><bdi dir='ltr'>{k}</bdi></td><td>{v}</td></tr>"
+                for k, v in sorted(di.items())
+            )
+            + "</table>"
+        )
 
-    parts.append("<h2>مثال من كل عائلة</h2><p class=\"meta\">السياق الخام لكل سؤال (السجلات كما يجلبها الوكيل) "
-                 "موجود في ملفات JSONL ولا يُطبع هنا.</p>")
+    parts.append(
+        '<h2>مثال من كل عائلة</h2><p class="meta">السياق الخام لكل سؤال (السجلات كما يجلبها الوكيل) '
+        "موجود في ملفات JSONL ولا يُطبع هنا.</p>"
+    )
     order = list(LEVELS)
     chosen = {}
-    for it in sorted(items, key=lambda r: (order.index(r["level"]), r["family"], "image" not in r, not r["answerable"], r["id"])):
+    for it in sorted(
+        items,
+        key=lambda r: (
+            order.index(r["level"]),
+            r["family"],
+            "image" not in r,
+            not r["answerable"],
+            r["id"],
+        ),
+    ):
         chosen.setdefault(it["family"], it)
     abst = {}
     for it in sorted(items, key=lambda r: r["id"]):
         if not it["answerable"]:
             abst.setdefault(it["family"], it)
-    for it in list(chosen.values()) + [a for f, a in sorted(abst.items()) if chosen[f]["id"] != a["id"]][:4]:
+    for it in (
+        list(chosen.values())
+        + [a for f, a in sorted(abst.items()) if chosen[f]["id"] != a["id"]][:4]
+    ):
         tags = f'<span class="tag">{it["level_ar"]}</span><span class="tag"><bdi dir="ltr">{it["family"]}</bdi></span>'
         tags += f'<span class="tag kind">دليل {EVIDENCE_KINDS[it["evidence"]["kind"]]}</span>'
         if not it["answerable"]:
@@ -171,10 +220,18 @@ def render_preview(items: list[dict], manifest: dict, out: Path) -> str:
         if it.get("image"):
             src = _img(out, it["image"])
             legend = next((x for x in it["context"].split("\n") if x.startswith("الصورة:")), "")
-            card.append(f'<figure><img src="{src}" alt="{html.escape(it["id"])}"><figcaption>{ltr(legend)}</figcaption></figure>')
-        card.append('<ol class="opts">' + "".join(
-            f'<li class="{"ans" if o["key"] == it["answer"] else ""}">{o["key"]}) {_opt(o["text"])}'
-            f'{" ✓" if o["key"] == it["answer"] else ""}</li>' for o in it["options"]) + "</ol>")
+            card.append(
+                f'<figure><img src="{src}" alt="{html.escape(it["id"])}"><figcaption>{ltr(legend)}</figcaption></figure>'
+            )
+        card.append(
+            '<ol class="opts">'
+            + "".join(
+                f'<li class="{"ans" if o["key"] == it["answer"] else ""}">{o["key"]}) {_opt(o["text"])}'
+                f"{' ✓' if o['key'] == it['answer'] else ''}</li>"
+                for o in it["options"]
+            )
+            + "</ol>"
+        )
         ev = it["evidence"]
         evtxt = ev.get("computation", "")
         if ev.get("rule"):
@@ -183,8 +240,12 @@ def render_preview(items: list[dict], manifest: dict, out: Path) -> str:
             evtxt += " — تحفّظات: " + "؛ ".join(ev["caveats"])
         # one block per line: a formula like "TAW = 1000 × (θFC − θWP) × Zr" stays a single left-to-right run
         evhtml = "".join(evidence_line(line) for line in evtxt.split("\n") if line.strip())
-        card.append(f'<div class="ev">{evhtml}<div dir="ltr" style="text-align:right">{it["id"]} · {it["split"]}</div></div>')
-        card.append("</section>")   # the raw-record context is in the JSONL files; it is noise in a printed preview
+        card.append(
+            f'<div class="ev">{evhtml}<div dir="ltr" style="text-align:right">{it["id"]} · {it["split"]}</div></div>'
+        )
+        card.append(
+            "</section>"
+        )  # the raw-record context is in the JSONL files; it is noise in a printed preview
         parts.append("".join(card))
     parts.append("</main></body></html>")
     return "\n".join(parts)

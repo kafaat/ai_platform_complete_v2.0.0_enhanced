@@ -8,9 +8,9 @@
 
 التفاصيل في `CHANGELOG.md`، وحدود الدمج والتحقق الحالي في `INTEGRATION.md`.
 
-هذه نسخة مصدر داخل المستودع؛ سجلات التحقق التاريخية المذكورة أدناه موجودة في حزمة الإصدار الأصلية، ولا تُنسخ هنا.
+هذه نسخة مصدر داخل المستودع؛ سجلات التحقق التاريخية المذكورة أدناه (`VERIFICATION.md` و`verification/`) موجودة في حزمة الإصدار الأصلية، ولا تُنسخ هنا.
 
-**الوضع الحالي 0.4.2:** 126 اختباراً ناجحة دون أي متخطّى، منها اختبارات PostgreSQL 16 الستة. تحقق أعمى من وكيل منفصل على الأسئلة الـ72 التي تغيّرت: 72 من 72. لم يُعتمد بعد على قاعدة سهول حيّة أو PostGIS أو قياسات حقلية.
+**الوضع الحالي 0.4.2 في المستودع:** 128 اختباراً ناجحة دون أي متخطّى، منها 8 اختبارات PostgreSQL 16، اثنان منها لأعمدة `migrations/init_v8.sql`. يشغّلها سير العمل «SAHOOL QA offline evaluation» (`.github/workflows/sahool-qa.yml`) عبر `tools/run_checks.py --require-postgres`. مع هذا الخيار يفشل أي اختبار متخطّى، ثم يُولَّد العرض مرتين وتُقارن مخرجاته بالبايت. تحقق أعمى من وكيل منفصل على الأسئلة الـ72 التي تغيّرت: 72 من 72. لم يُعتمد بعد على قاعدة سهول حيّة أو PostGIS أو قياسات حقلية.
 
 ## التشغيل السريع
 
@@ -18,7 +18,8 @@
 
 ```bash
 python -m sahool_qa demo --out demo_out          # ثلاثة مواقع اصطناعية: الجوف=train، مأرب=val، الحديدة=test
-python -m unittest discover -s tests -v          # 126 اختباراً، منها 6 تكامل PostgreSQL (تُتخطّى إن غابت أدواته)
+python -m unittest discover -s tests -v          # 128 اختباراً، منها 8 تكامل PostgreSQL (تُتخطّى إن غابت أدواته)
+python tools/run_checks.py --require-postgres     # كما في CI: لا متخطّى، والعرض حتمي
 ```
 
 
@@ -104,6 +105,30 @@ python -m sahool_qa generate --dsn "postgresql://reader@host/sahool" --tenant <T
 - **المعرّفات:** أسماء الجداول والأعمدة من خريطة المخطط تُفحص قبل وضعها في SQL.
 
 إذا اختلف اسم عمود في نسختك فلا حاجة لتعديل الكود: استخدم `--schema-map examples/schema_map.example.json`. وكذلك العتبات ونطاقات فحص الجودة وأنماط أسماء المؤشرات عبر `--rules`.
+
+### داخل مستودع المنصّة: `migrations/init_v8.sql`
+
+أسماء الأعمدة في `migrations/init_v8.sql` تختلف عن الافتراضيّة في ثلاثة مواضع، فاستخدم الخريطة المرفقة `examples/schema_map.init_v8.json`:
+
+| الجدول | الافتراضيّ | في init_v8 |
+|---|---|---|
+| `field_boundaries` | `governorate` · `latitude` · `longitude` | `gov` · `lat` · `lon` |
+| `field_indicators` | `indicator_cat` | `category` |
+
+- `soil_readings` و`field_indicators` بلا عمود `geom` في init_v8، فيظهر `geom` تحت `missing_optional` في `introspect`، وتُربط سجلاتهما بحقلها عبر `(tenant_id, field_id)` لا مكانياً. هذا متوقع وليس خطأ.
+- تحقّق قبل التوليد: `python -m sahool_qa introspect --dsn ... --tenant <TENANT_UUID> --schema-map examples/schema_map.init_v8.json`.
+- الاختبار `tests/test_postgres.py` ينشئ الجداول الثلاثة بأعمدة init_v8 ويثبت أن الخريطة تُحمّل الصفات والتقسيم نفسها.
+
+### الجسر إلى جداول الري (لم يُبنَ بعد)
+
+تحقيق الماء يقرأ اليوم مؤشرات `meter_total_<well>` و`pump_hours_<well>` و`well_status_<well>` من `field_indicators`، وقائمة الآبار من `--rules`. جداول الري في المنصّة لا تطابق هذا مباشرة، والفروق تمسّ قاعدة «السجل المفقود ليس صفراً»:
+
+- `irrigation_well_measurements` (`migrations/v170_water_source_well_digital_twin.sql:35`) تحمل `measured_flow_lps` و`runtime_hours` لكل قياس، **لا عدادات تراكمية**. لا يُشتق منها حجم يومي إلا إذا ثبت معنى `runtime_hours` (مدة القياس أم عداد تراكمي) وتغطية كل ساعات الضخ.
+- `irrigation_water_allocations` (السطر 71 من الملف نفسه) تحمل `daily_used_m3` بقيمة افتراضية `0` ولكل مصدر ماء لا لكل حقل. يوم بلا تسجيل فيها يبدو صفراً، فلا تُقرأ صفراً معلوماً دون سجل يثبت أن اليوم سُجّل فعلاً.
+- `irrigation_target_bindings` (`migrations/v196_irrigation_target_binding.sql:8`) تربط **عقدة هيدروليكية طرفية** بالحقل مع `valid_from` و`valid_to`. قائمة آبار الحقل تحتاج تتبع الشبكة من عقدة البئر إلى العقدة الطرفية، ثم تحويل الفترات إلى `from`/`to` في `water.well_inventory`.
+- `irrigation_wells.live_state` (`migrations/v168_irrigation_engineering_foundation.sql:60`) لقطة حالية بلا تاريخ، فلا تكفي وحدها لـ`well_status_<well>` على نافذة سابقة.
+
+الخطوة التالية: محمّل قراءة فقط يحوّل هذه الجداول إلى سجلات الأداة، ويعلن كل فجوة من الفجوات الأربع في التدقيق بدل ملئها.
 
 ## كيف تُحمى الحقيقة قبل التوليد
 
@@ -257,12 +282,22 @@ python -m sahool_qa score --gold qa_out/test.jsonl --pred predictions.jsonl --js
 
 ```python
 import json, numpy as np, rasterio
+
 with rasterio.open("savi_2026-02-15.tif") as src:
     np.save("exports/savi/savi_2026-02-15.npy", src.read(1).astype("float32"))
-    json.dump({"array": "savi_2026-02-15.npy", "index": "SAVI", "date": "2026-02-15",
-               "crs": src.crs.to_string(), "transform": list(src.transform.to_gdal()),
-               "nodata": src.nodata, "scene_id": "S2B_...", "synthetic": False},
-              open("exports/savi/savi_2026-02-15.json", "w"))
+    json.dump(
+        {
+            "array": "savi_2026-02-15.npy",
+            "index": "SAVI",
+            "date": "2026-02-15",
+            "crs": src.crs.to_string(),
+            "transform": list(src.transform.to_gdal()),
+            "nodata": src.nodata,
+            "scene_id": "S2B_...",
+            "synthetic": False,
+        },
+        open("exports/savi/savi_2026-02-15.json", "w"),
+    )
 ```
 
 ## حدود يجب معرفتها

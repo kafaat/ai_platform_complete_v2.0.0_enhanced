@@ -30,11 +30,11 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      # PostgreSQL 16 (initdb, pg_ctl, psql) ships in the ubuntu-24.04 runner image, so no
+      # apt-get here: an uncapped apt-get is what ci_unbounded_wait_guard rejects, and
+      # run_checks.py --require-postgres already fails if the server binaries are missing.
       - name: Install isolated test dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-16 postgresql-client-16
-          python -m pip install -r tools/sahool_qa/requirements-test.txt
+        run: python -m pip install -r tools/sahool_qa/requirements-test.txt
       - name: Test disposable database and deterministic demo
         working-directory: tools/sahool_qa
         run: python tools/run_checks.py --require-postgres

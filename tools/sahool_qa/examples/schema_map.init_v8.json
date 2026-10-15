@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "optional": { "governorate": "gov", "latitude": "lat", "longitude": "lon" }
+  },
+  "indicators": {
+    "optional": { "category": "category" }
+  }
+}

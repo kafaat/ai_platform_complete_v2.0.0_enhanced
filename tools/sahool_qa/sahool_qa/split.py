@@ -6,6 +6,7 @@ the split of the units of all fields it touches; a question touching units in
 different splits is dropped. Assignment hashes the unit key only (salted), so
 changing the distractor seed never moves a field between splits.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -18,8 +19,8 @@ SPLITS = ("train", "val", "test")
 
 
 def _frac(key: str, salt: str) -> float:
-    h = hashlib.sha256(f"{salt}|{key}".encode("utf-8")).hexdigest()
-    return int(h[:15], 16) / 16 ** 15
+    h = hashlib.sha256(f"{salt}|{key}".encode()).hexdigest()
+    return int(h[:15], 16) / 16**15
 
 
 def parse_holdout(specs: list[str] | None) -> list[tuple[str, str, str]]:
@@ -41,15 +42,21 @@ def parse_holdout(specs: list[str] | None) -> list[tuple[str, str, str]]:
     return out
 
 
-def unit_splits(store: FactStore, unit: str, ratios: tuple[float, float, float], holdout, salt: str) -> dict[str, str]:
+def unit_splits(
+    store: FactStore, unit: str, ratios: tuple[float, float, float], holdout, salt: str
+) -> dict[str, str]:
     from .facts import tenant_key
+
     r_train, r_val, _ = ratios
     forced: dict[str, str] = {}
     for f in store.fields.values():
         u = store.unit_key(f, unit)
         for split, k, v in holdout:
-            hit = ((k == "field" and v in (f.id, f.key)) or (k == "governorate" and v == (f.governorate or "")) or
-                   (k == "site" and v == f"{tenant_key(f.tenant)}|{f.governorate or '?'}"))
+            hit = (
+                (k == "field" and v in (f.id, f.key))
+                or (k == "governorate" and v == (f.governorate or ""))
+                or (k == "site" and v == f"{tenant_key(f.tenant)}|{f.governorate or '?'}")
+            )
             if hit:
                 if forced.get(u, split) != split:
                     raise SystemExit(f"unit {u} is held out for both {forced[u]} and {split}")
@@ -65,8 +72,15 @@ def unit_splits(store: FactStore, unit: str, ratios: tuple[float, float, float],
     return out
 
 
-def assign(items: list[dict], store: FactStore, unit: str, ratios, holdout, salt: str = "sahool-qa",
-           mode: str = "split") -> tuple[list[dict], dict]:
+def assign(
+    items: list[dict],
+    store: FactStore,
+    unit: str,
+    ratios,
+    holdout,
+    salt: str = "sahool-qa",
+    mode: str = "split",
+) -> tuple[list[dict], dict]:
     report = {"unit": unit, "mode": mode, "dropped": Counter(), "units": {}}
     # de-duplicate: same id, then same normalised question+answer
     seen_ids, seen_text, uniq = set(), set(), []
@@ -84,7 +98,13 @@ def assign(items: list[dict], store: FactStore, unit: str, ratios, holdout, salt
     if mode == "none":
         for it in uniq:
             it["split"] = "eval"
-            it["split_units"] = sorted({store.unit_key(store.fields[f], unit) for f in it["field_refs"] if f in store.fields})
+            it["split_units"] = sorted(
+                {
+                    store.unit_key(store.fields[f], unit)
+                    for f in it["field_refs"]
+                    if f in store.fields
+                }
+            )
         report["dropped"] = dict(report["dropped"])
         report["counts"] = {"eval": len(uniq)}
         return uniq, report
@@ -92,7 +112,9 @@ def assign(items: list[dict], store: FactStore, unit: str, ratios, holdout, salt
     usplit = unit_splits(store, unit, ratios, holdout, salt)
     kept = []
     for it in uniq:
-        units = sorted({store.unit_key(store.fields[f], unit) for f in it["field_refs"] if f in store.fields})
+        units = sorted(
+            {store.unit_key(store.fields[f], unit) for f in it["field_refs"] if f in store.fields}
+        )
         splits = {usplit[u] for u in units}
         if len(splits) != 1:
             report["dropped"]["cross_split" if splits else "no_known_unit"] += 1
@@ -120,7 +142,8 @@ def assign(items: list[dict], store: FactStore, unit: str, ratios, holdout, salt
     report["warnings"] = []
     if n_units < 10:
         report["warnings"].append(
-            f"only {n_units} split units: the {ratios} ratios cannot be honoured; use --holdout to choose the test units")
+            f"only {n_units} split units: the {ratios} ratios cannot be honoured; use --holdout to choose the test units"
+        )
     for s in SPLITS:
         if not report["units"][s]:
             report["warnings"].append(f"split '{s}' has no units")
