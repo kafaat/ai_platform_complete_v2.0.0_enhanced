@@ -13,12 +13,18 @@ Every active source is returned so a sensitive gate can fail closed on the worst
 each source, the latest DECISION-GRADE water-quality sample is selected (estimated/measured are
 excluded — see canonical_well_capability.DECISION_GRADE_SAMPLE_QUALITIES); when only lower-grade
 samples exist that fact is surfaced so the verdict can distinguish "no sample" from "unvalidated".
+
+The blend actually applied to the field is summarised by ``summarize_blend_water_quality``: EC of
+the blend from the declared mixing ratios, and SAR only from blended ion concentrations. It is
+advisory provenance — the gate above still fails closed on the worst active source.
 """
 
 from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
+
+from core.irrigation_water_analysis import BLEND_ION_FIELDS, compute_blend_water_quality
 
 from api.canonical_well_capability import DECISION_GRADE_SAMPLE_QUALITIES
 
@@ -100,3 +106,30 @@ async def resolve_active_bindings(
             }
         )
     return bindings
+
+
+def summarize_blend_water_quality(bindings: list[dict[str, Any]]) -> dict[str, Any]:
+    """EC/SAR of the water actually applied: the active sources blended by ``mixing_ratio``.
+
+    EC is the volume-weighted mean of each source's decision-grade EC. SAR is computed only from
+    blended Na/Ca/Mg (meq/L) — never as a weighted mean of per-source SARs, which is a different
+    and wrong number. ``irrigation_water_quality_samples`` records no ion concentrations today, so
+    a live blend reports SAR ``not_computable`` (``source_ions_missing``) rather than a guess; the
+    ion keys are read from ``water_quality`` the moment a producer supplies them.
+
+    Advisory only: it does NOT relax the per-source gate (``gate_effect`` says so explicitly).
+    """
+    components = []
+    for b in bindings:
+        wq = b.get("water_quality") or {}
+        components.append(
+            {
+                "source_id": b.get("water_source_id"),
+                "mixing_ratio": b.get("mixing_ratio"),
+                "ec_ds_m": wq.get("ec_ds_m"),
+                **{k: wq.get(k) for k in BLEND_ION_FIELDS},
+            }
+        )
+    out = compute_blend_water_quality(components)
+    out["gate_effect"] = "advisory_worst_source_gate_unchanged"
+    return out

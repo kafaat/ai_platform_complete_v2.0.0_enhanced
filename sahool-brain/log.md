@@ -9433,3 +9433,8 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 **جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
 
 لا انتقال لأي فجوة.
+## 2026-10-14 — جودة خليط الآبار تُحسَب: EC مرجَّح حجميّاً وSAR من الأيونات المخلوطة
+
+`WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01` صارت fixed في الكود عند `ed78cf5c` على الفرع `claude/w3-well-blend-quality-20261014` (أساسه `main@56de3d31`؛ غير مدفوع ولا PR). قِيس على main أنّ `resolve_active_bindings` يُعيد `mixing_ratio` كما هو (`services/sahool-platform/api/irrigation_source_binding.py:96`) والراوتر يردّده فقط (`services/sahool-platform/api/routers/irrigation_mpc.py:382`)، ولا حساب لجودة الخليط في الشجرة؛ ولا تداخل مع فروع codex غير المدموجة (سجلّات تخطيط فقط، لا شيفرة). الإصلاح: `compute_blend_water_quality` في `core/irrigation_water_analysis.py` (EC = Σ fᵢ·ECᵢ تقريباً مُعلَناً؛ SAR = Na/√((Ca+Mg)/2) على الأيونات المرجَّحة حجميّاً بإعادة استعمال `compute_sar`؛ نقصٌ ⇒ `not_computable` لا صفر؛ نسبٌ غير صالحة ⇒ رفض)، و`summarize_blend_water_quality` يصله إلى نَسَب الملوحة في توصية MPC إرشاديّاً دون مسّ بوّابة أسوأ مصدر. حدٌّ مقيس: جدول العيّنات بلا أعمدة أيونات، فـSAR الخليط الحيّ `not_computable`.
+
+**المصدر:** `main@56de3d31` · إصلاح `ed78cf5c` · الشاهد `services/sahool-platform/tests/test_irrigation_blend_water_quality.py` و`tests_v9/test_lexicographic_mpc_bridge.py::test_route_recommendation_reports_blend_water_quality` (أحمر على main: ImportError · KeyError؛ أخضر على الفرع). جناح المنصّة 4607 ناجحاً؛ `tests_v9 -k "irrigation or water or blend"` 440 ناجحاً و13 متخطّى. النشر عند الدمج: `sahool-platform` وحده.
