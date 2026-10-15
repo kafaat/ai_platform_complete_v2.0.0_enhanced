@@ -42,11 +42,12 @@ jobs:
             -e POSTGRES_PASSWORD=disposable_test_password \
             -p 127.0.0.1:5438:5432 "$postgres_image"
           ready=0
-          for i in $(seq 1 20); do
+          for attempt in $(seq 1 20); do
             if docker exec notification-ci-pg pg_isready -U notification_test -d notification_rollout_test; then
               ready=1
               break
             fi
+            echo "Waiting for notification PostgreSQL (attempt $attempt)"
             sleep 2
           done
           test "$ready" = 1
