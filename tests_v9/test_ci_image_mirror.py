@@ -26,7 +26,13 @@ ID = "sha256:" + "f" * 64
 
 
 def run_resolver(
-    tmp_path: Path, *, mirror_ok=False, ecr_ok=False, ecr_error="", config_id=ID, source=PG15
+    tmp_path: Path,
+    *,
+    mirror_ok=False,
+    ecr_ok=False,
+    ecr_error="",
+    config_id=ID,
+    source=PG15,
 ):
     docker = tmp_path / "docker"
     log = tmp_path / "calls.log"
@@ -77,7 +83,7 @@ def run_resolver(
 def test_ghcr_exact_manifest_wins_without_ecr_pull(tmp_path):
     result, calls, receipt, cause = run_resolver(tmp_path, mirror_ok=True)
     assert result.returncode == 0, result.stderr
-    assert receipt.read_text().strip() == ID
+    assert receipt.read_text(encoding="utf-8").strip() == ID
     assert any("pull ghcr.io/kafaat/sahool-ci-postgres@sha256:" in s for s in calls)
     assert not any(s.startswith("pull public.ecr") for s in calls)
     assert "GHCR_VERIFIED_INDEX" in result.stderr
@@ -90,7 +96,7 @@ def test_absent_mirror_falls_back_to_exact_ecr_image(tmp_path):
     assert result.returncode == 0, result.stderr
     pulls = [s for s in calls if s.startswith("pull ")]
     assert len(pulls) == 2 and pulls[1] == f"pull {PG15}"
-    assert receipt.read_text().strip() == ID
+    assert receipt.read_text(encoding="utf-8").strip() == ID
     assert "ECR_PINNED" in result.stderr
     assert not cause.exists()
 
@@ -102,13 +108,15 @@ def test_both_registries_unavailable_never_emit_a_success_receipt(tmp_path):
     assert result.returncode != 0
     assert len([x for x in calls if x.startswith("pull ")]) == 2
     assert not receipt.exists()
-    assert cause.read_text().strip() == "DOCKER_IMAGE_PULL_FAILED"
+    assert cause.read_text(encoding="utf-8").strip() == "DOCKER_IMAGE_PULL_FAILED"
     assert "failure_class=RATE_LIMIT" in result.stderr
     assert "database_state=NOT_STARTED" in result.stderr
 
 
 def test_bad_local_config_digest_is_not_accepted(tmp_path):
-    result, _, receipt, _ = run_resolver(tmp_path, mirror_ok=True, config_id="sha256:not-a-digest")
+    result, _, receipt, _ = run_resolver(
+        tmp_path, mirror_ok=True, config_id="sha256:not-a-digest"
+    )
     assert result.returncode != 0
     assert not receipt.exists()
     assert "Cannot prove local Docker image config digest" in result.stderr
@@ -150,13 +158,16 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
     content = path.read_text(encoding="utf-8")
     build = yaml.safe_load(content)["jobs"]["build"]
     assert build["permissions"]["packages"] == "read"
-    run = next(s["run"] for s in build["steps"] if s.get("name", "").startswith("Build "))
+    run = next(
+        s["run"] for s in build["steps"] if s.get("name", "").startswith("Build ")
+    )
     pinned = {
         "deploy/railway/Dockerfile.frontend": (
             "nginx", "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
         ),
         "deploy/railway/Dockerfile.migrate": (
-            "postgres", "721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+            "postgres",
+            "721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea",
         ),
     }
     for dockerfile, (kind, digest) in pinned.items():
@@ -164,9 +175,18 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
         upstream = f"public.ecr.aws/docker/library/{kind}@sha256:{digest}"
         assert original.count(f"FROM {upstream}") == 1
         assert digest in run
-    assert 'pinned_source="public.ecr.aws/docker/library/${pinned_kind}@sha256:${pinned_digest}"' in run
-    assert 'verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"' in run
-    assert '"$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main"' in run
+    assert (
+        'pinned_source="public.ecr.aws/docker/library/${pinned_kind}@sha256:${pinned_digest}"'
+        in run
+    )
+    assert (
+        'verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"'
+        in run
+    )
+    assert (
+        '"$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main"'
+        in run
+    )
     assert "bash scripts/ci/pull_verified_ci_image.sh" in run
     assert '"$RUNNER_TEMP/railway-from-ref"' in run
     assert "source.count(expected) != 1" in run
@@ -177,9 +197,17 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
 
 def test_bootstrap_apt_is_bounded_and_regeneration_tracks_mirror_workflows():
     bootstrap = WORKFLOW.read_text(encoding="utf-8")
-    assert "sudo timeout --signal=TERM --kill-after=15s 180s apt-get update" in bootstrap
-    assert "sudo timeout --signal=TERM --kill-after=15s 240s apt-get install" in bootstrap
-    content = (ROOT / ".github/workflows/ci-immutable-mirror-regenerate.yml").read_text(encoding="utf-8")
+    assert (
+        "sudo timeout --signal=TERM --kill-after=15s 180s apt-get update"
+        in bootstrap
+    )
+    assert (
+        "sudo timeout --signal=TERM --kill-after=15s 240s apt-get install"
+        in bootstrap
+    )
+    content = (ROOT / ".github/workflows/ci-immutable-mirror-regenerate.yml").read_text(
+        encoding="utf-8"
+    )
     parsed = yaml.safe_load(content)
     paths = parsed.get("on", parsed.get(True))["push"]["paths"]
     assert ".github/workflows/ci-immutable-image-mirror.yml" in paths
