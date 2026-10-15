@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5680,
+    "files_scanned": 5685,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
-      "governance": 67,
+      "governance": 70,
       "mobile": 56,
-      "other": 1674,
-      "tests": 1911,
+      "other": 1675,
+      "tests": 1912,
       "web": 467
     },
-    "unmapped_artifacts": 2264,
+    "unmapped_artifacts": 2265,
     "ambiguous_artifacts": 436
   },
   "capabilities": [
@@ -44388,6 +44388,10 @@
     },
     {
       "path": "tests_v9/test_ci_check_name_identity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ci_image_mirror.py",
       "kind": "tests"
     },
     {

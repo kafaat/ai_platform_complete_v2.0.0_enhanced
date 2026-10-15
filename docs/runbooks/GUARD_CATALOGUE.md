@@ -1236,7 +1236,7 @@
 | `vegetation_agriai_production_gate.py` | — | `structural-lint` · `contract` |
 | `vegetation_container_contract_guard.py` | Guard vegetation-analysis-service container/runtime contract. | `guard` |
 | `vegetation_runtime_truth_guard.py` | Fail closed when vegetation runtime regains synthetic field/provider ownership. | `structural-lint` |
-| `verify_all_generated.py` | يشغّل **كلّ** خطوات ``--check`` المولَّدة بأمر واحد — وبالترتيب الذي تتطلّبه التبعيّات. | `capability-registry` |
+| `verify_all_generated.py` | يشغّل **كلّ** خطوات ``--check`` المولَّدة بأمر واحد — وبالترتيب الذي تتطلّبه التبعيّات. | `capability-registry` · `regeneration` |
 | `verify_certification_evidence_digests.py` | يقارن بصمةَ كلّ ملفِّ دليلٍ **مجلوب** ببصمةٍ سجّلها مُنتِجُه على قناةٍ أخرى. | `certification-verdict` |
 | `waiver_expiry_guard.py` | WAIVER-EXPIRY-GUARD — fail CI once a governance waiver has expired. | `structural-lint` |
 | `weather_engine_formula_guard.py` | Guard: vapour-pressure / ET0 formulas live only in the Weather Engine (WS-C.1b boundary). | `structural-lint` |
