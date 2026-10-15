@@ -4431,9 +4431,9 @@ def test_rag_hidden_deps_complete():
     missing = [pkg for imp, pkg in imports.items() if imp in main and pkg not in req]
     if not missing:
         r.append(("\u2713", "كلّ استيراد langchain له حزمة مطابقة (لا مفقود)"))
-    # 6. استيرادات غير-langchain مغطّاة (httpx/jose/multipart)
-    if "import httpx" in main and "httpx" in req and "from jose" in main and "python-jose" in req:
-        r.append(("\u2713", "httpx + jose + multipart مغطّاة في requirements"))
+    # 6. استيرادات غير-langchain مغطّاة (httpx/jwt/multipart) — python-jose أُزيل لصالح PyJWT
+    if "import httpx" in main and "httpx" in req and "from jwt" in main and "PyJWT" in req:
+        r.append(("\u2713", "httpx + jwt + multipart مغطّاة في requirements"))
     return r
 
 
@@ -4444,10 +4444,10 @@ def test_review_gaps_addressed():
 
     base = os.path.join(os.path.dirname(__file__), "..")
     r = []
-    # 1. requirements-dev.txt مكتمل (jose موجود → لا ModuleNotFoundError)
+    # 1. requirements-dev.txt مكتمل (PyJWT موجود → لا ModuleNotFoundError؛ python-jose أُزيل)
     dev = open(os.path.join(base, "requirements-dev.txt"), encoding="utf-8").read()
-    if "python-jose" in dev and "fastapi" in dev and "pydantic" in dev:
-        r.append(("\u2713", "بيئة اختبار hermetic: jose+fastapi+pydantic في requirements-dev"))
+    if "PyJWT" in dev and "fastapi" in dev and "pydantic" in dev:
+        r.append(("\u2713", "بيئة اختبار hermetic: PyJWT+fastapi+pydantic في requirements-dev"))
     # 2. circuit breaker موجود (فجوة المراجعة الحقيقيّة)
     cbpath = os.path.join(base, "services/supervisor-agent/circuit_breaker.py")
     if os.path.exists(cbpath):
@@ -4621,10 +4621,10 @@ def test_static_analysis_review_addressed():
 
     base = os.path.join(os.path.dirname(__file__), "..")
     r = []
-    # 1. hermetic: asyncpg+jose+fastapi في requirements-dev
+    # 1. hermetic: asyncpg+PyJWT+fastapi في requirements-dev (python-jose أُزيل)
     dev = open(os.path.join(base, "requirements-dev.txt"), encoding="utf-8").read()
-    if all(p in dev for p in ["asyncpg", "python-jose", "fastapi", "pydantic"]):
-        r.append(("\u2713", "hermetic: asyncpg+jose+fastapi+pydantic في dev"))
+    if all(p in dev for p in ["asyncpg", "PyJWT", "fastapi", "pydantic"]):
+        r.append(("\u2713", "hermetic: asyncpg+PyJWT+fastapi+pydantic في dev"))
     # 2. coverage gate في CI (كان مفقوداً)
     ci = open(os.path.join(base, ".github/workflows/ci.yml"), encoding="utf-8").read()
     if "cov-fail-under" in ci:

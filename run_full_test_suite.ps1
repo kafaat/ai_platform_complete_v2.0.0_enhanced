@@ -9,7 +9,7 @@ Write-Host "التاريخ: $(Get-Date)"
 
 Write-Host "`n━━━ [0/6] تثبيت أدوات الفحص ━━━"
 pip install -q pytest pytest-asyncio pytest-cov ruff bandit mypy `
-    python-jose[cryptography] fastapi pydantic httpx asyncpg redis numpy
+    "PyJWT[crypto]==2.15.0" fastapi pydantic httpx asyncpg redis numpy
 
 Write-Host "`n━━━ [1/6] Ruff (جودة الكود) ━━━"
 ruff check services/ tests_v9/ --statistics

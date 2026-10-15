@@ -1,7 +1,7 @@
 """Security Tests — SAHOOL v9.1.0"""
 
+import jwt
 import pytest
-from jose import jwt
 
 from conftest import TEST_JWT_SECRET, make_token
 
@@ -10,19 +10,19 @@ class TestJWTSecurity:
     @pytest.mark.security
     def test_algorithm_confusion(self):
         """Must reject tokens with 'none' algorithm."""
-        from jose import JWTError
+        from jwt import PyJWTError
 
         token = make_token()
-        with pytest.raises((JWTError, Exception)):
+        with pytest.raises((PyJWTError, Exception)):
             jwt.decode(token, "", algorithms=["none"], audience="sahool")
 
     @pytest.mark.security
     def test_weak_secret_rejected(self):
         """Token signed with wrong secret must be rejected."""
-        from jose import JWTError
+        from jwt import PyJWTError
 
         token = make_token()
-        with pytest.raises(JWTError):
+        with pytest.raises(PyJWTError):
             jwt.decode(token, "wrong_secret", algorithms=["HS256"], audience="sahool")
 
     @pytest.mark.security

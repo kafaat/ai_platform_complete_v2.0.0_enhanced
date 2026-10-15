@@ -26,8 +26,8 @@ SQLAlchemy>=2.0.0
 asyncpg>=0.30.0,<0.32.0
 redis>=5.0.0
 # ── تبعيّات وقت تشغيل تحتاجها اختبارات الخدمة (وإلّا ModuleNotFoundError) ──
-# FIX: كانت مفقودة فيفشل جمع الاختبارات بـ"No module named 'jose'"
-python-jose[cryptography]>=3.4.0
+# FIX: كانت مفقودة فيفشل جمع الاختبارات بـ"No module named 'jose'"؛ واليوم PyJWT بدل python-jose
+PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)
 fastapi==0.136.3
 pydantic==2.13.4
 cryptography>=42.0.0

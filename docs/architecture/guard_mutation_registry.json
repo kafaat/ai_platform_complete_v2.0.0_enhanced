@@ -94,8 +94,8 @@
         },
         {
           "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
-          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off\n",
-          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off || true\n",
+          "find": "            pip-audit -r \"$requirements_file\" --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --progress-spinner off || true\n",
           "test": "tests_v9/test_runtime_image_audit_gate.py",
           "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
@@ -4288,8 +4288,8 @@
       "mutations": [
         {
           "expect": "test_the_incident_file_is_named_by_the_survey_not_by_hand",
-          "find": "        if not _FAKE.search(text):\n            continue\n",
-          "replace": "        if _FAKE.search(text):\n            continue\n",
+          "find": "        if not seen:\n            continue\n",
+          "replace": "        if seen:\n            continue\n",
           "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
         },
         {
@@ -4321,6 +4321,36 @@
           "find": "    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())",
           "replace": "    inside = resolved is not None",
           "why": "نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض"
+        },
+        {
+          "expect": "test_the_cited_sites_hidden_by_the_naming_convention_are_counted",
+          "find": "        seen = _stand_in_evidence(tree)\n",
+          "replace": "        seen = re.findall(r\"\\b(?:class\\s+_?Fake\\w*(?:Conn|Pool)\\w*|fake_conn\\w*|fake_pool\\w*)\\b\", text)\n",
+          "why": "الرجوعُ إلى العدّ بالاسم (نمطُ main قبل FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01) ⇒ `_Conn` في `test_farm_fields_tenant_ownership.py` و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` يخرجان من العدّ وهما يدّعيان مُسنَدَ المستأجِر وJSONB نصّاً — ٥٨ موقعاً يعميها الاصطلاح"
+        },
+        {
+          "expect": "test_a_new_arbitrarily_named_fake_fails_the_ratchet_and_regeneration_cannot_admit_it",
+          "find": "    unadmitted = sorted(set(found[\"fake\"]) - admitted)",
+          "replace": "    unadmitted: list[str] = []",
+          "why": "نزعُ اشتراط القبول ⇒ `--generate` (والمكنسة بـ`--fix`) يبتلع أيَّ وهميٍّ جديد بلا كلمة، فيصير «الراتشِت» إعادةَ توليد. وهو بالضبط الطريق الذي كان سيمرّ منه تصحيحُ القياس صامتاً"
+        },
+        {
+          "expect": "test_regenerating_the_baseline_carries_the_admissions",
+          "find": "    admissions = _load_baseline().get(\"admissions\", []) if BASELINE.exists() else []",
+          "replace": "    admissions = []",
+          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو سجلَّ القبول فيسقط الأساس كلُّه عند أوّل إعادة توليد، أو يُعاد كتابته بلا تبرير"
+        },
+        {
+          "expect": "test_non_database_fakes_are_not_counted",
+          "find": "            if (params and _STATEMENT_PARAM.match(params[0])) or (not params and varargs):",
+          "replace": "            if params or varargs:",
+          "why": "نزعُ مرساة توقيع asyncpg ⇒ عميلُ HTTP بـ`fetch(self, url)` يُعَدّ بديلَ اتّصال؛ إيجابيٌّ كاذب يُدرِّب قارئ الحارس على تجاهله"
+        },
+        {
+          "expect": "test_an_unjustified_or_miscounted_admission_is_refused",
+          "find": "        if len((entry.get(\"justification\") or \"\").strip()) < _MIN_JUSTIFICATION:",
+          "replace": "        if False:",
+          "why": "قيدُ قبولٍ بلا تبرير ⇒ السجلّ يصير إعادةَ توليدٍ بخطّ اليد: يُقبَل الدَّين بسطرٍ لا يقول لماذا"
         }
       ],
       "test": "tests_v9/test_fake_connection_debt_guard.py"

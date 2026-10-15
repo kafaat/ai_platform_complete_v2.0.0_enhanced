@@ -9365,6 +9365,11 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 **2026-10-14 — إسناد الحارس إلى PR #1183 وفحوصه المحلية:** إصلاح `BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01` في [PR #1183](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1183)، رأس فتح المسوّدة `a00ff740b09c0a20976b231920ecf72d74b3a8a7` وشجرته `36fa76cae2768bf08f94e0fc046ea29f94092482`؛ أصل المصدر `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ بلا تعديل. اكتمل preflight المحلي بخروج 0 وصفر إخفاقات، مع بوابتي أمن متخطاتين لغياب الأداتين عن PATH؛ قيس Bandit وpip-audit الأصلي لاحقاً بنجاح، وكذلك أمر CI ذي 19 ملف اعتماد، بالاستثناءات القائمة نفسها. الوحدات العادية وتحت لغة C: 8878 ناجحاً و39 متخطى لكل منهما؛ اختبارات المستودع 996 ناجحاً و8 متخطاة، والمنصة 4586 ناجحاً، وحراس لغة C نجحوا 169/169. نجحت حراس النطاق الملتزم الثلاثة على رأس الفتح وبوابة أثر القدرات؛ حزمة الفتح أثبتت 6315 بصمة. الملخص وإيصالات الأوامر وبصمات السجلات في `certification/evidence/arabic_state_guard_20261014/validation_summary.json` و`validation_gate_receipts.json`؛ لا ادعاء JUnit. تظل فحوص GitHub للرأس النهائي والدمج معلقة؛ لا دليل قبول حي أو ترقية verified. الحصيلة 134 open و389 fixed و3 verified؛ خطة135 لقطة تاريخية على `main@9a50aac3` وليست العداد الحالي. وصف عدم إنشاء PR في المدخل السابق محفوظ كتاريخ إعداد الأدلة.
 
+
+## 2026-10-14 — فكّ JWT عبر المفكِّك المشترك بوضع مراقبة (شريحة جزئيّة)
+
+`JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open: نُقل ١١ من ١٨ نداءً في ٨ ملفّات إلى `decode_access_token` عند `64874d80` على `main@56de3d31` (فرعٌ محلّيّ، لا PR ولا نشر). الحكمُ ونوعُ الخطأ لكلّ موضعٍ بلا تغيير؛ السياسةُ الأشدّ تُعَدّ ولا تُفرَض؛ المفتاحُ الفارغ مرفوض (ثقب video-processor). المتبقّي مُعلَن: actuator (GATE-01) · auth ×3 (مُصدِر) · MCP ×2 (ظلّ حزمة `shared`) · tts-service (مؤجَّل لتفادي التداخل مع شريحة الجاهزيّة). الأثر عند الدمج: guardrails-engine · local-ai-rag · odoo-bridge · sahool-platform · supervisor-agent · vegetation-analysis-service · video-processor، وكلُّ خدمةٍ تراقب `shared/**` (منها وكيل الإشعارات). مصنوعاتٌ مولَّدة منحرفة بانتظار إعادة التوليد عند المنسّق.
+**المصدر:** `main@56de3d31` · إصلاح `64874d80` · `shared/security/access_tokens.py` (`decode_access_token`) · الشاهد `tests_v9/test_jwt_decode_shared_decoder.py` (أحمر على main: 11 إخفاقاً و30 خطأً؛ أخضر: 42) · الراتشِت `tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py` · قرار المالك 2026-10-01 (#1118).
 ## 2026-10-14 — الحارس العربي أصبح قانونياً على main في #1183
 
 - **canonical main بعد squash #1183:** `56de3d316fd5243253b6f6d38dc38b331bbddf95`؛ أصل الإصلاح `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ كتاريخ مصدر. شجرة الدمج `6a297aae1272217b9e73e055312d7554f851568c` تطابق رأس PR المختبر `0126ae7894b18cd4f3e3ebcc1afcc7dd19392374`. فحوص السياقات الحالية 65 ناجحاً و2 متخطيان مبرران، والعشرون المطلوبة كلها ناجحة؛ أُعيدت وظيفتا إعداد PostgreSQL بعد ECR429 مرة واحدة دون تغيير المصدر. الدليل `certification/evidence/arabic_state_guard_20261014/pr1183_final_ci_review.json` و`pr1183_merge_observation.json`. هذه إحالة الدمج وCI على رأس PR؛ فحوص main والنشر أدلة لاحقة منفصلة، ولا ترقية verified.
@@ -9495,3 +9500,35 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 **لماذا لا إغلاق:** شرطُ الإغلاق (أ) يطلب ألّا يُحسَب `depletion_mm` قُدُماً على حقلٍ غير مُجهَّز، و(ب) و(ج) يطلبان إعدادَ مصادر الماء لكلّ حقلٍ وموسم — مخطَّطٌ جديد وتعديلُ العامل المجمَّد. والعلَمُ يوميٌّ لا يرث الأيّامَ السابقة.
 
 **القرارُ للمالك:** الحجزُ يُعطّل الاعتمادَ الآليّ عمليّاً على كلّ يومٍ بلا ريّةٍ مسجّلة. المرشّحُ يُنشأ للمراجِع البشريّ ولا يُحجَب.
+
+## 2026-10-15 — python-jose أُزيل: PyJWT وحدها، والحكمُ محفوظ (`2a85159f1`)
+
+`DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01` صارت **fixed** على فرعٍ محلّيّ (`claude/w3-pyjwt-migration-20261015` = فرع المفكِّك المشترك مدموجاً مع `main@5472740e`؛ لا PR ولا نشر). المواقعُ المنقولة: `shared/security/access_tokens.py` (`decode_access_token` بخلفيّة PyJWT وحدها و`claim_semantics`، و`verify_access_token`) · `services/auth/main.py` و`routers/session.py` (المُصدِر: توقيع PyJWT، وفكٌّ عبر المفكِّك) · `services/tts-service/main.py` (تبديلُ استيرادٍ ونداء فقط) · `services/local-ai-rag` و`odoo-bridge` و`video-processor` (`backend="jose"` ← `claim_semantics="python-jose"`) · `shared/fcm.py` (توقيع RS256). خريطةُ الأخطاء: `JWTError` ← `jwt.PyJWTError` (يشمل `InvalidKeyError` كما شمل `JWTError` أخطاءَ المفتاح)، فكلُّ مُستدعٍ يُعيد الحالةَ نفسها (401 · 403 في rag-retrieval · `ValueError` في odoo-bridge). ما كان python-jose يقبله يُقبَل: `aud` غائب (يُعَدّ `missing_aud`)، و`iat` في المستقبل؛ والفرقُ الوحيد المقيس: الانتهاءُ عند `exp` نفسه لا بعده بثانية. أُزيل `python-jose`/`ecdsa` من تسعة ملفّات متطلّبات (`PyJWT[crypto]==2.15.0`) وأُزيل إعفاءاهما من `ci.yml` و`preflight.sh` و`config/security_exceptions.json`، ومَرسى طفرة `test_runtime_image_audit_gate` تبع السطر. وكشف الشاهدُ استيرادين مؤجَّلين لـjose في اختباراتٍ ما كان grep الأوّل يراهما، وقائمةَ `find_spec` في `test_video_stream_tenant_authz.py` كانت ستُخمِد ملفّها بصمت بعد الإزالة. **وبقي أثرُ `merge=union` في السجلّ بلا إصلاح هنا:** صفّا `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` و`ROUTER-SIZE-UNGUARDED-AFTER-MAIN-DECOMPOSITION-01` تكرّرا عند دمج `main` في `b518437c` (يحمّران `brain_duplicate_gap_identity_guard`)؛ حذفُ النسختين الأقدم في التزامٍ لاحق يحمّر `brain_append_only_guard` (`JOURNAL_SHRANK`)، فالإصلاحُ إعادةُ بناء الضمّ نفسِه: يُبقى صفُّ JWT من الفرع (يحوي نسخةَ main في «سابقاً») وصفُّ ROUTER-SIZE من main (يحوي نسخةَ الفرع مع إعادة قياس 2026-10-14) — مقيسٌ أنّ كلّاً منهما يحوي الآخر. حُدِّث هنا صفُّ JWT الأوّل (نسخةُ الفرع) وحده. `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open: ١٥ من ١٨، والمتبقّي actuator (GATE-01) وMCP ×2. وكشفٌ جانبيّ: صورةُ المنصّة لا تُثبّت python-jose بينما `core/capabilities.py` و`api/alert_senders.py` يستوردان `shared.fcm` الذي كان يستورده علويّاً — مقيسٌ محلّيّاً (`import shared.fcm` يسقط بلا jose على main وينجح بعد الإصلاح)، ولم يُقَس في الصورة الحيّة.
+**المصدر:** `main@5472740e` · إصلاح `2a85159f1` · الشاهد `tests_v9/test_python_jose_removed.py` (أحمر على main: 13 إخفاقاً و38 خطأً؛ أخضر: 61) · `tests_v9/test_jwt_decode_shared_decoder.py` · `pip-audit` قبل/بعد على الملفّات التسعة (قبل: `CVE-2026-85394` و`PYSEC-2026-1325` في كلٍّ منها؛ بعد: لا شيء، و`nltk PYSEC-2026-3740` في `requirements-dev.txt` قائمٌ قبلُ وبعد) · جناح `-m unit -k "jwt or token or auth or fcm or security or jose"`: main 1 إخفاق/1219 نجاح، بعد 1/1329 (الإخفاقُ نفسُه: soil-service في `test_service_token_constant_time.py`).
+## 2026-10-15 — راتشِتُ الاتّصالات الوهميّة يعدّ صنفاً لا اسماً
+
+`FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01` صارت **fixed** عند `4b105001e` على أساس `main@5472740e` (بلا دفع ولا PR).
+
+**ما تغيّر:** `scripts/ci/fake_connection_debt_guard.py` كان يطابق اصطلاحَ التسمية نصّاً (`class _?Fake…(Conn|Pool)` · `fake_conn…` · `fake_pool…`). صار يكشف البديلَ بنيويّاً بـAST عبر أربع قنوات: صنفُ اتّصالٍ راسٍ على توقيع asyncpg، ومسبحٌ بـ`acquire`، وترقيعُ مُورِّد الاتّصال، ومحاكاةٌ مُهيَّأة.
+
+**المقيس:**
+- الملفّات الوهميّة: 40 ⇒ 98، والأربعون القدامى كلّهم باقون.
+- المُدّعية سلوكَ قاعدة: 9 ⇒ 20، والقائم 1 ⇒ 12 بعد 8 سدادات حيّة.
+- الموقعان المذكوران في الفجوة صارا معدودَين: `_Conn` في `test_farm_fields_tenant_ownership.py`، و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` (يدّعي jsonb).
+
+**الإيجابيّ الكاذب مقيسٌ ومُستبعَد:**
+- وكيلٌ يلفّ اتّصال PG حيّاً (`_PinnedVersion` في `test_decision_sor_role_certify_pg.py`).
+- ترقيعُ `_connect` باتّصال PG16 حيّ (`test_migration_033_pg16.py`).
+- مُحوِّلُ مسبحٍ حول `asyncpg.connect` (`test_d1_raster_invalidation_owner_api_integration.py`).
+- `Skill.execute(self)` و`_Pipe.execute(self)` (Redis).
+- عميلُ HTTP بـ`fetch(url)`، والقفل.
+
+**إعادة الأساس ليست التفافاً:** أُضيف `admissions`، وهو سجلُّ قبولٍ بخطّ اليد تحمله `--generate` ولا تكتبه. فيه قيدان: المسحُ الأوّل (#807، 0 → 40)، و«measurement correction (class not name), 2026-10-15, 40 → 98» بمواقعه الـ58 وتبريره. أيُّ وهميٍّ جديد بعده يُحجَب، وإعادةُ التوليد لا تقبله.
+
+**الشواهد:**
+- 3 حالاتٍ جديدة حمراء على ماسح main وخضراء بعده.
+- `tests_v9/test_fake_connection_debt_guard.py`: 23/23.
+- الطفرات: 11/11 مقتولة، منها 5 جديدة (الرجوع إلى الاسم بينها).
+- الاختيار `-m unit -k "fake_connection or guard_catalogue or mutation or blocking_surface or ratchet"`: 214 ناجحة وإخفاقٌ واحد، هو انجراف `GUARD_CATALOGUE.md`. يحتاج إعادة توليد ولم يُولَّد هنا.
+
+أُضيفت إحالةٌ بلا تغيير حالة في `C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01`.

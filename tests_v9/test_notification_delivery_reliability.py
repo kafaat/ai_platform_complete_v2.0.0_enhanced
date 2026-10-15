@@ -9,10 +9,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import jwt
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import jwt
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]

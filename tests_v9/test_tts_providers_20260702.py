@@ -190,7 +190,7 @@ class TestProviderAvailability:
 # التبعيّة: راوترات الخدمة تُضمَّن بتمديد app.routes مباشرةً (تسطيح) فلا يُضبَط
 # dependency_overrides_provider عليها ⇒ التجاوز لا يُستشار. التوكن الحقيقيّ أمتن.
 def _bearer(main_mod) -> dict:
-    from jose import jwt
+    import jwt
 
     token = jwt.encode(
         {"sub": "tester", "iss": "sahool-auth", "aud": "sahool", "tenant_id": "t1"},

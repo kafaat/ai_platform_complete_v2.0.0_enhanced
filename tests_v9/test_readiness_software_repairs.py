@@ -345,7 +345,7 @@ def test_public_rag_uses_verified_jwt_tenant(monkeypatch):
     ],
 )
 def test_public_rag_verifies_signed_access_tokens_before_retrieval(monkeypatch, case, expected):
-    from jose import jwt
+    import jwt
 
     module = load_service(monkeypatch, "rag-retrieval")
     secret = token_urlsafe(48)
@@ -377,9 +377,9 @@ def test_public_rag_verifies_signed_access_tokens_before_retrieval(monkeypatch, 
 
 
 def test_public_rag_production_uses_rsa_verification_key(monkeypatch):
+    import jwt
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import rsa
-    from jose import jwt
 
     module = load_service(monkeypatch, "rag-retrieval")
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

@@ -18,8 +18,8 @@ import os
 import sys
 import types
 
+import jwt
 import pytest
-from jose import jwt
 
 from tests_v9.service_module import load_service_main
 

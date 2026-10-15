@@ -160,7 +160,7 @@ def _policy(
 
 
 def _bearer(main, tenant=_TENANT):
-    from jose import jwt
+    import jwt
 
     token = jwt.encode(
         {"sub": "user-1", "iss": "sahool-auth", "tenant_id": tenant, "aud": "sahool"},
