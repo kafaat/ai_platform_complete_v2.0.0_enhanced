@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97a9f959722836aba726acb012da153a4a6288c6e910efea83c91e2277ac95bd"
+          "content": "b68f374518f7e83c2ddd5277cc50690ea43b4e419fb1f507364a7a02ae94559b"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -6825,7 +6825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28943dd63df1869ababe694a3d3f20ca00306c81fe2a60fdb6807de95237ba69"
+          "content": "1335341bb0b9068b751ea7fba263457dc4d090e986cd7f10328b568531e2f632"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -17795,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97bbe5547d629a147ecc7430e9184bc9d2f51576f3031cdb09b3eac2bee40895"
+          "content": "ff330e0df70fa58b73f636e5f0f2269a7ce71c87cadfb5865ee7de2c106ad615"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_source_binding.py",
@@ -19145,7 +19145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cd08b95132ab9cacecd7d8aa4c4d9c7e49523716a0a28d9510ee0e8bc318950"
+          "content": "563989d29a11609453949b8265b3e13e300b52b32d207609cb07bc5d673e6c65"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -19175,7 +19175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fa4155a349c2edf060b5f4d6b6d2dbcd8e9e69b49b8a4b2c685d5f7e6dd24a2"
+          "content": "110fb79602944de069d43a9754a32f407890ffc9d6838a352a3b39ae997a53aa"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -20275,7 +20275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d980067093d638167a2c36a8c272ba15aaf2a64e1d74e7c209f3381563e5efa5"
+          "content": "5b4f1d8483515dc666a34373685cf78dd04b6b5fd345dda03682e4f5027a1f77"
         }
       ],
       "name": "services/sahool-platform/api/water_decision_bridge.py",
@@ -20305,7 +20305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "270443c759168ceedf6de5a144dfa2c28f0bcceeb9907d54d12ebba3989aeaa7"
+          "content": "1f577246833032d07e56c17998c9c770a2efb75cf570b4a60c7ffe66906b244d"
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_auto.py",
@@ -22755,7 +22755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ce962ab8e9724d915f6030878fddc888be0d7684cd7f3c876a197e3e45eecec"
+          "content": "4838a8f2449f364009188345dae37faad3991988ecb1d0c0603924767f534d37"
         }
       ],
       "name": "services/sahool-platform/core/irrigation_water_analysis.py",
@@ -26045,7 +26045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "accd11515673f52e2e849380a13303e2b9cb6a3890840a91cfb562c06d5e26cc"
+          "content": "307c2c975d0cfba652369ea657ca501e3573d23a89749cf8854486455c83ee7a"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -26549,16 +26549,6 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_input_traceability.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "fe259f2274de6d2b1e0408a9e3eec7e3ca130b39c3a27e6c9972a98ea256bbe9"
-        }
-      ],
-      "name": "services/sahool-platform/tests/test_irrigation_blend_water_quality.py",
       "type": "file"
     },
     {
@@ -28575,7 +28565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0854fd7dddbef9010aad4cf3167521eac798caac5e6818d97adac34e17ecf4a"
+          "content": "62b595af565ee9d700cc6445f21c2194a2308877c8d16ca05e0cad2bbd092b28"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_decision_bridge.py",
@@ -28585,7 +28575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02b449e89b2cd36342e53ddbc2604708ee2297838c7a6771e553b1119d147a48"
+          "content": "733ac641f5a50bd91f17af46f5789b1f455d439fb158070409d04df629e47fa9"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_ledger_auto.py",

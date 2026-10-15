@@ -73,6 +73,9 @@ def test_a_db_job_without_a_job_timeout_is_blocked(tmp_path, monkeypatch):
     text = wf.read_text(encoding="utf-8")
     marker = (
         "  integration-tests:\n"
+        "    permissions:\n"
+        "      contents: read\n"
+        "      packages: read\n"
         "    name: Integration Tests\n"
         "    runs-on: ubuntu-24.04\n"
         "    # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ "

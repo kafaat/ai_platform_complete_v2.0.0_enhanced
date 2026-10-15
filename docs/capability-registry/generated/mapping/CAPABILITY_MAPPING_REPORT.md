@@ -11,9 +11,9 @@
 - Capabilities: **81**
 - Mapped: **76**
 - Unmapped: **5**
-- Multi-dimensional mappings: **50**
-- Files scanned: **5731**
-- Ambiguous artifacts queued: **438**
+- Multi-dimensional mappings: **49**
+- Files scanned: **5734**
+- Ambiguous artifacts queued: **437**
 - Unmapped artifacts queued: **2273**
 
 ## Capability coverage
@@ -23,8 +23,8 @@
 | DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 3 | 3 |
-| DEC-004 | decision | 9 | 20 | 24 | 33 | 0 | 0 | 16 | 5 |
-| DEC-005 | decision | 6 | 87 | 5 | 9 | 0 | 0 | 4 | 5 |
+| DEC-004 | decision | 9 | 20 | 24 | 31 | 0 | 0 | 16 | 5 |
+| DEC-005 | decision | 6 | 87 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
 | DEC-008 | decision | 5 | 95 | 14 | 5 | 0 | 0 | 4 | 5 |
@@ -47,7 +47,7 @@
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
-| IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 1 | 5 |
+| IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |
 | IRR-004 | irrigation | 10 | 2 | 3 | 6 | 2 | 0 | 8 | 6 |
 | IRR-005 | irrigation | 3 | 2 | 0 | 18 | 3 | 0 | 8 | 5 |
