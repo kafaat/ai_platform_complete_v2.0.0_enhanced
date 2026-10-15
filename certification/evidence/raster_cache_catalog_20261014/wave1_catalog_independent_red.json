@@ -1,0 +1,70 @@
+{
+  "results": [
+    {
+      "case": "empty",
+      "status": 200,
+      "body": {
+        "best": null,
+        "candidates": 0,
+        "note": "لا مشاهد ضمن المعايير — وسّع lookback أو max_cloud"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "timeout",
+      "status": 200,
+      "body": {
+        "best": null,
+        "candidates": 0,
+        "note": "لا مشاهد ضمن المعايير — وسّع lookback أو max_cloud"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "malformed",
+      "status": 200,
+      "body": {
+        "best": null,
+        "candidates": 0,
+        "note": "لا مشاهد ضمن المعايير — وسّع lookback أو max_cloud"
+      },
+      "provider_attempts": 1
+    },
+    {
+      "case": "http403",
+      "status": 200,
+      "body": {
+        "best": null,
+        "candidates": 0,
+        "note": "لا مشاهد ضمن المعايير — وسّع lookback أو max_cloud"
+      },
+      "provider_attempts": 2
+    },
+    {
+      "case": "scene",
+      "status": 200,
+      "body": {
+        "best": {
+          "item_id": "scene-one",
+          "datetime": "2026-10-14T00:00:00Z",
+          "cloud_cover_pct": 5.0,
+          "bbox": null,
+          "bands_urls": {},
+          "thumbnail_url": null,
+          "preview_url": null,
+          "platform": "sentinel-2",
+          "provider": "cdse"
+        },
+        "candidates": 1,
+        "selection": "أقلّ غيوم مع تفضيل الحداثة",
+        "cache": "miss"
+      },
+      "provider_attempts": 1
+    }
+  ],
+  "live_calls": false,
+  "source_sha256": {
+    "services/raster-service/cdse_client.py": "e1b705bce0bccf873b5bf0f3854bbadb70645050dbc515ea928f3f2e015cc045",
+    "services/raster-service/stac_search.py": "de40704e46e0ac67b201117b7a7131e16e38c9b311aaa4cf795e33a99ac0b18d"
+  }
+}

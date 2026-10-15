@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.439" timestamp="2026-10-14T08:04:45.180075-07:00" hostname="local-test-host"><testcase classname="services.raster-service.test_element84_vrt_defect_witnesses" name="test_the_shared_cache_does_not_reuse_a_different_transform" time="0.242"><failure message="assert 0.9521995782852173 == 0.32786885 ± 1.0e-06&#10;  &#10;  comparison failed&#10;  Obtained: 0.9521995782852173&#10;  Expected: 0.32786885 ± 1.0e-06">services/raster-service/test_element84_vrt_defect_witnesses.py:190: in test_the_shared_cache_does_not_reuse_a_different_transform
+    assert second["mean"] == pytest.approx(0.32786885, abs=1e-6)
+E   assert 0.9521995782852173 == 0.32786885 ± 1.0e-06
+E     
+E     comparison failed
+E     Obtained: 0.9521995782852173
+E     Expected: 0.32786885 ± 1.0e-06</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,135 @@
+[
+  {
+    "source": "analysis/wave1_cache_handoff.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_handoff.json",
+    "raw_sha256": "37990ef9b75fa53fe69feb4d1578ea31380585045d9d1f97bff6cd19c44828e9",
+    "copied_sha256": "ab8caaa60b6342dd345aced23a07935c2c643b68ea0d06c4cfd0023a4676a0f2",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_baseline.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_baseline.log",
+    "raw_sha256": "31cfe95f6988d8d19a9167f80ea29168cb41723745339e3fb029716b245be555",
+    "copied_sha256": "4276e86338e3d07f6e6e9df60b7f8042fffbc667f5574e7b86d9247472d3ad73",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_regressions_red.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_regressions_red.log",
+    "raw_sha256": "e97ce3ac8585df6209ef8207b1722e55d48336b5831fb339794214a768cbb4f4",
+    "copied_sha256": "b5f7ba2f8ca1db642ef2a0fc70f742183f77d38c46d48413eb80d4d18563ae5a",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_candidate.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_candidate.log",
+    "raw_sha256": "7b8074488cb90034450e09c924d8fe7418f1b2feec251f628bff84a4eb33b733",
+    "copied_sha256": "13677746a6ff5037209f17a716fdffdb0d25fe38725d634b2562f928f2b5ff7e",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_candidate.xml",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_candidate.xml",
+    "raw_sha256": "2f803cc94e52f58105b3ae6842c1839d28beebaf386029883cbbc1c492c0f043",
+    "copied_sha256": "616af7a30be2b58676c13ec0c3c4c505d268959eb32ce36c63fd6f211995b711",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_contracts.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_contracts.log",
+    "raw_sha256": "9ac61ea5c38c849fe43214fbfdb3b0f4117c5c4ceb1dcbe15ecaf2e2c259c7d0",
+    "copied_sha256": "d416b84c91e5cbf579fe619b641c099989057e60794ff3d83d875c0dd545a1df",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_raster_quality.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_raster_quality.log",
+    "raw_sha256": "c50dc13b8d64208031fbe4f4fe23dcf9d1d6a6fcb2ba8bc8ab38e1efd48006f5",
+    "copied_sha256": "4dafaf6b2d264ed639edcb1365ca558613c0f799be7dbd1c0a18a55029a9330f",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_independent_review.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_independent_review.json",
+    "raw_sha256": "36a9995fe96a963c74084c8d5738a9a212610efac1149f22f9018236e6dfa03e",
+    "copied_sha256": "36a9995fe96a963c74084c8d5738a9a212610efac1149f22f9018236e6dfa03e",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_independent_red.xml",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_independent_red.xml",
+    "raw_sha256": "e66b2ee3b99c9449c16559b292b6f83417e58152351bc25775c6cbaf8d5a02fa",
+    "copied_sha256": "445a0eb8243ede6aaf3c0555eb9384e823b519b9cf824aeacb78f81c6019c9a0",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_cache_independent_green.xml",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_cache_independent_green.xml",
+    "raw_sha256": "65ab43b4a104659f224ba90b443d40aa0d7469cf683c00745ed68fffa13c8cda",
+    "copied_sha256": "1f8826fa942e1d877171069e6f297d0a44ebb4a90be0ccd731dba37a96170c26",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_result.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_result.json",
+    "raw_sha256": "0822bdf1f97154d8da18f0a0fa29c7017181580fe122a30daf229c1b24f30c39",
+    "copied_sha256": "0822bdf1f97154d8da18f0a0fa29c7017181580fe122a30daf229c1b24f30c39",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_red.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_red.log",
+    "raw_sha256": "41bff67b51e77bd60d1a835c12aa25b39b67f40da5d1e3b017eb02520a0b939d",
+    "copied_sha256": "f5eee0b52ac6285f1cd68a6ee16de5e2bffd4efbc50f4a7b2abf3d86ee11a3aa",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_red.xml",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_red.xml",
+    "raw_sha256": "c18f32f59f410cf097127451e4fa4be95effd15cad2786349b662d3064d569b5",
+    "copied_sha256": "53fb98227a084bb99778948a8b4be162ba02b8ba7d152dcf8e88cfaa02ad4751",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_related_final.log",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_related_final.log",
+    "raw_sha256": "3778aa5c5adcaf1f4f2890881972514b607347724f88fc296ebebf2348f6cdf7",
+    "copied_sha256": "0da4641a2363c87fc697b6a74467ea39427fa5aa3233f7fd78a23f2dab2c4af0",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_related_final.xml",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_related_final.xml",
+    "raw_sha256": "670fc1ba038afbd8a9fc7f6da01474a1321c5d9bf577717c57cbb5bb643b2e44",
+    "copied_sha256": "cf9f95783d453e47179af454bcf41280b660d2cc119b1b4d6c0db8f494885cd6",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_independent_red.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_red.json",
+    "raw_sha256": "5266b339bb41d5d6d9736d69c3f2f5d0ab6ad90d58929a60117cc765bb243757",
+    "copied_sha256": "5266b339bb41d5d6d9736d69c3f2f5d0ab6ad90d58929a60117cc765bb243757",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_independent_green.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_green.json",
+    "raw_sha256": "ce64b0bafd258e4dcd37c60ceacd75ddbfb3641fae96b49534822383ae769a14",
+    "copied_sha256": "ce64b0bafd258e4dcd37c60ceacd75ddbfb3641fae96b49534822383ae769a14",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_independent_review.json",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_review.json",
+    "raw_sha256": "14d2536b49ef392590cba04f847d56454c2a5499e7660c39b2178faf34f044b4",
+    "copied_sha256": "14d2536b49ef392590cba04f847d56454c2a5499e7660c39b2178faf34f044b4",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  },
+  {
+    "source": "analysis/wave1_catalog_independent_witness.py",
+    "destination": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_witness.py.txt",
+    "raw_sha256": "d085becc317aa12a5981c7fe52eab4e1c3b0c2920e9df0f8cc4aab77631cab09",
+    "copied_sha256": "dc91a9cdce42e5b24bbf1610f9048437c433d05a76b1c3758d63d374aedeafc7",
+    "normalization": "known workspace roots replaced; XML escaped and parsed with unchanged testcase/status signatures; XML hostname normalized; EOF normalized"
+  }
+]

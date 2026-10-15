@@ -1,0 +1,117 @@
+{
+  "recorded_at": "2026-10-14T18:33:57.252985+00:00",
+  "status": "REQUIRED_LOCAL_PROTOCOL_GATES_COMPLETE",
+  "original_preflight_exit": "unavailable; process interrupted in first C unit attempt; never claimed exit0",
+  "protocol_proof": "35 complete native gate receipts retained with exact source/index continuity; only unfinished C unit and locale guard resumed to successful exit, then5domain7extra3final gates",
+  "successful_gate_groups": {
+    "native_retained": 35,
+    "native_resumed": 2,
+    "domain": 5,
+    "extras": 7,
+    "final_convergence_package": 3
+  },
+  "native_gate_skips": 0,
+  "skip_basis": "All37 selected native gates have completed receipts; original native console contains no skipped-gate markers. Individual pytest skips preserved separately.",
+  "source_sha256": {
+    "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+    "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+    "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+    "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+    "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+  },
+  "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+  "index_tree": "3e6a611943c6315c4601fc897977538728a61bf9",
+  "normal_unit": {
+    "path": "<scratch>/analysis/wave1_raster_full_56de_v2/unit_normal.xml",
+    "sha256": "c0e0846d20914591b7fa8e8ebc93eb095c82177c40b3a06f9ae33df436f77483",
+    "counts": {
+      "tests": 8942,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 39,
+      "passed": 8903
+    }
+  },
+  "c_unit": {
+    "path": "<scratch>/analysis/wave1_raster_c_recovery_01/unit_c.xml",
+    "sha256": "72abb08d38fe3ed953ec74c1c7d50e250040e257ad9a64434ff0b27a879730a3",
+    "counts": {
+      "tests": 8942,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 39,
+      "passed": 8903
+    }
+  },
+  "effective_c_child_environment": {
+    "LC_ALL": "C",
+    "PYTHONUTF8": "0",
+    "PYTHONIOENCODING": "unset"
+  },
+  "parent_environment_warning": "Per-gate environment reflects supervisor; explicit env argv establishes C child overrides.",
+  "suite_stdout_summaries": {
+    "normal_unit": "== 8903 passed, 39 skipped, 468 deselected, 139 warnings in 494.07s (0:08:14) ==",
+    "repository_tests": "================== 996 passed, 8 skipped in 335.88s (0:05:35) ==================",
+    "platform_tests": "====================== 4586 passed, 63 warnings in 54.39s ======================",
+    "c_unit": "== 8903 passed, 39 skipped, 468 deselected, 139 warnings in 485.80s (0:08:05) ==",
+    "raster_domain": "========== 440 passed, 2 skipped, 11 xfailed, 4292 warnings in 6.54s ==========="
+  },
+  "security": "Native bandit HIGH plus critical requirement audit and exact workflow19 requirement audit, same two CI exceptions; no extra exceptions.",
+  "recovery_basis": "<scratch>/analysis/wave1_raster_c_recovery_01/recovery_basis.json",
+  "recovery_basis_sha256": "d6bfebe2ed0380613b2b0ab4cdc91764ddf619fd33dae2f7bcdeedb1a95739fc",
+  "limits": [
+    "Test groups overlap; counts must not be added.",
+    "No provider/live/DB/deployment verification established.",
+    "Original interrupted C unit attempt has no pass/fail inference and is preserved.",
+    "Initial instrumentation launch error97 preserved in wave1_raster_full_56de/launch_failure.json; no repo source change.",
+    "RemoteCI currenthead and required contexts remain independently required."
+  ],
+  "main1184_integration_validation": {
+    "main": "e6145c103e3da6c27c3ede006839f0fc8b4172e0",
+    "metadata_test_head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+    "integration_head": "b678ff7356d4b8b4197aaff41014ffcd1f984605",
+    "completed_scoped_commands": 9,
+    "metadata_junit_counts": {
+      "tests": 384,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "metadata_junit_sha256": "a6e30f6d743788dab12f3bbf29d845f152d639804c29ea5fac68fd40834c6846",
+    "fast_protocol": "rc0,0failed,0skipped; full suites and generation intentionally not selected here",
+    "waiver_mutation": "--run --only config/endpoint_ui_coverage_waivers.json passed; the renewed anchor was exercised",
+    "source_sha256_unchanged": {
+      "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+      "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+      "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+      "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+      "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+      "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+    },
+    "upstream_changed_paths": [
+      "config/endpoint_ui_coverage_waivers.json",
+      "config/security_exceptions.json",
+      "docs/architecture/PLATFORM_CATALOG.generated.md",
+      "docs/architecture/guard_mutation_registry.json",
+      "frontend/src/lib/platformCatalog.generated.ts",
+      "platform_catalog.generated.json",
+      "release/FILE_CHECKSUMS.sha256",
+      "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+      "release/SBOM_MINIMAL.json",
+      "runtime_capability_manifest.generated.json",
+      "sahool-brain/decisions/ledger.md",
+      "sahool-brain/hot.md",
+      "sahool-brain/log.md"
+    ],
+    "reuse_limit": "Full suites above were run on original validated opening tree3e6/base56de. No runtime/test/dependency/workflow files changed on main1184; these9current metadata/waiver checks are separate, not relabeled full suites.",
+    "final_generation_and_package": "pending after all manual inputs staged; will be recorded outside tracked inputs to avoid self-referential regeneration"
+  },
+  "recorded_integration_at": "2026-10-14T19:40:40.131041+00:00",
+  "governance_integration_validation": {
+    "local_integration_head": "15c610418ef912bf886ae53e97b9eec82c9acf6f",
+    "proof": "governance_integration_validation.json",
+    "scope": "Original full runtime suites retain opening tree3e6/base56de scope. Six raster source/test pins are unchanged. Incoming changes are governance guard/workflow/tests plus brain/generated metadata; those changed guards and metadata receive scoped validation. No original suite is relabeled as run on this integration.",
+    "status": "scoped results recorded in referenced proof; original full-suite fields unchanged"
+  }
+}

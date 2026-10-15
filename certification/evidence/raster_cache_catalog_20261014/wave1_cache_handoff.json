@@ -1,0 +1,78 @@
+{
+  "gap": "RASTER-SHARED-CACHE-KEY-OMITS-TRANSFORM-01",
+  "worktree": "<scratch>/cache-wave",
+  "branch": "codex/raster-cache-transform-20261014",
+  "base": "9a50aac3bf71ed42f4fad91a036d49e61d151a52",
+  "source_commit": "334662bdb0519b33d5de05a5a95e9d1d88c96ef3",
+  "files": {
+    "services/raster-service/raster_pixel_processing.py": {
+      "sha256": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+      "git_blob": "55fcf5431a7596d27bc814ee9b9fc608255a7bf9"
+    },
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": {
+      "sha256": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+      "git_blob": "43fd63397e8d65a3eb46605e43298bc452b9a763"
+    }
+  },
+  "implementation": [
+    "Strong dataset identity retained in batch keys; grid transform, CRS, shape, nodata, dtypes, and canonical projected clipping geometry scope all cached reads.",
+    "Reflectance and truecolor keys additionally include effective numeric per-band scale/offset after existing request/metadata/fallback resolution.",
+    "Cache values pair transformed arrays with their output affine transform; truecolor hits also restore shape. Raw QA uses the same source/grid/clip context.",
+    "No global clip_transform slot; identical source/context still reuses band I/O."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q services/raster-service/test_element84_vrt_defect_witnesses.py -k shared_cache --runxfail",
+      "source": "base9a50aac3",
+      "rc": 1,
+      "result": "existing witness failed: observed EVI0.9521995782852173 vs expected0.32786885",
+      "log": "wave1_cache_baseline.log"
+    },
+    {
+      "command": "isolated import of wave1_cache_baseline_source.py as raster_pixel_processing then pytest -q services/raster-service/test_element84_vrt_defect_witnesses.py -k \"cache or identical_context\"",
+      "source": "base9a50aac3, final candidate test file",
+      "rc": 1,
+      "result": "30failed,6passed,12deselected",
+      "log": "wave1_cache_regressions_red.log"
+    },
+    {
+      "command": "python -m pytest -q services/raster-service/test_element84_vrt_defect_witnesses.py --junitxml=analysis/wave1_cache_candidate.xml",
+      "rc": 0,
+      "result": "37passed,11xfail; no skips",
+      "log": "wave1_cache_candidate.log",
+      "xml": "wave1_cache_candidate.xml"
+    },
+    {
+      "command": "PATH=<scratch>/sahool-venv/bin:$PATH bash scripts/ci/raster_quality_gate.sh",
+      "rc": 0,
+      "result": "440passed,2skipped,11xfail; compile/decomposition/import graph passed",
+      "log": "wave1_cache_raster_quality.log",
+      "qualification": "Source final hash; before final test-only fixture strengthening (green band now changes with NIR in different-source truecolor witness); final focused test rerun above covers that strengthening."
+    },
+    {
+      "command": "PYTHONPATH=services/raster-service python -m pytest -q services/raster-service/test_raster_validated_product.py services/raster-service/test_cloud_mask_strategies.py tests_v9/test_raster_validated_product_guard.py tests_v9/test_raster_pixel_processing_edge_cases.py",
+      "rc": 0,
+      "result": "19passed",
+      "log": "wave1_cache_contracts.log"
+    },
+    {
+      "command": "ruff check and ruff format --check on both changed files; git diff --check",
+      "rc": 0
+    }
+  ],
+  "limitations": [
+    "No live provider, production deployment or live cache scenario exercised. Historical claim remains conditional; production caller changing transforms within a batch was not demonstrated.",
+    "Source pixels are immutable during a short-lived batch; concurrent writes to an already-open raster are outside the existing reader contract. Metadata changes and reopened/replaced paths are covered.",
+    "Remaining11 strict xfails concern VRT reflectance scale, normalization claim, nodata propagation and band-grid alignment; this repair does not close those gaps.",
+    "Raster service2 skips require RASTER_TEST_DATABASE_URL; no live Postgres integration run.",
+    "No brain updates, generators, global preflight or remote refs run by this agent."
+  ],
+  "independent_review": {
+    "status": "accepted_no_blocker",
+    "reviewer": "verify_b",
+    "path": "<scratch>/analysis/wave1_cache_independent_review.json",
+    "source_and_test_hashes_verified": true
+  },
+  "source_tree": "ee9c0ae9b23ded6ba82dcf0237a090b5645edaf7",
+  "worktree_clean": true
+}
