@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "99143ddb2d08be018ef638ddd1b8b1a2b793bc49",
+  "measured_on": "c040b679c2f9083cbef59e0922e0cf5770085e83",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2421,
+    "source_text_assertions": 2419,
     "positive_pinning_a_call": 349,
-    "prohibitions": 211
+    "prohibitions": 209
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
@@ -147,10 +147,6 @@
     "tests_v9/test_certification_regression_fixes.py": {
       "/api/probe-newservice/readyz": 1,
       "probe_unadjudicated_alias_": 1
-    },
-    "tests_v9/test_ci_image_mirror.py": {
-      "continue-on-error": 1,
-      "python scripts/ci/verify_all_generated.py --check": 1
     },
     "tests_v9/test_command_event_causality_live_gate_contract.py": {
       "uuid_generate_v5_stub": 1

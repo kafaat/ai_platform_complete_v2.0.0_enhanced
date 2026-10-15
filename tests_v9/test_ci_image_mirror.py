@@ -216,5 +216,8 @@ def test_regeneration_sweep_does_not_recursively_discover_its_own_check():
     assert "python3 scripts/ci/verify_all_generated.py --fix" in orchestrator
     assert "python3 scripts/ci/verify_all_generated.py --check" in orchestrator
     assert "python3 scripts/release/validate_release_package.py" in orchestrator
-    assert not any("python scripts/ci/verify_all_generated.py " + "--check" in line for line in content.splitlines())
+    assert not any(
+        "python scripts/ci/verify_all_generated.py " + "--check" in line
+        for line in content.splitlines()
+    )
     assert "python scripts/release/validate_release_package.py --root ." in content
