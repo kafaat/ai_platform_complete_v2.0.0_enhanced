@@ -32,6 +32,9 @@ jobs:
           python scripts/ci/event_contract_graph.py --generate
           python scripts/ci/capability_mapping_engine.py --generate
           python scripts/ci/execution_dependency_audit.py --generate
+          python scripts/architecture/build_platform_catalog.py
+          python scripts/ci/guard_catalogue.py
+          python scripts/ci/integration_runtime_governance_closure.py --generate
           python - <<'PY'
           from pathlib import Path
           import hashlib
@@ -55,6 +58,9 @@ jobs:
           python scripts/ci/event_contract_graph.py --check
           python scripts/ci/capability_mapping_engine.py --check
           python scripts/ci/execution_dependency_audit.py --check
+          python scripts/architecture/build_platform_catalog.py --check
+          python scripts/ci/guard_catalogue.py --check
+          python scripts/ci/integration_runtime_governance_closure.py --check
           python scripts/release/validate_release_package.py --root .
       - name: Commit generated artifacts back to this branch
         shell: bash
@@ -62,7 +68,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add service_inventory.generated.json service_inventory.csv SERVICE_REGISTRY.md route_inventory.generated.json route_inventory.csv execution-audit/generated/ docs/capability-registry/generated/mapping/ event-audit/generated/ release/FILE_CHECKSUMS.sha256
+          git add service_inventory.generated.json service_inventory.csv SERVICE_REGISTRY.md route_inventory.generated.json route_inventory.csv execution-audit/generated/ docs/capability-registry/generated/mapping/ event-audit/generated/ governance/path2-generated/ platform_catalog.generated.json component_inventory.generated.csv capability_inventory.generated.csv dependency_graph.generated.json ownership_conflicts.generated.json orphan_functions.generated.json runtime_capability_manifest.generated.json docs/architecture/PLATFORM_CATALOG.generated.md frontend/src/lib/platformCatalog.generated.ts docs/runbooks/GUARD_CATALOGUE.md release/FILE_CHECKSUMS.sha256
           if git diff --cached --quiet; then
             echo 'No generated drift'
           else
