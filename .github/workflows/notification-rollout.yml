@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 # عبءُ أجهزة التشغيل: دفعٌ جديد إلى الـPR نفسه يلغي تشغيلَه الأقدم لهذا المسار (كـci.yml)؛ وأحداثُ
 # غير الـPR مجموعتُها فريدة (run_id) فلا تُلغى ولا تُسلسَل — كلُّ دمجٍ إلى main يُفحص كاملاً.
@@ -19,23 +20,37 @@ jobs:
     name: Notification queue and receipt certification
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    services:
-      postgres:
-        # Docker Official Image on ECR Public, pinned to its verified OCI index digest.
-        image: public.ecr.aws/docker/library/postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
-        env:
-          POSTGRES_DB: notification_rollout_test
-          POSTGRES_USER: notification_test
-          POSTGRES_PASSWORD: disposable_test_password
-        ports: ["5438:5432"]
-        options: >-
-          --health-cmd "pg_isready -U notification_test -d notification_rollout_test"
-          --health-interval 2s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
+      # GitHub services are pulled before checkout/auth and cannot use our
+      # digest-verified GHCR fallback. Start the same real PG15/16 fixture by
+      # checked-in code so a source-registry 429 does not bypass tests.
+      - name: Start isolated digest-locked notification PostgreSQL
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          source_image=public.ecr.aws/docker/library/postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+          bash scripts/ci/pull_verified_ci_image.sh "$source_image" "$RUNNER_TEMP/notification-pg-id"
+          postgres_image="$(cat "$RUNNER_TEMP/notification-pg-id")"
+          docker run -d --name notification-ci-pg --pull=never \
+            -e POSTGRES_DB=notification_rollout_test \
+            -e POSTGRES_USER=notification_test \
+            -e POSTGRES_PASSWORD=disposable_test_password \
+            -p 127.0.0.1:5438:5432 "$postgres_image"
+          ready=0
+          for i in $(seq 1 20); do
+            if docker exec notification-ci-pg pg_isready -U notification_test -d notification_rollout_test; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = 1
+
       - name: Install notification dependencies and pinned test broker
         run: |
           pip install -r agents/notification/requirements.txt pytest pytest-asyncio
