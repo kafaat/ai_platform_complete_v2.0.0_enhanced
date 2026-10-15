@@ -204,7 +204,7 @@
           "dynamic_expr": null,
           "file": "services/weather-polygon-worker/src/main.py",
           "kind": "producer",
-          "line": 186,
+          "line": 193,
           "queue": null,
           "subject": "sahool.weather.field.overlay.completed"
         }

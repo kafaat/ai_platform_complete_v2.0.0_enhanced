@@ -15,11 +15,11 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5729,
+    "files_scanned": 5730,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
-      "governance": 68,
+      "governance": 69,
       "mobile": 56,
       "other": 1713,
       "tests": 1920,
@@ -31672,7 +31672,7 @@
           "score": 18
         },
         {
-          "value": "sahool.weather.field.overlay.completed @ services/weather-polygon-worker/src/main.py:187",
+          "value": "sahool.weather.field.overlay.completed @ services/weather-polygon-worker/src/main.py:194",
           "score": 18
         },
         {
