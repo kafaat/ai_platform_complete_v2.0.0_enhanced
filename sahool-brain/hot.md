@@ -1,3 +1,5 @@
+> **2026-10-15 — python-jose أُزيل (`2a85159f1`، فرعٌ محلّيّ):** `DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01` fixed — PyJWT وحدها (`PyJWT[crypto]==2.15.0` في تسعة ملفّات)، والإعفاءان `CVE-2026-85394`/`PYSEC-2026-1325` أُزيلا؛ المواضعُ التي كانت على jose تحفظ حكمَه بـ`claim_semantics="python-jose"`، وهجومُ HS256-بالمفتاح-العامّ مرفوضٌ مشهود. `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open (١٥ من ١٨؛ الباقي actuator وMCP ×2). الشاهد `tests_v9/test_python_jose_removed.py`.
+
 > **2026-10-14 — فكّ JWT عبر المفكِّك المشترك بوضع مراقبة (`64874d80`، فرعٌ محلّيّ):** `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open — ١١ من ١٨ نداءً نُقلت إلى `decode_access_token` (حكمٌ بلا تغيير، عدّادٌ لما كان سيُرفَض، المفتاحُ الفارغ مرفوض فأُغلق تزويرُ video-processor)؛ المتبقّي مُعلَن: actuator (GATE-01) · auth ×3 · MCP ×2 · tts-service (مؤجَّل لشريحة الجاهزيّة). الشاهد `tests_v9/test_jwt_decode_shared_decoder.py`.
 
 
