@@ -9,6 +9,7 @@ set -euo pipefail
 
 source_image="${1:?Pinned ECR image required}"
 id_file="${2:?Image ID receipt path required}"
+ref_file="${3:-}"  # Optional immutable FROM reference for BuildKit (not a config ID)
 
 if [[ "$source_image" =~ ^public\.ecr\.aws/docker/library/(postgres|redis|nginx)@sha256:([0-9a-f]{64})$ ]]; then
   kind="${BASH_REMATCH[1]}"
@@ -65,3 +66,10 @@ fi
 
 printf '%s\n' "$local_id" >"$temp_id"
 mv -f "$temp_id" "$id_file"
+if [[ -n "$ref_file" ]]; then
+  # BuildKit cannot use Docker's local config ID in FROM; it resolves it as
+  # docker.io/library/sha256. A digest-locked OCI reference remains valid.
+  temp_ref="$(mktemp "${ref_file}.XXXXXX")"
+  printf '%s\n' "$resolved" >"$temp_ref"
+  mv -f "$temp_ref" "$ref_file"
+fi
