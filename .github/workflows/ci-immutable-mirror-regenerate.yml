@@ -55,7 +55,7 @@ jobs:
           set -euo pipefail
           python scripts/release/build_release_bundle.py --root .
           python scripts/release/validate_release_package.py --root .
-          python scripts/ci/verify_all_generated.py --check
+          python -m scripts.ci.verify_all_generated --check
           git diff --check
           git add -A
           if git diff --cached --quiet; then
