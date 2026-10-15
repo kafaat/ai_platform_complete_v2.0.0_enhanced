@@ -43,7 +43,7 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[2]
 SEARCH_ROOTS = ("services", "shared", "agents", "bots")
 CANONICAL = "shared/security/"
-#: الوحداتُ التي تُصدِر فكَّ JWT: PyJWT و python-jose.
+#: الوحداتُ التي تُصدِر فكَّ JWT: PyJWT، و python-jose (أُزيل؛ يبقى مرصوداً كي لا يعود صامتاً).
 JWT_MODULES = frozenset({"jwt", "jose.jwt"})
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بالكاشف الـAST. كلُّ مدخلٍ دَينٌ مُعلَن والقيمةُ
@@ -54,15 +54,13 @@ FROZEN_SITES: dict[str, int] = {
     # owner decision 2026-10-01 #1118). What remains is declared, not exempt:
     # GATE-01 freezes actuator_runtime.py (docs/architecture/gate01_policy.json frozen_paths).
     "services/actuator-service/actuator_runtime.py": 1,
-    # auth is the issuer and moves last, after the consumers' would-reject counter is read.
-    "services/auth/main.py": 2,
-    "services/auth/routers/session.py": 1,
+    # 2026-10-15: auth (issuer, 3 calls) and tts-service (1) moved to ``decode_access_token``
+    # with python-jose claim semantics when python-jose was removed
+    # (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01).
     # MCP: in the dev tree ``shared`` is services/mcp_servers/shared alone (merged only in the
     # image), and test_blob_store_immune_to_shared_package_shadow pins that shadow on purpose.
     "services/mcp_servers/market_server.py": 1,
     "services/mcp_servers/shared/oauth_middleware.py": 1,
-    # tts-service/decision-service decode sites deferred to avoid overlap with the readiness slice.
-    "services/tts-service/main.py": 1,
 }
 
 

@@ -29,7 +29,7 @@ from shared.security.access_tokens import decode_access_token
 from shared.security.trusted_tenant import service_token_ok
 
 try:
-    from jose import JWTError as _JE
+    from jwt import PyJWTError as _JE
 except ModuleNotFoundError:  # pragma: no cover - offline tests / minimal env
 
     class _JE(Exception):
@@ -583,7 +583,7 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
             creds.credentials,
             _RAG_SECRET,
             algorithm=_RAG_ALG,
-            backend="jose",
+            claim_semantics="python-jose",
             site="local-ai-rag:_get_rag_user",
         )
     except _JE as e:

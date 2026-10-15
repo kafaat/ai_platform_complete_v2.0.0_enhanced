@@ -5,8 +5,8 @@ the key or enables a fallback. Production follows auth's explicit migration flag
 
 **Single decode site** (``JWT-DECODE-OUTSIDE-SHARED-SECURITY-01``). Service call sites
 that used to call ``jwt.decode`` themselves go through :func:`decode_access_token`,
-which keeps each caller's library (``backend=``), key and single pinned algorithm, so
-the decode verdict is unchanged. On top of it the stricter claim policy
+which keeps each caller's key, single pinned algorithm and claim semantics
+(``claim_semantics=``), so the decode verdict is unchanged. On top of it the stricter claim policy
 (``exp``/``sub``/``aud``/``iss`` present, issuer allow-listed) is evaluated in
 **observe mode by default** (owner decision 2026-10-01, #1118): a token the stricter
 policy would reject is counted per ``(site, reason)`` and logged without the token or
@@ -14,9 +14,24 @@ any claim value, and still accepted. ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce`
 turns the same verdict into a rejection once the counter reads zero.
 
 Fixed here regardless of mode: an empty verification key is rejected. python-jose
-accepts a token HMAC-signed with an empty key when the verification key is empty, so
+accepted a token HMAC-signed with an empty key when the verification key is empty, so
 a service with ``JWT_SECRET`` unset (video-processor) accepted forged identities;
 legitimate tokens were already rejected in that state, so no valid caller changes.
+
+**One library: PyJWT** (``DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01``). python-jose <=3.5.0
+accepts a public key as an HMAC secret and has no fixed release, and it pulled ``ecdsa``
+(PYSEC-2026-1325, no fix). It is gone from the tree; sites that used it keep its
+*claim* semantics through ``claim_semantics="python-jose"``, verified by PyJWT:
+
+- ``aud`` is checked only when present (a token without ``aud`` is accepted, exactly as
+  python-jose did, and the observe policy counts it as ``missing_aud``); when present it
+  must be a string or a list of strings containing ``sahool``.
+- ``iat`` must be an integer but is never compared with the clock (python-jose had no
+  "issued in the future" check; PyJWT's would turn sub-second clock skew between auth and
+  a consumer into 401s that did not exist before).
+- signature, the single pinned algorithm, ``exp``, ``nbf``, ``sub``/``jti`` types are
+  PyJWT's own checks. The only measured difference: PyJWT treats a token as expired *at*
+  ``exp`` (RFC 7519 4.1.4), python-jose one second later.
 """
 
 from __future__ import annotations
@@ -42,7 +57,10 @@ PINNED_ALGORITHMS = frozenset({"RS256", "HS256"})
 #: ``observe`` (default) counts would-be rejections; ``enforce`` rejects them.
 CLAIM_POLICY_ENV = "SAHOOL_ACCESS_TOKEN_CLAIM_POLICY"
 
-Backend = Literal["pyjwt", "jose"]
+#: The verification library. PyJWT only: python-jose is no longer a dependency.
+Backend = Literal["pyjwt"]
+#: Claim semantics a site keeps from the library it used before the PyJWT migration.
+ClaimSemantics = Literal["pyjwt", "python-jose"]
 
 _lock = threading.Lock()
 _would_reject: Counter[tuple[str, str]] = Counter()
@@ -130,64 +148,116 @@ def _record(site: str, reasons: tuple[str, ...], mode: str) -> None:
         )
 
 
-def _backend(backend: str):
-    if backend == "pyjwt":
-        import jwt
+def _python_jose_issued_at(payload: dict) -> None:
+    """python-jose ``_validate_iat``: an integer, never compared with the clock."""
+    import jwt
 
-        return jwt.decode, jwt.InvalidTokenError
-    if backend == "jose":
-        from jose import JWTError
-        from jose import jwt as jose_jwt
+    if "iat" not in payload:
+        return
+    try:
+        int(payload["iat"])
+    except ValueError:
+        raise jwt.InvalidIssuedAtError("Issued At claim (iat) must be an integer.") from None
 
-        return jose_jwt.decode, JWTError
-    raise ValueError(f"Unsupported JWT backend: {backend!r}")
+
+def _python_jose_audience(payload: dict) -> None:
+    """python-jose ``_validate_aud``: checked when present, absent is not an error."""
+    import jwt
+
+    if "aud" not in payload:
+        return
+    claims = payload["aud"]
+    if isinstance(claims, str):
+        claims = [claims]
+    if not isinstance(claims, list) or any(not isinstance(c, str) for c in claims):
+        raise jwt.InvalidAudienceError("Invalid claim format in token")
+    if ACCESS_TOKEN_AUDIENCE not in claims:
+        raise jwt.InvalidAudienceError("Invalid audience")
+
+
+def _pyjwt_decode(
+    token: str,
+    key: str,
+    algorithm: str,
+    *,
+    claim_semantics: ClaimSemantics,
+    require: tuple[str, ...] = (),
+) -> dict:
+    """PyJWT verification with exactly one algorithm; never a list mixing HS* and RS*."""
+    import jwt
+
+    if claim_semantics == "pyjwt":
+        options = {"require": list(require)} if require else None
+        return jwt.decode(
+            token, key, algorithms=[algorithm], audience=ACCESS_TOKEN_AUDIENCE, options=options
+        )
+    if claim_semantics != "python-jose":
+        raise ValueError(f"Unsupported claim semantics: {claim_semantics!r}")
+    payload = jwt.decode(
+        token,
+        key,
+        algorithms=[algorithm],
+        options={"verify_aud": False, "verify_iat": False, "require": list(require)},
+    )
+    _python_jose_issued_at(payload)
+    _python_jose_audience(payload)
+    return payload
 
 
 def decode_access_token(
-    token: str, key: str, *, algorithm: str, backend: Backend, site: str
+    token: str,
+    key: str,
+    *,
+    algorithm: str,
+    site: str,
+    backend: Backend = "pyjwt",
+    claim_semantics: ClaimSemantics = "pyjwt",
 ) -> dict:
-    """Verify signature + ``aud=sahool`` with the caller's library and one pinned algorithm.
+    """Verify signature + ``aud=sahool`` with PyJWT and one pinned algorithm.
 
-    Errors are the backend's own invalid-token type (PyJWT ``InvalidTokenError`` /
-    python-jose ``JWTError``), so each caller's existing handler keeps mapping them to 401.
-    The caller still enforces its own issuer/identity checks; the stricter policy is
-    observed here and enforced only under ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce``.
+    Errors are PyJWT's own types (``InvalidTokenError`` subclasses, and ``InvalidKeyError``
+    for an unusable key), so callers catching ``jwt.PyJWTError`` keep mapping them to 401.
+    ``claim_semantics="python-jose"`` keeps the claim checks of sites that used python-jose
+    (see the module docstring). The caller still enforces its own issuer/identity checks;
+    the stricter policy is observed here and enforced only under
+    ``SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce``.
     """
-    decode, invalid = _backend(backend)
-    if algorithm not in PINNED_ALGORITHMS:
-        raise invalid(f"Unsupported access-token algorithm: {algorithm!r}")
+    import jwt
+
+    if backend != "pyjwt":
+        raise ValueError(f"Unsupported JWT backend: {backend!r} (python-jose was removed)")
+    # One string, never a list: a list mixing HS* and RS* is the confusion precondition.
+    if not isinstance(algorithm, str) or algorithm not in PINNED_ALGORITHMS:
+        raise jwt.InvalidTokenError(f"Unsupported access-token algorithm: {algorithm!r}")
     if not isinstance(key, str) or not key.strip():
-        raise invalid("Access-token verification key is empty")
-    payload = decode(token, key, algorithms=[algorithm], audience=ACCESS_TOKEN_AUDIENCE)
+        raise jwt.InvalidTokenError("Access-token verification key is empty")
+    payload = _pyjwt_decode(token, key, algorithm, claim_semantics=claim_semantics)
     reasons = strict_claim_violations(payload)
     if reasons:
         mode = claim_policy_mode()
         _record(site, reasons, mode)
         if mode == "enforce":
-            raise invalid("Access token rejected by claim policy: " + ",".join(reasons))
+            raise jwt.InvalidTokenError(
+                "Access token rejected by claim policy: " + ",".join(reasons)
+            )
     return payload
 
 
 def verify_access_token(token: str) -> dict:
-    from jose import JWTError, jwt
+    import jwt
 
     if not isinstance(token, str) or not token:
         raise ValueError("Missing access token")
     key, algorithm = access_token_verification_key()
     try:
-        payload = jwt.decode(
+        payload = _pyjwt_decode(
             token,
             key,
-            algorithms=[algorithm],
-            audience="sahool",
-            options={
-                "require_exp": True,
-                "require_sub": True,
-                "require_aud": True,
-                "require_iss": True,
-            },
+            algorithm,
+            claim_semantics="python-jose",
+            require=STRICT_REQUIRED_CLAIMS,
         )
-    except JWTError as exc:
+    except jwt.PyJWTError as exc:
         raise ValueError("Invalid access token") from exc
     if payload.get("iss") not in {"sahool-auth", "sahool-platform"}:
         raise ValueError("Invalid token issuer")

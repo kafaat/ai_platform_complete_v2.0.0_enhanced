@@ -24,7 +24,7 @@ import numpy as np
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
-from jose import JWTError as _v_JE
+from jwt import PyJWTError as _v_JE
 from pydantic import BaseModel, Field, field_validator
 
 from shared.security.access_tokens import decode_access_token
@@ -426,13 +426,13 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
         raise HTTPException(401, "Authentication required")
     try:
         _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
-        # المفتاحُ الفارغ يُرفَض في المُفكِّك المشترك: python-jose كان يقبل توكناً موقَّعاً
-        # بمفتاح HMAC فارغ حين يغيب JWT_SECRET (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
+        # المفتاحُ الفارغ يُرفَض في المُفكِّك المشترك: python-jose (أُزيل) كان يقبل توكناً
+        # موقَّعاً بمفتاح HMAC فارغ حين يغيب JWT_SECRET (JWT-DECODE-OUTSIDE-SHARED-SECURITY-01).
         payload = decode_access_token(
             creds.credentials,
             _v_pub or os.getenv("JWT_SECRET", ""),
             algorithm="RS256" if _v_pub else "HS256",
-            backend="jose",
+            claim_semantics="python-jose",
             site="video-processor:_get_current_user",
         )
     except _v_JE as e:

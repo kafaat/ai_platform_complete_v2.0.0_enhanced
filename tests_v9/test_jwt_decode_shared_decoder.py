@@ -3,18 +3,24 @@
 **ما يُثبته (أحمر على ``origin/main`` قبل الإصلاح، أخضر بعده):**
 
 1. **المسح الثابت:** لا نداءَ فكّ JWT في ملفّات الإنتاج خارج ``shared/security/`` إلّا في
-   قائمة سماحٍ صريحة مُعلَّلة (المُشغِّل مجمَّد بـGATE-01؛ ``auth`` مُصدِرٌ يُنقَل آخِراً)،
-   وكلُّ ملفٍّ منقول يمرّ بـ``decode_access_token`` بخوارزميّةٍ واحدة مثبَّتة.
-2. **السلوك:** المفكِّك المشترك يحفظ حكمَ كلّ خلفيّة (PyJWT/python-jose) ونوعَ خطئها، يرفض
-   المفتاحَ الفارغ، ويعدّ ما كانت السياسةُ الأشدّ (exp/sub/aud/iss) سترفضه **دون رفضه**
-   إلّا في وضع ``enforce`` (قرار المالك 2026-10-01، #1118: عدّادٌ قبل الفرض).
+   قائمة سماحٍ صريحة مُعلَّلة (المُشغِّل مجمَّد بـGATE-01؛ MCP بظلّ حزمة ``shared``)، وكلُّ
+   ملفٍّ منقول يمرّ بـ``decode_access_token`` بخوارزميّةٍ واحدة مثبَّتة ودلالةِ مطالباتٍ مُعلَنة.
+2. **السلوك:** المفكِّك المشترك (PyJWT وحدها بعد إزالة python-jose) يحفظ حكمَ كلّ موضع:
+   ``claim_semantics="pyjwt"`` لمن كان على PyJWT، و``"python-jose"`` لمن كان على python-jose
+   (``aud`` يُفحَص حين يوجد، و``iat`` لا يُقارَن بالساعة)؛ يرفض المفتاحَ الفارغ، ويعدّ ما كانت
+   السياسةُ الأشدّ (exp/sub/aud/iss) سترفضه **دون رفضه** إلّا في وضع ``enforce`` (قرار المالك
+   2026-10-01، #1118: عدّادٌ قبل الفرض).
 3. **ثقبٌ حقيقيّ أُغلق:** video-processor بلا ``JWT_SECRET`` كان يقبل توكناً موقَّعاً بمفتاحٍ
-   فارغ (python-jose 3.5.0 يقبله)، فيُزوَّر أيُّ مستأجِر. الآن 401.
+   فارغ (python-jose 3.5.0 كان يقبله)، فيُزوَّر أيُّ مستأجِر. الآن 401.
 """
 
 from __future__ import annotations
 
 import ast
+import base64
+import hashlib
+import hmac
+import json
 import logging
 import time
 from pathlib import Path
@@ -34,30 +40,28 @@ SECRET = "unit-test-secret-0123456789-abcdefghijklmnopqrstuvwxyz-0123456789-ABCD
 ALLOWED_DIRECT_DECODE = {
     # GATE-01: frozen_paths في docs/architecture/gate01_policy.json — لا يُمسّ بلا تفويضٍ محكَّم.
     "services/actuator-service/actuator_runtime.py": 1,
-    # المُصدِر: يُنقَل بعد قراءة عدّاد المستهلكين (قيدُ ترتيبٍ في سجلّ الفجوات).
-    "services/auth/main.py": 2,
-    "services/auth/routers/session.py": 1,
     # MCP: ``shared`` في شجرة التطوير هو ``services/mcp_servers/shared`` وحده (الدمجُ يحدث في
     # الصورة فقط)، فلا يُرى ``shared.security`` إلّا بدمج مسارَي الحزمة — وهو ما يمنعه عمداً
     # ``test_season_api_static.py::test_blob_store_immune_to_shared_package_shadow``. قرارٌ مستقلّ.
     "services/mcp_servers/market_server.py": 1,
     "services/mcp_servers/shared/oauth_middleware.py": 1,
-    # tts-service/decision-service decode sites deferred to avoid overlap with the readiness
-    # slice (توجيه المنسّق 2026-10-14: وكيلٌ آخر يعدّل الخدمتين الآن). decision-service بلا
-    # نداء فكٍّ مباشر مقيس، فلا مدخل له هنا.
-    "services/tts-service/main.py": 1,
 }
 
+#: الملفّ ← (دلالةُ المطالبات المحفوظة، عددُ النداءات). ``python-jose`` = الموضعُ كان على
+#: python-jose قبل إزالته (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01) فيُحفَظ حكمُه.
 MIGRATED = {
+    "services/auth/main.py": ("python-jose", 1),  # `_decode_issued_token` (سقفُ أسطر main)
+    "services/auth/routers/session.py": ("python-jose", 1),
     "services/guardrails-engine/main.py": ("pyjwt", 2),
-    "services/local-ai-rag/main.py": ("jose", 1),
-    "services/odoo-bridge/main.py": ("jose", 1),
+    "services/local-ai-rag/main.py": ("python-jose", 1),
+    "services/odoo-bridge/main.py": ("python-jose", 1),
     "services/sahool-platform/api/chat_proxy_reference.py": ("pyjwt", 1),
     "services/sahool-platform/api/main.py": ("pyjwt", 1),
     "services/sahool-platform/api/routers/auth.py": ("pyjwt", 1),
     "services/supervisor-agent/main.py": ("pyjwt", 1),
+    "services/tts-service/main.py": ("python-jose", 1),
     "services/vegetation-analysis-service/vegetation_runtime.py": ("pyjwt", 1),
-    "services/video-processor/main.py": ("jose", 1),
+    "services/video-processor/main.py": ("python-jose", 1),
 }
 
 
@@ -121,7 +125,7 @@ def test_no_jwt_decode_outside_shared_security_except_the_declared_allowlist():
 
 @pytest.mark.parametrize("rel", sorted(MIGRATED))
 def test_each_migrated_site_decodes_through_the_shared_decoder_with_one_pinned_algorithm(rel):
-    backend, expected = MIGRATED[rel]
+    semantics, expected = MIGRATED[rel]
     tree = ast.parse((ROOT / rel).read_text(encoding="utf-8"))
     calls = [
         n
@@ -134,7 +138,14 @@ def test_each_migrated_site_decodes_through_the_shared_decoder_with_one_pinned_a
     for call in calls:
         kw = {k.arg: k.value for k in call.keywords}
         assert "algorithms" not in kw and "algorithm" in kw, f"{rel}: خوارزميّةٌ واحدة مثبَّتة"
-        assert isinstance(kw.get("backend"), ast.Constant) and kw["backend"].value == backend
+        # لا خلفيّةَ غير PyJWT: ``backend`` إمّا غائب أو "pyjwt" حرفيّاً.
+        assert "backend" not in kw or (
+            isinstance(kw["backend"], ast.Constant) and kw["backend"].value == "pyjwt"
+        ), f"{rel}: python-jose أُزيل — لا خلفيّة غير pyjwt"
+        declared = kw.get("claim_semantics")
+        got = declared.value if isinstance(declared, ast.Constant) else "pyjwt"
+        assert declared is None or isinstance(declared, ast.Constant)
+        assert got == semantics, f"{rel}: دلالةُ المطالبات {got} != {semantics}"
         assert isinstance(kw.get("site"), ast.Constant) and kw["site"].value
 
 
@@ -167,43 +178,47 @@ def _claims(**over):
     return claims
 
 
-def _encode(backend, claims, key=SECRET, alg="HS256"):
-    if backend == "pyjwt":
-        import jwt
-
-        return jwt.encode(claims, key, algorithm=alg)
-    from jose import jwt
+def _encode(claims, key=SECRET, alg="HS256"):
+    import jwt
 
     return jwt.encode(claims, key, algorithm=alg)
 
 
-def _invalid(backend):
-    if backend == "pyjwt":
-        import jwt
-
-        return jwt.InvalidTokenError
-    from jose import JWTError
-
-    return JWTError
+def _b64(raw: bytes) -> str:
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 
 
-BACKENDS = ("pyjwt", "jose")
+def forge_hs256(claims: dict, key: bytes) -> str:
+    """توكن HS256 يُبنى يدويّاً: PyJWT يرفض توقيعَ HMAC بمفتاحٍ فارغ أو بمفتاحٍ عامّ، والمهاجم لا."""
+    head = _b64(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+    body = _b64(json.dumps(claims).encode())
+    sig = hmac.new(key, f"{head}.{body}".encode(), hashlib.sha256).digest()
+    return f"{head}.{body}.{_b64(sig)}"
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
-def test_valid_token_is_accepted_and_not_counted(tokens, backend):
+def _invalid():
+    import jwt
+
+    return jwt.InvalidTokenError
+
+
+SEMANTICS = ("pyjwt", "python-jose")
+
+
+@pytest.mark.parametrize("semantics", SEMANTICS)
+def test_valid_token_is_accepted_and_not_counted(tokens, semantics):
     payload = tokens.decode_access_token(
-        _encode(backend, _claims()), SECRET, algorithm="HS256", backend=backend, site="u"
+        _encode(_claims()), SECRET, algorithm="HS256", claim_semantics=semantics, site="u"
     )
     assert payload["sub"] == "user-1"
     assert tokens.would_reject_counts() == {}
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
+@pytest.mark.parametrize("semantics", SEMANTICS)
 @pytest.mark.parametrize(
     "case", ["signature", "audience", "expired", "header_alg_mismatch", "unpinned_algorithm"]
 )
-def test_the_backends_native_rejections_are_preserved(tokens, backend, case):
+def test_the_native_rejections_are_preserved(tokens, semantics, case):
     key, alg, claims, enc_alg = SECRET, "HS256", _claims(), "HS256"
     if case == "signature":
         key = SECRET + "x"
@@ -215,27 +230,43 @@ def test_the_backends_native_rejections_are_preserved(tokens, backend, case):
         enc_alg = "HS512"
     elif case == "unpinned_algorithm":
         alg = "none"
-    token = _encode(backend, claims, alg=enc_alg)
-    with pytest.raises(_invalid(backend)):
-        tokens.decode_access_token(token, key, algorithm=alg, backend=backend, site="u")
+    token = _encode(claims, alg=enc_alg)
+    with pytest.raises(_invalid()):
+        tokens.decode_access_token(token, key, algorithm=alg, claim_semantics=semantics, site="u")
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
-def test_an_empty_verification_key_is_rejected(tokens, backend):
-    forged = _encode("jose", _claims(), key="")
-    with pytest.raises(_invalid(backend)):
-        tokens.decode_access_token(forged, "", algorithm="HS256", backend=backend, site="u")
+@pytest.mark.parametrize("semantics", SEMANTICS)
+@pytest.mark.parametrize("key", ["", "   "])
+def test_an_empty_verification_key_is_rejected(tokens, semantics, key):
+    forged = forge_hs256(_claims(), key.encode())
+    with pytest.raises(_invalid()):
+        tokens.decode_access_token(
+            forged, key, algorithm="HS256", claim_semantics=semantics, site="u"
+        )
 
 
-def test_python_jose_itself_accepts_an_empty_key_which_is_why_the_guard_exists():
-    """المعايرة: لو أصلح python-jose هذا، يصير الحارسُ دفاعاً عميقاً لا إغلاقاً لثقب."""
-    from jose import jwt
+def test_pyjwt_itself_refuses_an_empty_hmac_key_and_the_guard_does_not_rely_on_it():
+    """المعايرة: python-jose 3.5.0 كان يقبل مفتاحاً فارغاً؛ PyJWT يرفضه، والحارسُ يسبقه أصلاً."""
+    import jwt
 
-    forged = jwt.encode(_claims(), "", algorithm="HS256")
-    assert jwt.decode(forged, "", algorithms=["HS256"], audience="sahool")["sub"] == "user-1"
+    forged = forge_hs256(_claims(), b"")
+    with pytest.raises(jwt.PyJWTError):
+        jwt.decode(forged, "", algorithms=["HS256"], audience="sahool")
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
+def test_the_backend_parameter_accepts_only_pyjwt(tokens):
+    token = _encode(_claims())
+    assert (
+        tokens.decode_access_token(token, SECRET, algorithm="HS256", backend="pyjwt", site="u")[
+            "sub"
+        ]
+        == "user-1"
+    )
+    with pytest.raises(ValueError, match="python-jose was removed"):
+        tokens.decode_access_token(token, SECRET, algorithm="HS256", backend="jose", site="u")
+
+
+@pytest.mark.parametrize("semantics", SEMANTICS)
 @pytest.mark.parametrize(
     ("override", "reason"),
     # التعديلُ لا المطالباتُ في المعامِلات: ``exp`` يُحسب وقتَ التشغيل لا وقتَ الجمع، وإلّا
@@ -249,12 +280,12 @@ def test_python_jose_itself_accepts_an_empty_key_which_is_why_the_guard_exists()
     ids=["no_exp", "no_sub", "no_iss", "foreign_iss"],
 )
 def test_observe_mode_counts_what_strict_policy_would_reject_without_rejecting(
-    tokens, backend, override, reason, caplog
+    tokens, semantics, override, reason, caplog
 ):
-    token = _encode(backend, _claims(**override))
+    token = _encode(_claims(**override))
     with caplog.at_level(logging.WARNING, logger="sahool.security.access_tokens"):
         payload = tokens.decode_access_token(
-            token, SECRET, algorithm="HS256", backend=backend, site="svc:fn"
+            token, SECRET, algorithm="HS256", claim_semantics=semantics, site="svc:fn"
         )
     assert payload.get("tenant_id") == "t1"  # قُبِل كما كان
     assert tokens.would_reject_counts() == {"svc:fn": {reason: 1}}
@@ -264,22 +295,29 @@ def test_observe_mode_counts_what_strict_policy_would_reject_without_rejecting(
 
 
 def test_observe_mode_counts_a_missing_audience_jose_used_to_accept_silently(tokens):
-    token = _encode("jose", _claims(aud=None))
-    tokens.decode_access_token(token, SECRET, algorithm="HS256", backend="jose", site="s")
+    token = _encode(_claims(aud=None))
+    tokens.decode_access_token(
+        token, SECRET, algorithm="HS256", claim_semantics="python-jose", site="s"
+    )
     assert tokens.would_reject_counts() == {"s": {"missing_aud": 1}}
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
-def test_enforce_mode_turns_the_same_verdict_into_the_backends_rejection(
-    tokens, backend, monkeypatch
-):
-    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "enforce")
-    with pytest.raises(_invalid(backend)):
+def test_pyjwt_semantics_keep_rejecting_a_missing_audience(tokens):
+    with pytest.raises(_invalid()):
         tokens.decode_access_token(
-            _encode(backend, _claims(exp=None)),
+            _encode(_claims(aud=None)), SECRET, algorithm="HS256", backend="pyjwt", site="s"
+        )
+
+
+@pytest.mark.parametrize("semantics", SEMANTICS)
+def test_enforce_mode_turns_the_same_verdict_into_a_rejection(tokens, semantics, monkeypatch):
+    monkeypatch.setenv(tokens.CLAIM_POLICY_ENV, "enforce")
+    with pytest.raises(_invalid()):
+        tokens.decode_access_token(
+            _encode(_claims(exp=None)),
             SECRET,
             algorithm="HS256",
-            backend=backend,
+            claim_semantics=semantics,
             site="s",
         )
     assert tokens.would_reject_counts() == {"s": {"missing_exp": 1}}
@@ -299,7 +337,6 @@ def test_video_processor_rejects_a_token_forged_with_an_empty_key(monkeypatch):
 
     from fastapi import HTTPException
     from fastapi.security import HTTPAuthorizationCredentials
-    from jose import jwt
 
     monkeypatch.delenv("JWT_SECRET", raising=False)
     monkeypatch.delenv("JWT_PUBLIC_KEY", raising=False)
@@ -312,7 +349,7 @@ def test_video_processor_rejects_a_token_forged_with_an_empty_key(monkeypatch):
     finally:
         service_module.purge_generic_modules()
 
-    forged = jwt.encode(_claims(tenant_id="victim-tenant"), "", algorithm="HS256")
+    forged = forge_hs256(_claims(tenant_id="victim-tenant"), b"")
     creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=forged)
     with pytest.raises(HTTPException) as exc:
         asyncio.run(module._get_current_user(creds))

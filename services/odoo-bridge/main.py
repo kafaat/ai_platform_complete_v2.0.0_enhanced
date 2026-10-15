@@ -25,7 +25,7 @@ from typing import Any  # noqa: F401 — إعادة تصدير (نمط main.X ل
 import asyncpg
 import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi import FastAPI, Header, HTTPException
-from jose import JWTError as _JE
+from jwt import PyJWTError as _JE
 from pydantic import BaseModel, Field
 
 from shared.security.access_tokens import decode_access_token
@@ -132,7 +132,11 @@ def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
         payload = decode_access_token(
-            token, _JWT_SECRET, algorithm=_JWT_ALG, backend="jose", site="erp-bridge:verify_token"
+            token,
+            _JWT_SECRET,
+            algorithm=_JWT_ALG,
+            claim_semantics="python-jose",
+            site="erp-bridge:verify_token",
         )
     except _JE as e:
         raise ValueError(f"Invalid token: {e}") from e

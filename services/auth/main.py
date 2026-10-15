@@ -27,14 +27,15 @@ from uuid import uuid4
 
 import asyncpg
 import bcrypt
+import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from shared.runtime_identity import load_build_identity
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
 
@@ -420,9 +421,7 @@ async def tenant_header_middleware(request: Request, call_next):
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         try:
-            payload = jwt.decode(
-                auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM], audience="sahool"
-            )
+            payload = _decode_issued_token(auth[7:])
             # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول لا يُشتقّ منه رأس tenant.
             if payload.get("iss") not in _ALLOWED_ISS:
                 raise ValueError("Invalid token issuer")
@@ -707,19 +706,20 @@ async def revoke_all_user_sessions(user_id: int) -> None:
 security = HTTPBearer(auto_error=False)
 
 
+def _decode_issued_token(token: str) -> dict:
+    return decode_access_token(
+        token, JWT_VERIFY_KEY, algorithm=JWT_ALGORITHM, claim_semantics="python-jose", site="auth"
+    )
+
+
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
 ) -> dict:
     if not credentials:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No token")
     try:
-        payload = jwt.decode(
-            credentials.credentials,
-            JWT_VERIFY_KEY,
-            algorithms=[JWT_ALGORITHM],
-            audience="sahool",
-        )
-    except JWTError as e:
+        payload = _decode_issued_token(credentials.credentials)
+    except jwt.PyJWTError as e:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}") from e
 
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.

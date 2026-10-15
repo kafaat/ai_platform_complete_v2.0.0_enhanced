@@ -85,7 +85,7 @@ def _importable(module: str) -> bool:
     وهذا مقصود: البوّابة تُشغّله داخل وظيفة الوحدة، فيقيس طبقتها هي لا جدولاً
     يصفها. جدولُ التبعيّات المكتوب يبيت؛ `find_spec` لا يبيت. وقياسي الأوّل كان
     نصّيّاً على `requirements-test.txt` فأدان `cryptography` خطأً — وهي تصل
-    عبوريّاً مع `python-jose[cryptography]`.
+    عبوريّاً (كانت مع `python-jose[cryptography]`، واليوم مع `PyJWT[crypto]`).
     """
     try:
         return importlib.util.find_spec(module) is not None
