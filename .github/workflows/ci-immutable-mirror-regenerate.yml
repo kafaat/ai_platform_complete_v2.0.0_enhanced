@@ -29,11 +29,9 @@ jobs:
       - name: Converge and validate generated artifacts
         run: |
           set -euo pipefail
-          python scripts/ci/verify_all_generated.py --fix
-          # Invoke the sweep as a module so its own --check is not recursively
-          # discovered as a child generator by the workflow command scanner.
-          # This is the same explicit --check entrypoint, not an omitted gate.
-          python -m scripts.ci.verify_all_generated --check
+          # Delegate to the existing mutation-proven fixed-point orchestrator:
+          # it executes --fix, then --check, then validates the release package.
+          bash scripts/ci/regenerate_all_generated.sh
       - name: Build release bundle last, validate and record exact tree
         run: |
           set -euo pipefail
