@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92e906e6924bf494f1e0f95baf052b6c59a7ca072417dccf0063dcd877c60d78"
+          "content": "907124ae5ec1a97f3207ef35272cfdb5793ba9eb84b41e34884c03e2a661e176"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "254bf3988110196771812858c62188ed13d3b704642b03119b9b011916e77c7d"
+          "content": "4b14444ec5240c3aa79ef9c080241079b5d3b5bea44137c5eba00b07bf069c19"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -4465,7 +4465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa1afc0f62ad3bc2dc1329bdf8a567655d520e1de7f3f76ade29d05dd401dd7c"
+          "content": "f35b75b0356e57f21b568a3372d2d01945a2c33a0756c53b13bbb505ea7cf107"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6825,7 +6825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f246aa51e32a537778ec3ec8e82676ea56b24e0ae5e828e0f24d93d8cada2b59"
+          "content": "1335341bb0b9068b751ea7fba263457dc4d090e986cd7f10328b568531e2f632"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -10155,7 +10155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f32603eb946137bfa59111bdf131108b40e5901c263dfbbc15492092b67565c"
+          "content": "fea5fd702ceb85bb253b3f1a3b649319a04273544afa7429ac0f5e40f3101c3b"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/dashboard_screen.dart",
@@ -10455,6 +10455,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eb74e215dfd1376a287b0a3fa4a26007ea47556ef889570b6b6a54e463a2de59"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb9a1d5427b005678716cbcecf3190c56ff77a94036042cd6e215d2eb71eb9b3"
         }
       ],
@@ -10499,6 +10509,16 @@
         }
       ],
       "name": "mobile/sahool_app/test/auth_service_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "347d49b055280ea08f5b69c0eed98068adbe805a196cf486a7c3a39d302db089"
+        }
+      ],
+      "name": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
       "type": "file"
     },
     {
@@ -14305,7 +14325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1b705bce0bccf873b5bf0f3854bbadb70645050dbc515ea928f3f2e015cc045"
+          "content": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -14725,7 +14745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcb9ac8ac5471be3077b327363473c1c83cdbd30a20bed8f015a19e613d0aa1b"
+          "content": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -15105,7 +15125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de40704e46e0ac67b201117b7a7131e16e38c9b311aaa4cf795e33a99ac0b18d"
+          "content": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -15375,7 +15395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cc07b5333f076258d2a7a9345abeb0bf62fc5193b6e53bc662539db3d6d02de"
+          "content": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318"
         }
       ],
       "name": "services/raster-service/test_element84_vrt_defect_witnesses.py",
@@ -21765,7 +21785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4c29b6bf26d5e4d2b54a9c4e23b23e47e3f298beff6e4ba1e062f5ee96c51af"
+          "content": "d507312084fb30915eacb68cf330f6bebd609056e590d0b76f46e2ac7285a685"
         }
       ],
       "name": "services/sahool-platform/core/cross_domain_optimization.py",
@@ -25185,7 +25205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9b3fe7d9cede35922e3b94cc817acbc02291be716b3b33e792d4c98fd1715ed"
+          "content": "095e318dce978b5b18afd03ba4c6442e2944002ada20845c25f12cc67a8f1be5"
         }
       ],
       "name": "services/sahool-platform/tests/test_cross_domain_optimization.py",
@@ -25295,7 +25315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77785d749d1459dc7d5471fb5c39a8aa61bf9e9b01918fff2b9aeebc6b22f0da"
+          "content": "ab52cd2546b52739439704970c0d399aa55bd92ce7d2b5811013e0d397956bce"
         }
       ],
       "name": "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
@@ -27655,7 +27675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7f6b91f94afbc11a1c81df0a6cb0f6d4b666a8303138646f6e5800b2049ff8f"
+          "content": "19826a0999a0db5be6b60e5951c11ceeeb3d621e1b8f99a21f5b144cd4e2085a"
         }
       ],
       "name": "services/sahool-platform/tests/test_property_invariants.py",

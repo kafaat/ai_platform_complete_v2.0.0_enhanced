@@ -132,7 +132,7 @@
 
 **يفرض:** يمسك الفشل الصامت الذي يتركه دمج `union` — `DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01`.
 
-**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+**يحجب في:** `ci.yml` → `structural-lint` · `no-report-only-change.yml` → `no-report-only-change`
 
 **الاختبار الشاهد:** `tests_v9/test_brain_duplicate_gap_identity_guard.py`
 

@@ -9294,6 +9294,16 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 **المصدر:** `main@53652e02` (PR #1178) · رأس المصالحة `59f58c0c`.
 
+## 2026-10-14 — موجة الإغلاق ٢: حارسان أعميان، وثلاثةُ صفوفٍ بائتة
+
+أُعيد قياسُ الـ35 صفّاً المفتوحة من W2 على `main@421a0e7a` بأربعة وكلاء قرائيّين. أُصلح في `62b81409` حارسان: `no_report_only_change_guard` صار يرى `tools/*.py` و`tools/*.sh` شيفرةً · `brain_duplicate_gap_identity_guard` يعمل أيضاً في `Repository Structural Lint` (سياقٌ مطلوب). ولكلٍّ شاهدٌ أحمرُ على main وأخضرُ هنا. أمّا `BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01` فأُخرج من هذا الفرع بطلب المالك لأنّ وكيل ChatGPT يتولّاه في فرعٍ مستقلّ، فلا يُكرَّر العمل. وثلاثةُ صفوفٍ كان إصلاحُها على main: `REPORT3-RAG-09-01` (`fa92a1f7`، #1007) · `GUARD-MUTATION-RUN-FLAKED-ONCE-UNREPRODUCED-01` (`323341a7`، #798) · `LIVE-20260908-MUTATION-TIMING-01` (`7407eae2`، #990). وصُحِّح عددُ كتابات عقد الملكيّة (69 لا 75) وحالُ حارس حجم الراوترات. السجلّ بعد الإخراج: خمسُ فجواتٍ إلى fixed، والتعارضات 0.
+
+**المصدر:** `main@421a0e7a` (PR #1180) · الإصلاح `62b81409` · أربعةُ وكلاء قياسٍ قرائيّين على 35 صفّاً من W2 في خطّة ChatGPT.
+## 2026-10-14 — تجديدُ الاستثناءات المنقضية قبل أن تُسقط CI
+
+وُجد أحدَ عشرَ استثناءً ينقضي قبل 2026-11-01: عشرةٌ في `config/endpoint_ui_coverage_waivers.json` (أقربُها `/api/v1/scenario/economics` في 2026-10-28، وقد فاتت قائمةَ «٩ إعفاءات» التي اقترحها ChatGPT) و`PYSEC-2026-1325` في `config/security_exceptions.json`. لكلّ مسارٍ بُحث بـ`git grep -F` عن مقطعه المميّز في `frontend/src` و`mobile`: صفرُ ملفّات للعشرة. مُدِّدت إلى 2026-11-30 (و`/api/v1/scenario/economics` إلى 2026-11-27: طفرةُ `guard_mutation_registry` مُرساةٌ على تاريخٍ فريدٍ في الملفّ، والتجديدُ الموحَّد أبار مرساتها فأمسكها `test_real_registry_passes_the_static_check`) مع تسجيل القياس في سبب كلّ استثناء؛ ويسري التمديد بدمج المالك فقط.
+
+**المصدر:** `main@421a0e7a` (PR #1180) · `config/endpoint_ui_coverage_waivers.json` · `config/security_exceptions.json` · `scripts/ci/waiver_expiry_guard.py`.
 ## 2026-10-14 — إسناد دمج الموجة صفر قبل شريحة Qdrant
 
 قُرئ main من GitHub عند `421a0e7afcecf1de967bf4a26ea9d64788baf1e1`، دمج #1180. أصل إصلاحي المصدر في الموجة صفر `959e9730a5770e3728a3ce504522615820cb7991`؛ مسوّدة #1179 أُغلقت ووصلت المصالحة إلى main عبر #1180. هذا تحديث إسناد للوصول، لا تكرار لانتقالات الحالات الخمس عشرة ولا دليل تشغيل حي. أُدمج main إلى فرع Qdrant مع إبقاء إصلاحه `f0f2ee711e4426451d7708b03479affbe34b41e2` في سلسلة الآباء؛ مصدره واختباراته يطابقان بصمتي الدليل المنشور في `certification/evidence/qdrant_tenant_index_20261014/provenance.json`. لا تعارض مصدر، وحُفظ تاريخ الدماغ من الجانبين؛ لم يُفتح PR لشريحة Qdrant بعد.
@@ -9325,6 +9335,21 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 في #1182، كشفت بوابة raster المطلوبة فشل استيراد shared في العمليات الفرعية للشاهد الجديد عند تشغيله من مجلد الخدمة. إضافة cwd صريح إلى جذر المستودع أصلحت إعداد الاختبار دون تغيير المصدر التشغيلي `fbd121fc4631cc4a4ff75c6d9b22eb25c2d70fcc` أو تخفيف شروط ثلاث عمليات ومعرف واحد وإيصال واحد. بصمة الاختبار الحالية `46b8bde06b4bf149ae3e40ecc1d131ed183a0798e994bad069d8ba1d085ab0d8` تختلف عن بصمته التاريخية عند fbd؛ يحفظ `certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json` الدليل الأحمر والتعافي 404 نجاحاً و2 تخطٍّ و12 xfailed ومراجعة مستقلة. تبقى فجوة السبب التاريخي open؛ لا قياس حي أو ادعاء نشر.
 
+## 2026-10-14 — موجة الإغلاق ٢: `PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01`
+
+خفضُ الريّ المخطَّط في التحسين متعدّد المجالات صار `planned_reduction_mm` مع `savings_claim` غيرِ مثبت (عقد #1142)، لا `water_saved_mm`. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. يعيد نشر المنصّة عند الدمج. خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3ac13509` · الشاهد `services/sahool-platform/tests/test_decision_dispatch_endpoint.py::test_optimization_names_a_planned_reduction_not_water_saved`.
+## 2026-10-14 — موجة الإغلاق ٢: `MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01`
+
+لوحةُ تطبيق الجوّال لم تعد تقرأ `water_usage.savings_pct` الذي لا يُنتجه أيّ خادم، وتعرض «غير مقيس»؛ وبقي `carbon.sequestered_kg` بلا منتِج حدّاً معلناً. الشاهد أحمرُ على main وأخضرُ بعد الإصلاح. لا نشرَ على Railway (بناءُ التطبيق وحده). خارج شرائح وكيل ChatGPT الأربع (الحارس العربيّ · ذاكرة Raster · كتالوج CDSE · الجاهزية) فلا تكرار.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `a1730e2c` · الشاهد `mobile/sahool_app/test/dashboard_water_not_measured_test.dart (يعمل في وظيفة Flutter في CI، ولم يُشغَّل محلّيّاً)`.
+## 2026-10-14 — موجة الإغلاق ٢: `OLLAMA-UNIFIED-PINNED-0-3-0-01`
+
+ملفّا compose البديلان (unified على 0.3.0، وfixed على 0.30.8 بلا بصمة) صارا على بصمة v9 نفسِها، بشاهدٍ يقارن كلَّ ملفّ compose يشغّل Ollama بـv9. لا نشرَ على Railway. وتحقّقُ إصلاح CVE-2026-7482 في بصمة v9 باقٍ حدّاً معلناً لأنّ OSV وNVD محجوبان. خارج شرائح وكيل ChatGPT الأربع.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3c6ecd59` · الشاهد `tests_v9/test_ollama_image_matches_v9_pin.py`.
 ## 2026-10-14 — وصول CDSE المقيس وخطة ما تبقى على أساس main
 
 إسناد الوصول المقيس لاحقاً: دُمج #1182 في main عبر `9a50aac3bf71ed42f4fad91a036d49e61d151a52`، وشجرته تطابق الرأس النهائي المختبر `02fbc3107e0dfbedef025117b83e657192133228` (`ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`). على ذلك الرأس 71 فحصاً ناجحاً و2 متخطيان، والعشرون المطلوبة ناجحة. أصل التشخيص 33616 وإصلاح التكرار fbd121fc وبصمة اختبار التصحيح 46b8 محفوظة في إيصالاتها التاريخية. سجلات Railway لهذا الدمج: 4 SUCCESS لخدمتي raster-service وraster-main-candidate في staging وproduction، و20 SKIPPED؛ هذا وصول إصدار لا إثبات كتابة إيصال أو دوام volume أو سبب الواقعة القديمة. الدليل `certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json` و`certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json`. تبقى open ولا verified.
@@ -9345,3 +9370,71 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open: نُقل ١١ من ١٨ نداءً في ٨ ملفّات إلى `decode_access_token` عند `64874d80` على `main@56de3d31` (فرعٌ محلّيّ، لا PR ولا نشر). الحكمُ ونوعُ الخطأ لكلّ موضعٍ بلا تغيير؛ السياسةُ الأشدّ تُعَدّ ولا تُفرَض؛ المفتاحُ الفارغ مرفوض (ثقب video-processor). المتبقّي مُعلَن: actuator (GATE-01) · auth ×3 (مُصدِر) · MCP ×2 (ظلّ حزمة `shared`) · tts-service (مؤجَّل لتفادي التداخل مع شريحة الجاهزيّة). الأثر عند الدمج: guardrails-engine · local-ai-rag · odoo-bridge · sahool-platform · supervisor-agent · vegetation-analysis-service · video-processor، وكلُّ خدمةٍ تراقب `shared/**` (منها وكيل الإشعارات). مصنوعاتٌ مولَّدة منحرفة بانتظار إعادة التوليد عند المنسّق.
 **المصدر:** `main@56de3d31` · إصلاح `64874d80` · `shared/security/access_tokens.py` (`decode_access_token`) · الشاهد `tests_v9/test_jwt_decode_shared_decoder.py` (أحمر على main: 11 إخفاقاً و30 خطأً؛ أخضر: 42) · الراتشِت `tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py` · قرار المالك 2026-10-01 (#1118).
+## 2026-10-14 — الحارس العربي أصبح قانونياً على main في #1183
+
+- **canonical main بعد squash #1183:** `56de3d316fd5243253b6f6d38dc38b331bbddf95`؛ أصل الإصلاح `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ كتاريخ مصدر. شجرة الدمج `6a297aae1272217b9e73e055312d7554f851568c` تطابق رأس PR المختبر `0126ae7894b18cd4f3e3ebcc1afcc7dd19392374`. فحوص السياقات الحالية 65 ناجحاً و2 متخطيان مبرران، والعشرون المطلوبة كلها ناجحة؛ أُعيدت وظيفتا إعداد PostgreSQL بعد ECR429 مرة واحدة دون تغيير المصدر. الدليل `certification/evidence/arabic_state_guard_20261014/pr1183_final_ci_review.json` و`pr1183_merge_observation.json`. هذه إحالة الدمج وCI على رأس PR؛ فحوص main والنشر أدلة لاحقة منفصلة، ولا ترقية verified.
+
+## 2026-10-14 — إصلاح سياق كاش الراستر وتمييز فشل فهرس CDSE
+
+**القرار والسبب:** إصلاحا الكاش والفهرس fixed في المصدر `6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70`؛ لا verified أو ادعاء نشر. الكاش صار مقيداً بالمصدر والشبكة والقص والتحويل، والفهرس يميز الفشل HTTP503 من النتيجة الصحيحة الخالية HTTP200. أصل الشاهدين والمراجعات في `certification/evidence/raster_cache_catalog_20261014/README.md`. تبقى فجوة سبب الواقعة التاريخية CDSE مفتوحة، وكذلك أربع فجوات VRT الأخرى؛ 12→11 xfail تخرّج شاهد الكاش وحده. كان الكاش يعيد ناتج تحويل آخر، وكان فشل البحث يُعرض «لا مشاهد»؛ الشواهد الحمراء المستقلة تثبت السببين. المصدر المقترح للدمج يجمعهما لأن مساراتهما تطابق نطاق نشر الراستر نفسه، دون توسيع التفويض أو تعديل قاعدة/أسرار.
+
+**حدود الإثبات:** 37 نجاحاً/11 xfail في شاهد الكاش المركز، و104 نجاحات في مجموعة الفهرس؛ الجناحان لا يُجمعان كعدد فريد. بوابة الراستر المحلية السابقة 440 نجاحاً/2 skip/11 xfail قبل تقوية fixture فقط؛ إعادة البوابة بعد الدمج المحلي مطلوبة ضمن البروتوكول. التخطيان يحتاجان RASTER_TEST_DATABASE_URL؛ لم نشغل قاعدة حية. تظل دورة الفحوص النهائية وCI على الرأس المنشور شرط الدمج. لقطة أثر النشر السابقة تطابق أربع نسخ خدمة/بيئة تتبع main ويعاد قياسها قبل الدمج.
+## 2026-10-14 — مزامنة PR #1184 وحفظ تحديثات التركيز
+
+دُمج أساس main `56de3d316fd5243253b6f6d38dc38b331bbddf95` في رأس PR #1184 `1088546d49fbbabf030540492c4350144a54480a` لحل تعارض `sahool-brain/hot.md`؛ حُفظت مداخل الطرفين دون حذف. لم تُغيَّر ملفات الاستثناءات عن رأس PR. هذه مزامنة للفرع وليست دمج PR إلى main أو إثبات نشر.
+
+## 2026-10-14 — دمج #1186 (حوكمة الموجة الثانية)
+
+- **الدمج:** [#1186](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1186) squash عند `698a1c53` بموافقة المالك على الرأس `cf43f555`؛ شجرة main `3b7a5d25` = شجرة الرأس المُختبَر. CI على الرأس: 66 ناجحاً · 2 متخطّى · 0 فشل.
+- **النشر:** Railway — 24/24 نشراً للالتزام `698a1c53` بحالة SKIPPED (13 في بيئة و11 في الأخرى)؛ لا خدمة أُعيد نشرها.
+- **الأثر على الفروع المفتوحة:** محاكاة دمج #1185 و#1187 و#1188 فوق #1186: لا تعارض في الكود، و`brain_duplicate_gap_identity_guard` يمرّ على الشجرة المدمجة.
+- **إضافة على فرع الموبايل (2026-10-14):** حارس `brain_state_transition` رفض الانتقال إلى fixed لأنّ `mobile/` ليس ضمن مسارات الدليل التنفيذيّ؛ أُضيف شاهد جناح الوحدة `tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py` (٥ قراءات على `main@e6145c10` ⇒ صفر على الفرع). وسُجِّل الحدّ المعلن فجوةً مستقلّة `MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01` (open): `dashboard_screen.dart:176` يقرأ `carbon.sequestered_kg` ولا مُنتِج له.
+
+## 2026-10-14 — PR #1185: provenance وتكامل main المجدَّد
+
+PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70` عند الرأس `be77d6e8f092ea0211ba3664c00438476658829b`، والشجرة `3e6a611943c6315c4601fc897977538728a61bf9`. براهين الأجنحة الكاملة مقيدة بأساس `56de3d31`: 37 بوابة أصلية (35 محفوظة مكتملة واثنتان مستأنفتان؛ التشغيل الأصلي المنقطع بلا رمز خروج نهائي)، و5 نطاقية و7 إضافية؛ الوحدة العادية وC كل منهما 8903 ناجحة/39 متخطاة، المستودع 996/8، المنصة 4586، Raster 440/2/11 xfail. لا تُجمع المجموعات المتداخلة. دُمج main بعد #1184 (`e6145c103e3da6c27c3ede006839f0fc8b4172e0`) محلياً عند `b678ff7356d4b8b4197aaff41014ffcd1f984605`؛ لم تتغير بصمات المصدر/الاختبار الست، وتجديد الإعفاء/مرساة الطفرة له فحوص أثر مستقلة وإعادة توليد. [دليل النشر والحدود](../certification/evidence/raster_cache_catalog_20261014/README.md). تبقى الفجوة التاريخية CDSE وأربع فجوات VRT مفتوحة؛ الحصيلة 132 open و391 fixed و3 verified دون قياس حي. نشر #1185 النهائي وCI ودمجه لم يكتملوا عند هذه الإضافة.
+
+القرار: الاحتفاظ بشواهد المصدر الكاملة دون نسبتها زوراً إلى التشغيل على main الجديد، وإعادة قياس أثر الإعفاءات والبيانات والمصنوعات؛ سببُه أن تغييرات #1184 لا تمس المصدر التنفيذي أو ملفات اختبارات Raster/CDSE.
+## 2026-10-14 — #1186: تصحيح مرجع المصدر المنشور
+
+تصحيح إسناد PR #1186: المصدر المنشور القابل للتحقق للحارسَين `REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01` و`UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01` هو `1b14550acb28cf93a7cc606dd0d250e0d4657e7a`، سلف رأس المراجعة `cf43f555008c08518371382ff46ba14251b210a7`. بقيت إشارة `62b81409` والنص السابق محفوظين كتاريخ غير قابل للتحقق من GitHub؛ الإسناد المعتمد الآن هو المصدر المنشور و[PR #1186](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1186). لم تتغير الشيفرة أو الاختبارات أو الحالات، ولا يُدّعى دمج PR أو تحقق حي. سبب التصحيح: مرجع لا يمكن جلبه لا يكفي لإسناد إصلاح fixed، مع أن المصدر الفعلي وشواهده منشوران.
+
+### دمج مصدر الحوكمة في PR #1185 — 2026-10-14
+
+دُمج `main@698a1c53744f1096118688c1dfc1b5f42c269c2a` الحامل لـPR #1186 ومصدر تصحيح الإسناد `69d37cf3cefe2ab9179b21e4da12bf32cdceacdb` من PR #1189 محلياً عند `15c610418ef912bf886ae53e97b9eec82c9acf6f`؛ لم يُرصد دمج #1189 بعد عند إعداد هذا الدليل. القياس لهذه الشجرة: 127 open و396 fixed و3 verified؛ يبقى نطاق الراستر إغلاق الفجوتين الأصليتين فقط. بصمات ملفات إصلاح الراستر الستة وسطر فجوة سبب CDSE التاريخية ثابتة، ولا ترقية إلى verified أو ادعاء تشغيل حي. المصدر والدليل: `certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json`. السبب: إزالة تعارضات البيانات مع حفظ التاريخ وعدم إعادة نسبة الأجنحة الشاملة القديمة إلى شجرة لم تعمل عليها.
+
+## 2026-10-15 — مراجعة #1191 وإصلاحه: استيراد sahool-qa 0.4.2 تحت `tools/`
+
+راجعتُ [PR #1191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1191): استيراد المالك لأداة التقييم sahool-qa 0.4.2. أصلها حزمة SHA-256 `754fda2fbd170f712f147da895af0e3fca363a483bdc5d1f07b5c4f26ed7a754`، ورأس الفتح `e827986e2d00bbde372d726ab300c42fb77e3c8c`.
+
+**الفحوص الساقطة على رأس الفتح وأسبابها:**
+- **Lint & Format:** 115 مخالفة ruff و37 ملفاً غير منسّق.
+- **Unit Tests:** فيها إخفاقان:
+  - `apt-get` غير مسقوف في `.github/workflows/sahool-qa.yml` (`test_the_current_tree_has_no_unbounded_provisioning_wait`).
+  - مجموعة concurrency غير قياسية (`test_a_pull_request_workflow_cancels_only_its_own_superseded_pr_runs[sahool-qa.yml]`).
+- **capability-registry وRepository Tests:** انجراف توليد (خريطة القدرات و`release/FILE_CHECKSUMS.sha256`).
+- **Integration Tests:** حدّ 429 عند سحب صورة redis، وهو عطل بنية لا شيفرة.
+
+**ما وجدته المراجعة:**
+- محرّك `psql` في `tools/sahool_qa/sahool_qa/sources/postgis.py` كان يرمّز ويفكّ بلغة الآلة. تحت `LC_ALL=C PYTHONUTF8=0` سقطت 5 من 8 اختبارات PostgreSQL بـ`UnicodeDecodeError`، وصار UTF-8 صراحة.
+- أعمدة `migrations/init_v8.sql` تختلف عن خريطة الأداة الافتراضية (`gov`/`lat`/`lon` و`category`)، فأُضيفت `tools/sahool_qa/examples/schema_map.init_v8.json` مع اختبارين.
+
+**الإصلاح:**
+- دمج `main@f558b40` عند `3b43bd481336752eb14cfcbf5dc09279ac7f3bb9` بلا تعارض.
+- الإصلاحات عند `0b5f0d0ede45b03013c2bb93503344dabf88eab8`.
+- التوليد عند `881497b7164728a597ad8e1df3b17959a5dbaa70`.
+- concurrency عند `493909ea424a2d0cf1fd375ebbbadc88e0657e46`.
+
+**ما قيس محلياً:**
+- `run_checks.py --require-postgres`: 128 ناجحة بلا تخطٍّ، والعرض متطابق بالبايت مع الإصدار.
+- الجناح نفسه ناجح تحت لغة C.
+- الطفرات: 14/14 و6/6.
+- preflight --fast: صفر/صفر.
+- `-m unit` و`tests/` مقارنةً بـ`main@f558b40` في البيئة نفسها: الفرق الوحيد كان اختبار concurrency، وأُصلح.
+- لم يُقَس: CI على الرأس الجديد.
+
+**التعارض مع #1192:** #1192 استورد الإصدار نفسه في المسار نفسه، فدمجهما معاً يتصادم في كل ملف. جُمع النافع منه في #1191 وأُغلق #1192 بوصفه مستبدلاً، ومداخل الدماغ التي حملها لم تصل main.
+
+**جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
+
+لا انتقال لأي فجوة.

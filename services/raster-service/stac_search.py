@@ -213,10 +213,19 @@ async def stac_search_cdse(
 
     try:
         features = await asyncio.to_thread(_do)
-    except Exception as exc:  # noqa: BLE001 — catalog outage should degrade to empty list
+    except Exception as exc:  # noqa: BLE001 — failed lookup is never "no scenes"
+        if isinstance(exc, _cdse.CdseCatalogError):
+            reason = exc.reason
+            upstream_status = exc.upstream_status
+        else:
+            reason = "timeout" if isinstance(exc, httpx.TimeoutException) else "provider_error"
+            upstream_status = None
         if _logger is not None:
-            _logger.warning("CDSE catalog search failed: %s", exc)
-        features = []
+            _logger.warning("CDSE catalog search failed: reason=%s", reason)
+        detail = {"code": "cdse_catalog_unavailable", "provider": "cdse", "reason": reason}
+        if upstream_status is not None:
+            detail["upstream_status"] = upstream_status
+        raise HTTPException(status_code=503, detail=detail) from exc
 
     items = []
     for feat in features:

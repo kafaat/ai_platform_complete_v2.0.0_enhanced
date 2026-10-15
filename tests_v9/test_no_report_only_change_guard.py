@@ -160,6 +160,24 @@ def test_mobile_code_with_generated_report_is_substantive():
     assert result.returncode == 0, result.stderr
 
 
+def test_tools_code_with_generated_report_is_substantive():
+    # REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01: أداةٌ تحت tools/ + مصنوعٌ مولَّد كانت تُحجَب.
+    result = _run(
+        "tools/sahool_inspector.py",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_tools_result_file_stays_a_report():
+    # الإعفاءُ باللاحقة: ملفُّ نتائج .txt تحت tools/ ليس شيفرة، فلا يُمرِّر مصنوعاً وحده.
+    result = _run(
+        "tools/tts_bakeoff/FALSIFICATION_V8.txt",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0
+
+
 def test_service_code_with_generated_report_is_substantive():
     result = _run(
         "services/sahool-platform/api/routers/nl_sql.py",

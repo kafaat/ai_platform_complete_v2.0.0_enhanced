@@ -59,7 +59,7 @@ def test_optimize_irrigation_invariants(requested, min_yield, budget, we, steps)
     assert r.applied_water_mm <= r.requested_water_mm + 1e-9, "applied يتجاوز requested المُبلَّغ"
     if budget is not None:
         assert r.applied_water_mm <= round(budget, 2) + 1e-9, "applied يتجاوز الميزانيّة"
-    assert r.water_saved_mm >= -1e-6, "ماء موفَّر سالب"
+    assert r.planned_reduction_mm >= -1e-6, "خفض مُخطَّط سالب"
     assert -1e-9 <= r.score <= 1.0 + 1e-9, "درجة خارج [0,1]"
     assert math.isfinite(r.applied_water_mm) and math.isfinite(r.score), "قيمة غير منتهية"
     for v in r.objective_scores.values():

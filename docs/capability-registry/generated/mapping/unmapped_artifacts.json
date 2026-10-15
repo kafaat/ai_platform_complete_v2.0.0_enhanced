@@ -2200,6 +2200,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/pubspec.yaml",
     "kind": "mobile"
   },
@@ -2209,6 +2213,10 @@
   },
   {
     "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
     "kind": "tests"
   },
   {
@@ -7240,6 +7248,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_image_mirror.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },
@@ -8048,6 +8060,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_modbus_decoder_20260703.py",
     "kind": "tests"
   },
@@ -8137,6 +8153,10 @@
   },
   {
     "path": "tests_v9/test_offline_pending_queue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ollama_image_matches_v9_pin.py",
     "kind": "tests"
   },
   {
@@ -8860,6 +8880,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_union_duplicate_guard_runs_in_a_required_check.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_unit_dependency_dormancy_guard.py",
     "kind": "tests"
   },
@@ -9033,6 +9057,38 @@
   },
   {
     "path": "tests_v9/test_zone_sampling_behavior_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_geo.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_investigation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_items_score.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_pipeline.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water_041.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water_042.py",
     "kind": "tests"
   }
 ]
