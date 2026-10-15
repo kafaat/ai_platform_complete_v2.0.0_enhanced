@@ -226,7 +226,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 400,
+    "line": 401,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_identity"
@@ -394,7 +394,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 25,
+    "line": 27,
     "method": "POST",
     "path": "/v1/auth/login",
     "function": "login"
@@ -402,7 +402,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 126,
+    "line": 128,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "function": "refresh_token"
@@ -410,7 +410,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 182,
+    "line": 184,
     "method": "POST",
     "path": "/v1/auth/logout",
     "function": "logout"
@@ -418,7 +418,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 226,
+    "line": 229,
     "method": "GET",
     "path": "/v1/auth/me",
     "function": "me"
@@ -1394,7 +1394,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 638,
+    "line": 636,
     "method": "POST",
     "path": "/v1/query",
     "function": "query_endpoint"
@@ -1402,7 +1402,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 648,
+    "line": 646,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest_endpoint"
@@ -1410,7 +1410,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 703,
+    "line": 701,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1418,7 +1418,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 721,
+    "line": 719,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1426,7 +1426,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 726,
+    "line": 724,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -2546,7 +2546,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/chat_proxy_reference.py",
-    "line": 110,
+    "line": 115,
     "method": "POST",
     "path": "/api/chat",
     "function": "chat"
@@ -3274,7 +3274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/auth.py",
-    "line": 134,
+    "line": 138,
     "method": "POST",
     "path": "/api/v1/auth/signup",
     "function": "auth_signup"

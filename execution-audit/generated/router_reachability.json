@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 396,
+      "line": 397,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 23,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 600,
+      "line": 598,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 160,
+      "line": 167,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -523,7 +523,7 @@
     },
     {
       "kind": "app",
-      "line": 194,
+      "line": 195,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2215,7 +2215,7 @@
     },
     {
       "kind": "app",
-      "line": 50,
+      "line": 52,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2242,7 +2242,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 140,
       "module": "services.tts-service.main",
       "node_id": "services.tts-service.main:app",
       "route_count": 0,
@@ -2332,7 +2332,7 @@
     },
     {
       "kind": "app",
-      "line": 462,
+      "line": 466,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2685,7 +2685,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f783abf9a2855914512443dea1fbc4d39a51ea06a9c8eeaa724c6dd0b547083c",
+  "inventory_sha256": "3c18f0b26731d083daeefea2f234839fbbb714196633e6741d197c487e1dc3a5",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -2791,7 +2791,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 23,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,

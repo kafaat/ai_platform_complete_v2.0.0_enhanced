@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "636eecb7b43711963d179fa1ddce82e27dfe44fdb34a6fbfa81d48b8a311491f",
+  "inventory_sha256": "6c4111c1a6d45447704e87179a69a929ddb1601da1fed52825475975c8af1b1a",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -2874,7 +2874,7 @@
     {
       "classification": "domain",
       "function": "chat",
-      "line": 109,
+      "line": 114,
       "method": "POST",
       "path": "/api/chat",
       "source": "api/chat_proxy_reference.py"
@@ -3002,7 +3002,7 @@
     {
       "classification": "domain",
       "function": "auth_signup",
-      "line": 133,
+      "line": 137,
       "method": "POST",
       "path": "/api/v1/auth/signup",
       "source": "api/routers/auth.py"

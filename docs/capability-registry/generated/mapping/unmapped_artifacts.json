@@ -7944,6 +7944,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_jwt_decode_shared_decoder.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_jwt_denylist_wired.py",
     "kind": "tests"
   },
@@ -8313,6 +8317,10 @@
   },
   {
     "path": "tests_v9/test_provision_pg_client.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_python_jose_removed.py",
     "kind": "tests"
   },
   {

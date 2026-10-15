@@ -1166,6 +1166,28 @@
     ]
   },
   {
+    "path": "docs/architecture/fake_connection_debt.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/platform_extraction_map.json",
     "kind": "other",
     "candidates": [
