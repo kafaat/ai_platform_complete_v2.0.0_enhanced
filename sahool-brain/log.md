@@ -9433,3 +9433,29 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 **جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
 
 لا انتقال لأي فجوة.
+
+## 2026-10-15 — الريُّ المجهول لا يُنفَّذ آليّاً: حالةُ الماء المضاف مُسمّاة
+
+**الفجوة:** `UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01` — تبقى `open`.
+
+**ما قيس على `5472740e`:**
+- المُنتِج الوحيد لـ`irrigation_mm` في الميزان هو `run_water_ledger_once` في `phase_runtime_workers.py` (مجمَّد)، ويمرّر `irrigation_unobserved` منذ #1070 فتهبط الثقةُ إلى 0.4.
+- المستهلكون: `water_decision_bridge.process_water_deficit` (يعتمد آليّاً ويُرسل `amount_mm=deficit_mm` متى فُعّل `WATER_DEFICIT_AUTO_EXECUTION_ENABLED`)، و`field_irrigation_recommendation`، وقرّاءُ `depletion_mm` الآخرون (`irrigation_mpc` · `irrigation_engineering` · `irrigation_closed_loop_runtime` · `canonical_water_state` · `field_state_projection` · `fields` · `water_twin` · `water_ledger`).
+- قيدٌ أعلامُه `irrigation_unobserved` بلغ الجسرَ فخرج `execution_queued` — أمرُ ريٍّ على ريٍّ مجهول.
+
+**الإصلاح (`76eebcca`):**
+- `water_ledger_auto`: `applied_water_status` مشتقٌّ من notes، و`ledger_notes_from_decision` لقراءة العمود المخزَّن.
+- `water_decision_bridge`: المرشّحُ يحمل الحالةَ والأعلامَ و`requires_human_review`؛ والاعتمادُ الآليّ يُحجَز بـ`held_for_review_applied_water_unknown` ما لم يكن الريُّ `recorded` صراحةً.
+- `irrigation_recommendation`: `inputs.applied_water_status` وقيدٌ مُعلَن، بلا خصم ثقةٍ ثانٍ.
+- لا مسَّ لمسارٍ مجمَّد ولا لـ`migrations/`.
+
+**ما قيس محلياً:**
+- الشواهدُ الجديدة: ١٢ حالةً حمراء على شيفرة `5472740e` وخضراء بعد الإصلاح.
+- `services/sahool-platform/tests` كاملاً: 4599 ناجحة.
+- `-k "water_balance or irrigation or depletion or water_ledger or water_decision"`: 399 ناجحة.
+- `tests_v9 -m unit -k "irrigation or water"`: 430 ناجحة و2 متخطّاة.
+- ruff check وformat --check على الملفّات الستّة: نظيف.
+
+**لماذا لا إغلاق:** شرطُ الإغلاق (أ) يطلب ألّا يُحسَب `depletion_mm` قُدُماً على حقلٍ غير مُجهَّز، و(ب) و(ج) يطلبان إعدادَ مصادر الماء لكلّ حقلٍ وموسم — مخطَّطٌ جديد وتعديلُ العامل المجمَّد. والعلَمُ يوميٌّ لا يرث الأيّامَ السابقة.
+
+**القرارُ للمالك:** الحجزُ يُعطّل الاعتمادَ الآليّ عمليّاً على كلّ يومٍ بلا ريّةٍ مسجّلة. المرشّحُ يُنشأ للمراجِع البشريّ ولا يُحجَب.
