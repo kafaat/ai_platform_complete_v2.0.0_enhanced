@@ -746,7 +746,7 @@ class ImageryAutomation:
                     return (False, None)
                 # الأحدث أوّلاً (نفترض ترتيب raster-service تنازليّاً)
                 newest = items[0]
-                newest_id = newest.get("id") or newest.get("image_id")
+                newest_id = self._scene_id(newest)
                 # صورة جديدة؟ (مختلفة عن آخر معروفة)
                 if not newest_id or newest_id == tf.last_image_id:
                     return (False, None)
@@ -770,11 +770,12 @@ class ImageryAutomation:
         NDRE (نيتروجين) + NDSI (ملوحة — حرج لليمن). صدق: لو لا رابط راستر
         صالح، لا يطلب (لا يدّعي معالجة).
         """
-        raster_url = (
-            image.get("raster_url")
-            or (image.get("assets", {}) or {}).get("nir")
-            or image.get("band_urls", {}).get("nir")
-        )
+        # A single STAC NIR asset is one spectral band, not a multi-band COG.
+        # Never pretend it contains red/green/rededge/SWIR: that would publish
+        # vegetation indices derived from unrelated or missing channels.
+        # CDSE catalogue-only scenes have no raster_url and are discovery-only
+        # until a normalized, multi-band raster contract is available.
+        raster_url = image.get("raster_url")
         if not raster_url:
             # لا رابط صالح — نسجّل الصورة فقط دون معالجة (صدق)
             return
@@ -796,7 +797,7 @@ class ImageryAutomation:
                     "swir1": 6,
                     "swir2": 7,
                 },
-                "scene_id": image.get("id") or image.get("image_id"),
+                "scene_id": self._scene_id(image),
                 "capture_datetime": image.get("datetime") or image.get("date"),
             }
             body = await process_indicator_batch(
