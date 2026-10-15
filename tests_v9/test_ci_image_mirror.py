@@ -115,9 +115,7 @@ def test_both_registries_unavailable_never_emit_a_success_receipt(tmp_path):
 
 
 def test_bad_local_config_digest_is_not_accepted(tmp_path):
-    result, _, receipt, _ = run_resolver(
-        tmp_path, mirror_ok=True, config_id="sha256:not-a-digest"
-    )
+    result, _, receipt, _ = run_resolver(tmp_path, mirror_ok=True, config_id="sha256:not-a-digest")
     assert result.returncode != 0
     assert not receipt.exists()
     assert "Cannot prove local Docker image config digest" in result.stderr
@@ -159,12 +157,11 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
     content = path.read_text(encoding="utf-8")
     build = yaml.safe_load(content)["jobs"]["build"]
     assert build["permissions"]["packages"] == "read"
-    run = next(
-        s["run"] for s in build["steps"] if s.get("name", "").startswith("Build ")
-    )
+    run = next(s["run"] for s in build["steps"] if s.get("name", "").startswith("Build "))
     pinned = {
         "deploy/railway/Dockerfile.frontend": (
-            "nginx", "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+            "nginx",
+            "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10",
         ),
         "deploy/railway/Dockerfile.migrate": (
             "postgres",
@@ -181,13 +178,9 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
         in run
     )
     assert (
-        'verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"'
-        in run
+        'verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"' in run
     )
-    assert (
-        '"$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main"'
-        in run
-    )
+    assert '"$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main"' in run
     assert "bash scripts/ci/pull_verified_ci_image.sh" in run
     assert '"$RUNNER_TEMP/railway-from-ref"' in run
     assert "source.count(expected) != 1" in run
@@ -198,14 +191,8 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
 
 def test_bootstrap_apt_is_bounded_and_regeneration_tracks_mirror_workflows():
     bootstrap = WORKFLOW.read_text(encoding="utf-8")
-    assert (
-        "sudo timeout --signal=TERM --kill-after=15s 180s apt-get update"
-        in bootstrap
-    )
-    assert (
-        "sudo timeout --signal=TERM --kill-after=15s 240s apt-get install"
-        in bootstrap
-    )
+    assert "sudo timeout --signal=TERM --kill-after=15s 180s apt-get update" in bootstrap
+    assert "sudo timeout --signal=TERM --kill-after=15s 240s apt-get install" in bootstrap
     content = (ROOT / ".github/workflows/ci-immutable-mirror-regenerate.yml").read_text(
         encoding="utf-8"
     )
@@ -225,9 +212,7 @@ def test_regeneration_sweep_does_not_recursively_discover_its_own_check():
     )
     assert "python -m scripts.ci.verify_all_generated --fix" in content
     assert "python -m scripts.ci.verify_all_generated --check" in content
-    orchestrator = (ROOT / "scripts/ci/regenerate_all_generated.sh").read_text(
-        encoding="utf-8"
-    )
+    orchestrator = (ROOT / "scripts/ci/regenerate_all_generated.sh").read_text(encoding="utf-8")
     assert "python3 scripts/ci/verify_all_generated.py --fix" in orchestrator
     assert "python3 scripts/ci/verify_all_generated.py --check" in orchestrator
     assert "python3 scripts/release/validate_release_package.py" in orchestrator
