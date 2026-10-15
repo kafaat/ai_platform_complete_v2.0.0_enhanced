@@ -275,4 +275,4 @@ def test_enabled_polygon_subscription_has_idle_heartbeat_timeout():
     source = (ROOT / "services/weather-polygon-worker/src/main.py").read_text(encoding="utf-8")
     assert "asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)" in source
     assert "except TimeoutError:" in source
-    assert "_touch_worker_file(HEARTBEAT_FILE)\\n            continue" in source
+    assert "_touch_worker_file(HEARTBEAT_FILE)\n            continue" in source
