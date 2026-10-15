@@ -441,7 +441,22 @@ def main():
             (FRONTEND / "Dockerfile").read_text(),
             re.M,
         )[-1]
-        pull_image(image)
+        if os.environ.get("GHCR_TOKEN"):
+            # Only the exact original OCI index manifest is trusted. The
+            # helper returns the verified local config ID (no registry pull
+            # occurs during the actual nginx runtime contract test).
+            root = FRONTEND.parent
+            with tempfile.TemporaryDirectory(prefix="sahool-nginx-ci-") as folder:
+                receipt = Path(folder) / "nginx-id"
+                subprocess.run(
+                    ["bash", str(root / "scripts/ci/pull_verified_ci_image.sh"),
+                     image, str(receipt)],
+                    cwd=root,
+                    check=True,
+                )
+                image = receipt.read_text(encoding="utf-8").strip()
+        else:
+            pull_image(image)
 
         def command(directory):
             return [
