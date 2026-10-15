@@ -1,0 +1,44 @@
+name: Regenerate immutable mirror PR artifacts
+
+on:
+  push:
+    branches: [codex/ecr-ghcr-immutable-mirror-20261015]
+    paths: [.github/workflows/ci-immutable-mirror-regenerate.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  regeneration:
+    name: Regenerate and attest release files (one-shot)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install declared generator tooling
+        run: pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Converge and validate generated artifacts
+        run: |
+          set -euo pipefail
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/verify_all_generated.py --check
+      - name: Build release bundle last, validate and record exact tree
+        run: |
+          set -euo pipefail
+          python scripts/release/build_release_bundle.py --root .
+          python scripts/release/validate_release_package.py --root .
+          git diff --check
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Generated artifacts unchanged"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore(ci): regenerate mirror governance and verified release package"
+            git push origin HEAD:codex/ecr-ghcr-immutable-mirror-20261015
+          fi
