@@ -1,0 +1,48 @@
+name: SAHOOL QA offline evaluation
+
+on:
+  pull_request:
+    paths:
+      - 'tools/sahool_qa/**'
+      - '.github/workflows/sahool-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/sahool_qa/**'
+      - '.github/workflows/sahool-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  offline-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install isolated test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-16 postgresql-client-16
+          python -m pip install -r tools/sahool_qa/requirements-test.txt
+      - name: Test disposable database and deterministic demo
+        working-directory: tools/sahool_qa
+        run: python tools/run_checks.py --require-postgres
+      - name: Upload current verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sahool-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: tools/sahool_qa/verification/integration/
+          if-no-files-found: error
+          retention-days: 14

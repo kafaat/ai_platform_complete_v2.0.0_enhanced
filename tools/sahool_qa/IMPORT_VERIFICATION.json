@@ -1,0 +1,123 @@
+{
+  "source_zip_sha256": "754fda2fbd170f712f147da895af0e3fca363a483bdc5d1f07b5c4f26ed7a754",
+  "base_commit": "e82de0e755d2782de9815482b5111a3119722add",
+  "verified_at": "2026-10-15",
+  "tests": {
+    "tests_run": 126,
+    "failures": 0,
+    "errors": 0,
+    "skipped": [
+      {
+        "test": "test_generation_parity_db_vs_fixture (test_postgres.TestPostgresLoader.test_generation_parity_db_vs_fixture)",
+        "reason": "PostgreSQL server binaries not available"
+      },
+      {
+        "test": "test_identifier_validation (test_postgres.TestPostgresLoader.test_identifier_validation)",
+        "reason": "PostgreSQL server binaries not available"
+      },
+      {
+        "test": "test_loader_matches_fixture (test_postgres.TestPostgresLoader.test_loader_matches_fixture)",
+        "reason": "PostgreSQL server binaries not available"
+      },
+      {
+        "test": "test_missing_column_is_reported (test_postgres.TestPostgresLoader.test_missing_column_is_reported)",
+        "reason": "PostgreSQL server binaries not available"
+      },
+      {
+        "test": "test_session_is_read_only (test_postgres.TestPostgresLoader.test_session_is_read_only)",
+        "reason": "PostgreSQL server binaries not available"
+      },
+      {
+        "test": "test_tenant_isolation (test_postgres.TestPostgresLoader.test_tenant_isolation)",
+        "reason": "PostgreSQL server binaries not available"
+      }
+    ],
+    "require_postgres": false,
+    "demo_verified": true,
+    "demo_hashes": {
+      "train": "7c365722c05b04dd67eee4a12f5a63758339432c118c77763c85a02f9ddf30fb",
+      "val": "0b074437933198840fc4ccce4b01eb0ac2af9639043e7caaf524ab8923cd6b2b",
+      "test": "3dc0452e14a5eef7bc52313f2750260891def153ec9d48b90fe365a792fe41d8"
+    },
+    "counts": {
+      "facts": {
+        "fields": 13,
+        "drawn_fields": 11,
+        "soil_samples": 44,
+        "indicators": 1971,
+        "rasters": 30,
+        "rejected_records": {
+          "out_of_scope_tenant": 1
+        }
+      },
+      "items_total": 538,
+      "by_split": {
+        "train": 252,
+        "val": 110,
+        "test": 176
+      },
+      "by_level": {
+        "الإدراك المكاني": 53,
+        "فهم الهدف": 196,
+        "فهم المشهد": 173,
+        "الاستدلال": 116
+      },
+      "by_family": {
+        "field.crop": 13,
+        "field.pivot_radius": 4,
+        "field.shape": 11,
+        "reasoning.ec_rule_class": 44,
+        "reasoning.highest_mean_ec": 3,
+        "reasoning.next_measurement": 9,
+        "reasoning.pivot_anomaly_pattern": 9,
+        "reasoning.pivot_weak_quadrant": 3,
+        "scene.area": 12,
+        "scene.area_share": 11,
+        "scene.sample_count": 12,
+        "scene.vegetation_fraction": 21,
+        "soil.max_ec": 10,
+        "soil.mean_ec": 12,
+        "soil.nutrient": 58,
+        "soil.ph_class": 44,
+        "soil.salinity_class": 44,
+        "spatial.bbox": 11,
+        "spatial.direction": 19,
+        "spatial.distance": 16,
+        "spatial.point_in_field": 7,
+        "temporal.divergence_onset": 4,
+        "temporal.ec_change": 3,
+        "temporal.green_up_window": 8,
+        "temporal.index_peak": 9,
+        "temporal.index_trend": 36,
+        "water.applied_depth": 35,
+        "water.plan_vs_measured": 6,
+        "water.rain_corroboration": 11,
+        "water.rain_total": 12,
+        "water.refill_feasibility": 12,
+        "water.salinity_class": 10,
+        "water.stress_status": 19
+      },
+      "answerable": 462,
+      "abstention_correct": 76,
+      "abstain_offered": 260,
+      "with_image": 33,
+      "answer_letters": {
+        "أ": 143,
+        "ب": 124,
+        "ج": 142,
+        "د": 129
+      },
+      "by_evidence_kind": {
+        "derived": 456,
+        "observed": 73,
+        "inferred": 9
+      }
+    },
+    "passed": true
+  },
+  "limitations": [
+    "PostgreSQL tests skipped locally",
+    "No production database or PostGIS execution",
+    "Repository-wide preflight and GitHub CI pending"
+  ]
+}
