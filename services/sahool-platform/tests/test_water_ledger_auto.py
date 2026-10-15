@@ -480,3 +480,86 @@ def test_a_sound_day_still_computes_after_the_new_guards():
     out = compute_daily_ledger_entry(**_ok())
     assert out["confidence"] == CONFIDENCE_AUTO
     assert out["etc_mm"] == pytest.approx(5.0)
+
+
+# ── `applied_water_status`: القيدُ يُسمّي حالةَ الريّ لا يكتفي بخفض الثقة ─────────────
+#
+# بقيّةُ `UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01` بعد #1070: الثقةُ هبطت
+# رقماً ولا يقول القيدُ لمستهلكه **لماذا** — فالجسرُ المحكوم كان يُنفِّذ آليّاً عجزاً
+# بُنِي على ريٍّ قُرِئ صفراً لأنّه مجهول. هذان الشاهدان على القيد نفسِه، وشاهدا الجسر
+# والتوصية في ملفّيهما.
+
+
+@pytest.mark.unit
+def test_a_field_without_irrigation_rows_declares_applied_water_unrecorded():
+    """صفرُ صفوفٍ ⇒ ``applied_water_status == "unrecorded"`` — لا ريٌّ مقيسٌ صفراً صامتاً."""
+    from api.water_ledger_auto import APPLIED_WATER_UNRECORDED
+
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_unobserved=True,
+    )
+    assert entry["applied_water_status"] == APPLIED_WATER_UNRECORDED, (
+        "القيدُ لا يُسمّي أنّ الريَّ مجهول — يقرؤه المستهلكُ ريّاً صفريّاً مقيساً"
+    )
+    assert entry["confidence"] < CONFIDENCE_AUTO
+
+
+@pytest.mark.unit
+def test_completed_runs_summing_to_n_keep_the_numeric_balance_and_read_recorded():
+    """الاتّجاهُ الآخر: ريّاتٌ مكتملةٌ مجموعُها N تبقى معادلةً رقميّةً كما كانت تماماً."""
+    from api.water_ledger_auto import APPLIED_WATER_RECORDED
+
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=12.0,
+    )
+    assert entry["depletion_mm"] == 23.0  # 30 + 5 − 0 − 12
+    assert entry["applied_water_status"] == APPLIED_WATER_RECORDED
+    assert entry["confidence"] == CONFIDENCE_AUTO
+    untracked = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_volume_untracked=True,
+    )
+    assert untracked["applied_water_status"] == "volume_untracked"
+
+
+@pytest.mark.unit
+def test_stored_decision_round_trips_to_the_same_applied_water_status():
+    """مستهلكو الدفتر يقرؤون عمودَ ``decision`` المخزَّن — يجب أن يعيد الحالةَ نفسَها."""
+    from api.water_ledger_auto import applied_water_status, ledger_notes_from_decision
+
+    for kw in ({"irrigation_unobserved": True}, {"irrigation_volume_untracked": True}, {}):
+        entry = compute_daily_ledger_entry(
+            prev_depletion_mm=30.0,
+            taw_mm=120.0,
+            raw_mm=60.0,
+            et0_mm=5.0,
+            kc=1.0,
+            rain_mm=0.0,
+            irrigation_mm=0.0 if kw else 12.0,
+            **kw,
+        )
+        notes = ledger_notes_from_decision(entry["decision"])
+        assert notes == entry["notes"]
+        assert applied_water_status(notes) == entry["applied_water_status"]
+    # قيدٌ يدويٌّ/قديم لا يُدَّعى عنه ما لم يُعلِنه.
+    assert ledger_notes_from_decision("manual: farmer log") is None
+    assert ledger_notes_from_decision(None) is None
