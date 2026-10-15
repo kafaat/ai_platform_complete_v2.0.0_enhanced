@@ -33,5 +33,18 @@
     "metadata_tests_passed": 384,
     "source_suite_reuse": "unchanged six source hashes; original suite base56de retained",
     "proof": "full_gate_summary.json#main1184_integration_validation"
+  },
+  "upstream_governance_integration": {
+    "actual_main_1186": "698a1c53744f1096118688c1dfc1b5f42c269c2a",
+    "candidate_pr": 1189,
+    "candidate_head": "69d37cf3cefe2ab9179b21e4da12bf32cdceacdb",
+    "candidate_merge_status": "not observed; source integrated in preparation",
+    "local_integration_head": "15c610418ef912bf886ae53e97b9eec82c9acf6f",
+    "proof": "governance_integration_validation.json",
+    "counts_at_integration": {
+      "fixed": 396,
+      "open": 127,
+      "verified": 3
+    }
   }
 }

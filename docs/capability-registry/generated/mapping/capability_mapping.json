@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5674,
+    "files_scanned": 5676,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1673,
-      "tests": 1907,
+      "other": 1674,
+      "tests": 1908,
       "web": 467
     },
-    "unmapped_artifacts": 2259,
+    "unmapped_artifacts": 2260,
     "ambiguous_artifacts": 436
   },
   "capabilities": [
@@ -652,7 +652,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
           "score": 12
         },
         {
@@ -2395,7 +2395,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
           "score": 12
         },
         {
@@ -15345,7 +15345,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
           "score": 12
         }
       ],
@@ -18566,6 +18566,14 @@
           ]
         },
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/raster_cache_catalog_20261014/provenance.json",
           "score": 9,
           "signals": [
@@ -18755,7 +18763,7 @@
         "mobile": 0,
         "tests": 49,
         "governance": 0,
-        "other_evidence": 68
+        "other_evidence": 69
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -29425,7 +29433,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
           "score": 12
         },
         {
@@ -45992,6 +46000,10 @@
     },
     {
       "path": "tests_v9/test_unified_timeline.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_union_duplicate_guard_runs_in_a_required_check.py",
       "kind": "tests"
     },
     {

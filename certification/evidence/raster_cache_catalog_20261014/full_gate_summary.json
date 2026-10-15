@@ -107,5 +107,11 @@
     "reuse_limit": "Full suites above were run on original validated opening tree3e6/base56de. No runtime/test/dependency/workflow files changed on main1184; these9current metadata/waiver checks are separate, not relabeled full suites.",
     "final_generation_and_package": "pending after all manual inputs staged; will be recorded outside tracked inputs to avoid self-referential regeneration"
   },
-  "recorded_integration_at": "2026-10-14T19:40:40.131041+00:00"
+  "recorded_integration_at": "2026-10-14T19:40:40.131041+00:00",
+  "governance_integration_validation": {
+    "local_integration_head": "15c610418ef912bf886ae53e97b9eec82c9acf6f",
+    "proof": "governance_integration_validation.json",
+    "scope": "Original full runtime suites retain opening tree3e6/base56de scope. Six raster source/test pins are unchanged. Incoming changes are governance guard/workflow/tests plus brain/generated metadata; those changed guards and metadata receive scoped validation. No original suite is relabeled as run on this integration.",
+    "status": "scoped results recorded in referenced proof; original full-suite fields unchanged"
+  }
 }
