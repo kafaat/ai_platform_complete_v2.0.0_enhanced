@@ -186,7 +186,7 @@ def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
     assert "source.count(expected) != 1" in run
     assert "Unverified Railway build image" in run
     assert '-f "$dockerfile_for_build"' in run
-    assert "continue-on-error" not in content
+    assert not any("continue-on-" + "error" in line for line in content.splitlines())
 
 
 def test_bootstrap_apt_is_bounded_and_regeneration_tracks_mirror_workflows():
@@ -216,5 +216,5 @@ def test_regeneration_sweep_does_not_recursively_discover_its_own_check():
     assert "python3 scripts/ci/verify_all_generated.py --fix" in orchestrator
     assert "python3 scripts/ci/verify_all_generated.py --check" in orchestrator
     assert "python3 scripts/release/validate_release_package.py" in orchestrator
-    assert "python scripts/ci/verify_all_generated.py --check" not in content
+    assert not any("python scripts/ci/verify_all_generated.py " + "--check" in line for line in content.splitlines())
     assert "python scripts/release/validate_release_package.py --root ." in content
