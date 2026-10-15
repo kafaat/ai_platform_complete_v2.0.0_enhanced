@@ -24,9 +24,12 @@ fi
 build_base="$base_image"
 if [[ -n "${GHCR_TOKEN:-}" ]]; then
   base_id_file="$(mktemp)"
-  trap 'rm -f "$base_id_file"' EXIT
-  bash scripts/ci/pull_verified_ci_image.sh "$base_image" "$base_id_file"
-  build_base="$(cat "$base_id_file")"
+  base_ref_file="$(mktemp)"
+  trap 'rm -f "$base_id_file" "$base_ref_file"' EXIT
+  bash scripts/ci/pull_verified_ci_image.sh "$base_image" "$base_id_file" "$base_ref_file"
+  # BuildKit resolves FROM sha256:<config-ID> as docker.io/library/sha256,
+  # so use the verified OCI repository@manifest-digest, not the run ID.
+  build_base="$(cat "$base_ref_file")"
 else
   scripts/ci/resilient_docker_pull.sh "$base_image"
 fi
