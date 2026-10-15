@@ -138,3 +138,13 @@ def test_module_is_stdlib_only():
     src = _MOD.read_text(encoding="utf-8")
     for forbidden in ("import fastapi", "import asyncpg", "from fastapi", "import httpx"):
         assert forbidden not in src
+
+
+def test_last_success_is_visible_but_idle_worker_remains_healthy():
+    # HEARTBEAT-LAST-SUCCESS-UNREAD-01: same live poll, two progress states.
+    idle = {"current_state": "running", "last_poll_at": 1000.0, "last_success_at": None}
+    ok, reason = hb.evaluate_heartbeat(idle, now_epoch=1010.0, max_age_seconds=120)
+    assert ok and "last_success=never" in reason
+    worked = {**idle, "last_success_at": 1005.0}
+    ok, reason = hb.evaluate_heartbeat(worked, now_epoch=1010.0, max_age_seconds=120)
+    assert ok and "last_success_age=5s" in reason
