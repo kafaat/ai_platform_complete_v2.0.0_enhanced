@@ -287,7 +287,7 @@ def test_enabled_polygon_subscription_has_idle_heartbeat_timeout():
     ), "the enabled subscriber must wake without receiving an event"
     assert any(
         isinstance(node, ast.ExceptHandler)
-        and isinstance(node.type, ast.Attribute) and node.type.attr == "TimeoutError"
+        and isinstance(node.type, ast.Name) and node.type.id == "TimeoutError"
         and any(isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
                 and child.func.id == "_touch_worker_file" for child in ast.walk(node))
         for node in ast.walk(run)
