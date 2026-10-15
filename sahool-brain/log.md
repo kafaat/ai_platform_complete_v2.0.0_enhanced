@@ -9375,3 +9375,7 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 - **النشر:** Railway — 24/24 نشراً للالتزام `698a1c53` بحالة SKIPPED (13 في بيئة و11 في الأخرى)؛ لا خدمة أُعيد نشرها.
 - **الأثر على الفروع المفتوحة:** محاكاة دمج #1185 و#1187 و#1188 فوق #1186: لا تعارض في الكود، و`brain_duplicate_gap_identity_guard` يمرّ على الشجرة المدمجة.
 - **إضافة على فرع الموبايل (2026-10-14):** حارس `brain_state_transition` رفض الانتقال إلى fixed لأنّ `mobile/` ليس ضمن مسارات الدليل التنفيذيّ؛ أُضيف شاهد جناح الوحدة `tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py` (٥ قراءات على `main@e6145c10` ⇒ صفر على الفرع). وسُجِّل الحدّ المعلن فجوةً مستقلّة `MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01` (open): `dashboard_screen.dart:176` يقرأ `carbon.sequestered_kg` ولا مُنتِج له.
+
+## 2026-10-14 — #1186: تصحيح مرجع المصدر المنشور
+
+تصحيح إسناد PR #1186: المصدر المنشور القابل للتحقق للحارسَين `REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01` و`UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01` هو `1b14550acb28cf93a7cc606dd0d250e0d4657e7a`، سلف رأس المراجعة `cf43f555008c08518371382ff46ba14251b210a7`. بقيت إشارة `62b81409` والنص السابق محفوظين كتاريخ غير قابل للتحقق من GitHub؛ الإسناد المعتمد الآن هو المصدر المنشور و[PR #1186](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1186). لم تتغير الشيفرة أو الاختبارات أو الحالات، ولا يُدّعى دمج PR أو تحقق حي. سبب التصحيح: مرجع لا يمكن جلبه لا يكفي لإسناد إصلاح fixed، مع أن المصدر الفعلي وشواهده منشوران.
