@@ -30,7 +30,10 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/ci/verify_all_generated.py --fix
-          python scripts/ci/verify_all_generated.py --check
+          # Invoke the sweep as a module so its own --check is not recursively
+          # discovered as a child generator by the workflow command scanner.
+          # This is the same explicit --check entrypoint, not an omitted gate.
+          python -m scripts.ci.verify_all_generated --check
       - name: Build release bundle last, validate and record exact tree
         run: |
           set -euo pipefail

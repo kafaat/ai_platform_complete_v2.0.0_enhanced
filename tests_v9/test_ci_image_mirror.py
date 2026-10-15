@@ -184,5 +184,16 @@ def test_bootstrap_apt_is_bounded_and_regeneration_tracks_mirror_workflows():
     paths = parsed.get("on", parsed.get(True))["push"]["paths"]
     assert ".github/workflows/ci-immutable-image-mirror.yml" in paths
     assert ".github/workflows/railway-dockerfile-pr-build.yml" in paths
-    assert "python scripts/ci/verify_all_generated.py --check" in content
+    assert "python -m scripts.ci.verify_all_generated --check" in content
+    assert "python scripts/release/validate_release_package.py --root ." in content
+
+
+def test_regeneration_sweep_does_not_recursively_discover_its_own_check():
+    """The orchestration run stays explicit without being a nested generator."""
+    content = (ROOT / ".github/workflows/ci-immutable-mirror-regenerate.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "python scripts/ci/verify_all_generated.py --fix" in content
+    assert "python -m scripts.ci.verify_all_generated --check" in content
+    assert "python scripts/ci/verify_all_generated.py --check" not in content
     assert "python scripts/release/validate_release_package.py --root ." in content
