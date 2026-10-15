@@ -52,7 +52,15 @@ def evaluate_heartbeat(
     age = now_epoch - float(last_poll)
     if age > max_age_seconds:
         return False, f"heartbeat_stale:age={int(age)}s>max={int(max_age_seconds)}s"
-    return True, f"ok:age={int(max(age, 0))}s state={state or 'unknown'}"
+    # Success is a progress signal, not a liveness gate: an idle queue may have no
+    # successful work yet. Surface it without incorrectly declaring a live worker dead.
+    last_success = data.get("last_success_at")
+    if isinstance(last_success, (int, float)) and not isinstance(last_success, bool):
+        success_age = now_epoch - float(last_success)
+        success = f"last_success_age={int(max(success_age, 0))}s"
+    else:
+        success = "last_success=never"
+    return True, f"ok:age={int(max(age, 0))}s state={state or 'unknown'} {success}"
 
 
 def read_heartbeat(worker_name: str) -> dict[str, Any] | None:

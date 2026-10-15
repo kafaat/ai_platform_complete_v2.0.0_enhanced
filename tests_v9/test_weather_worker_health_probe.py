@@ -268,3 +268,11 @@ def test_the_probe_never_raises_when_the_heartbeat_vanishes_mid_check(monkeypatc
     # ملفٌّ اختفى **هو** ملفٌّ مفقود، لا غيرُ مقروء. وأوّلُ صياغةٍ هنا أكّدت
     # `unreadable` فسقطت — والصوابُ تصحيحُ التأكيد لا توسيعُ الرسالة لتوافقه.
     assert "heartbeat file missing" in reason
+
+
+# WEATHER-IDLE-WORKER-READS-AS-DEAD-01: silence is not worker death.
+def test_enabled_polygon_subscription_has_idle_heartbeat_timeout():
+    source = (ROOT / "services/weather-polygon-worker/src/main.py").read_text(encoding="utf-8")
+    assert "asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)" in source
+    assert "except TimeoutError:" in source
+    assert "_touch_worker_file(HEARTBEAT_FILE)\n            continue" in source

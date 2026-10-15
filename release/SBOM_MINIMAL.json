@@ -16005,7 +16005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "134c6a0a782cc7b45d147def698e695c03ef790192f8bb3c5376ac0033dc1a4a"
+          "content": "40bfe4c35099d710b2528d445c4be39032454a6bb9f0dfe821abc327260d2299"
         }
       ],
       "name": "services/raster-service/worker_heartbeat.py",
@@ -20415,7 +20415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be8be94f13b2429944f4c6286e778852e48be35c10f42de1ceea6928291a4303"
+          "content": "17741e9adb3cccf73e782ed9d53d9cc4784d6f948272f26263376004235c63f0"
         }
       ],
       "name": "services/sahool-platform/api/worker_heartbeat.py",
@@ -30665,7 +30665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92af425dd4a30fea8014d792e4019172122fa1c0ce56dd41340530c00ebc2edf"
+          "content": "ebf3af36667c191414d75cb99cc84748ea5bda6e6be12fbe04bce2e78fbdd6d8"
         }
       ],
       "name": "services/weather-polygon-worker/src/main.py",

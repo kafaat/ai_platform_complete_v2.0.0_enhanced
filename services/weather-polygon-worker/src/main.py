@@ -164,7 +164,14 @@ async def run() -> None:
     js = nc.jetstream()
     sub = await js.subscribe("sahool.weather.forecast.updated", durable="polygon-worker")
     log.info("✓ weather-polygon-worker بدأ — يستمع sahool.weather.forecast.updated")
-    async for msg in sub:
+    # A live JetStream subscription can legitimately receive no messages for hours.
+    # Poll with a bounded timeout so absence of events never ages out liveness.
+    while True:
+        try:
+            msg = await asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)
+        except TimeoutError:
+            _touch_worker_file(HEARTBEAT_FILE)
+            continue
         _touch_worker_file(HEARTBEAT_FILE)
         try:
             async with pool.acquire() as conn:

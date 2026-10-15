@@ -452,7 +452,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/weather-polygon-worker/src/main.py:186",
+      "evidence": "services/weather-polygon-worker/src/main.py:193",
       "from": "weather-polygon-worker",
       "from_kind": "component",
       "protocol": "nats",

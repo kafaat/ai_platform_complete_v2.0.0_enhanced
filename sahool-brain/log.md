@@ -9532,3 +9532,10 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 - الاختيار `-m unit -k "fake_connection or guard_catalogue or mutation or blocking_surface or ratchet"`: 214 ناجحة وإخفاقٌ واحد، هو انجراف `GUARD_CATALOGUE.md`. يحتاج إعادة توليد ولم يُولَّد هنا.
 
 أُضيفت إحالةٌ بلا تغيير حالة في `C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01`.
+
+## 2026-10-15 — PR #1194 worker heartbeat source fixes
+
+- نقلت حالتا `HEARTBEAT-LAST-SUCCESS-UNREAD-01` و`WEATHER-IDLE-WORKER-READS-AS-DEAD-01` إلى `fixed` **على فرع PR #1194 فقط**؛ ليستا `verified` ولا منتشرتين على الإنتاج.
+- الدليل: `services/sahool-platform/api/worker_heartbeat.py` و`services/raster-service/worker_heartbeat.py` يقرآن آخر نجاح للعرض دون جعله معيار حياة؛ `services/weather-polygon-worker/src/main.py` يجدد النبضة عند خمول اشتراك JetStream.
+- الشهود: `tests_v9/test_worker_heartbeat_guard_v21.py` و`tests_v9/test_raster_worker_heartbeat_guard_v21.py` و`tests_v9/test_weather_worker_health_probe.py`. اختبارات هذه السلوكيات تُخالف main السابق وتتوافق مع فرع الإصلاح؛ CI النهائي على آخر SHA لا يزال مطلوباً.
+- القيود: `WEATHER_GRID_PIPELINE_ENABLED` لا يزال OFF، ولا ناشر للموضوع بعد؛ لا إثبات تشغيل حيّ، ولا دمج أو نشر بهذا الإدخال.
