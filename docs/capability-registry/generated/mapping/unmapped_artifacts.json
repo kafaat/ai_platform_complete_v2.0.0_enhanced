@@ -2200,6 +2200,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/pubspec.yaml",
     "kind": "mobile"
   },
@@ -2209,6 +2213,10 @@
   },
   {
     "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
     "kind": "tests"
   },
   {
@@ -8048,6 +8056,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_modbus_decoder_20260703.py",
     "kind": "tests"
   },
@@ -8137,6 +8149,10 @@
   },
   {
     "path": "tests_v9/test_offline_pending_queue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ollama_image_matches_v9_pin.py",
     "kind": "tests"
   },
   {

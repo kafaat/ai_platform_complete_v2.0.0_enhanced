@@ -3910,6 +3910,27 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 
 **الدليل والحدود:** `certification/evidence/cdse_diagnostics_20261014/duplicate_suppression_provenance.json` يربط المصدر الجديد بـ65 اختباراً ناجحاً ومراجعة مستقلة؛ شاهد 256 محاولة يحفظ الخمسة السابقة و6 مميزة إجمالاً، مع 1 file fsync و259 directory fsync. المصدر `33616dbb5f20c7b56b62f3799fadc2d667803962` وتقارير فتح PR باقية تاريخياً؛ لا ننسب المصدر المعدل إليها. تدوير 256/257 عام بين المستأجرين وقد تزيح طلبات مميزة أدلة قديمة؛ ليس حذفاً زمنياً أو ضماناً لكل مستأجر. bbox حساس، الصلاحيات للمستخدم التشغيلي، ودوام mount والنسخ الاحتياطي والسبب التاريخي غير مقيسة. تبقى `CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01` open، وCI النهائي والنشر ليسا مثبتين بهذا الشاهد. لقطة النشر السابقة طابقت أربع نسخ خدمة/بيئة تتبع main؛ يلزم تحديثها قبل الدمج.
 
+## 2026-10-14 — `PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01` إلى fixed في PR مستقلّ
+
+**القرار:** خفضُ الريّ المخطَّط في التحسين متعدّد المجالات صار `planned_reduction_mm` مع `savings_claim` غيرِ مثبت (عقد #1142)، لا `water_saved_mm`.
+
+**السبب:** الصفّ open والعيبُ مقيسٌ على main@9a50aac3 بلا مُنتِجٍ أو بتسميةٍ تدّعي توفيراً لم يُقَس؛ يعيد نشر المنصّة عند الدمج، والدمجُ بموافقة المالك.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3ac13509` · الشاهد `services/sahool-platform/tests/test_decision_dispatch_endpoint.py::test_optimization_names_a_planned_reduction_not_water_saved`.
+## 2026-10-14 — `MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01` إلى fixed في PR مستقلّ
+
+**القرار:** لوحةُ تطبيق الجوّال لم تعد تقرأ `water_usage.savings_pct` الذي لا يُنتجه أيّ خادم، وتعرض «غير مقيس»؛ وبقي `carbon.sequestered_kg` بلا منتِج حدّاً معلناً.
+
+**السبب:** الصفّ open والعيبُ مقيسٌ على main@9a50aac3 بلا مُنتِجٍ أو بتسميةٍ تدّعي توفيراً لم يُقَس؛ لا نشرَ على Railway (بناءُ التطبيق وحده)، والدمجُ بموافقة المالك.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `a1730e2c` · الشاهد `mobile/sahool_app/test/dashboard_water_not_measured_test.dart (يعمل في وظيفة Flutter في CI، ولم يُشغَّل محلّيّاً)`.
+## 2026-10-14 — `OLLAMA-UNIFIED-PINNED-0-3-0-01` إلى fixed
+
+**القرار:** مواءمةُ صورة Ollama في الملفّين البديلين مع بصمة v9 بدل حذفهما، لأنّ قرارَ دعم الملفّات البديلة (`COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01`) ما زال للمالك.
+
+**السبب:** ملفٌّ بديلٌ متأخّرٌ بإصداراتٍ كثيرة يعيد ثغراتٍ أُغلقت في المكدّس القانونيّ؛ والمواءمةُ لا تمسّ Railway ولا تقطع قراراً لم يُتخذ.
+
+**المصدر:** `main@9a50aac3` · الإصلاح `3c6ecd59` · الشاهد `tests_v9/test_ollama_image_matches_v9_pin.py`.
 ## 2026-10-14 — وصول CDSE المقيس وخطة ما تبقى على أساس main
 
 إسناد الوصول المقيس لاحقاً: دُمج #1182 في main عبر `9a50aac3bf71ed42f4fad91a036d49e61d151a52`، وشجرته تطابق الرأس النهائي المختبر `02fbc3107e0dfbedef025117b83e657192133228` (`ddc35b6f4dadd552abf9a30df1fd12e24fcf1285`). على ذلك الرأس 71 فحصاً ناجحاً و2 متخطيان، والعشرون المطلوبة ناجحة. أصل التشخيص 33616 وإصلاح التكرار fbd121fc وبصمة اختبار التصحيح 46b8 محفوظة في إيصالاتها التاريخية. سجلات Railway لهذا الدمج: 4 SUCCESS لخدمتي raster-service وraster-main-candidate في staging وproduction، و20 SKIPPED؛ هذا وصول إصدار لا إثبات كتابة إيصال أو دوام volume أو سبب الواقعة القديمة. الدليل `certification/evidence/cdse_diagnostics_20261014/pr1182_final_ci_review.json` و`certification/evidence/cdse_diagnostics_20261014/cdse_pr1182_postmerge_9a50aac3_railway.json`. تبقى open ولا verified.

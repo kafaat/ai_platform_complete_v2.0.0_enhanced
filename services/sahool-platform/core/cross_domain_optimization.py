@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 
+from core.impact_measurement import SAVINGS_CLAIM
+
 # الأوزان الافتراضيّة — توازن متساوٍ بين كفاءة الماء وأمان الغلّة (قابل للتجاوز/سياسة).
 _DEFAULT_WEIGHTS = {"water_efficiency": 0.5, "yield_security": 0.5}
 _DEFAULT_STEPS = 10  # دقّة شبكة البحث (كلّما زادت دقّت الكمّيّة المختارة)
@@ -30,14 +32,26 @@ class OptimizationResult:
     candidates_evaluated: int = 0
     tradeoffs_ar: list[str] = field(default_factory=list)
 
+    # PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01: كان ``water_saved_mm``. الفرقُ بين
+    # المطلوب والمُخطَّط **خفضٌ مُخطَّط** لا ماءٌ موفَّر: لم يُطبَّق بعد، ولا سحبَ مقيساً ولا خفضَ
+    # استهلاكٍ ولا إسناد — العيبُ نفسُه الذي أصلحه #1142 في قياس الأثر (``SAVINGS_CLAIM``).
     @property
-    def water_saved_mm(self) -> float:
+    def planned_reduction_mm(self) -> float:
         return round(self.requested_water_mm - self.applied_water_mm, 2)
 
     def to_dict(self) -> dict:
         d = asdict(self)
-        d["water_saved_mm"] = self.water_saved_mm
+        d["planned_reduction_mm"] = self.planned_reduction_mm
+        d["savings_claim"] = dict(PLANNED_SAVINGS_CLAIM)
         return d
+
+
+# عقدُ #1142 نفسُه (الحالة والأدلّة الأربعة المطلوبة) بأساسٍ يقول ما يُحسَب هنا: مطلوبٌ ناقصَ مُخطَّط.
+PLANNED_SAVINGS_CLAIM: dict = {
+    **SAVINGS_CLAIM,
+    "basis": "requested_minus_planned",
+    "not_a_saving_ar": "فرقُ المطلوب عن المُخطَّط ليس وفراً: لم يُطبَّق ولم يُقَس.",
+}
 
 
 def _clamp01(x: float) -> float:
@@ -100,7 +114,7 @@ def optimize_irrigation(
         tradeoffs.append(f"تعذّر تأمين حدّ الغلّة ({min_needed:.1f}مم) ضمن المتاح — خطر على الغلّة.")
     elif best_mm < req:
         tradeoffs.append(
-            f"أُمثِلت الكمّيّة إلى {best_mm:.1f}مم (وُفِّر {req - best_mm:.1f}مم) مع تأمين حدّ الغلّة."
+            f"أُمثِلت الكمّيّة إلى {best_mm:.1f}مم (خفضٌ مُخطَّط {req - best_mm:.1f}مم، ليس وفراً مثبتاً) مع تأمين حدّ الغلّة."
         )
     else:
         tradeoffs.append(f"الكمّيّة المطلوبة {req:.1f}مم مُثلى ضمن القيود.")

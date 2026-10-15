@@ -757,6 +757,7 @@ FM-003,test,tests_v9/test_fields_put_and_mfa_api_contract_20260626.py,3,applied
 FM-003,test,tests_v9/test_h51_field_source_binding_pg.py,3,applied
 FM-003,test,tests_v9/test_internal_field_read_channel.py,3,applied
 FM-003,test,tests_v9/test_internal_field_state_channel.py,3,applied
+FM-003,test,tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py,3,applied
 FM-003,test,tests_v9/test_offline_dispatch_field_update.py,3,applied
 FM-003,test,tests_v9/test_physical_effect_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_rag_direct_qdrant_boundary_guard.py,3,applied

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 617,
+      "evidence_count": 618,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -445,6 +445,7 @@
         "services/sahool-platform/tests/test_crop_twin_compose_endpoint.py",
         "services/sahool-platform/tests/test_crop_water_sensitivity.py",
         "services/sahool-platform/tests/test_cross_reference_finder.py",
+        "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
         "services/sahool-platform/tests/test_decision_engine.py",
         "services/sahool-platform/tests/test_decision_learning.py",
         "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
@@ -2526,7 +2527,7 @@
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/outcome.py"
       ],
-      "source_evidence_count": 617,
+      "source_evidence_count": 618,
       "target_evidence_count": 508,
       "static_supported": true,
       "runtime_verified": false
@@ -2916,5 +2917,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f739b542a2653d7f1527ba94b1330d6aee960f42447103c7f2a05199ca2f4bbc"
+  "content_sha256": "ec25ae9ef4d2b9abaf3a7eb542885ff8d1016edc7dbe762537d40325edd65c75"
 }

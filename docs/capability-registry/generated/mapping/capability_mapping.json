@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5676,
+    "files_scanned": 5680,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
-      "mobile": 55,
+      "mobile": 56,
       "other": 1674,
-      "tests": 1908,
+      "tests": 1911,
       "web": 467
     },
-    "unmapped_artifacts": 2260,
+    "unmapped_artifacts": 2264,
     "ambiguous_artifacts": 436
   },
   "capabilities": [
@@ -39343,6 +39343,10 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/pubspec.yaml",
       "kind": "mobile"
     },
@@ -39352,6 +39356,10 @@
     },
     {
       "path": "mobile/sahool_app/test/auth_service_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
       "kind": "tests"
     },
     {
@@ -45191,6 +45199,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_modbus_decoder_20260703.py",
       "kind": "tests"
     },
@@ -45280,6 +45292,10 @@
     },
     {
       "path": "tests_v9/test_offline_pending_queue.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ollama_image_matches_v9_pin.py",
       "kind": "tests"
     },
     {
