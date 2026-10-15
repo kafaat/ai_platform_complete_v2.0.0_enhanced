@@ -39,7 +39,11 @@ from api.main import (
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
 from api.weather_advice import complete_rain_total, precipitation_incomplete_detail
-from api.weather_service_client import get_et0_product, get_weather_forecast
+from api.weather_service_client import (
+    et0_unavailable_http_exception,
+    get_et0_product,
+    get_weather_forecast,
+)
 
 router = APIRouter()
 
@@ -233,6 +237,9 @@ async def irrigation_recommendation(
             ) from exc
         raise
     et0_mm = et0_prod.get("et0_mm")
+    if et0_mm is None:
+        # المحرّك رفض مُدخَلاً مستحيلاً (422) أو لم يُعِد ET0 (503) — لا float(None) ⇒ 500.
+        raise et0_unavailable_http_exception(et0_prod)
     return recommend_irrigation(
         et0_mm=et0_mm,
         crop=req.crop,
@@ -552,6 +559,26 @@ async def field_irrigation_recommendation(
         raise
 
     et0_mm = et0_prod.get("et0_mm")
+    if et0_mm is None:
+        # طقس الحقل نفسه رُفض أو نقص (لا خطأ من المستدعي): فشل مُغلَق بلا توصية،
+        # بأسباب المحرّك (invalid_inputs/limitations) بدل float(None) ⇒ 500.
+        return {
+            "status": "dependency_unavailable",
+            "field_id": field_id,
+            "season_id": season_id,
+            "inputs": inputs,
+            "recommendation": None,
+            "ownership": "recommendation_candidate → decision-service",
+            "confidence": None,
+            "evidence_ids": evidence_ids,
+            "invalid_inputs": list(et0_prod.get("invalid_inputs") or []),
+            "limitations": [
+                *state["limitations"],
+                "weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+                *[str(x) for x in (et0_prod.get("limitations") or [])],
+            ],
+            "calibrated": False,
+        }
     evidence_ids.append(f"weather-engine-et0:{et0_prod.get('weather_snapshot_id')}")
 
     rec = recommend_irrigation(

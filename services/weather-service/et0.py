@@ -9,9 +9,14 @@
   • ``fao56_penman_monteith`` (المرجع، ``validated``) — يتطلّب إشعاعاً + RH + رياحاً.
   • ``hargreaves_fallback`` (``degraded``) — عند نقص مدخلات PM؛ **لا يُقدَّم كـFAO-56**.
   • ``insufficient`` — لا حرارة/جغرافيا كافية (``et0_mm=None``، مفقود ≠ افتراض).
+  • ``invalid`` — مُدخَل أساسيّ مستحيل فيزيائيّاً (``et0_mm=None``، مكسور ≠ مفقود).
+
+مُدخَل خارج حدود المعقوليّة المُسمّاة أدناه **يُعلَن في ``invalid_inputs`` ولا يدخل
+الحساب** (لا يُقصّ إلى قيمة). وأيّ رفضٍ يمنع ``validated`` حتّى إن جرى PM بما تبقّى.
 
 المخرَج: ``et0_mm`` · ``method`` · ``input_completeness`` · ``quality_status`` ·
-``formula_version`` · ``missing_inputs`` · ``limitations``. نقيّ حتميّ، لا يرمي.
+``formula_version`` · ``missing_inputs`` · ``invalid_inputs`` · ``limitations``.
+نقيّ حتميّ، لا يرمي (مقيس في ``tests/test_et0_reference_and_input_validity.py``).
 """
 
 from __future__ import annotations
@@ -19,6 +24,8 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import numbers
+import operator
 from datetime import datetime
 
 from vapor_pressure import (
@@ -28,7 +35,7 @@ from vapor_pressure import (
     svp_slope_kpa_per_c,
 )
 
-FORMULA_VERSION = "et0/fao56-pm/1.0.0"
+FORMULA_VERSION = "et0/fao56-pm/1.1.0"
 PRODUCT_ID = "et0"
 SNAPSHOT_SCHEME = "wsnap/sha1/1"
 
@@ -47,6 +54,15 @@ _WIND_2M_PLAUSIBLE_MAX_MS = 50.0
 # الإشعاع الشمسيّ اليوميّ لا يتجاوز إشعاع السماء الصافية Rso (FAO-56 Eq. 37) إلّا
 # بهامش قياس؛ ما فوقه خطأ وحدة (W/m² بدل MJ/m²/يوم مثلاً).
 _SOLAR_OVER_RSO_TOLERANCE = 1.10
+# هامش مطلق (MJ/m²/يوم) فوق الحدّ النسبيّ — يمنع رفض كلّ قراءة قرب الليل القطبيّ.
+_SOLAR_OVER_RSO_SLACK_MJ = 0.5
+# الصفر «غياب» فقط حين يكون Ra معتبراً؛ دونه قد يكون الصفر قياساً صحيحاً.
+_SOLAR_ZERO_IS_ABSENCE_MIN_RA_MJ = 1.0
+# ارتفاع حساب سقف الإشعاع حين لا يُمرَّر الارتفاع: سخيّ (لا يُرفض يومٌ صافٍ في
+# المرتفعات لأنّ المستدعي لم يُرسل ارتفاعه)؛ ويبقى يلتقط خطأ W/m² بدل MJ (~11.6×).
+_SOLAR_CAP_ELEVATION_WHEN_UNKNOWN_M = _ELEVATION_PLAUSIBLE_MAX_M
+# Tmean من تجميع مختلف (ساعات رصد ثابتة/نافذة زمنيّة) قد يقع خارج [Tmin, Tmax] بقليل.
+_T_MEAN_RANGE_TOLERANCE_C = 0.5
 
 
 # ── بدائيّات الإشعاع ──
@@ -63,6 +79,11 @@ def extraterrestrial_radiation_mj(lat_deg: float, doy: int) -> float:
         * dr
         * (ws * math.sin(lat) * math.sin(decl) + math.cos(lat) * math.cos(decl) * math.sin(ws))
     )
+
+
+def clear_sky_radiation_mj(ra_mj: float, elevation_m: float) -> float:
+    """إشعاع السماء الصافية Rso (MJ/m²/يوم) — FAO-56 Eq. 37 (as+bs=0.75)."""
+    return (0.75 + 2e-5 * elevation_m) * ra_mj
 
 
 # ── ثابت سيكرومتري ──
@@ -91,7 +112,7 @@ def penman_monteith_et0_mm(
     gamma = psychrometric_constant_kpa_per_c(elevation_m)
     rns = (1.0 - 0.23) * solar_rad_mj_m2
     ra = extraterrestrial_radiation_mj(lat_deg, doy)
-    rso = (0.75 + 2e-5 * elevation_m) * ra
+    rso = clear_sky_radiation_mj(ra, elevation_m)
     rs_rso = min(1.0, solar_rad_mj_m2 / rso) if rso > 0 else 1.0
     tmaxk = t_max_c + 273.16
     tmink = t_min_c + 273.16
@@ -130,10 +151,17 @@ def _finite(v) -> float | None:
 
 
 def _valid_doy(v) -> int | None:
-    """يوم السنة الصالح: عدد صحيح (لا bool) في [1, 366]، وإلّا ``None``."""
-    if isinstance(v, bool) or not isinstance(v, int):
+    """يوم السنة الصالح: قيمة صحيحة (int/numpy int/عدد عشريّ صحيح، لا bool) في [1, 366]."""
+    if v is None or isinstance(v, bool):
         return None
-    return v if 1 <= v <= 366 else None
+    try:
+        i = operator.index(v)
+    except TypeError:
+        f = _finite(v) if isinstance(v, numbers.Real) else None
+        if f is None or not f.is_integer():
+            return None
+        i = int(f)
+    return i if 1 <= i <= 366 else None
 
 
 def compute_et0(
@@ -205,13 +233,15 @@ def compute_et0(
             **base,
             "method": "insufficient",
             "input_completeness": 0.0,
-            "quality_status": "insufficient",
+            # مكسور ≠ مفقود: «invalid» (مفردة الحالة الكنسيّة نفسها لـDTR) لا «insufficient».
+            "quality_status": "invalid" if invalid else "insufficient",
             "missing_inputs": missing_core,
             "invalid_inputs": invalid,
             "limitations": ["cannot compute ET0 without temperature + geography", *reasons],
         }
 
-    if tmean is not None and not tmin <= tmean <= tmax:
+    tol = _T_MEAN_RANGE_TOLERANCE_C
+    if tmean is not None and not tmin - tol <= tmean <= tmax + tol:
         _reject("t_mean_c", "outside [t_min_c, t_max_c]; derived from t_max_c/t_min_c instead")
         tmean = None
     if tmean is None:
@@ -233,16 +263,17 @@ def compute_et0(
         wind = None
     if solar is not None:
         ra_mj = extraterrestrial_radiation_mj(lat, doy)
-        rso_mj = (0.75 + 2e-5 * elev_v) * ra_mj
+        cap_elev = elev if elev is not None else _SOLAR_CAP_ELEVATION_WHEN_UNKNOWN_M
+        rso_cap_mj = clear_sky_radiation_mj(ra_mj, cap_elev)
         if solar < 0.0:
             _reject("solar_rad_mj_m2", "negative")
             solar = None
-        elif solar == 0.0 and ra_mj > 0.0:
+        elif solar == 0.0 and ra_mj > _SOLAR_ZERO_IS_ABSENCE_MIN_RA_MJ:
             _reject(
                 "solar_rad_mj_m2", "zero daily radiation while Ra > 0 (absence, not a measurement)"
             )
             solar = None
-        elif solar > _SOLAR_OVER_RSO_TOLERANCE * rso_mj:
+        elif solar > _SOLAR_OVER_RSO_TOLERANCE * rso_cap_mj + _SOLAR_OVER_RSO_SLACK_MJ:
             _reject(
                 "solar_rad_mj_m2", "exceeds clear-sky Rso (FAO-56 Eq. 37); unit or sensor error"
             )
@@ -273,7 +304,7 @@ def compute_et0(
             "et0_mm": round(et0, 3),
             "method": "fao56_penman_monteith",
             "input_completeness": 1.0,
-            "quality_status": "validated",
+            "quality_status": "degraded" if invalid else "validated",
             "missing_inputs": [],
             "invalid_inputs": invalid,
             "limitations": [*limitations, *reasons],
@@ -349,7 +380,9 @@ def et0_series_product(
         # التاريخ الفعليّ (إن مُرِّر) هو الحقيقة؛ وإلّا DOY تسلسليّ (سلسلة متّصلة).
         doy = _doy_from_iso_date(dates[i]) if i < len(dates) else None
         if doy is None:
-            doy = (day_of_year_start + i) if day_of_year_start is not None else None
+            # التفاف DOY عبر نهاية السنة (Ra دوريّ بـ365): موسمٌ يعبر 31 ديسمبر لا يفقد أيّامه.
+            start = _valid_doy(day_of_year_start)
+            doy = ((start - 1 + i) % 365 + 1) if start is not None else None
         res = compute_et0(
             t_max_c=daily_t_max[i],
             t_min_c=daily_t_min[i],

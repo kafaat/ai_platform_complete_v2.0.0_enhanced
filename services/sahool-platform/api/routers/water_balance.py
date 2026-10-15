@@ -22,7 +22,7 @@ from api.main import (
 )
 from api.water_balance import WeatherInput, water_balance, water_balance_auto
 from api.water_balance_models import WaterBalanceRequest
-from api.weather_service_client import get_et0_product
+from api.weather_service_client import et0_unavailable_http_exception, get_et0_product
 
 router = APIRouter()
 
@@ -55,10 +55,7 @@ async def _engine_et0_from_request(req: WaterBalanceRequest) -> tuple[float, str
         raise
     et0_mm = prod.get("et0_mm")
     if et0_mm is None:
-        raise HTTPException(
-            status_code=503,
-            detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
-        )
+        raise et0_unavailable_http_exception(prod)
     return float(et0_mm), str(prod.get("method") or "weather-engine")
 
 

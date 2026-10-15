@@ -131,3 +131,26 @@ async def test_weather_timeout_bounds_whole_request_and_cancels_transport(monkey
     assert error.value.status_code == 504
     assert error.value.detail["reason_code"] == "weather_service_timeout"
     assert cancelled
+
+
+# ── مكسور ≠ عطل تبعيّة: المحرّك يرفض مُدخَلاً مستحيلاً ⇒ 422 لا 503 ──
+def test_rejected_inputs_map_to_422_with_the_named_fields():
+    exc = wsc.et0_unavailable_http_exception(
+        {
+            "et0_mm": None,
+            "quality_status": "invalid",
+            "invalid_inputs": ["t_max_c", "t_min_c"],
+            "limitations": ["t_max_c rejected: t_max_c < t_min_c"],
+        }
+    )
+    assert isinstance(exc, HTTPException)
+    assert exc.status_code == 422
+    assert exc.detail["reason_code"] == "invalid_weather_inputs"
+    assert exc.detail["invalid_inputs"] == ["t_max_c", "t_min_c"]
+
+
+@pytest.mark.parametrize("prod", [None, {}, {"et0_mm": None, "invalid_inputs": []}])
+def test_no_et0_without_rejections_stays_503_fail_closed(prod):
+    exc = wsc.et0_unavailable_http_exception(prod)
+    assert exc.status_code == 503
+    assert "fail-closed" in exc.detail

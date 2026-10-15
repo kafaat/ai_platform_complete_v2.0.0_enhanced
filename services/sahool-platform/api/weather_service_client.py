@@ -148,6 +148,32 @@ async def weather_post_json(
     return data if isinstance(data, dict) else {"value": data}
 
 
+def et0_unavailable_http_exception(prod: dict[str, Any] | None):
+    """HTTPException حين يعيد المحرّك ``et0_mm=None`` — مكسور ≠ عطل تبعيّة.
+
+    المحرّك يرفض المُدخَل المستحيل فيزيائيّاً ويُسمّيه في ``invalid_inputs``: هذا خطأ
+    مُدخَل من المستدعي ⇒ **422** بأسماء الحقول المرفوضة وأسبابها (لا يُعاد المحاولة).
+    غيرُ ذلك (مُدخَل مفقود/استجابة بلا ET0) ⇒ **503** fail-closed كما كان (لا ET0 محلّيّ).
+    """
+    from fastapi import HTTPException
+
+    prod = prod or {}
+    invalid = [str(n) for n in (prod.get("invalid_inputs") or [])]
+    if invalid:
+        return HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "invalid_weather_inputs",
+                "invalid_inputs": invalid,
+                "limitations": [str(x) for x in (prod.get("limitations") or [])],
+            },
+        )
+    return HTTPException(
+        status_code=503,
+        detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+    )
+
+
 async def get_et0_product(
     *,
     t_max_c: float | None,
