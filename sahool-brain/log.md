@@ -9433,3 +9433,31 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 **جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
 
 لا انتقال لأي فجوة.
+
+## 2026-10-15 — راتشِتُ الاتّصالات الوهميّة يعدّ صنفاً لا اسماً
+
+`FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01` صارت **fixed** عند `4b105001e` على أساس `main@5472740e` (بلا دفع ولا PR).
+
+**ما تغيّر:** `scripts/ci/fake_connection_debt_guard.py` كان يطابق اصطلاحَ التسمية نصّاً (`class _?Fake…(Conn|Pool)` · `fake_conn…` · `fake_pool…`). صار يكشف البديلَ بنيويّاً بـAST عبر أربع قنوات: صنفُ اتّصالٍ راسٍ على توقيع asyncpg، ومسبحٌ بـ`acquire`، وترقيعُ مُورِّد الاتّصال، ومحاكاةٌ مُهيَّأة.
+
+**المقيس:**
+- الملفّات الوهميّة: 40 ⇒ 98، والأربعون القدامى كلّهم باقون.
+- المُدّعية سلوكَ قاعدة: 9 ⇒ 20، والقائم 1 ⇒ 12 بعد 8 سدادات حيّة.
+- الموقعان المذكوران في الفجوة صارا معدودَين: `_Conn` في `test_farm_fields_tenant_ownership.py`، و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` (يدّعي jsonb).
+
+**الإيجابيّ الكاذب مقيسٌ ومُستبعَد:**
+- وكيلٌ يلفّ اتّصال PG حيّاً (`_PinnedVersion` في `test_decision_sor_role_certify_pg.py`).
+- ترقيعُ `_connect` باتّصال PG16 حيّ (`test_migration_033_pg16.py`).
+- مُحوِّلُ مسبحٍ حول `asyncpg.connect` (`test_d1_raster_invalidation_owner_api_integration.py`).
+- `Skill.execute(self)` و`_Pipe.execute(self)` (Redis).
+- عميلُ HTTP بـ`fetch(url)`، والقفل.
+
+**إعادة الأساس ليست التفافاً:** أُضيف `admissions`، وهو سجلُّ قبولٍ بخطّ اليد تحمله `--generate` ولا تكتبه. فيه قيدان: المسحُ الأوّل (#807، 0 → 40)، و«measurement correction (class not name), 2026-10-15, 40 → 98» بمواقعه الـ58 وتبريره. أيُّ وهميٍّ جديد بعده يُحجَب، وإعادةُ التوليد لا تقبله.
+
+**الشواهد:**
+- 3 حالاتٍ جديدة حمراء على ماسح main وخضراء بعده.
+- `tests_v9/test_fake_connection_debt_guard.py`: 23/23.
+- الطفرات: 11/11 مقتولة، منها 5 جديدة (الرجوع إلى الاسم بينها).
+- الاختيار `-m unit -k "fake_connection or guard_catalogue or mutation or blocking_surface or ratchet"`: 214 ناجحة وإخفاقٌ واحد، هو انجراف `GUARD_CATALOGUE.md`. يحتاج إعادة توليد ولم يُولَّد هنا.
+
+أُضيفت إحالةٌ بلا تغيير حالة في `C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01`.

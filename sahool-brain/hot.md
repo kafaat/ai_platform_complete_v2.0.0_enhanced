@@ -1,3 +1,5 @@
+> **2026-10-15 — `FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01` fixed (`4b105001e`، بلا دفع):** راتشِتُ الاتّصالات الوهميّة يعدّ الصنفَ بـAST لا الاسم: 40 ⇒ 98 ملفّاً و9 ⇒ 20 مُدّعياً (القائم 1 ⇒ 12). الرفعُ قيدُ `admissions` مُبرَّر بمواقعه الـ58 لا تكتبه `--generate`. يبقى: `GUARD_CATALOGUE.md` يحتاج إعادة توليد.
+
 
 > **2026-10-15 — مراجعة وإصلاح sahool-qa في [PR #1191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1191) (مسوّدة، غير مدموجة):**
 > - **الأسباب:** ruff، و`apt-get` غير مسقوف، وconcurrency غير قياسية، وانجراف التوليد. أصلحها `0b5f0d0ede45b03013c2bb93503344dabf88eab8` و`881497b7164728a597ad8e1df3b17959a5dbaa70` و`493909ea424a2d0cf1fd375ebbbadc88e0657e46` فوق `main@f558b40`.
