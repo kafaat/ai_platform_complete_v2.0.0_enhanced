@@ -24,6 +24,8 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      - name: Install generator dependencies
+        run: python -m pip install -c constraints-ci-tools.txt PyYAML
       - name: Rebuild only affected generated files
         shell: bash
         run: |
