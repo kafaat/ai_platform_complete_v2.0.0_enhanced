@@ -9397,3 +9397,39 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 ### دمج مصدر الحوكمة في PR #1185 — 2026-10-14
 
 دُمج `main@698a1c53744f1096118688c1dfc1b5f42c269c2a` الحامل لـPR #1186 ومصدر تصحيح الإسناد `69d37cf3cefe2ab9179b21e4da12bf32cdceacdb` من PR #1189 محلياً عند `15c610418ef912bf886ae53e97b9eec82c9acf6f`؛ لم يُرصد دمج #1189 بعد عند إعداد هذا الدليل. القياس لهذه الشجرة: 127 open و396 fixed و3 verified؛ يبقى نطاق الراستر إغلاق الفجوتين الأصليتين فقط. بصمات ملفات إصلاح الراستر الستة وسطر فجوة سبب CDSE التاريخية ثابتة، ولا ترقية إلى verified أو ادعاء تشغيل حي. المصدر والدليل: `certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json`. السبب: إزالة تعارضات البيانات مع حفظ التاريخ وعدم إعادة نسبة الأجنحة الشاملة القديمة إلى شجرة لم تعمل عليها.
+
+## 2026-10-15 — مراجعة #1191 وإصلاحه: استيراد sahool-qa 0.4.2 تحت `tools/`
+
+راجعتُ [PR #1191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1191): استيراد المالك لأداة التقييم sahool-qa 0.4.2. أصلها حزمة SHA-256 `754fda2fbd170f712f147da895af0e3fca363a483bdc5d1f07b5c4f26ed7a754`، ورأس الفتح `e827986e2d00bbde372d726ab300c42fb77e3c8c`.
+
+**الفحوص الساقطة على رأس الفتح وأسبابها:**
+- **Lint & Format:** 115 مخالفة ruff و37 ملفاً غير منسّق.
+- **Unit Tests:** فيها إخفاقان:
+  - `apt-get` غير مسقوف في `.github/workflows/sahool-qa.yml` (`test_the_current_tree_has_no_unbounded_provisioning_wait`).
+  - مجموعة concurrency غير قياسية (`test_a_pull_request_workflow_cancels_only_its_own_superseded_pr_runs[sahool-qa.yml]`).
+- **capability-registry وRepository Tests:** انجراف توليد (خريطة القدرات و`release/FILE_CHECKSUMS.sha256`).
+- **Integration Tests:** حدّ 429 عند سحب صورة redis، وهو عطل بنية لا شيفرة.
+
+**ما وجدته المراجعة:**
+- محرّك `psql` في `tools/sahool_qa/sahool_qa/sources/postgis.py` كان يرمّز ويفكّ بلغة الآلة. تحت `LC_ALL=C PYTHONUTF8=0` سقطت 5 من 8 اختبارات PostgreSQL بـ`UnicodeDecodeError`، وصار UTF-8 صراحة.
+- أعمدة `migrations/init_v8.sql` تختلف عن خريطة الأداة الافتراضية (`gov`/`lat`/`lon` و`category`)، فأُضيفت `tools/sahool_qa/examples/schema_map.init_v8.json` مع اختبارين.
+
+**الإصلاح:**
+- دمج `main@f558b40` عند `3b43bd481336752eb14cfcbf5dc09279ac7f3bb9` بلا تعارض.
+- الإصلاحات عند `0b5f0d0ede45b03013c2bb93503344dabf88eab8`.
+- التوليد عند `881497b7164728a597ad8e1df3b17959a5dbaa70`.
+- concurrency عند `493909ea424a2d0cf1fd375ebbbadc88e0657e46`.
+
+**ما قيس محلياً:**
+- `run_checks.py --require-postgres`: 128 ناجحة بلا تخطٍّ، والعرض متطابق بالبايت مع الإصدار.
+- الجناح نفسه ناجح تحت لغة C.
+- الطفرات: 14/14 و6/6.
+- preflight --fast: صفر/صفر.
+- `-m unit` و`tests/` مقارنةً بـ`main@f558b40` في البيئة نفسها: الفرق الوحيد كان اختبار concurrency، وأُصلح.
+- لم يُقَس: CI على الرأس الجديد.
+
+**التعارض مع #1192:** #1192 استورد الإصدار نفسه في المسار نفسه، فدمجهما معاً يتصادم في كل ملف. جُمع النافع منه في #1191 وأُغلق #1192 بوصفه مستبدلاً، ومداخل الدماغ التي حملها لم تصل main.
+
+**جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
+
+لا انتقال لأي فجوة.
