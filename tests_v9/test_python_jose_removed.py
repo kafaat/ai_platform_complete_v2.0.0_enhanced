@@ -198,8 +198,12 @@ def test_the_waivers_python_jose_needed_are_gone():
     ids = {w.get("id") for w in waivers.get("waivers", [])}
     assert not ids & {"CVE-2026-85394", "PYSEC-2026-1325"}, ids
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    assert "--ignore-vuln CVE-2026-85394" not in ci
-    assert "--ignore-vuln PYSEC-2026-1325" not in ci
+    assert "--ignore-vuln CVE-2026-85394" not in ci, (
+        "python-jose أُزيل؛ إعفاءٌ بقي بعده يُعمي pip-audit عن عودته ثغرةً حيّة"
+    )
+    assert "--ignore-vuln PYSEC-2026-1325" not in ci, (
+        "ecdsa كان عبوريّاً من python-jose وحده؛ بقاءُ إعفائه يُخفي عودته من مسارٍ آخر"
+    )
     installs = [
         ln for ln in ci.splitlines() if "pip install" in ln and not ln.lstrip().startswith("#")
     ]
