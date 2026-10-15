@@ -144,23 +144,33 @@ def test_bootstrap_requires_preserved_manifest_hash_and_package_write():
     assert "docker.io/library/" in run
 
 
-def test_frontend_railway_build_uses_only_a_digest_identical_ci_copy():
-    """The front-end build must use the original nginx index digest."""
+def test_railway_ci_build_rewrites_only_reviewed_nginx_and_postgres_pins():
+    """The build harness must preserve both production digest locks."""
     path = ROOT / ".github/workflows/railway-dockerfile-pr-build.yml"
     content = path.read_text(encoding="utf-8")
     build = yaml.safe_load(content)["jobs"]["build"]
     assert build["permissions"]["packages"] == "read"
     run = next(s["run"] for s in build["steps"] if s.get("name", "").startswith("Build "))
-    digest = "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
-    locked = f"public.ecr.aws/docker/library/nginx@sha256:{digest}"
-    mirrored = f"ghcr.io/kafaat/sahool-ci-nginx@sha256:{digest}"
-    original = (ROOT / "deploy/railway/Dockerfile.frontend").read_text(encoding="utf-8")
-    assert original.count(f"FROM {locked}") == 1
-    assert locked in run and mirrored in run
+    pinned = {
+        "deploy/railway/Dockerfile.frontend": (
+            "nginx", "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+        ),
+        "deploy/railway/Dockerfile.migrate": (
+            "postgres", "721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+        ),
+    }
+    for dockerfile, (kind, digest) in pinned.items():
+        original = (ROOT / dockerfile).read_text(encoding="utf-8")
+        upstream = f"public.ecr.aws/docker/library/{kind}@sha256:{digest}"
+        assert original.count(f"FROM {upstream}") == 1
+        assert digest in run
+    assert 'pinned_source="public.ecr.aws/docker/library/${pinned_kind}@sha256:${pinned_digest}"' in run
+    assert 'verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"' in run
+    assert '"$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main"' in run
     assert "bash scripts/ci/pull_verified_ci_image.sh" in run
-    assert '"$RUNNER_TEMP/railway-nginx-from-ref"' in run
+    assert '"$RUNNER_TEMP/railway-from-ref"' in run
     assert "source.count(expected) != 1" in run
-    assert "Unverified nginx build image" in run
+    assert "Unverified Railway build image" in run
     assert '-f "$dockerfile_for_build"' in run
     assert "continue-on-error" not in content
 

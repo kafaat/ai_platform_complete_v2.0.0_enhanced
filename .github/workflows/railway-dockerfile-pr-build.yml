@@ -73,29 +73,40 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Use the identical OCI digest from GHCR for this CI build only.
-          # The production Railway Dockerfile and its upstream pin stay untouched.
+          # Resolve digest-identical GHCR mirrors only for this ephemeral CI build.
+          # Both production Railway Dockerfiles retain their original pinned FROM.
           dockerfile_for_build="$DOCKERFILE"
-          if [[ "$SERVICE" == "sahool-frontend" ]]; then
-            nginx_source="public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
-            bash scripts/ci/pull_verified_ci_image.sh \
-              "$nginx_source" \
-              "$RUNNER_TEMP/railway-nginx-image-id" \
-              "$RUNNER_TEMP/railway-nginx-from-ref"
-            nginx_ref="$(cat "$RUNNER_TEMP/railway-nginx-from-ref")"
-            case "$nginx_ref" in
-              "ghcr.io/kafaat/sahool-ci-nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"|"$nginx_source") ;;
-              *) echo "::error::Unverified nginx build image" >&2; exit 1 ;;
+          if [[ "$SERVICE" == "sahool-frontend" || "$SERVICE" == "sahool-migrate-main" ]]; then
+            case "$SERVICE" in
+              sahool-frontend)
+                pinned_kind="nginx"
+                pinned_digest="65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+                ;;
+              sahool-migrate-main)
+                pinned_kind="postgres"
+                pinned_digest="721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+                ;;
             esac
-            dockerfile_for_build="$RUNNER_TEMP/Dockerfile.frontend.ci"
-            python3 - "$DOCKERFILE" "$dockerfile_for_build" "$nginx_source" "$nginx_ref" <<'PY'
+            pinned_source="public.ecr.aws/docker/library/${pinned_kind}@sha256:${pinned_digest}"
+            verified_source="ghcr.io/kafaat/sahool-ci-${pinned_kind}@sha256:${pinned_digest}"
+            bash scripts/ci/pull_verified_ci_image.sh \
+              "$pinned_source" \
+              "$RUNNER_TEMP/railway-image-id" \
+              "$RUNNER_TEMP/railway-from-ref"
+            resolved_ref="$(cat "$RUNNER_TEMP/railway-from-ref")"
+            case "$resolved_ref" in
+              "$pinned_source"|"$verified_source") ;;
+              *) echo "::error::Unverified Railway build image" >&2; exit 1 ;;
+            esac
+            dockerfile_for_build="$RUNNER_TEMP/Dockerfile.$SERVICE.ci"
+            python3 - "$DOCKERFILE" "$dockerfile_for_build" "$pinned_source" "$resolved_ref" <<'PY'
           from pathlib import Path
           import sys
           original, temporary, pinned, verified = sys.argv[1:]
           source = Path(original).read_text(encoding="utf-8")
           expected = f"FROM {pinned}\n"
           if source.count(expected) != 1:
-              raise SystemExit("Expected exactly one original pinned nginx FROM")
+              raise SystemExit("Expected exactly one original pinned CI base FROM")
           Path(temporary).write_text(
               source.replace(expected, f"FROM {verified}\n", 1),
               encoding="utf-8",
