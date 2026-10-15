@@ -25,22 +25,16 @@ from fastapi.security import HTTPAuthorizationCredentials as _C
 from fastapi.security import HTTPBearer as _B
 
 # بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.access_tokens import decode_access_token
 from shared.security.trusted_tenant import service_token_ok
 
 try:
-    from jose import JWTError as _JE
-    from jose import jwt as _jjwt
+    from jwt import PyJWTError as _JE
 except ModuleNotFoundError:  # pragma: no cover - offline tests / minimal env
 
     class _JE(Exception):
         pass
 
-    class _MissingJoseJWT:
-        @staticmethod
-        def decode(*args, **kwargs):
-            raise _JE("python-jose is required for JWT validation")
-
-    _jjwt = _MissingJoseJWT()
 
 # LangChain imports
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
@@ -585,8 +579,12 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
     if not creds:
         raise HTTPException(401, "Authentication required")
     try:
-        payload = _jjwt.decode(
-            creds.credentials, _RAG_SECRET, algorithms=[_RAG_ALG], audience="sahool"
+        payload = decode_access_token(
+            creds.credentials,
+            _RAG_SECRET,
+            algorithm=_RAG_ALG,
+            claim_semantics="python-jose",
+            site="local-ai-rag:_get_rag_user",
         )
     except _JE as e:
         logger.warning("RAG JWT validation failed: %s", type(e).__name__)

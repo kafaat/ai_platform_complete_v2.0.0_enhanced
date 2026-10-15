@@ -14,19 +14,19 @@
     "capabilities_total": 81,
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
-    "capabilities_multidimensional": 49,
-    "files_scanned": 5734,
+    "capabilities_multidimensional": 50,
+    "files_scanned": 5738,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 71,
       "mobile": 56,
       "other": 1714,
-      "tests": 1921,
+      "tests": 1925,
       "web": 467
     },
-    "unmapped_artifacts": 2273,
-    "ambiguous_artifacts": 437
+    "unmapped_artifacts": 2276,
+    "ambiguous_artifacts": 439
   },
   "capabilities": [
     {
@@ -632,19 +632,27 @@
           "score": 28
         },
         {
-          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:118",
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:120",
           "score": 12
         },
         {
-          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:69",
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:183",
           "score": 12
         },
         {
-          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:95",
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:220",
           "score": 12
         },
         {
-          "value": "api.decision_service_client.record_decision @ services/sahool-platform/tests/test_water_decision_bridge.py:39",
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:70",
+          "score": 12
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:97",
+          "score": 12
+        },
+        {
+          "value": "api.decision_service_client.record_decision @ services/sahool-platform/tests/test_water_decision_bridge.py:40",
           "score": 12
         },
         {
@@ -1010,7 +1018,7 @@
         "backend": 9,
         "routes": 20,
         "database": 24,
-        "events": 31,
+        "events": 33,
         "web": 0,
         "mobile": 0,
         "tests": 16,
@@ -1464,6 +1472,30 @@
         {
           "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1329",
           "score": 12
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:120",
+          "score": 10
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:183",
+          "score": 10
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:220",
+          "score": 10
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:70",
+          "score": 10
+        },
+        {
+          "value": "api.decision_service_client @ services/sahool-platform/tests/test_water_decision_bridge.py:97",
+          "score": 10
+        },
+        {
+          "value": "api.decision_service_client.record_decision @ services/sahool-platform/tests/test_water_decision_bridge.py:40",
+          "score": 10
         }
       ],
       "web": [],
@@ -1492,6 +1524,14 @@
         {
           "path": "services/decision-service/tests/test_wx10_12_execution_outcome.py",
           "score": 12,
+          "signals": [
+            "content:Dispatch authorization",
+            "content:dispatch authorization"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
+          "score": 10,
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
@@ -1537,10 +1577,10 @@
         "backend": 6,
         "routes": 87,
         "database": 5,
-        "events": 3,
+        "events": 9,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 3
       },
@@ -12812,7 +12852,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:541",
           "score": 9
         },
         {
@@ -12820,7 +12860,7 @@
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:577",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:582",
           "score": 9
         },
         {
@@ -12882,7 +12922,17 @@
       ],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_blend_water_quality.py",
+          "score": 17,
+          "signals": [
+            "content:Water quality samples",
+            "path:water quality",
+            "content:water quality"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [],
       "ambiguous": [],
@@ -12896,11 +12946,11 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 4,
+      "coverage_dimensions": 5,
       "mapped": true
     },
     {
@@ -15724,6 +15774,14 @@
           ]
         },
         {
+          "path": "docs/architecture/fake_connection_debt.json",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
           "score": 12,
           "signals": [
@@ -15777,7 +15835,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -16664,7 +16722,7 @@
           "score": 48
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:80",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:81",
           "score": 23
         }
       ],
@@ -24345,7 +24403,7 @@
           "score": 14
         },
         {
-          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:574",
+          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:646",
           "score": 14
         },
         {
@@ -27353,7 +27411,7 @@
           "score": 24
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:399",
+          "value": "/runtime-identity @ services/auth/main.py:400",
           "score": 22
         },
         {
@@ -27409,19 +27467,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:24",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:26",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:181",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:183",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:225",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:228",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:125",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:127",
           "score": 12
         },
         {
@@ -33134,7 +33192,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:541",
           "score": 12
         },
         {
@@ -33158,7 +33216,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:577",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:582",
           "score": 12
         },
         {
@@ -33441,7 +33499,7 @@
           "score": 12
         },
         {
-          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:574",
+          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:646",
           "score": 12
         },
         {
@@ -44900,6 +44958,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_frontend_gateway_rate_limit_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_frontend_lint_debt_guard.py",
       "kind": "tests"
     },
@@ -45145,6 +45207,10 @@
     },
     {
       "path": "tests_v9/test_jwt_audience_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_jwt_decode_shared_decoder.py",
       "kind": "tests"
     },
     {
@@ -45517,6 +45583,10 @@
     },
     {
       "path": "tests_v9/test_provision_pg_client.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_python_jose_removed.py",
       "kind": "tests"
     },
     {
@@ -47463,6 +47533,28 @@
           "signals": [
             "content:Field forms",
             "content:field form"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/fake_connection_debt.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
+          "capability_id": "OPS-003",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
           ]
         }
       ]
@@ -55290,6 +55382,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "DEC-004",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
+          "capability_id": "DEC-005",
+          "score": 10,
+          "signals": [
+            "content:Dispatch authorization",
+            "content:dispatch authorization"
           ]
         }
       ]

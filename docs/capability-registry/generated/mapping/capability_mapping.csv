@@ -2,8 +2,8 @@ capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,ev
 DEC-001,decision,Decision evidence,True,3,3,0,0,5,0,0,3,0
 DEC-002,decision,Decision candidate,True,3,1,0,0,2,0,0,4,0
 DEC-003,decision,Human approval,True,3,2,0,0,2,0,0,3,0
-DEC-004,decision,Execution request,True,5,9,20,24,31,0,0,16,1
-DEC-005,decision,Dispatch authorization,True,5,6,87,5,3,0,0,3,0
+DEC-004,decision,Execution request,True,5,9,20,24,33,0,0,16,1
+DEC-005,decision,Dispatch authorization,True,5,6,87,5,9,0,0,4,0
 DEC-006,decision,Execution receipt,True,3,2,0,0,8,0,0,3,0
 DEC-007,decision,Outcome recording,True,6,3,8,4,3,1,0,4,0
 DEC-008,decision,Learning attribution,True,5,5,95,14,5,0,0,4,1
@@ -26,7 +26,7 @@ INT-002,farm_management,Event bus integration,True,5,6,15,2,78,0,0,14,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
 INT-004,precision,External machinery integrations,True,5,5,9,8,11,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
-IRR-002,irrigation,Water quality samples,True,4,2,6,8,1,0,0,0,0
+IRR-002,irrigation,Water quality samples,True,5,2,6,8,1,0,0,1,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,1,0
 IRR-004,irrigation,Water balance,True,6,10,2,3,6,2,0,8,0
 IRR-005,irrigation,Irrigation recommendation,True,5,3,2,0,18,3,0,8,0

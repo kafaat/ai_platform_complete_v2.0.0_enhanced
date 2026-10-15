@@ -7692,6 +7692,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_frontend_gateway_rate_limit_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_lint_debt_guard.py",
     "kind": "tests"
   },
@@ -7937,6 +7941,10 @@
   },
   {
     "path": "tests_v9/test_jwt_audience_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_jwt_decode_shared_decoder.py",
     "kind": "tests"
   },
   {
@@ -8309,6 +8317,10 @@
   },
   {
     "path": "tests_v9/test_provision_pg_client.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_python_jose_removed.py",
     "kind": "tests"
   },
   {

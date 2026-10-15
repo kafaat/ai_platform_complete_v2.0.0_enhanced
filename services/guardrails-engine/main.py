@@ -19,7 +19,6 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-import jwt as _jwt
 from contracts import ECONOMIC_ACTIONS, contract_violations
 from diff_generator import ActionDiffGenerator
 from fastapi import FastAPI, HTTPException
@@ -33,6 +32,7 @@ from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
 from tiers.environmental_tier import EnvironmentalSafetyTier
 
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 
 
@@ -437,11 +437,12 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "توكن مطلوب للموافقة")
     try:
-        payload = _jwt.decode(
+        payload = decode_access_token(
             authorization.split(" ", 1)[1],
             _GR_JWT_SECRET,
-            algorithms=[_GR_JWT_ALG],
-            audience="sahool",
+            algorithm=_GR_JWT_ALG,
+            backend="pyjwt",
+            site="guardrails-engine:_gr_verify",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
@@ -473,11 +474,12 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "توكن مطلوب")
     try:
-        payload = _jwt.decode(
+        payload = decode_access_token(
             authorization.split(" ", 1)[1],
             _GR_JWT_SECRET,
-            algorithms=[_GR_JWT_ALG],
-            audience="sahool",
+            algorithm=_GR_JWT_ALG,
+            backend="pyjwt",
+            site="guardrails-engine:_gr_authn",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None

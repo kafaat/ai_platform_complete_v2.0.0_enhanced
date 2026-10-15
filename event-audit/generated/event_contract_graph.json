@@ -84,7 +84,7 @@
       "dynamic_expr": "subject",
       "file": "services/vegetation-analysis-service/vegetation_runtime.py",
       "kind": "producer",
-      "line": 546,
+      "line": 550,
       "queue": null,
       "subject": null
     },
@@ -95,7 +95,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 382,
+      "line": 383,
       "queue": null,
       "subject": null
     },

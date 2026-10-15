@@ -645,14 +645,12 @@ if [ "$TIER" = full ]; then
   if need bandit "٩أ) bandit"; then
     run "٩أ) bandit (HIGH يحجب)" bandit -r services/ bots/ agents/ --severity-level high -q
   fi
-  # pip-audit يحجب على ١٩ ملفّ متطلّبات، والاستثناءان الموثَّقان رايتان إلزاميّتان وإلّا
-  # ظهرت نتيجة حمراء كاذبة — نفسُ ما في ci.yml، وكلاهما بانقضاءٍ في config/security_exceptions.json:
-  #  · PYSEC-2026-1325 — ecdsa · WONTFIX عند صانعيه · مسارنا يوقّع عبر cryptography.
-  #  · CVE-2026-85394 — python-jose ≤3.5.0 بلا إصدارٍ مُصلِح (مؤقّت حتّى 2026-11-05)؛ لا يُستغَلّ
-  #    إلّا بلا تقييد خوارزميّة، وكلُّ تحقّقٍ عندنا يمرّر خوارزميّةً واحدة مقترنةً بمفتاحها.
+  # pip-audit يحجب على ١٩ ملفّ متطلّبات بلا استثناء — نفسُ ما في ci.yml. الاستثناءان السابقان
+  # (PYSEC-2026-1325 لـecdsa وCVE-2026-85394 لـpython-jose) أُزيلا مع إزالة python-jose لصالح
+  # PyJWT (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01).
   if need pip-audit "٩ب) pip-audit"; then
     run "٩ب) pip-audit (المسار الحرج)" \
-      pip-audit -r requirements_real.txt --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394
+      pip-audit -r requirements_real.txt
   fi
   # ── ١٠) المتّجه الذي يخفيه Linux: ترميز لغة الآلة (§٣.١٠) ───────────────
   # `env -u PYTHONIOENCODING` صراحةً: `run` يضبطه لأجل طرفيّات Windows، وهذه الخطوة

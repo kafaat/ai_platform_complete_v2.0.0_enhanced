@@ -76,6 +76,30 @@ def deficit_threshold_mm() -> float:
         return 10.0
 
 
+def entry_applied_water_status(entry: dict[str, Any]) -> str | None:
+    """حالةُ الماء المضاف كما يُعلِنها القيد — ``None`` حين لا يُعلِنها (لا تُفترَض).
+
+    ``UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01``: القيدُ يقول صراحةً إن كان
+    حدُّ الريّ في الميزان مقيساً. قيدٌ أقدم بلا المفتاح تُشتقّ حالتُه من ``notes`` إن
+    حملها؛ وقيدٌ بلا هذا ولا ذاك **لا يُقرأ «مُسجَّلاً»** — الغيابُ لا يصير قياساً.
+    """
+    status = entry.get("applied_water_status")
+    if isinstance(status, str) and status:
+        return status
+    notes = entry.get("notes")
+    if isinstance(notes, (list, tuple)):
+        from api.water_ledger_auto import applied_water_status
+
+        return applied_water_status(notes)
+    return None
+
+
+def applied_water_is_recorded(entry: dict[str, Any]) -> bool:
+    from api.water_ledger_auto import APPLIED_WATER_RECORDED
+
+    return entry_applied_water_status(entry) == APPLIED_WATER_RECORDED
+
+
 def build_candidate(
     *,
     tenant_id: str,
@@ -106,7 +130,13 @@ def build_candidate(
             "taw_mm": entry.get("taw_mm"),
             "raw_mm": entry.get("raw_mm"),
             "recommended_irrigation_mm": entry.get("deficit_mm"),
-            "requires_human_review": not auto_execution_enabled(),
+            # عجزٌ بُنِي على ريٍّ مجهول (لا صفَّ، أو حجمٌ غائب) هو **حدٌّ أعلى** للحاجة لا
+            # قياسُها: يُسمّى للمراجِع ولا يُعتمَد آليّاً. ``undeclared`` = القيد لم يُعلِن.
+            "applied_water_status": entry_applied_water_status(entry) or "undeclared",
+            "data_quality_flags": list(entry.get("notes") or []),
+            "requires_human_review": (
+                not auto_execution_enabled() or not applied_water_is_recorded(entry)
+            ),
         },
     }
     return decision_id, lineage, payload
@@ -151,9 +181,16 @@ async def process_water_deficit(
         "status": "candidate_created",
         "decision_id": decision_id,
         "candidate_lineage_id": lineage,
+        "applied_water_status": candidate["decision_value"]["applied_water_status"],
     }
     if not auto_execution_enabled():
         return result
+    if not applied_water_is_recorded(entry):
+        # UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: الاعتمادُ الآليّ يصرف ماءً
+        # بمقدار ``deficit_mm`` — وهو هنا مبنيٌّ على ريٍّ **قُرِئ صفراً لأنّه مجهول**
+        # (مزرعةٌ تروي من بئرٍ ولا تسجّل). فالمرشّحُ يبقى للمراجِع البشريّ ولا يُنفَّذ آليّاً.
+        # القرارُ المحافظ إلى أن يُعلَن مصدرُ الماء لكلّ حقلٍ وموسم (شرطُ إغلاق الفجوة).
+        return {**result, "status": "held_for_review_applied_water_unknown"}
 
     target_id = os.getenv("WATER_DEFICIT_EXECUTION_TARGET_ID", "").strip()
     target_type = os.getenv("WATER_DEFICIT_EXECUTION_TARGET_TYPE", "equipment").strip()

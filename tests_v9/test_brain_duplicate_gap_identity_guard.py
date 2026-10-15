@@ -287,3 +287,249 @@ def test_union_succeeds_while_the_guard_fails_on_the_same_identity(tmp_path):
     text = (repo / "registry.md").read_text(encoding="utf-8")
     assert "<<<<<<<" not in text, "لا علامة تعارض — الفشل صامت"
     assert _ids(text) == ["GAP-A"], "والحارس وحده هو من يراه"
+
+
+# ─── UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01: log/ledger ───
+#
+# المُثبَّتُ أدناه أُنتِج بمستودعٍ مؤقّت حقيقيّ قبل كتابة القاعدة: جانبٌ يُصحِّح آخرَ
+# سطرين في آخر مدخل، والآخرُ يُلحِق مدخلاً ⇒ git rc=0 والسطران المحرَّران بجوار
+# أصليّيهما. والحارسُ على origin/main (5472740e) مرّ عليه بـrc=0: رؤوسُ التاريخ لا
+# تطابق `HEADING_RE`، ولا صفوفَ جدول. `test_union_merge_of_an_edited_entry_…` يُعيد
+# الإنتاجَ نفسه ويقارن بالمُثبَّت، فلا ينجرف المُثبَّتُ عن سلوك git.
+
+_LOG_BASE = (
+    "# سجلّ الجلسات (append-only)\n"
+    "\n"
+    "## 2026-10-13 — مراجعة الحارس الأوّل\n"
+    "- قِيس الحارس على الشجرة الحيّة فمرّ بلا إنذار كاذب.\n"
+    "\n"
+    "## 2026-10-14 — دمج #1186 (حوكمة الموجة الثانية)\n"
+    "- دُمج الفرع بعد اخضرار البوّابات الحاجبة كلّها على الرأس.\n"
+    "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت.\n"
+    "- التالي: تسجيل الفجوات المتبقّية في السجلّ الحيّ للموجة.\n"
+)
+_LOG_EDITED = _LOG_BASE.replace(
+    "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت.\n"
+    "- التالي: تسجيل الفجوات المتبقّية في السجلّ الحيّ للموجة.\n",
+    "- الرأس المختبَر `abc1234def` وشجرة main مطابقة له بايتاً ببايت (مُصحَّح).\n"
+    "- التالي: تسجيل الفجوات الثلاث المتبقّية في السجلّ الحيّ للموجة.\n",
+)
+_LOG_APPENDED = _LOG_BASE + (
+    "\n## 2026-10-15 — مراجعة #1191 واستيراد sahool-qa\n"
+    "- استُورد تقييم الموسم دون اتّصال تحت أدوات المستودع.\n"
+)
+# ناتجُ `git merge` بـ`merge=union` (مقيس، git 2.x، rc=0).
+_LOG_UNION_MERGED = (
+    "# سجلّ الجلسات (append-only)\n"
+    "\n"
+    "## 2026-10-13 — مراجعة الحارس الأوّل\n"
+    "- قِيس الحارس على الشجرة الحيّة فمرّ بلا إنذار كاذب.\n"
+    "\n"
+    "## 2026-10-14 — دمج #1186 (حوكمة الموجة الثانية)\n"
+    "- دُمج الفرع بعد اخضرار البوّابات الحاجبة كلّها على الرأس.\n"
+    "- الرأس المختبَر `abc1234def` وشجرة main مطابقة له بايتاً ببايت (مُصحَّح).\n"
+    "- التالي: تسجيل الفجوات الثلاث المتبقّية في السجلّ الحيّ للموجة.\n"
+    "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت.\n"
+    "- التالي: تسجيل الفجوات المتبقّية في السجلّ الحيّ للموجة.\n"
+    "\n"
+    "## 2026-10-15 — مراجعة #1191 واستيراد sahool-qa\n"
+    "- استُورد تقييم الموسم دون اتّصال تحت أدوات المستودع.\n"
+)
+
+
+def _near(text: str) -> list[tuple[int, int]]:
+    from brain_duplicate_gap_identity_guard import near_duplicate_lines
+
+    return [(a, b) for a, b, _ in near_duplicate_lines(text)]
+
+
+def test_union_on_an_edited_last_entry_is_caught():
+    """**الشاهد.** السطران المحرَّران (8، 9) ونسختاهما الأصليّتان (10، 11) في مدخلٍ واحد."""
+    from brain_duplicate_gap_identity_guard import near_duplicate_findings
+
+    assert _near(_LOG_UNION_MERGED) == [(8, 10), (9, 11)]
+    problems = near_duplicate_findings("sahool-brain/log.md", _LOG_UNION_MERGED)
+    flagged = [p for p in problems if p.startswith("near-duplicate")]
+    assert len(flagged) == 2, problems
+
+
+def test_the_identity_nets_were_blind_to_the_same_merge():
+    """لماذا وُجِدت القاعدة: شبكتا الهويّة (العناوين والصفوف) لا تريان شيئاً هنا."""
+    assert adjacent_duplicate_identities(_LOG_UNION_MERGED) == []
+    assert global_duplicate_row_identities(_LOG_UNION_MERGED) == []
+
+
+def test_each_side_alone_is_clean():
+    for text in (_LOG_BASE, _LOG_EDITED, _LOG_APPENDED):
+        assert _near(text) == []
+
+
+def test_distinct_entries_under_the_same_heading_pass():
+    """تاريخٌ واحد لموضوعين ⇒ عنوانٌ مكرَّر حرفيّاً بمتنٍ مختلف: ليس نسخة."""
+    text = (
+        "## 2026-10-14 — مزامنة الفرع مع main\n"
+        "- دُمج main في الفرع بعد هبوط #1183 بلا تعارض في الشيفرة.\n"
+        "\n"
+        "## 2026-10-14 — مزامنة الفرع مع main\n"
+        "- أُعيد توليد كتالوج الحرّاس بعد تسجيل الطفرة الجديدة للحارس.\n"
+    )
+    assert _near(text) == []
+
+
+def test_a_deliberate_history_chain_of_entries_passes():
+    """سلسلةٌ تاريخيّة: مدخلٌ لاحق يُصحِّح سابقاً **بعنوانه** — ما يُوصى به في الإصلاح."""
+    text = (
+        "## 2026-10-13 — قياس الحارس\n"
+        "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت.\n"
+        "\n"
+        "## 2026-10-14 — تصحيح: الرأس المختبَر\n"
+        "- الرأس المختبَر `abc1234def` وشجرة main مطابقة له بايتاً ببايت (مُصحَّح).\n"
+    )
+    assert _near(text) == []
+
+
+def test_short_repeated_lines_are_not_substantive():
+    text = "## 2026-10-14 — أ\n- لا شيء.\n- لا شيء.\n| a | b |\n|---|---|\n|---|---|\n"
+    assert _near(text) == []
+
+
+def test_a_near_template_in_separate_paragraphs_passes():
+    """الإيجابيّ الكاذب الوحيد المقيس على main: قالبٌ يتكرّر برقمٍ مختلف في فقرتين
+    منفصلتين (log.md:9131/9138، تشابه 0.932). التشابهُ وحده مقصورٌ على الكتلة المتّصلة."""
+    text = (
+        "## 2026-10-07 — ملاحظات\n"
+        "> **2026-10-06 — سجلٌّ متأخّرُ الدمج (#1128):** السطرُ التالي كُتب في 2026-10-03 ودُمج بعد أيّام.\n"
+        "\n"
+        "> **2026-10-02 — مدخلٌ آخر بموضوعٍ مختلفٍ تماماً عن الحارس.**\n"
+        "\n"
+        "> **2026-10-06 — سجلٌّ متأخّرُ الدمج (#1130):** السطران التاليان كُتبا في 2026-10-03 ودُمجا بعد أيّام.\n"
+    )
+    assert _near(text) == []
+
+
+def test_the_same_near_copy_inside_one_block_is_caught():
+    """والنصّ نفسه متلاصقاً — بصمةُ union على سطرٍ واحد — يُمسَك بالتشابه."""
+    text = (
+        "## 2026-10-07 — ملاحظات\n"
+        "> **2026-10-06 — سجلٌّ متأخّرُ الدمج (#1128):** السطرُ التالي كُتب في 2026-10-03 ودُمج بعد أيّام.\n"
+        "> **2026-10-06 — سجلٌّ متأخّرُ الدمج (#1130):** السطرُ التالي كُتب في 2026-10-03 ودُمج بعد أيّام.\n"
+    )
+    assert _near(text) == [(2, 3)]
+
+
+def test_a_prefix_edit_is_caught_across_a_blank_line():
+    """تصحيحٌ أضاف ذيلاً: الأصليّ بادئةُ المحرَّر — داخل المدخل ولو فصلهما سطرٌ فارغ."""
+    text = (
+        "## 2026-10-14 — أ\n"
+        "- خلاصة: اجتازت البوّابات الحاجبة كلّها على الرأس بعد إعادة التشغيل (بعد تصحيح الرقم ٣).\n"
+        "\n"
+        "- خلاصة: اجتازت البوّابات الحاجبة كلّها على الرأس بعد إعادة التشغيل\n"
+    )
+    assert _near(text) == [(2, 4)]
+
+
+def test_a_whole_entry_copied_is_caught():
+    """④: عنوانٌ حرفيٌّ مكرَّر ومتنٌ متطابق، تفصلهما كتلٌ فارغة."""
+    entry = "## 2026-10-14 — دمج #1186\n- قصير.\n"
+    text = entry + "\n" + "## 2026-10-15 — آخر\n- متنٌ آخر.\n\n" + entry
+    from brain_duplicate_gap_identity_guard import near_duplicate_lines
+
+    assert [k for *_, k in near_duplicate_lines(text)] == ["duplicated-entry"]
+
+
+def test_a_short_entry_with_its_heading_edited_is_caught():
+    """مدخلٌ قصير حُرِّر عنوانُه ومتنُه: union يضمّ «عنوان′ متن′ عنوان متن» كتلةً واحدة."""
+    text = (
+        "## 2026-10-14 — دمج #1186 وحوكمة الموجة الثانية على الرأس (مُصحَّح)\n"
+        "- دُمج الفرع بعد اخضرار البوّابات الحاجبة كلّها على الرأس `abc1234def`.\n"
+        "## 2026-10-14 — دمج #1186 وحوكمة الموجة الثانية على الرأس\n"
+        "- دُمج الفرع بعد اخضرار البوّابات الحاجبة كلّها على الرأس `abc1234`.\n"
+    )
+    assert _near(text) == [(1, 3), (2, 4)]
+
+
+def test_fenced_examples_are_documentation_not_entries():
+    line = "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت.\n"
+    assert _near("## أ\n" + line + "```\n" + line + "```\n") == []
+
+
+def test_the_near_duplicate_scope_is_log_and_ledger():
+    from brain_duplicate_gap_identity_guard import NEAR_DUPLICATE_TARGETS
+
+    assert NEAR_DUPLICATE_TARGETS == {
+        "sahool-brain/log.md",
+        "sahool-brain/decisions/ledger.md",
+    }
+
+
+def test_the_real_log_and_ledger_pass_with_the_frozen_baseline():
+    """إنفاذٌ على الشجرة الحيّة: التكراراتُ الأربعة القائمة مُسمّاة، ولا مدخلَ أساسٍ بائت."""
+    from brain_duplicate_gap_identity_guard import (
+        NEAR_DUPLICATE_TARGETS,
+        near_duplicate_findings,
+        stale_baseline_entries,
+    )
+
+    for rel in sorted(NEAR_DUPLICATE_TARGETS):
+        text = (_ROOT / rel).read_text(encoding="utf-8")
+        assert near_duplicate_findings(rel, text) == [], rel
+        assert stale_baseline_entries(rel, text) == [], f"{rel}: احذف المدخل البائت من الأساس"
+
+
+def test_the_baseline_only_shrinks():
+    """الأساسُ مُجمَّد على 5472740e بأربعة أزواج. يُخفَّض هذا الرقم حين يُزال مدخل،
+    ولا يُرفَع: تكرارٌ جديد يُعالَج في النصّ لا في القائمة."""
+    from brain_duplicate_gap_identity_guard import NEAR_DUPLICATE_BASELINE
+
+    assert len(NEAR_DUPLICATE_BASELINE) <= 4
+    assert all(count == 1 for count in NEAR_DUPLICATE_BASELINE.values())
+
+
+def test_a_third_copy_of_a_baselined_line_is_still_caught(monkeypatch):
+    """الأساسُ يعدّ الأزواج لا يُعفي البصمة: نسخةٌ ثالثة من سطرٍ مُعفى تحجب."""
+    import brain_duplicate_gap_identity_guard as guard
+
+    line = "- الرأس المختبَر `abc1234` وشجرة main مطابقة له بايتاً ببايت."
+    fp = guard.line_fingerprint(line)
+    monkeypatch.setattr(guard, "NEAR_DUPLICATE_BASELINE", {("sahool-brain/log.md", fp, fp): 1})
+    two = f"## أ\n{line}\n{line}\n"
+    three = f"## أ\n{line}\n{line}\n{line}\n"
+    assert guard.near_duplicate_findings("sahool-brain/log.md", two) == []
+    assert len(guard.near_duplicate_findings("sahool-brain/log.md", three)) == 3
+
+
+def test_a_baseline_entry_that_matches_nothing_is_reported_stale(monkeypatch):
+    import brain_duplicate_gap_identity_guard as guard
+
+    key = ("sahool-brain/log.md", "0" * 16, "0" * 16)
+    monkeypatch.setattr(guard, "NEAR_DUPLICATE_BASELINE", {key: 1})
+    assert guard.stale_baseline_entries("sahool-brain/log.md", _LOG_BASE) == [key]
+    assert guard.near_duplicate_findings("sahool-brain/log.md", _LOG_BASE) == []
+
+
+def _union_log_repo(tmp_path: Path, base: str, side_a: str, side_b: str) -> Path:
+    repo = tmp_path / "log_repo"
+    repo.mkdir()
+    _git(repo, "init", "-q", ".")
+    (repo / ".gitattributes").write_text("log.md merge=union\n", encoding="utf-8")
+    (repo / "log.md").write_text(base, encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "checkout", "-qb", "side")
+    (repo / "log.md").write_text(side_b, encoding="utf-8")
+    _git(repo, "commit", "-qam", "side")
+    _git(repo, "checkout", "-q", "-")
+    (repo / "log.md").write_text(side_a, encoding="utf-8")
+    _git(repo, "commit", "-qam", "mine")
+    return repo
+
+
+@pytest.mark.slow
+def test_union_merge_of_an_edited_entry_succeeds_while_the_guard_fails(tmp_path):
+    """التكامل: git يدمج بـ0 بلا علامة، وناتجُه هو المُثبَّت حرفيّاً، والحارس يحمرّ."""
+    repo = _union_log_repo(tmp_path, _LOG_BASE, _LOG_EDITED, _LOG_APPENDED)
+    merged = _git(repo, "merge", "side", "--no-edit")
+    assert merged.returncode == 0, merged.stdout + merged.stderr
+    text = (repo / "log.md").read_text(encoding="utf-8")
+    assert text == _LOG_UNION_MERGED, "المُثبَّت انجرف عن ناتج git الفعليّ"
+    assert _near(text) == [(8, 10), (9, 11)]

@@ -1166,6 +1166,28 @@
     ]
   },
   {
+    "path": "docs/architecture/fake_connection_debt.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/platform_extraction_map.json",
     "kind": "other",
     "candidates": [
@@ -8988,6 +9010,28 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
         ]
       }
     ]

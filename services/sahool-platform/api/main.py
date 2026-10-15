@@ -75,6 +75,7 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 
 logger = logging.getLogger("sahool.api")
@@ -1180,11 +1181,10 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     """يستخرج المستخدم من JWT. fail-closed."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(
-            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
+        payload = decode_access_token(
+            token, JWT_VERIFY_KEY, algorithm=JWT_VERIFY_ALGORITHM, backend="pyjwt", site="platform"
         )
     except InvalidTokenError as e:
         logging.warning("JWT validation failed: %s", type(e).__name__)

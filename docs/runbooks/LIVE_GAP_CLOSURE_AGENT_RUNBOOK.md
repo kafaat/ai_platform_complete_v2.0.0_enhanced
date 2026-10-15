@@ -428,12 +428,10 @@ docker run --rm -v "$PWD":/w -w /w python:3.11-slim bash -lc '
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
-pip-audit -r services/sahool-platform/api/requirements.txt \
-  --ignore-vuln PYSEC-2026-1325 2>&1 | tee "$EV/82_pip_audit.txt"
+pip-audit -r services/sahool-platform/api/requirements.txt 2>&1 | tee "$EV/82_pip_audit.txt"
 ```
 
-> `--ignore-vuln PYSEC-2026-1325` استثناء موثَّق (`ecdsa` عبر `python-jose`، والتوقيع عندنا عبر
-> `cryptography`). بدونه تظهر نتيجة حمراء كاذبة.
+> لا `--ignore-vuln` بعد إزالة `python-jose` (ومعه `ecdsa` العبوريّ)؛ أيُّ نتيجةٍ حمراء هنا حقيقيّة.
 
 ---
 

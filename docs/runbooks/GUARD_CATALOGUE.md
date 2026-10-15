@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **277**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **432**
+- إجماليّ الطفرات المُسجَّلة: **439**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **375** على 129 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -141,6 +141,8 @@
 - التكرار بدل التلاصق ⇒ السلاسل التاريخيّة المقصودة تُرفَع إنذاراً (١٠ من ١١ على الشجرة) — يُسقِط `test_a_deliberate_history_chain_passes`
 - تحييد الفحص العالميّ للصفوف ⇒ يعود صنف BRAIN-DUP-ROW-ESCAPES-THE-ADJACENCY-NET-01 (صفّ GATE-READS المكرّر غير المتلاصق) يمرّ صامتاً — يُسقِط `test_a_non_adjacent_row_duplicate_is_caught_globally`
 - إسقاط النقطة لا يدمج الهويّات بل يُعمي الشبكة عن الصفوف المنقوطة كلّها — مرساة \s*\| تُفشِل المطابقة عند النقطة (مقيس بالزرع، لا مفترَض) — يُسقِط `test_a_dotted_row_id_duplicate_is_still_visible_to_the_global_net`
+- تعطيلُ قاعدة السطر شبه المطابق داخل المدخل يُعيد الحارسَ إلى ما كان عليه على 5472740e: يمرّ بـrc=0 على دمج union الذي يُبقي السطرَين المحرَّرَين بجوار أصليّيهما في log.md/ledger.md (UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01) — مقيسٌ بمستودعٍ مؤقّت. — يُسقِط `test_union_on_an_edited_last_entry_is_caught`
+- رفعُ قيد الكتلة المتّصلة عن قاعدة التشابه يُعيد الإيجابيَّ الكاذب المقيس على main (قالبا «سجلٌّ متأخّرُ الدمج (#1128)/(#1130)» بتشابه 0.932 في فقرتين منفصلتين، log.md:9131/9138) — حارسٌ يُنذِر على سجلٍّ سليم يُعطَّل. — يُسقِط `test_a_near_template_in_separate_paragraphs_passes`
 
 ### `brain_state_transition_guard.py`
 
@@ -448,6 +450,11 @@
 - قبولُ سدادٍ جزئيّ ⇒ «كلّ ادّعاءاته» يصير شعاراً، وادّعاءٌ جديد يظهر في ملفّ مُسدَّد لا يُعيد فتح الدَّين — يُسقِط `test_a_partial_settlement_does_not_close_the_debt`
 - «المصنوع يدهس المكتوب» — `--generate` يمحو `proven_live` فيرجع الدَّين المُسدَّد صامتاً عند أوّل إعادة توليد، والقسم لا يُشتقّ فلا سبيل لاستعادته — يُسقِط `test_regenerating_the_baseline_does_not_erase_the_settlements`
 - نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض — يُسقِط `test_a_proof_path_that_escapes_the_repository_root_is_refused`
+- الرجوعُ إلى العدّ بالاسم (نمطُ main قبل FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01) ⇒ `_Conn` في `test_farm_fields_tenant_ownership.py` و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` يخرجان من العدّ وهما يدّعيان مُسنَدَ المستأجِر وJSONB نصّاً — ٥٨ موقعاً يعميها الاصطلاح — يُسقِط `test_the_cited_sites_hidden_by_the_naming_convention_are_counted`
+- نزعُ اشتراط القبول ⇒ `--generate` (والمكنسة بـ`--fix`) يبتلع أيَّ وهميٍّ جديد بلا كلمة، فيصير «الراتشِت» إعادةَ توليد. وهو بالضبط الطريق الذي كان سيمرّ منه تصحيحُ القياس صامتاً — يُسقِط `test_a_new_arbitrarily_named_fake_fails_the_ratchet_and_regeneration_cannot_admit_it`
+- «المصنوع يدهس المكتوب» — `--generate` يمحو سجلَّ القبول فيسقط الأساس كلُّه عند أوّل إعادة توليد، أو يُعاد كتابته بلا تبرير — يُسقِط `test_regenerating_the_baseline_carries_the_admissions`
+- نزعُ مرساة توقيع asyncpg ⇒ عميلُ HTTP بـ`fetch(self, url)` يُعَدّ بديلَ اتّصال؛ إيجابيٌّ كاذب يُدرِّب قارئ الحارس على تجاهله — يُسقِط `test_non_database_fakes_are_not_counted`
+- قيدُ قبولٍ بلا تبرير ⇒ السجلّ يصير إعادةَ توليدٍ بخطّ اليد: يُقبَل الدَّين بسطرٍ لا يقول لماذا — يُسقِط `test_an_unjustified_or_miscounted_admission_is_refused`
 
 ### `frontend_lint_debt_guard.py`
 

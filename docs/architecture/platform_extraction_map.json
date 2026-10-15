@@ -6,7 +6,7 @@
       "function": "chat",
       "method": "POST",
       "path": "/api/chat",
-      "line": 109,
+      "line": 114,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/chat_proxy_reference.py::POST /api/chat::chat"
@@ -916,7 +916,7 @@
       "function": "auth_signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
-      "line": 133,
+      "line": 137,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/signup::auth_signup"
@@ -4133,7 +4133,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 536,
+      "line": 541,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4153,7 +4153,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 577,
+      "line": 582,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"

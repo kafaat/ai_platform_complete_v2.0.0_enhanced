@@ -28,9 +28,11 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
 )
-from jose import JWTError, jwt
+from jwt import PyJWTError as JWTError
 from prometheus_client import Counter, Histogram
 from pydantic import BaseModel, Field, field_validator
+
+from shared.security.access_tokens import decode_access_token
 
 try:
     from shared.logging_config import setup_logging
@@ -177,11 +179,12 @@ async def get_current_user(
     if not JWT_SECRET:
         raise HTTPException(500, "JWT_SECRET not configured")
     try:
-        payload = jwt.decode(
+        payload = decode_access_token(
             creds.credentials,
             JWT_SECRET,
-            algorithms=[_JWT_ALG],
-            audience="sahool",
+            algorithm=_JWT_ALG,
+            claim_semantics="python-jose",
+            site="tts-service:get_current_user",
         )
     except JWTError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e

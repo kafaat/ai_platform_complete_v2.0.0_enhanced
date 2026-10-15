@@ -133,7 +133,7 @@ class _FakeRedis:
 @pytest.fixture(scope="module")
 def auth_mod():
     # وحدة الخدمة تُستورَد مرّة واحدة (إعادة الاستيراد تكسر تسجيل Prometheus).
-    pytest.importorskip("jose")
+    pytest.importorskip("jwt")
     pytest.importorskip("redis")
     import importlib.util
     import sys

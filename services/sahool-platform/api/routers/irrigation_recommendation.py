@@ -310,7 +310,7 @@ async def field_irrigation_recommendation(
         season_id = season["season_id"] if season else None
         # أحدث استنزاف + عمره (نضارة) — مفقود يبقى None (لا صفر مُختلَق).
         lrow = await conn.fetchrow(
-            "SELECT depletion_mm, confidence, soil_moisture_pct, ledger_date, "
+            "SELECT depletion_mm, confidence, soil_moisture_pct, ledger_date, decision, "
             "EXTRACT(EPOCH FROM (now() - updated_at)) / 3600.0 AS age_hours "
             "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
             field_id,
@@ -345,6 +345,30 @@ async def field_irrigation_recommendation(
     ledger_age_hours = (
         float(lrow["age_hours"]) if (lrow and lrow["age_hours"] is not None) else None
     )
+    # UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: ثقةُ القيد المنخفضة لا تقول
+    # **لماذا**. قيدٌ آليٌّ بلا صفِّ ريّ استنزافُه حدٌّ أعلى (الريُّ قُرِئ صفراً لأنّه
+    # مجهول) — يُسمّى في المخرَج ولا يُخصَم مرّةً ثانية من الثقة (القيدُ خصمه أصلاً).
+    from api.water_ledger_auto import (
+        APPLIED_WATER_UNRECORDED,
+        APPLIED_WATER_VOLUME_UNTRACKED,
+        applied_water_status,
+        ledger_notes_from_decision,
+    )
+
+    ledger_notes = ledger_notes_from_decision(lrow.get("decision")) if lrow else None
+    applied_status = applied_water_status(ledger_notes) if ledger_notes is not None else None
+    applied_water_limitations: list[str] = []
+    if applied_status == APPLIED_WATER_UNRECORDED:
+        applied_water_limitations.append(
+            "applied_water_unrecorded — لا سجلَّ ريٍّ لهذا الحقل في يوم القيد: الريُّ في "
+            "الميزان مجهولٌ لا صفر، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى. "
+            "سجّل الريّات أو أعلِن مصدرَ الماء قبل الاعتماد."
+        )
+    elif applied_status == APPLIED_WATER_VOLUME_UNTRACKED:
+        applied_water_limitations.append(
+            "applied_water_volume_untracked — رُصدت ريّةٌ بلا حجم: الماءُ المضاف أدنى "
+            "تقدير، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى."
+        )
 
     # WS-D.2b: نسيج مخبريّ حقيقيّ ⇒ TAW أدقّ + نَسَب مصدر صريح + خفض ثقة عند fallback.
     texture_lab = extract_texture(soil_row["result"]) if soil_row else None
@@ -385,6 +409,8 @@ async def field_irrigation_recommendation(
         "taw_source": taw_source,
         "soil_provenance": soil_prov,
         "ledger_age_hours": round(ledger_age_hours, 1) if ledger_age_hours is not None else None,
+        # None = القيدُ لم يُعلِن (يدويّ/قديم) — لا يُفترَض «مُسجَّلاً».
+        "applied_water_status": applied_status,
         "crop": crop,
         "stage": stage,
     }
@@ -637,6 +663,7 @@ async def field_irrigation_recommendation(
                 "et0": et0_prod.get("weather_snapshot_id"),
                 "weather": wx.get("valid_time"),
                 "taw_source": taw_source,
+                "applied_water_status": applied_status,
             },
             "calibrated": False,
             "policy": rec.get("policy"),
@@ -734,6 +761,7 @@ async def field_irrigation_recommendation(
         "limitations": [
             *state["limitations"],
             *soil_prov["limitations"],
+            *applied_water_limitations,
             *([weather_limitation] if weather_limitation else []),
             *([submit_limitation] if submit_limitation else []),
         ],
