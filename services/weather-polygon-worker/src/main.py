@@ -169,7 +169,7 @@ async def run() -> None:
     while True:
         try:
             msg = await asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _touch_worker_file(HEARTBEAT_FILE)
             continue
         _touch_worker_file(HEARTBEAT_FILE)
