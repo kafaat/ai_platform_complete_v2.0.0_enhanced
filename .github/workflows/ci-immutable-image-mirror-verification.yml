@@ -24,6 +24,13 @@ permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('ci-immutable-mirror-verification-pr-{0}', github.event.pull_request.number)
+        || format('ci-immutable-mirror-verification-{0}-{1}', github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   contract:
     name: Immutable Image Mirror Contract
