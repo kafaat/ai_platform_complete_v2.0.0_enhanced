@@ -1051,7 +1051,7 @@
 | `capability_evidence_maturity_engine.py` | Generate a fail-closed evidence matrix and evidence-derived maturity baseline. | `capability-registry` |
 | `capability_linker.py` | Conservatively link SAHOOL capabilities to repository services, APIs, tests and consumers. | `capability-registry` |
 | `capability_management_engine.py` | Generate the unified SAHOOL Capability Management Layer. | `capability-registry` |
-| `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` |
+| `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` · `regenerate` |
 | `capability_parity_investment_engine.py` | Generate fail-closed capability parity and investment artifacts. | `capability-registry` |
 | `capability_projection_sync.py` | يجعل الإسقاط التوافقيّ صادقاً: الحقول canonical-owned تُكتَب من مالكها وحده. | `capability-registry` |
 | `capability_registry_guard.py` | Validate the canonical SAHOOL capability registry and generate governance outputs. | `capability-registry` |
@@ -1091,9 +1091,9 @@
 | `emit_certification_evidence.py` | يكتب ملفَّ دليلِ حاجبٍ واحدٍ **من بيئة التشغيل**، لا من وسائطِ المُنادي. | `certification-verdict` · `full-branch-ci-evidence` |
 | `endpoint_ui_coverage_gate.py` | SAHOOL endpoint-ui-coverage-gate. | `structural-lint` |
 | `env_compose_drift_guard.py` | حارس انجراف env↔compose (السجل التشغيليّ #3) — صنف عضّ مرتين، فأُغلِق بحارس. | `structural-lint` |
-| `event_contract_graph.py` | Generate a conservative static NATS/JetStream event contract graph. | `capability-registry` |
+| `event_contract_graph.py` | Generate a conservative static NATS/JetStream event contract graph. | `capability-registry` · `regenerate` |
 | `execution_delivery_receipt_boundary_gate.py` | — | `structural-lint` |
-| `execution_dependency_audit.py` | Generate a conservative static execution/dead-code audit. | `capability-registry` |
+| `execution_dependency_audit.py` | Generate a conservative static execution/dead-code audit. | `capability-registry` · `regenerate` |
 | `execution_outcome_boundary_gate.py` | WX-10.12 guard: outcome verification must not perform learning updates. | `structural-lint` |
 | `execution_request_boundary_gate.py` | — | `structural-lint` |
 | `expected_control_flow_guard.py` | يفرض عقد الاستثناءات المتوقَّعة — EXPECTED-CONTROL-FLOW-EXCEPTION. | `structural-lint` |
@@ -1104,14 +1104,14 @@
 | `gateway_reachability_guard.py` | Build a deterministic Nginx/API-gateway reachability and security inventory. | `capability-registry` |
 | `generate_indicator_artifacts.py` | — | `structural-lint` |
 | `generate_indicators_frontend_manifest.py` | مولّد مانيفست الواجهة (build-time) لسجلّ المؤشّرات — WS-B.2 (manifest-only). | `structural-lint` |
-| `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `drift` |
+| `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `regenerate` |
 | `generated_write_targets.py` | أهدافُ الكتابة المولَّدة — `CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01`. | `structural-lint` |
 | `github_actions_policy_guard.py` | Enforce immutable third-party Actions and reject privileged workflow patterns. | `supply-chain-static-scan` |
-| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` |
+| `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` · `regenerate` |
 | `health_readiness_schema_guard.py` | Guard canonical health/readiness response envelopes. | `health-readiness-schema` |
 | `indicators_container_contract_guard.py` | Guard the indicators-service canonical-observation-adapter container boundary. | `indicators-container-contract` |
 | `indicators_registry_gate.py` | Guard: config/indicators_registry.json is the single source of truth for indicators. | `structural-lint` |
-| `integration_runtime_governance_closure.py` | Artifact-based closure gate for PATH-2 integration/runtime-evidence governance. | `capability-registry` |
+| `integration_runtime_governance_closure.py` | Artifact-based closure gate for PATH-2 integration/runtime-evidence governance. | `capability-registry` · `regenerate` |
 | `intelligence_governance_gate.py` | — | `structural-lint` |
 | `irrigation_as_applied_m2_11_guard.py` | Static ratchet for M2.11 canonical as-applied irrigation truth. | `structural-lint` |
 | `irrigation_capability_graph_m2_8_guard.py` | Repository ratchet for M2.8 unified irrigation capability graph. | `structural-lint` |
