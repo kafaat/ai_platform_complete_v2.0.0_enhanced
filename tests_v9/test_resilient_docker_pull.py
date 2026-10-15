@@ -171,7 +171,10 @@ def test_decision_service_job_preserves_pull_failure_as_harness_evidence():
 
     assert provision_step["env"]["HARNESS_PRIMARY_CAUSE_FILE"] == cause_file
     assert "set -euo pipefail" in provision_step["run"]
-    assert "scripts/ci/resilient_docker_pull.sh" in provision_step["run"]
+    assert "scripts/ci/pull_verified_ci_image.sh" in provision_step["run"]
+    resolver = (ROOT / "scripts/ci/pull_verified_ci_image.sh").read_text(encoding="utf-8")
+    assert "scripts/ci/resilient_docker_pull.sh" in resolver
+    assert "GHCR_VERIFIED_INDEX" in resolver
 
     classify_step = next(
         step
