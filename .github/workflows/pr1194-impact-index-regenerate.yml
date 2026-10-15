@@ -1,0 +1,67 @@
+name: PR1194 capability impact index one-off regeneration
+on:
+  push:
+    branches:
+      - fix/worker-heartbeat-liveness-batch-20261015
+    paths:
+      - .github/workflows/pr1194-impact-index-regenerate.yml
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target head
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: fix/worker-heartbeat-liveness-batch-20261015
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned PyYAML for exact source model
+        run: python -m pip install -c constraints-ci-tools.txt PyYAML
+      - name: Regenerate and verify only capability impact index
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/pr_capability_impact_gate.py --generate-index
+          python scripts/ci/pr_capability_impact_gate.py --check-index
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          manifest = Path('release/FILE_CHECKSUMS.sha256')
+          target = 'docs/capability-registry/generated/impact/impact_index_summary.json'
+          lines = manifest.read_text(encoding='utf-8').splitlines()
+          updated = []
+          found = False
+          for line in lines:
+              digest, sep, rel = line.partition('  ')
+              if not sep:
+                  raise RuntimeError('invalid checksum manifest entry')
+              if rel == target:
+                  digest = hashlib.sha256(Path(target).read_bytes()).hexdigest()
+                  found = True
+              updated.append(f'{digest}  {rel}')
+          if not found:
+              raise RuntimeError('impact index absent from release manifest; refuse to conceal drift')
+          manifest.write_text('\n'.join(updated) + '\n', encoding='utf-8')
+          PY
+          python scripts/release/validate_release_package.py --root .
+          git diff --stat
+      - name: Commit only verified generated outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/capability-registry/generated/impact/impact_index_summary.json release/FILE_CHECKSUMS.sha256
+          if git diff --cached --quiet; then
+            echo 'Capability impact index already current'
+          else
+            git diff --cached --stat
+            git commit -m 'chore(generated): reconcile capability impact index with mapping inputs'
+            git push origin HEAD:refs/heads/fix/worker-heartbeat-liveness-batch-20261015
+          fi
