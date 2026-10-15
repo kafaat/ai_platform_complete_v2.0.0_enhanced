@@ -1,0 +1,16 @@
+{
+  "water": {
+    "well_inventory": {
+      "YOUR_TENANT::YOUR_FIELD": [
+        {
+          "from": "2026-01-01",
+          "to": "2026-12-31",
+          "wells": [
+            "W1",
+            "W2"
+          ]
+        }
+      ]
+    }
+  }
+}

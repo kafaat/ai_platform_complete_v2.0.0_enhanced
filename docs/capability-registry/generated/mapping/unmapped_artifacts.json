@@ -9054,5 +9054,37 @@
   {
     "path": "tests_v9/test_zone_sampling_behavior_v66.py",
     "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_geo.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_investigation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_items_score.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_pipeline.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water_041.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tools/sahool_qa/tests/test_water_042.py",
+    "kind": "tests"
   }
 ]
