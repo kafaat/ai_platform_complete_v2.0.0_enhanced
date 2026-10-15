@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "a3ea3a470e818901cfea2de564bc91b9f701cf81b1ff82a367117aa24aabf09c",
+  "inventory_sha256": "636eecb7b43711963d179fa1ddce82e27dfe44fdb34a6fbfa81d48b8a311491f",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -3634,7 +3634,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_hourly_recommendation",
-      "line": 536,
+      "line": 541,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3914,7 +3914,7 @@
     {
       "classification": "domain",
       "function": "reconcile_irrigation_execution",
-      "line": 577,
+      "line": 582,
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
       "source": "api/routers/irrigation_mpc.py"

@@ -8993,6 +8993,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
     "kind": "tests",
     "candidates": [

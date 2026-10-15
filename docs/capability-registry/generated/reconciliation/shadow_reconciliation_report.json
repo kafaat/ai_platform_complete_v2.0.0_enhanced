@@ -123,7 +123,7 @@
       "ratchet_identity": "IRR-001:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "IRR-002",
       "declared_maturity": 3,
       "finding_id": "IRR-002:declared_above_evidence",

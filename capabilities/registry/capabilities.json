@@ -2791,7 +2791,7 @@
       "maturity": 3,
       "evidence_level": 3,
       "status": "runtime_or_workflow_unverified",
-      "confidence": "medium",
+      "confidence": "high",
       "production_certified": false,
       "dependencies": [
         "IRR-001"
@@ -2804,7 +2804,9 @@
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
-      "tests": [],
+      "tests": [
+        "services/sahool-platform/tests/test_irrigation_blend_water_quality.py"
+      ],
       "runtime": {
         "metrics": [],
         "traces": [],
@@ -2812,7 +2814,7 @@
         "audit_events": []
       },
       "evidence": [],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=0, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=1, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2965,7 +2967,7 @@
         "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:648",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:285",
-        "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:537",
+        "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:189",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526",
