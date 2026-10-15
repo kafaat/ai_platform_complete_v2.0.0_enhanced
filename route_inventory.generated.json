@@ -5986,7 +5986,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 189,
+    "line": 193,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "function": "irrigation_recommendation"
@@ -5994,7 +5994,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 285,
+    "line": 292,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "function": "field_irrigation_recommendation"
@@ -6786,7 +6786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 143,
+    "line": 144,
     "method": "POST",
     "path": "/api/v1/scenario/economics",
     "function": "scenario_economics"
@@ -6794,7 +6794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 164,
+    "line": 165,
     "method": "POST",
     "path": "/api/v1/scenario/water-twin",
     "function": "scenario_water_twin"
@@ -6802,7 +6802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 193,
+    "line": 194,
     "method": "POST",
     "path": "/api/v1/scenario/temperature",
     "function": "scenario_temperature"
@@ -6810,7 +6810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 236,
+    "line": 237,
     "method": "POST",
     "path": "/api/v1/scenario/planting-date",
     "function": "scenario_planting_date"
@@ -6818,7 +6818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 286,
+    "line": 287,
     "method": "POST",
     "path": "/api/v1/scenario/rainfall",
     "function": "scenario_rainfall"
@@ -7234,7 +7234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_balance.py",
-    "line": 66,
+    "line": 63,
     "method": "POST",
     "path": "/api/v1/water-balance",
     "function": "compute_water_balance"

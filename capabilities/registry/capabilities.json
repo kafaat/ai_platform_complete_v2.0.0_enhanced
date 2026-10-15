@@ -659,7 +659,7 @@
         "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:535",
         "POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:498",
-        "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:143",
+        "POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:144",
         "POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624",
         "POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:134"
       ],
@@ -945,14 +945,14 @@
         "services/sahool-platform/tests/test_wind_geometry.py",
         "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
+        "services/weather-service/tests/test_et0_reference_and_input_validity.py",
         "tests/architecture/test_frontend_fetch_boundary_ratchet.py",
         "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
         "tests_v9/test_canonical_boundary.py",
         "tests_v9/test_canonical_field_geometry_contract.py",
         "tests_v9/test_decision_review_boundary_guard.py",
         "tests_v9/test_field_boundary_adapters_v59_1.py",
-        "tests_v9/test_field_boundary_ai_v59.py",
-        "tests_v9/test_field_boundary_backends_v59_5.py"
+        "tests_v9/test_field_boundary_ai_v59.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1001,7 +1001,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 13
+        "tests": 14
       }
     },
     {
@@ -2127,6 +2127,7 @@
         "services/sahool-platform/tests/test_weather_et0_client.py",
         "services/weather-service/tests/test_et0.py",
         "services/weather-service/tests/test_et0_agro_product.py",
+        "services/weather-service/tests/test_et0_reference_and_input_validity.py",
         "services/weather-service/tests/test_et0_series.py",
         "tests_v9/test_mcp_weather_et0_engine_delegation.py"
       ],
@@ -2142,7 +2143,7 @@
           "path": "services/weather-service/et0.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2904,7 +2905,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:66"
+        "POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:63"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -2964,10 +2965,10 @@
         "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:388",
         "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:648",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
-        "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:285",
+        "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:292",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:537",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329",
-        "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:189",
+        "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:193",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350",

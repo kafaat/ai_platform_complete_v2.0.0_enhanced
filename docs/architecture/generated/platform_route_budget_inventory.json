@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "a3ea3a470e818901cfea2de564bc91b9f701cf81b1ff82a367117aa24aabf09c",
+  "inventory_sha256": "891047ef9965739154d5b2ca64c2ce99127b7e394c21ee48e73035ec3209a8b2",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "6d1496cbd2175d45552911257e7f4d10ce2feffbbe585679d0483c74653bfff3"
+    "policy_sha256": "add364bf7bdce09ef615c75d2383827bea49aff45047cc33bcbf530db46eb45b"
   },
   "routes": [
     {
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_recommendation",
-      "line": 284,
+      "line": 291,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_recommendation",
-      "line": 188,
+      "line": 192,
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -4258,7 +4258,7 @@
     {
       "classification": "domain",
       "function": "scenario_economics",
-      "line": 142,
+      "line": 143,
       "method": "POST",
       "path": "/api/v1/scenario/economics",
       "source": "api/routers/scenario.py"
@@ -4266,7 +4266,7 @@
     {
       "classification": "domain",
       "function": "scenario_planting_date",
-      "line": 235,
+      "line": 236,
       "method": "POST",
       "path": "/api/v1/scenario/planting-date",
       "source": "api/routers/scenario.py"
@@ -4274,7 +4274,7 @@
     {
       "classification": "domain",
       "function": "scenario_rainfall",
-      "line": 285,
+      "line": 286,
       "method": "POST",
       "path": "/api/v1/scenario/rainfall",
       "source": "api/routers/scenario.py"
@@ -4282,7 +4282,7 @@
     {
       "classification": "domain",
       "function": "scenario_temperature",
-      "line": 192,
+      "line": 193,
       "method": "POST",
       "path": "/api/v1/scenario/temperature",
       "source": "api/routers/scenario.py"
@@ -4290,7 +4290,7 @@
     {
       "classification": "domain",
       "function": "scenario_water_twin",
-      "line": 163,
+      "line": 164,
       "method": "POST",
       "path": "/api/v1/scenario/water-twin",
       "source": "api/routers/scenario.py"
@@ -4370,7 +4370,7 @@
     {
       "classification": "domain",
       "function": "compute_water_balance",
-      "line": 65,
+      "line": 62,
       "method": "POST",
       "path": "/api/v1/water-balance",
       "source": "api/routers/water_balance.py"
