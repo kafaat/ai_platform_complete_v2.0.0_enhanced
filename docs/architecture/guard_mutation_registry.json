@@ -3495,6 +3495,18 @@
           "find": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_.]*(?:-[A-Z0-9_.]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
           "replace": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
           "why": "إسقاط النقطة لا يدمج الهويّات بل يُعمي الشبكة عن الصفوف المنقوطة كلّها — مرساة \\s*\\| تُفشِل المطابقة عند النقطة (مقيس بالزرع، لا مفترَض)"
+        },
+        {
+          "expect": "test_union_on_an_edited_last_entry_is_caught",
+          "find": "                if kind:\n                    found.append((i + 1, j + 1, kind))",
+          "replace": "                if kind and False:  # mutated: قاعدةُ النسخة داخل المدخل تُعطَّل\n                    found.append((i + 1, j + 1, kind))",
+          "why": "تعطيلُ قاعدة السطر شبه المطابق داخل المدخل يُعيد الحارسَ إلى ما كان عليه على 5472740e: يمرّ بـrc=0 على دمج union الذي يُبقي السطرَين المحرَّرَين بجوار أصليّيهما في log.md/ledger.md (UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01) — مقيسٌ بمستودعٍ مؤقّت."
+        },
+        {
+          "expect": "test_a_near_template_in_separate_paragraphs_passes",
+          "find": "kind = _near_copy(a, b, allow_ratio=block_of[i] == block_of[j])",
+          "replace": "kind = _near_copy(a, b, allow_ratio=True)  # mutated: التشابه عبر الفقرات",
+          "why": "رفعُ قيد الكتلة المتّصلة عن قاعدة التشابه يُعيد الإيجابيَّ الكاذب المقيس على main (قالبا «سجلٌّ متأخّرُ الدمج (#1128)/(#1130)» بتشابه 0.932 في فقرتين منفصلتين، log.md:9131/9138) — حارسٌ يُنذِر على سجلٍّ سليم يُعطَّل."
         }
       ],
       "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py"
