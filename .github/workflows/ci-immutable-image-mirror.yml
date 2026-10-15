@@ -1,0 +1,93 @@
+name: Bootstrap immutable CI image mirrors
+
+# A separate supply-chain operation: no unseeded mirror may masquerade as tested CI.
+on:
+  push:
+    branches: [codex/ecr-ghcr-immutable-mirror-20261015]
+    paths: [.github/workflows/ci-immutable-image-mirror.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sahool-immutable-ci-image-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Mirror ${{ matrix.kind }} / ${{ matrix.pin }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - kind: postgres
+            pin: "15"
+            digest: d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
+          - kind: postgres
+            pin: "16"
+            digest: ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          - kind: postgres
+            pin: "16-alpine"
+            digest: "721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+          - kind: redis
+            pin: "7-alpine"
+            digest: 858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+          - kind: nginx
+            pin: "1.27.5"
+            digest: 65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+    steps:
+      - name: Install OCI registry copying tool
+        run: |
+          set -euo pipefail
+          sudo timeout --signal=TERM --kill-after=15s 180s apt-get update -o Acquire::Retries=3
+          sudo timeout --signal=TERM --kill-after=15s 240s apt-get install -y --no-install-recommends skopeo
+
+      - name: Authenticate only to destination registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GHCR_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Preserve source OCI index digest (fail closed)
+        env:
+          KIND: ${{ matrix.kind }}
+          PIN: ${{ matrix.pin }}
+          DIGEST: ${{ matrix.digest }}
+        run: |
+          set -euo pipefail
+          source="public.ecr.aws/docker/library/${KIND}@sha256:${DIGEST}"
+          dockerhub="docker.io/library/${KIND}@sha256:${DIGEST}"
+          target="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/sahool-ci-${KIND}:pin-${DIGEST}"
+
+          if skopeo inspect --raw "docker://$target" > "$RUNNER_TEMP/existing.json" 2>/dev/null; then
+            echo "${DIGEST}  $RUNNER_TEMP/existing.json" | sha256sum --check
+            echo "Already provisioned: immutable index sha256:$DIGEST"
+            exit 0
+          fi
+
+          # Docker Hub is allowed ONLY when its raw manifest hashes to the
+          # exact locked ECR index digest. No tag / approximate substitution.
+          found=""
+          for candidate in "$source" "$dockerhub"; do
+            if skopeo inspect --raw "docker://$candidate" > "$RUNNER_TEMP/source.json" 2>/dev/null &&
+               echo "${DIGEST}  $RUNNER_TEMP/source.json" | sha256sum --check; then
+              found="$candidate"
+              break
+            fi
+          done
+          if [[ -z "$found" ]]; then
+            echo "::error::No source supplies the exact pinned OCI manifest sha256:$DIGEST" >&2
+            exit 1
+          fi
+          skopeo copy --all --preserve-digests "docker://$found" "docker://$target"
+          skopeo inspect --raw "docker://$target" > "$RUNNER_TEMP/copied.json"
+          echo "${DIGEST}  $RUNNER_TEMP/copied.json" | sha256sum --check
+          echo "Provenance: $found -> $target (identical SHA-256 index)"
