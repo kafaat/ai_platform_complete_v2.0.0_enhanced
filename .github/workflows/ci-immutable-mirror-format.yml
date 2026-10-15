@@ -1,0 +1,41 @@
+name: Format immutable mirror PR files
+
+on:
+  push:
+    branches: [codex/ecr-ghcr-immutable-mirror-20261015]
+    paths: [.github/workflows/ci-immutable-mirror-format.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    name: Format mirror regression files (one-shot)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Format only three source files flagged by CI
+        run: |
+          set -euo pipefail
+          pip install -c constraints-ci-tools.txt ruff
+          ruff format frontend/tests/test_nginx_runtime.py \
+            tests/architecture/test_notification_rollout_postgres_image.py \
+            tests_v9/test_ci_image_mirror.py
+          git diff --check
+          git add frontend/tests/test_nginx_runtime.py \
+            tests/architecture/test_notification_rollout_postgres_image.py \
+            tests_v9/test_ci_image_mirror.py
+          if git diff --cached --quiet; then
+            echo "No formatting changes required"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "style(ci): apply pinned Ruff formatter to three mirror regression files"
+            git push origin HEAD:codex/ecr-ghcr-immutable-mirror-20261015
+          fi
