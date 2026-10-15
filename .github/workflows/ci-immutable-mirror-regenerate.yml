@@ -8,6 +8,8 @@ on:
       - .github/workflows/ci-immutable-image-mirror.yml
       - .github/workflows/railway-dockerfile-pr-build.yml
       - tests_v9/test_ci_image_mirror.py
+      - docs/architecture/blocking_surface_additions.json
+      - tests_v9/test_ci_unbounded_wait_guard.py
 
 permissions:
   contents: write
