@@ -1,0 +1,72 @@
+name: PR1194 generated artifacts one-off repair
+
+on:
+  push:
+    branches:
+      - fix/worker-heartbeat-liveness-batch-20261015
+    paths:
+      - .github/workflows/pr1194-regenerate-generated.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this branch only
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: fix/worker-heartbeat-liveness-batch-20261015
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Rebuild only affected generated files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/generate_service_inventory.py --write-registry
+          python scripts/ci/event_contract_graph.py --generate
+          python scripts/ci/capability_mapping_engine.py --generate
+          python scripts/ci/execution_dependency_audit.py --generate
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          file = Path("release/FILE_CHECKSUMS.sha256")
+          lines = []
+          for raw in file.read_text(encoding="utf-8").splitlines():
+              if not raw:
+                  continue
+              original, rel = raw.split("  ", 1)
+              p = Path(rel)
+              if not p.is_file() or p.is_symlink():
+                  raise RuntimeError(f"missing or unsafe manifest asset: {rel}")
+              lines.append(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {rel}")
+          file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+      - name: Confirm drift checks all pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/generate_service_inventory.py --check
+          python scripts/ci/event_contract_graph.py --check
+          python scripts/ci/capability_mapping_engine.py --check
+          python scripts/ci/execution_dependency_audit.py --check
+          python scripts/release/validate_release_package.py --root .
+      - name: Commit generated artifacts back to this branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add service_inventory.generated.json service_inventory.csv SERVICE_REGISTRY.md route_inventory.generated.json route_inventory.csv execution-audit/generated/ docs/capability-registry/generated/mapping/ event-audit/generated/ release/FILE_CHECKSUMS.sha256
+          if git diff --cached --quiet; then
+            echo 'No generated drift'
+          else
+            git diff --cached --stat
+            git commit -m 'chore(generated): synchronize heartbeat audit and event contracts'
+            git push origin HEAD:refs/heads/fix/worker-heartbeat-liveness-batch-20261015
+          fi
