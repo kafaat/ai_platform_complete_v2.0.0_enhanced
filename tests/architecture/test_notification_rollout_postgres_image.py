@@ -42,21 +42,33 @@ def _assert_wx12_postgres_provisioning_contract(steps):
     assert "postgis" in provision_steps[0].lower()
 
 
-def test_notification_rollout_uses_pinned_docker_official_postgres_image():
+def test_notification_rollout_uses_same_pinned_real_postgres_with_registry_fallback():
+    """No pre-job service pull: that bypassed authentication and mirror fallback."""
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    postgres = workflow["jobs"]["notification-rollout"]["services"]["postgres"]
-
-    assert postgres["image"] == POSTGRES_16_ALPINE
-    assert postgres["env"] == {
-        "POSTGRES_DB": "notification_rollout_test",
-        "POSTGRES_USER": "notification_test",
-        "POSTGRES_PASSWORD": "disposable_test_password",
-    }
-    assert postgres["ports"] == ["5438:5432"]
-    assert (
-        '--health-cmd "pg_isready -U notification_test -d notification_rollout_test"'
-        in (postgres["options"])
-    )
+    job = workflow["jobs"]["notification-rollout"]
+    assert "services" not in job
+    assert workflow["permissions"]["packages"] == "read"
+    matches = [
+        step
+        for step in job["steps"]
+        if isinstance(step, dict)
+        and "pull_verified_ci_image.sh" in step.get("run", "")
+    ]
+    assert len(matches) == 1
+    step = matches[0]
+    run = step["run"]
+    assert step["env"]["GHCR_TOKEN"] == "${{ secrets.GITHUB_TOKEN }}"
+    assert POSTGRES_16_ALPINE in run
+    assert "docker run -d --name notification-ci-pg --pull=never" in run
+    for expected in [
+        "-e POSTGRES_DB=notification_rollout_test",
+        "-e POSTGRES_USER=notification_test",
+        "-e POSTGRES_PASSWORD=disposable_test_password",
+        "-p 127.0.0.1:5438:5432",
+        "docker exec notification-ci-pg pg_isready -U notification_test -d notification_rollout_test",
+        'test "$ready" = 1',
+    ]:
+        assert expected in run, expected
 
 
 def test_ci_database_and_frontend_images_are_pinned_outside_docker_hub():
