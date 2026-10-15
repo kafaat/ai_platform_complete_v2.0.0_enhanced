@@ -268,3 +268,27 @@ def test_the_probe_never_raises_when_the_heartbeat_vanishes_mid_check(monkeypatc
     # ملفٌّ اختفى **هو** ملفٌّ مفقود، لا غيرُ مقروء. وأوّلُ صياغةٍ هنا أكّدت
     # `unreadable` فسقطت — والصوابُ تصحيحُ التأكيد لا توسيعُ الرسالة لتوافقه.
     assert "heartbeat file missing" in reason
+
+
+# WEATHER-IDLE-WORKER-READS-AS-DEAD-01: enabled subscription with no events
+# must continue writing a heartbeat; do not confuse silence with death.
+def test_enabled_polygon_subscription_has_idle_heartbeat_timeout():
+    import ast
+
+    source = (ROOT / "services/weather-polygon-worker/src/main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    run = next(node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "run")
+    calls = [node for node in ast.walk(run) if isinstance(node, ast.Call)]
+    assert any(
+        isinstance(call.func, ast.Attribute) and call.func.attr == "wait_for"
+        and any(isinstance(arg, ast.Call) and isinstance(arg.func, ast.Attribute)
+                and arg.func.attr == "next_msg" for arg in call.args)
+        for call in calls
+    ), "the enabled subscriber must wake without receiving an event"
+    assert any(
+        isinstance(node, ast.ExceptHandler)
+        and isinstance(node.type, ast.Attribute) and node.type.attr == "TimeoutError"
+        and any(isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
+                and child.func.id == "_touch_worker_file" for child in ast.walk(node))
+        for node in ast.walk(run)
+    ), "idle timeout must explicitly refresh the heartbeat"
