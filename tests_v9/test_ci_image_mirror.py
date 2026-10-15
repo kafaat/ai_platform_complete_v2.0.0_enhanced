@@ -3,6 +3,7 @@
 The mirror is only trusted by the original OCI index SHA, with no tag lookup
 or new digest substituted under the historical PostgreSQL/Redis contracts.
 """
+
 from __future__ import annotations
 
 import os
@@ -24,8 +25,9 @@ PG15 = (
 ID = "sha256:" + "f" * 64
 
 
-def run_resolver(tmp_path: Path, *, mirror_ok=False, ecr_ok=False,
-                 ecr_error="", config_id=ID, source=PG15):
+def run_resolver(
+    tmp_path: Path, *, mirror_ok=False, ecr_ok=False, ecr_error="", config_id=ID, source=PG15
+):
     docker = tmp_path / "docker"
     log = tmp_path / "calls.log"
     docker.write_text(
@@ -37,10 +39,10 @@ def run_resolver(tmp_path: Path, *, mirror_ok=False, ecr_ok=False,
         '[[ "$MIRROR_OK" == yes ]] && exit 0; echo "mirror missing" >&2; exit 1; fi\n'
         '  if [[ "$ECR_OK" == yes ]]; then exit 0; fi\n'
         '  echo "$ECR_ERROR" >&2; exit 1\n'
-        'fi\n'
+        "fi\n"
         'if [[ "$1" == image && "$2" == inspect ]]; then '
         'echo "$CONFIG_ID"; exit 0; fi\n'
-        'exit 42\n',
+        "exit 42\n",
         encoding="utf-8",
     )
     docker.chmod(docker.stat().st_mode | stat.S_IEXEC)
@@ -106,9 +108,7 @@ def test_both_registries_unavailable_never_emit_a_success_receipt(tmp_path):
 
 
 def test_bad_local_config_digest_is_not_accepted(tmp_path):
-    result, _, receipt, _ = run_resolver(
-        tmp_path, mirror_ok=True, config_id="sha256:not-a-digest"
-    )
+    result, _, receipt, _ = run_resolver(tmp_path, mirror_ok=True, config_id="sha256:not-a-digest")
     assert result.returncode != 0
     assert not receipt.exists()
     assert "Cannot prove local Docker image config digest" in result.stderr
@@ -140,5 +140,5 @@ def test_bootstrap_requires_preserved_manifest_hash_and_package_write():
     run = job["steps"][-1]["run"]
     assert "skopeo copy --all --preserve-digests" in run
     assert "sha256sum --check" in run
-    assert 'docker://$target' in run
+    assert "docker://$target" in run
     assert "docker.io/library/" in run

@@ -51,8 +51,7 @@ def test_notification_rollout_uses_same_pinned_real_postgres_with_registry_fallb
     matches = [
         step
         for step in job["steps"]
-        if isinstance(step, dict)
-        and "pull_verified_ci_image.sh" in step.get("run", "")
+        if isinstance(step, dict) and "pull_verified_ci_image.sh" in step.get("run", "")
     ]
     assert len(matches) == 1
     step = matches[0]

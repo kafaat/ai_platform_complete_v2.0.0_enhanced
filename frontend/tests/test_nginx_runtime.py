@@ -449,8 +449,12 @@ def main():
             with tempfile.TemporaryDirectory(prefix="sahool-nginx-ci-") as folder:
                 receipt = Path(folder) / "nginx-id"
                 subprocess.run(
-                    ["bash", str(root / "scripts/ci/pull_verified_ci_image.sh"),
-                     image, str(receipt)],
+                    [
+                        "bash",
+                        str(root / "scripts/ci/pull_verified_ci_image.sh"),
+                        image,
+                        str(receipt),
+                    ],
                     cwd=root,
                     check=True,
                 )
