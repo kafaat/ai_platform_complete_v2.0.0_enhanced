@@ -18,10 +18,24 @@ if [[ ! "$image_tag" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]]; then
   exit 2
 fi
 
-scripts/ci/resilient_docker_pull.sh "$base_image"
+# Mirror support is enabled only in GitHub CI with an authorized packages token.
+# Local execution and historical regression fixtures continue to use the
+# original digest-locked ECR reference unchanged.
+build_base="$base_image"
+if [[ -n "${GHCR_TOKEN:-}" ]]; then
+  base_id_file="$(mktemp)"
+  base_ref_file="$(mktemp)"
+  trap 'rm -f "$base_id_file" "$base_ref_file"' EXIT
+  bash scripts/ci/pull_verified_ci_image.sh "$base_image" "$base_id_file" "$base_ref_file"
+  # BuildKit resolves FROM sha256:<config-ID> as docker.io/library/sha256,
+  # so use the verified OCI repository@manifest-digest, not the run ID.
+  build_base="$(cat "$base_ref_file")"
+else
+  scripts/ci/resilient_docker_pull.sh "$base_image"
+fi
 
 if ! docker build --pull=false --tag "$image_tag" - <<DOCKERFILE
-FROM $base_image
+FROM $build_base
 USER root
 RUN timeout -k 10 240 apt-get update \
     && DEBIAN_FRONTEND=noninteractive timeout -k 10 240 apt-get install --yes --no-install-recommends \
