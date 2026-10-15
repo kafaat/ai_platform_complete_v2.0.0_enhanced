@@ -1031,6 +1031,9 @@ jobs:
         run: PYTHONPATH=. pytest tests -q -p no:cacheprovider
 
   integration-tests:
+    permissions:
+      contents: read
+      packages: read
     name: Integration Tests
     runs-on: ubuntu-24.04
     # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
@@ -1047,13 +1050,16 @@ jobs:
           cache: pip
           cache-dependency-path: tests_v9/requirements-test.txt
       - name: Start Postgres+PostGIS and Redis, then provision the client from the image
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           postgres_base_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
           postgis_image=sahool-postgis-15:ci
           redis_image=public.ecr.aws/docker/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
           scripts/ci/build_postgis_test_image.sh "$postgres_base_image" 15 "$postgis_image"
-          scripts/ci/resilient_docker_pull.sh "$redis_image"
+          bash scripts/ci/pull_verified_ci_image.sh "$redis_image" "$RUNNER_TEMP/redis-id"
+          redis_image="$(cat "$RUNNER_TEMP/redis-id")"
           docker run -d --name sahool-pg \
             -e POSTGRES_DB=sahool_test -e POSTGRES_USER=sahool_test \
             -e POSTGRES_PASSWORD=test_password -p 5433:5432 --pull=never "$postgis_image"
@@ -1253,6 +1259,9 @@ jobs:
         run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py
 
   decision-service-tests:
+    permissions:
+      contents: read
+      packages: read
     name: Decision Service Tests
     runs-on: ubuntu-24.04
     # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
@@ -1270,11 +1279,13 @@ jobs:
           cache-dependency-path: services/decision-service/requirements.txt
       - name: Start Postgres, then provision the client from the image
         env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HARNESS_PRIMARY_CAUSE_FILE: decision_service_primary_cause.txt
         run: |
           set -euo pipefail
           postgres_image=public.ecr.aws/docker/library/postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae
-          scripts/ci/resilient_docker_pull.sh "$postgres_image"
+          bash scripts/ci/pull_verified_ci_image.sh "$postgres_image" "$RUNNER_TEMP/ds-pg-id"
+          postgres_image="$(cat "$RUNNER_TEMP/ds-pg-id")"
           docker run -d --name ds-pg \
             -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
             -e POSTGRES_PASSWORD=test_password -p 5434:5432 --pull=never "$postgres_image" \
@@ -1588,6 +1599,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      packages: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -1596,10 +1608,13 @@ jobs:
           cache: pip
           cache-dependency-path: services/decision-service/requirements.txt
       - name: Start isolated PostgreSQL 16 (no external secrets)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           postgres_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
-          scripts/ci/resilient_docker_pull.sh "$postgres_image"
+          bash scripts/ci/pull_verified_ci_image.sh "$postgres_image" "$RUNNER_TEMP/d033-pg-id"
+          postgres_image="$(cat "$RUNNER_TEMP/d033-pg-id")"
           docker run -d --name decision-033-pg16 \
             -e POSTGRES_DB=decision033_test -e POSTGRES_USER=decision033_admin \
             -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5436:5432 \
@@ -1656,6 +1671,7 @@ jobs:
       - name: Start PostgreSQL 16 + PostGIS, then provision the client from the image
         id: live_pg_harness
         env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HARNESS_PRIMARY_CAUSE_FILE: live_pg_primary_cause.txt
         # حلقة السحب انتقلت إلى `scripts/ci/resilient_docker_pull.sh` كي **تُختبَر**:
         # منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً، فيبقى
