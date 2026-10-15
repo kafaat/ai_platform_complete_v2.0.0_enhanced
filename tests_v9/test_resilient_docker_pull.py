@@ -165,7 +165,7 @@ def test_decision_service_job_preserves_pull_failure_as_harness_evidence():
     provision_step = next(
         step
         for step in job["steps"]
-        if "scripts/ci/resilient_docker_pull.sh" in step.get("run", "")
+        if "scripts/ci/pull_verified_ci_image.sh" in step.get("run", "")
     )
     cause_file = "decision_service_primary_cause.txt"
 
