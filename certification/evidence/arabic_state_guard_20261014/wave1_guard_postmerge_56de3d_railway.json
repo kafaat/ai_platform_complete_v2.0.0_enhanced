@@ -1,0 +1,334 @@
+{
+  "reviewed_at": "2026-10-14T17:12:55.139442+00:00",
+  "pr": 1183,
+  "merge_sha": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+  "merge_time_from_root": "2026-10-14T17:11:21Z",
+  "status": "SETTLED_ALL_SKIPPED",
+  "main_instances_expected": 24,
+  "merge_sha_record_count": 24,
+  "record_status_counts": {
+    "SKIPPED": 24
+  },
+  "missing_main_instance_records": [],
+  "unexpected_instance_records": [],
+  "duplicate_instance_records": [],
+  "live_config_count": 43,
+  "inventory_instance_count": 43,
+  "settings_changes_since_premerge": [],
+  "latest_deployment_changes_since_premerge": [],
+  "staged_services": 0,
+  "staged_environments": [],
+  "records": [
+    {
+      "environment": "staging",
+      "captured_at": "2026-10-14T17:12:18.506Z",
+      "error": false,
+      "total_returned": 50,
+      "deployments": [
+        {
+          "id": "f02bc839-d544-4926-81c3-ae9820f72d16",
+          "serviceId": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:27.062Z",
+          "updatedAt": "2026-10-14T17:11:27.062Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "d0a8efe0-2e37-4403-bcc5-eb24564b4b8f",
+          "serviceId": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.853Z",
+          "updatedAt": "2026-10-14T17:11:26.853Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "6ff99646-c1af-44bc-aab4-1b993f5ea577",
+          "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.800Z",
+          "updatedAt": "2026-10-14T17:11:26.800Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "df74c27a-1588-4897-9090-2243f64ea788",
+          "serviceId": "65cee1c0-8473-4219-b246-1b4015190938",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.592Z",
+          "updatedAt": "2026-10-14T17:11:26.592Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "d16dec4d-bbef-4fcd-928c-475d14e89144",
+          "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.223Z",
+          "updatedAt": "2026-10-14T17:11:26.223Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "bdbbd765-f790-4fe7-ac77-c689aefaca3f",
+          "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.120Z",
+          "updatedAt": "2026-10-14T17:11:26.120Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "5128b4fa-893c-4400-9b2c-f08adbdfa3cb",
+          "serviceId": "08b2cb3a-e22e-4f72-95e7-498635550de4",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.066Z",
+          "updatedAt": "2026-10-14T17:11:26.066Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "b193a518-9d71-4299-8cc1-1cc4b8a29d86",
+          "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.041Z",
+          "updatedAt": "2026-10-14T17:11:26.041Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "2479b403-2035-4202-989c-733a44b96c6a",
+          "serviceId": "671188de-2a64-4233-8be5-1ac1718b38f0",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.953Z",
+          "updatedAt": "2026-10-14T17:11:25.953Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "da2afe47-c675-4fa1-b225-24149f8b626d",
+          "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.420Z",
+          "updatedAt": "2026-10-14T17:11:25.420Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "1211787c-1f46-4008-84b4-448022352e5f",
+          "serviceId": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.337Z",
+          "updatedAt": "2026-10-14T17:11:25.337Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "56b87604-9f2c-4130-9231-7cd9f2c363ed",
+          "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.310Z",
+          "updatedAt": "2026-10-14T17:11:25.310Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "bb8a5db9-c604-4f85-8709-363173054ebe",
+          "serviceId": "b92d960f-c267-47d7-a730-5c542d41c791",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.309Z",
+          "updatedAt": "2026-10-14T17:11:25.309Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        }
+      ]
+    },
+    {
+      "environment": "production",
+      "captured_at": "2026-10-14T17:12:18.457Z",
+      "error": false,
+      "total_returned": 50,
+      "deployments": [
+        {
+          "id": "124d0cd9-6131-4155-8858-9706ca72e075",
+          "serviceId": "91f77e1d-df19-47dc-8bdb-180122c417a8",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.791Z",
+          "updatedAt": "2026-10-14T17:11:26.791Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "e1f00c23-8854-4405-9d52-6f79dac05d99",
+          "serviceId": "64048c16-7510-44ab-9ded-4e1c1bc74c56",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.621Z",
+          "updatedAt": "2026-10-14T17:11:26.621Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "b4f948ec-4ebc-4bc0-aa5b-2a42e6c71408",
+          "serviceId": "a1e03071-668e-49fb-9725-bfcae6a82cfc",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.173Z",
+          "updatedAt": "2026-10-14T17:11:26.173Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "eb055231-e7aa-4541-8333-18524fa2dcbd",
+          "serviceId": "475f79b4-b8a5-4d04-9284-ad3150c3f90e",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.133Z",
+          "updatedAt": "2026-10-14T17:11:26.133Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "76b514b6-6a80-49a2-9b57-8a60abaa943f",
+          "serviceId": "090d3067-f378-4e53-9dc9-3c67c46d35db",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:26.110Z",
+          "updatedAt": "2026-10-14T17:11:26.110Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "2abecb7a-e5cf-4b97-8a0b-9d95e4f1a929",
+          "serviceId": "4874687d-d5d7-4f8e-bd7a-0a3a0e5a2c7f",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.462Z",
+          "updatedAt": "2026-10-14T17:11:25.462Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "12db4573-c3d3-4ed7-941e-7f8f95f329eb",
+          "serviceId": "b56ddf76-56a4-405d-b47e-be715e3ebb45",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.417Z",
+          "updatedAt": "2026-10-14T17:11:25.417Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "5b8b4b03-2dfe-4784-9acd-e57e5e83892c",
+          "serviceId": "ed81bfb8-781f-4901-8329-fb5bbd604412",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.413Z",
+          "updatedAt": "2026-10-14T17:11:25.413Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "99a75332-ee07-4a1c-827f-0280c4995dc9",
+          "serviceId": "b909eb4a-dcae-4e4c-b814-f45970c74447",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.390Z",
+          "updatedAt": "2026-10-14T17:11:25.390Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "bf6eb312-3f28-4671-8dc8-f4227b6dd412",
+          "serviceId": "65cee1c0-8473-4219-b246-1b4015190938",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.337Z",
+          "updatedAt": "2026-10-14T17:11:25.337Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        },
+        {
+          "id": "cb1328ee-4193-4b08-8f0e-4076636cd923",
+          "serviceId": "5659ab3d-2bff-4bba-93b3-95678233a613",
+          "status": "SKIPPED",
+          "createdAt": "2026-10-14T17:11:25.276Z",
+          "updatedAt": "2026-10-14T17:11:25.276Z",
+          "meta": {
+            "branch": "main",
+            "commitHash": "56de3d316fd5243253b6f6d38dc38b331bbddf95"
+          }
+        }
+      ]
+    }
+  ],
+  "gate01": {
+    "state": "CLOSED",
+    "intersections": [],
+    "alias_intersections": []
+  },
+  "freeze": {
+    "gate01": "CLOSED",
+    "historical_owner_source": "sahool-brain/gaps/registry.md:7325 at9a50aac3",
+    "historical_owner_text": "تجميد الدمج والنشر وتعديلات Railway؛ لا إعادة تشغيل للمهاجر ولا تراجع عن الهجرات قبل فحص القاعدة؛ لا حذف لنشر أو حجم أو نسخة.",
+    "current_authorization": "User explicitly authorizes scoped tested gap fixes through PR/green CI/merge; not a global freeze revocation, incident closure or DBapply/manual infrastructure permission."
+  },
+  "evidence_files": {
+    "wave1_guard_postmerge_56de3d_live_configs.json": "3fb843b816e384a59b81c1c32b8deb84d62d0ab15f14c8674af0b1c4e5ca33e9",
+    "wave1_guard_postmerge_56de3d_inventory.json": "1036fb414caa41fa1c1e644302fd7be36b26797dbe2693c83312b4893647a083",
+    "wave1_guard_postmerge_56de3d_records.json": "02349e096bebc4ff9008d9d3447672a212f805b6c0674b5a30e102ed6ee0adb7"
+  },
+  "premerge_baselines": [
+    "wave1_guard_1703_live_config_refresh.json",
+    "wave1_guard_1703_inventory_baseline.json"
+  ],
+  "findings": [
+    "All24 main-tracking service instances emitted SKIPPED records for the exact merge SHA; no real deployment started for this merge in the measured scope.",
+    "All43 latest deployment IDs remained unchanged; live source/build and selected healthcheck/restart settings remained unchanged.",
+    "No runtime gap closure or new live functionality is established by these SKIPPED records."
+  ],
+  "limitations": [
+    "Latest deployment IDs are platform inventory evidence, not an application semantic health probe.",
+    "No variable values, SQL, provider calls, domains, manual deploys, restarts or configuration mutations were used.",
+    "The current user authorization remains scoped; historical freeze and GATE-01 are not revoked."
+  ],
+  "mutations": []
+}

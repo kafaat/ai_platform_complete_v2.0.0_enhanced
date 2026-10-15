@@ -528,6 +528,7 @@ class TestStacSearchCdseResponseFormat:
         self.mod = importlib.util.module_from_spec(spec)
         fake_cdse = types.ModuleType("cdse_client")
         fake_cdse.is_configured = lambda: True  # type: ignore[attr-defined]
+        fake_cdse.CdseCatalogError = type("CdseCatalogError", (RuntimeError,), {})  # type: ignore[attr-defined]
         sys.modules["cdse_client"] = fake_cdse
         spec.loader.exec_module(self.mod)  # type: ignore[union-attr]
 
@@ -575,30 +576,33 @@ class TestStacSearchCdseResponseFormat:
         # مشاهد CDSE ليس لها bands_urls (المعالجة عبر Process API)
         assert item["bands_urls"] == {}
 
-    def test_cdse_search_error_returns_empty_list(self):
-        """فشل CDSE catalog يُعيد قائمة فارغة بدل رفع استثناء (تدهور سلس)."""
-
+    def test_cdse_search_error_is_distinct_from_successful_empty(self):
+        """A catalogue outage is an attributable failure, never a no-scenes result."""
         import sys as _sys
-        import types as _t
+
+        from fastapi import HTTPException
 
         class FakeClient:
             def search_scenes(self, **kw):
                 raise ConnectionError("CDSE catalog unreachable")
 
         _sys.modules["cdse_client"].get_client = FakeClient  # type: ignore[attr-defined]
-
-        result = self._run(
-            self.mod.stac_search_cdse(
-                bbox=[44.0, 15.0, 44.1, 15.1],
-                dt_start="2025-02-01",
-                dt_end="2025-02-28",
-                max_cloud=30.0,
-                limit=10,
+        with pytest.raises(HTTPException) as caught:
+            self._run(
+                self.mod.stac_search_cdse(
+                    bbox=[44.0, 15.0, 44.1, 15.1],
+                    dt_start="2025-02-01",
+                    dt_end="2025-02-28",
+                    max_cloud=30.0,
+                    limit=10,
+                )
             )
-        )
-        assert result["count"] == 0
-        assert result["items"] == []
-        assert result["source"] == "cdse-catalog"
+        assert caught.value.status_code == 503
+        assert caught.value.detail == {
+            "code": "cdse_catalog_unavailable",
+            "provider": "cdse",
+            "reason": "provider_error",
+        }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

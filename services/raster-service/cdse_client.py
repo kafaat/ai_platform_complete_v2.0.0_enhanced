@@ -27,6 +27,39 @@ import time
 logger = logging.getLogger("sahool.cdse")
 
 
+class CdseCatalogError(RuntimeError):
+    """A failed catalogue lookup, distinct from a successful empty scene list."""
+
+    def __init__(self, reason: str, upstream_status: int | None = None):
+        self.reason = reason
+        self.upstream_status = upstream_status
+        super().__init__(f"CDSE catalogue unavailable: {reason}")
+
+
+def _catalog_page(data: object) -> tuple[list[dict], str | int | None]:
+    """Reject missing/malformed collections rather than inventing zero scenes."""
+    if not isinstance(data, dict) or not isinstance(data.get("features"), list):
+        raise CdseCatalogError("invalid_response")
+    features = data["features"]
+    for feature in features:
+        if (
+            not isinstance(feature, dict)
+            or not isinstance(feature.get("id"), str)
+            or not feature["id"]
+            or not isinstance(feature.get("properties", {}), (dict, type(None)))
+        ):
+            raise CdseCatalogError("invalid_response")
+    context = data.get("context", {})
+    if context is None:
+        context = {}
+    if not isinstance(context, dict):
+        raise CdseCatalogError("invalid_response")
+    token = context.get("next")
+    if token is not None and (isinstance(token, bool) or not isinstance(token, (str, int))):
+        raise CdseCatalogError("invalid_response")
+    return features, token
+
+
 def _clamp_cloud_pct(value: float | int | str | None) -> float:
     """Return a provider-safe cloud percentage in [0, 100]."""
     try:
@@ -780,32 +813,32 @@ class CdseClient:
                             resp.text[:1200],
                             _safe_log_payload(fallback),
                         )
-                        return []
+                        raise CdseCatalogError("http_error", resp.status_code)
                     effective_payload = fallback
                 data = resp.json()
-                features = list(data.get("features") or [])
+                features, token = _catalog_page(data)
+                features = list(features)
                 # ترقيم الصفحات (STAC ``context.next``). كان مفقوداً تماماً، فكان
                 # الجواب «أوّل صفحة صادف أن أعادها المزوّد» — ومع نافذة استرجاع
                 # واسعة يصير ادّعاء «الأحدث»/«الأفضل» عليها غير قابل للإثبات
                 # (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
                 pages = 1
-                token = (data.get("context") or {}).get("next")
                 while token and pages < _CATALOG_MAX_PAGES:
                     page_payload = dict(effective_payload)
                     page_payload["next"] = token
                     page_resp = httpx.post(url, json=page_payload, headers=headers, timeout=30.0)
                     if page_resp.status_code >= 400:
-                        # صفحةٌ تالية فاشلة ⇒ نُكمل بما جُمِع ونُعلِن النقص، ولا نُسقِط
-                        # الصفحة الأولى: جوابٌ ناقص مُعلَن خيرٌ من صفر صامت.
+                        # A failed page is not a successful search: callers must
+                        # not select a "best" scene from an undisclosed partial result.
                         logger.warning(
                             "CDSE catalog page %s failed: status=%s — نتيجة ناقصة",
                             pages + 1,
                             page_resp.status_code,
                         )
-                        break
+                        raise CdseCatalogError("http_error", page_resp.status_code)
                     page_data = page_resp.json()
-                    features.extend(list(page_data.get("features") or []))
-                    token = (page_data.get("context") or {}).get("next")
+                    page_features, token = _catalog_page(page_data)
+                    features.extend(page_features)
                     pages += 1
                 if token:
                     logger.warning(
@@ -825,11 +858,14 @@ class CdseClient:
             except httpx.TransportError as exc:
                 if attempt >= max_retries:
                     logger.warning(
-                        "CDSE catalog transport error exhausted retries=%s — returning []: %r",
+                        "CDSE catalog transport error exhausted retries=%s: %r",
                         max_retries,
                         exc,
                     )
-                    return []
+                    reason = (
+                        "timeout" if isinstance(exc, httpx.TimeoutException) else "transport_error"
+                    )
+                    raise CdseCatalogError(reason) from exc
                 delay = min(max_backoff, base_backoff * (2**attempt))
                 logger.warning(
                     "CDSE catalog transport error attempt=%s/%s sleeping=%.1fs err=%r",
@@ -841,11 +877,12 @@ class CdseClient:
                 time.sleep(delay)
                 attempt += 1
                 continue
-            except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    "CDSE catalog search failed — returning empty list: %s", e, exc_info=True
-                )
-                return []
+            except CdseCatalogError:
+                raise
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise CdseCatalogError("invalid_response") from exc
+            except Exception as exc:  # noqa: BLE001
+                raise CdseCatalogError("provider_error") from exc
 
 
 # مثيل وحيد (يُعيد استخدام ذاكرة التوكن عبر الطلبات).

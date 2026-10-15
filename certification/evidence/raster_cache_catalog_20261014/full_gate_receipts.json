@@ -1,0 +1,3136 @@
+[
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/001.json",
+    "receipt_sha256": "29d760dd21a07f69250f6ff9338eb618023846316ac3d4ef58e05eaf3eef680c",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/001.log",
+    "log_sha256": "260bc68dc6caa34834a00002431d55265aef06e23d91ad41a446a5fe7a3009a5",
+    "receipt": {
+      "label": "٠ج) probe_leak",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/probe_leak_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:05.719976+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:06.412741+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/002.json",
+    "receipt_sha256": "def4fd588fbc693695f85b3834cda923a4de933ec533b5612d634e3f7abd572b",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/002.log",
+    "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "receipt": {
+      "label": "١أ) ruff check .",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "ruff",
+        "check",
+        "."
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:06.523034+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:06.865520+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/003.json",
+    "receipt_sha256": "d2036e767be77725294056146af399ae2af2bfe0b3aebb6710be0f083ce6cbcf",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/003.log",
+    "log_sha256": "7a25019710b76d99920e32642a7bd62c257ffd5ecad9c26aa2fb5ca7b4ebe9b2",
+    "receipt": {
+      "label": "١ب) ruff format .",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "ruff",
+        "format",
+        "."
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:06.942494+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:07.312337+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/004.json",
+    "receipt_sha256": "32916a5816a756119a60fab9ba386f6f1ecc8b087260b101a37958b2ab60f22d",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/004.log",
+    "log_sha256": "67bd272ed135eccbe01116cf7f03751a4cf2bb750f15bee730417f218e9924b9",
+    "receipt": {
+      "label": "٢ب) no_merge_conflict_markers",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/no_merge_conflict_markers_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:07.376705+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:08.144444+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/005.json",
+    "receipt_sha256": "b4692d0fe2104c59efa13b54153cc5bcecca209e372ca36aa193061f179f3f92",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/005.log",
+    "log_sha256": "a769fd4948489cdfc8830de6cba196c11ae1127ee359f737447896434140f502",
+    "receipt": {
+      "label": "٢أ) no_manual_backup_files",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/no_manual_backup_files_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:08.264043+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:08.459104+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/006.json",
+    "receipt_sha256": "e6750c1b9177f5b66abae1c571e56ee4b2659e45e3530af98145a3a12ea0127e",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/006.log",
+    "log_sha256": "aca98fcc0feb3c19780def7a75bd538660631f7ce8b17cb28b6b9c5bd4ee308c",
+    "receipt": {
+      "label": "٢ز) cross_service_path_contract",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/cross_service_path_contract_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:08.525655+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:08.801558+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/007.json",
+    "receipt_sha256": "a565f5461fb86bee1698c84acecbb6f8e247f9d3488dddafaa2ba4133a796ccd",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/007.log",
+    "log_sha256": "347b97cb85a799dfad837f5690e440b417f57edc713c810a1c0b68df6ada01c5",
+    "receipt": {
+      "label": "٢ج) bidi_control_char",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/bidi_control_char_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:08.887527+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:13.556448+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/008.json",
+    "receipt_sha256": "c7d724df2a11ceef1729f3eccf680c725a4e88b98d94696bcb7e21ae8c1f2655",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/008.log",
+    "log_sha256": "3d7842065a29e68f17f20e0efda0883b1f26baa85bbf56e0eeea3a1add0da180",
+    "receipt": {
+      "label": "٢د) non_ascii_fixture_path",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests_v9/test_non_ascii_fixture_path_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:13.634975+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:16.399462+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/009.json",
+    "receipt_sha256": "41a040b975a29576087c2ac28f1fedb75303d7abc2e153a45eb7a096d68d0c29",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/009.log",
+    "log_sha256": "81951db07ac30a01cbaa1d7f680e0ab8f6a893f463a3746feb38bce833c98159",
+    "receipt": {
+      "label": "٢ﻫ) json_duplicate_key",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/json_duplicate_key_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:16.475727+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:17.251942+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/010.json",
+    "receipt_sha256": "126b8bd0c1c18fa889ca2e7eebf252f5f129bea45ccd1b9694783c380b0a53b0",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/010.log",
+    "log_sha256": "887a23ed7887c222c2b4d7a4085f2cee8ff93f610e949304ae808f015719c834",
+    "receipt": {
+      "label": "٢و) text_encoding_locale",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:17.323021+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:22.419426+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/011.json",
+    "receipt_sha256": "7f7258c1f9e0272d96e72c90d2ddecc848818ed1663fc87ce0860e8c6b2daea1",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/011.log",
+    "log_sha256": "4f504eb231eb59b6c53e6e91412c401aead178d8da49ca08e3aeebc399172e9b",
+    "receipt": {
+      "label": "٣أ) claim_base_guard",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/claim_base_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:22.492270+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:22.695521+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/012.json",
+    "receipt_sha256": "5b9cc72791924259aa5e7bd26e92bd40736555ca28a7cabae1b8adf3ccb24e65",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/012.log",
+    "log_sha256": "8d95c704c00f41fbf104f3e9a686720cfabe92e90b5a18a889ae74e62bc90ae4",
+    "receipt": {
+      "label": "٣ب) guard_mutation (ساكن)",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/guard_mutation_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:22.789726+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:22.952921+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/013.json",
+    "receipt_sha256": "856139642e3997d0191e69f7dbb8ba0ebdff73f9acf5401dd8582c991d476865",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/013.log",
+    "log_sha256": "acded25999cec38d87fb5d0cd83c6da3ff91f2fce322c68c360b2e664f45a539",
+    "receipt": {
+      "label": "٤أ) compose_env_contract",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/compose_env_contract_gate.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:23.080320+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:23.456636+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/014.json",
+    "receipt_sha256": "5f21df36a4d8802446c7e04a9d07f6ba0f57802e67651316f4085244ec418d6b",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/014.log",
+    "log_sha256": "b7c53bb24c6994dfa8abf6bc4b98b2739ad45b5baa89a3d7fb795478e347d44f",
+    "receipt": {
+      "label": "٤د) compose_no_default_secrets",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/compose_no_default_secrets_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:23.530617+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:23.677069+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/015.json",
+    "receipt_sha256": "5e05a5e2f11c974b93421962ae1887167eaabf46f3a2c92ee3575ddb247bfec1",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/015.log",
+    "log_sha256": "aceba9bb9477cc669036d2d5a1cb722edb1487e3b4517d23484b9df539c5f0d8",
+    "receipt": {
+      "label": "٤ﻫ) compose_auth_sink",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/compose_auth_sink_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:23.761241+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:24.133806+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/016.json",
+    "receipt_sha256": "a8fda5742ba4bfed1a5d21f3eacff3344b5369ed5f008ad55b6d4b47aef38eae",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/016.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": {
+      "label": "٤و) generated_write_targets",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/generated_write_targets.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:24.212039+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:25.047185+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/017.json",
+    "receipt_sha256": "45801c1660b8187ea88f0e3ba8aa12807750d4bf0c7b1a5336ecb84b701b3f71",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/017.log",
+    "log_sha256": "273a78138111e9579835140e2b9e17138cf9a41e95e2b98ff06f74419fceefd1",
+    "receipt": {
+      "label": "٤ب) env_compose_drift",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/env_compose_drift_guard.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:25.149729+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:25.370696+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/018.json",
+    "receipt_sha256": "599a843cda37efaee2b7fddaa4815bc4730665e1fa82c046af75f7ee577eaa6a",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/018.log",
+    "log_sha256": "bee40e1263679da5f7cb69c7677a44036f2aba5871d409c822bcb7e26ca801c5",
+    "receipt": {
+      "label": "٤ج) compose_runtime_target",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/compose_runtime_target_resolver.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:25.442770+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:25.726019+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/019.json",
+    "receipt_sha256": "2c28bd936821f704f4d7317d41c783279cdf4d092be4c8ed75235607aa67742a",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/019.log",
+    "log_sha256": "5df122072cb9e7c2e83137af86e396f653c6db972fee68219637e6d0f5e96d4d",
+    "receipt": {
+      "label": "٤ز) db_writer_ownership",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/db_writer_ownership_guard.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:25.803253+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:38.582769+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/020.json",
+    "receipt_sha256": "7544b607de2b85f4dd4e109679b90e5909565ae9947f09bcf47bac4eb8ca69fd",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/020.log",
+    "log_sha256": "040b6f71544a9aa59064179fbdb451765f27970fea9352d464c11831622e5d92",
+    "receipt": {
+      "label": "٥أ) arch_test_ci_coverage",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/arch_test_ci_coverage_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:38.677421+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:38.791071+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/021.json",
+    "receipt_sha256": "93b837810d7404b49090abe8cd6c57986bff96b29ac95806e2af91790c98b0ad",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/021.log",
+    "log_sha256": "81d83a8cce9f41318f8407626715e921ee343152c2877879939c8eab829219a3",
+    "receipt": {
+      "label": "٥ب) marker_coverage",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/test_marker_coverage_guard.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:38.862597+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:41.485190+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/022.json",
+    "receipt_sha256": "76b63a4f81198a2835cc73f7f24b2bc54b9f098b882819dcc47bd8fdced1ea9f",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/022.log",
+    "log_sha256": "94aa0ca2ed8210fc2b52dbd79a0ee7632ea4c6a614b7d31aa13a703071cc3f83",
+    "receipt": {
+      "label": "٥ج) platform_module_budget",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:41.563727+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:42.447123+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/023.json",
+    "receipt_sha256": "2edcb9021e2d5535b3c44695b6e56c53adef4ee858e5e418d52796ac8967c154",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/023.log",
+    "log_sha256": "581e03a9e694d8a91a9649f5a6c1dab41e906316bf21e0e7fb63859bcb064de6",
+    "receipt": {
+      "label": "٦أ) brain_deferral",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_deferral_registry_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:42.517251+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:42.656492+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/024.json",
+    "receipt_sha256": "298eaf83a9cb14687c149c72568cdfdedb3a9f3f31f3788666001224b467b2c0",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/024.log",
+    "log_sha256": "db883d435a3cd7a4923bef3e4844057c36f0b95f8dbde6928a67601ce8b9210a",
+    "receipt": {
+      "label": "٦د) brain_duplicate_gap_identity",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_duplicate_gap_identity_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:42.728446+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:42.900544+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/025.json",
+    "receipt_sha256": "4fd04c2416193cbbdc9a147a19fc8df027651311c14222deee94034878e283cc",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/025.log",
+    "log_sha256": "acee4a0055097b25067b97d15ccb563400d1d6ce76e5c1d4fb1b10c879fbef3d",
+    "receipt": {
+      "label": "٦و) brain_annotated_supersession",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_annotated_supersession_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:42.973755+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:43.285687+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/026.json",
+    "receipt_sha256": "bf7276a96f0633eb4750a56fe1d77f2b21700c28677d79dc76066f6bf59a4152",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/026.log",
+    "log_sha256": "f25bbad27354e64dec43e27de75da7e97efa23ba01283716a1b3a2753b73ebab",
+    "receipt": {
+      "label": "٦ب) brain_state_transition",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_state_transition_guard.py",
+        "--base",
+        "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+        "--head",
+        "HEAD"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:43.352773+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:44.516546+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/027.json",
+    "receipt_sha256": "67a8b541adaea5a184804dcf1cbd037cf8910fa4a76c02355ff38e646862858f",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/027.log",
+    "log_sha256": "cb9889b3a81cdc397eeebd3cbc265c83abb83a32fcc55dfef751656f7e5c339f",
+    "receipt": {
+      "label": "٦ج) brain_commit_claim",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_commit_claim_guard.py",
+        "--base",
+        "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+        "--head",
+        "HEAD"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:44.583080+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:44.728849+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/028.json",
+    "receipt_sha256": "dd45bdfffa5f19bc2a789add64b4456ffe3d3bb323d93ac2114f06fbcf9384dc",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/028.log",
+    "log_sha256": "7cebbf1eae37e12b976ecdf8c110ab9642cbbcfd7e04bcd82feea11b45d27210",
+    "receipt": {
+      "label": "٦هـ) brain_append_only",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/brain_append_only_guard.py",
+        "--base",
+        "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+        "--head",
+        "HEAD"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:44.797901+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:16:45.414272+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/029.json",
+    "receipt_sha256": "1abe650c6a838e6ec12eb2a77caebb34ff70437308eb66caebe9c58190278dd1",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/029.log",
+    "log_sha256": "64510a595386229ba3d3e22dbcaad04903ad7acf3893f1662a2ddae5b9405a17",
+    "receipt": {
+      "label": "٧أ) verify_all_generated --fix",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/verify_all_generated.py",
+        "--fix"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "fedddce1ab9d3d45b1a2dab8a1e9496fa74eda6b",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:16:45.500932+00:00",
+      "working_status": [],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:21:08.824362+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/030.json",
+    "receipt_sha256": "19919afc4a5c5d10d0470a4fb50a3a581f24a36562415e302100888dd05961f7",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/030.log",
+    "log_sha256": "d327a7a6abb4198b4923b853fe858a90fa7d61a78867afd45a043dc9110dfd8e",
+    "receipt": {
+      "label": "٧ب) verify_all_generated --check (إثبات التقارب)",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/verify_all_generated.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:21:09.105391+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:23:31.380563+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/031.json",
+    "receipt_sha256": "c16f84e488c269a4896516ba3562e04ddcd795786404a8f0085da1e90b39124c",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/031.log",
+    "log_sha256": "868c73be86a169a438797f54829906408a8b79e6c67e42a81b9a64f4a9d22994",
+    "receipt": {
+      "label": "٨أ) pytest -m unit",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-u",
+        "-X",
+        "faulthandler",
+        "-m",
+        "pytest",
+        "-q",
+        "-m",
+        "unit",
+        "-o",
+        "faulthandler_timeout=120",
+        "--junitxml=<scratch>/analysis/wave1_raster_full_56de_v2/unit_normal.xml"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:23:31.442980+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:31:51.758130+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/032.json",
+    "receipt_sha256": "0ff516a956d1d6252f8fb248a3013eca9e3a3a85b898aee8761a3ee31535936b",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/032.log",
+    "log_sha256": "8afc574c468db7a0d9999c948c935b922cd68ed020a477183ac73211dd8dc351",
+    "receipt": {
+      "label": "٨ب) pytest tests/",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:31:51.831780+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:37:29.004188+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/033.json",
+    "receipt_sha256": "79046b5d94df13d10c3e40d83e77e2b60cb3d7ae014c40b3894e3cffba6812a0",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/033.log",
+    "log_sha256": "9fa6fdefd646cad0ff030f9f7d725f0f295748f8f522246b5b3da9adc09bd860",
+    "receipt": {
+      "label": "٨ج) pytest services/sahool-platform/tests (شكل CI)",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bash",
+        "-c",
+        "cd services/sahool-platform && PYTHONPATH=. python3 -m pytest -q -p no:cacheprovider tests"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:37:29.403541+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:38:27.276901+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/034.json",
+    "receipt_sha256": "f44e0293d0dea8401f656d1d10097040e463f679e1fc68a9e614e08367129167",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/034.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": {
+      "label": "٩أ) bandit (HIGH يحجب)",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bandit",
+        "-r",
+        "services/",
+        "bots/",
+        "agents/",
+        "--severity-level",
+        "high",
+        "-q"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:38:27.345983+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:38:44.274511+00:00"
+    }
+  },
+  {
+    "group": "native_retained",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/035.json",
+    "receipt_sha256": "978476847aafcbd90d36f15b56d3f0375c627bd60e467bf7e069b85729d2d7b4",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/035.log",
+    "log_sha256": "15950a68a7ed99c59779717acefdceb3f69cfd31bde67d2c954f2a3cea4d7955",
+    "receipt": {
+      "label": "٩ب) pip-audit (المسار الحرج)",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "pip-audit",
+        "-r",
+        "requirements_real.txt",
+        "--ignore-vuln",
+        "PYSEC-2026-1325",
+        "--ignore-vuln",
+        "CVE-2026-85394"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:38:44.343708+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:39:16.927489+00:00"
+    }
+  },
+  {
+    "group": "native_resumed",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_c_recovery_01/domain_native_c_unit.json",
+    "receipt_sha256": "ee0e09e749f0cd32132dc243a1e7d383f1bf1f2644094a67f975f9da108f4a8e",
+    "raw_log": "<scratch>/analysis/wave1_raster_c_recovery_01/domain_native_c_unit.log",
+    "log_sha256": "cfd08555a527a69aea1839a14042224d07b74fde3fe92b8ed78f0023b96c2102",
+    "receipt": {
+      "label": "native_c_unit",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "env",
+        "-u",
+        "PYTHONIOENCODING",
+        "LC_ALL=C",
+        "PYTHONUTF8=0",
+        "python3",
+        "-u",
+        "-X",
+        "faulthandler",
+        "-m",
+        "pytest",
+        "-q",
+        "-m",
+        "unit",
+        "-o",
+        "faulthandler_timeout=120",
+        "--junitxml=<scratch>/analysis/wave1_raster_c_recovery_01/unit_c.xml"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:46:50.145751+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:55:01.919939+00:00"
+    }
+  },
+  {
+    "group": "native_resumed",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_c_recovery_01/domain_native_c_guards.json",
+    "receipt_sha256": "84ddeeae9566111c12c16f4c0692c2123ac28e61f068d8a2ebbca90efcf02d9e",
+    "raw_log": "<scratch>/analysis/wave1_raster_c_recovery_01/domain_native_c_guards.log",
+    "log_sha256": "e75672b9282783cbf802383194b32dce624568622f9fc729ee064f9d5ad17cdc",
+    "receipt": {
+      "label": "native_c_guards",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/guard_locale_survival_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:55:02.002865+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:28.148211+00:00"
+    }
+  },
+  {
+    "group": "domain",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_raster_pixel.json",
+    "receipt_sha256": "7912dc393439c7dba0c02a2563f2fd27e94257902dc0cd592cf0eadd283bab4e",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_raster_pixel.log",
+    "log_sha256": "962d10137cd5f68788fa5a32dabead3f0b4e4f5c4f8de390d0884782d6d2cb1c",
+    "receipt": {
+      "label": "raster_pixel",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/raster_pixel_qa_indicator_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:56:43.155444+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:43.261903+00:00"
+    }
+  },
+  {
+    "group": "domain",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_container_contract.json",
+    "receipt_sha256": "d014a26dca4f30be5f04cf6e68f37e883fb4e902d8cfef3efb4209a33f76deba",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_container_contract.log",
+    "log_sha256": "7415fc938e30410ab58ed0866a14ce0a16727688827eef2be19d011d9a9698d9",
+    "receipt": {
+      "label": "container_contract",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/runtime_container_deep_contract_guard.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:56:43.329330+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:43.572524+00:00"
+    }
+  },
+  {
+    "group": "domain",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_image_supply_chain.json",
+    "receipt_sha256": "5820269644ef2c38b3221ff302aca647b6484da3242b0f7429345d77b23623a6",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_image_supply_chain.log",
+    "log_sha256": "ddb3ff5beec6d6b88374511e8e73b59073b546c9e67fcf99441ef053d1fb84c9",
+    "receipt": {
+      "label": "image_supply_chain",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/runtime_image_supply_chain_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:56:43.637440+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:43.765706+00:00"
+    }
+  },
+  {
+    "group": "domain",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_docker_static.json",
+    "receipt_sha256": "a69f9dbd744ef6e5443be010bc47a9d61bd6f17e1e39daee1bed62a02287c249",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_docker_static.log",
+    "log_sha256": "f33368e1afa4f2b4a72c64e1be3329b59499f2300af1a73e3bfff2df4ff5d957",
+    "receipt": {
+      "label": "docker_static",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests_v9/test_docker_build_matrix_verifier_static.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:56:43.832496+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:44.923311+00:00"
+    }
+  },
+  {
+    "group": "domain",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_raster_quality.json",
+    "receipt_sha256": "00e4716b6e75a7f92a767d8aa253199501e40669d57c7c160c15f7355e60a43c",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_raster_quality.log",
+    "log_sha256": "7d7285b2fc0951637aaf2b8c586937572f05306013e7128146ae3393a3721d58",
+    "receipt": {
+      "label": "raster_quality",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bash",
+        "scripts/ci/raster_quality_gate.sh"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:56:44.992100+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:56:53.635670+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_no_report_only.json",
+    "receipt_sha256": "39b8727b7b210a6e968ff8f2fc1a4b55bbc9842969d9222fd539b7a8ba6a393f",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_no_report_only.log",
+    "log_sha256": "195cc76aa11bdd6dada87d32fa6a7cb16c67b479e9619171c1aa7b77de370390",
+    "receipt": {
+      "label": "no_report_only",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bash",
+        "-o",
+        "pipefail",
+        "-c",
+        "git diff --name-only 56de3d316fd5243253b6f6d38dc38b331bbddf95...HEAD | python3 scripts/ci/no_report_only_change_guard.py --stdin"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:00.749134+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:00.872143+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gap_heading.json",
+    "receipt_sha256": "cf0f2132b015d4f6c267a8a537830dea28d2fd2658f1494b9a237a79968c569e",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gap_heading.log",
+    "log_sha256": "adf2bb6ce576716140e6434487ac167b1a45ef2c3717c592aead5bacac1cff54",
+    "receipt": {
+      "label": "gap_heading",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/gap_heading_state_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:00.947473+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:01.267598+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gap_claim.json",
+    "receipt_sha256": "ff0fc0bb31f4932a37ac020a84a317328f0be3d6c9096ac642385ddb1a872b7c",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gap_claim.log",
+    "log_sha256": "65bb443963b6a7088cc93c2b4226f5aa6cf1255434744c9edaa74ff7f92b5e6d",
+    "receipt": {
+      "label": "gap_claim",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/gap_registry_claim_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:01.338866+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:14.243027+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gate01.json",
+    "receipt_sha256": "a1cbf5ecaa89e85d23980c6651d51df3c53f611a6b63b95e46d7d711f5110dc1",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_gate01.log",
+    "log_sha256": "373042a73272a27a7fb976ab603716570e2a33fcdf0df80c70635d1984acfcf9",
+    "receipt": {
+      "label": "gate01",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bash",
+        "-o",
+        "pipefail",
+        "-c",
+        "git diff --name-only 56de3d316fd5243253b6f6d38dc38b331bbddf95...HEAD | python3 scripts/ci/gate01_frozen_path_guard.py --stdin"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:14.316179+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:14.456322+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_evidence_producer.json",
+    "receipt_sha256": "e8a4f737d23dd323dc10541330bfd7c15ec9f643190848b1beed74223c994324",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_evidence_producer.log",
+    "log_sha256": "dfc8ac9c67f66510a9ed175fe265c510c238bec48f7104e448e98ae3398d354f",
+    "receipt": {
+      "label": "evidence_producer",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/certification_evidence_producer_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:14.522136+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:14.628697+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_probe_leak.json",
+    "receipt_sha256": "cee75a317cc50f53eeb0436f5ce89dccfe970f9e953cd9203f9f14b925f871af",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_probe_leak.log",
+    "log_sha256": "260bc68dc6caa34834a00002431d55265aef06e23d91ad41a446a5fe7a3009a5",
+    "receipt": {
+      "label": "probe_leak",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/probe_leak_guard.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:14.699491+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:57:15.370378+00:00"
+    }
+  },
+  {
+    "group": "extras",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_pip_audit_ci19.json",
+    "receipt_sha256": "dc667994e5159cb327eb43919d933bad8bd7b3ae6141645eb81542475a87e2b0",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_pip_audit_ci19.log",
+    "log_sha256": "2ae6e38b3adf21bbeaa1b73423badbbfa05903c79702ca6a7b9403f9ddb886ac",
+    "receipt": {
+      "label": "pip_audit_ci19",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "pip-audit",
+        "--ignore-vuln",
+        "PYSEC-2026-1325",
+        "--ignore-vuln",
+        "CVE-2026-85394",
+        "-r",
+        "services/sahool-platform/api/requirements.txt",
+        "-r",
+        "services/auth/requirements.txt",
+        "-r",
+        "services/guardrails-engine/requirements.txt",
+        "-r",
+        "requirements_real.txt",
+        "-r",
+        "services/actuator-service/requirements.txt",
+        "-r",
+        "services/agriai-engine/requirements.txt",
+        "-r",
+        "services/edge-inference/requirements.txt",
+        "-r",
+        "services/indicators-service/requirements.txt",
+        "-r",
+        "services/local-ai-rag/requirements.txt",
+        "-r",
+        "services/mcp_servers/requirements.txt",
+        "-r",
+        "services/odoo-bridge/requirements.txt",
+        "-r",
+        "services/qdrant-seed/requirements.txt",
+        "-r",
+        "services/raster-service/requirements.txt",
+        "-r",
+        "services/soil-service/requirements.txt",
+        "-r",
+        "services/supervisor-agent/requirements.txt",
+        "-r",
+        "services/tts-service/requirements.txt",
+        "-r",
+        "services/vegetation-analysis-service/requirements.txt",
+        "-r",
+        "services/video-processor/requirements.txt",
+        "-r",
+        "services/weather-service/requirements.txt",
+        "--progress-spinner",
+        "off"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:57:15.443734+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T17:58:01.758680+00:00"
+    }
+  },
+  {
+    "group": "final_convergence_package",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_generated_check.json",
+    "receipt_sha256": "09f9b6b67d81f621dc858e63aa8ecad0c68cf3ab5789f566b9128122b2087b15",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_generated_check.log",
+    "log_sha256": "d327a7a6abb4198b4923b853fe858a90fa7d61a78867afd45a043dc9110dfd8e",
+    "receipt": {
+      "label": "final_generated_check",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/ci/verify_all_generated.py",
+        "--check"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T17:58:37.218679+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T18:00:56.457938+00:00"
+    }
+  },
+  {
+    "group": "final_convergence_package",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_release_build.json",
+    "receipt_sha256": "b4eb4580a52c2b6f6dcbaaf86d9620d01b9d7e0653a35c079c8f0dd5d2814fd5",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_release_build.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": {
+      "label": "final_release_build",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "bash",
+        "-c",
+        "SOURCE_DATE_EPOCH=\"$(git log -1 --pretty=%ct)\" python3 scripts/release/build_release_bundle.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T18:00:56.522802+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T18:00:57.076912+00:00"
+    }
+  },
+  {
+    "group": "final_convergence_package",
+    "raw_receipt": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_release_validate.json",
+    "receipt_sha256": "6068dc6e89ac6c931a29e76fcff5dec9b50dcb009b553f0f2051a2db31f56829",
+    "raw_log": "<scratch>/analysis/wave1_raster_full_56de_v2/domain_final_release_validate.log",
+    "log_sha256": "88978a464aebc5aa900c752e74786ea6eeb2e14ee00494201d916245c630b285",
+    "receipt": {
+      "label": "final_release_validate",
+      "base": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+      "command": [
+        "python3",
+        "scripts/release/validate_release_package.py"
+      ],
+      "cwd": "<scratch>/raster-wave",
+      "head": "b8caffc6c1908cf4b45f98cf63e2fd449561af35",
+      "index_tree_at_start": "3e6a611943c6315c4601fc897977538728a61bf9",
+      "source_sha256": {
+        "services/raster-service/cdse_client.py": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+        "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+        "services/raster-service/raster_pixel_processing.py": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+        "services/raster-service/test_element84_vrt_defect_witnesses.py": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+        "tests_v9/test_cdse_catalog_hardening_20260626.py": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+        "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86"
+      },
+      "status": "passed",
+      "started_at": "2026-10-14T18:00:57.142310+00:00",
+      "working_status": [
+        "M  SERVICE_REGISTRY.md",
+        "M  docs/capability-registry/generated/impact/impact_index_summary.json",
+        "M  docs/capability-registry/generated/management/management_manifest.json",
+        "M  docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "M  docs/capability-registry/generated/mapping/ambiguous_artifacts.json",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.csv",
+        "M  docs/capability-registry/generated/mapping/capability_mapping.json",
+        "M  docs/capability-registry/generated/mapping/mapping_manifest.json",
+        "M  execution-audit/generated/.audit.sha256",
+        "M  execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md",
+        "M  execution-audit/generated/execution_audit_summary.json",
+        "M  execution-audit/generated/execution_dependency_audit.json",
+        "M  governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256",
+        "M  release/FILE_CHECKSUMS.sha256",
+        "M  release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "M  release/SBOM_MINIMAL.json",
+        "M  service_inventory.csv",
+        "M  service_inventory.generated.json"
+      ],
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "environment": {
+        "LC_ALL": "C.UTF-8",
+        "PYTHONUTF8": null,
+        "PYTHONIOENCODING": null
+      },
+      "tool_versions": {
+        "pytest": "9.1.1",
+        "fastapi": "0.136.3",
+        "ruff": "0.15.8"
+      },
+      "preflight_source_sha256": "553b3aa591e8c8d30afa13937de17e2bedd301fb3919dfb16e7b72d28493a3eb",
+      "exit_code": 0,
+      "finished_at": "2026-10-14T18:00:57.447233+00:00"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/waiver_expiry.json",
+    "receipt_sha256": "cca5d41688fe3c710248e598407fdce3d88e44e5c3ca524e3c3636bdaaff3eeb",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/waiver_expiry.log",
+    "log_sha256": "8dca63796f9d951ade05c9d40838b5519fbeefbce46c47aa1e282ffd1cffcd11",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/waiver_expiry_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:38:39.294191+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/waiver_expiry.log",
+      "log_inode": {
+        "opened": 686026,
+        "visible": 686026,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:38:39.336368+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "8dca63796f9d951ade05c9d40838b5519fbeefbce46c47aa1e282ffd1cffcd11"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/mutation_static.json",
+    "receipt_sha256": "f352ea724927b7086d476baad29c9f29e1506f1fd1d45691d0d159e0e2068698",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/mutation_static.log",
+    "log_sha256": "8d95c704c00f41fbf104f3e9a686720cfabe92e90b5a18a889ae74e62bc90ae4",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/guard_mutation_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:38:39.387781+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/mutation_static.log",
+      "log_inode": {
+        "opened": 686028,
+        "visible": 686028,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:38:39.497998+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "8d95c704c00f41fbf104f3e9a686720cfabe92e90b5a18a889ae74e62bc90ae4"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/waiver_mutation.json",
+    "receipt_sha256": "cb5145fc81dc028c20b2867c3620a1a183c7bf12cfaa92bc9c632fdb87dded17",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/waiver_mutation.log",
+    "log_sha256": "44f800132eb3557fe42a09afa26514a991209bd0c8e3c4b669e7208cbd9b9ff6",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/guard_mutation_guard.py",
+        "--run",
+        "--only",
+        "config/endpoint_ui_coverage_waivers.json"
+      ],
+      "started_utc": "2026-10-14T19:38:39.554019+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/waiver_mutation.log",
+      "log_inode": {
+        "opened": 686030,
+        "visible": 686030,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:38:41.303669+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "44f800132eb3557fe42a09afa26514a991209bd0c8e3c4b669e7208cbd9b9ff6"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/metadata_tests.json",
+    "receipt_sha256": "8a468939d61360991eb4fc68fb74b7d2ca27d89aab79cc151d821a7c55c37be5",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/metadata_tests.log",
+    "log_sha256": "6de6a593e4f8f36f5df9acfff0d643d61323767d9478ca5623cd117614d4e126",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests_v9/test_waiver_expiry_guard.py",
+        "tests_v9/test_guard_mutation_guard.py",
+        "tests_v9/test_brain_transition_guard_vocabulary.py",
+        "tests_v9/test_brain_annotated_supersession_guard.py",
+        "tests_v9/test_brain_append_only_guard.py",
+        "tests_v9/test_brain_duplicate_gap_identity_guard.py",
+        "tests_v9/test_brain_narrative_registry_consistency.py",
+        "tests_v9/test_gap_heading_state_guard.py",
+        "tests_v9/test_gap_registry_claim_guard.py",
+        "--junitxml=<scratch>/analysis/raster_pr1185_final/metadata_tests.xml"
+      ],
+      "started_utc": "2026-10-14T19:38:41.361257+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/metadata_tests.log",
+      "log_inode": {
+        "opened": 685996,
+        "visible": 685996,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:39:31.946004+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "6de6a593e4f8f36f5df9acfff0d643d61323767d9478ca5623cd117614d4e126"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/fast_metadata.json",
+    "receipt_sha256": "3560741e4833356a42e22ba5d5d7cbb81c916684151c3f5df7f37d1dfa5a8f53",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/fast_metadata.log",
+    "log_sha256": "e21874053cc0cf593eff6c05b635fb77a8dd11c57db4970a697ed514ba73f2a8",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "env",
+        "BASE=e6145c103e3da6c27c3ede006839f0fc8b4172e0",
+        "bash",
+        "scripts/ci/preflight.sh",
+        "--fast",
+        "--no-fetch"
+      ],
+      "started_utc": "2026-10-14T19:39:31.993749+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/fast_metadata.log",
+      "log_inode": {
+        "opened": 699032,
+        "visible": 699032,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:40:03.923385+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "e21874053cc0cf593eff6c05b635fb77a8dd11c57db4970a697ed514ba73f2a8"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/gap_heading.json",
+    "receipt_sha256": "d84a28bd9d7ddedb5a8f751da5a2f5e72c8a8d16738fb9a272cd92ae3b8f51d8",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/gap_heading.log",
+    "log_sha256": "adf2bb6ce576716140e6434487ac167b1a45ef2c3717c592aead5bacac1cff54",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/gap_heading_state_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:40:03.973844+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/gap_heading.log",
+      "log_inode": {
+        "opened": 698043,
+        "visible": 698043,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:40:04.191581+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "adf2bb6ce576716140e6434487ac167b1a45ef2c3717c592aead5bacac1cff54"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/gap_claim.json",
+    "receipt_sha256": "93e93337f6a070fab497450b7020bbded7c6b1c58f586fc7c83c17da0340f40a",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/gap_claim.log",
+    "log_sha256": "65bb443963b6a7088cc93c2b4226f5aa6cf1255434744c9edaa74ff7f92b5e6d",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/gap_registry_claim_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:40:04.239142+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/gap_claim.log",
+      "log_inode": {
+        "opened": 698503,
+        "visible": 698503,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:40:16.557352+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "65bb443963b6a7088cc93c2b4226f5aa6cf1255434744c9edaa74ff7f92b5e6d"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/evidence_producer.json",
+    "receipt_sha256": "4907cfff09a3c843c8f81a1991f0f4a8a85ec5bf5cd5330070a044d3fcde0506",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/evidence_producer.log",
+    "log_sha256": "dfc8ac9c67f66510a9ed175fe265c510c238bec48f7104e448e98ae3398d354f",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/certification_evidence_producer_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:40:16.616865+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/evidence_producer.log",
+      "log_inode": {
+        "opened": 698530,
+        "visible": 698530,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:40:16.672006+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "dfc8ac9c67f66510a9ed175fe265c510c238bec48f7104e448e98ae3398d354f"
+    }
+  },
+  {
+    "group": "main1184_scoped_metadata",
+    "raw_receipt": "<scratch>/analysis/raster_pr1185_final/probe_leak.json",
+    "receipt_sha256": "7945025cbddbb2d2d6836cdfe24386271aea09833c9ef0b46ed4f2c865659aa3",
+    "raw_log": "<scratch>/analysis/raster_pr1185_final/probe_leak.log",
+    "log_sha256": "260bc68dc6caa34834a00002431d55265aef06e23d91ad41a446a5fe7a3009a5",
+    "receipt": {
+      "cwd": "<scratch>/raster-wave",
+      "command": [
+        "python3",
+        "scripts/ci/probe_leak_guard.py"
+      ],
+      "started_utc": "2026-10-14T19:40:16.724393+00:00",
+      "status": "completed",
+      "before": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log": "<scratch>/analysis/raster_pr1185_final/probe_leak.log",
+      "log_inode": {
+        "opened": 698562,
+        "visible": 698562,
+        "matched": true
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-10-14T19:40:17.208044+00:00",
+      "after": {
+        "head": "c79f75b554553258d1f89e9fe87d94849022e10a",
+        "index_tree": "53c162401c7ddbf42ad528f5c6d3424c50c1721d",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "log_sha256": "260bc68dc6caa34834a00002431d55265aef06e23d91ad41a446a5fe7a3009a5"
+    }
+  }
+]

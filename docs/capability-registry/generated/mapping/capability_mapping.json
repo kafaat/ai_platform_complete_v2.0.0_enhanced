@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5651,
+    "files_scanned": 5676,
     "files_by_kind": {
       "backend": 1223,
       "database": 282,
       "governance": 67,
       "mobile": 55,
-      "other": 1649,
+      "other": 1674,
       "tests": 1908,
       "web": 467
     },
     "unmapped_artifacts": 2260,
-    "ambiguous_artifacts": 435
+    "ambiguous_artifacts": 436
   },
   "capabilities": [
     {
@@ -12950,6 +12950,13 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
         }
       ],
       "ambiguous": [],
@@ -12965,7 +12972,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -13998,6 +14005,13 @@
           ]
         },
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
           "score": 20,
           "signals": [
@@ -14058,7 +14072,7 @@
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 9
+        "other_evidence": 10
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -17596,6 +17610,10 @@
           "score": 18
         },
         {
+          "value": "imagery_search.py @ tests_v9/test_cdse_catalog_hardening_20260626.py:96",
+          "score": 18
+        },
+        {
           "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase23.py:2698",
           "score": 18
         },
@@ -17796,6 +17814,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_cdse_catalog_hardening_20260626.py",
+          "score": 18,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "tests_v9/test_cdse_process_throttle_retry_guard.py",
           "score": 18,
           "signals": [
@@ -17968,14 +17995,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_cdse_catalog_hardening_20260626.py",
-          "score": 14,
-          "signals": [
-            "path:cdse",
-            "content:cdse"
-          ]
-        },
-        {
           "path": "tests_v9/test_cdse_cloud_filter_policy.py",
           "score": 14,
           "signals": [
@@ -18056,6 +18075,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+          "score": 11,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/gis-workflow-service/tests/test_map_layout.py",
           "score": 10,
           "signals": [
@@ -18081,14 +18108,6 @@
         },
         {
           "path": "services/raster-service/test_cloud_native_catalog.py",
-          "score": 9,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
           "score": 9,
           "signals": [
             "content:sentinel",
@@ -18171,6 +18190,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/actual_pr_provenance.json",
+          "score": 29,
+          "signals": [
+            "content:cdse",
+            "content:stac",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/arabic_state_guard_20261014/opening_capability_gate.json",
           "score": 26,
           "signals": [
@@ -18183,6 +18211,14 @@
           "score": 25,
           "signals": [
             "content:stac",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+          "score": 23,
+          "signals": [
+            "content:cdse",
             "explicit_id"
           ]
         },
@@ -18430,6 +18466,23 @@
           ]
         },
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/full_gate_receipts.json",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_green.json",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/audits/RIV_THREE_CONTAINERS_FINAL_BOUNDARY_COMPLETION_20260712.md",
           "score": 12,
           "signals": [
@@ -18463,6 +18516,31 @@
           ]
         },
         {
+          "path": "certification/evidence/raster_cache_catalog_20261014/full_gate_summary.json",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_red.json",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_result.json",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/RASTER_BOUNDARY_CONTRACT.md",
           "score": 10,
           "signals": [
@@ -18481,6 +18559,30 @@
         },
         {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE13_ROUTER_DIRECT_IMPORTS_20260706.md",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/governance_integration_validation.json",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/provenance.json",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "certification/evidence/raster_cache_catalog_20261014/wave1_catalog_independent_review.json",
           "score": 9,
           "signals": [
             "content:cdse",
@@ -18656,12 +18758,12 @@
         "backend": 37,
         "routes": 65,
         "database": 3,
-        "events": 46,
+        "events": 47,
         "web": 5,
         "mobile": 0,
         "tests": 49,
         "governance": 0,
-        "other_evidence": 59
+        "other_evidence": 69
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -27069,6 +27171,13 @@
           ]
         },
         {
+          "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
           "score": 20,
           "signals": [
@@ -27106,7 +27215,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 2,
       "mapped": true
@@ -46529,6 +46638,41 @@
       ]
     },
     {
+      "path": "certification/evidence/arabic_state_guard_20261014/pr1183_merged_rest_raw.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 23,
+          "signals": [
+            "content:cdse",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "SEC-003",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-009",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-003",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
       "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
       "kind": "other",
       "candidates": [
@@ -51758,19 +51902,19 @@
           ]
         },
         {
+          "capability_id": "SAT-001",
+          "score": 11,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "capability_id": "SAT-005",
           "score": 9,
           "signals": [
             "content:cloud mask",
             "content:scl"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 9,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
           ]
         }
       ]

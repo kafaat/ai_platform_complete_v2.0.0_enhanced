@@ -1,0 +1,9 @@
+{
+  "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "branch": "main",
+  "sha": "56de3d316fd5243253b6f6d38dc38b331bbddf95",
+  "observed_at": "2026-10-14T17:11:31.614Z",
+  "raw_api_kind": "github_rest_ref",
+  "raw_receipt_path": "<scratch>/analysis/main_after_pr1183_rest_raw.json",
+  "raw_receipt_sha256": "c0640c016c9fe8437ca2559cef924b2831e14a6bd884a1d8977cc2654fe327c7"
+}
