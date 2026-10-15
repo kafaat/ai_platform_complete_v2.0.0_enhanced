@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   mirror:
-    name: Mirror ${{ matrix.kind} / ${{ matrix.pin}
+    name: Mirror ${{ matrix.kind }} / ${{ matrix.pin }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
@@ -51,16 +51,16 @@ jobs:
 
       - name: Authenticate only to destination registry
         env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           printf '%s' "$GHCR_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
       - name: Preserve source OCI index digest (fail closed)
         env:
-          KIND: ${{ matrix.kind}
-          PIN: ${{ matrix.pin}
-          DIGEST: ${{ matrix.digest}
+          KIND: ${{ matrix.kind }}
+          PIN: ${{ matrix.pin }}
+          DIGEST: ${{ matrix.digest }}
         run: |
           set -euo pipefail
           source="public.ecr.aws/docker/library/${KIND}@sha256:${DIGEST}"
