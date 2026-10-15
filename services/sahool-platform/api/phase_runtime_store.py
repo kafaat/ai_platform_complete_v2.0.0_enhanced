@@ -464,12 +464,16 @@ async def persist_phase10_learning_outputs(
                 INSERT INTO online_learning_updates
                     (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
                      label_summary, drift_score, action, source_type, source_id, field_id, season_id,
-                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
-                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status,
+                     review_status, agronomically_approved, agronomic_review)
+                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb)
                 ON CONFLICT (tenant_id, update_id) DO UPDATE SET
                     action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
                     source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
-                    traceability_status = EXCLUDED.traceability_status
+                    traceability_status = EXCLUDED.traceability_status,
+                    review_status = EXCLUDED.review_status,
+                    agronomically_approved = EXCLUDED.agronomically_approved,
+                    agronomic_review = EXCLUDED.agronomic_review
                 """,
                 tenant,
                 str(update.get("update_id")),
@@ -488,6 +492,9 @@ async def persist_phase10_learning_outputs(
                 _lin["decision_id"],
                 _lin["evidence_snapshot_id"],
                 _lin["traceability_status"],
+                _lin["review_status"],
+                _lin["agronomically_approved"],
+                json.dumps(_lin["review"], ensure_ascii=False) if _lin["review"] is not None else None,
             )
             # الجسر الانتقاليّ: كتابة online_learning_updates أعلاه موثوقة ومحفوظة (المنصّة
             # هي مصدر السجلّ المؤقّت). نعكسها best-effort إلى decision-service — الفشل يُسجَّل
