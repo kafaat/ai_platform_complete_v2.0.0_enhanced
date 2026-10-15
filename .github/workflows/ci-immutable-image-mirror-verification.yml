@@ -27,8 +27,8 @@ permissions:
 concurrency:
   group: >-
     ${{ github.event_name == 'pull_request'
-        && format('ci-immutable-mirror-verification-pr-{0}', github.event.pull_request.number)
-        || format('ci-immutable-mirror-verification-{0}-{1}', github.ref, github.run_id) }}
+        && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number)
+        || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
