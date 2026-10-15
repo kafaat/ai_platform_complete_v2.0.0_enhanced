@@ -1,0 +1,38 @@
+[
+  {
+    "mutation": "reset_check",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=2)"
+  },
+  {
+    "mutation": "well_coverage",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (errors=5)"
+  },
+  {
+    "mutation": "flow_rounding",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "zero_flow",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=4)"
+  },
+  {
+    "mutation": "mass_conservation",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=2)"
+  },
+  {
+    "mutation": "kc_lineage",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  }
+]

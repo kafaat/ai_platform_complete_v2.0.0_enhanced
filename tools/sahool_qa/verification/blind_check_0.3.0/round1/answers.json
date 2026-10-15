@@ -1,0 +1,577 @@
+{
+ "sq-4adc11c8a854": {
+  "answer": "ب",
+  "value": {
+   "pattern": "none",
+   "field": 100.0,
+   "ring_spread": 0.0,
+   "sector_spread": 0.0,
+   "min_ring": 100.0,
+   "min_sector": 100.0
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-a95382bbf4e3": {
+  "answer": "د",
+  "value": {
+   "pattern": "none",
+   "field": 100.0,
+   "ring_spread": 0.0,
+   "sector_spread": 0.0,
+   "min_ring": 100.0,
+   "min_sector": 100.0
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d57aa00f50e6": {
+  "answer": "ب",
+  "value": {
+   "pattern": "sector",
+   "field": 76.1,
+   "ring_spread": 1.4,
+   "sector_spread": 96.8,
+   "min_ring": 75.9,
+   "min_sector": 3.2
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-de3179a6a4ec": {
+  "answer": "ب",
+  "value": {
+   "pattern": "ring",
+   "field": 73.1,
+   "ring_spread": 95.8,
+   "sector_spread": 1.1,
+   "min_ring": 4.2,
+   "min_sector": 72.6
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-3ece10310206": {
+  "answer": "د",
+  "value": {
+   "pattern": "sector",
+   "field": 75.9,
+   "rings": [
+    75.0,
+    75.7,
+    75.9,
+    75.6,
+    76.4
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    52.2,
+    3.2,
+    50.7,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "ring_spread": 1.4,
+   "sector_spread": 96.8,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-7d4d12888fba": {
+  "answer": "أ",
+  "value": {
+   "pattern": "ring",
+   "field": 73.1,
+   "rings": [
+    100.0,
+    100.0,
+    100.0,
+    4.5,
+    99.8
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    73.0,
+    73.0,
+    73.1,
+    72.5,
+    73.2,
+    73.3,
+    73.7,
+    73.2
+   ],
+   "ring_spread": 95.5,
+   "sector_spread": 1.1,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-a7300a457a8d": {
+  "answer": "ب",
+  "value": {
+   "pattern": "none",
+   "field": 100.0,
+   "rings": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "ring_spread": 0.0,
+   "sector_spread": 0.0,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-df54fb093f15": {
+  "answer": "ج",
+  "value": {
+   "pattern": "none",
+   "field": 100.0,
+   "rings": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "ring_spread": 0.0,
+   "sector_spread": 0.0,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-1ea700eb05a7": {
+  "answer": "أ",
+  "value": {
+   "seq": [
+    [
+     "2025-03-01",
+     "ok"
+    ],
+    [
+     "2025-03-11",
+     "ok"
+    ],
+    [
+     "2025-03-21",
+     "dev"
+    ],
+    [
+     "2025-03-31",
+     "ok"
+    ],
+    [
+     "2025-04-10",
+     "ok"
+    ],
+    [
+     "2025-04-20",
+     "ok"
+    ]
+   ],
+   "onset": null
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d125e8130863": {
+  "answer": "أ",
+  "value": {
+   "seq": [
+    [
+     "2025-03-01",
+     "dev"
+    ],
+    [
+     "2025-03-11",
+     "ok"
+    ],
+    [
+     "2025-03-21",
+     "invalid"
+    ],
+    [
+     "2025-03-31",
+     "dev"
+    ],
+    [
+     "2025-04-10",
+     "dev"
+    ],
+    [
+     "2025-04-20",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "2025-03-11",
+    "2025-03-31"
+   ]
+  },
+  "confidence": "high",
+  "note": "First valid scene (03-01) is already deviant but isolated (03-11 healthy), so the 'first valid scene deviant -> unknown' clause could be misread as applying; the rule text doesn't say explicitly that it refers to the persistent run. No 'unknown' option is offered, so the key is still unique."
+ },
+ "sq-4c6079b4371d": {
+  "answer": "ب",
+  "value": {
+   "window": [
+    "2025-12-23",
+    "2026-01-04"
+   ],
+   "n_days": 15,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-576abd221938": {
+  "answer": "ب",
+  "value": {
+   "window": null,
+   "n_days": 12,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-cbbd3ad8cd4c": {
+  "answer": "د",
+  "value": {
+   "window": [
+    "2025-12-23",
+    "2026-01-04"
+   ],
+   "n_days": 15,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-fa30e14d360e": {
+  "answer": "ب",
+  "value": {
+   "window": [
+    "2025-12-11",
+    "2025-12-23"
+   ],
+   "n_days": 15,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-5338532c66de": {
+  "answer": "ج",
+  "value": {
+   "pattern": "general",
+   "field": 8.0,
+   "ring_spread": 1.2,
+   "sector_spread": 5.2,
+   "min_ring": 7.8,
+   "min_sector": 5.8
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-b795a9546d2c": {
+  "answer": "ج",
+  "value": {
+   "pattern": "sector",
+   "field": 76.3,
+   "ring_spread": 2.4,
+   "sector_spread": 95.4,
+   "min_ring": 75.8,
+   "min_sector": 4.6
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-57f1d4aec0f3": {
+  "answer": "د",
+  "value": {
+   "pattern": "general",
+   "field": 8.1,
+   "rings": [
+    8.4,
+    8.4,
+    8.3,
+    8.1,
+    7.7
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    6.1,
+    6.2,
+    6.7,
+    11.0,
+    7.9,
+    9.8,
+    8.1,
+    8.7
+   ],
+   "ring_spread": 0.7,
+   "sector_spread": 4.9,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-7cec72a5e4b9": {
+  "answer": "ج",
+  "value": {
+   "pattern": "sector",
+   "field": 76.1,
+   "rings": [
+    75.3,
+    74.9,
+    76.2,
+    75.8,
+    76.8
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    51.5,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    50.2,
+    4.5
+   ],
+   "ring_spread": 1.9,
+   "sector_spread": 95.5,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-71b94e97dd02": {
+  "answer": "د",
+  "value": {
+   "seq": [
+    [
+     "2025-04-05",
+     "invalid"
+    ],
+    [
+     "2025-04-15",
+     "dev"
+    ],
+    [
+     "2025-04-25",
+     "dev"
+    ],
+    [
+     "2025-05-05",
+     "dev"
+    ],
+    [
+     "2025-05-15",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "unknown"
+   ]
+  },
+  "confidence": "high",
+  "note": "04-05 is invalid (field valid 50.1%) even though its sector reads 5.6%; the first valid scene (04-15) is deviant, so onset is unknown. The option wording 'insufficient/reliable data not available' is a loose match for 'onset precedes the first valid scene'."
+ },
+ "sq-c66c2046cc6d": {
+  "answer": "ب",
+  "value": {
+   "window": [
+    "2025-12-16",
+    "2025-12-28"
+   ],
+   "n_days": 14,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-f066e490e96f": {
+  "answer": "أ",
+  "value": {
+   "window": [
+    "unknown"
+   ],
+   "n_days": 10,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": "The first observation (0.505) is already above 0.2, so the rule gives 'unknown'. The option text says the data are insufficient/unreliable, but the data are complete; it's the onset that falls before the window. That's a semantic mismatch, though the rule maps it here."
+ },
+ "sq-296055da4afa": {
+  "answer": "أ",
+  "value": {
+   "pattern": "ring",
+   "field": 80.7,
+   "ring_spread": 97.3,
+   "sector_spread": 1.5,
+   "min_ring": 2.7,
+   "min_sector": 80.2
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-6aaf0548bd22": {
+  "answer": "د",
+  "value": {
+   "pattern": "sector",
+   "field": 75.5,
+   "ring_spread": 2.4,
+   "sector_spread": 95.5,
+   "min_ring": 73.6,
+   "min_sector": 4.5
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-0e96b35637e2": {
+  "answer": "أ",
+  "value": {
+   "pattern": "ring",
+   "field": 80.7,
+   "rings": [
+    100.0,
+    100.0,
+    3.0,
+    99.9,
+    100.0
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    81.7,
+    80.3,
+    80.6,
+    80.6,
+    80.9,
+    81.0,
+    79.8,
+    80.7
+   ],
+   "ring_spread": 97.0,
+   "sector_spread": 1.9,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Field share 80.7% is just above the 80% 'no weakness' cut, but that clause only applies when rings and sectors are within 12 pts; the ring spread is 97, so ring is unambiguous. Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-b5277d6a76a0": {
+  "answer": "ب",
+  "value": {
+   "pattern": "sector",
+   "field": 75.5,
+   "rings": [
+    74.1,
+    75.9,
+    75.9,
+    75.1,
+    75.6
+   ],
+   "sectors_N_NE_E_SE_S_SW_W_NW": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    52.6,
+    4.5,
+    47.2,
+    100.0
+   ],
+   "ring_spread": 1.8,
+   "sector_spread": 95.5,
+   "method": "polygon registered to image via 200 m scale bar + yellow-outline centre; 10 m raster blocks sampled at block centres inside polygon; results identical at screen-pixel level"
+  },
+  "confidence": "high",
+  "note": "Same field/date as a next_measurement item whose coverage table gives the same pattern, so the answer leaks if both items are shown together."
+ },
+ "sq-5031f81b3976": {
+  "answer": "د",
+  "value": {
+   "seq": [
+    [
+     "2025-08-02",
+     "ok"
+    ],
+    [
+     "2025-08-12",
+     "dev"
+    ],
+    [
+     "2025-08-22",
+     "ok"
+    ],
+    [
+     "2025-09-01",
+     "invalid"
+    ],
+    [
+     "2025-09-11",
+     "dev"
+    ],
+    [
+     "2025-09-21",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "2025-08-22",
+    "2025-09-11"
+   ]
+  },
+  "confidence": "high",
+  "note": "An isolated deviant at 08-12 and an invalid scene at 09-01 (field 87.5%) are the traps; the answer is unique."
+ },
+ "sq-0eecb6cf2778": {
+  "answer": "أ",
+  "value": {
+   "window": [
+    "unknown"
+   ],
+   "n_days": 10,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": "Same as sq-f066e490e96f: the series starts at 0.444 and only declines, so onset is unknown by rule; option ب (06-05..06-15) is the literal-reading trap."
+ },
+ "sq-e9945e34d1eb": {
+  "answer": "ب",
+  "value": {
+   "window": [
+    "2026-06-21",
+    "2026-07-01"
+   ],
+   "n_days": 13,
+   "duplicate_days": []
+  },
+  "confidence": "high",
+  "note": ""
+ }
+}

@@ -1,0 +1,885 @@
+{
+ "sq-00535bb27a61": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "vol_TS1": 1960.0,
+   "vol_total_m3": 1960.0,
+   "depth_mm": 62.333
+  },
+  "why": "1960 m3 / 31444 m2 geodesic = 62.33 mm"
+ },
+ "sq-02bcc1687f98": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "vol_P1A": 0.0,
+   "vol_P1B": 0.0,
+   "vol_total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 504795 m2 geodesic = 0.00 mm"
+ },
+ "sq-035a63c8dcb5": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 84.992,
+   "RAW_end": 69.832,
+   "p_end": 0.4988,
+   "Ks_end": 0.784
+  },
+  "why": "Dr_end 85.0 vs RAW 69.8 mm; Ks_end 0.784 (rain chirps_v3_rnl)"
+ },
+ "sq-03e4a7018d0a": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 42.778,
+   "RAW_end": 77.03,
+   "p_end": 0.6419,
+   "Ks_end": 1.7971
+  },
+  "why": "Dr_end 42.8 vs RAW 77.0 mm; Ks_end 1.797 (rain station)"
+ },
+ "sq-0afee06d9a05": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station"
+  },
+  "why": "abstain: meter_total_MP1 drop 261790.0->12.0 on 2026-01-25"
+ },
+ "sq-0d77406eb3bf": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "vol_P2A": 7056.0,
+   "vol_P2B": 7056.0,
+   "vol_total_m3": 14112.0,
+   "depth_mm": 27.956
+  },
+  "why": "14112 m3 / 504792 m2 geodesic = 27.96 mm"
+ },
+ "sq-0fd71a31360a": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station"
+  },
+  "why": "abstain: meter_total_P2A reading missing on 2026-01-21"
+ },
+ "sq-10b76e6b5d36": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "vol_MP1": 10640.0,
+   "vol_MP2": 3465.0,
+   "vol_total_m3": 14105.0,
+   "depth_mm": 36.681
+  },
+  "why": "14105 m3 / 384535 m2 geodesic = 36.68 mm"
+ },
+ "sq-119797721cd3": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0
+  },
+  "why": "abstain: meter_total_MP1: reading drop 261790.0->12.0 inside period (min bound None)"
+ },
+ "sq-1279fb7ebfb2": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 46.187,
+   "RAW_end": 70.56,
+   "p_end": 0.504,
+   "Ks_end": 1.351,
+   "V_gross_m3": 16313.6
+  },
+  "why": "abstain: TP1: hours did not advance in window (dV=0.0) -> flow unknown"
+ },
+ "sq-135f287b53c4": {
+  "answer": "ب",
+  "key_numbers": {
+   "plan_mm": 104.0,
+   "area_m2": 134965.3,
+   "vol_M1": 14805.0,
+   "vol_total_m3": 14805.0,
+   "depth_mm": 109.695,
+   "ratio": 1.0548
+  },
+  "why": "measured 109.69 mm / plan 104 mm = 1.055"
+ },
+ "sq-13e3f04c5519": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "vol_P1A": 9450.0,
+   "vol_P1B": 8190.0,
+   "vol_total_m3": 17640.0,
+   "depth_mm": 34.945
+  },
+  "why": "17640 m3 / 504795 m2 geodesic = 34.95 mm"
+ },
+ "sq-16d886722aee": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "vol_OR1": 8340.0,
+   "vol_total_m3": 8340.0,
+   "depth_mm": 132.347
+  },
+  "why": "8340 m3 / 63016 m2 geodesic = 132.35 mm"
+ },
+ "sq-1763acc8c6d3": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 42.778,
+   "RAW_end": 77.03,
+   "p_end": 0.6419,
+   "Ks_end": 1.7971,
+   "V_gross_m3": 26992.7,
+   "Q_P1A": 150.0,
+   "Q_P1B": 130.0,
+   "Q_total": 280.0,
+   "pump_days": 9.6403
+  },
+  "why": "Dr 42.8 mm -> V 26993 m3; Q 280 m3/h x10h -> 9.64 d"
+ },
+ "sq-18e00ab9e53f": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 96.286,
+   "RAW_end": 65.602,
+   "p_end": 0.5467,
+   "Ks_end": 0.4359
+  },
+  "why": "Dr_end 96.3 vs RAW 65.6 mm; Ks_end 0.436 (rain station)"
+ },
+ "sq-1e25025ab7a8": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 5.99,
+   "RAW_end": 54.563,
+   "p_end": 0.6419,
+   "Ks_end": 2.5959,
+   "V_gross_m3": 3779.9,
+   "Q_P2A": 140.0,
+   "Q_P2B": 140.0,
+   "Q_total": 280.0,
+   "pump_days": 1.35
+  },
+  "why": "Dr 6.0 mm -> V 3780 m3; Q 280 m3/h x10h -> 1.35 d"
+ },
+ "sq-1f408933b540": {
+  "answer": "د",
+  "key_numbers": {
+   "plan_mm": 80.0,
+   "area_m2": 504792.2,
+   "vol_P2A": 26950.0,
+   "vol_P2B": 26950.0,
+   "vol_total_m3": 53900.0,
+   "depth_mm": 106.777,
+   "ratio": 1.3347
+  },
+  "why": "measured 106.78 mm / plan 80 mm = 1.335"
+ },
+ "sq-2582db863b2d": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 100005.4
+  },
+  "why": "abstain: field without meter"
+ },
+ "sq-2b64e8152eed": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "vol_TP1": 0.0,
+   "vol_TP2": 0.0,
+   "vol_total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 282566 m2 geodesic = 0.00 mm"
+ },
+ "sq-2d1a2fdd0913": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "vol_P1A": 23475.0,
+   "vol_P1B": 9360.0,
+   "vol_total_m3": 32835.0,
+   "depth_mm": 65.046
+  },
+  "why": "32835 m3 / 504795 m2 geodesic = 65.05 mm"
+ },
+ "sq-361f3c4eced8": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 46.187,
+   "RAW_end": 70.56,
+   "p_end": 0.504,
+   "Ks_end": 1.351
+  },
+  "why": "Dr_end 46.2 vs RAW 70.6 mm; Ks_end 1.351 (rain station)"
+ },
+ "sq-37fc8deb153e": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_mm": 144.0,
+   "area_m2": 384535.0
+  },
+  "why": "abstain: meter_total_MP1: reading drop 261790.0->12.0 inside period (min bound None)"
+ },
+ "sq-3c064c1c5e85": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "vol_P2A": 26950.0,
+   "vol_P2B": 26950.0,
+   "vol_total_m3": 53900.0,
+   "depth_mm": 106.777
+  },
+  "why": "53900 m3 / 504792 m2 geodesic = 106.78 mm"
+ },
+ "sq-3f3d9a32439b": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 113088.3
+  },
+  "why": "abstain: meter shared with another field"
+ },
+ "sq-44afe98e95d3": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 112.003,
+   "RAW_end": 68.04,
+   "p_end": 0.486,
+   "Ks_end": 0.3891
+  },
+  "why": "Dr_end 112.0 vs RAW 68.0 mm; Ks_end 0.389 (rain chirps_v3_rnl)"
+ },
+ "sq-47035e7fea3e": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "vol_OR1": 990.0,
+   "vol_total_m3": 990.0,
+   "depth_mm": 15.71
+  },
+  "why": "990 m3 / 63016 m2 geodesic = 15.71 mm"
+ },
+ "sq-478ee0acf9e9": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 134965.3
+  },
+  "why": "abstain: moisture unit kPa invalid"
+ },
+ "sq-4ad26cb78901": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "vol_P2A": 6370.0,
+   "vol_P2B": 6370.0,
+   "vol_total_m3": 12740.0,
+   "depth_mm": 25.238
+  },
+  "why": "12740 m3 / 504792 m2 geodesic = 25.24 mm"
+ },
+ "sq-4b57839fbbac": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "vol_TS1": 1680.0,
+   "vol_total_m3": 1680.0,
+   "depth_mm": 53.428
+  },
+  "why": "1680 m3 / 31444 m2 geodesic = 53.43 mm"
+ },
+ "sq-5199a4a5420f": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "vol_M1": 3780.0,
+   "vol_total_m3": 3780.0,
+   "depth_mm": 28.007
+  },
+  "why": "3780 m3 / 134965 m2 geodesic = 28.01 mm"
+ },
+ "sq-543e60764cbd": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "vol_TS1": 6780.0,
+   "vol_total_m3": 6780.0,
+   "depth_mm": 215.62
+  },
+  "why": "6780 m3 / 31444 m2 geodesic = 215.62 mm"
+ },
+ "sq-55ef41ddd20c": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 84.294,
+   "RAW_end": 76.788,
+   "p_end": 0.6399,
+   "Ks_end": 0.8263
+  },
+  "why": "Dr_end 84.3 vs RAW 76.8 mm; Ks_end 0.826 (rain station)"
+ },
+ "sq-5e19125c8ada": {
+  "answer": "ج",
+  "key_numbers": {},
+  "why": "abstain: no drawn boundary"
+ },
+ "sq-62c39f25f9f2": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "vol_P1A": 7200.0,
+   "vol_P1B": 1170.0,
+   "vol_total_m3": 8370.0,
+   "depth_mm": 16.581
+  },
+  "why": "8370 m3 / 504795 m2 geodesic = 16.58 mm"
+ },
+ "sq-661e47ffc320": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "vol_TS1": 2240.0,
+   "vol_total_m3": 2240.0,
+   "depth_mm": 71.237
+  },
+  "why": "2240 m3 / 31444 m2 geodesic = 71.24 mm"
+ },
+ "sq-6e5378a8657c": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.092,
+   "RAW_end": 66.816,
+   "p_end": 0.5568,
+   "Ks_end": 0.8632,
+   "V_gross_m3": 35613.8,
+   "Q_MP1": 160.0,
+   "Q_MP2": 110.0,
+   "Q_total": 270.0,
+   "pump_days": 13.1903
+  },
+  "why": "Dr 74.1 mm -> V 35614 m3; Q 270 m3/h x10h -> 13.19 d"
+ },
+ "sq-754ea37c5b10": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 19.838,
+   "RAW_end": 80.382,
+   "p_end": 0.5742,
+   "Ks_end": 2.0155,
+   "V_gross_m3": 7006.9,
+   "Q_TP1": 120.0,
+   "Q_TP2": 100.0,
+   "Q_total": 220.0,
+   "pump_days": 3.185
+  },
+  "why": "Dr 19.8 mm -> V 7007 m3; Q 220 m3/h x10h -> 3.19 d"
+ },
+ "sq-77750d3d87a1": {
+  "answer": "أ",
+  "key_numbers": {
+   "plan_uncovered_days": [
+    "2026-07-16",
+    "2026-07-17",
+    "2026-07-18",
+    "..."
+   ],
+   "area_m2": 113088.3
+  },
+  "why": "abstain: week without plan record -> plan unknown"
+ },
+ "sq-7a41df82e393": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 209987.6
+  },
+  "why": "abstain: meter shared with another field"
+ },
+ "sq-7b79fdecfb8c": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.236,
+   "RAW_end": 65.16,
+   "p_end": 0.543,
+   "Ks_end": 0.8345,
+   "V_gross_m3": 46842.8,
+   "Q_P1A": 150.0
+  },
+  "why": "abstain: P1B: hours did not advance in window (dV=0.0) -> flow unknown"
+ },
+ "sq-7f14471a79cb": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 52.078,
+   "RAW_end": 67.478,
+   "p_end": 0.5623,
+   "Ks_end": 1.2932
+  },
+  "why": "Dr_end 52.1 vs RAW 67.5 mm; Ks_end 1.293 (rain station)"
+ },
+ "sq-83005c23e2c3": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 7.833,
+   "RAW_end": 47.797,
+   "p_end": 0.5623,
+   "Ks_end": 2.0742
+  },
+  "why": "Dr_end 7.8 vs RAW 47.8 mm; Ks_end 2.074 (rain station)"
+ },
+ "sq-87f262c0e116": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_mm": 220.0,
+   "area_m2": 282566.2,
+   "vol_TP1": 5880.0,
+   "vol_TP2": 5600.0,
+   "vol_total_m3": 11480.0,
+   "depth_mm": 40.628,
+   "ratio": 0.1847
+  },
+  "why": "measured 40.63 mm / plan 220 mm = 0.185"
+ },
+ "sq-8a9cc1fff668": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 384535.0
+  },
+  "why": "abstain: meter_total_MP1: reading drop 261790.0->12.0 inside period (min bound None)"
+ },
+ "sq-8ac41151a83b": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 19.838,
+   "RAW_end": 80.382,
+   "p_end": 0.5742,
+   "Ks_end": 2.0155
+  },
+  "why": "Dr_end 19.8 vs RAW 80.4 mm; Ks_end 2.015 (rain station)"
+ },
+ "sq-8e4e08d4159f": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 96.286,
+   "RAW_end": 65.602,
+   "p_end": 0.5467,
+   "Ks_end": 0.4359,
+   "V_gross_m3": 60756.1
+  },
+  "why": "abstain: P1A: hours did not advance in window (dV=0.0) -> flow unknown"
+ },
+ "sq-91859a7cfa20": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "vol_OR1": 2730.0,
+   "vol_total_m3": 2730.0,
+   "depth_mm": 43.322
+  },
+  "why": "2730 m3 / 63016 m2 geodesic = 43.32 mm"
+ },
+ "sq-950d55d5c31a": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 84.294,
+   "RAW_end": 76.788,
+   "p_end": 0.6399,
+   "Ks_end": 0.8263,
+   "V_gross_m3": 40517.3,
+   "Q_MP1": 160.0,
+   "Q_MP2": 110.0,
+   "Q_total": 270.0,
+   "pump_days": 15.0064
+  },
+  "why": "Dr 84.3 mm -> V 40517 m3; Q 270 m3/h x10h -> 15.01 d"
+ },
+ "sq-96116f0d282d": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "vol_M1": 4095.0,
+   "vol_total_m3": 4095.0,
+   "depth_mm": 30.341
+  },
+  "why": "4095 m3 / 134965 m2 geodesic = 30.34 mm"
+ },
+ "sq-a3864f0b833c": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "vol_M1": 3465.0,
+   "vol_total_m3": 3465.0,
+   "depth_mm": 25.673
+  },
+  "why": "3465 m3 / 134965 m2 geodesic = 25.67 mm"
+ },
+ "sq-a3e0a756e6b8": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "vol_TP1": 5880.0,
+   "vol_TP2": 5600.0,
+   "vol_total_m3": 11480.0,
+   "depth_mm": 40.628
+  },
+  "why": "11480 m3 / 282566 m2 geodesic = 40.63 mm"
+ },
+ "sq-a4bc61965d24": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "vol_M1": 14805.0,
+   "vol_total_m3": 14805.0,
+   "depth_mm": 109.695
+  },
+  "why": "14805 m3 / 134965 m2 geodesic = 109.69 mm"
+ },
+ "sq-a6f412c84346": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 112.003,
+   "RAW_end": 68.04,
+   "p_end": 0.486,
+   "Ks_end": 0.3891,
+   "V_gross_m3": 39560.3
+  },
+  "why": "abstain: TP1: hours did not advance in window (dV=0.0) -> flow unknown"
+ },
+ "sq-ad05367f6583": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_mm": 124.0,
+   "area_m2": 504795.3,
+   "vol_P1A": 23475.0,
+   "vol_P1B": 9360.0,
+   "vol_total_m3": 32835.0,
+   "depth_mm": 65.046,
+   "ratio": 0.5246
+  },
+  "why": "measured 65.05 mm / plan 124 mm = 0.525"
+ },
+ "sq-bdbdf489455a": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 100005.4
+  },
+  "why": "abstain: no meter records for field"
+ },
+ "sq-c11ebcc86207": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 84.992,
+   "RAW_end": 69.832,
+   "p_end": 0.4988,
+   "Ks_end": 0.784,
+   "V_gross_m3": 30019.7
+  },
+  "why": "abstain: TP1: hours did not advance in window (dV=0.0) -> flow unknown"
+ },
+ "sq-c32774970215": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "vol_OR1": 2520.0,
+   "vol_total_m3": 2520.0,
+   "depth_mm": 39.99
+  },
+  "why": "2520 m3 / 63016 m2 geodesic = 39.99 mm"
+ },
+ "sq-c6b15d75c5df": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 7.833,
+   "RAW_end": 47.797,
+   "p_end": 0.5623,
+   "Ks_end": 2.0742,
+   "V_gross_m3": 4942.6,
+   "Q_P2A": 140.0,
+   "Q_P2B": 140.0,
+   "Q_total": 280.0,
+   "pump_days": 1.7652
+  },
+  "why": "Dr 7.8 mm -> V 4943 m3; Q 280 m3/h x10h -> 1.77 d"
+ },
+ "sq-c6b3de759c97": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.236,
+   "RAW_end": 65.16,
+   "p_end": 0.543,
+   "Ks_end": 0.8345
+  },
+  "why": "Dr_end 74.2 vs RAW 65.2 mm; Ks_end 0.835 (rain station)"
+ },
+ "sq-c955f5718df8": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 209987.6
+  },
+  "why": "abstain: meter shared with another field"
+ },
+ "sq-ca9bdd9a3a6e": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 5.99,
+   "RAW_end": 54.563,
+   "p_end": 0.6419,
+   "Ks_end": 2.5959
+  },
+  "why": "Dr_end 6.0 vs RAW 54.6 mm; Ks_end 2.596 (rain station)"
+ },
+ "sq-d9f2d0b1ee01": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "vol_TS1": 900.0,
+   "vol_total_m3": 900.0,
+   "depth_mm": 28.622
+  },
+  "why": "900 m3 / 31444 m2 geodesic = 28.62 mm"
+ },
+ "sq-db82fb2004be": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station"
+  },
+  "why": "abstain: meter_total_MP1 drop 261790.0->12.0 on 2026-01-25"
+ },
+ "sq-de5eb272251c": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.092,
+   "RAW_end": 66.816,
+   "p_end": 0.5568,
+   "Ks_end": 0.8632
+  },
+  "why": "Dr_end 74.1 vs RAW 66.8 mm; Ks_end 0.863 (rain station)"
+ },
+ "sq-dfbfc43d3375": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "vol_MP1": 10640.0,
+   "vol_MP2": 3234.0,
+   "vol_total_m3": 13874.0,
+   "depth_mm": 36.08
+  },
+  "why": "13874 m3 / 384535 m2 geodesic = 36.08 mm"
+ },
+ "sq-e494ebf83b96": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "vol_P2A": 6664.0,
+   "vol_P2B": 6664.0,
+   "vol_total_m3": 13328.0,
+   "depth_mm": 26.403
+  },
+  "why": "13328 m3 / 504792 m2 geodesic = 26.40 mm"
+ },
+ "sq-e61e414056ea": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 52.078,
+   "RAW_end": 67.478,
+   "p_end": 0.5623,
+   "Ks_end": 1.2932,
+   "V_gross_m3": 32861.1,
+   "Q_P1A": 150.0,
+   "Q_P1B": 130.0,
+   "Q_total": 280.0,
+   "pump_days": 11.7361
+  },
+  "why": "Dr 52.1 mm -> V 32861 m3; Q 280 m3/h x10h -> 11.74 d"
+ },
+ "sq-e93353553494": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "vol_P1A": 6825.0,
+   "vol_P1B": 0.0,
+   "vol_total_m3": 6825.0,
+   "depth_mm": 13.52
+  },
+  "why": "6825 m3 / 504795 m2 geodesic = 13.52 mm"
+ },
+ "sq-eec6635ed347": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "vol_P2A": 6860.0,
+   "vol_P2B": 6860.0,
+   "vol_total_m3": 13720.0,
+   "depth_mm": 27.18
+  },
+  "why": "13720 m3 / 504792 m2 geodesic = 27.18 mm"
+ },
+ "sq-ef96b39fe8b1": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station"
+  },
+  "why": "abstain: meter_total_P2A reading missing on 2026-01-21"
+ },
+ "sq-faa0e76c8053": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "vol_OR1": 2100.0,
+   "vol_total_m3": 2100.0,
+   "depth_mm": 33.325
+  },
+  "why": "2100 m3 / 63016 m2 geodesic = 33.33 mm"
+ },
+ "sq-ff1bcffb4dae": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "vol_MP1": 10640.0,
+   "vol_MP2": 3080.0,
+   "vol_total_m3": 13720.0,
+   "depth_mm": 35.679
+  },
+  "why": "13720 m3 / 384535 m2 geodesic = 35.68 mm"
+ }
+}

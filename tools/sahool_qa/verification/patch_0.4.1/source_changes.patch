@@ -1,0 +1,1014 @@
+--- a/examples/water_inventory.rules.json
++++ b/examples/water_inventory.rules.json
+@@ -0,0 +1,16 @@
++{
++  "water": {
++    "well_inventory": {
++      "YOUR_TENANT::YOUR_FIELD": [
++        {
++          "from": "2026-01-01",
++          "to": "2026-12-31",
++          "wells": [
++            "W1",
++            "W2"
++          ]
++        }
++      ]
++    }
++  }
++}--- a/sahool_qa/__init__.py
++++ b/sahool_qa/__init__.py
+@@ -5,5 +5,5 @@
+ Every answer is computed from stored data, never written by a model.
+ """
+ 
+-__version__ = "0.4.0"
++__version__ = "0.4.1"
+ GENERATOR_ID = f"sahool-qa/{__version__}"
+--- a/sahool_qa/audit.py
++++ b/sahool_qa/audit.py
+@@ -7,7 +7,7 @@
+ from collections import defaultdict
+ 
+ from .facts import FactStore
+-from .waterbal import field_water, meter_owners
++from .waterbal import field_water, meter_owners, meter_sequence_problem, coverage_problem
+ 
+ 
+ def _issue(code, severity, message, **ref):
+@@ -123,13 +123,22 @@
+                                  indicator_id=mid, field_ids=owners, tenant=tenant))
+     for f in store.fields.values():
+         fw = field_water(store, f, rules)
++        span = fw.all_days()
++        if span and fw.of("meter"):
++            problem, detail = coverage_problem(store, fw, rules, span[0], span[-1])
++            if problem:
++                issues.append(_issue(problem, "warning", "تغطية مصادر ري الحقل غير مكتملة أو غير مثبتة",
++                                     field_id=f.key, detail=detail))
+         for kind in ("meter", "pump_hours"):
+             for s in fw.of(kind).values():
+-                days = s.usable_days()
+-                for x, y in zip(days, days[1:]):
+-                    if s.value(y) < s.value(x):
+-                        issues.append(_issue("cumulative_meter_decrease", "warning",
+-                                             f"{s.indicator_id}: القراءة نزلت من {s.value(x):g} ({x}) إلى {s.value(y):g} ({y}) — "
+-                                             "تصفير أو استبدال عداد؛ الحجم عبرها غير معروف",
+-                                             field_id=f.key, indicator_id=s.indicator_id, recorded_at=str(y)))
++                rows = sorted((r for rs in s.records.values() for r in rs if r.conv is not None),
++                              key=lambda r: (r.recorded_ts, r.key))
++                for x, y in zip(rows, rows[1:]):
++                    problem = meter_sequence_problem([x, y])
++                    if problem:
++                        issues.append(_issue("cumulative_meter_decrease" if problem == "meter_decrease" else problem,
++                                             "warning", f"{s.indicator_id}: {problem}; period volume unknown",
++                                             field_id=f.key, indicator_id=s.indicator_id,
++                                             recorded_at=str(y.recorded_at),
++                                             timestamp=y.recorded_ts.isoformat(), previous=x.conv, current=y.conv))
+     return issues
+--- a/sahool_qa/cli.py
++++ b/sahool_qa/cli.py
+@@ -74,7 +74,7 @@
+           f"images={c['with_image']}  data_issues={m['data_issues']['total']}  rejected={c['facts']['rejected_records']}")
+     for w in m["warnings"]:
+         print(f"warning: {w}", file=sys.stderr)
+-    return 3 if m["family_errors"] else 0
++    return 3 if m["family_errors"] or m.get("case_errors") else 0
+ 
+ 
+ def cmd_score(args):
+--- a/sahool_qa/config.py
++++ b/sahool_qa/config.py
+@@ -15,6 +15,8 @@
+ from __future__ import annotations
+ 
+ import copy
++import math
++import datetime as dt
+ import json
+ from pathlib import Path
+ 
+@@ -173,6 +175,9 @@
+     # ── Water investigation (0.4.0). Values marked FAO are from FAO Irrigation and Drainage
+     # Paper 56; everything else is a SAHOOL assumption to be reviewed by an agronomist.
+     "water": {
++        # Complete well assignments, keyed by tenant::field. Dates inclusive; suffixes case-insensitive.
++        # Fixture provenance may supply this same explicit contract. Missing inventory is unknown.
++        "well_inventory": {},
+         # FAO-56 Table 19 (chapter 7): typical θFC and θWP ranges, m3/m3, by USDA texture.
+         # The balance uses the midpoint of each range.
+         "soil_water": {
+@@ -302,3 +307,32 @@
+             rng = f"> {lo} و ≤ {hi}" if upper_inclusive else f"≥ {lo} و < {hi}"
+         parts.append(f"{c['label']}: {rng} {unit}")
+     return "؛ ".join(parts)
++
++
++def validate_water_rules(rules: dict):
++    w = rules["water"]
++    for key in ("application_efficiency", "max_pump_hours_per_day"):
++        v = w[key]
++        if isinstance(v, bool) or not isinstance(v, (float, int)) or not math.isfinite(v) or v <= 0:
++            raise ValueError(f"water.{key} must be finite and positive")
++    if w["application_efficiency"] > 1 or w["max_pump_hours_per_day"] > 24:
++        raise ValueError("Ea must be <= 1 and daily pump hours <= 24")
++    for key in ("flow_window_days", "check_every_days"):
++        if isinstance(w[key], bool) or not isinstance(w[key], int) or w[key] < 1:
++            raise ValueError(f"water.{key} must be a positive integer")
++    lo, hi = w["refill_days"]
++    if not all(isinstance(x, (int, float)) and math.isfinite(x) for x in (lo, hi)) or not 0 < lo < hi:
++        raise ValueError("refill_days must be finite increasing positive thresholds")
++    for key, periods in w.get("well_inventory", {}).items():
++        if "::" not in key or not isinstance(periods, list):
++            raise ValueError("well_inventory requires tenant::field keys and period lists")
++        last = None
++        for v in sorted(periods, key=lambda x: x["from"]):
++            a, b = dt.date.fromisoformat(v["from"]), dt.date.fromisoformat(v["to"])
++            if b < a or (last is not None and a <= last):
++                raise ValueError("overlapping or reversed well inventory dates")
++            if not isinstance(v["wells"], list) or any(not isinstance(x, str) or not x for x in v["wells"]):
++                raise ValueError("inventory wells must be non-empty string suffixes")
++            if len({x.lower() for x in v["wells"]}) != len(v["wells"]):
++                raise ValueError("duplicate wells in inventory")
++            last = b
+--- a/sahool_qa/demo.py
++++ b/sahool_qa/demo.py
+@@ -86,6 +86,17 @@
+                                   "N محوّل من % إلى mg/kg (×10000) في ملف الـ seed",
+     "everything_else": "اصطناعي: الحدود، موقعا مأرب والحديدة، الآبار، سلاسل SAVI، الطبقات النقطية، والأعطال المزروعة",
+     "note": "ملفات المختبر الأصلية غير مرفقة هنا؛ تحقّق من القيم مقابلها قبل نسبتها إلى المختبر",
++}
++
++
++PROVENANCE["water_well_inventory"] = {
++    f"{TENANT}::{field_id}": [{"from": "2025-01-01", "to": "2026-12-31", "wells": wells}]
++    for field_id, wells in {
++        "demo_pivot_1": ["P1A", "P1B"], "demo_pivot_2": ["P2A", "P2B"],
++        "demo_marib_pivot": ["MP1", "MP2"], "demo_marib_1": ["M1"],
++        "demo_tihama_pivot": ["TP1", "TP2"], "demo_tihama_1": ["T12"],
++        "demo_tihama_2": ["T12"], "demo_tihama_farm": ["TF"],
++    }.items()
+ }
+ 
+ 
+--- a/sahool_qa/generators/water.py
++++ b/sahool_qa/generators/water.py
+@@ -25,10 +25,16 @@
+ from ..facts import tenant_key
+ from ..items import GenContext, bin_options, make_item
+ from ..waterbal import (DAY, Series, balance, daily_increments, days_between, field_params, field_water,
+-                        kc_on, meter_owners, naive_delta, stress_class, window_delta)
++                        kc_on, meter_owners, naive_delta, stress_class, window_delta, coverage_problem, inventory_for, kc_refs)
+ from .common import Cards, field_ref
+ 
+ PROBLEMS = {
++    "missing_expected_meter": "عداد ماء لبئر متوقعة مفقود بالكامل؛ الجزء المرصود ليس إجمالي ري الحقل",
++    "well_inventory_missing": "لا توجد قائمة معلنة كاملة بالآبار التي تغذي الحقل؛ اكتمال مصادر الري غير معروف",
++    "well_inventory_gap": "قائمة الآبار لا تغطي الفترة تغطية زمنية وحيدة كاملة",
++    "well_assignment_changed": "تغير تخصيص الآبار داخل الفترة؛ يجب تقسيمها عند التغيير",
++    "unassigned_meter": "عداد ماء موجود لا يطابق قائمة آبار الحقل المعلنة للفترة",
++    "meter_timestamp_conflict": "قراءات مختلفة للعداد في اللحظة نفسها؛ ترتيبها غير معلوم",
+     "no_meter": "لا يوجد عداد آبار مسجّل لهذا الحقل؛ الري غير معروف وليس صفراً",
+     "shared_meter": "العداد مسجّل لأكثر من حقل فلا يمكن قسمة حجمه بينها",
+     "no_polygon": "لا توجد حدود مرسومة صالحة، والقاعدة لا تقبل المساحة المسجّلة؛ لا يمكن تحويل الحجم إلى عمق",
+@@ -52,7 +58,7 @@
+ }
+ 
+ STRESS = {
+-    "no_stress": "لا إجهاد: العجز لم يتجاوز الماء الميسّر (Dr ≤ RAW، فـKs = 1)",
++    "no_stress": "لا إجهاد: العجز لم يتجاوز الماء الميسّر",
+     "moderate": "إجهاد معتدل: العجز تجاوز الماء الميسّر وKs بين {ks} و1",
+     "severe": "إجهاد شديد: Ks أقل من {ks}",
+ }
+@@ -66,6 +72,7 @@
+     "contradicted": "غير مؤكَّد: المصادر المستقلة الأصل المكتملة سجّلت النافذة دون مطر يُعتدّ به",
+ }
+ REFILL = {
++    "unavailable": "لا مدة تعويض محدودة عند التدفق الصفري المقيس",
+     "one": "أيام التشغيل اللازمة {lo:g} أو أقل",
+     "few": "أيام التشغيل اللازمة أكثر من {lo:g} وحتى {hi:g}",
+     "many": "أيام التشغيل اللازمة أكثر من {hi:g}",
+@@ -153,7 +160,8 @@
+     return ("قاعدة عمق الري: العداد تراكمي، وقراءة اليوم = آخر قراءة صالحة فيه وتمثل نهاية ذلك اليوم؛ فالحجم بين نهاية يوم a "
+             "ونهاية يوم b (ضخ الأيام من اليوم التالي لـa حتى b) = قراءة b − قراءة a، ولو غابت القراءات بينهما. إذا نزلت "
+             "قراءة عن سابقتها بين طرفي الفترة (تصفير أو استبدال) فالحجم للفترة غير معروف، ولو أمكن حساب حدٍّ أدنى له؛ ولا "
+-            "يؤثر نزول خارجها. العمق الإجمالي (مم) = "
++            "يؤثر نزول خارجها. تُفحص جميع القراءات داخل الفترة، بما فيها قراءات اليوم الواحد. "
++            "لا يُحسب الإجمالي دون قائمة آبار كاملة سارية لكل الفترة ومطابقة للعدادات؛ تغير تخصيص الآبار يستلزم تقسيم الفترة. العمق الإجمالي (مم) = "
+             f"مجموع حجوم عدادات الحقل (م³) ÷ مساحة الحقل (م²) × 1000؛ {AREA_RULE}. العداد المسجّل لأكثر من حقل: حصة كل "
+             "حقل منه غير معروفة، فلا يُحسب عمق لأيٍّ منها. والحقل الذي لا عداد له ريّه غير معروف لا صفر؛ أما عداد قُرئ ولم "
+             "يتقدم فريّه صفر معروف. النطاق «أ-ب» يشمل أ ولا يشمل ب")
+@@ -174,21 +182,29 @@
+     return "\n".join([
+         "قاعدة موازنة الماء في المنطقة الجذرية (FAO-56، الفصل 8):",
+         "- " + p_line,
+-        "- TAW = 1000 × (θFC − θWP) × Zr؛ ETc = Kc × ET0؛ p اليومية = p الجدولية + 0.04 × (5 − ETc) محصورة بين 0.1 و0.8؛ "
++        "- المعادلات التالية تستخدم عجز بداية اليوم لحساب Ks:",
++        "TAW = 1000 × (θFC − θWP) × Zr",
++        "ETc = Kc × ET0",
++        "p = min(0.8, max(0.1, p_table + 0.04 × (5 − ETc)))",
+         "RAW = p × TAW",
+-        "- العجز في نهاية يوم قراءة الرطوبة: Dr0 = 1000 × (θFC − θ0) × Zr محصوراً بين 0 وTAW؛ θ0 حجمية "
+-        "(% ÷ 100 أو m3/m3، ومتوسطها إن تعددت)؛ أي وحدة أخرى لا تصلح",
+-        "- لكل يوم بعده: Ks = 1 إذا كان عجز بداية اليوم ≤ RAW، وإلا (TAW − Dr) ÷ ((1 − p) × TAW) حيث Dr عجز بداية اليوم "
+-        "وp وRAW لذلك اليوم؛ "
+-        "Dr الجديد = Dr − المطر − Ea × الري الإجمالي + Ks × ETc، محصوراً بين 0 وTAW (الفائض تسرّب عميق)؛ "
+-        "الجريان السطحي والصعود الشعري صفر",
++        "Dr0 = min(TAW, max(0, 1000 × (θFC − θ0) × Zr))",
++        "- θ0 متوسط رطوبة حجمية للمنطقة الجذرية؛ النسبة المئوية تقسم على 100، أو m3/m3 مباشرة؛ أي وحدة أخرى لا تصلح",
++        "Ks = 1  [Dr_start ≤ RAW]",
++        "Ks = (TAW − Dr_start) / ((1 − p) × TAW)  [Dr_start > RAW]",
++        "I_net = Ea × I_gross",
++        "ET_actual = min(Ks × ETc, max(0, TAW − Dr_start + P + I_net))",
++        "DP = max(0, P + I_net − ET_actual − Dr_start)",
++        "Dr_end = Dr_start − P − I_net + ET_actual + DP",
++        "- الاستخراج لا يتجاوز الماء المتاح فوق نقطة الذبول؛ الفائض تسرب عميق؛ الجريان السطحي والصعود الشعري صفر",
+         "- الري الإجمالي ليوم (مم) = مجموع فروق قراءات عدادات الحقل بين نهاية اليوم السابق ونهاية اليوم ÷ المساحة (م²) × "
+         f"1000؛ قراءة اليوم = آخر قراءة صالحة فيه؛ {AREA_RULE}",
+         "- عند تعدد سجلات يوم واحد: ET0 والمطر والرطوبة بمتوسطها اليومي، وعداد الماء بآخر قراءة صالحة في اليوم",
+         f"- Kc ساري من تاريخ سجله حتى السجل التالي؛ المطر من أول مصدر سجلاته مكتملة لكل أيام الموازنة (من اليوم التالي "
+         f"لقراءة الرطوبة حتى اليوم المسؤول عنه)، بالترتيب: {order}",
+-        f"- الحالة في نهاية اليوم المسؤول عنه: لا إجهاد إذا Dr ≤ RAW (بـp ذلك اليوم)؛ وإلا Ks = (TAW − Dr) ÷ ((1 − p) × TAW): "
+-        f"معتدل إذا Ks ≥ {ks:g}، وشديد إذا كان أقل",
++        "- حالة نهاية اليوم: لا إجهاد إذا لم يتجاوز عجز نهايته الماء الميسّر؛ وإلا نحسب المعامل التالي:",
++        "Ks_end = (TAW − Dr_end) / ((1 − p) × TAW)",
++        f"- بعد تجاوز الماء الميسّر: الإجهاد معتدل إذا بلغ معامل نهاية اليوم {ks:g} أو أكثر، وشديد إذا قل عنه.",
++        "- تُفحص جميع قراءات العداد داخل الفترة، ويلزم سجل كامل لتخصيص الآبار لكل الفترة ومطابق للعدادات.",
+         "- يوم بلا ET0، أو بلا مطر من المصدر المختار، أو يوم غابت فيه قراءة عداد واحد من عدادات الحقل ولو قُرئ غيره — حتى لو كان مجموع العداد التراكمي "
+         "عبر الفجوة معروفاً، لأن توزيعه على الأيام غير معروف — أو عداد نزلت قراءته، أو حقل بلا عداد أو عداده مشترك مع حقل "
+         "آخر: كل ذلك يجعل الحالة غير معروفة؛ السجل المفقود ليس صفراً",
+@@ -219,7 +235,8 @@
+     meters = list(fw.of("meter").values())
+     if not meters:
+         return {"problem": "no_meter", "naive": 0.0}
+-    vols, naive_vol, prob, detail = [], 0.0, None, None
++    prob, detail = coverage_problem(ctx.store, fw, ctx.rules, a, b)
++    vols, naive_vol = [], 0.0
+     for s in meters:
+         dv, p = window_delta(s, a, b)
+         naive_vol += naive_delta(s, a, b)
+@@ -250,6 +267,9 @@
+     if f.geom is None:
+         return None, "no_polygon", None
+     area = f.geom.area_m2
++    problem, detail = coverage_problem(ctx.store, fw, ctx.rules, a, b)
++    if problem:
++        return None, problem, detail
+     total = {d: 0.0 for d in days_between(a + DAY, b)}
+     for s in meters:
+         inc, prob, at = daily_increments(s, a, b)
+@@ -271,6 +291,16 @@
+ 
+ def _shared_note(ctx, f, fw, cards: Cards) -> list[str]:
+     refs = []
++    inv = inventory_for(ctx.store, f, ctx.rules)
++    if inv is None:
++        cards.text("قائمة آبار الحقل الكاملة غير متاحة؛ اكتمال مصادر الري غير معروف")
++    else:
++        for v in inv:
++            cards.text(f"قائمة الآبار الكاملة للحقل [field_id={f.id}، المستأجر {f.tenant}] من {v['from']} إلى {v['to']} "
++                       f"شاملين الطرفين: {', '.join(v['wells']) or 'لا آبار معلنة'}")
++    missing = set(fw.of("pump_hours")) - set(fw.of("meter"))
++    if missing:
++        cards.text("توجد سجلات ساعات بلا عداد ماء مقابل: " + ", ".join(sorted(missing)))
+     for s in fw.of("meter").values():
+         for k in _other_owners(ctx, f, s):
+             o = ctx.store.fields[k]
+@@ -286,7 +316,7 @@
+ 
+ # ───────────────────────── families ─────────────────────────
+ 
+-WINDOW_FREE = {"no_meter", "shared_meter", "no_polygon"}
++WINDOW_FREE = {"no_meter", "shared_meter", "no_polygon", "well_inventory_missing", "missing_expected_meter"}
+ 
+ 
+ def gen_applied_depth(ctx: GenContext):
+@@ -569,7 +599,7 @@
+ 
+ 
+ # problems that do not depend on the day asked
+-STATIC_PROBLEMS = {"no_meter", "shared_meter", "no_polygon", "theta0_unusable", "soil_type_missing",
++STATIC_PROBLEMS = {"well_inventory_missing", "missing_expected_meter", "no_meter", "shared_meter", "no_polygon", "theta0_unusable", "soil_type_missing",
+                    "soil_type_not_in_rules", "crop_missing", "crop_not_in_rules"}
+ 
+ 
+@@ -616,6 +646,11 @@
+     return cards, refs
+ 
+ 
++def _kc_evidence(case):
++    return [ref for s in case["fw"].of("kc").values()
++            for ref in kc_refs(s, case["d0"] + DAY, case["d"])]
++
++
+ def _balance_values(case) -> dict:
+     if "rows" not in case:
+         return {"problem": case.get("problem"), "detail": case.get("detail"),
+@@ -652,7 +687,7 @@
+             distractors=[labels[k] for k in STRESS if k != cls] + ([ABSTAIN_TEXT] if answerable else []),
+             evidence={"kind": "derived", "records": [field_ref(f)] + [s.ref(case["d0"], D) for k in
+                                                                       ("soil_moisture", "et0", "rain", "meter")
+-                                                                      for s in case["fw"].of(k).values()],
++                                                                      for s in case["fw"].of(k).values()] + _kc_evidence(case),
+                       "values": _balance_values(case), "rule": stress_rule(ctx, case.get("prm"), f),
+                       "computation": ("Dr0 من الرطوبة ← موازنة يومية ← مقارنة Dr بـRAW ثم Ks بالعتبة" if answerable
+                                       else PROBLEMS[case["problem"]]),
+@@ -667,21 +702,40 @@
+ def refill_rule(ctx) -> str:
+     w = wr(ctx)
+     lo, hi = w["refill_days"]
+-    return (f"قاعدة التعويض: الحجم الإجمالي اللازم (م³) = Dr (مم، العجز كله لا ما زاد على RAW) × المساحة (م²) ÷ 1000 ÷ "
+-            "Ea. البئر X له عداد ماء meter_total_X وعداد ساعات pump_hours_X؛ تدفقه (م³/ساعة) = فرق عداد الماء ÷ فرق عداد "
+-            f"الساعات بين نهاية يوم قبل اليوم المسؤول عنه بـ{w['flow_window_days']} أيام ونهاية يومه (العدادان تراكميان؛ نزول "
+-            "القراءة أو غيابها في أحد الطرفين، أو عداد ساعات لم يتقدم، أو بئر بلا عداد ساعات، يجعل تدفق البئر غير معروف). "
+-            "تعمل آبار الحقل كلها معاً بمجموع تدفقها، فإذا كان تدفق أي بئر منها غير معروف فالمجموع غير معروف (لا يُسقط البئر). "
+-            f"كل يوم تشغيل = {w['max_pump_hours_per_day']:g} ساعات (افتراض سهول). أيام التشغيل = الحجم ÷ (مجموع التدفق × "
+-            f"{w['max_pump_hours_per_day']:g}): ≤ {lo:g}، أو > {lo:g} و≤ {hi:g}، أو > {hi:g}")
++    return "\n".join([
++        "قاعدة التعويض: نحسب الحجم الإجمالي لتعويض العجز كله، لا الجزء الزائد على الماء الميسّر فقط.",
++        "V_gross = Dr × Area / (1000 × Ea)",
++        "- الحجم بالمتر المكعب، والعجز بالمليمتر، والمساحة بالمتر المربع.",
++        f"- تدفق البئر من فرق عداد الماء وفرق عداد ساعاتها خلال {w['flow_window_days']} أيام حتى اليوم المسؤول عنه.",
++        "Q_well = ΔV / Δhours",
++        "Q_total = sum(Q_well)",
++        "- غياب طرف من العدادين أو نزوله أو عدم تقدم الساعات يجعل التدفق غير معروف؛ لا تُسقط البئر.",
++        f"- تعمل الآبار معًا؛ كل يوم تشغيل يساوي {w['max_pump_hours_per_day']:g} ساعات (افتراض سهول).",
++        "pump_days = V_gross / (Q_total × hours_per_day)",
++        f"- الفئات: {lo:g} أيام أو أقل؛ أكثر من {lo:g} وحتى {hi:g}؛ أكثر من {hi:g}.",
++        "- عند تدفق إجمالي صفري وعجز موجب، لا توجد مدة تعويض محدودة؛ هذه نتيجة معلومة وليست فجوة قياس.",
++        "- هذا مكافئ ضخ لعجز ثابت، يهمل المطر واستهلاك المحصول أثناء التعويض ولا يتنبأ بزمن التعافي الفعلي.",
++    ])
+ 
+ 
+ def gen_refill_feasibility(ctx: GenContext):
++    """A broken case must not discard valid questions from other fields."""
++    for case in stress_cases(ctx):
++        try:
++            yield from _gen_refill_cases(ctx, [case])
++        except Exception as exc:
++            ctx.cache.setdefault("case_errors", []).append({"family": "water.refill_feasibility",
++                "field_key": case["field"].key, "day": str(case["d"]),
++                "error": f"{type(exc).__name__}: {exc}"})
++            ctx.skip("water.refill_feasibility", "case_error")
++
++
++def _gen_refill_cases(ctx: GenContext, cases):
+     fam = "water.refill_feasibility"
+     w = wr(ctx)
+     lo, hi = w["refill_days"]
+     labels = {k: v.format(lo=lo, hi=hi) for k, v in REFILL.items()}
+-    for case in stress_cases(ctx):
++    for case in cases:
+         if case.get("skip"):
+             ctx.skip(fam, case["skip"])
+             continue
+@@ -711,35 +765,39 @@
+                 if dh <= 0:
+                     problem = "pump_hours_not_increasing"
+                     break
+-                flows[ms.indicator_id] = {"volume_m3": r2(dv), "hours": r2(dh), "flow_m3_h": r2(dv / dh)}
++                flows[ms.indicator_id] = {"volume_m3": dv, "hours": dh, "flow_m3_h": dv / dh}
+         if problem is None:
+-            q = sum(x["volume_m3"] / x["hours"] for x in flows.values())
++            q = sum(x["flow_m3_h"] for x in flows.values())
+             vol = case["dr"] * f.geom.area_m2 / 1000 / case["prm"]["ea"]
+-            days = vol / (q * w["max_pump_hours_per_day"])
+-            if min(abs(days - lo) / lo, abs(days - hi) / hi) < w["refill_margin_rel"]:
+-                ctx.skip(fam, "days_near_threshold")
+-                continue
+-            cls = "one" if days <= lo else "few" if days <= hi else "many"
++            if q == 0:
++                cls = "unavailable"
++            else:
++                days = vol / (q * w["max_pump_hours_per_day"])
++                if min(abs(days - lo) / lo, abs(days - hi) / hi) < w["refill_margin_rel"]:
++                    ctx.skip(fam, "days_near_threshold")
++                    continue
++                cls = "one" if days <= lo else "few" if days <= hi else "many"
+         cards, refs = _balance_cards(ctx, case, extra_kinds=("pump_hours",))
+         sp = list(fw.of("pump_hours").values()) + list(fw.of("meter").values())
+         cards.text(refill_rule(ctx))
+         it = make_item(
+-            ctx, family=fam, level="scene_reasoning",
++            ctx, family=fam, level="scene_reasoning", max_options=5,
+             question=(f"إذا شُغّلت آبار الحقل {quote(f.display)} بتدفقها المقيس خلال {w['flow_window_days']} أيام حتى {D}، "
+-                      f"فكم يوم تشغيل يلزم لتعويض عجز المنطقة الجذرية في نهاية ذلك اليوم، المحسوب بالموازنة منذ قراءة "
++                      f"فما مكافئ أيام الضخ لتعويض عجز المنطقة الجذرية في نهاية ذلك اليوم، المحسوب بالموازنة منذ قراءة "
+                       f"الرطوبة في {case['d0']}، وفق قاعدة التعويض؟"),
+             correct=labels[cls] if cls else None, answerable=problem is None, allow_abstain=False,
+             distractors=[labels[k] for k in REFILL if k != cls] + ([] if problem else [ABSTAIN_TEXT]),
+             evidence={"kind": "derived",
+                       "records": [field_ref(f)] + [s.ref(case["d0"], D) for s in sp]
+-                      + [s.ref(case["d0"], D) for k in ("soil_moisture", "et0", "rain") for s in fw.of(k).values()],
++                      + [s.ref(case["d0"], D) for k in ("soil_moisture", "et0", "rain") for s in fw.of(k).values()] + _kc_evidence(case),
+                       "values": {"balance": _balance_values(case), "flows": flows, "pump_days": r2(days),
+                                  "class": cls, "problem": problem},
+                       "rule": refill_rule(ctx),
+                       "computation": ("Dr من الموازنة ← الحجم الإجمالي ← تدفق الآبار من العدادين ← أيام التشغيل"
+                                       if problem is None else PROBLEMS[problem]),
+                       "caveats": BALANCE_CAVEATS[:2] + ["يفترض تدفقاً ثابتاً كما قيس، ولا يراعي حدود سرعة المحور "
+-                                                        "أو معدل الإضافة الأقصى للتربة"]},
++                                                        "أو معدل الإضافة الأقصى للتربة",
++                                                        "مكافئ حجم ثابت؛ لا يشمل المطر أو ET أثناء التعويض ولا يتنبأ بزمن التعافي"]},
+             context=cards, key={"field": f.key, "from": str(case["d0"]), "day": str(D)}, field_refs=refs,
+             answer_value=cls)
+         if it:
+--- a/sahool_qa/items.py
++++ b/sahool_qa/items.py
+@@ -94,7 +94,7 @@
+ 
+ def make_item(ctx: GenContext, *, family: str, level: str, question: str, correct: str | None,
+               distractors: list[str], evidence: dict, context, key: dict, field_refs: list[str] | None = None,
+-              answerable: bool = True, allow_abstain: bool = True, answer_value=None) -> dict | None:
++              answerable: bool = True, allow_abstain: bool = True, answer_value=None, max_options: int = 4) -> dict | None:
+     """Assemble one multiple-choice item. Returns None (and records why) when
+     there are not enough distinct options.
+ 
+@@ -125,9 +125,11 @@
+         if nd not in seen:
+             seen.add(nd)
+             uniq.append(d)
+-    uniq = uniq[:3]
++    if not 2 <= max_options <= len(LETTERS):
++        raise ValueError("max_options exceeds supported answer letters")
++    uniq = uniq[:max_options - 1]
+     if answerable and allow_abstain and ABSTAIN_TEXT not in uniq and rng.random() < ctx.rules["abstain_option_rate"]:
+-        uniq = uniq[:2] + [ABSTAIN_TEXT] if len(uniq) >= 2 else uniq + [ABSTAIN_TEXT]
++        uniq = uniq[:max_options - 2] + [ABSTAIN_TEXT]
+     if len(uniq) < 1 or (len(uniq) < 2 and answerable):
+         ctx.skip(family, "too_few_distinct_options")
+         return None
+--- a/sahool_qa/pipeline.py
++++ b/sahool_qa/pipeline.py
+@@ -27,7 +27,7 @@
+ from . import GENERATOR_ID
+ from .arabic import LETTERS, to_arabic_digits
+ from .audit import audit
+-from .config import LEVELS
++from .config import LEVELS, validate_water_rules
+ from .facts import FactStore
+ from .generators import select
+ from .items import GenContext
+@@ -57,6 +57,7 @@
+                             r.pixel_sha256() if Path(r.path).exists() else r.path] for r in store.rasters),
+                           key=lambda r: json.dumps(r, default=str)),
+         "scope": store.tenant_scope,
++        "water_well_inventory": store.provenance.get("water_well_inventory", {}),
+     }
+     blob = json.dumps(doc, ensure_ascii=False, sort_keys=True, default=str)
+     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
+@@ -120,6 +121,9 @@
+              split_unit: str = "site", split_mode: str = "split", ratios=(0.8, 0.1, 0.1), holdout=None,
+              split_salt: str = "sahool-qa", arabic_digits: bool = False, images: bool = True,
+              max_per_family: int | None = None, extra_manifest: dict | None = None) -> dict:
++    validate_water_rules(rules)
++    inventory = {**store.provenance.get("water_well_inventory", {}), **rules["water"].get("well_inventory", {})}
++    validate_water_rules({**rules, "water": {**rules["water"], "well_inventory": inventory}})
+     out = Path(out_dir).resolve()
+     out.parent.mkdir(parents=True, exist_ok=True)
+     if out.exists() and (not out.is_dir() or (any(out.iterdir()) and not _owned(out))):
+@@ -248,6 +252,8 @@
+                 warnings.append(f"{s} lacks families present in train: {missing}")
+     if family_errors:
+         warnings.append(f"families failed and were skipped: {sorted(family_errors)}")
++    if ctx.cache.get("case_errors"):
++        warnings.append(f"water cases failed and were skipped: {len(ctx.cache['case_errors'])}")
+     if store.synthetic or any(r.synthetic for r in store.rasters):
+         warnings.append("SYNTHETIC inputs: items are for testing the pipeline, not for evaluating agronomy")
+     manifest = {
+@@ -286,6 +292,7 @@
+         "split": split_report,
+         "family_stats": ctx.stats,
+         "family_errors": family_errors,
++        "case_errors": ctx.cache.get("case_errors", []),
+         "data_issues": {"total": len(issues), "by_code": dict(Counter(i["code"] for i in issues)),
+                         "by_severity": dict(Counter(i["severity"] for i in issues))},
+         "warnings": warnings,
+--- a/sahool_qa/preview.py
++++ b/sahool_qa/preview.py
+@@ -36,6 +36,8 @@
+     inline boxes. An inline-block cannot be reordered by any bidi
+     implementation, old (wkhtmltopdf) or new, unlike <bdi> or bare text."""
+     text = re.sub("[\u2066-\u2069]", "", text)
++    if not re.search(r"[\u0600-\u06ff]", text):
++        return f'<span class="n" dir="ltr">{html.escape(text)}</span>'
+     out, pos = [], 0
+     for m in _LTR.finditer(text):
+         out.append(html.escape(text[pos:m.start()]))
+@@ -47,6 +49,12 @@
+ 
+ def plain(text: str) -> str:
+     return html.escape(re.sub("[\u2066-\u2069]", "", text))
++
++
++def evidence_line(text: str) -> str:
++    if re.match(r"^(TAW|ETc|p|RAW|Dr0|Ks|I_net|ET_actual|DP|Dr_end|Ks_end|V_gross|Q_well|Q_total|pump_days) = ", text):
++        return f'<div class="formula" dir="ltr">{html.escape(text)}</div>'
++    return f"<div>{ltr(text)}</div>"
+ 
+ 
+ CSS = """
+@@ -74,6 +82,8 @@
+ .ev{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
+ figure{margin:10px 0}figure img{max-width:100%;image-rendering:pixelated;border-radius:6px;display:block}
+ figcaption{font-size:12.5px;color:var(--muted)}
++.balance .ev{font-size:12px;line-height:1.45}
++.formula{direction:ltr;unicode-bidi:isolate;text-align:left;overflow-wrap:anywhere;margin:3px 0}
+ .n{display:inline-block;direction:ltr;unicode-bidi:embed}
+ ol.opts li .v[dir=ltr]{display:inline-block;direction:ltr;unicode-bidi:embed}
+ .ctx{font-size:12.5px;color:var(--muted)}.ctx div{margin:2px 0}
+@@ -103,7 +113,6 @@
+     c = manifest["counts"]
+     parts = ['<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">',
+              '<meta name="viewport" content="width=device-width,initial-scale=1">',
+-             '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">',
+              f"<title>معاينة أسئلة سهول</title><style>{CSS}</style></head><body><main>",
+              "<h1>معاينة أسئلة سهول</h1>",
+              f'<div class="meta">{ltr(manifest["generator"])} · {ltr(manifest["created_utc"])} · '
+@@ -156,7 +165,8 @@
+         tags += f'<span class="tag kind">دليل {EVIDENCE_KINDS[it["evidence"]["kind"]]}</span>'
+         if not it["answerable"]:
+             tags += '<span class="tag abst">إجابتها الامتناع</span>'
+-        card = [f'<section class="card">{tags}<div class="q">{ltr(it["question"])}</div>']
++        card_class = "card balance" if it["family"] == "water.stress_status" else "card"
++        card = [f'<section class="{card_class}">{tags}<div class="q">{ltr(it["question"])}</div>']
+         if it.get("image"):
+             src = _img(out, it["image"])
+             legend = next((x for x in it["context"].split("\n") if x.startswith("الصورة:")), "")
+@@ -171,7 +181,7 @@
+         if ev.get("caveats"):
+             evtxt += " — تحفّظات: " + "؛ ".join(ev["caveats"])
+         # one block per line: a formula like "TAW = 1000 × (θFC − θWP) × Zr" stays a single left-to-right run
+-        evhtml = "".join(f"<div>{plain(line)}</div>" for line in evtxt.split("\n") if line.strip())
++        evhtml = "".join(evidence_line(line) for line in evtxt.split("\n") if line.strip())
+         card.append(f'<div class="ev">{evhtml}<div dir="ltr" style="text-align:right">{it["id"]} · {it["split"]}</div></div>')
+         card.append("</section>")   # the raw-record context is in the JSONL files; it is noise in a printed preview
+         parts.append("".join(card))
+--- a/sahool_qa/sources/fixture.py
++++ b/sahool_qa/sources/fixture.py
+@@ -75,4 +75,10 @@
+             rec = Indicator(indicator_id=str(p["indicator_id"]), value=to_float_raw(p.get("value")),
+                             category=p.get("category"), unit=p.get("unit"), status=p.get("status"), **common)
+         store.admit(rec)
++    # Inventory is domain data: provenance must obey the same tenant/field scope as records.
++    if "water_well_inventory" in store.provenance:
++        store.provenance["water_well_inventory"] = {
++            key: value for key, value in store.provenance["water_well_inventory"].items()
++            if key in store.fields
++        }
+     return store
+--- a/sahool_qa/waterbal.py
++++ b/sahool_qa/waterbal.py
+@@ -18,7 +18,8 @@
+     TAW = 1000 (θFC - θWP) Zr            RAW = p TAW
+     p   = p_table + 0.04 (5 - ETc)  clipped to [0.1, 0.8]
+     Ks  = 1 if Dr ≤ RAW else (TAW - Dr) / ((1 - p) TAW)       (Dr at the start of the day)
+-    Dr,i = Dr,i-1 - P_i - Ea·I_gross,i + Ks·Kc·ET0_i,  clipped to [0, TAW]; water above
++    ET_actual = min(Ks·Kc·ET0_i, max(0, TAW - Dr,i-1 + P_i + Ea·I_gross,i))
++    Dr,i = Dr,i-1 - P_i - Ea·I_gross,i + ET_actual, clipped to [0, TAW]; water above
+            field capacity leaves as deep percolation. RO = 0 and CR = 0 are assumed.
+     Dr,0 = 1000 (θFC - θ0) Zr  clipped to [0, TAW]   (eq 87)
+ """
+@@ -26,6 +27,7 @@
+ 
+ import datetime as dt
+ import statistics
++import math
+ from dataclasses import dataclass, field
+ 
+ from .facts import FactStore, Field, Indicator, tenant_key
+@@ -142,15 +144,72 @@
+ 
+ # ───────────────────────── cumulative meters ─────────────────────────
+ 
++def meter_records(s: Series, a: dt.date, b: dt.date) -> list[Indicator]:
++    """Raw usable readings between the selected end-of-day endpoints, inclusive.
++    A reset before the starting endpoint or after the ending endpoint is irrelevant.
++    """
++    def endpoint(day):
++        rows = [r for r in s.records.get(day, []) if r.conv is not None]
++        return max(rows, key=lambda r: (r.recorded_ts, r.key)) if rows else None
++    first, last = endpoint(a), endpoint(b)
++    if first is None or last is None:
++        return []
++    return sorted((r for r in s.between(a, b) if r.conv is not None
++                   and first.recorded_ts <= r.recorded_ts <= last.recorded_ts),
++                  key=lambda r: (r.recorded_ts, r.key))
++
++
++def meter_sequence_problem(rows: list[Indicator]) -> str | None:
++    for x, y in zip(rows, rows[1:]):
++        if x.recorded_ts == y.recorded_ts and x.conv != y.conv:
++            return "meter_timestamp_conflict"
++        if y.conv < x.conv:
++            return "meter_decrease"
++    return None
++
++
++def inventory_for(store: FactStore, f: Field, rules: dict):
++    """Explicit, tenant-qualified, complete well assignments; never infer from meters."""
++    configured = rules["water"].get("well_inventory", {})
++    if f.key in configured:
++        return configured[f.key]
++    return store.provenance.get("water_well_inventory", {}).get(f.key)
++
++
++def coverage_problem(store: FactStore, fw: FieldWater, rules: dict, a: dt.date, b: dt.date):
++    inventory = inventory_for(store, fw.field, rules)
++    present = set(fw.of("meter"))
++    # Even without an inventory, a pump-hours stream without a volume stream is a known gap.
++    missing = set(fw.of("pump_hours")) - present
++    if missing:
++        return "missing_expected_meter", sorted(missing)
++    if inventory is None:
++        return "well_inventory_missing", fw.field.key
++    expected = None
++    for day in days_between(a, b):
++        active = [v for v in inventory if dt.date.fromisoformat(v["from"]) <= day <= dt.date.fromisoformat(v["to"])]
++        if len(active) != 1:
++            return "well_inventory_gap", str(day)
++        wells = {x.lower() for x in active[0]["wells"]}
++        if expected is not None and wells != expected:
++            return "well_assignment_changed", str(day)
++        expected = wells
++    if expected - present:
++        return "missing_expected_meter", sorted(expected - present)
++    if present - expected:
++        return "unassigned_meter", sorted(present - expected)
++    return None, None
++
++
+ def window_delta(s: Series, a: dt.date, b: dt.date) -> tuple[float | None, str | None]:
+     """Total between the readings of day a and day b. Gaps in between are harmless; a
+     missing end reading or a decrease anywhere in [a, b] makes it unknown."""
+     va, vb = s.value(a), s.value(b)
+     if va is None or vb is None:
+         return None, "missing_endpoint"
+-    vals = [s.value(d) for d in s.usable_days() if a <= d <= b]
+-    if any(y < x for x, y in zip(vals, vals[1:])):
+-        return None, "meter_decrease"
++    problem = meter_sequence_problem(meter_records(s, a, b))
++    if problem:
++        return None, problem
+     return vb - va, None
+ 
+ 
+@@ -171,8 +230,9 @@
+         cur = s.value(d)
+         if cur is None:
+             return None, "missing_daily_reading", d
+-        if cur < prev:
+-            return None, "meter_decrease", d
++        problem = meter_sequence_problem(meter_records(s, d - DAY, d))
++        if problem:
++            return None, problem, d
+         out[d] = cur - prev
+         prev = cur
+     return out, None, None
+@@ -218,6 +278,9 @@
+ def balance(prm: dict, theta0: float, days: list[dt.date], et0: dict, kc: dict, rain: dict,
+             irr_gross: dict) -> tuple[float, list[dict]]:
+     taw, ea = prm["taw"], prm["ea"]
++    if not all(math.isfinite(prm[k]) for k in ("fc", "wp", "zr", "taw", "ea", "p_table")) or not (
++            prm["fc"] > prm["wp"] >= 0 and prm["zr"] > 0 and taw > 0 and 0 < ea <= 1):
++        raise ValueError("invalid root-zone parameters")
+     dr = min(max(1000 * (prm["fc"] - theta0) * prm["zr"], 0.0), taw)
+     dr0 = dr
+     rows = []
+@@ -225,13 +288,15 @@
+         etc = kc[d] * et0[d]
+         p = p_adjusted(prm["p_table"], etc)
+         ks = ks_of(dr, taw, p)
+-        eta = ks * etc
+         inet = irr_gross[d] * ea
++        # Extraction cannot exceed water available above WP. Clipping only Dr breaks eq. 85.
++        eta_potential = ks * etc
++        eta = min(eta_potential, max(0.0, taw - dr + rain[d] + inet))
+         x = dr - rain[d] - inet + eta
+         dp = max(0.0, -x)
+         dr = min(max(x, 0.0), taw)
+         rows.append({"date": str(d), "et0": et0[d], "kc": kc[d], "etc": etc, "p": p, "raw": p * taw,
+-                     "ks_start": ks, "eta": eta, "rain": rain[d], "irr_gross": irr_gross[d], "irr_net": inet,
++                     "ks_start": ks, "eta": eta, "eta_unlimited": eta_potential, "rain": rain[d], "irr_gross": irr_gross[d], "irr_net": inet,
+                      "dp": dp, "dr_end": dr})
+     return dr0, rows
+ 
+@@ -247,3 +312,12 @@
+     if dr <= raw:
+         return "no_stress", ks
+     return ("moderate" if ks >= rules["water"]["ks_severe"] else "severe"), ks
++
++
++def kc_refs(series: Series, a: dt.date, b: dt.date) -> list[dict]:
++    """Exact records establishing Kc at the first modelled day and every later change."""
++    dates = series.days()
++    preceding = [d for d in dates if d <= a]
++    used = ([preceding[-1]] if preceding else []) + [d for d in dates if a < d <= b]
++    return [{**series.ref(d, d), "record_keys": [r.key for r in series.records[d]],
++             "recorded_at": [r.recorded_ts.isoformat() for r in series.records[d]]} for d in used]
+--- a/tests/test_postgres.py
++++ b/tests/test_postgres.py
+@@ -5,6 +5,7 @@
+ ST_AsGeoJSON instead; everything after that point is the same code path.
+ Skipped automatically when no PostgreSQL server binaries are available.
+ """
++import copy
+ import json
+ import os
+ import pwd
+@@ -172,7 +173,9 @@
+         self.assertTrue(all(s.ec is None for s in store.soil))
+ 
+     def test_generation_parity_db_vs_fixture(self):
+-        rules = DEFAULT_RULES
++        rules = copy.deepcopy(DEFAULT_RULES)
++        from sahool_qa.demo import PROVENANCE
++        rules["water"]["well_inventory"] = copy.deepcopy(PROVENANCE["water_well_inventory"])
+         out = Path(self.tmp, "gen")
+         stores = [load(self.db(), DEFAULT_SCHEMA, TenantScope("tenant", "demo-tenant"))[0],
+                   load_fixture(str(self.fx), "demo-tenant")]
+--- a/tests/test_regressions.py
++++ b/tests/test_regressions.py
+@@ -239,7 +239,9 @@
+                     "statement_timeout=0", "search_path=evil"):
+             with self.assertRaises(SchemaError, msg=bad):
+                 Db("host=/nonexistent", [bad], verify=False)
+-        db = Db("host=/nonexistent", ["app.current_tenant=abc-123", "TimeZone=Asia/Aden"], verify=False)
++        from unittest.mock import patch
++        with patch.dict("sys.modules", {"psycopg": object()}):
++            db = Db("host=/nonexistent", ["app.current_tenant=abc-123", "TimeZone=Asia/Aden"], verify=False)
+         self.assertIn("app.current_tenant=abc-123", db.options)
+         self.assertTrue(db.options.index("default_transaction_read_only=on") > db.options.index("app.current_tenant"))
+ 
+--- a/tests/test_water.py
++++ b/tests/test_water.py
+@@ -208,7 +208,7 @@
+                   "water.refill_feasibility", "water.applied_depth", "water.rain_total"):
+             for it in self.fam(f):           # always offered: its presence never gives the answer away
+                 self.assertIn(ABSTAIN_TEXT, [o["text"] for o in it["options"]])
+-                self.assertEqual(len(it["options"]), 3 if f == "water.rain_corroboration" else 4, it["id"])
++                self.assertEqual(len(it["options"]), 3 if f == "water.rain_corroboration" else 5 if f == "water.refill_feasibility" else 4, it["id"])
+ 
+     def test_same_day_records_are_aggregated(self):
+         it = next(i for i in self.fam("water.stress_status") if self.fid(i) == "demo_pivot_1" and "2026-01-19" in i["question"])
+--- a/tests/test_water_041.py
++++ b/tests/test_water_041.py
+@@ -0,0 +1,217 @@
++"""Counterexamples from the 0.4.0 review; no optional DB dependency."""
++import copy
++import datetime as dt
++import json
++import math
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++
++from sahool_qa.config import DEFAULT_RULES, validate_water_rules
++from sahool_qa.demo import write_demo
++from sahool_qa.sources.fixture import load_fixture
++from sahool_qa.items import GenContext
++from sahool_qa.waterbal import Series, window_delta, daily_increments, balance, kc_refs
++from sahool_qa.facts import Indicator
++from sahool_qa.generators import water
++from sahool_qa.audit import audit
++from sahool_qa.pipeline import generate, fingerprint
++from sahool_qa.preview import evidence_line
++
++
++class RawMeters(unittest.TestCase):
++    def series(self, rows):
++        s=Series('meter','meter_total_X')
++        for stamp,v in rows:
++            t=dt.datetime.fromisoformat(stamp)
++            s.records.setdefault(t.date(),[]).append(Indicator('f',s.indicator_id,v,t,conv=v))
++        return s
++
++    def test_reset_hidden_by_later_recovery_is_unknown(self):
++        s=self.series([('2026-01-01T21:00',100),('2026-01-02T08:00',150),
++                       ('2026-01-02T09:00',0),('2026-01-02T21:00',200)])
++        a,b=dt.date(2026,1,1),dt.date(2026,1,2)
++        self.assertEqual(window_delta(s,a,b),(None,'meter_decrease'))
++        self.assertEqual(daily_increments(s,a,b),(None,'meter_decrease',b))
++
++    def test_reset_before_starting_endpoint_does_not_poison_window(self):
++        s=self.series([('2026-01-01T08:00',999),('2026-01-01T09:00',0),
++                       ('2026-01-01T21:00',100),('2026-01-02T21:00',150)])
++        self.assertEqual(window_delta(s,dt.date(2026,1,1),dt.date(2026,1,2)),(50,None))
++
++    def test_conflicting_same_timestamp_is_unknown(self):
++        s=self.series([('2026-01-01T21:00',100),('2026-01-02T10:00',150),
++                       ('2026-01-02T10:00',160),('2026-01-02T21:00',200)])
++        self.assertEqual(window_delta(s,dt.date(2026,1,1),dt.date(2026,1,2)),(None,'meter_timestamp_conflict'))
++
++    def test_monotone_subdaily_and_missing_interior_day(self):
++        s=self.series([('2026-01-01T21:00',100),('2026-01-03T08:00',120),('2026-01-03T21:00',150)])
++        a,b=dt.date(2026,1,1),dt.date(2026,1,3)
++        self.assertEqual(window_delta(s,a,b),(50,None))
++        self.assertEqual(daily_increments(s,a,b)[1],'missing_daily_reading')
++
++
++class WaterPatch(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.tmp=tempfile.TemporaryDirectory()
++        cls.fx,_=write_demo(cls.tmp.name)
++    @classmethod
++    def tearDownClass(cls):
++        cls.tmp.cleanup()
++    def ctx(self):
++        s=load_fixture(str(self.fx),'demo-tenant');rules=copy.deepcopy(DEFAULT_RULES);s.prepare(rules)
++        return GenContext(s,rules)
++    def fw(self,ctx,fid='demo_pivot_1'):
++        return next(w for w in water._fw(ctx).values() if w.field.id==fid)
++    def window(self,ctx):
++        return water.irrigation_window(ctx,self.fw(ctx),dt.date(2026,1,5),dt.date(2026,1,12))
++    def remove(self,ctx,*ids):
++        ctx.store.indicators=[r for r in ctx.store.indicators if not(r.field_id=='demo_pivot_1' and r.indicator_id in ids)]
++        ctx.cache.clear()
++
++    def test_missing_volume_stream_with_hours_is_unknown(self):
++        c=self.ctx();self.remove(c,'meter_total_P1B')
++        self.assertEqual(self.window(c)['problem'],'missing_expected_meter')
++        self.assertNotIn('depth',self.window(c))
++
++    def test_both_streams_removed_still_detected_by_inventory(self):
++        c=self.ctx();self.remove(c,'meter_total_P1B','pump_hours_P1B')
++        self.assertEqual(self.window(c)['problem'],'missing_expected_meter')
++        fw=self.fw(c)
++        self.assertEqual(water.irrigation_daily(c,fw,dt.date(2026,1,5),dt.date(2026,1,12))[1],'missing_expected_meter')
++
++    def test_no_inventory_cannot_assert_total(self):
++        c=self.ctx();c.store.provenance.pop('water_well_inventory')
++        self.assertEqual(self.window(c)['problem'],'well_inventory_missing')
++
++    def test_inventory_tenant_and_period_are_respected(self):
++        c=self.ctx();key=self.fw(c).field.key
++        inv=c.store.provenance['water_well_inventory'].pop(key)
++        c.store.provenance['water_well_inventory']['other-tenant::demo_pivot_1']=inv
++        self.assertEqual(self.window(c)['problem'],'well_inventory_missing')
++        c.rules['water']['well_inventory'][key]=[{'from':'2026-01-06','to':'2026-12-31','wells':['P1A','P1B']}]
++        self.assertEqual(self.window(c)['problem'],'well_inventory_gap')
++
++    def test_assignment_change_and_unassigned_stream_are_unknown(self):
++        c=self.ctx();key=self.fw(c).field.key
++        c.rules['water']['well_inventory'][key]=[
++          {'from':'2025-01-01','to':'2026-01-08','wells':['P1A','P1B']},
++          {'from':'2026-01-09','to':'2026-12-31','wells':['P1A']}]
++        self.assertEqual(self.window(c)['problem'],'well_assignment_changed')
++        c.rules['water']['well_inventory'][key]=[{'from':'2025-01-01','to':'2026-12-31','wells':['P1A']}]
++        self.assertEqual(self.window(c)['problem'],'unassigned_meter')
++
++    def test_fixture_inventory_respects_tenant_scope(self):
++        data=json.loads(Path(self.fx).read_text())
++        data['sahool_qa']['provenance']['water_well_inventory']['other-tenant::secret-field']=[
++            {'from':'2025-01-01','to':'2026-12-31','wells':['secret-well']}]
++        with tempfile.TemporaryDirectory() as tmp:
++            fp=Path(tmp)/'fx.json';fp.write_text(json.dumps(data))
++            st=load_fixture(str(fp),'demo-tenant')
++        self.assertNotIn('other-tenant::secret-field',st.provenance['water_well_inventory'])
++
++    def test_inventory_affects_fingerprint(self):
++        c=self.ctx();old=fingerprint(c.store)
++        c.store.provenance['water_well_inventory']['demo-tenant::demo_pivot_1'][0]['wells']=['P1A']
++        self.assertNotEqual(old,fingerprint(c.store))
++
++    def test_audit_sees_intraday_reset(self):
++        c=self.ctx();fw=self.fw(c);s=fw.of('meter')['p1a'];d=dt.date(2026,1,7)
++        template=s.records[d][0]
++        for hour,v in [(9,200000),(10,0)]:
++            r=copy.deepcopy(template);r.recorded_ts=r.recorded_ts.replace(hour=hour);r.value=r.conv=v
++            c.store.indicators.append(r)
++        issues=audit(c.store,c.rules)
++        self.assertTrue(any(i['code']=='cumulative_meter_decrease' and i.get('timestamp','').startswith('2026-01-07T10:') for i in issues))
++
++    def change_pivot(self,c,kind,fn):
++        fw=self.fw(c)
++        for s in fw.of(kind).values():
++            start=s.days()[0]
++            for day,rs in s.records.items():
++                for r in rs:r.value=r.conv=fn((day-start).days)
++        c.cache['water'].pop('stress',None)
++
++    def test_zero_flow_is_known_no_finite_refill_and_preserves_other_fields(self):
++        c=self.ctx();self.change_pivot(c,'meter',lambda k:1000.)
++        items=list(water.gen_refill_feasibility(c))
++        zeros=[i for i in items if any(r.get('field_id')=='demo_pivot_1' for r in i['evidence']['records'])]
++        self.assertTrue(zeros)
++        first=next(i for i in zeros if '2026-01-12' in i['question'])
++        self.assertTrue(first['answerable']);self.assertEqual(first['answer_value'],'unavailable')
++        self.assertTrue(all(i['answer_value']=='unavailable' for i in zeros if i['answerable']))
++        self.assertTrue(any(i not in zeros for i in items))
++        self.assertFalse(c.cache.get('case_errors'))
++
++    def test_fractional_hours_not_rounded_before_division(self):
++        c=self.ctx();self.change_pivot(c,'pump_hours',lambda k:10+k*.0005)
++        items=list(water.gen_refill_feasibility(c))
++        self.assertFalse(c.cache.get('case_errors'))
++        item=next(i for i in items if i['answerable'] and any(r.get('field_id')=='demo_pivot_1' for r in i['evidence']['records']))
++        for f in item['evidence']['values']['flows'].values():
++            self.assertAlmostEqual(f['hours'],.0035,places=8)
++            self.assertAlmostEqual(f['flow_m3_h'],f['volume_m3']/f['hours'])
++
++    def test_case_error_is_reported_without_dropping_whole_family(self):
++        c=self.ctx();original=water._gen_refill_cases
++        def broken(ctx,cases):
++            if cases[0]['field'].id=='demo_pivot_1':raise ValueError('injected case failure')
++            yield from original(ctx,cases)
++        with patch.object(water,'_gen_refill_cases',broken):
++            items=list(water.gen_refill_feasibility(c))
++        self.assertTrue(items);self.assertTrue(c.cache['case_errors'])
++        self.assertTrue(all(e['field_key']=='demo-tenant::demo_pivot_1' for e in c.cache['case_errors']))
++
++    def test_pipeline_zero_flow_has_no_family_or_case_errors(self):
++        c=self.ctx();self.change_pivot(c,'meter',lambda k:1000.)
++        with tempfile.TemporaryDirectory() as tmp:
++            m=generate(c.store,c.rules,str(Path(tmp)/'qa'),families='water.refill_feasibility',images=False)
++        self.assertFalse(m['family_errors']);self.assertFalse(m['case_errors']);self.assertGreater(m['counts']['items_total'],0)
++
++    def test_answerable_balance_has_precise_kc_record_refs(self):
++        c=self.ctx()
++        for i in list(water.gen_stress_status(c))+list(water.gen_refill_feasibility(c)):
++            if not i['answerable']:continue
++            refs=[r for r in i['evidence']['records'] if r.get('indicator_id')=='kc']
++            self.assertTrue(refs,i['id']);self.assertTrue(all(r['record_keys'] and r['recorded_at'] for r in refs))
++        fw=self.fw(c);s=next(iter(fw.of('kc').values()))
++        refs=kc_refs(s,dt.date(2026,1,6),dt.date(2026,1,19))
++        self.assertEqual([r['from'] for r in refs],['2025-12-20','2026-01-15'])
++
++
++class WaterBalanceAndPresentation(unittest.TestCase):
++    def test_extreme_accepted_inputs_conserve_mass_and_available_water(self):
++        prm={'fc':.12,'wp':.045,'zr':.4,'p_table':.35,'ea':.8,'taw':30.}
++        d=dt.date(2026,1,1)
++        dr0,rows=balance(prm,.0475,[d],{d:20},{d:1.6},{d:0},{d:0})
++        row=rows[0]
++        self.assertAlmostEqual(row['eta'],1.)
++        self.assertAlmostEqual(row['dr_end'],dr0-row['rain']-row['irr_net']+row['eta']+row['dp'])
++
++    def test_mass_balance_grid_wet_dry_and_stressed(self):
++        prm={'fc':.12,'wp':.045,'zr':.4,'p_table':.35,'ea':.8,'taw':30.};d=dt.date(2026,1,1)
++        for theta in [.045,.0475,.10,.12]:
++            for rain in [0,5,40]:
++                for irr in [0,10,50]:
++                    dr0,(row,)=balance(prm,theta,[d],{d:20},{d:1.6},{d:rain},{d:irr})
++                    self.assertAlmostEqual(row['dr_end'],dr0-rain-.8*irr+row['eta']+row['dp'])
++                    self.assertLessEqual(row['eta'],30-dr0+rain+.8*irr+1e-10)
++                    self.assertTrue(0<=row['dr_end']<=30)
++
++    def test_invalid_pump_and_efficiency_rules_rejected(self):
++        for key,values in {'application_efficiency':[0,-1,1.1,float('nan')],
++                           'max_pump_hours_per_day':[0,25,float('inf')],
++                           'check_every_days':[0,1.5], 'flow_window_days':[0]}.items():
++            for v in values:
++                rules=copy.deepcopy(DEFAULT_RULES);rules['water'][key]=v
++                with self.assertRaises(ValueError,msg=(key,v)):validate_water_rules(rules)
++
++    def test_formula_is_one_ltr_block_with_original_operand_order(self):
++        formula='p = min(0.8, max(0.1, p_table + 0.04 × (5 − ETc)))'
++        result=evidence_line(formula)
++        self.assertIn('class="formula" dir="ltr"',result)
++        self.assertIn('(5 − ETc)',result)
++        self.assertNotIn('<span',result)
++        self.assertNotIn('<script>',evidence_line('<script>alert(1)</script>'))
+--- a/tools/check_patch_mutations.py
++++ b/tools/check_patch_mutations.py
+@@ -0,0 +1,21 @@
++from pathlib import Path
++import shutil,subprocess,tempfile,json
++src=Path(__file__).resolve().parents[1];evidence=src/'verification/patch_0.4.1';evidence.mkdir(parents=True,exist_ok=True)
++mutations=[
++ ('reset_check','sahool_qa/waterbal.py','problem = meter_sequence_problem(meter_records(s, a, b))','problem = None'),
++ ('well_coverage','sahool_qa/waterbal.py','    inventory = inventory_for(store, fw.field, rules)','    return None, None\n    inventory = inventory_for(store, fw.field, rules)'),
++ ('flow_rounding','sahool_qa/generators/water.py','"flow_m3_h": dv / dh','"flow_m3_h": dv / round(dh, 2)'),
++ ('zero_flow','sahool_qa/generators/water.py','            if q == 0:','            if False:'),
++ ('mass_conservation','sahool_qa/waterbal.py','eta = min(eta_potential, max(0.0, taw - dr + rain[d] + inet))','eta = eta_potential'),
++ ('kc_lineage','sahool_qa/generators/water.py','return [ref for s in case["fw"].of("kc").values()','return [ref for s in []'),
++]
++results=[]
++for name,file,old,new in mutations:
++ with tempfile.TemporaryDirectory() as td:
++  dst=Path(td)/'qa';shutil.copytree(src,dst,ignore=shutil.ignore_patterns('__pycache__','demo_out','verification'))
++  f=dst/file;s=f.read_text();assert old in s,(name,old);f.write_text(s.replace(old,new,1))
++  p=subprocess.run(['python','-m','unittest','discover','-s','tests','-p','test_water_041.py','-v'],cwd=dst,text=True,capture_output=True)
++  log=p.stdout+p.stderr;(evidence/(name+'.log')).write_text(log)
++  results.append({'mutation':name,'exit_code':p.returncode,'caught':p.returncode!=0,'summary':log.strip().splitlines()[-1]})
++(evidence/'mutations.json').write_text(json.dumps(results,indent=2));print(json.dumps(results,indent=2))
++assert all(r['caught'] for r in results)
+--- a/tools/export_preview_pdf.py
++++ b/tools/export_preview_pdf.py
+@@ -0,0 +1,14 @@
++"""Optional renderer: pip install weasyprint==70.0; requires Pango and DejaVu Sans."""
++import argparse
++from weasyprint import HTML, CSS
++p=argparse.ArgumentParser()
++p.add_argument("html");p.add_argument("pdf")
++a=p.parse_args()
++HTML(filename=a.html).write_pdf(a.pdf, stylesheets=[CSS(string="""
++@page {size:A4; margin:14mm;}
++body {font-family: "DejaVu Sans", sans-serif;}
++.card {break-inside:avoid;}
++.ev {border-top:1px solid #ddd;}
++.q {break-after:avoid;}
++figure img {max-height:85mm; width:auto; max-width:100%;}
++""")])

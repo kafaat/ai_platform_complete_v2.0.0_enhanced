@@ -1,0 +1,182 @@
+{
+ "sq-a95382bbf4e3": {
+  "answer": "د",
+  "value": {
+   "pattern": "undeterminable",
+   "valid_share_pct": 50.4
+  },
+  "confidence": "high",
+  "note": "Good trap: 'no measurement needed' is present, and the rings/sectors are uniform at 100%. The rule doesn't say outright that the <95%-valid clause overrides the earlier clauses (it is appended last). Suggest 'قبل تطبيق ما سبق'. The ID is reused from the clear-sky version (same field/date, 100% valid before)."
+ },
+ "sq-df54fb093f15": {
+  "answer": "ج",
+  "value": {
+   "pattern": "undeterminable",
+   "valid_share_pct": 50.1,
+   "valid_share_screen_pct": 50.2,
+   "green_share_of_valid": 100.0
+  },
+  "confidence": "high",
+  "note": "'No clear weakness' is not among the options, and the visible half is 100% green, so ring, sector and general weakness are all implausible. The cloud answer can be reached by elimination without applying the 95% clause. The ID and date are reused from the earlier clear-sky version (same field, 2026-03-21, 100% valid); retire the old version so the set doesn't hold two contradictory scenes. The option text 'insufficient data' stands in for 'pattern undeterminable from this scene', which is acceptable."
+ },
+ "sq-9c73a215a96f": {
+  "answer": "د",
+  "value": {
+   "pattern": "undeterminable",
+   "valid_share_pct": 51.0
+  },
+  "confidence": "high",
+  "note": "Options lack 'no discriminating measurement needed'. With the valid part 100% green, ring, sector and general are implausible, so the answer comes by elimination. Compare sq-a95382bbf4e3, which keeps that trap."
+ },
+ "sq-4f9291bd1969": {
+  "answer": "د",
+  "value": {
+   "pattern": "undeterminable",
+   "valid_share_pct": 51.0,
+   "valid_share_screen_pct": 51.1,
+   "green_share_of_valid": 100.0
+  },
+  "confidence": "high",
+  "note": "'No clear weakness' is not among the options, and the visible half is 100% green, so ring, sector and general weakness are all implausible. The cloud answer can be reached by elimination without applying the 95% clause."
+ },
+ "sq-1ea700eb05a7": {
+  "answer": "أ",
+  "value": {
+   "seq": [
+    [
+     "2025-03-01",
+     "ok"
+    ],
+    [
+     "2025-03-11",
+     "ok"
+    ],
+    [
+     "2025-03-21",
+     "dev"
+    ],
+    [
+     "2025-03-31",
+     "ok"
+    ],
+    [
+     "2025-04-10",
+     "ok"
+    ],
+    [
+     "2025-04-20",
+     "ok"
+    ]
+   ],
+   "onset": null
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d125e8130863": {
+  "answer": "أ",
+  "value": {
+   "seq": [
+    [
+     "2025-03-01",
+     "dev"
+    ],
+    [
+     "2025-03-11",
+     "ok"
+    ],
+    [
+     "2025-03-21",
+     "invalid"
+    ],
+    [
+     "2025-03-31",
+     "dev"
+    ],
+    [
+     "2025-04-10",
+     "dev"
+    ],
+    [
+     "2025-04-20",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "2025-03-11",
+    "2025-03-31"
+   ]
+  },
+  "confidence": "high",
+  "note": "The reworded rule resolves the earlier ambiguity: the first deviant pair is 03-31/04-10 (03-21 invalid, skipped), and the previous valid scene is 03-11."
+ },
+ "sq-71b94e97dd02": {
+  "answer": "د",
+  "value": {
+   "seq": [
+    [
+     "2025-04-05",
+     "invalid"
+    ],
+    [
+     "2025-04-15",
+     "dev"
+    ],
+    [
+     "2025-04-25",
+     "dev"
+    ],
+    [
+     "2025-05-05",
+     "dev"
+    ],
+    [
+     "2025-05-15",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "unknown"
+   ]
+  },
+  "confidence": "high",
+  "note": "The reworded rule ('onset preceded the available data') now maps cleanly to the 'insufficient data' option."
+ },
+ "sq-5031f81b3976": {
+  "answer": "د",
+  "value": {
+   "seq": [
+    [
+     "2025-08-02",
+     "ok"
+    ],
+    [
+     "2025-08-12",
+     "dev"
+    ],
+    [
+     "2025-08-22",
+     "ok"
+    ],
+    [
+     "2025-09-01",
+     "invalid"
+    ],
+    [
+     "2025-09-11",
+     "dev"
+    ],
+    [
+     "2025-09-21",
+     "dev"
+    ]
+   ],
+   "onset": [
+    "2025-08-22",
+    "2025-09-11"
+   ]
+  },
+  "confidence": "high",
+  "note": ""
+ }
+}

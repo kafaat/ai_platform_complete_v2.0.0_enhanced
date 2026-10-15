@@ -1,0 +1,13 @@
+{
+  "previous": "0.4.0",
+  "current": "0.4.1",
+  "old_count": 528,
+  "new_count": 528,
+  "new_ids": [],
+  "removed_ids": [],
+  "changed_answer_value_or_answerable": [],
+  "changed_answer_letters": 3,
+  "refill_option_counts": [
+    5
+  ]
+}

@@ -1,0 +1,3 @@
+538 items -> demo_out/qa  splits={'train': 252, 'val': 110, 'test': 176}  abstention=76  images=33  data_issues=18  rejected={'out_of_scope_tenant': 1}
+warning: only 3 split units: the (0.8, 0.1, 0.1) ratios cannot be honoured; use --holdout to choose the test units
+warning: SYNTHETIC inputs: items are for testing the pipeline, not for evaluating agronomy

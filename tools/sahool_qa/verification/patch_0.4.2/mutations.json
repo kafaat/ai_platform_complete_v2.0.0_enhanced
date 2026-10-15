@@ -1,0 +1,86 @@
+[
+  {
+    "mutation": "stall_check",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=3)"
+  },
+  {
+    "mutation": "stall_ignored_by_depth",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1, errors=2)"
+  },
+  {
+    "mutation": "zero_flow_without_status",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=5)"
+  },
+  {
+    "mutation": "status_never_known",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1, errors=3)"
+  },
+  {
+    "mutation": "status_conflict",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (errors=1)"
+  },
+  {
+    "mutation": "hour_stall",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "inventory_warning",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "require_flag",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "flow_window_wording",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (errors=4)"
+  },
+  {
+    "mutation": "probe_wording",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "parameter_lines",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "pumping_days_wording",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "hours_missing_from_context",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=1)"
+  },
+  {
+    "mutation": "status_missing_from_context",
+    "exit_code": 1,
+    "caught": true,
+    "summary": "FAILED (failures=2)"
+  }
+]

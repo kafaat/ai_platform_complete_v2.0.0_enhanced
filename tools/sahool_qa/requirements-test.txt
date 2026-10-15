@@ -1,0 +1,3 @@
+# sahool-qa: the tool itself is standard library only. numpy is used for raster layers;
+# psycopg is optional (the loader falls back to the psql client). Tests use unittest.
+numpy>=1.26,<3

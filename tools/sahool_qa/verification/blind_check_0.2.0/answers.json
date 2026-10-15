@@ -1,0 +1,319 @@
+{
+ "sq-8a45987bdb9f": {
+  "answer": "ج",
+  "value": "ذرة رفيعة",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-227fcd7c51e0": {
+  "answer": "د",
+  "value": "سمسم",
+  "confidence": "high",
+  "note": "Not affecting the answer: same field row carries registered area 1200 ha while its drawn polygon is 11.31 ha."
+ },
+ "sq-d39a7096fbd4": {
+  "answer": "د",
+  "value": "المحصول: غير مسجّل",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-19de593e3d68": {
+  "answer": "ج",
+  "value": 299.9,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-1a0430d5331f": {
+  "answer": "أ",
+  "value": "5 vertices, interior angles 94/92/111/118/125 deg, aspect 1.08, fills 82% of min-area rectangle",
+  "confidence": "medium",
+  "note": "Pentagon with one clearly cut corner; \"مستطيل أو قريب من المستطيل\" is arguable (near-square bounding, 82% rectangle fill). Item needs a stated shape rule to be unambiguous."
+ },
+ "sq-c67f10774d0a": {
+  "answer": "أ",
+  "value": "96-vertex ring, isoperimetric ratio 1.000",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-7a8a53faeb16": {
+  "answer": "د",
+  "value": 28.257,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-e46036d62c31": {
+  "answer": "ج",
+  "value": 20.999,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-6128340e5149": {
+  "answer": "د",
+  "value": "no polygon; registered area غير مسجّل",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-374a441bc2f1": {
+  "answer": "ج",
+  "value": 44.35,
+  "confidence": "high",
+  "note": "Total of 4 drawn fields = 63.709 ha. Field tihama_2 has registered area 1200 ha vs drawn 11.31 ha; question correctly says drawn fields, but the stray 1200 ha value is a trap/data error."
+ },
+ "sq-e8a81aa80330": {
+  "answer": "ج",
+  "value": 32.96,
+  "confidence": "high",
+  "note": "Total of 4 drawn fields = 63.709 ha. Field tihama_2 has registered area 1200 ha vs drawn 11.31 ha; question correctly says drawn fields, but the stray 1200 ha value is a trap/data error."
+ },
+ "sq-65fcdc458ea9": {
+  "answer": "ب",
+  "value": "azimuth 267.4 deg",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-3330ed047714": {
+  "answer": "د",
+  "value": "azimuth 232.3 deg",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-5062f2d4d843": {
+  "answer": "ب",
+  "value": 1368.3,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-0f7a1ed13d87": {
+  "answer": "د",
+  "value": 834.7,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-c17ab65940f8": {
+  "answer": "د",
+  "value": [
+   43.25922,
+   14.29329,
+   43.26478,
+   14.29871
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-c64cdfc32631": {
+  "answer": "ب",
+  "value": [
+   43.25424,
+   14.30305,
+   43.25795,
+   14.3064
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-5c7a3f461bb5": {
+  "answer": "ج",
+  "value": "TP-2 (2026) strictly inside; all others >990 m outside",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-23c340a8f896": {
+  "answer": "د",
+  "value": "T1-3 (2026) strictly inside; all others >990 m outside",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-23ea360c6c61": {
+  "answer": "ج",
+  "value": {
+   "محور تهامة (عرض)": [
+    "2026",
+    3.4
+   ],
+   "حقل تهامة 1 (عرض)": [
+    "2026",
+    1.625
+   ]
+  },
+  "confidence": "high",
+  "note": "Only 3 options (2 fields + no-data) where every other item has 4."
+ },
+ "sq-ed3ed4504519": {
+  "answer": "د",
+  "value": 3,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-33d28c2d0b5c": {
+  "answer": "ج",
+  "value": 2,
+  "confidence": "high",
+  "note": "Field has no polygon and samples have no coordinates, so membership is by field_id; soil rows carry no tenant attribute, so the tenant half of the rule is assumed."
+ },
+ "sq-e2415292abc4": {
+  "answer": "ج",
+  "value": {
+   "T1-1": 1.4,
+   "T1-2": 1.6,
+   "T1-3": 1.5,
+   "T1-4": 1.7
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-1183948fac5a": {
+  "answer": "د",
+  "value": {
+   "T1-1": 1.5,
+   "T1-2": 1.7,
+   "T1-3": 1.55,
+   "T1-4": 1.75
+  },
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-61863dffa658": {
+  "answer": "د",
+  "value": 3.4,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d71291351213": {
+  "answer": "ب",
+  "value": 1.55,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-9795b6e9cb71": {
+  "answer": "أ",
+  "value": "1.5500 -> 1.6250 dS/m (+4.84%)",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-7a86530843e5": {
+  "answer": "ج",
+  "value": 190,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-c888e72671d8": {
+  "answer": "أ",
+  "value": 210,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-fa0861053ed1": {
+  "answer": "أ",
+  "value": "P: غير مسجّل",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-ee760ced7ee4": {
+  "answer": "أ",
+  "value": 1.5,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-692de7656a22": {
+  "answer": "ج",
+  "value": 3.4,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-1d0cb6b34f42": {
+  "answer": "ج",
+  "value": "EC rejected by QC (مرفوض بفحص الجودة (القيمة الخام -1.0))",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-48e20c34789b": {
+  "answer": "د",
+  "value": 7.8,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-a1755bb9bf80": {
+  "answer": "أ",
+  "value": 8.0,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-15ecfac33e8a": {
+  "answer": "د",
+  "value": "pH rejected by QC (مرفوض بفحص الجودة (القيمة الخام 99.0))",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-742c1d425760": {
+  "answer": "ج",
+  "value": 3.6,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-7516c5e6e904": {
+  "answer": "ج",
+  "value": 1.55,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-18053cfe5022": {
+  "answer": "د",
+  "value": "EC rejected by QC (مرفوض بفحص الجودة (القيمة الخام -1.0))",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-f75602373b40": {
+  "answer": "ب",
+  "value": 1.1,
+  "confidence": "high",
+  "note": "Indicator row is linked to field demo_tihama_farm but its point lies inside demo_tihama_1 polygon (no effect on answer)."
+ },
+ "sq-a3188693da06": {
+  "answer": "ب",
+  "value": "650 ppm -> 1.016 dS/m (TDS/640, USSL Handbook 60 factor); C3 for any factor 0.29-0.87",
+  "confidence": "medium",
+  "note": "Value is in ppm while the rule is in dS/m and no conversion factor is given; C3 is robust to any standard factor (0.55-0.8), but \"no reliable data\" is also defensible if the item intends a unit-mismatch refusal. Point lies inside the pivot polygon though linked to demo_tihama_farm."
+ },
+ "sq-0bd4ef097126": {
+  "answer": "ب",
+  "value": "peak 0.557 on 2026-08-10",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-57ab4d6d3bf9": {
+  "answer": "د",
+  "value": "peak 0.437 on 2026-08-20",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-26085b06fa47": {
+  "answer": "د",
+  "value": -0.254,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-5241cba8a53e": {
+  "answer": "ج",
+  "value": -0.221,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-184bdc09500b": {
+  "answer": "ب",
+  "value": "75.37% (53100 green / 70450 px inside outline = 2124/2818 10-m cells)",
+  "confidence": "high",
+  "note": "Image is byte-identical to sq-4c763075522c (same field/date) — fine, just reused."
+ },
+ "sq-a140f3e4ff13": {
+  "answer": "د",
+  "value": "78.94% (43904 green / 55615 px inside outline; 7 px = 10 m cells, scale bar 70 px = 100 m)",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-4c763075522c": {
+  "answer": "ج",
+  "value": "SW 3.7% green; NE 100%, SE 100%, NW 98.4%",
+  "confidence": "high",
+  "note": ""
+ }
+}

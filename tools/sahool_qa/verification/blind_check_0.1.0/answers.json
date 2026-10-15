@@ -1,0 +1,280 @@
+{
+ "sq-3dd724ba02c6": {
+  "answer": "أ",
+  "value": "قمح",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-86d6d0bde701": {
+  "answer": "د",
+  "value": "سمسم",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-c2e4c4270eca": {
+  "answer": "ب",
+  "value": "غير مسجّل",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d57802707848": {
+  "answer": "أ",
+  "value": 400.85,
+  "confidence": "high",
+  "note": "Ellipsoidal area 50.4795 ha -> r = 400.85 m."
+ },
+ "sq-baa5c664a0d0": {
+  "answer": "ب",
+  "value": 400.85,
+  "confidence": "high",
+  "note": "Ellipsoidal area 50.4792 ha (registered 50.5 ha, consistent) -> r = 400.85 m."
+ },
+ "sq-801436dea17f": {
+  "answer": "ج",
+  "value": "مستطيل أو رباعي منتظم",
+  "confidence": "high",
+  "note": "4 vertices, all angles 90+/-0.1 deg, sides 400.1 x 250.0 m (ratio 1.60), rotated ~7.7 deg. Minor wording: 'رباعي منتظم' literally means a square; 'مستطيل' covers it."
+ },
+ "sq-a9faf4763a13": {
+  "answer": "ج",
+  "value": "دائري (نمط المحور المركزي)",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-b31bbe98c245": {
+  "answer": "ب",
+  "value": 6.133333333333333,
+  "confidence": "high",
+  "note": "Latest-date means by polygon membership: حوض الغمر 6.133 (DEMO-F1..3, 2025-03-10), المحور 2 4.215 (2025-2/4/5/6), المحور 1 3.355 (2025-1/3). Same winner if membership were by field_id. Only 3 options (no د). The 2025-x samples have field_id=field_alsunaidar yet lie inside the demo pivot polygons (double attribution in the data model)."
+ },
+ "sq-8e482c647acf": {
+  "answer": "ج",
+  "value": 0.569,
+  "confidence": "high",
+  "note": "Rule mixes '≤ 4.0' for class 1 with '4.0–6.0' for class 2, so EC exactly 4.0 would match two classes; not triggered here (0.569)."
+ },
+ "sq-042698176c44": {
+  "answer": "ب",
+  "value": 1.232,
+  "confidence": "high",
+  "note": "Same boundary-overlap remark on the rule at exactly 4.0; not triggered (1.232)."
+ },
+ "sq-39ee3bcf7d5c": {
+  "answer": "د",
+  "value": 20.9988,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-112ccc8488ea": {
+  "answer": "أ",
+  "value": 2.4034,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-5db38240ca1c": {
+  "answer": "ج",
+  "value": "no polygon; registered area=غير مسجّل",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-dbea74604cfd": {
+  "answer": "أ",
+  "value": 8.357,
+  "confidence": "high",
+  "note": "Denominator = 5 drawn Al-Jawf fields (119.664 ha); مزرعة السنيدار excluded (no polygon). 'Same tenant' is not shown in context; assumed all listed fields."
+ },
+ "sq-b3ba907f744c": {
+  "answer": "ج",
+  "value": 2.008,
+  "confidence": "high",
+  "note": "Same denominator as the flood-basin share item (119.664 ha). Tenant not shown in context."
+ },
+ "sq-93180060a450": {
+  "answer": "ب",
+  "value": 10,
+  "confidence": "high",
+  "note": "Field has no polygon; membership by field_id. SA-6/7/11/13 absent (numbering gaps), not an item problem."
+ },
+ "sq-a6b239e5d285": {
+  "answer": "ج",
+  "value": 6,
+  "confidence": "high",
+  "note": "Field has no polygon -> by field_id: 6 samples. Note these 6 points fall spatially inside المحور 1 / المحور 2 polygons, so the same samples are also attributed to those pivots in other items."
+ },
+ "sq-0a26c77f12b9": {
+  "answer": "ج",
+  "value": "2025-4, EC 6.75 dS/m (max of the 4 listed samples)",
+  "confidence": "medium",
+  "note": "Context has the field row for «المحور 2 (عرض)» but NO boundary line (not even 'لا توجد'), and all four listed samples carry field_id=field_alsunaidar, not demo_pivot_2. Under the stated membership rule (no polygon -> match field_id) zero samples belong to the field, and there is no 'not enough data' option. Answered with the max among the listed samples; this is also what the pivot-2 polygon gives (all 4 points fall inside it), but that polygon is only present in other items' contexts. Fix: include the polygon in this item's context."
+ },
+ "sq-93cfa4ae05d5": {
+  "answer": "ج",
+  "value": "2025-4 EC=6.75",
+  "confidence": "high",
+  "note": "Same double-attribution caveat as the 2025 count item; answer unaffected by the stated rule."
+ },
+ "sq-aab46faf9133": {
+  "answer": "ج",
+  "value": 3.9283,
+  "confidence": "high",
+  "note": "Mean of 6 samples = 3.928."
+ },
+ "sq-f5397a9612ea": {
+  "answer": "د",
+  "value": 1.55,
+  "confidence": "high",
+  "note": "Cosmetic: pH values printed as float artifacts (7.699999999999999, 7.8999999999999995) in context."
+ },
+ "sq-27ff5f3633ee": {
+  "answer": "ج",
+  "value": 2.21,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-1f83480335fc": {
+  "answer": "د",
+  "value": 2.45,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-1db560c99878": {
+  "answer": "ج",
+  "value": null,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-4b324982a2a4": {
+  "answer": "ج",
+  "value": 8.2,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-ac330c37378e": {
+  "answer": "ج",
+  "value": 7.4,
+  "confidence": "high",
+  "note": "Data issue in context: T2-1 coordinates printed as (lon, lat) = 14.3045, 43.256 are swapped (that is lat, lon). Irrelevant to the pH answer."
+ },
+ "sq-dca7302b91be": {
+  "answer": "أ",
+  "value": 4.25,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-a1fb80568136": {
+  "answer": "ج",
+  "value": 1.5,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-a84ee5694fd1": {
+  "answer": "ج",
+  "value": [
+   44.938004,
+   16.099006,
+   44.941089,
+   16.101356
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-35a4308d9371": {
+  "answer": "ج",
+  "value": [
+   43.247329,
+   14.297674,
+   43.252671,
+   14.302326
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-f4f6621a2059": {
+  "answer": "ج",
+  "value": "azimuth 270.00 deg from «حوض الغمر (عرض)» to «المحور 1 (عرض)», dist 1176.8 m -> غرب",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-f85e8f6b7d31": {
+  "answer": "أ",
+  "value": "azimuth 31.86 deg from «المحور 1 (عرض)» to «المحور 2 (عرض)», dist 912.0 m -> شمال شرق",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-9c84a1dd2356": {
+  "answer": "د",
+  "value": 1093.86,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-723e9f0a1d88": {
+  "answer": "ب",
+  "value": 1372.63,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-2f5ea18c09f8": {
+  "answer": "د",
+  "value": [
+   "2025-5 (2025)"
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-8601bd1be265": {
+  "answer": "د",
+  "value": [
+   "DEMO-F3 (2025)"
+  ],
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-c6ab4dcc7589": {
+  "answer": "د",
+  "value": 4.839,
+  "confidence": "high",
+  "note": "Mean 2024 = 1.55, mean 2026 = 1.625 (+4.8%). Same float-artifact pH strings in context."
+ },
+ "sq-146991d408e9": {
+  "answer": "ج",
+  "value": 380.765,
+  "confidence": "high",
+  "note": "Mean 2022 = 0.8171 (n=10), mean 2025 = 3.928 (n=6), +380.8%. The two years' sample sets differ in depth convention/coords, but rule says compare means."
+ },
+ "sq-77d552d31168": {
+  "answer": "ج",
+  "value": "max 0.522 on 2026-02-21",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-0b3e292c3da6": {
+  "answer": "د",
+  "value": "max 0.444 on 2026-02-09",
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-d272e31b67d9": {
+  "answer": "د",
+  "value": -0.221,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-fa9fd9cf60da": {
+  "answer": "د",
+  "value": -0.229,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-0a6137a77d37": {
+  "answer": "ج",
+  "value": 0.92,
+  "confidence": "high",
+  "note": ""
+ },
+ "sq-e3b98b465bb8": {
+  "answer": "ج",
+  "value": 2.6,
+  "confidence": "high",
+  "note": ""
+ }
+}

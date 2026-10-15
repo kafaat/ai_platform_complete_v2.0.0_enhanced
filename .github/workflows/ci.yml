@@ -1030,6 +1030,30 @@ jobs:
         working-directory: services/weather-service
         run: PYTHONPATH=. pytest tests -q -p no:cacheprovider
 
+  sahool-qa-tests:
+    name: SAHOOL QA Tool Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tools/sahool_qa/requirements-test.txt
+      # أداة sahool-qa (tools/sahool_qa) مولِّد أسئلة تقييم عربيّة محسوبة بالقواعد
+      # من بيانات SAHOOL — مستقلّة عن الخدمات، واختباراتها unittest خارج testpaths
+      # (tests_v9)، فلا تجمعها «Unit Tests». تشمل اختبارات PostgreSQL التي تُنشئ
+      # عنقوداً مؤقّتاً من خادم PostgreSQL المثبَّت في صورة ubuntu-24.04 وتُحمّل
+      # أعمدة migrations/init_v8.sql عبر examples/schema_map.init_v8.json.
+      # SAHOOL_QA_REQUIRE_PG=1 يُحوّل غياب الخادم إلى فشلٍ مُسمّى بدل تخطٍّ صامت.
+      - run: pip install -r tools/sahool_qa/requirements-test.txt
+      - name: Run sahool-qa tests (unittest, PostgreSQL required)
+        working-directory: tools/sahool_qa
+        env:
+          SAHOOL_QA_REQUIRE_PG: "1"
+        run: python -m unittest discover -s tests -v
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04

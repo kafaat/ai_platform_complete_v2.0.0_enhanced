@@ -1,0 +1,35 @@
+test_conflicting_same_timestamp_is_unknown (test_water_041.RawMeters.test_conflicting_same_timestamp_is_unknown) ... ok
+test_monotone_subdaily_and_missing_interior_day (test_water_041.RawMeters.test_monotone_subdaily_and_missing_interior_day) ... ok
+test_reset_before_starting_endpoint_does_not_poison_window (test_water_041.RawMeters.test_reset_before_starting_endpoint_does_not_poison_window) ... ok
+test_reset_hidden_by_later_recovery_is_unknown (test_water_041.RawMeters.test_reset_hidden_by_later_recovery_is_unknown) ... ok
+test_extreme_accepted_inputs_conserve_mass_and_available_water (test_water_041.WaterBalanceAndPresentation.test_extreme_accepted_inputs_conserve_mass_and_available_water) ... ok
+test_formula_is_one_ltr_block_with_original_operand_order (test_water_041.WaterBalanceAndPresentation.test_formula_is_one_ltr_block_with_original_operand_order) ... ok
+test_invalid_pump_and_efficiency_rules_rejected (test_water_041.WaterBalanceAndPresentation.test_invalid_pump_and_efficiency_rules_rejected) ... ok
+test_mass_balance_grid_wet_dry_and_stressed (test_water_041.WaterBalanceAndPresentation.test_mass_balance_grid_wet_dry_and_stressed) ... ok
+test_answerable_balance_has_precise_kc_record_refs (test_water_041.WaterPatch.test_answerable_balance_has_precise_kc_record_refs) ... FAIL
+test_assignment_change_and_unassigned_stream_are_unknown (test_water_041.WaterPatch.test_assignment_change_and_unassigned_stream_are_unknown) ... ok
+test_audit_sees_intraday_reset (test_water_041.WaterPatch.test_audit_sees_intraday_reset) ... ok
+test_both_streams_removed_still_detected_by_inventory (test_water_041.WaterPatch.test_both_streams_removed_still_detected_by_inventory) ... ok
+test_case_error_is_reported_without_dropping_whole_family (test_water_041.WaterPatch.test_case_error_is_reported_without_dropping_whole_family) ... ok
+test_fixture_inventory_respects_tenant_scope (test_water_041.WaterPatch.test_fixture_inventory_respects_tenant_scope) ... ok
+test_fractional_hours_not_rounded_before_division (test_water_041.WaterPatch.test_fractional_hours_not_rounded_before_division) ... ok
+test_inventory_affects_fingerprint (test_water_041.WaterPatch.test_inventory_affects_fingerprint) ... ok
+test_inventory_tenant_and_period_are_respected (test_water_041.WaterPatch.test_inventory_tenant_and_period_are_respected) ... ok
+test_missing_volume_stream_with_hours_is_unknown (test_water_041.WaterPatch.test_missing_volume_stream_with_hours_is_unknown) ... ok
+test_no_inventory_cannot_assert_total (test_water_041.WaterPatch.test_no_inventory_cannot_assert_total) ... ok
+test_pipeline_zero_flow_has_no_family_or_case_errors (test_water_041.WaterPatch.test_pipeline_zero_flow_has_no_family_or_case_errors) ... ok
+test_zero_flow_without_status_is_unknown_and_preserves_other_fields (test_water_041.WaterPatch.test_zero_flow_without_status_is_unknown_and_preserves_other_fields) ... ok
+
+======================================================================
+FAIL: test_answerable_balance_has_precise_kc_record_refs (test_water_041.WaterPatch.test_answerable_balance_has_precise_kc_record_refs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmphs3ny_3s/qa/tests/test_water_041.py", line 284, in test_answerable_balance_has_precise_kc_record_refs
+    self.assertTrue(refs, i["id"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: [] is not true : sq-55ef41ddd20c
+
+----------------------------------------------------------------------
+Ran 21 tests in 4.423s
+
+FAILED (failures=1)

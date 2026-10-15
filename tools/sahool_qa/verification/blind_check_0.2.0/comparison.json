@@ -1,0 +1,11 @@
+{
+ "items": 48,
+ "agree": 47,
+ "disagreements": {
+  "sq-a3188693da06": {
+   "blind": "ب",
+   "gold": "أ",
+   "note": "Value is in ppm while the rule is in dS/m and no conversion factor is given; C3 is robust to any standard factor (0.55-0.8), but \"no reliable data\" is also defensible if the item intends a unit-mismatch refusal. Point lies inside the pivot polygon though linked to demo_tihama_farm."
+  }
+ }
+}

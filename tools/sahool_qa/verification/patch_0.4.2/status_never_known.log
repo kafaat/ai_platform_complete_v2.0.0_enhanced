@@ -1,0 +1,89 @@
+test_conflicting_same_timestamp_is_unknown (test_water_041.RawMeters.test_conflicting_same_timestamp_is_unknown) ... ok
+test_monotone_subdaily_and_missing_interior_day (test_water_041.RawMeters.test_monotone_subdaily_and_missing_interior_day) ... ok
+test_reset_before_starting_endpoint_does_not_poison_window (test_water_041.RawMeters.test_reset_before_starting_endpoint_does_not_poison_window) ... ok
+test_reset_hidden_by_later_recovery_is_unknown (test_water_041.RawMeters.test_reset_hidden_by_later_recovery_is_unknown) ... ok
+test_extreme_accepted_inputs_conserve_mass_and_available_water (test_water_041.WaterBalanceAndPresentation.test_extreme_accepted_inputs_conserve_mass_and_available_water) ... ok
+test_formula_is_one_ltr_block_with_original_operand_order (test_water_041.WaterBalanceAndPresentation.test_formula_is_one_ltr_block_with_original_operand_order) ... ok
+test_invalid_pump_and_efficiency_rules_rejected (test_water_041.WaterBalanceAndPresentation.test_invalid_pump_and_efficiency_rules_rejected) ... ok
+test_mass_balance_grid_wet_dry_and_stressed (test_water_041.WaterBalanceAndPresentation.test_mass_balance_grid_wet_dry_and_stressed) ... ok
+test_answerable_balance_has_precise_kc_record_refs (test_water_041.WaterPatch.test_answerable_balance_has_precise_kc_record_refs) ... ok
+test_assignment_change_and_unassigned_stream_are_unknown (test_water_041.WaterPatch.test_assignment_change_and_unassigned_stream_are_unknown) ... ok
+test_audit_sees_intraday_reset (test_water_041.WaterPatch.test_audit_sees_intraday_reset) ... ok
+test_both_streams_removed_still_detected_by_inventory (test_water_041.WaterPatch.test_both_streams_removed_still_detected_by_inventory) ... ok
+test_case_error_is_reported_without_dropping_whole_family (test_water_041.WaterPatch.test_case_error_is_reported_without_dropping_whole_family) ... ok
+test_fixture_inventory_respects_tenant_scope (test_water_041.WaterPatch.test_fixture_inventory_respects_tenant_scope) ... ok
+test_fractional_hours_not_rounded_before_division (test_water_041.WaterPatch.test_fractional_hours_not_rounded_before_division) ... ok
+test_inventory_affects_fingerprint (test_water_041.WaterPatch.test_inventory_affects_fingerprint) ... ok
+test_inventory_tenant_and_period_are_respected (test_water_041.WaterPatch.test_inventory_tenant_and_period_are_respected) ... ok
+test_missing_volume_stream_with_hours_is_unknown (test_water_041.WaterPatch.test_missing_volume_stream_with_hours_is_unknown) ... ok
+test_no_inventory_cannot_assert_total (test_water_041.WaterPatch.test_no_inventory_cannot_assert_total) ... ok
+test_pipeline_zero_flow_has_no_family_or_case_errors (test_water_041.WaterPatch.test_pipeline_zero_flow_has_no_family_or_case_errors) ... ok
+test_zero_flow_without_status_is_unknown_and_preserves_other_fields (test_water_041.WaterPatch.test_zero_flow_without_status_is_unknown_and_preserves_other_fields) ... ok
+test_meter_contexts_show_both_meters_and_status_log (test_water_042.EvidenceIsInTheContext.test_meter_contexts_show_both_meters_and_status_log) ... ok
+test_status_records_reach_the_refill_context (test_water_042.EvidenceIsInTheContext.test_status_records_reach_the_refill_context) ... ERROR
+test_fixture_provenance_is_not_shared_between_builds (test_water_042.InventoryAnnounced.test_fixture_provenance_is_not_shared_between_builds) ... ok
+test_manifest_warns_and_lists_fields (test_water_042.InventoryAnnounced.test_manifest_warns_and_lists_fields) ... ok
+test_require_flag_refuses_to_generate (test_water_042.InventoryAnnounced.test_require_flag_refuses_to_generate) ... ok
+test_audit_flags_each_stalled_meter (test_water_042.StalledVolumeMeter.test_audit_flags_each_stalled_meter) ... ok
+test_flat_volume_below_threshold_is_still_not_zero_flow (test_water_042.StalledVolumeMeter.test_flat_volume_below_threshold_is_still_not_zero_flow) ... ok
+test_stall_reading_is_offered_as_the_careless_answer (test_water_042.StalledVolumeMeter.test_stall_reading_is_offered_as_the_careless_answer) ... ok
+test_windows_with_a_stall_are_unknown_others_answered (test_water_042.StalledVolumeMeter.test_windows_with_a_stall_are_unknown_others_answered) ... ok
+test_logged_failure_counts_zero_but_unlogged_idle_well_stays_unknown (test_water_042.WellStatus.test_logged_failure_counts_zero_but_unlogged_idle_well_stays_unknown) ... ERROR
+test_logged_outage_is_a_known_zero_flow (test_water_042.WellStatus.test_logged_outage_is_a_known_zero_flow) ... FAIL
+test_stalled_hour_meter_blocks_flow_not_volume (test_water_042.WellStatus.test_stalled_hour_meter_blocks_flow_not_volume) ... ok
+test_volume_while_out_of_service_is_a_conflict (test_water_042.WellStatus.test_volume_while_out_of_service_is_a_conflict) ... ERROR
+test_parameter_lines_render_as_ltr_blocks (test_water_042.Wording.test_parameter_lines_render_as_ltr_blocks) ... ok
+test_probe_rule_and_valid_reading_are_stated (test_water_042.Wording.test_probe_rule_and_valid_reading_are_stated) ... ok
+test_pumping_days_ranges_and_no_dangling_reference (test_water_042.Wording.test_pumping_days_ranges_and_no_dangling_reference) ... ok
+test_refill_question_names_the_flow_window (test_water_042.Wording.test_refill_question_names_the_flow_window) ... ok
+
+======================================================================
+ERROR: test_status_records_reach_the_refill_context (test_water_042.EvidenceIsInTheContext.test_status_records_reach_the_refill_context)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpsbgf2ytp/qa/tests/test_water_042.py", line 227, in test_status_records_reach_the_refill_context
+    it = next(
+        i
+        for i in self.items
+        if i["family"] == "water.refill_feasibility" and i["answer_value"] == "unavailable"
+    )
+StopIteration
+
+======================================================================
+ERROR: test_logged_failure_counts_zero_but_unlogged_idle_well_stays_unknown (test_water_042.WellStatus.test_logged_failure_counts_zero_but_unlogged_idle_well_stays_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpsbgf2ytp/qa/tests/test_water_042.py", line 160, in test_logged_failure_counts_zero_but_unlogged_idle_well_stays_unknown
+    self.assertEqual(flows["meter_total_P1B"]["status"], "out_of_service")
+                     ~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'meter_total_P1B'
+
+======================================================================
+ERROR: test_volume_while_out_of_service_is_a_conflict (test_water_042.WellStatus.test_volume_while_out_of_service_is_a_conflict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpsbgf2ytp/qa/tests/test_water_042.py", line 177, in test_volume_while_out_of_service_is_a_conflict
+    self.assertEqual(res["problem"], "well_status_conflict")
+                     ~~~^^^^^^^^^^^
+KeyError: 'problem'
+
+======================================================================
+FAIL: test_logged_outage_is_a_known_zero_flow (test_water_042.WellStatus.test_logged_outage_is_a_known_zero_flow)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpsbgf2ytp/qa/tests/test_water_042.py", line 152, in test_logged_outage_is_a_known_zero_flow
+    self.assertEqual(got[day], (True, "unavailable"), day)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (False, None) != (True, 'unavailable')
+
+First differing element 0:
+False
+True
+
+- (False, None)
++ (True, 'unavailable') : 2026-07-15
+
+----------------------------------------------------------------------
+Ran 38 tests in 11.423s
+
+FAILED (failures=1, errors=3)

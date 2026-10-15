@@ -1,0 +1,865 @@
+{
+ "sq-00535bb27a61": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "V_total_m3": 1960.0,
+   "depth_mm": 62.333,
+   "dV_TS1": 1960.0
+  },
+  "why": "depth 62.333 mm"
+ },
+ "sq-02bcc1687f98": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 0.0,
+   "depth_mm": 0.0,
+   "dV_P1A": 0.0,
+   "dV_P1B": 0.0
+  },
+  "why": "depth 0.000 mm"
+ },
+ "sq-035a63c8dcb5": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 84.9916,
+   "p_end": 0.4988,
+   "RAW_end": 69.832,
+   "Ks_end": 0.784,
+   "state": "moderate"
+  },
+  "why": "moderate Dr=84.99 RAW=69.83 Ks_end=0.784"
+ },
+ "sq-03e4a7018d0a": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 42.7781,
+   "p_end": 0.6419,
+   "RAW_end": 77.0304,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=42.78 RAW=77.03 Ks_end=None"
+ },
+ "sq-0afee06d9a05": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "meter MP1 dropped (261790 -> 12)"
+  },
+  "why": "meter MP1 dropped (261790 -> 12)"
+ },
+ "sq-0d77406eb3bf": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 14112.0,
+   "depth_mm": 27.956,
+   "dV_P2A": 7056.0,
+   "dV_P2B": 7056.0
+  },
+  "why": "depth 27.956 mm"
+ },
+ "sq-0fd71a31360a": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "missing meter P2A reading on 2026-01-21"
+  },
+  "why": "missing meter P2A reading on 2026-01-21"
+ },
+ "sq-10b76e6b5d36": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "V_total_m3": 14105.0,
+   "depth_mm": 36.681,
+   "dV_MP1": 10640.0,
+   "dV_MP2": 3465.0
+  },
+  "why": "depth 36.681 mm"
+ },
+ "sq-119797721cd3": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "meter MP1 dropped (261790 -> 12)"
+  },
+  "why": "meter MP1 dropped (261790 -> 12)"
+ },
+ "sq-1279fb7ebfb2": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 46.1869,
+   "p_end": 0.504,
+   "RAW_end": 70.56,
+   "state": "no_stress"
+  },
+  "why": "all wells out of service by status over window; Dr=46.19"
+ },
+ "sq-135f287b53c4": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "V_total_m3": 14805.0,
+   "depth_mm": 109.695,
+   "plan_mm": 104.0,
+   "ratio": 1.0548,
+   "dV_M1": 14805.0
+  },
+  "why": "measured 109.69 / plan 104 = 1.055"
+ },
+ "sq-13e3f04c5519": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 17640.0,
+   "depth_mm": 34.945,
+   "dV_P1A": 9450.0,
+   "dV_P1B": 8190.0
+  },
+  "why": "depth 34.945 mm"
+ },
+ "sq-16d886722aee": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "hour/water conflict OR1 2026-01-14..2026-01-15 (dh=5.5)"
+  },
+  "why": "hour/water conflict OR1 2026-01-14..2026-01-15 (dh=5.5)"
+ },
+ "sq-1763acc8c6d3": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 42.7781,
+   "p_end": 0.6419,
+   "RAW_end": 77.0304,
+   "state": "no_stress",
+   "Q_total": 280.0,
+   "V_gross_m3": 26992.7,
+   "pump_days": 9.6403,
+   "Q_P1A": 150.0,
+   "Q_P1B": 130.0
+  },
+  "why": "Dr=42.78 mm V=26993 m3 Q=280.0 m3/h days=9.640"
+ },
+ "sq-18e00ab9e53f": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 96.2863,
+   "p_end": 0.5467,
+   "RAW_end": 65.6016,
+   "Ks_end": 0.4359,
+   "state": "severe"
+  },
+  "why": "severe Dr=96.29 RAW=65.60 Ks_end=0.4359"
+ },
+ "sq-1e25025ab7a8": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 5.9904,
+   "p_end": 0.6419,
+   "RAW_end": 54.5632,
+   "state": "no_stress",
+   "Q_total": 280.0,
+   "V_gross_m3": 3779.9,
+   "pump_days": 1.35,
+   "Q_P2A": 140.0,
+   "Q_P2B": 140.0
+  },
+  "why": "Dr=5.99 mm V=3780 m3 Q=280.0 m3/h days=1.350"
+ },
+ "sq-1f408933b540": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 53900.0,
+   "depth_mm": 106.777,
+   "plan_mm": 80.0,
+   "ratio": 1.3347,
+   "dV_P2A": 26950.0,
+   "dV_P2B": 26950.0
+  },
+  "why": "measured 106.78 / plan 80 = 1.335"
+ },
+ "sq-2582db863b2d": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 130.0,
+   "theta0": 0.24,
+   "Dr0": 10.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "no meters"
+  },
+  "why": "no meters"
+ },
+ "sq-2b64e8152eed": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "V_total_m3": 0.0,
+   "depth_mm": 0.0,
+   "dV_TP1": 0.0,
+   "dV_TP2": 0.0
+  },
+  "why": "depth 0.000 mm"
+ },
+ "sq-2d1a2fdd0913": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 32835.0,
+   "depth_mm": 65.046,
+   "dV_P1A": 23475.0,
+   "dV_P1B": 9360.0
+  },
+  "why": "depth 65.046 mm"
+ },
+ "sq-361f3c4eced8": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 46.1869,
+   "p_end": 0.504,
+   "RAW_end": 70.56,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=46.19 RAW=70.56 Ks_end=None"
+ },
+ "sq-37fc8deb153e": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_mm": 144.0,
+   "abstain_reason": "meter MP1 dropped (261790 -> 12)"
+  },
+  "why": "meter MP1 dropped (261790 -> 12)"
+ },
+ "sq-3c064c1c5e85": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 53900.0,
+   "depth_mm": 106.777,
+   "dV_P2A": 26950.0,
+   "dV_P2B": 26950.0
+  },
+  "why": "depth 106.777 mm"
+ },
+ "sq-3f3d9a32439b": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "shared meter T12"
+  },
+  "why": "shared meter T12"
+ },
+ "sq-44afe98e95d3": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 112.003,
+   "p_end": 0.486,
+   "RAW_end": 68.04,
+   "Ks_end": 0.3891,
+   "state": "severe"
+  },
+  "why": "severe Dr=112.00 RAW=68.04 Ks_end=0.3891"
+ },
+ "sq-47035e7fea3e": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "hour/water conflict OR1 2026-01-14..2026-01-15 (dh=5.5)"
+  },
+  "why": "hour/water conflict OR1 2026-01-14..2026-01-15 (dh=5.5)"
+ },
+ "sq-478ee0acf9e9": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "no valid soil moisture on 2026-01-10 (unit kPa)"
+  },
+  "why": "no valid soil moisture on 2026-01-10 (unit kPa)"
+ },
+ "sq-4ad26cb78901": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 12740.0,
+   "depth_mm": 25.238,
+   "dV_P2A": 6370.0,
+   "dV_P2B": 6370.0
+  },
+  "why": "depth 25.238 mm"
+ },
+ "sq-4b57839fbbac": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "V_total_m3": 1680.0,
+   "depth_mm": 53.428,
+   "dV_TS1": 1680.0
+  },
+  "why": "depth 53.428 mm"
+ },
+ "sq-5199a4a5420f": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "V_total_m3": 3780.0,
+   "depth_mm": 28.007,
+   "dV_M1": 3780.0
+  },
+  "why": "depth 28.007 mm"
+ },
+ "sq-543e60764cbd": {
+  "answer": "د",
+  "key_numbers": {
+   "abstain_reason": "hour/water conflict TS1 2026-07-15..2026-07-16 (dh=7.5)"
+  },
+  "why": "hour/water conflict TS1 2026-07-15..2026-07-16 (dh=7.5)"
+ },
+ "sq-55ef41ddd20c": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 84.2937,
+   "p_end": 0.6399,
+   "RAW_end": 76.788,
+   "Ks_end": 0.8263,
+   "state": "moderate"
+  },
+  "why": "moderate Dr=84.29 RAW=76.79 Ks_end=0.8263"
+ },
+ "sq-5e19125c8ada": {
+  "answer": "ج",
+  "key_numbers": {
+   "abstain_reason": "no valid boundary"
+  },
+  "why": "no valid boundary"
+ },
+ "sq-62c39f25f9f2": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 8370.0,
+   "depth_mm": 16.581,
+   "dV_P1A": 7200.0,
+   "dV_P1B": 1170.0
+  },
+  "why": "depth 16.581 mm"
+ },
+ "sq-661e47ffc320": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 31444.2,
+   "V_total_m3": 2240.0,
+   "depth_mm": 71.237,
+   "dV_TS1": 2240.0
+  },
+  "why": "depth 71.237 mm"
+ },
+ "sq-6e5378a8657c": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.0923,
+   "p_end": 0.5568,
+   "RAW_end": 66.816,
+   "Ks_end": 0.8632,
+   "state": "moderate",
+   "Q_total": 270.0,
+   "V_gross_m3": 35613.8,
+   "pump_days": 13.1903,
+   "Q_MP1": 160.0,
+   "Q_MP2": 110.0
+  },
+  "why": "Dr=74.09 mm V=35614 m3 Q=270.0 m3/h days=13.190"
+ },
+ "sq-754ea37c5b10": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 19.8379,
+   "p_end": 0.5742,
+   "RAW_end": 80.3824,
+   "state": "no_stress",
+   "Q_total": 220.0,
+   "V_gross_m3": 7006.9,
+   "pump_days": 3.185,
+   "Q_TP1": 120.0,
+   "Q_TP2": 100.0
+  },
+  "why": "Dr=19.84 mm V=7007 m3 Q=220.0 m3/h days=3.185"
+ },
+ "sq-77750d3d87a1": {
+  "answer": "أ",
+  "key_numbers": {
+   "abstain_reason": "no plan record for week starting 2026-07-16"
+  },
+  "why": "no plan record for week starting 2026-07-16"
+ },
+ "sq-7a41df82e393": {
+  "answer": "ب",
+  "key_numbers": {
+   "abstain_reason": "shared meter T12"
+  },
+  "why": "shared meter T12"
+ },
+ "sq-7b79fdecfb8c": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.2365,
+   "p_end": 0.543,
+   "RAW_end": 65.16,
+   "Ks_end": 0.8345,
+   "state": "moderate",
+   "Q_total": 150.0,
+   "V_gross_m3": 46842.8,
+   "pump_days": 31.2285,
+   "Q_P1A": 150.0,
+   "Q_P1B": 0.0
+  },
+  "why": "Dr=74.24 mm V=46843 m3 Q=150.0 m3/h days=31.229"
+ },
+ "sq-7f14471a79cb": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 52.0783,
+   "p_end": 0.5623,
+   "RAW_end": 67.4784,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=52.08 RAW=67.48 Ks_end=None"
+ },
+ "sq-83005c23e2c3": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 7.833,
+   "p_end": 0.5623,
+   "RAW_end": 47.7972,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=7.83 RAW=47.80 Ks_end=None"
+ },
+ "sq-87f262c0e116": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "V_total_m3": 11480.0,
+   "depth_mm": 40.628,
+   "plan_mm": 220.0,
+   "ratio": 0.1847,
+   "dV_TP1": 5880.0,
+   "dV_TP2": 5600.0
+  },
+  "why": "measured 40.63 / plan 220 = 0.185"
+ },
+ "sq-8a9cc1fff668": {
+  "answer": "ج",
+  "key_numbers": {
+   "abstain_reason": "meter MP1 dropped (261790 -> 12)"
+  },
+  "why": "meter MP1 dropped (261790 -> 12)"
+ },
+ "sq-8ac41151a83b": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 19.8379,
+   "p_end": 0.5742,
+   "RAW_end": 80.3824,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=19.84 RAW=80.38 Ks_end=None"
+ },
+ "sq-8e4e08d4159f": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 96.2863,
+   "p_end": 0.5467,
+   "RAW_end": 65.6016,
+   "Ks_end": 0.4359,
+   "state": "severe",
+   "abstain_reason": "hours did not advance for P1A (in service per status/no status)"
+  },
+  "why": "hours did not advance for P1A (in service per status/no status)"
+ },
+ "sq-91859a7cfa20": {
+  "answer": "د",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "V_total_m3": 2730.0,
+   "depth_mm": 43.322,
+   "dV_OR1": 2730.0
+  },
+  "why": "depth 43.322 mm"
+ },
+ "sq-950d55d5c31a": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 84.2937,
+   "p_end": 0.6399,
+   "RAW_end": 76.788,
+   "Ks_end": 0.8263,
+   "state": "moderate",
+   "Q_total": 270.0,
+   "V_gross_m3": 40517.3,
+   "pump_days": 15.0064,
+   "Q_MP1": 160.0,
+   "Q_MP2": 110.0
+  },
+  "why": "Dr=84.29 mm V=40517 m3 Q=270.0 m3/h days=15.006"
+ },
+ "sq-96116f0d282d": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "V_total_m3": 4095.0,
+   "depth_mm": 30.341,
+   "dV_M1": 4095.0
+  },
+  "why": "depth 30.341 mm"
+ },
+ "sq-a3864f0b833c": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "V_total_m3": 3465.0,
+   "depth_mm": 25.673,
+   "dV_M1": 3465.0
+  },
+  "why": "depth 25.673 mm"
+ },
+ "sq-a3e0a756e6b8": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 282566.2,
+   "V_total_m3": 11480.0,
+   "depth_mm": 40.628,
+   "dV_TP1": 5880.0,
+   "dV_TP2": 5600.0
+  },
+  "why": "depth 40.628 mm"
+ },
+ "sq-a4bc61965d24": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 134965.3,
+   "V_total_m3": 14805.0,
+   "depth_mm": 109.695,
+   "dV_M1": 14805.0
+  },
+  "why": "depth 109.695 mm"
+ },
+ "sq-a6f412c84346": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 112.003,
+   "p_end": 0.486,
+   "RAW_end": 68.04,
+   "Ks_end": 0.3891,
+   "state": "severe"
+  },
+  "why": "all wells out of service by status over window; Dr=112.0"
+ },
+ "sq-ad05367f6583": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 32835.0,
+   "depth_mm": 65.046,
+   "plan_mm": 124.0,
+   "ratio": 0.5246,
+   "dV_P1A": 23475.0,
+   "dV_P1B": 9360.0
+  },
+  "why": "measured 65.05 / plan 124 = 0.525"
+ },
+ "sq-bdbdf489455a": {
+  "answer": "ج",
+  "key_numbers": {
+   "abstain_reason": "no meters"
+  },
+  "why": "no meters"
+ },
+ "sq-c11ebcc86207": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_chirps_v3_rnl",
+   "Dr_end": 84.9916,
+   "p_end": 0.4988,
+   "RAW_end": 69.832,
+   "Ks_end": 0.784,
+   "state": "moderate"
+  },
+  "why": "all wells out of service by status over window; Dr=84.99"
+ },
+ "sq-c32774970215": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "V_total_m3": 2520.0,
+   "depth_mm": 39.99,
+   "dV_OR1": 2520.0
+  },
+  "why": "depth 39.990 mm"
+ },
+ "sq-c6b15d75c5df": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 7.833,
+   "p_end": 0.5623,
+   "RAW_end": 47.7972,
+   "state": "no_stress",
+   "Q_total": 280.0,
+   "V_gross_m3": 4942.6,
+   "pump_days": 1.7652,
+   "Q_P2A": 140.0,
+   "Q_P2B": 140.0
+  },
+  "why": "Dr=7.83 mm V=4943 m3 Q=280.0 m3/h days=1.765"
+ },
+ "sq-c6b3de759c97": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.2365,
+   "p_end": 0.543,
+   "RAW_end": 65.16,
+   "Ks_end": 0.8345,
+   "state": "moderate"
+  },
+  "why": "moderate Dr=74.24 RAW=65.16 Ks_end=0.8345"
+ },
+ "sq-c955f5718df8": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 140.0,
+   "theta0": 0.27,
+   "Dr0": 20.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "shared meter T12"
+  },
+  "why": "shared meter T12"
+ },
+ "sq-ca9bdd9a3a6e": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 5.9904,
+   "p_end": 0.6419,
+   "RAW_end": 54.5632,
+   "state": "no_stress"
+  },
+  "why": "no_stress Dr=5.99 RAW=54.56 Ks_end=None"
+ },
+ "sq-d9f2d0b1ee01": {
+  "answer": "ج",
+  "key_numbers": {
+   "abstain_reason": "hour/water conflict TS1 2026-07-15..2026-07-16 (dh=7.5)"
+  },
+  "why": "hour/water conflict TS1 2026-07-15..2026-07-16 (dh=7.5)"
+ },
+ "sq-db82fb2004be": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "meter MP1 dropped (261790 -> 12)"
+  },
+  "why": "meter MP1 dropped (261790 -> 12)"
+ },
+ "sq-de5eb272251c": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.13,
+   "Dr0": 100.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 74.0923,
+   "p_end": 0.5568,
+   "RAW_end": 66.816,
+   "Ks_end": 0.8632,
+   "state": "moderate"
+  },
+  "why": "moderate Dr=74.09 RAW=66.82 Ks_end=0.8632"
+ },
+ "sq-dfbfc43d3375": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "V_total_m3": 13874.0,
+   "depth_mm": 36.08,
+   "dV_MP1": 10640.0,
+   "dV_MP2": 3234.0
+  },
+  "why": "depth 36.080 mm"
+ },
+ "sq-e494ebf83b96": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 13328.0,
+   "depth_mm": 26.403,
+   "dV_P2A": 6664.0,
+   "dV_P2B": 6664.0
+  },
+  "why": "depth 26.403 mm"
+ },
+ "sq-e61e414056ea": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "theta0": 0.18,
+   "Dr0": 50.0,
+   "rain_src": "rain_mm_station",
+   "Dr_end": 52.0783,
+   "p_end": 0.5623,
+   "RAW_end": 67.4784,
+   "state": "no_stress",
+   "Q_total": 280.0,
+   "V_gross_m3": 32861.1,
+   "pump_days": 11.7361,
+   "Q_P1A": 150.0,
+   "Q_P1B": 130.0
+  },
+  "why": "Dr=52.08 mm V=32861 m3 Q=280.0 m3/h days=11.736"
+ },
+ "sq-e93353553494": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 504795.3,
+   "V_total_m3": 6825.0,
+   "depth_mm": 13.52,
+   "dV_P1A": 6825.0,
+   "dV_P1B": 0.0
+  },
+  "why": "depth 13.520 mm"
+ },
+ "sq-eec6635ed347": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2": 504792.2,
+   "V_total_m3": 13720.0,
+   "depth_mm": 27.18,
+   "dV_P2A": 6860.0,
+   "dV_P2B": 6860.0
+  },
+  "why": "depth 27.180 mm"
+ },
+ "sq-ef96b39fe8b1": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 85.0,
+   "theta0": 0.14300000000000002,
+   "Dr0": 7.0,
+   "rain_src": "rain_mm_station",
+   "abstain_reason": "missing meter P2A reading on 2026-01-21"
+  },
+  "why": "missing meter P2A reading on 2026-01-21"
+ },
+ "sq-faa0e76c8053": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2": 63016.0,
+   "V_total_m3": 2100.0,
+   "depth_mm": 33.325,
+   "dV_OR1": 2100.0
+  },
+  "why": "depth 33.325 mm"
+ },
+ "sq-ff1bcffb4dae": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2": 384535.0,
+   "V_total_m3": 13720.0,
+   "depth_mm": 35.679,
+   "dV_MP1": 10640.0,
+   "dV_MP2": 3080.0
+  },
+  "why": "depth 35.679 mm"
+ }
+}

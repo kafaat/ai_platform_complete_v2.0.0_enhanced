@@ -1,0 +1,2117 @@
+{
+ "sq-02bcc1687f98": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-26",
+   "window_end_b": "2026-02-02",
+   "area_m2": 504795.3,
+   "area_ha": 50.4795,
+   "registered_area": "غير مسجّل",
+   "meter_total_P1A": {
+    "read_a": 205815.0,
+    "read_b": 205815.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 106770.0,
+    "read_b": 106770.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P1A": 0.0,
+    "meter_total_P1B": 0.0
+   },
+   "total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 504795 m2 = 0.00 mm"
+ },
+ "sq-0d77406eb3bf": {
+  "answer": "د",
+  "key_numbers": {
+   "window_end_a": "2026-01-26",
+   "window_end_b": "2026-02-02",
+   "area_m2": 504792.2,
+   "area_ha": 50.4792,
+   "registered_area": "50.5 هكتار",
+   "meter_total_P2A": {
+    "read_a": 81780.0,
+    "read_b": 88640.0,
+    "missing_days": []
+   },
+   "meter_total_P2B": {
+    "read_a": 79380.0,
+    "read_b": 86240.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P2A": 6860.0,
+    "meter_total_P2B": 6860.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 27.18
+  },
+  "why": "13720 m3 / 504792 m2 = 27.18 mm"
+ },
+ "sq-13e3f04c5519": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-05",
+   "window_end_b": "2026-01-12",
+   "area_m2": 504795.3,
+   "area_ha": 50.4795,
+   "registered_area": "غير مسجّل",
+   "meter_total_P1A": {
+    "read_a": 182340.0,
+    "read_b": 191790.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 97410.0,
+    "read_b": 105600.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P1A": 9450.0,
+    "meter_total_P1B": 8190.0
+   },
+   "total_m3": 17640.0,
+   "depth_mm": 34.945
+  },
+  "why": "17640 m3 / 504795 m2 = 34.94 mm"
+ },
+ "sq-2d1a2fdd0913": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-05",
+   "window_end_b": "2026-02-02",
+   "area_m2": 504795.3,
+   "area_ha": 50.4795,
+   "registered_area": "غير مسجّل",
+   "meter_total_P1A": {
+    "read_a": 182340.0,
+    "read_b": 205815.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 97410.0,
+    "read_b": 106770.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P1A": 23475.0,
+    "meter_total_P1B": 9360.0
+   },
+   "total_m3": 32835.0,
+   "depth_mm": 65.046
+  },
+  "why": "32835 m3 / 504795 m2 = 65.05 mm"
+ },
+ "sq-3c064c1c5e85": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-05",
+   "window_end_b": "2026-02-02",
+   "area_m2": 504792.2,
+   "area_ha": 50.4792,
+   "registered_area": "50.5 هكتار",
+   "meter_total_P2A": {
+    "read_a": 61200.0,
+    "read_b": 88640.0,
+    "missing_days": [
+     "2026-01-21",
+     "2026-01-22",
+     "2026-01-23"
+    ]
+   },
+   "meter_total_P2B": {
+    "read_a": 58800.0,
+    "read_b": 86240.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P2A": 27440.0,
+    "meter_total_P2B": 27440.0
+   },
+   "total_m3": 54880.0,
+   "depth_mm": 108.718
+  },
+  "why": "54880 m3 / 504792 m2 = 108.72 mm"
+ },
+ "sq-4ad26cb78901": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-19",
+   "window_end_b": "2026-01-26",
+   "area_m2": 504792.2,
+   "area_ha": 50.4792,
+   "registered_area": "50.5 هكتار",
+   "meter_total_P2A": {
+    "read_a": 74920.0,
+    "read_b": 81780.0,
+    "missing_days": [
+     "2026-01-21",
+     "2026-01-22",
+     "2026-01-23"
+    ]
+   },
+   "meter_total_P2B": {
+    "read_a": 72520.0,
+    "read_b": 79380.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P2A": 6860.0,
+    "meter_total_P2B": 6860.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 27.18
+  },
+  "why": "13720 m3 / 504792 m2 = 27.18 mm"
+ },
+ "sq-62c39f25f9f2": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-12",
+   "window_end_b": "2026-01-19",
+   "area_m2": 504795.3,
+   "area_ha": 50.4795,
+   "registered_area": "غير مسجّل",
+   "meter_total_P1A": {
+    "read_a": 191790.0,
+    "read_b": 198990.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 105600.0,
+    "read_b": 106770.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P1A": 7200.0,
+    "meter_total_P1B": 1170.0
+   },
+   "total_m3": 8370.0,
+   "depth_mm": 16.581
+  },
+  "why": "8370 m3 / 504795 m2 = 16.58 mm"
+ },
+ "sq-bdbdf489455a": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-01-05",
+   "window_end_b": "2026-02-02",
+   "area_m2": 100005.4,
+   "area_ha": 10.0005,
+   "registered_area": "غير مسجّل"
+  },
+  "why": "no meter linked to field"
+ },
+ "sq-e494ebf83b96": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-12",
+   "window_end_b": "2026-01-19",
+   "area_m2": 504792.2,
+   "area_ha": 50.4792,
+   "registered_area": "50.5 هكتار",
+   "meter_total_P2A": {
+    "read_a": 68060.0,
+    "read_b": 74920.0,
+    "missing_days": []
+   },
+   "meter_total_P2B": {
+    "read_a": 65660.0,
+    "read_b": 72520.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P2A": 6860.0,
+    "meter_total_P2B": 6860.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 27.18
+  },
+  "why": "13720 m3 / 504792 m2 = 27.18 mm"
+ },
+ "sq-e93353553494": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-01-19",
+   "window_end_b": "2026-01-26",
+   "area_m2": 504795.3,
+   "area_ha": 50.4795,
+   "registered_area": "غير مسجّل",
+   "meter_total_P1A": {
+    "read_a": 198990.0,
+    "read_b": 205815.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 106770.0,
+    "read_b": 106770.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P1A": 6825.0,
+    "meter_total_P1B": 0.0
+   },
+   "total_m3": 6825.0,
+   "depth_mm": 13.52
+  },
+  "why": "6825 m3 / 504795 m2 = 13.52 mm"
+ },
+ "sq-eec6635ed347": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-05",
+   "window_end_b": "2026-01-12",
+   "area_m2": 504792.2,
+   "area_ha": 50.4792,
+   "registered_area": "50.5 هكتار",
+   "meter_total_P2A": {
+    "read_a": 61200.0,
+    "read_b": 68060.0,
+    "missing_days": []
+   },
+   "meter_total_P2B": {
+    "read_a": 58800.0,
+    "read_b": 65660.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_P2A": 6860.0,
+    "meter_total_P2B": 6860.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 27.18
+  },
+  "why": "13720 m3 / 504792 m2 = 27.18 mm"
+ },
+ "sq-1f408933b540": {
+  "answer": "د",
+  "key_numbers": {
+   "days": [
+    "2026-01-06",
+    "2026-02-02"
+   ],
+   "plan_weeks": [
+    [
+     "2026-01-06",
+     20.0
+    ],
+    [
+     "2026-01-13",
+     20.0
+    ],
+    [
+     "2026-01-20",
+     20.0
+    ],
+    [
+     "2026-01-27",
+     20.0
+    ]
+   ],
+   "planned_mm": 80.0,
+   "area_m2": 504792.2,
+   "meter_total_P2A": {
+    "read_a": 61200.0,
+    "read_b": 88640.0,
+    "missing_days": [
+     "2026-01-21",
+     "2026-01-22",
+     "2026-01-23"
+    ]
+   },
+   "meter_total_P2B": {
+    "read_a": 58800.0,
+    "read_b": 86240.0,
+    "missing_days": []
+   },
+   "measured_mm": 108.718,
+   "ratio": 1.359
+  },
+  "why": "measured 108.72 mm / planned 80 mm = 1.359"
+ },
+ "sq-ad05367f6583": {
+  "answer": "ج",
+  "key_numbers": {
+   "days": [
+    "2026-01-06",
+    "2026-02-02"
+   ],
+   "plan_weeks": [
+    [
+     "2026-01-06",
+     30.0
+    ],
+    [
+     "2026-01-13",
+     30.0
+    ],
+    [
+     "2026-01-20",
+     32.0
+    ],
+    [
+     "2026-01-27",
+     32.0
+    ]
+   ],
+   "planned_mm": 124.0,
+   "area_m2": 504795.3,
+   "meter_total_P1A": {
+    "read_a": 182340.0,
+    "read_b": 205815.0,
+    "missing_days": []
+   },
+   "meter_total_P1B": {
+    "read_a": 97410.0,
+    "read_b": 106770.0,
+    "missing_days": []
+   },
+   "measured_mm": 65.046,
+   "ratio": 0.5246
+  },
+  "why": "measured 65.05 mm / planned 124 mm = 0.525"
+ },
+ "sq-21fe7658bc29": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_value_check": 6.1,
+   "window": [
+    "2026-01-17",
+    "2026-01-18",
+    "2026-01-19"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_station": 7.9
+   },
+   "independent_incomplete": []
+  },
+  "why": "independent complete source >=2 mm in window"
+ },
+ "sq-a585fcc36303": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_value_check": 7.4,
+   "window": [
+    "2026-01-25",
+    "2026-01-26",
+    "2026-01-27"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_station": 0.0
+   },
+   "independent_incomplete": []
+  },
+  "why": "all complete independent sources <2 mm in window"
+ },
+ "sq-c36c2341e655": {
+  "answer": "أ",
+  "key_numbers": {
+   "event_value_check": 6.1,
+   "window": [
+    "2026-01-17",
+    "2026-01-18",
+    "2026-01-19"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_station": 8.3
+   },
+   "independent_incomplete": []
+  },
+  "why": "independent complete source >=2 mm in window"
+ },
+ "sq-e8af394046ca": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_value_check": 6.1,
+   "window": [
+    "2026-01-17",
+    "2026-01-18",
+    "2026-01-19"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {},
+   "independent_incomplete": [
+    "rain_mm_station"
+   ]
+  },
+  "why": "no complete independent-origin source in window"
+ },
+ "sq-11b5b21e9aee": {
+  "answer": "ب",
+  "key_numbers": {
+   "total_mm": 15.0,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_era5land 2026-01-05..2026-02-02 = 15.00 mm (all days present)"
+ },
+ "sq-36ddfd926df0": {
+  "answer": "ج",
+  "key_numbers": {
+   "total_mm": 13.6,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_chirps_v3_rnl 2026-01-05..2026-02-02 = 13.60 mm (all days present)"
+ },
+ "sq-70568f4515bb": {
+  "answer": "ج",
+  "key_numbers": {
+   "total_mm": 8.3,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_station 2026-01-05..2026-02-02 = 8.30 mm (all days present)"
+ },
+ "sq-871b2b4c43b2": {
+  "answer": "أ",
+  "key_numbers": {
+   "total_mm": 7.9,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_station 2026-01-05..2026-02-02 = 7.90 mm (all days present)"
+ },
+ "sq-c96b4b3df0a6": {
+  "answer": "د",
+  "key_numbers": {
+   "missing_days": [
+    "2026-01-17",
+    "2026-01-18"
+   ],
+   "partial_sum_mm": 0.0
+  },
+  "why": "missing days ['2026-01-17', '2026-01-18'] -> total unknown"
+ },
+ "sq-1763acc8c6d3": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-12",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 42.778,
+   "RAW_T": 77.03,
+   "p_T": 0.6419,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-01-05",
+    "2026-01-12"
+   ],
+   "volume_m3": 26992.7,
+   "sum_flow_m3h": 280.0,
+   "run_days": 9.6403,
+   "TAW": 120.0,
+   "flow_P1A": {
+    "dm3": 9450.0,
+    "dh": 63.0,
+    "m3_per_h": 150.0
+   },
+   "flow_P1B": {
+    "dm3": 8190.0,
+    "dh": 63.0,
+    "m3_per_h": 130.0
+   }
+  },
+  "why": "Dr_T=42.778 mm, vol=26992.7 m3, Q=280.0 m3/h -> 9.64 days"
+ },
+ "sq-1e25025ab7a8": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-12",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": 5.99,
+   "RAW_T": 54.563,
+   "p_T": 0.6419,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-01-05",
+    "2026-01-12"
+   ],
+   "volume_m3": 3779.9,
+   "sum_flow_m3h": 280.0,
+   "run_days": 1.35,
+   "TAW": 85.0,
+   "flow_P2A": {
+    "dm3": 6860.0,
+    "dh": 49.0,
+    "m3_per_h": 140.0
+   },
+   "flow_P2B": {
+    "dm3": 6860.0,
+    "dh": 49.0,
+    "m3_per_h": 140.0
+   }
+  },
+  "why": "Dr_T=5.99 mm, vol=3779.9 m3, Q=280.0 m3/h -> 1.35 days"
+ },
+ "sq-7b79fdecfb8c": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-26",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 74.236,
+   "RAW_T": 65.16,
+   "p_T": 0.543,
+   "Ks_T": 0.8345,
+   "status_if_computed": "moderate",
+   "flow_window": [
+    "2026-01-19",
+    "2026-01-26"
+   ],
+   "volume_m3": 46842.8,
+   "flow_issues": [
+    "P1B: hours not advancing [3383.0, 3383.0]"
+   ],
+   "TAW": 120.0,
+   "flow_P1A": {
+    "dm3": 6825.0,
+    "dh": 45.5,
+    "m3_per_h": 150.0
+   }
+  },
+  "why": "P1B: hours not advancing [3383.0, 3383.0]"
+ },
+ "sq-8e4e08d4159f": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-02-02",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 96.286,
+   "RAW_T": 65.602,
+   "p_T": 0.5467,
+   "Ks_T": 0.4359,
+   "status_if_computed": "severe",
+   "flow_window": [
+    "2026-01-26",
+    "2026-02-02"
+   ],
+   "flow_issues": [
+    "P1A: hours not advancing [5276.5, 5276.5]",
+    "P1B: hours not advancing [3383.0, 3383.0]"
+   ],
+   "TAW": 120.0
+  },
+  "why": "P1A: hours not advancing [5276.5, 5276.5]; P1B: hours not advancing [3383.0, 3383.0]"
+ },
+ "sq-c6b15d75c5df": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-19",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": 7.212,
+   "RAW_T": 47.797,
+   "p_T": 0.5623,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-01-12",
+    "2026-01-19"
+   ],
+   "volume_m3": 4550.6,
+   "sum_flow_m3h": 280.0,
+   "run_days": 1.6252,
+   "TAW": 85.0,
+   "flow_P2A": {
+    "dm3": 6860.0,
+    "dh": 49.0,
+    "m3_per_h": 140.0
+   },
+   "flow_P2B": {
+    "dm3": 6860.0,
+    "dh": 49.0,
+    "m3_per_h": 140.0
+   }
+  },
+  "why": "Dr_T=7.212 mm, vol=4550.6 m3, Q=280.0 m3/h -> 1.63 days"
+ },
+ "sq-e61e414056ea": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-19",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 52.078,
+   "RAW_T": 67.478,
+   "p_T": 0.5623,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-01-12",
+    "2026-01-19"
+   ],
+   "volume_m3": 32861.1,
+   "sum_flow_m3h": 280.0,
+   "run_days": 11.7361,
+   "TAW": 120.0,
+   "flow_P1A": {
+    "dm3": 7200.0,
+    "dh": 48.0,
+    "m3_per_h": 150.0
+   },
+   "flow_P1B": {
+    "dm3": 1170.0,
+    "dh": 9.0,
+    "m3_per_h": 130.0
+   }
+  },
+  "why": "Dr_T=52.078 mm, vol=32861.1 m3, Q=280.0 m3/h -> 11.74 days"
+ },
+ "sq-03e4a7018d0a": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-12",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 42.778,
+   "RAW_T": 77.03,
+   "p_T": 0.6419,
+   "status_if_computed": "none",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=42.778 vs RAW_T=77.03 (TAW=120.0) -> none"
+ },
+ "sq-0fd71a31360a": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-26",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": null,
+   "RAW_T": 46.155,
+   "p_T": 0.543,
+   "status_if_computed": "nan",
+   "TAW": 85.0
+  },
+  "why": "meter_total_P2A missing 2026-01-21; meter_total_P2A missing 2026-01-22; meter_total_P2A missing 2026-01-23"
+ },
+ "sq-18e00ab9e53f": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-02-02",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 96.286,
+   "RAW_T": 65.602,
+   "p_T": 0.5467,
+   "Ks_T": 0.4359,
+   "status_if_computed": "severe",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=96.286 vs RAW_T=65.602 (TAW=120.0) -> severe, Ks=0.4359"
+ },
+ "sq-2582db863b2d": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-12",
+   "theta0": 0.24,
+   "moisture_unit": "%",
+   "Dr0": 10.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 100005.4,
+   "Dr_end_T": 39.62,
+   "RAW_T": 77.428,
+   "p_T": 0.5956,
+   "status_if_computed": "none",
+   "TAW": 130.0
+  },
+  "why": "no meter linked to field"
+ },
+ "sq-7f14471a79cb": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-19",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 52.078,
+   "RAW_T": 67.478,
+   "p_T": 0.5623,
+   "status_if_computed": "none",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=52.078 vs RAW_T=67.478 (TAW=120.0) -> none"
+ },
+ "sq-83005c23e2c3": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-19",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": 7.212,
+   "RAW_T": 47.797,
+   "p_T": 0.5623,
+   "status_if_computed": "none",
+   "TAW": 85.0
+  },
+  "why": "Dr_T=7.212 vs RAW_T=47.797 (TAW=85.0) -> none"
+ },
+ "sq-c6b3de759c97": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-26",
+   "theta0": 0.18,
+   "moisture_unit": "%",
+   "Dr0": 50.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504795.3,
+   "Dr_end_T": 74.236,
+   "RAW_T": 65.16,
+   "p_T": 0.543,
+   "Ks_T": 0.8345,
+   "status_if_computed": "moderate",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=74.236 vs RAW_T=65.16 (TAW=120.0) -> moderate, Ks=0.8345"
+ },
+ "sq-ca9bdd9a3a6e": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-01-12",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": 5.99,
+   "RAW_T": 54.563,
+   "p_T": 0.6419,
+   "status_if_computed": "none",
+   "TAW": 85.0
+  },
+  "why": "Dr_T=5.99 vs RAW_T=54.563 (TAW=85.0) -> none"
+ },
+ "sq-ef96b39fe8b1": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-01-05",
+   "target_day": "2026-02-02",
+   "theta0": 0.14300000000000002,
+   "moisture_unit": "%",
+   "Dr0": 7.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 504792.2,
+   "Dr_end_T": null,
+   "RAW_T": 46.468,
+   "p_T": 0.5467,
+   "status_if_computed": "nan",
+   "TAW": 85.0
+  },
+  "why": "meter_total_P2A missing 2026-01-21; meter_total_P2A missing 2026-01-22; meter_total_P2A missing 2026-01-23"
+ },
+ "sq-0469d4ad792f": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-31",
+   "window_end_b": "2026-02-07",
+   "area_m2": 134965.3,
+   "area_ha": 13.4965,
+   "registered_area": "غير مسجّل",
+   "meter_total_M1": {
+    "read_a": 41840.0,
+    "read_b": 45620.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_M1": 3780.0
+   },
+   "total_m3": 3780.0,
+   "depth_mm": 28.007
+  },
+  "why": "3780 m3 / 134965 m2 = 28.01 mm"
+ },
+ "sq-10b76e6b5d36": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-17",
+   "window_end_b": "2026-01-24",
+   "area_m2": 384535.0,
+   "area_ha": 38.4535,
+   "registered_area": "غير مسجّل",
+   "meter_total_MP1": {
+    "read_a": 251150.0,
+    "read_b": 261790.0,
+    "missing_days": []
+   },
+   "meter_total_MP2": {
+    "read_a": 91100.0,
+    "read_b": 94180.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_MP1": 10640.0,
+    "meter_total_MP2": 3080.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 35.679
+  },
+  "why": "13720 m3 / 384535 m2 = 35.68 mm"
+ },
+ "sq-119797721cd3": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-10",
+   "window_end_b": "2026-02-07",
+   "area_m2": 384535.0,
+   "area_ha": 38.4535,
+   "registered_area": "غير مسجّل",
+   "meter_total_MP1": {
+    "read_a": 240510.0,
+    "read_b": 19772.0,
+    "missing_days": [],
+    "drops": [
+     [
+      "2026-01-24",
+      261790.0,
+      "2026-01-25",
+      12.0
+     ]
+    ]
+   },
+   "meter_total_MP2": {
+    "read_a": 88020.0,
+    "read_b": 100340.0,
+    "missing_days": []
+   }
+  },
+  "why": "meter_total_MP1: volume unknown (drop)"
+ },
+ "sq-5199a4a5420f": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-01-10",
+   "window_end_b": "2026-01-17",
+   "area_m2": 134965.3,
+   "area_ha": 13.4965,
+   "registered_area": "غير مسجّل",
+   "meter_total_M1": {
+    "read_a": 30500.0,
+    "read_b": 34280.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_M1": 3780.0
+   },
+   "total_m3": 3780.0,
+   "depth_mm": 28.007
+  },
+  "why": "3780 m3 / 134965 m2 = 28.01 mm"
+ },
+ "sq-8a9cc1fff668": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-01-24",
+   "window_end_b": "2026-01-31",
+   "area_m2": 384535.0,
+   "area_ha": 38.4535,
+   "registered_area": "غير مسجّل",
+   "meter_total_MP1": {
+    "read_a": 261790.0,
+    "read_b": 9132.0,
+    "missing_days": [],
+    "drops": [
+     [
+      "2026-01-24",
+      261790.0,
+      "2026-01-25",
+      12.0
+     ]
+    ]
+   },
+   "meter_total_MP2": {
+    "read_a": 94180.0,
+    "read_b": 97260.0,
+    "missing_days": []
+   }
+  },
+  "why": "meter_total_MP1: volume unknown (drop)"
+ },
+ "sq-96116f0d282d": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-24",
+   "window_end_b": "2026-01-31",
+   "area_m2": 134965.3,
+   "area_ha": 13.4965,
+   "registered_area": "غير مسجّل",
+   "meter_total_M1": {
+    "read_a": 38060.0,
+    "read_b": 41840.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_M1": 3780.0
+   },
+   "total_m3": 3780.0,
+   "depth_mm": 28.007
+  },
+  "why": "3780 m3 / 134965 m2 = 28.01 mm"
+ },
+ "sq-a3864f0b833c": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-01-17",
+   "window_end_b": "2026-01-24",
+   "area_m2": 134965.3,
+   "area_ha": 13.4965,
+   "registered_area": "غير مسجّل",
+   "meter_total_M1": {
+    "read_a": 34280.0,
+    "read_b": 38060.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_M1": 3780.0
+   },
+   "total_m3": 3780.0,
+   "depth_mm": 28.007
+  },
+  "why": "3780 m3 / 134965 m2 = 28.01 mm"
+ },
+ "sq-a4bc61965d24": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-10",
+   "window_end_b": "2026-02-07",
+   "area_m2": 134965.3,
+   "area_ha": 13.4965,
+   "registered_area": "غير مسجّل",
+   "meter_total_M1": {
+    "read_a": 30500.0,
+    "read_b": 45620.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_M1": 15120.0
+   },
+   "total_m3": 15120.0,
+   "depth_mm": 112.029
+  },
+  "why": "15120 m3 / 134965 m2 = 112.03 mm"
+ },
+ "sq-dfbfc43d3375": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-01-31",
+   "window_end_b": "2026-02-07",
+   "area_m2": 384535.0,
+   "area_ha": 38.4535,
+   "registered_area": "غير مسجّل",
+   "meter_total_MP1": {
+    "read_a": 9132.0,
+    "read_b": 19772.0,
+    "missing_days": []
+   },
+   "meter_total_MP2": {
+    "read_a": 97260.0,
+    "read_b": 100340.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_MP1": 10640.0,
+    "meter_total_MP2": 3080.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 35.679
+  },
+  "why": "13720 m3 / 384535 m2 = 35.68 mm"
+ },
+ "sq-ff1bcffb4dae": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-01-10",
+   "window_end_b": "2026-01-17",
+   "area_m2": 384535.0,
+   "area_ha": 38.4535,
+   "registered_area": "غير مسجّل",
+   "meter_total_MP1": {
+    "read_a": 240510.0,
+    "read_b": 251150.0,
+    "missing_days": []
+   },
+   "meter_total_MP2": {
+    "read_a": 88020.0,
+    "read_b": 91100.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_MP1": 10640.0,
+    "meter_total_MP2": 3080.0
+   },
+   "total_m3": 13720.0,
+   "depth_mm": 35.679
+  },
+  "why": "13720 m3 / 384535 m2 = 35.68 mm"
+ },
+ "sq-135f287b53c4": {
+  "answer": "ب",
+  "key_numbers": {
+   "days": [
+    "2026-01-11",
+    "2026-02-07"
+   ],
+   "plan_weeks": [
+    [
+     "2026-01-11",
+     26.0
+    ],
+    [
+     "2026-01-18",
+     26.0
+    ],
+    [
+     "2026-01-25",
+     26.0
+    ],
+    [
+     "2026-02-01",
+     26.0
+    ]
+   ],
+   "planned_mm": 104.0,
+   "area_m2": 134965.3,
+   "meter_total_M1": {
+    "read_a": 30500.0,
+    "read_b": 45620.0,
+    "missing_days": []
+   },
+   "measured_mm": 112.029,
+   "ratio": 1.0772
+  },
+  "why": "measured 112.03 mm / planned 104 mm = 1.077"
+ },
+ "sq-37fc8deb153e": {
+  "answer": "ج",
+  "key_numbers": {
+   "days": [
+    "2026-01-11",
+    "2026-02-07"
+   ],
+   "plan_weeks": [
+    [
+     "2026-01-11",
+     36.0
+    ],
+    [
+     "2026-01-18",
+     36.0
+    ],
+    [
+     "2026-01-25",
+     36.0
+    ],
+    [
+     "2026-02-01",
+     36.0
+    ]
+   ],
+   "planned_mm": 144.0,
+   "area_m2": 384535.0,
+   "meter_total_MP1": {
+    "read_a": 240510.0,
+    "read_b": 19772.0,
+    "missing_days": [],
+    "drops": [
+     [
+      "2026-01-24",
+      261790.0,
+      "2026-01-25",
+      12.0
+     ]
+    ]
+   },
+   "meter_total_MP2": {
+    "read_a": 88020.0,
+    "read_b": 100340.0,
+    "missing_days": []
+   }
+  },
+  "why": "meter_total_MP1 volume unknown"
+ },
+ "sq-105b705813dd": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_value_check": 8.0,
+   "window": [
+    "2026-01-29",
+    "2026-01-30",
+    "2026-01-31"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [],
+   "independent_complete_sums": {},
+   "independent_incomplete": []
+  },
+  "why": "no complete independent-origin source in window"
+ },
+ "sq-a225928e6194": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_value_check": 8.0,
+   "window": [
+    "2026-01-29",
+    "2026-01-30",
+    "2026-01-31"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_station": 7.5
+   },
+   "independent_incomplete": []
+  },
+  "why": "independent complete source >=2 mm in window"
+ },
+ "sq-e9329cb5aa71": {
+  "answer": "أ",
+  "key_numbers": {
+   "event_value_check": 6.0,
+   "window": [
+    "2026-01-17",
+    "2026-01-18",
+    "2026-01-19"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_chirps_v3_rnl",
+    "rain_mm_era5land"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_chirps_v3_rnl": 1.0,
+    "rain_mm_era5land": 0.6
+   },
+   "independent_incomplete": []
+  },
+  "why": "all complete independent sources <2 mm in window"
+ },
+ "sq-01861a38951d": {
+  "answer": "ب",
+  "key_numbers": {
+   "total_mm": 13.5,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_station 2026-01-10..2026-02-07 = 13.50 mm (all days present)"
+ },
+ "sq-2d5f536613dd": {
+  "answer": "ب",
+  "key_numbers": {
+   "total_mm": 10.6,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_era5land 2026-01-10..2026-02-07 = 10.60 mm (all days present)"
+ },
+ "sq-e72eb6045ba0": {
+  "answer": "ب",
+  "key_numbers": {
+   "total_mm": 10.1,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_chirps_v3_rnl 2026-01-10..2026-02-07 = 10.10 mm (all days present)"
+ },
+ "sq-6e5378a8657c": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-24",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 74.714,
+   "RAW_T": 66.816,
+   "p_T": 0.5568,
+   "Ks_T": 0.8515,
+   "status_if_computed": "moderate",
+   "flow_window": [
+    "2026-01-17",
+    "2026-01-24"
+   ],
+   "volume_m3": 35912.8,
+   "sum_flow_m3h": 270.0,
+   "run_days": 13.301,
+   "TAW": 120.0,
+   "flow_MP1": {
+    "dm3": 10640.0,
+    "dh": 66.5,
+    "m3_per_h": 160.0
+   },
+   "flow_MP2": {
+    "dm3": 3080.0,
+    "dh": 28.0,
+    "m3_per_h": 110.0
+   }
+  },
+  "why": "Dr_T=74.714 mm, vol=35912.8 m3, Q=270.0 m3/h -> 13.30 days"
+ },
+ "sq-950d55d5c31a": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-17",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 84.294,
+   "RAW_T": 76.79,
+   "p_T": 0.6399,
+   "Ks_T": 0.8264,
+   "status_if_computed": "moderate",
+   "flow_window": [
+    "2026-01-10",
+    "2026-01-17"
+   ],
+   "volume_m3": 40517.3,
+   "sum_flow_m3h": 270.0,
+   "run_days": 15.0064,
+   "TAW": 120.0,
+   "flow_MP1": {
+    "dm3": 10640.0,
+    "dh": 66.5,
+    "m3_per_h": 160.0
+   },
+   "flow_MP2": {
+    "dm3": 3080.0,
+    "dh": 28.0,
+    "m3_per_h": 110.0
+   }
+  },
+  "why": "Dr_T=84.294 mm, vol=40517.3 m3, Q=270.0 m3/h -> 15.01 days"
+ },
+ "sq-0afee06d9a05": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-02-07",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 84.062,
+   "RAW_T": 68.914,
+   "p_T": 0.5743,
+   "Ks_T": 0.7035,
+   "status_if_computed": "moderate",
+   "TAW": 120.0
+  },
+  "why": "meter_total_MP1 drop ('2026-01-24', 261790.0)->('2026-01-25', 12.0)"
+ },
+ "sq-478ee0acf9e9": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-17",
+   "moisture_unit": "kPa",
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 134965.3,
+   "TAW": 130.0
+  },
+  "why": "moisture unit kPa not volumetric"
+ },
+ "sq-55ef41ddd20c": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-17",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 84.294,
+   "RAW_T": 76.79,
+   "p_T": 0.6399,
+   "Ks_T": 0.8264,
+   "status_if_computed": "moderate",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=84.294 vs RAW_T=76.79 (TAW=120.0) -> moderate, Ks=0.8264"
+ },
+ "sq-db82fb2004be": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-31",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 93.273,
+   "RAW_T": 69.355,
+   "p_T": 0.578,
+   "Ks_T": 0.5277,
+   "status_if_computed": "moderate",
+   "TAW": 120.0
+  },
+  "why": "meter_total_MP1 drop ('2026-01-24', 261790.0)->('2026-01-25', 12.0)"
+ },
+ "sq-de5eb272251c": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-01-10",
+   "target_day": "2026-01-24",
+   "theta0": 0.13,
+   "moisture_unit": "%",
+   "Dr0": 100.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 384535.0,
+   "Dr_end_T": 74.714,
+   "RAW_T": 66.816,
+   "p_T": 0.5568,
+   "Ks_T": 0.8515,
+   "status_if_computed": "moderate",
+   "TAW": 120.0
+  },
+  "why": "Dr_T=74.714 vs RAW_T=66.816 (TAW=120.0) -> moderate, Ks=0.8515"
+ },
+ "sq-03914d6d0d99": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-07-01",
+   "window_end_b": "2026-07-08",
+   "area_m2": 282566.2,
+   "area_ha": 28.2566,
+   "registered_area": "غير مسجّل",
+   "meter_total_TP1": {
+    "read_a": 51000.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 44100.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_TP1": 5880.0,
+    "meter_total_TP2": 5600.0
+   },
+   "total_m3": 11480.0,
+   "depth_mm": 40.628
+  },
+  "why": "11480 m3 / 282566 m2 = 40.63 mm"
+ },
+ "sq-297637e378e6": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-07-15",
+   "window_end_b": "2026-07-22",
+   "area_m2": 282566.2,
+   "area_ha": 28.2566,
+   "registered_area": "غير مسجّل",
+   "meter_total_TP1": {
+    "read_a": 56880.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 49700.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_TP1": 0.0,
+    "meter_total_TP2": 0.0
+   },
+   "total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 282566 m2 = 0.00 mm"
+ },
+ "sq-2b64e8152eed": {
+  "answer": "د",
+  "key_numbers": {
+   "window_end_a": "2026-07-08",
+   "window_end_b": "2026-07-15",
+   "area_m2": 282566.2,
+   "area_ha": 28.2566,
+   "registered_area": "غير مسجّل",
+   "meter_total_TP1": {
+    "read_a": 56880.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 49700.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_TP1": 0.0,
+    "meter_total_TP2": 0.0
+   },
+   "total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 282566 m2 = 0.00 mm"
+ },
+ "sq-3f3d9a32439b": {
+  "answer": "أ",
+  "key_numbers": {
+   "window_end_a": "2026-07-01",
+   "window_end_b": "2026-07-29",
+   "area_m2": 113088.3,
+   "area_ha": 11.3088,
+   "registered_area": "1200 هكتار",
+   "meter_total_T12": {
+    "read_a": 20400.0,
+    "read_b": 51200.0,
+    "missing_days": []
+   },
+   "shared_meters": [
+    "meter_total_T12"
+   ],
+   "hypothetical_depth_mm": 272.354
+  },
+  "why": "shared meter(s) ['meter_total_T12']"
+ },
+ "sq-5e19125c8ada": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-07-01",
+   "window_end_b": "2026-07-29",
+   "registered_area": "18 هكتار",
+   "meter_total_TF": {
+    "read_a": 9100.0,
+    "read_b": 24780.0,
+    "missing_days": []
+   }
+  },
+  "why": "no drawn boundary"
+ },
+ "sq-7a41df82e393": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-07-01",
+   "window_end_b": "2026-07-29",
+   "area_m2": 209987.6,
+   "area_ha": 20.9988,
+   "registered_area": "غير مسجّل",
+   "meter_total_T12": {
+    "read_a": 20400.0,
+    "read_b": 51200.0,
+    "missing_days": []
+   },
+   "shared_meters": [
+    "meter_total_T12"
+   ],
+   "hypothetical_depth_mm": 146.675
+  },
+  "why": "shared meter(s) ['meter_total_T12']"
+ },
+ "sq-a3e0a756e6b8": {
+  "answer": "ب",
+  "key_numbers": {
+   "window_end_a": "2026-07-01",
+   "window_end_b": "2026-07-29",
+   "area_m2": 282566.2,
+   "area_ha": 28.2566,
+   "registered_area": "غير مسجّل",
+   "meter_total_TP1": {
+    "read_a": 51000.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 44100.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_TP1": 5880.0,
+    "meter_total_TP2": 5600.0
+   },
+   "total_m3": 11480.0,
+   "depth_mm": 40.628
+  },
+  "why": "11480 m3 / 282566 m2 = 40.63 mm"
+ },
+ "sq-e688bbe21fb6": {
+  "answer": "ج",
+  "key_numbers": {
+   "window_end_a": "2026-07-22",
+   "window_end_b": "2026-07-29",
+   "area_m2": 282566.2,
+   "area_ha": 28.2566,
+   "registered_area": "غير مسجّل",
+   "meter_total_TP1": {
+    "read_a": 56880.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 49700.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "volumes_m3": {
+    "meter_total_TP1": 0.0,
+    "meter_total_TP2": 0.0
+   },
+   "total_m3": 0.0,
+   "depth_mm": 0.0
+  },
+  "why": "0 m3 / 282566 m2 = 0.00 mm"
+ },
+ "sq-77750d3d87a1": {
+  "answer": "أ",
+  "key_numbers": {
+   "days": [
+    "2026-07-02",
+    "2026-07-29"
+   ],
+   "plan_weeks": [
+    [
+     "2026-07-02",
+     40.0
+    ],
+    [
+     "2026-07-09",
+     40.0
+    ],
+    [
+     "2026-07-23",
+     40.0
+    ]
+   ],
+   "planned_mm": 120.0,
+   "area_m2": 113088.3,
+   "meter_total_T12": {
+    "read_a": 20400.0,
+    "read_b": 51200.0,
+    "missing_days": []
+   },
+   "measured_mm": 272.354,
+   "ratio": 2.2696
+  },
+  "why": "plan missing for ['2026-07-16', '2026-07-17', '2026-07-18', '2026-07-19', '2026-07-20', '2026-07-21', '2026-07-22']; shared meter ['meter_total_T12']"
+ },
+ "sq-87f262c0e116": {
+  "answer": "ج",
+  "key_numbers": {
+   "days": [
+    "2026-07-02",
+    "2026-07-29"
+   ],
+   "plan_weeks": [
+    [
+     "2026-07-02",
+     55.0
+    ],
+    [
+     "2026-07-09",
+     55.0
+    ],
+    [
+     "2026-07-16",
+     55.0
+    ],
+    [
+     "2026-07-23",
+     55.0
+    ]
+   ],
+   "planned_mm": 220.0,
+   "area_m2": 282566.2,
+   "meter_total_TP1": {
+    "read_a": 51000.0,
+    "read_b": 56880.0,
+    "missing_days": []
+   },
+   "meter_total_TP2": {
+    "read_a": 44100.0,
+    "read_b": 49700.0,
+    "missing_days": []
+   },
+   "measured_mm": 40.628,
+   "ratio": 0.1847
+  },
+  "why": "measured 40.63 mm / planned 220 mm = 0.185"
+ },
+ "sq-03cc0e240038": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_value_check": 6.0,
+   "window": [
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-22"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [],
+   "independent_complete_sums": {},
+   "independent_incomplete": []
+  },
+  "why": "no complete independent-origin source in window"
+ },
+ "sq-1696982bd259": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_value_check": 9.0,
+   "window": [
+    "2026-07-09",
+    "2026-07-10",
+    "2026-07-11"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [],
+   "independent_complete_sums": {},
+   "independent_incomplete": []
+  },
+  "why": "no complete independent-origin source in window"
+ },
+ "sq-dc60d50a7422": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_value_check": 6.0,
+   "window": [
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-22"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {},
+   "independent_incomplete": [
+    "rain_mm_station"
+   ]
+  },
+  "why": "no complete independent-origin source in window"
+ },
+ "sq-e88f94ed4bae": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_value_check": 9.0,
+   "window": [
+    "2026-07-09",
+    "2026-07-10",
+    "2026-07-11"
+   ],
+   "origins": {
+    "rain_mm_station": [
+     "gauge"
+    ],
+    "rain_mm_chirps_v3_rnl": [
+     "era5"
+    ],
+    "rain_mm_era5land": [
+     "era5"
+    ]
+   },
+   "independent_sources": [
+    "rain_mm_station"
+   ],
+   "independent_complete_sums": {
+    "rain_mm_station": 14.0
+   },
+   "independent_incomplete": []
+  },
+  "why": "independent complete source >=2 mm in window"
+ },
+ "sq-008b6ed23034": {
+  "answer": "أ",
+  "key_numbers": {
+   "missing_days": [
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-22"
+   ],
+   "partial_sum_mm": 14.0
+  },
+  "why": "missing days ['2026-07-20', '2026-07-21', '2026-07-22'] -> total unknown"
+ },
+ "sq-0b81087de993": {
+  "answer": "ج",
+  "key_numbers": {
+   "total_mm": 18.2,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_era5land 2026-07-01..2026-07-29 = 18.20 mm (all days present)"
+ },
+ "sq-11bf8d2cddcc": {
+  "answer": "أ",
+  "key_numbers": {
+   "total_mm": 18.5,
+   "n_days": 29
+  },
+  "why": "sum rain_mm_chirps_v3_rnl 2026-07-01..2026-07-29 = 18.50 mm (all days present)"
+ },
+ "sq-1279fb7ebfb2": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-15",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 282566.2,
+   "Dr_end_T": 46.187,
+   "RAW_T": 70.56,
+   "p_T": 0.504,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-07-08",
+    "2026-07-15"
+   ],
+   "flow_issues": [
+    "TP1: hours not advancing [3059.0, 3059.0]",
+    "TP2: hours not advancing [2456.0, 2456.0]"
+   ],
+   "TAW": 140.0
+  },
+  "why": "TP1: hours not advancing [3059.0, 3059.0]; TP2: hours not advancing [2456.0, 2456.0]"
+ },
+ "sq-754ea37c5b10": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-08",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 282566.2,
+   "Dr_end_T": 19.838,
+   "RAW_T": 80.382,
+   "p_T": 0.5742,
+   "status_if_computed": "none",
+   "flow_window": [
+    "2026-07-01",
+    "2026-07-08"
+   ],
+   "volume_m3": 7006.9,
+   "sum_flow_m3h": 220.0,
+   "run_days": 3.185,
+   "TAW": 140.0,
+   "flow_TP1": {
+    "dm3": 5880.0,
+    "dh": 49.0,
+    "m3_per_h": 120.0
+   },
+   "flow_TP2": {
+    "dm3": 5600.0,
+    "dh": 56.0,
+    "m3_per_h": 100.0
+   }
+  },
+  "why": "Dr_T=19.838 mm, vol=7006.9 m3, Q=220.0 m3/h -> 3.19 days"
+ },
+ "sq-a6f412c84346": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-29",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 282566.2,
+   "Dr_end_T": 112.003,
+   "RAW_T": 68.04,
+   "p_T": 0.486,
+   "Ks_T": 0.3891,
+   "status_if_computed": "severe",
+   "flow_window": [
+    "2026-07-22",
+    "2026-07-29"
+   ],
+   "flow_issues": [
+    "TP1: hours not advancing [3059.0, 3059.0]",
+    "TP2: hours not advancing [2456.0, 2456.0]"
+   ],
+   "TAW": 140.0
+  },
+  "why": "TP1: hours not advancing [3059.0, 3059.0]; TP2: hours not advancing [2456.0, 2456.0]"
+ },
+ "sq-c11ebcc86207": {
+  "answer": "ب",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-22",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 282566.2,
+   "Dr_end_T": 84.992,
+   "RAW_T": 69.832,
+   "p_T": 0.4988,
+   "Ks_T": 0.784,
+   "status_if_computed": "moderate",
+   "flow_window": [
+    "2026-07-15",
+    "2026-07-22"
+   ],
+   "flow_issues": [
+    "TP1: hours not advancing [3059.0, 3059.0]",
+    "TP2: hours not advancing [2456.0, 2456.0]"
+   ],
+   "TAW": 140.0
+  },
+  "why": "TP1: hours not advancing [3059.0, 3059.0]; TP2: hours not advancing [2456.0, 2456.0]"
+ },
+ "sq-035a63c8dcb5": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-22",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 282566.2,
+   "Dr_end_T": 84.992,
+   "RAW_T": 69.832,
+   "p_T": 0.4988,
+   "Ks_T": 0.784,
+   "status_if_computed": "moderate",
+   "TAW": 140.0
+  },
+  "why": "Dr_T=84.992 vs RAW_T=69.832 (TAW=140.0) -> moderate, Ks=0.784"
+ },
+ "sq-361f3c4eced8": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-15",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 282566.2,
+   "Dr_end_T": 46.187,
+   "RAW_T": 70.56,
+   "p_T": 0.504,
+   "status_if_computed": "none",
+   "TAW": 140.0
+  },
+  "why": "Dr_T=46.187 vs RAW_T=70.56 (TAW=140.0) -> none"
+ },
+ "sq-44afe98e95d3": {
+  "answer": "أ",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-29",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 282566.2,
+   "Dr_end_T": 112.003,
+   "RAW_T": 68.04,
+   "p_T": 0.486,
+   "Ks_T": 0.3891,
+   "status_if_computed": "severe",
+   "TAW": 140.0
+  },
+  "why": "Dr_T=112.003 vs RAW_T=68.04 (TAW=140.0) -> severe, Ks=0.3891"
+ },
+ "sq-8ac41151a83b": {
+  "answer": "د",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-08",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_station",
+   "area_m2": 282566.2,
+   "Dr_end_T": 19.838,
+   "RAW_T": 80.382,
+   "p_T": 0.5742,
+   "status_if_computed": "none",
+   "TAW": 140.0
+  },
+  "why": "Dr_T=19.838 vs RAW_T=80.382 (TAW=140.0) -> none"
+ },
+ "sq-c955f5718df8": {
+  "answer": "ج",
+  "key_numbers": {
+   "moisture_day": "2026-07-01",
+   "target_day": "2026-07-08",
+   "theta0": 0.27,
+   "moisture_unit": "%",
+   "Dr0": 20.0,
+   "rain_source": "rain_mm_chirps_v3_rnl",
+   "area_m2": 209987.6,
+   "Dr_end_T": 23.005,
+   "RAW_T": 80.382,
+   "p_T": 0.5742,
+   "status_if_computed": "none",
+   "TAW": 140.0
+  },
+  "why": "shared meter ['meter_total_T12']"
+ }
+}

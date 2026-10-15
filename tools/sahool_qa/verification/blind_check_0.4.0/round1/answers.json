@@ -1,0 +1,1211 @@
+{
+ "sq-2d1a2fdd0913": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2_geodesic": 504795.3,
+   "meter_volumes_m3": {
+    "meter_total_P1A": 23475.0,
+    "meter_total_P1B": 9360.0
+   },
+   "depth_mm": 65.05
+  },
+  "why": "gross depth 65.05 mm"
+ },
+ "sq-3c064c1c5e85": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2_geodesic": 504792.2,
+   "meter_volumes_m3": {
+    "meter_total_P2A": 27440.0,
+    "meter_total_P2B": 27440.0
+   },
+   "depth_mm": 108.72
+  },
+  "why": "gross depth 108.72 mm"
+ },
+ "sq-bdbdf489455a": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2_geodesic": 100005.4,
+   "meter_volumes_m3": {},
+   "unknown_because": "no meter for field",
+   "misreading_trap": "if missing meter treated as zero -> د (0 mm)"
+  },
+  "why": "abstain: no meter for field"
+ },
+ "sq-1f408933b540": {
+  "answer": "د",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-01-05",
+    "2026-01-12",
+    "2026-01-19",
+    "2026-01-26"
+   ],
+   "missing_plan_weeks": [],
+   "planned_mm": 80.0,
+   "area_m2_geodesic": 504792.2,
+   "measured_mm": 108.72,
+   "ratio": 1.359,
+   "ratio_if_end_reading_is_last_week_day7": 1.3104
+  },
+  "why": "measured 108.7 / planned 80 = 1.359 -> more"
+ },
+ "sq-ad05367f6583": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-01-05",
+    "2026-01-12",
+    "2026-01-19",
+    "2026-01-26"
+   ],
+   "missing_plan_weeks": [],
+   "planned_mm": 124.0,
+   "area_m2_geodesic": 504795.3,
+   "measured_mm": 65.05,
+   "ratio": 0.5246,
+   "ratio_if_end_reading_is_last_week_day7": 0.5246
+  },
+  "why": "measured 65.0 / planned 124 = 0.525 -> less"
+ },
+ "sq-21fe7658bc29": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 6.1,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": true,
+     "window_sum_mm": 7.9
+    }
+   ]
+  },
+  "why": "confirmed by rain_mm_station"
+ },
+ "sq-a585fcc36303": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 7.4,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": true,
+     "window_sum_mm": 0.0
+    }
+   ]
+  },
+  "why": "not confirmed: complete independent rain_mm_station=0.0"
+ },
+ "sq-c36c2341e655": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 6.1,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": true,
+     "window_sum_mm": 8.4
+    }
+   ]
+  },
+  "why": "confirmed by rain_mm_station"
+ },
+ "sq-e8af394046ca": {
+  "answer": "د",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 6.1,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": false,
+     "window_sum_mm": 0.0
+    }
+   ]
+  },
+  "why": "abstain: no complete independent-origin source (independent present but incomplete)"
+ },
+ "sq-11b5b21e9aee": {
+  "answer": "ب",
+  "key_numbers": {
+   "source": "rain_mm_era5land",
+   "total_mm": 15.0,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_era5land = 15.0 mm"
+ },
+ "sq-36ddfd926df0": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_chirps_v3_rnl",
+   "total_mm": 13.6,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_chirps_v3_rnl = 13.6 mm"
+ },
+ "sq-70568f4515bb": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_station",
+   "total_mm": 8.4,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_station = 8.4 mm"
+ },
+ "sq-871b2b4c43b2": {
+  "answer": "ب",
+  "key_numbers": {
+   "source": "rain_mm_station",
+   "total_mm": 7.9,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_station = 7.9 mm"
+ },
+ "sq-c96b4b3df0a6": {
+  "answer": "د",
+  "key_numbers": {
+   "source": "rain_mm_station",
+   "total_mm": 0.0,
+   "n_days": 29,
+   "missing_days": [
+    "2026-01-17",
+    "2026-01-18"
+   ],
+   "misreading_trap": "if missing days treated as dry: 0.0 mm -> ج"
+  },
+  "why": "abstain: missing days 2026-01-17,2026-01-18"
+ },
+ "sq-1763acc8c6d3": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 42.778,
+   "RAW_end": 77.03,
+   "p_end": 0.6419,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-01-05",
+    "2026-01-12"
+   ],
+   "flows_m3_per_h": {
+    "P1A": 150.0,
+    "P1B": 130.0
+   },
+   "volume_m3": 26992.7,
+   "pump_days": 9.6402
+  },
+  "why": "Dr 42.78 mm, vol 26993 m3, flow 280 m3/h -> 9.640 days"
+ },
+ "sq-1e25025ab7a8": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 5.99,
+   "RAW_end": 54.563,
+   "p_end": 0.6419,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-01-05",
+    "2026-01-12"
+   ],
+   "flows_m3_per_h": {
+    "P2A": 140.0,
+    "P2B": 140.0
+   },
+   "volume_m3": 3779.6,
+   "pump_days": 1.3499
+  },
+  "why": "Dr 5.99 mm, vol 3780 m3, flow 280 m3/h -> 1.350 days"
+ },
+ "sq-7b79fdecfb8c": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 74.154,
+   "RAW_end": 65.16,
+   "p_end": 0.543,
+   "Ks_end": 0.836,
+   "flow_window": [
+    "2026-01-19",
+    "2026-01-26"
+   ],
+   "flows_m3_per_h": {
+    "P1A": 150.0,
+    "P1B": null
+   },
+   "flow_unknown_because": [
+    "hour meter not advanced P1B (2026-01-19..2026-01-26)"
+   ],
+   "volume_m3": 46790.7,
+   "misreading_trap": "if idle well P1B is dropped instead of making the sum unknown: 46791 m3 / (150*10) = 31.2 days -> ج"
+  },
+  "why": "abstain: hour meter not advanced P1B (2026-01-19..2026-01-26)"
+ },
+ "sq-8e4e08d4159f": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 96.244,
+   "RAW_end": 65.602,
+   "p_end": 0.5467,
+   "Ks_end": 0.4367,
+   "flow_window": [
+    "2026-01-26",
+    "2026-02-02"
+   ],
+   "flows_m3_per_h": {
+    "P1A": null,
+    "P1B": null
+   },
+   "flow_unknown_because": [
+    "hour meter not advanced P1A (2026-01-26..2026-02-02)",
+    "hour meter not advanced P1B (2026-01-26..2026-02-02)"
+   ],
+   "volume_m3": 60729.4
+  },
+  "why": "abstain: hour meter not advanced P1A (2026-01-26..2026-02-02); hour meter not advanced P1B (2026-01-26..2026-02-02)"
+ },
+ "sq-c6b15d75c5df": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 7.212,
+   "RAW_end": 47.797,
+   "p_end": 0.5623,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-01-12",
+    "2026-01-19"
+   ],
+   "flows_m3_per_h": {
+    "P2A": 140.0,
+    "P2B": 140.0
+   },
+   "volume_m3": 4550.7,
+   "pump_days": 1.6253
+  },
+  "why": "Dr 7.21 mm, vol 4551 m3, flow 280 m3/h -> 1.625 days"
+ },
+ "sq-e61e414056ea": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 51.978,
+   "RAW_end": 67.478,
+   "p_end": 0.5623,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-01-12",
+    "2026-01-19"
+   ],
+   "flows_m3_per_h": {
+    "P1A": 150.0,
+    "P1B": 130.0
+   },
+   "volume_m3": 32797.8,
+   "pump_days": 11.7135
+  },
+  "why": "Dr 51.98 mm, vol 32798 m3, flow 280 m3/h -> 11.714 days"
+ },
+ "sq-03e4a7018d0a": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 42.778,
+   "RAW_end": 77.03,
+   "p_end": 0.6419,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 42.78 vs RAW 77.03, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-0fd71a31360a": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "balance_unknown_because": [
+    "missing meter meter_total_P2A"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)",
+   "misreading_trap": "if P2A gap 01-21..23 is interpolated (cumulative meter): Dr_end 19.3 <= RAW -> no stress -> ب"
+  },
+  "why": "abstain: missing meter meter_total_P2A 2026-01-21; missing meter meter_total_P2A 2026-01-22; missing meter meter_total_P2A 2026-01-23"
+ },
+ "sq-18e00ab9e53f": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 96.244,
+   "RAW_end": 65.602,
+   "p_end": 0.5467,
+   "Ks_end": 0.4367
+  },
+  "why": "Dr_end 96.24 vs RAW 65.60, Ks 0.437 -> severe (rain=rain_mm_station)"
+ },
+ "sq-2582db863b2d": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 130.0,
+   "Dr0": 10.0,
+   "area_m2_geodesic": 100005.4,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 39.62,
+   "RAW_end": 77.428,
+   "p_end": 0.5956,
+   "Ks_end": 1.0,
+   "balance_unknown_because": [
+    "no meter"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)",
+   "misreading_trap": "if irrigation treated as zero: Dr_end 39.6 <= RAW -> no stress -> د"
+  },
+  "why": "abstain: no meter"
+ },
+ "sq-7f14471a79cb": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 51.978,
+   "RAW_end": 67.478,
+   "p_end": 0.5623,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 51.98 vs RAW 67.48, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-83005c23e2c3": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 7.212,
+   "RAW_end": 47.797,
+   "p_end": 0.5623,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 7.21 vs RAW 47.80, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-c6b3de759c97": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 50.0,
+   "area_m2_geodesic": 504795.3,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 74.154,
+   "RAW_end": 65.16,
+   "p_end": 0.543,
+   "Ks_end": 0.836
+  },
+  "why": "Dr_end 74.15 vs RAW 65.16, Ks 0.836 -> moderate (rain=rain_mm_station)"
+ },
+ "sq-ca9bdd9a3a6e": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 5.99,
+   "RAW_end": 54.563,
+   "p_end": 0.6419,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 5.99 vs RAW 54.56, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-ef96b39fe8b1": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 85.0,
+   "Dr0": 7.0,
+   "area_m2_geodesic": 504792.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "balance_unknown_because": [
+    "missing meter meter_total_P2A"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)",
+   "misreading_trap": "if P2A gap 01-21..23 is interpolated: Dr_end 30.6 <= RAW -> no stress -> ج"
+  },
+  "why": "abstain: missing meter meter_total_P2A 2026-01-21; missing meter meter_total_P2A 2026-01-22; missing meter meter_total_P2A 2026-01-23"
+ },
+ "sq-119797721cd3": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2_geodesic": 384535.0,
+   "meter_volumes_m3": {
+    "meter_total_MP1": "unknown:drop",
+    "meter_total_MP2": 12320.0
+   },
+   "depth_mm_if_rule_ignored": 32.04,
+   "unknown_because": "meter reset/missing: {'meter_total_MP1': ('drop', 240510.0, 19772.0)}",
+   "misreading_trap": "known segments only (ignoring the unknown reset day): 53360 m3 / 384535 m2 = 138.8 mm (lower bound) -> ج"
+  },
+  "why": "abstain: meter reset/missing: {'meter_total_MP1': ('drop', 240510.0, 19772.0)}"
+ },
+ "sq-a4bc61965d24": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2_geodesic": 134965.3,
+   "meter_volumes_m3": {
+    "meter_total_M1": 15120.0
+   },
+   "depth_mm": 112.03
+  },
+  "why": "gross depth 112.03 mm"
+ },
+ "sq-135f287b53c4": {
+  "answer": "ب",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-01-10",
+    "2026-01-17",
+    "2026-01-24",
+    "2026-01-31"
+   ],
+   "missing_plan_weeks": [],
+   "planned_mm": 104.0,
+   "area_m2_geodesic": 134965.3,
+   "measured_mm": 112.03,
+   "ratio": 1.0772,
+   "ratio_if_end_reading_is_last_week_day7": 1.0387
+  },
+  "why": "measured 112.0 / planned 104 = 1.077 -> within"
+ },
+ "sq-37fc8deb153e": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-01-10",
+    "2026-01-17",
+    "2026-01-24",
+    "2026-01-31"
+   ],
+   "missing_plan_weeks": [],
+   "planned_mm": 144.0,
+   "area_m2_geodesic": 384535.0,
+   "measured_unknown_because": "meter reset/missing: {'meter_total_MP1': ('drop', 240510.0, 19772.0)}",
+   "misreading_trap": "known segments only: 138.8 / 144 = 0.964 -> within -> أ (lower bound only)"
+  },
+  "why": "abstain: meter reset/missing: {'meter_total_MP1': ('drop', 240510.0, 19772.0)}"
+ },
+ "sq-105b705813dd": {
+  "answer": "د",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 8.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": []
+  },
+  "why": "abstain: no complete independent-origin source (none present)"
+ },
+ "sq-a225928e6194": {
+  "answer": "أ",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 8.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": true,
+     "window_sum_mm": 7.5
+    }
+   ]
+  },
+  "why": "confirmed by rain_mm_station"
+ },
+ "sq-e9329cb5aa71": {
+  "answer": "أ",
+  "key_numbers": {
+   "event_source": "rain_mm_station",
+   "event_mm": 6.0,
+   "event_origin": [
+    "gauge"
+   ],
+   "same_origin_sources": [],
+   "independent_sources": [
+    {
+     "source": "rain_mm_chirps_v3_rnl",
+     "origin": [
+      "era5"
+     ],
+     "complete": true,
+     "window_sum_mm": 1.0
+    },
+    {
+     "source": "rain_mm_era5land",
+     "origin": [
+      "era5"
+     ],
+     "complete": true,
+     "window_sum_mm": 0.6
+    }
+   ]
+  },
+  "why": "not confirmed: complete independent rain_mm_chirps_v3_rnl=1.0,rain_mm_era5land=0.6"
+ },
+ "sq-01861a38951d": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_station",
+   "total_mm": 13.5,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_station = 13.5 mm"
+ },
+ "sq-2d5f536613dd": {
+  "answer": "د",
+  "key_numbers": {
+   "source": "rain_mm_era5land",
+   "total_mm": 10.6,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_era5land = 10.6 mm"
+ },
+ "sq-e72eb6045ba0": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_chirps_v3_rnl",
+   "total_mm": 10.1,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_chirps_v3_rnl = 10.1 mm"
+ },
+ "sq-6e5378a8657c": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 74.714,
+   "RAW_end": 66.816,
+   "p_end": 0.5568,
+   "Ks_end": 0.8515,
+   "flow_window": [
+    "2026-01-17",
+    "2026-01-24"
+   ],
+   "flows_m3_per_h": {
+    "MP1": 160.0,
+    "MP2": 110.0
+   },
+   "volume_m3": 35912.7,
+   "pump_days": 13.301
+  },
+  "why": "Dr 74.71 mm, vol 35913 m3, flow 270 m3/h -> 13.301 days"
+ },
+ "sq-950d55d5c31a": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 84.294,
+   "RAW_end": 76.788,
+   "p_end": 0.6399,
+   "Ks_end": 0.8263,
+   "flow_window": [
+    "2026-01-10",
+    "2026-01-17"
+   ],
+   "flows_m3_per_h": {
+    "MP1": 160.0,
+    "MP2": 110.0
+   },
+   "volume_m3": 40517.5,
+   "pump_days": 15.0065
+  },
+  "why": "Dr 84.29 mm, vol 40517 m3, flow 270 m3/h -> 15.006 days"
+ },
+ "sq-0afee06d9a05": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 84.062,
+   "RAW_end": 68.914,
+   "p_end": 0.5743,
+   "Ks_end": 0.7035,
+   "balance_unknown_because": [
+    "meter drop meter_total_MP1 2026-01-25"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)"
+  },
+  "why": "abstain: meter drop meter_total_MP1 2026-01-25"
+ },
+ "sq-478ee0acf9e9": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 130.0,
+   "Dr0": 0,
+   "area_m2_geodesic": 134965.3,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "kPa",
+   "Dr_end": 0,
+   "RAW_end": 83.187,
+   "p_end": 0.6399,
+   "Ks_end": 1.0,
+   "balance_unknown_because": [
+    "soil moisture unit kPa not volumetric"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)",
+   "misreading_trap": "if 28 kPa misread as 28 %: theta 0.28 > FC -> Dr0 0 -> no stress -> ج"
+  },
+  "why": "abstain: soil moisture unit kPa not volumetric"
+ },
+ "sq-55ef41ddd20c": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 84.294,
+   "RAW_end": 76.788,
+   "p_end": 0.6399,
+   "Ks_end": 0.8263
+  },
+  "why": "Dr_end 84.29 vs RAW 76.79, Ks 0.826 -> moderate (rain=rain_mm_station)"
+ },
+ "sq-db82fb2004be": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 93.273,
+   "RAW_end": 69.355,
+   "p_end": 0.578,
+   "Ks_end": 0.5277,
+   "balance_unknown_because": [
+    "meter drop meter_total_MP1 2026-01-25"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)"
+  },
+  "why": "abstain: meter drop meter_total_MP1 2026-01-25"
+ },
+ "sq-de5eb272251c": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 120.0,
+   "Dr0": 100.0,
+   "area_m2_geodesic": 384535.0,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 74.714,
+   "RAW_end": 66.816,
+   "p_end": 0.5568,
+   "Ks_end": 0.8515
+  },
+  "why": "Dr_end 74.71 vs RAW 66.82, Ks 0.852 -> moderate (rain=rain_mm_station)"
+ },
+ "sq-3f3d9a32439b": {
+  "answer": "أ",
+  "key_numbers": {
+   "area_m2_geodesic": 113088.3,
+   "meter_volumes_m3": {
+    "meter_total_T12": 30800.0
+   },
+   "depth_mm_if_rule_ignored": 272.35,
+   "shared_meters": [
+    "meter_total_T12"
+   ],
+   "unknown_because": "shared meter, not apportionable",
+   "misreading_trap": "if shared meter attributed in full: 30800/113088*1000=272.4 mm -> ج (200-300); split by half -> 136.2 -> ب; pooled over both fields 95.3 -> د; registered 1200 ha -> 2.6 -> د"
+  },
+  "why": "abstain: shared meter, not apportionable"
+ },
+ "sq-5e19125c8ada": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2_geodesic": null,
+   "meter_volumes_m3": {
+    "meter_total_TF": 15680.0
+   },
+   "unknown_because": "no drawn boundary",
+   "misreading_trap": "if registered 18 ha used: 15680/180000*1000 = 87.1 mm -> أ"
+  },
+  "why": "abstain: no drawn boundary"
+ },
+ "sq-7a41df82e393": {
+  "answer": "ب",
+  "key_numbers": {
+   "area_m2_geodesic": 209987.6,
+   "meter_volumes_m3": {
+    "meter_total_T12": 30800.0
+   },
+   "depth_mm_if_rule_ignored": 146.68,
+   "shared_meters": [
+    "meter_total_T12"
+   ],
+   "unknown_because": "shared meter, not apportionable",
+   "misreading_trap": "if shared meter attributed in full: 146.7 mm -> ج (120-170); split by half 73.3 -> أ; pooled over both fields 95.3 -> أ"
+  },
+  "why": "abstain: shared meter, not apportionable"
+ },
+ "sq-a3e0a756e6b8": {
+  "answer": "ج",
+  "key_numbers": {
+   "area_m2_geodesic": 282566.2,
+   "meter_volumes_m3": {
+    "meter_total_TP1": 5880.0,
+    "meter_total_TP2": 5600.0
+   },
+   "depth_mm": 40.63
+  },
+  "why": "gross depth 40.63 mm"
+ },
+ "sq-77750d3d87a1": {
+  "answer": "أ",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-07-01",
+    "2026-07-08",
+    "2026-07-15",
+    "2026-07-22"
+   ],
+   "missing_plan_weeks": [
+    "2026-07-15"
+   ],
+   "planned_mm": 120.0,
+   "area_m2_geodesic": 113088.3,
+   "measured_unknown_because": "shared meter, not apportionable"
+  },
+  "why": "abstain: plan week missing ['2026-07-15']; also shared meter, not apportionable"
+ },
+ "sq-87f262c0e116": {
+  "answer": "ج",
+  "key_numbers": {
+   "plan_weeks": [
+    "2026-07-01",
+    "2026-07-08",
+    "2026-07-15",
+    "2026-07-22"
+   ],
+   "missing_plan_weeks": [],
+   "planned_mm": 220.0,
+   "area_m2_geodesic": 282566.2,
+   "measured_mm": 40.63,
+   "ratio": 0.1847,
+   "ratio_if_end_reading_is_last_week_day7": 0.1847
+  },
+  "why": "measured 40.6 / planned 220 = 0.185 -> less"
+ },
+ "sq-03cc0e240038": {
+  "answer": "ب",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 6.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": []
+  },
+  "why": "abstain: no complete independent-origin source (none present)"
+ },
+ "sq-1696982bd259": {
+  "answer": "د",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 9.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": []
+  },
+  "why": "abstain: no complete independent-origin source (none present)"
+ },
+ "sq-dc60d50a7422": {
+  "answer": "د",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 6.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": false,
+     "window_sum_mm": 0
+    }
+   ]
+  },
+  "why": "abstain: no complete independent-origin source (independent present but incomplete)"
+ },
+ "sq-e88f94ed4bae": {
+  "answer": "ج",
+  "key_numbers": {
+   "event_source": "rain_mm_era5land",
+   "event_mm": 9.0,
+   "event_origin": [
+    "era5"
+   ],
+   "same_origin_sources": [
+    "rain_mm_chirps_v3_rnl"
+   ],
+   "independent_sources": [
+    {
+     "source": "rain_mm_station",
+     "origin": [
+      "gauge"
+     ],
+     "complete": true,
+     "window_sum_mm": 14.0
+    }
+   ]
+  },
+  "why": "confirmed by rain_mm_station"
+ },
+ "sq-008b6ed23034": {
+  "answer": "أ",
+  "key_numbers": {
+   "source": "rain_mm_station",
+   "total_mm": 14.0,
+   "n_days": 29,
+   "missing_days": [
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-22"
+   ],
+   "misreading_trap": "if missing days treated as dry: 14.0 mm -> ج"
+  },
+  "why": "abstain: missing days 2026-07-20,2026-07-21,2026-07-22"
+ },
+ "sq-0b81087de993": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_era5land",
+   "total_mm": 18.2,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_era5land = 18.2 mm"
+ },
+ "sq-11bf8d2cddcc": {
+  "answer": "ج",
+  "key_numbers": {
+   "source": "rain_mm_chirps_v3_rnl",
+   "total_mm": 18.5,
+   "n_days": 29,
+   "missing_days": []
+  },
+  "why": "sum rain_mm_chirps_v3_rnl = 18.5 mm"
+ },
+ "sq-1279fb7ebfb2": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 46.187,
+   "RAW_end": 70.56,
+   "p_end": 0.504,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-07-08",
+    "2026-07-15"
+   ],
+   "flows_m3_per_h": {
+    "TP1": null,
+    "TP2": null
+   },
+   "flow_unknown_because": [
+    "hour meter not advanced TP1 (2026-07-08..2026-07-15)",
+    "hour meter not advanced TP2 (2026-07-08..2026-07-15)"
+   ],
+   "volume_m3": 16313.6
+  },
+  "why": "abstain: hour meter not advanced TP1 (2026-07-08..2026-07-15); hour meter not advanced TP2 (2026-07-08..2026-07-15)"
+ },
+ "sq-754ea37c5b10": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 19.838,
+   "RAW_end": 80.382,
+   "p_end": 0.5742,
+   "Ks_end": 1.0,
+   "flow_window": [
+    "2026-07-01",
+    "2026-07-08"
+   ],
+   "flows_m3_per_h": {
+    "TP1": 120.0,
+    "TP2": 100.0
+   },
+   "volume_m3": 7006.9,
+   "pump_days": 3.185
+  },
+  "why": "Dr 19.84 mm, vol 7007 m3, flow 220 m3/h -> 3.185 days"
+ },
+ "sq-a6f412c84346": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "%",
+   "Dr_end": 112.003,
+   "RAW_end": 68.04,
+   "p_end": 0.486,
+   "Ks_end": 0.3891,
+   "flow_window": [
+    "2026-07-22",
+    "2026-07-29"
+   ],
+   "flows_m3_per_h": {
+    "TP1": null,
+    "TP2": null
+   },
+   "flow_unknown_because": [
+    "hour meter not advanced TP1 (2026-07-22..2026-07-29)",
+    "hour meter not advanced TP2 (2026-07-22..2026-07-29)"
+   ],
+   "volume_m3": 39560.3
+  },
+  "why": "abstain: hour meter not advanced TP1 (2026-07-22..2026-07-29); hour meter not advanced TP2 (2026-07-22..2026-07-29)"
+ },
+ "sq-c11ebcc86207": {
+  "answer": "ب",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "%",
+   "Dr_end": 84.992,
+   "RAW_end": 69.832,
+   "p_end": 0.4988,
+   "Ks_end": 0.784,
+   "flow_window": [
+    "2026-07-15",
+    "2026-07-22"
+   ],
+   "flows_m3_per_h": {
+    "TP1": null,
+    "TP2": null
+   },
+   "flow_unknown_because": [
+    "hour meter not advanced TP1 (2026-07-15..2026-07-22)",
+    "hour meter not advanced TP2 (2026-07-15..2026-07-22)"
+   ],
+   "volume_m3": 30019.8
+  },
+  "why": "abstain: hour meter not advanced TP1 (2026-07-15..2026-07-22); hour meter not advanced TP2 (2026-07-15..2026-07-22)"
+ },
+ "sq-035a63c8dcb5": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "%",
+   "Dr_end": 84.992,
+   "RAW_end": 69.832,
+   "p_end": 0.4988,
+   "Ks_end": 0.784
+  },
+  "why": "Dr_end 84.99 vs RAW 69.83, Ks 0.784 -> moderate (rain=rain_mm_chirps_v3_rnl)"
+ },
+ "sq-361f3c4eced8": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 46.187,
+   "RAW_end": 70.56,
+   "p_end": 0.504,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 46.19 vs RAW 70.56, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-44afe98e95d3": {
+  "answer": "أ",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "%",
+   "Dr_end": 112.003,
+   "RAW_end": 68.04,
+   "p_end": 0.486,
+   "Ks_end": 0.3891
+  },
+  "why": "Dr_end 112.00 vs RAW 68.04, Ks 0.389 -> severe (rain=rain_mm_chirps_v3_rnl)"
+ },
+ "sq-8ac41151a83b": {
+  "answer": "د",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 282566.2,
+   "rain_source_used": "rain_mm_station",
+   "moisture_unit": "%",
+   "Dr_end": 19.838,
+   "RAW_end": 80.382,
+   "p_end": 0.5742,
+   "Ks_end": 1.0
+  },
+  "why": "Dr_end 19.84 vs RAW 80.38, Ks 1.000 -> no stress (rain=rain_mm_station)"
+ },
+ "sq-c955f5718df8": {
+  "answer": "ج",
+  "key_numbers": {
+   "TAW": 140.0,
+   "Dr0": 20.0,
+   "area_m2_geodesic": 209987.6,
+   "rain_source_used": "rain_mm_chirps_v3_rnl",
+   "moisture_unit": "%",
+   "Dr_end": 23.005,
+   "RAW_end": 80.382,
+   "p_end": 0.5742,
+   "Ks_end": 1.0,
+   "balance_unknown_because": [
+    "shared meter meter_total_T12"
+   ],
+   "note": "Dr/Ks shown only as diagnostics (computed ignoring the blocking defect)",
+   "misreading_trap": "if shared meter used in full: no stress -> أ"
+  },
+  "why": "abstain: shared meter meter_total_T12"
+ }
+}

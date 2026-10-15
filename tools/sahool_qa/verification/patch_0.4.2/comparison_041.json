@@ -1,0 +1,137 @@
+{
+ "added": [
+  {
+   "id": "sq-00535bb27a61",
+   "family": "water.applied_depth",
+   "split": "test",
+   "answerable": true,
+   "answer_value": 62.21,
+   "problem": null
+  },
+  {
+   "id": "sq-16d886722aee",
+   "family": "water.applied_depth",
+   "split": "train",
+   "answerable": false,
+   "answer_value": null,
+   "problem": "volume_meter_stalled"
+  },
+  {
+   "id": "sq-47035e7fea3e",
+   "family": "water.applied_depth",
+   "split": "train",
+   "answerable": false,
+   "answer_value": null,
+   "problem": "volume_meter_stalled"
+  },
+  {
+   "id": "sq-4b57839fbbac",
+   "family": "water.applied_depth",
+   "split": "test",
+   "answerable": true,
+   "answer_value": 53.32,
+   "problem": null
+  },
+  {
+   "id": "sq-543e60764cbd",
+   "family": "water.applied_depth",
+   "split": "test",
+   "answerable": false,
+   "answer_value": null,
+   "problem": "volume_meter_stalled"
+  },
+  {
+   "id": "sq-661e47ffc320",
+   "family": "water.applied_depth",
+   "split": "test",
+   "answerable": true,
+   "answer_value": 71.1,
+   "problem": null
+  },
+  {
+   "id": "sq-91859a7cfa20",
+   "family": "water.applied_depth",
+   "split": "train",
+   "answerable": true,
+   "answer_value": 43.33,
+   "problem": null
+  },
+  {
+   "id": "sq-c32774970215",
+   "family": "water.applied_depth",
+   "split": "train",
+   "answerable": true,
+   "answer_value": 40.0,
+   "problem": null
+  },
+  {
+   "id": "sq-d9f2d0b1ee01",
+   "family": "water.applied_depth",
+   "split": "test",
+   "answerable": false,
+   "answer_value": null,
+   "problem": "volume_meter_stalled"
+  },
+  {
+   "id": "sq-faa0e76c8053",
+   "family": "water.applied_depth",
+   "split": "train",
+   "answerable": true,
+   "answer_value": 33.33,
+   "problem": null
+  }
+ ],
+ "removed": [],
+ "answer_changed": [
+  {
+   "id": "sq-1279fb7ebfb2",
+   "family": "water.refill_feasibility",
+   "from": [
+    false,
+    null
+   ],
+   "to": [
+    true,
+    "unavailable"
+   ]
+  },
+  {
+   "id": "sq-7b79fdecfb8c",
+   "family": "water.refill_feasibility",
+   "from": [
+    false,
+    null
+   ],
+   "to": [
+    true,
+    "many"
+   ]
+  },
+  {
+   "id": "sq-a6f412c84346",
+   "family": "water.refill_feasibility",
+   "from": [
+    false,
+    null
+   ],
+   "to": [
+    true,
+    "unavailable"
+   ]
+  },
+  {
+   "id": "sq-c11ebcc86207",
+   "family": "water.refill_feasibility",
+   "from": [
+    false,
+    null
+   ],
+   "to": [
+    true,
+    "unavailable"
+   ]
+  }
+ ],
+ "revision_changed_only": 58,
+ "unchanged": 466
+}
