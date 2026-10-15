@@ -49,6 +49,9 @@ jobs:
             --github-output "$GITHUB_OUTPUT"
 
   build:
+    permissions:
+      contents: read
+      packages: read
     needs: plan
     if: needs.plan.outputs.count != '0'
     runs-on: ubuntu-latest
@@ -67,10 +70,40 @@ jobs:
           BUILD_ID: gha-${{ github.run_id }}-${{ github.run_attempt }}
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.head_ref || github.ref_name }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # Use the identical OCI digest from GHCR for this CI build only.
+          # The production Railway Dockerfile and its upstream pin stay untouched.
+          dockerfile_for_build="$DOCKERFILE"
+          if [[ "$SERVICE" == "sahool-frontend" ]]; then
+            nginx_source="public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+            bash scripts/ci/pull_verified_ci_image.sh \
+              "$nginx_source" \
+              "$RUNNER_TEMP/railway-nginx-image-id" \
+              "$RUNNER_TEMP/railway-nginx-from-ref"
+            nginx_ref="$(cat "$RUNNER_TEMP/railway-nginx-from-ref")"
+            case "$nginx_ref" in
+              "ghcr.io/kafaat/sahool-ci-nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"|"$nginx_source") ;;
+              *) echo "::error::Unverified nginx build image" >&2; exit 1 ;;
+            esac
+            dockerfile_for_build="$RUNNER_TEMP/Dockerfile.frontend.ci"
+            python3 - "$DOCKERFILE" "$dockerfile_for_build" "$nginx_source" "$nginx_ref" <<'PY'
+          from pathlib import Path
+          import sys
+          original, temporary, pinned, verified = sys.argv[1:]
+          source = Path(original).read_text(encoding="utf-8")
+          expected = f"FROM {pinned}\n"
+          if source.count(expected) != 1:
+              raise SystemExit("Expected exactly one original pinned nginx FROM")
+          Path(temporary).write_text(
+              source.replace(expected, f"FROM {verified}\n", 1),
+              encoding="utf-8",
+          )
+          PY
+          fi
           docker build \
-            -f "$DOCKERFILE" \
+            -f "$dockerfile_for_build" \
             --build-arg "SAHOOL_GIT_SHA=$GIT_SHA" \
             --build-arg "SAHOOL_BUILD_ID=$BUILD_ID" \
             --build-arg "SAHOOL_SOURCE_REPOSITORY=$SOURCE_REPOSITORY" \

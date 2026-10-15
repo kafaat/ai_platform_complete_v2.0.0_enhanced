@@ -142,3 +142,37 @@ def test_bootstrap_requires_preserved_manifest_hash_and_package_write():
     assert "sha256sum --check" in run
     assert "docker://$target" in run
     assert "docker.io/library/" in run
+
+
+def test_frontend_railway_build_uses_only_a_digest_identical_ci_copy():
+    """The front-end build must use the original nginx index digest."""
+    path = ROOT / ".github/workflows/railway-dockerfile-pr-build.yml"
+    content = path.read_text(encoding="utf-8")
+    build = yaml.safe_load(content)["jobs"]["build"]
+    assert build["permissions"]["packages"] == "read"
+    run = next(s["run"] for s in build["steps"] if s.get("name", "").startswith("Build "))
+    digest = "65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+    locked = f"public.ecr.aws/docker/library/nginx@sha256:{digest}"
+    mirrored = f"ghcr.io/kafaat/sahool-ci-nginx@sha256:{digest}"
+    original = (ROOT / "deploy/railway/Dockerfile.frontend").read_text(encoding="utf-8")
+    assert original.count(f"FROM {locked}") == 1
+    assert locked in run and mirrored in run
+    assert "bash scripts/ci/pull_verified_ci_image.sh" in run
+    assert '"$RUNNER_TEMP/railway-nginx-from-ref"' in run
+    assert "source.count(expected) != 1" in run
+    assert "Unverified nginx build image" in run
+    assert '-f "$dockerfile_for_build"' in run
+    assert "continue-on-error" not in content
+
+
+def test_bootstrap_apt_is_bounded_and_regeneration_tracks_mirror_workflows():
+    bootstrap = WORKFLOW.read_text(encoding="utf-8")
+    assert "sudo timeout --signal=TERM --kill-after=15s 180s apt-get update" in bootstrap
+    assert "sudo timeout --signal=TERM --kill-after=15s 240s apt-get install" in bootstrap
+    content = (ROOT / ".github/workflows/ci-immutable-mirror-regenerate.yml").read_text(encoding="utf-8")
+    parsed = yaml.safe_load(content)
+    paths = parsed.get("on", parsed.get(True))["push"]["paths"]
+    assert ".github/workflows/ci-immutable-image-mirror.yml" in paths
+    assert ".github/workflows/railway-dockerfile-pr-build.yml" in paths
+    assert "python scripts/ci/verify_all_generated.py --check" in content
+    assert "python scripts/release/validate_release_package.py --root ." in content

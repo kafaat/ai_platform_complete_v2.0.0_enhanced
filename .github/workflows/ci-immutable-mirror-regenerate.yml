@@ -3,7 +3,11 @@ name: Regenerate immutable mirror PR artifacts
 on:
   push:
     branches: [codex/ecr-ghcr-immutable-mirror-20261015]
-    paths: [.github/workflows/ci-immutable-mirror-regenerate.yml]
+    paths:
+      - .github/workflows/ci-immutable-mirror-regenerate.yml
+      - .github/workflows/ci-immutable-image-mirror.yml
+      - .github/workflows/railway-dockerfile-pr-build.yml
+      - tests_v9/test_ci_image_mirror.py
 
 permissions:
   contents: write
