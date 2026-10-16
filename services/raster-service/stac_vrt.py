@@ -77,6 +77,7 @@ def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[s
                 # Preserve declared calibration as metadata. Do not infer a provider
                 # scale or offset from digital numbers or a collection name.
                 scale, offset = src.scales[0], src.offsets[0]
+                source_nodata = src.nodatavals[0]
                 with WarpedVRT(
                     src,
                     crs=crs,
@@ -84,6 +85,10 @@ def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[s
                     width=w,
                     height=h,
                     dtype="float32",
+                    # GDAL >= 3.12 ignores a dataset mask when warp source
+                    # nodata is configured. Keep that mask here; exclude the
+                    # original numeric nodata separately after nearest sampling.
+                    src_nodata=None,
                     nodata=float("nan"),
                     # Nearest preserves categorical SCL values and avoids inventing
                     # interpolated spectral samples in this conservative bridge.
@@ -98,7 +103,7 @@ def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[s
                 f"    <Scale>{scale}</Scale><Offset>{offset}</Offset>\n"
                 f"    <ComplexSource>\n"
                 f'      <SourceFilename relativeToVRT="0">{escape(aligned_path)}</SourceFilename>\n'
-                f"      <SourceBand>1</SourceBand><NODATA>nan</NODATA>\n"
+                f"      <SourceBand>1</SourceBand><NODATA>{source_nodata if source_nodata is not None else 'nan'}</NODATA>\n"
                 f'      <SrcRect xOff="0" yOff="0" xSize="{w}" ySize="{h}"/>\n'
                 f'      <DstRect xOff="0" yOff="0" xSize="{w}" ySize="{h}"/>\n'
                 f"    </ComplexSource>\n"

@@ -12,6 +12,7 @@ Current registry allocation: **19 fixed / 9 open / 0 verified**. This comprises 
 | Irrigation Decision bindings | 60 red /8 controls on main;75 passes, **19 native PostgreSQL skips**;19 PGlite checks |
 | STAC identity/NIR safety | c/results.json: 4 red /4 green +29 regression |
 | Original raster repairs | c-original/results.json:27 red /48 controls→75 green;49 related regression; scale remains open |
+| Raster CI compatibility | raster_ci/results.json:7 red on published 8c1085 with GDAL3.12.2;75 green on each rasterio1.5.2/GDAL3.12.2 and1.4.4/GDAL3.10.3; preserves numeric nodata and dataset mask together |
 | Readiness | a/readiness-evidence.json:8 red /1 control→9 green; ASGI handler proof with substituted probes |
 | RAG03/04/11 | d/verification.json:10 red /18 green +237 RAG +97 service/auth |
 | U07 platform persistence | e/README.md:6 red /32 Python regression +32 PGlite checks |

@@ -15215,7 +15215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90ba6690fbf711b5f3a1a22ebf2c2304f606151e8b3b5c30b8bb7de8ff98adb2"
+          "content": "68ed8f04a9b4b58907c3ba925b0842d1ca93b61c0e768a722364ace3f5ae4c91"
         }
       ],
       "name": "services/raster-service/stac_vrt.py",
@@ -15485,7 +15485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3eca6a4d87e0c835a677fd4b1b9a206991c238e37ed34271b1023de5a804d650"
+          "content": "8d1df38bb4f008dbe691199cf589dc8640f49a510b976135a969c4fa24359186"
         }
       ],
       "name": "services/raster-service/test_element84_vrt_defect_witnesses.py",

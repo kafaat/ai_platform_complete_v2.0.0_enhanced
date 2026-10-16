@@ -572,3 +572,31 @@ def test_invalid_calibration_is_never_proof_of_normalization(env, scale, offset,
         assert result["status"] == 422  # no finite pixels, no product claim
     else:
         assert result["reflectance_normalized"] is False
+
+
+@pytest.mark.parametrize("internal", [True, False], ids=["internal-mask", "external-mask"])
+@pytest.mark.parametrize("nodata", [0.0, -9999.0, float("nan")], ids=["zero", "negative", "nan"])
+def test_same_source_mask_and_nodata_intersect_after_nearest_warp(env, caplog, internal, nodata):
+    """Neither mask may override the other, including after closing/reopening VRTs."""
+    red = _tif(env, "intersection_red", np.full((4, 4), 1000, dtype="uint16"))
+    nir = _tif(
+        env,
+        "intersection_nir",
+        np.array([[3000, nodata], [3000, 3000]], dtype="float32"),
+        pixel=20,
+        nodata=nodata,
+    )
+    with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=internal), rasterio.open(nir, "r+") as dst:
+        # Top-right is invalid only by nodata; bottom-left only by the mask.
+        dst.write_mask(np.array([[255, 255], [0, 255]], dtype="uint8"))
+    path, mapping = env.stac_vrt.build_band_vrt({"red": red, "nir": nir}, str(env.dir))
+    with rasterio.open(path) as src:
+        actual = src.read(mapping["nir"], masked=True)
+        result = _run(env, src, _req("ndvi", bands=_bands(red=1, nir=2)))
+    expected_invalid = np.repeat(np.repeat([[False, True], [True, False]], 2, axis=0), 2, axis=1)
+    assert np.array_equal(np.ma.getmaskarray(actual), expected_invalid)
+    assert result["valid_pixels"] == 8
+    assert result["mean"] == pytest.approx(0.5)
+    assert not any(
+        "ignoring the per-dataset mask band" in record.message for record in caplog.records
+    )

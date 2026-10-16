@@ -1,0 +1,42 @@
+{
+  "baseline_sha": "8c1085c13c3780f586ca9a500232d1c6c4ad3771",
+  "cause": "GDAL3.12.2 source nodata suppresses per-dataset mask in WarpedVRT; changed dependency exposed concrete mask loss. Both CI jobs installed rasterio1.5.2.",
+  "source_sha256": {
+    "services/raster-service/stac_vrt.py": "68ed8f04a9b4b58907c3ba925b0842d1ca93b61c0e768a722364ace3f5ae4c91",
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": "8d1df38bb4f008dbe691199cf589dc8640f49a510b976135a969c4fa24359186"
+  },
+  "red_published": {
+    "rasterio": "1.5.2",
+    "gdal": "3.12.2",
+    "numpy": "1.26.4",
+    "failed": 7,
+    "deselected": 68,
+    "existing_CI_witness_failed": 1
+  },
+  "green": [
+    {
+      "rasterio": "1.5.2",
+      "gdal": "3.12.2",
+      "passed": 75,
+      "skipped": 0
+    },
+    {
+      "rasterio": "1.4.4",
+      "gdal": "3.10.3",
+      "passed": 75,
+      "skipped": 0
+    }
+  ],
+  "limits": [
+    "Local Python3.12/Numpy1.26.4; rasterio1.5.2+bundledGDAL matches CI offending dependency, not entire CI package environment.",
+    "Offline real rasterio/GDAL fixtures, no live STAC/provider/data writes.",
+    "Element84 production containment unchanged; no dependencies pinned, no expectation relaxed, no gate modified.",
+    "No full repository preflight or full service suite rerun claimed."
+  ],
+  "upstream_reference": "https://gdal.org/en/stable/drivers/raster/vrt.html#complexsource",
+  "test_commands": {
+    "published_red": "PYTHONPATH=/workspace/scratch/881ca3efb91d/rasterio152:/workspace/scratch/881ca3efb91d/sahool-unified/services/raster-service /workspace/scratch/881ca3efb91d/ci-venv/bin/python -m pytest evidence/c-raster-ci/witnesses/test_element84_vrt_defect_witnesses.py -q -k \"same_source_mask_and_nodata or each_band_nodata\" --override-ini addopts=",
+    "fixed_new": "PYTHONPATH=/workspace/scratch/881ca3efb91d/rasterio152 /workspace/scratch/881ca3efb91d/ci-venv/bin/python -m pytest services/raster-service/test_element84_vrt_defect_witnesses.py -q --override-ini addopts=",
+    "fixed_old": "/workspace/scratch/881ca3efb91d/ci-venv/bin/python -m pytest services/raster-service/test_element84_vrt_defect_witnesses.py -q --override-ini addopts="
+  }
+}
