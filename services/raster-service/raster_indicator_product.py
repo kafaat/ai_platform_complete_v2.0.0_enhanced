@@ -58,6 +58,8 @@ class ValidatedIndicatorProduct(BaseModel):
     source: str = SIMULATION_SOURCE
     estimated: bool = True
     real_data: bool = False
+    # Actual publication/persistence time supplied by the producer, never acquisition time.
+    data_available_at: str | None = None
     quality_score: float | None = None
     valid_pixel_ratio: float | None = None
     quality_gate_passed: bool = False
@@ -160,6 +162,7 @@ def from_grid_response(
         source=src,
         estimated=not real,
         real_data=real,
+        data_available_at=payload.get("data_available_at") if real else None,
         quality_score=qscore if real else None,
         valid_pixel_ratio=valid_ratio,
         quality_gate_passed=(
@@ -200,6 +203,7 @@ def from_validated_raster_product(
         source=RASTER_SOURCE,
         estimated=False,
         real_data=True,
+        data_available_at=vrp.get("data_available_at"),
         quality_score=_maybe_float(vrp.get("quality_score")),
         valid_pixel_ratio=valid_ratio,
         quality_gate_passed=(valid_ratio is not None and 0 < valid_ratio <= 1),

@@ -1,0 +1,61 @@
+{
+  "gap_id": "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+  "state": "open",
+  "base_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "measured_at": "2026-10-16T13:14:42.194351+00:00",
+  "changes": [
+    "Search retains a bounded deep-copied radiometry context tied to selected asset hrefs, item and collection; no normalization claim.",
+    "Optional VRT calibration context consumes explicit single-band raster:bands scale/offset; strict finite numbers, unique href, TIFF consistency and BOA conflict validation; no inferred defaults.",
+    "Legacy sentinel-2-l2a context is refused regardless of BOA flag; STAC v2 unsupported, not guessed; categorical SCL remains identity.",
+    "Production containment and its three entry points unchanged. No production VRT calls currently exist; helper extension is offline acceptance infrastructure, not runtime closure."
+  ],
+  "red": {
+    "failed": 16,
+    "passed": 0,
+    "skipped": 0,
+    "deselected": 75,
+    "source": "git show base_sha:stac_vrt.py and stac_search.py into baseline; final new tests copied unchanged",
+    "failure_mechanism": "Missing stac_item keyword on baseline (15 tests) and lost radiometry_context in search (1 test); these prove missing bridge API, not independent provider accuracy."
+  },
+  "green": {
+    "passed": 100,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Full test_element84_vrt_defect_witnesses.py and test_element84_vrt_containment_runtime.py; real rasterio/GDAL and pixel math on synthetic files; writes and product acceptance substituted by existing fixture."
+  },
+  "limits": [
+    "No provider pixels or real COG calibration measured. No metadata attestation for the legacy incident. No historical correction, inventory, reprocessing or activation.",
+    "Collection 1 fixture is synthetic; explicit coefficients are used without inferring any collection-wide formula. Per-asset provider acceptance is still required.",
+    "Full preflight and CI owned by root, not run by this agent."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Element84/earth-search/blob/main/docs/collections/sentinel-2-l2a.md",
+      "web_ref": "turn3view0",
+      "finding": "Provider documents per-asset raster:bands scale followed by offset; API v2 changes collection naming and raster extension version. This is documentation, not validation of historical asset bytes."
+    },
+    {
+      "url": "https://github.com/Element84/earth-search/issues/66",
+      "web_ref": "turn2view1",
+      "finding": "Open provider issue reports BOA flag disagreement with pixels, including 2022 and 2025 observations. Treat as unresolved evidence, not universal metadata correction."
+    },
+    {
+      "url": "https://github.com/stac-extensions/raster",
+      "web_ref": "turn1search0",
+      "finding": "Raster extension defines scale then offset. Version2 changes from raster:bands to bands and namespaced scale/offset; unsupported schema fails closed in this bridge."
+    }
+  ],
+  "changed_file_sha256": {
+    "services/raster-service/stac_search.py": "f18c6e9bd63a327fa349ccfcf765d4dbaf9c95ca83a1bc12e12ca9f9760fa43b",
+    "services/raster-service/stac_vrt.py": "a40cc917cf94e02d94ca35157b217ef4b0c87dccce5da8d0398fe0bd95f4d78b",
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": "4a97f995a854cbd3cb165b5ebe742e640387a931f982f3b2691402b8adfa2edd"
+  },
+  "evidence": [
+    "red-final.xml",
+    "red-final.log",
+    "green.xml",
+    "green.log",
+    "baseline-manifest.json",
+    "source.patch"
+  ]
+}

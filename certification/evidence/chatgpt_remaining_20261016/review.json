@@ -1,0 +1,81 @@
+{
+  "reviewed_at": "2026-10-16T13:16:07.505224+00:00",
+  "subject_base": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "method": "Read-only diff review against migration schema, runtime authority callers and actual local reproduction; no production DB requests",
+  "reviewed_sha256": {
+    "services/raster-service/db_persist.py": "a5b716acb9549466b2ed7e3650dd3aeb7870c53f842fd3309d25687cb47febaf",
+    "services/raster-service/layer_lookup.py": "abfbc95667771ab35711ae937ec2c79e653b346373db68a15f692fac63533910",
+    "services/raster-service/raster_asset_persistence.py": "d2c4eb9c6b8d493c60621ff2dc820d9b6622e63b476c6b31cfdd85438e07b6b1",
+    "services/raster-service/raster_indicator_product.py": "615a7bc210135323dad5da1c02bcea44a9cd7e7365519836280be77aa470f750",
+    "services/raster-service/raster_job_orchestration.py": "3116616304559f75e6b7d64b8b99d5cf6dad75879801ab866664a48bc372ba5f",
+    "services/raster-service/stac_search.py": "f18c6e9bd63a327fa349ccfcf765d4dbaf9c95ca83a1bc12e12ca9f9760fa43b",
+    "services/raster-service/stac_vrt.py": "a40cc917cf94e02d94ca35157b217ef4b0c87dccce5da8d0398fe0bd95f4d78b",
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": "4a97f995a854cbd3cb165b5ebe742e640387a931f982f3b2691402b8adfa2edd",
+    "scripts/diagnostics/element84_legacy_inventory.py": "e52079768fb846c30c22572564420109fb22fbb9b91ce13a9b84c7891663a7cd",
+    "tests_v9/test_element84_legacy_inventory.py": "3c4e8b56fc30b236b8d39d95cdd107636764cef074344ef48bf16c6fb60527f1",
+    "services/raster-service/test_indicator_provenance_transport.py": "af7d9d0d442212dfcde34eb3eeb1254016aaa81d61a5e05989e759125dbbacf7"
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "status": "resolved_in_current_worktree_independently_rechecked",
+      "file": "services/raster-service/layer_lookup.py",
+      "lines": [
+        150,
+        152,
+        204
+      ],
+      "title": "New transport promotes requested-only persisted mask identity to actual provenance",
+      "evidence": "raster_asset_persistence.py:105 stores cloud-mask/1 when req.apply_cloud_mask is true, even if stats.cloud_mask_applied is false and validated provenance.qa_mask_version is null. New fetch_latest_asset/reload transport returns that declaration. Actual quality_gate changes from false to true with the hydrated-equivalent payload.",
+      "reproduction": "evidence/remaining/review-mask-repro.json",
+      "required_fix": "Persist observed validated mask identity, and do not trust legacy requested-only mask metadata as observed evidence. Preserve missing/false QA as missing.",
+      "required_test": "Requested mask true but absent/false actual mask: persist -> hydrate -> grid -> vegetation quality_gate must remain nonexecutable. Include historical row with cloud-mask/1 and absent/false actual-mask proof plus a genuinely applied identity positive case."
+    },
+    {
+      "severity": "P2",
+      "status": "resolved_in_current_worktree_independently_rechecked",
+      "file": "services/raster-service/layer_lookup.py",
+      "lines": [
+        129,
+        210
+      ],
+      "title": "created_at is not availability of the currently replaced product",
+      "evidence": "db_persist.py:197-215 ON CONFLICT updates cog_uri, provenance and quality without updating created_at. New mapping exports the earlier insertion time as data_available_at for the newer product, enabling historical availability attribution before newer samples existed. Fresh in-memory now and restarted row created_at also disagree.",
+      "required_fix": "Store exact current product publication time as explicit provenance or dedicated version timestamp; legacy unknown version availability must remain unknown. Avoid relabelling initial row creation as current COG availability.",
+      "required_test": "Write same product_identity twice at t1/t2 with different COG/provenance; hydrated availability must equal actual t2 or remain unknown, never t1 for new content."
+    }
+  ],
+  "non_findings": {
+    "radiometry": "No new production calibration release found. Optional exact-asset calibration rejects ambiguous legacy collection, contradictory BOA flag, invalid numeric values and TIFF conflict. Search retains metadata only. Does not close provider calibration gap.",
+    "inventory_sql": "Compared selected columns with migrations v14/v114/v116/v144/v154; no undefined selected column found. Every query carries tenant predicate and limit+1, errors propagate, transaction read-only/repeatable-read, role/policy checks and truncation marker preserve honest scope. No native PostgreSQL execution performed in this review.",
+    "limits": "Authors were still modifying files. This review is bound to saved file hashes and needs recheck after correction."
+  },
+  "resolution": {
+    "checked_at": "2026-10-16T13:17:58.211844+00:00",
+    "status": "NO_REMAINING_BLOCKING_FINDING_IN_REVIEWED_SCOPE",
+    "pipeline_recheck": "evidence/remaining/review-recheck.json",
+    "reusable_recheck": "evidence/remaining/recheck_transport.py",
+    "tests": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "junit": "evidence/remaining/review-recheck-tests.xml"
+    },
+    "source_sha256": {
+      "services/raster-service/db_persist.py": "de5ecc161fca5eb4e9e08b0419cfb2a20ccf9f34af849b10d63f784bc9057be1",
+      "services/raster-service/layer_lookup.py": "6747e5c16bf0b1597d374bc094d28a428c9ade22584c337fba5c4da4a8b2ba35",
+      "services/raster-service/raster_asset_persistence.py": "c509bc39841c7c4d6a1218c16c054360c6cfc249200b92dc7740be9c703a4779",
+      "services/raster-service/raster_indicator_product.py": "615a7bc210135323dad5da1c02bcea44a9cd7e7365519836280be77aa470f750",
+      "services/raster-service/raster_job_orchestration.py": "639a772212ae7ab150feea22b8c3320d20cc30fd316bad175e54b005c7dc5ff8",
+      "services/raster-service/test_indicator_provenance_transport.py": "51cddd8b6193376beb7594e8e3f35fdf94a24660a79f45f611ae0cc9c88448de"
+    },
+    "observations": [
+      "Legacy requested-only qa version does not survive actual false or missing mask proof into vegetation authority. Positive applied-mask case still executable.",
+      "Two writes to same product identity hydrate current COG publication timestamp t2, never old created_at t1. Legacy publication time remains unknown."
+    ],
+    "limits": [
+      "SQL network I/O simulated; native PostgreSQL and production acceptance not claimed.",
+      "No broad optional testing performed; root owns full raster suite and governed preflight."
+    ]
+  }
+}

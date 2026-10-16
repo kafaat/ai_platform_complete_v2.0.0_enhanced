@@ -4759,6 +4759,29 @@
     ]
   },
   {
+    "path": "scripts/diagnostics/element84_legacy_inventory.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/simulation/sim_golden.py",
     "kind": "other",
     "candidates": [
@@ -5627,19 +5650,19 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      },
+      {
         "capability_id": "SAT-005",
         "score": 9,
         "signals": [
           "content:aoi cloud",
           "content:cloud mask"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 9,
-        "signals": [
-          "content:cdse",
-          "content:sentinel"
         ]
       }
     ]
@@ -5972,7 +5995,7 @@
       },
       {
         "capability_id": "SAT-001",
-        "score": 11,
+        "score": 12,
         "signals": [
           "content:sentinel",
           "content:stac"
@@ -6058,6 +6081,36 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_indicator_provenance_transport.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-005",
+        "score": 11,
+        "signals": [
+          "content:cloud mask",
+          "content:scl"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 11,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
         ]
       }
     ]

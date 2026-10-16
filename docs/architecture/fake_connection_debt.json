@@ -1,12 +1,13 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "ee9ea1b9dcfa8045d11eccdb948e466cffa997da",
+  "measured_on": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
   "fake_connection_tests": [
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
     "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
     "services/raster-service/test_element84_vrt_containment_runtime.py",
+    "services/raster-service/test_indicator_provenance_transport.py",
     "services/raster-service/test_raster_durable_identity.py",
     "services/raster-service/test_registry_writes_owner_api.py",
     "services/sahool-platform/tests/test_absent_reading_is_not_zero_at_the_edge.py",
@@ -61,6 +62,7 @@
     "tests_v9/test_d1_raster_owner_write_commands.py",
     "tests_v9/test_db_role_guard_shared.py",
     "tests_v9/test_decision_record_mandatory_persist.py",
+    "tests_v9/test_element84_legacy_inventory.py",
     "tests_v9/test_erp_sync_recovery.py",
     "tests_v9/test_field_forms_api_integration.py",
     "tests_v9/test_field_forms_sync_binding_p02.py",
@@ -383,6 +385,17 @@
         "services/raster-service/test_backfill_processing_version_preflight.py"
       ],
       "justification": "Explicit three-file admission for application boundaries: decision review tests capture tenant transaction ordering, JSONB string decoding and scoped query arguments; platform tests capture canonical-source binding, SQL parameters, rollback propagation and retry identity; raster tests execute version/NULL predicates in SQLite while mocking the worker driver and processing boundary. These doubles do not enforce PostgreSQL RLS, UNIQUE, triggers or production persistence. Separate PGlite PostgreSQL 18.6 WASM evidence exercises the exact decision queue transaction under a non-bypass role, but is not native/live PostgreSQL acceptance and adds no proven_live exemption. Native PostgreSQL tests remain explicitly skipped where DATABASE_URL is absent."
+    },
+    {
+      "kind": "remaining_raster_transport_and_readonly_inventory_contracts",
+      "date": "2026-10-16",
+      "before": 102,
+      "after": 104,
+      "sites": [
+        "services/raster-service/test_indicator_provenance_transport.py",
+        "tests_v9/test_element84_legacy_inventory.py"
+      ],
+      "justification": "Explicit two-file admission for application contracts only: provenance tests record persistence arguments and feed actual adapters with deterministic driver responses; inventory tests check read-only transaction arguments, tenant predicates, role and policy refusal, bounded reads and redaction. These doubles do not prove PostgreSQL parsing, RLS enforcement, committed persistence, or production inventory completeness. All nine remaining allocation gaps stay open; no proven_live exemption or database-enforcement claim is added. Native restricted-role SQL acceptance is still required before operation."
     }
   ]
 }

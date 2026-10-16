@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5811,
+    "files_scanned": 5834,
     "files_by_kind": {
       "backend": 1223,
-      "database": 283,
+      "database": 284,
       "governance": 76,
       "mobile": 57,
-      "other": 1766,
-      "tests": 1936,
+      "other": 1786,
+      "tests": 1938,
       "web": 470
     },
-    "unmapped_artifacts": 2287,
-    "ambiguous_artifacts": 447
+    "unmapped_artifacts": 2288,
+    "ambiguous_artifacts": 449
   },
   "capabilities": [
     {
@@ -8978,6 +8978,10 @@
           "score": 14
         },
         {
+          "value": "sahool.element84-legacy-inventory.v1 @ scripts/diagnostics/element84_legacy_inventory.py:169",
+          "score": 14
+        },
+        {
           "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:928",
           "score": 12
         }
@@ -9005,6 +9009,14 @@
       "tests": [
         {
           "path": "services/sahool-platform/tests/test_data_inventory.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "tests_v9/test_element84_legacy_inventory.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -9131,6 +9143,14 @@
           ]
         },
         {
+          "path": "certification/evidence/chatgpt_remaining_20261016/inventory/README.md",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md",
           "score": 14,
           "signals": [
@@ -9156,6 +9176,14 @@
         },
         {
           "path": "scripts/diagnostics/build_main_inventory.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "scripts/diagnostics/element84_legacy_inventory.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -9189,6 +9217,14 @@
         },
         {
           "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "certification/evidence/chatgpt_remaining_20261016/inventory/correlation-audit.md",
           "score": 11,
           "signals": [
             "path:inventory",
@@ -9248,12 +9284,12 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 6,
+        "events": 7,
         "web": 1,
         "mobile": 1,
-        "tests": 6,
+        "tests": 7,
         "governance": 4,
-        "other_evidence": 19
+        "other_evidence": 22
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -17234,6 +17270,15 @@
           ]
         },
         {
+          "path": "services/raster-service/stac_vrt.py",
+          "score": 18,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/imagery_automation.py",
           "score": 18,
           "signals": [
@@ -17276,15 +17321,6 @@
             "path:cdse",
             "content:cdse",
             "content:sentinel"
-          ]
-        },
-        {
-          "path": "services/raster-service/stac_vrt.py",
-          "score": 17,
-          "signals": [
-            "content:sentinel",
-            "path:stac",
-            "content:stac"
           ]
         },
         {
@@ -17411,19 +17447,19 @@
           ]
         },
         {
+          "path": "services/raster-service/raster_asset_persistence.py",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/routers/imagery.py",
           "score": 10,
           "signals": [
             "content:cdse",
             "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/raster_asset_persistence.py",
-          "score": 9,
-          "signals": [
-            "content:cdse",
-            "content:sentinel"
           ]
         },
         {
@@ -18251,6 +18287,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+          "score": 12,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
           "score": 12,
           "signals": [
@@ -18291,11 +18335,11 @@
           ]
         },
         {
-          "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+          "path": "services/raster-service/test_indicator_provenance_transport.py",
           "score": 11,
           "signals": [
-            "content:sentinel",
-            "content:stac"
+            "content:cdse",
+            "content:sentinel"
           ]
         },
         {
@@ -18748,6 +18792,14 @@
           ]
         },
         {
+          "path": "certification/evidence/chatgpt_remaining_20261016/radiometry/report.json",
+          "score": 10,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/raster_cache_catalog_20261014/full_gate_summary.json",
           "score": 10,
           "signals": [
@@ -19001,9 +19053,9 @@
         "events": 47,
         "web": 5,
         "mobile": 0,
-        "tests": 50,
+        "tests": 51,
         "governance": 0,
-        "other_evidence": 71
+        "other_evidence": 72
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21575,6 +21627,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_indicator_provenance_transport.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/raster-service/test_landsat_thermal_unique_contract.py",
           "score": 12,
           "signals": [
@@ -22133,14 +22193,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tests_v9/test_etc_dual_router.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "governance": [],
@@ -22254,6 +22306,14 @@
         },
         {
           "path": "bots/telegram/main.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "certification/evidence/chatgpt_remaining_20261016/review-recheck.json",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -22613,6 +22673,14 @@
           ]
         },
         {
+          "path": "certification/evidence/chatgpt_remaining_20261016/review-mask-repro.json",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/CRITICAL_REVIEW_ROUND3_2026-06.md",
           "score": 10,
           "signals": [
@@ -22884,7 +22952,7 @@
       "evidence_truncated": {
         "backend": 24,
         "events": 58,
-        "tests": 81
+        "tests": 82
       },
       "evidence_counts": {
         "backend": 100,
@@ -22895,7 +22963,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 90
+        "other_evidence": 92
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -23721,6 +23789,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_indicator_provenance_transport.py",
+          "score": 11,
+          "signals": [
+            "content:cloud mask",
+            "content:scl"
+          ]
+        },
+        {
           "path": "services/raster-service/test_raw_data_processing.py",
           "score": 10,
           "signals": [
@@ -23826,7 +23902,7 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 10,
+        "tests": 11,
         "governance": 0,
         "other_evidence": 8
       },
@@ -25952,6 +26028,10 @@
           "score": 13
         },
         {
+          "value": "sahool.element84-legacy-inventory.v1 @ scripts/diagnostics/element84_legacy_inventory.py:169",
+          "score": 12
+        },
+        {
           "value": "v148_field_evidence_snapshots.sql @ tests_v9/test_evidence_snapshots_migration_v148.py:20",
           "score": 12
         },
@@ -26894,6 +26974,15 @@
           ]
         },
         {
+          "path": "scripts/diagnostics/element84_legacy_inventory.py",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "scripts/security/fii_rls_role_gate.py",
           "score": 12,
           "signals": [
@@ -27379,12 +27468,12 @@
         "backend": 13,
         "routes": 31,
         "database": 100,
-        "events": 51,
+        "events": 52,
         "web": 0,
         "mobile": 0,
         "tests": 72,
         "governance": 0,
-        "other_evidence": 81
+        "other_evidence": 82
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -37526,6 +37615,10 @@
     {
       "path": "docs/audits/TEST_SUITE_INSTRUCTIONS.md",
       "kind": "tests"
+    },
+    {
+      "path": "docs/runbooks/runtime_acceptance_20261016/catalog_snapshot.sql",
+      "kind": "database"
     },
     {
       "path": "frontend/.github/workflows/structural-lint.yml",
@@ -51425,6 +51518,29 @@
       ]
     },
     {
+      "path": "scripts/diagnostics/element84_legacy_inventory.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-007",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:row level security"
+          ]
+        }
+      ]
+    },
+    {
       "path": "scripts/simulation/sim_golden.py",
       "kind": "other",
       "candidates": [
@@ -52293,19 +52409,19 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "capability_id": "SAT-005",
           "score": 9,
           "signals": [
             "content:aoi cloud",
             "content:cloud mask"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 9,
-          "signals": [
-            "content:cdse",
-            "content:sentinel"
           ]
         }
       ]
@@ -52638,7 +52754,7 @@
         },
         {
           "capability_id": "SAT-001",
-          "score": 11,
+          "score": 12,
           "signals": [
             "content:sentinel",
             "content:stac"
@@ -52724,6 +52840,36 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/raster-service/test_indicator_provenance_transport.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-005",
+          "score": 11,
+          "signals": [
+            "content:cloud mask",
+            "content:scl"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 11,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
           ]
         }
       ]

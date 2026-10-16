@@ -600,3 +600,137 @@ def test_same_source_mask_and_nodata_intersect_after_nearest_warp(env, caplog, i
     assert not any(
         "ignoring the per-dataset mask band" in record.message for record in caplog.records
     )
+
+
+def _stac_item(hrefs, *, scale=0.0001, offset=-0.1):
+    return {
+        "id": "synthetic-collection1-item",
+        "collection": "sentinel-2-c1-l2a",
+        "properties": {},
+        "assets": {
+            name: {"href": href, "raster:bands": [{"scale": scale, "offset": offset}]}
+            for name, href in hrefs.items()
+        },
+    }
+
+
+def test_stac_asset_calibration_reaches_pixels_once(env):
+    hrefs = {
+        name: _tif(env, name, np.full((2, 2), value, dtype="uint16"))
+        for name, value in {"red": 2000, "nir": 4000}.items()
+    }
+    path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=_stac_item(hrefs))
+    with rasterio.open(path) as src:
+        assert src.scales == (0.0001, 0.0001)
+        assert src.offsets == (-0.1, -0.1)
+        assert _run(env, src, _req("ndvi", bands=_bands(**mapping)))["mean"] == pytest.approx(0.5)
+        # The VRT still contains raw samples: pixel processing performs calibration once.
+        assert src.read(1)[0, 0] == 2000
+
+
+@pytest.mark.parametrize(
+    "defect",
+    [
+        "href",
+        "multiband",
+        "missing_scale",
+        "missing_offset",
+        "nan",
+        "infinity",
+        "boolean",
+        "zero_scale",
+        "legacy_collection",
+        "boa_conflict",
+        "tiff_conflict",
+        "item_identity",
+    ],
+)
+def test_ambiguous_stac_calibration_is_rejected(env, defect):
+    href = _tif(
+        env,
+        "red",
+        np.full((2, 2), 2000, dtype="uint16"),
+        scale=0.002 if defect == "tiff_conflict" else None,
+    )
+    item = _stac_item({"red": href})
+    asset = item["assets"]["red"]
+    band = asset["raster:bands"][0]
+    if defect == "href":
+        asset["href"] = "different-asset.tif"
+    elif defect == "multiband":
+        asset["raster:bands"].append(dict(band))
+    elif defect in {"missing_scale", "missing_offset"}:
+        del band[defect.removeprefix("missing_")]
+    elif defect == "nan":
+        band["offset"] = float("nan")
+    elif defect == "infinity":
+        band["scale"] = float("inf")
+    elif defect == "boolean":
+        band["scale"] = True
+    elif defect == "zero_scale":
+        band["scale"] = 0
+    elif defect == "legacy_collection":
+        item["collection"] = "sentinel-2-l2a"
+        item["properties"]["earthsearch:boa_offset_applied"] = False
+    elif defect == "boa_conflict":
+        item["properties"]["earthsearch:boa_offset_applied"] = True
+    elif defect == "item_identity":
+        del item["id"]
+    with pytest.raises(ValueError):
+        env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+    assert not list(env.dir.glob("stac_stack_*"))
+
+
+@pytest.mark.asyncio
+async def test_element84_search_retains_asset_bound_radiometry_context(monkeypatch):
+    import copy
+
+    import stac_search
+
+    item = _stac_item({"red": "https://example.test/red.tif"})
+    item["properties"]["earthsearch:boa_offset_applied"] = True
+    item["assets"]["thumbnail"] = {"href": "https://example.test/thumb.jpg"}
+
+    async def query(_payload):
+        return {"features": [item]}
+
+    monkeypatch.setattr(stac_search, "stac_query", query)
+    original = copy.deepcopy(item)
+    result = await stac_search.stac_search_element84(
+        [0, 0, 1, 1], "2026-01-01", "2026-01-02", 10, 1
+    )
+    context = result["items"][0]["radiometry_context"]
+    assert context["id"] == item["id"]
+    assert context["collection"] == item["collection"]
+    assert context["properties"]["earthsearch:boa_offset_applied"] is True
+    assert context["assets"]["red"] == item["assets"]["red"]
+    assert "thumbnail" not in context["assets"]
+    context["assets"]["red"]["raster:bands"][0]["scale"] = 7
+    assert item == original
+
+
+def test_stac_calibration_preserves_categorical_scl(env):
+    hrefs = {
+        "red": _tif(env, "red", np.full((4, 4), 2000, dtype="uint16")),
+        "scl": _tif(env, "scl", np.full((2, 2), 4, dtype="uint16"), pixel=20),
+    }
+    item = _stac_item(hrefs)
+    item["assets"]["scl"]["raster:bands"] = [{"data_type": "uint16", "nodata": 0}]
+    path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=item)
+    with rasterio.open(path) as src:
+        assert src.scales[mapping["scl"] - 1] == 1
+        assert src.offsets[mapping["scl"] - 1] == 0
+        assert (src.read(mapping["scl"]) == 4).all()
+
+
+def test_stac_calibration_preserves_nodata_and_mask_before_offset(env):
+    red = _tif(env, "red", np.array([[0, 2000], [2000, 2000]], dtype="uint16"))
+    nir = _tif(env, "nir", np.full((2, 2), 4000, dtype="uint16"))
+    with rasterio.open(nir, "r+") as dst:
+        dst.write_mask(np.array([[255, 0], [255, 255]], dtype="uint8"))
+    hrefs = {"red": red, "nir": nir}
+    path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=_stac_item(hrefs))
+    with rasterio.open(path) as src:
+        result = _run(env, src, _req("ndvi", bands=_bands(**mapping)))
+    assert result["valid_pixels"] == 2
+    assert result["mean"] == pytest.approx(0.5)

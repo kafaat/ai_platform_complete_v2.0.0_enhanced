@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-16-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner-current-user-instruction",
   "adjudicated_on": "2026-10-16",
   "expires_on": "2026-10-23",
@@ -49,5 +49,18 @@
     "guard_binds": "frozen_paths_bytes_only",
     "note": "Issued after root review of final transaction-scoped bytes and source-level evidence; no independent owner signature or production attestation claimed."
   },
-  "acceptance_limits": "Six pytest writer/wiring tests, four existing migration tests. PGlite PostgreSQL18.6 WASM replays real captured transaction boundaries and SQL, separate readback transaction only; not native PG16/asyncpg/network acceptance. Existing other phase_runtime_store GUC defects remain outside scope."
+  "acceptance_limits": "Six pytest writer/wiring tests, four existing migration tests. PGlite PostgreSQL18.6 WASM replays real captured transaction boundaries and SQL, separate readback transaction only; not native PG16/asyncpg/network acceptance. Existing other phase_runtime_store GUC defects remain outside scope.",
+  "merge_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "pr": 1199,
+  "consumed_by": {
+    "pr": 1199,
+    "merge_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+    "merged_at": "2026-10-16T11:53:46Z"
+  },
+  "consumption": {
+    "merge_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+    "consumed_on": "2026-10-16",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1199",
+    "scope": "Code merge only; v234 application and runtime acceptance remain unverified."
+  }
 }

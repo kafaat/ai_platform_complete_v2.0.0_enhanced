@@ -126,6 +126,8 @@ def grid_from_cog(
         "coverage_ratio": layer.get("coverage_ratio"),
         "index_quality_flags": layer.get("index_quality_flags"),
         "confidence": layer.get("confidence"),
+        "quality_score": layer.get("quality_score"),
+        "data_available_at": layer.get("data_available_at"),
         "quality": layer.get("quality"),
     }
     # Surface the typed provenance/quality envelope onto the wire alongside the
@@ -137,8 +139,6 @@ def grid_from_cog(
 
     provenance = None
     if any(layer.get(k) for k in ("scene_id", "cog_url", "source_format")):
-        from raster_quality import ALGORITHM_VERSION
-
         _vpr = layer.get("valid_pixel_ratio")
         provenance = ProvenanceRecord(
             source=layer.get("source_format"),
@@ -146,16 +146,18 @@ def grid_from_cog(
             scene_id=layer.get("scene_id"),
             capture_datetime=layer.get("acquisition_date"),
             acquisition_datetime=layer.get("acquisition_date"),
-            # this grid was computed by THIS band-math implementation; the QA-mask
-            # identity is only published when the layer actually recorded one.
-            algorithm_version=ALGORITHM_VERSION,
-            qa_mask_version=layer.get("qa_mask_version"),
+            # Reading/downsampling a historical COG does not rerun its algorithm.
+            # Keep its recorded producer identity; unknown provenance stays unknown.
+            algorithm_version=layer.get("algorithm_version"),
+            qa_mask_version=(
+                layer.get("qa_mask_version") if layer.get("cloud_mask_applied") is True else None
+            ),
             valid_pixel_pct=round(float(_vpr) * 100.0, 3) if _vpr is not None else None,
             source_uri=layer.get("cog_url"),
         )
     result["indicator_product"] = rip.from_grid_response(
         result,
-        quality_score=layer.get("confidence"),
+        quality_score=layer.get("quality_score"),
         provenance=provenance,
     )
     return result
@@ -174,8 +176,6 @@ async def rehydrate_field_layer_from_db(
 ) -> dict[str, Any] | None:
     """Restore a COG layer from ``raster_assets`` into in-memory layer maps."""
     try:
-        import time as _time
-
         import db_persist
 
         tenant_id = tenant_getter()
@@ -200,13 +200,19 @@ async def rehydrate_field_layer_from_db(
             "coverage_ratio": asset.get("coverage_ratio"),
             "index_quality_flags": asset.get("index_quality_flags"),
             "confidence": asset.get("confidence"),
+            "quality_score": asset.get("quality_score"),
+            "algorithm_version": asset.get("algorithm_version"),
+            "qa_mask_version": asset.get("qa_mask_version")
+            if asset.get("cloud_mask_applied") is True
+            else None,
+            "data_available_at": asset.get("data_available_at"),
             "quality": asset.get("quality"),
             "cloud_mask_applied": asset.get("cloud_mask_applied"),
             "scene_id": asset.get("scene_id"),
             "geometry_revision": asset.get("geometry_revision"),
             "asset_status": asset.get("asset_status"),
             "processing_job_id": asset.get("processing_job_id"),
-            "created_at": acquisition_date or _time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "created_at": asset.get("created_at"),
         }
         field_layers.setdefault(field_id, [])
         if layer_id not in field_layers[field_id]:

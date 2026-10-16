@@ -1,0 +1,15 @@
+{
+  "radiometry": {
+    "services/raster-service/stac_search.py": true,
+    "services/raster-service/stac_vrt.py": true,
+    "services/raster-service/test_element84_vrt_defect_witnesses.py": true
+  },
+  "vegetation": {
+    "services/raster-service/db_persist.py": true,
+    "services/raster-service/layer_lookup.py": true,
+    "services/raster-service/raster_indicator_product.py": true,
+    "services/raster-service/raster_job_orchestration.py": true,
+    "services/raster-service/raster_asset_persistence.py": true,
+    "services/raster-service/test_indicator_provenance_transport.py": true
+  }
+}

@@ -9549,3 +9549,7 @@ Recovered a full clone at the pinned main and merged the three pinned source PRs
 ### 2026-10-16 — اكتمال مصدر الري وأربع فجوات راستر في التكامل
 
 أُدمجت الرقعتان المراجعتان محلياً: مصدر ري معلن مرتبط بماء قانوني، اعتماد وخطة واستعادة مقيدة، وإصلاح شبكة VRT/NoData/صدق التطبيع/نسخة backfill. حصيلة الحصة المحددة:19 fixed و9 open بلا verified؛ منها11 منقولة في هذا التكامل واثنتان في1194 وست أصلية. يبقى مقياس Element84 مفتوحاً رغم حفظ المعايرة الصريحة، والاحتواء لم يُرفع. الدليل المجمع84 نجاحاً للجاهزية وربط Decision و75 للراستر؛ سجلات الفرع تحفظ19 تخطياً لاختبارات PostgreSQL الأصلية و19 فحص WASM منفصلاً. لا جمع للمجموعات المتداخلة، ولا نسبة قبول حي إليها. المصادر والحدود في certification/evidence/chatgpt_unification_20261016/README.md وscope.json؛ preflight النهائي وCI لا يزالان مطلوبين.
+
+### 2026-10-16 — Remaining allocation source follow-up after PR1199
+
+Started from merged main `9f0bcece487a8e9e2fc1ea590af5f2af5ab17504`. Prepared asset-bound STAC calibration metadata, lossless raster provenance transport with reviewed mask/availability safeguards, and a tenant-scoped read-only inventory tool. Independent review rejected promoting a requested mask to applied evidence and treating row creation as replacement-content availability. RAG runtime experiment and native database acceptance remain unavailable; no remaining gap is promoted. Evidence and limits: `certification/evidence/chatgpt_remaining_20261016/README.md`. This follow-up needs its own exact-tree preflight and CI; earlier #1199 green is not reused.

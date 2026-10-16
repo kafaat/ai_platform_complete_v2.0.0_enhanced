@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 622,
+      "evidence_count": 623,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -195,6 +195,7 @@
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
+        "services/raster-service/raster_asset_persistence.py",
         "services/raster-service/raster_cdse_processing.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
         "services/raster-service/raster_indicator_product.py",
@@ -2112,7 +2113,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 299,
+      "evidence_count": 300,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2206,6 +2207,7 @@
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/salinity_calibration.py",
+        "services/raster-service/stac_search.py",
         "services/raster-service/stac_vrt.py",
         "services/raster-service/test_element84_vrt_defect_witnesses.py",
         "services/raster-service/test_raster_batch_postgres_integration.py",
@@ -2545,7 +2547,7 @@
         "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py"
       ],
-      "source_evidence_count": 622,
+      "source_evidence_count": 623,
       "target_evidence_count": 513,
       "static_supported": true,
       "runtime_verified": false
@@ -2928,7 +2930,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 53,
-      "target_evidence_count": 299,
+      "target_evidence_count": 300,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2938,5 +2940,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "584052e7f96091a89ca4995dfb3d73a38adcc0eb4e3d8f63b9e3a6c1ce35d996"
+  "content_sha256": "fed285f40c2f95aafc2cc808304724f029dea75caa9fcbf3f12c2e8ed6e5f568"
 }

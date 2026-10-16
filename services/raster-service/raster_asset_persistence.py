@@ -102,7 +102,13 @@ def persist_raster_asset(
             getattr(req, "clip_polygon_geojson", None),
             getattr(req, "geometry_revision", None),
         )
-        _qa_mask_version = "cloud-mask/1" if bool(getattr(req, "apply_cloud_mask", False)) else None
+        # A request to apply a mask is not evidence that one was applied (CDSE
+        # precomputed inputs explicitly carry an unverified provider expectation).
+        _validated = stats.get("validated_raster_product") or {}
+        _mask_applied = _validated.get("cloud_mask_applied") is True
+        _qa_mask_version = (
+            (_validated.get("provenance") or {}).get("qa_mask_version") if _mask_applied else None
+        )
         # PR1-b: مزوّد المشهد جزءٌ من الهويّة. المصدر: req.provider الصريح، وإلّا يُشتقّ من
         # source_format (لا يُدمَج منتجان من مزوّدَين مختلفَين تحت هويّة واحدة).
         _source_provider_map = {
@@ -157,6 +163,12 @@ def persist_raster_asset(
                 qa_mask_version=_qa_mask_version,
                 field_geometry_hash=_field_geometry_hash,
                 provenance={
+                    # Preserve explicit provider evidence. Older rows without it
+                    # remain unattributed; source-format aliases are not proof.
+                    "provider": getattr(req, "provider", None),
+                    # This belongs to the current COG and is replaced atomically
+                    # with it on conflict. Row created_at can belong to an older COG.
+                    "data_available_at": meta.get("data_available_at"),
                     "stats": {
                         k: stats.get(k)
                         for k in (
@@ -170,7 +182,8 @@ def persist_raster_asset(
                             "quality",
                             "confidence",
                         )
-                    },
+                    }
+                    | {"cloud_mask_applied": _mask_applied},
                     # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
                     "geometry_revision": getattr(req, "geometry_revision", None),
                 },

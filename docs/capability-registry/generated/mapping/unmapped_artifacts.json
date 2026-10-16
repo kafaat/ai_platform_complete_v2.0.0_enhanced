@@ -12,6 +12,10 @@
     "kind": "tests"
   },
   {
+    "path": "docs/runbooks/runtime_acceptance_20261016/catalog_snapshot.sql",
+    "kind": "database"
+  },
+  {
     "path": "frontend/.github/workflows/structural-lint.yml",
     "kind": "web"
   },
