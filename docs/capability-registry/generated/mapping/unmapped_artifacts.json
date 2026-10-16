@@ -2008,6 +2008,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v235_decision_chain_correlation.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -2708,6 +2712,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_correlation_http_projection.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
     "kind": "tests"
   },
@@ -3036,6 +3044,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/qdrant-seed/reindex.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/qdrant-seed/seed.py",
     "kind": "backend"
   },
@@ -3045,6 +3057,18 @@
   },
   {
     "path": "services/rag-retrieval/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/reindex_manifest.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/retrieval_profile.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/runtime_transport.py",
     "kind": "backend"
   },
   {
@@ -7464,6 +7488,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_decision_correlation_projection.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_decision_explain.py",
     "kind": "tests"
   },
@@ -7569,10 +7597,6 @@
   },
   {
     "path": "tests_v9/test_edge_sync_recovery.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_element84_vrt_containment.py",
     "kind": "tests"
   },
   {
@@ -8376,6 +8400,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_complete_reindex_manifest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
     "kind": "tests"
   },
@@ -8428,7 +8456,19 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_reindex_transport.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_relevance_experiment_measurement.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_storage_id_declaration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_versioned_nomic_profile.py",
     "kind": "tests"
   },
   {
@@ -8897,6 +8937,10 @@
   },
   {
     "path": "tests_v9/test_tts_edge_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_network_boundary.py",
     "kind": "tests"
   },
   {

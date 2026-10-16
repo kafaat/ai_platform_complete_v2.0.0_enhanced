@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-16T17:20:37.966736+00:00",
+  "review": "Final relocated adapter and bounded profile scans",
+  "source_commit": "b1ed5a0b89db2d27d6f1548b990fb5ed2cfaf9c6",
+  "integration_commit": "dae8a5a5692e8de17b80a49eb8dfd3e2b56221ec",
+  "status": "PASS; no remaining source review blocker in this delta",
+  "file_sha256": {
+    ".env.example": "0b8b3df2d2374030e31ada78e33f6df373032812f093f79d233aba7aa0c1dbae",
+    "services/qdrant-seed/reindex.py": "8edd4f7485e101d19da43c82fe50bf8c3df69ec4d03585c7d5f71242dbb4f40a",
+    "services/rag-retrieval/main.py": "eca7f8ed4f6520f76e0cc4703d6bb920d6512ed81a51dcac9474dfb024c1fb9c",
+    "services/rag-retrieval/Dockerfile": "1a4bf9c33f2dd621ea1db46593bf25525c78bbfae2148c7df08f3a474490cd93",
+    "services/rag-retrieval/runtime_transport.py": "93a274a12f3c1ee3cc014877b4c5fa11c777938225ee1daff0736830330d46a7",
+    "services/sahool-platform/core/rag/production_qdrant.py": "14909581f3ba083ab061be2e3d6903035b013507135ed06069afbf371b95a28c",
+    "services/sahool-platform/core/rag/reindex_manifest.py": "d2d0afc2e61acb99d10ff67798c590c96df63e81848c732f7c80242df6a50a83",
+    "services/sahool-platform/core/rag/retrieval_profile.py": "05d36a0f19625360b3814e44aff3905afca1c0a07810c79c2fab1d3796c31434",
+    "tests_v9/test_rag_versioned_nomic_profile.py": "05fc81a6a03e7466f5f34680930c49876ab6b86e1b079ee900cee6fc6742be05",
+    "tests_v9/test_rag_reindex_transport.py": "5f64b2554b3d670fd461c5991429ef536fd1d1417c6994cac098289b85d006ee",
+    "docs/runbooks/RAG_VERSIONED_REINDEX.md": "77282ae4c4ea80242069cd7bcda3f1fe50d5c928c2a648457f3de7ccebd791df"
+  },
+  "integration_bytes_match": true,
+  "targeted_tests": {
+    "passed": 58,
+    "failed": 0,
+    "skipped": 0,
+    "receipt": "profile-relocated-green.log"
+  },
+  "independent_scope": "profile-relocated-independent-scope.json",
+  "boundary_guard": "PASS consumers=3; no guard modifications",
+  "reviewed_changes": [
+    "Transport relocated from shared core to canonical rag-retrieval runtime; operator explicitly imports canonical adapter; Docker copies module",
+    "Core validates fresh encoder.model_digest() before/after query, exact configured Nomic identity retained",
+    "Live model tag normalization/digest lookup remains in no-redirect/no-proxy bounded transport",
+    "Profile payload scrolling now bounded by manifest point count; vector count/config/fingerprint verified before query",
+    "Constructor uses getattr for interface-compatible test stores; real shadow collections still require manifest"
+  ],
+  "native_receipt_read": "certification/evidence/chatgpt_closure_nine_20261016/rag/native-profile-reindex-witness.json",
+  "native_receipt_author_reported": "Actual Qdrant1.19.2/Ollama0.40.5, three-point tenant/quarantine preservation, real profile query and vector-only drift rejection; reviewer read receipt, did not rerun native daemon",
+  "limitations": [
+    "Development validation only; acceptance partition already observed, not unseen holdout",
+    "No expert agronomic or seed promotion authorization",
+    "No live production cutover; no serving alias change",
+    "Operational write freeze/read-only credentials still required; audit is not transactional external-writer lock",
+    "Full inventory query audit latency unqualified"
+  ]
+}

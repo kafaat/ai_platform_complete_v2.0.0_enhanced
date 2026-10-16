@@ -1,0 +1,371 @@
+{
+  "item_id": "S2A_T38PNC_20261015T073428_L2A",
+  "collection": "sentinel-2-c1-l2a",
+  "at": "2026-10-16T16:16:43.275744+00:00",
+  "rasterio": "1.4.4",
+  "gdal": "3.10.3",
+  "bands": {
+    "red": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B04.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 10,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "122003d1c6393c1eed190ef8cc6ab851aecfab72a89b4df8072c0d0a552d6b97b025",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        5315,
+        1408,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        10.0,
+        0.0,
+        553130.0,
+        0.0,
+        -10.0,
+        1785920.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        4477.0,
+        5082.0
+      ],
+      "array_sha256": "8101448c35b8f01d4ceb4df2485a5bbec8bcebb97e30d5410b8d67acbf09abba"
+    },
+    "nir": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B08.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 10,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "1220bef9744c49e8e9ab46f7e1f70ed90c797988a94a3b761a0bf62804b3602219d4",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        5315,
+        1408,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        10.0,
+        0.0,
+        553130.0,
+        0.0,
+        -10.0,
+        1785920.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        4843.0,
+        5478.0
+      ],
+      "array_sha256": "eb8459d02b091daa9153c8c3c559ea5a54076b3a03661a1b50ff11a1103be192"
+    },
+    "blue": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B02.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 10,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "12205bb6cd47a7efc48b99c1e62922c21c3e3b147743a80aade6d35ad860b82d9f3c",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        5315,
+        1408,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        10.0,
+        0.0,
+        553130.0,
+        0.0,
+        -10.0,
+        1785920.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        2672.0,
+        3091.0
+      ],
+      "array_sha256": "2d84e4d047cd3cceaa7b8a6a609ca88402b9a71f779386d62cd6c9bf6ad6e510"
+    },
+    "scl": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/SCL.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint8",
+          "spatial_resolution": 20
+        }
+      ],
+      "checksum": "1220089adae74944bffcf3072f78eb5189d9cd5e283395b56c7f3a406fdde27beb1a",
+      "tiff_scales": [
+        1.0
+      ],
+      "tiff_offsets": [
+        0.0
+      ],
+      "nodata": 0.0,
+      "dtype": "uint8",
+      "window": [
+        2641,
+        688,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        20.0,
+        0.0,
+        552800.0,
+        0.0,
+        -20.0,
+        1786240.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        5.0,
+        5.0
+      ],
+      "array_sha256": "fb7363f1f02c2f244c32aa8076ef7edbc2e621137542836adc1e312143968d75"
+    },
+    "green": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B03.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 10,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "1220d040cc71431bf18c96dba37c625786bf71fdd013c94f798e7fbc3a20763eaa5d",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        5315,
+        1408,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        10.0,
+        0.0,
+        553130.0,
+        0.0,
+        -10.0,
+        1785920.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        3498.0,
+        3927.0
+      ],
+      "array_sha256": "ea2ed92e7313e4ba4c6b5f802f5227189d9162b7ad98494b2b54921ef5738d46",
+      "downloaded_range_bytes": 3145728
+    },
+    "rededge1": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B05.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 20,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "1220ce0110d59245620aaa6fa45efd3be465511a399455a47aa75e7e1c377d561063",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        2641,
+        688,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        20.0,
+        0.0,
+        552800.0,
+        0.0,
+        -20.0,
+        1786240.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        3108.0,
+        5757.0
+      ],
+      "array_sha256": "fe28ea51007246b0b90bdbf24d71235e4afa5eb828134ea78f87a794be07d17f",
+      "downloaded_range_bytes": 3145728
+    },
+    "swir16": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B11.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 20,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "12200007b80018dbe8d0525c14b591707427417ea999652b8bf1d4d4368c0931ca97",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        2641,
+        688,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        20.0,
+        0.0,
+        552800.0,
+        0.0,
+        -20.0,
+        1786240.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        4365.0,
+        7464.0
+      ],
+      "array_sha256": "bcfb48a9c5ed31d44a991a4389d7e1db3fe05100308c7d81779d4609c149586d",
+      "downloaded_range_bytes": 3145728
+    },
+    "swir22": {
+      "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/P/NC/2026/10/S2A_T38PNC_20261015T073428_L2A/B12.tif",
+      "stac": [
+        {
+          "nodata": 0,
+          "data_type": "uint16",
+          "spatial_resolution": 20,
+          "scale": 0.0001,
+          "offset": -0.1
+        }
+      ],
+      "checksum": "122047bef6672f51429328ff9ec34a27998e7ec001fd405ba322f619bb627178c8c0",
+      "tiff_scales": [
+        0.0001
+      ],
+      "tiff_offsets": [
+        -0.1
+      ],
+      "nodata": 0.0,
+      "dtype": "uint16",
+      "window": [
+        2641,
+        688,
+        64,
+        64
+      ],
+      "crs": "EPSG:32638",
+      "transform": [
+        20.0,
+        0.0,
+        552800.0,
+        0.0,
+        -20.0,
+        1786240.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valid_pixels": 4096,
+      "raw_range": [
+        4038.0,
+        6974.0
+      ],
+      "array_sha256": "f979308002ef2086c91046baab7cf713886e9bafcd64a9d7a92367a3157851c4",
+      "downloaded_range_bytes": 3145728
+    }
+  }
+}

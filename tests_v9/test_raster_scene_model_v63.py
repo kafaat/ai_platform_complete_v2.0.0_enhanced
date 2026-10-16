@@ -196,3 +196,21 @@ def test_stac_search_503_carries_structured_suggestion():
     assert "provider_fallback_suggestion" in src, "يجب استيراد باني الاقتراح"
     assert '"fallback_suggestion"' in src, "تفاصيل 503 يجب أن تحمل اقتراحاً مُهيكَلاً"
     assert "status_code=503" in src  # يبقى فشلاً مُغلَقاً صادقاً
+
+
+def test_normalized_search_preserves_authoritative_c1_collection():
+    item = {**_E84_ITEM, "collection": "sentinel-2-c1-l2a"}
+    scenes = M.normalize_search_result({"source": "element84-earth-search", "items": [item]})
+    assert scenes[0].collection == "sentinel-2-c1-l2a"
+    assert scenes[0].to_dict()["collection"] == "sentinel-2-c1-l2a"
+
+
+@pytest.mark.parametrize(
+    "source,item", [("element84-earth-search", _E84_ITEM), ("cdse-catalog", _CDSE_ITEM)]
+)
+def test_missing_collection_preserves_legacy_fallback(source, item):
+    assert M.normalize_scene(item, source=source).collection == "sentinel-2-l2a"
+    assert (
+        M.normalize_scene(item, source=source, collection="explicit-fallback").collection
+        == "explicit-fallback"
+    )

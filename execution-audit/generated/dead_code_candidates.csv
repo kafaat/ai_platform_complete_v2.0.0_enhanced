@@ -72,7 +72,7 @@ medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,192,0,r
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
 medium,raster-service,function,single_scene_detail,services/raster-service/radiometry_containment.py,102,0,review_before_delete,False
-medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,120,0,review_before_delete,False
+medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,122,0,review_before_delete,False
 medium,raster-service,function,extract_trial_zonal_outcomes,services/raster-service/raster_processing_runtime.py,142,0,review_before_delete,False
 medium,raster-service,function,verify_provenance_match,services/raster-service/raster_provenance.py,126,0,review_before_delete,False
 medium,raster-service,function,dem_providers,services/raster-service/raster_scene_model.py,327,0,review_before_delete,False
@@ -215,8 +215,8 @@ medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/cor
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,334,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
-medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,232,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,737,0,review_before_delete,False
+medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,237,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,742,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False
@@ -585,8 +585,8 @@ medium,sahool-platform,class,TestPending,services/sahool-platform/tests/test_yie
 medium,sahool-platform,class,TestCoverageMonotonicity,services/sahool-platform/tests/test_yield_interval_service.py,61,0,review_before_delete,False
 medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,208,0,review_before_delete,False
 medium,soil-service,function,fetch_soil_properties,services/soil-service/soilgrids_client.py,148,0,review_before_delete,False
-medium,tts-service,function,policy_mode_from_me,services/tts-service/tts_tenant_policy.py,122,0,review_before_delete,False
-medium,tts-service,function,resolve_policy_mode,services/tts-service/tts_tenant_policy.py,191,0,review_before_delete,False
+medium,tts-service,function,policy_mode_from_me,services/tts-service/tts_tenant_policy.py,124,0,review_before_delete,False
+medium,tts-service,function,resolve_policy_mode,services/tts-service/tts_tenant_policy.py,193,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_routes_witnessed_through_the_request_path.py,51,0,review_before_delete,False

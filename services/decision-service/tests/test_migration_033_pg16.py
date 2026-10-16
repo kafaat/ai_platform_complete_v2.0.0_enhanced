@@ -170,8 +170,18 @@ async def _insert(conn, table, row_id, tenant):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("table", TABLES)
 @pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
-async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_table):
-    assert (await runner.apply_migrations())["applied_now"] == PENDING_AFTER_BASELINE
+async def test_033_isolates_reads_writes_and_rolls_back(database, monkeypatch, table, owns_table):
+    # Isolate the 033/034 policy contract: later parent-link triggers can reject
+    # these deliberately minimal rows before RLS. Real application scenarios
+    # below still apply EVERY migration, including the 036 correlation contract.
+    migrations = runner.load_migrations()
+    with monkeypatch.context() as scoped:
+        scoped.setattr(
+            runner,
+            "load_migrations",
+            lambda: [m for m in migrations if m.version <= COMPOSITION_VERSION],
+        )
+        assert (await runner.apply_migrations())["applied_now"] == HARDENING_VERSIONS
     if owns_table:
         await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
     app = await database.app_connection()

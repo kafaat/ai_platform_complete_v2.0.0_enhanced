@@ -1,0 +1,40 @@
+{
+  "item_id": "S2A_T38PNC_20261015T073428_L2A",
+  "scope": "Live remote window bytes replayed locally; full real C1 VRT + processing + QA + contract + COG, catalogue IO and output upload boundaries isolated. No DB/Railway writes. This is one scene, not certification of all provider assets.",
+  "bands": 8,
+  "expected_evi_mean": 0.04385126754641533,
+  "actual_evi_mean": 0.04385126754641533,
+  "raw_dn_wrong_evi_mean": 0.08374159783124924,
+  "double_offset_wrong_evi_mean": 0.042878955602645874,
+  "valid_pixels": 3600,
+  "cog_written": true,
+  "reflectance_normalized": true,
+  "cloud_mask_sources": [
+    "SCL"
+  ],
+  "qa": {
+    "schema": "sahool.raster_pixel_qa/1",
+    "raw_qa_required": true,
+    "quality_score": 0.9665,
+    "valid_pixel_ratio": 0.9365,
+    "cloud_pct": 0.0,
+    "shadow_pct": 0.0,
+    "snow_pct": 0.0,
+    "aerosol_pct": null,
+    "saturation_pct": 0.0,
+    "terrain_shadow_risk_pct": null,
+    "cast_shadow_risk_pct": null,
+    "slope_risk_pct": null,
+    "topographic_qa_applied": false,
+    "cloud_mask_applied": true,
+    "cloud_shadow_mask_applied": true,
+    "snow_mask_applied": true,
+    "aerosol_mask_applied": false,
+    "saturation_mask_applied": true,
+    "qa_layer_present": true,
+    "warnings": [],
+    "indicator_computed": false,
+    "fabricated_indicator": false
+  },
+  "source_item_sha256": "44de79129f328514fb784bfb960ba27eb7e215e4e5e9639c9b25f10553e35ae7"
+}

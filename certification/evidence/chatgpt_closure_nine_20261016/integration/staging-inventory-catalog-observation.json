@@ -1,0 +1,247 @@
+{
+  "schema": "sahool.inventory-catalog-probe/v1",
+  "at": "2026-10-16T17:00:11.404Z",
+  "scope": "staging_read_only_catalog",
+  "reads_user_rows": false,
+  "context": [
+    {
+      "role": "sahool_app",
+      "server_version_num": "150008",
+      "transaction_read_only": "on"
+    }
+  ],
+  "tables": [
+    {
+      "relname": "backfill_run_items",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "backfill_runs",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "distributed_raster_jobs",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "raster_assets",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "raster_batch_jobs",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "raster_registry",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "backfill_run_items",
+      "policyname": "tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    },
+    {
+      "tablename": "backfill_runs",
+      "policyname": "tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    },
+    {
+      "tablename": "distributed_raster_jobs",
+      "policyname": "distributed_raster_jobs_tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    },
+    {
+      "tablename": "raster_assets",
+      "policyname": "tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    },
+    {
+      "tablename": "raster_batch_jobs",
+      "policyname": "tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    },
+    {
+      "tablename": "raster_registry",
+      "policyname": "tenant_isolation",
+      "permissive": "PERMISSIVE",
+      "cmd": "ALL",
+      "qual": "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    }
+  ],
+  "tenant_columns": [
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "command_id",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "worker_id",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "tenant_id",
+      "data_type": "uuid"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "requested_enabled",
+      "data_type": "boolean"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "created_by",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "idempotency_key",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "request_hash",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenant_commands",
+      "attname": "resulting_revision",
+      "data_type": "integer"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "registration_id",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "worker_id",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "tenant_id",
+      "data_type": "uuid"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "enabled",
+      "data_type": "boolean"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "created_by",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "updated_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "idempotency_key",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "request_hash",
+      "data_type": "text"
+    },
+    {
+      "relname": "decision_runtime_worker_tenants",
+      "attname": "revision",
+      "data_type": "integer"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "tenant_id",
+      "data_type": "uuid"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "ai_generation_allowed",
+      "data_type": "boolean"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "allowed_providers",
+      "data_type": "text[]"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "allowed_models",
+      "data_type": "text[]"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "external_data_sharing_level",
+      "data_type": "text"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "redaction_profile",
+      "data_type": "text"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "updated_by",
+      "data_type": "text"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "updated_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "relname": "tenant_ai_policies",
+      "attname": "allowed_capabilities",
+      "data_type": "text[]"
+    }
+  ],
+  "outcome": "observed"
+}

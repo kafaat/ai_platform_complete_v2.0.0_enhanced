@@ -21,6 +21,7 @@ def process_backfill_scene_cdse(
     jid: str,
 ) -> None:
     import cdse_client
+    import cdse_native_product
 
     dt = scene.get("datetime") or ""
     day = dt[:10]
@@ -31,12 +32,16 @@ def process_backfill_scene_cdse(
         raise RuntimeError("bbox مطلوب لمعالجة مشهد CDSE")
     tiff = cdse_client.get_client().process_index(
         index=index,
+        with_native_qa=index != "truecolor",
         bbox=bbox,
         time_from=f"{day}T00:00:00Z",
         time_to=f"{day}T23:59:59Z",
         geometry=clip,
         max_cloud_pct=40.0,
     )
+    native_product = tiff if isinstance(tiff, cdse_native_product.NativeProduct) else None
+    if native_product is not None:
+        tiff = native_product.tiff
     if not tiff:
         raise RuntimeError("CDSE process_index أرجع استجابة فارغة")
     tif_path = os.path.join(ctx.UPLOAD_DIR, f"cdse_bf_{index}_{uuid.uuid4().hex[:8]}.tif")
@@ -57,4 +62,5 @@ def process_backfill_scene_cdse(
         apply_cloud_mask=False,
         geometry_revision=geometry_revision,
     )
+    preq._cdse_native_product = native_product
     ctx._run_processing(jid, preq)

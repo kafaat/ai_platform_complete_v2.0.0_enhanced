@@ -488,6 +488,96 @@
     ]
   },
   {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 26,
+        "signals": [
+          "content:cdse",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 24,
+        "signals": [
+          "content:tenant",
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/integration/preflight-repairs/final-route-anchor-refresh.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 10,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 8,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/correlation_sql_fixture.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 8,
+        "signals": [
+          "path:inventory"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/jobs-38744260158-raw.json",
     "kind": "other",
     "candidates": [
@@ -4772,7 +4862,7 @@
       },
       {
         "capability_id": "SEC-001",
-        "score": 12,
+        "score": 13,
         "signals": [
           "content:Tenant RLS",
           "content:rls",
@@ -5114,6 +5204,28 @@
     ]
   },
   {
+    "path": "services/decision-service/migrations/036_decision_chain_correlation.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 12,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/persistence.py",
     "kind": "backend",
     "candidates": [
@@ -5215,6 +5327,29 @@
         "signals": [
           "content:rls",
           "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_element84_inventory_pg16.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
         ]
       }
     ]
@@ -5611,7 +5746,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 13,
+        "score": 14,
         "signals": [
           "content:cdse",
           "content:sentinel",
@@ -5764,15 +5899,6 @@
     "kind": "backend",
     "candidates": [
       {
-        "capability_id": "SAT-005",
-        "score": 18,
-        "signals": [
-          "content:aoi cloud",
-          "content:cloud mask",
-          "content:scene cloud"
-        ]
-      },
-      {
         "capability_id": "SAT-001",
         "score": 18,
         "signals": [
@@ -5881,6 +6007,28 @@
           "content:cdse",
           "content:satellite scene",
           "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_backfill_processing_version_preflight.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 12,
+        "signals": [
+          "content:cdse",
+          "content:stac"
         ]
       }
     ]
@@ -6015,6 +6163,15 @@
     "path": "services/raster-service/test_historical_backfill.py",
     "kind": "tests",
     "candidates": [
+      {
+        "capability_id": "SAT-005",
+        "score": 12,
+        "signals": [
+          "content:aoi cloud",
+          "content:scene cloud",
+          "content:scl"
+        ]
+      },
       {
         "capability_id": "SAT-003",
         "score": 12,
@@ -8779,6 +8936,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_eo_stage_mismatch.py",
     "kind": "tests",
     "candidates": [
@@ -10457,6 +10636,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_element84_vrt_containment.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-005",
+        "score": 11,
+        "signals": [
+          "content:cloud mask",
+          "content:scl"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_endpoint_auth_coverage.py",
     "kind": "tests",
     "candidates": [
@@ -10973,6 +11174,28 @@
         "signals": [
           "content:cog",
           "content:tilejson"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_remote_sensing_contracts_v1.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
         ]
       }
     ]

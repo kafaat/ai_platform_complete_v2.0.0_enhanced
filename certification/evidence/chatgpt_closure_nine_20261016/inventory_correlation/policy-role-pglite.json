@@ -1,0 +1,61 @@
+{
+  "engine": "PGlite PostgreSQL WASM",
+  "native": false,
+  "passed": 6,
+  "cases": [
+    {
+      "kind": "public",
+      "qual": "((tenant_id)::text = current_setting('app.current_tenant'::text, true))",
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": true,
+      "permissive": true
+    },
+    {
+      "kind": "self",
+      "qual": "((tenant_id)::text = current_setting('app.current_tenant'::text, true))",
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": true,
+      "permissive": true
+    },
+    {
+      "kind": "inherited",
+      "qual": "((tenant_id)::text = current_setting('app.current_tenant'::text, true))",
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": true,
+      "permissive": true
+    },
+    {
+      "kind": "other",
+      "qual": "((tenant_id)::text = current_setting('app.current_tenant'::text, true))",
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": false,
+      "permissive": true
+    },
+    {
+      "kind": "restrictive",
+      "qual": "((tenant_id)::text = current_setting('app.current_tenant'::text, true))",
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": true,
+      "permissive": false
+    },
+    {
+      "kind": "missing",
+      "qual": null,
+      "table": "raster_assets",
+      "forced": true,
+      "enabled": true,
+      "applicable": false,
+      "permissive": false
+    }
+  ]
+}

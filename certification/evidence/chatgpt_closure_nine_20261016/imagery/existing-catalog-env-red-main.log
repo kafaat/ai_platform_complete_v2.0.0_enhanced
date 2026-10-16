@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/closure-imagery-red-pinned
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 2 items
+
+services/vegetation-analysis-service/test_platform_field_catalog_boundary.py F [ 50%]
+.                                                                        [100%]
+
+=================================== FAILURES ===================================
+___________ test_platform_catalog_is_tenant_scoped_and_authenticated ___________
+services/vegetation-analysis-service/test_platform_field_catalog_boundary.py:46: in test_platform_catalog_is_tenant_scoped_and_authenticated
+    assert await vr.list_fields_from_platform("tenant-a") == [{"id": "f-1", "name": "Field 1"}]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+services/vegetation-analysis-service/vegetation_runtime.py:373: in list_fields_from_platform
+    raise HTTPException(503, "field_tenant_assertion_unavailable")
+E   fastapi.exceptions.HTTPException: 503: field_tenant_assertion_unavailable
+=========================== short test summary info ============================
+FAILED services/vegetation-analysis-service/test_platform_field_catalog_boundary.py::test_platform_catalog_is_tenant_scoped_and_authenticated
+========================= 1 failed, 1 passed in 0.50s ==========================

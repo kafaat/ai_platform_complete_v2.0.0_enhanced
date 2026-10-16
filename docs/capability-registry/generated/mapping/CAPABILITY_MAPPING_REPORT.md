@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **50**
-- Files scanned: **5834**
-- Ambiguous artifacts queued: **449**
-- Unmapped artifacts queued: **2288**
+- Files scanned: **5939**
+- Ambiguous artifacts queued: **458**
+- Unmapped artifacts queued: **2299**
 
 ## Capability coverage
 
@@ -23,20 +23,20 @@
 | DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 3 | 3 |
-| DEC-004 | decision | 9 | 20 | 24 | 33 | 0 | 0 | 16 | 5 |
-| DEC-005 | decision | 6 | 87 | 5 | 9 | 0 | 0 | 4 | 5 |
+| DEC-004 | decision | 9 | 20 | 41 | 33 | 0 | 0 | 18 | 5 |
+| DEC-005 | decision | 6 | 87 | 22 | 9 | 0 | 0 | 6 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
 | DEC-008 | decision | 5 | 95 | 14 | 5 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 90 | 49 | 7 | 0 | 0 | 6 | 5 |
-| FM-001 | farm_management | 16 | 2 | 26 | 8 | 1 | 0 | 29 | 6 |
+| FM-001 | farm_management | 16 | 2 | 26 | 9 | 1 | 0 | 29 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 15 | 2 | 28 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 58 | 13 | 1 | 34 | 7 |
 | FM-005 | farm_management | 8 | 0 | 0 | 7 | 3 | 1 | 6 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
-| FM-007 | farm_management | 8 | 26 | 8 | 7 | 1 | 1 | 7 | 7 |
+| FM-007 | farm_management | 8 | 26 | 26 | 10 | 1 | 1 | 8 | 7 |
 | FM-008 | farm_management | 10 | 25 | 5 | 1 | 0 | 0 | 9 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 2 | 0 | 2 | 4 |
@@ -69,16 +69,16 @@
 | PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 37 | 65 | 3 | 47 | 5 | 0 | 51 | 6 |
+| SAT-001 | satellite | 39 | 65 | 5 | 49 | 5 | 0 | 56 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 92 | 43 | 100 | 49 | 6 | 100 | 7 |
+| SAT-003 | satellite | 100 | 92 | 44 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 20 | 10 | 5 | 15 | 7 | 0 | 22 | 6 |
-| SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 11 | 4 |
+| SAT-005 | satellite | 8 | 6 | 0 | 1 | 0 | 0 | 13 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 14 | 70 | 0 | 14 | 1 | 0 | 23 | 5 |
-| SEC-001 | security | 13 | 31 | 100 | 52 | 0 | 0 | 72 | 5 |
+| SEC-001 | security | 13 | 31 | 100 | 56 | 0 | 0 | 74 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 24 | 23 | 5 | 5 | 4 | 18 | 7 |

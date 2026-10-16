@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import hashlib
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,8 @@ from typing import Any
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 MIGRATION_TABLE = "decision_service_schema_migrations"
 SCHEMA_LOCK_ID = 91420260709
+HARDENING_VERSION = "033_tenant_boundary_hardening.sql"
+COMPOSITION_VERSION = "034_tenant_boundary_policy_composition.sql"
 _TRUTHY = {"1", "true", "yes", "on"}
 
 
@@ -164,15 +167,238 @@ async def apply_migrations() -> dict[str, Any]:
         await conn.close()
 
 
+def _validate_composition_journal(
+    migrations: list[Migration], applied: dict[str, str], *, include_hardening: bool = False
+) -> None:
+    first_required = HARDENING_VERSION if include_hardening else COMPOSITION_VERSION
+    if COMPOSITION_VERSION in applied and HARDENING_VERSION not in applied:
+        raise RuntimeError("034 is journaled without its 033 prerequisite")
+    known = {m.version: m.checksum for m in migrations}
+    if set(applied) - set(known):
+        raise RuntimeError("Migration journal contains versions outside the reviewed source")
+    for migration in migrations:
+        recorded = applied.get(migration.version)
+        if recorded is not None and recorded != migration.checksum:
+            raise RuntimeError(f"Migration checksum mismatch for {migration.version}")
+        if migration.version < first_required and recorded is None:
+            raise RuntimeError(f"034 prerequisite is not journaled: {migration.version}")
+
+
+async def inspect_composition() -> dict[str, Any]:
+    """Collect bounded metadata in a server-enforced read-only transaction.
+
+    This observation neither authorizes application nor proves restricted-role
+    behavior. Permission errors propagate instead of being reported as absence.
+    """
+    migrations = load_migrations()
+    target = next(m for m in migrations if m.version == COMPOSITION_VERSION)
+    conn = await _connect()
+    try:
+        async with conn.transaction(readonly=True):
+            await conn.execute("SET LOCAL search_path = pg_catalog, public, pg_temp")
+            await conn.execute("SET LOCAL lock_timeout = '5s'")
+            await conn.execute("SET LOCAL statement_timeout = '30s'")
+            read_only = await conn.fetchval("SHOW transaction_read_only")
+            if read_only != "on":
+                raise RuntimeError("034 observation requires server-enforced read-only mode")
+            identity = await conn.fetchrow(
+                "SELECT current_user AS role, session_user AS session, "
+                "rolsuper, rolbypassrls, rolcanlogin, "
+                "current_setting('server_version_num') AS server_version_num "
+                "FROM pg_roles WHERE rolname=current_user"
+            )
+            memberships = await conn.fetch(
+                "SELECT parent.rolname AS role FROM pg_auth_members m "
+                "JOIN pg_roles parent ON parent.oid=m.roleid "
+                "JOIN pg_roles child ON child.oid=m.member "
+                "WHERE child.rolname=current_user ORDER BY parent.rolname"
+            )
+            applied = await applied_versions(conn)
+            tables = await conn.fetch(
+                "SELECT c.relname, pg_get_userbyid(c.relowner) AS owner, "
+                "c.relrowsecurity, c.relforcerowsecurity FROM pg_class c "
+                "JOIN pg_namespace n ON n.oid=c.relnamespace "
+                "WHERE n.nspname='public' AND c.relkind IN ('r','p') "
+                "AND c.relname=ANY($1::text[]) ORDER BY c.relname",
+                ["decision_outbox_events", "decision_reviews"],
+            )
+            policies = await conn.fetch(
+                "SELECT tablename, policyname, permissive, roles, cmd, qual, with_check "
+                "FROM pg_policies WHERE schemaname='public' "
+                "AND tablename=ANY($1::text[]) ORDER BY tablename, policyname",
+                ["decision_outbox_events", "decision_reviews"],
+            )
+            try:
+                _validate_composition_journal(migrations, applied)
+                journal_error = None
+            except RuntimeError as exc:
+                journal_error = str(exc)
+            try:
+                _validate_composition_journal(migrations, applied, include_hardening=True)
+                pair_journal_error = None
+            except RuntimeError as exc:
+                pair_journal_error = str(exc)
+            prerequisites_ok = (
+                journal_error is None
+                and len(tables) == 2
+                and all(row["relrowsecurity"] and row["relforcerowsecurity"] for row in tables)
+            )
+        return {
+            "ok": prerequisites_ok,
+            "scope": "034_readonly_observation",
+            "transaction_read_only": read_only,
+            "identity": dict(identity),
+            "memberships": [dict(row) for row in memberships],
+            "source_checksum": target.checksum,
+            "journal": applied,
+            "journal_error": journal_error,
+            "pair_journal_error": pair_journal_error,
+            "pair_prerequisites_ok": pair_journal_error is None and len(tables) == 2,
+            "pair_source_checksums": {
+                m.version: m.checksum
+                for m in migrations
+                if m.version in {HARDENING_VERSION, COMPOSITION_VERSION}
+            },
+            "tables": [dict(row) for row in tables],
+            "policies": [dict(row) for row in policies],
+            "pending": [m.version for m in migrations if m.version not in applied],
+            "authorization_or_acceptance": False,
+        }
+    finally:
+        await conn.close()
+
+
+async def apply_composition_only(expected_sha256: str) -> dict[str, Any]:
+    """Apply only 034; 033 must already be journaled with its exact checksum."""
+    return await _apply_boundary_scope({COMPOSITION_VERSION: expected_sha256})
+
+
+async def apply_hardening_pair(
+    expected_033_sha256: str, expected_034_sha256: str
+) -> dict[str, Any]:
+    """Apply only the reviewed 033+034 pair atomically; never apply 035 or later."""
+    return await _apply_boundary_scope(
+        {HARDENING_VERSION: expected_033_sha256, COMPOSITION_VERSION: expected_034_sha256}
+    )
+
+
+async def _apply_boundary_scope(expected_checksums: dict[str, str]) -> dict[str, Any]:
+    # An exact allowlist is deliberate: this operator path cannot become a
+    # generic migration-range bypass if another caller supplies extra versions.
+    if set(expected_checksums) not in (
+        {COMPOSITION_VERSION},
+        {HARDENING_VERSION, COMPOSITION_VERSION},
+    ):
+        raise RuntimeError("Only the explicit 034 or 033+034 scope is permitted")
+    if not allow_schema_change():
+        raise SystemExit(
+            "Refusing to apply schema changes without DECISION_SERVICE_ALLOW_SCHEMA_CHANGE=true"
+        )
+    migrations = load_migrations()
+    by_version = {m.version: m for m in migrations}
+    targets = []
+    for version, expected in sorted(expected_checksums.items()):
+        target = by_version.get(version)
+        if target is None or expected != target.checksum:
+            raise RuntimeError(f"{version} source checksum differs from the reviewed SHA-256")
+        targets.append(target)
+    include_hardening = HARDENING_VERSION in expected_checksums
+    conn = await _connect()
+    applied_now: list[str] = []
+    try:
+        async with conn.transaction():
+            await conn.execute("SET LOCAL search_path = pg_catalog, public, pg_temp")
+            await conn.execute("SET LOCAL lock_timeout = '5s'")
+            await conn.execute("SET LOCAL statement_timeout = '30s'")
+            await conn.execute("SELECT pg_advisory_xact_lock($1)", SCHEMA_LOCK_ID)
+            if not await migration_table_exists(conn):
+                raise RuntimeError("034 requires an existing migration journal")
+            applied = await applied_versions(conn)
+            _validate_composition_journal(migrations, applied, include_hardening=include_hardening)
+            for target in targets:
+                # In pair mode, real 033 DDL establishes these flags first.
+                # On repeats or 034-only calls, missing flags still fail closed.
+                if target.version == COMPOSITION_VERSION:
+                    flags = await conn.fetch(
+                        "SELECT relrowsecurity, relforcerowsecurity FROM pg_class "
+                        "WHERE relnamespace='public'::regnamespace "
+                        "AND relkind IN ('r','p') AND relname=ANY($1::text[])",
+                        ["decision_outbox_events", "decision_reviews"],
+                    )
+                    if len(flags) != 2 or not all(
+                        row["relrowsecurity"] and row["relforcerowsecurity"] for row in flags
+                    ):
+                        raise RuntimeError(
+                            "034 requires both existing tables with ENABLE and FORCE RLS"
+                        )
+                if target.version in applied:
+                    continue
+                await conn.execute(target.sql)
+                await conn.execute(
+                    f"INSERT INTO public.{MIGRATION_TABLE} (version, checksum) VALUES ($1, $2)",
+                    target.version,
+                    target.checksum,
+                )
+                applied_now.append(target.version)
+                applied[target.version] = target.checksum
+            pending = [m.version for m in migrations if m.version not in applied]
+        return {
+            "ok": True,
+            "scope": "033+034" if include_hardening else COMPOSITION_VERSION,
+            "checksum": by_version[COMPOSITION_VERSION].checksum,
+            "source_checksums": {m.version: m.checksum for m in targets},
+            "applied_now": applied_now,
+            "remaining_pending": pending,
+            "staging_acceptance_proven": False,
+        }
+    finally:
+        await conn.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Decision-service SoR migration runner")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--check", action="store_true", help="Verify all migrations are applied")
     group.add_argument("--apply", action="store_true", help="Apply pending migrations")
+    group.add_argument(
+        "--inspect-034", action="store_true", help="Read-only 034 journal/catalog snapshot"
+    )
+    group.add_argument(
+        "--apply-034-only", action="store_true", help="Apply only the reviewed 034 migration"
+    )
+    group.add_argument(
+        "--apply-033-034-only", action="store_true", help="Apply only the reviewed 033+034 pair"
+    )
+    parser.add_argument(
+        "--expected-sha256", help="Reviewed 034 SHA-256 for either scoped apply mode"
+    )
+    parser.add_argument("--expected-033-sha256", help="Reviewed 033 SHA-256 for pair mode only")
     args = parser.parse_args()
-
-    result = asyncio.run(apply_migrations() if args.apply else check_migrations())
-    print(result)
+    if args.apply_033_034_only:
+        if not args.expected_033_sha256 or not args.expected_sha256:
+            parser.error(
+                "--apply-033-034-only requires both --expected-033-sha256 and --expected-sha256"
+            )
+        operation = apply_hardening_pair(args.expected_033_sha256, args.expected_sha256)
+    elif args.apply_034_only:
+        if args.expected_033_sha256:
+            parser.error("--expected-033-sha256 is valid only with --apply-033-034-only")
+        if not args.expected_sha256:
+            parser.error("--apply-034-only requires --expected-sha256")
+        operation = apply_composition_only(args.expected_sha256)
+    else:
+        if args.expected_sha256 or args.expected_033_sha256:
+            parser.error("Expected checksums are valid only with the matching scoped apply mode")
+        if args.inspect_034:
+            operation = inspect_composition()
+        else:
+            operation = apply_migrations() if args.apply else check_migrations()
+    result = asyncio.run(operation)
+    print(
+        json.dumps(result, sort_keys=True)
+        if args.inspect_034 or args.apply_034_only or args.apply_033_034_only
+        else result
+    )
     if not result.get("ok"):
         raise SystemExit(2)
 

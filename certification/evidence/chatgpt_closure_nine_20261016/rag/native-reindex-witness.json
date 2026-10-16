@@ -1,0 +1,55 @@
+{
+  "base_sha": "6e8cc0f9952c037550ae1644919f88c475dd89a7",
+  "runtimes": {
+    "qdrant": "1.19.2",
+    "ollama": "0.40.5",
+    "model_digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+  },
+  "baseline": {
+    "operation": "actual main seed.seed() against disposable real Qdrant/Ollama",
+    "original_points": 3,
+    "result_points": 66,
+    "uploaded_documents_reindexed": 0,
+    "full_reindex_contract_passed": false
+  },
+  "candidate": {
+    "schema": "sahool.rag-shadow-reindex/v1",
+    "source_collection": "native_source",
+    "target_collection": "sahool_rag_reindex_native_v2",
+    "revision": "candidate-v2",
+    "model_digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
+    "document_prefix": "search_document: ",
+    "vector_size": 768,
+    "source": {
+      "point_count": 3,
+      "payload_digest": "9fb4b57915108fcd099b417c9fec561d5a9a844a8ddd6bbdafef0c0b4d4e9036",
+      "tenants": {
+        "__seed_quarantine__": 1,
+        "tenant-a": 1,
+        "tenant-b": 1
+      },
+      "logical_id_digest": "16c6ed7d06650c2742ca8603162d72b31b3c2104bf8f8810a3db08b4f7c4f624"
+    },
+    "candidate": {
+      "point_count": 3,
+      "payload_digest": "3092047e0ec1aecb833f7ebcf069cf139d86a29ca0b76a2e1e102939f951b44d",
+      "tenants": {
+        "__seed_quarantine__": 1,
+        "tenant-a": 1,
+        "tenant-b": 1
+      },
+      "logical_id_digest": "16c6ed7d06650c2742ca8603162d72b31b3c2104bf8f8810a3db08b4f7c4f624"
+    },
+    "candidate_vector_digest": "9abe4939217077c2db112eb9bea5b9670c7923c0ef3414cba1edbd4c0a9ca5c6",
+    "source_preserved": true,
+    "aliases_preserved": true,
+    "serving_authority_changed": false,
+    "acceptance": "SHADOW_PREPARED_QUERY_ENCODER_AND_CUTOVER_ADMISSION_STILL_REQUIRED"
+  },
+  "native_assertions": "Complete3point inventory, tenant and quarantine preservation, actual768dim document embeddings, source immutability, full candidate payload/vector verification, stale inventory rejected, existing target rejected, aliases unchanged",
+  "operator_cli_actual_run": true,
+  "operator_receipt_mode": "0600",
+  "production_touched": false,
+  "logical_identity_migration_performed": false,
+  "runtime_work_dir": "/workspace/scratch/881ca3efb91d/evidence/closure-nine/rag/reindex-live-48zdw9y2"
+}

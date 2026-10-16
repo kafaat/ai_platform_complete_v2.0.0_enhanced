@@ -24,6 +24,8 @@ import os
 import threading
 import time
 
+from cdse_native_product import NativeProduct
+
 logger = logging.getLogger("sahool.cdse")
 
 
@@ -516,6 +518,85 @@ class CdseQuotaExhausted(RuntimeError):
 CDSE_QUOTA_EXHAUSTED_CODE = "ACCESS_INSUFFICIENT_PROCESSING_UNITS"
 
 
+def build_process_payload(
+    *,
+    index: str,
+    bbox: list[float],
+    time_from: str,
+    time_to: str,
+    geometry: dict | None = None,
+    max_cloud_pct: float = 40.0,
+    mosaicking_order: str = MOSAIC_LEAST_CLOUD,
+    with_native_qa: bool = False,
+) -> dict:
+    """Pure request construction shared by processing and ready-product lookup."""
+    import cdse_native_product
+
+    evalscript = (
+        cdse_native_product.build_evalscript(index, INDEX_EXPR)
+        if with_native_qa
+        else build_evalscript(index)
+    )
+    bbox = _validate_bbox_4326(bbox)
+    width, height = bbox_dims(bbox)
+    bounds: dict = {
+        "bbox": bbox,
+        "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
+    }
+    geom = _geometry_object(geometry)
+    if geom:
+        bounds["geometry"] = geom
+    payload = {
+        "input": {
+            "bounds": bounds,
+            "data": [
+                {
+                    "type": _COLLECTION,
+                    "dataFilter": {
+                        "timeRange": {"from": time_from, "to": time_to},
+                        "maxCloudCoverage": _clamp_cloud_pct(max_cloud_pct),
+                        "mosaickingOrder": _validated_mosaicking_order(mosaicking_order),
+                    },
+                }
+            ],
+        },
+        "output": {
+            "width": width,
+            "height": height,
+            "responses": [{"identifier": "default", "format": {"type": "image/tiff"}}],
+        },
+        "evalscript": evalscript,
+    }
+    if with_native_qa:
+        payload["output"]["responses"].append(
+            {"identifier": "userdata", "format": {"type": "application/json"}}
+        )
+    return payload
+
+
+def backfill_request_identity(scene: dict, index: str, clip: dict | None) -> tuple[str, str]:
+    import hashlib
+
+    from cdse_native_product import request_digest
+    from raster_date_geo import bbox_from_geojson
+
+    day = str(scene.get("datetime") or "")[:10]
+    if len(day) != 10:
+        raise ValueError("cdse_native_request_date_missing")
+    payload = build_process_payload(
+        index=index,
+        bbox=scene.get("bbox") or bbox_from_geojson(clip),
+        time_from=f"{day}T00:00:00Z",
+        time_to=f"{day}T23:59:59Z",
+        geometry=clip,
+        max_cloud_pct=40.0,
+        with_native_qa=True,
+    )
+    return request_digest(payload), "cdse-evalscript-sha256:" + hashlib.sha256(
+        payload["evalscript"].encode()
+    ).hexdigest()
+
+
 class CdseClient:
     """عميل Process API مع ذاكرة توكن OAuth (client_credentials) آمنة للخيوط.
 
@@ -574,7 +655,8 @@ class CdseClient:
         geometry: dict | None = None,
         max_cloud_pct: float = 40.0,
         mosaicking_order: str = MOSAIC_LEAST_CLOUD,
-    ) -> bytes:
+        with_native_qa: bool = False,
+    ) -> bytes | NativeProduct:
         """يطلب من Process API حساب ``index`` للفترة، ويُرجِع GeoTIFF (بايتات).
 
         المؤشّر يُحسَب خادميّاً (evalscript) فيُعاد نطاقاً واحداً FLOAT32. ``geometry``
@@ -588,40 +670,21 @@ class CdseClient:
 
         يرفع عند فشل الشبكة/التصديق (يلتقطه المنسّق → fallback إلى Element84).
         """
+        # الصورة الخام (truecolor) تُوجَّه داخل build_evalscript إلى evalscript ألوان RGBA.
+        import cdse_native_product
         import httpx
 
-        # الصورة الخام (truecolor) تُوجَّه داخل build_evalscript إلى evalscript ألوان RGBA.
-        evalscript = build_evalscript(index)
-        bbox = _validate_bbox_4326(bbox)
-        width, height = bbox_dims(bbox)
-        bounds: dict = {
-            "bbox": bbox,
-            "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
-        }
-        geom = _geometry_object(geometry)
-        if geom:
-            bounds["geometry"] = geom
-        payload = {
-            "input": {
-                "bounds": bounds,
-                "data": [
-                    {
-                        "type": _COLLECTION,
-                        "dataFilter": {
-                            "timeRange": {"from": time_from, "to": time_to},
-                            "maxCloudCoverage": _clamp_cloud_pct(max_cloud_pct),
-                            "mosaickingOrder": _validated_mosaicking_order(mosaicking_order),
-                        },
-                    }
-                ],
-            },
-            "output": {
-                "width": width,
-                "height": height,
-                "responses": [{"identifier": "default", "format": {"type": "image/tiff"}}],
-            },
-            "evalscript": evalscript,
-        }
+        payload = build_process_payload(
+            index=index,
+            bbox=bbox,
+            time_from=time_from,
+            time_to=time_to,
+            geometry=geometry,
+            max_cloud_pct=max_cloud_pct,
+            mosaicking_order=mosaicking_order,
+            with_native_qa=with_native_qa,
+        )
+        evalscript = payload["evalscript"]
         max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
         base_backoff = _env_float("CDSE_PROCESS_RETRY_BASE_SECONDS", 5.0, minimum=0.0)
         max_backoff = _env_float("CDSE_PROCESS_RETRY_MAX_SECONDS", 120.0, minimum=1.0)
@@ -640,7 +703,7 @@ class CdseClient:
                     json=payload,
                     headers={
                         "Authorization": f"Bearer {self.token()}",
-                        "Accept": "image/tiff",
+                        "Accept": "application/tar" if with_native_qa else "image/tiff",
                     },
                     timeout=120.0,
                 )
@@ -688,6 +751,10 @@ class CdseClient:
                         _safe_log_payload(payload),
                     )
                     raise
+                if with_native_qa:
+                    return cdse_native_product.decode_response(
+                        resp.content, evalscript, request_payload=payload
+                    )
                 return resp.content
 
             if attempt >= max_retries:

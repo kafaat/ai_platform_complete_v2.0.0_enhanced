@@ -19,6 +19,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
 
+
+class RetrievalAdmissionError(ValueError):
+    """A known encoder/index admission failure; safe to map to unavailable."""
+
+
 _TOKEN_RE = re.compile(r"[\w\u0600-\u06FF\.]+", re.UNICODE)
 GLOBAL_REFERENCE_TENANT = "__global__"
 GLOBAL_REFERENCE_CLASSES = frozenset(
@@ -1284,13 +1289,26 @@ class HybridQdrantRetriever:
         qdrant: QdrantHttpClient,
         embeddings: EmbeddingProvider | None = None,
         bm25: BM25Index | None = None,
+        *,
+        retrieval_profile=None,
     ) -> None:
+        if retrieval_profile is None and getattr(qdrant, "collection", "").startswith(
+            "sahool_rag_reindex_"
+        ):
+            raise RetrievalAdmissionError(
+                "shadow collection requires an explicit serving profile manifest; legacy encoder refused"
+            )
         self.qdrant = qdrant
         self.embeddings = embeddings or HashEmbeddingProvider(qdrant.vector_size)
         self.bm25 = bm25 or BM25Index()
         self._chunks: dict[str, KnowledgeChunk] = {}
+        self.retrieval_profile = retrieval_profile
 
     def ingest(self, chunks: list[KnowledgeChunk]) -> int:
+        if self.retrieval_profile is not None:
+            raise RetrievalAdmissionError(
+                "versioned collection is immutable; prepare a new complete reindex"
+            )
         vectors = [self.embeddings.embed(chunk.text) for chunk in chunks]
         if not vectors:
             return 0
@@ -1316,7 +1334,17 @@ class HybridQdrantRetriever:
         مراجعٌ آليّ على #885. وتوصيفٌ يَعِد بأعدادٍ فقط يُغري قارئاً لاحقاً بجمعٍ
         أو مقارنةٍ على قيمةٍ ليست عدداً، ويُعطِّل الفحصَ الساكن حيث يلزم أكثر.
         """
-        payload_rows = self.qdrant.scroll_payloads()
+        payload_rows = (
+            self.retrieval_profile.read_rows(self.qdrant)
+            if self.retrieval_profile
+            else self.qdrant.scroll_payloads()
+        )
+        if self.retrieval_profile is not None:
+            self.retrieval_profile.validate_encoder(self.qdrant, self.embeddings)
+            self.retrieval_profile.validate_rows(payload_rows)
+            self.retrieval_profile.validate_vectors(self.qdrant)
+        elif any(p.get("metadata", {}).get("document_embedding_prefix") for _, p in payload_rows):
+            raise RetrievalAdmissionError("prefixed collection cannot use the legacy query encoder")
         chunks: list[KnowledgeChunk] = []
         skipped = 0
         by_reason: dict[str, int] = {}
@@ -1383,7 +1411,21 @@ class HybridQdrantRetriever:
         top_k_initial: int = 12,
         final_k: int = 5,
     ) -> list[RetrievedAnnotation]:
-        query_vector = self.embeddings.embed(query)
+        if self.retrieval_profile is not None:
+            self.retrieval_profile.validate_encoder(self.qdrant, self.embeddings)
+            self.retrieval_profile.validate_rows(self.retrieval_profile.read_rows(self.qdrant))
+            self.retrieval_profile.validate_vectors(self.qdrant)
+        query_vector = self.embeddings.embed(
+            ("search_query: " if self.retrieval_profile else "") + query
+        )
+        if self.retrieval_profile is not None:
+            self.retrieval_profile.validate_encoder(self.qdrant, self.embeddings)
+        if self.retrieval_profile is not None and (
+            len(query_vector) != 768
+            or not all(math.isfinite(v) for v in query_vector)
+            or not any(query_vector)
+        ):
+            raise RetrievalAdmissionError("profile embedding dimension mismatch")
         dense_rows = self.qdrant.search(
             query_vector, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
@@ -1392,6 +1434,12 @@ class HybridQdrantRetriever:
         # into two candidates.
         dense_map: dict[str, float] = {}
         for point_id, score, payload in dense_rows:
+            if self.retrieval_profile is not None:
+                self.retrieval_profile.validate_payload(payload)
+            elif payload.get("metadata", {}).get("document_embedding_prefix"):
+                raise RetrievalAdmissionError(
+                    "prefixed collection cannot use the legacy query encoder"
+                )
             try:
                 chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
             except (TypeError, ValueError):
@@ -1404,7 +1452,12 @@ class HybridQdrantRetriever:
             query, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
         sparse_map: dict[str, float] = {chunk.chunk_id: score for chunk, score in sparse_rows}
-        fused_scores, dense_ranks, sparse_ranks = weighted_rrf_scores(dense_map, sparse_map)
+        fused_scores, dense_ranks, sparse_ranks = weighted_rrf_scores(
+            dense_map,
+            sparse_map,
+            dense_weight=0.1 if self.retrieval_profile else 0.7,
+            sparse_weight=0.9 if self.retrieval_profile else 0.3,
+        )
         candidates = set(fused_scores)
         fused: list[RetrievedAnnotation] = []
         for cid in candidates:

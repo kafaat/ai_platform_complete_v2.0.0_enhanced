@@ -123,7 +123,10 @@ def test_product_identity_is_written_by_persistence_adapter():
     source = (_ROOT / "services/raster-service/raster_asset_persistence.py").read_text()
     assert "ProductIdentity(" in source
     assert "product_identity_key=_product_identity.key()" in source
-    assert "algorithm_version=raster_quality.ALGORITHM_VERSION" in source
+    assert (
+        'algorithm_version=(_validated.get("provenance") or {}).get("algorithm_version")' in source
+    )
+    assert "or raster_quality.ALGORITHM_VERSION" in source
     assert "field_geometry_hash=_field_geometry_hash" in source
 
 

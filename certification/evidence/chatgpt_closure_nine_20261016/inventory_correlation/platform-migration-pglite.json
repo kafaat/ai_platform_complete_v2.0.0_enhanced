@@ -1,0 +1,25 @@
+{
+  "engine": "PostgreSQL WASM",
+  "native": false,
+  "full_platform_schema": false,
+  "migration_sources": [
+    "migrations/v66_dispatch_decisions.sql",
+    "migrations/v67_dispatch_hardening.sql",
+    "migrations/v68_execution_ledger.sql",
+    "migrations/v78_decision_record.sql",
+    "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  ],
+  "applied": "migrations/v235_decision_chain_correlation.sql",
+  "passed": 8,
+  "cases": [
+    "historical orphan remains null",
+    "new direct orphan ledger stays compatible and explicitly unbound",
+    "missing physical decision stays compatible and unbound",
+    "invisible foreign dispatch does not leak or inherit",
+    "invisible foreign agronomic decision does not leak or inherit",
+    "caller cannot forge orphan correlation",
+    "actual dispatch-parent writer inherits stored identity",
+    "old outcome check still rejects queued"
+  ],
+  "rls_note": "v66/v68 RLS helper absent from subset; explicit canonical fixture policy, other migrations exact"
+}

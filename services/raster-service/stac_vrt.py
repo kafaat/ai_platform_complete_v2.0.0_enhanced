@@ -18,8 +18,10 @@ from xml.sax.saxutils import escape
 
 import rasterio
 from rasterio.enums import Resampling
+from rasterio.features import geometry_window
 from rasterio.shutil import copy as copy_raster
 from rasterio.vrt import WarpedVRT
+from rasterio.warp import transform_geom
 
 logger = logging.getLogger("raster-service.stac_vrt")
 
@@ -43,8 +45,9 @@ def _stac_calibration(
 
     Legacy Earth Search COGs have documented inconsistent BOA metadata (#66).
     Reject that collection regardless of the flag. Other explicit declarations
-    support local calibration experiments, not provider certification or release
-    of ``radiometry_containment``. No collection-wide scale/offset is assumed.
+    support explicit per-asset calibration. Production C1 processing additionally
+    requires TIFF agreement and its strict scene contract. No collection-wide
+    scale/offset is assumed; legacy containment remains in force.
     """
     if not item.get("id") or not item.get("collection"):
         raise ValueError("STAC calibration requires item and collection identity")
@@ -89,7 +92,13 @@ def _stac_calibration(
 
 
 def build_band_vrt(
-    band_hrefs: dict[str, str], out_dir: str = "/tmp", *, stac_item: dict | None = None
+    band_hrefs: dict[str, str],
+    out_dir: str = "/tmp",
+    *,
+    stac_item: dict | None = None,
+    clip_geometry: dict | None = None,
+    max_pixels: int | None = None,
+    require_tiff_calibration: bool = False,
 ) -> tuple[str, dict[str, int]]:
     """يبني VRT يكدّس COGs المنفصلة لكلّ نطاق ويُرجِع (مسار_vrt، خريطة_فهارس).
 
@@ -102,8 +111,9 @@ def build_band_vrt(
     bundle until all readers close, then remove the root and its sidecars.
     Partial bundles are removed if construction fails. This helper does not
     lift the Element84 production containment or certify provider calibration.
-    ``stac_item`` optionally supplies exact asset-bound raster:bands calibration
-    for offline acceptance work; missing/contradictory metadata is rejected.
+    ``stac_item`` optionally supplies exact asset-bound raster:bands calibration;
+    missing/contradictory metadata is rejected. The production C1 caller requires
+    matching TIFF metadata and a polygon-limited pixel budget.
     Without it, only existing TIFF metadata is preserved (not guessed).
     """
     ordered = [(b, band_hrefs[b]) for b in _BAND_ORDER if band_hrefs.get(b)]
@@ -120,6 +130,18 @@ def build_band_vrt(
         w, h, gt, crs = first.width, first.height, first.transform, first.crs
         if crs is None:
             raise ValueError("VRT target band has no CRS")
+        if clip_geometry is not None:
+            geometry = (
+                clip_geometry.get("geometry")
+                if clip_geometry.get("type") == "Feature"
+                else clip_geometry
+            )
+            if not geometry or geometry.get("type") not in {"Polygon", "MultiPolygon"}:
+                raise ValueError("STAC processing requires a polygon clip")
+            window = geometry_window(first, [transform_geom("EPSG:4326", crs, geometry)])
+            w, h, gt = int(window.width), int(window.height), first.window_transform(window)
+        if max_pixels is not None and w * h > max_pixels:
+            raise ValueError("STAC processing clip exceeds pixel budget")
         wkt = crs.to_wkt()
     os.makedirs(out_dir, exist_ok=True)
     stem = os.path.join(os.path.abspath(out_dir), f"stac_stack_{uuid.uuid4().hex[:10]}")
@@ -139,6 +161,19 @@ def build_band_vrt(
                     if stac_item is not None
                     else (src.scales[0], src.offsets[0])
                 )
+                if require_tiff_calibration:
+                    if (src.scales[0], src.offsets[0]) != (scale, offset):
+                        raise ValueError("C1 TIFF calibration must agree with its STAC asset")
+                    declaration = next(
+                        a["raster:bands"][0]
+                        for a in stac_item["assets"].values()
+                        if a.get("href") == _href
+                    )
+                    if (
+                        declaration.get("nodata") != src.nodatavals[0]
+                        or declaration.get("data_type") != src.dtypes[0]
+                    ):
+                        raise ValueError("C1 TIFF sample declaration conflicts with STAC asset")
                 source_nodata = src.nodatavals[0]
                 with WarpedVRT(
                     src,

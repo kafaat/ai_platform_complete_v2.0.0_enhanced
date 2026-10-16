@@ -1,0 +1,25 @@
+{
+  "recorded_at": "2026-10-16T17:18:22.888162+00:00",
+  "baseline_sha": "6e8cc0f9952c037550ae1644919f88c475dd89a7",
+  "scope": "Optional Nomic profile; no live consumer cutover, alias edit or seed promotion",
+  "regression": {
+    "command": "python -m pytest -q tests_v9/test_rag_*.py",
+    "passed": 251,
+    "failed": 0,
+    "skipped": 0,
+    "note": "Before final bounded profile payload scan; that tightening separately tested below."
+  },
+  "bounded_scan_and_transport": {
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0
+  },
+  "red_green": "profile-red-green.json",
+  "native": "native-profile-reindex-witness.json",
+  "development_validation_not_unseen_holdout": true,
+  "production_touched": false,
+  "logs": {
+    "profile-regression-final.log": "895e318551dd516588bd0b4e46adb5d9a42928f878eeed994a12c858660091cb",
+    "profile-bounded-scan-green.log": "f789cda474604d86fdfb80e72c0877381c9ec917d880bc04fbcd482441daa90d"
+  }
+}

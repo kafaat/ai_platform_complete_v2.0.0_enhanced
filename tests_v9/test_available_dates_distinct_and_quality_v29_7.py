@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import sys
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,17 @@ RASTER_MAIN = REPO / "services" / "raster-service" / "main.py"
 # التفكيك (phase-4): مسار الحفظ ومُستدعي insert_raster_asset انتقلا من main.py
 # إلى raster_asset_persistence.py (main يعيد تصديرها فقط). نقرأ الوحدتَين معاً.
 RASTER_PERSIST = REPO / "services" / "raster-service" / "raster_asset_persistence.py"
+
+
+@pytest.fixture
+def isolated_raster_imports():
+    """Restore service import scope after running the actual persistence adapter."""
+    previous = dict(sys.modules)
+    yield
+    raster_root = str(RASTER_PERSIST.parent) + "/"
+    for name, module in tuple(sys.modules.items()):
+        if name not in previous and str(getattr(module, "__file__", "")).startswith(raster_root):
+            sys.modules.pop(name, None)
 
 
 def _fn_body(src: str, marker: str) -> str:
@@ -114,19 +126,53 @@ def test_insert_writes_v105_quality_columns() -> None:
         assert p in params, f"insert_raster_asset يفتقد المعامل {p}"
 
 
-def test_caller_passes_quality_values_from_stats() -> None:
-    """المُستدعي في main.py يمرّر confidence/cloud_pct/cloud_mask_sources فعلاً."""
-    src = " ".join(
-        (
-            RASTER_MAIN.read_text(encoding="utf-8")
-            + "\n"
-            + RASTER_PERSIST.read_text(encoding="utf-8")
-        ).split()
+@pytest.mark.parametrize("quality", [None, 0.0, 0.87])
+def test_caller_passes_quality_values_from_stats(
+    monkeypatch, isolated_raster_imports, quality
+) -> None:
+    """Actual persistence prefers measured QA, retaining legacy confidence fallback."""
+    from types import SimpleNamespace
+
+    monkeypatch.syspath_prepend(str(RASTER_PERSIST.parent))
+    import db_persist
+    from raster_asset_persistence import persist_raster_asset
+
+    captured = {}
+
+    async def insert(**kwargs):
+        captured["asset"] = kwargs
+        return True
+
+    async def registry(**kwargs):
+        captured["registry"] = kwargs
+        return True
+
+    monkeypatch.setattr(db_persist, "insert_raster_asset", insert)
+    monkeypatch.setattr(db_persist, "insert_raster_registry_entry", registry)
+    req = SimpleNamespace(
+        field_id="fld_quality",
+        tenant_id="00000000-0000-4000-8000-000000000001",
+        scene_id="scene-quality",
+        capture_datetime="2026-10-01T07:30:00Z",
+        source_format=SimpleNamespace(value="sentinel2_l2a"),
+        indicator=SimpleNamespace(value="ndvi"),
+        bands=None,
     )
-    assert 'quality_score=stats.get("confidence")' in src, "quality_score لا يُمرَّر من stats"
-    assert 'aoi_cloud_pct=stats.get("cloud_pct")' in src, "aoi_cloud_pct لا يُمرَّر من stats"
-    assert 'cloud_mask_sources=stats.get("cloud_mask_sources")' in src, (
-        "cloud_mask_sources لا يُمرَّر من stats"
+    stats = {
+        "confidence": 0.25,
+        "cloud_pct": 7.0,
+        "cloud_mask_sources": ["scl"],
+        "valid_pixels": 93,
+        "nodata_pixels": 7,
+    }
+    if quality is not None:
+        stats["quality_score"] = quality
+    assert persist_raster_asset(
+        req, "https://example.invalid/quality.tif", {}, [44, 15, 44.1, 15.1], stats
     )
-    # النَّسَب (provenance) يحفظ cloud_mask_sources أيضاً (كان يُنتَج ويُسقَط).
-    assert '"cloud_mask_sources",' in src, "provenance لا يحفظ cloud_mask_sources"
+    expected = quality if quality is not None else stats["confidence"]
+    assert captured["asset"]["quality_score"] == expected
+    assert captured["registry"]["quality_score"] == expected
+    assert captured["asset"]["aoi_cloud_pct"] == stats["cloud_pct"]
+    assert captured["asset"]["cloud_mask_sources"] == stats["cloud_mask_sources"]
+    assert captured["asset"]["provenance"]["stats"]["cloud_mask_sources"] == ["scl"]

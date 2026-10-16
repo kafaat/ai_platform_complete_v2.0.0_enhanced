@@ -480,6 +480,7 @@
           "services/decision-service/main.py",
           "services/decision-service/tests/test_activation_evidence_contract.py",
           "services/decision-service/tests/test_agronomic_evidence_contract.py",
+          "services/decision-service/tests/test_correlation_http_projection.py",
           "services/decision-service/tests/test_decision_evidence_read.py",
           "services/decision-service/tests/test_execution_request_feed.py",
           "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
@@ -1330,6 +1331,8 @@
         "QDRANT_SEED_REVISION",
         "QDRANT_SEED_TENANT_ID",
         "QDRANT_URL",
+        "RAG_REINDEX_OLLAMA_URL",
+        "RAG_REINDEX_QDRANT_URL",
         "SAHOOL_ENV"
       ],
       "container": {
@@ -1346,6 +1349,7 @@
       "entrypoint": "-",
       "evidence_paths": {
         "configuration": [
+          "services/qdrant-seed/reindex.py",
           "services/qdrant-seed/seed.py",
           "services/qdrant-seed/test_aljawf_knowledge.py"
         ],
@@ -1360,7 +1364,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
-        "QDRANT_API_KEY"
+        "QDRANT_API_KEY",
+        "RAG_REINDEX_QDRANT_API_KEY"
       ],
       "service": "qdrant-seed",
       "source_service": "qdrant-seed",
@@ -1386,6 +1391,7 @@
         "OLLAMA_BASE_URL",
         "QDRANT_COLLECTION",
         "QDRANT_URL",
+        "RAG_REINDEX_PROFILE_MANIFEST",
         "RAG_SPARSE_REVALIDATE_SECONDS"
       ],
       "container": {

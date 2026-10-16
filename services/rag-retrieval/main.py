@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
+import urllib.error
+from pathlib import Path
 from typing import Any
 
 from core.rag.production_qdrant import (
@@ -10,6 +13,7 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     OllamaEmbeddingProvider,
     QdrantHttpClient,
+    QdrantHTTPError,
     payload_snapshot_digest,
     readiness_problems,
     visible_corpus_count,
@@ -25,6 +29,24 @@ from shared.security.trusted_tenant import (
     service_token_ok,
 )
 
+# The profile and transport belong to the canonical retrieval runtime.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from retrieval_profile import RetrievalAdmissionError, RetrievalProfile  # noqa: E402
+from runtime_transport import (  # noqa: E402
+    ReindexOllamaProvider,
+    ReindexQdrantClient,
+    RetrievalDependencyError,
+)
+
+_RETRIEVAL_UNAVAILABLE_ERRORS = (
+    RetrievalAdmissionError,
+    RetrievalDependencyError,
+    QdrantHTTPError,
+    urllib.error.URLError,
+    TimeoutError,
+    ConnectionError,
+)
+
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
 COLLECTION = os.getenv("QDRANT_COLLECTION", "sahool_agri_kb")
@@ -37,7 +59,14 @@ _qdrant = QdrantHttpClient(
     vector_size=0,  # learned from live Ollama embedding response before collection creation
     api_key=os.getenv("QDRANT_API_KEY") or None,
 )
-_retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
+_profile_path = os.getenv("RAG_REINDEX_PROFILE_MANIFEST")
+_profile = RetrievalProfile.from_file(_profile_path) if _profile_path else None
+if _profile is not None:
+    _embedding_provider = ReindexOllamaProvider(OLLAMA_BASE_URL, EMBEDDING_MODEL)
+    _qdrant = ReindexQdrantClient(
+        QDRANT_URL, COLLECTION, vector_size=768, api_key=os.getenv("QDRANT_API_KEY") or None
+    )
+_retriever = HybridQdrantRetriever(_qdrant, _embedding_provider, retrieval_profile=_profile)
 _sparse_ready = False
 _sparse_report: dict[str, Any] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
 # D10 — لحظةُ آخرِ إعادةِ تحقّقٍ من صلاحيّة الفهرس الدافئ، وعمرُها.
@@ -314,6 +343,8 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
         sparse = _ensure_sparse_index()
         if visible_corpus_count(sparse, tenant_id) == 0:
             raise ValueError("tenant has no active readable corpus")
+    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+        raise HTTPException(503, "rag_retrieval_unavailable") from exc
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
     filters = {
@@ -322,5 +353,12 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
         "region": req.region,
         "source_type": req.source_type,
     }
-    rows = _retriever.retrieve(req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k)
+    try:
+        rows = _retriever.retrieve(
+            req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k
+        )
+    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+        # Warm-index admission is rechecked inside retrieve. Never expose upstream
+        # URLs, response bodies or credentials, and never fall back to legacy.
+        raise HTTPException(503, "rag_retrieval_unavailable") from exc
     return {"annotations": [r.as_annotation() for r in rows]}

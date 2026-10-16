@@ -607,5 +607,7 @@
 \i migrations/v233_event_outbox_claim_lease.sql
 \echo '═══ 231. v234_learning_agronomic_review.sql ═══'
 \i migrations/v234_learning_agronomic_review.sql
-\echo '═══ 232. v206_rls_final_hardening.sql ═══'
+\echo '═══ 232. v235_decision_chain_correlation.sql ═══'
+\i migrations/v235_decision_chain_correlation.sql
+\echo '═══ 233. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

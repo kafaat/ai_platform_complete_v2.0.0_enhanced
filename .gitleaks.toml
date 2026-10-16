@@ -51,3 +51,30 @@ regexes = [
   # a self-describing test value, never a deployed secret. Narrow and literal.
   '''test_secret_min_32_chars_for_sahool_v9''',
 ]
+
+# Preserve reviewed evidence across squash/rebase: each exception requires BOTH
+# the exact file path and exact extracted digest, only for generic-api-key.
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Historical published Git commit ID (PR #1182), not an API credential"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github\.json$''']
+regexes = ['''^02fbc3107e0dfbedef025117b83e657192133228$''']
+
+[[rules.allowlists]]
+description = "Recomputed SHA-256 of raster_api_models.py, not an API credential"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/imagery/receipt\.json$''']
+regexes = ['''^76b7b032c534ce7a1bf634460f5908acdec76b6e89d9897eda1c216500e78036$''']
+
+[[rules.allowlists]]
+description = "SHA-256 of tokenizer.json produced by NomicOnnx, not a token"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/rag/onnx-experiment-results\.json$''']
+regexes = ['''^d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66$''']

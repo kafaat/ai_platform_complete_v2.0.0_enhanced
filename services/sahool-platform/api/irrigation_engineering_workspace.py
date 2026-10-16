@@ -1211,6 +1211,19 @@ def validate_manual_weather_date(weather: dict, today: date) -> None:
         raise ValueError("manual_weather_date_stale_or_inconsistent")
 
 
+def missing_manual_plan_constraints(constraints: dict) -> list[str]:
+    """List absent approved manual-plan storage inputs in stable response order."""
+    required = (
+        "field_id",
+        "season_id",
+        "system_id",
+        "target_depth_mm",
+        "target_volume_m3",
+        "water_truth_digest",
+    )
+    return [key for key in required if constraints.get(key) in (None, "")]
+
+
 def manual_plan_window_and_quantities(
     start: str, end: str, constraints: dict, plan_digest: str
 ) -> tuple[datetime, datetime, float, float]:

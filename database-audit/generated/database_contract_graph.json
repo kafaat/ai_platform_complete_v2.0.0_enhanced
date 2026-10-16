@@ -232,6 +232,7 @@
       "v231_soil_reconciliation_deferrals.sql",
       "v233_event_outbox_claim_lease.sql",
       "v234_learning_agronomic_review.sql",
+      "v235_decision_chain_correlation.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1648,14 +1649,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 232,
+    "manifest_entries": 233,
     "manifest_missing_count": 0,
     "policies": 201,
     "production_certified": false,
     "rls_enabled": 214,
     "rls_forced": 195,
     "runtime_verified": false,
-    "sql_files": 234,
+    "sql_files": 235,
     "tables": 341,
     "tenant_rls_gaps": 135,
     "tenant_tables": 321,
@@ -1926,7 +1927,9 @@
       "code_readers": [
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
       ],
-      "code_writers": [],
+      "code_writers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py"
+      ],
       "created_in": "v178_canonical_as_applied_irrigation_truth.sql",
       "has_tenant_id": true,
       "manifest_position": 183,
@@ -1939,9 +1942,12 @@
     },
     {
       "code_readers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
       ],
-      "code_writers": [],
+      "code_writers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py"
+      ],
       "created_in": "v178_canonical_as_applied_irrigation_truth.sql",
       "has_tenant_id": true,
       "manifest_position": 183,
@@ -2033,9 +2039,11 @@
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "code_writers": [
+        "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
+        "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
@@ -2056,6 +2064,7 @@
         "services/raster-service/test_single_scene_concurrent_pg.py"
       ],
       "code_writers": [
+        "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
@@ -2537,12 +2546,15 @@
         "services/decision-service/backfill.py",
         "services/decision-service/migrations/020_learning_agronomic_lineage.sql",
         "services/decision-service/migrations/026_content_digest_lineage.sql",
+        "services/decision-service/migrations/036_decision_chain_correlation.sql",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_migration_036_correlation_pg16.py",
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/decision_explain.py",
@@ -2556,9 +2568,12 @@
       "code_writers": [
         "services/decision-service/migrations/002_decision_review.sql",
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/decision_chain_fixture.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_migration_036_correlation_pg16.py",
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -2633,6 +2648,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/field_twin.py",
@@ -2642,6 +2658,7 @@
       ],
       "code_writers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py"
@@ -2882,12 +2899,14 @@
     },
     {
       "code_readers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/execution_feedback.py",
         "services/sahool-platform/api/routers/field_twin.py"
       ],
       "code_writers": [
+        "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
         "services/sahool-platform/api/routers/decision_dispatch.py"
       ],
       "created_in": "v68_execution_ledger.sql",
@@ -5767,6 +5786,7 @@
     },
     {
       "code_readers": [
+        "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
@@ -5774,6 +5794,7 @@
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
       "code_writers": [
+        "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/raster-service/cache_invalidation_worker.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/test_backfill_processing_version_preflight.py"

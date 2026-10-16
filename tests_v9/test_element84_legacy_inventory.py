@@ -39,6 +39,8 @@ def connection(rows=None, privileged=False):
                         "table": table,
                         "enabled": True,
                         "forced": True,
+                        "applicable": True,
+                        "permissive": True,
                         "qual": "tenant_id::text = current_setting('app.current_tenant'::text, true)",
                     }
                     for table in TABLES
@@ -161,6 +163,8 @@ def test_unsupported_rls_context_refused(context):
             "table": table,
             "enabled": True,
             "forced": True,
+            "applicable": True,
+            "permissive": True,
             "qual": f"tenant_id::text = current_setting('{context}'::text, true)",
         }
         for table in TABLES
@@ -172,3 +176,85 @@ def test_unsupported_rls_context_refused(context):
 def test_missing_rls_metadata_refused():
     with pytest.raises(InventoryRefused, match="missing inventory"):
         validate_policies([])
+
+
+@pytest.mark.parametrize(
+    "qual",
+    [
+        "tenant_id::text = current_setting('app.current_tenant'::text, true) OR true",
+        "tenant_id::text = current_setting('app.current_tenant'::text, true) AND false",
+        "tenant_id::text <> current_setting('app.current_tenant'::text, true)",
+        "other_tenant::text = current_setting('app.current_tenant'::text, true)",
+        "length(current_setting('app.current_tenant'::text, true)) > 0",
+        "tenant_id::text = current_setting('app.current_tenant'::text, true) AND field_id = 'subset'",
+    ],
+)
+def test_policy_context_token_alone_does_not_prove_canonical_scope(qual):
+    policies = [
+        {
+            "table": table,
+            "enabled": True,
+            "forced": True,
+            "applicable": True,
+            "permissive": True,
+            "qual": qual,
+        }
+        for table in TABLES
+    ]
+    with pytest.raises(InventoryRefused, match="canonical tenant"):
+        validate_policies(policies)
+
+
+def test_postgres_rendered_canonical_nullif_policy_is_accepted():
+    qual = (
+        "((tenant_id)::text = NULLIF(current_setting('app.current_tenant'::text, true), ''::text))"
+    )
+    validate_policies(
+        [
+            {
+                "table": table,
+                "enabled": True,
+                "forced": True,
+                "applicable": True,
+                "permissive": True,
+                "qual": qual,
+            }
+            for table in TABLES
+        ]
+    )
+
+
+def _policy_metadata(**overrides):
+    return [
+        {
+            "table": table,
+            "enabled": True,
+            "forced": True,
+            "applicable": True,
+            "permissive": True,
+            "qual": "tenant_id::text = current_setting('app.current_tenant'::text, true)",
+            **overrides,
+        }
+        for table in TABLES
+    ]
+
+
+@pytest.mark.parametrize("change", [{"applicable": False}, {"permissive": False}])
+def test_inventory_requires_applicable_permissive_policy(change):
+    with pytest.raises(InventoryRefused, match="applicable permissive"):
+        validate_policies(_policy_metadata(**change))
+
+
+@pytest.mark.parametrize("missing", ["applicable", "permissive"])
+def test_inventory_refuses_unmeasured_policy_role_metadata(missing):
+    policies = _policy_metadata()
+    for policy in policies:
+        del policy[missing]
+    with pytest.raises(InventoryRefused, match="policy role metadata"):
+        validate_policies(policies)
+
+
+def test_policy_for_unrelated_role_does_not_change_current_role_scope():
+    policies = _policy_metadata()
+    policies.append({**policies[0], "qual": "true", "applicable": False})
+    validate_policies(policies)

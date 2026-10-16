@@ -9553,3 +9553,8 @@ Recovered a full clone at the pinned main and merged the three pinned source PRs
 ### 2026-10-16 — Remaining allocation source follow-up after PR1199
 
 Started from merged main `9f0bcece487a8e9e2fc1ea590af5f2af5ab17504`. Prepared asset-bound STAC calibration metadata, lossless raster provenance transport with reviewed mask/availability safeguards, and a tenant-scoped read-only inventory tool. Independent review rejected promoting a requested mask to applied evidence and treating row creation as replacement-content availability. RAG runtime experiment and native database acceptance remain unavailable; no remaining gap is promoted. Evidence and limits: `certification/evidence/chatgpt_remaining_20261016/README.md`. This follow-up needs its own exact-tree preflight and CI; earlier #1199 green is not reused.
+
+
+### 2026-10-16 — متابعة الحصة التساعية على أساس 6e8cc0f9
+
+جمع فرع التكامل `chatgpt/close-nine-gaps-20261016` عمل ستة وكلاء؛ المصدر عند `4e796243344a1cba08e38c4775779cba1376b8da`. أربعة إصلاحات مصدرية: معايرة C1، نسب CDSE إلى Vegetation، ملف Nomic الاختياري، وإعداد إعادة فهرسة كاملة. خمس فجوات تبقى open، منها correlation حتى اختبار PostgreSQL الأصلي؛ لا verified ولا ادعاء دمج أو نشر. السبب: فصل الشاهد المصدري عن شروط الجرد والهجرات وتوافق النشر والسبب التاريخي. المصدر والدليل وحدود القياس في [فهرس المتابعة](../certification/evidence/chatgpt_closure_nine_20261016/README.md). الفحص الكامل والـPR الموحد خطوتان لاحقتان، لا نتيجتان مفترضتان.

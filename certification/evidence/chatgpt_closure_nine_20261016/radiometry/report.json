@@ -1,0 +1,96 @@
+{
+  "gap_id": "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+  "base_sha": "6e8cc0f9952c037550ae1644919f88c475dd89a7",
+  "at": "2026-10-16T16:22:58.245082+00:00",
+  "recommended_state": "fixed_in_source_supported_C1_only_not_verified",
+  "changes": [
+    "Earth Search v1 default collection switches to C1; actual collection is retained per scene so CDSE persistence identity is unchanged. No legacy fallback.",
+    "All three existing processing entrypoints dispatch only strictly bound C1 items/assets. Direct requests re-fetch server catalogue metadata, match requested hrefs, and preserve tenant ownership before scheduling.",
+    "Full8band identity + C1 provider HTTPS host/path + baseline >=05.00 excluding05.09 + matching capturetime + explicit finite calibration + matching TIFF scale/offset/nodata/dtype. Legacy/contradictory assets remain rejected.",
+    "MandatorySCL/rawQA/polygon/tenant; target grid limited1M pixels. TemporaryVRT sidecars survive synchronousprocessing then removed on success/failure."
+  ],
+  "red": {
+    "failed": 3,
+    "passed": 0,
+    "deselected": 21,
+    "scope": "Exact main versions of productionworker/router entrypoints exercised with new C1 fixture/helper. They reject C1 before processing; each new dispatch witness fails."
+  },
+  "green": {
+    "new_tests_passed": 24,
+    "existing_containment_and_defect_tests_passed": 100,
+    "raster_suite_skipped": 2,
+    "scope": "New syntheticTIFF runtime/identity/QA/clip tests plus offline replayofliveproviderbytes; skippedexistingnativePG tests because DBURLnotconfigured.",
+    "raster_suite_passed": 540
+  },
+  "live_provider": {
+    "item_id": "S2A_T38PNC_20261015T073428_L2A",
+    "scope": "Live remote window bytes replayed locally; full real C1 VRT + processing + QA + contract + COG, catalogue IO and output upload boundaries isolated. No DB/Railway writes. This is one scene, not certification of all provider assets.",
+    "bands": 8,
+    "expected_evi_mean": 0.04385126754641533,
+    "actual_evi_mean": 0.04385126754641533,
+    "raw_dn_wrong_evi_mean": 0.08374159783124924,
+    "double_offset_wrong_evi_mean": 0.042878955602645874,
+    "valid_pixels": 3600,
+    "cog_written": true,
+    "reflectance_normalized": true,
+    "cloud_mask_sources": [
+      "SCL"
+    ],
+    "qa": {
+      "schema": "sahool.raster_pixel_qa/1",
+      "raw_qa_required": true,
+      "quality_score": 0.9665,
+      "valid_pixel_ratio": 0.9365,
+      "cloud_pct": 0.0,
+      "shadow_pct": 0.0,
+      "snow_pct": 0.0,
+      "aerosol_pct": null,
+      "saturation_pct": 0.0,
+      "terrain_shadow_risk_pct": null,
+      "cast_shadow_risk_pct": null,
+      "slope_risk_pct": null,
+      "topographic_qa_applied": false,
+      "cloud_mask_applied": true,
+      "cloud_shadow_mask_applied": true,
+      "snow_mask_applied": true,
+      "aerosol_mask_applied": false,
+      "saturation_mask_applied": true,
+      "qa_layer_present": true,
+      "warnings": [],
+      "indicator_computed": false,
+      "fabricated_indicator": false
+    },
+    "source_item_sha256": "44de79129f328514fb784bfb960ba27eb7e215e4e5e9639c9b25f10553e35ae7"
+  },
+  "limits": [
+    "One liveAlJawfscene8bands measured, not certification of everyproviderasset.",
+    "LegacycollectioncannotbeuniquelycorrectedfromitscontradictorySTACmetadata; nohistoricalproductcorrection orinventoryperformedbythisagent.",
+    "NoRailwaywrites,noDBwrites,no productiondeployment or end-to-end runtimeverification. Fullpreflight and unifiedCI ownedbyparent.",
+    "Direct GDALHTTPSfailedCA in agentruntime. Captureusedordinaryurllib HTTPS withconfiguredverifiedCA and boundedHTTPRange reads; neverdisabledTLSverification. Offline replayredirectedremotehrefs to checksum-verifiedcroppedwindows; no fakeQA/numeric/COG boundary."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Element84/earth-search/blob/main/docs/collections/sentinel-2-l2a.md",
+      "finding": "Provider identifiesC1collection and perasset scale-then-offset; v2changescollectionidentity andexcludes05.09."
+    },
+    {
+      "url": "https://github.com/Element84/earth-search/issues/66",
+      "finding": "UnresolvedlegacyBOAflag/offsetcontradictions prohibit guessedlegacycorrection."
+    }
+  ],
+  "files_sha256": {
+    "services/raster-service/stac_c1_processing.py": "f0d460bc1e5a263330fde013ed342ee865ed7b1aff4e03a985047380917bff68",
+    "services/raster-service/test_stac_c1_processing.py": "e229ba24fdfbc2cee1b364002b7ce36d5d11fdea344fd38dba6210c1b8e33c90",
+    "services/raster-service/stac_vrt.py": "71f76ddbc1e73cc38444daa38a6b84d573401df2de22d760cbb8a60750b7197d",
+    "services/raster-service/stac_search.py": "ebc6961639b30ef115df446a6d122c320a4294e9d7aff2a7e7321d5f194160fc",
+    "services/raster-service/raster_settings.py": "f70f6719f5f8f19caba24aca42ffa6dd46b795e7b96960145adbcd5ee30b8f7d",
+    "services/raster-service/backfill_scan_worker.py": "115e1969a3fa0227706b6ab74816d81952ede3b531e50010a013f2e085bbed42",
+    "services/raster-service/routers/fields.py": "bcd3066e74bce8e8c820d88f15cbe172854a23f7952c228382f33e3a80d3e434"
+  },
+  "validation_log_sha256": {
+    "wiring-red.log": "b16ad2856b1e05d90e88deec07db07f4ee4299310468137e28b091c38b839a6a",
+    "new-green.log": "56129476ee1535d6442fd057c245d81cf220f895138abaf39813d8c4d1324ad4",
+    "raster-suite-final.log": "e3b9589ece55c7db0f98791264f2e156c62af42e02d675812832993fddc80927",
+    "provider-replay.log": "91545a1f7431dc6962e09dadf35ece5e87795924a884407f71e6bf615c19f938"
+  }
+}

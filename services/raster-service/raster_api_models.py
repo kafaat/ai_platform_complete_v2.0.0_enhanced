@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 
 class IndicatorKind(StrEnum):
@@ -80,6 +80,8 @@ class BandMapping(BaseModel):
 
 
 class ProcessRequest(BaseModel):
+    # Internal request-bound provider receipt; never accepted from API JSON.
+    _cdse_native_product: object = PrivateAttr(default=None)
     tenant_id: str
     field_id: str | None = None
     raster_url: str | None = None

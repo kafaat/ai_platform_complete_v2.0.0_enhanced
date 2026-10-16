@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 from datetime import date
 from pathlib import Path
 
@@ -30,11 +31,16 @@ def _sandbox(tmp_path: Path, monkeypatch):
             dst = tmp_path / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_text((ROOT / rel).read_text(encoding="utf-8"), encoding="utf-8")
-    # The review-only authorization also pins MANIFEST bytes. Copy the real file;
-    # absent or invented bytes must not qualify for the bounded interpretation.
-    manifest = tmp_path / "migrations/MANIFEST.txt"
-    manifest.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_bytes((ROOT / "migrations/MANIFEST.txt").read_bytes())
+    # This sandbox exercises the historical ISSUED U07 patch, not today's live
+    # tree. Later independent migrations legitimately change MANIFEST, while the
+    # consumed U07 grant must retain its original byte pins. Read those exact
+    # immutable Git objects; never rebind the grant or patch the validator.
+    # The unit CI checkout fetches full history, as the repository gates require.
+    for rel, blob in mod._U07_BLOBS.items():
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(subprocess.check_output(["git", "cat-file", "blob", blob], cwd=ROOT))
+        assert mod.GATE01.blob_sha(rel, root=tmp_path) == blob
     # مُدخَلا GATE-01 يُنسَخان أيضاً: قرار التأجيل يُقاس منهما، فتركُهما مُشيرَين إلى
     # الشجرة الحقيقيّة كان سيجعل حالات التأجيل تقيس شيئاً لا تتحكّم فيه.
     policy_dst = tmp_path / "docs/architecture/gate01_policy.json"
@@ -77,7 +83,7 @@ def _open_the_gate(tmp_path: Path):
 
 
 def _stamp_adjudication(tmp_path: Path, status: str):
-    adjudication = next((tmp_path / "docs/architecture/gates/adjudications").glob("*.json"))
+    adjudication = tmp_path / "docs/architecture/gates/adjudications" / f"{mod._U07_ID}.json"
     doc = json.loads(adjudication.read_text(encoding="utf-8"))
     doc["status"] = status
     doc.setdefault("allowed_paths", []).append(
@@ -270,6 +276,37 @@ def test_consumed_u07_is_not_reused_as_an_authorization(tmp_path, monkeypatch):
     assert mod._gate01_blocks(_DEFERRED_PAIR[0])
     policy = json.loads(mod.GATE01_POLICY.read_text(encoding="utf-8"))
     assert not mod._review_only_u07_authorization(doc, policy)
+
+
+def test_correlation_grant_cannot_authorize_u07_writer_or_cutover(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    path, u07 = _u07_document(tmp_path)
+    u07["status"] = "CONSUMED"
+    path.write_text(json.dumps(u07), encoding="utf-8")
+    # Put today's real MANIFEST back: no historical U07 authorization is being
+    # replayed. The separate correlation grant cannot authorize this writer.
+    (tmp_path / "migrations/MANIFEST.txt").write_bytes(
+        (ROOT / "migrations/MANIFEST.txt").read_bytes()
+    )
+    correlation_path = mod.GATE01_ADJUDICATIONS / "GATE01-ADJ-2026-10-16-002.json"
+    correlation = json.loads(correlation_path.read_text(encoding="utf-8"))
+    assert set(correlation["allowed_paths"]) == {
+        "migrations/MANIFEST.txt",
+        "docs/architecture/db_ownership.yml",
+    }
+    assert _DEFERRED_PAIR[0] not in correlation["allowed_paths"]
+    policy = json.loads(mod.GATE01_POLICY.read_text(encoding="utf-8"))
+    errors, used = mod.GATE01.evaluate(
+        [_DEFERRED_PAIR[0]],
+        policy,
+        [correlation],
+        {_DEFERRED_PAIR[0]: mod.GATE01.blob_sha(_DEFERRED_PAIR[0], root=tmp_path)},
+    )
+    assert errors and used is None
+    assert policy["gate"]["state"] == "CLOSED"
+    assert mod._gate01_blocks(_DEFERRED_PAIR[0])
+    assert mod.deferred_pairs() == [_DEFERRED_PAIR]
+    assert mod.findings() == []
 
 
 def test_another_issued_grant_still_revokes_deferral_alongside_valid_u07(tmp_path, monkeypatch):
