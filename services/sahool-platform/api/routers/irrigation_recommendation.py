@@ -18,7 +18,6 @@ import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 from api.canonical_water_stress import canonical_water_stress
 
@@ -27,21 +26,53 @@ from api.canonical_water_stress import canonical_water_stress
 from api.crop_decision_bridge import CANDIDATE_STAGE
 from api.decision_service_client import record_decision
 from api.field_context import _field_weather_context
+from api.irrigation_engineering_workspace import (
+    build_manual_source,
+    manual_canonical_location,
+    manual_canonical_snapshot,
+    validate_manual_weather_date,
+)
+from api.irrigation_models import FieldIrrigationRequest, IrrigationRecommendationRequest
 from api.irrigation_recommendation_policy import recommend_irrigation
 from api.irrigation_state_guard import assess_irrigation_state
 from api.main import (
     Permission,
     UserSchema,
     get_current_user,
+    has_permission,
     require_permission,
     tenant_connection,
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
-from api.weather_advice import complete_rain_total, precipitation_incomplete_detail
-from api.weather_service_client import get_et0_product, get_weather_forecast
+from api.weather_advice import precipitation_incomplete_detail
+from api.weather_service_client import (
+    field_irrigation_weather_snapshot,
+    get_et0_product,
+    get_weather_forecast,
+)
 
 router = APIRouter()
+
+
+async def persist_manual_specification(conn, source: dict, user_id: str) -> None:
+    """Append-only v185 storage; deterministic identity makes retries harmless."""
+    spec = source["specification"]
+    await conn.execute(
+        """INSERT INTO irrigation_system_specifications
+           (specification_id,tenant_id,field_id,season_id,system_id,specification,content_digest,created_by)
+           VALUES ($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8::uuid)
+           ON CONFLICT (tenant_id,system_id,content_digest) DO NOTHING""",
+        "manual_spec_" + source["specification_digest"],
+        spec["tenant_id"],
+        source["field_id"],
+        source["season_id"],
+        source["system_id"],
+        json.dumps(spec),
+        source["specification_digest"],
+        user_id,
+    )
+
 
 _LOG = logging.getLogger("sahool.irrigation.et0")
 
@@ -81,49 +112,9 @@ async def _engine_et0(
 
 
 async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
-    """لقطة طقس اليوم من محرّك الطقس (المصدر الوحيد) — المسار الأساسيّ لـD.2c.
-
-    يجلب توقّع اليوم لموقع الحقل ويشتقّ day-of-year من ``valid_time``. تعذّر المحرّك
-    أو غياب أيّام ⇒ HTTPException (fail-closed؛ لا توصية على طقس مفقود). RH غير متوفّر
-    في التوقّع اليوميّ (ساعيّ فقط) ⇒ None (ET0 يسقط لـHargreaves صراحةً). نقطة وصل
-    قابلة للـmonkeypatch.
-    """
-    from datetime import date as _date
-
-    # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — يومُ اليوم لـ``rain_recent_mm``
-    # واليومان التاليان لـ``forecast_rain_mm``، وهي **نفسُ قسمة** ``routers/fields.py``
-    # (رصدُ اليوم + ``forecast[1:3]``). قسمةٌ ثانيةٌ هنا كانت ستُعطي المزارعَ توصيتين
-    # مختلفتين بحسب أيّ مسارٍ سأل.
-    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=3)
-    days = fc.get("days") or []
-    if not days:
-        raise HTTPException(
-            status_code=503,
-            detail="weather-engine forecast returned no days — fail-closed (no recommendation)",
-        )
-    d0 = days[0]
-    valid_time = d0.get("date")
-    try:
-        doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
-    except (TypeError, ValueError):
-        doy = None
-    # مطرُ اليوم + مجموعُ اليومين التاليين. ``complete_rain_total`` هو المصدرُ الواحد
-    # لقاعدة «لا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً» — فترةٌ ناقصةٌ ⇒ ``None``.
-    forecast_rain, _missing = complete_rain_total(
-        [d.get("precipitation_mm") for d in days[1:3]], expected_count=2
+    return await field_irrigation_weather_snapshot(
+        latitude_deg, longitude_deg, forecast_loader=get_weather_forecast
     )
-    return {
-        "t_min_c": d0.get("temp_min_c"),
-        "t_max_c": d0.get("temp_max_c"),
-        "wind_2m_ms": d0.get("wind_max_ms"),
-        "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
-        "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
-        "rain_recent_mm": d0.get("precipitation_mm"),
-        "forecast_rain_mm": forecast_rain,
-        "day_of_year": doy,
-        "valid_time": valid_time,
-        "source": "weather-engine-forecast",
-    }
 
 
 async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) -> dict:
@@ -146,43 +137,6 @@ def _et0_provenance(prod: dict) -> dict:
         "weather_snapshot_id": prod.get("weather_snapshot_id"),
         "source": "weather-engine",
     }
-
-
-class IrrigationRecommendationRequest(BaseModel):
-    crop: str | None = None
-    stage: str = "mid"  # initial|development|mid|late
-    t_min_c: float
-    t_max_c: float
-    # **إلزاميّتان بلا افتراضٍ صفريّ.** عميلٌ يُغفِلهما كان يحصل على توصيةٍ محسوبةٍ على
-    # «لا مطر» بلا أن يعلم — وهو الانحياز الذي يُغرِق. الحذفُ الآن ⇒ ٥٠٣ صريحة.
-    rain_recent_mm: float | None = None
-    forecast_rain_mm: float | None = None
-    soil_moisture_pct: float | None = None
-    kc_override: float | None = None  # Kc دقيق من الفينولوجيا إن توفّر
-    # طقس Penman-Monteith (اختياريّ — يسقط إلى Hargreaves عند الغياب)
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
-    # ── مدخلات الملوحة (فحص مخبريّ) ──
-    soil_ece: float | None = None  # ECe من soil_lab_tests
-    soil_ec_age_days: int | None = None  # عُمر الفحص (للموثوقيّة)
-    crop_salt_tolerance_ece: float | None = None  # عتبة المحصول (FAO-56 T23)
-    salt_slope_pct: float | None = None
-    # ── مدخلات الغسل (مشروطة) ──
-    water_ec: float | None = None  # ECw ماء الريّ
-    drainage: str | None = None  # fast|medium|slow
-    irrigation_efficiency: float | None = None
-    # ── مدخلات الإجهاد المائيّ (استنزاف منطقة الجذور) — تقود قرار الإطلاق ──
-    depletion_mm: float | None = None  # Dr من water_ledger عبر الحالة الكنسيّة
-    taw_mm: float | None = None  # TAW من soil_water_params
-    raw_fraction: float = 0.5  # p (FAO-56)
-    water_stress_class: str | None = None  # normal|watch|critical (canonical)
-    policy: str | None = None  # water_saving|yield_max|profit_max|sustainability|risk_averse
-    water_price_per_m3: float | None = None  # لـ profit_max
-    yield_value_per_ha: float | None = None  # لـ profit_max
 
 
 @router.post("/api/v1/irrigation-recommendation")
@@ -258,29 +212,6 @@ async def irrigation_recommendation(
     )
 
 
-class FieldIrrigationRequest(BaseModel):
-    """المسار الأساسيّ: الطقس يُجلَب آليّاً من محرّك الطقس (WS-D.2c). الحرارة اختياريّة
-    كتجاوز يدويّ فقط — لا كمسار أساسيّ. الاستنزاف/TAW/التربة تُقرأ آليّاً من حالة الحقل."""
-
-    # تجاوز يدويّ اختياريّ (ليس المسار الأساسيّ) — None ⇒ جلب تلقائيّ من المحرّك.
-    t_min_c: float | None = None
-    t_max_c: float | None = None
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    day_of_year: int | None = None
-    root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
-    policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
-    water_price_per_m3: float | None = None
-    # مطرُ التجاوز اليدويّ — يُقرأ **فقط** مع تجاوز الحرارة. المسارُ الأساسيّ يجلبه من
-    # المحرّك، وغيابُه في التجاوز ⇒ ``dependency_unavailable`` لا صفر.
-    rain_recent_mm: float | None = None
-    forecast_rain_mm: float | None = None
-    # WS-D.2d: تقديم صريح للمرشَّح إلى خدمة القرار (لا تلقائيّ — احترام حوكمة الموافقة).
-    submit_to_decision: bool = False
-    yield_value_per_ha: float | None = None
-
-
 @router.post("/api/v1/fields/{field_id}/irrigation-recommendation")
 async def field_irrigation_recommendation(
     field_id: str,
@@ -299,6 +230,17 @@ async def field_irrigation_recommendation(
     """
     from datetime import date
 
+    canonical = None
+    if req.manual_execution:
+        if not has_permission(user, Permission.IRRIGATION_MANAGE):
+            raise HTTPException(
+                status_code=403, detail="manual irrigation specification requires irrigation manage"
+            )
+        if req.has_manual_evidence_overrides():
+            raise HTTPException(
+                status_code=422, detail="manual execution needs server water and weather evidence"
+            )
+
     async with tenant_connection(user) as conn:
         # سياق الحقل + الموسم النشط (يرفع 404 إن غاب الحقل).
         field_lat, field_lon, crop, stage, _days = await _field_weather_context(conn, field_id)
@@ -308,6 +250,29 @@ async def field_irrigation_recommendation(
             field_id,
         )
         season_id = season["season_id"] if season else None
+        if req.manual_execution:
+            from api.canonical_water_state import (
+                MAX_LEDGER_AGE_HOURS,
+                CanonicalWaterState,
+                resolve_canonical_water_state,
+            )
+
+            resolved = await resolve_canonical_water_state(
+                conn, tenant_id=str(user.tenant_id), field_id=field_id
+            )
+            if not isinstance(resolved, CanonicalWaterState) or not resolved.operational_eligible:
+                raise HTTPException(
+                    status_code=409, detail="manual_canonical_water_not_operational"
+                )
+            try:
+                canonical = manual_canonical_snapshot(
+                    resolved.to_dict(),
+                    str(season_id),
+                    req.manual_execution.season_id,
+                    MAX_LEDGER_AGE_HOURS,
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
         # أحدث استنزاف + عمره (نضارة) — مفقود يبقى None (لا صفر مُختلَق).
         lrow = await conn.fetchrow(
             "SELECT depletion_mm, confidence, soil_moisture_pct, ledger_date, decision, "
@@ -386,6 +351,29 @@ async def field_irrigation_recommendation(
         root_depth_supplied=req.root_depth_m is not None and req.root_depth_m > 0,
     )
     taw_source = soil_prov["taw"]["source"]
+    if canonical is not None:
+        # The manual target uses one server-owned root-zone/water state, not a client fallback.
+        if (
+            applied_status != "recorded"
+            or depletion_mm is None
+            or float(depletion_mm) != canonical["depletion_mm"]
+            or str(ledger_date) != canonical["ledger_date"]
+        ):
+            raise HTTPException(status_code=409, detail="manual_water_changed_or_applied_unknown")
+        depletion_mm = canonical["depletion_mm"]
+        dep_conf = canonical["depletion_confidence"]
+        ledger_age_hours = canonical["ledger_age_hours"]
+        taw_mm = canonical["taw_mm"]
+        sw = {**sw, "raw_fraction": canonical["raw_fraction"]}
+        taw_source = "canonical_root_zone_profile"
+        crop = canonical["crop"]
+        stage = canonical["growth_stage"]
+        soil_prov = {
+            **soil_prov,
+            "confidence_penalty": 0.0,
+            "taw": {"source": taw_source},
+            "canonical_evidence": canonical["evidence"],
+        }
 
     state = assess_irrigation_state(
         depletion_mm=depletion_mm,
@@ -457,6 +445,11 @@ async def field_irrigation_recommendation(
         )
 
     _elev_default_m = 2000.0
+    if canonical is not None:
+        try:
+            field_lat, field_lon, _elev_default_m = manual_canonical_location(canonical)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     # WS-D.2c: الطقس يُجلَب آليّاً من محرّك الطقس (المسار الأساسيّ). حرارة الطلب تجاوز
     # يدويّ فقط. تعذّر جلب الطقس ⇒ dependency_unavailable (لا توصية على طقس مفقود).
@@ -544,7 +537,14 @@ async def field_irrigation_recommendation(
             "calibrated": False,
         }
 
-    # ET0 من محرّك الطقس (المصدر الوحيد) بلقطة الحقل. الارتفاع افتراض الهضبة (2000م).
+    # Manual source uses canonical elevation and a current dated server forecast.
+    if canonical is not None:
+        try:
+            validate_manual_weather_date(wx, date.today())
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    # ET0 from the weather engine; legacy nonmanual elevation remains unchanged.
     try:
         et0_prod = await _engine_et0(
             t_min_c=wx["t_min_c"],
@@ -669,6 +669,26 @@ async def field_irrigation_recommendation(
             "policy": rec.get("policy"),
             "requires_expert_review": bool(rec.get("requires_expert_review")),
         }
+        if req.manual_execution:
+            try:
+                source = build_manual_source(
+                    intent=req.manual_execution,
+                    tenant_id=str(user.tenant_id),
+                    field_id=field_id,
+                    season_id=str(season_id),
+                    canonical=canonical,
+                    applied_status=applied_status,
+                    recommendation=rec,
+                    weather=wx,
+                    et0=et0_prod,
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            # Persist the declared specification before submission. It is not an approval;
+            # decision-service reviews the exact source, including declaration provenance.
+            async with tenant_connection(user) as conn:
+                await persist_manual_specification(conn, source, str(user.user_id))
+            candidate["manual_execution_source"] = source
         # IRRIGATION-CANDIDATE-HAS-NO-LINEAGE-01: بلا `candidate_lineage_id` كان الاعتمادُ يفشل دائماً
         # (`candidate_lineage_mismatch` — NULL لا يساوي شيئاً). النَّسَبُ بصمةُ المحتوى نفسِه (نمطُ MPC)،
         # والمعرّفُ حتميٌّ منه، فإعادةُ التقديم بالمحتوى نفسِه إعادةٌ لا مرشّحٌ ثانٍ.

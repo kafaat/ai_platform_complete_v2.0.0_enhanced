@@ -589,6 +589,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 offset = src.offsets[idx - 1]
             return scale, offset
 
+        normalization_applied: dict[int, bool] = {}
+
         def band(idx):
             """يقرأ نطاقاً كـfloat32 مع قصّ اختياري + تحويل DN→انعكاس [0,1].
 
@@ -598,6 +600,15 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             if not idx:
                 return None
             _sc, _of = _refl_params(idx)
+            # GDAL defaults (1, 0) do not attest that raw DN are reflectance.
+            effective_scale = 1.0 if _sc is None else float(_sc)
+            effective_offset = 0.0 if _of is None else float(_of)
+            normalization_applied[idx] = bool(
+                np.isfinite(effective_scale)
+                and effective_scale > 0
+                and np.isfinite(effective_offset)
+                and (effective_scale != 1 or effective_offset != 0)
+            )
             cache_key = (
                 "reflectance",
                 read_context,
@@ -621,10 +632,10 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
                 _out["transform"] = t
                 a = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
-                a = src.read(idx).astype("float32")
+                a = np.ma.filled(src.read(idx, masked=True).astype("float32"), np.nan)
             # حوّل nodata إلى NaN كي لا يلوّث حساب المؤشّر (قبل المقياس كي لا يُزاح الحارس)
-            if src.nodata is not None:
-                a = np.where(a == src.nodata, np.nan, a)
+            # Per-band masked reads above preserve nodata and internal masks.
+            # A dataset-level nodata value may belong to a different band.
             a = np.where(a == nodata_val, np.nan, a)
             # تحويل DN→انعكاس [0,1] لصحّة المؤشّرات المعتمِدة على المقياس (EVI/SAVI/MSAVI).
             a = ctx.band_math.to_reflectance(a, _sc, _of, np)
@@ -958,7 +969,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
             bounds_4326=bounds,
             topographic_qa=topographic_qa,
             cloud_mask_strategy=_cloud_strategy,
-            reflectance_normalized=True,
+            reflectance_normalized=bool(normalization_applied)
+            and all(normalization_applied.values()),
             source_uri=getattr(req, "raster_url", None),
         )
         raster_validated_product.assert_indicator_accepts_validated_product(validated_product)

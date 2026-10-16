@@ -1,0 +1,67 @@
+[
+  {
+    "path": "frontend/src/services/api/irrigationManualCreation.ts",
+    "before_sha256": "1a718a733e644ba8c9194dc028fc71200eefa5cdc58c3a902dcf2b90f17fd37c",
+    "after_sha256": "9cd30223e1f9694732bcb1b9f08b8793578b88ea83372bd8ae117f21d3463302"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationManualCreation.test.ts",
+    "before_sha256": "33f6915b5bb7f0a11458e21ab9bb7af4ca1abe000efc8eb61321278c732e647a",
+    "after_sha256": "39cb768522656177f90861008e525767f922af806c740432839ba57ed269bacc"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.tsx",
+    "before_sha256": "3a5db15977f9a52f085dc2636a7cbd5710a5fca8316601aa81cb57537b69b778",
+    "after_sha256": "a6842f524048c88a9d7f442978e05e0ece162737ea82b5141e5dad5c690e015f"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.test.tsx",
+    "before_sha256": "d4dea8d0179c5f63333c95eb25b7575c065a987949298ed706efc08fdd74625c",
+    "after_sha256": "d9354ed13eddcde5d914e43081b7a7c3a6ecddebe61a08ec6c773181f913b265"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_engineering_workspace.py",
+    "before_sha256": "3d29433b7d329f37276160049e62cad97c3aa88f6deaffdf9a2221ae91c8f6dc",
+    "after_sha256": "9e00d1b3fd46a99220fdfc818bd7755c064b41a5f9d8f74257f2cca85003bd53"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+    "before_sha256": "2fa4155a349c2edf060b5f4d6b6d2dbcd8e9e69b49b8a4b2c685d5f7e6dd24a2",
+    "after_sha256": "35d95194b223cfd50dd02a325940933d8c11acfc845c1e8943260c9f0ea480c6"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision_review.py",
+    "before_sha256": "70a2843d4d621eeba727a45545ea44f16b64493d2341be3b746168b9a6dafeff",
+    "after_sha256": "e21dfaeff0bc2c262c85686d1a014104b0f3ab99e50f4ce72cd8127ea96cb454"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_service_client.py",
+    "before_sha256": "b065f03fd23f5bfc2211ee7d98bad29edcb7e7733c2cf8b9c17de7e9d6b00405",
+    "after_sha256": "8a06bc46a324bff2e573afcb04f48e422c6803d270b917d63306ba34d127e86f"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
+    "before_sha256": null,
+    "after_sha256": "799d98b5a688a8eecf1bbeab8733c2cb888032e27a8e3e9fa9e8c8697b426dee"
+  },
+  {
+    "path": "services/decision-service/main.py",
+    "before_sha256": "614a473a4c21199001278ad05812b6fbbcd6dcffea09cd2c4865d5dfa59406b5",
+    "after_sha256": "1086e4f1e9d8d70c5744f71cec371bcf3919e9c57a9db1ee4a148704ee756e00"
+  },
+  {
+    "path": "services/decision-service/persistence.py",
+    "before_sha256": "49a618351147199d59f1681848d373c1d32987f7b34b5166f6b416f4c86fda27",
+    "after_sha256": "9473f764f139ca577c375568bca2cafb4e0044acc5d7275a55f7bedfcea4d763"
+  },
+  {
+    "path": "services/decision-service/tests/test_manual_irrigation_source_binding.py",
+    "before_sha256": null,
+    "after_sha256": "57b95a9ea4566cf0667f098e84ac02ae6af7d6bc4d2702c75d451e0f001ea174"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx10_8_review_queue.py",
+    "before_sha256": "2362c18a79ed7650a9c50c69d17b0ae2edb53f4ddba3739b82a77911919d73b1",
+    "after_sha256": "caf1c4c60fcb3a171c85c04bed1a9ce1761bd0927ddf982a1e65c72ca4d45425"
+  }
+]

@@ -1,0 +1,67 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const runtime='/workspace/scratch/881ca3efb91d/runtime/node_modules/@electric-sql/pglite/dist';
+const {PGlite}=await import(`${runtime}/index.js`);
+const {pgcrypto}=await import(`${runtime}/contrib/pgcrypto.js`);
+const repo=process.argv[2], dir=process.argv[3];
+const queries=JSON.parse(fs.readFileSync(`${dir}/captured-queries.json`));
+const db=new PGlite({extensions:{pgcrypto}});
+const checks=[];
+const t='00000000-0000-0000-0000-000000000001', other='00000000-0000-0000-0000-000000000002';
+try {
+ for(const name of ['001_decision_sor.sql','002_decision_review.sql','003_execution_plan.sql','026_content_digest_lineage.sql','035_decision_version_binding.sql']) await db.exec(fs.readFileSync(`${repo}/services/decision-service/migrations/${name}`,'utf8'));
+ checks.push('Actual migrations 001/002/003/026/035 applied unchanged with pgcrypto');
+ const fixtures=[
+  ['approved',t,'f','s','approved','irrigation','candidate','a','a','a'],
+  ['pending',t,'f','s','pending_approval','irrigation','candidate','a',null,null],
+  ['tenant-other',other,'f','s','approved','irrigation','candidate','a','a','a'],
+  ['field-other',t,'other','s','approved','irrigation','candidate','a','a','a'],
+  ['season-other',t,'f','other','approved','irrigation','candidate','a','a','a'],
+  ['type-other',t,'f','s','approved','fertilizer','candidate','a','a','a'],
+  ['stage-other',t,'f','s','approved','irrigation','decision','a','a','a'],
+  ['review-stale',t,'f','s','approved','irrigation','candidate','a','b','a'],
+  ['plan-stale',t,'f','s','approved','irrigation','candidate','a','a','b'],
+  ['review-tenant-other',t,'f','s','approved','irrigation','candidate','a','a','a'],
+  ['plan-tenant-other',t,'f','s','approved','irrigation','candidate','a','a','a'],
+  ['review-lineage-other',t,'f','s','approved','irrigation','candidate','a','a','a'],
+  ['plan-lineage-other',t,'f','s','approved','irrigation','candidate','a','a','a'],
+ ];
+ for(const [id,tenant,field,season,state,type,stage,digest,reviewDigest,planDigest] of fixtures){
+  await db.query("INSERT INTO decision_record(decision_id,tenant_id,field_id,decision_type,stage,decision_value,review_state,candidate_lineage_id,decision_value_digest) VALUES($1,$2,$3,$4,$5,$6,$7,'lin',$8)",[id,tenant,field,type,stage,JSON.stringify({season_id:season}),state,digest.repeat(64)]);
+  if(reviewDigest) await db.query("INSERT INTO decision_reviews(review_id,decision_id,tenant_id,action,previous_state,new_state,reviewed_by,candidate_lineage_id,idempotency_key,request_hash,policy_version,approved_decision_value_digest) VALUES($1,$2,$3,'approve','pending_approval','approved','user',$4,$1,'hash','v1',$5)",['rev-'+id,id,id==='review-tenant-other'?other:tenant,id==='review-lineage-other'?'other':'lin',reviewDigest.repeat(64)]);
+  if(planDigest) await db.query("INSERT INTO decision_execution_plans(execution_plan_id,tenant_id,decision_id,review_id,candidate_lineage_id,operation_type,idempotency_key,request_hash,created_by,decision_value_digest) VALUES($1,$2,$3,$4,$5,'manual_irrigation',$1,'hash','user',$6)",['plan-'+id,id==='plan-tenant-other'?other:tenant,id,'rev-'+id,id==='plan-lineage-other'?'other':'lin',planDigest.repeat(64)]);
+ }
+ const result=(await db.query(queries[0].sql,queries[0].params)).rows;
+ const row=id=>result.find(r=>r.decision_id===id);
+ assert(row('approved').saved_review.review_id==='rev-approved');
+ assert(row('approved').saved_plan.execution_plan_id==='plan-approved');checks.push('Approved review and saved plan survive authoritative reload');
+ assert(row('pending').saved_review===null && row('pending').saved_plan===null);checks.push('Pending candidate remains visible without invented approval');
+ for(const id of ['tenant-other','field-other','season-other','type-other','stage-other']){assert(!row(id)); checks.push(`Excluded ${id}`);}
+ for(const id of ['review-stale','review-tenant-other','review-lineage-other']){assert(row(id).saved_review===null && row(id).saved_plan===null);checks.push(`No approval or plan binding for ${id}`);}
+ for(const id of ['plan-stale','plan-tenant-other','plan-lineage-other']){assert(row(id).saved_review!==null && row(id).saved_plan===null);checks.push(`No plan binding for ${id}`);}
+ const pending=(await db.query(queries[1].sql,queries[1].params)).rows;
+ assert.deepEqual(pending.map(r=>r.decision_id),['pending']); checks.push('Default queue remains pending only');
+ // Run unchanged RLS migrations with the minimum unrelated fixture tables v194 requires.
+ for(const name of ['recommendations','work_orders','actuator_command_dedup','lineage_link']) await db.exec(`CREATE TABLE ${name}(tenant_id uuid NOT NULL)`);
+ await db.exec(fs.readFileSync(`${repo}/migrations/v194_fii_chemical_chain_rls_fail_closed.sql`,'utf8'));
+ for(const name of ['033_tenant_boundary_hardening.sql','034_tenant_boundary_policy_composition.sql']) await db.exec(fs.readFileSync(`${repo}/services/decision-service/migrations/${name}`,'utf8'));
+ await db.exec('CREATE ROLE irrigation_workflow_reader NOSUPERUSER NOBYPASSRLS; GRANT USAGE ON SCHEMA public TO irrigation_workflow_reader; GRANT SELECT ON ALL TABLES IN SCHEMA public TO irrigation_workflow_reader; SET ROLE irrigation_workflow_reader;');
+ assert.equal((await db.query(queries[0].sql,queries[0].params)).rows.length,0);
+ checks.push('Non-bypass RLS role sees no rows without transaction-local tenant');
+ const transaction=JSON.parse(fs.readFileSync(`${dir}/captured-scoped-transaction.json`));
+ let secured=[];
+ for(const c of transaction){const out=await db.query(c.sql,c.params);if(c.sql.includes('SELECT d.decision_id')) secured=out.rows;}
+ assert.deepEqual(secured.map(r=>r.decision_id).sort(),result.map(r=>r.decision_id).sort());
+ assert.equal(secured.find(r=>r.decision_id==='approved').saved_review.review_id,'rev-approved');
+ checks.push('Exact application BEGIN/bind/read/COMMIT returns approval under FORCE RLS');
+ assert.equal((await db.query("SELECT NULLIF(current_setting('app.current_tenant',true),'') AS tenant")).rows[0].tenant,null);
+ assert.equal((await db.query(queries[0].sql,queries[0].params)).rows.length,0);
+ checks.push('Commit clears transaction-local tenant before pooled connection reuse');
+ await db.exec('BEGIN');await db.query("SELECT set_config('app.current_tenant',$1,true)",[other]);
+ assert.equal((await db.query(queries[0].sql,queries[0].params)).rows.length,0);
+ await db.exec('ROLLBACK');checks.push('Wrong RLS tenant cannot see requested tenant even with explicit WHERE');
+ await db.exec('RESET ROLE');
+ const bytes=fs.readFileSync(`${repo}/services/decision-service/persistence.py`);
+ console.log(JSON.stringify({engine:'PGlite WASM PostgreSQL',version:(await db.query('select version()')).rows[0].version,scope:'Exact captured application SQL against unchanged relevant migrations; not network/native PostgreSQL/runtime acceptance',persistence_sha256:createHash('sha256').update(bytes).digest('hex'),checks_passed:checks.length,checks},null,2));
+}finally{await db.close();}

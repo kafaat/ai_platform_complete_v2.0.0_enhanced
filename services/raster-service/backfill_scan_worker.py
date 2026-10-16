@@ -315,6 +315,8 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                     # v10-F1: preflight يجب أن يطابق «أصلاً جاهزاً بنفس مراجعة الهندسة».
                     # 'stale' (هندسة قديمة بعد تغيّر الحدود) لا يُعدّ «موجوداً» وإلّا مُنِعت
                     # إعادة التوليد وبقيت الصورة مقصوصةً على حدود قديمة للأبد.
+                    # The durable version column is algorithm_version (v154);
+                    # unknown/legacy versions cannot satisfy the current identity.
                     exists = await conn.fetchval(
                         "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
                         "AND index_name=$3 AND scene_id=$4 "
@@ -323,13 +325,15 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         # يُجبِر ربطاً نصّيّاً ثمّ يقصّه SQL — نفس نمط INSERT الآمن أدناه.
                         "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
                         "AND asset_status = 'ready' "
-                        "AND ($6::int IS NULL OR geometry_revision = $6::int) LIMIT 1",
+                        "AND ($6::int IS NULL OR geometry_revision = $6::int) "
+                        "AND algorithm_version=$7::text LIMIT 1",
                         tenant,
                         field,
                         index,
                         scene_id,
                         acq,
                         geom_rev,
+                        proc_ver,
                     )
                     item_id = await conn.fetchval(
                         """
@@ -508,6 +512,9 @@ async def _process_single_scene_run(
     items_skipped = 0
     import uuid as _uuid
 
+    from imagery_product_identity import canonical_processing_version
+
+    proc_ver = canonical_processing_version()
     for it in items:
         item_id = it["id"]
         scene_id = it["scene_id"]
@@ -522,13 +529,15 @@ async def _process_single_scene_run(
                     "AND index_name=$3 AND scene_id=$4 "
                     "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
                     "AND asset_status='ready' "
-                    "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
+                    "AND ($6::int IS NULL OR geometry_revision=$6::int) "
+                    "AND algorithm_version=$7::text LIMIT 1",
                     tenant,
                     field,
                     index,
                     scene_id,
                     acq,
                     geom_rev,
+                    proc_ver,
                 )
         if exists:
             async with pool.acquire() as conn:

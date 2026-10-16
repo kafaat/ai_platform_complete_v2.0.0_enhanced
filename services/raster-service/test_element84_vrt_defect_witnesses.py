@@ -1,17 +1,10 @@
-"""شواهدُ عيوب مسار Element84→VRT — اختباراتُ قبولٍ تنتظر الإصلاح (``xfail(strict=True)``).
+"""Offline regression witnesses for the contained Element84 VRT helper.
 
-منقولةٌ من ``probe.py`` في المراجعة المستقلّة (``d6488d89``) وأُعيد تشغيلها على شجرة المستودع:
-``stac_vrt.build_band_vrt`` و``raster_pixel_processing.process_pixels`` و``band_math``/
-``soil_indices`` واستراتيجية قناع الغيوم **حقيقيّة**، على راسترات اصطناعيّة صغيرة معلومة
-الحقيقة. الحفظُ والتحقّقُ من عقد المنتج وQA التضاريس وكتابةُ COG بدائلُ اختباريّة: الشاهد
-يُثبت مسار الأرقام لا قبول API/DB.
-
-كلُّ اختبارٍ هنا يكتب **السلوكَ الصحيح** ويُعلَّم ``xfail(strict=True)`` بمعرّف فجوته: يفشل
-اليوم لأنّ العيب قائم. حين يُصلَح العيب يمرّ الاختبار، فيُحمِّر ``strict`` الجناحَ حتّى تُنزَع
-العلامة — فيصير الشاهدُ اختبارَ قبول الإصلاح تلقائيّاً، ولا يُغلَق عيبٌ بلا دليل.
-
-الاحتواء (``radiometry_containment``) يمنع الإنتاج من بلوغ هذا المسار؛ هذه الشواهد تستدعي
-الدوالّ مباشرةً عمداً — هي التي ستُثبت أنّ رفع الاحتواء صار آمناً.
+Real rasterio/GDAL, pixel processing, formulas and masks consume synthetic rasters.
+COG persistence, product validation and topographic QA are substituted: these tests
+prove numeric/source behavior, not API/DB acceptance or live provider calibration.
+The provider remains contained. Explicit TIFF calibration is preserved; missing
+STAC calibration is not guessed and no historical product is repaired here.
 """
 
 from __future__ import annotations
@@ -55,6 +48,12 @@ def env(tmp_path, monkeypatch):
     import raw_data_processing as raw
     import stac_vrt
 
+    real_contract = (
+        vp.build_validated_raster_product,
+        vp.assert_indicator_accepts_validated_product,
+        raw.compute_quality_score,
+        raw.build_quality_flags,
+    )
     monkeypatch.setattr(pp, "_topographic_qa_for_indicator", lambda *a, **k: {}, raising=False)
     monkeypatch.setattr(raw, "compute_quality_score", lambda **k: {"quality_score": 1.0})
     monkeypatch.setattr(raw, "build_quality_flags", lambda **k: k)
@@ -76,7 +75,7 @@ def env(tmp_path, monkeypatch):
         UPLOAD_DIR=str(tmp_path),
         logger=logging.getLogger("witness"),
     )
-    return NS(pp=pp, stac_vrt=stac_vrt, ctx=ctx, dir=tmp_path)
+    return NS(pp=pp, stac_vrt=stac_vrt, ctx=ctx, dir=tmp_path, real_contract=real_contract)
 
 
 def _tif(env, name, array, pixel=10, nodata=0, scale=None):
@@ -144,7 +143,6 @@ def uniform_vrt(env):
     return path
 
 
-@pytest.mark.xfail(strict=True, reason=SCALE)
 @pytest.mark.parametrize("index", INDICES)
 def test_the_vrt_path_computes_reflectance_indices(env, uniform_vrt, index):
     """القيمةُ عبر الـVRT = القيمة بمقياسٍ صريح (0.0001). اليوم: EVI 0.952 بدل 0.328 …"""
@@ -162,7 +160,6 @@ def test_a_ratio_index_is_insensitive_to_a_shared_scale(env, uniform_vrt):
     assert default["mean"] == pytest.approx(0.5) == pytest.approx(explicit["mean"])
 
 
-@pytest.mark.xfail(strict=True, reason=SCALE)
 def test_the_quality_mask_accepts_a_clear_scene(env, uniform_vrt):
     """قناع التشبّع (>1.20) يرفض DN الخام: اليوم 422 raw_raster_no_valid_pixels لا 16 بكسلاً."""
     with rasterio.open(uniform_vrt) as src:
@@ -170,10 +167,13 @@ def test_the_quality_mask_accepts_a_clear_scene(env, uniform_vrt):
     assert result.get("valid_pixels") == 16
 
 
-@pytest.mark.xfail(strict=True, reason=CLAIM)
-def test_normalized_is_not_claimed_for_unscaled_digital_numbers(env, uniform_vrt):
+def test_normalized_is_not_claimed_for_unscaled_digital_numbers(env):
     """``reflectance_normalized=True`` يُمرَّر ثابتاً — حتّى والقيمُ DN خام لم تُطبَّع."""
-    with rasterio.open(uniform_vrt) as src:
+    hrefs = {
+        k: _tif(env, "raw_" + k, np.full((4, 4), v, dtype="uint16")) for k, v in VALUES.items()
+    }
+    path, _ = env.stac_vrt.build_band_vrt(hrefs, str(env.dir))
+    with rasterio.open(path) as src:
         result = _run(env, src, _req("evi"))
     assert result["reflectance_normalized"] is not True
 
@@ -188,7 +188,6 @@ def test_the_shared_cache_does_not_reuse_a_different_transform(env, uniform_vrt)
     assert second["mean"] == pytest.approx(0.32786885, abs=1e-6)
 
 
-@pytest.mark.xfail(strict=True, reason=NODATA)
 def test_vrt_preserves_source_nodata(env):
     missing = np.array([[1000, 0], [0, 0]], dtype="uint16")
     hrefs = {"red": _tif(env, "nd_red", missing), "nir": _tif(env, "nd_nir", missing * 3)}
@@ -198,7 +197,6 @@ def test_vrt_preserves_source_nodata(env):
     assert result["valid_pixels"] == 1 and result["mean"] == pytest.approx(0.5)
 
 
-@pytest.mark.xfail(strict=True, reason=GRID)
 def test_twenty_metre_bands_are_resampled_onto_the_ten_metre_grid(env):
     hrefs = {
         "red": _tif(env, "g_red", np.full((4, 4), 1000, dtype="uint16")),
@@ -443,3 +441,162 @@ def test_shared_cache_rechecks_mutable_grid_and_nodata_metadata(env, monkeypatch
         actual = _cache_output(env, monkeypatch, src, req, cache)
         fresh = _cache_output(env, monkeypatch, src, req, {})
     _assert_same_cache_output(actual, fresh)
+
+
+@pytest.mark.parametrize("offset", [0.0, -0.1])
+def test_declared_calibration_survives_vrt_and_is_applied_once(env, offset):
+    hrefs = {
+        k: _tif(env, "cal_" + k, np.full((4, 4), v + 1000, dtype="uint16"), scale=0.0001)
+        for k, v in VALUES.items()
+    }
+    for path in hrefs.values():
+        with rasterio.open(path, "r+") as dst:
+            dst.offsets = (offset,)
+    path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir))
+    with rasterio.open(path) as src:
+        assert src.scales == pytest.approx((0.0001,) * 6)
+        assert src.offsets == pytest.approx((offset,) * 6)
+        assert src.read(mapping["red"])[0, 0] == 2000  # metadata is not pre-applied
+        result = _run(env, src, _req("ndvi"))
+    red, nir = 0.2 + offset, 0.4 + offset
+    assert result["mean"] == pytest.approx((nir - red) / (nir + red), abs=1e-6)
+    assert result["reflectance_normalized"] is True
+
+
+def test_each_band_nodata_and_internal_mask_survive(env):
+    red = _tif(env, "mask_red", np.full((2, 2), 1000, dtype="uint16"), nodata=0)
+    nir = _tif(
+        env, "mask_nir", np.array([[3000, 65535], [3000, 3000]], dtype="uint16"), nodata=65535
+    )
+    with rasterio.open(red, "r+") as dst:
+        dst.write_mask(np.array([[255, 255], [0, 255]], dtype="uint8"))
+    path, _ = env.stac_vrt.build_band_vrt({"red": red, "nir": nir}, str(env.dir))
+    with rasterio.open(path) as src:
+        result = _run(env, src, _req("ndvi", bands=_bands(red=1, nir=2)))
+    assert result["valid_pixels"] == 2
+    assert result["mean"] == pytest.approx(0.5)
+
+
+def test_shifted_source_uses_georeferencing_and_masks_uncovered_pixels(env):
+    red = _tif(env, "shift_red", np.full((4, 4), 1000, dtype="uint16"))
+    scl = _tif(env, "shift_scl", np.array([[4, 9], [3, 11]], dtype="uint8"), pixel=20)
+    with rasterio.open(scl, "r+") as dst:
+        dst.transform = from_origin(500020, 1800000, 20, 20)
+    path, mapping = env.stac_vrt.build_band_vrt({"red": red, "scl": scl}, str(env.dir))
+    with rasterio.open(path) as src:
+        data = src.read(mapping["scl"], masked=True)
+    assert data.mask[:, :2].all()
+    assert np.array_equal(data[:, 2:], [[4, 4], [4, 4], [3, 3], [3, 3]])
+
+
+def test_pixel_processing_honors_a_source_internal_mask_without_clipping(env):
+    path = _cache_scene(env, name="direct_mask")
+    with rasterio.open(path, "r+") as dst:
+        mask = np.zeros((4, 4), dtype="uint8")
+        mask[0, 0] = 255
+        dst.write_mask(mask)
+    with rasterio.open(path) as src:
+        result = _run(env, src, _req("ndvi"))
+    assert result["valid_pixels"] == 1
+    assert result["mean"] == pytest.approx(0.5)
+
+
+@pytest.mark.parametrize("failure", ["partial_sidecar", "root_write"])
+def test_failed_vrt_construction_removes_its_partial_bundle(env, monkeypatch, failure):
+    href = _tif(env, "cleanup", np.full((2, 2), 1000, dtype="uint16"))
+    if failure == "partial_sidecar":
+
+        def failed_copy(_src, path, **_kwargs):
+            Path(path).write_text("partial")
+            raise OSError("synthetic sidecar write failure")
+
+        monkeypatch.setattr(env.stac_vrt, "copy_raster", failed_copy, raising=False)
+    else:
+        import builtins
+        from contextlib import contextmanager
+
+        @contextmanager
+        def failed_open(path, *args, **kwargs):
+            with builtins.open(path, *args, **kwargs) as stream:
+                stream.write("partial")
+                raise OSError("synthetic root write failure")
+                yield stream
+
+        monkeypatch.setattr(env.stac_vrt, "open", failed_open, raising=False)
+    with pytest.raises(OSError, match="synthetic"):
+        env.stac_vrt.build_band_vrt({"red": href}, str(env.dir))
+    assert not list(env.dir.glob("stac_stack_*.vrt"))
+    assert Path(href).exists()
+
+
+@pytest.mark.parametrize("scale, normalized", [(None, False), (0.0001, True)])
+def test_normalization_claim_through_real_product_contract(env, monkeypatch, scale, normalized):
+    import raster_validated_product as vp
+    import raw_data_processing as raw
+
+    build, validate, score, flags = env.real_contract
+    monkeypatch.setattr(vp, "build_validated_raster_product", build)
+    monkeypatch.setattr(vp, "assert_indicator_accepts_validated_product", validate)
+    monkeypatch.setattr(raw, "compute_quality_score", score)
+    monkeypatch.setattr(raw, "build_quality_flags", flags)
+    path = _cache_scene(env, name="real_contract")
+    with rasterio.open(path) as src:
+        result = _run(env, src, _req("evi", scale=scale))
+    assert result["reflectance_normalized"] is normalized
+
+
+@pytest.mark.parametrize("source", ["request", "raster_metadata"])
+@pytest.mark.parametrize(
+    "scale, offset",
+    [
+        (0.0, 0.0),
+        (-0.0001, 0.0),
+        (float("nan"), 0.0),
+        (float("inf"), 0.0),
+        (0.0001, float("nan")),
+        (0.0001, float("inf")),
+    ],
+)
+def test_invalid_calibration_is_never_proof_of_normalization(env, scale, offset, source):
+    path = _cache_scene(env, name="bad_calibration")
+    req = _req("evi")
+    if source == "raster_metadata":
+        with rasterio.open(path, "r+") as dst:
+            dst.scales = (scale,) * 7
+            dst.offsets = (offset,) * 7
+    else:
+        req.reflectance_scale, req.reflectance_offset = scale, offset
+    with rasterio.open(path) as src:
+        result = _run(env, src, req)
+    if "status" in result:
+        assert result["status"] == 422  # no finite pixels, no product claim
+    else:
+        assert result["reflectance_normalized"] is False
+
+
+@pytest.mark.parametrize("internal", [True, False], ids=["internal-mask", "external-mask"])
+@pytest.mark.parametrize("nodata", [0.0, -9999.0, float("nan")], ids=["zero", "negative", "nan"])
+def test_same_source_mask_and_nodata_intersect_after_nearest_warp(env, caplog, internal, nodata):
+    """Neither mask may override the other, including after closing/reopening VRTs."""
+    red = _tif(env, "intersection_red", np.full((4, 4), 1000, dtype="uint16"))
+    nir = _tif(
+        env,
+        "intersection_nir",
+        np.array([[3000, nodata], [3000, 3000]], dtype="float32"),
+        pixel=20,
+        nodata=nodata,
+    )
+    with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=internal), rasterio.open(nir, "r+") as dst:
+        # Top-right is invalid only by nodata; bottom-left only by the mask.
+        dst.write_mask(np.array([[255, 255], [0, 255]], dtype="uint8"))
+    path, mapping = env.stac_vrt.build_band_vrt({"red": red, "nir": nir}, str(env.dir))
+    with rasterio.open(path) as src:
+        actual = src.read(mapping["nir"], masked=True)
+        result = _run(env, src, _req("ndvi", bands=_bands(red=1, nir=2)))
+    expected_invalid = np.repeat(np.repeat([[False, True], [True, False]], 2, axis=0), 2, axis=1)
+    assert np.array_equal(np.ma.getmaskarray(actual), expected_invalid)
+    assert result["valid_pixels"] == 8
+    assert result["mean"] == pytest.approx(0.5)
+    assert not any(
+        "ignoring the per-dataset mask band" in record.message for record in caplog.records
+    )

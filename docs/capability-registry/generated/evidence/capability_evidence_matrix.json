@@ -2809,6 +2809,7 @@
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_sprinkler_runoff_capability.py",
         "tests_v9/test_canonical_vri_prescription.py",
+        "tests_v9/test_chatgpt_gap_batch_20261015.py",
         "tests_v9/test_dem_quality_and_registry_v63_6.py",
         "tests_v9/test_field_terrain_foundation_v31_2.py",
         "tests_v9/test_glo30_provision_v31_8.py",
@@ -3828,6 +3829,7 @@
       "runtime_verified": false,
       "title": "Field water-source binding",
       "unit_test_paths": [
+        "services/decision-service/tests/test_manual_irrigation_source_binding.py",
         "tests_v9/test_h51_field_source_binding_pg.py"
       ]
     },
@@ -4091,6 +4093,7 @@
         "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "tests_v9/test_irrigation_recommendation_policy.py",
         "tests_v9/test_knowledge_context_resolver.py",
         "tests_v9/test_knowledge_providers_and_adoption.py"
@@ -6544,6 +6547,7 @@
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
         "tests_v9/test_historical_search_cdse_v30_8.py",
         "tests_v9/test_imagery_auto_process_real_activation.py",
+        "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
         "tests_v9/test_imagery_product_identity_canonical.py",
         "tests_v9/test_landsat_thermal_unique_v31_0.py",
         "tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py",
@@ -7037,6 +7041,7 @@
         "services/vegetation-analysis-service/test_vegetation_logic.py",
         "tests_v9/test_canonical_water_stress.py",
         "tests_v9/test_field_state_unification.py",
+        "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
         "tests_v9/test_imagery_batch_wait_before_read.py",
         "tests_v9/test_sahool_brain_forensic.py",
         "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
@@ -10020,6 +10025,7 @@
         "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_kc_extraction_engine.py",
+        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
         "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_recommendation_engine.py",

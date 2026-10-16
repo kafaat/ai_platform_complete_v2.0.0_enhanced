@@ -1,0 +1,70 @@
+FFF.                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_live_prescription_generator_exposes_elemental_recipe_input[phosphorus-kgP2O5/ha-P-0.4364] _
+
+kind = 'phosphorus', source_unit = 'kgP2O5/ha', element = 'P', factor = 0.4364
+
+    @pytest.mark.parametrize(
+        "kind,source_unit,element,factor",
+        [("phosphorus", "kgP2O5/ha", "P", 0.4364), ("potassium", "kgK2O/ha", "K", 0.8301), ("nitrogen", "kgN/ha", "N", 1.0)],
+    )
+    def test_live_prescription_generator_exposes_elemental_recipe_input(kind, source_unit, element, factor):
+        result = generate_prescription_map(
+            [{"id": "zone-a", "zone": 1, "rate_multiplier": 1.25}],
+            crop="wheat", prescription_type=kind,
+        )
+        props = result["features"][0]["properties"]
+>       recipe = props["properties"]["recipe_input"]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'recipe_input'
+
+../evidence/b/test_recipe_element_bridge.py:20: KeyError
+_ test_live_prescription_generator_exposes_elemental_recipe_input[potassium-kgK2O/ha-K-0.8301] _
+
+kind = 'potassium', source_unit = 'kgK2O/ha', element = 'K', factor = 0.8301
+
+    @pytest.mark.parametrize(
+        "kind,source_unit,element,factor",
+        [("phosphorus", "kgP2O5/ha", "P", 0.4364), ("potassium", "kgK2O/ha", "K", 0.8301), ("nitrogen", "kgN/ha", "N", 1.0)],
+    )
+    def test_live_prescription_generator_exposes_elemental_recipe_input(kind, source_unit, element, factor):
+        result = generate_prescription_map(
+            [{"id": "zone-a", "zone": 1, "rate_multiplier": 1.25}],
+            crop="wheat", prescription_type=kind,
+        )
+        props = result["features"][0]["properties"]
+>       recipe = props["properties"]["recipe_input"]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'recipe_input'
+
+../evidence/b/test_recipe_element_bridge.py:20: KeyError
+_ test_live_prescription_generator_exposes_elemental_recipe_input[nitrogen-kgN/ha-N-1.0] _
+
+kind = 'nitrogen', source_unit = 'kgN/ha', element = 'N', factor = 1.0
+
+    @pytest.mark.parametrize(
+        "kind,source_unit,element,factor",
+        [("phosphorus", "kgP2O5/ha", "P", 0.4364), ("potassium", "kgK2O/ha", "K", 0.8301), ("nitrogen", "kgN/ha", "N", 1.0)],
+    )
+    def test_live_prescription_generator_exposes_elemental_recipe_input(kind, source_unit, element, factor):
+        result = generate_prescription_map(
+            [{"id": "zone-a", "zone": 1, "rate_multiplier": 1.25}],
+            crop="wheat", prescription_type=kind,
+        )
+        props = result["features"][0]["properties"]
+>       recipe = props["properties"]["recipe_input"]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'recipe_input'
+
+../evidence/b/test_recipe_element_bridge.py:20: KeyError
+=============================== warnings summary ===============================
+../evidence/b/test_recipe_element_bridge.py:7
+  /workspace/scratch/881ca3efb91d/evidence/b/test_recipe_element_bridge.py:7: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../evidence/b/test_recipe_element_bridge.py::test_live_prescription_generator_exposes_elemental_recipe_input[phosphorus-kgP2O5/ha-P-0.4364]
+FAILED ../evidence/b/test_recipe_element_bridge.py::test_live_prescription_generator_exposes_elemental_recipe_input[potassium-kgK2O/ha-K-0.8301]
+FAILED ../evidence/b/test_recipe_element_bridge.py::test_live_prescription_generator_exposes_elemental_recipe_input[nitrogen-kgN/ha-N-1.0]
+3 failed, 1 passed, 1 warning in 0.17s

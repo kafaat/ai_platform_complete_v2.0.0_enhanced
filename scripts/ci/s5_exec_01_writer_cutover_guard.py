@@ -8,6 +8,7 @@ contract for each frozen writer while the pre-cutover bridge remains physically 
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -24,20 +25,77 @@ ROOT = Path(__file__).resolve().parents[2]
 FREEZE = ROOT / "docs/architecture/s5_exec_01_edge_freeze.json"
 GATE01_POLICY = ROOT / "docs/architecture/gate01_policy.json"
 GATE01_ADJUDICATIONS = ROOT / "docs/architecture/gates/adjudications"
+_GATE_SPEC = importlib.util.spec_from_file_location(
+    "s5_gate01_authorization", Path(__file__).with_name("gate01_frozen_path_guard.py")
+)
+assert _GATE_SPEC is not None and _GATE_SPEC.loader is not None
+GATE01 = importlib.util.module_from_spec(_GATE_SPEC)
+_GATE_SPEC.loader.exec_module(GATE01)
+
+# The owner's 2026-10-16 instruction permits only these reviewed U07 bytes. It does
+# not permit SoR cutover. This finite binding measures that distinction; a label or
+# free-form scope assertion cannot create another exception. Future bytes need a
+# separate review. GATE-01 itself remains unchanged and still owns authorization.
+_U07_ID = "GATE01-ADJ-2026-10-16-001"
+_U07_BASELINE = "6ba0bef56f47926ce657515fe1717019522f868b"
+_U07_DIGEST = "b4ef1787f9e75190ca2f7eb9d2a094559f7705fc29bc279436e4c429982b4665"
+_U07_BLOBS = {
+    "services/sahool-platform/api/phase_runtime_store.py": "b5f47f44efbdf9b8f34cd5d497f76a78077f1788",
+    "migrations/MANIFEST.txt": "655fa0c89b1221af54b59d47c6f8f5d31bdd7d8f",
+}
+
+
+def _review_only_u07_authorization(doc: dict, policy: dict) -> bool:
+    """Recognize only the reviewed non-cutover patch, then ask the real GATE validator."""
+    bindings = doc.get("bindings") or {}
+    baseline = doc.get("phase0_baseline_ref") or {}
+    if (
+        baseline.get("must_match_policy") is not True
+        or any(
+            bindings.get(key) is not True
+            for key in ("require_patch_digest", "require_paths_subset", "require_baseline_match")
+        )
+        or bindings.get("require_exact_head_sha") is not False
+        or doc.get("adjudication_id") != _U07_ID
+        or doc.get("authorized_patch_sha256") != _U07_DIGEST
+        or doc.get("authorized_blobs") != _U07_BLOBS
+        or doc.get("allowed_paths") != list(_U07_BLOBS)
+        or doc.get("allowed_gap_closures") != ["REPORT3-U07-REVIEW-DECISION-NOT-PERSISTED-01"]
+        or doc.get("one_time") is not True
+        or doc.get("adjudicated_on") != "2026-10-16"
+        or doc.get("expires_on") != "2026-10-23"
+        or doc.get("phase0_baseline_ref")
+        != {"commit_sha": _U07_BASELINE, "must_match_policy": True}
+        or doc.get("bindings")
+        != {
+            "require_patch_digest": True,
+            "require_paths_subset": True,
+            "require_baseline_match": True,
+            "require_exact_head_sha": False,
+        }
+        or (policy.get("phase0_baseline") or {}).get("commit_sha") != _U07_BASELINE
+        or (policy.get("gate") or {}).get("state") != "CLOSED"
+        or not set(_U07_BLOBS).issubset(policy.get("frozen_paths") or [])
+    ):
+        return False
+    actual = {path: GATE01.blob_sha(path, root=ROOT) for path in _U07_BLOBS}
+    errors, used = GATE01.evaluate(list(_U07_BLOBS), policy, [doc], actual)
+    return not errors and used == _U07_ID
+
 
 # ── قطعٌ مؤجَّلٌ ببوّابة، لا متروك ────────────────────────────────────────────────
 # الكاتب هنا مُجمَّد في FREEZE فيلزمه عقد قطع، لكنّ ملفّه **مسارٌ مجمَّد** في GATE-01
-# وحالتها CLOSED بلا تفويضٍ ISSUED يغطّيه. فتنفيذ القطع الآن يخالف بوّابةً أخرى،
+# وحالتها CLOSED بلا تفويضٍ ISSUED يجيز قطع الكاتب. فتنفيذ القطع الآن يخالف بوّابةً أخرى،
 # وإصدارُ الإذن الذي تشترطه البوّابة — بيد المحجوب بها — يُبطِلها.
 #
 # والتأجيل **يُقاس ولا يُدَّعى**: `_gate01_blocks()` تقرأ السياسة والتفويضات وقت
-# التشغيل، فإن فُتِحت البوّابة أو صدر تفويضٌ ISSUED يغطّي المسار **سقط العذر فوراً**
+# التشغيل، فإن فُتِحت البوّابة أو صدر تفويضٌ ISSUED غير رقعة U07 المحددة **سقط العذر فوراً**
 # وعاد فرضُ العلامات. أي أنّه شرطٌ ينقضي بنفسه لا استثناءٌ دائم.
 GATE01_DEFERRED: dict[tuple[str, str], str] = {
     (
         "services/sahool-platform/api/phase_runtime_store.py",
         "online_learning_updates",
-    ): "GATE-01 CLOSED · لا تفويض ISSUED يغطّي هذا المسار المجمَّد",
+    ): "GATE-01 CLOSED · لا إذن قطع؛ رقعة U07 المحددة بالبايتات لا تمنح إذن SoR",
 }
 
 
@@ -45,7 +103,7 @@ def _gate01_blocks(writer: str) -> bool:
     """هل تمنع GATE-01 فعلاً تعديلَ هذا المسار الآن؟ (قياسٌ لا افتراض)"""
     if not GATE01_POLICY.is_file():
         return False
-    policy = json.loads(GATE01_POLICY.read_text(encoding="utf-8"))
+    policy = GATE01.load_policy(GATE01_POLICY)
     if writer not in set(policy.get("frozen_paths", [])):
         return False
     if str(policy.get("gate", {}).get("state", "")).upper() != "CLOSED":
@@ -56,6 +114,8 @@ def _gate01_blocks(writer: str) -> bool:
             if str(doc.get("status", "")).upper() == "ISSUED" and writer in (
                 doc.get("allowed_paths") or []
             ):
+                if _review_only_u07_authorization(doc, policy):
+                    continue
                 return False
     return True
 

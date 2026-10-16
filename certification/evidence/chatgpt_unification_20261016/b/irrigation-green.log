@@ -1,0 +1,9 @@
+
+ RUN  v5.0.2 /workspace/scratch/881ca3efb91d/sahool-unified/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  10:33:04
+   Duration  1.26s (environment 54%, tests 13%, setup 12%, transform 11%, import 9%, worker 1%)
+

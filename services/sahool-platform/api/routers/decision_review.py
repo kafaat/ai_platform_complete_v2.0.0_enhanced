@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
+from api.irrigation_engineering_workspace import manual_plan_window_and_quantities
 from api.main import UserSchema, require_permission, tenant_connection
 
 router = APIRouter()
@@ -46,14 +47,20 @@ class DecisionReviewRequest(BaseModel):
 @router.get("/api/v1/decisions/review-queue")
 async def get_decision_review_queue(
     limit: int = 100,
+    field_id: str | None = None,
+    season_id: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.DECISION_APPROVE)),
 ):
     """WX-10.8 — authenticated BFF pass-through for the authoritative review queue."""
+    if bool(field_id) != bool(season_id):
+        raise HTTPException(status_code=422, detail="field_id and season_id required together")
     if limit < 1 or limit > 200:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
     try:
         result = await ds_list_review_queue(
-            tenant_id=str(user.tenant_id) if user.tenant_id else None, limit=limit
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            limit=limit,
+            **({"field_id": field_id, "season_id": season_id} if field_id and season_id else {}),
         )
     except HTTPException as exc:
         if exc.status_code in _ENGINE_DOWN_CODES:
@@ -248,21 +255,14 @@ async def create_decision_execution_plan(
                 status_code=422,
                 detail="planned_start and planned_end are required for manual irrigation",
             )
-        if req.planned_end <= req.planned_start:
-            raise HTTPException(status_code=422, detail="planned_end must be after planned_start")
-        for key in ("plan_digest", "water_truth_digest"):
-            value = plan_digest if key == "plan_digest" else str(c["water_truth_digest"])
-            if len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
-                raise HTTPException(status_code=422, detail=f"{key} must be lowercase sha256")
         try:
-            target_depth = float(c["target_depth_mm"])
-            target_volume = float(c["target_volume_m3"])
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(
-                status_code=422, detail="target depth/volume must be numeric"
-            ) from exc
-        if target_depth <= 0 or target_volume <= 0:
-            raise HTTPException(status_code=422, detail="target depth/volume must be positive")
+            planned_start, planned_end, target_depth, target_volume = (
+                manual_plan_window_and_quantities(
+                    req.planned_start, req.planned_end, c, plan_digest
+                )
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         async with tenant_connection(user) as conn:
             await conn.execute(
                 """INSERT INTO irrigation_manual_execution_sources (
@@ -283,8 +283,8 @@ async def create_decision_execution_plan(
                 target_depth,
                 target_volume,
                 c.get("nominal_flow_m3_h"),
-                req.planned_start,
-                req.planned_end,
+                planned_start,
+                planned_end,
                 str(c["water_truth_digest"]),
                 plan_digest,
                 json.dumps(

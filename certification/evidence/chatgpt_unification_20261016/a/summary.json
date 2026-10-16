@@ -1,0 +1,69 @@
+{
+  "base_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "red": {
+    "failed": 11,
+    "passed": 29,
+    "skipped": 0,
+    "log": "red-main.log",
+    "method": "Identical final test bodies copied outside repository; only ROOT/_PLATFORM expressions retargeted to clean base clone. No base source changes."
+  },
+  "green": {
+    "passed": 55,
+    "failed": 0,
+    "skipped": 0,
+    "log": "green.log",
+    "extra_coverage": [
+      "test_fields_merge_split_atomic.py",
+      "test_weather_solar_fields.py"
+    ]
+  },
+  "gaps": {
+    "PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01": {
+      "red": 5,
+      "witnesses": [
+        "test_missing_wind_is_unknown_not_very_good (3 variants)",
+        "test_current_and_batch_keep_absent_wind_unknown",
+        "test_live_fetch_refuses_unmeasured_wind"
+      ],
+      "change": "Preserve absent wind in current/batch/daily; unknown spray status; etc_dual returns 503 before nonoptional WeatherDay."
+    },
+    "FIELDS-ROUTER-REDUNDANT-LOCAL-JSON-IMPORTS-01": {
+      "red": 2,
+      "witnesses": [
+        "test_fields_router_has_single_module_json_import",
+        "test_fields_terrain_decodes_json_without_reimporting_per_request"
+      ],
+      "change": "Consolidate local imports and remove residual unused dynamic import. Field terrain JSON runtime output preserved; no per-request json import."
+    },
+    "REPORT2-C03-DEDUP-FOLLOWS-STREAM-MESSAGE-NOT-EVENT-ID-01": {
+      "red": 3,
+      "witnesses": [
+        "test_notification_logical_event_republication_deduplicates",
+        "test_logical_event_republication_sends_once_across_stream_sequences",
+        "test_logical_event_receipts_isolate_tenant_user_and_channel"
+      ],
+      "change": "Logical event identity takes precedence; existing tenant/user/channel receipt isolation tested with actual _deliver_channel. Durable DB behavior is modeled, not live Postgres."
+    },
+    "MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01": {
+      "red": 1,
+      "witnesses": [
+        "test_carbon_dashboard_is_explicitly_not_measured"
+      ],
+      "change": "Dashboard no longer reads carbon producerless keys; unknown explicit. Full Flutter DashboardScreen behavioral test added, execution pending SDK."
+    }
+  },
+  "files_sha256": {
+    "services/sahool-platform/api/connectors/openmeteo.py": "27817254ecee0986bc8c79680332036c24ca056cd73af00567939e8d51751e53",
+    "services/sahool-platform/api/routers/etc_dual.py": "0267c82eaf4f69ca46e460e82b2e6a52d0cc958a6f6af969bec90d7a1e97d268",
+    "services/sahool-platform/api/routers/fields.py": "ba1ff2cf9b549e0489dc6c926628429ffddda08e895e32c98077e2a9a1a2c64b",
+    "tests_v9/test_chatgpt_gap_batch_20261015.py": "df87dbc69c57f00d6ca0bb1ddac79a672d1bbc6e946a8db0c26c996e0e21dd97",
+    "tests_v9/test_notification_delivery_reliability.py": "09cfc4b95c8630b704f4ee88f0cefbe81498adcd1657ae9a99fe55e094ab104a",
+    "tests_v9/test_etc_dual_weather.py": "bf65a444b49bfbf29bf0ce5940c3ead5810cc76f8fa557ffea344b74be78119b",
+    "mobile/sahool_app/test/dashboard_carbon_not_measured_test.dart": "6f9d4c50d2613cf76349780738978dec58eda16565304aded69f4f8da8c65b4d"
+  },
+  "limitations": [
+    "Flutter behavioral test not yet executed by agent A; parent provisioning SDK.",
+    "No live Postgres or messaging provider used; receipts are modeled at SQL boundary.",
+    "No stage, commit, regeneration, push, merge or deployment performed by agent A."
+  ]
+}

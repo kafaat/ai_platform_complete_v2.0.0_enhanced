@@ -1,0 +1,593 @@
+
+ RUN  v5.0.2 /workspace/scratch/881ca3efb91d/sahool/frontend
+
+ ❯ src/sections/IrrigationManualCreationPanel.test.tsx (3 tests | 3 failed) 3047ms
+   ❯ manual irrigation field workspace callers (3)
+     × submits only after the farmer clicks and reports a failed or blocked submission honestly 1033ms
+     × does not manufacture missing water, system, volume or approval proof for the current producer 1005ms
+     × makes planning and record creation separate actions only for a complete server-source contract fixture 1005ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/sections/IrrigationManualCreationPanel.test.tsx > manual irrigation field workspace callers > submits only after the farmer clicks and reports a failed or blocked submission honestly
+TestingLibraryElementError: Unable to find role="button" and name "تقديم توصية الري للمراجعة"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/sections/IrrigationManualCreationPanel.test.tsx:30:33
+     28|     vi.mocked(kongApi.post).mockResolvedValue({ data: { status: 'depen…
+     29|     mount();
+     30|     const button = await screen.findByRole('button', { name: 'تقديم تو…
+       |                                 ^
+     31|     expect(kongApi.post).not.toHaveBeenCalled();
+     32|     fireEvent.click(button);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/sections/IrrigationManualCreationPanel.test.tsx > manual irrigation field workspace callers > does not manufacture missing water, system, volume or approval proof for the current producer
+TestingLibraryElementError: Unable to find an element with the text: /مصدر خطة التنفيذ غير مكتمل/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/sections/IrrigationManualCreationPanel.test.tsx:41:18
+     39|   it('does not manufacture missing water, system, volume or approval p…
+     40|     mount();
+     41|     await screen.findByText(/مصدر خطة التنفيذ غير مكتمل/);
+       |                  ^
+     42|     expect(screen.getByRole('button', { name: 'اعتماد هذه النسخة من ال…
+     43|     expect(kongApi.post).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/sections/IrrigationManualCreationPanel.test.tsx > manual irrigation field workspace callers > makes planning and record creation separate actions only for a complete server-source contract fixture
+TestingLibraryElementError: Unable to find role="button" and name "اعتماد هذه النسخة من التوصية"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"التشغيل اليدوي للري"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-droplets h-5 w-5 text-emerald-300"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"font-bold text-slate-100"[39m
+          [36m>[39m
+            [0mدورة التشغيل اليدوي[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-1 text-sm text-slate-400"[39m
+        [36m>[39m
+          [0mموصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.[0m
+        [36m</p>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"text-center py-10 text-sahool-muted"[39m
+        [33mdir[39m=[32m"rtl"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex justify-center mb-2"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-inbox w-8 h-8"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<polyline[39m
+              [33mpoints[39m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm font-medium text-sahool-text"[39m
+        [36m>[39m
+          [0mلا توجد عملية ري يدوية[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-xs mt-1"[39m
+        [36m>[39m
+          [0mتظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../sahool-unified/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/sections/IrrigationManualCreationPanel.test.tsx:59:34
+     57|         : { execution_id: 'exec-1', state: 'recommended', execution_pl…
+     58|     mount();
+     59|     fireEvent.click(await screen.findByRole('button', { name: 'اعتماد …
+       |                                  ^
+     60|     const plan = await screen.findByRole('button', { name: 'إنشاء خطة …
+     61|     expect(kongApi.post).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  10:32:15
+   Duration  3.86s (tests 82%, environment 9%, transform 4%, import 3%, setup 2%)
+

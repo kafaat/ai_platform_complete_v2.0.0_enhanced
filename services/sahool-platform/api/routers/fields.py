@@ -185,7 +185,7 @@ async def _insert_field_within_tx(
     يدويّ) — المستدعي يملك معاملة tenant_connection. extra_event_meta يُدمَج في
     حمولة FIELD_CREATED (مثلاً merged_from / split_from) للتدقيق.
     """
-    import json as _json
+    # json is imported once at module scope (line anchor preserved)
 
     await conn.execute(
         """INSERT INTO fields
@@ -206,7 +206,7 @@ async def _insert_field_within_tx(
         lat,
         lon,
         gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
-        _json.dumps(geometry),
+        json.dumps(geometry),
         field_code,
         description,
         water_source,
@@ -348,7 +348,7 @@ async def _persist_field(
     ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ بهندسته. مصدر واحد للحقيقة
     يُعيد استخدامه create_field و import_field — لا تكرار للتحقّق/الإدراج.
     """
-    import json as _json
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
@@ -397,7 +397,7 @@ async def _persist_field(
         country = country or auto_country
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
-    geom_json = _json.dumps(geometry)
+    geom_json = json.dumps(geometry)
     try:
         async with tenant_connection(user) as conn:
 
@@ -692,9 +692,9 @@ async def field_imagery_process_date_proxy(
             else:
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
-                    import json as _json
+                    # json is imported once at module scope (line anchor preserved)
 
-                    geometry = _json.loads(geometry)
+                    geometry = json.loads(geometry)
                 geometry_revision = await conn.fetchval(
                     "SELECT MAX(revision) FROM field_geometry_history "
                     "WHERE tenant_id = $1::uuid AND field_id = $2",
@@ -751,9 +751,9 @@ async def refresh_field_imagery(
             else:
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
-                    import json as _json
+                    # json is imported once at module scope (line anchor preserved)
 
-                    geometry = _json.loads(geometry)
+                    geometry = json.loads(geometry)
                 # v143 (FINDING-004): مراجعة الهندسة السارية للحقل — تُمرَّر لتُسجَّل على
                 # raster_assets فيصبح النَّسَب مُتتبَّعاً (أيّ هندسة أنتجت هذا الأصل). None إن
                 # لم تُنشَأ مراجعات بعد (لا اختلاق).
@@ -950,9 +950,9 @@ async def field_imagery_backfill_proxy(
             if not payload.get("clip_polygon_geojson"):
                 geometry = row["geometry"]
                 if isinstance(geometry, str):
-                    import json as _json
+                    # json is imported once at module scope (line anchor preserved)
 
-                    geometry = _json.loads(geometry)
+                    geometry = json.loads(geometry)
                 guarded = guard_field_geometry(geometry)
                 payload["clip_polygon_geojson"] = guarded.geometry
 
@@ -1131,9 +1131,9 @@ async def _compute_field_terrain_from_dem(
     """
     try:
         if isinstance(geometry, str):
-            import json as _json
+            # json is imported once at module scope (line anchor preserved)
 
-            geometry = _json.loads(geometry)
+            geometry = json.loads(geometry)
         guarded = guard_field_geometry(geometry)
         return await raster_get_field_terrain(
             field_id,
@@ -2082,7 +2082,7 @@ async def create_season(
     (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
     Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
-    import json as _json
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
@@ -2118,8 +2118,8 @@ async def create_season(
             status_code=422,
             detail={"code": "invalid_custom_stages", "errors_ar": _stage_errors},
         )
-    stages_json = _json.dumps(clean_stages)
-    crops_json = _json.dumps(req.crops)
+    stages_json = json.dumps(clean_stages)
+    crops_json = json.dumps(req.crops)
 
     import asyncpg as _asyncpg  # لالتقاط سباق الموسم النشط (UniqueViolation → 409)
 
@@ -2331,9 +2331,9 @@ async def update_season(
     fields_set = req.model_fields_set
     updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
     if "crops" in fields_set:
-        import json as _json
+        # json is imported once at module scope (line anchor preserved)
 
-        updates.append(("crops", _json.dumps(req.crops or []), True))
+        updates.append(("crops", json.dumps(req.crops or []), True))
     if "cultivar" in fields_set:
         updates.append(("cultivar", req.cultivar, False))
     if req.irrigation_type is not None:
@@ -2766,10 +2766,10 @@ async def field_wind_drift_risk(
 
     field_geom = None
     if isinstance(field_geom_raw, str):
-        import json as _json
+        # json is imported once at module scope (line anchor preserved)
 
         try:
-            field_geom = _json.loads(field_geom_raw)
+            field_geom = json.loads(field_geom_raw)
         except (ValueError, TypeError):
             field_geom = None
 
@@ -2927,7 +2927,7 @@ async def create_activity(
     يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
     Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
-    import json as _json
+    # json is imported once at module scope (line anchor preserved)
     import uuid as _uuid
 
     if req.activity_type not in _ACTIVITY_TYPES:
@@ -2937,7 +2937,7 @@ async def create_activity(
     activity_id = "act_" + _uuid.uuid4().hex[:12]
     status = "done" if performed else "planned"
     try:
-        details_json = _json.dumps(req.details or {})
+        details_json = json.dumps(req.details or {})
     except (TypeError, ValueError) as e:
         # محتوى details غير قابل للتسلسل ⇒ خطأ إدخال صريح (422) لا 500/503.
         raise HTTPException(
@@ -3099,12 +3099,12 @@ async def field_input_traceability(
         build_input_ledger,
     )
 
-    _json = __import__("json")
+    # JSON decoding uses the module import shared by all field routes.
 
     def _details(v):
         if isinstance(v, str):
             try:
-                return _json.loads(v)
+                return json.loads(v)
             except (ValueError, TypeError):
                 return {}
         return v or {}
@@ -3320,14 +3320,14 @@ async def update_soil_lab_test(
     نهائيّان؛ لا اعتماد/نشر بلا نتيجة — 422). تأكيد ملكيّة الحقل (404)؛ الفحص يخصّ
     الحقل (404). 503 عند تعذّر القاعدة.
     """
-    import json as _json
+    # json is imported once at module scope (line anchor preserved)
 
     from core.engines.soil_lab_workflow import SoilWorkflowError, validate_soil_transition
 
     sampled = _parse_date(req.sampled_on, "تاريخ العيّنة") if req.sampled_on is not None else None
     if req.result is not None:
         try:
-            result_json = _json.dumps(req.result)
+            result_json = json.dumps(req.result)
         except (TypeError, ValueError) as e:
             raise HTTPException(status_code=422, detail="نتيجة الفحص غير قابلة للتسلسل") from e
 
@@ -3364,7 +3364,7 @@ async def update_soil_lab_test(
                     # توفّر نتيجة = نتيجة موجودة سابقاً (JSONB غير فارغ) أو ممرَّرة الآن.
                     existing = cur["result"]
                     existing_obj = (
-                        _json.loads(existing) if isinstance(existing, str) else (existing or {})
+                        json.loads(existing) if isinstance(existing, str) else (existing or {})
                     )
                     has_result = bool(req.result) or bool(existing_obj)
                     try:

@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 569,
+          "line": 570,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 145,
+          "line": 166,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 150,
+          "line": 171,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -588,7 +588,7 @@
         },
         {
           "function": "metrics",
-          "line": 43,
+          "line": 44,
           "method": "GET",
           "module": "services/tts-service/routers/health.py",
           "path": "/metrics",
@@ -755,7 +755,7 @@
         },
         {
           "function": "readyz",
-          "line": 163,
+          "line": 184,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -1077,7 +1077,7 @@
         },
         {
           "function": "ingest",
-          "line": 207,
+          "line": 228,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1106,
-  "route_inventory_sha256": "472794440e394d2310dc685edea34f670b4a76b59930cef1de0a05a1ab735283",
+  "route_inventory_sha256": "5c0b80daeea198911365438f74323958d2809b7e899697632a2748d2f9832b73",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -1,0 +1,70 @@
+{
+  "red-main": {
+    "exit_code": 1,
+    "summary": "27 failed, 48 passed, 1664 warnings in 1.52s",
+    "command": [
+      "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+      "-m",
+      "pytest",
+      "/workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py",
+      "/workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_backfill_processing_version_preflight.py",
+      "-q",
+      "--override-ini",
+      "addopts="
+    ],
+    "cwd": "/workspace/scratch/881ca3efb91d/sahool",
+    "PYTHONPATH": "/workspace/scratch/881ca3efb91d/sahool/services/raster-service"
+  },
+  "green": {
+    "exit_code": 0,
+    "summary": "75 passed, 1664 warnings in 1.58s",
+    "command": [
+      "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+      "-m",
+      "pytest",
+      "/workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py",
+      "/workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_backfill_processing_version_preflight.py",
+      "-q",
+      "--override-ini",
+      "addopts="
+    ],
+    "cwd": "/workspace/scratch/881ca3efb91d/imagery-original",
+    "PYTHONPATH": "/workspace/scratch/881ca3efb91d/imagery-original/services/raster-service"
+  },
+  "regression": {
+    "exit_code": 0,
+    "summary": "49 passed, 7 warnings in 1.13s",
+    "command": [
+      "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+      "-m",
+      "pytest",
+      "services/raster-service/test_element84_vrt_containment_runtime.py",
+      "services/raster-service/test_historical_backfill.py",
+      "services/raster-service/test_raster_validated_product.py",
+      "services/raster-service/test_raw_data_processing.py",
+      "services/raster-service/test_band_math_zones.py",
+      "services/raster-service/test_backfill_incremental_retry_guard.py",
+      "tests_v9/test_backfill_failure_reason_persisted.py",
+      "-q",
+      "--override-ini",
+      "addopts="
+    ]
+  },
+  "base_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "integration_base_sha": "ee9ea1b9dcfa8045d11eccdb948e466cffa997da",
+  "source_sha256": {
+    "backfill_scan_worker.py": "9c3cd0a31b95e2c3385d9f07a956fb0fb8777bf6a31acc9330dd37291e192932",
+    "raster_pixel_processing.py": "9c6ab902b91166b7bc3ae5c628da5e2e5885687d4cc366206b38d1a314d9cb9d",
+    "stac_vrt.py": "90ba6690fbf711b5f3a1a22ebf2c2304f606151e8b3b5c30b8bb7de8ff98adb2",
+    "test_element84_vrt_defect_witnesses.py": "3eca6a4d87e0c835a677fd4b1b9a206991c238e37ed34271b1023de5a804d650",
+    "test_backfill_processing_version_preflight.py": "bd7c611cb2fcd442e31e6e3d0e343b663bb0965a7de6aac46a0bbd8c7e2ed574"
+  },
+  "containment_unchanged": true,
+  "limits": [
+    "Offline synthetic fixtures only; no provider calls, DB writes, deployment, historical inventory or incident attribution.",
+    "Backfill executes actual worker SQL with a cast-only SQLite adapter, not live PostgreSQL/RLS.",
+    "VRT helper is contained and not called by the production entrypoints. Calibration proof covers declared TIFF/request metadata only; actual STAC missing/contradictory offset remains unresolved.",
+    "Most numerical tests stub product validation/QA/COG persistence; two normalization cases restore real product builder/assertion and real QA.",
+    "No full repository preflight claimed."
+  ]
+}

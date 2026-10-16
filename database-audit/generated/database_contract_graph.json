@@ -231,6 +231,7 @@
       "v230_drawing_features.sql",
       "v231_soil_reconciliation_deferrals.sql",
       "v233_event_outbox_claim_lease.sql",
+      "v234_learning_agronomic_review.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1647,14 +1648,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 231,
+    "manifest_entries": 232,
     "manifest_missing_count": 0,
     "policies": 201,
     "production_certified": false,
     "rls_enabled": 214,
     "rls_forced": 195,
     "runtime_verified": false,
-    "sql_files": 233,
+    "sql_files": 234,
     "tables": 341,
     "tenant_rls_gaps": 135,
     "tenant_tables": 321,
@@ -4686,7 +4687,10 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/routers/irrigation_recommendation.py",
+        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
+      ],
       "created_in": "v185_vendor_neutral_irrigation_engineering_workspace.sql",
       "has_tenant_id": true,
       "manifest_position": 190,
@@ -5765,12 +5769,14 @@
       "code_readers": [
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/test_backfill_processing_version_preflight.py",
         "services/raster-service/test_element84_vrt_containment_runtime.py",
         "services/sahool-platform/api/routers/field_intelligence.py"
       ],
       "code_writers": [
         "services/raster-service/cache_invalidation_worker.py",
-        "services/raster-service/db_persist.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_backfill_processing_version_preflight.py"
       ],
       "created_in": "v14_imagery_storage.sql",
       "has_tenant_id": true,
@@ -6889,7 +6895,8 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/water_ledger.py",
         "services/sahool-platform/api/routers/water_twin.py",
-        "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py"
+        "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",

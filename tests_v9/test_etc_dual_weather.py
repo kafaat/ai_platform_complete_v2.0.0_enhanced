@@ -122,3 +122,24 @@ async def test_live_fetch_keeps_an_observed_zero_and_builds_weather(monkeypatch)
     weather, source = await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
     assert source == "open-meteo"
     assert (weather.temp_min_c, weather.humidity_pct) == (0.0, 0.0)
+
+
+async def test_live_fetch_refuses_unmeasured_wind(monkeypatch):
+    """Provider absence must stop at the boundary before entering WeatherDay."""
+    daily = {k: v for k, v in _FULL_DAILY.items() if k != "wind_speed_10m_max"}
+    _stub_openmeteo(monkeypatch, daily=daily, current={"relative_humidity_2m": 45.0})
+    with pytest.raises(HTTPException) as ei:
+        await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
+    assert ei.value.status_code == 503
+    assert "wind_max_ms" in str(ei.value.detail)
+
+
+async def test_live_fetch_preserves_measured_calm_wind(monkeypatch):
+    _stub_openmeteo(
+        monkeypatch,
+        daily={**_FULL_DAILY, "wind_speed_10m_max": [0.0]},
+        current={"relative_humidity_2m": 45.0},
+    )
+    weather, source = await _resolve_weather(EtcDualRequest(), field_lat=15.0, field_lon=44.0)
+    assert source == "open-meteo"
+    assert weather.wind_speed_m_s == 0.0

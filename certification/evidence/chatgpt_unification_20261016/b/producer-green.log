@@ -1,0 +1,16 @@
+.                                                                        [100%]
+=============================== warnings summary ===============================
+services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:719
+  /workspace/scratch/881ca3efb91d/irrigation-completion/services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:719: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:733
+  /workspace/scratch/881ca3efb91d/irrigation-completion/services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:733: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:749
+  /workspace/scratch/881ca3efb91d/irrigation-completion/services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:749: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 3 warnings in 2.71s

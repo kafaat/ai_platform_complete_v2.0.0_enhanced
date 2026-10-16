@@ -1,0 +1,28 @@
+"""Capture real application transaction boundaries and parameterized queries for SQL evidence."""
+import asyncio
+import json
+from pathlib import Path
+import persistence
+
+queries=[]
+transactions=[]
+class Transaction:
+ async def __aenter__(self):transactions.append({'sql':'BEGIN','params':[]})
+ async def __aexit__(self, typ, exc, tb):transactions.append({'sql':'ROLLBACK' if typ else 'COMMIT','params':[]})
+class Conn:
+ def transaction(self):return Transaction()
+ async def execute(self,sql,*params):transactions.append({'sql':sql,'params':params})
+ async def fetch(self,sql,*params):
+  call={'sql':sql,'params':params};queries.append(call);transactions.append(call);return []
+ async def close(self):pass
+async def connect():return Conn()
+persistence._connect=connect
+async def run():
+ await persistence.list_review_queue(tenant_id='00000000-0000-0000-0000-000000000001',field_id='f',season_id='s')
+ scoped=list(transactions)
+ await persistence.list_review_queue(tenant_id='00000000-0000-0000-0000-000000000001')
+ return scoped
+scoped=asyncio.run(run())
+dir=Path(__file__).parent
+(dir/'captured-queries.json').write_text(json.dumps(queries,indent=2))
+(dir/'captured-scoped-transaction.json').write_text(json.dumps(scoped,indent=2))

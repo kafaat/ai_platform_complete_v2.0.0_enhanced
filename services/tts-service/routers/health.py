@@ -24,16 +24,17 @@ async def health() -> dict:
 
 
 @router.get("/readyz")
-async def readyz() -> dict:
+async def readyz(response: Response) -> dict:
     redis_ok = False
     if main._redis:
         try:
-            await main._redis.ping()
-            redis_ok = True
+            redis_ok = bool(await main._redis.ping())
         except Exception as e:  # noqa: BLE001
             main.logger.debug("فحص صحّة Redis فشل: %s", type(e).__name__)
+    response.status_code = 200 if redis_ok else 503
     return {
-        "status": "ready",
+        "status": "ready" if redis_ok else "degraded",
+        "ready": redis_ok,
         "redis": redis_ok,
         "voices_available": len(main.VOICES),
     }

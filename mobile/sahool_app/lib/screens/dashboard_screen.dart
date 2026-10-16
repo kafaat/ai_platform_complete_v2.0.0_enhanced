@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../services/api_service.dart';
 import '../widgets/state_views.dart';
 import '../widgets/water_usage_card.dart';
+import '../widgets/carbon_not_measured_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   // يُستدعى من حالة «لا حقول» للانتقال إلى تبويب الحقول لإنشاء أوّل حقل.
@@ -173,8 +174,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _StatCard(
             icon: Icons.eco,
             label: 'الكربون',
-            value: '${data['carbon']['sequestered_kg']}',
-            subtitle: 'كجم CO₂',
+            value: kCarbonNotMeasuredValue,
+            subtitle: 'الكربون غير مقيس',
             color: const Color(0xFF22C55E),
           ),
         ),
@@ -490,45 +491,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildResourceCards(Map<String, dynamic> data) {
-    final carbon = (data['carbon'] as Map<String, dynamic>?) ?? const {};
-
-    return Row(
+    return const Row(
       children: [
-        // صدق: لا مُنتِج لـwater_usage (this_month_m3/savings_pct) ⇒ «غير مقيس» صريح
-        // لا يقرأ أيّ مفتاح من الحمولة ولا يعرض نسبةَ توفير.
-        const Expanded(child: WaterUsageNotMeasuredCard()),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.eco, color: Color(0xFF22C55E), size: 28),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${carbon['sequestered_kg']}',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 22),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'كجم CO₂ مخزّن',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '\$${carbon['credit_value_usd']} قيمة اعتماد',
-                    style: const TextStyle(
-                      color: Color(0xFFF59E0B),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        Expanded(child: WaterUsageNotMeasuredCard()),
+        SizedBox(width: 12),
+        Expanded(child: CarbonNotMeasuredCard()),
       ],
     );
   }
