@@ -1,0 +1,15 @@
+{
+  "base_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "status": "prepared_not_executed",
+  "files": {
+    "docs/runbooks/REMAINING_RUNTIME_ACCEPTANCE_20261016.md": "df0761e5d6554c153d3f5f739cf424827eda054d5aa1b0290a7a0621b0e00ac2",
+    "docs/runbooks/runtime_acceptance_20261016/catalog_snapshot.sql": "f6baf4de2e198a97ee98069664bbb20eb68cf0197278f736da50b164c424316f"
+  },
+  "source_tests": {
+    "passed": 120,
+    "skipped": 0,
+    "log": "evidence/remaining/runtime/source-acceptance.log"
+  },
+  "native_database_proof": "not_run: executables absent",
+  "runtime_mutations": []
+}

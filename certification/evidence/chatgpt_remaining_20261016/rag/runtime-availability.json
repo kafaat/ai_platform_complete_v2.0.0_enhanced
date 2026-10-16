@@ -1,0 +1,31 @@
+{
+  "measured_at": "2026-10-16T13:11:28.843100+00:00",
+  "base_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "commands": {
+    "ollama": null,
+    "docker": null,
+    "podman": null,
+    "qdrant": null
+  },
+  "packages": {
+    "qdrant_client": false,
+    "torch": false,
+    "transformers": false,
+    "sentence_transformers": false
+  },
+  "loopback_ports": {
+    "ollama": "ConnectionRefusedError",
+    "qdrant": "ConnectionRefusedError"
+  },
+  "conclusion": "NO_LOCAL_OLLAMA_OR_QDRANT_RUNTIME; real Arabic Nomic/Qdrant comparison not executed",
+  "ci_venv": {
+    "python": "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+    "packages": {
+      "qdrant_client": true,
+      "torch": false,
+      "transformers": false,
+      "sentence_transformers": false,
+      "fastembed": false
+    }
+  }
+}

@@ -143,6 +143,8 @@ def run_processing(ctx, job_id: str, req):
             job["note"] = "rasterio غير متوفّر — بنية صحيحة بلا حساب بكسلات"
 
         now = datetime.now(UTC).isoformat()
+        # Explicit availability of this COG, not immutable row creation time.
+        meta["data_available_at"] = now
         # provenance (#7): سجلّ أصل كامل لإعادة الإنتاج
         import raster_provenance as _prov
 
@@ -208,10 +210,23 @@ def run_processing(ctx, job_id: str, req):
             "valid_pixel_ratio": _layer_q["valid_pixel_ratio"],
             "coverage_ratio": _layer_q["coverage_ratio"],
             "index_quality_flags": _layer_q["index_quality_flags"],
-            "cloud_mask_applied": stats.get("cloud_mask_applied"),
+            "cloud_mask_applied": (stats.get("validated_raster_product") or {}).get(
+                "cloud_mask_applied"
+            )
+            is True,
             "confidence": stats.get("confidence"),
+            "quality_score": stats.get("confidence"),  # Same semantics as persisted assets.
+            # Preserve the actual validated producer envelope; do not equate raw
+            # pixel QA with confidence or invent an identity for server-side masks.
+            "algorithm_version": (
+                (stats.get("validated_raster_product") or {}).get("provenance") or {}
+            ).get("algorithm_version"),
+            "qa_mask_version": (
+                (stats.get("validated_raster_product") or {}).get("provenance") or {}
+            ).get("qa_mask_version"),
             "quality": stats.get("quality"),
             "created_at": now,
+            "data_available_at": now,
             "provenance": provenance,
         }
         # فهرس حقل→طبقات (للبحث عن أحدث COG لحقل+مؤشّر في شبكة المؤشّر). يُستخدَم

@@ -10,6 +10,7 @@ Sentinel-2 L2A على Element84 (وأغلب STAC) يقدّم **COG منفصلا�
 from __future__ import annotations
 
 import logging
+import math
 import os
 import uuid
 from contextlib import suppress
@@ -35,7 +36,61 @@ def _as_gdal_source(href: str) -> str:
     return href.replace("file://", "")
 
 
-def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[str, dict[str, int]]:
+def _stac_calibration(
+    item: dict, href: str, src, *, categorical: bool = False
+) -> tuple[float, float]:
+    """Resolve declared coefficients for one exact asset, never infer DN semantics.
+
+    Legacy Earth Search COGs have documented inconsistent BOA metadata (#66).
+    Reject that collection regardless of the flag. Other explicit declarations
+    support local calibration experiments, not provider certification or release
+    of ``radiometry_containment``. No collection-wide scale/offset is assumed.
+    """
+    if not item.get("id") or not item.get("collection"):
+        raise ValueError("STAC calibration requires item and collection identity")
+    if item["collection"] == "sentinel-2-l2a":
+        raise ValueError("Legacy STAC collection radiometry remains unresolved")
+    matches = [asset for asset in item.get("assets", {}).values() if asset.get("href") == href]
+    if len(matches) != 1 or src.count != 1:
+        raise ValueError("STAC calibration requires one matching single-band asset")
+    bands = matches[0].get("raster:bands")
+    if not isinstance(bands, list) or len(bands) != 1 or not isinstance(bands[0], dict):
+        raise ValueError("STAC calibration requires one raster:bands declaration")
+    if categorical:
+        if any(
+            bands[0].get(key, default) != default for key, default in (("scale", 1), ("offset", 0))
+        ):
+            raise ValueError("Categorical STAC band must not carry reflectance calibration")
+        if (src.scales[0], src.offsets[0]) != (1.0, 0.0):
+            raise ValueError("Categorical TIFF band must not carry reflectance calibration")
+        return 1.0, 0.0
+    calibration = []
+    for key in ("scale", "offset"):
+        value = bands[0].get(key)
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (float, int))
+            or not math.isfinite(value)
+        ):
+            raise ValueError(f"STAC calibration requires finite explicit {key}")
+        calibration.append(float(value))
+    scale, offset = calibration
+    if scale <= 0:
+        raise ValueError("STAC reflectance scale must be positive")
+    flag = item.get("properties", {}).get("earthsearch:boa_offset_applied")
+    if flag is not None and not isinstance(flag, bool):
+        raise ValueError("STAC BOA flag must be a boolean when present")
+    if flag is True and offset != 0:
+        raise ValueError("STAC BOA flag conflicts with nonzero asset offset")
+    declared_tiff = (src.scales[0], src.offsets[0])
+    if declared_tiff != (1.0, 0.0) and declared_tiff != (scale, offset):
+        raise ValueError("STAC calibration conflicts with TIFF calibration")
+    return scale, offset
+
+
+def build_band_vrt(
+    band_hrefs: dict[str, str], out_dir: str = "/tmp", *, stac_item: dict | None = None
+) -> tuple[str, dict[str, int]]:
     """يبني VRT يكدّس COGs المنفصلة لكلّ نطاق ويُرجِع (مسار_vrt، خريطة_فهارس).
 
     band_hrefs: {"red": url|path, "nir": ..., ...} — أسماء من _BAND_ORDER.
@@ -47,6 +102,9 @@ def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[s
     bundle until all readers close, then remove the root and its sidecars.
     Partial bundles are removed if construction fails. This helper does not
     lift the Element84 production containment or certify provider calibration.
+    ``stac_item`` optionally supplies exact asset-bound raster:bands calibration
+    for offline acceptance work; missing/contradictory metadata is rejected.
+    Without it, only existing TIFF metadata is preserved (not guessed).
     """
     ordered = [(b, band_hrefs[b]) for b in _BAND_ORDER if band_hrefs.get(b)]
     # أيّ أسماء إضافيّة غير قياسيّة تُلحَق بعد القياسيّة
@@ -76,7 +134,11 @@ def build_band_vrt(band_hrefs: dict[str, str], out_dir: str = "/tmp") -> tuple[s
                     raise ValueError(f"VRT source band {name} has no CRS")
                 # Preserve declared calibration as metadata. Do not infer a provider
                 # scale or offset from digital numbers or a collection name.
-                scale, offset = src.scales[0], src.offsets[0]
+                scale, offset = (
+                    _stac_calibration(stac_item, _href, src, categorical=name == "scl")
+                    if stac_item is not None
+                    else (src.scales[0], src.offsets[0])
+                )
                 source_nodata = src.nodatavals[0]
                 with WarpedVRT(
                     src,

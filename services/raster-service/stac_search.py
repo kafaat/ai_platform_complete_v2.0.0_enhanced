@@ -9,6 +9,7 @@ creating a second client or changing runtime behaviour.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 import httpx
@@ -122,6 +123,35 @@ def band_urls_from_assets(assets: dict) -> dict:
         "swir1": url("swir16"),  # B11 → BandMapping.swir1   (NDMI / MSI / BSI)
         "swir2": url("swir22"),  # B12 → BandMapping.swir2   (BSI / SATVI / NDTI)
         "scl": url("scl"),
+    }
+
+
+def radiometry_context_from_item(item: dict) -> dict:
+    """Retain calibration provenance for the exact selected assets, without certifying it.
+
+    Search previously discarded raster:bands, making a later per-asset review
+    impossible. This bounded deep copy travels with search results; production
+    processing remains contained, including when this metadata is present.
+    """
+    assets = item.get("assets", {})
+    selected = {href for href in band_urls_from_assets(assets).values() if href}
+    return {
+        "id": item.get("id"),
+        "collection": item.get("collection"),
+        "properties": {
+            key: deepcopy(value)
+            for key, value in item.get("properties", {}).items()
+            if key in {"earthsearch:boa_offset_applied", "s2:processing_baseline"}
+        },
+        "assets": {
+            key: {
+                field: deepcopy(value)
+                for field, value in asset.items()
+                if field in {"href", "raster:bands", "bands", "eo:bands", "type"}
+            }
+            for key, asset in assets.items()
+            if asset.get("href") in selected
+        },
     }
 
 
@@ -278,6 +308,7 @@ async def stac_search_element84(
                 "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
                 "bbox": feat.get("bbox"),
                 "bands_urls": band_urls_from_assets(assets),
+                "radiometry_context": radiometry_context_from_item(feat),
                 "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
                 "preview_url": (assets.get("visual") or {}).get("href"),
                 "platform": props.get("platform", "sentinel-2"),

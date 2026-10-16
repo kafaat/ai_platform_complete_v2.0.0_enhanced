@@ -1,0 +1,31 @@
+{
+  "observed_at": "2026-10-16T13:12:35.279969+00:00",
+  "base_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "files": {
+    "migrations/v234_learning_agronomic_review.sql": {
+      "sha256": "acd0935af8bc8593ee99fa222b363e3b765d5036f2cc3797df83ad3ef3eb89f5",
+      "git_blob": "2f23198d5772847cfda3390d8557392e9f8bc47d"
+    },
+    "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql": {
+      "sha256": "36e9740e83b8f56373ac16a1b2422c6adc646d875fd77d405fcffbc81cb70d69",
+      "git_blob": "d73cf1088651f9e19e70052b4c428388bd1d722a"
+    },
+    "services/decision-service/migration_runner.py": {
+      "sha256": "7c17e68cb8ed57fa8909a5b0276ff4786c921a27e598007c454349e0d75e838b",
+      "git_blob": "8e0065948a3b3ec65578dbb4e9c6968e0e5bf94f"
+    },
+    "services/sahool-platform/api/phase_runtime_store.py": {
+      "sha256": "9e62d10c7fd4df1e81b0cd88927551f551b0b9acebfd3e5a445e1aac286b7534",
+      "git_blob": "b5f47f44efbdf9b8f34cd5d497f76a78077f1788"
+    },
+    "services/tts-service/tts_tenant_policy.py": {
+      "sha256": "b34fba4fd58d6f8d0808bd359c4c8d0e6f8eab05b0d203dfd37bbfa787a99d43",
+      "git_blob": "fc2fdf7b43c851d3223e5cef179b53567df242ea"
+    },
+    "services/sahool-platform/core/ai_policy_envelope.py": {
+      "sha256": "ad1e89285304b038852138d8c7a991e63063f05b63c54e88b39eb9915442d4ce",
+      "git_blob": "61dd06b535b8dfae1d8bdefcdb6891e340d635cb"
+    }
+  },
+  "runtime_actions": []
+}

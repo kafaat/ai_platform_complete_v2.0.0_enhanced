@@ -935,6 +935,7 @@ FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:660,2,ap
 FM-007,mobile,mobile/sahool_app/lib/screens/inventory_screen.dart,2,applied
 FM-007,test,services/sahool-platform/tests/test_data_inventory.py,3,applied
 FM-007,test,tests/architecture/test_generate_service_inventory.py,3,applied
+FM-007,test,tests_v9/test_element84_legacy_inventory.py,3,applied
 FM-007,test,tests_v9/test_inventory_equipment.py,3,applied
 FM-007,test,tests_v9/test_main_inventory_generator.py,3,applied
 FM-007,test,tests_v9/test_resolve_inventory_edges.py,3,applied
@@ -1700,6 +1701,7 @@ SAT-009,test,services/raster-service/test_indicator_batch_claim.py,3,applied
 SAT-009,test,services/raster-service/test_indicator_grid_provenance_static.py,3,applied
 SAT-009,test,services/raster-service/test_indicator_observation_bundle.py,3,applied
 SAT-009,test,services/raster-service/test_indicator_product_identity.py,3,applied
+SAT-009,test,services/raster-service/test_indicator_provenance_transport.py,3,applied
 SAT-009,test,services/raster-service/test_landsat_thermal_unique_contract.py,3,applied
 SAT-009,test,services/raster-service/test_object_store.py,3,applied
 SAT-009,test,services/raster-service/test_p2_tile_observability_static.py,5,applied
@@ -1974,6 +1976,7 @@ WX-009,test,tests_v9/test_disease_field_state_feed.py,3,applied
 WX-010,service,services/weather-service/main.py,10,applied
 WX-010,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
 WX-010,test,services/raster-service/test_indicator_grid_provenance_static.py,3,applied
+WX-010,test,services/raster-service/test_indicator_provenance_transport.py,3,applied
 WX-010,test,services/weather-service/tests/test_canonical_weather_state.py,3,applied
 WX-010,test,tests/architecture/test_provenance_receipt_and_replay.py,3,applied
 WX-010,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "measured_at": "2026-10-16T13:12:39.936318+00:00",
+  "subject_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "source_sha256": {
+    "services/sahool-platform/core/rag/production_qdrant.py": "4d84e4f0fb7a39eebf16fda5315f100677a365c210ea8df7de29523dec2b5234",
+    "services/qdrant-seed/seed.py": "61b5dd13dad48617140563d01e120bf16ac33665320bf5121c1af67d1863dae1",
+    "scripts/staging/ai_rag_live_acceptance.sh": "b5a253edd735e4f1118fa30c59b2c1d2e147f7a3d3401fdffa3132a29f88ba89",
+    "scripts/architecture/rag_live_parity_probe.py": "c85de7d437097ba31923669b3d8f13200baa1a0440ca8397038a7a6fcbc748c9",
+    "certification/evidence/chatgpt_unification_20261016/d/arabic_offline_experiment.py": "b91d637ad7d1f8fa72a4bb0fdbfa207de449fb96f9e69c0521032447317823c6",
+    "tests_v9/test_rag_owned_gap_witnesses.py": "3f2524bda9aaa190510cde066905bbcba7445063f103da864b8972d5c6da2f47",
+    "tests_v9/test_rag_logical_identity_migration_plan.py": "35a98975dd9f0033f7dd83921bc1f8f719b602f89368296b7342e34ec5429cde"
+  },
+  "gap_verdicts": {
+    "REPORT3-RAG-01-01": {
+      "status": "open",
+      "reason": "Raw shared embed contract remains; real Arabic before/after experiment absent. No prefix change authorized under prerequisite."
+    },
+    "REPORT3-RAG-07-01": {
+      "status": "open",
+      "reason": "Seed revision/tenant quarantine are already present, but seed is static KNOWLEDGE_BASE upsert, not complete tenant-aware reindex. No reindex executed."
+    }
+  },
+  "baseline_tests": {
+    "tests": 34,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_scope": "Existing RAG03/04/11 safety plus logical-identity planning; neither proves RAG01/RAG07 closure",
+  "new_production_source_changes": [],
+  "network_scope": "Loopback connectivity only; no production endpoint or reseed contacted",
+  "reusable_tools": [
+    "scripts/staging/ai_rag_live_acceptance.sh",
+    "scripts/architecture/rag_live_parity_probe.py"
+  ],
+  "required_before_source_change": [
+    "Versioned Arabic corpus and relevance judgments with provenance; split selection from acceptance queries",
+    "Exact Nomic model digest, embedding API/version and actual Qdrant runtime version",
+    "Pinned same corpus payload digest in raw and prefixed candidate experiment collections",
+    "Separate dense, sparse, fusion and expansion stage rankings, not a single combined score",
+    "Precision@k, Recall@k, MRR, nDCG@k per query and macro average; paired deltas with source/model fingerprints",
+    "Zero cross-tenant and quarantine leaks across stages; stale revision and deterministic identity collision coverage",
+    "Owner-reviewed acceptance interpretation; benchmark does not authorize production reseed/cutover"
+  ],
+  "excluded_claude_scopes_untouched": [
+    "RAG-02",
+    "RAG-05",
+    "RAG-06",
+    "RAG-08",
+    "RAG-12",
+    "DIRECT-VS-CANONICAL-DENSE-SEMANTICS-01"
+  ]
+}

@@ -1,0 +1,806 @@
+FFFFFFFFFFFFFFFF                                                         [100%]
+=================================== FAILURES ===================================
+_______________ test_stac_asset_calibration_reaches_pixels_once ________________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+
+    def test_stac_asset_calibration_reaches_pixels_once(env):
+        hrefs = {
+            name: _tif(env, name, np.full((2, 2), value, dtype="uint16"))
+            for name, value in {"red": 2000, "nir": 4000}.items()
+        }
+>       path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=_stac_item(hrefs))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:622: TypeError
+______________ test_ambiguous_stac_calibration_is_rejected[href] _______________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'href'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+____________ test_ambiguous_stac_calibration_is_rejected[multiband] ____________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'multiband'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+__________ test_ambiguous_stac_calibration_is_rejected[missing_scale] __________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'missing_scale'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+_________ test_ambiguous_stac_calibration_is_rejected[missing_offset] __________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'missing_offset'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+_______________ test_ambiguous_stac_calibration_is_rejected[nan] _______________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'nan'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+____________ test_ambiguous_stac_calibration_is_rejected[infinity] _____________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'infinity'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+_____________ test_ambiguous_stac_calibration_is_rejected[boolean] _____________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'boolean'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+___________ test_ambiguous_stac_calibration_is_rejected[zero_scale] ____________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'zero_scale'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+________ test_ambiguous_stac_calibration_is_rejected[legacy_collection] ________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'legacy_collection'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+__________ test_ambiguous_stac_calibration_is_rejected[boa_conflict] ___________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'boa_conflict'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+__________ test_ambiguous_stac_calibration_is_rejected[tiff_conflict] __________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'tiff_conflict'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+__________ test_ambiguous_stac_calibration_is_rejected[item_identity] __________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+defect = 'item_identity'
+
+    @pytest.mark.parametrize(
+        "defect",
+        [
+            "href",
+            "multiband",
+            "missing_scale",
+            "missing_offset",
+            "nan",
+            "infinity",
+            "boolean",
+            "zero_scale",
+            "legacy_collection",
+            "boa_conflict",
+            "tiff_conflict",
+            "item_identity",
+        ],
+    )
+    def test_ambiguous_stac_calibration_is_rejected(env, defect):
+        href = _tif(
+            env,
+            "red",
+            np.full((2, 2), 2000, dtype="uint16"),
+            scale=0.002 if defect == "tiff_conflict" else None,
+        )
+        item = _stac_item({"red": href})
+        asset = item["assets"]["red"]
+        band = asset["raster:bands"][0]
+        if defect == "href":
+            asset["href"] = "different-asset.tif"
+        elif defect == "multiband":
+            asset["raster:bands"].append(dict(band))
+        elif defect in {"missing_scale", "missing_offset"}:
+            del band[defect.removeprefix("missing_")]
+        elif defect == "nan":
+            band["offset"] = float("nan")
+        elif defect == "infinity":
+            band["scale"] = float("inf")
+        elif defect == "boolean":
+            band["scale"] = True
+        elif defect == "zero_scale":
+            band["scale"] = 0
+        elif defect == "legacy_collection":
+            item["collection"] = "sentinel-2-l2a"
+            item["properties"]["earthsearch:boa_offset_applied"] = False
+        elif defect == "boa_conflict":
+            item["properties"]["earthsearch:boa_offset_applied"] = True
+        elif defect == "item_identity":
+            del item["id"]
+        with pytest.raises(ValueError):
+>           env.stac_vrt.build_band_vrt({"red": href}, str(env.dir), stac_item=item)
+E           TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:680: TypeError
+_________ test_element84_search_retains_asset_bound_radiometry_context _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f596f433fe0>
+
+    @pytest.mark.asyncio
+    async def test_element84_search_retains_asset_bound_radiometry_context(monkeypatch):
+        import copy
+    
+        import stac_search
+    
+        item = _stac_item({"red": "https://example.test/red.tif"})
+        item["properties"]["earthsearch:boa_offset_applied"] = True
+        item["assets"]["thumbnail"] = {"href": "https://example.test/thumb.jpg"}
+    
+        async def query(_payload):
+            return {"features": [item]}
+    
+        monkeypatch.setattr(stac_search, "stac_query", query)
+        original = copy.deepcopy(item)
+        result = await stac_search.stac_search_element84(
+            [0, 0, 1, 1], "2026-01-01", "2026-01-02", 10, 1
+        )
+>       context = result["items"][0]["radiometry_context"]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'radiometry_context'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:702: KeyError
+_______________ test_stac_calibration_preserves_categorical_scl ________________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+
+    def test_stac_calibration_preserves_categorical_scl(env):
+        hrefs = {
+            "red": _tif(env, "red", np.full((4, 4), 2000, dtype="uint16")),
+            "scl": _tif(env, "scl", np.full((2, 2), 4, dtype="uint16"), pixel=20),
+        }
+        item = _stac_item(hrefs)
+        item["assets"]["scl"]["raster:bands"] = [{"data_type": "uint16", "nodata": 0}]
+>       path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=item)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:719: TypeError
+________ test_stac_calibration_preserves_nodata_and_mask_before_offset _________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-...0x7f596f5f82c0>, <function compute_quality_score at 0x7f596f5f8860>, <function build_quality_flags at 0x7f596f5f87c0>))
+
+    def test_stac_calibration_preserves_nodata_and_mask_before_offset(env):
+        red = _tif(env, "red", np.array([[0, 2000], [2000, 2000]], dtype="uint16"))
+        nir = _tif(env, "nir", np.full((2, 2), 4000, dtype="uint16"))
+        with rasterio.open(nir, "r+") as dst:
+            dst.write_mask(np.array([[255, 0], [255, 255]], dtype="uint8"))
+        hrefs = {"red": red, "nir": nir}
+>       path, mapping = env.stac_vrt.build_band_vrt(hrefs, str(env.dir), stac_item=_stac_item(hrefs))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_band_vrt() got an unexpected keyword argument 'stac_item'
+
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:732: TypeError
+=============================== warnings summary ===============================
+../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:25
+  /workspace/scratch/881ca3efb91d/evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py:25: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.unit
+
+evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_stac_asset_calibration_reaches_pixels_once
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_stac_asset_calibration_reaches_pixels_once
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py: 18 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_stac_asset_calibration_reaches_pixels_once
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[href]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[multiband]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[missing_scale]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[missing_offset]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[nan]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[infinity]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[boolean]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[zero_scale]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[legacy_collection]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[boa_conflict]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[tiff_conflict]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_ambiguous_stac_calibration_is_rejected[item_identity]
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_element84_search_retains_asset_bound_radiometry_context
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_stac_calibration_preserves_categorical_scl
+FAILED ../evidence/remaining/radiometry/baseline/test_element84_vrt_defect_witnesses.py::test_stac_calibration_preserves_nodata_and_mask_before_offset
+16 failed, 75 deselected, 21 warnings in 0.86s
