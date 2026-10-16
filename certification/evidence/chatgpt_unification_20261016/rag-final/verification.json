@@ -1,0 +1,17 @@
+{
+  "snapshot_tree": "badd7e5100fc3f36446e8e021510c0e25201f6d5",
+  "production_source_unchanged": true,
+  "targeted_tests_passed": 93,
+  "mutation_group_killed": 17,
+  "diagnosis": {
+    "seed_no_embed_failure": "environment httpx SOCKS proxy without socksio; resolved by parent installing runtime dependency",
+    "readiness_chain_failure": "old test treats quarantine-only default seed as ready; now checks503 then independent explicit global reference corpus with complete synthetic provenance200",
+    "qdrant_filter_failure": "old exact dict ignores intended general-global-reference scope exception; expected filter updated retaining outer tenant confinement",
+    "mutation_anchor": "same all-pass predicate defect reanchored; original witness retained and kills mutant"
+  },
+  "sha256": {
+    "tests_v9/test_ollama_model_provisioning.py": "d2f2ed5412b56b5e0a5d346c0efb7458fa9606c9f0fd2b2184ab82321033d4e7",
+    "tests_v9/test_qdrant_probe_classification.py": "10283df4e13ee88387a92217ae41263dc9bae1d42b07ffe8116d6a71a5dd94d7",
+    "docs/architecture/guard_mutation_registry.json": "2c3239511755a6471835c78b820f5ae858cf111d9799eed6228e1dccd3e18410"
+  }
+}

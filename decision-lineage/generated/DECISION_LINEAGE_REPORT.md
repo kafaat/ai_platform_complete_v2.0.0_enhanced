@@ -15,16 +15,16 @@
 
 | Order | Stage | Primary owner | Evidence files |
 |---:|---|---|---:|
-| 1 | `evidence` | `sahool-platform` | 618 |
-| 2 | `candidate` | `sahool-platform` | 508 |
-| 3 | `decision` | `sahool-platform` | 176 |
-| 4 | `review` | `sahool-platform` | 271 |
-| 5 | `plan` | `decision-service` | 35 |
+| 1 | `evidence` | `sahool-platform` | 622 |
+| 2 | `candidate` | `sahool-platform` | 513 |
+| 3 | `decision` | `sahool-platform` | 177 |
+| 4 | `review` | `sahool-platform` | 275 |
+| 5 | `plan` | `decision-service` | 37 |
 | 6 | `authorization` | `sahool-platform` | 135 |
 | 7 | `request` | `decision-service` | 30 |
 | 8 | `receipt` | `decision-service` | 37 |
 | 9 | `outcome` | `sahool-platform` | 53 |
-| 10 | `learning` | `sahool-platform` | 297 |
+| 10 | `learning` | `sahool-platform` | 299 |
 
 ## Remaining static gaps
 

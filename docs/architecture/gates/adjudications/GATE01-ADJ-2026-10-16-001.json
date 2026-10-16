@@ -1,0 +1,53 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-10-16-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner-current-user-instruction",
+  "adjudicated_on": "2026-10-16",
+  "expires_on": "2026-10-23",
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "services/sahool-platform/api/phase_runtime_store.py",
+    "migrations/MANIFEST.txt"
+  ],
+  "allowed_gap_closures": [
+    "REPORT3-U07-REVIEW-DECISION-NOT-PERSISTED-01"
+  ],
+  "authorized_patch_sha256": "b4ef1787f9e75190ca2f7eb9d2a094559f7705fc29bc279436e4c429982b4665",
+  "authorized_blobs": {
+    "services/sahool-platform/api/phase_runtime_store.py": "b5f47f44efbdf9b8f34cd5d497f76a78077f1788",
+    "migrations/MANIFEST.txt": "655fa0c89b1221af54b59d47c6f8f5d31bdd7d8f"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "لا تعيد استخدام تفويض GATE-01 مُستهلَك ولا تفتح البوابة عالميًا؛ صِغ ISSUED جديدًا مقيدًا بالبايتات ومسارات U07 فقط وفق الحارس الحالي.",
+    "context": "User resumption directive 2026-10-16; U07 platform review persistence only. No merge or deployment authorization."
+  },
+  "scope_limit": "Persist normalized review fields in the platform online_learning_updates writer, including conflict updates; bind local tenant settings and this insert in one transaction, commit before the best-effort remote mirror; register additive v234. No global tenant-GUC cleanup, reviewer authentication, traceability policy, decision-service mirror payload, tenant policy, or physical execution change. Keep GATE-01 CLOSED.",
+  "supplemental_byte_bindings": {
+    "migrations/v234_learning_agronomic_review.sql": "2f23198d5772847cfda3390d8557392e9f8bc47d",
+    "scripts_v9/run_migrations.sql": "88928d7a6055fe8191d35388c667a7ae3892df95",
+    "services/sahool-platform/core/learning_source_lineage.py": "754c778ef14a50b3b6f664118a8b155170d8f9d2",
+    "tests_v9/test_learning_review_persistence_gap.py": "a09c98098c4eecdbd87b060cbf9a02c818d221bd"
+  },
+  "supplemental_binding_limit": "Current guard measures only policy frozen_paths. These additional hashes are review evidence, not enforcement by gate01_frozen_path_guard. scripts_v9/run_migrations.sql is the acknowledged live runner alias and is explicitly within this U07 scope.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "frozen_paths_bytes_only",
+    "note": "Issued after root review of final transaction-scoped bytes and source-level evidence; no independent owner signature or production attestation claimed."
+  },
+  "acceptance_limits": "Six pytest writer/wiring tests, four existing migration tests. PGlite PostgreSQL18.6 WASM replays real captured transaction boundaries and SQL, separate readback transaction only; not native PG16/asyncpg/network acceptance. Existing other phase_runtime_store GUC defects remain outside scope."
+}

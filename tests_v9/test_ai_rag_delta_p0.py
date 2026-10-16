@@ -235,7 +235,12 @@ def test_qdrant_search_scope_is_current_tenant_or_global_reference_only():
         "key": "metadata.tenant_id",
         "match": {"any": ["tenant-a", "__global__"]},
     }
-    assert {"key": "metadata.crop", "match": {"value": "wheat"}} in must
+    crop_rule = must[1]["should"]
+    assert crop_rule[0] == {"key": "metadata.crop", "match": {"value": "wheat"}}
+    assert crop_rule[1]["must"][0] == {
+        "key": "metadata.tenant_id",
+        "match": {"value": "__global__"},
+    }
 
 
 def test_global_reference_is_visible_but_other_tenant_data_is_not():

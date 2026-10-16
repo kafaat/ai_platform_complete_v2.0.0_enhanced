@@ -10,10 +10,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
 
 
 class IrrigationSystemType(StrEnum):
@@ -1040,3 +1041,207 @@ def calculate_reservoir_booster_network(
         blocking_constraints=sorted(set(blockers)),
         content_digest=_digest(payload),
     )
+
+
+class ManualIrrigationIntent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    season_id: str = Field(min_length=1, max_length=128)
+    system_id: str = Field(min_length=1, max_length=128)
+    irrigated_area_ha: StrictFloat | StrictInt = Field(gt=0, allow_inf_nan=False)
+    application_efficiency: StrictFloat | StrictInt = Field(gt=0, le=1, allow_inf_nan=False)
+    source_reference: str = Field(min_length=3, max_length=500)
+    observed_at: datetime
+    valid_from: datetime
+    valid_until: datetime
+
+    @model_validator(mode="after")
+    def explicit_source_and_window(self):
+        if not self.system_id.strip() or not self.source_reference.strip():
+            raise ValueError("system and source reference must be explicit")
+        for value in (self.observed_at, self.valid_from, self.valid_until):
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise ValueError("source and window timestamps need timezone")
+        now = datetime.now(UTC)
+        if self.observed_at > now or self.valid_until <= now or self.valid_until <= self.valid_from:
+            raise ValueError("source date or execution window invalid")
+        if self.observed_at > self.valid_from:
+            raise ValueError("source observed after execution starts")
+        return self
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+            default=str,
+        ).encode()
+    ).hexdigest()
+
+
+def build_manual_source(
+    *,
+    intent: ManualIrrigationIntent,
+    tenant_id: str,
+    field_id: str,
+    season_id: str,
+    canonical: dict,
+    applied_status: str | None,
+    recommendation: dict,
+    weather: dict,
+    et0: dict,
+) -> dict:
+    """No default area, efficiency, water, approval, or equipment selection."""
+    if intent.season_id != season_id:
+        raise ValueError("manual_season_changed")
+    if (
+        canonical.get("tenant_id") != tenant_id
+        or canonical.get("field_id") != field_id
+        or canonical.get("season_id") != season_id
+    ):
+        raise ValueError("manual_water_scope_mismatch")
+    if canonical.get("operational_eligible") is not True or applied_status != "recorded":
+        raise ValueError("manual_water_not_operational_or_applied_unknown")
+    if recommendation.get("should_irrigate") is not True or recommendation.get(
+        "requires_expert_review"
+    ):
+        raise ValueError("manual_recommendation_not_eligible")
+    net = recommendation.get("target_refill_mm")
+    if (
+        isinstance(net, bool)
+        or not isinstance(net, (int, float))
+        or not math.isfinite(net)
+        or net <= 0
+    ):
+        raise ValueError("manual_net_target_unresolved")
+    water_until = canonical.get("valid_until")
+    if not isinstance(water_until, str) or intent.valid_until > datetime.fromisoformat(water_until):
+        raise ValueError("manual_window_exceeds_water_evidence_validity")
+    if intent.valid_until <= datetime.now(UTC):
+        raise ValueError("manual_window_expired")
+    specification = {
+        "tenant_id": tenant_id,
+        "field_id": field_id,
+        "season_id": season_id,
+        "system_id": intent.system_id,
+        "irrigated_area_ha": float(intent.irrigated_area_ha),
+        "application_efficiency": float(intent.application_efficiency),
+        "evidence_level": "user_declared",
+        "source_reference": intent.source_reference,
+        "observed_at": intent.observed_at.isoformat(),
+    }
+    water = {
+        "canonical": canonical,
+        "applied_water_status": applied_status,
+        "weather": weather,
+        "et0": et0,
+    }
+    gross = net / intent.application_efficiency
+    volume = gross * intent.irrigated_area_ha * 10
+    if not math.isfinite(gross) or not math.isfinite(volume):
+        raise ValueError("manual_plan_quantity_overflow")
+    return {
+        "schema_version": "manual-irrigation-source/v1",
+        "field_id": field_id,
+        "season_id": season_id,
+        "system_id": intent.system_id,
+        "net_depth_mm": net,
+        "target_depth_mm": gross,
+        "target_volume_m3": volume,
+        "application_efficiency": float(intent.application_efficiency),
+        "irrigated_area_ha": float(intent.irrigated_area_ha),
+        "specification_digest": digest(specification),
+        "specification": specification,
+        "water_truth_digest": digest(water),
+        "water_truth": water,
+        "valid_from": intent.valid_from.isoformat(),
+        "valid_until": intent.valid_until.isoformat(),
+    }
+
+
+def manual_canonical_snapshot(
+    canonical: dict, season_id: str, declared_season_id: str, max_age_hours: float
+) -> dict:
+    """Bind the manual window to the already resolved canonical ledger and active season."""
+    canonical = dict(canonical)
+    canonical["valid_until"] = (
+        datetime.combine(date.fromisoformat(canonical["ledger_date"]), time.min, tzinfo=UTC)
+        + timedelta(hours=max_age_hours)
+    ).isoformat()
+    if season_id != declared_season_id or canonical["season_id"] != season_id:
+        raise ValueError("manual_season_changed")
+    return canonical
+
+
+def manual_canonical_location(canonical: dict) -> tuple[float, float, float]:
+    """Return only explicitly evidenced coordinates/elevation; never default them."""
+    location = canonical.get("evidence", {}).get("location", {})
+    elevation = location.get("elevation_m")
+    if (
+        isinstance(elevation, bool)
+        or not isinstance(elevation, (int, float))
+        or not math.isfinite(elevation)
+    ):
+        raise ValueError("manual_elevation_evidence_missing")
+    latitude, longitude = location.get("lat"), location.get("lon")
+    if (
+        any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in (latitude, longitude)
+        )
+        or not -90 <= latitude <= 90
+        or not -180 <= longitude <= 180
+    ):
+        raise ValueError("manual_coordinates_evidence_missing")
+    return latitude, longitude, elevation
+
+
+def validate_manual_weather_date(weather: dict, today: date) -> None:
+    """Check dated server weather rather than inventing a day-of-year."""
+    try:
+        weather_date = date.fromisoformat(weather.get("valid_time"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("manual_weather_date_missing") from exc
+    if weather_date != today or weather.get("day_of_year") != weather_date.timetuple().tm_yday:
+        raise ValueError("manual_weather_date_stale_or_inconsistent")
+
+
+def manual_plan_window_and_quantities(
+    start: str, end: str, constraints: dict, plan_digest: str
+) -> tuple[datetime, datetime, float, float]:
+    """Parse already approved manual-plan storage values, preserving strict HTTP-boundary checks."""
+    try:
+        planned_start = datetime.fromisoformat(start.replace("Z", "+00:00"))
+        planned_end = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        if (
+            planned_start.tzinfo is None
+            or planned_end.tzinfo is None
+            or planned_end <= planned_start
+        ):
+            raise ValueError("invalid plan window")
+    except ValueError as exc:
+        raise ValueError("timezone-aware ordered plan window required") from exc
+    for key in ("plan_digest", "water_truth_digest"):
+        value = plan_digest if key == "plan_digest" else str(constraints["water_truth_digest"])
+        if len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+            raise ValueError(f"{key} must be lowercase sha256")
+    try:
+        target_depth = float(constraints["target_depth_mm"])
+        target_volume = float(constraints["target_volume_m3"])
+    except (TypeError, ValueError) as exc:
+        raise ValueError("target depth/volume must be numeric") from exc
+    if (
+        isinstance(constraints["target_depth_mm"], bool)
+        or isinstance(constraints["target_volume_m3"], bool)
+        or not math.isfinite(target_depth)
+        or not math.isfinite(target_volume)
+        or target_depth <= 0
+        or target_volume <= 0
+    ):
+        raise ValueError("target depth/volume must be positive")
+    return planned_start, planned_end, target_depth, target_volume

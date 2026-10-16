@@ -10,7 +10,9 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     OllamaEmbeddingProvider,
     QdrantHttpClient,
+    payload_snapshot_digest,
     readiness_problems,
+    visible_corpus_count,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -41,16 +43,34 @@ _sparse_report: dict[str, Any] = {"total_points": 0, "loaded_chunks": 0, "skippe
 # D10 — لحظةُ آخرِ إعادةِ تحقّقٍ من صلاحيّة الفهرس الدافئ، وعمرُها.
 # العمرُ مقايضةٌ مُعلَنة: كلُّ نداءٍ عدٌّ إضافيّ، وكلُّ ثانيةٍ نافذةُ تقادمٍ ممكنة.
 _sparse_checked_at: float = 0.0
+_sparse_payload_checked_at: float = 0.0
+# Count checks cannot detect external in-place updates or tenant/scope changes.
+_SPARSE_PAYLOAD_REVALIDATE_SECONDS = 30.0
 _SPARSE_REVALIDATE_SECONDS = float(os.getenv("RAG_SPARSE_REVALIDATE_SECONDS", "30"))
 
 
 def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
-    """Hydrate deterministic BM25 from canonical Qdrant payloads exactly once per process.
+    """Hydrate BM25 and revalidate actual payloads within a bounded 30-second window.
 
     Readiness fails closed if any stored point cannot be reconstructed; otherwise a
     restart would silently advertise hybrid retrieval while serving dense-only.
     """
-    global _sparse_ready, _sparse_report, _sparse_checked_at
+    global _sparse_ready, _sparse_report, _sparse_checked_at, _sparse_payload_checked_at
+    if force:
+        _sparse_ready = False
+    if _sparse_ready and not force:
+        now = time.monotonic()
+        if now - _sparse_payload_checked_at >= _SPARSE_PAYLOAD_REVALIDATE_SECONDS:
+            # A refresh failure must never renew the age of the cached index.
+            _sparse_ready = False
+            rows = _qdrant.scroll_payloads()
+            if len(rows) != _qdrant.collection_point_count():
+                raise ValueError("Qdrant payload refresh scroll/count mismatch")
+            if payload_snapshot_digest(rows) == _sparse_report.get("payload_snapshot_digest"):
+                _sparse_payload_checked_at = now
+                _sparse_checked_at = now
+                _sparse_ready = True
+                return _sparse_report
     if _sparse_ready and not force:
         # D10 — **صلاحيّةُ الفهرس الدافئ تُراجَع، ولا تُفترَض دائمة.**
         #
@@ -113,6 +133,7 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     _sparse_report = report
     _sparse_ready = True
     _sparse_checked_at = time.monotonic()
+    _sparse_payload_checked_at = _sparse_checked_at
     return report
 
 
@@ -290,7 +311,9 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
     if tenant_id == "__seed_quarantine__":
         raise HTTPException(status_code=403, detail="SEED_QUARANTINE_TENANT_RESERVED")
     try:
-        _ensure_sparse_index()
+        sparse = _ensure_sparse_index()
+        if visible_corpus_count(sparse, tenant_id) == 0:
+            raise ValueError("tenant has no active readable corpus")
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
     filters = {

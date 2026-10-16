@@ -2740,8 +2740,8 @@
         },
         {
           "expect": "test_the_predicate_is_measured_directly_in_both_directions",
-          "find": "        value is not None and chunk.metadata.get(key) != value for key, value in filters.items()\n",
-          "replace": "        False for key, value in filters.items()  # mutated: كلُّ مقطعٍ يجتاز\n",
+          "find": "        return False\n    return True\n\n\nclass BM25Index:",
+          "replace": "        return True  # mutated: كلُّ مقطعٍ يجتاز\n    return True\n\n\nclass BM25Index:",
           "test": "tests_v9/test_rag_neighbor_scope_filters.py",
           "why": "مُسنَدٌ يقول «اجتاز» أبداً يُفرِّغ الترشيحَ في **الموضعين معاً** — المتناثر والجيران — لأنّ التعريفَ واحد. وهو ثمنُ التوحيد المقصود: عطلٌ واحدٌ بدل اثنين ينحرفان، ويقتله شاهدٌ يقيس المُسنَد مباشرةً لا عبر مستعمِليه."
         },
@@ -5486,6 +5486,24 @@
           "find": "            if marker not in text:",
           "replace": "            if False:  # mutated: missing cutover markers tolerated",
           "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        },
+        {
+          "expect": "test_u07_label_cannot_authorize_other_scope_or_relaxed_bindings",
+          "find": "    bindings = doc.get(\"bindings\") or {}",
+          "replace": "    return True  # planted: trust every grant as review-only\n    bindings = doc.get(\"bindings\") or {}",
+          "why": "A label or arbitrary grant must not retain cutover deferral; only independently validated reviewed U07 bytes qualify."
+        },
+        {
+          "expect": "test_gate_validator_failure_cannot_be_replaced_by_local_scope_match",
+          "find": "    return not errors and used == _U07_ID",
+          "replace": "    return True  # planted: skip actual GATE evaluation result",
+          "why": "Matching U07 metadata alone must not substitute for the unchanged GATE evaluator checking actual bytes and expiry."
+        },
+        {
+          "expect": "test_another_issued_grant_still_revokes_deferral_alongside_valid_u07",
+          "find": "                if _review_only_u07_authorization(doc, policy):\n                    continue",
+          "replace": "                if _review_only_u07_authorization(doc, policy):\n                    return True  # planted: ignore later broader grant",
+          "why": "The bounded review-only grant must not hide a separate ISSUED grant that lifts the cutover deferral."
         }
       ],
       "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py"

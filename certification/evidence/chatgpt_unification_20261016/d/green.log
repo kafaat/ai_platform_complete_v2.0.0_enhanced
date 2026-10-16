@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/sahool-unified
+configfile: pytest.ini
+plugins: Faker-40.43.0, asyncio-1.4.0, xdist-3.8.0, cov-7.1.0, anyio-4.15.1, hypothesis-6.170.0, platformdirs-4.13.2, respx-0.23.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 75 items
+
+tests_v9/test_rag_owned_gap_witnesses.py ..................              [ 24%]
+tests_v9/test_rag_warm_index_revalidation.py ....                        [ 29%]
+tests_v9/test_ai_rag_delta_p0.py ..............                          [ 48%]
+tests_v9/test_rag_corpus_identity_readiness.py ...............           [ 68%]
+tests_v9/test_rag_neighbor_scope_filters.py .........                    [ 80%]
+tests_v9/test_rag_bm25_corpus_scope.py .........                         [ 92%]
+tests_v9/test_rag_weighted_rrf_fusion.py ......                          [100%]
+
+--- generated xml file: /workspace/scratch/881ca3efb91d/evidence/d/green.xml ---
+============================== 75 passed in 1.34s ==============================

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "6c4111c1a6d45447704e87179a69a929ddb1601da1fed52825475975c8af1b1a",
+  "inventory_sha256": "ab1a76c48f3bad82220cd59275f50170a04485a7e1888ebc145aa82f0c30a62d",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "c21c25405d0d5eaae63f1b1e7a47fabf4fc761ffc042931f3f717c18123e64bb"
+    "policy_sha256": "b38f63050335309360ab1a5e345f340b75d322aee4a4dd3411206beed89b36c1"
   },
   "routes": [
     {
@@ -706,7 +706,7 @@
     {
       "classification": "domain",
       "function": "get_decision_review_queue",
-      "line": 46,
+      "line": 47,
       "method": "GET",
       "path": "/api/v1/decisions/review-queue",
       "source": "api/routers/decision_review.py"
@@ -714,7 +714,7 @@
     {
       "classification": "domain",
       "function": "get_decision_agronomic_evidence_boundary",
-      "line": 72,
+      "line": 79,
       "method": "GET",
       "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
       "source": "api/routers/decision_review.py"
@@ -3250,7 +3250,7 @@
     {
       "classification": "domain",
       "function": "create_decision_execution_plan",
-      "line": 185,
+      "line": 192,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/execution-plan",
       "source": "api/routers/decision_review.py"
@@ -3258,7 +3258,7 @@
     {
       "classification": "domain",
       "function": "review_decision_candidate",
-      "line": 108,
+      "line": 115,
       "method": "POST",
       "path": "/api/v1/decisions/{decision_id}/review",
       "source": "api/routers/decision_review.py"
@@ -3578,7 +3578,7 @@
     {
       "classification": "domain",
       "function": "field_etc_dual",
-      "line": 245,
+      "line": 246,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/etc-dual",
       "source": "api/routers/etc_dual.py"
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_recommendation",
-      "line": 284,
+      "line": 215,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_recommendation",
-      "line": 188,
+      "line": 142,
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -4858,7 +4858,7 @@
     {
       "classification": "domain",
       "function": "phase6_digital_twin_snapshot",
-      "line": 767,
+      "line": 770,
       "method": "POST",
       "path": "/phase6/digital-twin/snapshot",
       "source": "api/routers/gis_cloud_native.py"
@@ -4882,7 +4882,7 @@
     {
       "classification": "domain",
       "function": "phase6_profitability_map",
-      "line": 755,
+      "line": 758,
       "method": "POST",
       "path": "/phase6/profitability-map",
       "source": "api/routers/gis_cloud_native.py"
@@ -4890,7 +4890,7 @@
     {
       "classification": "domain",
       "function": "phase6_yield_stability",
-      "line": 747,
+      "line": 750,
       "method": "POST",
       "path": "/phase6/yield-stability",
       "source": "api/routers/gis_cloud_native.py"

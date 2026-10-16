@@ -31,25 +31,14 @@ import math
 from dataclasses import dataclass, field
 from enum import Enum
 
-#: نسب الكتل: P₂O₅ ⇒ P (2×30.974/141.945)، K₂O ⇒ K (2×39.098/94.196).
-P2O5_TO_P = 0.4364
-K2O_TO_K = 0.8301
-
-
-def p_from_p2o5(kg_p2o5: float) -> float:
-    return kg_p2o5 * P2O5_TO_P
-
-
-def k_from_k2o(kg_k2o: float) -> float:
-    return kg_k2o * K2O_TO_K
-
-
-def p2o5_from_p(kg_p: float) -> float:
-    return kg_p / P2O5_TO_P
-
-
-def k2o_from_k(kg_k: float) -> float:
-    return kg_k / K2O_TO_K
+from shared.precision_agriculture.nutrient_units import (  # noqa: F401 — public compatibility API
+    K2O_TO_K,
+    P2O5_TO_P,
+    k2o_from_k,
+    k_from_k2o,
+    p2o5_from_p,
+    p_from_p2o5,
+)
 
 
 def gross_irrigation_m3(net_mm: float, area_ha: float, application_efficiency: float) -> float:

@@ -342,7 +342,7 @@ async def get_prefs(user_id: str, tenant_id: str) -> dict | None:
 
 
 def _delivery_key(data: dict) -> str:
-    identity = data.get("_delivery_id") or data.get("event_id") or data.get("alert_key")
+    identity = data.get("event_id") or data.get("alert_key") or data.get("_delivery_id")
     if not identity:
         identity = hashlib.sha256(
             json.dumps(data, sort_keys=True, ensure_ascii=False).encode()

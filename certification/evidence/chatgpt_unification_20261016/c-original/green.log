@@ -1,0 +1,41 @@
+........................................................................ [ 96%]
+...                                                                      [100%]
+=============================== warnings summary ===============================
+../evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py:25
+  /workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py:25: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.unit
+
+../evidence/c-original/witnesses/test_backfill_processing_version_preflight.py:22
+  /workspace/scratch/881ca3efb91d/evidence/c-original/witnesses/test_backfill_processing_version_preflight.py:22: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.unit
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py::test_the_vrt_path_computes_reflectance_indices[evi]
+  /workspace/scratch/881ca3efb91d/imagery-original/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py::test_the_vrt_path_computes_reflectance_indices[evi]
+  /workspace/scratch/881ca3efb91d/imagery-original/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py: 158 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py: 1075 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/features.py:420: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return _bounds(geom, north_up=north_up, transform=transform)
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py: 213 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/windows.py:360: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    x, y = transform * (window.col_off or 0.0, window.row_off or 0.0)
+
+evidence/c-original/witnesses/test_element84_vrt_defect_witnesses.py: 213 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/windows.py:361: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(
+
+evidence/c-original/witnesses/test_backfill_processing_version_preflight.py::test_ready_requires_the_canonical_processing_version[prior/0-True-backfill]
+  /workspace/scratch/881ca3efb91d/imagery-original/services/raster-service/raster_api_models.py:120: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+    class RawDataProcessResponse(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+75 passed, 1664 warnings in 1.58s

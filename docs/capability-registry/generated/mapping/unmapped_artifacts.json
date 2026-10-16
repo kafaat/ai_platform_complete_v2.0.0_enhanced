@@ -1540,6 +1540,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/IrrigationManualOperationsPanel.tsx",
     "kind": "web"
   },
@@ -1780,6 +1788,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/services/api/irrigationManualCreation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationManualCreation.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api/irrigationManualOperations.ts",
     "kind": "web"
   },
@@ -1981,6 +1997,10 @@
   },
   {
     "path": "migrations/v233_event_outbox_claim_lease.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v234_learning_agronomic_review.sql",
     "kind": "database"
   },
   {
@@ -2188,6 +2208,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/widgets/carbon_not_measured_card.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/widgets/form_kit.dart",
     "kind": "mobile"
   },
@@ -2213,6 +2237,10 @@
   },
   {
     "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/dashboard_carbon_not_measured_test.dart",
     "kind": "tests"
   },
   {
@@ -7972,6 +8000,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_learning_review_persistence_gap.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_learning_summary.py",
     "kind": "tests"
   },
@@ -8388,6 +8420,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_owned_gap_witnesses.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_storage_id_declaration.py",
     "kind": "tests"
   },
@@ -8464,7 +8500,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_readiness_http_status.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_real_findings_closure_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recipe_element_bridge.py",
     "kind": "tests"
   },
   {

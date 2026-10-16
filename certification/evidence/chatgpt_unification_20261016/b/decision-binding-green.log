@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/irrigation-completion
+configfile: pytest.ini
+plugins: Faker-40.43.0, asyncio-1.4.0, xdist-3.8.0, cov-7.1.0, anyio-4.15.1, hypothesis-6.170.0, platformdirs-4.13.2, respx-0.23.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 94 items
+
+services/decision-service/tests/test_manual_irrigation_source_binding.py . [  1%]
+...................................................................      [ 72%]
+services/decision-service/tests/test_wx10_8_review_queue.py .......      [ 79%]
+services/decision-service/tests/test_wx10_9_execution_plan.py ssssssssss [ 90%]
+sssssssss                                                                [100%]
+
+======================== 75 passed, 19 skipped in 0.81s ========================

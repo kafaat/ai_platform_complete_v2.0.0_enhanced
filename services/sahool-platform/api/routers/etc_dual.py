@@ -212,13 +212,14 @@ async def _resolve_weather(
     # الإشعاعُ وحدَه كان محروساً، والحرارتان والرطوبةُ تصل `WeatherDay` (`float`) صفراً من
     # الحافّة فيُحسَب ETc من `(0°م، 0°م، 0٪)` صامتاً. صار الغيابُ `None` في العقد، فيُعامَل
     # كالإشعاع: ٥٠٣ يُسمّي الناقص (TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01).
-    # **الريحُ خارجه عمداً** — قرارُها مؤجَّلٌ للمالك، والحافّةُ ما تزال تُصفّرها.
+    # الريحُ الغائبة None أيضاً؛ لا تدخل عقد WeatherDay غير الاختياريّ بلا قياس.
     missing = [
         name
         for name, value in (
             ("temp_max_c", today.temp_max_c),
             ("temp_min_c", today.temp_min_c),
             ("humidity_pct", current.humidity_pct),
+            ("wind_max_ms", today.wind_max_ms),
         )
         if value is None
     ]

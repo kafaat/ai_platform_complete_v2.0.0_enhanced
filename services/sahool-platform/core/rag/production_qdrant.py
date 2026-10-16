@@ -167,6 +167,25 @@ def corpus_identity(payload_rows: list[tuple[str, dict[str, Any]]]) -> dict[str,
     }
 
 
+def payload_snapshot_digest(rows: list[tuple[str, dict[str, Any]]]) -> str:
+    """Fingerprint actual payloads, including scope metadata, without trusting claimed digests."""
+    encoded = json.dumps(
+        sorted(rows, key=lambda row: row[0]),
+        sort_keys=True,
+        ensure_ascii=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def visible_corpus_count(report: dict[str, Any], tenant_id: str) -> int:
+    """Count readable content for one authenticated tenant; quarantine is never visible."""
+    if tenant_id in {GLOBAL_REFERENCE_TENANT, SEED_QUARANTINE_TENANT}:
+        return 0
+    counts = report.get("serving_chunks_by_tenant", {})
+    return counts.get(tenant_id, 0) + counts.get(GLOBAL_REFERENCE_TENANT, 0)
+
+
 def readiness_problems(report: dict[str, Any]) -> list[str]:
     """حكمُ الجاهزيّة على تقرير إعادة البناء — دالّةٌ نقيّة قابلةٌ للاستدعاء مباشرةً.
 
@@ -190,6 +209,11 @@ def readiness_problems(report: dict[str, Any]) -> list[str]:
         problems.append("EVIDENCE_MISSING: corpus identity was not measured")
     elif not identity.get("point_count"):
         problems.append("EVIDENCE_MISSING: corpus is empty (empty parity is not parity)")
+    counts = report.get("serving_chunks_by_tenant")
+    if counts is not None and not sum(counts.values()):
+        problems.append(
+            "NOT_READY: corpus has no active readable content (quarantine is not coverage)"
+        )
     return problems
 
 
@@ -754,9 +778,18 @@ def matches_scope_filters(chunk: KnowledgeChunk, filters: dict[str, Any] | None)
     """
     if not filters:
         return True
-    return not any(
-        value is not None and chunk.metadata.get(key) != value for key, value in filters.items()
-    )
+    for key, value in filters.items():
+        actual = chunk.metadata.get(key)
+        if value is None or actual == value:
+            continue
+        if (
+            chunk.tenant_id == GLOBAL_REFERENCE_TENANT
+            and key in {"crop", "region", "field_id"}
+            and (actual is None or actual == [])
+        ):
+            continue
+        return False
+    return True
 
 
 class BM25Index:
@@ -1198,7 +1231,33 @@ class QdrantHttpClient:
         must = []
         for key, value in (filters or {}).items():
             if value is not None:
-                must.append({"key": f"metadata.{key}", "match": {"value": value}})
+                exact = {"key": f"metadata.{key}", "match": {"value": value}}
+                if key in {"crop", "region", "field_id"}:
+                    # A general reference may lack a local scope dimension. Explicit
+                    # mismatches still fail, and tenant records never get this exception.
+                    must.append(
+                        {
+                            "should": [
+                                exact,
+                                {
+                                    "must": [
+                                        {
+                                            "key": "metadata.tenant_id",
+                                            "match": {"value": GLOBAL_REFERENCE_TENANT},
+                                        },
+                                        {
+                                            "should": [
+                                                {"is_empty": {"key": f"metadata.{key}"}},
+                                                {"is_null": {"key": f"metadata.{key}"}},
+                                            ]
+                                        },
+                                    ]
+                                },
+                            ]
+                        }
+                    )
+                else:
+                    must.append(exact)
         tenant_scope = {
             "key": "metadata.tenant_id",
             "match": {"any": [tenant_id, GLOBAL_REFERENCE_TENANT]},
@@ -1297,6 +1356,10 @@ class HybridQdrantRetriever:
                     noncanonical_samples.append(str(point_id))
         self._chunks = {chunk.chunk_id: chunk for chunk in chunks}
         loaded = self.bm25.rebuild(chunks)
+        serving_counts: dict[str, int] = {}
+        for chunk in chunks:
+            if chunk.tenant_id != SEED_QUARANTINE_TENANT and chunk.text.strip():
+                serving_counts[chunk.tenant_id] = serving_counts.get(chunk.tenant_id, 0) + 1
         return {
             "total_points": len(payload_rows),
             "loaded_chunks": loaded,
@@ -1307,6 +1370,8 @@ class HybridQdrantRetriever:
             "noncanonical_serving_points": noncanonical_serving,
             "noncanonical_serving_samples": sorted(noncanonical_samples),
             "corpus_identity": corpus_identity(payload_rows),
+            "payload_snapshot_digest": payload_snapshot_digest(payload_rows),
+            "serving_chunks_by_tenant": serving_counts,
         }
 
     def retrieve(

@@ -18,6 +18,8 @@ from datetime import UTC, datetime
 from statistics import mean, pstdev
 from typing import Any
 
+from shared.precision_agriculture.nutrient_units import recipe_elemental_input
+
 GeoJSON = dict[str, Any]
 
 
@@ -367,9 +369,18 @@ def generate_prescription_map(
         base_rate *= max(0.7, min(1.4, target_yield_t_ha / 5.0))
     features: list[PrescriptionFeature] = []
     for z in zone_features:
-        mult = _safe_float(
-            z.get("rate_multiplier") or z.get("properties", {}).get("rate_multiplier") or 1.0
-        )
+        if prescription_type in {"nitrogen", "phosphorus", "potassium"}:
+            # Preserve an explicit zero and reject invalid quantities at the recipe boundary.
+            raw_multiplier = z.get("rate_multiplier")
+            if raw_multiplier is None:
+                raw_multiplier = z.get("properties", {}).get("rate_multiplier")
+            raw_multiplier = 1.0 if raw_multiplier is None else raw_multiplier
+            recipe_elemental_input(raw_multiplier, unit)
+            mult = float(raw_multiplier)
+        else:
+            mult = _safe_float(
+                z.get("rate_multiplier") or z.get("properties", {}).get("rate_multiplier") or 1.0
+            )
         zone = int(z.get("zone", 1))
         label = str(z.get("label", f"zone_{zone}"))
         # Stress zones receive more water/fertilizer but lower seed density.
@@ -386,7 +397,15 @@ def generate_prescription_map(
                 crop=crop,
                 rate=rate,
                 unit=unit,
-                properties={"source_label": label, "rate_multiplier": round(mult, 3)},
+                properties={
+                    "source_label": label,
+                    "rate_multiplier": round(mult, 3),
+                    **(
+                        {"recipe_input": recipe_elemental_input(rate, unit)}
+                        if prescription_type in {"nitrogen", "phosphorus", "potassium"}
+                        else {}
+                    ),
+                },
             )
         )
     return {

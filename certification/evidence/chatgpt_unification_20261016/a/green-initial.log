@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/sahool-unified
+configfile: pytest.ini
+plugins: Faker-40.43.0, asyncio-1.4.0, xdist-3.8.0, cov-7.1.0, anyio-4.15.1, hypothesis-6.170.0, platformdirs-4.13.2, respx-0.23.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 39 items
+
+tests_v9/test_chatgpt_gap_batch_20261015.py .............                [ 33%]
+tests_v9/test_notification_delivery_reliability.py ..................    [ 79%]
+tests_v9/test_etc_dual_weather.py ........                               [100%]
+
+============================== 39 passed in 5.01s ==============================

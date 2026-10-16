@@ -1,0 +1,45 @@
+{
+  "base_commit": "ce55bb73f1cf38146ec1e9697bde9f74962c302f",
+  "scope": [
+    "tests_v9/test_s5_exec_01_writer_cutover_guard.py"
+  ],
+  "patch": "lifecycle-fixture.patch",
+  "patch_sha256": "b99e445a7985031075cdc276fa63499b592fc01514ea0ab12ca15a76beff8ce4",
+  "simulation": {
+    "location": "isolated detached governance-lifecycle-final worktree only",
+    "copied_u07_status": "CONSUMED",
+    "copied_consumption": {
+      "merge_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "consumed_on": "2026-10-17"
+    },
+    "clock": "2026-11-01",
+    "plugin": "future_clock.py",
+    "command": "PYTHONPATH=/workspace/scratch/881ca3efb91d/evidence/governance-lifecycle /workspace/scratch/881ca3efb91d/ci-venv/bin/pytest tests_v9/test_s5_exec_01_writer_cutover_guard.py -q -p future_clock",
+    "original": {
+      "passed": 9,
+      "failed": 30,
+      "skipped": 0,
+      "log": "consumed-future-red.log"
+    },
+    "fixed": {
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "log": "consumed-future-green.log"
+    },
+    "cleanup": "copied adjudication restored to original bytes after simulation"
+  },
+  "current_state_green": {
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0,
+    "log": "current-green.log"
+  },
+  "static_checks": [
+    "ruff check PASS",
+    "ruff format --check PASS",
+    "git diff --check PASS"
+  ],
+  "review": "Fixture-only normalization; real tree tests remain real; consumed and expiry counterexamples override fixture defaults. No production guard or live grant changed.",
+  "shared_tree_modified": false
+}

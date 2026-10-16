@@ -1,0 +1,302 @@
+{
+  "schema": "sahool.ci-ghcr-bounded-verification/v1",
+  "observed_at": "2026-10-16T00:56:00.259533+00:00",
+  "gap_id": "CI-DOCKER-IMAGE-PULLS-BLOCK-LIVE-TESTS-01",
+  "ownership": "original_13_not_an_extra_29th",
+  "verdict": "fixed_not_verified",
+  "main_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "main_merge_pr": 1198,
+  "source_fix_pr": 1193,
+  "evidence_pr": 1196,
+  "jobs": [
+    {
+      "id": 116565127708,
+      "run_id": 38776419430,
+      "name": "Frontend Typecheck",
+      "head_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+      "conclusion": "success",
+      "started_at": "2026-10-15T17:19:53Z",
+      "completed_at": "2026-10-15T17:23:19Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38776419430/job/116565127708",
+      "log_file": "job-116565127708.log",
+      "log_sha256": "59a5788803ad01f1720aaa08640a837a5c9163547211af27a8d4035ebf68d9a6",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 443,
+          "text": "2026-10-15T17:22:42.8150596Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [],
+      "raw_log_archive": "job-116565127708.log.gz",
+      "log_view_sha256": "a75f13631f97a4348f2e4c863547d444fe368d9b226f432db3f902aad0236951",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116565127818,
+      "run_id": 38776419430,
+      "name": "Decision 033 Restricted Role Proof (PG16)",
+      "head_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+      "conclusion": "success",
+      "started_at": "2026-10-15T17:19:53Z",
+      "completed_at": "2026-10-15T17:20:59Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38776419430/job/116565127818",
+      "log_file": "job-116565127818.log",
+      "log_sha256": "f97ab1aa8b763439978ca3e3f85974b2a541a95d4a16b2dcb299a1db35174053",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 157,
+          "text": "2026-10-15T17:20:17.1640361Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [
+        {
+          "line": 300,
+          "text": "2026-10-15T17:20:55.1360855Z ============================= 29 passed in 29.21s =============================="
+        }
+      ],
+      "raw_log_archive": "job-116565127818.log.gz",
+      "log_view_sha256": "2a0dba3e5bddcff35938c6031fd88bdac74d4b2f3315e25aef47e0212aa821bd",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116565128418,
+      "run_id": 38776419430,
+      "name": "Integration Tests",
+      "head_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+      "conclusion": "success",
+      "started_at": "2026-10-15T17:20:06Z",
+      "completed_at": "2026-10-15T17:24:50Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38776419430/job/116565128418",
+      "log_file": "job-116565128418.log",
+      "log_sha256": "a38328300acf65acc3a9f1919801e6fe73d9285985d74c0aa1b74b6d55f12cd0",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 170,
+          "text": "2026-10-15T17:20:23.5686263Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae"
+        },
+        {
+          "line": 704,
+          "text": "2026-10-15T17:20:36.2754649Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [
+        {
+          "line": 4020,
+          "text": "2026-10-15T17:23:44.4878797Z = 147 passed, 115 skipped, 9315 deselected, 2 xfailed, 1 xpassed, 2 warnings in 68.26s (0:01:08) ="
+        },
+        {
+          "line": 4094,
+          "text": "2026-10-15T17:23:51.9073337Z ============================== 5 passed in 3.96s ==============================="
+        },
+        {
+          "line": 4886,
+          "text": "2026-10-15T17:24:36.9231089Z ============================== 3 passed in 0.49s ==============================="
+        },
+        {
+          "line": 4903,
+          "text": "2026-10-15T17:24:41.5386417Z ============================== 5 passed in 3.94s ==============================="
+        },
+        {
+          "line": 4930,
+          "text": "2026-10-15T17:24:42.6968751Z ============================== 1 passed in 0.47s ==============================="
+        },
+        {
+          "line": 4972,
+          "text": "2026-10-15T17:24:45.2747855Z ======================== 13 passed, 1 xfailed in 1.87s ========================="
+        },
+        {
+          "line": 4999,
+          "text": "2026-10-15T17:24:46.4735111Z ============================== 1 passed in 0.47s ==============================="
+        },
+        {
+          "line": 5026,
+          "text": "2026-10-15T17:24:47.6376401Z ============================== 1 passed in 0.47s ==============================="
+        }
+      ],
+      "raw_log_archive": "job-116565128418.log.gz",
+      "log_view_sha256": "3715ae7a9d58d1681f676db75aa76c8a04c22fc82626c4697741f9a3baba9f47",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116565126051,
+      "run_id": 38776418893,
+      "name": "Notification queue and receipt certification",
+      "head_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+      "conclusion": "success",
+      "started_at": "2026-10-15T17:19:52Z",
+      "completed_at": "2026-10-15T17:20:22Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38776418893/job/116565126051",
+      "log_file": "job-116565126051.log",
+      "log_sha256": "69def0d20b2e68e752da11e0bf25d8810e0c0ac32a5bdd077cd5006b88852e5e",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 150,
+          "text": "2026-10-15T17:20:01.0993619Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [
+        {
+          "line": 405,
+          "text": "2026-10-15T17:20:21.0572465Z ============================== 33 passed in 3.57s =============================="
+        }
+      ],
+      "raw_log_archive": "job-116565126051.log.gz",
+      "log_view_sha256": "261422e8db605a1a67aa1cfe5feeb72a4c62e283cc210387a8e147c727fc6321",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116412151761,
+      "run_id": 38731771468,
+      "name": "Immutable Mirror Live Pull Proof",
+      "head_sha": "f03869b95ebce43308588a2fa69a94d14b48f611",
+      "conclusion": "success",
+      "started_at": "2026-10-15T12:06:08Z",
+      "completed_at": "2026-10-15T12:06:38Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38731771468/job/116412151761",
+      "log_file": "job-116412151761.log",
+      "log_sha256": "75c6398f78ad8b9dc4b47120c7dc8bbec7fdf1633a5bd96571eb0ca87621966e",
+      "actual_ghcr_source_lines": [],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [],
+      "raw_log_archive": "job-116412151761.log.gz",
+      "log_view_sha256": "fc94ff5e7e1453a34bea6164f8104852ecfeb5b841a6f393875a521d369aa809",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116453631363,
+      "run_id": 38744260158,
+      "name": "Integration Tests",
+      "head_sha": "e924bba2dd8d22354cba0de480cc7936eea2825c",
+      "conclusion": "success",
+      "started_at": "2026-10-15T13:37:33Z",
+      "completed_at": "2026-10-15T13:42:20Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38744260158/job/116453631363",
+      "log_file": "job-116453631363.log",
+      "log_sha256": "a3f19118d668b9afd6130c9d54584c68903cc92ffe5739cf0d4ec21757f1ffbd",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 169,
+          "text": "2026-10-15T13:37:47.3053875Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae"
+        },
+        {
+          "line": 704,
+          "text": "2026-10-15T13:37:58.4613993Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [
+        {
+          "line": 4032,
+          "text": "2026-10-15T13:41:12.8026692Z = 147 passed, 115 skipped, 9163 deselected, 2 xfailed, 1 xpassed, 2 warnings in 70.01s (0:01:10) ="
+        },
+        {
+          "line": 4106,
+          "text": "2026-10-15T13:41:19.9960028Z ============================== 5 passed in 4.05s ==============================="
+        },
+        {
+          "line": 4898,
+          "text": "2026-10-15T13:42:06.7959933Z ============================== 3 passed in 0.56s ==============================="
+        },
+        {
+          "line": 4915,
+          "text": "2026-10-15T13:42:11.5383612Z ============================== 5 passed in 4.05s ==============================="
+        },
+        {
+          "line": 4942,
+          "text": "2026-10-15T13:42:12.8584848Z ============================== 1 passed in 0.55s ==============================="
+        },
+        {
+          "line": 4984,
+          "text": "2026-10-15T13:42:15.6917208Z ======================== 13 passed, 1 xfailed in 2.05s ========================="
+        },
+        {
+          "line": 5011,
+          "text": "2026-10-15T13:42:17.0966178Z ============================== 1 passed in 0.55s ==============================="
+        },
+        {
+          "line": 5038,
+          "text": "2026-10-15T13:42:18.3803338Z ============================== 1 passed in 0.55s ==============================="
+        }
+      ],
+      "raw_log_archive": "job-116453631363.log.gz",
+      "log_view_sha256": "41e760234189085fc9cf7e9323a1213ff84c321fb7a4eb0918d5988da0769ad0",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    },
+    {
+      "id": 116482112274,
+      "run_id": 38752463588,
+      "name": "Integration Tests",
+      "head_sha": "5c9f6bf02e9d8d41f0c5dfa0017bc24e914caa22",
+      "conclusion": "success",
+      "started_at": "2026-10-15T14:33:32Z",
+      "completed_at": "2026-10-15T14:38:40Z",
+      "html_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/38752463588/job/116482112274",
+      "log_file": "job-116482112274.log",
+      "log_sha256": "ac13527366a15cb66f9be9cebcac2fc776e608506f1c0aac7a6dc28d15dc6106",
+      "actual_ghcr_source_lines": [
+        {
+          "line": 169,
+          "text": "2026-10-15T14:33:47.5970813Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-postgres@sha256:d4a8e1f88f475ee3e0137fa89d21ebc59f6c6ab16bf369ee92907607cc3455ae"
+        },
+        {
+          "line": 703,
+          "text": "2026-10-15T14:34:01.4130064Z CI_IMAGE_SOURCE=GHCR_VERIFIED_INDEX image=ghcr.io/kafaat/sahool-ci-redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        }
+      ],
+      "registry_rate_limit_error_lines": [],
+      "test_summary_lines": [
+        {
+          "line": 4031,
+          "text": "2026-10-15T14:37:30.9567512Z = 147 passed, 115 skipped, 9166 deselected, 2 xfailed, 1 xpassed, 2 warnings in 76.19s (0:01:16) ="
+        },
+        {
+          "line": 4105,
+          "text": "2026-10-15T14:37:39.0086879Z ============================== 5 passed in 4.08s ==============================="
+        },
+        {
+          "line": 4897,
+          "text": "2026-10-15T14:38:26.8193767Z ============================== 3 passed in 0.58s ==============================="
+        },
+        {
+          "line": 4914,
+          "text": "2026-10-15T14:38:31.6578136Z ============================== 5 passed in 4.06s ==============================="
+        },
+        {
+          "line": 4941,
+          "text": "2026-10-15T14:38:32.9923194Z ============================== 1 passed in 0.54s ==============================="
+        },
+        {
+          "line": 4983,
+          "text": "2026-10-15T14:38:35.7987623Z ======================== 13 passed, 1 xfailed in 2.00s ========================="
+        },
+        {
+          "line": 5010,
+          "text": "2026-10-15T14:38:37.1337364Z ============================== 1 passed in 0.53s ==============================="
+        },
+        {
+          "line": 5037,
+          "text": "2026-10-15T14:38:38.4159456Z ============================== 1 passed in 0.54s ==============================="
+        }
+      ],
+      "raw_log_archive": "job-116482112274.log.gz",
+      "log_view_sha256": "bd436722d24fba8dede0f7d56be533bed3a1e59ca1d1c7c68b0408d01705155f",
+      "log_sha256_meaning": "original decompressed raw log bytes; textual view escapes hidden codepoints"
+    }
+  ],
+  "findings": [
+    "Four successful current-main jobs demonstrate all five locked GHCR OCI image digests in actual source-selection output.",
+    "Historical PR1193 GHCR-only five-index verification and first/second postmerge Integration logs independently fetched and matched.",
+    "No registry rate-limit error markers found in the seven complete inspected logs; timestamp digits and expected application HTTP429 tests are not counted as registry errors."
+  ],
+  "limits": [
+    "Bounded evidence of named CI jobs on stated heads, not guaranteed registry availability or future CI.",
+    "Main Integration generic suite:147 passed,115 skipped,9315 deselected,2 xfailed,1 xpassed; dedicated PG certification steps ran successfully.",
+    "No claim that every integration case executed; no Railway deployment or production certification.",
+    "PR1196 historical notification/frontend/decision log claims not all independently re-downloaded; current-main equivalents and both historical Integration logs were.",
+    "No rerun, workflow mutation, registry edit, push, merge, or deployment."
+  ]
+}

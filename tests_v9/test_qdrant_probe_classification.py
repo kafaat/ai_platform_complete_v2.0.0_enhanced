@@ -256,7 +256,22 @@ def test_index_reconciliation_does_not_change_tenant_and_global_search_filters()
     assert calls[0][2]["filter"] == {
         "must": [
             {"key": "metadata.tenant_id", "match": {"any": ["tenant-a", "__global__"]}},
-            {"key": "metadata.crop", "match": {"value": "wheat"}},
+            {
+                "should": [
+                    {"key": "metadata.crop", "match": {"value": "wheat"}},
+                    {
+                        "must": [
+                            {"key": "metadata.tenant_id", "match": {"value": "__global__"}},
+                            {
+                                "should": [
+                                    {"is_empty": {"key": "metadata.crop"}},
+                                    {"is_null": {"key": "metadata.crop"}},
+                                ]
+                            },
+                        ]
+                    },
+                ]
+            },
         ]
     }
 

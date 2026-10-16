@@ -9539,3 +9539,13 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 - الدليل: `services/sahool-platform/api/worker_heartbeat.py` و`services/raster-service/worker_heartbeat.py` يقرآن آخر نجاح للعرض دون جعله معيار حياة؛ `services/weather-polygon-worker/src/main.py` يجدد النبضة عند خمول اشتراك JetStream.
 - الشهود: `tests_v9/test_worker_heartbeat_guard_v21.py` و`tests_v9/test_raster_worker_heartbeat_guard_v21.py` و`tests_v9/test_weather_worker_health_probe.py`. اختبارات هذه السلوكيات تُخالف main السابق وتتوافق مع فرع الإصلاح؛ CI النهائي على آخر SHA لا يزال مطلوباً.
 - القيود: `WEATHER_GRID_PIPELINE_ENABLED` لا يزال OFF، ولا ناشر للموضوع بعد؛ لا إثبات تشغيل حيّ، ولا دمج أو نشر بهذا الإدخال.
+
+### 2026-10-16 — ChatGPT unified source recovery (1195/1196/1197)
+
+Recovered a full clone at the pinned main and merged the three pinned source PRs locally. Ten known transferred gaps have source fixes with red/green witnesses; irrigation UI, RAG01 and RAG07 remain open. The original thirteen allocation IDs remain unproven; no 28-gap closure claim. GATE01-ADJ-2026-10-16-001 is a new one-time bytes-scoped U07 authorization under the current user instruction, not an independent signature. PGlite SQL proof is not native PG16 acceptance. Final preflight/remote CI are pending; no push, main merge or deployment in this record. Sources and measured limits: `certification/evidence/chatgpt_unification_20261016/README.md` and `scope.json`; baseline `239c01a47442df13d9cbb492017afae103b98dc8`.
+
+2026-10-16 allocation correction supplied by owner: the original13 are now identified in `certification/evidence/chatgpt_unification_20261016/allocation-roster.json`. Earlier Qdrant1181, raster/CDSE1185 and Arabic-guard1183 fixes predate the allocation and must not count toward28. This resolves attribution only; original-gap source/merge/runtime status is being audited on pinnedmain239c01a4. No merge or deployment authorization is inferred.
+
+### 2026-10-16 — اكتمال مصدر الري وأربع فجوات راستر في التكامل
+
+أُدمجت الرقعتان المراجعتان محلياً: مصدر ري معلن مرتبط بماء قانوني، اعتماد وخطة واستعادة مقيدة، وإصلاح شبكة VRT/NoData/صدق التطبيع/نسخة backfill. حصيلة الحصة المحددة:19 fixed و9 open بلا verified؛ منها11 منقولة في هذا التكامل واثنتان في1194 وست أصلية. يبقى مقياس Element84 مفتوحاً رغم حفظ المعايرة الصريحة، والاحتواء لم يُرفع. الدليل المجمع84 نجاحاً للجاهزية وربط Decision و75 للراستر؛ سجلات الفرع تحفظ19 تخطياً لاختبارات PostgreSQL الأصلية و19 فحص WASM منفصلاً. لا جمع للمجموعات المتداخلة، ولا نسبة قبول حي إليها. المصادر والحدود في certification/evidence/chatgpt_unification_20261016/README.md وscope.json؛ preflight النهائي وCI لا يزالان مطلوبين.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,11 @@ def _sandbox(tmp_path: Path, monkeypatch):
             dst = tmp_path / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_text((ROOT / rel).read_text(encoding="utf-8"), encoding="utf-8")
+    # The review-only authorization also pins MANIFEST bytes. Copy the real file;
+    # absent or invented bytes must not qualify for the bounded interpretation.
+    manifest = tmp_path / "migrations/MANIFEST.txt"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_bytes((ROOT / "migrations/MANIFEST.txt").read_bytes())
     # مُدخَلا GATE-01 يُنسَخان أيضاً: قرار التأجيل يُقاس منهما، فتركُهما مُشيرَين إلى
     # الشجرة الحقيقيّة كان سيجعل حالات التأجيل تقيس شيئاً لا تتحكّم فيه.
     policy_dst = tmp_path / "docs/architecture/gate01_policy.json"
@@ -42,6 +48,20 @@ def _sandbox(tmp_path: Path, monkeypatch):
         (adj_dst / adjudication.name).write_text(
             adjudication.read_text(encoding="utf-8"), encoding="utf-8"
         )
+    # Exercise the issued case independently of the live record's later consumption
+    # and the wall clock. Only this sandbox copy changes; live-tree checks remain live.
+    u07_path = adj_dst / f"{mod._U07_ID}.json"
+    u07 = json.loads(u07_path.read_text(encoding="utf-8"))
+    u07["status"] = "ISSUED"
+    u07.pop("consumption", None)
+    u07_path.write_text(json.dumps(u07), encoding="utf-8")
+
+    class IssuedDate(date):
+        @classmethod
+        def today(cls):
+            return cls(2026, 10, 16)
+
+    monkeypatch.setattr(mod.GATE01, "date", IssuedDate)
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "FREEZE", tmp_path / "docs/architecture/s5_exec_01_edge_freeze.json")
     monkeypatch.setattr(mod, "GATE01_POLICY", policy_dst)
@@ -120,7 +140,7 @@ _DEFERRED_PAIR = (
 
 
 def test_gate01_deferred_writer_is_accepted_only_while_the_gate_actually_blocks():
-    """على الشجرة الحقيقيّة: المسار مجمَّد · البوّابة CLOSED · لا تفويض ISSUED يغطّيه."""
+    """على الشجرة الحقيقيّة: المسار مجمَّد · البوّابة CLOSED · رقعة U07 وحدها لا تأذن بقطع SoR."""
     assert _DEFERRED_PAIR in mod.GATE01_DEFERRED
     assert mod._gate01_blocks(_DEFERRED_PAIR[0]) is True
     assert mod.findings() == []
@@ -150,3 +170,152 @@ def test_a_consumed_adjudication_does_not_lift_the_deferral(tmp_path, monkeypatc
     _sandbox(tmp_path, monkeypatch)
     _stamp_adjudication(tmp_path, "CONSUMED")
     assert mod.findings() == []
+
+
+def _u07_document(tmp_path: Path):
+    path = tmp_path / "docs/architecture/gates/adjudications" / f"{mod._U07_ID}.json"
+    return path, json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_exact_u07_bytes_preserve_cutover_deferral_without_opening_gate(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    assert mod._gate01_blocks(_DEFERRED_PAIR[0])
+    assert mod.findings() == []
+    assert mod.deferred_pairs() == [_DEFERRED_PAIR]
+    policy = json.loads(mod.GATE01_POLICY.read_text(encoding="utf-8"))
+    _, doc = _u07_document(tmp_path)
+    errors, used = mod.GATE01.evaluate(
+        list(mod._U07_BLOBS),
+        policy,
+        [doc],
+        {p: mod.GATE01.blob_sha(p, root=tmp_path) for p in mod._U07_BLOBS},
+    )
+    assert errors == [] and used == mod._U07_ID
+    assert policy["gate"]["state"] == "CLOSED"
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("adjudication_id", "GATE01-ADJ-OTHER"),
+        ("schema", "unknown"),
+        ("gate_id", "GATE-OTHER"),
+        ("allowed_paths", ["services/sahool-platform/api/phase_runtime_store.py"]),
+        ("allowed_paths", list(mod._U07_BLOBS) + ["services/sahool-platform/api/event_bus.py"]),
+        ("allowed_gap_closures", ["REPORT3-U07-REVIEW-DECISION-NOT-PERSISTED-01", "SoR"]),
+        ("allowed_gap_closures", []),
+        ("one_time", False),
+        ("one_time", 1),
+        ("adjudicated_on", "2026-10-15"),
+        ("expires_on", "2099-01-01"),
+        ("expires_on", "2026-10-15"),
+        ("phase0_baseline_ref", {"commit_sha": mod._U07_BASELINE, "must_match_policy": False}),
+        ("bindings", {"require_patch_digest": False}),
+        ("authorized_patch_sha256", "0" * 64),
+        ("authorized_blobs", {}),
+    ],
+)
+def test_u07_label_cannot_authorize_other_scope_or_relaxed_bindings(
+    tmp_path, monkeypatch, key, value
+):
+    _sandbox(tmp_path, monkeypatch)
+    path, doc = _u07_document(tmp_path)
+    doc[key] = value
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+    assert any("GATE01_DEFERRAL_NO_LONGER_JUSTIFIED" in item for item in mod.findings())
+
+
+@pytest.mark.parametrize("path", list(mod._U07_BLOBS))
+def test_actual_changed_bytes_cannot_borrow_the_u07_scope(tmp_path, monkeypatch, path):
+    _sandbox(tmp_path, monkeypatch)
+    target = tmp_path / path
+    target.write_bytes(target.read_bytes() + b"\n# changed bytes\n")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+def test_rebinding_new_bytes_under_the_same_u07_id_is_not_reviewed(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    target = tmp_path / "migrations/MANIFEST.txt"
+    target.write_bytes(target.read_bytes() + b"\n# different scope\n")
+    path, doc = _u07_document(tmp_path)
+    doc["authorized_blobs"]["migrations/MANIFEST.txt"] = mod.GATE01.blob_sha(
+        "migrations/MANIFEST.txt", root=tmp_path
+    )
+    doc["authorized_patch_sha256"] = mod.GATE01.canonical_patch_digest(doc["authorized_blobs"])
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+def test_u07_expiry_is_evaluated_by_the_unchanged_gate_validator(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+
+    class ExpiredDate:
+        @staticmethod
+        def today():
+            return date(2026, 10, 24)
+
+        fromisoformat = date.fromisoformat
+
+    monkeypatch.setattr(mod.GATE01, "date", ExpiredDate)
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+def test_consumed_u07_is_not_reused_as_an_authorization(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    path, doc = _u07_document(tmp_path)
+    doc["status"] = "CONSUMED"
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    # The prior semantics remain: no live grant means GATE-01 blocks cutover.
+    assert mod._gate01_blocks(_DEFERRED_PAIR[0])
+    policy = json.loads(mod.GATE01_POLICY.read_text(encoding="utf-8"))
+    assert not mod._review_only_u07_authorization(doc, policy)
+
+
+def test_another_issued_grant_still_revokes_deferral_alongside_valid_u07(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    _, doc = _u07_document(tmp_path)
+    doc["adjudication_id"] = "GATE01-ADJ-ANOTHER-ISSUED"
+    (mod.GATE01_ADJUDICATIONS / "other.json").write_text(json.dumps(doc), encoding="utf-8")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+def test_gate_validator_failure_cannot_be_replaced_by_local_scope_match(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    monkeypatch.setattr(mod.GATE01, "evaluate", lambda *_: (["rejected"], None))
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+@pytest.mark.parametrize(
+    "key",
+    [
+        "require_patch_digest",
+        "require_paths_subset",
+        "require_baseline_match",
+        "require_exact_head_sha",
+    ],
+)
+def test_u07_binding_booleans_are_not_integer_aliases(tmp_path, monkeypatch, key):
+    _sandbox(tmp_path, monkeypatch)
+    path, doc = _u07_document(tmp_path)
+    doc["bindings"][key] = int(doc["bindings"][key])
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+def test_missing_pinned_manifest_does_not_qualify(tmp_path, monkeypatch):
+    _sandbox(tmp_path, monkeypatch)
+    (tmp_path / "migrations/MANIFEST.txt").unlink()
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])
+
+
+@pytest.mark.parametrize("change", ["baseline", "manifest_not_frozen"])
+def test_u07_scope_requires_the_reviewed_policy_binding(tmp_path, monkeypatch, change):
+    _sandbox(tmp_path, monkeypatch)
+    policy = json.loads(mod.GATE01_POLICY.read_text(encoding="utf-8"))
+    if change == "baseline":
+        policy["phase0_baseline"]["commit_sha"] = "0" * 40
+    else:
+        policy["frozen_paths"].remove("migrations/MANIFEST.txt")
+    mod.GATE01_POLICY.write_text(json.dumps(policy), encoding="utf-8")
+    assert not mod._gate01_blocks(_DEFERRED_PAIR[0])

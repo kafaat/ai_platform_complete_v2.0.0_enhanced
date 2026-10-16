@@ -4050,3 +4050,13 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 - **العدّ بالاسم أعمى:** 58 ملفّاً تقف مكان اتّصال asyncpg بأسماء أخرى، ومنها ما يدّعي jsonb وCHECK وTRIGGER وUNIQUE. ولم يُعَد تسميةُ أيّ اختبار، فرفعُ العدّ قياسٌ لا دَينٌ جديد.
 - **الرفعُ لا يمرّ صامتاً:** `fake_connection_tests` مُشتقّ، و`verify_all_generated --fix` يُعيد توليده. فبلا سجلّ قبول كان رفعُ العدّ (وأيُّ نموٍّ لاحق) يمرّ بإعادة توليد. السجلّ لا تكتبه `--generate`، والطفرتان «نزعُ القبول» و«محوُ السجلّ بالتوليد» مقتولتان.
 - **حدٌّ معلن:** موقعٌ قُبِل ثمّ سُدِّد ثمّ عاد يُقبَل بقيده القديم، لأنّ السجلّ تاريخٌ لا حالة. ومُسنَد المستأجِر ليس فئةً في `_DB_ENFORCED`.
+
+### 2026-10-16 — ChatGPT unified source recovery (1195/1196/1197)
+
+Recovered a full clone at the pinned main and merged the three pinned source PRs locally. Ten known transferred gaps have source fixes with red/green witnesses; irrigation UI, RAG01 and RAG07 remain open. The original thirteen allocation IDs remain unproven; no 28-gap closure claim. GATE01-ADJ-2026-10-16-001 is a new one-time bytes-scoped U07 authorization under the current user instruction, not an independent signature. PGlite SQL proof is not native PG16 acceptance. Final preflight/remote CI are pending; no push, main merge or deployment in this record. Sources and measured limits: `certification/evidence/chatgpt_unification_20261016/README.md` and `scope.json`; baseline `239c01a47442df13d9cbb492017afae103b98dc8`.
+
+2026-10-16 allocation correction supplied by owner: the original13 are now identified in `certification/evidence/chatgpt_unification_20261016/allocation-roster.json`. Earlier Qdrant1181, raster/CDSE1185 and Arabic-guard1183 fixes predate the allocation and must not count toward28. This resolves attribution only; original-gap source/merge/runtime status is being audited on pinnedmain239c01a4. No merge or deployment authorization is inferred.
+
+### 2026-10-16 — حدود إغلاق المصدر بعد مراجعة الري والراستر
+
+القرار: تُسجل واجهة الري وVRT grid/nodata/normalization-claim وbackfill-version عند fixed في المصدر فقط. لا تستبدل الاختبارات المعزولة قبول المزارع أو PostgreSQL الأصلي، ولا يُفعّل Element84 أو SoR أو dispatch أو Railway. تُحفظ الفجوات التسع المتبقية مفتوحة ضمن الحصة ذات28 معرفاً؛ GHCR من الأصلية لا بند إضافي. أساس القرار هو شهود main239 والرقع النهائية وبصماتها، مع إبقاء تخطيات الاختبارات وحدود SQLite/PGlite والبيانات الاصطناعية ظاهرة. بوابة U07 لا تتسع لأي إصلاح آخر. لا تفويض دمج إلى main أو نشر في هذا الإدخال.

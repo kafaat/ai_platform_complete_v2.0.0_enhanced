@@ -1,0 +1,84 @@
+{
+  "base_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "test_sha256": "ade7c082a317fa437c926f65bbad0c2fc598146c128a94728d3ff1ec45aa1d36",
+  "runs": [
+    {
+      "name": "red",
+      "returncode": 1,
+      "command": [
+        "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+        "-m",
+        "pytest",
+        "/workspace/scratch/881ca3efb91d/evidence/c/red/tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
+        "--confcutdir=/workspace/scratch/881ca3efb91d/evidence/c/red",
+        "-c",
+        "/workspace/scratch/881ca3efb91d/sahool/pytest.ini",
+        "-q"
+      ],
+      "cwd": "/workspace/scratch/881ca3efb91d/sahool",
+      "log": "/workspace/scratch/881ca3efb91d/evidence/c/red.log",
+      "tail": [
+        "FAILED ::test_single_nir_legacy_shape_never_dispatches_multiband_batch[assets]",
+        "FAILED ::test_single_nir_legacy_shape_never_dispatches_multiband_batch[band_urls]",
+        "FAILED ::test_explicit_multiband_dispatch_keeps_item_identity_and_consumes_results",
+        "============================== 4 failed in 0.32s ==============================="
+      ]
+    },
+    {
+      "name": "green",
+      "returncode": 0,
+      "command": [
+        "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+        "-m",
+        "pytest",
+        "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
+        "-q"
+      ],
+      "cwd": "/workspace/scratch/881ca3efb91d/sahool-unified",
+      "log": "/workspace/scratch/881ca3efb91d/evidence/c/green.log",
+      "tail": [
+        "",
+        "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py ....      [100%]",
+        "",
+        "============================== 4 passed in 0.38s ==============================="
+      ]
+    },
+    {
+      "name": "regression",
+      "returncode": 0,
+      "command": [
+        "/workspace/scratch/881ca3efb91d/ci-venv/bin/python",
+        "-m",
+        "pytest",
+        "tests_v9/test_imagery_batch_wait_before_read.py",
+        "tests_v9/test_imagery_scan_bounded_concurrency.py",
+        "tests_v9/test_imagery_auto_process_real_activation.py",
+        "tests_v9/test_imagery_single_scene_process.py",
+        "-q"
+      ],
+      "cwd": "/workspace/scratch/881ca3efb91d/sahool-unified",
+      "log": "/workspace/scratch/881ca3efb91d/evidence/c/regression.log",
+      "tail": [
+        "tests_v9/test_imagery_auto_process_real_activation.py ...                [ 72%]",
+        "tests_v9/test_imagery_single_scene_process.py ........                   [100%]",
+        "",
+        "============================== 29 passed in 0.94s =============================="
+      ]
+    }
+  ],
+  "review": {
+    "gap": "IMAGERY-SCAN-READS-ID-BUT-SEARCH-RETURNS-ITEM-ID-01",
+    "changed_files": [
+      "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py"
+    ],
+    "source_sha256": "9f8e4bc6ae9ef24c756cdb1e7fbaa15d5d7970a26e824e184cb02167c7bda5d2",
+    "producer_sha256": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+    "limits": [
+      "External STAC network mocked at stac_query boundary; actual producer serialization runs.",
+      "Catalog-only scenes are discovered and tracked, not processed.",
+      "Explicit raster_url path receives simulated terminal job and numerical results; no real pixel processing asserted.",
+      "Database persistence boundary intercepted in discovery test; no real persistence acceptance asserted.",
+      "No live runtime measurements, production writes, staging, commits or generated-file edits."
+    ]
+  }
+}
