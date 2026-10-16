@@ -8,7 +8,7 @@ title = "SAHOOL secret-scan config"
 [extend]
 useDefault = true
 
-[[allowlists]]
+[allowlist]
 description = "Scanner/guard source that embeds detection patterns, not real secrets"
 # Every entry is anchored at both ends: gitleaks searches the path regex, so an
 # unanchored suffix such as `docs/.../x\.patch$` would also exempt
@@ -55,25 +55,25 @@ regexes = [
 # Preserve reviewed evidence across squash/rebase: each exception requires BOTH
 # the exact file path and exact extracted digest, only for generic-api-key.
 
-[[allowlists]]
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
 description = "Historical published Git commit ID (PR #1182), not an API credential"
-targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github\.json$''']
 regexes = ['''^02fbc3107e0dfbedef025117b83e657192133228$''']
 
-[[allowlists]]
+[[rules.allowlists]]
 description = "Recomputed SHA-256 of raster_api_models.py, not an API credential"
-targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/imagery/receipt\.json$''']
 regexes = ['''^76b7b032c534ce7a1bf634460f5908acdec76b6e89d9897eda1c216500e78036$''']
 
-[[allowlists]]
+[[rules.allowlists]]
 description = "SHA-256 of tokenizer.json produced by NomicOnnx, not a token"
-targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/rag/onnx-experiment-results\.json$''']
