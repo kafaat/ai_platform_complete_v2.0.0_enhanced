@@ -37,10 +37,10 @@ CEILING = 800
 FROZEN_OVERSIZE: dict[str, int] = {
     "services/sahool-platform/api/routers/fields.py": 4199,
     "services/sahool-platform/api/routers/weather.py": 3022,
-    # خُفِّض 1712 ⇒ 1675 (#1135): احتواء Element84→VRT أزال بناء الـVRT من نقطتي الدخول.
-    "services/raster-service/routers/fields.py": 1675,
+    # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
+    "services/raster-service/routers/fields.py": 1673,
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 1029,
-    "services/sahool-platform/api/routers/decision_review.py": 921,
+    "services/sahool-platform/api/routers/decision_review.py": 920,
 }
 
 

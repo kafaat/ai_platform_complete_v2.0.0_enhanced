@@ -31,15 +31,29 @@ def test_available_dates_query_selects_aoi_cloud() -> None:
     assert "a.cloud_pct" in sql, "scene-level cloud_pct must remain in the query"
 
 
-def test_route_exposes_scene_and_aoi_cloud_contract() -> None:
+@pytest.mark.parametrize(
+    "scene_cloud,aoi_cloud,expected_clear,expected_quality",
+    [(90, 5, 95, "high"), (20, None, 80, "medium"), (None, None, None, None)],
+)
+def test_route_exposes_scene_and_aoi_cloud_contract(
+    scene_cloud, aoi_cloud, expected_clear, expected_quality
+) -> None:
+    import importlib.util
+
     src = ROUTE.read_text(encoding="utf-8")
-    # Dual-value contract keys present in the emitted date record.
-    for key in ('"scene_cloud_pct"', '"aoi_cloud_pct"', '"cloud_pct"'):
-        assert key in src, f"available-dates record must carry {key}"
-    # _add must accept an aoi_cloud_pct input and thread it from the DB row.
-    assert "aoi_cloud_pct=None" in src, "_add must accept aoi_cloud_pct"
-    assert 'aoi_cloud_pct=row.get("aoi_cloud_pct")' in src, "DB row aoi_cloud_pct must be passed"
-    # Quality/clear derivation must prefer the field-AOI value when present (not scene alone).
-    assert (
-        'rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]' in src
-    ), "clear_pct/quality must derive from AOI cloud when computed, else scene cloud"
+    assert "create_date_accumulator(" in src
+    assert 'aoi_cloud_pct=row.get("aoi_cloud_pct")' in src
+    path = ROOT / "services/raster-service/raster_available_dates.py"
+    spec = importlib.util.spec_from_file_location("aoi_date_aggregation", path)
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    records, add = helper.create_date_accumulator(
+        display_index=str, high_quality_clear_pct=90, min_clear_pct=70
+    )
+    add("2026-10-15", cloud_pct=scene_cloud, aoi_cloud_pct=aoi_cloud, idx="ndvi")
+    item = records["2026-10-15"]
+    assert item["scene_cloud_pct"] == scene_cloud
+    assert item["cloud_pct"] == scene_cloud
+    assert item["aoi_cloud_pct"] == aoi_cloud
+    assert item["clear_pct"] == expected_clear
+    assert item["quality_label"] == expected_quality

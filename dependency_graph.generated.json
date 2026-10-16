@@ -1,5 +1,5 @@
 {
-  "edge_count": 849,
+  "edge_count": 867,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -602,6 +602,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://as_applied_irrigation_runs",
+      "to": "db://as_applied_irrigation_runs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/backfill.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -623,6 +633,16 @@
     },
     {
       "evidence": "services/decision-service/migrations/026_content_digest_lineage.sql",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/migrations/036_decision_chain_correlation.sql",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -692,6 +712,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_036_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_wx10_7_decision_review.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -699,6 +739,26 @@
       "relation": "READS",
       "resource": "db://decision_record",
       "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://dispatch_decisions",
+      "to": "db://dispatch_decisions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://execution_ledger",
+      "to": "db://execution_ledger",
       "to_kind": "resource"
     },
     {
@@ -739,6 +799,16 @@
       "relation": "READS",
       "resource": "db://outcome_record",
       "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
       "to_kind": "resource"
     },
     {
@@ -5712,6 +5782,46 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://as_applied_irrigation_receipts",
+      "to": "db://as_applied_irrigation_receipts",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://as_applied_irrigation_runs",
+      "to": "db://as_applied_irrigation_runs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://backfill_run_items",
+      "to": "db://backfill_run_items",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://backfill_runs",
+      "to": "db://backfill_runs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/migrations/002_decision_review.sql",
       "from": "decision-service",
       "from_kind": "component",
@@ -5723,6 +5833,16 @@
     },
     {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/decision_chain_fixture.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5753,6 +5873,26 @@
     },
     {
       "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_036_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5812,6 +5952,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://dispatch_decisions",
+      "to": "db://dispatch_decisions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://execution_ledger",
+      "to": "db://execution_ledger",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/persistence.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -5839,6 +5999,16 @@
       "relation": "WRITES",
       "resource": "db://outcome_record",
       "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_element84_inventory_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_assets",
+      "to": "db://raster_assets",
       "to_kind": "resource"
     },
     {
@@ -5963,6 +6133,16 @@
     },
     {
       "evidence": "services/raster-service/test_backfill_incremental_retry_guard.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://backfill_run_items",
+      "to": "db://backfill_run_items",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_backfill_processing_version_preflight.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8510,9 +8690,9 @@
     "CALLS": 44,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 436,
+    "READS": 443,
     "ROUTES_TO": 72,
-    "WRITES": 295
+    "WRITES": 306
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8527,8 +8707,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 732,
-      "resolved": 731,
+      "observed": 750,
+      "resolved": 749,
       "unresolved_component_paths": 0
     }
   }

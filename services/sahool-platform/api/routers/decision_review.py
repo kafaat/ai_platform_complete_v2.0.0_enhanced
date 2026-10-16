@@ -22,7 +22,10 @@ from pydantic import BaseModel, Field
 
 from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
-from api.irrigation_engineering_workspace import manual_plan_window_and_quantities
+from api.irrigation_engineering_workspace import (
+    manual_plan_window_and_quantities,
+    missing_manual_plan_constraints,
+)
 from api.main import UserSchema, require_permission, tenant_connection
 
 router = APIRouter()
@@ -163,6 +166,7 @@ async def review_decision_candidate(
             detail="decision-service did not confirm an authoritative review — fail-closed",
         )
     return {
+        "correlation_id": result.get("correlation_id"),
         "decision_id": decision_id,
         "state": result["state"],
         "previous_state": result["previous_state"],
@@ -236,15 +240,7 @@ async def create_decision_execution_plan(
     # a manual execution source. The free-form browser payload never becomes execution truth.
     if req.operation_type == "manual_irrigation":
         c = req.constraints
-        required = (
-            "field_id",
-            "season_id",
-            "system_id",
-            "target_depth_mm",
-            "target_volume_m3",
-            "water_truth_digest",
-        )
-        missing = [k for k in required if c.get(k) in (None, "")]
+        missing = missing_manual_plan_constraints(c)
         if missing:
             raise HTTPException(
                 status_code=422,
@@ -299,6 +295,7 @@ async def create_decision_execution_plan(
             )
 
     return {
+        "correlation_id": result.get("correlation_id"),
         "execution_plan_id": result["execution_plan_id"],
         "decision_id": decision_id,
         "review_id": result["review_id"],
@@ -365,6 +362,7 @@ async def authorize_execution_plan_dispatch(
             detail="decision-service did not prove an authoritative dispatch authorization",
         )
     return {
+        "correlation_id": result.get("correlation_id"),
         "dispatch_authorization_id": result["dispatch_authorization_id"],
         "execution_plan_id": execution_plan_id,
         "decision_id": result["decision_id"],
@@ -429,6 +427,7 @@ async def create_authorized_execution_request(
             detail="decision-service did not prove an authoritative execution request",
         )
     return {
+        "correlation_id": result.get("correlation_id"),
         "execution_request_id": result["execution_request_id"],
         "dispatch_authorization_id": dispatch_authorization_id,
         "execution_plan_id": result["execution_plan_id"],

@@ -25,6 +25,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
     DB persistence, not only processing completion, so job status remains honest.
     """
     import cdse_client
+    import cdse_native_product
 
     job = ctx._jobs.get(job_id) or {"job_id": job_id}
     job["status"] = ctx.JobStatus.processing
@@ -108,6 +109,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
         try:
             tiff = client.process_index(
                 index=ind,
+                with_native_qa=ind != "truecolor",
                 bbox=req.bbox,
                 time_from=time_from,
                 time_to=time_to,
@@ -118,6 +120,9 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 # تعذّر الاختيار) — فلا تتكلّم آخرُ خطوة دلالةً غير التي اختارت.
                 mosaicking_order=mosaicking_order,
             )
+            native_product = tiff if isinstance(tiff, cdse_native_product.NativeProduct) else None
+            if native_product is not None:
+                tiff = native_product.tiff
             if not tiff:
                 failed[ind] = "empty_response"
                 continue
@@ -145,6 +150,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)
                 geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة (المسار الافتراضيّ)
             )
+            preq._cdse_native_product = native_product
             sub_job_id = f"{job_id}_{ind}"
             ctx._run_processing(sub_job_id, preq)
             sj = ctx._jobs.get(sub_job_id) or {}

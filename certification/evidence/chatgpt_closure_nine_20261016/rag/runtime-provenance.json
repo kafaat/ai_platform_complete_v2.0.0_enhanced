@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-16T16:27:18.611907+00:00",
+  "source_hashes": {
+    "services/sahool-platform/core/rag/production_qdrant.py": "4d84e4f0fb7a39eebf16fda5315f100677a365c210ea8df7de29523dec2b5234",
+    "services/sahool-platform/core/rag/reindex_manifest.py": "c6f1f0e25fd456a85d014ba8aa07dfdd3f93541666ddb740760f66448c725644",
+    "services/qdrant-seed/reindex.py": "af064c839cf237b18bb760299f4c1ea35a1a60121de3ad3b615ad7762ff2d22b",
+    "services/qdrant-seed/seed.py": "61b5dd13dad48617140563d01e120bf16ac33665320bf5121c1af67d1863dae1"
+  },
+  "qdrant_download_sha256": "34a788a09a4cb278b5c6d2af96d9a6db30c8c7e88ae3550455f7a4d425bb8d4b",
+  "ollama_archive_sha256": "dc5eabc292f9949546c90a97c820f924b035e05243b0de13c7f366182562169c",
+  "no_production_contact": true
+}

@@ -126,7 +126,8 @@ def persist_raster_asset(
             _field_geometry_hash,
             str(req.scene_id or ""),
             req.indicator.value,
-            raster_quality.ALGORITHM_VERSION,
+            (_validated.get("provenance") or {}).get("algorithm_version")
+            or raster_quality.ALGORITHM_VERSION,
             _qa_mask_version,
             provider=_provider,
         )
@@ -150,8 +151,9 @@ def persist_raster_asset(
                 index_quality_flags=_quality["index_quality_flags"],
                 processing_job_id=job_id,  # v142: تتبّع + يُغني layer_owner_tenant عن ILIKE
                 # v105 (v4-audit): أعمدة الجودة تُكتب الآن فعلاً كي يعمل الترتيب الواعي بالجودة.
-                # confidence هو الدرجة 0..1 (أعلى=أفضل)؛ cloud_pct محسوب على AOI المقصوص.
-                quality_score=stats.get("confidence"),
+                # Native CDSE carries measured pixel QA explicitly; legacy confidence
+                # keeps its existing semantics. The method is persisted in provenance.
+                quality_score=stats.get("quality_score", stats.get("confidence")),
                 aoi_cloud_pct=stats.get("cloud_pct"),
                 cloud_mask_sources=stats.get("cloud_mask_sources"),
                 # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
@@ -159,13 +161,15 @@ def persist_raster_asset(
                 product_identity_key=_product_identity.key(),
                 # dual-read: البصمة القديمة (بلا provider) لترحيل صفٍّ واحد forward-repair.
                 legacy_product_identity_key=_product_identity.legacy_key(),
-                algorithm_version=raster_quality.ALGORITHM_VERSION,
+                algorithm_version=(_validated.get("provenance") or {}).get("algorithm_version")
+                or raster_quality.ALGORITHM_VERSION,
                 qa_mask_version=_qa_mask_version,
                 field_geometry_hash=_field_geometry_hash,
                 provenance={
                     # Preserve explicit provider evidence. Older rows without it
                     # remain unattributed; source-format aliases are not proof.
                     "provider": getattr(req, "provider", None),
+                    "current_cog_uri": cog_url,
                     # This belongs to the current COG and is replaced atomically
                     # with it on conflict. Row created_at can belong to an older COG.
                     "data_available_at": meta.get("data_available_at"),
@@ -183,7 +187,11 @@ def persist_raster_asset(
                             "confidence",
                         )
                     }
-                    | {"cloud_mask_applied": _mask_applied},
+                    | {
+                        "cloud_mask_applied": _mask_applied,
+                        "quality_score_semantics": stats.get("quality_score_semantics"),
+                        "cdse_native_qa": stats.get("cdse_native_qa"),
+                    },
                     # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
                     "geometry_revision": getattr(req, "geometry_revision", None),
                 },
@@ -199,7 +207,7 @@ def persist_raster_asset(
                     index_type=req.indicator.value,
                     cog_url=cog_url,
                     cloud_pct=stats.get("cloud_pct"),
-                    quality_score=stats.get("confidence"),
+                    quality_score=stats.get("quality_score", stats.get("confidence")),
                     resolution_m=meta.get("resolution_m") or 10.0,
                     bbox=list(bounds) if bounds else None,
                     bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
@@ -207,6 +215,7 @@ def persist_raster_asset(
                         "quality": stats.get("quality"),
                         "confidence": stats.get("confidence"),
                         "provider": getattr(req, "provider", None),
+                        "current_cog_uri": cog_url,
                         "geometry_revision": getattr(req, "geometry_revision", None),
                     },
                 )

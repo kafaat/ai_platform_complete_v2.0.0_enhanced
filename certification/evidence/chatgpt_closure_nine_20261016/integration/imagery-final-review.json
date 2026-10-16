@@ -1,0 +1,32 @@
+{
+  "review_at": "2026-10-16T17:13:30.219666+00:00",
+  "approval": "Approved commit 2c0a802f693fb92ab5731f751c33535d76d8c3f7 for parent cherry-pick after a967fa56; all 9 reviewed source/test file bytes match exactly.",
+  "prior_review_reused": "review.json",
+  "prior_test_evidence_reused": "focused-before-author-final.log (79 passed, 0 failed, 0 skipped)",
+  "prior_source_hashes_match": true,
+  "new_source_changes_since_prior_review": [],
+  "source_sha256": {
+    "services/raster-service/backfill_scan_worker.py": "cfeee3db8434b8af2df728c4e5a60f5d62a7d86e92ded29b8211eb0f9e4aebff",
+    "services/raster-service/cdse_client.py": "99e59460bf00d9649db05a5a50185df51e01e7baee4dcce9266fa0c95fcfead1",
+    "services/raster-service/cdse_native_product.py": "9295d706a90429f60bd2ed75e9a369dec030153973dc109e9a898e84d1d39add",
+    "services/raster-service/raster_asset_persistence.py": "76bd25b69be6d672ad9cc56fcba2257b24fe33e9d37832d077a56768eff3e4ef",
+    "services/raster-service/raster_pixel_processing.py": "1aa2a995f7f28d73840122fd44f9fddd2da22c96ea78c74e2aca6caa421ecc97",
+    "services/raster-service/test_backfill_processing_version_preflight.py": "b4cc96433a92010184209f74ef5d81464febde19dfa9e4ca02fd58dfef492094",
+    "services/raster-service/test_cdse_native_product.py": "08d5c8b862d5b19adf82ef54fa78c90c214c8946ec4310327ce1cc2f9ebf3691",
+    "services/raster-service/test_raster_durable_identity.py": "fac60428b5523f772f9755c5bcc9f8d31b9bc2e497c0b3c13cda314fa417902f",
+    "tests_v9/test_vegetation_raster_ndvi.py": "331a646e19b6becd54bf76052f0858cf427c104a2b53d9cb2fcc805c10eb8112"
+  },
+  "parent_integration_head": "dd3800f677264cb28253f8a10cc6fa824bdf2a15",
+  "merge_check": "parent-merge-check.json",
+  "integration_assessment": "Only backfill_scan_worker.py overlaps. A read-only three-way merge is clean and parses. Native CDSE request and ready lookup changes coexist with C1 dispatch; scenes with bands_urls are excluded from the native CDSE request path. Parent should run the combined focused backfill, CDSE and C1 tests after cherry-pick.",
+  "limits": [
+    "SQL fixture uses SQLite adaptation, not native PostgreSQL or RLS proof.",
+    "No live CDSE acceptance measured.",
+    "This follow-up does not recover missing historical scene bytes or prove the historic empty-scene cause.",
+    "Ready lookup verifies persisted current COG identity, not remote object availability or current object bytes."
+  ],
+  "repo_mutations_by_reviewer": false,
+  "approved_commit": "2c0a802f693fb92ab5731f751c33535d76d8c3f7",
+  "commit_bound_at": "2026-10-16T17:14:20.011286+00:00",
+  "working_tree_clean": true
+}

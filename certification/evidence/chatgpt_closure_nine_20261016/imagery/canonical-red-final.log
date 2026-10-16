@@ -1,0 +1,49 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/closure-imagery-red-pinned
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 13 items / 9 deselected / 4 selected
+
+tests_v9/test_vegetation_raster_ndvi.py FFFF                             [100%]
+
+=================================== FAILURES ===================================
+_____ test_canonical_publisher_keeps_complete_measured_pixel_owner_lineage _____
+tests_v9/test_vegetation_raster_ndvi.py:566: in test_canonical_publisher_keeps_complete_measured_pixel_owner_lineage
+    assert (
+E   AssertionError: assert None == 'cdse-native-scl-datamask/1'
+E    +  where None = <built-in method get of dict object at 0x7f9f9b33ab00>('qa_mask_version')
+E    +    where <built-in method get of dict object at 0x7f9f9b33ab00> = {}.get
+E    +      where {} = <built-in method get of dict object at 0x7f9f9a70a940>('raster_provenance', {})
+E    +        where <built-in method get of dict object at 0x7f9f9a70a940> = {'asset_ref': 'urn:sahool:raster-asset:ast_de2edfc3f55147539f9cc0ef', 'processing_run_ref': 'urn:sahool:processing-run...b07ca22b0042e1935713c0de1675a', 'output_hash': '34f589332b172e1c84ec71350bcc067c69234cbfaf7b762431328032730a26d4', ...}.get
+---------------------------- Captured stdout setup -----------------------------
+{"ts": "2026-10-16T16:20:22.643518+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.anomalies"}
+{"ts": "2026-10-16T16:20:22.660785+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.baselines"}
+{"ts": "2026-10-16T16:20:22.820072+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.diagnoses"}
+{"ts": "2026-10-16T16:20:22.821967+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-16T16:20:22.832006+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.outcomes"}
+{"ts": "2026-10-16T16:20:22.840318+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.analysis"}
+{"ts": "2026-10-16T16:20:22.843426+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.anomalies"}
+{"ts": "2026-10-16T16:20:22.843987+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.baselines"}
+{"ts": "2026-10-16T16:20:22.845318+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.diagnoses"}
+{"ts": "2026-10-16T16:20:22.845894+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.health"}
+{"ts": "2026-10-16T16:20:22.848341+00:00", "level": "INFO", "service": "vegetation-analysis-service", "logger": "vegetation-analysis-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.outcomes"}
+_ test_canonical_authority_cannot_cross_request_scope[tenant_id-22222222-2222-4222-8222-222222222222] _
+tests_v9/test_vegetation_raster_ndvi.py:594: in test_canonical_authority_cannot_cross_request_scope
+    assert (
+E   AssertionError: assert {'field_id': 'fld_scope', 'observations': {'ndvi': {'real_data': True, 'date': '2026-09-25T07:46:00Z', 'stats': {'mean... ...}, 'valid_pixel_ratio': 1.0, ...}}, 'acquisition_dates': ['2026-09-25T07:46:00Z'], 'bundle_consistency': True, ...} is None
+___ test_canonical_authority_cannot_cross_request_scope[field_id-fld_other] ____
+tests_v9/test_vegetation_raster_ndvi.py:594: in test_canonical_authority_cannot_cross_request_scope
+    assert (
+E   AssertionError: assert {'field_id': 'fld_scope', 'observations': {'ndvi': {'real_data': True, 'date': '2026-09-25T07:46:00Z', 'stats': {'mean... ...}, 'valid_pixel_ratio': 1.0, ...}}, 'acquisition_dates': ['2026-09-25T07:46:00Z'], 'bundle_consistency': True, ...} is None
+_ test_canonical_authority_cannot_cross_request_scope[season_id-season_other] __
+tests_v9/test_vegetation_raster_ndvi.py:594: in test_canonical_authority_cannot_cross_request_scope
+    assert (
+E   AssertionError: assert {'field_id': 'fld_scope', 'observations': {'ndvi': {'real_data': True, 'date': '2026-09-25T07:46:00Z', 'stats': {'mean... ...}, 'valid_pixel_ratio': 1.0, ...}}, 'acquisition_dates': ['2026-09-25T07:46:00Z'], 'bundle_consistency': True, ...} is None
+=========================== short test summary info ============================
+FAILED tests_v9/test_vegetation_raster_ndvi.py::test_canonical_publisher_keeps_complete_measured_pixel_owner_lineage
+FAILED tests_v9/test_vegetation_raster_ndvi.py::test_canonical_authority_cannot_cross_request_scope[tenant_id-22222222-2222-4222-8222-222222222222]
+FAILED tests_v9/test_vegetation_raster_ndvi.py::test_canonical_authority_cannot_cross_request_scope[field_id-fld_other]
+FAILED tests_v9/test_vegetation_raster_ndvi.py::test_canonical_authority_cannot_cross_request_scope[season_id-season_other]
+======================= 4 failed, 9 deselected in 0.84s ========================

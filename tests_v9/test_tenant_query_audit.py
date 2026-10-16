@@ -74,3 +74,55 @@ def test_scanner_flags_new_raw(tmp_path, monkeypatch):
     # جدول fields مُستأجَر؛ الدالّة تكتسب pool.acquire بلا سياق ولا ترشيح ⇒ RAW
     rows = m.audit()
     assert any(r["class"] == "RAW" and "fields" in r["tables"] for r in rows)
+
+
+@pytest.mark.parametrize(
+    "body, expected",
+    [
+        (
+            """async def read(
+    conn, *, field_id
+):
+    return await conn.fetch("SELECT * FROM fields WHERE field_id=$1", field_id)
+
+async def sibling(pool):
+    async with pool.acquire() as conn:
+        pass
+""",
+            "DELEGATED",
+        ),
+        (
+            """async def read(
+    conn, *, pool, field_id
+):
+    async with pool.acquire() as conn:
+        return await conn.fetch("SELECT * FROM fields WHERE field_id=$1", field_id)
+""",
+            "RAW",
+        ),
+        (
+            """async def read(pool, field_id):
+    async with pool.acquire() as conn:
+        return await conn.fetch("SELECT * FROM fields WHERE field_id=$1", field_id)
+
+async def sibling(pool, tenant):
+    async with tenant_connection(pool, tenant) as conn:
+        pass
+""",
+            "RAW",
+        ),
+    ],
+)
+def test_multiline_connection_scope_does_not_inherit_sibling_context(
+    tmp_path, monkeypatch, body, expected
+):
+    m = _load()
+    svc = tmp_path / "services" / "scope"
+    svc.mkdir(parents=True)
+    (svc / "queries.py").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(m, "ROOT", tmp_path)
+    monkeypatch.setattr(m, "SCAN", ("services",))
+    monkeypatch.setattr(m, "tenant_tables", lambda: {"fields"})
+    rows = m.audit()
+    assert len(rows) == 1
+    assert rows[0]["class"] == expected

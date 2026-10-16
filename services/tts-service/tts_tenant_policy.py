@@ -105,6 +105,8 @@ def policy_from_me(payload: Any, tenant_id: str) -> TTSPolicy:
 
 def _policy_from_v2(envelope: dict[str, Any], mode: str) -> TTSPolicy:
     """غلافُ v2: إذنُ TTS الصريح وحده يفتح الإرسال الخارجيّ، ولا يُقرأ إذنُ LLM."""
+    if envelope.get("contract") != "sahool.ai_policy_envelope":
+        return LOCAL_ONLY_POLICY
     version = envelope.get("contract_version")  # غائبٌ ⇒ None ⇒ الأشدّ
     if isinstance(version, bool) or not isinstance(version, int) or version < TTS_CONTRACT_VERSION:
         return LOCAL_ONLY_POLICY

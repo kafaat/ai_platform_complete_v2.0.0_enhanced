@@ -195,6 +195,8 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v69_decision_policies.sql"
   decision_record:
+    # Correlation contract: docs/architecture/decision_chain_correlation.md.
+    # v235/036 add owner-local UUID tracing; no ownership promotion or physical activation.
     owner: sahool-platform
     writers: [sahool-platform]
     mirror: decision-service

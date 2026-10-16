@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import importlib
 import pathlib
@@ -133,8 +134,12 @@ class TestStaticProviderConfig:
 
     def test_cdse_search_returns_provider_cdse_tag(self):
         src = _read(_RASTER / "stac_search.py")
-        idx = src.find("async def stac_search_cdse(")
-        body = src[idx : idx + 2000]
+        node = next(
+            node
+            for node in ast.walk(ast.parse(src))
+            if isinstance(node, ast.AsyncFunctionDef) and node.name == "stac_search_cdse"
+        )
+        body = ast.get_source_segment(src, node)
         assert '"provider": "cdse"' in body
         assert '"source": "cdse-catalog"' in body
 
@@ -529,17 +534,20 @@ class TestStacSearchCdseResponseFormat:
         fake_cdse = types.ModuleType("cdse_client")
         fake_cdse.is_configured = lambda: True  # type: ignore[attr-defined]
         fake_cdse.CdseCatalogError = type("CdseCatalogError", (RuntimeError,), {})  # type: ignore[attr-defined]
+        fake_cdse._COLLECTION = "configured-cdse-collection"
         sys.modules["cdse_client"] = fake_cdse
         spec.loader.exec_module(self.mod)  # type: ignore[union-attr]
 
     def _run(self, coro):
         return asyncio.run(coro)
 
-    def test_cdse_features_mapped_correctly(self):
+    @pytest.mark.parametrize("collection", [None, "observed-cdse-collection"])
+    def test_cdse_features_mapped_correctly(self, collection):
         """مشاهد CDSE تُحوَّل إلى البنية الصحيحة مع provider=cdse."""
         fake_scenes = [
             {
                 "id": "cdse-scene-001",
+                "collection": collection,
                 "bbox": [44.0, 15.0, 44.1, 15.1],
                 "properties": {
                     "datetime": "2025-02-10T08:00:00Z",
@@ -573,6 +581,7 @@ class TestStacSearchCdseResponseFormat:
         assert item["provider"] == "cdse"
         assert item["item_id"] == "cdse-scene-001"
         assert item["cloud_cover_pct"] == 7.3
+        assert item["collection"] == (collection or "configured-cdse-collection")
         # مشاهد CDSE ليس لها bands_urls (المعالجة عبر Process API)
         assert item["bands_urls"] == {}
 

@@ -215,7 +215,8 @@ def run_processing(ctx, job_id: str, req):
             )
             is True,
             "confidence": stats.get("confidence"),
-            "quality_score": stats.get("confidence"),  # Same semantics as persisted assets.
+            "quality_score": stats.get("quality_score", stats.get("confidence")),
+            "quality_score_semantics": stats.get("quality_score_semantics"),
             # Preserve the actual validated producer envelope; do not equate raw
             # pixel QA with confidence or invent an identity for server-side masks.
             "algorithm_version": (

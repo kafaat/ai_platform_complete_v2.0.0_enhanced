@@ -1,0 +1,13 @@
+{
+  "baseline_sha": "6e8cc0f9952c037550ae1644919f88c475dd89a7",
+  "results": {
+    "main": {
+      "witness": "unadmitted shadow collection must refuse legacy serving",
+      "passed": false
+    },
+    "candidate": {
+      "witness": "unadmitted shadow collection must refuse legacy serving",
+      "passed": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-10-16T18:37:38.718866+00:00",
+  "parent_commit": "fa90d143b4e3846e164730bc705f64501d0db272",
+  "dependency_check": "Existing tests_v9/requirements-test.txt declares rasterio, shapely, numpy, scipy, pillow, fastapi, pydantic, asyncpg and httpx; no requirement changes or new environment needed.",
+  "change": "Remove only raster-service modules newly introduced by the actual persistence witnesses after each test; preserve preexisting modules and pytest monkeypatch restoration.",
+  "checks": {
+    "two_test_files": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "raster_modules_before": {},
+      "raster_modules_after": {}
+    },
+    "focused_subset": {
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ruff": "passed"
+  },
+  "limit": "Declaration inspection plus existing dependency environment, not a fresh install claim."
+}

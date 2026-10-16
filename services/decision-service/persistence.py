@@ -228,12 +228,21 @@ async def persist_decision_record(
                     payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
                 )
                 stored_digest = decision_value_digest(payload.decision_value)
+            # Read the stored identity after insert/replay; never mint in a response.
+            # JSON projection is compatible with pre-036 rows/schema during rollout.
+            correlation_id = await conn.fetchval(
+                "SELECT to_jsonb(d)->>'correlation_id' FROM decision_record d "
+                "WHERE tenant_id=$1::uuid AND decision_id=$2",
+                tenant_id,
+                decision_id,
+            )
         # The version a reviewer will be shown — the stored one on replay, never recomputed from
         # a replayed payload that may differ (035).
         return {
             "decision_id": decision_id,
             "replayed": replayed,
             "decision_value_digest": stored_digest,
+            "correlation_id": correlation_id,
         }
     finally:
         await conn.close()
@@ -567,6 +576,7 @@ def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "decision_id": row["decision_id"],
         "previous_state": row["previous_state"],
         "state": row["new_state"],
@@ -781,6 +791,7 @@ async def list_review_queue(
                     SELECT d.decision_id, d.field_id, d.decision_type, d.region, d.stage,
                            d.decision_value, d.confidence, d.review_state, d.candidate_lineage_id,
                            d.decision_value_digest, d.created_at, d.updated_at,
+                           to_jsonb(d)->>'correlation_id' AS correlation_id,
                            to_jsonb(r) AS saved_review, to_jsonb(p) AS saved_plan
                       FROM decision_record d
                       LEFT JOIN decision_reviews r
@@ -839,22 +850,25 @@ async def list_review_queue(
                     )
                     items.append(item)
                 return items
-        rows = await conn.fetch(
-            """
-            SELECT decision_id, field_id, decision_type, region, stage, decision_value,
-                   confidence, review_state, candidate_lineage_id, decision_value_digest,
-                   created_at, updated_at
-              FROM decision_record
-             WHERE tenant_id = $1::uuid
-               AND stage = 'candidate'
-               AND review_state = 'pending_approval'
-             ORDER BY created_at ASC, decision_id ASC
-             LIMIT $2
-            """,
-            tenant_id,
-            max(1, min(int(limit), 200)),
-        )
-        return [dict(row) for row in rows]
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """
+                SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                       confidence, review_state, candidate_lineage_id, decision_value_digest,
+                       created_at, updated_at,
+                       to_jsonb(decision_record)->>'correlation_id' AS correlation_id
+                  FROM decision_record
+                 WHERE tenant_id = $1::uuid
+                   AND stage = 'candidate'
+                   AND review_state = 'pending_approval'
+                 ORDER BY created_at ASC, decision_id ASC
+                 LIMIT $2
+                """,
+                tenant_id,
+                max(1, min(int(limit), 200)),
+            )
+            return [dict(row) for row in rows]
     finally:
         await conn.close()
 
@@ -864,24 +878,27 @@ async def list_decision_records(
 ) -> dict[str, Any]:
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """
-            SELECT decision_id, field_id, decision_type, region, stage, decision_value,
-                   confidence, created_by, created_at
-              FROM decision_record
-             WHERE tenant_id = $1::uuid
-               AND ($2::text IS NULL OR field_id = $2)
-               AND ($3::text IS NULL OR decision_type = $3)
-             ORDER BY created_at DESC
-             LIMIT $4
-            """,
-            tenant_id,
-            field_id,
-            decision_type,
-            limit,
-        )
-        decisions = [dict(row) for row in rows]
-        return {"decisions": decisions, "count": len(decisions)}
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """
+                SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                       confidence, created_by, created_at,
+                       to_jsonb(decision_record)->>'correlation_id' AS correlation_id
+                  FROM decision_record
+                 WHERE tenant_id = $1::uuid
+                   AND ($2::text IS NULL OR field_id = $2)
+                   AND ($3::text IS NULL OR decision_type = $3)
+                 ORDER BY created_at DESC
+                 LIMIT $4
+                """,
+                tenant_id,
+                field_id,
+                decision_type,
+                limit,
+            )
+            decisions = [dict(row) for row in rows]
+            return {"decisions": decisions, "count": len(decisions)}
     finally:
         await conn.close()
 
@@ -1105,6 +1122,7 @@ def _authoritative_execution_plan(row: Any, *, replay: bool) -> dict[str, Any]:
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "execution_plan_id": row["execution_plan_id"],
         "decision_id": row["decision_id"],
         "review_id": row["review_id"],
@@ -1351,6 +1369,7 @@ def _authoritative_dispatch_authorization(row: Any, *, replay: bool) -> dict[str
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "dispatch_authorization_id": row["dispatch_authorization_id"],
         "execution_plan_id": row["execution_plan_id"],
         "decision_id": row["decision_id"],
@@ -1527,6 +1546,7 @@ def _authoritative_execution_request(row: Any, *, replay: bool) -> dict[str, Any
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "execution_request_id": row["execution_request_id"],
         "dispatch_authorization_id": row["dispatch_authorization_id"],
         "execution_plan_id": row["execution_plan_id"],

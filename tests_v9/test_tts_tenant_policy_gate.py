@@ -186,6 +186,33 @@ def _assert_blocked(resp, mode):
     assert detail["policy_mode"] == mode
 
 
+def test_status_declares_local_unavailability_even_when_edge_is_installed(monkeypatch):
+    main, providers, policy = _load(monkeypatch)
+    _no_local_providers(monkeypatch, providers)
+    monkeypatch.setattr(providers.EdgeTTSProvider, "available", lambda self: True)
+    _policy(monkeypatch, policy, "local_only")
+    response = _client(main).get("/v1/tts/status", headers=_bearer(main))
+    assert response.status_code == 200
+    data = response.json()
+    assert data["policy_mode"] == "local_only"
+    assert data["policy_eligible_provider"] is None
+    assert data["unavailable_reason"] == "local_provider_unavailable_for_policy"
+    assert any(p["name"] == "edge_tts" and p["available"] for p in data["providers"])
+
+
+def test_status_identifies_the_explicitly_permitted_provider_without_synthesis(monkeypatch):
+    main, providers, policy = _load(monkeypatch)
+    _no_local_providers(monkeypatch, providers)
+    external = _External()
+    external.install(monkeypatch, main, providers)
+    _policy(monkeypatch, policy, "full_external")
+    response = _client(main).get("/v1/tts/status", headers=_bearer(main))
+    assert response.status_code == 200
+    assert response.json()["policy_eligible_provider"] == "edge_tts"
+    assert response.json()["unavailable_reason"] is None
+    assert external.calls == 0
+
+
 # ── السياسةُ تمنع ⇒ 503 مُسمّى، صفرُ نداءاتٍ خارجيّة — في المسارين ─────────────────────
 
 

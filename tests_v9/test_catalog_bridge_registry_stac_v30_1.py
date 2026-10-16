@@ -25,6 +25,17 @@ RASTER_PERSIST = REPO / "services" / "raster-service" / "raster_asset_persistenc
 FIELDS = REPO / "services" / "raster-service" / "routers" / "fields.py"
 
 
+@pytest.fixture
+def isolated_raster_imports():
+    """Do not leave generic service module names in the shared unit-test interpreter."""
+    previous = dict(sys.modules)
+    yield
+    raster_root = str(FIELDS.parent.parent) + "/"
+    for name, module in tuple(sys.modules.items()):
+        if name not in previous and str(getattr(module, "__file__", "")).startswith(raster_root):
+            sys.modules.pop(name, None)
+
+
 def _load_db_persist():
     sys.modules.setdefault("asyncpg", types.ModuleType("asyncpg"))
     spec = importlib.util.spec_from_file_location("raster_db_persist_cat", DB_PERSIST)
@@ -64,7 +75,17 @@ def test_registry_bridge_wired_in_asset_persist() -> None:
     assert 'not str(cog_url).startswith("file://")' in joined
 
 
-def test_stac_persistence_wired_in_backfill() -> None:
+@pytest.mark.parametrize(
+    "scene_collection, radiometry_collection, expected",
+    [
+        ("sentinel-2-c1-l2a", "sentinel-2-l2a", "sentinel-2-c1-l2a"),
+        (None, "sentinel-2-c1-l2a", "sentinel-2-c1-l2a"),
+        (None, None, "sentinel-2-l2a"),
+    ],
+)
+def test_stac_persistence_wired_in_backfill(
+    monkeypatch, isolated_raster_imports, scene_collection, radiometry_collection, expected
+) -> None:
     src = FIELDS.read_text(encoding="utf-8")
     assert "async def _persist_selected_stac_scenes" in src
     assert "db_persist.insert_stac_item(" in src
@@ -73,6 +94,30 @@ def test_stac_persistence_wired_in_backfill() -> None:
     assert "background_tasks.add_task( _persist_selected_stac_scenes" in joined, (
         "استمرار STAC يجب أن يُجدوَل كمهمّة خلفيّة"
     )
-    # phase21: fields.py يستورد SENTINEL_COLLECTION من raster_field_runtime (لا main.)؛
-    # الاستمرار يمرّره كـcollection للمشهد.
-    assert "collection=SENTINEL_COLLECTION" in src, "collection يجب أن يكون sentinel-2-l2a"
+    # Persist the actual scene collection; do not relabel C1 or CDSE as a global default.
+    import asyncio
+
+    monkeypatch.syspath_prepend(str(FIELDS.parent.parent))
+    import db_persist
+
+    spec = importlib.util.spec_from_file_location("catalog_bridge_fields", FIELDS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    captured = []
+
+    async def insert(**kwargs):
+        captured.append(kwargs)
+        return True
+
+    monkeypatch.setattr(db_persist, "insert_stac_item", insert)
+    scene = {
+        "item_id": "scene-collection",
+        "collection": scene_collection,
+        "radiometry_context": {"collection": radiometry_collection},
+    }
+    asyncio.run(module._persist_selected_stac_scenes("tenant-collection", [scene, {}]))
+    assert len(captured) == 1
+    assert captured[0]["collection"] == expected
+    assert captured[0]["tenant_id"] == "tenant-collection"
+    assert captured[0]["scene_id"] == "scene-collection"
+    assert captured[0]["raw_item"] == scene

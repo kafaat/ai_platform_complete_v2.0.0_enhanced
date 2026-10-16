@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "measured_on": "7598dbe3a65511f15c37269bd6c437d5588e851b",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "88907c37a21a18dea1084e09022b3b17f7f7ce644ec8db9778bf0a87af0eacc4",
+  "measurement_input_digest": "963a331da2984af6564208aa27af2a133dc996d92403e3809633d55cf66b22e1",
   "measurement_algorithm_digest": "f97be0263384a027232f95dcfff3ed99e755bc80cbf05a280e59f6059f9fa9fd",
-  "measurement_basis_digest": "d1176983e53bc62280a0f58f688434bfc209e25904a6a8425f50000b6eb2366d",
+  "measurement_basis_digest": "c738a06b8c268d2d4687663f008c1df0580e2c876a00adea1fbf63d858129d59",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -28,7 +28,7 @@
     },
     {
       "path": "scripts/diagnostics/element84_legacy_inventory.py",
-      "sha256": "e52079768fb846c30c22572564420109fb22fbb9b91ce13a9b84c7891663a7cd"
+      "sha256": "5b4071b2007579e7aa8930828e10e65dad8e8b0dc2424903ea747d55ea9de39d"
     },
     {
       "path": "scripts/e2e/canonical_projection_jetstream_roundtrip.py",
@@ -44,7 +44,7 @@
     },
     {
       "path": "scripts/tenant_query_audit.py",
-      "sha256": "8d69eb3ef7afe31b8b3c4019b7c6db888cf20f7854765bb228d0febab296a66c"
+      "sha256": "629109244d6c8c20b60c5ff61f20722d7dbc107fe14389f75afc3acc2ddb0251"
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
@@ -56,7 +56,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "9473f764f139ca577c375568bca2cafb4e0044acc5d7275a55f7bedfcea4d763"
+      "sha256": "2ac6a5ae36e6adb8798f0e703224d93f2514f889e631f5fb78fb305664f855a5"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -80,7 +80,7 @@
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",
-      "sha256": "9c3cd0a31b95e2c3385d9f07a956fb0fb8777bf6a31acc9330dd37291e192932"
+      "sha256": "2601a5038ea87246ad6c8f63102816c6733616802de18170f05a7eae6954aa74"
     },
     {
       "path": "services/raster-service/cache_invalidation_worker.py",
@@ -186,7 +186,7 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "services/auth/main.py:993",
-    "services/raster-service/backfill_scan_worker.py:102",
+    "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:90",
     "services/sahool-platform/api/imagery_automation.py:185",
     "services/sahool-platform/api/phase_runtime_store.py:98",

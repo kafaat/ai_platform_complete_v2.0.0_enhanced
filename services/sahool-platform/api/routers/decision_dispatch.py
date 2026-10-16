@@ -82,6 +82,7 @@ def _shape_dispatch_row(row) -> dict:
 
     created = row["created_at"]
     return {
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "decision_id": row["decision_id"],
         "recommendation_id": row["recommendation_id"],
         "action_type": row["action_type"],
@@ -552,6 +553,7 @@ def _shape_ledger_row(row) -> dict:
         detail = _json.loads(detail)
     recorded = row["recorded_at"]
     return {
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "ledger_id": row["ledger_id"],
         "decision_id": row["decision_id"],
         "action_type": row["action_type"],

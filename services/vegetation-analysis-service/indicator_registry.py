@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -40,20 +41,27 @@ def validate_observation(name: str, observation: dict[str, Any]) -> list[str]:
     if not (observation.get("data_available_at") or prov.get("data_available_at")):
         errors.append(f"{key}_data_available_at_missing")
     valid = observation.get("valid_pixel_pct")
-    if valid is None:
-        ratio = observation.get("valid_pixel_ratio")
-        if ratio is not None:
-            try:
-                valid = float(ratio) * 100 if float(ratio) <= 1 else float(ratio)
-            except (TypeError, ValueError):
-                valid = None
-    if valid is None:
+    ratio = observation.get("valid_pixel_ratio")
+    if valid is None and ratio is None:
         errors.append(f"{key}_valid_pixel_pct_missing")
     else:
         try:
-            if float(valid) < float(d.get("min_valid_pixel_pct", 60)):
+            if valid is None:
+                if isinstance(ratio, bool):
+                    raise ValueError("boolean_pixel_ratio")
+                ratio = float(ratio)
+                # A ratio has one unit: accepting 85 as 85% hides producer skew.
+                if not math.isfinite(ratio) or not 0 <= ratio <= 1:
+                    raise ValueError("invalid_pixel_ratio")
+                valid = ratio * 100
+            if isinstance(valid, bool):
+                raise ValueError("boolean_pixel_percentage")
+            valid = float(valid)
+            if not math.isfinite(valid) or not 0 <= valid <= 100:
+                raise ValueError("invalid_pixel_percentage")
+            if valid < float(d.get("min_valid_pixel_pct", 60)):
                 errors.append(f"{key}_valid_pixel_pct_below_threshold")
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             errors.append(f"{key}_valid_pixel_pct_invalid")
     return errors
 

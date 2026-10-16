@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-16T18:40:58.292398+00:00",
+  "base": "8a2f0b45",
+  "commit": "f4bdf29369b4df70734ac01051f1aa9d9dfbee16",
+  "worktree": "/workspace/scratch/881ca3efb91d/review-raster-router",
+  "router_lines_before": 1757,
+  "router_lines_after": 1673,
+  "raster_baseline_before": 1675,
+  "raster_baseline_after": 1673,
+  "scope": "Pure available-date aggregation and selection extracted; tenant authorization, DB/provider reads, response envelope and STAC processing remain in original router. Comments travel with extracted logic.",
+  "focused": {
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0,
+    "log": "focused.log"
+  },
+  "architectural": {
+    "passed": 13,
+    "failed": 1,
+    "log": "architecture.log",
+    "sole_remaining_failure": "Unmodified platform decision_review.py 925 > 921 handled by parallel agent. Raster router passes ratchet size, shrink baseline, import graph and decomposition checks."
+  },
+  "source_sha256": {
+    "services/raster-service/raster_available_dates.py": "b598ddb6e38b4853d7524d53533e223e9600800f2bc8a146f6a51ff69964e19a",
+    "services/raster-service/routers/fields.py": "5a2220026fb75087aac7ae54531a8e8821b562fac93694f670b3506538c19bd9",
+    "services/raster-service/test_available_dates_provider_datetime.py": "d979aa4934b6f2caa3fd1e7564f463d23d4a8f961f39976a9e2d812650ba9897",
+    "services/raster-service/test_historical_backfill.py": "ca7ea106c3c3fe4da0bac83533bc50a78ac46291c1defcc5d998286beaf8eb1f",
+    "tests/architecture/test_router_size_ratchet.py": "7c7766d246d8651fa649b68ebf672566c2101bd8ae13d289dc01dfc8ffed285a",
+    "tests_v9/test_imagery_aoi_cloud_contract.py": "c9ab8eca7b443d5fb9752ad58502b5a5854b2956a5a64192d2afd30d1dd73c70"
+  },
+  "tests": "Includes new actual-route behavior witness for tenant-scoped reads, AOI-over-scene quality, date deduplication, and timeline cutoff; existing C1/legacy runtime tests pass.",
+  "format": "ruff format/check and git diff --check pass"
+}

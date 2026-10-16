@@ -1,0 +1,39 @@
+{
+  "source_receipt_sha256": "fcd5a21f33b69360061317e200bec29bc7bdc314d8d2cfeaaa485004d7978b8d",
+  "deployment_id": "718af764-7da0-4641-96b5-32a4a166243b",
+  "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+  "observed_at": "2026-10-16T16:18:17.254Z",
+  "context": [
+    {
+      "role": "sahool_app",
+      "server_version_num": "150008",
+      "transaction_read_only": "on"
+    }
+  ],
+  "roles": [
+    {
+      "rolname": "sahool_app",
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolcanlogin": true
+    }
+  ],
+  "journal_count": 32,
+  "unknown_versions": [],
+  "checksum_mismatches": [],
+  "pending_in_this_checkout": [
+    "033_tenant_boundary_hardening.sql",
+    "034_tenant_boundary_policy_composition.sql",
+    "035_decision_version_binding.sql"
+  ],
+  "required_033_sha256": "bdbc863a02e40505b68d2e7ae020aa31b0551b87f01847e6d8da772b7afecf04",
+  "required_034_sha256": "36e9740e83b8f56373ac16a1b2422c6adc646d875fd77d405fcffbc81cb70d69",
+  "034_only_allowed": false,
+  "reason": "033 not journaled; correct034-only executor must reject; source-pinned033+034 pair required, leave035+untouched",
+  "remaining_prerequisites": [
+    "restorepoint",
+    "DDL owner connection or valid rolemembership",
+    "finalheadnativeproof",
+    "boundedrestrictedidentity behavioral acceptance"
+  ]
+}

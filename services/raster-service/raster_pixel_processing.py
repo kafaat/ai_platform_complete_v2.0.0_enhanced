@@ -114,8 +114,9 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
     يقرأ النطاق الأوّل مباشرةً (لا band math، لا تحويل انعكاس)، يعيد إسقاط الحدود إلى
     EPSG:4326، يحسب الإحصاءات، ويكتب COG محسّناً (نفس مسار التخزين/الأصل). يُرجِع
     ``(stats, bounds_4326, resolution_m, meta)`` بنفس تعاقُد :func:`_process_pixels`.
-    صدق: لا قناع SCL (CDSE يقنّع الغيوم بـdataMask/maxCloudCoverage خادميّاً)؛ ``NaN`` = لا بيانات.
+    Native receipts supply measured SCL/dataMask; legacy single-band bytes have no QA proof.
     """
+    import cdse_native_product
     import numpy as np
     import rasterio
     from rasterio.warp import transform_bounds
@@ -125,6 +126,8 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
     if req.indicator.value == "truecolor":
         return process_precomputed_truecolor(ctx, req)
 
+    native = getattr(req, "_cdse_native_product", None)
+    observed = None
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
         res_m = abs(src.res[0])
         src_crs = src.crs
@@ -132,7 +135,13 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
         else:
             bounds = list(src.bounds)
-        arr = src.read(1, masked=True).astype("float32").filled(np.nan)
+        if isinstance(native, cdse_native_product.NativeProduct):
+            arr, observed = cdse_native_product.measured_pixels(src, native, req.raster_url)
+            # Only actual returned contributors can replace catalogue/request guesses.
+            req.scene_id = observed["scene_id"]
+            req.capture_datetime = observed["acquisition_datetime"]
+        else:
+            arr = src.read(1, masked=True).astype("float32").filled(np.nan)
         if src.nodata is not None:
             arr = np.where(arr == src.nodata, np.nan, arr)
         transform = src.transform
@@ -148,13 +157,13 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
     )
     pixel_qa = raw_data_processing.compute_quality_score(
         valid_pixel_ratio=valid_ratio,
-        cloud_pct=None,
-        cloud_mask_applied=False,
+        cloud_pct=observed["cloud_pct"] if observed else None,
+        cloud_mask_applied=observed is not None,
         terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
         cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
         slope_risk_pct=topographic_qa.get("slope_risk_pct"),
         topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
-        qa_layer_present=False,
+        qa_layer_present=observed is not None,
     )
     min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
     if (
@@ -183,14 +192,18 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "topographic_qa": topographic_qa,
         "quality_flags": raw_data_processing.build_quality_flags(
             nodata_mask_applied=True,
-            qa_layer_present=False,
-            cloud_mask_applied=False,
+            qa_layer_present=observed is not None,
+            cloud_mask_applied=observed is not None,
             topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
             terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
             cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
             slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
             topographic_qa_sources=topographic_qa.get("sources", []),
-            source_native_qa_policy="precomputed_index_provider_mask_expected",
+            source_native_qa_policy=(
+                cdse_native_product.MASK_VERSION
+                if observed
+                else "precomputed_index_provider_mask_expected"
+            ),
         ),
     }
     cog_url = None
@@ -203,10 +216,20 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         spatial_crs=cog_crs,
         bounds_4326=bounds,
         topographic_qa=topographic_qa,
-        cloud_mask_strategy="provider_precomputed_expected",
+        cloud_mask_strategy=(
+            cdse_native_product.MASK_VERSION if observed else "provider_precomputed_expected"
+        ),
         reflectance_normalized=False,
         source_uri=getattr(req, "raster_url", None),
     )
+    if observed:
+        validated_product.provenance.algorithm_version = observed["algorithm_version"]
+        validated_product.provenance.qa_mask_version = observed["qa_mask_version"]
+        validated_product.provenance.input_checksum = observed["input_checksum"]
+        stats["quality_score"] = pixel_qa["quality_score"]
+        stats["quality_score_semantics"] = pixel_qa["schema"]
+        stats["cloud_pct"] = observed["cloud_pct"]
+        stats["cdse_native_qa"] = observed
     raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
     stats["validated_raster_product"] = validated_product.model_dump(mode="json")
     RASTER_NODATA = ctx.RASTER_NODATA

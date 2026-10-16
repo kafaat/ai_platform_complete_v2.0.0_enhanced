@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
+
+import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 PLATFORM = ROOT / "services" / "sahool-platform"
@@ -51,20 +53,45 @@ def test_p4_platform_decision_client_is_the_transport_boundary():
     assert not missing, repr(missing)
 
 
+def _interim_ownership_violations(text: str) -> list[str]:
+    tables = yaml.safe_load(text)["tables"]
+    expected = {
+        "owner": "sahool-platform",
+        "writers": ["sahool-platform"],
+        "mirror": "decision-service",
+        "status": "interim-bridge",
+    }
+    return [
+        table
+        for table in LOOP_TABLES
+        if any(tables.get(table, {}).get(key) != value for key, value in expected.items())
+    ]
+
+
 def test_p4_loop_tables_are_platform_sor_with_decision_service_mirror_interim():
     """INTERIM: loop tables are the platform's temporary Source of Record, mirrored to
     decision-service.  Ownership honestly reflects the authoritative writer (sahool-platform)
     and marks decision-service as the not-yet-SoR mirror — not the sole writer any more."""
-    text = DB_OWNERSHIP.read_text(encoding="utf-8", errors="ignore")
-    violations = []
-    for table in LOOP_TABLES:
-        pattern = (
-            rf"  {table}:\n    owner: sahool-platform\n    writers: \[sahool-platform\]\n"
-            rf"    mirror: decision-service\n    status: interim-bridge"
-        )
-        if not re.search(pattern, text):
-            violations.append(table)
+    text = DB_OWNERSHIP.read_text(encoding="utf-8")
+    violations = _interim_ownership_violations(text)
     assert not violations, repr(violations)
+
+
+@pytest.mark.parametrize("table", LOOP_TABLES)
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("owner", "decision-service"),
+        ("writers", ["decision-service"]),
+        ("writers", ["sahool-platform", "decision-service"]),
+        ("mirror", "sahool-platform"),
+        ("status", "authoritative"),
+    ],
+)
+def test_p4_ownership_changes_are_not_hidden_by_yaml_comments(table, key, value):
+    doc = yaml.safe_load(DB_OWNERSHIP.read_text(encoding="utf-8"))
+    doc["tables"][table][key] = value
+    assert _interim_ownership_violations(yaml.safe_dump(doc)) == [table]
 
 
 def test_p4_contract_documents_boundary_and_legacy_status():

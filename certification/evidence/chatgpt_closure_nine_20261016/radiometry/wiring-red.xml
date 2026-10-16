@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.890" timestamp="2026-10-16T09:21:53.247448-07:00" hostname="5fb5094482f7"><testcase classname="services.raster-service.test_stac_c1_processing" name="test_worker_dispatches_supported_c1_into_existing_processing_core" time="0.067"><failure message="AssertionError: assert (False)&#10; +  where False = SceneOutcome(ok=False, reason='radiometry_unresolved:element84_vrt').ok">services/raster-service/test_stac_c1_processing.py:223: in test_worker_dispatches_supported_c1_into_existing_processing_core
+    assert outcome.ok and len(calls) == 1
+E   AssertionError: assert (False)
+E    +  where False = SceneOutcome(ok=False, reason='radiometry_unresolved:element84_vrt').ok</failure></testcase><testcase classname="services.raster-service.test_stac_c1_processing" name="test_direct_route_resolves_catalogue_then_schedules_supported_c1" time="0.103"><failure message="fastapi.exceptions.HTTPException: 422: {'code': 'radiometry_unresolved', 'provider': 'element84', 'path': 'stac_vrt', 'entry_point': 'process_from_stac', 'bands': ['blue', 'green', 'nir', 'red', 'rededge', 'scl', 'swir1', 'swir2'], 'reasons': [{'code': 'reflectance_scale_unresolved', 'detail': 'VRT يحمل scale=1/offset=0 ولا يُقرأ raster:bands؛ مؤشّرات EVI/MSAVI/SAVI/TGI/BI/BI2/SATVI تُحسَب على DN خام، وقناع التشبّع يرفضها'}, {'code': 'band_grid_misaligned', 'detail': 'أبعاد النطاق الأوّل تُفرَض على كلّ المصادر؛ نطاقات 20م لا تُعاد عيّنتها', 'bands': ['rededge', 'swir1', 'swir2', 'scl']}, {'code': 'nodata_not_propagated', 'detail': 'VRT بلا NoDataValue؛ البكسل المفقود (0) يُعدّ صالحاً'}], 'retryable': False, 'gap_ids': ['ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01', 'ELEMENT84-VRT-BAND-GRID-MISALIGNED-01', 'ELEMENT84-VRT-NODATA-NOT-PROPAGATED-01'], 'note_ar': 'مسار Element84→VRT محجوب حتّى يُبنى عقد التطبيع والمحاذاة وNoData؛ لا معالجة ولا حفظ لهذا الطلب، والفشل دائم لنسخة المعالجة الحاليّة.'}">services/raster-service/routers/fields.py:161: in process_from_stac
+    radiometry_containment.reject_element84_vrt(
+services/raster-service/radiometry_containment.py:99: in reject_element84_vrt
+    raise RadiometryUnresolved(element84_vrt_detail(band_keys, entry_point=entry_point))
+E   radiometry_containment.RadiometryUnresolved: radiometry_unresolved
+
+The above exception was the direct cause of the following exception:
+services/raster-service/test_stac_c1_processing.py:254: in test_direct_route_resolves_catalogue_then_schedules_supported_c1
+    result = asyncio.run(fields.process_from_stac("field", req, tasks, x_agent_token="token"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+services/raster-service/routers/fields.py:165: in process_from_stac
+    raise HTTPException(422, e.detail) from e
+E   fastapi.exceptions.HTTPException: 422: {'code': 'radiometry_unresolved', 'provider': 'element84', 'path': 'stac_vrt', 'entry_point': 'process_from_stac', 'bands': ['blue', 'green', 'nir', 'red', 'rededge', 'scl', 'swir1', 'swir2'], 'reasons': [{'code': 'reflectance_scale_unresolved', 'detail': 'VRT يحمل scale=1/offset=0 ولا يُقرأ raster:bands؛ مؤشّرات EVI/MSAVI/SAVI/TGI/BI/BI2/SATVI تُحسَب على DN خام، وقناع التشبّع يرفضها'}, {'code': 'band_grid_misaligned', 'detail': 'أبعاد النطاق الأوّل تُفرَض على كلّ المصادر؛ نطاقات 20م لا تُعاد عيّنتها', 'bands': ['rededge', 'swir1', 'swir2', 'scl']}, {'code': 'nodata_not_propagated', 'detail': 'VRT بلا NoDataValue؛ البكسل المفقود (0) يُعدّ صالحاً'}], 'retryable': False, 'gap_ids': ['ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01', 'ELEMENT84-VRT-BAND-GRID-MISALIGNED-01', 'ELEMENT84-VRT-NODATA-NOT-PROPAGATED-01'], 'note_ar': 'مسار Element84→VRT محجوب حتّى يُبنى عقد التطبيع والمحاذاة وNoData؛ لا معالجة ولا حفظ لهذا الطلب، والفشل دائم لنسخة المعالجة الحاليّة.'}</failure></testcase><testcase classname="services.raster-service.test_stac_c1_processing" name="test_sync_backfill_dispatches_supported_c1_into_existing_processing_core" time="0.010"><failure message="assert (0 == 1)&#10; +  where 0 = len([])">services/raster-service/test_stac_c1_processing.py:442: in test_sync_backfill_dispatches_supported_c1_into_existing_processing_core
+    assert len(calls) == 1 and calls[0].scene_id == data["item_id"]
+E   assert (0 == 1)
+E    +  where 0 = len([])</failure></testcase></testsuite></testsuites>

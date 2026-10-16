@@ -29,6 +29,7 @@ from shared.contracts.remote_sensing import (
     QualityPolicyRefV1,
     ValueType,
 )
+from shared.contracts.remote_sensing.observation_v1 import RasterObservationProvenanceV1
 
 RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
     "/"
@@ -108,7 +109,39 @@ def canonicalize_bundle(
         if cloud is None:
             pct = _to_decimal(item.get("cloud_pct"))
             cloud = (pct / Decimal("100")) if pct is not None else Decimal("0")
-        score = _to_decimal(item.get("confidence"))
+        score = _to_decimal(product.get("quality_score", item.get("confidence")))
+        raster_provenance = None
+        if (
+            product.get("source") == "raster-service"
+            and product.get("estimated") is False
+            and product.get("quality_gate_passed") is True
+            and all(
+                provenance.get(k)
+                for k in (
+                    "scene_id",
+                    "qa_mask_version",
+                    "algorithm_version",
+                    "acquisition_datetime",
+                )
+            )
+            and product.get("data_available_at")
+        ):
+            raster_provenance = RasterObservationProvenanceV1(
+                **{
+                    k: provenance[k]
+                    for k in (
+                        "scene_id",
+                        "qa_mask_version",
+                        "algorithm_version",
+                    )
+                },
+                acquisition_datetime=datetime.fromisoformat(
+                    provenance["acquisition_datetime"].replace("Z", "+00:00")
+                ),
+                data_available_at=datetime.fromisoformat(
+                    product["data_available_at"].replace("Z", "+00:00")
+                ),
+            )
         gate = (
             QualityGateStatus.PASSED if bool(item.get("real_data")) else QualityGateStatus.REJECTED
         )
@@ -166,6 +199,7 @@ def canonicalize_bundle(
                     input_hash=input_hash,
                     output_hash=output_hash,
                     pipeline_version="1.0.0",
+                    raster_provenance=raster_provenance,
                 ),
                 publication_status=PublicationStatus.PUBLISHED,
             )

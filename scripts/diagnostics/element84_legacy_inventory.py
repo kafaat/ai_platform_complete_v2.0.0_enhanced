@@ -87,7 +87,13 @@ TABLES = (
 POLICY_QUERY = """
     SELECT jsonb_agg(jsonb_build_object(
         'table', c.relname, 'enabled', c.relrowsecurity, 'forced', c.relforcerowsecurity,
-        'qual', pg_get_expr(p.polqual, p.polrelid)))
+        'qual', pg_get_expr(p.polqual, p.polrelid),
+        'permissive', COALESCE(p.polpermissive, false),
+        'applicable', EXISTS (
+            SELECT 1 FROM unnest(p.polroles) AS policy_role(role_oid)
+            WHERE CASE WHEN role_oid = 0 THEN true
+                       ELSE pg_has_role(current_user, role_oid, 'USAGE') END
+        )))
     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
     LEFT JOIN pg_policy p ON p.polrelid = c.oid AND p.polcmd IN ('r', '*')
     WHERE n.nspname = 'public' AND c.relname = ANY($1::text[])
@@ -99,12 +105,33 @@ def validate_policies(value) -> None:
     policies = json.loads(value) if isinstance(value, str) else value
     if not isinstance(policies, list) or {p.get("table") for p in policies} != set(TABLES):
         raise InventoryRefused("missing inventory table or policy metadata")
+    admitted = set()
     for policy in policies:
-        contexts = set(re.findall(r"current_setting\('([^']+)'", policy.get("qual") or ""))
         if not (policy.get("enabled") and policy.get("forced")):
             raise InventoryRefused("inventory table must enforce row-level security")
+        if not all(isinstance(policy.get(key), bool) for key in ("applicable", "permissive")):
+            raise InventoryRefused("unmeasured policy role metadata")
+        if not policy["applicable"]:
+            continue
+        if policy["permissive"]:
+            admitted.add(policy["table"])
+        contexts = set(re.findall(r"current_setting\('([^']+)'", policy.get("qual") or ""))
         if contexts != {"app.current_tenant"}:
             raise InventoryRefused("unsupported tenant RLS policy context")
+        # pg_get_expr output is server-parsed SQL. Accept only the repository's
+        # equality/NULLIF tenant predicates; merely mentioning the right GUC can
+        # hide OR true, a restrictive subset, or a comparison against another key.
+        # This is deliberately a narrow allowlist, not a general SQL equivalence
+        # checker. Unknown policy shapes require an explicit review.
+        canonical = re.sub(r"\s+|[()]|::text", "", policy.get("qual") or "")
+        if canonical not in {
+            "tenant_id=current_setting'app.current_tenant',true",
+            "tenant_id=NULLIFcurrent_setting'app.current_tenant',true,''",
+        }:
+            raise InventoryRefused("non-canonical tenant RLS policy refused")
+
+    if admitted != set(TABLES):
+        raise InventoryRefused("inventory table needs an applicable permissive SELECT policy")
 
 
 class InventoryRefused(ValueError):

@@ -370,7 +370,7 @@
     },
     {
       "kind": "app",
-      "line": 28,
+      "line": 50,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -919,7 +919,7 @@
     },
     {
       "kind": "router",
-      "line": 28,
+      "line": 31,
       "module": "services.sahool-platform.api.routers.decision_review",
       "node_id": "services.sahool-platform.api.routers.decision_review:router",
       "route_count": 16,
@@ -2367,7 +2367,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 35,
+  "include_edge_count": 36,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2475,6 +2475,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_d1_raster_owner_write_commands:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "routes.router",
+      "line": 139,
+      "module": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_decision_correlation_http_projection:<dynamic-source>",
       "target": null
     },
     {
@@ -2685,7 +2694,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "9cea0a6cde66baa6e96eb097f2f50a7a4a129b117f8e8abd5e88e783bf3a66b6",
+  "inventory_sha256": "4ce5ce5d6ad5ccbe5010e57ffcf03d417b5f206760f32a5ba7bca763b3b11492",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -3461,7 +3470,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 28,
+      "line": 31,
       "module": "services.sahool-platform.api.routers.decision_review",
       "node_id": "services.sahool-platform.api.routers.decision_review:router",
       "route_count": 16,
@@ -4966,7 +4975,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 33,
+  "unresolved_include_count": 34,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5063,6 +5072,14 @@
       "module": "services.sahool-platform.tests.test_d1_raster_owner_write_commands",
       "source": null,
       "target_expression": "gis_cloud_native.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
+      "line": 139,
+      "module": "services.sahool-platform.tests.test_decision_correlation_http_projection",
+      "source": null,
+      "target_expression": "routes.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

@@ -52,8 +52,8 @@ def test_run_analysis_consumes_single_observation_bundle():
     assert "_real_observation_bundle_from_raster" in body, "لا يستهلك حزمة المشاهدة الواحدة"
     assert "asyncio.gather" not in body, "لا يزال يجلب المؤشّرات بطلبات متوازية مفردة"
     # RS-3 cutover: المصدر يُوسَم ديناميكيّاً (canonical أو raster-service) مع ارتداد fail-closed لـ"raster-service".
-    assert 'index_sources[public_name] = str(bundle.get("source") or "raster-service")' in body, (
-        "لا يَسِم المصدر الحقيقيّ"
+    assert 'product.get("source") or bundle.get("source") or "raster-service"' in body, (
+        "pixel producer must be retained separately from canonical publisher"
     )
     # فشل مُغلَق: حزمة غير متّسقة/غائبة ⇒ 424، وغياب NDVI ⇒ 424.
     assert "consistent validated canonical observation is required" in body
@@ -220,7 +220,7 @@ _INDICATORS = os.path.join(ROOT, "services", "indicators-service", "main.py")
 _TENANT = "11111111-1111-4111-8111-111111111111"
 
 
-async def _indicators_service_response(field_id: str, season_id: str) -> dict:
+async def _indicators_service_response(field_id: str, season_id: str, *, measured=False) -> dict:
     """ما يُجيب به ``GET /v1/fields/{id}/observations`` فعلاً — بلا شبكة، بالمُنتِج الحقيقيّ."""
     spec = importlib.util.spec_from_file_location("veg_test_indicators_main", _INDICATORS)
     indicators = importlib.util.module_from_spec(spec)
@@ -252,6 +252,17 @@ async def _indicators_service_response(field_id: str, season_id: str) -> dict:
             }
         },
     }
+
+    if measured:
+        product = raster_bundle["observations"]["ndvi"]["indicator_product"]
+        product.update(
+            source="raster-service",
+            estimated=False,
+            quality_gate_passed=True,
+            quality_score=0.9,
+            data_available_at="2026-09-25T09:00:00Z",
+        )
+        product["provenance"]["qa_mask_version"] = "cdse-native-scl-datamask/1"
 
     async def _canonical(*, field_id, tenant_id, season_id, indicators):
         return observation_runtime.canonicalize_bundle(
@@ -397,9 +408,15 @@ print("PRODUCED " + json.dumps(asyncio.run(produce()), default=str))
 """
 
 
-def _raster_owner_output(tmp_path, *, tenant: str, field: str) -> dict:
+def _raster_owner_output(tmp_path, *, tenant: str, field: str, native_qa=False) -> dict:
     script = tmp_path / "raster_producer.py"
-    script.write_text(_RASTER_PRODUCER, encoding="utf-8")
+    code = _RASTER_PRODUCER
+    if native_qa:
+        code = code.replace(
+            "class CdseNetworkBoundary:", _NATIVE_PROVIDER + "\nclass CdseNetworkBoundary:"
+        )
+        code = code.replace("return geotiff(VALUES[index])", "return native_geotiff(VALUES[index])")
+    script.write_text(code, encoding="utf-8")
     uploads = tmp_path / "rasters"
     uploads.mkdir()
     env = {k: v for k, v in os.environ.items() if k not in ("DATABASE_URL", "JOBS_DATABASE_URL")}
@@ -472,3 +489,111 @@ async def test_current_ndvi_reads_the_point_the_raster_owner_produces(veg, monke
     assert observed["scene_id"] == _SCENE
     assert observed["observed_at"] == point["datetime"]
     assert observed["valid_pixel_pct"] == pytest.approx(100.0)
+
+
+_NATIVE_PROVIDER = r"""
+import io, tarfile
+import cdse_client, cdse_native_product
+
+def native_geotiff(value):
+    with rasterio.MemoryFile() as mem:
+        with mem.open(driver="GTiff", height=32, width=32, count=4, dtype="float32",
+                      crs="EPSG:4326", transform=from_bounds(W, S, E, N, 32, 32)) as dst:
+            pixels = np.ones((4, 32, 32), dtype="float32")
+            pixels[0] = value
+            pixels[1] = 4
+            dst.write(pixels)
+        tiff = mem.read()
+    metadata = {"schema": cdse_native_product.SCHEMA, "tiles": [{"id": "123", "date": ACQUIRED}]}
+    archive = io.BytesIO()
+    with tarfile.open(fileobj=archive, mode="w") as stream:
+        for name, data in {"default.tif": tiff, "userdata.json": json.dumps(metadata).encode()}.items():
+            member = tarfile.TarInfo(name)
+            member.size = len(data)
+            stream.addfile(member, io.BytesIO(data))
+    return cdse_native_product.decode_response(archive.getvalue(),
+        cdse_native_product.build_evalscript("ndvi", cdse_client.INDEX_EXPR))
+"""
+
+
+async def test_measured_cdse_native_qa_reaches_production_gate_via_canonical_owner(
+    veg, monkeypatch, tmp_path
+):
+    from uuid import UUID
+
+    # Actual processing, COG writer, layer/grid/bundle and canonical serializer.
+    # Only the HTTP provider boundary is a native four-band TIFF/TAR fixture.
+    field = "fld_cdse_authority"
+    owner = _raster_owner_output(tmp_path, tenant=_TENANT, field=field, native_qa=True)
+    assert owner["bundle"]["mixed_scene"] is False
+    assert owner["bundle"]["scene_ids"] == ["cdse:sh:123"]
+    product = owner["bundle"]["observations"]["ndvi"]["indicator_product"]
+    assert product["provenance"]["qa_mask_version"] == "cdse-native-scl-datamask/2"
+    assert product["quality_score"] >= 0.6
+
+    await _indicators_service_response(field, "season_2026")  # load the actual owner adapter
+    import observation_runtime
+
+    canonical = observation_runtime.canonicalize_bundle(
+        bundle=owner["bundle"], tenant_id=UUID(_TENANT), season_id="season_2026"
+    )
+    _IndicatorsClient.body = {"observations": [item.model_dump(mode="json") for item in canonical]}
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _IndicatorsClient)
+    monkeypatch.setattr(veg, "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", True)
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", True)
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+    result = await veg.run_analysis(
+        field, _TENANT, "2026-09-01", "2026-10-16", season_id="season_2026"
+    )
+    assert result["quality_gate"]["executable"] is True
+    assert result["indices"]["ndvi"]["source"] == "raster-service"
+    assert result["indices"]["ndvi"]["estimated"] is False
+    # A removed receipt must fail closed; the canonical publisher is not mask evidence.
+    for item in _IndicatorsClient.body["observations"]:
+        item["lineage"]["raster_provenance"] = None
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        await veg.run_analysis(field, _TENANT, "2026-09-01", "2026-10-16", season_id="season_2026")
+    assert exc.value.status_code == 424
+
+
+async def test_canonical_publisher_keeps_complete_measured_pixel_owner_lineage(veg, monkeypatch):
+    _IndicatorsClient.body = await _indicators_service_response(
+        "fld_lineage", "season_2026", measured=True
+    )
+    lineage = _IndicatorsClient.body["observations"][0]["lineage"]
+    assert (
+        lineage.get("raster_provenance", {}).get("qa_mask_version") == "cdse-native-scl-datamask/1"
+    )
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _IndicatorsClient)
+    monkeypatch.setattr(veg, "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", True)
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", True)
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+    result = await veg.run_analysis(
+        "fld_lineage", _TENANT, "2026-09-01", "2026-09-29", season_id="season_2026"
+    )
+    assert result["quality_gate"]["executable"] is True
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("tenant_id", "22222222-2222-4222-8222-222222222222"),
+        ("field_id", "fld_other"),
+        ("season_id", "season_other"),
+    ],
+)
+async def test_canonical_authority_cannot_cross_request_scope(veg, monkeypatch, field, value):
+    _IndicatorsClient.body = await _indicators_service_response(
+        "fld_scope", "season_2026", measured=True
+    )
+    _IndicatorsClient.body["observations"][0][field] = value
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _IndicatorsClient)
+    monkeypatch.setattr(veg, "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", True)
+    assert (
+        await veg._canonical_observation_bundle_from_indicators(
+            "fld_scope", _TENANT, "season_2026", ["ndvi"]
+        )
+        is None
+    )

@@ -658,6 +658,7 @@ async def record_decision(
             "decision_id": did,
             "replayed": bool(result.get("replayed", False)),
             "decision_value_digest": result.get("decision_value_digest"),
+            "correlation_id": result.get("correlation_id"),
             "stage": payload.stage,
             "outbox": "decision_outbox_events",
             "received_at": datetime.now(UTC).isoformat(),

@@ -384,6 +384,17 @@
           "pattern": "^urn:sahool:processing-run:[A-Za-z0-9_-]+$",
           "title": "Processing Run Ref",
           "type": "string"
+        },
+        "raster_provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RasterObservationProvenanceV1"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -748,6 +759,55 @@
         "use_case"
       ],
       "title": "QualityPolicyRefV1",
+      "type": "object"
+    },
+    "RasterObservationProvenanceV1": {
+      "additionalProperties": false,
+      "description": "Pixel owner's measured lineage, distinct from the canonical publisher.",
+      "properties": {
+        "acquisition_datetime": {
+          "format": "date-time",
+          "title": "Acquisition Datetime",
+          "type": "string"
+        },
+        "algorithm_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Algorithm Version",
+          "type": "string"
+        },
+        "data_available_at": {
+          "format": "date-time",
+          "title": "Data Available At",
+          "type": "string"
+        },
+        "qa_mask_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Qa Mask Version",
+          "type": "string"
+        },
+        "scene_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "raster-service",
+          "default": "raster-service",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scene_id",
+        "qa_mask_version",
+        "algorithm_version",
+        "acquisition_datetime",
+        "data_available_at"
+      ],
+      "title": "RasterObservationProvenanceV1",
       "type": "object"
     },
     "SpatialSummaryV1": {

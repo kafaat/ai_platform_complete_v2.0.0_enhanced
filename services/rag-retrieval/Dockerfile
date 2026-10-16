@@ -21,6 +21,9 @@ COPY services/sahool-platform/core /app/core
 # Must be copied or the container crashes at import (ModuleNotFoundError: shared).
 COPY shared /app/shared
 COPY services/rag-retrieval/main.py /app/main.py
+COPY services/rag-retrieval/runtime_transport.py /app/runtime_transport.py
+COPY services/rag-retrieval/reindex_manifest.py /app/reindex_manifest.py
+COPY services/rag-retrieval/retrieval_profile.py /app/retrieval_profile.py
 ENV PYTHONPATH=/app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"

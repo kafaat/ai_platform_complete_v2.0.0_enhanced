@@ -1,0 +1,9 @@
+{
+  "base_sha": "6e8cc0f9952c037550ae1644919f88c475dd89a7",
+  "source_paths": [
+    "services/raster-service/backfill_scan_worker.py",
+    "services/raster-service/routers/fields.py"
+  ],
+  "exit_code": 1,
+  "scope": "Actual base entrypoints with new fixture/helper. Proves containment blocks supported C1 dispatch; no historical provider repair claim."
+}

@@ -4064,3 +4064,8 @@ Recovered a full clone at the pinned main and merged the three pinned source PRs
 ### 2026-10-16 — REMAINING-ALLOCATION-BOUNDARY-20261016
 
 Decision: retain all nine remaining gap states as open while preparing source improvements and reviewable operator steps on main9f0. Preserve Element84 containment and real retrieval acceptance prerequisites. Separate staged Decision034/U07v234 schema operations and TTS deployment from this source change; no global migration switch, new external speech grant or reused GATE01 authorization. Correct correlation ownership through the actual decision/dispatch/run/receipt chains before any migration. Basis: `certification/evidence/chatgpt_remaining_20261016/README.md` and `docs/runbooks/REMAINING_RUNTIME_ACCEPTANCE_20261016.md`; no runtime acceptance or automatic merge is inferred.
+
+
+### 2026-10-16 — متابعة الحصة التساعية على أساس 6e8cc0f9
+
+جمع فرع التكامل `chatgpt/close-nine-gaps-20261016` عمل ستة وكلاء؛ المصدر عند `4e796243344a1cba08e38c4775779cba1376b8da`. أربعة إصلاحات مصدرية: معايرة C1، نسب CDSE إلى Vegetation، ملف Nomic الاختياري، وإعداد إعادة فهرسة كاملة. خمس فجوات تبقى open، منها correlation حتى اختبار PostgreSQL الأصلي؛ لا verified ولا ادعاء دمج أو نشر. السبب: فصل الشاهد المصدري عن شروط الجرد والهجرات وتوافق النشر والسبب التاريخي. المصدر والدليل وحدود القياس في [فهرس المتابعة](../../certification/evidence/chatgpt_closure_nine_20261016/README.md). الفحص الكامل والـPR الموحد خطوتان لاحقتان، لا نتيجتان مفترضتان.

@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
 from radiometry_containment import single_scene_detail as _radiometry_single_scene_detail
+from raster_available_dates import create_date_accumulator, select_available_dates, timeline_cutoff
 from raster_field_runtime import (
     _REQ_TENANT,
     _TRANSPARENT_PNG,
@@ -27,7 +28,6 @@ from raster_field_runtime import (
     NDVI_PULL_MIN_CLEAR_PCT,
     NDVI_PULL_MIN_SPACING_DAYS,
     NDVI_PULL_TARGET_SPACING_DAYS,
-    SENTINEL_COLLECTION,
     TITILER_URL,
     BandMapping,
     FieldChangeRequest,
@@ -152,17 +152,84 @@ async def process_from_stac(
     مناسب للمزوّد بلا مفتاح (Element84): استدعِ /v1/imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
 
-    **محتوى:** ``422 radiometry_unresolved`` قبل بناء الـVRT بلا مهمّة (``radiometry_containment``).
+    C1 فقط بعد جلب هويّة المشهد والأصول من الكتالوج والتحقّق من المستأجر؛
+    الموروث أو المتناقض يُرفض بـ422 radiometry_unresolved بلا مهمّة.
     """
     _require_service_token(x_agent_token)
     import radiometry_containment
+    from stac_c1_processing import C1_COLLECTION, process_c1_scene, validate_c1_scene
+    from stac_search import band_urls_from_assets, radiometry_context_from_item, stac_query
 
+    # Caller-provided coefficients/URLs are never calibration authority. Resolve
+    # exactly one C1 item from our configured catalogue before accepting any job.
     try:
-        radiometry_containment.reject_element84_vrt(
-            (req.band_hrefs or {}).keys(), entry_point="process_from_stac"
-        )
+        if not req.scene_id or not req.clip_polygon_geojson or not req.apply_cloud_mask:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
+        await _require_field_tenant(field_id)
+        tenant = _authenticated_tenant(req.tenant_id)
+        if not tenant:
+            raise HTTPException(403, "tenant context required")
+        data = await stac_query({"collections": [C1_COLLECTION], "ids": [req.scene_id], "limit": 2})
+        features = data.get("features", [])
+        if len(features) != 1:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
+        item = features[0]
+        scene = {
+            "item_id": item.get("id"),
+            "datetime": item.get("properties", {}).get("datetime"),
+            "bands_urls": band_urls_from_assets(item.get("assets", {})),
+            "radiometry_context": radiometry_context_from_item(item),
+        }
+        validate_c1_scene(scene, entry_point="process_from_stac")
+        if req.scene_id != scene["item_id"] or req.band_hrefs != scene["bands_urls"]:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
+        if req.capture_datetime is not None and req.capture_datetime != scene["datetime"]:
+            radiometry_containment.reject_element84_vrt(
+                req.band_hrefs, entry_point="process_from_stac"
+            )
     except radiometry_containment.RadiometryUnresolved as e:
         raise HTTPException(422, e.detail) from e
+    job_id = f"stac_{uuid.uuid4().hex[:12]}"
+    _jobs.set(
+        job_id,
+        {
+            "job_id": job_id,
+            "field_id": field_id,
+            "tenant_id": tenant,
+            "status": JobStatus.pending,
+            "created_at": datetime.now(UTC).isoformat(),
+        },
+    )
+
+    def _run_c1_job():
+        try:
+            process_c1_scene(
+                scene,
+                req.indicator.value,
+                field_id,
+                tenant,
+                req.geometry_revision,
+                req.clip_polygon_geojson,
+                True,
+                job_id,
+                run_processing=_run_processing,
+                out_dir=_upload_dir(),
+                entry_point="process_from_stac",
+            )
+        except Exception as exc:
+            job = _jobs.get(job_id) or {"job_id": job_id}
+            job.update(status=JobStatus.failed, error_message="stac_processing_failed")
+            _jobs.set(job_id, job)
+            logger.warning("C1 job %s failed: %s", job_id, type(exc).__name__)
+
+    background_tasks.add_task(_run_c1_job)
+    return {"job_id": job_id, "status": "pending"}
 
 
 async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> None:
@@ -178,7 +245,11 @@ async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> N
         await db_persist.insert_stac_item(
             tenant_id=tenant_id,
             scene_id=sid,
-            collection=SENTINEL_COLLECTION,
+            collection=(
+                scene.get("collection")
+                or (scene.get("radiometry_context") or {}).get("collection")
+                or "sentinel-2-l2a"  # preserve legacy records without collection context
+            ),
             captured_at=scene.get("datetime"),
             bbox=scene.get("bbox"),
             cloud_pct=scene.get("cloud_cover_pct"),
@@ -468,10 +539,22 @@ async def field_historical_backfill(
                         )
                         return
 
-                    # مشهد Element84 (ذو bands_urls): محجوب قبل بناء الـVRT وقبل أيّ
-                    # معالجة أو حفظ — radiometry_containment. لا ارتداد إلى CDSE هنا.
-                    radiometry_containment.reject_element84_vrt(
-                        (sc.get("bands_urls") or {}).keys(), entry_point="historical_backfill"
+                    # C1 exact-asset contract gates the VRT; legacy or ambiguous
+                    # scenes remain contained, with no fallback to another scene.
+                    from stac_c1_processing import process_c1_scene
+
+                    process_c1_scene(
+                        sc,
+                        ind_value,
+                        field_id,
+                        tenant_id,
+                        getattr(req, "geometry_revision", None),
+                        clip,
+                        req.apply_cloud_mask,
+                        jid,
+                        run_processing=_run_processing,
+                        out_dir=_upload_dir(),
+                        entry_point="historical_backfill",
                     )
                 except radiometry_containment.RadiometryUnresolved as e:
                     # فشلٌ دائم لهذه النسخة — لا «مشهد فارغ» ولا «جودة منخفضة» ولا إعادة.
@@ -1329,78 +1412,11 @@ async def field_available_dates(
     """
     await _require_field_tenant(field_id, hide_existence=True)
     wanted = [_normalize_index(index)] if index else []
-    by_date: dict[str, dict] = {}
-
-    def _clip_cloud(value):
-        try:
-            return max(0.0, min(100.0, float(value)))
-        except (TypeError, ValueError):
-            return None
-
-    def _add(
-        date_value,
-        *,
-        idx=None,
-        has_cog=True,
-        cloud_pct=None,
-        aoi_cloud_pct=None,
-        scene_id=None,
-        acquisition_datetime=None,
-    ):
-        if not date_value:
-            return
-        d = str(date_value)[:10]
-        if len(d) != 10:
-            return
-        rec = by_date.setdefault(
-            d,
-            {
-                "date": d,
-                "has_cog": False,
-                "indices": set(),
-                # عقد سحابة صريح مزدوج القيمة (AOI-CLOUD-CONTRACT):
-                #  • scene_cloud_pct — سحابة المشهد كاملاً من كتالوج STAC.
-                #  • aoi_cloud_pct — السحابة فوق مضلّع الحقل (AOI-clipped)؛ NULL=«لم يُحسب»
-                #    (ليس 0%) — فلا يُستبعَد تاريخ نظيف فوق الحقل بسحابة مشهد عالية.
-                #  • cloud_pct — يبقى توافقاً قديماً، مساوٍ لسحابة المشهد صراحةً.
-                # clear_pct/quality_label تُشتقّان من القيمة الأنسب للحقل (AOI إن توفّرت).
-                "cloud_pct": None,
-                "scene_cloud_pct": None,
-                "aoi_cloud_pct": None,
-                "clear_pct": None,
-                "quality_label": None,
-                "scene_id": None,
-                # وقت الالتقاط الحقيقيّ (ISO8601 UTC) من كتالوج STAC حين توفّره؛ يبقى None
-                # (فتعرض الواجهة التاريخ وحده) إن لم يُسجَّل مشهد — لا اختلاق ساعة.
-                "acquisition_datetime": None,
-            },
-        )
-        rec["has_cog"] = bool(rec["has_cog"] or has_cog)
-        if idx:
-            rec["indices"].add(_display_index(idx))
-        scene_cloud = _clip_cloud(cloud_pct)
-        aoi_cloud = _clip_cloud(aoi_cloud_pct)
-        if scene_cloud is not None and rec["scene_cloud_pct"] is None:
-            rec["scene_cloud_pct"] = scene_cloud
-            rec["cloud_pct"] = scene_cloud  # توافق قديم: scene-level صراحةً
-        if aoi_cloud is not None and rec["aoi_cloud_pct"] is None:
-            rec["aoi_cloud_pct"] = aoi_cloud
-        # الجودة تُشتقّ من سحابة الحقل إن حُسِبت، وإلّا من سحابة المشهد (لا نستبعد
-        # تاريخاً نظيفاً فوق الحقل بسحابة مشهد وحدها).
-        effective = rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]
-        if effective is not None:
-            rec["clear_pct"] = 100.0 - effective
-            rec["quality_label"] = (
-                "high"
-                if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
-                else "medium"
-                if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
-                else "cloudy"
-            )
-        if scene_id and not rec["scene_id"]:
-            rec["scene_id"] = str(scene_id)
-        if acquisition_datetime and not rec["acquisition_datetime"]:
-            rec["acquisition_datetime"] = str(acquisition_datetime)
+    by_date, _add = create_date_accumulator(
+        display_index=_display_index,
+        high_quality_clear_pct=NDVI_HIGH_QUALITY_CLEAR_PCT,
+        min_clear_pct=NDVI_PULL_MIN_CLEAR_PCT,
+    )
 
     for lid in _field_layers.get(field_id, []):
         lyr = _layers.get(lid)
@@ -1482,27 +1498,9 @@ async def field_available_dates(
             provider_error = str(e)[:200]
             logger.warning("provider dates merge skipped (%s): %s", field_id, e)
 
-    # نافذة الشريط الزمنيّ: عند دمج المزوّد (نداء الشريط)، الشريط محكومٌ بالفترة
-    # المختارة (months) — فلا تُعاد تواريخ **معالَجة** أقدم من النافذة، وإلّا ظهر 24
-    # شهراً من backfill سابق رغم اختيار 3/6/12. النداء بلا include_provider (منتقي
-    # المشهد) يبقى بلا قصّ كي يعرض كلّ المشاهد الجاهزة المخزّنة.
-    cutoff: str | None = None
-    if include_provider:
-        import datetime as _dt_win
-
-        cutoff = (
-            (_dt_win.datetime.now(_dt_win.UTC) - _dt_win.timedelta(days=months * 31))
-            .date()
-            .isoformat()
-        )
-    dates = []
-    for rec in by_date.values():
-        if cutoff is not None and rec["date"] < cutoff:
-            continue
-        rec["indices"] = sorted(rec["indices"])
-        dates.append(rec)
-    dates.sort(key=lambda r: r["date"], reverse=True)
-    out = {"field_id": field_id, "dates": dates[:limit], "provider_included": include_provider}
+    cutoff = timeline_cutoff(months, datetime.now(UTC)) if include_provider else None
+    dates = select_available_dates(by_date, cutoff=cutoff, limit=limit)
+    out = {"field_id": field_id, "dates": dates, "provider_included": include_provider}
     if provider_error:
         out["provider_dates_error"] = provider_error
     return out

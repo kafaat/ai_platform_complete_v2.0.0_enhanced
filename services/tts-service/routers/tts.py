@@ -77,15 +77,27 @@ async def list_voices(_user: dict = Depends(main.get_current_user)) -> dict:
 
 
 @router.get("/v1/tts/status")
-async def tts_status(_user: dict = Depends(main.get_current_user)) -> dict:
-    """حالة مزوّدي TTS: لكلٍّ الاسم والتوفّر وهل هو الافتراضيّ.
+async def tts_status(
+    user: dict = Depends(main.get_current_user),
+    authorization: str | None = Header(None),
+) -> dict:
+    """Provider inventory and this caller's policy eligibility, without synthesis.
 
-    edge دائماً هو الافتراضيّ والمتوفّر؛ piper/xtts يظهران متاحين فقط حين تتوفّر
-    مكتبتهما + النموذج/العلم (وإلّا available=false دون إسقاط الخدمة).
+    Installed providers alone do not establish speech availability. In particular,
+    an installed Edge client cannot serve a local-only tenant without a local
+    provider. Eligibility is a snapshot, not an audio-success guarantee; every
+    synthesis/stream request independently resolves the policy again.
     """
+    policy = await tts_tenant_policy.resolve_policy(user, authorization)
+    chosen = select_provider_for_policy(
+        None, main._PROVIDER_REGISTRY, policy.external_allowed, policy.external_providers
+    )
     return {
         "default": main.DEFAULT_PROVIDER_NAME,
         "providers": main._provider_status(),
+        "policy_mode": policy.mode,
+        "policy_eligible_provider": chosen.name if chosen else None,
+        "unavailable_reason": None if chosen else tts_tenant_policy.POLICY_BLOCKED_ERROR,
     }
 
 
