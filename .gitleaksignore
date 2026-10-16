@@ -1,0 +1,9 @@
+# Verified non-secret evidence findings from PR #1201.
+# Each exception is restricted to its original commit, path, rule and line.
+# Do not replace these with directory exclusions or a generic hex allowlist.
+# Historical Git commit ID: verified to resolve to the published PR #1182 commit.
+f62c65d36c77a3ff05f22ad1440ec8b919c9b3a7:certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github.json:generic-api-key:6
+# SHA-256 of services/raster-service/raster_api_models.py: recomputed and matched.
+f62c65d36c77a3ff05f22ad1440ec8b919c9b3a7:certification/evidence/chatgpt_closure_nine_20261016/imagery/receipt.json:generic-api-key:53
+# SHA-256 of tokenizer.json, produced by OnnxEmbeddings in relevance_experiment.py.
+f62c65d36c77a3ff05f22ad1440ec8b919c9b3a7:certification/evidence/chatgpt_closure_nine_20261016/rag/onnx-experiment-results.json:generic-api-key:12
