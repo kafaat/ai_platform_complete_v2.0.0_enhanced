@@ -710,6 +710,13 @@ jobs:
       # pytest، ووظيفة الـlint لا تُثبّت إلّا ruff وmypy — فموضعه *Unit Tests*.
       - name: guard-mutation guard (static)
         run: python scripts/ci/guard_mutation_guard.py
+      # C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: الجولةُ السلوكيّة تحت
+      # لغة C ترى `scripts/ci/*_guard.py` وحدها، فكان كلُّ ما تُشغّله خطوةٌ حاجبة باسمٍ
+      # آخر خارج بصرها — واثنان منها ماتا بـUnicodeEncodeError على مسار **نجاحهما**.
+      # هذا يجرد الصنفَ (كلّ ملفّ بايثون تُشغّله خطوةٌ حاجبة، من الـworkflows نفسها) ويقرأ
+      # القاعدةَ من AST: لا يُشعِل شيئاً ولا يكتب في الشجرة (~٢ث، PyYAML مُثبَّت أعلاه).
+      - name: every CI-invoked script survives the C locale (class inventory, static)
+        run: python scripts/ci/ci_invoked_locale_preamble_guard.py
       # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
       # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
       # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.

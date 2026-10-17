@@ -6176,6 +6176,17 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "ci_invoked_locale_preamble_guard.py": {
+      "test": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_inventory_is_the_class_not_the_naming_convention",
+          "find": "    files = sorted({row[\"script\"] for row in rows if row[\"status\"] == \"file\"})",
+          "replace": "    files = sorted(\n        {r[\"script\"] for r in rows if r[\"status\"] == \"file\" and r[\"script\"].endswith(\"_guard.py\")}\n    )",
+          "why": "عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01)"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

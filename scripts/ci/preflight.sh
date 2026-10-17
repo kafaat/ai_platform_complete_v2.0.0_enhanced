@@ -417,6 +417,11 @@ run "٢و) text_encoding_locale" python3 -m pytest -q tests_v9/test_text_encodin
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
+# ٣د) C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: §١٠ب تُشعِل `*_guard.py`
+# وحدها تحت لغة C؛ هذا يجرد **كلّ** ما تُشغّله خطوةٌ حاجبة ويقرأ المقدّمةَ من AST —
+# ساكنٌ لا يكتب في الشجرة (~٢ث)، فموضعُه الطبقةُ السريعة.
+require_file scripts/ci/ci_invoked_locale_preamble_guard.py "٣د) ci_invoked_locale_preamble" \
+  && run "٣د) ci_invoked_locale_preamble" python3 scripts/ci/ci_invoked_locale_preamble_guard.py
 
 # ── ٣ج) نصفُ حارس الطفرات الذي **يزرع** — مقصوراً على ما مسّه تغييرك ────────
 # GUARD-MUTATION-PLANTING-HALF-WAS-NEVER-LOCAL-01: خطوة ٣ب أعلاه تفحص **المواصفة**،
