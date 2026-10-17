@@ -1,3 +1,5 @@
+> **2026-10-17 — قبول staging بعد إنشاء حساب مأذون:** التسجيل201 والدخول200؛ RS256 الصحيح200 والتوقيع المعدل401. PyJWT يبقى fixed لعدم قياس خلط HS256 بالمفتاح العام الفعلي؛ TTS يبقى open لأن القارئ المنشور قديم. [أدلة PyJWT](../certification/evidence/pyjwt_rs256_staging_acceptance_20261017/result.json) · [أدلة TTS](../certification/evidence/tts_policy_v2_staging_acceptance_20261017/result.json). لا أسرار محفوظة ولا تغيير إعدادات أو نشر أو إنتاج.
+
 > 2026-10-17 — PR #1202: ختم تفويض correlation المستهلك في #1201؛ تطابقت البصمات السبع مع `2ca779c6`. المصدر: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. لا فتح للبوابة أو تطبيق هجرات.
 
 متابعة إغلاق خارج Claude: أُسند إغلاق correlation في المصدر إلى شاهد PG16 النهائي لـ#1201 (62 ناجحاً)، والمفتوح الرسمي في المرشح 96؛ لا ادعاء تطبيق إنتاجي.
