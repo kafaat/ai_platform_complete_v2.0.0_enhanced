@@ -270,11 +270,12 @@ def test_comparability_validates_every_bind_not_only_non_empty(mutate):
 
 
 def test_real_bwrap_binds_are_all_accepted():
+    # صندوقُ المقارنة الحقيقيّ (v16) ضيّق: كلُّ ربطٍ ملفٌّ من إغلاق الجرد — يُفحص بقواعده هو
     fixture = _fixture()
-    assert (
-        perf.sandbox_bind_problems(fixture["coordinator"]["sandbox"]["binds"], fixture["run_id"])
-        == []
-    )
+    assert perf.closure_problems(fixture["coordinator"]["sandbox"], fixture["run_id"]) == []
+    # وربطاتُ الصندوق الواسع (v15) كلٌّ منها مقبولُ الصيغة والموضع — غيرُ القابل للمقارنة فيه غيابُ الإغلاق لا الربط
+    wide = json.loads((PKG / "fixtures" / "wide_bwrap_result.json").read_text(encoding="utf-8"))
+    assert perf.sandbox_bind_problems(wide["coordinator"]["sandbox"]["binds"], wide["run_id"]) == []
 
 
 def test_workload_signature_includes_requests_per_level(tmp_path, monkeypatch, capsys):

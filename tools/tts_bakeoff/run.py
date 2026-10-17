@@ -19,6 +19,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import shutil
 import signal
 import socket
@@ -469,10 +470,16 @@ def file_inventory(
         return None
 
     opened = set()
-    for line in log.read_text(errors="replace").splitlines():
-        m = re.search(r'open(?:at2?)?\((?:[^,]+, )?"([^"]+)"', line)
-        if m and "ENOENT" not in line and "ENOTDIR" not in line:
-            opened.add(m.group(1))
+    for one in log if isinstance(log, list) else [log]:
+        for line in one.read_text(errors="replace").splitlines():
+            m = re.search(r'open(?:at2?)?\((?:[^,]+, )?"([^"]+)"', line)
+            if m and "ENOENT" not in line and "ENOTDIR" not in line:
+                # مسارٌ نسبيّ يُحلّ بما طبعه ``-y`` للواصف المُعاد، لا بمجلّد عمل المنسّق (داخل bwrap: --chdir الحزمة)
+                decorated = re.search(r"\) += \d+<([^>]+)>$", line)
+                path = m.group(1)
+                if not path.startswith("/") and decorated:
+                    path = decorated.group(1)
+                opened.add(_unescape(path))
     classes: dict[str, list] = {
         "pinned": [],
         "python_env": [],
@@ -527,6 +534,328 @@ def file_inventory(
     }
 
 
+# ── الإغلاق (closure): ما لمسه المحرّكُ فعلاً **داخل** الصندوق، ملفّاً ملفّاً ─────────────────────────────────
+#
+# صندوقُ bwrap بربطات مجلّدات النظام (/usr/lib · /usr/bin …) يُبقي كلَّ ما تحتها مقروءاً للمحرّك: نموذجٌ غيرُ معلَن
+# تحت /usr/lib كان يمرّ ``harness_status=ok`` و``performance_comparable=true`` (مقيسٌ على main@0e5281614). والجردُ
+# بـstrace كان **خارج** الصندوق فيرى إعدادَ bwrap نفسه (/newroot/…) لا ما فتحه المحرّك. الآن: ``--inventory --sandbox
+# bwrap`` يشغّل strace **داخل** الصندوق ويُسجّل الإغلاق، و``--closure-from`` يربط تلك الملفّات وحدها، واحداً واحداً.
+STRACE_ARGS = ("-ff", "-y", "-qq", "-e", "trace=%file")
+# ما يُنشئه الصندوقُ نفسه (proc · dev · tmpfs) أو يُربط كاملاً لأنّه واجهةُ النواة لحدود هذا التشغيل (مجموعتُه باسمه).
+VIRTUAL_ROOTS = ("/proc/", "/dev/", "/sys/fs/cgroup/")
+VIRTUAL_EXACT = ("/proc", "/dev", "/tmp", "/sys/fs/cgroup")
+# /tmp في الصندوق tmpfs جديد: ما تحته إمّا أنشأه التشغيلُ نفسُه (لا يوجد في المضيف) أو رُبط صراحةً فوقه (بيئةٌ
+# افتراضيّة أو مجلّدُ تشغيلٍ تحت /tmp) — والثاني يدخل الإغلاق كأيّ ملفّ.
+SANDBOX_TMPFS = "/tmp/"
+# الروابطُ التي يُنشئها bwrap_command في كلّ صندوق: تُتبَع كما يراها الصندوق لا كما يراها المضيف.
+SANDBOX_LINKS = {"/lib": "usr/lib", "/lib64": "usr/lib64", "/bin": "usr/bin"}
+_QUOTED = r'"((?:[^"\\]|\\.)*)"'
+_TRACE_LINE = re.compile(
+    r"^(?:\d+ +)?(?P<call>[a-z_0-9]+)\((?P<args>.*)\) += (?P<ret>-?\d+|\?)"
+    r"(?:<(?P<fdpath>(?:[^>\\]|\\.)*)>)?(?: (?P<err>E[A-Z0-9]+))?"
+)
+_DIRFD = re.compile(r"^(?:AT_FDCWD|-?\d+)(?:<(?P<dir>(?:[^>\\]|\\.)*)>)?, " + _QUOTED)
+_FIRST = re.compile(r"^" + _QUOTED)
+
+
+def _unescape(text: str) -> str:
+    """سلسلةُ strace بترميز C (``\\ooo`` · ``\\xhh`` · ``\\n`` …) ⇒ المسارُ كما هو (UTF-8 لا يضيع)."""
+    out, i = bytearray(), 0
+    simple = {"n": b"\n", "t": b"\t", "r": b"\r", "v": b"\v", "f": b"\f", "\\": b"\\", '"': b'"'}
+    while i < len(text):
+        ch = text[i]
+        if ch == "\\" and i + 1 < len(text):
+            nxt = text[i + 1]
+            if nxt in "01234567":
+                j = i + 1
+                while j < len(text) and j < i + 4 and text[j] in "01234567":
+                    j += 1
+                out.append(int(text[i + 1 : j], 8) & 0xFF)
+                i = j
+                continue
+            if nxt == "x":
+                out.append(int(text[i + 2 : i + 4], 16))
+                i += 4
+                continue
+            out += simple.get(nxt, nxt.encode())
+            i += 2
+            continue
+        out += ch.encode("utf-8", "surrogateescape")
+        i += 1
+    return out.decode("utf-8", "surrogateescape")
+
+
+def trace_events(paths: list[Path]) -> tuple[list[dict], list[str]]:
+    """كلُّ نداءٍ ناجحٍ يحمل مساراً في سجلّات ``strace -ff -y``: ``(call, path, fdpath)`` بمسارٍ مطلق.
+
+    النسبيُّ يُحلّ على مجلّد ``dirfd`` الذي يطبعه ``-y`` (``AT_FDCWD</cwd>``)، ونسبيٌّ بلا مجلّدٍ معلَن يُعاد
+    في القائمة الثانية (لا يُخمَّن مجلّدُ العمل). الفاشلُ (ENOENT …) غيابٌ يتكرّر في الصندوق الضيّق نفسه."""
+    events, unresolved = [], []
+    for path in paths:
+        for line in path.read_text(encoding="utf-8", errors="surrogateescape").splitlines():
+            m = _TRACE_LINE.match(line)
+            if not m or m.group("ret") in ("?",) or int(m.group("ret")) < 0:
+                continue
+            args = m.group("args")
+            # نداءاتُ *at تبدأ بالواصف (``AT_FDCWD</cwd>, "…"``)، والباقي بالمسار نفسه — لا التباس بين الشكلين
+            at, plain = _DIRFD.match(args), _FIRST.match(args)
+            if not (at or plain):
+                continue
+            target = _unescape(at.group(2) if at else plain.group(1))
+            if not target:  # AT_EMPTY_PATH: النداءُ على واصفٍ فُتح سابقاً
+                continue
+            if not target.startswith("/"):
+                base = _unescape(at.group("dir")) if at and at.group("dir") else None
+                if not base:
+                    unresolved.append(f"{m.group('call')}:{target}")
+                    continue
+                target = os.path.join(base, target)
+            fdpath = m.group("fdpath")
+            events.append(
+                {
+                    "call": m.group("call"),
+                    "path": os.path.normpath(target),
+                    "fdpath": _unescape(fdpath) if fdpath else None,
+                }
+            )
+    return events, unresolved
+
+
+def resolve_in_sandbox(path: str, crossed: dict[str, str]) -> str:
+    """``realpath`` كما يراه الصندوق: روابطُ bwrap (/lib → usr/lib) أوّلاً، ثمّ روابطُ المضيف — وكلُّ رابطٍ عُبر يُسجَّل
+    في ``crossed`` (موضعُه بمسارٍ حقيقيٍّ لأبيه ⇒ هدفُه الخام) كي يُعاد إنشاؤه كما هو في الصندوق الضيّق."""
+    comps = [c for c in path.split("/") if c not in ("", ".")]
+    cur, i, hops = "", 0, 0
+    while i < len(comps):
+        name = comps[i]
+        i += 1
+        if name == "..":
+            cur = os.path.dirname(cur) if cur else ""
+            cur = "" if cur == "/" else cur
+            continue
+        cand = f"{cur}/{name}"
+        target = SANDBOX_LINKS.get(cand)
+        if target is None and os.path.islink(cand):
+            target = os.readlink(cand)
+            crossed[cand] = target
+        if target is None:
+            cur = cand
+            continue
+        hops += 1
+        if hops > 40:
+            raise OSError(40, "ELOOP", path)
+        base = "" if target.startswith("/") else cur
+        comps = [c for c in f"{base}/{target}".split("/") if c not in ("", ".")] + comps[i:]
+        cur, i = "", 0
+    return cur or "/"
+
+
+def elf_interpreter(path: str) -> str | None:
+    """ما تُحمّله النواةُ **بنفسها** عند ``execve`` فلا يظهر في strace: ``PT_INTERP`` لملفّ ELF (ld-linux)، أو مفسّرُ
+    سطر ``#!``. بدونه يربط الصندوقُ الضيّقُ التنفيذيَّ ولا يجد مُحمِّلَه (``execvp … No such file``)."""
+    import struct
+
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(64)
+            if head[:2] == b"#!":
+                words = (head + fh.read(192))[2:].split(b"\n")[0].split()
+                return words[0].decode("utf-8", "surrogateescape") if words else None
+            if head[:4] != b"\x7fELF" or len(head) < 58:
+                return None
+            end = "<" if head[5] == 1 else ">"
+            wide = head[4] == 2
+            phoff = struct.unpack(
+                end + ("Q" if wide else "I"), head[32:40] if wide else head[28:32]
+            )[0]
+            phentsize, phnum = struct.unpack(end + "HH", head[54:58] if wide else head[42:46])
+            for k in range(phnum):
+                fh.seek(phoff + k * phentsize)
+                ph = fh.read(phentsize)
+                if struct.unpack(end + "I", ph[:4])[0] != 3:  # PT_INTERP
+                    continue
+                off, size = (
+                    struct.unpack(end + "QQ", ph[8:16] + ph[32:40])
+                    if wide
+                    else struct.unpack(end + "II", ph[4:8] + ph[16:20])
+                )
+                fh.seek(off)
+                return fh.read(size).rstrip(b"\0").decode("utf-8", "surrogateescape")
+    except (OSError, struct.error):
+        return None
+    return None
+
+
+def _excluded(real: str, private: list[str], bound=()) -> str | None:
+    if real in VIRTUAL_EXACT or real.startswith(VIRTUAL_ROOTS):
+        return "virtual"
+    if any(real == p.rstrip("/") or real.startswith(p) for p in private):
+        return "run_private"
+    if real.startswith(SANDBOX_TMPFS) and not any(
+        real == b or real.startswith(b.rstrip("/") + "/") for b in bound
+    ):
+        return "virtual"
+    return None
+
+
+def build_closure(events: list[dict], unresolved: list[str], private: list[str], bound=()) -> dict:
+    """الإغلاقُ من أحداث strace: كلُّ ملفٍّ لُمس (قراءةً · تنفيذاً · فحصَ وجود · مُحمِّلاً) ببصمته، والمجلّداتُ التي لُمست،
+    والروابطُ التي عُبرت، ومُحمِّلُ كلّ تنفيذيّ. ``private`` (المُثبَّتُ والناتجُ لهذا التشغيل) خارجه: لكلّ تشغيلٍ نسختُه.
+    ``bound``: ما رُبط في صندوق الجرد — وحده يُرى تحت tmpfs ‏/tmp.
+
+    ``problems`` غيرُ فارغة ⇒ الإغلاقُ لا يُعتمد (ملفٌّ لُمس ثمّ غاب عن المضيف · مسارٌ نسبيّ بلا مجلّد · نوعٌ خاصّ)."""
+    from worker import sha256_file
+
+    files: dict[str, set] = {}
+    dirs: set[str] = set()
+    crossed: dict[str, str] = {}
+    loaders: dict[str, str] = {}
+    skipped = {"virtual": 0, "run_private": 0}
+    problems = [f"مسارٌ نسبيٌّ بلا مجلّدٍ معلَن: {u}" for u in sorted(set(unresolved))]
+    queue = [
+        (
+            e["path"],
+            "exec"
+            if e["call"].startswith("execve")
+            else "read"
+            if e["call"].startswith("open")
+            else "stat",
+        )
+        for e in events
+    ]
+    seen_exec: set[str] = set()
+    while queue:
+        path, access = queue.pop(0)
+        # /proc/self … تُتبَع في المضيف إلى عمليّةٍ أخرى — لا تُمشى
+        if _excluded(path, private, bound) == "virtual":
+            skipped["virtual"] += 1
+            continue
+        try:
+            real = resolve_in_sandbox(path, crossed)
+        except OSError as exc:
+            problems.append(f"{path}: {exc}")
+            continue
+        why = _excluded(real, private, bound)
+        if why:
+            skipped[why] += 1
+            continue
+        if os.path.isdir(real):
+            if real != "/":  # الجذرُ قائمٌ في كلّ صندوق
+                dirs.add(real)
+            continue
+        if not os.path.isfile(real):
+            if os.path.lexists(real) or not os.path.lexists(path):
+                problems.append(f"لُمس ولا يوجد ملفّاً عادياً على المضيف: {path} -> {real}")
+            continue
+        files.setdefault(real, set()).add(access)
+        if access in ("exec", "loader") and real not in seen_exec:
+            seen_exec.add(real)
+            interp = elf_interpreter(real)
+            if interp:
+                loaders[real] = interp
+                queue.append((interp, "loader"))
+    return {
+        "version": 1,
+        "files": {
+            p: {"sha256": sha256_file(Path(p)), "access": sorted(a)}
+            for p, a in sorted(files.items())
+        },
+        "dirs": sorted(dirs),
+        "symlinks": dict(sorted(crossed.items())),
+        "loaders": dict(sorted(loaders.items())),
+        "stat_only": sorted(p for p, a in files.items() if a == {"stat"}),
+        "skipped": skipped,
+        "problems": problems,
+    }
+
+
+def manifest_digest(engine: str, cfg: dict) -> str:
+    import hashlib
+
+    return hashlib.sha256(
+        json.dumps({engine: cfg}, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()
+
+
+def load_closure(
+    inventory_run: Path, engine: str, interpreter: dict, manifest_sha: str
+) -> tuple[dict | None, str | None, str | None]:
+    """الإغلاقُ من تشغيل جرد ⇒ ``(closure, None, None)``، أو ``(None, stage, why)``.
+
+    ``closure_rejected``: ليس تشغيلَ جردٍ نظيفاً داخل bwrap للمحرّك والمفسّر والبيان أنفسهم، أو بصمتُه لا تطابق محتواه.
+    ``closure_stale``: ملفٌّ من الإغلاق تغيّر أو غاب منذ الجرد — ما قِيس ليس ما سيُربط."""
+    from perf import closure_digest, load_result
+    from worker import sha256_file
+
+    try:
+        inv = load_result(inventory_run / "result.json")
+    except (OSError, ValueError) as exc:
+        return None, "closure_rejected", f"لا سجلَّ جردٍ مقروءاً في {inventory_run}: {exc}"
+    fi = inv.get("file_inventory") or {}
+    closure = fi.get("closure")
+    sandbox = (inv.get("coordinator") or {}).get("sandbox") or {}
+    reasons = []
+    if inv.get("harness_status") != "ok":
+        reasons.append(f"harness_status={inv.get('harness_status')!r} stage={inv.get('stage')!r}")
+    if sandbox.get("kind") != "bwrap" or sandbox.get("inventory") != "strace-inside-sandbox":
+        reasons.append("ليس جرداً بـstrace داخل صندوق bwrap")
+    if fi.get("undeclared"):
+        reasons.append(f"ملفّاتٌ غيرُ معلنة في الجرد: {fi['undeclared'][:5]}")
+    if not isinstance(closure, dict):
+        return None, "closure_rejected", "; ".join(reasons + ["لا إغلاقَ في سجلّ الجرد"])
+    if closure.get("problems"):
+        reasons.append(f"مشكلاتُ الإغلاق: {closure['problems'][:5]}")
+    if closure.get("sha256") != closure_digest(closure):
+        reasons.append("بصمةُ الإغلاق لا تطابق محتواه")
+    if closure.get("engine") != engine or inv.get("engine") != engine:
+        reasons.append(f"محرّكٌ آخر: {closure.get('engine')!r} ≠ {engine!r}")
+    if {k: (closure.get("interpreter") or {}).get(k) for k in ("path", "real")} != {
+        k: interpreter.get(k) for k in ("path", "real")
+    }:
+        reasons.append(f"مفسّرٌ آخر: {closure.get('interpreter')} ≠ {interpreter}")
+    if closure.get("manifest_sha256") != manifest_sha:
+        reasons.append("بيانُ المحرّك (الملفّاتُ المُثبَّتة والإعدادات) غيرُ الذي جُرد")
+    if reasons:
+        return None, "closure_rejected", "; ".join(reasons)
+    stale = []
+    for path, entry in closure["files"].items():
+        try:
+            if os.path.isdir(path) or sha256_file(Path(path)) != entry["sha256"]:
+                stale.append(path)
+        except OSError:
+            stale.append(path)
+    if stale:
+        return None, "closure_stale", f"{len(stale)} ملفّاً تغيّر أو غاب منذ الجرد: {stale[:5]}"
+    return closure, None, None
+
+
+def closure_bwrap_command(
+    worker: list[str], closure: dict, pinned: str, out: str
+) -> tuple[list[str], list[str]]:
+    """صندوقٌ لا يُربط فيه **مجلّدٌ** من النظام: كلُّ ملفٍّ من الإغلاق وحده للقراءة، والمجلّداتُ التي لُمست تُنشأ فارغة،
+    والروابطُ التي عُبرت تُنشأ بأهدافها الخام. يبقى المُثبَّتُ (بصماتُه من البيان) و/sys/fs/cgroup (حدودُ هذا التشغيل)."""
+    base, _ = bwrap_command([], [], [])
+    args = base[: base.index("--chdir")]
+    binds: list[str] = []
+    for d in closure.get("dirs", []):
+        args += ["--dir", d]
+        binds.append(f"dir:{d}")
+    for path in closure["files"]:
+        args += ["--ro-bind", path, path]
+        binds.append(f"ro:{path}")
+    for link, target in closure.get("symlinks", {}).items():
+        if link in SANDBOX_LINKS:
+            continue
+        args += ["--symlink", target, link]
+        binds.append(f"symlink:{link}->{target}")
+    for path in (pinned, "/sys/fs/cgroup"):
+        args += ["--ro-bind", path, path]
+        binds.append(f"ro:{path}")
+    args += ["--bind", out, out, "--remount-ro", "/"]
+    binds.append(f"rw:{out}")
+    return args + ["--chdir", str(HERE), "--", *worker], binds
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--engine", required=True)
@@ -551,6 +880,13 @@ def main() -> int:
         choices=("unshare", "bwrap"),
         default="unshare",
         help="unshare: شبكةٌ وتركيبٌ خاصّان والمُثبَّت للقراءة · bwrap: جذرٌ فارغ لا يُرى فيه إلّا المعلن",
+    )
+    ap.add_argument(
+        "--closure-from",
+        default=None,
+        metavar="INVENTORY_RUN",
+        help="مع --sandbox bwrap: يربط ملفّاتِ إغلاق تشغيل جردٍ نظيف (--inventory --sandbox bwrap) واحداً واحداً، "
+        "لا مجلّداتِ النظام — الشرطُ لمقارنة الأداء",
     )
     ap.add_argument("worker_args", nargs=argparse.REMAINDER, help="-- ثمّ معاملاتٌ تُمرَّر للعامل")
     args = ap.parse_args()
@@ -596,6 +932,11 @@ def main() -> int:
     if not found or not os.access(found, os.X_OK):
         return early_failure("python_not_found", f"--python {args.python!r}: لا مفسّرَ قابلاً للتنفيذ")
     args.python = os.path.abspath(found)
+    if args.closure_from and (args.sandbox != "bwrap" or args.inventory or args.no_isolation):
+        return early_failure(
+            "closure_rejected",
+            "--closure-from يتطلّب --sandbox bwrap بلا --inventory ولا --no-isolation",
+        )
     if args.inventory and not shutil.which("strace"):
         # ليس عيباً في المحرّك ولا في الأداة: أداةُ القياس غائبة. مرحلةٌ مسمّاة يُصنّفها الاختبارُ الذاتيّ BLOCKED.
         return early_failure("inventory_tool_missing", "--inventory يتطلّب strace وهو غيرُ مثبّت")
@@ -612,6 +953,7 @@ def main() -> int:
         }
 
     before = pinned_digests()
+    manifest_sha = manifest_digest(args.engine, cfg)
 
     # جذورُ بيئة بايثون كما يراها **مفسّرُ المحرّك نفسه** (sys.path + prefix)، لا تخميناً — للجرد ولربط bwrap.
     probe = subprocess.run(
@@ -642,6 +984,13 @@ def main() -> int:
             if p and p.rstrip("/") not in ("", "/usr", "/usr/local")
         }
     )
+    closure = None
+    if args.closure_from:
+        closure, stage, why = load_closure(
+            Path(args.closure_from).resolve(), args.engine, interpreter, manifest_sha
+        )
+        if closure is None:
+            return early_failure(stage, why)
     if args.sandbox == "bwrap":
         isolation_probe = (
             procs.bwrap_probe(
@@ -716,16 +1065,31 @@ def main() -> int:
     ]
     inner += [a for a in args.worker_args if a != "--"]
     sandbox = {"kind": args.sandbox, "probe": isolation_probe[1], "interpreter": interpreter}
+    # الجردُ داخل bwrap: strace **داخل** الصندوق، فيرى ما يفتحه المحرّك بمساراته هناك — لا إعدادَ bwrap نفسه (/newroot/…)
+    # ولا ما خارج الصندوق. ناتجُه في مجلّدٍ منفصل (مجلّدُ الناتج يجب أن يبدأ فارغاً) — ربطُ كتابةٍ ثانٍ في تشغيلٍ لا يُقارَن أصلاً.
+    inside_trace = args.inventory and args.sandbox == "bwrap" and can_isolate
     if args.sandbox == "bwrap" and can_isolate:
         out.mkdir(parents=True, exist_ok=True)
-        ro = [
-            *BWRAP_SYSTEM_RO,
-            *[r.rstrip("/") for r in py_roots],
-            *link_chain(args.python),
-            str(HERE),
-            str(pinned),
-        ]
-        bw, binds = bwrap_command([*inner, "--expect-isolated"], ro, [str(out)])
+        inner = [*inner, "--expect-isolated"]
+        if closure is not None:
+            bw, binds = closure_bwrap_command(inner, closure, str(pinned), str(out))
+            sandbox["closure"] = {**closure, "from_run": str(Path(args.closure_from).resolve())}
+        else:
+            ro = [
+                *BWRAP_SYSTEM_RO,
+                *[r.rstrip("/") for r in py_roots],
+                *link_chain(args.python),
+                str(HERE),
+                str(pinned),
+            ]
+            rw = [str(out)]
+            if inside_trace:
+                trace.mkdir()
+                ro += link_chain(shutil.which("strace"))
+                rw.append(str(trace))
+                inner = ["strace", *STRACE_ARGS, "-o", str(trace / "t"), *inner]
+                sandbox["inventory"] = "strace-inside-sandbox"
+            bw, binds = bwrap_command(inner, ro, rw)
         sandbox.update(
             binds=binds,
             version=subprocess.run(
@@ -734,7 +1098,7 @@ def main() -> int:
         )
         inner = bw
     worker = ["taskset", "-c", cores, *inner]
-    if args.inventory:
+    if args.inventory and not inside_trace:
         worker = [
             "strace",
             "-f",
@@ -789,6 +1153,18 @@ def main() -> int:
     stats = cgroup_stats(cg)
     teardown_cgroups(cg)
     after = pinned_digests()
+    if closure is not None:
+        # ما رُبط بقي كما جُرد بعد التشغيل؟ (تغييرٌ عابرٌ أثناءه ثمّ إرجاعٌ لا يُرى هنا — حدٌّ معلَن لا مُخفى)
+        from worker import sha256_file
+
+        changed = []
+        for path, entry in closure["files"].items():
+            try:
+                if sha256_file(Path(path)) != entry["sha256"]:
+                    changed.append(path)
+            except OSError:
+                changed.append(path)
+        sandbox["integrity_after"] = "INTACT" if not changed else {"changed": changed}
 
     result_path = out / "result.json"
     result = (
@@ -804,7 +1180,34 @@ def main() -> int:
     if not can_isolate:
         result["network_isolation"] = "BLOCKED"
         result["files_readonly"] = "BLOCKED"
-    if args.inventory and trace.exists():
+    if inside_trace:
+        logs = sorted(trace.glob("t.*"))
+        result["file_inventory"] = file_inventory(
+            logs,
+            str(pinned) + "/",
+            py_roots,
+            [str(HERE) + "/", str(out) + "/"],
+            cfg.get("package_assets"),
+        )
+        events, unresolved = trace_events(logs)
+        built = build_closure(
+            events,
+            unresolved,
+            [str(pinned) + "/", str(out) + "/", str(trace) + "/"],
+            # ما رُبط فوق tmpfs ‏/tmp مرئيٌّ في الصندوق فيدخل الإغلاق؛ وما سواه تحت /tmp أنشأه التشغيل
+            [b.split(":", 1)[1].split("->")[0] for b in sandbox.get("binds", [])],
+        )
+        built.update(
+            engine=args.engine,
+            interpreter={k: interpreter[k] for k in ("path", "real")},
+            manifest_sha256=manifest_sha,
+            inventory_run=run_id,
+        )
+        from perf import closure_digest
+
+        built["sha256"] = closure_digest(built)
+        result["file_inventory"]["closure"] = built
+    elif args.inventory and trace.exists():
         result["file_inventory"] = file_inventory(
             trace,
             str(pinned) + "/",
@@ -856,6 +1259,10 @@ def main() -> int:
         reason = "negative_control_failed"
     elif args.inventory and result.get("file_inventory", {}).get("undeclared"):
         reason = "undeclared_files_opened"
+    elif inside_trace and result["file_inventory"]["closure"]["problems"]:
+        reason = "closure_incomplete"
+    elif closure is not None and sandbox.get("integrity_after") != "INTACT":
+        reason = "closure_files_changed"
     if reason or rc != 0:
         result["harness_status"] = "failed"
         if reason:
