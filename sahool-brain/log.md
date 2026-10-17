@@ -9580,3 +9580,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-17 — دمج #1205 وختم GATE01-ADJ-2026-10-17-001
 
 دمج المالك #1205 (squash مثبَّت على الرأس المُختبَر `8eee151ab`) ⇒ `f3fd099e9` على `main`، وشجرةُ الدمج = شجرةُ الرأس المُختبَر (`64d4a078`). CI على الرأس: 93 ناجحة · 2 متخطّاة · 0 فاشلة. بايتات `services/sahool-platform/api/event_bus.py` في شجرة الدمج = المأذونة (`032a6e7d`)، فحجب `gate01_frozen_path_guard` كلَّ فرعٍ لاحق (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01) حتى الختم؛ خُتم التفويض `CONSUMED` مع `merge_sha` وإيصال الدمج. Railway (قراءة فقط): نشرات `f3fd099e9` بدأت في الإنتاج وstaging، والمهاجر `SKIPPED` في البيئتين (لا شيء تحت `migrations/`). لا تفويض جديد ولا ترقية إلى `verified`. المصدر: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-17-001.json`.
+
+### 2026-10-17 — الموجة الخامسة، شريحة التعلّم: فصل نسبة النجاح حسب المصدر
+
+REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01 ⇒ `fixed` في `c31cd25d9` (فرع `claude/w5-learning-pr-20261017`، PR مستقلّ بتوجيه مراجعة المالك: لا تُجمَع الشرائح في PR واحد). الحساب والعرض حسب المصدر بمقامٍ لكلّ مصدر في `/api/v1/learning/summary` والواجهة، مع شواهد خلفيّة (6) وأماميّة (3) حمراء على `ec3927cef`. قبولٌ محلّيّ فقط؛ لا نشر. المصدر: `sahool-brain/gaps/registry.md` (المدخلة نفسها).

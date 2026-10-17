@@ -1,3 +1,5 @@
+> **2026-10-17 — الموجة الخامسة (Claude)، أربع شرائح في PRs مستقلّة:** Redis ACL · فصل نسب التعلّم (هذه، `fixed` محلّيّاً) · ربط ملاحظات المراجعة · أدلّة الحوافّ مع إعادة قياس الملكية والاتصال. وبتقسيمٍ مع ChatGPT: #1204 · سلوكيّات TEXT-GUARD · خطّ أساس RAG · تحليلٌ بلا هجرات لفجوات قاعدة البيانات الخمس · مصدر أوزان SAM2.
+
 > **2026-10-17 — دُمج #1205 ⇒ `f3fd099e9`** (شجرة = الرأس المُختبَر `8eee151ab`). خُتم GATE01-ADJ-2026-10-17-001 `CONSUMED` — كان يحجب كلّ فرعٍ لاحق حتى الختم. التالي: #1204 (ChatGPT) يحتاج إعادة توليد المصنوعات المولَّدة على `main` الجديد؛ وقياس AUTH-IP خلف بوّابة staging.
 
 > **2026-10-17 — الموجة الرابعة (Claude):** ١٥ فجوة في PR واحد على `main@0e528161` — ٩ fixed (OUTBOX ×2 · FROZEN-PATH · C-LOCALE · NATS v9 · Postgres TLS v9 · TTS-PERF · WEATHER-FORECAST · COMPOSE-ALTERNATES) و٦ جزئيّة open (TEXT-GUARD · GAP-REGISTRY · A-DECLARED-EDGE · TAW/Kc · RESTART-POLICY · AUTH-IP). لا نشر ولا verified. **تغيّر سلوكٍ زراعيّ** (TAW/Kc من المصدر الموحّد) مُجدوَلٌ في وصف PR. مفتوحٌ للمالك: هجرتا v234/v235 غير مطبّقتين في الإنتاج، و`SAHOOL_GIT_SHA` مثبَّتٌ على decision-service.
