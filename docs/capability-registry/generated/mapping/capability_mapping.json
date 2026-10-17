@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5968,
+    "files_scanned": 5969,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
       "other": 1884,
-      "tests": 1965,
+      "tests": 1966,
       "web": 469
     },
-    "unmapped_artifacts": 2302,
+    "unmapped_artifacts": 2303,
     "ambiguous_artifacts": 462
   },
   "capabilities": [
@@ -46469,6 +46469,10 @@
     },
     {
       "path": "tests_v9/test_learning_review_persistence_gap.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_learning_success_rate_by_source.py",
       "kind": "tests"
     },
     {
