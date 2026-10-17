@@ -1,0 +1,91 @@
+{
+  "observed_at": "2026-10-17T13:28:17.881997+00:00",
+  "scope": "staging only; deployed Platform acceptance, not production certification",
+  "source_base": "0e5281614f008de1ff73783dfa567a04f1e3b33c",
+  "deployed_platform_commit": "d6ddf38cef96748a705e79b4e9765ff76ce0d0b6",
+  "result": "PARTIAL_ACCEPTANCE",
+  "gap_state": "fixed",
+  "account": {
+    "name": "staging-acceptance-20261017-44cdcedb@example.com",
+    "source": "Owner-authorized POST /auth/register on staging gateway; dedicated isolated self-registration tenant",
+    "created": true,
+    "login_attempted": true,
+    "login_success": true,
+    "default_or_admin_account_used": false,
+    "password_or_tokens_retained": false
+  },
+  "derived_routes": {
+    "auth_service_login": {
+      "method": "POST",
+      "path": "/v1/auth/login",
+      "source": "services/auth/routers/session.py:26"
+    },
+    "gateway_login": {
+      "method": "POST",
+      "path": "/auth/login",
+      "rewrite_source": "frontend/nginx.conf:406-410"
+    },
+    "protected_read": {
+      "method": "GET",
+      "path": "/api/v1/fields",
+      "source": "services/sahool-platform/api/routers/fields.py:538-539",
+      "guard": "Depends(get_current_user)"
+    },
+    "platform_policy": {
+      "method": "GET",
+      "path": "/api/v1/me",
+      "source": "services/sahool-platform/api/routers/me.py:28"
+    },
+    "gateway_registration": {
+      "method": "POST",
+      "path": "/auth/register",
+      "source": "services/auth/routers/registration.py:18; frontend/nginx.conf:406-410",
+      "authorization": "Explicit owner instruction to create a dedicated staging test account"
+    }
+  },
+  "cases": [
+    {
+      "case": "A",
+      "description": "auth-issued valid RS256",
+      "expected_http_status": "2xx",
+      "status": "PASS",
+      "http_status": 200,
+      "timestamp": "2026-10-17T13:28:13.271864+00:00",
+      "x_railway_request_id": "ER3R88DET0aOAsaK-8Y8hA"
+    },
+    {
+      "case": "B",
+      "description": "same token with one decoded signature byte changed",
+      "expected_http_status": 401,
+      "status": "PASS",
+      "http_status": 401,
+      "timestamp": "2026-10-17T13:28:17.881997+00:00",
+      "x_railway_request_id": "UXQavnMeTy6df7jKJH0Vcg"
+    },
+    {
+      "case": "C",
+      "description": "HS256 HMAC using staging RSA public key bytes",
+      "expected_http_status": 401,
+      "status": "NOT_EXECUTED",
+      "http_status": null,
+      "timestamp": null,
+      "x_railway_request_id": null,
+      "reason": "Actual staging RSA verification public key is not available through reviewed public routes or connector. No arbitrary key was substituted."
+    },
+    {
+      "case": "D",
+      "description": "auth-issued RS256 token after natural expiry",
+      "expected_http_status": 401,
+      "status": "NOT_EXECUTED",
+      "http_status": null,
+      "timestamp": null,
+      "x_railway_request_id": null,
+      "reason": "No valid expired staging token available; altering exp would also invalidate signature and would not isolate expiry"
+    }
+  ],
+  "controls": "http-observations.json",
+  "control_limit": "Anonymous 401 is not a tampered-signature, algorithm-confusion, or expired-token witness. Runtime identity 200 is not authenticated acceptance.",
+  "no_tokens_or_secrets_recorded": true,
+  "auth_issued_algorithm": "RS256",
+  "acceptance_limit": "A and B passed live on staging. C remains unexecuted without the actual staging RSA public key. D is optional and unexecuted. A+B alone do not permit verified."
+}

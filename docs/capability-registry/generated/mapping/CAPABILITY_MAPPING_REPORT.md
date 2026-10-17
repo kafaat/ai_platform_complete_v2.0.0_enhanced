@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **50**
-- Files scanned: **5968**
+- Files scanned: **5974**
 - Ambiguous artifacts queued: **462**
 - Unmapped artifacts queued: **2302**
 
