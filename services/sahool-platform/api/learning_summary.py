@@ -207,7 +207,7 @@ def summarize_learning_with_reconciled_outcomes(
     under ``outcome_reconciliation`` so dashboards can see the source mix rather than silently
     merging incompatible models.
     """
-    from core.outcome_reconciler import reconcile_outcomes
+    from core.outcome_reconciler import reconcile_outcomes, settled_success_by_source
 
     reconciled = reconcile_outcomes(
         outcome_records or [],
@@ -233,6 +233,11 @@ def summarize_learning_with_reconciled_outcomes(
         "rows_by_source": dict(reconciled["by_source"]),
         "sample_count_basis": "rows",
         "authoritative_note": reconciled["authoritative_note"],
+        # REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01: ``overall.success_rate`` يجمع الصفوف
+        # المحسومة من المصدرين معاً (أساس الصفوف؛ يبقى كما هو للمستهلكين). هنا نسبةُ كلّ مصدر
+        # بمقامه هو، محسوبةً من ``success`` لكلّ صفّ لا من عدّادات الصفوف، مع غير المحسوم
+        # بأسبابه والتداخل المربوط معلَناً.
+        "success_rate_by_source": settled_success_by_source(reconciled["unified"]),
     }
     return summary
 

@@ -1,0 +1,3 @@
+$ grep -n -i -E signingConfig|release mobile/sahool_app/android/app/build.gradle
+38:    // Release builds remain unsigned until operator signing is configured.
+[exit=0]

@@ -18,7 +18,7 @@ import {
   useDecisionRecords, usePersistedEvidence, useLearningSummary,
 } from '../hooks/useApi';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
-import type { LearningOutcomeReconciliation } from '../services/api';
+import type { LearningOutcomeReconciliation, LearningSourceSuccess } from '../services/api';
 
 // المناطق اليمنيّة المدعومة (يطابق نصّ المهمّة وLineagePage).
 const REGIONS: { id: string; ar: string }[] = [
@@ -95,6 +95,74 @@ function OutcomeCounts({ reconciliation }: { reconciliation?: LearningOutcomeRec
         تُجمع الصفوف المرتبطة بالقرار نفسه في حالة واحدة، ويُعدّ كل صف غير مرتبط حالةً.
         هذا العدّ لا يثبت استقلال الحقول أو المزارع ولا فعالية الممارسة.
         قد تشمل صفوف النتائج سجلات لم تكتمل بعد؛ عيّنات الدليل تتطلب قياساً مؤهّلاً.
+      </p>
+    </section>
+  );
+}
+
+// نسبة نجاح الصفوف المحسومة لكلّ مصدر بمقامه (REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01).
+// صدق: النسبة والمقام كما يحسبهما الخادم من صفوف كلّ مصدر وحده؛ لا تُستنتج من عدّادات
+// الصفوف. مقام صفر/نسبة غائبة ⇒ «لا بيانات» لا 0%. غير المحسوم يُعرض منفصلاً خارج المقام.
+const SOURCE_SPLIT: { key: string; ar: string }[] = [
+  { key: 'outcome_record',          ar: 'أثر القرار' },
+  { key: 'recommendation_outcomes', ar: 'تعلّم الغلة' },
+];
+const UNSETTLED_REASON_AR: Record<string, string> = {
+  success_missing:     'نتيجة غير مسجّلة',
+  success_not_boolean: 'قيمة نجاح غير صريحة',
+  missing_prediction:  'توقّع مفقود',
+  missing_actual:      'غلة فعلية مفقودة',
+  non_finite_value:    'قيمة غير صالحة',
+  immature:            'لم تنضج بعد',
+  not_accepted:        'توصية غير مقبولة',
+  success_not_derived: 'تعذّر اشتقاق النتيجة',
+};
+
+function displaySourceRate(bucket?: LearningSourceSuccess | null): string {
+  const rate = bucket?.success_rate;
+  const denominator = bucket?.settled_rows;
+  if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) return 'لا بيانات';
+  if (typeof denominator !== 'number' || !Number.isSafeInteger(denominator) || denominator <= 0) return 'لا بيانات';
+  return `${(rate * 100).toFixed(0)}%`;
+}
+
+function SourceSuccessRates({ reconciliation }: { reconciliation?: LearningOutcomeReconciliation | null }) {
+  const split = reconciliation?.enabled === false ? undefined : reconciliation?.success_rate_by_source;
+  const overlap = split?.linked_overlap;
+  return (
+    <section aria-labelledby="source-success-title" className="rounded-xl border p-4 space-y-3"
+      style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <h3 id="source-success-title" className="text-base font-bold text-slate-100">نسبة نجاح الصفوف المحسومة بحسب المصدر</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {SOURCE_SPLIT.map(({ key, ar }) => {
+          const bucket = split?.sources?.[key];
+          const reasons = Object.entries(bucket?.unsettled_by_reason ?? {})
+            .filter(([, n]) => typeof n === 'number' && Number.isSafeInteger(n) && n > 0);
+          return (
+            <div key={key} role="group" aria-label={`نجاح ${ar}`} className="space-y-1">
+              <div className="text-[11px] text-slate-400">{ar}</div>
+              <div className="text-xl font-bold text-slate-100" data-testid={`source-rate-${key}`}>{displaySourceRate(bucket)}</div>
+              <dl className="grid grid-cols-2 gap-x-2 text-[11px] text-slate-300">
+                <dt>المقام (صفوف محسومة)</dt><dd>{displayCount(bucket?.settled_rows)}</dd>
+                <dt>ناجحة</dt><dd>{displayCount(bucket?.succeeded)}</dd>
+                <dt>غير محسومة (خارج المقام)</dt><dd>{displayCount(bucket?.unsettled_rows)}</dd>
+              </dl>
+              {reasons.length > 0 && (
+                <ul className="text-[10px] text-slate-400">
+                  {reasons.map(([reason, n]) => (
+                    <li key={reason}>• {UNSETTLED_REASON_AR[reason] ?? reason}: {n}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-slate-300">
+        حالات مربوطة في المصدرين: {displayCount(overlap?.cases)} — تُحسب في مقام كلّ مصدر مرّة.
+      </p>
+      <p className="text-[11px] text-slate-400">
+        كلّ نسبة من صفوف مصدرها وحده؛ المؤشر الإجمالي يجمع صفوف المصدرين. لا تثبت أيّ منها فعالية ممارسة.
       </p>
     </section>
   );
@@ -302,6 +370,8 @@ export default function LearningDashboardPage() {
               value={displayCount(regionsVerified)}
               sub="بحسب مستوى الدليل الوارد في الملخّص" />
           </section>
+
+          <SourceSuccessRates reconciliation={summary?.outcome_reconciliation} />
 
           <OutcomeCounts reconciliation={summary?.outcome_reconciliation} />
 

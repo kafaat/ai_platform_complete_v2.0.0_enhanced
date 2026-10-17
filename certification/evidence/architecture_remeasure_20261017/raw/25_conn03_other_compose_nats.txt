@@ -1,0 +1,13 @@
+$ grep -n -A4 -E ^  (evidence-nats|test-nats): docker-compose.evidence-lab.yml docker-compose.test.yml
+docker-compose.evidence-lab.yml:76:  evidence-nats:
+docker-compose.evidence-lab.yml-77-    image: nats:2.10-alpine
+docker-compose.evidence-lab.yml-78-    command: ["--jetstream", "--store_dir=/data", "--http_port=8222"]
+docker-compose.evidence-lab.yml-79-    ports:
+docker-compose.evidence-lab.yml-80-      - "127.0.0.1:${EVIDENCE_NATS_PORT:-54222}:4222"
+--
+docker-compose.test.yml:23:  test-nats:
+docker-compose.test.yml-24-    image: nats:2.10-alpine
+docker-compose.test.yml-25-    container_name: sahool-test-nats
+docker-compose.test.yml-26-    command: ["--js"]
+docker-compose.test.yml-27-    ports: ["127.0.0.1:4223:4222"]
+[exit=0]

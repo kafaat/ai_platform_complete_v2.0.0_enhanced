@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5994,
+    "files_scanned": 6003,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1908,
-      "tests": 1965,
+      "other": 1916,
+      "tests": 1966,
       "web": 471
     },
-    "unmapped_artifacts": 2304,
-    "ambiguous_artifacts": 464
+    "unmapped_artifacts": 2305,
+    "ambiguous_artifacts": 465
   },
   "capabilities": [
     {
@@ -9256,7 +9256,7 @@
       ],
       "events": [
         {
-          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:203",
+          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:204",
           "score": 14
         },
         {
@@ -9284,11 +9284,11 @@
           "score": 14
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:203",
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:204",
           "score": 14
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:224",
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:225",
           "score": 14
         },
         {
@@ -9549,6 +9549,14 @@
           ]
         },
         {
+          "path": "scripts/diagnostics/resolve_inventory_edges.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "tools/backend_inventory.py",
           "score": 14,
           "signals": [
@@ -9583,14 +9591,6 @@
         },
         {
           "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json",
-          "score": 12,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        },
-        {
-          "path": "scripts/diagnostics/resolve_inventory_edges.py",
           "score": 12,
           "signals": [
             "path:inventory",
@@ -12347,11 +12347,11 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1005",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1020",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1034",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1057",
           "score": 20
         },
         {
@@ -12363,27 +12363,27 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:822",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:837",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:858",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:873",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:917",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:932",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:965",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:980",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:976",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:991",
           "score": 20
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1008",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1027",
           "score": 20
         },
         {
@@ -12391,7 +12391,7 @@
           "score": 20
         },
         {
-          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:781",
+          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:796",
           "score": 20
         },
         {
@@ -12407,31 +12407,31 @@
           "score": 20
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:822",
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:837",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1010",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1029",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1012",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1030",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:780",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:795",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:881",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:896",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:884",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:899",
           "score": 20
         },
         {
-          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1058",
+          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1081",
           "score": 20
         },
         {
@@ -12447,7 +12447,7 @@
           "score": 20
         },
         {
-          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:888",
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:903",
           "score": 20
         },
         {
@@ -12459,7 +12459,7 @@
           "score": 20
         },
         {
-          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:897",
+          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:912",
           "score": 20
         },
         {
@@ -13025,6 +13025,14 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json",
           "score": 10,
           "signals": [
@@ -13127,7 +13135,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 20
+        "events": 22
       },
       "evidence_counts": {
         "backend": 6,
@@ -13138,7 +13146,7 @@
         "mobile": 0,
         "tests": 16,
         "governance": 1,
-        "other_evidence": 29
+        "other_evidence": 30
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25376,6 +25384,14 @@
           "score": 11
         },
         {
+          "value": "sahool.events.> @ certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json:102",
+          "score": 11
+        },
+        {
+          "value": "sahool.events.> @ certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json:110",
+          "score": 11
+        },
+        {
           "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
           "score": 11
         },
@@ -25733,6 +25749,14 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+          "score": 11,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
           "score": 11,
           "signals": [
@@ -25863,12 +25887,12 @@
         "backend": 14,
         "routes": 70,
         "database": 0,
-        "events": 14,
+        "events": 16,
         "web": 1,
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 31
+        "other_evidence": 32
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -29001,6 +29025,15 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/ownership_remeasure.json",
+          "score": 16,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "docs/architecture/db_writer_ownership_triage.json",
           "score": 16,
           "signals": [
@@ -29016,6 +29049,15 @@
             "content:MFA",
             "content:mfa",
             "content:totp"
+          ]
+        },
+        {
+          "path": "certification/evidence/architecture_remeasure_20261017/README.md",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
           ]
         },
         {
@@ -29164,7 +29206,7 @@
         "mobile": 4,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 24
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -46521,6 +46563,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_learning_success_rate_by_source.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_learning_summary.py",
       "kind": "tests"
     },
@@ -48190,6 +48236,28 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 11,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
           ]
         }
       ]

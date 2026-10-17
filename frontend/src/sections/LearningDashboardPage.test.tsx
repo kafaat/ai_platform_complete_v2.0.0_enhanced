@@ -148,6 +148,75 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
     }
   });
 
+  it('shows each source rate with its own denominator and unsettled rows separately', () => {
+    hooks.useLearningSummary.mockReturnValue(query({
+      ...linkedSummary,
+      overall: { outcome_count: 8, success_rate: 0.6 },
+      outcome_reconciliation: {
+        ...linkedSummary.outcome_reconciliation,
+        success_rate_by_source: {
+          basis: 'settled_rows_per_source',
+          sources: {
+            outcome_record: {
+              rows: 3, settled_rows: 2, succeeded: 1, failed: 1, unsettled_rows: 1,
+              unsettled_by_reason: { success_missing: 1 }, success_rate: 0.5,
+            },
+            recommendation_outcomes: {
+              rows: 5, settled_rows: 3, succeeded: 2, failed: 1, unsettled_rows: 2,
+              unsettled_by_reason: { immature: 1, missing_actual: 1 }, success_rate: 0.667,
+            },
+          },
+          linked_overlap: { cases: 1, rows_by_source: { outcome_record: 1, recommendation_outcomes: 1 } },
+        },
+      },
+    }));
+    render(<LearningDashboardPage />);
+    const decision = within(screen.getByRole('group', { name: 'نجاح أثر القرار' }));
+    expect(decision.getByText('50%')).toBeInTheDocument();
+    expect(decision.getByText('المقام (صفوف محسومة)').nextElementSibling).toHaveTextContent(/^2$/);
+    expect(decision.getByText('غير محسومة (خارج المقام)').nextElementSibling).toHaveTextContent(/^1$/);
+    expect(decision.getByText('• نتيجة غير مسجّلة: 1')).toBeInTheDocument();
+    const yieldLearning = within(screen.getByRole('group', { name: 'نجاح تعلّم الغلة' }));
+    expect(yieldLearning.getByText('67%')).toBeInTheDocument();
+    expect(yieldLearning.getByText('المقام (صفوف محسومة)').nextElementSibling).toHaveTextContent(/^3$/);
+    expect(yieldLearning.getByText('ناجحة').nextElementSibling).toHaveTextContent(/^2$/);
+    expect(yieldLearning.getByText('غير محسومة (خارج المقام)').nextElementSibling).toHaveTextContent(/^2$/);
+    expect(yieldLearning.getByText('• لم تنضج بعد: 1')).toBeInTheDocument();
+    expect(screen.getByText(/حالات مربوطة في المصدرين: 1/)).toBeInTheDocument();
+    // المؤشر الإجماليّ القائم يبقى كما هو بجانب النسب المفصولة.
+    expect(within(screen.getByRole('group', { name: 'مؤشر نجاح الصفوف المحسومة' })).getByText('60%')).toBeInTheDocument();
+  });
+
+  it('renders a null or zero-denominator source rate as no data, never 0%', () => {
+    hooks.useLearningSummary.mockReturnValue(query({
+      ...linkedSummary,
+      outcome_reconciliation: {
+        ...linkedSummary.outcome_reconciliation,
+        success_rate_by_source: {
+          sources: {
+            outcome_record: { rows: 2, settled_rows: 0, succeeded: 0, unsettled_rows: 2, success_rate: null },
+            recommendation_outcomes: { rows: 0, settled_rows: 0, succeeded: 0, unsettled_rows: 0, success_rate: 0 },
+          },
+        },
+      },
+    }));
+    render(<LearningDashboardPage />);
+    for (const key of ['outcome_record', 'recommendation_outcomes']) {
+      expect(screen.getByTestId(`source-rate-${key}`)).toHaveTextContent(/^لا بيانات$/);
+    }
+    const decision = within(screen.getByRole('group', { name: 'نجاح أثر القرار' }));
+    expect(decision.getByText('غير محسومة (خارج المقام)').nextElementSibling).toHaveTextContent(/^2$/);
+  });
+
+  it('keeps per-source rates unavailable when the server does not send them', () => {
+    render(<LearningDashboardPage />);
+    for (const key of ['outcome_record', 'recommendation_outcomes']) {
+      expect(screen.getByTestId(`source-rate-${key}`)).toHaveTextContent(/^لا بيانات$/);
+    }
+    const decision = within(screen.getByRole('group', { name: 'نجاح أثر القرار' }));
+    expect(decision.getByText('المقام (صفوف محسومة)').nextElementSibling).toHaveTextContent(/^—$/);
+  });
+
   it('does not equate the all-identifiers-missing counter with missing field or season identity', () => {
     const identityWarning = '2 من 30 عيّنة بلا هوية حقل أو موسم أو مزرعة أو مستأجر';
     hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? {
