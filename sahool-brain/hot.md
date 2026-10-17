@@ -1,3 +1,5 @@
+> **2026-10-17 — دُمج #1205 ⇒ `f3fd099e9`** (شجرة = الرأس المُختبَر `8eee151ab`). خُتم GATE01-ADJ-2026-10-17-001 `CONSUMED` — كان يحجب كلّ فرعٍ لاحق حتى الختم. التالي: #1204 (ChatGPT) يحتاج إعادة توليد المصنوعات المولَّدة على `main` الجديد؛ وقياس AUTH-IP خلف بوّابة staging.
+
 > **2026-10-17 — الموجة الرابعة (Claude):** ١٥ فجوة في PR واحد على `main@0e528161` — ٩ fixed (OUTBOX ×2 · FROZEN-PATH · C-LOCALE · NATS v9 · Postgres TLS v9 · TTS-PERF · WEATHER-FORECAST · COMPOSE-ALTERNATES) و٦ جزئيّة open (TEXT-GUARD · GAP-REGISTRY · A-DECLARED-EDGE · TAW/Kc · RESTART-POLICY · AUTH-IP). لا نشر ولا verified. **تغيّر سلوكٍ زراعيّ** (TAW/Kc من المصدر الموحّد) مُجدوَلٌ في وصف PR. مفتوحٌ للمالك: هجرتا v234/v235 غير مطبّقتين في الإنتاج، و`SAHOOL_GIT_SHA` مثبَّتٌ على decision-service.
 
 > 2026-10-17 — PR #1202: ختم تفويض correlation المستهلك في #1201؛ تطابقت البصمات السبع مع `2ca779c6`. المصدر: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. لا فتح للبوابة أو تطبيق هجرات.
