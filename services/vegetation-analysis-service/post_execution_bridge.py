@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import hashlib
 import os
-from datetime import UTC, datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 import httpx
+
+from shared.contracts.imagery_followup import ImageryFollowUpRequest, request_identity
 
 
 class PostExecutionBridge:
@@ -40,37 +42,46 @@ class PostExecutionBridge:
         tenant_id: str,
         days_after: int,
         indicators: list[str],
+        window_days: int = 7,
     ) -> dict[str, Any]:
-        target_date = (datetime.now(UTC) + timedelta(days=days_after)).date().isoformat()
-        body = {
-            "season_id": season_id,
-            "platforms": ["sentinel-2", "sentinel-1"],
-            "cloud_max": 30,
-            "processing_options": {
-                "indicators": indicators,
-                "purpose": "post_execution_verification",
-                "target_date": target_date,
-                "execution_request_id": execution_request_id,
-            },
-        }
+        body = ImageryFollowUpRequest(
+            season_id=season_id,
+            execution_request_id=execution_request_id,
+            days_after=days_after,
+            window_days=window_days,
+            indicators=indicators,
+        ).model_dump()
         headers = {
             "Authorization": authorization,
             "X-Tenant-Id": tenant_id,
-            "Idempotency-Key": self._idempotency(
-                tenant_id, field_id, execution_request_id, target_date
-            ),
+            "Idempotency-Key": request_identity(tenant_id, field_id, execution_request_id),
         }
-        async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
-            response = await client.post(
-                f"{self.raster_url}/v1/fields/{field_id}/imagery-ingestion-requests",
-                json=body,
-                headers=headers,
-            )
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
+                response = await client.post(
+                    f"{self.raster_url}/v1/fields/{quote(field_id, safe='')}/imagery-ingestion-requests",
+                    json=body,
+                    headers=headers,
+                )
+        except httpx.HTTPError as exc:
+            raise RuntimeError("raster_follow_up_unavailable") from exc
         if response.status_code >= 400:
             raise RuntimeError(f"raster_follow_up_rejected:{response.status_code}")
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise RuntimeError("raster_follow_up_contract_mismatch") from exc
+        if (
+            response.status_code != 202 or not isinstance(data, dict)
+            or data.get("request_id") != headers["Idempotency-Key"]
+            or not isinstance(data.get("due_at"), str)
+            or data.get("time_basis") != "delivery_receipt_received_at"
+        ):
+            raise RuntimeError("raster_follow_up_contract_mismatch")
         return {
-            "target_date": target_date,
-            "request": response.json(),
+            "target_date": data["due_at"][:10],
+            "time_basis": data["time_basis"],
+            "request": data,
             "idempotency_key": headers["Idempotency-Key"],
         }
 
