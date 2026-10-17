@@ -8587,3 +8587,25 @@ PR #1073 · وظيفة CI `Platform Unit Tests` على `fe4f344`.
 على أساس `eff473aaf232997112fd9f6739d0a216b603d94f`، أُعيد إنتاج قبول `db_probe_ok(None)` في staging ثم أُصلح في `services/sahool-platform/core/api_adapter.py`. الفحص محدود بمهلة ويمنع readiness عند غياب مسبح مطلوب؛ وضع بلا قاعدة يحتاج بيئة تطوير صريحة بلا DSN وبلا Railway environment. اختبارات `services/sahool-platform/tests/test_readyz_db_probe.py` تشمل HTTP 503 بعد `InvalidPasswordError` وHTTP 200 للـliveness، وفشل الاستعلام/المهلة. أُضيف فحص SSH للاتصال الجديد في `deploy/railway/probe_platform_db.py` واختبار redaction وصلاحيات الدور في `tests/deploy/test_railway_platform_db_probe.py`، والخطوات في `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. لم تُعدَّل أسرار أو RLS أو deployment. إصلاح المصدر منفصل عن إثبات القاعدة الحية؛ سجّلت الفجوة `PLATFORM-STAGING-DB-CREDENTIAL-PROOF-01` بدلاً من ادّعاء إغلاق staging. نتائج البوابات وSHA الرقعة تُرفق في طلب الدمج.
 
 **متابعة نشر الشريحة نفسها:** فشل `git push` لغياب اعتماد كتابة في الطرفية، فاستُخدم موصل GitHub. رفض نقل `execution_dependency_audit.json` لأن غلاف JSON بلغ 16,926,868 بايت متجاوزاً حد 16 MiB. تغيّر تنسيق المولّد القانوني `scripts/ci/execution_dependency_audit.py` من indent=1 إلى indent=0 مع إبقاء فواصل الأسطر؛ قورنت بيانات JSON قبل/بعد وتطابقت. لا حذف لمصنوعات ولا تغيير لقواعد الفحص، وأُعيد توليد البصمات التابعة.
+
+
+## 2026-10-17 — مرشح عقد TTS محدود فوق نسخة staging
+
+المرساة المنشورة df16cc05c4b666397956bd8c721949045e59b680؛ رقعة المصدر 11b2e732d14960e62b39f8b1fc92beede1acde12. نُقل منتج الغلاف v2 ومعالجة فشل قراءته من main@0e528161 إلى ملفّي المنصة فقط، مع اختبارات /api/v1/me القائمة. السبب: ترقية main كاملة تُدخل كاتب U07 قبل إثبات هجرته؛ الترقيع المحدود لا يغيّر SQL أو سياسة مستأجر أو shared/security. فجوة TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 تبقى open: هذا فرع إعداد، لا نشر أو قبول تشغيل. دليل الاختبار والنطاق: docs/testing/TTS_PLATFORM_BACKPORT_20261017.md.
+
+
+### 2026-10-17 — مزامنة قرارات سابقة لازمة لفحص فرع النشر
+
+أعاد الأساس df16cc05 إنتاج الإخفاقات الـ19 نفسها خارج تصحيح TTS. نُقلت حقول expiry/reason الثلاثة المأذونة في #1118، commit892037437989c20c56b1a8b2520152d6ff096f0f، إلى قيمها المعتمدة 2026-10-31؛ لا قرار تجديد جديد ولا تعديل للحارس أو منطق RAG. ونُقل إصلاح بيانات اختبار الشهادة الزمني من main@0e528161، مع شاهد رفض عمر31 يوما. نقص socksio خاص ببيئة الاختبار ذات SOCKS وأُصلح في البيئة فقط. تبقى الفجوة التشغيلية open؛ الإغلاق والنشر غير منفذين.
+
+
+متابعة الفحص في2026-10-17: أظهر waiver_expiry_guard سبعة سجلات واجهة أخرى بتاريخ2026-10-11. نُقلت حقول expiry/reason فقط من تجديد المالك المدموج #1164 (29c09d0bb5959a24220ac3f420ef7c5ea2f3735a) إلى2026-10-31. لا إضافة إعفاء جديد ولا نقل إعفاءات لمسارات غير موجودة في هذا الفرع.
+
+
+## 2026-10-17 — TTS staging backport: approved renewal companion checks
+
+TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 remains open. The narrow
+legacy-branch validation backport also carries the exact two companion changes
+from #1118 (892037437): derive the RAG expiry test from its configured date,
+and re-anchor the existing UI-waiver mutation to its unique October 28 entry.
+No mutation added or removed, no ceiling or guard implementation changed.

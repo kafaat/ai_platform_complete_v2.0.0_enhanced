@@ -6833,7 +6833,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/me.py",
-    "line": 26,
+    "line": 29,
     "method": "GET",
     "path": "/api/v1/me",
     "handler": "me",

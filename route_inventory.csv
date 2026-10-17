@@ -760,7 +760,7 @@ sahool-platform,services/sahool-platform/api/routers/market.py,30,GET,/api/v1/ma
 sahool-platform,services/sahool-platform/api/routers/market.py,101,GET,/api/v1/market/crop-classification-readiness,crop_classification_readiness_endpoint
 sahool-platform,services/sahool-platform/api/routers/master_data.py,35,POST,/api/v1/master-data,create_master_data
 sahool-platform,services/sahool-platform/api/routers/master_data.py,96,GET,/api/v1/master-data,list_master_data
-sahool-platform,services/sahool-platform/api/routers/me.py,26,GET,/api/v1/me,me
+sahool-platform,services/sahool-platform/api/routers/me.py,29,GET,/api/v1/me,me
 sahool-platform,services/sahool-platform/api/routers/ndvi_analysis.py,35,POST,/api/v1/fields/{field_id}/ndvi-analysis,field_ndvi_analysis
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,24,GET,/api/v1/niche-crops/list,niche_crops_list_endpoint
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,30,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint

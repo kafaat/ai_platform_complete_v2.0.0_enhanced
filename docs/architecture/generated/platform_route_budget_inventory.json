@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "da2cc01a4f16ff55e579560ed6bd4b803a89dfb5f55a432ea0ab6281f0e03604",
+  "inventory_sha256": "7d96336a7b24573506ebb646838db70b9f412ca34ba5f3bf2cfd24e3a4088089",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "afdc77503f06e13dc5af358f0636ed1bbdb8d226c364e439ecf21b772f49bf8d"
+    "policy_sha256": "2a215d6a832fd86af451599202120d9c1ab130b9fffc51c8d04e5ddd724be711"
   },
   "routes": [
     {
@@ -1738,7 +1738,7 @@
     {
       "classification": "domain",
       "function": "me",
-      "line": 25,
+      "line": 28,
       "method": "GET",
       "path": "/api/v1/me",
       "source": "api/routers/me.py"

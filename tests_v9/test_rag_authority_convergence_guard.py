@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy  # noqa: F401 — نصّ الحزمة الأصليّ استورده؛ يبقى لقارئ يقارن بالمصدر
 import importlib.util
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -54,9 +54,13 @@ def test_s3_direct_qdrant_exception_must_be_owned_and_dated():
 
 
 def test_s3_exception_expiry_fails_closed():
+    # اليومُ التالي لموعد الإغلاق من الملفّ نفسِه لا تاريخٌ ثابت: التجديدُ (2026-10-01 إلى
+    # 2026-10-31) كان سيُحوِّل تاريخاً مكتوباً هنا إلى «لم ينتهِ بعد» فيمرّ الاختبارُ بلا معنى.
     m = mod("exp")
     state = m.load()
-    assert any("expired" in x for x in m.findings(state, today=date(2026, 10, 1)))
+    close = date.fromisoformat(state["direct_qdrant_exception"]["target_close_by"])
+    assert any("expired" in x for x in m.findings(state, today=close + timedelta(days=1)))
+    assert not any("expired" in x for x in m.findings(state, today=close))
 
 
 def test_s3_shadow_defaults_off():
