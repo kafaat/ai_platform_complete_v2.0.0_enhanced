@@ -18,13 +18,28 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
+from collections.abc import Mapping
 from typing import Any, Protocol
 
 logger = logging.getLogger("sahool.jwt_denylist")
 
 # نفس مخطّط مفتاح خدمة auth (services/auth: revoke_jti/is_jti_revoked).
 JTI_REVOKED_KEY = "sahool:jti:revoked:{jti}"
+
+
+def denylist_redis_url(env: Mapping[str, str] | None = None) -> str:
+    """رابطُ Redis الذي تُقرأ منه القائمة وتُكتَب: ``DENYLIST_REDIS_URL`` إن ضُبط، وإلّا ``REDIS_URL``.
+
+    JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01: auth يكتب الإبطال على خادم
+    الحالة (``sahool-redis-state``) و``REDIS_URL`` المنصّة يشير إلى الكاش، فكان توكنٌ أُبطِل عند
+    الخروج مقبولاً لدى المنصّة حتّى انقضائه. ``DENYLIST_REDIS_URL`` يضع القائمة على خادم auth
+    نفسه، ويبقى ``REDIS_URL`` لحدّ المعدّل والطقس. غيرُ مضبوطٍ (أو فارغ) ⇒ ``REDIS_URL`` كما كان
+    حرفيّاً، فكلُّ نشرٍ لم يضبطه يتصرّف كما قبل.
+    """
+    env = os.environ if env is None else env
+    return (env.get("DENYLIST_REDIS_URL") or "").strip() or env.get("REDIS_URL", "")
 
 
 class DenylistBackend(Protocol):

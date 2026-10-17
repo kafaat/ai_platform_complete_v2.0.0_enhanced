@@ -179,8 +179,17 @@ def test_redis_command_has_no_unquoted_shell_metacharacter(server):
     )
 
 
+def _owner(server: str, name: str) -> str:
+    """خدمةُ compose التي يخصّها المستخدم: ``service`` إن صُرِّح به، وإلّا اسمُه.
+
+    المنصّة لها مستخدمان (الكاش، و``sahool-platform-denylist`` على خادم الحالة —
+    JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01)؛ ولا يُعار مستخدمٌ لخدمةٍ أخرى.
+    """
+    return _matrix()["servers"][server]["users"][name].get("service", name)
+
+
 def test_every_redis_consuming_v9_service_has_its_own_user():
-    """كلُّ خدمةٍ في v9 يحمل بيئتُها رابطاً إلى أحد خادمَي Redis لها مستخدمٌ باسمها عليه."""
+    """كلُّ خدمةٍ في v9 يحمل بيئتُها رابطاً إلى أحد خادمَي Redis لها مستخدمٌ باسمها (أو مُسنَدٌ إليها) عليه."""
     users = {(server, name) for server, name, _ in _service_users()}
     seen: dict[tuple[str, str], str] = {}
     for svc_name, svc in _compose_raw()["services"].items():
@@ -191,12 +200,15 @@ def test_every_redis_consuming_v9_service_has_its_own_user():
             if not m:
                 continue
             username, server = m.groups()
-            assert username == svc_name, (
+            assert (server, username) in users, (
+                f"{svc_name}.{key}: لا مستخدمَ {username} على {server}"
+            )
+            assert _owner(server, username) == svc_name, (
                 f"{svc_name}.{key} يتّصل بـ{server} بالمستخدم {username!r} — "
                 "لكلّ خدمةٍ مستخدمُها باسمها (لا كلمةَ سرٍّ مشتركة ولا مستخدمَ مُعار)."
             )
-            assert (server, username) in users, (
-                f"{svc_name}.{key}: لا مستخدمَ {username} على {server}"
+            assert username == svc_name or username.startswith(f"{svc_name}-"), (
+                f"{username!r} مُسنَدٌ إلى {svc_name} واسمُه لا يبدأ باسمها — يُقرأ في CLIENT LIST كخدمةٍ أخرى"
             )
             seen[(server, username)] = key
     wired = {k for k in users if _matrix()["servers"][k[0]]["users"][k[1]]["client_env"]}
@@ -336,15 +348,23 @@ def _free_port() -> int:
 
 @pytest.fixture(scope="module", params=SERVERS)
 def live_server(request, tmp_path_factory):
-    redis = pytest.importorskip("redis")
+    pytest.importorskip("redis")
     binary = _redis_server_bin()
     if not binary:
         if _live_required():
             pytest.fail("REDIS_ACL_LIVE_REQUIRED=1 ولا redis-server (REDIS_SERVER_BIN أو PATH)")
         pytest.skip("لا redis-server — الإثباتُ الحيّ غير مقيس في هذه البيئة")
     server = request.param
+    with _running_server(binary, server, tmp_path_factory.mktemp(server)) as (port, admin_client):
+        yield server, port, admin_client
+
+
+@contextlib.contextmanager
+def _running_server(binary: str, server: str, workdir: Path):
+    """redis-server بسطر أمر compose نفسه (``_argv``) على منفذٍ محلّيّ ⇒ (المنفذ، عميلُ المشغِّل)."""
+    import redis
+
     port = _free_port()
-    workdir = tmp_path_factory.mktemp(server)
     argv = [binary, *_argv(server)[1:]]
     argv += ["--port", str(port), "--bind", "127.0.0.1", "--dir", str(workdir), "--save", ""]
     log = workdir / "redis.log"
@@ -365,7 +385,7 @@ def live_server(request, tmp_path_factory):
                     out = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
                     pytest.fail(f"{server}: redis-server لم يُقلِع بسطر compose:\n{out[-2000:]}")
                 time.sleep(0.05)
-        yield server, port, admin_client
+        yield port, admin_client
     finally:
         admin_client.close()
         proc.terminate()

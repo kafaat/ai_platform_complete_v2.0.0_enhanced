@@ -84,6 +84,7 @@ def safe_env() -> dict[str, str]:
                 f"REDIS_{name}_PASSWORD": f"rstrong{name.lower()}"
                 for name in (
                     "PLATFORM",
+                    "PLATFORM_DENYLIST",
                     "TTS",
                     "VIDEO_PROCESSOR",
                     "WEATHER",
