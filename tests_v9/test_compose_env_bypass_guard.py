@@ -106,17 +106,16 @@ def test_bypass_compose_never_defaults_production_env():
 
 
 @pytest.mark.unit
-def test_fixed_compose_no_longer_enables_bypass():
-    """v8-F9: ``docker-compose.fixed.yml`` صُلِّب — لم يعُد يُفعّل تجاوز RLS.
-
-    (سابقاً كان يُفعّله للتطوير المحلّيّ لأنّه يتّصل بـsahool_user المُمتاز؛ الآن يتّصل
-    بـsahool_app المقيّد الذي يُنشئه sahool-migrate، فلا حاجة لتعطيل حارس RLS.) الحارس
-    الأعمّ ``test_bypass_compose_never_defaults_production_env`` يبقى فوق كلّ الملفّات.
+def test_v9_compose_does_not_enable_bypass():
+    """v8-F9 صلّب ``docker-compose.fixed.yml`` فلم يعُد يُفعّل تجاوز RLS. نُقل fixed إلى
+    docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01،
+    2026-10-17)، فيُقاس الشاهدُ المُسمّى على تعريف المكدّس الوحيد: v9. الحارس الأعمّ
+    ``test_bypass_compose_never_defaults_production_env`` يبقى فوق كلّ الملفّات.
     """
-    path = _REPO_ROOT / "docker-compose.fixed.yml"
-    assert path.exists(), "docker-compose.fixed.yml مفقود"
+    path = _REPO_ROOT / "docker-compose.v9.yml"
+    assert path.exists(), "docker-compose.v9.yml مفقود"
     text = path.read_text(encoding="utf-8")
     assert not _compose_enables_bypass(text), (
-        "عاد docker-compose.fixed.yml لتفعيل SAHOOL_ALLOW_RLS_BYPASS_ROLE — "
+        "صار docker-compose.v9.yml يُفعّل SAHOOL_ALLOW_RLS_BYPASS_ROLE — "
         "احذفه؛ الاتّصال بـsahool_app المقيّد لا يحتاج تعطيل حارس RLS."
     )

@@ -13,6 +13,12 @@
 **توصية:** أبقِ `v9` مصدراً وحيداً للحقيقة، وأرشِف/احذف الباقي أو وثّق غرض كلّ منها
 صراحةً لتفادي الانحراف.
 
+> **نُفِّذت 2026-10-17 (قرار مالك 2026-10-15، `COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01`):**
+> ~~`unified`~~ · ~~`light`~~ · ~~`fixed`~~ · ~~`odoo-snippet`~~ · ~~`frontend/docker-compose.web.yml`~~
+> نُقلت إلى `docs/history/compose/` ولا تُشغَّل. وكلُّ ملفّ compose متعقَّب غير v9 دورٌ مُعلَن
+> (overlay/test_stack/companion) في `docs/architecture/compose_file_roster.json` يحرسه
+> `scripts/ci/compose_roster_guard.py`. المقارنةُ أدناه مع `fixed` تاريخيّة.
+
 ### 0.1) مقارنة `v9` ↔ `fixed` (مُتحقَّقة بالملفّ، 2026-06-28)
 
 | البُعد | `docker-compose.v9.yml` (إنتاج) | `docker-compose.fixed.yml` (تطوير) |

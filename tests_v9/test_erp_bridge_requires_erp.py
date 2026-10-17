@@ -2,7 +2,7 @@
 
 «خدمةٌ لا تعمل بلا تبعيّتها لا تُشغَّل بلا تبعيّتها»، بشقّيه:
 
-  (أ) Compose: الجسر خلف profile odoo في v9/fixed/unified، وكلّ من يعتمد عليه يُعلنه
+  (أ) Compose: الجسر خلف profile odoo في v9 (fixed/unified في التاريخ)، وكلّ من يعتمد عليه يُعلنه
       ``required: false`` — وإلّا انكسر ``docker compose config``/``up`` بلا الـprofile
       («depends on undefined service»، مقيسٌ على v9 قبل الإصلاح).
   (ب) /readyz: 503 حين ERP غير مهيّأ أو غير مستجيب (بمهلة محدودة، بلا أسرار في الجسم)،
@@ -41,10 +41,10 @@ SECRET = "readyz-must-not-leak-this-3f9a"
 # ══════════════════════════════════════════════════════════════════
 # (أ) Compose — profile odoo + required: false لكلّ معتمد
 # ══════════════════════════════════════════════════════════════════
+# fixed/unified أُخرِجا: نُقلا إلى docs/history/compose/ بقرار مالك
+# (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17) — v9 وحدَه يُعرّف المكدّس.
 _COMPOSE_BRIDGE = {
     "docker-compose.v9.yml": "sahool-erp-bridge",
-    "docker-compose.fixed.yml": "sahool-erp-bridge",
-    "docker-compose.unified.yml": "erp-bridge",
 }
 
 

@@ -29,9 +29,10 @@ OUT_MD = OUT_DIR / "RUNTIME_ENVIRONMENT_PREFLIGHT.md"
 
 REQUIRED_TOOLS = ("docker",)
 OPTIONAL_TOOLS = ("psql", "nats", "curl", "git")
+# docker-compose.unified.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+# (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
 COMPOSE_CANDIDATES = (
     "docker-compose.v9.yml",
-    "docker-compose.unified.yml",
     "docker-compose.dev.yml",
     "docker-compose.test.yml",
 )

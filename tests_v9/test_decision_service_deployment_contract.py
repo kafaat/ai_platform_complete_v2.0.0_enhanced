@@ -11,7 +11,7 @@ so the mirror host ``sahool-decision-service:8160`` did not resolve and every mi
 This guard pins the deployment contract so the mirror is reachable and the extraction is
 honestly production-shippable:
 - a Dockerfile exists, runs non-root, exposes/serves port 8160, healthchecks /healthz;
-- both compose files (v9 + fixed) define sahool-decision-service with build + healthcheck;
+- the stack definition (v9; fixed moved to docs/history/compose/) defines sahool-decision-service with build + healthcheck;
 - the platform service wires DECISION_SERVICE_URL to the mirror host in both compose files.
 
 Honesty note asserted here too: the service is an interim mirror by default. SoR-promotion
@@ -32,7 +32,9 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 DECISION_PORT = "8160"
 MIRROR_HOST = "http://sahool-decision-service:8160"
-COMPOSE_FILES = ["docker-compose.v9.yml", "docker-compose.fixed.yml"]
+# docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+# (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17) — v9 وحدَه يُعرّف المكدّس.
+COMPOSE_FILES = ["docker-compose.v9.yml"]
 
 
 def _load(rel: str):

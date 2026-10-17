@@ -4,7 +4,8 @@ ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ROOT"
 fail=0
 say(){ printf '%s\n' "$*"; }
-scan_files=(.env .env.example docker-compose.v9.yml docker-compose.fixed.yml)
+# docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01).
+scan_files=(.env .env.example docker-compose.v9.yml)
 _scan(){ grep -InE "$1" "${scan_files[@]}" 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' || true; }
 fail_if_hits(){
   local pattern="$1"; local label="$2"; local ignore="${3:-$^}"

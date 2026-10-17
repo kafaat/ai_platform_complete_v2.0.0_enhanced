@@ -68,12 +68,20 @@ def test_sam2_profile_has_default_inference_url_when_backend_enabled():
     assert env["SEGMENTATION_INFERENCE_URL"].endswith("sahool-sam2-inference:8080/v1/predict}")
 
 
-def test_unified_and_light_edge_ports_match_internal_8100():
-    for name in ["docker-compose.unified.yml", "docker-compose.light.yml"]:
-        data = yaml.safe_load((ROOT / name).read_text(encoding="utf-8"))
-        svc = data["services"]["edge-inference"]
-        assert svc["ports"] == ["127.0.0.1:8100:8100"]
-        assert "localhost:8100/healthz" in str(svc["healthcheck"]["test"])
+def test_edge_ports_match_internal_8100():
+    """كان يُقاس على unified/light — نُقلا إلى docs/history/compose/ بقرار مالك
+    (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17). على v9: الحافّةُ لا تنشر
+    منفذاً على المضيف إلّا loopback 8100، وفحصُ صحّتها وعنوانُ مستهلِكيها على 8100."""
+    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    svc = data["services"]["sahool-edge"]
+    assert all(str(p) == "127.0.0.1:8100:8100" for p in svc.get("ports") or []), svc.get("ports")
+    assert "localhost:8100/healthz" in str(svc["healthcheck"]["test"])
+    urls = []
+    for spec in data["services"].values():
+        env = (spec or {}).get("environment") or {}
+        values = env.values() if isinstance(env, dict) else env
+        urls += [str(v) for v in values if "sahool-edge:" in str(v)]
+    assert urls and all("sahool-edge:8100" in u for u in urls), urls
 
 
 def test_nginx_unified_upstreams_match_compose_service_names():

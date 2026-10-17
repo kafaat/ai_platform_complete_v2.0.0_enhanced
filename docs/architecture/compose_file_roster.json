@@ -1,0 +1,89 @@
+{
+  "$comment": "سجلّ ملفّات Compose — docker-compose.v9.yml هو تعريفُ المكدّس الوحيد، وكلُّ ملفّ compose متعقَّبٍ غيره يجب أن يُسمّى هنا بدوره ومستهلِكه. قرارُ مالك 2026-10-15 (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01): البدائلُ التي عرّفت المكدّس بأسماء خدماتٍ أخرى (unified/light/fixed/odoo-snippet/frontend web) نُقلت إلى docs/history/compose/ ولا تُشغَّل. يفرضه scripts/ci/compose_roster_guard.py: المتعقَّب == الأساس ∪ هذا السجلّ (مساواةُ مجموعات)، ولكلّ مدخلٍ مستهلِكٌ يُسمّيه، وخدماتُ التراكب موجودةٌ في الأساس أو تحمل image/build، والرفيقُ ينضمّ إلى شبكةٍ من الأساس، ومكدّسُ الاختبار لا يُعيد استعمال اسم خدمةٍ من الأساس.",
+  "schema_version": 1,
+  "adjudicated_on": "2026-10-15",
+  "gap": "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01",
+  "base": "docker-compose.v9.yml",
+  "history_dir": "docs/history/compose",
+  "roles": {
+    "overlay": "يُطبَّق فوق الأساس فقط: docker compose -f docker-compose.v9.yml -f <file>. كلّ خدمةٍ فيه إمّا موجودةٌ في الأساس أو تحمل image/build، وكلُّ depends_on يُحلّ في الاتّحاد.",
+    "test_stack": "مكدّسٌ مستقلّ زائل للاختبار. لا يُعيد استعمال اسم خدمةٍ من الأساس — وإلّا صار تعريفاً ثانياً لها.",
+    "companion": "مكدّسٌ مستقلّ يُشغَّل بجوار الأساس وينضمّ إلى شبكةٍ منه (external). لا يُعيد استعمال اسم خدمةٍ من الأساس."
+  },
+  "files": {
+    "docker-compose.dev.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/ci/vegetation_real_only_posture_guard.py",
+        "scripts/ci/runtime_environment_preflight.py"
+      ],
+      "purpose": "تراكبُ تطوير: environment فقط (soft-fail + كوكي HTTP) فوق v9."
+    },
+    "docker-compose.production.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/ci/container_image_pin_guard.py"
+      ],
+      "purpose": "تراكبٌ إنتاجيّ: خدمةُ production-preflight تفرض الأسرار والملخّصات قبل إقلاع الخدمات الحرجة."
+    },
+    "docker-compose.rag-kg-mcp.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/architecture/rag_authority_convergence_guard.py"
+      ],
+      "purpose": "تراكبُ خوادم MCP فوق خدمات RAG/KG في v9."
+    },
+    "docker-compose.runtime-verification.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/ci/path3_runtime_activation.py"
+      ],
+      "purpose": "حاوياتُ التحقّق الحيّ (runtime-verifier) تعمل داخل شبكة v9."
+    },
+    "docker-compose.soil-strict.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/ci/soil_profile_contract_guard.py"
+      ],
+      "purpose": "تراكبٌ إنتاجيّ صارم لمسار التربة بعد الشهادة: environment فقط."
+    },
+    "docker-compose.v9.gpu.yml": {
+      "role": "overlay",
+      "consumers": [
+        "scripts/ci/v9_gpu_contract_gate.py",
+        "scripts/build-immutable.sh"
+      ],
+      "purpose": "تراكبُ GPU (profile gpu) لخدمات الاستدلال المعرَّفة في v9."
+    },
+    "docker-compose.evidence-lab.yml": {
+      "role": "test_stack",
+      "consumers": [
+        ".github/workflows/evidence-lab.yml",
+        "scripts/certification/evidence_lab.py"
+      ],
+      "purpose": "مختبرُ أدلّةٍ معزول زائل بشبكةٍ داخليّة خاصّة."
+    },
+    "docker-compose.test.yml": {
+      "role": "test_stack",
+      "consumers": [
+        ".github/workflows/production-certification-blockers.yml",
+        "scripts/ci/run_weather_redis_integration.sh"
+      ],
+      "purpose": "خدماتُ اختبار التكامل (test-postgres/test-redis/test-nats/test-qdrant)."
+    },
+    "docker-compose.irr-f01-test.yml": {
+      "role": "test_stack",
+      "consumers": [
+        "scripts/irr_f01/local_gate.sh"
+      ],
+      "purpose": "قاعدةُ PostGIS زائلة لبوّابة IRR-F01 المحلّيّة."
+    },
+    "docker-compose.erpnext.yml": {
+      "role": "companion",
+      "consumers": [
+        ".env.example"
+      ],
+      "purpose": "ERPNext كمزوّد ERP بديل، ينضمّ إلى شبكة sahool-internal ليصله جسر ERP."
+    }
+  }
+}

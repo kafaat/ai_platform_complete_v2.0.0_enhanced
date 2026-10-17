@@ -1,4 +1,4 @@
-# Grafana datasource provisioning — Prometheus (docker-compose.fixed.yml)
+# Grafana datasource provisioning — Prometheus (docker-compose.v9.yml: sahool-grafana)
 apiVersion: 1
 datasources:
   - name: Prometheus

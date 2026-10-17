@@ -13,11 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_erp_legacy_aliases_exist_only_on_erp_bridge_service():
     legacy = {"sahool-odoo-bridge", "odoo-bridge", "erp-bridge", "sahool-unified-odoo-bridge"}
     allowed = {"sahool-erp-bridge", "erp-bridge"}
-    for compose_name in [
-        "docker-compose.v9.yml",
-        "docker-compose.fixed.yml",
-        "docker-compose.unified.yml",
-    ]:
+    # fixed/unified أُخرِجا: نُقلا إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    for compose_name in ["docker-compose.v9.yml"]:
         data = yaml.safe_load((ROOT / compose_name).read_text(encoding="utf-8"))
         for svc_name, svc in data["services"].items():
             aliases = []
@@ -32,12 +30,22 @@ def test_erp_legacy_aliases_exist_only_on_erp_bridge_service():
             )
 
 
-def test_unified_erp_bridge_port_matches_dockerfile_and_nginx():
-    compose = yaml.safe_load((ROOT / "docker-compose.unified.yml").read_text(encoding="utf-8"))
-    svc = compose["services"]["erp-bridge"]
-    assert svc["ports"] == ["127.0.0.1:8126:8126"]
+def test_erp_bridge_port_matches_dockerfile_and_callers():
+    """كان يُقاس على unified (`erp-bridge` + nginx.unified.conf) — نُقل إلى docs/history/compose/
+    بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17). على v9: الجسرُ
+    لا ينشر خارج loopback، وفحصُ صحّته ومستهلِكوه على 8126 — ويطابق Dockerfile."""
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    svc = compose["services"]["sahool-erp-bridge"]
+    assert all(str(p).startswith("127.0.0.1:8126:") for p in svc.get("ports") or [])
     assert "localhost:8126/healthz" in str(svc["healthcheck"]["test"])
-    assert "erp-bridge:8126" in (ROOT / "nginx/nginx.unified.conf").read_text(encoding="utf-8")
+    callers = [
+        str(v)
+        for spec in compose["services"].values()
+        if isinstance((spec or {}).get("environment"), dict)
+        for v in spec["environment"].values()
+        if "sahool-erp-bridge" in str(v)
+    ]
+    assert callers and all("sahool-erp-bridge:8126" in c for c in callers), callers
     dockerfile = (ROOT / "services/odoo-bridge/Dockerfile").read_text(encoding="utf-8")
     assert "EXPOSE 8126" in dockerfile
     assert '--port", "8126"' in dockerfile

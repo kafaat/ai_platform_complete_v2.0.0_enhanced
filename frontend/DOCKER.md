@@ -1,8 +1,13 @@
 # تشغيل تطبيق الويب (Frontend) عبر Docker
 
 ## بناء وتشغيل مستقلّ
+> **2026-10-17:** `frontend/docker-compose.web.yml` نُقل إلى
+> `docs/history/compose/frontend.docker-compose.web.yml` بقرار مالك — `docker-compose.v9.yml`
+> هو تعريفُ المكدّس الوحيد (`COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01`). الأمرُ أدناه تاريخيّ؛
+> البناءُ اليدويّ بعده ما زال صالحاً.
+
 ```bash
-docker compose -f docker-compose.web.yml up --build
+docker compose -f docker-compose.web.yml up --build  # تاريخيّ
 # الويب على: http://localhost:8080
 ```
 
