@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5945,
+    "files_scanned": 5946,
     "files_by_kind": {
       "backend": 1231,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1870,
+      "other": 1871,
       "tests": 1953,
       "web": 470
     },
@@ -12519,6 +12519,14 @@
           "score": 12
         },
         {
+          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:214",
+          "score": 11
+        },
+        {
+          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:330",
+          "score": 11
+        },
+        {
           "value": "sahool.alerts.weather @ shared/notification_consumers.py:25",
           "score": 11
         },
@@ -12528,6 +12536,14 @@
         },
         {
           "value": "sahool.events.> @ shared/notification_consumers.py:33",
+          "score": 11
+        },
+        {
+          "value": "sahool.events.test @ tests_v9/test_outbox_claim_lease.py:212",
+          "score": 11
+        },
+        {
+          "value": "sahool.events.test @ tests_v9/test_outbox_claim_lease.py:328",
           "score": 11
         },
         {
@@ -12555,15 +12571,7 @@
           "score": 11
         },
         {
-          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:211",
-          "score": 10
-        },
-        {
           "value": "field.created @ tests_v9/test_outbox_delivery_attempts_v19_5.py:107",
-          "score": 10
-        },
-        {
-          "value": "sahool.events.test @ tests_v9/test_outbox_claim_lease.py:209",
           "score": 10
         },
         {
@@ -12668,7 +12676,7 @@
         },
         {
           "path": "tests_v9/test_outbox_claim_lease.py",
-          "score": 10,
+          "score": 11,
           "signals": [
             "content:event bus",
             "content:nats"
@@ -12912,6 +12920,14 @@
           ]
         },
         {
+          "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-17-001.json",
+          "score": 9,
+          "signals": [
+            "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
           "score": 9,
           "signals": [
@@ -12960,12 +12976,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 78,
+        "events": 80,
         "web": 0,
         "mobile": 0,
         "tests": 14,
         "governance": 0,
-        "other_evidence": 28
+        "other_evidence": 29
       },
       "coverage_dimensions": 5,
       "mapped": true
