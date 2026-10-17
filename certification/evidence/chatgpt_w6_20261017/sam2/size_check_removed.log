@@ -1,0 +1,29 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/383ab1306db0/sahool-work
+configfile: pytest.ini
+plugins: cov-7.1.0, platformdirs-4.13.3, asyncio-1.4.0, xdist-3.8.0, respx-0.23.1, hypothesis-6.170.1, anyio-4.15.1, Faker-40.43.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 23 items / 21 deselected / 2 selected
+
+. FF                                                                     [100%]
+
+=================================== FAILURES ===================================
+_ test_bad_download_never_publishes_or_destroys_installed_bytes[truncated-True] _
+/tmp/sam2-mutation-d5mnuo5i/test_sam2.py:333: in test_bad_download_never_publishes_or_destroys_installed_bytes
+    with pytest.raises((OSError, ValueError), match=reason):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'checkpoint_size_mismatch'
+E     Actual message: 'checkpoint_digest_mismatch'
+_ test_bad_download_never_publishes_or_destroys_installed_bytes[truncated-False] _
+/tmp/sam2-mutation-d5mnuo5i/test_sam2.py:333: in test_bad_download_never_publishes_or_destroys_installed_bytes
+    with pytest.raises((OSError, ValueError), match=reason):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'checkpoint_size_mismatch'
+E     Actual message: 'checkpoint_digest_mismatch'
+=========================== short test summary info ============================
+FAILED ::test_bad_download_never_publishes_or_destroys_installed_bytes[truncated-True]
+FAILED ::test_bad_download_never_publishes_or_destroys_installed_bytes[truncated-False]
+======================= 2 failed, 21 deselected in 0.20s =======================

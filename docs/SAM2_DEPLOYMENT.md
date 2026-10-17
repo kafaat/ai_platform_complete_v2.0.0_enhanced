@@ -52,30 +52,29 @@ HTTP إلى `SEGMENTATION_INFERENCE_URL` ويتحقّقان من الهندسة 
 - الرابط المباشر (large):
   <https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt>
 
-```bash
-# نزّل محلّيّاً
-curl -L -o sam2_hiera_large.pt \
-  https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt
-```
-
-> إن استخدمت checkpoint بحجم مختلف (tiny/small/base_plus) فعدّل `SAM2_MODEL_CFG`
-> ليطابقه (مثل `sam2_hiera_t.yaml`)، وعدّل `SAM2_CHECKPOINT` لاسم الملفّ.
-
-## الخطوة ٢ — وضع الأوزان في volume `sam2-models`
-
-الحاوية تركّب `sam2-models:/models:ro`. انسخ الأوزان إلى الـvolume:
+من جذر المستودع على مضيف GPU، استعمل مسار التزويد الذي يفرض البصمة قبل
+نشر الملف في مجلد الأوزان:
 
 ```bash
-# أنشئ الـvolume واملأه (حاوية مؤقّتة تنسخ من المضيف):
-docker volume create ai_platform_complete_v200_enhanced_sam2-models 2>/dev/null || \
-  docker volume create sam2-models
-docker run --rm -v sam2-models:/models -v "$PWD":/src alpine \
-  cp /src/sam2_hiera_large.pt /models/sam2_hiera_large.pt
+python scripts/ops/provision_sam2_checkpoint.py --output-dir sam2-models
+python scripts/ops/provision_sam2_checkpoint.py --output-dir sam2-models --check
 ```
 
-> اسم الـvolume الفعليّ يحمل بادئة المشروع (مجلّد compose). تحقّق بـ
-> `docker volume ls | grep sam2-models` بعد أوّل `up`، أو استخدم `docker compose`
-> لإنشائه ثمّ انسخ إليه.
+البصمة المنشورة والمقيسة من الملف الرسمي:
+`7442e4e9b732a508f80e141e7c2913437a3610ee0c77381a66658c3a445df87b`،
+والحجم 897952466 بايت. [مصدر البصمة وقياسها](../certification/evidence/chatgpt_w5_20261017/sam2/README.md).
+الأداة تكتب ملفاً مؤقتاً ثم تتحقق من الحجم والبصمة قبل الاستبدال الذري؛ عند انقطاع
+التنزيل أو اختلافه يبقى الوزن السابق ولا يظهر ملف نهائي جديد. لا تستورد Torch.
+احتفظ بمخرج JSON مع إيصال النشر؛ نجاح التنزيل لا يثبت استدلال GPU.
+
+التحقق مخصص لـ **SAM2 Hiera Large (July 2024)** فقط. الأوزان الأخرى تحتاج
+بصمة مستقلة معروفة المصدر وإعداداً مطابقاً؛ لا تستخرج بصمة من تنزيل مجهول ثم تعتمدها.
+
+## الخطوة ٢ — مجلد الأوزان
+
+المسار الفعلي في `docker-compose.v9.yml` هو bind mount للقراءة فقط:
+`./sam2-models:/models:ro`. الأمر السابق يضع الملف في هذا المجلد مباشرة؛ لا تحتاج
+إلى إنشاء volume منفصل أو نسخ ملف غير متحقق منه إلى الحاوية.
 
 ## الخطوة ٣ — اضبط البيئة (`.env`)
 
@@ -87,14 +86,11 @@ SAHOOL_AGENT_TOKEN=<توكن قويّ عشوائيّ>
 SEGMENTATION_BACKEND=sam2
 SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/predict
 
-# (اختياريّ) تجاوز مسار/إعداد الأوزان لو غيّرت الحجم.
+# إعداد الوزن الذي تحققت منه أداة التزويد.
 SAM2_CHECKPOINT=/models/sam2_hiera_large.pt
-# Required: compute from the exact approved checkpoint bytes on the deployment host.
-SAM2_CHECKPOINT_SHA256=<64-hex-sha256>
+# Published and independently measured July 2024 Hiera Large digest.
+SAM2_CHECKPOINT_SHA256=7442e4e9b732a508f80e141e7c2913437a3610ee0c77381a66658c3a445df87b
 SAM2_MODEL_CFG=sam2_hiera_l.yaml
-
-# Verify before startup; the runtime independently re-hashes the mounted bytes.
-printf "%s  %s\\n" "$SAM2_CHECKPOINT_SHA256" "$SAM2_CHECKPOINT" | sha256sum -c -
 ```
 
 > **مهمّ:** `SEGMENTATION_BACKEND`/`SEGMENTATION_INFERENCE_URL` لا تؤثّران إلّا حين
@@ -107,10 +103,6 @@ printf "%s  %s\\n" "$SAM2_CHECKPOINT_SHA256" "$SAM2_CHECKPOINT" | sha256sum -c -
 # v9 (المكدّس الكامل) — يرفع field-segmentation + خادم SAM2:
 docker compose -f docker-compose.v9.yml --profile gpu up -d \
   sahool-sam2-inference sahool-field-segmentation
-
-# أو fixed:
-docker compose -f docker-compose.fixed.yml --profile gpu up -d \
-  sahool-sam2-inference
 ```
 
 تحقّق من تحميل النموذج:

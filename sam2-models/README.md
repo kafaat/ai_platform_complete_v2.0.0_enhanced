@@ -5,56 +5,42 @@ This folder is **bind-mounted read-only** into the `sahool-sam2-inference` conta
 here on the GPU host; the container reads it via `SAM2_CHECKPOINT` (default
 `/models/sam2_hiera_large.pt`).
 
-> The weights are large (~900 MB) and are **not** committed — see `.gitignore`. Only this
-> README and `.gitkeep` are tracked.
+> The weights are large (~900 MB) and are **not** committed — see `.gitignore`.
 
-## What to download (default = Hiera-Large)
+## Provision the default Hiera Large checkpoint
 
-The service defaults to the SAM2 Hiera-Large checkpoint + its config
-(`SAM2_MODEL_CFG=sam2_hiera_l.yaml`, shipped inside the `sam2` pip package).
-
-Download the checkpoint into this folder as `sam2_hiera_large.pt`:
+Run from the repository root on the GPU host (Python 3, including Windows):
 
 ```bash
-# from the repo root, on the GPU host
-cd sam2-models
-curl -fL -o sam2_hiera_large.pt \
-  https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt
-# (SAM 2.1 alternative — update SAM2_CHECKPOINT/SAM2_MODEL_CFG accordingly:)
-#   https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt
+python scripts/ops/provision_sam2_checkpoint.py --output-dir sam2-models
+python scripts/ops/provision_sam2_checkpoint.py --output-dir sam2-models --check
 ```
 
-Windows PowerShell:
-```powershell
-cd sam2-models
-Invoke-WebRequest -Uri "https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt" -OutFile "sam2_hiera_large.pt"
+This downloads **SAM2 Hiera Large (July 2024)** from Meta into a temporary file.
+Only a complete file matching the pinned publisher SHA256 and size is moved into
+`sam2-models/sam2_hiera_large.pt`. A wrong, truncated or interrupted download
+leaves an existing checkpoint untouched. The command prints a JSON receipt;
+retain it with your deployment evidence. It never loads Torch or starts services.
+
+Configure the existing runtime check with the same independently measured pin:
+
+```dotenv
+SAM2_CHECKPOINT=/models/sam2_hiera_large.pt
+SAM2_CHECKPOINT_SHA256=7442e4e9b732a508f80e141e7c2913437a3610ee0c77381a66658c3a445df87b
+SAM2_MODEL_CFG=sam2_hiera_l.yaml
 ```
 
-## Smaller variants (less VRAM / faster)
-
-Override the two env vars (e.g. in `.env`) to use a smaller model:
-
-| Model | Checkpoint file | `SAM2_MODEL_CFG` |
-|---|---|---|
-| Hiera-Large (default) | `sam2_hiera_large.pt` | `sam2_hiera_l.yaml` |
-| Hiera-Base+ | `sam2_hiera_base_plus.pt` | `sam2_hiera_b+.yaml` |
-| Hiera-Small | `sam2_hiera_small.pt` | `sam2_hiera_s.yaml` |
-| Hiera-Tiny | `sam2_hiera_tiny.pt` | `sam2_hiera_t.yaml` |
-
-```env
-SAM2_CHECKPOINT=/models/sam2_hiera_small.pt
-SAM2_MODEL_CFG=sam2_hiera_s.yaml
-```
-
-The RTX 5090 Laptop (24 GB) runs Hiera-Large comfortably; the smaller variants are for
-lower-VRAM hosts or lower latency.
+[Official source and independent byte measurement](../certification/evidence/chatgpt_w5_20261017/sam2/README.md).
+The provisioner has no URL/hash override: a different checkpoint requires a
+separately reviewed source, digest and compatible configuration. SAM2.1, smaller
+variants and safetensors are not covered by this receipt.
 
 ## Verify
 
 After placing the file and bringing up the GPU stack:
 ```bash
 docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d
-# the service checks os.path.isfile(SAM2_CHECKPOINT) on startup:
+# The runtime independently hashes the mounted checkpoint before importing Torch:
 curl -fsS http://localhost:8000/readyz   # inside the container / via the gateway
 python scripts/e2e/sam2_live_gpu_gate.py  # end-to-end GPU inference probe
 ```
