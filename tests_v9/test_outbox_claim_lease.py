@@ -13,7 +13,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 import re
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
@@ -289,3 +292,267 @@ async def test_the_failure_path_sends_its_state_write_bound_to_the_attempt_token
     assert not [c for c in writes if "SET status = 'sent'" in c[0]], "نشرٌ فاشلٌ وُسِم 'sent'"
     for sql, args in writes:
         _assert_guarded_by_the_attempt_token(sql, args)
+
+
+# ── الاتّصالُ والإجارةُ أثناء الدُّفعة ─────────────────────────────────────────────
+#
+# `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: الحلقةُ خرجت من
+# `conn.transaction()` ولم تخرج من `pool.acquire()` — فاتّصالُ المسبح محتجَزٌ طوال
+# نشر الدُّفعة تسلسليّاً.
+# `OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01`: الإجارةُ تُمنَح
+# للدُّفعة كلِّها في TX-1 وتُنفَق تسلسليّاً — فتنقضي إجارةُ آخرِ صفوفها قبل نشره.
+#
+# الشواهدُ سلوكيّةٌ على **قاعدةٍ زائفةٍ بساعةٍ مُتحكَّمٍ بها**: `NOW()` قيمةٌ يُقدِّمها
+# الناشرُ نفسُه، فـ«نشرٌ يستغرق ٢٠ث» يُقاس بلا انتظارٍ حقيقيّ. **وحدُّها مُعلَن:** هذه
+# ليست PostgreSQL — تُثبِت ما يُصدِره العاملُ ومتى يستعير اتّصالاً، لا دلالةَ الـSQL
+# تحت تزامنٍ حقيقيّ (ذلك برهانُ `OUTBOX-LEASE-HAS-NO-LIVE-TWO-WORKER-PROOF-01` الحيّ).
+
+
+def _bound(sql: str, needle: str, args: tuple):
+    match = re.search(re.escape(needle) + r"\s*=?\s*\$(\d+)", sql)
+    assert match, f"لا ربطَ لـ{needle} في: {sql}"
+    return args[int(match.group(1)) - 1]
+
+
+class _OutboxDb:
+    """`event_outbox` + `processed_events` في الذاكرة، و`NOW()` = ``self.now`` (ثوانٍ)."""
+
+    def __init__(self, n_rows: int) -> None:
+        self.now = 0.0
+        self.processed: set[str] = set()
+        self.rows: dict[int, dict] = {}
+        for i in range(1, n_rows + 1):
+            self.rows[i] = {
+                "outbox_id": i,
+                "event_id": f"00000000-0000-0000-0000-{i:012d}",
+                "nats_subject": "sahool.events.test",
+                "retry_count": 0,
+                "event_type": "field.created",
+                "entity_type": "field",
+                "entity_id": f"f-{i}",
+                "tenant_id": "00000000-0000-0000-0000-000000000001",
+                "payload": {"k": i},
+                "occurred_at": None,
+                "status": "pending",
+                "claim_token": None,
+                "lease_until": None,
+            }
+
+    def _cas(self, sql: str, args: tuple) -> dict | None:
+        row = self.rows.get(_bound(sql, "outbox_id", args))
+        token = _bound(sql, "claim_token IS NOT DISTINCT FROM", args)
+        return row if row is not None and row["claim_token"] == token else None
+
+
+class _OutboxConn:
+    def __init__(self, db: _OutboxDb) -> None:
+        self.db = db
+
+    async def fetch(self, sql: str, *args):
+        db = self.db
+        assert "FOR UPDATE OF o SKIP LOCKED" in sql, sql
+        free = [
+            r
+            for r in db.rows.values()
+            if r["status"] in ("pending", "failed")
+            and r["retry_count"] < args[0]
+            and (r["lease_until"] is None or r["lease_until"] <= db.now)
+        ]
+        return [dict(r) for r in sorted(free, key=lambda r: r["outbox_id"])[: args[1]]]
+
+    async def fetchval(self, sql: str, *args):
+        if "FROM processed_events" in sql:
+            return str(args[0]) in self.db.processed
+        return 1
+
+    async def execute(self, sql: str, *args) -> str:
+        db, s = self.db, " ".join(sql.split())
+        if s.startswith("INSERT INTO processed_events"):
+            new = str(args[0]) not in db.processed
+            db.processed.add(str(args[0]))
+            return f"INSERT 0 {int(new)}"
+        if s.startswith("INSERT INTO outbox_delivery_attempts"):
+            return "INSERT 0 1"
+        assert s.startswith("UPDATE event_outbox"), s
+        if "outbox_id = ANY(" in s:  # TX-1: منحُ الإجارة للدُّفعة
+            for oid in args[3]:
+                db.rows[oid].update(claim_token=args[0], lease_until=db.now + args[2])
+            return f"UPDATE {len(args[3])}"
+        row = db._cas(s, args)
+        if row is None:
+            return "UPDATE 0"
+        if "SET status = 'sent'" in s:
+            row.update(status="sent", claim_token=None, lease_until=None)
+        elif "retry_count = $1" in s:
+            row.update(status=args[2], retry_count=args[0], claim_token=None, lease_until=None)
+        elif s.startswith("UPDATE event_outbox SET lease_until"):
+            row["lease_until"] = db.now + args[0]
+        else:  # pragma: no cover — كتابةٌ لا يعرفها الزائف تُرفَض لا تُبتلَع
+            raise AssertionError(f"كتابةٌ غيرُ متوقَّعة: {s}")
+        return "UPDATE 1"
+
+    def transaction(self):
+        conn = self
+
+        class _Txn:
+            async def __aenter__(self_inner):
+                return conn
+
+            async def __aexit__(self_inner, *exc):
+                return False
+
+        return _Txn()
+
+
+class _Pool:
+    """مسبحٌ بسعةٍ محدودة: `acquire` **ينتظر** حين تُستعار كلُّ اتّصالاته — كـasyncpg."""
+
+    def __init__(self, db: _OutboxDb, capacity: int) -> None:
+        self.db = db
+        self._slots = asyncio.Semaphore(capacity)
+
+    def acquire(self):
+        @asynccontextmanager
+        async def _lease():
+            async with self._slots:
+                yield _OutboxConn(self.db)
+
+        return _lease()
+
+
+def _outbox_worker(pool, publish):
+    import sys
+
+    platform = str(ROOT / "services" / "sahool-platform")
+    if platform not in sys.path:
+        sys.path.insert(0, platform)
+    from api.event_bus import OutboxWorker
+
+    return OutboxWorker(pool=pool, nats_publish_fn=publish)
+
+
+@pytest.mark.asyncio
+async def test_a_publish_in_flight_does_not_hold_the_only_pooled_connection():
+    """شاهدُ الإغلاق كما سمّاه سجلُّ الفجوة: مسبحٌ سعتُه **اتّصالٌ واحد**، وناشرٌ موقوف،
+    ثمّ عملٌ مستقلٌّ يستعير الاتّصالَ أثناء انتظار النشر.
+
+    قبل الإصلاح: `_process_batch` يحتجز الاتّصالَ الوحيد عبر النشر ⇒ الاستعارةُ تنتظر
+    حتّى يردّ الوسيط ⇒ مهلةُ ٠٫٥ث تنقضي. بعده: الاتّصالُ عاد إلى المسبح قبل النشر.
+    """
+    db = _OutboxDb(n_rows=1)
+    pool = _Pool(db, capacity=1)
+    publishing, release = asyncio.Event(), asyncio.Event()
+
+    async def _held_publish(subject: str, payload: bytes) -> None:
+        publishing.set()
+        await release.wait()
+
+    worker = _outbox_worker(pool, _held_publish)
+    batch = asyncio.create_task(worker._process_batch())
+    try:
+        await asyncio.wait_for(publishing.wait(), timeout=2)
+
+        async def _independent_work():
+            async with pool.acquire() as conn:
+                return await conn.fetchval("SELECT 1")
+
+        try:
+            assert await asyncio.wait_for(_independent_work(), timeout=0.5) == 1
+        except TimeoutError:
+            pytest.fail(
+                "عملٌ مستقلٌّ لم يستعِر الاتّصالَ الوحيد خلال ٠٫٥ث بينما النشرُ موقوف — "
+                "الدُّفعةُ تحتجز اتّصالَ المسبح عبر الشبكة "
+                "(OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01)"
+            )
+    finally:
+        release.set()
+        processed = await asyncio.wait_for(batch, timeout=2)
+    assert processed == 1
+    assert db.rows[1]["status"] == "sent", "النشرُ لم يُنهَ بعد إطلاقه"
+
+
+@pytest.mark.asyncio
+async def test_the_last_row_of_a_slow_batch_still_holds_its_lease_when_its_publish_starts():
+    """N=5 صفوف، كلُّ نشرٍ ٢٠ث (ساعةٌ مُتحكَّمٌ بها)، `LEASE_SECONDS=60`.
+
+    بلا تجديد: إجارةُ الدُّفعة تنقضي عند ٦٠ث ⇒ الصفّان الرابعُ (يبدأ عند ٦٠) والخامسُ
+    (عند ٨٠) يبدآن نشرَهما **وإجارتُهما منقضية** — أي قابلَين لإعادة الالتقاط من عاملٍ
+    آخر، بلا أن يبطؤ أيُّ نشرٍ مفرد. والمقيسُ هنا الإجارةُ **لحظةَ بدء النشر** لكلّ صفّ.
+    """
+    db = _OutboxDb(n_rows=5)
+    started: list[tuple[int, float, float]] = []
+
+    async def _slow_publish(subject: str, payload: bytes) -> None:
+        oid = json.loads(payload)["payload"]["k"]
+        started.append((oid, db.now, db.rows[oid]["lease_until"]))
+        db.now += 20.0
+
+    worker = _outbox_worker(_Pool(db, capacity=1), _slow_publish)
+    assert worker.LEASE_SECONDS == 60, "المقدّمة: مدّةُ الإجارة المقيسة في الحساب"
+    assert await worker._process_batch() == 5
+
+    lapsed = [(oid, t, lease) for oid, t, lease in started if lease is None or lease <= t]
+    assert [oid for oid, _, _ in started] == [1, 2, 3, 4, 5], started
+    assert not lapsed, (
+        f"صفوفٌ بدأ نشرُها وإجارتُها منقضية (outbox_id, now, lease_until): {lapsed} — "
+        "الإجارةُ مُنِحت للدُّفعة وأُنفِقت تسلسليّاً "
+        "(OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01)"
+    )
+    assert all(r["status"] == "sent" for r in db.rows.values())
+
+
+@pytest.mark.asyncio
+async def test_a_row_recaptured_after_its_lease_lapsed_is_not_published_by_the_stale_worker(
+    caplog,
+):
+    """العاملُ (أ) يلتقط صفَّين؛ نشرُ الأوّل يستغرق ٧٠ث فتنقضي إجارةُ الثاني، فيلتقطه
+    عاملٌ حيٌّ (ب) **وما زال نشرُه جارياً**. حين يبلغ (أ) الصفَّ الثاني يجب ألّا ينشره —
+    صار لغيره.
+
+    **ولمَ (ب) موقوفٌ أثناء نشره:** لو أنهى (ب) نشرَه قبل أن يبلغ (أ) الصفّ لأوقفه فحصُ
+    `processed_events` القرائيُّ القائم — فيمرّ الشاهدُ على الشيفرة القديمة وهو لا يقيس
+    الإجارة (قِيس: هذا ما وقع في صياغته الأولى). النافذةُ الحقيقيّة هي «التقطه غيري ولم
+    يُنهِه بعد»، وفيها لا يحمي إلّا الرمز.
+
+    قبل الإصلاح كان (أ) ينشره ثمّ يكتشف فقدَ الإجارة **عند الإنهاء** فقط («lease lost
+    before finish»): نشرٌ مكرَّرٌ لصفٍّ لم يعد يملكه. at-least-once يبقى الضمانة
+    المُعلَنة، لكنّ العاملَ البائت لا ينشر ما يعرف أنّه فقده.
+    """
+    db = _OutboxDb(n_rows=2)
+    pool = _Pool(db, capacity=2)
+    published_by_a: list[int] = []
+    published_by_b: list[int] = []
+    b_publishing, b_release = asyncio.Event(), asyncio.Event()
+
+    async def _publish_b(subject: str, payload: bytes) -> None:
+        published_by_b.append(json.loads(payload)["payload"]["k"])
+        b_publishing.set()
+        await b_release.wait()
+
+    worker_b = _outbox_worker(pool, _publish_b)
+    tasks: list[asyncio.Task] = []
+
+    async def _publish_a(subject: str, payload: bytes) -> None:
+        oid = json.loads(payload)["payload"]["k"]
+        published_by_a.append(oid)
+        if oid == 1:
+            db.now += 70.0  # نشرٌ بطيءٌ ينقضي أثناءه ما بقي من إجارة الدُّفعة
+            tasks.append(asyncio.create_task(worker_b._process_batch()))  # (ب) حيّ
+            await asyncio.wait_for(b_publishing.wait(), timeout=2)  # التقط ولم يُنهِ
+
+    worker_a = _outbox_worker(pool, _publish_a)
+    caplog.set_level("WARNING")
+    try:
+        await asyncio.wait_for(worker_a._process_batch(), timeout=2)
+    finally:
+        b_release.set()
+        await asyncio.wait_for(asyncio.gather(*tasks), timeout=2)
+
+    assert published_by_a == [1], (
+        f"العاملُ البائت نشر صفّاً التقطه غيرُه بعد انقضاء إجارته: {published_by_a}"
+    )
+    # بعد الدعوى لا قبلها: على الشيفرة القديمة يُسقِط نشرُ (أ) المكرَّرُ نشرَ (ب) عبر
+    # `processed_events`، فلو سبق هذا التوكيدُ لحمرّ على المقدّمة لا على العطل.
+    assert published_by_b == [1, 2], f"(ب) مالكُ الصفَّين نشرهما — {published_by_b}"
+    assert "lease lost before publish" in caplog.text, caplog.text
+    assert all(r["status"] == "sent" for r in db.rows.values())
