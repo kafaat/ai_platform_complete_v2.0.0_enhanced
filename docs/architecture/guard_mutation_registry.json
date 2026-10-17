@@ -94,8 +94,8 @@
         },
         {
           "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
-          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off\n",
-          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off || true\n",
+          "find": "            pip-audit -r \"$requirements_file\" --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --progress-spinner off || true\n",
           "test": "tests_v9/test_runtime_image_audit_gate.py",
           "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
@@ -119,8 +119,8 @@
       "mutations": [
         {
           "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
-          "find": "      \"expiry\": \"2026-10-31\",\n",
-          "replace": "      \"expires\": \"2026-10-31\",\n",
+          "find": "      \"expiry\": \"2026-10-28\",\n",
+          "replace": "      \"expires\": \"2026-10-28\",\n",
           "test": "tests_v9/test_waiver_expiry_guard.py",
           "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
         }

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import time
 
-import jwt  # PyJWT
 from core.authorization import Permission, has_permission
 from fastapi import APIRouter, Depends, Header, HTTPException
 from jwt.exceptions import InvalidTokenError
@@ -36,6 +35,7 @@ from api.main import (
     get_current_user,
     logger,
 )
+from shared.security.access_tokens import decode_access_token
 
 # ملاحظة: ``_DENYLIST`` يُقرأ عبر ``_main._DENYLIST`` عند الاستدعاء (لا يُربَط وقت
 # الاستيراد) كي يبقى السلوك مطابقاً لما كان في main: مرجع وحدة قابل لإعادة الربط
@@ -114,8 +114,12 @@ def auth_logout(
     """
     token = (authorization or "").replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(
-            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
+        payload = decode_access_token(
+            token,
+            JWT_VERIFY_KEY,
+            algorithm=JWT_VERIFY_ALGORITHM,
+            backend="pyjwt",
+            site="platform:auth_logout",
         )
         # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
         if payload.get("iss") not in _ALLOWED_ISS:

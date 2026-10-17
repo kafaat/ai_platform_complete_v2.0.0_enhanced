@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "da2cc01a4f16ff55e579560ed6bd4b803a89dfb5f55a432ea0ab6281f0e03604",
+  "inventory_sha256": "f2c106d41fb09e088684f094a2f2ce06d4959c2cf3e50b44f583d41f1f56b0db",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "afdc77503f06e13dc5af358f0636ed1bbdb8d226c364e439ecf21b772f49bf8d"
+    "policy_sha256": "19a8c2a981fb2c2fd60d100f2e4b03cdab03c4d395b640cf00ad6873865553f9"
   },
   "routes": [
     {
@@ -1738,7 +1738,7 @@
     {
       "classification": "domain",
       "function": "me",
-      "line": 25,
+      "line": 28,
       "method": "GET",
       "path": "/api/v1/me",
       "source": "api/routers/me.py"
@@ -2866,7 +2866,7 @@
     {
       "classification": "domain",
       "function": "chat",
-      "line": 109,
+      "line": 114,
       "method": "POST",
       "path": "/api/chat",
       "source": "api/chat_proxy_reference.py"
@@ -2994,7 +2994,7 @@
     {
       "classification": "domain",
       "function": "auth_signup",
-      "line": 133,
+      "line": 137,
       "method": "POST",
       "path": "/api/v1/auth/signup",
       "source": "api/routers/auth.py"

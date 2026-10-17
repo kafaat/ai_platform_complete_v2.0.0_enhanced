@@ -32,17 +32,20 @@ def _user() -> UserSchema:
 
 
 class _Conn:
-    def __init__(self, row: dict | None) -> None:
+    def __init__(self, row: dict | None, *, query_error: bool = False) -> None:
         self.row = row
+        self.query_error = query_error
         self.calls: list[tuple] = []
 
     async def fetchrow(self, sql, *args):
         self.calls.append((sql, args))
+        if self.query_error:
+            raise TimeoutError("statement timeout")
         return self.row
 
 
-def _client(monkeypatch, row: dict | None, *, db_error: bool = False):
-    conn = _Conn(row)
+def _client(monkeypatch, row: dict | None, *, db_error: bool = False, query_error: bool = False):
+    conn = _Conn(row, query_error=query_error)
 
     @asynccontextmanager
     async def fake_tenant_connection(user):
@@ -85,3 +88,92 @@ def test_a_database_failure_keeps_identity_and_fails_the_envelope_closed(monkeyp
     body = resp.json()
     assert body["tenant_id"] == _TENANT and body["role"] == "worker"
     assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+
+
+_POLICY_LOGGER = "sahool.ai_policy_envelope"
+
+
+def _warnings(caplog) -> list[str]:
+    return [
+        r.getMessage()
+        for r in caplog.records
+        if r.name == _POLICY_LOGGER and r.levelname == "WARNING"
+    ]
+
+
+def test_a_failed_policy_query_fails_closed_and_is_observable(monkeypatch, caplog):
+    """مراجعةُ #1170: انقطاعُ الاستعلام كان يُعاد 200 ``local_only`` بلا سجلّ — مطابقاً لمستأجِرٍ بلا صفّ."""
+    client, _ = _client(monkeypatch, None, query_error=True)
+    with caplog.at_level("WARNING", logger=_POLICY_LOGGER):
+        resp = client.get("/api/v1/me")
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["ai_policy_envelope"]["policy_mode"] == "local_only"
+    [line] = _warnings(caplog)
+    assert line.startswith("AI_POLICY_ROW_UNREADABLE") and "TimeoutError" in line
+
+
+def test_a_failed_connection_fails_closed_and_is_observable(monkeypatch, caplog):
+    client, _ = _client(monkeypatch, None, db_error=True)
+    with caplog.at_level("WARNING", logger=_POLICY_LOGGER):
+        body = client.get("/api/v1/me").json()
+    assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+    [line] = _warnings(caplog)
+    assert line.startswith("AI_POLICY_CONNECTION_UNAVAILABLE") and "ConnectionError" in line
+
+
+def test_a_tenant_without_a_policy_row_is_not_reported_as_an_outage(monkeypatch, caplog):
+    client, _ = _client(monkeypatch, None)
+    with caplog.at_level("WARNING", logger=_POLICY_LOGGER):
+        body = client.get("/api/v1/me").json()
+    assert body["ai_policy_envelope"]["policy_mode"] == "local_only"
+    assert _warnings(caplog) == []
+
+
+@pytest.mark.parametrize(
+    ("mode", "providers", "expected"),
+    [
+        ("local_only", ["tts:edge_tts"], []),
+        ("redacted_external", ["tts:edge_tts"], []),
+        ("full_external", [], []),
+        ("full_external", ["anthropic"], []),
+        ("full_external", ["tts:unknown"], []),
+        ("full_external", "tts:edge_tts", []),
+        ("full_external", ["tts:edge_tts"], ["edge_tts"]),
+    ],
+)
+def test_me_exposes_v2_speech_permission_separately_from_llm(
+    monkeypatch, mode, providers, expected
+):
+    """TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01: real route contract."""
+    client, conn = _client(
+        monkeypatch,
+        {
+            "tenant_id": _TENANT,
+            "external_data_sharing_level": mode,
+            "allowed_providers": providers,
+            "ai_generation_allowed": True,
+        },
+    )
+    response = client.get("/api/v1/me")
+    assert response.status_code == 200
+    envelope = response.json()["ai_policy_envelope"]
+    assert envelope["contract"] == "sahool.ai_policy_envelope"
+    assert envelope["contract_version"] == 2
+    assert envelope["version"] == "v52"
+    assert envelope["tenant_id"] == _TENANT
+    assert envelope["external_tts_allowed"] is bool(expected)
+    assert envelope["external_tts_providers"] == expected
+    assert [args for _sql, args in conn.calls] == [(_TENANT,)]
+
+
+@pytest.mark.parametrize("db_error", [False, True])
+def test_me_absent_or_unreadable_policy_still_has_a_denied_v2_contract(monkeypatch, db_error):
+    client, _ = _client(monkeypatch, None, db_error=db_error)
+    response = client.get("/api/v1/me")
+    assert response.status_code == 200
+    envelope = response.json()["ai_policy_envelope"]
+    assert envelope["contract"] == "sahool.ai_policy_envelope"
+    assert envelope["contract_version"] == 2
+    assert envelope["policy_mode"] == "local_only"
+    assert envelope["external_tts_allowed"] is False
+    assert envelope["external_tts_providers"] == []

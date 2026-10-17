@@ -7,4 +7,4 @@ numpy>=1.26.0
 redis>=5.0.0
 aiomqtt>=2.0.0
 python-multipart>=0.0.18
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)

@@ -15,14 +15,13 @@ black>=24.0.0
 sqlparse>=0.5.0
 asyncpg>=0.30.0,<0.32.0
 redis>=5.0.0
-python-jose[cryptography]>=3.4.0
 # تبعيّات وقت تشغيل تستوردها الاختبارات (كانت مفقودة ⇒ ModuleNotFoundError في CI):
 # test_tts/test_auth_service تستوردان pydantic؛ auth يستخدم bcrypt وEmailStr؛
 # الخدمات تستورد prometheus_client.
 pydantic[email]>=2.8.0
 bcrypt>=4.1.0
 prometheus-client>=0.20.0
-PyJWT>=2.13.0
+PyJWT[crypto]==2.15.0  # بديلُ python-jose (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01)؛ ==2.15.0 كالمنصّة (CVE-2026-101918)
 # test_otp يُحمّل services/auth/main.py الذي يستورد pyotp (MFA/TOTP، تبعيّة
 # مُعلَنة أصلاً في services/auth/requirements.txt) ⇒ بدونها يفشل جمع الاختبار
 # في CI بـModuleNotFoundError: No module named 'pyotp'.

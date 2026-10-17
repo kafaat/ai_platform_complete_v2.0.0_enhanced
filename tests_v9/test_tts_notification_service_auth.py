@@ -18,8 +18,8 @@ import os
 import sys
 import types
 
+import jwt
 import pytest
-from jose import jwt
 
 # تحميل وحدة tts يستورد fastapi (غير مثبّت في بيئة الوحدات بـCI) ⇒ تخطٍّ على مستوى
 # الوحدة كي لا تفشل اختبارات تحتاج الخدمة وقت التشغيل، مطابقةً لبقيّة اختبارات الخدمة.

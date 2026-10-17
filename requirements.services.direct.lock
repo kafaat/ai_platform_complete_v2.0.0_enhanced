@@ -37,7 +37,7 @@ asyncpg>=0.30.0,<0.32.0
 bcrypt>=4.1.0
 pyotp>=2.9.0
 cryptography>=44.0.0
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0
 pydantic[email]==2.13.4
 prometheus-client>=0.19.0
 aiosmtplib>=3.0.0
@@ -117,7 +117,7 @@ qdrant-client>=1.14.0,<2.0
 python-multipart>=0.0.18
 aiofiles>=24.0.0
 pypdf>=6.7.1,<7.0
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0
 
 # --- services/mcp_servers/requirements.txt ---
 fastapi==0.136.3
@@ -140,7 +140,7 @@ pydantic==2.13.4
 httpx>=0.27.0
 asyncpg>=0.30.0,<0.32.0
 python-multipart>=0.0.18
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0
 
 # --- services/qdrant-seed/requirements.txt ---
 qdrant-client>=1.14.0,<2.0
@@ -150,7 +150,7 @@ httpx>=0.27.0
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-python-jose[cryptography]==3.5.0
+PyJWT[crypto]==2.15.0
 
 # --- services/raster-service/requirements.txt ---
 fastapi==0.136.3
@@ -298,7 +298,7 @@ fastapi==0.136.3
 uvicorn[standard]==0.30.6
 edge-tts>=6.1.12
 redis>=5.0.0
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0
 pydantic==2.13.4
 prometheus-client>=0.19.0
 
@@ -323,7 +323,7 @@ numpy>=1.26.0
 redis>=5.0.0
 aiomqtt>=2.0.0
 python-multipart>=0.0.18
-python-jose[cryptography]>=3.4.0
+PyJWT[crypto]==2.15.0
 
 # --- services/weather-polygon-worker/requirements.txt ---
 asyncpg>=0.30.0,<0.32.0
@@ -345,7 +345,8 @@ defusedxml==0.7.1
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-PyJWT==2.13.0
+PyJWT[crypto]==2.15.0
+cryptography==50.0.1
 python-multipart==0.0.31
 httpx>=0.27.0
 numpy==1.26.4

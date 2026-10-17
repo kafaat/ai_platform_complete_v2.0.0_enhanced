@@ -6633,3 +6633,20 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`، `deploy/railway/probe_platform_db.py`؛ بيئة staging `70cc51f8-b11f-4506-87b2-4b6615e472be` وخدمة المنصّة `fa8afb01-d0c4-468f-852d-8a75ea97a6c3`.
 - **الفجوة:** لا شاهد اتصال جديد مُصادَق بالاعتماد الجاري، ولا إثبات نشر إصلاح readiness. السجلات التاريخية لفشل `sahool_app` ونجاح redeploy لا تثبت الحالة الحالية، وRailway Agent بلغ حد الاستخدام؛ صلاحية SSH لم تكن متاحة في الجلسة.
 - **شرط الإغلاق:** فحص SSH ينجح بهوية `sahool_app` وقاعدة `sahool` بلا superuser/BYPASSRLS، ثم deployment مطابق لهوية الصورة المصححة و`/readyz` ناجح مع `db=up`. إثبات RLS والجداول والمسار الذهبي يبقى مستقلاً. لا تعديل DATABASE_URL أو نسخ اعتماد إداري لتجاوز الفشل.
+
+
+## TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01
+
+- **الحالة:** **open** — سجل متابعة لفرع النشر القديم، لا اكتشاف جديد ولا إغلاق للمصدر القانوني على main.
+- **الفجوة:** المنصة المنشورة في staging عند df16cc05 لا تصدر عقد v2 الذي يحتاجه قارئ TTS الحالي. تصحيح المصدر المحدود 11b2e732 يضيف هوية العقد وإذن الصوت المستقل؛ قبول التشغيل لم ينفذ.
+- **المصدر:** `services/sahool-platform/core/ai_policy_envelope.py` · `services/sahool-platform/api/routers/me.py` · `services/sahool-platform/tests/test_me_ai_policy_envelope.py` · [حدود التصحيح](../../docs/testing/TTS_PLATFORM_BACKPORT_20261017.md).
+- **الإغلاق:** زوج منصة/TTS متوافق محدد المصدر والصورة، مصدر سياسة خاص متحقق، اختبار هوية مستأجر مأذونة وlocal_only مع منع الخروج؛ نجاح المصدر لا يحقق الإغلاق الحي.
+
+
+## DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01
+
+- **الحالة:** **fixed** في مصدر مرشح #1203 فقط؛ نقل للإصلاح المعتمد في #1198، لا إثبات إصلاح النسخة المنشورة.
+- **العطل:** فرع deploy القديم يحمل python-jose3.5.0؛ فحص CI عند834c56cf رفض PYSEC-2026-4298. حالة main مستقلة ومعالجة أصلًا في239c01a4.
+- **المصدر:** `shared/security/access_tokens.py` · `services/auth/requirements.txt` · `tests_v9/test_python_jose_removed.py` · #1198 · #1203.
+- **الدليل:** 12 حالة غياب/تبعية/إعفاء تفشل قبل النقل؛ 124 حالة أمنية ومعمارية تنجح بعد النقل. المكتبة البديلة PyJWT[crypto]==2.15.0؛ لا إعفاء ثغرة جديد ولا تفعيل enforce.
+- **الحد:** لا نشر أو قبول مستأجر حي؛ TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 تبقى open.

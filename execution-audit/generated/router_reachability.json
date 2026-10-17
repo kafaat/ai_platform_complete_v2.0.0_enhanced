@@ -91,7 +91,7 @@
     },
     {
       "kind": "app",
-      "line": 396,
+      "line": 397,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
       "route_count": 1,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 23,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 556,
+      "line": 554,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 160,
+      "line": 167,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -523,7 +523,7 @@
     },
     {
       "kind": "app",
-      "line": 194,
+      "line": 195,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -1468,7 +1468,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -2215,7 +2215,7 @@
     },
     {
       "kind": "app",
-      "line": 50,
+      "line": 52,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2242,7 +2242,7 @@
     },
     {
       "kind": "app",
-      "line": 138,
+      "line": 140,
       "module": "services.tts-service.main",
       "node_id": "services.tts-service.main:app",
       "route_count": 0,
@@ -2332,7 +2332,7 @@
     },
     {
       "kind": "app",
-      "line": 462,
+      "line": 466,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2524,7 +2524,7 @@
     },
     {
       "expression": "mod.router",
-      "line": 55,
+      "line": 58,
       "module": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
       "prefix": null,
       "resolved": false,
@@ -2640,7 +2640,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "277e75448a6c0a0159edc8348c77d2469c2cf95aa5f1765ce7f682514192389c",
+  "inventory_sha256": "44da6178f59054505b5aa081c2bc373f06fc9b2b561ec7b7ebe7349f873ec6ee",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -2746,7 +2746,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 23,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -4026,7 +4026,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.me",
       "node_id": "services.sahool-platform.api.routers.me:router",
       "route_count": 1,
@@ -5062,7 +5062,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
-      "line": 55,
+      "line": 58,
       "module": "services.sahool-platform.tests.test_me_ai_policy_envelope",
       "source": null,
       "target_expression": "mod.router"

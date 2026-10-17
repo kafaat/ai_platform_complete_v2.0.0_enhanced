@@ -12,6 +12,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends
 
 from api.main import (
@@ -20,6 +22,7 @@ from api.main import (
 )
 
 router = APIRouter()
+logger = logging.getLogger("sahool.ai_policy_envelope")
 
 
 @router.get("/api/v1/me")
@@ -40,7 +43,13 @@ async def me(user: UserSchema = Depends(get_current_user)):
     try:
         async with tenant_connection(user) as conn:
             policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
-    except Exception:  # noqa: BLE001 - تعذّر الاتّصال ⇒ الغلافُ الأشدّ، والهويّةُ لا تسقط
+    except Exception as exc:  # noqa: BLE001 - تعذّر الاتّصال ⇒ الغلافُ الأشدّ، والهويّةُ لا تسقط
+        # مغلقٌ لا صامت: بلا هذا السطر يُقرأ العطلُ كمستأجِرٍ بلا صفّ (local_only عاديّ).
+        logger.warning(
+            "AI_POLICY_CONNECTION_UNAVAILABLE tenant=%s error=%s ⇒ most restrictive envelope",
+            user.tenant_id,
+            type(exc).__name__,
+        )
         policy_row = None
     return {
         "user_id": user.user_id,
