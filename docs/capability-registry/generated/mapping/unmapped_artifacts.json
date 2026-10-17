@@ -7312,6 +7312,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },
@@ -8328,6 +8332,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_pr_finding_gap_id_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_practice_dataset_review.py",
     "kind": "tests"
   },
@@ -8909,6 +8917,10 @@
   },
   {
     "path": "tests_v9/test_test_impact_selector.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_text_anchor_liveness_guard.py",
     "kind": "tests"
   },
   {

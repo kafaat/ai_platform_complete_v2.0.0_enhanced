@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **277**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **442**
+- حرّاس تحجب في CI: **280**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **56**
+- إجماليّ الطفرات المُسجَّلة: **445**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **375** على 129 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (53)
+## الحرّاس المُثبَتة بالتكذيب (56)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -299,6 +299,18 @@
 - الوجهُ المقابل: إعلانُ produced بلا انبعاثٍ على المسار المُعلَن ادّعاءُ إنتاجٍ لا إنتاج. نجا هذا وحدَه من أوّل مسحِ طفراتٍ بينما ماتت الثلاث الأخرى — أي أنّ نصفَ القاعدة كان بلا شاهد، ولم تلتقطه المراجعة — يُسقِط `test_declaring_produced_without_any_emission_is_rejected`
 - سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight — يُسقِط `test_a_declared_producer_that_no_longer_exists_is_rejected`
 - إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج — يُسقِط `test_an_empty_reason_is_rejected`
+
+### `ci_invoked_locale_preamble_guard.py`
+
+**يفرض:** Every Python file a blocking CI step runs prints non-ASCII only after a UTF-8 preamble.
+
+**يحجب في:** `ci.yml` → `lint`
+
+**الاختبار الشاهد:** `tests_v9/test_ci_invoked_locale_preamble_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01) — يُسقِط `test_the_inventory_is_the_class_not_the_naming_convention`
 
 ### `ci_unbounded_wait_guard.py`
 
@@ -782,6 +794,18 @@
 - ‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01 — يُسقِط `test_the_container_path_maps_to_the_service_root_not_the_repository_root`
 - نزعُ حجبِ القبول ⇒ أرضيّةُ القبول تعود نثراً في ملفّ الأساس: وحدةٌ مستورِدُها الوحيدُ اختبارُها تدخل بتحرير ملفَّي JSON والحارسُ rc=0 قبلها وبعدها (ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01) — يُسقِط `test_a_module_admitted_without_an_executable_root_blocks`
 
+### `pr_finding_gap_id_guard.py`
+
+**يفرض:** A severity-labelled review finding in a PR must name a registered gap ID.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry` · `ci.yml` → `unit-tests` · `no-report-only-change.yml` → `no-report-only-change`
+
+**الاختبار الشاهد:** `tests_v9/test_pr_finding_gap_id_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01) — يُسقِط `test_an_unregistered_id_shaped_text_is_not_a_registration`
+
 ### `probe_leak_guard.py`
 
 **يفرض:** يُسمّي مِسبار اختبار تسرّب إلى الشجرة، بدل تركه يُشخَّص خطأً — `TEST-PROBE-LEAKS-INTO-THE-TREE-01`.
@@ -986,6 +1010,18 @@
 
 - إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم — يُسقِط `test_a_file_in_a_subdirectory_is_seen`
 - نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً — يُسقِط `test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker`
+
+### `text_anchor_liveness_guard.py`
+
+**يفرض:** A positive text anchor must hold on live code, not on a dead binding or a mandated escape.
+
+**يحجب في:** `ci.yml` → `lint`
+
+**الاختبار الشاهد:** `tests_v9/test_text_anchor_liveness_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01) — يُسقِط `test_the_app_tsx_dead_lazy_anchor_of_824_is_caught`
 
 ### `undeclared_context_dependency_guard.py`
 

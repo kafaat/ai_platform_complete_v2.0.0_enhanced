@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5945,
+    "files_scanned": 5951,
     "files_by_kind": {
       "backend": 1231,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1870,
-      "tests": 1953,
+      "other": 1873,
+      "tests": 1956,
       "web": 470
     },
-    "unmapped_artifacts": 2301,
+    "unmapped_artifacts": 2304,
     "ambiguous_artifacts": 458
   },
   "capabilities": [
@@ -9264,23 +9264,23 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:295",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:302",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:429",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:436",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:522",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:529",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:585",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:592",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:614",
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:621",
           "score": 14
         },
         {
@@ -25930,7 +25930,7 @@
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ scripts/ci/backfill_ui_sync_gate.py:52",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ scripts/ci/backfill_ui_sync_gate.py:59",
           "score": 8
         }
       ],
@@ -45473,6 +45473,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ci_pipeline_settings.py",
       "kind": "tests"
     },
@@ -46489,6 +46493,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_pr_finding_gap_id_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_practice_dataset_review.py",
       "kind": "tests"
     },
@@ -47070,6 +47078,10 @@
     },
     {
       "path": "tests_v9/test_test_impact_selector.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_text_anchor_liveness_guard.py",
       "kind": "tests"
     },
     {
