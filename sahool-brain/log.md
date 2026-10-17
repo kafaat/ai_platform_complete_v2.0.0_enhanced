@@ -9598,5 +9598,12 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 بتوجيه المالك جُمعت البنود 2–5 في فرع واحد؛ #1204 لجلسة أخرى. مصدر الاختبارات والأدلة `fbb204449f1326f92455cc390ab906b4a867244d` على `main@ec3927ce`: 24 اختبار واجهة و54 اختبار migrator/SAM2 و37 اختبار قياس RAG/حارس النص ناجحة؛ TypeScript ناجح؛ 7 حالات سلوكية جديدة تقتل 3 طفرات. RAG: 32 سؤالاً مُرقّم الإصدار، القياس الحي محجوب والنتائج المنفصلة لـBM25 تاريخية فقط. PG16: أربع حالات جديدة جُمعت داخل ملف 034 الذي يشغله CI القائم؛ لا نجاح تشغيل محلي مدّعى ولا ملف workflow معدل. SAM2: وزن Meta الرسمي طابق بصمته المنشورة، دون تثبيت. كل الفجوات المعنية open، ولا verified أو تعديل migrations/MANIFEST/ملفات Claude أو Railway أو نشر. [الدليل](../certification/evidence/chatgpt_w5_20261017/README.md).
 
+### 2026-10-17 — دمج #1208، وشريحة Redis ACL في PR مستقلّ
+
+دمج المالك #1208 ⇒ `f3936a771` (شجرة = الرأس المُختبَر `c2c492a31`؛ CI 71 ناجحة و2 متخطّاة؛ Railway: `sahool-frontend` وحدَه أُعيد بناؤه والمهاجر SKIPPED). الجلبُ الحيّ لتعليقات المراجعة قيس على ذلك الـPR (`HTTP 200` للصفحتين). ثمّ شريحة Redis على `main@f3936a771`: REDIS-SHARED-PASSWORD-NO-ACL-01 ⇒ `fixed` لـcompose v9 (`3b5f9e6a4`). وفجواتٌ جديدة: JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 (أمن، عالية) · REDIS-ON-RAILWAY-STILL-USES-THE-SHARED-PASSWORD-01 · RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01. المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
+
+### 2026-10-17 — TTS على staging: مستهلك v2 منشور، والقبول معلَّق
+
+بتفويض المالك (staging وحده): مصدرُ `sahool-tts-service` على staging صار `main@d301c136` مثبَّتاً بدل `claude/project-exploration-dtjw3p@0eaa1e4e`؛ النشر `822c5f96` نجح (20:01Z) وفحصُ `/readyz` مرّ والخدمة اتّصلت بـRedis. الإنتاج لم يُمَسّ (مصدره `main` بلا تثبيت ولا تغييراتٍ معلّقة). نقطةُ الرجوع `2705c13b`. تأكيدُ الترحيل انتهت مهلتُه ثلاثاً لكنّه طُبِّق. **الباقي لـTTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01:** قياسُ v2 (`local_only` · `redacted_external` · `full_external`) يحتاج هويّة اختبار staging؛ لا ترقية قبله. المصدر: سجلّ نشر Railway `822c5f96`.
 
 > **2026-10-17 — W6 (`4d0799f3`):** طلب المالك ستة إغلاقات خارج عمل Claude؛ تحقق إغلاق SAM2 على مستوى المصدر/التزويد فقط. تنزيل Meta الفعلي طابق البصمة والحجم، و28 اختباراً نجحت، و3 طفرات كُذبت بعد تشديد شاهد سبب الحجم. لا يُدّعى إنجاز الستة ولا قبول حي. [الدليل](../certification/evidence/chatgpt_w6_20261017/README.md).
