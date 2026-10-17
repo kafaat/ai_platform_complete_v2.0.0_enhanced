@@ -3,11 +3,11 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-17-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-10-17",
   "expires_on": "2026-11-16",
-  "pr": null,
+  "pr": 1205,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -47,5 +47,17 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ. الحارسُ يربط البايتاتِ المحدّدة فقط، و`pr` فارغٌ (`null`) لأنّ الـPR لم تُفتَح بعد عند الإصدار — لا رقمَ يُخمَّن؛ يُملأ ويُختَم السجلُّ `CONSUMED` مع `merge_sha` بعد الدمج."
+  },
+  "merge_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+  "consumed_by": {
+    "pr": 1205,
+    "merge_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+    "merged_at": "2026-10-17T18:01:16Z"
+  },
+  "consumption": {
+    "merge_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+    "consumed_on": "2026-10-17",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1205",
+    "scope": "Source merge only. The authorized blob of services/sahool-platform/api/event_bus.py (032a6e7d99e6045a54e033c7b07b9fc3d5da38df) matches the merge tree, and the merge tree equals the CI-tested head 8eee151ab. No deployment of sahool-platform (pinned to deploy/* branches), no production migration and no runtime acceptance is asserted."
   }
 }
