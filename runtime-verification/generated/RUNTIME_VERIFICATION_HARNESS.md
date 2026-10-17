@@ -4,7 +4,7 @@
 
 ## Summary
 
-- Services: **32**
+- Services: **31**
 - Services with probeable endpoints: **28**
 - Planned probes: **100**
 - Valid live evidence files: **0**
@@ -48,6 +48,5 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | tts-service | 4 | not verified |
 | vegetation-analysis-service | 4 | not verified |
 | video-processor | 3 | not verified |
-| weather-polygon-worker | 0 | not verified |
 | weather-service | 4 | not verified |
 | weather-signal-engine | 0 | not verified |

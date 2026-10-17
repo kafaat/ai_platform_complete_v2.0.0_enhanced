@@ -32,6 +32,5 @@ telegram-bot,service,sahool-telegram-bot,messaging-channel,stateless_compute,bot
 tts-service,service,sahool-tts-service,media,stateless_compute,services/tts-service,sahool-tts-service,sahool-tts-service,0,True,True
 vegetation-analysis-service,service,sahool-vegetation-analysis,vegetation-interpretation,system_of_record,services/vegetation-analysis-service,sahool-vegetation-analysis,sahool-vegetation-analysis,1,True,True
 video-processor,service,sahool-video-processor,media,stateless_compute,services/video-processor,sahool-video-processor,sahool-video-processor,0,True,True
-weather-polygon-worker,worker,sahool-weather-polygon-worker,weather-truth,stateless_compute,services/weather-polygon-worker,sahool-weather-polygon-worker,sahool-weather-polygon-worker,0,True,False
 weather-service,service,sahool-weather-service,weather-truth,system_of_record,services/weather-service,sahool-weather-service,sahool-weather-service,8,True,True
 weather-signal-engine,worker,sahool-weather-signal-engine,weather-truth,stateless_compute,services/weather-signal-engine,sahool-weather-signal-engine,sahool-weather-signal-engine,0,True,False

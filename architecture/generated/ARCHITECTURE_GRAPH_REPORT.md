@@ -4,11 +4,11 @@ Repository-derived evidence only; runtime activation is not implied.
 
 ## Summary
 
-- Nodes: 125
-- Edges: 320
-- Code-reference edges: 80
-- Compose dependency edges: 240
-- Orphan nodes: 5
+- Nodes: 109
+- Edges: 182
+- Code-reference edges: 50
+- Compose dependency edges: 132
+- Orphan nodes: 8
 - Strongly connected components: 0
 
 ## Cycles
@@ -17,8 +17,11 @@ Repository-derived evidence only; runtime activation is not implied.
 
 ## Orphans
 
+- auth
+- field-management-service
 - field-segmentation
 - guardrails-engine
+- qdrant-seed
 - sam2-inference
-- weather-polygon-worker
+- tts-service
 - weather-signal-engine

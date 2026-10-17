@@ -20,10 +20,6 @@
     },
     {
       "score_pct": 42.9,
-      "service": "weather-polygon-worker"
-    },
-    {
-      "score_pct": 42.9,
       "service": "weather-signal-engine"
     },
     {
@@ -41,11 +37,15 @@
     {
       "score_pct": 71.4,
       "service": "field-segmentation"
+    },
+    {
+      "score_pct": 71.4,
+      "service": "mcp_servers"
     }
   ],
   "schema_version": "1.0",
-  "services": 32,
-  "with_declared_configuration": 30,
+  "services": 31,
+  "with_declared_configuration": 29,
   "with_health": 27,
   "with_metrics": 17,
   "with_readiness": 26,

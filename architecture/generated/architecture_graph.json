@@ -8,7 +8,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 8,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -17,8 +17,8 @@
         "services/agriai-engine"
       ],
       "kind": "service",
-      "incoming": 2,
-      "outgoing": 2,
+      "incoming": 1,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -28,7 +28,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 5,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -38,16 +38,8 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 3,
-      "orphan": false
-    },
-    {
-      "id": "auth-service",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 5,
-      "outgoing": 4,
-      "orphan": false
+      "outgoing": 0,
+      "orphan": true
     },
     {
       "id": "decision-service",
@@ -56,7 +48,7 @@
       ],
       "kind": "service",
       "incoming": 10,
-      "outgoing": 3,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -65,7 +57,7 @@
         "services/edge-inference"
       ],
       "kind": "service",
-      "incoming": 4,
+      "incoming": 2,
       "outgoing": 0,
       "orphan": false
     },
@@ -75,8 +67,8 @@
         "services/odoo-bridge"
       ],
       "kind": "service",
-      "incoming": 2,
-      "outgoing": 2,
+      "incoming": 1,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -184,22 +176,14 @@
       "orphan": false
     },
     {
-      "id": "fastbee",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 4,
-      "outgoing": 2,
-      "orphan": false
-    },
-    {
       "id": "field-management-service",
       "paths": [
         "services/field-management-service"
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 1,
-      "orphan": false
+      "outgoing": 0,
+      "orphan": true
     },
     {
       "id": "field-segmentation",
@@ -210,22 +194,6 @@
       "incoming": 0,
       "outgoing": 0,
       "orphan": true
-    },
-    {
-      "id": "frontend",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 4,
-      "outgoing": 4,
-      "orphan": false
-    },
-    {
-      "id": "guardrails",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 8,
-      "outgoing": 2,
-      "orphan": false
     },
     {
       "id": "guardrails-engine",
@@ -263,15 +231,7 @@
         "services/local-ai-rag"
       ],
       "kind": "service",
-      "incoming": 2,
-      "outgoing": 4,
-      "orphan": false
-    },
-    {
-      "id": "market-mcp",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 1,
       "orphan": false
     },
@@ -296,37 +256,13 @@
       "orphan": false
     },
     {
-      "id": "nginx",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 9,
-      "orphan": false
-    },
-    {
-      "id": "ollama",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "platform",
       "paths": [
         "services/sahool-platform"
       ],
       "kind": "service",
       "incoming": 5,
-      "outgoing": 32,
-      "orphan": false
-    },
-    {
-      "id": "postgis",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 12,
-      "outgoing": 0,
+      "outgoing": 22,
       "orphan": false
     },
     {
@@ -338,22 +274,14 @@
       "orphan": false
     },
     {
-      "id": "qdrant",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 4,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "qdrant-seed",
       "paths": [
         "services/qdrant-seed"
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 1,
-      "orphan": false
+      "outgoing": 0,
+      "orphan": true
     },
     {
       "id": "rag-retrieval",
@@ -362,7 +290,7 @@
       ],
       "kind": "service",
       "incoming": 1,
-      "outgoing": 1,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -372,7 +300,7 @@
       ],
       "kind": "service",
       "incoming": 8,
-      "outgoing": 9,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -382,14 +310,6 @@
       ],
       "kind": "service",
       "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "redis",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 29,
       "outgoing": 0,
       "orphan": false
     },
@@ -416,7 +336,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -439,8 +359,8 @@
       "id": "sahool-auth",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 4,
-      "outgoing": 6,
+      "incoming": 2,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -471,8 +391,8 @@
       "id": "sahool-erp-bridge",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 3,
+      "incoming": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -488,7 +408,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 6,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -503,7 +423,7 @@
       "id": "sahool-frontend",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -511,16 +431,16 @@
       "id": "sahool-guardrails-engine",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 5,
+      "incoming": 2,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-indicators-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 4,
+      "incoming": 2,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -543,24 +463,24 @@
       "id": "sahool-local-ai-rag",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 4,
+      "incoming": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-market-mcp",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 2,
+      "incoming": 1,
+      "outgoing": 1,
       "orphan": false
     },
     {
       "id": "sahool-migrate",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 28,
-      "outgoing": 2,
+      "incoming": 19,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -599,8 +519,8 @@
       "id": "sahool-nats",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 14,
-      "outgoing": 0,
+      "incoming": 6,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -612,11 +532,19 @@
       "orphan": false
     },
     {
+      "id": "sahool-nats-tls-init",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 1,
+      "outgoing": 0,
+      "orphan": false
+    },
+    {
       "id": "sahool-nginx",
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 33,
+      "outgoing": 22,
       "orphan": false
     },
     {
@@ -631,8 +559,8 @@
       "id": "sahool-notification-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 8,
+      "incoming": 2,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -640,14 +568,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 3,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-ollama",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -687,7 +615,15 @@
       "id": "sahool-postgres",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 40,
+      "incoming": 26,
+      "outgoing": 1,
+      "orphan": false
+    },
+    {
+      "id": "sahool-postgres-tls-init",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -695,7 +631,7 @@
       "id": "sahool-qdrant",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 6,
+      "incoming": 4,
       "outgoing": 0,
       "orphan": false
     },
@@ -704,7 +640,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -713,14 +649,6 @@
       "kind": "compose-service",
       "incoming": 2,
       "outgoing": 3,
-      "orphan": false
-    },
-    {
-      "id": "sahool-raster",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 1,
       "orphan": false
     },
     {
@@ -744,14 +672,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 4,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-redis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 15,
+      "incoming": 8,
       "outgoing": 0,
       "orphan": false
     },
@@ -823,8 +751,8 @@
       "id": "sahool-supervisor-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 2,
+      "incoming": 1,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -832,7 +760,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 7,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -844,18 +772,10 @@
       "orphan": false
     },
     {
-      "id": "sahool-unified-odoo",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 1,
-      "orphan": false
-    },
-    {
       "id": "sahool-vegetation-analysis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 2,
       "outgoing": 1,
       "orphan": false
     },
@@ -884,19 +804,11 @@
       "orphan": false
     },
     {
-      "id": "sahool-weather-polygon-worker",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 3,
-      "orphan": false
-    },
-    {
       "id": "sahool-weather-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 3,
+      "incoming": 1,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -952,14 +864,6 @@
       "orphan": false
     },
     {
-      "id": "sentinel-hub-mcp",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "soil-service",
       "paths": [
         "services/soil-service"
@@ -975,14 +879,6 @@
         "services/supervisor-agent"
       ],
       "kind": "service",
-      "incoming": 6,
-      "outgoing": 17,
-      "orphan": false
-    },
-    {
-      "id": "telegram-bot",
-      "paths": [],
-      "kind": "compose-service",
       "incoming": 0,
       "outgoing": 4,
       "orphan": false
@@ -994,8 +890,8 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 1,
-      "orphan": false
+      "outgoing": 0,
+      "orphan": true
     },
     {
       "id": "vegetation-analysis-service",
@@ -1004,7 +900,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 10,
+      "outgoing": 9,
       "orphan": false
     },
     {
@@ -1014,26 +910,8 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 8,
+      "outgoing": 1,
       "orphan": false
-    },
-    {
-      "id": "weather-mcp",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "weather-polygon-worker",
-      "paths": [
-        "services/weather-polygon-worker"
-      ],
-      "kind": "service",
-      "incoming": 0,
-      "outgoing": 0,
-      "orphan": true
     },
     {
       "id": "weather-service",
@@ -1042,7 +920,7 @@
       ],
       "kind": "service",
       "incoming": 4,
-      "outgoing": 1,
+      "outgoing": 0,
       "orphan": false
     },
     {
@@ -1054,14 +932,6 @@
       "incoming": 0,
       "outgoing": 0,
       "orphan": true
-    },
-    {
-      "id": "wofost-mcp",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
     }
   ],
   "edges": [
@@ -1072,64 +942,10 @@
       "evidence": "services/actuator-service/actuator_runtime.py"
     },
     {
-      "source": "actuator-service",
-      "target": "fastbee",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "fastbee",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/actuator-service/actuator_runtime.py"
-    },
-    {
-      "source": "actuator-service",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "agriai-engine",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
       "source": "agriai-engine",
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/agriai-engine/agronomic_context.py"
-    },
-    {
-      "source": "ai-agronomist",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/ai_agronomist/main.py"
     },
     {
       "source": "ai-agronomist",
@@ -1150,60 +966,6 @@
       "evidence": "services/ai_agronomist/ai_evidence_runtime.py"
     },
     {
-      "source": "ai-agronomist",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/ai_agronomist/agent_stores.py"
-    },
-    {
-      "source": "auth",
-      "target": "frontend",
-      "kind": "code-reference",
-      "evidence": "services/auth/main.py"
-    },
-    {
-      "source": "auth",
-      "target": "frontend",
-      "kind": "code-reference",
-      "evidence": "services/auth/routers/tenants.py"
-    },
-    {
-      "source": "auth",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/auth/main.py"
-    },
-    {
-      "source": "auth-service",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "auth-service",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "auth-service",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "auth-service",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "decision-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/decision-service/main.py"
-    },
-    {
       "source": "decision-service",
       "target": "soil-service",
       "kind": "code-reference",
@@ -1214,18 +976,6 @@
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/decision-service/main.py"
-    },
-    {
-      "source": "erp-bridge",
-      "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erp-bridge",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "erpnext-backend",
@@ -1300,60 +1050,6 @@
       "evidence": "docker-compose.evidence-lab.yml"
     },
     {
-      "source": "fastbee",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "fastbee",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "field-management-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/field-management-service/main.py"
-    },
-    {
-      "source": "frontend",
-      "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "frontend",
-      "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "frontend",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "frontend",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "guardrails",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "guardrails",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
       "source": "indicators-service",
       "target": "raster-service",
       "kind": "code-reference",
@@ -1367,33 +1063,9 @@
     },
     {
       "source": "local-ai-rag",
-      "target": "ollama",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "local-ai-rag",
-      "target": "qdrant",
-      "kind": "code-reference",
-      "evidence": "services/local-ai-rag/main.py"
-    },
-    {
-      "source": "local-ai-rag",
-      "target": "qdrant",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "local-ai-rag",
       "target": "rag-retrieval",
       "kind": "code-reference",
       "evidence": "services/local-ai-rag/main.py"
-    },
-    {
-      "source": "market-mcp",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "mcp-servers",
@@ -1426,60 +1098,6 @@
       "evidence": "services/model-registry-adapter/worker.py"
     },
     {
-      "source": "nginx",
-      "target": "agriai-engine",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "erp-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "frontend",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "frontend",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "local-ai-rag",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
       "source": "platform",
       "target": "decision-service",
       "kind": "code-reference",
@@ -1505,30 +1123,6 @@
     },
     {
       "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/api/routers/decision_dispatch.py"
-    },
-    {
-      "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/core/decision_dispatch.py"
-    },
-    {
-      "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/core/field_intelligence_adapters.py"
-    },
-    {
-      "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/core/internal_orchestrator.py"
-    },
-    {
-      "source": "platform",
       "target": "indicators-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/indicators.py"
@@ -1547,33 +1141,9 @@
     },
     {
       "source": "platform",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/api/main.py"
-    },
-    {
-      "source": "platform",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/api/routers/weather.py"
-    },
-    {
-      "source": "platform",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/core/capabilities.py"
-    },
-    {
-      "source": "platform",
       "target": "sahool-field-segmentation",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "platform",
@@ -1597,19 +1167,7 @@
       "source": "platform",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "platform",
@@ -1672,70 +1230,10 @@
       "evidence": "services/sahool-platform/core/field_intelligence_adapters.py"
     },
     {
-      "source": "qdrant-seed",
-      "target": "qdrant",
-      "kind": "code-reference",
-      "evidence": "services/qdrant-seed/seed.py"
-    },
-    {
-      "source": "rag-retrieval",
-      "target": "qdrant",
-      "kind": "code-reference",
-      "evidence": "services/rag-retrieval/main.py"
-    },
-    {
       "source": "raster-service",
       "target": "decision-service",
       "kind": "code-reference",
       "evidence": "services/raster-service/imagery_source_gate.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/cache_invalidation_worker.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/indicator_batch_claim.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/job_store.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/layer_cache_events.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/raster_main_runtime.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/raster_runtime_state.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/raster_stac_runtime.py"
-    },
-    {
-      "source": "raster-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/raster-service/stac_client.py"
     },
     {
       "source": "remote-sensing-workspace-bff",
@@ -1778,12 +1276,6 @@
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-actuator-service",
@@ -1855,31 +1347,13 @@
       "source": "sahool-auth",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-auth",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-auth",
@@ -1921,12 +1395,6 @@
       "source": "sahool-erp-bridge",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
@@ -1939,19 +1407,7 @@
       "source": "sahool-field-management",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-field-management",
@@ -1973,27 +1429,9 @@
     },
     {
       "source": "sahool-guardrails-engine",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-guardrails-engine",
@@ -2002,40 +1440,10 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-indicators-service",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
       "source": "sahool-irrigation-reservation-lifecycle-worker",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "sahool-ollama",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-local-ai-rag",
@@ -2047,31 +1455,13 @@
       "source": "sahool-local-ai-rag",
       "target": "sahool-qdrant",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "sahool-qdrant",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-market-mcp",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-migrate",
@@ -2104,6 +1494,12 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
+      "source": "sahool-nats",
+      "target": "sahool-nats-tls-init",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
       "source": "sahool-nats-exporter",
       "target": "sahool-nats",
       "kind": "compose-depends-on",
@@ -2131,19 +1527,7 @@
       "source": "sahool-nginx",
       "target": "sahool-auth",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-auth",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-erp-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2155,31 +1539,13 @@
       "source": "sahool-nginx",
       "target": "sahool-frontend",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-frontend",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
       "target": "sahool-guardrails-engine",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-guardrails-engine",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-indicators-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2197,19 +1563,7 @@
       "source": "sahool-nginx",
       "target": "sahool-local-ai-rag",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-local-ai-rag",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-market-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2222,12 +1576,6 @@
       "target": "sahool-nginx-tls-init",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-notification-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2263,12 +1611,6 @@
       "source": "sahool-nginx",
       "target": "sahool-supervisor-agent",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-supervisor-agent",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
@@ -2276,12 +1618,6 @@
       "target": "sahool-tts-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-vegetation-analysis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2299,25 +1635,7 @@
       "source": "sahool-nginx",
       "target": "sahool-weather-service",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-weather-service",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-notification-agent",
@@ -2329,19 +1647,7 @@
       "source": "sahool-notification-agent",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-notification-agent",
@@ -2360,12 +1666,6 @@
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-odoo",
@@ -2416,22 +1716,16 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-qdrant-seed",
-      "target": "sahool-ollama",
+      "source": "sahool-postgres",
+      "target": "sahool-postgres-tls-init",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-qdrant-seed",
       "target": "sahool-ollama-models",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "sahool-qdrant",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-qdrant-seed",
@@ -2458,58 +1752,40 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-raster",
+      "source": "sahool-raster-backfill-scan-worker",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-backfill-scan-worker",
+      "target": "sahool-postgres",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-cache-invalidation-worker",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-cache-invalidation-worker",
+      "target": "sahool-postgres",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "production-preflight",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.production.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
       "target": "raster-tiler-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-remote-sensing-workspace-bff",
@@ -2569,49 +1845,13 @@
       "source": "sahool-supervisor-agent",
       "target": "sahool-auth",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "sahool-auth",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-telegram-bot",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-telegram-bot",
@@ -2626,16 +1866,10 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-unified-odoo",
-      "target": "postgis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
       "source": "sahool-vegetation-analysis",
-      "target": "sahool-nats",
+      "target": "production-preflight",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
+      "evidence": "docker-compose.production.yml"
     },
     {
       "source": "sahool-video-processor",
@@ -2686,36 +1920,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-weather-polygon-worker",
-      "target": "sahool-migrate",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "sahool-nats",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-weather-service",
       "target": "sahool-redis",
       "kind": "compose-depends-on",
@@ -2747,39 +1951,9 @@
     },
     {
       "source": "supervisor-agent",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/supervisor-agent/main.py"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "guardrails",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "guardrails",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "supervisor-agent",
       "target": "local-ai-rag",
       "kind": "code-reference",
       "evidence": "services/supervisor-agent/skills/advisory_skill.py"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "market-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "market-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "supervisor-agent",
@@ -2792,84 +1966,6 @@
       "target": "platform",
       "kind": "code-reference",
       "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "sentinel-hub-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "sentinel-hub-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "weather-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "weather-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "wofost-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "wofost-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "telegram-bot",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "telegram-bot",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "telegram-bot",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "telegram-bot",
-      "target": "supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "tts-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/tts-service/main.py"
     },
     {
       "source": "vegetation-analysis-service",
@@ -2903,12 +1999,6 @@
     },
     {
       "source": "vegetation-analysis-service",
-      "target": "production-preflight",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.production.yml"
-    },
-    {
-      "source": "vegetation-analysis-service",
       "target": "raster-service",
       "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/main.py"
@@ -2936,64 +2026,16 @@
       "target": "edge-inference",
       "kind": "code-reference",
       "evidence": "services/video-processor/main.py"
-    },
-    {
-      "source": "video-processor",
-      "target": "edge-inference",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "edge-inference",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "fastbee",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "fastbee",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/video-processor/main.py"
-    },
-    {
-      "source": "video-processor",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "weather-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/weather-service/cache.py"
     }
   ],
   "cycles": [],
   "summary": {
-    "nodes": 125,
-    "edges": 320,
-    "orphans": 5,
+    "nodes": 109,
+    "edges": 182,
+    "orphans": 8,
     "cycles": 0,
-    "code_edges": 80,
-    "compose_edges": 240
+    "code_edges": 50,
+    "compose_edges": 132
   },
-  "content_sha256": "de83b2482225a3457ef88d4cc83bc030d83beb38f018fd98b5db96bb4f9cb4d5"
+  "content_sha256": "47d1cb38e9c09bf8d441e6aee165775408226432d6a17665cc950efb1ce68c24"
 }

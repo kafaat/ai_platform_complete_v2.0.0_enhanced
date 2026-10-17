@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5945,
+    "files_scanned": 5968,
     "files_by_kind": {
-      "backend": 1231,
+      "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1870,
-      "tests": 1953,
-      "web": 470
+      "other": 1884,
+      "tests": 1965,
+      "web": 469
     },
-    "unmapped_artifacts": 2301,
-    "ambiguous_artifacts": 458
+    "unmapped_artifacts": 2302,
+    "ambiguous_artifacts": 462
   },
   "capabilities": [
     {
@@ -736,10 +736,6 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1574",
           "score": 12
         },
@@ -1150,7 +1146,7 @@
         "backend": 9,
         "routes": 20,
         "database": 41,
-        "events": 33,
+        "events": 32,
         "web": 0,
         "mobile": 0,
         "tests": 18,
@@ -2675,10 +2671,6 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1574",
           "score": 12
         },
@@ -2834,7 +2826,7 @@
         "backend": 5,
         "routes": 95,
         "database": 14,
-        "events": 5,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 4,
@@ -3841,7 +3833,7 @@
           "score": 14
         },
         {
-          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:39",
+          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:40",
           "score": 14
         }
       ],
@@ -7003,7 +6995,7 @@
         },
         {
           "path": "services/sahool-platform/core/season_phenology.py",
-          "score": 12,
+          "score": 13,
           "signals": [
             "path:season",
             "content:season"
@@ -9068,7 +9060,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 12
         },
         {
@@ -9076,7 +9068,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 12
         },
         {
@@ -9088,51 +9080,51 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 12
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 12
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 12
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 12
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 12
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 12
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 12
         },
         {
@@ -9264,28 +9256,44 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:295",
+          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:203",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:429",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:302",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:522",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:436",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:585",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:529",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:614",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:606",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:635",
           "score": 14
         },
         {
           "value": "sahool.element84-legacy-inventory.v1 @ scripts/diagnostics/element84_legacy_inventory.py:196",
           "score": 14
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:203",
+          "score": 14
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:224",
+          "score": 14
+        },
+        {
+          "value": "sahool.inventory-edge-exemptions @ docs/architecture/inventory_edge_exemptions.json:2",
+          "score": 13
         },
         {
           "value": "decision-unit-final.log @ certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json:48",
@@ -9350,7 +9358,23 @@
           ]
         },
         {
+          "path": "tests_v9/test_inventory_edge_classification.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "tests_v9/test_inventory_equipment.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "tests_v9/test_v9_internal_tls_inventory.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -9541,6 +9565,14 @@
           ]
         },
         {
+          "path": "docs/architecture/inventory_edge_exemptions.json",
+          "score": 13,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -9551,6 +9583,14 @@
         },
         {
           "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json",
+          "score": 12,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "scripts/diagnostics/resolve_inventory_edges.py",
           "score": 12,
           "signals": [
             "path:inventory",
@@ -9591,6 +9631,14 @@
         },
         {
           "path": "certification/evidence/chatgpt_remaining_20261016/inventory/correlation-audit.md",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "docs/architecture/v9_internal_tls_inventory.json",
           "score": 11,
           "signals": [
             "path:inventory",
@@ -9656,14 +9704,14 @@
           ]
         },
         {
-          "path": "docs/openapi/ROUTE_INVENTORY.json",
+          "path": "docs/architecture/startup_db_connect_inventory.json",
           "score": 8,
           "signals": [
             "path:inventory"
           ]
         },
         {
-          "path": "scripts/diagnostics/resolve_inventory_edges.py",
+          "path": "docs/openapi/ROUTE_INVENTORY.json",
           "score": 8,
           "signals": [
             "path:inventory"
@@ -9678,12 +9726,12 @@
         "backend": 8,
         "routes": 26,
         "database": 26,
-        "events": 10,
+        "events": 14,
         "web": 1,
         "mobile": 1,
-        "tests": 8,
+        "tests": 10,
         "governance": 4,
-        "other_evidence": 31
+        "other_evidence": 34
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -9795,59 +9843,59 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 10
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 10
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 10
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 10
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 10
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 10
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 10
         },
         {
@@ -9931,7 +9979,7 @@
         },
         {
           "path": "tests_v9/test_erp_bridge_requires_erp.py",
-          "score": 17,
+          "score": 16,
           "signals": [
             "path:erp bridge",
             "content:erp bridge",
@@ -10014,7 +10062,7 @@
           ]
         },
         {
-          "path": "docker-compose.fixed.yml",
+          "path": "docs/history/compose/docker-compose.fixed.yml",
           "score": 12,
           "signals": [
             "content:erp bridge",
@@ -10022,7 +10070,7 @@
           ]
         },
         {
-          "path": "docker-compose.unified.yml",
+          "path": "docs/history/compose/docker-compose.unified.yml",
           "score": 12,
           "signals": [
             "content:erp bridge",
@@ -10030,7 +10078,7 @@
           ]
         },
         {
-          "path": "docker-compose.odoo-snippet.yml",
+          "path": "docs/history/compose/docker-compose.odoo-snippet.yml",
           "score": 11,
           "signals": [
             "content:erp bridge",
@@ -12291,7 +12339,131 @@
           "score": 26
         },
         {
+          "value": "canonical_execution_learning_worker.py @ tests_v9/test_nats_least_privilege.py:66",
+          "score": 20
+        },
+        {
           "value": "sahool.> @ docs/architecture/jetstream_topology_inventory.md:16",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1005",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1034",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:281",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:411",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:822",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:858",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:917",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:965",
+          "score": 20
+        },
+        {
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:976",
+          "score": 20
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1008",
+          "score": 20
+        },
+        {
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:410",
+          "score": 20
+        },
+        {
+          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:781",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:412",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:490",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:513",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:822",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1010",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1012",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:780",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:881",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:884",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1058",
+          "score": 20
+        },
+        {
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:471",
+          "score": 20
+        },
+        {
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:472",
+          "score": 20
+        },
+        {
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:538",
+          "score": 20
+        },
+        {
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:888",
+          "score": 20
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ tests_v9/test_nats_least_privilege.py:486",
+          "score": 20
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ tests_v9/test_nats_least_privilege.py:540",
+          "score": 20
+        },
+        {
+          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:897",
+          "score": 20
+        },
+        {
+          "value": "workers.canonical_execution_learning_worker @ tests_v9/test_nats_least_privilege.py:179",
           "score": 20
         },
         {
@@ -12411,6 +12583,10 @@
           "score": 17
         },
         {
+          "value": "sahool.alerts.weather @ tests_v9/test_nats_publisher_coverage.py:83",
+          "score": 14
+        },
+        {
           "value": "sahool.bogus.undocumented @ tests_v9/test_nats_publisher_coverage.py:60",
           "score": 14
         },
@@ -12419,7 +12595,47 @@
           "score": 14
         },
         {
-          "value": "sahool.weather.field.overlay.completed @ tests_v9/test_nats_publisher_coverage.py:68",
+          "value": "sahool.economic.analysis @ tests_v9/test_nats_publisher_coverage.py:89",
+          "score": 14
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_publisher_coverage.py:245",
+          "score": 14
+        },
+        {
+          "value": "sahool.fertilizer.recommendation @ tests_v9/test_nats_publisher_coverage.py:86",
+          "score": 14
+        },
+        {
+          "value": "sahool.inventory.low_stock @ tests_v9/test_nats_publisher_coverage.py:87",
+          "score": 14
+        },
+        {
+          "value": "sahool.irrigation.recommendation @ tests_v9/test_nats_publisher_coverage.py:85",
+          "score": 14
+        },
+        {
+          "value": "sahool.pest.alert @ tests_v9/test_nats_publisher_coverage.py:84",
+          "score": 14
+        },
+        {
+          "value": "sahool.synthetic.orphan.completed @ tests_v9/test_nats_publisher_coverage.py:285",
+          "score": 14
+        },
+        {
+          "value": "sahool.task.assigned @ tests_v9/test_nats_publisher_coverage.py:88",
+          "score": 14
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ tests_v9/test_nats_publisher_coverage.py:245",
+          "score": 14
+        },
+        {
+          "value": "sahool.weather.field.overlay.completed @ tests_v9/test_nats_publisher_coverage.py:258",
+          "score": 14
+        },
+        {
+          "value": "sahool.weather.forecast.updated @ tests_v9/test_nats_publisher_coverage.py:258",
           "score": 14
         },
         {
@@ -12447,15 +12663,15 @@
           "score": 12
         },
         {
-          "value": "sahool.alerts.weather @ event_publish_contracts.yaml:31",
+          "value": "sahool.alerts.weather @ event_publish_contracts.yaml:32",
           "score": 12
         },
         {
-          "value": "sahool.economic.analysis @ event_publish_contracts.yaml:55",
+          "value": "sahool.economic.analysis @ event_publish_contracts.yaml:56",
           "score": 12
         },
         {
-          "value": "sahool.events.> @ event_publish_contracts.yaml:20",
+          "value": "sahool.events.> @ event_publish_contracts.yaml:21",
           "score": 12
         },
         {
@@ -12479,15 +12695,15 @@
           "score": 12
         },
         {
-          "value": "sahool.fertilizer.recommendation @ event_publish_contracts.yaml:43",
+          "value": "sahool.fertilizer.recommendation @ event_publish_contracts.yaml:44",
           "score": 12
         },
         {
-          "value": "sahool.inventory.low_stock @ event_publish_contracts.yaml:47",
+          "value": "sahool.inventory.low_stock @ event_publish_contracts.yaml:48",
           "score": 12
         },
         {
-          "value": "sahool.irrigation.recommendation @ event_publish_contracts.yaml:39",
+          "value": "sahool.irrigation.recommendation @ event_publish_contracts.yaml:40",
           "score": 12
         },
         {
@@ -12495,15 +12711,15 @@
           "score": 12
         },
         {
-          "value": "sahool.pest.alert @ event_publish_contracts.yaml:35",
+          "value": "sahool.pest.alert @ event_publish_contracts.yaml:36",
           "score": 12
         },
         {
-          "value": "sahool.task.assigned @ event_publish_contracts.yaml:51",
+          "value": "sahool.task.assigned @ event_publish_contracts.yaml:52",
           "score": 12
         },
         {
-          "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:14",
+          "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:15",
           "score": 12
         },
         {
@@ -12511,88 +12727,8 @@
           "score": 12
         },
         {
-          "value": "sahool.weather.field.overlay.completed @ event_publish_contracts.yaml:76",
-          "score": 12
-        },
-        {
-          "value": "sahool.weather.forecast.updated @ event_publish_contracts.yaml:61",
-          "score": 12
-        },
-        {
-          "value": "sahool.alerts.weather @ shared/notification_consumers.py:25",
+          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:214",
           "score": 11
-        },
-        {
-          "value": "sahool.economic.analysis @ shared/notification_consumers.py:31",
-          "score": 11
-        },
-        {
-          "value": "sahool.events.> @ shared/notification_consumers.py:33",
-          "score": 11
-        },
-        {
-          "value": "sahool.fertilizer.recommendation @ shared/notification_consumers.py:28",
-          "score": 11
-        },
-        {
-          "value": "sahool.inventory.low_stock @ shared/notification_consumers.py:29",
-          "score": 11
-        },
-        {
-          "value": "sahool.irrigation.recommendation @ shared/notification_consumers.py:27",
-          "score": 11
-        },
-        {
-          "value": "sahool.pest.alert @ shared/notification_consumers.py:26",
-          "score": 11
-        },
-        {
-          "value": "sahool.task.assigned @ shared/notification_consumers.py:30",
-          "score": 11
-        },
-        {
-          "value": "sahool.tenant.*.satellite.*.computed @ shared/notification_consumers.py:24",
-          "score": 11
-        },
-        {
-          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:211",
-          "score": 10
-        },
-        {
-          "value": "field.created @ tests_v9/test_outbox_delivery_attempts_v19_5.py:107",
-          "score": 10
-        },
-        {
-          "value": "sahool.events.test @ tests_v9/test_outbox_claim_lease.py:209",
-          "score": 10
-        },
-        {
-          "value": "field.created @ tests_v9/test_outbox_idempotent_consumption.py:123",
-          "score": 9
-        },
-        {
-          "value": "sahool.cache @ shared/helpers.py:379",
-          "score": 9
-        },
-        {
-          "value": "sahool.cache @ shared/helpers.py:384",
-          "score": 9
-        },
-        {
-          "value": "sahool.events.test @ tests_v9/test_outbox_idempotent_consumption.py:121",
-          "score": 9
-        },
-        {
-          "value": "sahool.irrigation.dispatch_relay @ services/sahool-platform/api/irrigation_dispatch_relay_worker.py:41",
-          "score": 9
-        },
-        {
-          "value": "sahool.scheduler @ services/sahool-platform/api/scheduler.py:33",
-          "score": 9
-        },
-        {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_worker_claim_lease.py:168",
-          "score": 8
         }
       ],
       "web": [],
@@ -12605,6 +12741,15 @@
             "content:event bus",
             "path:jetstream",
             "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_nats_least_privilege.py",
+          "score": 20,
+          "signals": [
+            "content:jetstream",
+            "path:nats",
             "content:nats"
           ]
         },
@@ -12643,6 +12788,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_nats_tls_init.py",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
           "score": 12,
           "signals": [
@@ -12668,7 +12821,7 @@
         },
         {
           "path": "tests_v9/test_outbox_claim_lease.py",
-          "score": 10,
+          "score": 11,
           "signals": [
             "content:event bus",
             "content:nats"
@@ -12715,7 +12868,16 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/notification-rollout.yml",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "scripts/ci/capability_linker.py",
@@ -12805,14 +12967,6 @@
           ]
         },
         {
-          "path": "docker-compose.fixed.yml",
-          "score": 12,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "docs/ARCHITECTURE_OPERATIONAL_PLAN_2026-06.md",
           "score": 12,
           "signals": [
@@ -12822,6 +12976,14 @@
         },
         {
           "path": "docs/evidence/operational_evidence_log.md",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "docs/history/compose/docker-compose.fixed.yml",
           "score": 12,
           "signals": [
             "content:jetstream",
@@ -12887,22 +13049,6 @@
           ]
         },
         {
-          "path": "docker-compose.light.yml",
-          "score": 9,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "path": "docker-compose.unified.yml",
-          "score": 9,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "docs/UNIFIED_SETUP.md",
           "score": 9,
           "signals": [
@@ -12912,7 +13058,31 @@
           ]
         },
         {
+          "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-17-001.json",
+          "score": 9,
+          "signals": [
+            "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "docs/history/compose/docker-compose.light.yml",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "docs/history/compose/docker-compose.unified.yml",
           "score": 9,
           "signals": [
             "content:jetstream",
@@ -12956,16 +13126,19 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "events": 20
+      },
       "evidence_counts": {
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 78,
+        "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 14,
-        "governance": 0,
-        "other_evidence": 28
+        "tests": 16,
+        "governance": 1,
+        "other_evidence": 29
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -13659,14 +13832,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/weather_advice.py",
-          "score": 10,
-          "signals": [
-            "content:Water balance",
-            "content:water balance"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/crop_water_sensitivity.py",
           "score": 8,
           "signals": [
@@ -13806,6 +13971,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_taw_kc_single_source.py",
+          "score": 12,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
+        },
+        {
           "path": "tests_v9/test_wofost_what_if_contract.py",
           "score": 12,
           "signals": [
@@ -13876,13 +14049,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 10,
+        "backend": 9,
         "routes": 2,
         "database": 3,
         "events": 6,
         "web": 2,
         "mobile": 0,
-        "tests": 8,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 5
       },
@@ -15996,10 +16169,6 @@
         {
           "value": "site.irrigated @ mobile/sahool_app/test/field_forms/condition_corpus_data.dart:14",
           "score": 16
-        },
-        {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
-          "score": 12
         }
       ],
       "web": [],
@@ -16417,7 +16586,7 @@
         "backend": 3,
         "routes": 12,
         "database": 14,
-        "events": 9,
+        "events": 8,
         "web": 0,
         "mobile": 12,
         "tests": 21,
@@ -17309,7 +17478,7 @@
           "score": 48
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:81",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:82",
           "score": 23
         }
       ],
@@ -25846,7 +26015,7 @@
           "score": 15
         },
         {
-          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:360",
+          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:378",
           "score": 10
         },
         {
@@ -25874,63 +26043,63 @@
           "score": 9
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 9
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 9
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 9
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 9
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 9
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 9
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 9
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 9
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ scripts/ci/backfill_ui_sync_gate.py:52",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ scripts/ci/backfill_ui_sync_gate.py:59",
           "score": 8
         }
       ],
@@ -28258,6 +28427,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "services/auth/client_address.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "routes": [
@@ -28298,15 +28475,15 @@
           "score": 17
         },
         {
-          "value": "/v1/auth/users @ services/auth/routers/users.py:21",
+          "value": "/v1/auth/users @ services/auth/routers/users.py:22",
           "score": 16
         },
         {
-          "value": "/v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:72",
+          "value": "/v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73",
           "score": 16
         },
         {
-          "value": "/v1/auth/users/{user_id}/role @ services/auth/routers/users.py:30",
+          "value": "/v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31",
           "score": 16
         },
         {
@@ -28326,7 +28503,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:360",
+          "value": "/healthz @ tests_v9/test_e2e_findings_regressions.py:378",
           "score": 12
         },
         {
@@ -28338,19 +28515,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:26",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:27",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:183",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:184",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:228",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:229",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:127",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:128",
           "score": 12
         },
         {
@@ -28870,7 +29047,7 @@
           ]
         },
         {
-          "path": "docker-compose.fixed.yml",
+          "path": "docs/architecture/runtime_contract_nonsecret_keys.json",
           "score": 12,
           "signals": [
             "content:MFA",
@@ -28878,7 +29055,7 @@
           ]
         },
         {
-          "path": "docs/architecture/runtime_contract_nonsecret_keys.json",
+          "path": "docs/history/compose/docker-compose.fixed.yml",
           "score": 12,
           "signals": [
             "content:MFA",
@@ -28964,7 +29141,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 7,
+        "backend": 8,
         "routes": 24,
         "database": 23,
         "events": 5,
@@ -29681,19 +29858,19 @@
       "routes": [],
       "database": [
         {
-          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:175",
+          "value": "Beta @ tests_v9/test_apply_in_compose_fail_closed.py:177",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:170",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:172",
           "score": 8
         },
         {
-          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:171",
+          "value": "alpha @ tests_v9/test_apply_in_compose_fail_closed.py:173",
           "score": 8
         },
         {
-          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:289",
+          "value": "stray @ tests_v9/test_apply_in_compose_fail_closed.py:291",
           "score": 8
         }
       ],
@@ -29915,15 +30092,15 @@
           "score": 22
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:409",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:415",
           "score": 20
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:419",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:425",
           "score": 20
         },
         {
-          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:404",
+          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:410",
           "score": 20
         },
         {
@@ -30379,7 +30556,7 @@
           "score": 22
         },
         {
-          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:451",
+          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:457",
           "score": 20
         },
         {
@@ -30392,10 +30569,6 @@
         },
         {
           "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:59",
-          "score": 12
-        },
-        {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
           "score": 12
         },
         {
@@ -30840,7 +31013,7 @@
           ]
         },
         {
-          "path": "docker-compose.fixed.yml",
+          "path": "docs/audits/SOURCE_AUDIT_REPAIR_PROPOSAL_20261002.md",
           "score": 10,
           "signals": [
             "content:Soil profile",
@@ -30848,7 +31021,7 @@
           ]
         },
         {
-          "path": "docs/audits/SOURCE_AUDIT_REPAIR_PROPOSAL_20261002.md",
+          "path": "docs/history/compose/docker-compose.fixed.yml",
           "score": 10,
           "signals": [
             "content:Soil profile",
@@ -30920,7 +31093,7 @@
         "backend": 13,
         "routes": 96,
         "database": 14,
-        "events": 46,
+        "events": 45,
         "web": 1,
         "mobile": 0,
         "tests": 21,
@@ -32158,15 +32331,6 @@
           ]
         },
         {
-          "path": "services/weather-polygon-worker/src/main.py",
-          "score": 18,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/irrigation_engineering_workspace.py",
           "score": 16,
           "signals": [
@@ -32205,15 +32369,6 @@
         {
           "path": "services/supervisor-agent/tool_contracts.py",
           "score": 16,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/weather-polygon-worker/README.md",
-          "score": 15,
           "signals": [
             "content:Weather forecast",
             "content:forecast",
@@ -32614,6 +32769,14 @@
           "score": 18
         },
         {
+          "value": "activities @ docs/DEPLOYMENT_HARDENING.md:150",
+          "score": 9
+        },
+        {
+          "value": "fields @ docs/DEPLOYMENT_HARDENING.md:152",
+          "score": 9
+        },
+        {
           "path": "migrations/v93_processed_events.sql",
           "score": 9,
           "signals": [
@@ -32625,19 +32788,19 @@
         {
           "value": "processed_events @ migrations/v93_processed_events.sql:26",
           "score": 9
+        },
+        {
+          "value": "seasons @ docs/DEPLOYMENT_HARDENING.md:149",
+          "score": 9
+        },
+        {
+          "value": "seasons @ docs/DEPLOYMENT_HARDENING.md:151",
+          "score": 9
         }
       ],
       "events": [
         {
           "value": "field_intelligence_adapters.py @ scripts/ci/weather_service_real_contract_gate.py:100",
-          "score": 18
-        },
-        {
-          "value": "sahool.weather.field.overlay.completed @ services/weather-polygon-worker/src/main.py:194",
-          "score": 18
-        },
-        {
-          "value": "sahool.weather.forecast.updated @ services/weather-polygon-worker/src/main.py:165",
           "score": 18
         },
         {
@@ -32713,6 +32876,62 @@
           "score": 15
         },
         {
+          "value": "sahool.alerts.weather @ tests_v9/test_nats_publisher_coverage.py:83",
+          "score": 15
+        },
+        {
+          "value": "sahool.bogus.undocumented @ tests_v9/test_nats_publisher_coverage.py:60",
+          "score": 15
+        },
+        {
+          "value": "sahool.bogus.undocumented @ tests_v9/test_nats_publisher_coverage.py:64",
+          "score": 15
+        },
+        {
+          "value": "sahool.economic.analysis @ tests_v9/test_nats_publisher_coverage.py:89",
+          "score": 15
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_nats_publisher_coverage.py:245",
+          "score": 15
+        },
+        {
+          "value": "sahool.fertilizer.recommendation @ tests_v9/test_nats_publisher_coverage.py:86",
+          "score": 15
+        },
+        {
+          "value": "sahool.inventory.low_stock @ tests_v9/test_nats_publisher_coverage.py:87",
+          "score": 15
+        },
+        {
+          "value": "sahool.irrigation.recommendation @ tests_v9/test_nats_publisher_coverage.py:85",
+          "score": 15
+        },
+        {
+          "value": "sahool.pest.alert @ tests_v9/test_nats_publisher_coverage.py:84",
+          "score": 15
+        },
+        {
+          "value": "sahool.synthetic.orphan.completed @ tests_v9/test_nats_publisher_coverage.py:285",
+          "score": 15
+        },
+        {
+          "value": "sahool.task.assigned @ tests_v9/test_nats_publisher_coverage.py:88",
+          "score": 15
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ tests_v9/test_nats_publisher_coverage.py:245",
+          "score": 15
+        },
+        {
+          "value": "sahool.weather.field.overlay.completed @ tests_v9/test_nats_publisher_coverage.py:258",
+          "score": 15
+        },
+        {
+          "value": "sahool.weather.forecast.updated @ tests_v9/test_nats_publisher_coverage.py:258",
+          "score": 15
+        },
+        {
           "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
           "score": 14
         },
@@ -32765,7 +32984,39 @@
           "score": 12
         },
         {
+          "value": "sahool.alerts.weather @ event_publish_contracts.yaml:32",
+          "score": 12
+        },
+        {
+          "value": "sahool.economic.analysis @ event_publish_contracts.yaml:56",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.> @ event_publish_contracts.yaml:21",
+          "score": 12
+        },
+        {
+          "value": "sahool.fertilizer.recommendation @ event_publish_contracts.yaml:44",
+          "score": 12
+        },
+        {
           "value": "sahool.field_intelligence @ services/sahool-platform/api/routers/field_intelligence.py:26",
+          "score": 12
+        },
+        {
+          "value": "sahool.inventory.low_stock @ event_publish_contracts.yaml:48",
+          "score": 12
+        },
+        {
+          "value": "sahool.irrigation.recommendation @ event_publish_contracts.yaml:40",
+          "score": 12
+        },
+        {
+          "value": "sahool.pest.alert @ event_publish_contracts.yaml:36",
+          "score": 12
+        },
+        {
+          "value": "sahool.task.assigned @ event_publish_contracts.yaml:52",
           "score": 12
         },
         {
@@ -32773,19 +33024,11 @@
           "score": 12
         },
         {
-          "value": "sahool.weather.field.overlay.completed @ tests_v9/test_weather_polygon_worker.py:37",
-          "score": 12
-        },
-        {
-          "value": "sahool.weather.forecast.updated @ tests_v9/test_weather_polygon_worker.py:36",
+          "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:15",
           "score": 12
         },
         {
           "value": "sahool_voice.mp3 @ bots/telegram/main.py:239",
-          "score": 12
-        },
-        {
-          "value": "weather.forecast.updated @ tests_v9/test_weather_polygon_worker.py:39",
           "score": 12
         },
         {
@@ -32803,50 +33046,6 @@
         {
           "value": "weather_runtime.py @ services/sahool-platform/tests/test_p1_weather_boundary_guard.py:12",
           "score": 10
-        },
-        {
-          "value": "sahool.alerts.weather @ event_publish_contracts.yaml:31",
-          "score": 9
-        },
-        {
-          "value": "sahool.economic.analysis @ event_publish_contracts.yaml:55",
-          "score": 9
-        },
-        {
-          "value": "sahool.events.> @ event_publish_contracts.yaml:20",
-          "score": 9
-        },
-        {
-          "value": "sahool.fertilizer.recommendation @ event_publish_contracts.yaml:43",
-          "score": 9
-        },
-        {
-          "value": "sahool.inventory.low_stock @ event_publish_contracts.yaml:47",
-          "score": 9
-        },
-        {
-          "value": "sahool.irrigation.recommendation @ event_publish_contracts.yaml:39",
-          "score": 9
-        },
-        {
-          "value": "sahool.pest.alert @ event_publish_contracts.yaml:35",
-          "score": 9
-        },
-        {
-          "value": "sahool.task.assigned @ event_publish_contracts.yaml:51",
-          "score": 9
-        },
-        {
-          "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:14",
-          "score": 9
-        },
-        {
-          "value": "sahool.weather.field.overlay.completed @ event_publish_contracts.yaml:76",
-          "score": 9
-        },
-        {
-          "value": "sahool.weather.forecast.updated @ event_publish_contracts.yaml:61",
-          "score": 9
         },
         {
           "value": "sahool.weather_automation @ services/sahool-platform/api/weather_automation.py:26",
@@ -32997,6 +33196,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_nats_publisher_coverage.py",
+          "score": 15,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_mcp_auth_first_contract.py",
           "score": 14,
           "signals": [
@@ -33051,15 +33259,6 @@
         },
         {
           "path": "tests_v9/test_v13_refinements.py",
-          "score": 12,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "tests_v9/test_weather_polygon_worker.py",
           "score": 12,
           "signals": [
             "content:Weather forecast",
@@ -33140,7 +33339,43 @@
           ]
         },
         {
+          "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_container_command_path_guard.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_container_hardening_ratchet_v21.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_cross_service_path_contract_guard.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_db_writer_ownership_triage.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -33159,6 +33394,15 @@
         },
         {
           "path": "tests_v9/test_mobile_backend_contract.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_weather_worker_health_probe.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -33251,6 +33495,15 @@
           ]
         },
         {
+          "path": "event_publish_contracts.yaml",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "P3_1_WEATHER_SERVICE_CORE_REPORT.md",
           "score": 11,
           "signals": [
@@ -33296,6 +33549,15 @@
           ]
         },
         {
+          "path": "docs/DEPLOYMENT_HARDENING.md",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "docs/api/ROUTE_AUTH_MATRIX.md",
           "score": 9,
           "signals": [
@@ -33323,7 +33585,7 @@
           ]
         },
         {
-          "path": "event_publish_contracts.yaml",
+          "path": "scripts/ci/event_contract_graph.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -33348,6 +33610,15 @@
             "content:forecast",
             "content:weather forecast"
           ]
+        },
+        {
+          "path": "tools/sahool_inspector.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
         }
       ],
       "ambiguous": [],
@@ -33355,15 +33626,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 22,
+        "backend": 20,
         "routes": 63,
-        "database": 8,
-        "events": 57,
+        "database": 12,
+        "events": 64,
         "web": 9,
         "mobile": 0,
-        "tests": 25,
+        "tests": 30,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 23
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -35140,6 +35411,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_taw_kc_single_source.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "tests_v9/test_v13_refinements.py",
           "score": 12,
           "signals": [
@@ -35547,7 +35826,7 @@
         "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 62,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 30
       },
@@ -37452,6 +37731,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_taw_kc_single_source.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests_v9/test_weather_engine_formula_guard.py",
           "score": 12,
           "signals": [
@@ -37722,7 +38009,7 @@
         "events": 29,
         "web": 17,
         "mobile": 0,
-        "tests": 48,
+        "tests": 49,
         "governance": 0,
         "other_evidence": 22
       },
@@ -38186,10 +38473,6 @@
     },
     {
       "path": "frontend/README.md",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/docker-compose.web.yml",
       "kind": "web"
     },
     {
@@ -44777,10 +45060,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/weather-polygon-worker/worker_health_probe.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/weather-service/__init__.py",
       "kind": "backend"
     },
@@ -45085,10 +45364,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
       "kind": "tests"
     },
@@ -45278,6 +45553,10 @@
     },
     {
       "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_auth_client_ip_rate_key.py",
       "kind": "tests"
     },
     {
@@ -45473,6 +45752,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ci_pipeline_settings.py",
       "kind": "tests"
     },
@@ -45553,6 +45836,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_compose_roster_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_compose_security_audit.py",
       "kind": "tests"
     },
@@ -45561,15 +45848,7 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_container_command_path_guard.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_container_fleet_contract_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_container_hardening_ratchet_v21.py",
       "kind": "tests"
     },
     {
@@ -45638,10 +45917,6 @@
     },
     {
       "path": "tests_v9/test_db_wiring.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_db_writer_ownership_triage.py",
       "kind": "tests"
     },
     {
@@ -46489,6 +46764,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_postgres_tls.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_pr_finding_gap_id_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_practice_dataset_review.py",
       "kind": "tests"
     },
@@ -46949,6 +47232,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_service_tls_init.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_services_functional.py",
       "kind": "tests"
     },
@@ -47033,6 +47320,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_startup_db_connect_retry.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
       "kind": "tests"
     },
@@ -47070,6 +47361,10 @@
     },
     {
       "path": "tests_v9/test_test_impact_selector.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_text_anchor_liveness_guard.py",
       "kind": "tests"
     },
     {
@@ -47270,10 +47565,6 @@
     },
     {
       "path": "tests_v9/test_weather_signal_engine.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_weather_worker_health_probe.py",
       "kind": "tests"
     },
     {
@@ -48338,66 +48629,6 @@
           "signals": [
             "content:Execution request",
             "content:execution request"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docker-compose.fixed.yml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-004",
-          "score": 12,
-          "signals": [
-            "content:MFA",
-            "content:mfa"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 12,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "capability_id": "FM-008",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
-          "capability_id": "SOIL-001",
-          "score": 10,
-          "signals": [
-            "content:Soil profile",
-            "content:soil profile"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docker-compose.unified.yml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-008",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 9,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
           ]
         }
       ]
@@ -49680,6 +49911,66 @@
       ]
     },
     {
+      "path": "docs/history/compose/docker-compose.fixed.yml",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "FM-008",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/history/compose/docker-compose.unified.yml",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-008",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        }
+      ]
+    },
+    {
       "path": "docs/openapi/API_MAP.md",
       "kind": "other",
       "candidates": [
@@ -49891,21 +50182,21 @@
       "kind": "other",
       "candidates": [
         {
+          "capability_id": "WX-002",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "capability_id": "INT-002",
           "score": 12,
           "signals": [
             "content:event bus",
             "content:jetstream",
             "content:nats"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
           ]
         }
       ]
@@ -52123,6 +52414,29 @@
           "signals": [
             "content:MFA",
             "content:mfa"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "scripts/ci/event_contract_graph.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "INT-002",
+          "score": 11,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         }
       ]
@@ -55055,14 +55369,6 @@
           "signals": [
             "content:ET0",
             "content:et0"
-          ]
-        },
-        {
-          "capability_id": "IRR-004",
-          "score": 10,
-          "signals": [
-            "content:Water balance",
-            "content:water balance"
           ]
         },
         {
@@ -58382,6 +58688,29 @@
       ]
     },
     {
+      "path": "tests_v9/test_nats_publisher_coverage.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-002",
+          "score": 15,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        }
+      ]
+    },
+    {
       "path": "tests_v9/test_notification_tenant_isolation.py",
       "kind": "tests",
       "candidates": [
@@ -58719,6 +59048,36 @@
       ]
     },
     {
+      "path": "tests_v9/test_taw_kc_single_source.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "capability_id": "IRR-004",
+          "score": 12,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
+        }
+      ]
+    },
+    {
       "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
       "kind": "tests",
       "candidates": [
@@ -58922,6 +59281,30 @@
           "signals": [
             "content:Execution request",
             "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tools/sahool_inspector.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         }
       ]

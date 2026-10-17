@@ -2,7 +2,7 @@
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
   "total_lines": 2553,
-  "import_lines": 137,
+  "import_lines": 138,
   "top_level_symbols": 45,
   "direct_route_decorators": 0,
   "category_totals": {
@@ -16,7 +16,7 @@
     },
     "db_tenant_rls_bootstrap": {
       "symbols": 6,
-      "loc": 90
+      "loc": 89
     },
     "idempotency_outbox_events": {
       "symbols": 9,
@@ -50,14 +50,14 @@
     "workflow_compatibility": "compatibility_runtime"
   },
   "embedded_business_logic_loc": 688,
-  "categorized_symbol_loc": 1289,
+  "categorized_symbol_loc": 1288,
   "uncategorized_residual_loc_estimate": 1127,
   "items": [
     {
       "name": "_refuse_hs256_in_production",
       "kind": "FunctionDef",
-      "line_start": 100,
-      "line_end": 106,
+      "line_start": 101,
+      "line_end": 107,
       "loc": 7,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -65,8 +65,8 @@
     {
       "name": "_is_production",
       "kind": "FunctionDef",
-      "line_start": 115,
-      "line_end": 121,
+      "line_start": 116,
+      "line_end": 122,
       "loc": 7,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -74,8 +74,8 @@
     {
       "name": "_lifespan",
       "kind": "AsyncFunctionDef",
-      "line_start": 176,
-      "line_end": 192,
+      "line_start": 177,
+      "line_end": 193,
       "loc": 17,
       "category": "misc_bootstrap_compatibility",
       "decorators": [
@@ -85,8 +85,8 @@
     {
       "name": "_warn_weak_dev_jwt_secret",
       "kind": "AsyncFunctionDef",
-      "line_start": 206,
-      "line_end": 217,
+      "line_start": 207,
+      "line_end": 218,
       "loc": 12,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -94,9 +94,9 @@
     {
       "name": "_init_db_pool",
       "kind": "AsyncFunctionDef",
-      "line_start": 232,
+      "line_start": 233,
       "line_end": 267,
-      "loc": 36,
+      "loc": 35,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
     },

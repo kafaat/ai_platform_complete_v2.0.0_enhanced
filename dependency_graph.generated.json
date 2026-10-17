@@ -1,5 +1,5 @@
 {
-  "edge_count": 867,
+  "edge_count": 864,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -442,23 +442,43 @@
       "to_kind": "component"
     },
     {
-      "evidence": "services/weather-polygon-worker/src/main.py:165",
-      "from": "weather-polygon-worker",
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "nats",
       "relation": "CONSUMES",
-      "resource": "nats://sahool.weather.forecast.updated",
-      "to": "nats://sahool.weather.forecast.updated",
+      "resource": "nats://sahool.events.agronomy.projection.requested",
+      "to": "nats://sahool.events.agronomy.projection.requested",
       "to_kind": "resource"
     },
     {
-      "evidence": "services/weather-polygon-worker/src/main.py:193",
-      "from": "weather-polygon-worker",
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "nats",
+      "relation": "CONSUMES",
+      "resource": "nats://sahool.events.irrigation.execution.completed",
+      "to": "nats://sahool.events.irrigation.execution.completed",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/workers/canonical_execution_learning_worker.py:107",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "nats",
+      "relation": "CONSUMES",
+      "resource": "nats://sahool.events.season.closed",
+      "to": "nats://sahool.events.season.closed",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/vegetation-analysis-service/vegetation_runtime.py:553",
+      "from": "vegetation-analysis-service",
       "from_kind": "component",
       "protocol": "nats",
       "relation": "EMITS",
-      "resource": "nats://sahool.weather.field.overlay.completed",
-      "to": "nats://sahool.weather.field.overlay.completed",
+      "resource": "nats://sahool.tenant.*.satellite.*.computed",
+      "to": "nats://sahool.tenant.*.satellite.*.computed",
       "to_kind": "resource"
     },
     {
@@ -4842,36 +4862,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/weather-polygon-worker/src/main.py",
-      "from": "weather-polygon-worker",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://fields",
-      "to": "db://fields",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/weather-polygon-worker/src/main.py",
-      "from": "weather-polygon-worker",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://weather_forecasts",
-      "to": "db://weather_forecasts",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/weather-polygon-worker/src/main.py",
-      "from": "weather-polygon-worker",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://weather_grid",
-      "to": "db://weather_grid",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/weather-signal-engine/src/main.py",
       "from": "weather-signal-engine",
       "from_kind": "component",
@@ -8642,26 +8632,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/weather-polygon-worker/src/main.py",
-      "from": "weather-polygon-worker",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://field_weather_overlay",
-      "to": "db://field_weather_overlay",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/weather-polygon-worker/src/main.py",
-      "from": "weather-polygon-worker",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://weather_signals",
-      "to": "db://weather_signals",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/weather-signal-engine/src/main.py",
       "from": "weather-signal-engine",
       "from_kind": "component",
@@ -8688,11 +8658,11 @@
   ],
   "relation_counts": {
     "CALLS": 44,
-    "CONSUMES": 1,
+    "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 443,
+    "READS": 440,
     "ROUTES_TO": 72,
-    "WRITES": 306
+    "WRITES": 304
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8702,13 +8672,13 @@
       "runtime_upstream_targets": 19
     },
     "nats": {
-      "observed": 2,
-      "resolved": 2,
+      "observed": 4,
+      "resolved": 4,
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 750,
-      "resolved": 749,
+      "observed": 745,
+      "resolved": 744,
       "unresolved_component_paths": 0
     }
   }

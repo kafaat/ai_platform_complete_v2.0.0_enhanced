@@ -100,7 +100,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -109,7 +109,7 @@
     },
     {
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -136,7 +136,7 @@
     },
     {
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -145,7 +145,7 @@
     },
     {
       "kind": "router",
-      "line": 15,
+      "line": 16,
       "module": "services.auth.routers.registration",
       "node_id": "services.auth.routers.registration:router",
       "route_count": 2,
@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -172,7 +172,7 @@
     },
     {
       "kind": "router",
-      "line": 36,
+      "line": 37,
       "module": "services.auth.routers.tenants",
       "node_id": "services.auth.routers.tenants:router",
       "route_count": 1,
@@ -181,7 +181,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,
@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 97,
+      "line": 103,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 167,
+      "line": 171,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -523,7 +523,7 @@
     },
     {
       "kind": "app",
-      "line": 195,
+      "line": 196,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2107,7 +2107,7 @@
     },
     {
       "kind": "app",
-      "line": 95,
+      "line": 97,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
       "route_count": 1,
@@ -2694,7 +2694,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "80fe5eb9ea849c7d6f306e911891a5795be803d9c4a7e3e62c42f95d19eeadf5",
+  "inventory_sha256": "686708f0c410050acd19ee97264f446582c9b8a28c9b38078132862761893e70",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -2730,7 +2730,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.email_verify",
       "node_id": "services.auth.routers.email_verify:router",
       "route_count": 4,
@@ -2740,7 +2740,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 21,
+      "line": 22,
       "module": "services.auth.routers.invitations",
       "node_id": "services.auth.routers.invitations:router",
       "route_count": 4,
@@ -2770,7 +2770,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 17,
+      "line": 18,
       "module": "services.auth.routers.password_reset",
       "node_id": "services.auth.routers.password_reset:router",
       "route_count": 2,
@@ -2780,7 +2780,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 15,
+      "line": 16,
       "module": "services.auth.routers.registration",
       "node_id": "services.auth.routers.registration:router",
       "route_count": 2,
@@ -2800,7 +2800,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -2810,7 +2810,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 36,
+      "line": 37,
       "module": "services.auth.routers.tenants",
       "node_id": "services.auth.routers.tenants:router",
       "route_count": 1,
@@ -2820,7 +2820,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 19,
       "module": "services.auth.routers.users",
       "node_id": "services.auth.routers.users:router",
       "route_count": 3,

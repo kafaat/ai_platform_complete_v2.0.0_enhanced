@@ -28,10 +28,6 @@
     "kind": "web"
   },
   {
-    "path": "frontend/docker-compose.web.yml",
-    "kind": "web"
-  },
-  {
     "path": "frontend/e2e/accessibility-performance.spec.ts",
     "kind": "tests"
   },
@@ -6616,10 +6612,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/weather-polygon-worker/worker_health_probe.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/weather-service/__init__.py",
     "kind": "backend"
   },
@@ -6924,10 +6916,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
     "kind": "tests"
   },
@@ -7117,6 +7105,10 @@
   },
   {
     "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_client_ip_rate_key.py",
     "kind": "tests"
   },
   {
@@ -7312,6 +7304,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },
@@ -7392,6 +7388,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compose_roster_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_security_audit.py",
     "kind": "tests"
   },
@@ -7400,15 +7400,7 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_container_command_path_guard.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_container_fleet_contract_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_container_hardening_ratchet_v21.py",
     "kind": "tests"
   },
   {
@@ -7477,10 +7469,6 @@
   },
   {
     "path": "tests_v9/test_db_wiring.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_db_writer_ownership_triage.py",
     "kind": "tests"
   },
   {
@@ -8328,6 +8316,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_postgres_tls.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_pr_finding_gap_id_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_practice_dataset_review.py",
     "kind": "tests"
   },
@@ -8788,6 +8784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_service_tls_init.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_services_functional.py",
     "kind": "tests"
   },
@@ -8872,6 +8872,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_startup_db_connect_retry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
     "kind": "tests"
   },
@@ -8909,6 +8913,10 @@
   },
   {
     "path": "tests_v9/test_test_impact_selector.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_text_anchor_liveness_guard.py",
     "kind": "tests"
   },
   {
@@ -9109,10 +9117,6 @@
   },
   {
     "path": "tests_v9/test_weather_signal_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_weather_worker_health_probe.py",
     "kind": "tests"
   },
   {

@@ -4,7 +4,7 @@
 
 - File: `services/sahool-platform/api/main.py`
 - Total lines: `2553`
-- Import lines: `137`
+- Import lines: `138`
 - Top-level symbols: `45`
 - Direct route decorators: `0`
 - Status: `route_free_with_embedded_business_logic`
@@ -18,7 +18,7 @@
 | `auth_jwt_permissions` | `security_runtime` | 8 | 164 |
 | `parsers_mappers_serializers` | `compatibility_runtime` | 8 | 155 |
 | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 8 | 117 |
-| `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 6 | 90 |
+| `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 6 | 89 |
 | `middleware_and_rate_limit` | `middleware_runtime` | 1 | 41 |
 | `workflow_compatibility` | `compatibility_runtime` | 2 | 34 |
 
@@ -38,9 +38,9 @@
 | `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 45 | 687-731 |
 | `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 903-943 |
 | `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 38 | 547-584 |
-| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 232-267 |
 | `_idempotent` | `idempotency_outbox_events` | `embedded_business_logic` | 36 | 760-795 |
 | `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 36 | 1180-1215 |
+| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 35 | 233-267 |
 | `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 270-302 |
 | `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1218-1248 |
 | `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1296-1324 |
