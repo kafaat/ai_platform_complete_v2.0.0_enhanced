@@ -12347,11 +12347,11 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1005",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1020",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1034",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1057",
           "score": 20
         },
         {
@@ -12363,27 +12363,27 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:822",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:837",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:858",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:873",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:917",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:932",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:965",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:980",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:976",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:991",
           "score": 20
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1008",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1027",
           "score": 20
         },
         {
@@ -12391,7 +12391,7 @@
           "score": 20
         },
         {
-          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:781",
+          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:796",
           "score": 20
         },
         {
@@ -12407,31 +12407,31 @@
           "score": 20
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:822",
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:837",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1010",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1029",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1012",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1030",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:780",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:795",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:881",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:896",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:884",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:899",
           "score": 20
         },
         {
-          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1058",
+          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1081",
           "score": 20
         },
         {
@@ -12447,7 +12447,7 @@
           "score": 20
         },
         {
-          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:888",
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:903",
           "score": 20
         },
         {
@@ -12459,7 +12459,7 @@
           "score": 20
         },
         {
-          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:897",
+          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:912",
           "score": 20
         },
         {
