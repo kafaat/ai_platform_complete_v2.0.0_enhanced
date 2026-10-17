@@ -15,6 +15,7 @@ from uuid import UUID
 
 from api.irrigation_reservation_lifecycle import expire_due
 from api.worker_heartbeat import HeartbeatState
+from shared.startup_retry import retry_startup_connect
 
 logger = logging.getLogger("sahool.irrigation.reservation_lifecycle")
 
@@ -106,7 +107,10 @@ async def run() -> None:
         raise RuntimeError("JOBS_DATABASE_URL or DATABASE_URL is required")
     heartbeat = HeartbeatState(WORKER_NAME)
     heartbeat.write()  # `starting` — the probe sees a fresh file before the first sweep
-    pool = await asyncpg.create_pool(database_url, min_size=1, max_size=3, command_timeout=30)
+    # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+    pool = await retry_startup_connect(
+        asyncpg.create_pool, database_url, min_size=1, max_size=3, command_timeout=30
+    )
     delay = poll_seconds()
     logger.info("reservation lifecycle worker started; poll_seconds=%s", delay)
     try:
