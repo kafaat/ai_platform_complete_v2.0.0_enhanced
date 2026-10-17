@@ -41,10 +41,19 @@ for svc in ["sahool-video-processor", "sahool-agriai-engine", "sahool-tts-servic
 require_text("video edge URL", compose, "EDGE_INFERENCE_URL: http://sahool-edge:8100")
 require_text("agriai edge URL", compose, "EDGE_INFERENCE_URL: http://sahool-edge:8100")
 require_text("video MQTT URL", compose, "MQTT_BROKER_URL: mqtt://sahool-fastbee:1883")
+# REDIS-SHARED-PASSWORD-NO-ACL-01: each client authenticates as its own ACL user (no shared password).
 require_text(
-    "video Redis URL", compose, "REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/3"
+    "video Redis URL",
+    compose,
+    "REDIS_URL: redis://sahool-video-processor:${REDIS_VIDEO_PROCESSOR_PASSWORD:?"
+    "REDIS_VIDEO_PROCESSOR_PASSWORD required}@sahool-redis:6379/3",
 )
-require_text("tts Redis URL", compose, "REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/2")
+require_text(
+    "tts Redis URL",
+    compose,
+    "REDIS_URL: redis://sahool-tts-service:${REDIS_TTS_PASSWORD:?REDIS_TTS_PASSWORD required}"
+    "@sahool-redis:6379/2",
+)
 
 # Nginx exposure/forwarding.
 require_text("v9 nginx image supports upstream resolve", compose, "image: nginx:1.27.5-alpine")
