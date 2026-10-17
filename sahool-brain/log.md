@@ -9597,3 +9597,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-17 — W5: شواهد الفجوات المتبقية دون إصلاحات تشغيلية
 
 بتوجيه المالك جُمعت البنود 2–5 في فرع واحد؛ #1204 لجلسة أخرى. مصدر الاختبارات والأدلة `fbb204449f1326f92455cc390ab906b4a867244d` على `main@ec3927ce`: 24 اختبار واجهة و54 اختبار migrator/SAM2 و37 اختبار قياس RAG/حارس النص ناجحة؛ TypeScript ناجح؛ 7 حالات سلوكية جديدة تقتل 3 طفرات. RAG: 32 سؤالاً مُرقّم الإصدار، القياس الحي محجوب والنتائج المنفصلة لـBM25 تاريخية فقط. PG16: أربع حالات جديدة جُمعت داخل ملف 034 الذي يشغله CI القائم؛ لا نجاح تشغيل محلي مدّعى ولا ملف workflow معدل. SAM2: وزن Meta الرسمي طابق بصمته المنشورة، دون تثبيت. كل الفجوات المعنية open، ولا verified أو تعديل migrations/MANIFEST/ملفات Claude أو Railway أو نشر. [الدليل](../certification/evidence/chatgpt_w5_20261017/README.md).
+
+### 2026-10-17 — دمج #1208، وشريحة Redis ACL في PR مستقلّ
+
+دمج المالك #1208 ⇒ `f3936a771` (شجرة = الرأس المُختبَر `c2c492a31`؛ CI 71 ناجحة و2 متخطّاة؛ Railway: `sahool-frontend` وحدَه أُعيد بناؤه والمهاجر SKIPPED). الجلبُ الحيّ لتعليقات المراجعة قيس على ذلك الـPR (`HTTP 200` للصفحتين). ثمّ شريحة Redis على `main@f3936a771`: REDIS-SHARED-PASSWORD-NO-ACL-01 ⇒ `fixed` لـcompose v9 (`3b5f9e6a4`). وفجواتٌ جديدة: JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 (أمن، عالية) · REDIS-ON-RAILWAY-STILL-USES-THE-SHARED-PASSWORD-01 · RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01. المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
