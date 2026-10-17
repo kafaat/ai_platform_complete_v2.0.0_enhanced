@@ -21,6 +21,7 @@
     "expected_control_flow_exceptions.json",
     "gate01_policy.json",
     "guard_mutation_registry.json",
+    "inventory_edge_exemptions.json",
     "knowledge_relation_registry.json",
     "knowledge_source_registry.json",
     "live_pg_schema_contract.json",
