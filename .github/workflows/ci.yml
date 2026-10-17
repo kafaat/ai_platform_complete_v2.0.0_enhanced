@@ -717,6 +717,12 @@ jobs:
       # القاعدةَ من AST: لا يُشعِل شيئاً ولا يكتب في الشجرة (~٢ث، PyYAML مُثبَّت أعلاه).
       - name: every CI-invoked script survives the C locale (class inventory, static)
         run: python scripts/ci/ci_invoked_locale_preamble_guard.py
+      # TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01: مرساةٌ نصّيّة تمرّ لسببٍ غير سببها —
+      # على `lazy(...)` ميّتٍ في `App.tsx` والخاصّيّةُ في القشرة، أو على `(poly as any)`
+      # حرفيّاً فتُعاقِب تضييقَ النوع. حالتان مقيستان في #824 (`fc88d494`)؛ هذا يمسك
+      # الشكلين الميكانيكيّين في **كلّ** مرساةٍ موجبة (stdlib، بلا تشغيل اختبار).
+      - name: text anchors must hold on live code (no dead binding, no mandated escape)
+        run: python scripts/ci/text_anchor_liveness_guard.py
       # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
       # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
       # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.

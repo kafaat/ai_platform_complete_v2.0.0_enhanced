@@ -6207,6 +6207,17 @@
           "why": "عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01)"
         }
       ]
+    },
+    "text_anchor_liveness_guard.py": {
+      "test": "tests_v9/test_text_anchor_liveness_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
+          "find": "    if not names:\n        return False  # a side-effect import is live by construction",
+          "replace": "    if True:\n        return False  # every binding treated as used",
+          "why": "معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01)"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

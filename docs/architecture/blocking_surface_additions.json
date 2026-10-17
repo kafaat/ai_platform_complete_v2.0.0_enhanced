@@ -88,6 +88,14 @@
       "$mutation_ar": "الطفرةُ المسجَّلة تُعيد الجردَ إلى اصطلاح `*_guard.py` فيخرج `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` من البصر، ويقتلها الاختبارُ المسمّى.",
       "positive_witness": "test_the_preamble_makes_it_pass + test_ascii_only_output_needs_no_preamble: the legitimate remedy (the three-line module-level reconfigure, already carried by guard_locale_survival_guard and guard_catalogue) passes, and a script whose output is ASCII is not asked for one. The guard is static (AST + workflow YAML), launches nothing and writes nothing.",
       "impact": "merge"
+    },
+    "scripts/ci/text_anchor_liveness_guard.py::ci.yml::lint": {
+      "counterexample": "TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01, measured in #824 (fc88d494): on fc88d494^ this guard reports exactly two anchors — services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:44 (`./sections/FieldWorkspaceMapCard` held only on an unused `lazy(() => import(...))` in App.tsx; the property lived in FieldWorkspaceRouteShell.tsx) and frontend/src/components/maphub/DrawingTools.static.test.ts:57 (regex required `(poly as any)` verbatim, so narrowing the type turned it red). On main 0e5281614 it resolves 2708 positive anchors in 363 test files and flags none.",
+      "mutation": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
+      "$mutation_ar": "الطفرةُ المسجَّلة تعامل كلَّ ربطٍ كأنّه مُستعمَل فتمرّ مرساةُ #824 الميّتة ثانيةً، ويقتلها الاختبارُ المسمّى بنصّ ما قبل #824 حرفيّاً (مُضمَّناً لا مقروءاً من التاريخ، كي لا يُتخطّى في استنساخ CI بعمق ١).",
+      "positive_witness": "test_the_post_824_anchor_where_the_property_lives_passes + test_the_post_824_property_regex_passes + test_an_anchor_on_a_live_lazy_binding_passes: the legitimate remedies #824 applied (anchor the import where it is used; match the guard `!isPivot`, not the cast) pass, and an anchor on a lazy binding that is rendered is not condemned.",
+      "impact": "merge",
+      "$scope_limit_ar": "حدُّ صدقٍ مكتوب: «الخاصّيّةُ تعيش في ملفٍّ آخر» في عمومها غيرُ قابلةٍ للحسم نصّيّاً؛ مرساةٌ على ربطٍ **حيّ** في الملفّ الخطأ تمرّ. يُمسَك الشكلان الميكانيكيّان وحدهما."
     }
   }
 }

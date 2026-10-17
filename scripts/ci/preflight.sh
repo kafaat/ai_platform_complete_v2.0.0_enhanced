@@ -422,6 +422,10 @@ run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.
 # ساكنٌ لا يكتب في الشجرة (~٢ث)، فموضعُه الطبقةُ السريعة.
 require_file scripts/ci/ci_invoked_locale_preamble_guard.py "٣د) ci_invoked_locale_preamble" \
   && run "٣د) ci_invoked_locale_preamble" python3 scripts/ci/ci_invoked_locale_preamble_guard.py
+# ٣ﻫ) TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01: مرساةٌ على ربطٍ ميّت أو تشترط هروباً
+# نوعيّاً حرفيّاً (`as any` · `@ts-ignore` · `# noqa`) — ساكنٌ، ثوانٍ، بلا تشغيل اختبار.
+require_file scripts/ci/text_anchor_liveness_guard.py "٣ﻫ) text_anchor_liveness" \
+  && run "٣ﻫ) text_anchor_liveness" python3 scripts/ci/text_anchor_liveness_guard.py
 
 # ── ٣ج) نصفُ حارس الطفرات الذي **يزرع** — مقصوراً على ما مسّه تغييرك ────────
 # GUARD-MUTATION-PLANTING-HALF-WAS-NEVER-LOCAL-01: خطوة ٣ب أعلاه تفحص **المواصفة**،
