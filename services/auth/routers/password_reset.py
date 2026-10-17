@@ -12,6 +12,7 @@ from __future__ import annotations
 import secrets
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, HTTPException, Request, status
 
 router = APIRouter()
@@ -20,7 +21,7 @@ router = APIRouter()
 @router.post("/v1/auth/password-reset/request")
 async def request_password_reset(req: main.PasswordResetRequest, request: Request):
     """✅ NEW: Request password reset via email."""
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     await main.check_ip_rate(ip)
     main.RESET_COUNTER.inc()
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Annotated
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 router = APIRouter()
@@ -28,7 +29,7 @@ async def verify_request(
 
     محميّ (يتطلّب توكناً)، ومحدود المعدّل (IP + لكلّ مستخدم+قناة). التسليم STUB.
     """
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     await main.check_ip_rate(ip)
     if not main._redis:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "خدمة التحقّق تتطلّب Redis")
@@ -58,7 +59,7 @@ async def verify_confirm(
     user: Annotated[dict, Depends(main.get_current_user)],
 ):
     """يتحقّق من رمز OTP مقابل Redis (مقارنة ثابتة الزمن) ويُعلّم الحساب مُتحقَّقاً."""
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     # حدّ معدّل بالـIP أيضاً على التأكيد — الرمز ٦ أرقام فقط، فبلا حدٍّ يمكن تخمينه قسريّاً.
     await main.check_ip_rate(ip)
     if not main._redis:

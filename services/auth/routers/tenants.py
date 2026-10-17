@@ -31,6 +31,7 @@ import secrets
 from typing import Annotated
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 router = APIRouter()
@@ -48,7 +49,7 @@ async def provision_tenant(
     للاستعمال، ثمّ يُصدر رمز إعادة تعيين (Redis) ليضبط المالك كلمة مروره. يرفض
     إن كان البريد مسجّلاً مسبقاً (409). يُدوّن tenant_provisioned في التدقيق.
     """
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     admin_id = int(admin["sub"])
 
     # كلمة مرور أوّليّة عشوائيّة غير قابلة للاستعمال: يُهشَّر سرّ عشوائيّ لا يُكشَف

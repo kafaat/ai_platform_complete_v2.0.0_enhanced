@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Annotated
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt import InvalidIssuerError, PyJWTError
@@ -25,7 +26,7 @@ router = APIRouter()
 
 @router.post("/v1/auth/login", response_model=main.TokenResponse)
 async def login(req: main.LoginRequest, request: Request, response: Response):
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     await main.check_ip_rate(ip)
     await main.check_lockout(req.email)  # ✅ account lockout check
 
@@ -187,7 +188,7 @@ async def logout(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(main.security)],
 ):
     """✅ NEW: Invalidate access token (JTI blacklist) + refresh token."""
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     if credentials:
         try:
             payload = decode_access_token(
