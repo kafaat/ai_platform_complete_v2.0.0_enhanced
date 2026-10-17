@@ -701,7 +701,7 @@ def _excluded(real: str, private: list[str], bound=()) -> str | None:
 def build_closure(events: list[dict], unresolved: list[str], private: list[str], bound=()) -> dict:
     """الإغلاقُ من أحداث strace: كلُّ ملفٍّ لُمس (قراءةً · تنفيذاً · فحصَ وجود · مُحمِّلاً) ببصمته، والمجلّداتُ التي لُمست،
     والروابطُ التي عُبرت، ومُحمِّلُ كلّ تنفيذيّ. ``private`` (المُثبَّتُ والناتجُ لهذا التشغيل) خارجه: لكلّ تشغيلٍ نسختُه.
-    ``bound``: ما رُبط في صندوق الجرد — وحده يُرى تحت tmpfs ‏/tmp.
+    ``bound``: ما رُبط في صندوق الجرد — وحده يُرى تحت tmpfs /tmp.
 
     ``problems`` غيرُ فارغة ⇒ الإغلاقُ لا يُعتمد (ملفٌّ لُمس ثمّ غاب عن المضيف · مسارٌ نسبيّ بلا مجلّد · نوعٌ خاصّ)."""
     from worker import sha256_file
@@ -1194,7 +1194,7 @@ def main() -> int:
             events,
             unresolved,
             [str(pinned) + "/", str(out) + "/", str(trace) + "/"],
-            # ما رُبط فوق tmpfs ‏/tmp مرئيٌّ في الصندوق فيدخل الإغلاق؛ وما سواه تحت /tmp أنشأه التشغيل
+            # ما رُبط فوق tmpfs /tmp مرئيٌّ في الصندوق فيدخل الإغلاق؛ وما سواه تحت /tmp أنشأه التشغيل
             [b.split(":", 1)[1].split("->")[0] for b in sandbox.get("binds", [])],
         )
         built.update(
