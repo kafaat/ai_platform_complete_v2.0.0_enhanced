@@ -35,13 +35,13 @@ from api.main import UserSchema, get_current_user
 from api.season_simulation import crop_gdd_policy
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
-from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
+from api.water_balance import kc_from_ndvi, kc_map_for_crop
 from api.weather_service_client import get_gdd_product
 
 router = APIRouter()
 
-# منحنى Kc عامّ آمن حين يكون المحصول غير مُعرّف (موسوم في الاستجابة).
-_GENERIC_KC_MAP = {"initial": 0.40, "development": 0.75, "mid": 1.10, "late": 0.50}
+# Kc من بطاقة المحصول عبر ``kc_map_for_crop`` (PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01):
+# لا منحنى عامّ محلّيّ هنا — الاحتياطيّ للمحصول بلا بطاقة هو GENERIC_STAGE_KC القانونيّ.
 
 # DECISION-CENTER-UNIFY-01 (شريحة Composer — المُحلِّل الطيفيّ الخادميّ):
 # للحقول الحقيقيّة، الطيف الحاكم يجب أن يُجلَب خادميّاً من raster-service القانونيّ
@@ -150,7 +150,7 @@ async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None =
             spec_temporal_compat = None
 
     # Kc ديناميكيّ من NDVI (تطعيم fAPAR بين البدئيّ والذروة) أو ثابت للمرحلة.
-    kc_map = KC_BY_CROP_STAGE.get((req.crop or "").strip().lower(), _GENERIC_KC_MAP)
+    kc_map, _ = kc_map_for_crop(req.crop)
     dyn_kc, kc_fapar = kc_from_ndvi(spec_ndvi, kc_map, req.stage)
 
     def _kc(d: ComposeForecastDay) -> float:
