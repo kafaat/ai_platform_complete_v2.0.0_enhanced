@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5974,
+    "files_scanned": 5987,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1890,
+      "other": 1901,
       "tests": 1965,
-      "web": 469
+      "web": 471
     },
-    "unmapped_artifacts": 2302,
-    "ambiguous_artifacts": 462
+    "unmapped_artifacts": 2304,
+    "ambiguous_artifacts": 464
   },
   "capabilities": [
     {
@@ -26582,7 +26582,11 @@
           "score": 17
         },
         {
-          "value": "decision_reviews @ services/decision-service/tests/test_migration_034_pg16.py:283",
+          "value": "decision_reviews @ services/decision-service/tests/test_migration_034_pg16.py:285",
+          "score": 17
+        },
+        {
+          "value": "edge_results @ services/decision-service/tests/test_migration_034_pg16.py:405",
           "score": 17
         },
         {
@@ -26603,10 +26607,6 @@
         },
         {
           "value": "field_state @ migrations/v104_fields_create_contract.sql:56",
-          "score": 17
-        },
-        {
-          "value": "field_state @ migrations/v104_fields_create_contract.sql:57",
           "score": 17
         }
       ],
@@ -27824,6 +27824,14 @@
           ]
         },
         {
+          "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
           "score": 10,
           "signals": [
@@ -28187,7 +28195,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 795
+        "database": 796
       },
       "evidence_counts": {
         "backend": 13,
@@ -28198,7 +28206,7 @@
         "mobile": 0,
         "tests": 74,
         "governance": 0,
-        "other_evidence": 82
+        "other_evidence": 83
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -31384,6 +31392,14 @@
       ],
       "database": [
         {
+          "value": "decision_reviews @ services/decision-service/tests/test_migration_034_pg16.py:285",
+          "score": 18
+        },
+        {
+          "value": "edge_results @ services/decision-service/tests/test_migration_034_pg16.py:405",
+          "score": 18
+        },
+        {
           "value": "irrigation_water_profiles @ migrations/v161_soil_p1_products.sql:24",
           "score": 18
         },
@@ -31526,6 +31542,15 @@
             "content:Soil sampling",
             "content:sampling plan",
             "path:soil sampling",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_migration_034_pg16.py",
+          "score": 18,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
             "content:soil sampling"
           ]
         },
@@ -31771,6 +31796,15 @@
           ]
         },
         {
+          "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
+          "score": 9,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
           "path": "docs/audits/V13_DEV_ENV_PREVIOUS_FIXES_APPLIED_20260625.md",
           "score": 9,
           "signals": [
@@ -31795,13 +31829,13 @@
       "evidence_counts": {
         "backend": 14,
         "routes": 35,
-        "database": 9,
+        "database": 11,
         "events": 8,
         "web": 5,
         "mobile": 0,
-        "tests": 11,
+        "tests": 12,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -38532,6 +38566,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/AddFieldWithMap.tsx",
       "kind": "web"
     },
@@ -39937,6 +39975,10 @@
     },
     {
       "path": "frontend/src/sections/FieldWorkspaceReportsPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/FieldWorkspaceRouteShell.behavior.test.tsx",
       "kind": "web"
     },
     {
@@ -48468,6 +48510,29 @@
       ]
     },
     {
+      "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "capability_id": "SOIL-002",
+          "score": 9,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        }
+      ]
+    },
+    {
       "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
       "kind": "other",
       "candidates": [
@@ -53091,6 +53156,30 @@
           "signals": [
             "content:Learning attribution",
             "content:learning attribution"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/decision-service/tests/test_migration_034_pg16.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 18,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 17,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
           ]
         }
       ]

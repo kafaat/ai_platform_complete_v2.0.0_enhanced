@@ -84,6 +84,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/AddFieldWithMap.tsx",
     "kind": "web"
   },
@@ -1489,6 +1493,10 @@
   },
   {
     "path": "frontend/src/sections/FieldWorkspaceReportsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceRouteShell.behavior.test.tsx",
     "kind": "web"
   },
   {
