@@ -79,6 +79,26 @@ def safe_env() -> dict[str, str]:
                     "VEGETATION",
                 )
             },
+            # REDIS-SHARED-PASSWORD-NO-ACL-01: مستخدمُ ACL لكلّ خدمة في Redis، وكلمتُه `:?`.
+            **{
+                f"REDIS_{name}_PASSWORD": f"rstrong{name.lower()}"
+                for name in (
+                    "PLATFORM",
+                    "TTS",
+                    "VIDEO_PROCESSOR",
+                    "WEATHER",
+                    "FIELD_MANAGEMENT",
+                    "DECISION",
+                    "RASTER",
+                    "RASTER_BACKFILL",
+                    "ACTUATOR",
+                    "AI_AGRONOMIST",
+                    "TELEGRAM_BOT",
+                    "NOTIFICATION",
+                    "AUTH",
+                    "GUARDRAILS",
+                )
+            },
         }
     )
     return env
