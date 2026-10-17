@@ -1,0 +1,4 @@
+$ grep -n -E ^http:|wget -qO- http://localhost:8222 nats/nats.conf docker-compose.v9.yml
+nats/nats.conf:63:http: 8222
+docker-compose.v9.yml:489:      - wget -qO- http://localhost:8222/healthz || exit 1
+[exit=0]

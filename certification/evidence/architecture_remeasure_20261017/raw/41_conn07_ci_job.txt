@@ -1,0 +1,27 @@
+$ sed -n 2172,2197p .github/workflows/ci.yml
+  flutter-analyze:
+    name: Flutter Analyze & Test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.27.4"  # Dart 3.6.2 — تتطلّبه flutter_map_mbtiles ^1.0.4 (≥3.6.0)
+          channel: stable
+          cache: true
+      # بوّابة فحص الموبايل: كانت غائبة تماماً (Dart يُشحَن بلا أيّ فحص — لا analyze
+      # ولا test في CI). تحجب على الأخطاء الحقيقيّة (errors) وفشل الاختبارات فقط؛
+      # infos/warnings الأسلوبيّة لا تحجب (--no-fatal-*) كي لا يُعطَّل الدمج على لينت
+      # أسلوبيّ. هذا يجعل كلّ عمل Flutter لاحق مفحوصاً قبل الدمج.
+      - run: flutter pub get
+        working-directory: mobile/sahool_app
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        working-directory: mobile/sahool_app
+      - run: flutter test
+        working-directory: mobile/sahool_app
+      - name: Select Java 17 for the Android toolchain
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Build Android debug app from the committed native project
+        run: flutter build apk --debug --no-pub
+        working-directory: mobile/sahool_app
+[exit=0]
