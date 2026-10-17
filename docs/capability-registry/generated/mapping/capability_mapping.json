@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5999,
+    "files_scanned": 6003,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1911,
-      "tests": 1967,
+      "other": 1916,
+      "tests": 1966,
       "web": 471
     },
-    "unmapped_artifacts": 2306,
+    "unmapped_artifacts": 2305,
     "ambiguous_artifacts": 465
   },
   "capabilities": [
@@ -13382,6 +13382,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/chatgpt_w6_20261017/open-gaps-at-base.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
           "score": 20,
           "signals": [
@@ -13444,7 +13451,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47129,10 +47136,6 @@
     },
     {
       "path": "tests_v9/test_recovery_smoke_truth.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_redis_acl_per_service.py",
       "kind": "tests"
     },
     {
