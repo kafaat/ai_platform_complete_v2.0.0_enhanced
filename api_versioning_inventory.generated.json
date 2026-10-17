@@ -263,7 +263,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 22,
+    "line": 23,
     "method": "POST",
     "path": "/v1/auth/verify/request",
     "handler": "verify_request",
@@ -272,7 +272,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 55,
+    "line": 56,
     "method": "POST",
     "path": "/v1/auth/verify/confirm",
     "handler": "verify_confirm",
@@ -281,7 +281,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 97,
+    "line": 98,
     "method": "GET",
     "path": "/v1/auth/verify",
     "handler": "verify",
@@ -290,7 +290,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 107,
+    "line": 108,
     "method": "GET",
     "path": "/v1/auth/verify/status",
     "handler": "verify_status",
@@ -299,7 +299,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 25,
+    "line": 26,
     "method": "POST",
     "path": "/v1/auth/invitations",
     "handler": "create_invitation",
@@ -308,7 +308,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 84,
+    "line": 85,
     "method": "GET",
     "path": "/v1/auth/invitations",
     "handler": "list_invitations",
@@ -317,7 +317,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 115,
+    "line": 116,
     "method": "POST",
     "path": "/v1/auth/invitations/accept",
     "handler": "accept_invitation",
@@ -326,7 +326,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 195,
+    "line": 196,
     "method": "DELETE",
     "path": "/v1/auth/invitations/{invitation_id}",
     "handler": "revoke_invitation",
@@ -398,7 +398,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 21,
+    "line": 22,
     "method": "POST",
     "path": "/v1/auth/password-reset/request",
     "handler": "request_password_reset",
@@ -407,7 +407,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 41,
+    "line": 42,
     "method": "POST",
     "path": "/v1/auth/password-reset/confirm",
     "handler": "confirm_password_reset",
@@ -416,7 +416,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
-    "line": 19,
+    "line": 20,
     "method": "POST",
     "path": "/v1/auth/register",
     "handler": "register",
@@ -425,7 +425,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
-    "line": 74,
+    "line": 75,
     "method": "POST",
     "path": "/v1/auth/change-password",
     "handler": "change_password",
@@ -443,7 +443,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 27,
+    "line": 28,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 128,
+    "line": 129,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 184,
+    "line": 185,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 229,
+    "line": 230,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",
@@ -479,7 +479,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/tenants.py",
-    "line": 40,
+    "line": 41,
     "method": "POST",
     "path": "/v1/auth/tenants",
     "handler": "provision_tenant",
@@ -488,7 +488,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 22,
+    "line": 23,
     "method": "GET",
     "path": "/v1/auth/users",
     "handler": "list_users",
@@ -497,7 +497,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 31,
+    "line": 32,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/role",
     "handler": "change_role",
@@ -506,7 +506,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 73,
+    "line": 74,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "handler": "deactivate_user",
