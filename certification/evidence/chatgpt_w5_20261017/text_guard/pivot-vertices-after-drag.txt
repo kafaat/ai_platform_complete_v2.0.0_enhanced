@@ -1,0 +1,38 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v5.0.2 /workspace/scratch/383ab1306db0/sahool-work/frontend
+
+ ❯ src/components/AddFieldWithMap.pivot.behavior.test.tsx (2 tests | 1 failed) 341ms
+   ❯ TEXT-GUARD: pivot editing at the executing component (2)
+     × keeps vertex editing off during creation, center movement and radius resize 260ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/AddFieldWithMap.pivot.behavior.test.tsx > TEXT-GUARD: pivot editing at the executing component > keeps vertex editing off during creation, center movement and radius resize
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ src/components/AddFieldWithMap.pivot.behavior.test.tsx:80:40
+     78|     });
+     79|     expect((polygon.getLatLngs()[0] as Leaflet.LatLng[])[0].equals(ini…
+     80|     expect(polygon.editing.enable).not.toHaveBeenCalled();
+       |                                        ^
+     81|     const beforeResize = (polygon.getLatLngs()[0] as Leaflet.LatLng[])…
+     82|     act(() => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 6 passed (7)
+   Start at  04:26:36
+   Duration  1.81s (environment 33%, tests 21%, transform 21%, import 14%, setup 9%, worker 1%)
+

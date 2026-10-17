@@ -2737,9 +2737,11 @@
     },
     {
       "code_readers": [
+        "services/decision-service/tests/test_migration_034_pg16.py",
         "services/sahool-platform/api/routers/edge.py"
       ],
       "code_writers": [
+        "services/decision-service/tests/test_migration_034_pg16.py",
         "services/sahool-platform/api/routers/edge.py"
       ],
       "created_in": "v9_new_tables.sql",
@@ -6636,8 +6638,11 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/decision-service/tests/test_migration_034_pg16.py"
+      ],
       "code_writers": [
+        "services/decision-service/tests/test_migration_034_pg16.py",
         "services/soil-service/p1_store.py"
       ],
       "created_in": "v161_soil_p1_products.sql",

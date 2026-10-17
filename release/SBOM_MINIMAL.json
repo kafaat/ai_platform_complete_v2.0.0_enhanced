@@ -515,6 +515,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0e14eb56aae27e8b7cb17330e51f28ab1e8e37e7a4962b2fae4f476d47ac4c6c"
+        }
+      ],
+      "name": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "84ecc28adea7d00015ddd85424784ed1a62d3237da404787fb59325a2541556e"
         }
       ],
@@ -1685,7 +1695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2e0eb9e8b75989454d392338efbc90236a3b19774db529e5a879ee50538f082"
+          "content": "6bbe52d2325afe13e3c55feb62d132858e0143943a63ad1cc37a154b2a6a5924"
         }
       ],
       "name": "frontend/src/components/maphub/DrawingTools.static.test.ts",
@@ -4415,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2924a30196ad69da5a4057fc94316055113d5dfda5d4a3989855276a01b66434"
+          "content": "3de71d60e587a11df373f65555f29e2d354cffa716e9cdd8056956494d9a2620"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5429,6 +5439,16 @@
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceReportsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "913d264681343149315c42ba4081ce2fc8878438994d23a2f232a81742230c0c"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceRouteShell.behavior.test.tsx",
       "type": "file"
     },
     {
@@ -12685,7 +12705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99d40ec4d6ffa2a1a95a53b2c6b7854b266736143b87b19424710d9e504e3fd8"
+          "content": "3cacfd9c4c1755984fbd5cc6564b372228d87981df2228ef664d5c4d5d6ee058"
         }
       ],
       "name": "services/decision-service/tests/test_migration_034_pg16.py",
