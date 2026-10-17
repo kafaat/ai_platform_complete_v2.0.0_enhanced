@@ -117,6 +117,14 @@
       "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
       "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
       "impact": "merge"
+    },
+    "scripts/ci/startup_db_connect_retry_guard.py::ci.yml::structural-lint": {
+      "counterexample": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01, measured on main 0e5281614: 27 docker-compose.v9.yml services depend on sahool-postgres with `condition: service_healthy`, which compose evaluates only on `docker compose up` — a restart-policy restart does not wait. 16 of them failed fast on their first startup connect (9 fixed in this change, 6 behind the GATE-01 freeze, 1 pending removal), and sahool-platform swallowed the refusal and stayed DB-less with /readyz 503. Red on main: tests_v9/test_startup_db_connect_retry.py::test_service_startup_survives_two_refused_connects (e.g. `sahool-auth died on a refused connect: outcome=died:ConnectionRefusedError attempts=1`).",
+      "mutation": "test_an_unclassified_dependant_is_blocked",
+      "$mutation_ar": "طفرةُ الحارس المسجَّلة في guard_mutation_registry.json تُفرِّغ المجموعةَ غير المصنَّفة فتمرّ خدمةٌ جديدة بلا تصنيف — والاختبارُ المسمّى يحمرّ. وطفرةٌ سلوكيّة ثانية في shared/startup_retry.py (الاستسلام على أوّل رفض) يقتلها test_transient_refusals_are_retried_with_exponential_backoff.",
+      "positive_witness": "test_the_guard_is_green_on_the_tree, test_moved_lines_stay_green and test_pending_removal_is_green_before_and_after_the_service_disappears: the legitimate remedy (wrap the first connect in retry_startup_connect, or classify lazy/polling/frozen honestly) passes, anchors are path::function so moved code stays green, and a service removed in a parallel branch is green both before and after it disappears.",
+      "impact": "merge",
+      "$scope_limit_ar": "النطاقُ docker-compose.v9.yml وحده واعتمادُ service_healthy على sahool-postgres وحده؛ connects_lazily يُفحَص داخل وحدة المرساة لا عبر رسم الاستدعاء، وno_postgres_client يفحص مجلّد الخدمة لا shared/."
     }
   }
 }

@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field, field_validator
 # بلا try/except قصداً: الوحدة stdlib-only وتُنسخ إلى الصورة، فغيابُها عطلُ توصيلٍ
 # يجب أن يُرى لا أن يُبتلَع إلى بديلٍ أضعف (درسُ GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01).
 from shared.security.trusted_tenant import service_token_ok
+from shared.startup_retry import retry_startup_connect
 
 try:
     from shared.logging_config import setup_logging
@@ -64,8 +65,9 @@ async def lifespan(app: FastAPI):
     if DATABASE_URL:
         # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
         # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
-        _pool = await asyncpg.create_pool(
-            DATABASE_URL, min_size=1, max_size=5, statement_cache_size=0
+        # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+        _pool = await retry_startup_connect(
+            asyncpg.create_pool, DATABASE_URL, min_size=1, max_size=5, statement_cache_size=0
         )
         # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
         from shared.db_role_guard import assert_db_role_rls_safe

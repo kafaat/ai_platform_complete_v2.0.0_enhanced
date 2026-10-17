@@ -368,11 +368,13 @@ async def run() -> None:
     import asyncpg
 
     import nats
+    from shared.startup_retry import retry_startup_connect
 
     database_url = os.environ["DATABASE_URL"]
     nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
     durable = os.getenv("CANONICAL_LEARNING_DURABLE", "canonical-execution-learning-v1")
-    pool = await asyncpg.create_pool(database_url, min_size=1, max_size=4)
+    # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+    pool = await retry_startup_connect(asyncpg.create_pool, database_url, min_size=1, max_size=4)
     nc = await nats.connect(nats_url, inbox_prefix=INBOX_PREFIX)
     js = nc.jetstream()
 

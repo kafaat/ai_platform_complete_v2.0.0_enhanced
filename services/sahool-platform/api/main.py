@@ -77,6 +77,7 @@ from pydantic import BaseModel
 
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
+from shared.startup_retry import retry_startup_connect
 
 logger = logging.getLogger("sahool.api")
 
@@ -238,19 +239,18 @@ async def _init_db_pool():
     try:
         import asyncpg
 
-        # statement_cache_size=0 لتوافق PgBouncer (مبدأ موثّق)
-        # BLOCKER-01: max_size=10 ثابت كان يوقف المنصّة عند 10 طلبات متزامنة. صار
-        # قابلاً للضبط عبر DB_POOL_MIN/MAX (افتراض 5/20) لتوسّع الإنتاج.
+        # statement_cache_size=0 لتوافق PgBouncer. BLOCKER-01: max_size=10 الثابت أوقف المنصّة
+        # عند 10 طلبات متزامنة؛ صار DB_POOL_MIN/MAX (افتراض 5/20). وإعادةُ المحاولة: RESTART-01.
         _pool_min = int(os.getenv("DB_POOL_MIN", "5"))
         _pool_max = max(_pool_min, int(os.getenv("DB_POOL_MAX", "20")))
-        _DB_POOL = await asyncpg.create_pool(
-            dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
+        _DB_POOL = await retry_startup_connect(
+            asyncpg.create_pool, dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
         )
         app.state.db_pool = _DB_POOL
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
-        raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS + الفرض مُفعَّل) — لا تبتلعه
+        raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS، أو مهلة إقلاع Postgres) — لا تبتلعه
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
         _DB_POOL = None
@@ -258,8 +258,8 @@ async def _init_db_pool():
     # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
     jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
     try:
-        _JOBS_POOL = await asyncpg.create_pool(
-            jobs_dsn, statement_cache_size=0, min_size=1, max_size=4
+        _JOBS_POOL = await retry_startup_connect(
+            asyncpg.create_pool, jobs_dsn, statement_cache_size=0, min_size=1, max_size=4
         )
         logging.info("✓ pool المهامّ الخلفيّة جاهز (sahool_jobs)")
     except Exception as e:  # noqa: BLE001 — غيابه يُعطّل المرسِل لا المنصّة

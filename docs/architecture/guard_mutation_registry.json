@@ -3208,6 +3208,17 @@
         }
       ],
       "test": "tests_v9/test_irrigation_manual_slice_routes.py"
+    },
+    "shared/startup_retry.py": {
+      "mutations": [
+        {
+          "expect": "test_transient_refusals_are_retried_with_exponential_backoff",
+          "find": "            if not is_transient_connect_error(exc):\n                raise\n",
+          "replace": "            raise  # mutated: give up on the first refusal\n",
+          "test": "tests_v9/test_startup_db_connect_retry.py",
+          "why": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: الاستسلامُ على أوّل رفضٍ يُعيد كلَّ خدمةٍ مُصلَحة إلى الموت عند إعادةٍ بسياسة restart قبل جهوز Postgres."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -5997,6 +6008,17 @@
         }
       ],
       "test": "tests_v9/test_sot_provenance_guard.py"
+    },
+    "startup_db_connect_retry_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_unclassified_dependant_is_blocked",
+          "find": "    unclassified = sorted(set(derived) - set(services) - set(pending))\n",
+          "replace": "    unclassified: list[str] = []  # mutated\n",
+          "why": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: خدمةٌ جديدة تعتمد على Postgres بشرط service_healthy بلا تصنيف هي العطلُ الأصليّ بعينه — الشرطُ لا يحمي إعادةً بسياسة restart. حارسٌ لا يشتقّ المجموعة من compose يمرّرها أخضر."
+        }
+      ],
+      "test": "tests_v9/test_startup_db_connect_retry.py"
     },
     "tenant_connection_call_shape_guard.py": {
       "mutations": [
