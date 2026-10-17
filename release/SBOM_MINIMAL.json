@@ -5725,7 +5725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f306e9de2a7592e1d697b438f8e84e0d9a33c776f627b247909ad84db3d63617"
+          "content": "828d227b5b0d67646ea908b6816061c7de97573cdf448cae631e5f61071589d4"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.test.tsx",
@@ -5735,7 +5735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cb84dce344b80a9b80bc5d41c87de1cf30a50c143d5ca77053be7bfaf150893"
+          "content": "360470ec13dde0f2c180d559eba60f4498d3a6e9aeff81581f1cb223e69f8d26"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.tsx",
@@ -6725,7 +6725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ff9a38920390dc74306c5bac8d34eeac6bfa2300a4892ffc85baf485d35ecf8"
+          "content": "e606bb45b0c61ea5b292edc49424ee3b4d6c231d2be18576b7a3efcdeaaaf6ee"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -18085,7 +18085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f7b79238c7e8bea5c06cc48120d7f4b9cb361b3bc6c3c818c229298048f5924"
+          "content": "d906f18b4290b269e66bd9e67db0310e2a230f91d2cd46e2bd7414063653b990"
         }
       ],
       "name": "services/sahool-platform/api/learning_summary.py",
@@ -23335,7 +23335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d17ccd065d3a1545b447a6ac10ebeb2d69f97a907695cc587049e6e4ebfc7e6c"
+          "content": "0c7325b449ad8730999593886cfdabb31e68c538b37a3115aa57551452501533"
         }
       ],
       "name": "services/sahool-platform/core/outcome_reconciler.py",
