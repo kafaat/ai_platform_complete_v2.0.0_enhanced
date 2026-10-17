@@ -131,15 +131,15 @@
       "mutations": [
         {
           "expect": "test_every_client_url_carries_the_credentials",
-          "find": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}",
-          "replace": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: nats://sahool-nats:4222",
+          "find": "NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222",
+          "replace": "NATS_URL: tls://sahool-nats:4222",
           "test": "tests_v9/test_nats_broker_authentication.py",
-          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (المرساةُ تشمل السطرَ السابق لأنّ العنوانَ نفسَه يتكرّر ١٣ مرّة.)"
+          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (أُعيد إرساؤها: العنوانُ صار يحمل هويّةَ الخدمة — NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01 — فالمرساةُ فريدةٌ بنفسها.)"
         },
         {
           "expect": "test_the_broker_service_inherits_the_credentials_and_refuses_a_published_default",
-          "find": "NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
-          "replace": "NATS_PASSWORD: ${NATS_PASSWORD:-changeme}",
+          "find": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
+          "replace": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:-changeme}",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ افتراضيّ للوسيط ⇒ كلُّ مكدّسٍ أُقلع بلا ضبطٍ صريح يعمل بكلمةٍ يعرفها كلُّ من قرأ المستودع، فتصير المصادقةُ زينةً"
         },
@@ -254,10 +254,17 @@
         },
         {
           "expect": "test_no_credential_is_written_into_the_committed_config",
-          "find": "password: $NATS_PASSWORD",
+          "find": "password: $NATS_PLATFORM_PASSWORD",
           "replace": "password: hunter2",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ **منشور**: كلُّ من قرأ المستودع يعرفه وكلُّ بيئةٍ أُقلعت بلا ضبطٍ صريح تعمل به — نفسُ صنف COMPOSE-DEFAULT-SECRET-IS-A-PUBLISHED-SECRET-01"
+        },
+        {
+          "expect": "test_the_broker_config_requires_tls_from_the_mounted_pair",
+          "find": "tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "replace": "disabled_tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01: بلا كتلة tls يعود 4222 نصّاً صريحاً — كلماتُ مرور الهويّات التسع في `CONNECT` والأحداثُ مقروءةٌ لكلّ من يلتقط حركة sahool-internal، والوسيطُ يُقلِع بلا شكوى."
         }
       ]
     },

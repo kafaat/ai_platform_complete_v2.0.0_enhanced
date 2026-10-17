@@ -362,6 +362,7 @@
     "sahool-minio-init",
     "sahool-nats",
     "sahool-nats-exporter",
+    "sahool-nats-tls-init",
     "sahool-nginx",
     "sahool-nginx-exporter",
     "sahool-nginx-tls-init",
