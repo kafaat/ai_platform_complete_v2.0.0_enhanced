@@ -44,18 +44,11 @@ def _conf_body() -> str:
     )
 
 
-#: تُزال من المكدّس في الموجة نفسها على فرعٍ آخر (``compose``) فلا تُمَسّ كتلتُها هنا كي يندمج
-#: الفرعان بلا تعارض؛ يُتجاهَل حضورُها فقط — وبعد الدمج يُحذَف هذا السطر.
-WAVE_REMOVED = frozenset({"sahool-weather-polygon-worker"})
-
-
 def _nats_clients() -> dict[str, dict]:
     return {
         name: svc
         for name, svc in _services().items()
-        if isinstance(svc.get("environment"), dict)
-        and "NATS_URL" in svc["environment"]
-        and name not in WAVE_REMOVED
+        if isinstance(svc.get("environment"), dict) and "NATS_URL" in svc["environment"]
     }
 
 

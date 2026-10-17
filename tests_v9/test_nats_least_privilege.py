@@ -58,10 +58,6 @@ NON_CLIENTS = {
     "sahool-telegram-bot": ROOT / "bots" / "telegram",
 }
 
-#: خدماتٌ تُزال من المكدّس في الموجة نفسها على فرعٍ آخر (``compose``): لا هويّةَ لها ولا تُمَسّ
-#: كتلتُها هنا كي يندمج الفرعان بلا تعارض. يُتجاهَل حضورُها فقط — وبعد الدمج يُحذَف هذا السطر.
-WAVE_REMOVED = frozenset({"sahool-weather-polygon-worker"})
-
 #: أين يتّصل كلُّ عميلِ JetStream (يحتاج صندوقَ ردّ) — المسارُ الذي يجب أن يمرّر ``inbox_prefix``.
 INBOX_CLIENTS = {
     "sahool-platform": PLATFORM / "api" / "main.py",
@@ -163,9 +159,7 @@ def _clients() -> dict[str, str]:
     return {
         name: str(svc["environment"]["NATS_URL"])
         for name, svc in _services().items()
-        if isinstance(svc.get("environment"), dict)
-        and "NATS_URL" in svc["environment"]
-        and name not in WAVE_REMOVED
+        if isinstance(svc.get("environment"), dict) and "NATS_URL" in svc["environment"]
     }
 
 
@@ -243,8 +237,6 @@ def test_no_credential_is_committed_and_no_shared_one_remains():
     for user in _users().values():
         assert str(user["password"]).startswith("$NATS_"), f"سرٌّ حرفيٌّ في nats.conf: {user['user']}"
     for name, svc in _services().items():
-        if name in WAVE_REMOVED:
-            continue
         env = yaml.safe_dump(svc.get("environment") or {}, allow_unicode=True)
         for legacy in ("${NATS_USER", "${NATS_PASSWORD", "${NATS_URL"):
             assert legacy not in env, (

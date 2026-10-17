@@ -38,14 +38,8 @@ COMPOSE = ROOT / "docker-compose.v9.yml"
 STACK = "docker-compose.v9.yml"
 
 
-#: تُزال من المكدّس في الموجة نفسها على فرعٍ آخر (``compose``) فلا تُمَسّ كتلتُها هنا كي يندمج
-#: الفرعان بلا تعارض؛ يُتجاهَل حضورُها فقط — وبعد الدمج يُحذَف هذا السطر.
-WAVE_REMOVED = frozenset({"sahool-weather-polygon-worker"})
-
-
 def _services() -> dict:
-    services = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))["services"]
-    return {name: svc for name, svc in services.items() if name not in WAVE_REMOVED}
+    return yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))["services"]
 
 
 # ── ① الوسيطُ يشترط اعتماداً ──────────────────────────────────────────────────

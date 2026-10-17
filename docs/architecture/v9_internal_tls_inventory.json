@@ -95,9 +95,6 @@
       "sahool-weather-signal-engine"
     ]
   },
-  "excluded": {
-    "sahool-weather-polygon-worker": "يُزال من المكدّس في الموجة نفسِها على فرع compose: لا هويّةَ NATS ولا بيئةَ TLS لـPostgres هنا كي يندمج الفرعان بلا تعارض. يُحذَف هذا السطرُ بعد الدمج."
-  },
   "unmeasured": [
     "مصافحةُ TLS داخل مكدّس Docker الحقيقيّ (لا Docker daemon حيث قِيس هذا) — المقيسُ حيّاً: nats-server 2.15.0 وPostgres 16 المحلّيّ بالإعداد نفسِه.",
     "صورةُ postgis/postgis:15-3.4 بالإصدار 15 لا 16، وuid مستخدم postgres فيها (999) مأخوذٌ من صور Debian الرسميّة لا مقيس.",

@@ -47,10 +47,6 @@ SERVER_TLS_DIR = "/etc/postgresql/tls"
 HBA_PATH = "/etc/postgresql/pg_hba.conf"
 DEV_VALUES = {"development", "dev", "local", "test"}
 
-#: تُزال من المكدّس في الموجة نفسها على فرعٍ آخر (``compose``) فلا تُمَسّ كتلتُها هنا كي يندمج
-#: الفرعان بلا تعارض؛ يُتجاهَل حضورُها فقط — وبعد الدمج يُحذَف هذا السطر.
-WAVE_REMOVED = frozenset({"sahool-weather-polygon-worker"})
-
 _DSN_KEYS = re.compile(r"(^|_)DATABASE_URL$|^PGHOST$|^DATA_SOURCE_URI$")
 
 
@@ -66,7 +62,7 @@ def postgres_clients(services: dict | None = None) -> dict[str, dict]:
     services = services if services is not None else _services()
     out = {}
     for name, svc in services.items():
-        if name in WAVE_REMOVED or name in {SERVER, INIT}:
+        if name in {SERVER, INIT}:
             continue
         env = svc.get("environment") or {}
         if not isinstance(env, dict):

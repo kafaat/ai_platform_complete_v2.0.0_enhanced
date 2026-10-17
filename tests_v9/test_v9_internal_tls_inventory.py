@@ -23,8 +23,6 @@ GAPS = {
     "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
     "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01",
 }
-#: يُزال من المكدّس في الموجة نفسها على فرع ``compose`` — بعد الدمج يُحذَف من هنا ومن الجرد.
-WAVE_REMOVED = frozenset({"sahool-weather-polygon-worker"})
 _DSN_KEYS = re.compile(r"(^|_)DATABASE_URL$|^PGHOST$|^DATA_SOURCE_URI$")
 
 pytestmark = [pytest.mark.unit]
@@ -41,7 +39,7 @@ def _services() -> dict:
 def _postgres_clients() -> set[str]:
     out = set()
     for name, svc in _services().items():
-        if name in WAVE_REMOVED or name in {"sahool-postgres", "sahool-postgres-tls-init"}:
+        if name in {"sahool-postgres", "sahool-postgres-tls-init"}:
             continue
         env = svc.get("environment") or {}
         if not isinstance(env, dict):
@@ -57,7 +55,7 @@ def _nats_clients() -> dict[str, dict]:
     out = {}
     for name, svc in _services().items():
         env = svc.get("environment") or {}
-        if name in WAVE_REMOVED or not isinstance(env, dict) or "NATS_URL" not in env:
+        if not isinstance(env, dict) or "NATS_URL" not in env:
             continue
         m = re.match(r"^tls://([a-z0-9-]+):\$\{([A-Z0-9_]+):\?", str(env["NATS_URL"]))
         assert m, f"{name}: NATS_URL ليس tls://<هويّة>:${{VAR:?…}}@… — {env['NATS_URL']}"
@@ -88,9 +86,11 @@ def test_nats_clients_and_their_identities_match_compose_both_ways():
     assert _inventory()["nats"]["clients"] == _nats_clients()
 
 
-def test_exclusions_are_exactly_the_services_removed_in_this_wave_and_named_unmeasured_limits():
+def test_no_exclusion_survives_the_wave_and_unmeasured_limits_are_named():
     inv = _inventory()
-    assert set(inv["excluded"]) == WAVE_REMOVED
+    assert "excluded" not in inv, (
+        "استثناءُ الموجة (weather-polygon-worker) زال بزوال الخدمة — بقاؤه يُخفي عميلاً عن الجرد"
+    )
     assert any("Docker" in item for item in inv["unmeasured"]), (
         "مصافحةُ TLS داخل مكدّس Docker لم تُقَس — يجب أن يقولها الجردُ صراحةً"
     )
