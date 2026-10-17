@@ -1137,6 +1137,736 @@ def nats_subscriptions(root: Path, components: list[dict[str, Any]]) -> list[dic
     return sorted(found, key=lambda x: (x["component"], x["durable"], x["table_row"]))
 
 
+# ── صنفُ الدليل الثالث: نداءُ HTTP في مصدر Python (خدمةٌ ⇒ خدمة) ─────────────────────────────────────────────
+#
+# ``A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01`` سمّت الخطوةَ التالية: حافّةُ خدمةٍ إلى خدمة
+# (field-segmentation⇒SAM2) لا يثبتها نداءٌ في الواجهة، بل موضعُ نداءٍ في مصدر Python. والسلسلةُ هنا خمسُ خطوات،
+# كلُّها بسطرها ومشتقّةٌ من الشجرة:
+#
+# 1. موضعُ النداء: ``<client>.<verb>(url)`` حيث ``client`` مُثبَتٌ عميلَ HTTP (``httpx``/``requests`` نفسُهما، أو
+#    اسمٌ رُبط بـ``with httpx.Client(...) as c`` / ``c = httpx.AsyncClient(...)`` / ``aiohttp.ClientSession()``).
+#    ``.get`` على قاموسٍ ليس نداءً — فالمستقبِلُ الذي لا يُثبَت عميلاً لا يُقرأ أصلاً (حدٌّ معلَن).
+# 2. قراءةُ البيئة: ``os.getenv("X", default)`` / ``os.environ[...]`` يبلغها التعبيرُ عبر روابطَ بسيطةٍ (اسمٌ مُسنَدٌ
+#    مرّةً واحدة · ``self.attr`` · دالّةٌ بلا وسائط تُعيد تعبيراً · f-string · ``+`` · ``strip``/``rstrip``).
+# 3. قيمةُ البيئة في ``docker-compose.v9.yml`` لخدمة compose المستهلكة (``${X:-http://host:port/...}``)، أو — إن لم
+#    يُعلنها compose — الافتراضيُّ الحرفيُّ في الكود.
+# 4. المضيفُ ⇒ خدمةُ compose (أو ``container_name`` / اسمٌ مستعار) لمكوّنٍ في الجرد؛ والمنفذُ ⇒ منفذٌ يستمع عليه
+#    ذاك المكوّن (``ports``/``expose``/``command``/``healthcheck`` أو ``EXPOSE``/``--port`` في Dockerfile).
+# 5. المسارُ ⇒ مسارٌ مُعلَنٌ للمنتِج في ``route_inventory.generated.json`` (الجردُ نفسُه، لا جدولٌ يدويّ).
+#
+# والمسارُ الديناميّ لا يُطابَق إلّا قالباً: بادئةٌ حرفيّة (المقطعُ الأوّلُ ثابت) وكلُّ جزءٍ متغيّرٍ يملأ مقطعاً كاملاً؛
+# وما سوى ذلك يبقى مجهولاً بسببٍ مسمّى (``dynamic_path``). ولا نفيَ من غياب: ما لا يُرى يبقى ``unknown``.
+
+COMPOSE_FILE = "docker-compose.v9.yml"
+ROUTE_INVENTORY = "route_inventory.generated.json"
+_HTTP_VERBS = ("get", "post", "put", "patch", "delete", "head", "options")
+_HTTP_MODULES = {"httpx", "requests"}
+_CLIENT_FACTORIES = {
+    ("httpx", "Client"),
+    ("httpx", "AsyncClient"),
+    ("requests", "Session"),
+    ("aiohttp", "ClientSession"),
+}
+_DYN = "\x00"
+_COMPOSE_DEFAULT = re.compile(r"^\$\{([A-Za-z_][A-Za-z0-9_]*):?-([^{}$]*)\}$")
+_URL = re.compile(r"^(https?)://([^/:?#\x00]+)(?::(\d+))?(/[^#]*)?$")
+_PORT_FLAG = re.compile(r"(?:--port[=\s]+|--bind[=\s]+\S*?:|-b\s+\S*?:)(\d{2,5})\b")
+_LOCAL_PORT = re.compile(r"\blocalhost:(\d{2,5})\b")
+#: أسبابُ «مجهول» لحوافّ مستهلكُها مكوّنُ Python — **غيرُ معلَنةٍ في سجلّ الاستثناءات** ما دامت لا تقع: حافّةُ خدمةٍ
+#: معلَنةٌ تبقى بلا دليلٍ تُحمِّر ``exemption_problems`` (``unlisted_reason``) حتّى يُقرَّر سببُها — لا مجهولَ صامت.
+PYTHON_UNKNOWN_REASONS = (
+    "dynamic_path",
+    "base_url_unresolved",
+    "not_seen_by_python_http_scanner",
+)
+
+
+class _Unresolved(Exception):
+    """تعبيرُ URL لا يُقرأ ساكناً — يُعاد سببُه لا يُخمَّن."""
+
+
+def _line(path: str, number: int) -> str:
+    return f"{path}:{number}"
+
+
+def _compose_value(raw: str) -> str | None:
+    """قيمةُ متغيّرٍ في compose: حرفيٌّ، أو افتراضيُّ ``${X:-v}``؛ و``${X:?…}``/``${X}`` يقدّمها المشغّل ⇒ ``None``."""
+    raw = raw.strip()
+    if "$" not in raw:
+        return raw or None
+    found = _COMPOSE_DEFAULT.match(raw)
+    return (found.group(2) or None) if found else None
+
+
+def compose_services(root: Path = ROOT) -> dict[str, dict[str, Any]]:
+    """كلُّ خدمة compose ⇒ بيئتُها ومضيفوها ومنافذُها، **بأسطرها** (عُقَد ``yaml.compose`` تحمل موضعها)."""
+    import yaml
+
+    path = root / COMPOSE_FILE
+    if not path.is_file():
+        return {}
+    document = yaml.compose(path.read_text(encoding="utf-8"))
+
+    def child(node, key):
+        if not isinstance(node, yaml.MappingNode):
+            return None, None
+        for k, v in node.value:
+            if isinstance(k, yaml.ScalarNode) and k.value == key:
+                return k, v
+        return None, None
+
+    def scalars(node):
+        if isinstance(node, yaml.ScalarNode):
+            yield node
+        elif isinstance(node, yaml.SequenceNode):
+            for item in node.value:
+                yield from scalars(item)
+        elif isinstance(node, yaml.MappingNode):
+            for _, item in node.value:
+                yield from scalars(item)
+
+    _, services = child(document, "services")
+    out: dict[str, dict[str, Any]] = {}
+    for key, node in services.value if isinstance(services, yaml.MappingNode) else ():
+        name = key.value
+        entry: dict[str, Any] = {
+            "env": {},
+            "hosts": {name: _line(COMPOSE_FILE, key.start_mark.line + 1)},
+            "ports": {},
+        }
+        _, env = child(node, "environment")
+        if isinstance(env, yaml.MappingNode):
+            for k, v in env.value:
+                if isinstance(v, yaml.ScalarNode):
+                    entry["env"][k.value] = (v.value, _line(COMPOSE_FILE, v.start_mark.line + 1))
+        elif isinstance(env, yaml.SequenceNode):
+            for item in env.value:
+                if isinstance(item, yaml.ScalarNode) and "=" in item.value:
+                    k, v = item.value.split("=", 1)
+                    entry["env"][k] = (v, _line(COMPOSE_FILE, item.start_mark.line + 1))
+        _, container = child(node, "container_name")
+        if isinstance(container, yaml.ScalarNode):
+            entry["hosts"].setdefault(
+                container.value, _line(COMPOSE_FILE, container.start_mark.line + 1)
+            )
+        _, networks = child(node, "networks")
+        if isinstance(networks, yaml.MappingNode):
+            for _, net in networks.value:
+                _, aliases = child(net, "aliases")
+                for alias in scalars(aliases) if aliases is not None else ():
+                    entry["hosts"].setdefault(
+                        alias.value, _line(COMPOSE_FILE, alias.start_mark.line + 1)
+                    )
+
+        def port(value: str, line: str, ports: dict = entry["ports"]) -> None:
+            if value.isdigit():
+                ports.setdefault(int(value), line)
+
+        for field in ("ports", "expose"):
+            _, ports = child(node, field)
+            for item in scalars(ports) if ports is not None else ():
+                text = str(item.value).split("/", 1)[0]
+                port(text.rsplit(":", 1)[-1], _line(COMPOSE_FILE, item.start_mark.line + 1))
+        for field, pattern in (("command", _PORT_FLAG), ("healthcheck", _LOCAL_PORT)):
+            _, value = child(node, field)
+            items = list(scalars(value)) if value is not None else []
+            for index, item in enumerate(items):
+                text = str(item.value)
+                if field == "command" and text == "--port" and index + 1 < len(items):
+                    text = f"--port {items[index + 1].value}"
+                for found in pattern.finditer(text):
+                    port(found.group(1), _line(COMPOSE_FILE, item.start_mark.line + 1))
+        _, build = child(node, "build")
+        _, dockerfile = child(build, "dockerfile")
+        _, context = child(build, "context")
+        if isinstance(dockerfile, yaml.ScalarNode):
+            base = root / (context.value if isinstance(context, yaml.ScalarNode) else ".")
+            docker = (base / dockerfile.value).resolve()
+            if docker.is_file() and docker.is_relative_to(root.resolve()):
+                relative = str(docker.relative_to(root.resolve()))
+                for number, text in enumerate(docker.read_text(encoding="utf-8").splitlines(), 1):
+                    stripped = text.strip()
+                    if stripped.upper().startswith("EXPOSE"):
+                        for value in stripped.split()[1:]:
+                            port(value.split("/", 1)[0], _line(relative, number))
+                    elif stripped.upper().startswith("CMD") or stripped.upper().startswith(
+                        "ENTRYPOINT"
+                    ):
+                        flat = re.sub(r'"\s*,\s*"', " ", stripped)
+                        for found in _PORT_FLAG.finditer(flat):
+                            port(found.group(1), _line(relative, number))
+        out[name] = entry
+    return out
+
+
+def _provider_routes(root: Path, host_to_component: dict[str, str]) -> dict[str, list[dict]]:
+    """مساراتُ كلِّ منتِجٍ من ``route_inventory.generated.json`` — ``service`` ⇒ مكوّنٌ بأسماء الجرد نفسِه."""
+    path = root / ROUTE_INVENTORY
+    if not path.is_file():
+        return {}
+    import json
+
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    rows = rows if isinstance(rows, list) else rows.get("routes") or []
+    out: dict[str, list[dict]] = {}
+    for row in rows:
+        component = host_to_component.get(str(row.get("service") or ""))
+        if component and row.get("file") and row.get("line") and row.get("path"):
+            out.setdefault(component, []).append(row)
+    return out
+
+
+class _PyScope:
+    """قارئُ تعبيرات URL في ملفّ Python واحد — روابطُ بسيطةٌ تُتبَع بأسطرها، وما سواها ``_Unresolved``."""
+
+    def __init__(self, tree, relative: str):
+        import ast
+
+        self.ast = ast
+        self.relative = relative
+        self.module: dict[str, list] = {}
+        self.functions: dict[str, Any] = {}
+        self.classes: dict[str, dict[str, list]] = {}
+        self.classes_nodes: dict[str, Any] = {}
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                target = node.targets[0]
+                if isinstance(target, ast.Name):
+                    self.module.setdefault(target.id, []).append(node)
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                if node.value is not None:
+                    self.module.setdefault(node.target.id, []).append(node)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                self.functions[node.name] = node
+            elif isinstance(node, ast.ClassDef):
+                self.classes_nodes[node.name] = node
+                attrs: dict[str, list] = {}
+                for inner in ast.walk(node):
+                    if isinstance(inner, ast.Assign) and len(inner.targets) == 1:
+                        target = inner.targets[0]
+                        if (
+                            isinstance(target, ast.Attribute)
+                            and isinstance(target.value, ast.Name)
+                            and target.value.id == "self"
+                        ):
+                            attrs.setdefault(target.attr, []).append(inner)
+                self.classes[node.name] = attrs
+
+    def _env_read(self, node) -> tuple[str, Any] | None:
+        """``os.getenv("X", d)`` · ``os.environ.get("X", d)`` · ``os.environ["X"]`` ⇒ (الاسم، عقدةُ الافتراضيّ)."""
+        ast = self.ast
+        if isinstance(node, ast.Subscript):
+            base = ast.unparse(node.value)
+            key = node.slice
+            if base in {"os.environ", "environ"} and isinstance(key, ast.Constant):
+                return (str(key.value), None) if isinstance(key.value, str) else None
+            return None
+        if not isinstance(node, ast.Call):
+            return None
+        name = ast.unparse(node.func)
+        if name not in {"os.getenv", "getenv", "os.environ.get", "environ.get"}:
+            return None
+        if not node.args or not isinstance(node.args[0], ast.Constant):
+            return None
+        if not isinstance(node.args[0].value, str):
+            return None
+        default = node.args[1] if len(node.args) > 1 else None
+        for keyword in node.keywords:
+            if keyword.arg == "default":
+                default = keyword.value
+        return node.args[0].value, default
+
+    def evaluate(self, node, ctx: dict[str, Any], steps: list[str], depth: int = 0) -> list:
+        """تعبيرٌ ⇒ أجزاء: ``("lit", s)`` · ``("env", var, default|None, read_line)`` · ``("dyn", why)``."""
+        ast = self.ast
+        if depth > 8:
+            raise _Unresolved("binding_depth_exceeded")
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, str):
+                return [("lit", node.value)]
+            raise _Unresolved("non_string_constant")
+        read = self._env_read(node)
+        if read is not None:
+            var, default = read
+            default_value = None
+            if default is not None:
+                try:
+                    parts = self.evaluate(default, ctx, [], depth + 1)
+                except _Unresolved:
+                    parts = []
+                if parts and all(p[0] == "lit" for p in parts):
+                    default_value = "".join(p[1] for p in parts)
+            return [("env", var, default_value, _line(self.relative, node.lineno))]
+        if isinstance(node, ast.JoinedStr):
+            out: list = []
+            for value in node.values:
+                if isinstance(value, ast.Constant):
+                    out.append(("lit", str(value.value)))
+                elif isinstance(value, ast.FormattedValue):
+                    try:
+                        out.extend(self.evaluate(value.value, ctx, steps, depth + 1))
+                    except _Unresolved as exc:
+                        out.append(("dyn", str(exc)))
+            return out
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+            left = self.evaluate(node.left, ctx, steps, depth + 1)
+            try:
+                right = self.evaluate(node.right, ctx, steps, depth + 1)
+            except _Unresolved as exc:
+                right = [("dyn", str(exc))]
+            return left + right
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or) and len(node.values) == 2:
+            first = self.evaluate(node.values[0], ctx, steps, depth + 1)
+            second = self.evaluate(node.values[1], ctx, [], depth + 1)
+            if (
+                len(first) == 1
+                and first[0][0] == "env"
+                and all(p[0] == "lit" for p in second)
+                and second
+            ):
+                return [("env", first[0][1], "".join(p[1] for p in second), first[0][3])]
+            raise _Unresolved("runtime_alternative")
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr in {"strip", "rstrip", "lstrip"} and all(
+                isinstance(a, ast.Constant) for a in node.args
+            ):
+                return self.evaluate(node.func.value, ctx, steps, depth + 1)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and not node.args:
+            function = self.functions.get(node.func.id)
+            if function is not None and not (
+                function.args.args or function.args.posonlyargs or function.args.kwonlyargs
+            ):
+                returns = [n for n in ast.walk(function) if isinstance(n, ast.Return)]
+                if len(returns) == 1 and returns[0].value is not None:
+                    steps.append(_line(self.relative, returns[0].lineno))
+                    inner = {"locals": _locals(ast, function), "params": set(), "cls": None}
+                    return self.evaluate(returns[0].value, inner, steps, depth + 1)
+            raise _Unresolved("call_not_followed")
+        if isinstance(node, ast.Name):
+            if node.id in ctx["params"]:
+                raise _Unresolved("parameter")
+            bound = ctx["locals"].get(node.id) or self.module.get(node.id) or []
+            if len(bound) != 1:
+                raise _Unresolved("unbound_or_rebound_name")
+            steps.append(_line(self.relative, bound[0].lineno))
+            scope = (
+                ctx if node.id in ctx["locals"] else {"locals": {}, "params": set(), "cls": None}
+            )
+            return self.evaluate(bound[0].value, scope, steps, depth + 1)
+        if (
+            isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "self"
+            and ctx.get("cls") in self.classes
+        ):
+            bound = self.classes[ctx["cls"]].get(node.attr) or []
+            if len(bound) != 1:
+                raise _Unresolved("unbound_or_rebound_attribute")
+            steps.append(_line(self.relative, bound[0].lineno))
+            owner = _enclosing_function(ast, self.classes_nodes[ctx["cls"]], bound[0])
+            scope = {
+                "locals": _locals(ast, owner) if owner else {},
+                "params": _params(owner) if owner else set(),
+                "cls": ctx["cls"],
+            }
+            return self.evaluate(bound[0].value, scope, steps, depth + 1)
+        raise _Unresolved(type(node).__name__.lower())
+
+
+def _locals(ast, function) -> dict[str, list]:
+    out: dict[str, list] = {}
+    for node in ast.walk(function):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            if isinstance(node.targets[0], ast.Name):
+                out.setdefault(node.targets[0].id, []).append(node)
+        elif isinstance(node, (ast.AugAssign, ast.AnnAssign)) and isinstance(node.target, ast.Name):
+            out.setdefault(node.target.id, []).append(node)
+        elif isinstance(node, (ast.For, ast.AsyncFor, ast.comprehension)):
+            for name in ast.walk(node.target):
+                if isinstance(name, ast.Name):
+                    out.setdefault(name.id, []).extend([node, node])  # إسنادٌ متكرّر ⇒ غيرُ ثابت
+    return out
+
+
+def _params(function) -> set[str]:
+    args = function.args
+    names = [a.arg for a in (*args.posonlyargs, *args.args, *args.kwonlyargs)]
+    names += [a.arg for a in (args.vararg, args.kwarg) if a is not None]
+    return set(names)
+
+
+def _enclosing_function(ast, root_node, target):
+    for node in ast.walk(root_node):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
+            inner is target for inner in ast.walk(node)
+        ):
+            return node
+    return None
+
+
+def _client_factory(ast, call, modules: dict) -> tuple[str, str] | None:
+    """``httpx.AsyncClient(...)`` وأخواتُها — والوحدةُ مُثبَتةٌ بـ``import`` في الملفّ نفسِه لا باسمٍ يشبهها."""
+    if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Attribute):
+        return None
+    if not isinstance(call.func.value, ast.Name):
+        return None
+    module = modules.get(call.func.value.id)
+    if module and (module[0], call.func.attr) in _CLIENT_FACTORIES:
+        return module[0], call.func.attr
+    return None
+
+
+def _is_test_python(relative: Path) -> bool:
+    return (
+        relative.name.startswith("test_")
+        or relative.name.endswith("_test.py")
+        or relative.name == "conftest.py"
+        or bool({"tests", "test", "__tests__"}.intersection(relative.parts))
+    )
+
+
+def _python_call_sites(root: Path, components: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """كلُّ نداءِ HTTP بمستقبِلٍ مُثبَتٍ عميلاً في مصدر Python للمكوّنات — بأجزاء URL وأسطر روابطها."""
+    import ast
+
+    found: list[dict[str, Any]] = []
+    for component in components:
+        source = component.get("source_path") or ""
+        base = root / source
+        if not source or not base.is_dir() or component.get("component_kind") == "frontend":
+            continue
+        for path in sorted(base.rglob("*.py")):
+            relative_path = path.relative_to(root)
+            if _is_test_python(relative_path):
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+                tree = ast.parse(text)
+            except (SyntaxError, UnicodeDecodeError):
+                continue
+            if not any(token in text for token in ("httpx", "requests", "aiohttp")):
+                continue
+            relative = str(relative_path)
+            modules = {}
+            for node in tree.body:
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name in _HTTP_MODULES | {"aiohttp"}:
+                            modules[alias.asname or alias.name] = (alias.name, node.lineno)
+            scope = _PyScope(tree, relative)
+            owners: dict[int, tuple] = {}
+            for cls in [n for n in tree.body if isinstance(n, ast.ClassDef)]:
+                for fn in cls.body:
+                    if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        owners[id(fn)] = (fn, cls.name)
+            for fn in tree.body:
+                if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    owners[id(fn)] = (fn, None)
+            for fn, cls_name in owners.values():
+                clients: dict[str, dict[str, Any]] = {}
+                rebound: set[str] = set()
+
+                for node in ast.walk(fn):
+                    if isinstance(node, (ast.With, ast.AsyncWith)):
+                        for item in node.items:
+                            made = _client_factory(ast, item.context_expr, modules)
+                            if made and isinstance(item.optional_vars, ast.Name):
+                                name = item.optional_vars.id
+                                if name in clients:
+                                    rebound.add(name)
+                                base_url = next(
+                                    (
+                                        k.value
+                                        for k in item.context_expr.keywords
+                                        if k.arg == "base_url"
+                                    ),
+                                    None,
+                                )
+                                clients[name] = {"line": node.lineno, "base_url": base_url}
+                    elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+                        made = _client_factory(ast, node.value, modules)
+                        if made and isinstance(node.targets[0], ast.Name):
+                            name = node.targets[0].id
+                            if name in clients:
+                                rebound.add(name)
+                            base_url = next(
+                                (k.value for k in node.value.keywords if k.arg == "base_url"), None
+                            )
+                            clients[name] = {"line": node.lineno, "base_url": base_url}
+                ctx = {"locals": _locals(ast, fn), "params": _params(fn), "cls": cls_name}
+                for node in ast.walk(fn):
+                    if not (
+                        isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Attribute)
+                        and isinstance(node.func.value, ast.Name)
+                    ):
+                        continue
+                    receiver, verb = node.func.value.id, node.func.attr
+                    if receiver in modules and modules[receiver][0] in _HTTP_MODULES:
+                        binding = _line(relative, modules[receiver][1])
+                        base_url = None
+                    elif receiver in clients and receiver not in rebound:
+                        binding = _line(relative, clients[receiver]["line"])
+                        base_url = clients[receiver]["base_url"]
+                    else:
+                        continue
+                    args = list(node.args)
+                    if verb == "request":
+                        if not args or not isinstance(args[0], ast.Constant):
+                            continue
+                        method, args = str(args[0].value).upper(), args[1:]
+                    elif verb in _HTTP_VERBS:
+                        method = verb.upper()
+                    else:
+                        continue
+                    target = (
+                        args[0]
+                        if args
+                        else next((k.value for k in node.keywords if k.arg == "url"), None)
+                    )
+                    if target is None:
+                        continue
+                    steps: list[str] = []
+                    try:
+                        parts = scope.evaluate(target, ctx, steps)
+                        if base_url is not None:
+                            parts = scope.evaluate(base_url, ctx, steps) + parts
+                        error = None
+                    except _Unresolved as exc:
+                        parts, error = [], str(exc)
+                    found.append(
+                        {
+                            "consumer": component["component_id"],
+                            "call_site": _line(relative, node.lineno),
+                            "client_binding": binding,
+                            "method": method,
+                            "parts": parts,
+                            "url_bindings": steps,
+                            "error": error,
+                        }
+                    )
+    return sorted(found, key=lambda c: (c["consumer"], c["call_site"], c["method"]))
+
+
+def _assemble(call, env, components_by_service, hosts, compose) -> list[dict[str, Any]]:
+    """أجزاءُ URL + بيئةُ خدمةِ compose المستهلكة ⇒ (مضيفٌ، منفذٌ، مسار) بأسطر كلِّ خطوة — أو سببُ الانقطاع."""
+    text, env_steps = "", []
+    for part in call["parts"]:
+        if part[0] == "lit":
+            text += part[1]
+        elif part[0] == "dyn":
+            text += _DYN
+        else:
+            _, var, default, read_line = part
+            if var in env:
+                raw, compose_line = env[var]
+                value = _compose_value(raw)
+                if value is None:
+                    return [{"reason": "base_url_unresolved", "why": f"compose_value_unset:{var}"}]
+                env_steps.append({"env_var": var, "env_read": read_line, "env_value": compose_line})
+            elif default:
+                value = default
+                env_steps.append({"env_var": var, "env_read": read_line, "env_value": read_line})
+            else:
+                return [{"reason": "base_url_unresolved", "why": f"env_without_value:{var}"}]
+            text += value
+    if call["error"] or not text:
+        return [{"reason": "base_url_unresolved", "why": call["error"] or "empty_url"}]
+    found = _URL.match(text)
+    if not found:
+        first_dynamic = next((p[1] for p in call["parts"] if p[0] == "dyn"), "")
+        return [
+            {
+                "reason": "base_url_unresolved",
+                "why": "url_not_static_up_to_path" + (f":{first_dynamic}" if first_dynamic else ""),
+            }
+        ]
+    scheme, host, port, path = found.groups()
+    port = int(port) if port else (443 if scheme == "https" else 80)
+    path = (path or "/").split("?", 1)[0]
+    segments = re.sub(r"/{2,}", "/", path).strip("/").split("/")
+    if _DYN in path:
+        if not segments or _DYN in segments[0] or any(_DYN in s and s != _DYN for s in segments):
+            if host not in hosts:
+                return [{"reason": "external_or_unknown_host", "host": host}]
+            return [
+                {
+                    "reason": "dynamic_path",
+                    "host": host,
+                    "provider": components_by_service.get(hosts[host], ""),
+                }
+            ]
+        path = "/" + "/".join("{}" if s == _DYN else s for s in segments)
+    service = hosts.get(host)
+    if service is None:
+        return [{"reason": "external_or_unknown_host", "host": host}]
+    return [
+        {
+            "host": host,
+            "port": port,
+            "path": normalise(path),
+            "provider_service": service,
+            "provider": components_by_service.get(service, ""),
+            "env_steps": env_steps,
+            "host_binding": compose[service]["hosts"][host],
+            "port_binding": compose[service]["ports"].get(port),
+            "provider_ports": sorted(compose[service]["ports"]),
+        }
+    ]
+
+
+def python_http_edges(root: Path, components: list[dict[str, Any]]) -> dict[str, Any]:
+    """صنفُ الدليل الثالث كاملاً: سلاسلُ مُثبَتة (``chains``) + نداءاتٌ لم تكتمل سلاسلُها بسببها (``unresolved``)."""
+    compose = compose_services(root)
+    name_to_component: dict[str, str] = {}
+    for component in components:
+        for name in (
+            component["component_id"],
+            *component.get("aliases", []),
+            *component.get("compose_services", []),
+        ):
+            name_to_component.setdefault(name, component["component_id"])
+    components_by_service = {
+        service: name_to_component[service] for service in compose if service in name_to_component
+    }
+    hosts: dict[str, str] = {}
+    for service, entry in compose.items():
+        for host in entry["hosts"]:
+            hosts.setdefault(host, service)
+    routes = _provider_routes(root, name_to_component)
+    consumer_services = {
+        c["component_id"]: [s for s in c.get("compose_services", []) if s in compose]
+        for c in components
+    }
+
+    chains: list[dict[str, Any]] = []
+    unresolved: list[dict[str, Any]] = []
+    for call in _python_call_sites(root, components):
+        services = consumer_services.get(call["consumer"]) or [None]
+        outcomes = []
+        for service in services:
+            env = compose[service]["env"] if service else {}
+            for result in _assemble(call, env, components_by_service, hosts, compose):
+                outcomes.append((service, result))
+        for service, result in outcomes:
+            if "reason" in result:
+                if result["reason"] != "external_or_unknown_host":
+                    unresolved.append(
+                        {
+                            "consumer": call["consumer"],
+                            "consumer_service": service,
+                            "call_site": call["call_site"],
+                            "method": call["method"],
+                            **result,
+                        }
+                    )
+                continue
+            if not result["provider"]:
+                continue
+            if result["port_binding"] is None:
+                unresolved.append(
+                    {
+                        "consumer": call["consumer"],
+                        "consumer_service": service,
+                        "call_site": call["call_site"],
+                        "method": call["method"],
+                        "reason": "base_url_unresolved",
+                        "why": f"port_not_served:{result['port']} not in {result['provider_ports']}",
+                        "provider": result["provider"],
+                    }
+                )
+                continue
+            matched = [
+                r
+                for r in routes.get(result["provider"], [])
+                if str(r["method"]).upper() == call["method"]
+                and normalise(r["path"]) == result["path"]
+            ]
+            if not matched:
+                unresolved.append(
+                    {
+                        "consumer": call["consumer"],
+                        "consumer_service": service,
+                        "call_site": call["call_site"],
+                        "method": call["method"],
+                        "reason": "no_provider_route_matches",
+                        "provider": result["provider"],
+                        "path": result["path"],
+                    }
+                )
+                continue
+            for route in matched:
+                chains.append(
+                    {
+                        "consumer": call["consumer"],
+                        "consumer_service": service,
+                        "provider": result["provider"],
+                        "provider_service": result["provider_service"],
+                        "operation": f"{call['method']} {route['path']}",
+                        "call_site": call["call_site"],
+                        "client_binding": call["client_binding"],
+                        "url_bindings": call["url_bindings"],
+                        "env_steps": result["env_steps"],
+                        "host": result["host"],
+                        "host_binding": result["host_binding"],
+                        "port": result["port"],
+                        "port_binding": result["port_binding"],
+                        "provider_route": _line(route["file"], route["line"]),
+                    }
+                )
+    # مكوّنٌ بعدّة خدمات compose (منصّةٌ وعمّالُها) يُنتج النداءَ نفسَه مرّاتٍ بالبيئة نفسِها: صفٌّ واحدٌ لكلّ (نداء، عمليّة)،
+    # بأسطر أوّل خدمةٍ حلّته، والخدماتُ الأخرى التي حلّته مثلَه أسماءً — تكرارٌ لا دليلٌ زائد.
+    merged: dict[tuple, dict[str, Any]] = {}
+    for chain in sorted(chains, key=lambda c: c["consumer_service"] or ""):
+        key = (chain["consumer"], chain["provider"], chain["operation"], chain["call_site"])
+        if key in merged:
+            merged[key]["consumer_services"].append(chain["consumer_service"])
+        else:
+            merged[key] = {**chain, "consumer_services": [chain["consumer_service"]]}
+    misses: dict[tuple, dict[str, Any]] = {}
+    for item in sorted(unresolved, key=lambda u: u["consumer_service"] or ""):
+        key = tuple(sorted((k, str(v)) for k, v in item.items() if k != "consumer_service"))
+        misses.setdefault(key, item)
+    return {
+        "chains": sorted(
+            merged.values(),
+            key=lambda c: (c["consumer"], c["provider"], c["operation"], c["call_site"]),
+        ),
+        "unresolved": sorted(
+            misses.values(), key=lambda u: (u["consumer"], u["call_site"], u["reason"])
+        ),
+        "routes": routes,
+    }
+
+
+def _python_unknown_reasons(
+    edge: dict[str, Any], method: str, path: str, py: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """لماذا لم تُثبَت حافّةُ خدمةٍ معلَنة — بموضع كلّ سبب، ولا يُنفى شيءٌ من غياب."""
+    found: dict[str, list[str]] = {}
+    for item in py["unresolved"]:
+        if item["consumer"] != edge["to"] or item["method"] != method:
+            continue
+        if item.get("provider") not in (None, edge["from"]):
+            continue
+        if item["reason"] == "dynamic_path" or item["reason"] == "base_url_unresolved":
+            found.setdefault(item["reason"], []).append(item["call_site"])
+    if not found:
+        sites = [
+            _line(r["file"], r["line"])
+            for r in py["routes"].get(edge["from"], [])
+            if str(r["method"]).upper() == method and normalise(r["path"]) == path
+        ]
+        found["not_seen_by_python_http_scanner"] = sites or [
+            f"{ROUTE_INVENTORY}#{edge['from']} {method} {path}"
+        ]
+    return [
+        {"reason": kind, "sites": sorted(set(found[kind]))}
+        for kind in PYTHON_UNKNOWN_REASONS
+        if kind in found
+    ]
+
+
 def classify(
     edges: list[dict[str, Any]], components: list[dict[str, Any]], root: Path = ROOT
 ) -> dict[str, Any]:
@@ -1165,6 +1895,14 @@ def classify(
                 current = None
 
     subscriptions = nats_subscriptions(root, components)
+    py = python_http_edges(root, components)
+    python_consumers = {
+        c["component_id"]
+        for c in components
+        if c.get("component_kind") != "frontend"
+        and c.get("source_path")
+        and (root / c["source_path"]).is_dir()
+    }
     dynamic = [
         item
         for item in report["unsupported_call_sites"]
@@ -1207,6 +1945,39 @@ def classify(
                             }
                         )
                     continue
+            if (
+                edge["to"] in python_consumers
+                and len(parts) == 2
+                and parts[0].lower() in _HTTP_VERBS
+            ):
+                # صنفُ الدليل الثالث: المستهلكُ خدمةُ Python — موضعُ نداءٍ في مصدرها أو سببٌ مسمّى، لا نفيٌ من غياب.
+                method, service_path = parts[0].upper(), normalise(parts[1])
+                matches = [
+                    chain
+                    for chain in py["chains"]
+                    if chain["consumer"] == edge["to"]
+                    and chain["provider"] == edge["from"]
+                    and chain["operation"].split(None, 1)[0] == method
+                    and normalise(chain["operation"].split(None, 1)[1]) == service_path
+                ]
+                for chain in matches:
+                    proven.append(
+                        {
+                            **edge,
+                            "entrypoints": [entrypoint],
+                            "evidence_state": "resolved",
+                            "resolved_entrypoint": entrypoint,
+                            "evidence": {
+                                "kind": "python_http_call_site",
+                                "evidence_scope": "static_source_only",
+                                **{k: v for k, v in chain.items() if k != "consumer"},
+                            },
+                        }
+                    )
+                if not matches:
+                    reasons[entrypoint] = _python_unknown_reasons(edge, method, service_path, py)
+                    still.append(entrypoint)
+                continue
             if edge["to"] != "frontend" or len(parts) != 2 or not conf.exists():
                 # لا صنفَ دليلٍ ساكناً لهذا النوع من الحوافّ — أو لا بوّابةَ مقروءة: غيابُ الملفّ ليس دليلَ نفي
                 reasons[entrypoint] = [
@@ -1327,6 +2098,52 @@ def classify(
         "unknown_by_primary_reason": dict(sorted(by_reason.items())),
         "unknown_operations_without_reason": by_reason.get("none", 0),
         "nats_subscriptions_located": len(subscriptions),
+        "proven_python_http_rows": sum(
+            1 for r in proven if r["evidence"].get("kind") == "python_http_call_site"
+        ),
+        # الصنفُ الثالث مقيساً على الشجرة كلِّها — لا على الحوافّ المعلَنة وحدها: سلسلةٌ كاملةٌ لا يقابلها إعلانٌ في
+        # الكتالوج تُعرَض هنا **اكتشافاً** (``observed_undeclared``) لا ترقيةً؛ الإعلانُ قرارُ مالكه لا قرارُ الماسح.
+        "python_http": {
+            "compose_file": COMPOSE_FILE,
+            "route_inventory": ROUTE_INVENTORY,
+            "chains_located": len(py["chains"]),
+            "observed_undeclared": [
+                {k: chain[k] for k in ("consumer", "provider", "operation", "call_site")}
+                for chain in py["chains"]
+                if not any(
+                    e["to"] == chain["consumer"]
+                    and e["from"] == chain["provider"]
+                    and any(
+                        len(op.split(None, 1)) == 2
+                        and op.split(None, 1)[0].upper() == chain["operation"].split(None, 1)[0]
+                        and normalise(op.split(None, 1)[1])
+                        == normalise(chain["operation"].split(None, 1)[1])
+                        for op in e.get("entrypoints") or []
+                    )
+                    for e in edges
+                )
+            ],
+            # نداءاتٌ بمستقبِلٍ مُثبَتٍ عميلاً انقطعت سلسلتُها — بموضعها وسببها؛ ليست حوافَّ منفيّة بل رؤيةً ناقصة،
+            # إلّا ``no_provider_route_matches``: سلسلةٌ كاملةٌ حتّى منتِجٍ لا يُعلن ذلك المسار في جرد المسارات.
+            "unresolved_calls": py["unresolved"],
+            "unresolved_calls_by_reason": {
+                kind: sum(1 for item in py["unresolved"] if item["reason"] == kind)
+                for kind in sorted({item["reason"] for item in py["unresolved"]})
+            },
+            "scanner_limitations": [
+                "Receivers are read only when proven HTTP clients (httpx/requests modules, or a name "
+                "bound in the same function to httpx.Client/AsyncClient, requests.Session, "
+                "aiohttp.ClientSession); wrapper clients and self._client attributes are not followed",
+                "URL bindings followed: single assignment (module or function), self.attr in the same "
+                "class, zero-argument functions with one return, f-strings, +, strip/rstrip/lstrip, "
+                "`env or literal`",
+                "Environment values come from " + COMPOSE_FILE + " only; other compose files, .env "
+                "files and deployment platforms are out of scope",
+                "A dynamic path matches only as a template: a static first segment and every runtime "
+                "part filling a whole segment",
+                "Calls to hosts that are not compose services of an inventory component are not edges here",
+            ],
+        },
         "client_value_uses": value_uses,
     }
     return {
