@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5945,
+    "files_scanned": 5949,
     "files_by_kind": {
       "backend": 1231,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1870,
-      "tests": 1953,
+      "other": 1873,
+      "tests": 1954,
       "web": 470
     },
-    "unmapped_artifacts": 2301,
+    "unmapped_artifacts": 2302,
     "ambiguous_artifacts": 458
   },
   "capabilities": [
@@ -736,7 +736,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:608",
           "score": 12
         },
         {
@@ -2675,7 +2675,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:608",
           "score": 12
         },
         {
@@ -9068,7 +9068,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 12
         },
         {
@@ -9076,7 +9076,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 12
         },
         {
@@ -9088,51 +9088,51 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 12
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 12
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 12
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 12
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 12
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 12
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 12
         },
         {
@@ -9656,6 +9656,13 @@
           ]
         },
         {
+          "path": "docs/architecture/startup_db_connect_inventory.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
           "path": "docs/openapi/ROUTE_INVENTORY.json",
           "score": 8,
           "signals": [
@@ -9683,7 +9690,7 @@
         "mobile": 1,
         "tests": 8,
         "governance": 4,
-        "other_evidence": 31
+        "other_evidence": 32
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -9795,59 +9802,59 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 10
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 10
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 10
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 10
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 10
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 10
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 10
         },
         {
@@ -15998,7 +16005,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:608",
           "score": 12
         }
       ],
@@ -17309,7 +17316,7 @@
           "score": 48
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:81",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:82",
           "score": 23
         }
       ],
@@ -25874,59 +25881,59 @@
           "score": 9
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:709",
+          "value": "/health @ services/mcp_servers/market_server.py:715",
           "score": 9
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:708",
+          "value": "/healthz @ services/mcp_servers/market_server.py:714",
           "score": 9
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:722",
+          "value": "/readyz @ services/mcp_servers/market_server.py:728",
           "score": 9
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:708",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools @ services/mcp_servers/market_server.py:558",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:589",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:595",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:553",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:559",
           "score": 9
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:695",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:701",
           "score": 9
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:660",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:666",
           "score": 9
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:666",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:672",
           "score": 9
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:643",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:649",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:673",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:679",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:678",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:684",
           "score": 9
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:655",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:661",
           "score": 9
         },
         {
@@ -30395,7 +30402,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:602",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:608",
           "score": 12
         },
         {
@@ -47030,6 +47037,10 @@
     },
     {
       "path": "tests_v9/test_sqlite_live_backup.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_startup_db_connect_retry.py",
       "kind": "tests"
     },
     {

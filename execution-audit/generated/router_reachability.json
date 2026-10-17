@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 97,
+      "line": 103,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -325,7 +325,7 @@
     },
     {
       "kind": "app",
-      "line": 167,
+      "line": 171,
       "module": "services.odoo-bridge.main",
       "node_id": "services.odoo-bridge.main:app",
       "route_count": 0,
@@ -523,7 +523,7 @@
     },
     {
       "kind": "app",
-      "line": 195,
+      "line": 196,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2107,7 +2107,7 @@
     },
     {
       "kind": "app",
-      "line": 95,
+      "line": 97,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
       "route_count": 1,
@@ -2694,7 +2694,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "80fe5eb9ea849c7d6f306e911891a5795be803d9c4a7e3e62c42f95d19eeadf5",
+  "inventory_sha256": "87976f6b14119f338e76f90bbb5fd6500d387136feba87d3823fbb45293a1309",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {

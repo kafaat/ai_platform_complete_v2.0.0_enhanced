@@ -8872,6 +8872,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_startup_db_connect_retry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
     "kind": "tests"
   },

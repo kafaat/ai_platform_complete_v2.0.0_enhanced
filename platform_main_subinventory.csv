@@ -1,9 +1,9 @@
 category,name,kind,line_start,line_end,loc,decorators
-auth_jwt_permissions,_refuse_hs256_in_production,FunctionDef,100,106,7,
-misc_bootstrap_compatibility,_is_production,FunctionDef,115,121,7,
-misc_bootstrap_compatibility,_lifespan,AsyncFunctionDef,176,192,17,asynccontextmanager
-auth_jwt_permissions,_warn_weak_dev_jwt_secret,AsyncFunctionDef,206,217,12,
-db_tenant_rls_bootstrap,_init_db_pool,AsyncFunctionDef,232,267,36,
+auth_jwt_permissions,_refuse_hs256_in_production,FunctionDef,101,107,7,
+misc_bootstrap_compatibility,_is_production,FunctionDef,116,122,7,
+misc_bootstrap_compatibility,_lifespan,AsyncFunctionDef,177,193,17,asynccontextmanager
+auth_jwt_permissions,_warn_weak_dev_jwt_secret,AsyncFunctionDef,207,218,12,
+db_tenant_rls_bootstrap,_init_db_pool,AsyncFunctionDef,233,267,35,
 auth_jwt_permissions,_assert_db_role_rls_safe,AsyncFunctionDef,270,302,33,
 idempotency_outbox_events,_start_scheduler,AsyncFunctionDef,305,536,232,
 idempotency_outbox_events,_start_outbox_worker,AsyncFunctionDef,547,584,38,

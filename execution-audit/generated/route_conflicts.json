@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 710,
+          "line": 716,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 710,
+          "line": 716,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 723,
+          "line": 729,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -906,7 +906,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 216,
+          "line": 218,
           "method": "GET",
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
@@ -945,7 +945,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 558,
+          "line": 564,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -984,7 +984,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 644,
+          "line": 650,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1100,7 +1100,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 590,
+          "line": 596,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1106,
-  "route_inventory_sha256": "ba1cd4883a7e0caff9804b178ba2c9e1127ed56aa5b50fd0d989a8419b9899d2",
+  "route_inventory_sha256": "75611932c50055e2e670e7cf1fa45ec24ec56b0fdd65bc85b1d452e41e90e8c8",
   "runtime_verified": false,
   "schema_version": 1
 }
