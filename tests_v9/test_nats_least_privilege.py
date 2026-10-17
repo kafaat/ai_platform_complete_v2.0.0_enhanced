@@ -697,6 +697,21 @@ async def _connect(broker: _Broker, user: str, **kw):
     return nc, client
 
 
+async def _settled(read, done, timeout: float = 5.0):
+    """يُعيد ``read()`` حين يصدق ``done`` عليه أو تنقضي المهلة — النشرُ الأساسيّ بلا إقرار.
+
+    ``_publish_nats`` المجمَّد يرسل بـ``nc.publish`` بلا انتظار تخزين، فقراءةُ عدّاد التيّار
+    فورَ عودته سباقٌ: مقيسٌ أحمرَ مرّةً في 2026-10-17 (``assert 0 == 1``) ثمّ أخضرَ 10/10 وحدَه.
+    فلا يُقرأ العدّاد قبل أن يستقرّ، والمهلةُ حدٌّ لا انتظارٌ ثابت."""
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    while True:
+        value = await read()
+        if done(value) or loop.time() >= deadline:
+            return value
+        await asyncio.sleep(0.02)
+
+
 def _inbox(user: str) -> dict:
     return {} if user == NOTIFICATION else {"inbox_prefix": f"_INBOX_{user}"}
 
@@ -1005,11 +1020,19 @@ async def test_live_frozen_phase_worker_publishes_its_subject_and_a_refusal_is_s
     await js.add_stream(StreamConfig(name=STREAM, subjects=["sahool.>"]))
     try:
         monkeypatch.setenv("NATS_URL", broker.url("sahool-actuator-dispatch-worker"))
+
+        async def stored() -> int:
+            return (await js.stream_info(STREAM)).state.messages
+
         await workers._publish_nats("sahool.actuator.dispatch.requested", {"command_id": "c1"})
-        assert (await js.stream_info(STREAM)).state.messages == 1
+        assert await _settled(stored, lambda n: n >= 1) == 1
         await workers._publish_nats("sahool.events.forged", {"event_id": "x"})  # لا يرفع
-        assert (await js.stream_info(STREAM)).state.messages == 1, "الموضوعُ الممنوع خُزِّن"
-        assert 'Publish Violation - Subject "sahool.events.forged"' in broker.log_text()
+        violation = 'Publish Violation - Subject "sahool.events.forged"'
+        # الرفضُ يُسجَّل قبل أيّ تخزين؛ فبعد ظهوره يكون عدُّ الرسائل نهائيّاً لا عابراً.
+        assert violation in await _settled(
+            lambda: asyncio.sleep(0, broker.log_text()), lambda t: violation in t
+        )
+        assert await stored() == 1, "الموضوعُ الممنوع خُزِّن"
     finally:
         await agent.close()
 
