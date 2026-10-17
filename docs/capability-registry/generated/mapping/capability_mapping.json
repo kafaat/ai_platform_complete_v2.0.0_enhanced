@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5945,
+    "files_scanned": 5948,
     "files_by_kind": {
       "backend": 1231,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1870,
-      "tests": 1953,
+      "other": 1872,
+      "tests": 1954,
       "web": 470
     },
     "unmapped_artifacts": 2301,
@@ -9264,6 +9264,10 @@
       ],
       "events": [
         {
+          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:203",
+          "score": 14
+        },
+        {
           "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:295",
           "score": 14
         },
@@ -9276,16 +9280,28 @@
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:585",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:599",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:614",
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:628",
           "score": 14
         },
         {
           "value": "sahool.element84-legacy-inventory.v1 @ scripts/diagnostics/element84_legacy_inventory.py:196",
           "score": 14
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:203",
+          "score": 14
+        },
+        {
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:224",
+          "score": 14
+        },
+        {
+          "value": "sahool.inventory-edge-exemptions @ docs/architecture/inventory_edge_exemptions.json:2",
+          "score": 13
         },
         {
           "value": "decision-unit-final.log @ certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json:48",
@@ -9343,6 +9359,14 @@
         },
         {
           "path": "tests_v9/test_element84_legacy_inventory.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "tests_v9/test_inventory_edge_classification.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -9541,6 +9565,14 @@
           ]
         },
         {
+          "path": "docs/architecture/inventory_edge_exemptions.json",
+          "score": 13,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -9551,6 +9583,14 @@
         },
         {
           "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json",
+          "score": 12,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "scripts/diagnostics/resolve_inventory_edges.py",
           "score": 12,
           "signals": [
             "path:inventory",
@@ -9661,13 +9701,6 @@
           "signals": [
             "path:inventory"
           ]
-        },
-        {
-          "path": "scripts/diagnostics/resolve_inventory_edges.py",
-          "score": 8,
-          "signals": [
-            "path:inventory"
-          ]
         }
       ],
       "ambiguous": [],
@@ -9678,12 +9711,12 @@
         "backend": 8,
         "routes": 26,
         "database": 26,
-        "events": 10,
+        "events": 14,
         "web": 1,
         "mobile": 1,
-        "tests": 8,
+        "tests": 9,
         "governance": 4,
-        "other_evidence": 31
+        "other_evidence": 32
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -29915,15 +29948,15 @@
           "score": 22
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:409",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:415",
           "score": 20
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:419",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:425",
           "score": 20
         },
         {
-          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:404",
+          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:410",
           "score": 20
         },
         {
@@ -30379,7 +30412,7 @@
           "score": 22
         },
         {
-          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:451",
+          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:457",
           "score": 20
         },
         {

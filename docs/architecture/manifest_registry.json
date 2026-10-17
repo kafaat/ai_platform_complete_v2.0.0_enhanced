@@ -74,6 +74,10 @@
       "kind": "legacy_schema_version"
     },
     {
+      "path": "docs/architecture/inventory_edge_exemptions.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/knowledge_relation_registry.json",
       "kind": "governed"
     },
