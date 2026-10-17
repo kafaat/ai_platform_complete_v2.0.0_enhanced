@@ -43,8 +43,32 @@ def test_the_committed_tree_is_clean(guard):
 
 def test_it_actually_examines_something(guard):
     """أخضرٌ بصفر أزواج مفحوصة هو الصفر الصامت الذي يوجد هذا الحارس ليمنعه."""
+    # أرضيّةُ «≥ 4» صارت أزواجاً مُسمّاة (2026-10-17): أُزيل weather-polygon-worker بقرار
+    # مالك (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01) فنزل العدد إلى ٣ — والعددُ وحده
+    # لا يقول **أيّ** زوج غاب. الأزواجُ المُسمّاة تقول، ومساواتُها بالعدد تمنع زوجاً خفيّاً.
+    import yaml
+
+    expected = {
+        ("docker-compose.v9.yml", "sahool-weather-signal-engine", "/app/worker_health_probe.py"),
+        ("docker-compose.v9.yml", "sahool-telegram-bot", "/app/bot_readiness.py"),
+        (
+            "docker-compose.v9.yml",
+            "sahool-canonical-execution-learning-worker",
+            "/app/workers/canonical_execution_learning_worker.py",
+        ),
+    }
+    seen = set()
+    for compose in sorted(ROOT.glob("docker-compose*.yml")):
+        document = yaml.safe_load(compose.read_text(encoding="utf-8")) or {}
+        for name, service in (document.get("services") or {}).items():
+            if isinstance(service, dict) and isinstance(service.get("build"), dict):
+                seen |= {(compose.name, name, p) for p in guard.executed_paths(service)}
+    missing = expected - seen
+    assert not missing, f"أزواجٌ مُسمّاة لم تعد تُفحَص — تضييق صامت للنطاق: {sorted(missing)}"
     _, examined = guard.audit()
-    assert examined >= 4, f"عدد الأزواج انهار إلى {examined} — تضييق صامت للنطاق"
+    assert examined == len(seen) >= len(expected), (
+        f"الحارس فحص {examined} والشجرة تُعلِن {len(seen)} — زوجٌ لا يراه أحدهما"
+    )
 
 
 def test_the_worker_now_lives_where_the_image_can_see_it(guard):
@@ -82,10 +106,10 @@ def test_copy_semantics_are_applied_not_approximated(guard):
         == "shared/wofost/engine.py"
     )
     # ملفّ ⇒ ملفّ، في صورة أخرى
-    probe = ROOT / "services/weather-polygon-worker/Dockerfile"
+    probe = ROOT / "services/weather-signal-engine/Dockerfile"
     assert (
         guard.sources_for(probe, "/app/worker_health_probe.py", context=ROOT)
-        == "services/weather-polygon-worker/worker_health_probe.py"
+        == "services/weather-signal-engine/worker_health_probe.py"
     )
 
 

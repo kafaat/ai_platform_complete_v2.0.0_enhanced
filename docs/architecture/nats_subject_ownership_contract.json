@@ -13,8 +13,7 @@
     "sahool-platform",
     "sahool-plugin-runtime-worker",
     "sahool-reservation-dispatch-relay-worker",
-    "sahool-vegetation-analysis",
-    "sahool-weather-polygon-worker"
+    "sahool-vegetation-analysis"
   ],
   "gaps": {
     "NATS-AUTHORIZATION-NOT-ENFORCED": {

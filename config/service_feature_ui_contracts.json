@@ -565,38 +565,6 @@
       ]
     },
     {
-      "service": "weather-polygon-worker",
-      "classification": "ui-indirect",
-      "source": [
-        "services/weather-polygon-worker/src/main.py"
-      ],
-      "evidence": [
-        {
-          "kind": "ui",
-          "roots": [
-            "frontend/src"
-          ],
-          "patterns": [
-            "WeatherTileLayer",
-            "operation-tile-data",
-            "tile-data"
-          ]
-        },
-        {
-          "kind": "internal-consumer",
-          "roots": [
-            "services/sahool-platform",
-            "tests_v9"
-          ],
-          "patterns": [
-            "field_weather_overlay",
-            "weather_overlay_pipeline",
-            "weather-polygon-worker"
-          ]
-        }
-      ]
-    },
-    {
       "service": "weather-signal-engine",
       "classification": "internal",
       "source": [

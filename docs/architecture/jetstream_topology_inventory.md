@@ -59,7 +59,7 @@ jetstream { store_dir: "/data/jetstream"  max_memory_store: 256MB  max_file_stor
 | وكيل الإشعارات | `sahool.task.assigned` | `notif_task` |
 | وكيل الإشعارات | `sahool.economic.analysis` | `notif_economic` |
 | وكيل الإشعارات | `sahool.events.>` | `notif_domain_events` |
-| عامل تراكب الطقس | `sahool.weather.forecast.updated` | `polygon-worker` |
+| ~~عامل تراكب الطقس~~ | ~~`sahool.weather.forecast.updated`~~ | ~~`polygon-worker`~~ — **أُزيل 2026-10-17** مع العامل بقرار مالك (`WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01`): اشتراكٌ لا ناشرَ له في الشجرة |
 | عامل التعلّم القانونيّ | `sahool.events.irrigation.execution.completed` | `canonical-execution-learning-v1-irrigation-execution-completed` |
 | عامل التعلّم القانونيّ | `sahool.events.season.closed` | `canonical-execution-learning-v1-season-closed` |
 | عامل التعلّم القانونيّ | `sahool.events.agronomy.projection.requested` | `canonical-execution-learning-v1-agronomy-projection-requested` |
@@ -94,7 +94,7 @@ jetstream { store_dir: "/data/jetstream"  max_memory_store: 256MB  max_file_stor
 | outbox المنصّة | `sahool.events.<event_type>` |
 | `irrigation_dispatch_relay_worker.py:44` | `sahool.events.<dispatch_event>` |
 | `vegetation_runtime.py:545` | موضوع مؤشّرات النبات |
-| عامل تراكب الطقس | `sahool.weather.field.overlay.completed` (بلا مستهلك — طريق مسدود مُعلَن) |
+| ~~عامل تراكب الطقس~~ | ~~`sahool.weather.field.overlay.completed`~~ — **أُزيل 2026-10-17** مع العامل (`WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01`) |
 
 ---
 
@@ -108,7 +108,7 @@ jetstream { store_dir: "/data/jetstream"  max_memory_store: 256MB  max_file_stor
 3. **`num_replicas=1`** — لا تكرار، وفقد المجلّد يفقد الدفق ومواضع كلّ المستهلكين.
 4. **لا حدّ إعادة تسليم ولا DLQ** على أيّ من الثلاثة عشر.
 5. **المالك القانونيّ للأسماء الدائمة موزّع على ثلاثة مستودعات فرعيّة** — `agents/`
-   و`services/weather-polygon-worker/` و`scripts/workers/` — بلا سجلّ واحد يجمعها. هذا
+   و~~`services/weather-polygon-worker/`~~ (أُزيل 2026-10-17) و`scripts/workers/` — بلا سجلّ واحد يجمعها. هذا
    المستند هو أوّل سجلّ من نوعه.
 
 ---

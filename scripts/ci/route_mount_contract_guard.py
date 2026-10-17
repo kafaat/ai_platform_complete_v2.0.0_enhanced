@@ -19,7 +19,6 @@ OUT_JSON = ROOT / "route_mount_inventory.generated.json"
 OUT_CSV = ROOT / "route_mount_inventory.csv"
 
 NON_HTTP_ENTRYPOINT_ALLOWLIST = {
-    "services/weather-polygon-worker/src/main.py",
     "services/weather-signal-engine/src/main.py",
     "bots/telegram/main.py",  # aiogram router, not FastAPI
 }

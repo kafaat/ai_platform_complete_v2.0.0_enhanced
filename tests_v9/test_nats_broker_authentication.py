@@ -125,7 +125,7 @@ def test_the_measured_client_count_is_pinned_so_a_new_service_cannot_slip_in():
         if isinstance(s.get("environment"), dict)
     ]
     # ١٣ ⇒ ٩: ثلاثٌ (soil · weather-service · telegram-bot) حملت الاعتمادَ بلا عميلِ NATS فنُزِع
-    # عنها، وعاملُ تراكب الطقس يُزال من المكدّس في الموجة نفسها (WAVE_REMOVED).
+    # عنها، وأُزيل sahool-weather-polygon-worker بقرار مالك (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01).
     assert len([u for u in urls if u]) == 9, (
         "تغيّر عددُ عملاء NATS في المكدّس — راجِع أنّ الجديد يحمل الاعتماد ثمّ حدّث العدد"
     )

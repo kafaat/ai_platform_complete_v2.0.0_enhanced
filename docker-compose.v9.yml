@@ -922,45 +922,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-  sahool-weather-polygon-worker:
-    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
-    mem_limit: 512m
-    build:
-      context: .
-      dockerfile: services/weather-polygon-worker/Dockerfile
-    security_opt:
-    - no-new-privileges:true
-    restart: unless-stopped
-    logging: *id001
-    environment:
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
-      WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
-      METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
-      METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye;
-        ops@sahool.ye)}
-      WORKER_HEARTBEAT_CADENCE_SEC: '60'
-    depends_on:
-      sahool-postgres:
-        condition: service_healthy
-      sahool-nats:
-        condition: service_started
-      sahool-migrate:
-        condition: service_completed_successfully
-    networks:
-    - sahool-internal
-    healthcheck:
-      test:
-      - CMD
-      - python
-      - /app/worker_health_probe.py
-      interval: 30s
-      timeout: 5s
-      retries: 6
-      start_period: 40s
   sahool-weather-signal-engine:
     # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
     mem_limit: 512m

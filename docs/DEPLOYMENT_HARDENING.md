@@ -29,7 +29,7 @@
 | Ollama GPU | مُفعَّل (`nvidia`/`gpu`) | غائب/معلّق (آمن بلا GPU) |
 | إصدارات المراقبة | Prometheus **2.53.0** · Grafana **10.4.5** | Prometheus **2.55.1** · Grafana **11.6.0** (أحدث) |
 
-**خدمات معرّفة في `v9` فقط:** `sahool-weather-polygon-worker` · `sahool-weather-signal-engine`
+**خدمات معرّفة في `v9` فقط:** ~~`sahool-weather-polygon-worker`~~ (أُزيل 2026-10-17 بقرار مالك — `WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01`) · `sahool-weather-signal-engine`
 · `sahool-titiler` (خادم بلاطات COG ديناميكيّ) · `sahool-fastbee` (MQTT) · `sahool-field-segmentation`.
 
 **ملاحظات تصحيح (شائعة الخطأ):**
