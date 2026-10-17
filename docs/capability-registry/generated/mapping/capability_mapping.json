@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5996,
+    "files_scanned": 5999,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1909,
-      "tests": 1966,
+      "other": 1911,
+      "tests": 1967,
       "web": 471
     },
-    "unmapped_artifacts": 2305,
+    "unmapped_artifacts": 2306,
     "ambiguous_artifacts": 465
   },
   "capabilities": [
@@ -47129,6 +47129,10 @@
     },
     {
       "path": "tests_v9/test_recovery_smoke_truth.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_redis_acl_per_service.py",
       "kind": "tests"
     },
     {
