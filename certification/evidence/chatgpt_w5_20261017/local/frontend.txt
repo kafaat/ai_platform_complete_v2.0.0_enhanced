@@ -1,0 +1,10 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v5.0.2 /workspace/scratch/383ab1306db0/sahool-work/frontend
+
+
+ Test Files  4 passed (4)
+      Tests  24 passed (24)
+   Start at  04:31:59
+   Duration  1.93s (environment 35%, transform 29%, tests 13%, import 13%, setup 9%, worker 1%)
+
