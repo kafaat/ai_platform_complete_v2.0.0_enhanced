@@ -9584,3 +9584,11 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-17 — الموجة الخامسة، شريحة التعلّم: فصل نسبة النجاح حسب المصدر
 
 REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01 ⇒ `fixed` في `c31cd25d9` (فرع `claude/w5-learning-pr-20261017`، PR مستقلّ بتوجيه مراجعة المالك: لا تُجمَع الشرائح في PR واحد). الحساب والعرض حسب المصدر بمقامٍ لكلّ مصدر في `/api/v1/learning/summary` والواجهة، مع شواهد خلفيّة (6) وأماميّة (3) حمراء على `ec3927cef`. قبولٌ محلّيّ فقط؛ لا نشر. المصدر: `sahool-brain/gaps/registry.md` (المدخلة نفسها).
+
+### 2026-10-17 — قياس قبول staging دون ترقية حالة غير مثبتة
+
+قبول staging قرائي لإصلاحَي PyJWT وTTS، أساس `0e528161` والمنصة `d6ddf38c` (#1203): هوية الصورة200 وحقول بلا توكن401 مع معرفات الطلب محفوظة. لا حساب اختبار متاح، فحالات RS256 الأربع غير منفذة وتبقى DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 fixed؛ سجل عائق PYJWT-RS256-STAGING-ACCEPTANCE-MISSING-TEST-IDENTITY-01. مستهلك TTS المنشور قديم، فقبول الأنماط الثلاثة غير ممكن الآن وتبقى TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 open. لا تغيير Railway أو مصدر تشغيل أو هجرات أو إنتاج؛ لا verified. المصدر: `certification/evidence/pyjwt_rs256_staging_acceptance_20261017/result.json` و`certification/evidence/tts_policy_v2_staging_acceptance_20261017/result.json`.
+
+### 2026-10-17 — متابعة قبول staging بعد إنشاء هوية اختبار مأذونة
+
+بعد تفويض المالك بإنشاء حساب staging تجريبي، نجح التسجيل201 ثم الدخول200 للحساب staging-acceptance-20261017-44cdcedb@example.com عبر البوابة. توكن auth من نوع RS256 مقيس: الحالة (أ) لقائمة الحقول200، والحالة (ب) بتعديل بايت من التوقيع401. زال عائق الهوية، وتبقى (ج) غير منفذة لغياب المفتاح العام الفعلي و(د) الاختيارية غير منفذة. DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 تبقى fixed؛ لا verified ولا إصلاح شيفرة. عائق القبول المسجل يبقى جزئياً حتى استيفاء (ج). لا كلمات سر أو توكنات محفوظة؛ الأدلة في certification/evidence/pyjwt_rs256_staging_acceptance_20261017/manifest.json وبصمتها 728f4c118ed4107c30e072407adaf4a94d0946d839b85edbad87efa0dd819694. TTS ما زال غير قابل لقياس v2 بالقارئ المنشور؛ لم يتغير أي إعداد Railway أو نشر أو إنتاج.
