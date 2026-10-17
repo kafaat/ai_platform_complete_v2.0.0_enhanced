@@ -1,5 +1,5 @@
 {
-  "edge_count": 864,
+  "edge_count": 868,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -772,6 +772,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_034_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://edge_results",
+      "to": "db://edge_results",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -859,6 +869,16 @@
       "relation": "READS",
       "resource": "db://recommendation_outcomes",
       "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_034_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://soil_sampling_plans",
+      "to": "db://soil_sampling_plans",
       "to_kind": "resource"
     },
     {
@@ -5952,6 +5972,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_034_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://edge_results",
+      "to": "db://edge_results",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_platform_v235_correlation_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -6009,6 +6039,16 @@
       "relation": "WRITES",
       "resource": "db://recommendation_outcomes",
       "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_034_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://soil_sampling_plans",
+      "to": "db://soil_sampling_plans",
       "to_kind": "resource"
     },
     {
@@ -8660,9 +8700,9 @@
     "CALLS": 44,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 440,
+    "READS": 442,
     "ROUTES_TO": 72,
-    "WRITES": 304
+    "WRITES": 306
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8677,8 +8717,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 745,
-      "resolved": 744,
+      "observed": 749,
+      "resolved": 748,
       "unresolved_component_paths": 0
     }
   }

@@ -810,6 +810,29 @@
     ]
   },
   {
+    "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 9,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      }
+    ]
+  },
+  {
     "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
     "kind": "other",
     "candidates": [
@@ -5433,6 +5456,30 @@
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_migration_034_pg16.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 18,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 17,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
         ]
       }
     ]

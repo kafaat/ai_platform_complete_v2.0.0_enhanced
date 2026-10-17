@@ -5,7 +5,9 @@ Separate from the application suite to preserve its domain evidence attribution.
 
 import asyncio
 import hashlib
+import re
 from dataclasses import replace
+from pathlib import Path
 
 import asyncpg
 import migration_runner as runner
@@ -390,3 +392,105 @@ async def test_scoped_pair_preserves_canonical_boundary_on_live_legacy_policy_to
         assert await database.admin.fetchval(f"SELECT count(*) FROM {table}") == 0
     finally:
         await app.close()
+
+
+# W5: present-behaviour witnesses on the same disposable PG16 fixture.
+# These do not apply proposed migrations or certify any deployed database.
+ROOT = Path(__file__).resolve().parents[3]
+
+
+@pytest.mark.asyncio
+async def test_cp997_global_conflict_hides_other_tenant_row(database):
+    await database.admin.execute(
+        "CREATE TABLE edge_results (id bigserial PRIMARY KEY, tenant_id uuid NOT NULL)"
+    )
+    await database.admin.execute((ROOT / "migrations/v9_edge_idempotency.sql").read_text())
+    await database.admin.execute(
+        f'GRANT SELECT, INSERT ON edge_results TO "{database.role}"; '
+        f'GRANT USAGE ON SEQUENCE edge_results_id_seq TO "{database.role}"'
+    )
+    await database.admin.execute(
+        "INSERT INTO edge_results(tenant_id,idempotency_key) VALUES($1::uuid,'shared-key')", TENANT
+    )
+    app = await database.app_connection()
+    try:
+        inserted = await app.fetchval(
+            "INSERT INTO edge_results(tenant_id,idempotency_key) VALUES($1::uuid,'shared-key') "
+            "ON CONFLICT(idempotency_key) WHERE idempotency_key IS NOT NULL "
+            "DO NOTHING RETURNING id",
+            OTHER,
+        )
+        existing = await app.fetchval(
+            "SELECT id FROM edge_results WHERE tenant_id=$1::uuid AND idempotency_key='shared-key'",
+            OTHER,
+        )
+        assert inserted is None and existing is None
+        assert await database.admin.fetchval("SELECT count(*) FROM edge_results") == 1
+    finally:
+        await app.close()
+
+
+@pytest.mark.asyncio
+async def test_v161_wrong_guc_silently_returns_empty_rows(database):
+    await database.admin.execute((ROOT / "migrations/v161_soil_p1_products.sql").read_text())
+    await database.admin.execute(f'GRANT SELECT ON soil_sampling_plans TO "{database.role}"')
+    await database.admin.execute(
+        "INSERT INTO soil_sampling_plans(plan_id,tenant_id,field_id,mode,payload) "
+        "VALUES('a',$1,'field-a','test','{}'),('b',$2,'field-b','test','{}')",
+        TENANT,
+        OTHER,
+    )
+    app = await database.app_connection()
+    try:
+        async with app.transaction():
+            await app.execute("SELECT set_config('app.current_tenant',$1,true)", TENANT)
+            assert await app.fetchval("SELECT count(*) FROM soil_sampling_plans") == 0
+            await app.execute("SELECT set_config('app.tenant_id',$1,true)", TENANT)
+            assert await app.fetchval("SELECT count(*) FROM soil_sampling_plans") == 0
+            await app.execute("SELECT set_config('app.current_tenant_id',$1,true)", TENANT)
+            assert [
+                r["plan_id"] for r in await app.fetch("SELECT plan_id FROM soil_sampling_plans")
+            ] == ["a"]
+    finally:
+        await app.close()
+
+
+@pytest.mark.asyncio
+async def test_v86_definer_catalog_exposes_owner_acl_and_unset_path(database):
+    source = (ROOT / "migrations/v86_calibration_evidence_trigger.sql").read_text()
+    match = re.search(
+        r"CREATE OR REPLACE FUNCTION fn_update_calibration_evidence\(\).*?\$\$;", source, re.S
+    )
+    assert match, "actual v86 function definition must be present"
+    # Creation is real PostgreSQL compilation. Trigger execution is intentionally
+    # not claimed: a full-MANIFEST inventory remains a separate acceptance gate.
+    await database.admin.execute(match.group())
+    row = await database.admin.fetchrow(
+        "SELECT p.prosecdef, p.proconfig, r.rolsuper, r.rolbypassrls, "
+        "has_function_privilege($1,p.oid,'EXECUTE') AS executable, "
+        "has_schema_privilege($1,n.oid,'USAGE') AS schema_usage "
+        "FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner "
+        "JOIN pg_namespace n ON n.oid=p.pronamespace "
+        "WHERE p.oid='fn_update_calibration_evidence()'::regprocedure",
+        database.role,
+    )
+    assert row["prosecdef"] and row["rolsuper"] and row["rolbypassrls"]
+    assert row["proconfig"] is None
+    assert row["executable"] and row["schema_usage"]
+    acl = await database.admin.fetchval(
+        "SELECT EXISTS(SELECT 1 FROM pg_proc p, "
+        "LATERAL aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a "
+        "WHERE p.oid='fn_update_calibration_evidence()'::regprocedure "
+        "AND a.grantee=0 AND a.privilege_type='EXECUTE')"
+    )
+    assert acl
+
+
+@pytest.mark.asyncio
+async def test_pg16_password_null_disables_password_credentials(database):
+    # Same SQL semantics used by the already-landed Odoo fail-closed path;
+    # the shell branch itself is covered by test_apply_in_compose_fail_closed.py.
+    await database.admin.execute(f'ALTER ROLE "{database.role}" PASSWORD NULL')
+    assert await database.admin.fetchval(
+        "SELECT rolpassword IS NULL FROM pg_authid WHERE rolname=$1", database.role
+    )

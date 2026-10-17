@@ -2173,7 +2173,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 306,
+      "evidence_count": 307,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2246,6 +2246,7 @@
         "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_migration_034_pg16.py",
         "services/decision-service/tests/test_migration_036_correlation_pg16.py",
         "services/decision-service/tests/test_runtime_worker_tenants.py",
         "services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py",
@@ -3014,7 +3015,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 53,
-      "target_evidence_count": 306,
+      "target_evidence_count": 307,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3024,5 +3025,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "e397637485321a2ea9a63243c286f6e96059068dc6983fc6075c4a9ee5c8a499"
+  "content_sha256": "78bb725234432f8b24231eb2138c2ffeb1adc225fa86f625d872316171486670"
 }
