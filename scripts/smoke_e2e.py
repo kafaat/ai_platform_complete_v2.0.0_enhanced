@@ -11,8 +11,8 @@
   4) field    : POST {API_BASE}{FIELDS_PATH}           (routers/fields.py:372      → /api/v1/fields)
   5) workspace: GET  {API_BASE}{FIELDS_PATH}/{id}/workspace (routers/fields.py:508 → /api/v1/fields/{id}/workspace)
 
-المكدّس المطلوب (docker-compose.unified.yml): postgis + redis + sahool-auth + sahool-platform
-+ nginx. شغّله ثمّ وجّه BASE_URL إلى منفذ nginx (HTTPS) أو إلى الخدمات مباشرةً عبر المتغيّرات.
+المكدّس المطلوب (docker-compose.v9.yml — تعريفُ المكدّس الوحيد؛ unified نُقل إلى
+docs/history/compose/): postgres + redis + sahool-auth + sahool-platform + nginx. شغّله ثمّ وجّه BASE_URL إلى منفذ nginx (HTTPS) أو إلى الخدمات مباشرةً عبر المتغيّرات.
 
 التشغيل:
   BASE_URL=https://localhost:8443 python scripts/smoke_e2e.py

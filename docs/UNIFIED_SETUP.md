@@ -1,4 +1,8 @@
 # SAHOOL v9.1 — Unified Production Setup Guide
+
+> **وثيقةٌ تاريخيّة (2026-10-17):** `docker-compose.unified.yml` و`scripts_v9/setup_unified.sh` نُقلا إلى
+> `docs/history/compose/` بقرار مالك — `docker-compose.v9.yml` هو تعريفُ المكدّس الوحيد
+> (`COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01`). الأوامرُ أدناه لا تعمل من الجذر.
 > **التاريخ:** 2026-05-19  
 > **الحزم المدمجة:** Edge-Ready + AI/GIS + Odoo Bridge + Market + AgriAI Engine  
 > **الخدمات:** 20+ | **الطبقات:** 8 | **الأمر الواحد:** `./scripts/setup_unified.sh`

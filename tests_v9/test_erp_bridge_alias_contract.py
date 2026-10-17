@@ -36,18 +36,9 @@ def test_v9_compose_uses_erp_bridge_with_legacy_aliases() -> None:
     assert market_env["ODOO_BRIDGE_URL"].startswith("http://sahool-erp-bridge:")
 
 
-def test_unified_compose_uses_erp_bridge_with_legacy_aliases() -> None:
-    compose = _load_yaml("docker-compose.unified.yml")
-    services = compose["services"]
-    assert "erp-bridge" in services
-    assert "odoo-bridge" not in services
-    assert "erp-bridge" in services["nginx"]["depends_on"]
-
-    aliases = services["erp-bridge"]["networks"]["sahool-net"]["aliases"]
-    assert "sahool-unified-odoo-bridge" in aliases
-    assert "sahool-odoo-bridge" in aliases
-    assert "odoo-bridge" in aliases
-    assert "erp-bridge" in aliases
+# test_unified_compose_uses_erp_bridge_with_legacy_aliases أُزيل (2026-10-17): docker-compose.unified.yml
+# نُقل إلى docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01)،
+# وتوأمُه على المكدّس الوحيد باقٍ أعلاه: test_v9_compose_uses_erp_bridge_with_legacy_aliases.
 
 
 def test_market_mcp_prefers_erp_bridge_url() -> None:

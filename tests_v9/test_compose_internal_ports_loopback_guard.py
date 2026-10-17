@@ -6,7 +6,8 @@ mcp، guardrails، edge-inference، video-processor، actuator) على كلّ و
 أيّ منفذ بلا بادئة ``127.0.0.1:`` يُنشَر على كلّ الواجهات ⇒ سطح هجوم غير مقصود.
 
 هذا الاختبار فحص ملفّات نقيّ (بلا Docker، بلا yaml، بلا fastapi): يمسح
-``docker-compose.light.yml`` ويؤكّد أنّ كلّ خدمة *داخليّة* تنشر منافذها على 127.0.0.1 فقط.
+``docker-compose.v9.yml`` (كان light، المنقول إلى docs/history/compose/) ويؤكّد أنّ كلّ خدمة
+*داخليّة* تنشر منافذها على 127.0.0.1 فقط.
 الخدمات العامّة عمداً (بوّابة nginx + خدمات الحافة edge) مُدرَجة في قائمة سماح صريحة أدناه؛
 أيّ خدمة داخليّة جديدة/مُعدَّلة تكشف منفذاً على كلّ الواجهات تُفشِل الاختبار.
 """
@@ -21,8 +22,10 @@ import pytest
 # جذر المستودع (هذا الملفّ في tests_v9/ تحت الجذر مباشرةً).
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# ملفّ الهدف: التركيب الخفيف. (v9.yml القانونيّ محروس على حدة ولا يُمَسّ هنا.)
-_TARGET = "docker-compose.light.yml"
+# ملفّ الهدف: كان التركيب الخفيف docker-compose.light.yml — نُقل إلى docs/history/compose/
+# بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17). الخاصّيّةُ
+# نفسُها تُقاس الآن على تعريف المكدّس الوحيد: v9.
+_TARGET = "docker-compose.v9.yml"
 
 # قائمة سماح: خدمات يُسمَح لها بنشر منافذ على كلّ الواجهات (0.0.0.0) لأنّها عامّة عمداً.
 #   • nginx      — بوّابة الحافة العكسيّة (80/443) هي نقطة الدخول العامّة الوحيدة للتطبيق
@@ -32,10 +35,11 @@ _TARGET = "docker-compose.light.yml"
 # SEC-4: fastbee/zlmediakit ليستا عامّتَين بالكامل — منفذ الإدارة HTTP (8081/8082) يجب أن يبقى
 # على 127.0.0.1 فقط. أيّ منفذ *غير* مُدرَج هنا (منفذ إدارة جديد مثلاً) يُعامَل معاملة داخليّة.
 # القيمة = مجموعة منافذ المضيف العامّة المسموح بها لهذه الخدمة (None ⇒ كامل الخدمة عامّ).
+# في v9 أضيقُ ممّا كان في light: sahool-zlmediakit ينشر كلَّ منافذه (RTSP/WebRTC أيضاً) على
+# 127.0.0.1، وsahool-fastbee لا ينشر منفذاً أصلاً — فلا يُسمَح لهما بشيءٍ عامّ هنا، والبوّابة
+# (sahool-nginx) وحدها عامّة. توسيعُ القائمة يحتاج سبباً مكتوباً كما كان.
 _PUBLIC_PORT_ALLOWLIST: dict[str, frozenset[str] | None] = {
-    "nginx": None,
-    "fastbee": frozenset({"1883"}),
-    "zlmediakit": frozenset({"554", "10000"}),
+    "sahool-nginx": None,
 }
 # أسماء الخدمات العامّة (للتحقّق من عدم قِدَم القائمة في test_target_compose_parsed).
 _PUBLIC_ALLOWLIST = frozenset(_PUBLIC_PORT_ALLOWLIST)
@@ -54,7 +58,8 @@ def _host_port(port_spec: str) -> str:
 _SERVICE_RE = re.compile(r"^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$")
 _TOPLEVEL_RE = re.compile(r"^[A-Za-z]")
 _PORTS_INLINE_RE = re.compile(r"^    ports:\s*(.*)$")
-_BLOCK_ITEM_RE = re.compile(r"^      -\s*(.*)$")
+# v9 مولَّدٌ بإزاحة بنود القوائم على مستوى المفتاح (4 مسافات)، وlight كان بستّ — كلاهما يُقرأ.
+_BLOCK_ITEM_RE = re.compile(r"^ {4}(?:  )?-\s*(.*)$")
 
 
 def _strip_scalar(raw: str) -> str:
@@ -163,7 +168,9 @@ def test_target_compose_parsed():
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "svc_name,mgmt_host_port",
-    [("fastbee", "8081"), ("zlmediakit", "8082")],
+    # كان ("fastbee", "8081") و("zlmediakit", "8082") في light. في v9: منفذ إدارة
+    # zlmediakit هو 8188، وfastbee لا ينشر شيئاً (يُثبَت أدناه).
+    [("sahool-zlmediakit", "8188")],
 )
 def test_edge_mgmt_http_port_bound_loopback(svc_name, mgmt_host_port):
     """SEC-4: the edge services' HTTP MANAGEMENT ports must be loopback-only.
@@ -190,4 +197,15 @@ def test_internal_service_ports_bound_loopback(svc_name, port):
         f"{_TARGET}:{svc_name} يكشف المنفذ '{port}' على كلّ الواجهات (0.0.0.0). "
         "احصره على 127.0.0.1: (خدمة داخليّة)، أو أضِفه لقائمة السماح العامّة صراحةً "
         "إن كان يحتاج كشفاً عامّاً (edge)."
+    )
+
+
+@pytest.mark.unit
+def test_fastbee_publishes_no_host_port_at_all():
+    """أضيقُ من حارس SEC-4 الأصليّ: في v9 لا ينشر sahool-fastbee منفذاً (ولا إدارةً) أصلاً."""
+    ports = _service_ports((_REPO_ROOT / _TARGET).read_text(encoding="utf-8"))
+    assert "sahool-fastbee" in ports, f"sahool-fastbee غائب عن {_TARGET} — تغيّر التنسيق؟"
+    assert ports["sahool-fastbee"] == [], (
+        f"{_TARGET}:sahool-fastbee صار ينشر {ports['sahool-fastbee']} — منفذُ الإدارة 8081 "
+        "خاصّةً يجب أن يبقى على 127.0.0.1، وأيُّ نشرٍ يحتاج قراراً مكتوباً"
     )

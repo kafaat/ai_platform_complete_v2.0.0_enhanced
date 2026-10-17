@@ -4121,8 +4121,8 @@
         {
           "expect": "test_the_guard_actually_scanned_the_stack_that_carried_the_defect",
           "find": "    return list(compose_files())",
-          "replace": "    return [p for p in compose_files() if \"unified\" not in p.name]  # mutated",
-          "why": "الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
+          "replace": "    return [p for p in compose_files() if \"v9\" not in p.name]  # mutated",
+          "why": "الطفرةُ E: إخراجُ المكدّس الذي يحمل المصرف من سطح الحارس (أُعيد إرساؤها 2026-10-17 من unified إلى v9: unified نُقل إلى docs/history/compose/ — COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01). **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
         },
         {
           "expect": "test_a_registered_sink_that_vanishes_from_the_surface_blocks",
@@ -4179,6 +4179,17 @@
         }
       ],
       "test": "tests_v9/test_compose_no_default_secrets_guard.py"
+    },
+    "compose_roster_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_unrostered_compose_file_blocks",
+          "find": "    for rel in sorted(on_disk - declared):",
+          "replace": "    for rel in sorted(on_disk - declared - on_disk):  # mutated",
+          "why": "إسقاطُ نصف مساواة المجموعات (المتعقَّب ⊆ السجلّ): ملفّ compose جديد خارج السجلّ — بديلٌ ثانٍ يُعرّف المكدّس بأسماءٍ أخرى — يمرّ أخضر. وهو عطلُ COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 نفسُه: أربعة عشر ملفّاً لا يراها حارس."
+        }
+      ],
+      "test": "tests_v9/test_compose_roster_guard.py"
     },
     "container_command_path_guard.py": {
       "mutations": [

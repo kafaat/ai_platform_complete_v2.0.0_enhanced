@@ -26,7 +26,8 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
-COMPOSE_FILES = [ROOT / "docker-compose.v9.yml", ROOT / "docker-compose.fixed.yml"]
+# docker-compose.fixed.yml أُخرِج: بديلٌ نُقل إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+COMPOSE_FILES = [ROOT / "docker-compose.v9.yml"]
 QDRANT_DEPENDENTS = ["sahool-local-ai-rag", "sahool-rag-retrieval", "sahool-qdrant-seed"]
 WORKERS = [
     "sahool-raster-backfill-scan-worker",

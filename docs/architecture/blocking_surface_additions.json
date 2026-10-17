@@ -125,6 +125,14 @@
       "positive_witness": "test_the_guard_is_green_on_the_tree, test_moved_lines_stay_green and test_pending_removal_is_green_before_and_after_the_service_disappears: the legitimate remedy (wrap the first connect in retry_startup_connect, or classify lazy/polling/frozen honestly) passes, anchors are path::function so moved code stays green, and a service removed in a parallel branch is green both before and after it disappears.",
       "impact": "merge",
       "$scope_limit_ar": "النطاقُ docker-compose.v9.yml وحده واعتمادُ service_healthy على sahool-postgres وحده؛ connects_lazily يُفحَص داخل وحدة المرساة لا عبر رسم الاستدعاء، وno_postgres_client يفحص مجلّد الخدمة لا shared/."
+    },
+    "scripts/ci/compose_roster_guard.py::ci.yml::structural-lint": {
+      "counterexample": "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01, measured on main 0e528161: 15 tracked compose files besides v9, of which unified/light/fixed defined the stack under other service names (auth-service vs sahool-auth) and 4 were named by no workflow; and docker-compose.production.yml named vegetation-analysis-service and sahool-raster, which do not exist in v9, so `docker compose -f docker-compose.v9.yml -f docker-compose.production.yml config` rejected the project ('neither an image nor a build context') while ci.yml compose-validate skipped the file as an overlay.",
+      "mutation": "test_an_unrostered_compose_file_blocks",
+      "$mutation_ar": "طفرةٌ واحدة مسجَّلة في guard_mutation_registry.json: إسقاطُ نصف مساواة المجموعات (ملفٌّ متعقَّب خارج السجلّ) — يقتلها اختبارُها المسمّى. وأصنافُ العطل الأخرى (مدخلٌ بائت، تراكبٌ يُسمّي خدمةً غائبة، مستهلِكٌ لا يُسمّي الملفّ، اسمُ خدمةٍ مكرَّر، رفيقٌ خارج شبكة v9) مُثبَتةٌ باختباراتٍ اصطناعيّة في الملفّ نفسه.",
+      "positive_witness": "test_the_committed_tree_is_clean and test_a_companion_must_join_a_base_network: the post-decision tree (v9 + 10 declared overlay/test_stack/companion files, alternates in docs/history/compose/) passes, and a companion joining `<project>_sahool-internal` as an external network passes.",
+      "impact": "merge",
+      "$scope_limit_ar": "يقيس الملفّاتِ المتعقَّبة بالاسم (docker-)compose*.y(a)ml وأدوارَها المعلنة ودمجَ أسماء الخدمات وdepends_on؛ لا يُشغّل `docker compose config` (تفعله compose-validate لكلّ overlay فوق v9) ولا يحكم على صحّة بيئة الخدمات."
     }
   }
 }

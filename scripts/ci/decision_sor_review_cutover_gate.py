@@ -59,9 +59,8 @@ CHECKS = {
     "docker-compose.v9.yml": [
         "DECISION_SERVICE_DATABASE_URL",
     ],
-    "docker-compose.fixed.yml": [
-        "DECISION_SERVICE_DATABASE_URL",
-    ],
+    # docker-compose.fixed.yml كان هنا: بديلٌ نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17) — v9 وحدَه يُعرّف المكدّس.
 }
 
 
@@ -78,7 +77,7 @@ def main() -> int:
                 violations.append(f"{rel}: missing token {token!r}")
 
     # The opt-in DB passthrough must default EMPTY (mirror stays safe until the operator flips).
-    for compose in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+    for compose in ("docker-compose.v9.yml",):
         text = (ROOT / compose).read_text(encoding="utf-8", errors="ignore")
         if "${DECISION_SERVICE_DATABASE_URL:-}" not in text:
             violations.append(

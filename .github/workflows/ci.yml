@@ -420,6 +420,12 @@ jobs:
       - name: startup-db-connect-retry-guard
         run: python scripts/ci/startup_db_connect_retry_guard.py
 
+      # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01: v9 وحدَه يُعرّف المكدّس. كلُّ ملفّ
+      # compose متعقَّب آخر دورٌ مُعلَن في docs/architecture/compose_file_roster.json (مساواةُ
+      # مجموعات)، بمستهلِكٍ يُسمّيه، وتراكبٌ لا يُسمّي خدمةً غائبة، ورفيقٌ في شبكة v9.
+      - name: compose-roster-guard
+        run: python scripts/ci/compose_roster_guard.py
+
       # MUT-REGISTRY-DUPLICATE-KEY-SHADOWS-A-BLOCK-01. وثيقةٌ صحيحةٌ نحويّاً تُحمَّل
       # غيرَ ما كُتِب فيها: `json.load` آخِريُّ الترجيح، فمفتاحٌ مكرَّر يطرح ما قبله
       # بلا رسالةٍ ولا رمزِ خروج. ومقيسٌ على `a1f5da7f`:
@@ -594,34 +600,36 @@ jobs:
               vs |= set(re.findall(r'\$\{([A-Z0-9_]+)', open(f).read()))
           open(".ci.env", "w").write("\n".join(f"{v}=dummy_{v.lower()}_0123456789abcdef" for v in sorted(vs)) + "\n")
           EOF
+          # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01: الأدوارُ من السجلّ لا من قائمة
+          # تخطٍّ مكتوبةٍ هنا. كانت القائمة تتخطّى docker-compose.production.yml «تراكباً» ولا
+          # تتحقّق منه مع v9 أبداً — فسمّى خدمتين لا وجود لهما ورفض compose المشروعَ كلّه.
+          # الآن: كلُّ overlay يُتحقَّق منه **فوق v9**، وكلُّ ملفّ آخر مستقلّاً.
+          OVERLAYS=$(python3 -c "import json; d=json.load(open('docs/architecture/compose_file_roster.json')); print(' '.join(sorted(k for k, v in d['files'].items() if v['role'] == 'overlay')))")
           for f in docker-compose*.yml; do
             echo "─── Validating $f ───"
-            # odoo-snippet مقتطف (fragment) يُلصق داخل compose آخر، وليس ملفّاً مستقلاً.
-            # rag-kg-mcp تراكُب (overlay) يُشغَّل مع v9 (يعتمد qdrant/ollama/الشبكة من الأساس)
-            # فلا يصحّ التحقّق منه مستقلّاً.
-            # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
-            # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
-            # dev تراكُب تطوير (overlay): environment فقط (soft-fail + كوكي HTTP) فوق v9 ⇒ لا يصحّ standalone.
             # evidence-lab مكدّس معزول زائل يُعلمِن منافذ المضيف (${EVIDENCE_*_PORT}) —
             # لا يتوافق مع env الوهميّ لهذه الحلقة (يجعل المنفذ سلسلة). يُتحقَّق منه في
             # workflow المخصّص .github/workflows/evidence-lab.yml بـenv حقيقيّ.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ] || [ "$f" = "docker-compose.production.yml" ] || [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            if [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (evidence-lab workflow)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
-            # 2. Compose schema (docker compose config) مع env وهمي
-            docker compose --env-file .ci.env -f "$f" config --quiet || {
-              echo "❌ $f failed compose schema validation"
-              exit 1
-            }
-            echo "✓ $f valid"
+            case " $OVERLAYS " in
+              *" $f "*)
+                # 2a. تراكب: يصحّ فقط فوق الأساس (يعتمد خدماته وشبكته). profile gpu لتراكب GPU.
+                docker compose --env-file .ci.env -f docker-compose.v9.yml -f "$f" --profile gpu config --quiet || {
+                  echo "❌ $f failed compose schema validation on top of docker-compose.v9.yml"
+                  exit 1
+                }
+                echo "✓ docker-compose.v9.yml + $f valid" ;;
+              *)
+                # 2b. مستقلّ: Compose schema (docker compose config) مع env وهمي
+                docker compose --env-file .ci.env -f "$f" config --quiet || {
+                  echo "❌ $f failed compose schema validation"
+                  exit 1
+                }
+                echo "✓ $f valid" ;;
+            esac
           done
-          echo "─── Validating docker-compose.v9.yml + docker-compose.v9.gpu.yml overlay ───"
-          python3 -c "import yaml; yaml.safe_load(open('docker-compose.v9.gpu.yml'))"
-          docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu config --quiet || {
-            echo "❌ v9 GPU overlay failed compose schema validation"
-            exit 1
-          }
-          echo "✓ v9 GPU overlay valid"
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern

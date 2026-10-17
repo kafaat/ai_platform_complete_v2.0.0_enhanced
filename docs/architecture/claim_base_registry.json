@@ -14,6 +14,7 @@
     "claim_base_registry.json",
     "component_registry.json",
     "compose_auth_sinks.json",
+    "compose_file_roster.json",
     "compose_secret_exceptions.json",
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",
