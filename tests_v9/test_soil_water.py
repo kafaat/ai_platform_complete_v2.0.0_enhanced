@@ -26,23 +26,23 @@ from api.soil_water import (  # noqa: E402
 
 
 def test_taw_is_per_m_times_depth():
-    # loam = 175 مم/م × 1.0 م = 175.
+    # loam = FAO-56 (0.25 − 0.10)·1000 = 150 مم/م × 1.0 م = 150 (كان 175 من جدول موازٍ محذوف).
     r = soil_water_params("loam", root_depth_m=1.0)
-    assert r["taw_mm_per_m"] == 175.0
-    assert r["taw_mm"] == pytest.approx(175.0)
+    assert r["taw_mm_per_m"] == 150.0
+    assert r["taw_mm"] == pytest.approx(150.0)
     assert r["texture_known"] is True
 
 
 def test_raw_is_p_times_taw():
     r = soil_water_params("loam", root_depth_m=1.0, raw_fraction=0.4)
-    assert r["raw_mm"] == pytest.approx(0.4 * 175.0)
+    assert r["raw_mm"] == pytest.approx(0.4 * 150.0)
     assert r["raw_fraction"] == 0.4
 
 
 def test_arabic_texture_keys():
-    assert soil_water_params("رملي", 1.0)["taw_mm_per_m"] == 65.0  # sand
-    assert soil_water_params("طيني", 1.0)["taw_mm_per_m"] == 135.0  # clay
-    assert soil_water_params("طميي", 1.0)["taw_mm_per_m"] == 175.0  # loam
+    assert soil_water_params("رملي", 1.0)["taw_mm_per_m"] == 60.0  # sand (FAO-56: 0.10 − 0.04)
+    assert soil_water_params("طيني", 1.0)["taw_mm_per_m"] == 140.0  # clay (FAO-56: 0.38 − 0.24)
+    assert soil_water_params("طميي", 1.0)["taw_mm_per_m"] == 150.0  # loam (FAO-56: 0.25 − 0.10)
 
 
 def test_unknown_texture_fallback_flagged():
@@ -73,7 +73,7 @@ def test_sand_holds_less_than_clay_than_loam():
     sand = soil_water_params("sand", 1.0)["taw_mm"]
     clay = soil_water_params("clay", 1.0)["taw_mm"]
     loam = soil_water_params("loam", 1.0)["taw_mm"]
-    assert sand < clay < loam  # 65 < 135 < 175 (FAO-56 Table 19)
+    assert sand < clay < loam  # 60 < 140 < 150 (FAO-56 Table 19)
 
 
 def test_available_water_fraction_bounds():
@@ -86,8 +86,8 @@ def test_available_water_fraction_bounds():
 
 def test_soil_aware_timing_sand_before_clay():
     # نقطة المستخدم: نفس Dr (نفس ETc) ⇒ الرمل يستحقّ الريّ قبل الطين.
-    sand = soil_water_params("sand", 1.0)  # TAW=65 ⇒ RAW=32.5
-    clay = soil_water_params("clay", 1.0)  # TAW=135 ⇒ RAW=67.5
+    sand = soil_water_params("sand", 1.0)  # TAW=60 ⇒ RAW=30
+    clay = soil_water_params("clay", 1.0)  # TAW=140 ⇒ RAW=70
     dr = 40.0
     assert irrigation_due_by_soil(dr, sand["taw_mm"], sand["raw_fraction"]) is True
     assert irrigation_due_by_soil(dr, clay["taw_mm"], clay["raw_fraction"]) is False
@@ -98,7 +98,7 @@ def test_soil_aware_timing_sand_before_clay():
 
 
 def test_irrigation_due_equivalent_to_dr_ge_raw():
-    sp = soil_water_params("loam", 1.0, raw_fraction=0.5)  # RAW=87.5
+    sp = soil_water_params("loam", 1.0, raw_fraction=0.5)  # RAW=75
     assert irrigation_due_by_soil(sp["raw_mm"], sp["taw_mm"], sp["raw_fraction"]) is True
     assert irrigation_due_by_soil(sp["raw_mm"] - 1.0, sp["taw_mm"], sp["raw_fraction"]) is False
 

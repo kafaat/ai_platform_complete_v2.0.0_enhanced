@@ -29,7 +29,7 @@ import math
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
-from api.water_balance import KC_BY_CROP_STAGE
+from api.water_balance import kc_map_for_crop
 
 ENGINE_NAME = "rue-fao56"
 ENGINE_VERSION = "rue-fao56/1"
@@ -286,9 +286,7 @@ def _seasonal_water_need(crop_key: str, et0_series: list[float | None]) -> float
     n = len(et0_series)
     if n == 0:
         return 0.0
-    kc_map = KC_BY_CROP_STAGE.get(
-        crop_key, {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
-    )
+    kc_map, _ = kc_map_for_crop(crop_key)  # بطاقة المحصول — المصدر الوحيد لـKc
     total = 0.0
     idx = 0
     for stage, frac in _STAGE_FRACTIONS:

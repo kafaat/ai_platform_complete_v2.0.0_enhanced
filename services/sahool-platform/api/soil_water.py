@@ -9,60 +9,32 @@
   • p (نسبة الاستنفاد المتاح بيُسر، raw_fraction) **خاصّيّة محصول** (FAO-56 Table 22)
     لا نسيج — لذا تُمرَّر من المحصول (افتراض 0.5)، لا نختلقها من النسيج.
 
-نقيّ حتميّ (لا I/O). يدعم مفاتيح النسيج الإنجليزيّة والعربيّة (اتّساقاً مع
-soil_recommendations). ⚠ قيم TAW أوّليّة من منتصفات FAO-56 Table 19 — تحتاج معايرة
-يمنيّة (تربة كلسيّة، بنية مختلفة). موسومة calibrated=False.
+نقيّ حتميّ (لا I/O). يدعم مفاتيح النسيج الإنجليزيّة (شرطة سفليّة أو مسافة) والعربيّة.
+TAW لكلّ متر يُقرأ من ``core.engines.fao56`` (المصدر الوحيد) — ⚠ قيم FAO-56 Table 19
+النوعيّة تحتاج معايرة يمنيّة (تربة كلسيّة، بنية مختلفة). موسومة calibrated=False.
 """
 
 from __future__ import annotations
 
-# الماء الكلّيّ المتاح TAW (مم/متر عمق) حسب النسيج — منتصفات FAO-56 Table 19.
-# ⚠ غير معايَر يمنيّاً. المفاتيح إنجليزيّة؛ العربيّة عبر _TEXTURE_ALIASES.
-_TAW_MM_PER_M: dict[str, float] = {
-    "sand": 65.0,
-    "loamy_sand": 90.0,
-    "sandy_loam": 125.0,
-    "loam": 175.0,
-    "silt_loam": 200.0,
-    "silt": 200.0,
-    "silty_clay_loam": 175.0,
-    "clay_loam": 165.0,
-    "silty_clay": 150.0,
-    "clay": 135.0,
-}
+from core.engines.fao56 import taw_mm_per_m_for_texture
 
-# مرادفات عربيّة/مبسّطة → مفتاح قانونيّ (يطابق فئات soil_recommendations).
-_TEXTURE_ALIASES: dict[str, str] = {
-    "رملي": "sand",
-    "رملية": "sand",
-    "طمي-رملي": "sandy_loam",
-    "طميي-رملي": "sandy_loam",
-    "طمية رملية": "sandy_loam",
-    "طميي": "loam",
-    "طمية": "loam",
-    "طيني": "clay",
-    "طينية": "clay",
-    "sandy": "sand",
-    "loamy": "loam",
-}
+# PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01 — لا جدول TAW هنا. كان ``_TAW_MM_PER_M`` نسخةً
+# موازية تخالف المحرّك (loam 175 مقابل 150، silt_loam 200 مقابل 170)، فكان حقلٌ واحد
+# يأخذ خزّانين بحسب المستهلك. بقرار المالك (2026-10-15): ``core.engines.fao56`` (θFC/θWP
+# حسب القوام، TAW = 1000·(θFC − θWP)) هو المصدر الوحيد، ومرادفات القوام انتقلت إليه.
 
 # عمق جذور افتراضيّ حين يغيب (م) — متوسّط آمن، موسوم. لا اختلاق عمق دقيق.
 _DEFAULT_ROOT_DEPTH_M = 0.6
 # p (raw_fraction) عامّ من FAO-56 حين لا يمرّره المحصول.
 _DEFAULT_RAW_FRACTION = 0.5
-# TAW احتياطيّ لنسيج مجهول (منتصف النطاق ~loam) — موسوم texture_known=False.
-_FALLBACK_TAW_MM_PER_M = 150.0
 
 
 def _taw_per_m(texture: str | None) -> tuple[float, bool]:
-    """TAW (مم/م) من النسيج ⇒ (القيمة، هل النسيج معروف). يطبّع العربيّة والحالة."""
-    if not texture:
-        return _FALLBACK_TAW_MM_PER_M, False
-    key = texture.strip().lower()
-    key = _TEXTURE_ALIASES.get(texture.strip(), _TEXTURE_ALIASES.get(key, key))
-    if key in _TAW_MM_PER_M:
-        return _TAW_MM_PER_M[key], True
-    return _FALLBACK_TAW_MM_PER_M, False
+    """TAW (مم/م) من النسيج ⇒ (القيمة، هل النسيج معروف) — من جدول FAO-56 القانونيّ.
+
+    النسيج المجهول ⇒ قيمة FAO-56 للطميّ (loam) موسومةً ``False``.
+    """
+    return taw_mm_per_m_for_texture(texture)
 
 
 def soil_water_params(
@@ -77,11 +49,11 @@ def soil_water_params(
     ⇒ افتراض موسوم؛ القيم غير معايَرة يمنيّاً (calibrated=False).
     """
     warnings_ar: list[str] = [
-        "TAW من منتصفات FAO-56 Table 19 غير معايَرة يمنيّاً (تربة كلسيّة) — قدِّر بحذر",
+        "TAW من FAO-56 Table 19 (θFC − θWP) غير معايَرة يمنيّاً (تربة كلسيّة) — قدِّر بحذر",
     ]
     taw_per_m, known = _taw_per_m(texture)
     if not known:
-        warnings_ar.append("نسيج غير معروف — TAW احتياطيّ (متوسّط)؛ مرّر نسيجاً للدقّة")
+        warnings_ar.append("نسيج غير معروف — TAW احتياطيّ (طميّ FAO-56)؛ مرّر نسيجاً للدقّة")
 
     depth = root_depth_m
     if depth is None or depth <= 0:
