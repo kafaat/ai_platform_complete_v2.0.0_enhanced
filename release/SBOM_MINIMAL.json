@@ -6955,7 +6955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab3a561baccda9dc3d182f7706ea9e0af1d00b95950c67c0110d45cce24c8832"
+          "content": "42898a0d5b11738d5ae7f66d2899c58535e161e398317250cc8dfb864faf184d"
         }
       ],
       "name": "migrations/schema_probe_contract.env",

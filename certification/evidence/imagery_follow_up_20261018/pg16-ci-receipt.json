@@ -1,0 +1,32 @@
+{
+  "schema": "sahool.imagery_followup_pg16_evidence/v1",
+  "pr": 1211,
+  "head_sha": "fc1f5ec3376c96999210c1177c9767d42d2658b7",
+  "checkout_sha": "c315c4af2d1d080488ebcb24d81d91c80795135d",
+  "tree_sha": "e471816144282bb2fe2c84d0a61e5297aed3ee6f",
+  "checkout_tree_matches_head": true,
+  "workflow_run_id": 39077990697,
+  "job_id": 117529016438,
+  "run_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/39077990697",
+  "conclusion": "success",
+  "tests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "postgres_image_digest": "sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d",
+  "raw_log_file": "pg16-ci.txt",
+  "raw_log_sha256": "e99b06e9765cdea49fe9484c88ed90c150b7407450d357f9fd19b21aa67beee0",
+  "acceptance_scope": "Disposable CI PostgreSQL16; durable request and lease contract, tenant isolation, matching Decision receipt SQL",
+  "not_measured": [
+    "PostgreSQL server crash/restart",
+    "full Decision migration and promotion",
+    "staging",
+    "production",
+    "raster pixel completion",
+    "physical execution or agricultural outcome verification"
+  ],
+  "raw_log_container_format": "github-job-log-lines/v1",
+  "raw_log_reconstruction": "''.join(json.loads(file)['lines']).encode('utf-8')",
+  "stored_container_sha256": "81d398f7b3356ad73037e760a7c7cfa42574189836e0e429e0f0bf406152027c"
+}

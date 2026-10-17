@@ -112,6 +112,8 @@ FOLLOWUP_REQUIRE_PG16=1 FOLLOWUP_TEST_DATABASE_URL=postgresql://followup_admin:d
 CI uses a digest-pinned PG16 image through the existing verified mirror helper.
 Local PG execution is blocked by this workspace's inability to start PostgreSQL
 under a non-root OS user (`runuser: cannot set groups: Operation not permitted`).
+The nine PG16 witnesses passed in CI run 39077990697 on source `fc1f5ec3`;
+raw logs and the exact checkout/tree binding are in the evidence folder above.
 Collection alone is not execution. Staging and production acceptance have not
 been measured by this change; no `verified` promotion is justified.
 

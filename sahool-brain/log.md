@@ -9619,3 +9619,10 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-18 — مزامنة متابعة الصور مع Redis #1210
 
 بعد نشر المصدر `ea1995b8` وتحديث الاختبارات `a4677ed2` (شجرة مطابقة محلياً)، جرى إدخال main@`45dfdc53` دون تغيير ملفات Redis الخاصة بـClaude. التعارضات في المصنوعات المولدة فقط وأُعيد توليدها بأدوات المستودع. أعيد تشغيل 19 حالة متابعة صور و4 حالات جسر في عمليتين: 23 ناجحة؛ العدد 21 أعلاه يصف لقطة المصدر الأولية. لا دليل PG16 حي بعد، والفجوة باقية open.
+
+
+### 2026-10-18 — قبول PG16 لمتابعة الصور في #1211
+
+الرأس `fc1f5ec3` اجتاز شواهد PostgreSQL التسعة فعلياً (run39077990697/job117529016438)، صفر فشل وصفر تخطٍ؛ checkout `c315c4af` وشجرة الرأس كلاهما `e4718161`. سُجلت الفجوة VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01 fixed على مستوى المصدر وعقد قاعدة الاختبار فقط. 23 سلوك و43 انحدار محلي؛ لا crash/restart للخادم ولا ترقية Decision ولا قبول staging/إنتاج ولا verified. [السجل الخام](../certification/evidence/imagery_follow_up_20261018/pg16-ci.txt) و[بصمته وحدوده](../certification/evidence/imagery_follow_up_20261018/pg16-ci-receipt.json).
+
+**متابعة تكامل #1211:** فشلت 4 حالات من test_apply_in_compose_live_pg على `fc1f5ec3` لأن عقد فحص المخطط ظل يحمل بصمة MANIFEST السابقة (341 جدولاً). أعيد إنتاجه محلياً بالاختبار القائم test_the_schema_probe_contract_matches_the_manifest؛ اشتُق العقد من _extracted فأصبح 342 جدولاً و187 عموداً وبصمة f7582ca2f044. بقي حارس المطابقة وفرض القراءة فقط دون تخفيف؛ يلزم إعادة CI التكامل على الرأس المحدّث.

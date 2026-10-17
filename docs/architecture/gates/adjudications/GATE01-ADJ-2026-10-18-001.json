@@ -41,13 +41,14 @@
     "followup_text_ar": "قوم بعمل ما تراه مناسبا بدون اي قيود ولو قمت بتشغيلها",
     "context_ar": "تفويض المالك لتنفيذ الحل المهني الصحيح لجدولة متابعة صور الحقل، ثم السماح بفك التجميد اللازم وتشغيل الحل. يسجل هذا الملف نطاق التسجيل والملكية فقط؛ لا يفتح السياسة عالمياً ولا يغير مسارات Claude."
   },
-  "scope_limit": "Register additive v236 timer/hand-off table before v206, update legacy runner and declare raster ownership. No actuator, physical commands, outcome verification, Decision SoR promotion, or unrelated migration repair. Changed frozen bytes are bound above; production rollout still requires measured schema/role/consumer readiness, not inferred success.",
+  "scope_limit": "Register additive v236 timer/hand-off table before v206, update legacy runner and declare raster ownership. No actuator, physical commands, outcome verification, Decision SoR promotion, or unrelated migration repair. Changed frozen bytes are bound above; production rollout still requires measured schema/role/consumer readiness, not inferred success. Regenerate the schema probe contract from the exact manifest and extracted object counts; keep fail-closed validation intact.",
   "provenance_honesty": {
     "record_authored_by": "agent-for-current-user-instruction",
     "independently_signed": false,
     "guard_binds": "bytes_only"
   },
   "supplemental_byte_bindings": {
-    "migrations/v236_raster_follow_up_requests.sql": "9b187988648407c8446fef71059ecde8c3f3646f"
+    "migrations/v236_raster_follow_up_requests.sql": "9b187988648407c8446fef71059ecde8c3f3646f",
+    "migrations/schema_probe_contract.env": "d90ef528799628c375a33790d675af8cdc0b2d83"
   }
 }
