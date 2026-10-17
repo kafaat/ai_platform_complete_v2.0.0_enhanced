@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3de71d60e587a11df373f65555f29e2d354cffa716e9cdd8056956494d9a2620"
+          "content": "bc1d3e8fb23e590f03cf43c62c725c7c7d7c327f6aa7b0b72dcd00134321fd6d"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6895,7 +6895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec52eece01bce0cb86994c90b0586219691abf695e0d29689e531cd80dad248c"
+          "content": "f7582ca2f044df465e596d777f1241f06858e761f0fa333fcbdcccf2004e4506"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8359,6 +8359,16 @@
         }
       ],
       "name": "migrations/v235_decision_chain_correlation.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f216f64841bebfb44dee443900debc34ef0f6524846f2a46cf1788f64551766"
+        }
+      ],
+      "name": "migrations/v236_raster_follow_up_requests.sql",
       "type": "file"
     },
     {
@@ -11965,7 +11975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9669c94643bb14ad3b80b4234864837b65602a80b605da96394a60bb7411945"
+          "content": "176025399869dc52dcaaa7dd4faf2b47e29a564b2a2509fa33e8501ebe26cc0a"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -12339,6 +12349,16 @@
         }
       ],
       "name": "services/decision-service/migrations/036_decision_chain_correlation.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "679ee098c8e250b1190727a617d715609933b7b7283879371880db5eae3f725f"
+        }
+      ],
+      "name": "services/decision-service/observation_context.py",
       "type": "file"
     },
     {
@@ -14595,6 +14615,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c38cb2d645006cba6a23855ac2d7b25e97fef000867feb3235bfddfcc4fda6a6"
+        }
+      ],
+      "name": "services/raster-service/follow_up_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "33fc9c1bb37470ded9a7e34d55ec9284bc09cc3db5e3535f39f2e04f46cd2cf9"
+        }
+      ],
+      "name": "services/raster-service/follow_up_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2768d8061d71917ee9059d506c20ae9b8434245f2ebe0efcf6787406485b04d4"
+        }
+      ],
+      "name": "services/raster-service/follow_up_worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cbd6f2ed1018eca78f86161c25017427ec19d155175d5fd262ebfc3f28373290"
         }
       ],
@@ -14765,7 +14815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71669dc0adae5cc7286305a516d833006012f5331966fa6e5acb7545f1226f55"
+          "content": "0bded019bd904faa4f4c13cfc428a4edd39e98a46e5632306b5008318b10948c"
         }
       ],
       "name": "services/raster-service/raster_app_lifecycle.py",
@@ -15075,7 +15125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df54a16be42465699878e3b6d24ec53a6feb7eb82005ac9985303eb8671eb288"
+          "content": "514af820c64f247d40083b296d8d9dd848e020775175ddf509bfb8dc2784f93c"
         }
       ],
       "name": "services/raster-service/requirements.txt",
@@ -15129,6 +15179,16 @@
         }
       ],
       "name": "services/raster-service/routers/fields.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6dde5edf39cfc681e4d74dec2ae0cf838b12b991a9e2111b7b7535a652d6f60b"
+        }
+      ],
+      "name": "services/raster-service/routers/follow_up.py",
       "type": "file"
     },
     {
@@ -15335,7 +15395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ebc6961639b30ef115df446a6d122c320a4294e9d7aff2a7e7321d5f194160fc"
+          "content": "0cb3560fcbef86119802e3dd0c650939dc0c2317a123d9d57cc351462e00a40c"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -30505,7 +30565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76d172dd1b286406525fd829f20a78f91e85bbbe873bb7058c2ff034631a8cd9"
+          "content": "5dcb63c38bc760e8c3484e55b203db1be5df6dece0b6972fa194ffc369875354"
         }
       ],
       "name": "services/vegetation-analysis-service/post_execution_bridge.py",
@@ -30595,7 +30655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29a592c0e713deba56765ae714ca3c315c78f7acc1da577391de4d3a569061d5"
+          "content": "13fbcccb883f0a300bee69b2e412c2740156a947a42a89bdbd8c38eb675d73af"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/outcomes.py",
@@ -31729,6 +31789,16 @@
         }
       ],
       "name": "shared/contracts/forms/sync_token.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b8ebfe2b25813f21ff27165ed626bb6e10c4d135695accfc098814fb46a2c259"
+        }
+      ],
+      "name": "shared/contracts/imagery_followup.py",
       "type": "file"
     },
     {

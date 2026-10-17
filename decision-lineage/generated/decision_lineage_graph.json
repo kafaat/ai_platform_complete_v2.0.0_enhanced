@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 631,
+      "evidence_count": 635,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -136,6 +136,7 @@
         "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql",
         "services/decision-service/migrations/035_decision_version_binding.sql",
         "services/decision-service/migrations/036_decision_chain_correlation.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/recommendation_outcomes_cutover_preflight.py",
         "services/decision-service/satellite_cdse_activation_gate.py",
@@ -198,6 +199,8 @@
         "services/raster-service/cdse_diagnostics.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/dem_quality.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/follow_up_store.py",
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
@@ -613,6 +616,7 @@
         "shared/ai/tool_schema.py",
         "shared/autonomous_farm_os_phase9.py",
         "shared/broker_url.py",
+        "shared/contracts/imagery_followup.py",
         "shared/contracts/indicator_observation.schema.json",
         "shared/contracts/ingest/external_submission_v1.py",
         "shared/contracts/ingest/projection.py",
@@ -675,7 +679,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 524,
+      "evidence_count": 525,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -820,6 +824,7 @@
         "services/rag-retrieval/retrieval_profile.py",
         "services/raster-service/backfill_scan_worker.py",
         "services/raster-service/cdse_native_product.py",
+        "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/raster_api_models.py",
         "services/raster-service/raster_main_compat_exports.py",
@@ -1234,7 +1239,7 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 184,
+      "evidence_count": 185,
       "owners": [
         "ai_agronomist",
         "database",
@@ -1286,6 +1291,7 @@
         "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql",
         "services/decision-service/migrations/035_decision_version_binding.sql",
         "services/decision-service/migrations/036_decision_chain_correlation.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/outcome_reconcile.py",
         "services/decision-service/persistence.py",
         "services/decision-service/platform_sor_revoke.py",
@@ -1812,7 +1818,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 146,
+      "evidence_count": 148,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1890,11 +1896,13 @@
         "services/odoo-bridge/main.py",
         "services/rag-retrieval/main.py",
         "services/raster-service/cdse_client.py",
+        "services/raster-service/follow_up_runtime.py",
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/raster_app_factory.py",
         "services/raster-service/raster_available_dates.py",
         "services/raster-service/raster_security_context.py",
         "services/raster-service/routers/fields.py",
+        "services/raster-service/routers/follow_up.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
         "services/remote-sensing-workspace-bff/main.py",
@@ -1991,12 +1999,14 @@
       "kind": "lineage_stage",
       "stage": "request",
       "order": 7,
-      "evidence_count": 33,
+      "evidence_count": 37,
       "owners": [
         "actuator-service",
         "database",
         "decision-service",
+        "raster-service",
         "sahool-platform",
+        "shared",
         "vegetation-analysis-service"
       ],
       "primary_owner": "decision-service",
@@ -2010,6 +2020,7 @@
         "services/decision-service/migrations/008_learning_attribution.sql",
         "services/decision-service/migrations/027_reservation_dispatch_inbox.sql",
         "services/decision-service/migrations/036_decision_chain_correlation.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
@@ -2020,6 +2031,8 @@
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/event_bus.py",
         "services/sahool-platform/api/irrigation_dispatch_relay.py",
@@ -2033,7 +2046,8 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py",
-        "services/vegetation-analysis-service/test_post_execution_bridge.py"
+        "services/vegetation-analysis-service/test_post_execution_bridge.py",
+        "shared/contracts/imagery_followup.py"
       ],
       "runtime_verified": false
     },
@@ -2042,7 +2056,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 38,
+      "evidence_count": 42,
       "owners": [
         "actuator-service",
         "database",
@@ -2068,6 +2082,7 @@
         "services/decision-service/migrations/022_runtime_agronomic_cohort_lineage.sql",
         "services/decision-service/migrations/023_runtime_terminal_agronomic_lineage.sql",
         "services/decision-service/migrations/027_reservation_dispatch_inbox.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/_model_chain.py",
         "services/decision-service/tests/test_agronomic_runtime_lineage.py",
@@ -2082,7 +2097,9 @@
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/raster-service/cdse_diagnostics.py",
+        "services/raster-service/follow_up_runtime.py",
         "services/raster-service/raster_cdse_tile_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/sahool-platform/api/canonical_as_applied_irrigation.py",
         "services/sahool-platform/api/decision_service_client.py",
@@ -2091,6 +2108,7 @@
         "services/sahool-platform/core/machinery_as_applied.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
         "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
+        "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py",
         "shared/iot_execution_runtime.py"
       ],
@@ -2563,6 +2581,7 @@
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/qdrant-seed/reindex.py",
+        "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/stac_search.py",
         "services/remote-sensing-workspace-bff/main.py",
@@ -2611,11 +2630,10 @@
         "services/sahool-platform/api/routers/evidence.py",
         "services/sahool-platform/api/routers/evidence_map.py",
         "services/sahool-platform/api/routers/field_ai_context.py",
-        "services/sahool-platform/api/routers/field_intelligence.py",
-        "services/sahool-platform/api/routers/fields.py"
+        "services/sahool-platform/api/routers/field_intelligence.py"
       ],
-      "source_evidence_count": 631,
-      "target_evidence_count": 524,
+      "source_evidence_count": 635,
+      "target_evidence_count": 525,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2726,8 +2744,8 @@
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
       ],
-      "source_evidence_count": 524,
-      "target_evidence_count": 184,
+      "source_evidence_count": 525,
+      "target_evidence_count": 185,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2808,7 +2826,7 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 184,
+      "source_evidence_count": 185,
       "target_evidence_count": 284,
       "static_supported": true,
       "runtime_verified": false
@@ -2893,7 +2911,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 43,
-      "target_evidence_count": 146,
+      "target_evidence_count": 148,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2916,6 +2934,8 @@
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/water_decision_bridge.py",
@@ -2925,8 +2945,8 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 146,
-      "target_evidence_count": 33,
+      "source_evidence_count": 148,
+      "target_evidence_count": 37,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2942,18 +2962,22 @@
         "services/decision-service/migrations/006_execution_delivery_receipt.sql",
         "services/decision-service/migrations/007_execution_outcome_verification.sql",
         "services/decision-service/migrations/027_reservation_dispatch_inbox.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/routers/decision_review.py",
+        "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 33,
-      "target_evidence_count": 38,
+      "source_evidence_count": 37,
+      "target_evidence_count": 42,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2971,9 +2995,10 @@
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/routers/decision_review.py",
+        "services/vegetation-analysis-service/post_execution_bridge.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 38,
+      "source_evidence_count": 42,
       "target_evidence_count": 53,
       "static_supported": true,
       "runtime_verified": false
@@ -3025,5 +3050,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "78bb725234432f8b24231eb2138c2ffeb1adc225fa86f625d872316171486670"
+  "content_sha256": "fc3ee5492616c3143165d6e165d3c55666a82cd2acb74a22c6c3d105dfce4e25"
 }

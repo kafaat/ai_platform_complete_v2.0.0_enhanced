@@ -1187,6 +1187,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.execution-requests.execution_request_id.observation-context",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/execution-requests/{execution_request_id}/observation-context"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.execution-requests.execution_request_id.receipt",
       "consumers": [],
       "curated": false,
@@ -2544,6 +2559,26 @@
         "POST /v1/fields/{field_id}/imagery/process-date"
       ],
       "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": [
+        "field"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.fields.field_id.imagery-ingestion-requests",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id}",
+        "POST /v1/fields/{field_id}/imagery-ingestion-requests"
+      ],
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "raster-service",
       "producer": "raster-service",
@@ -16514,6 +16549,7 @@
           "raster_assets",
           "raster_batch_jobs",
           "raster_cache_invalidations",
+          "raster_follow_up_requests",
           "raster_registry",
           "raster_snapshots",
           "zonal_stats"
@@ -17533,10 +17569,10 @@
   ],
   "counts": {
     "backend_components": 31,
-    "capabilities": 832,
+    "capabilities": 834,
     "capabilities_approval_gated": 8,
-    "capabilities_field_scoped": 95,
-    "capabilities_idempotent": 61,
+    "capabilities_field_scoped": 96,
+    "capabilities_idempotent": 62,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 478,
     "components": 35,
@@ -17544,9 +17580,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1123,
+    "route_rows": 1126,
     "ui_waivers": 53,
-    "unique_method_path": 1004
+    "unique_method_path": 1007
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17806,7 +17842,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c",
+  "fingerprint": "953d294edeba7b74050d53d96b5e2a9f6a74f4738997d34cced81bac90376d96",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17856,16 +17892,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 868,
+      "edge_count": 874,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 44,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 442,
+        "READS": 447,
         "ROUTES_TO": 72,
-        "WRITES": 306
+        "WRITES": 307
       }
     },
     "u3_wiring_ownership": {

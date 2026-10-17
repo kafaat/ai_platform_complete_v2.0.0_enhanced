@@ -49,7 +49,7 @@ async def database(monkeypatch):
         admin = await asyncpg.connect(
             ADMIN_DSN.rsplit("/", 1)[0] + "/" + dbname, command_timeout=15
         )
-        ddl = (ROOT / "migrations/v236_raster_follow_up_requests.sql").read_text()
+        ddl = (ROOT / "migrations/v236_raster_follow_up_requests.sql").read_text(encoding="utf-8")
         await admin.execute(ddl)
         await admin.execute(ddl)  # additive/idempotent on the exact migration bytes
         await admin.execute(f'GRANT USAGE ON SCHEMA public TO "{role}"')
@@ -222,11 +222,13 @@ async def test_authoritative_receipt_query_uses_matching_accepted_tenant_rows(
         "005_execution_request.sql",
         "006_execution_delivery_receipt.sql",
     ):
-        await database.admin.execute((migrations / name).read_text())
+        await database.admin.execute((migrations / name).read_text(encoding="utf-8"))
     # The exact additive column from 019; its unrelated lineage FKs are outside this fixture.
     season_ddl = next(
         line
-        for line in (migrations / "019_agronomic_lineage_integrity.sql").read_text().splitlines()
+        for line in (migrations / "019_agronomic_lineage_integrity.sql")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if line.startswith("ALTER TABLE decision_record ADD COLUMN IF NOT EXISTS season_id")
     )
     await database.admin.execute(season_ddl)

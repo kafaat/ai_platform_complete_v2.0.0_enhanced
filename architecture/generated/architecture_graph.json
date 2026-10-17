@@ -47,7 +47,7 @@
         "services/decision-service"
       ],
       "kind": "service",
-      "incoming": 10,
+      "incoming": 11,
       "outgoing": 2,
       "orphan": false
     },
@@ -300,7 +300,7 @@
       ],
       "kind": "service",
       "incoming": 8,
-      "outgoing": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1233,6 +1233,12 @@
       "source": "raster-service",
       "target": "decision-service",
       "kind": "code-reference",
+      "evidence": "services/raster-service/follow_up_runtime.py"
+    },
+    {
+      "source": "raster-service",
+      "target": "decision-service",
+      "kind": "code-reference",
       "evidence": "services/raster-service/imagery_source_gate.py"
     },
     {
@@ -2031,11 +2037,11 @@
   "cycles": [],
   "summary": {
     "nodes": 109,
-    "edges": 182,
+    "edges": 183,
     "orphans": 8,
     "cycles": 0,
-    "code_edges": 50,
+    "code_edges": 51,
     "compose_edges": 132
   },
-  "content_sha256": "47d1cb38e9c09bf8d441e6aee165775408226432d6a17665cc950efb1ce68c24"
+  "content_sha256": "1de2f5a80e6648092491f63a354d366382dab9ca37d822b6a16aff1734b8b7ee"
 }

@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 259,
+  "definition_count": 260,
   "definitions": [
     {
       "kind": "app",
@@ -193,7 +193,7 @@
       "line": 123,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
-      "route_count": 71,
+      "route_count": 72,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -401,6 +401,15 @@
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.follow_up",
+      "node_id": "services.raster-service.routers.follow_up:router",
+      "route_count": 2,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2323,7 +2332,7 @@
     },
     {
       "kind": "router",
-      "line": 8,
+      "line": 10,
       "module": "services.vegetation-analysis-service.routers.outcomes",
       "node_id": "services.vegetation-analysis-service.routers.outcomes:router",
       "route_count": 3,
@@ -2694,8 +2703,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "686708f0c410050acd19ee97264f446582c9b8a28c9b38078132862761893e70",
-  "orphan_candidate_count": 227,
+  "inventory_sha256": "2dbaa8857505dde865ccd600cf3e62064b68244ce9d2f1237552b49f274864b5",
+  "orphan_candidate_count": 228,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -2914,6 +2923,16 @@
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.follow_up",
+      "node_id": "services.raster-service.routers.follow_up:router",
+      "route_count": 2,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4940,7 +4959,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 8,
+      "line": 10,
       "module": "services.vegetation-analysis-service.routers.outcomes",
       "node_id": "services.vegetation-analysis-service.routers.outcomes:router",
       "route_count": 3,
@@ -4971,7 +4990,7 @@
   "production_certified": false,
   "reachable_node_count": 32,
   "resolved_include_edge_count": 2,
-  "router_with_routes_count": 229,
+  "router_with_routes_count": 230,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,

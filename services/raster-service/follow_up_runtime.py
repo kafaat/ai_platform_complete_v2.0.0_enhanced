@@ -211,9 +211,13 @@ async def process(row: dict, lease_store: FollowUpStore) -> dict:
             raise PermanentFailure("radiometry_unresolved")
         if job.get("status") not in {"already_ready", "in_progress", "planned"}:
             raise PermanentFailure("raster_enqueue_contract_mismatch")
-        if job["status"] != "already_ready" and not job.get("item_id"):
+        if job["status"] == "already_ready" and not job.get("item_id"):
+            # Legacy asset preflight does not bind provider/processing version.
+            # Only accept the existing canonical queue item's durable reference.
+            raise PermanentFailure("ready_product_identity_unproven")
+        if not job.get("item_id"):
             raise RetryLater("raster_durable_reference_missing")
-        # already_ready is a durable product-identity lookup, not a new processing job.
+        # already_ready with an item ID is an existing persisted canonical queue item.
         progress["jobs"].append(
             {
                 "indicator": indicator,

@@ -47,12 +47,16 @@ A crash between downstream enqueue and progress persistence can replay the enque
 the existing canonical product identity provides downstream deduplication. This is
 at-least-once handoff, not a claim of exactly-once execution.
 
-`dispatched` means durable backfill job references or an already-ready canonical
-product lookup. It does **not** mean pixel completion, physical execution, or
+`dispatched` means durable backfill job references or an already-persisted canonical
+backfill item. It does **not** mean pixel completion, physical execution, or
 verified agricultural improvement. Responses always expose
 `physical_execution_verified=false` and `outcome_verified=false`. Those require
 separate evidence/Decision verification. GET exposes attempts, reason, timestamps
 and partial job references. Unexpected exception details/tokens are not exposed.
+A legacy `already_ready` asset lookup without a canonical backfill item ID is
+rejected as `ready_product_identity_unproven`: the old asset preflight does not
+bind provider/processing version. This can require operator investigation; it is
+not silently reported as successful follow-up.
 Cancellation is currently a store operation only, before a live claim; no public
 cancel API or recall of downstream jobs is promised.
 
@@ -60,7 +64,7 @@ cancel API or recall of downstream jobs is promised.
 
 1. Apply additive `migrations/v236_raster_follow_up_requests.sql` through the
    existing authorized migration process; it is ordered before the final v206
-   ownership pass. The application never creates schema at startup.
+   RLS hardening pass. The application never creates schema at startup.
 2. Use a restricted raster `DATABASE_URL` role with SELECT/INSERT/UPDATE on the new
    table and the existing field/history/backfill permissions. No superuser or
    BYPASSRLS. ENABLE + FORCE RLS and transaction-local `app.current_tenant` are

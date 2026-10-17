@@ -205,11 +205,12 @@ async def test_api_auth_conflicts_failures_and_status_scope(monkeypatch, modules
         transport=httpx.ASGITransport(app=app), base_url="http://witness"
     ) as client:
         for auth, header, expected in [
+            (None, None, 401),
             ("Bearer forged", None, 401),
             (bearer(), OTHER, 403),
             (bearer(exp=datetime.now(UTC) - timedelta(minutes=1)), None, 401),
         ]:
-            headers = {"Authorization": auth}
+            headers = {"Authorization": auth} if auth else {}
             if header:
                 headers["X-Tenant-Id"] = header
             assert (
@@ -367,3 +368,46 @@ async def test_adapter_cannot_emit_after_lease_loss(monkeypatch, modules):
     with pytest.raises(modules.worker.PermanentFailure, match="lease_lost"):
         await modules.runtime.process(claim, store)
     enqueue.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("item_id", [None, 27])
+async def test_ready_handoff_requires_canonical_queue_reference(monkeypatch, modules, item_id):
+    import db_persist
+
+    claim = row()
+    claim["request_payload"].update(
+        processing_version=modules.runtime.canonical_processing_version(),
+        indicators=["ndvi"],
+        geometry_revision=3,
+        geometry={"type": "Polygon", "coordinates": []},
+    )
+    claim["result_payload"] = {
+        "scene": {"item_id": "scene", "datetime": "2026-10-17T00:00:00Z", "provider": "cdse"},
+        "jobs": [],
+    }
+
+    @asynccontextmanager
+    async def tx(_tenant):
+        yield SimpleNamespace(fetchval=AsyncMock(return_value=1))
+
+    store = SimpleNamespace(
+        transaction=tx,
+        owns=AsyncMock(return_value=True),
+        save_progress=AsyncMock(return_value=True),
+    )
+    monkeypatch.setattr(
+        db_persist,
+        "enqueue_single_scene_process",
+        AsyncMock(return_value={"status": "already_ready", "item_id": item_id}),
+    )
+    if item_id is None:
+        with pytest.raises(
+            modules.worker.PermanentFailure, match="ready_product_identity_unproven"
+        ):
+            await modules.runtime.process(claim, store)
+        store.save_progress.assert_not_awaited()
+    else:
+        result = await modules.runtime.process(claim, store)
+        assert result["jobs"][0]["item_id"] == item_id
+        assert result["jobs"][0]["status"] == "already_ready"

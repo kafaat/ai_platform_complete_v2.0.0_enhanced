@@ -21,9 +21,11 @@ FieldId = Annotated[str, Path(min_length=1, max_length=50, pattern=r"^[A-Za-z0-9
 
 
 def authenticated_tenant(
-    authorization: str = Header(...), x_tenant_id: str | None = Header(None)
+    authorization: str | None = Header(None), x_tenant_id: str | None = Header(None)
 ) -> str:
     try:
+        if not authorization:
+            raise ValueError("bearer_required")
         scheme, bearer = authorization.split(" ", 1)
         if scheme.lower() != "bearer":
             raise ValueError("bearer_required")

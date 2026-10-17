@@ -57,7 +57,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 62,
+      "capability_count": 63,
       "component_id": "decision-service",
       "domain": "decision-governance",
       "status": {
@@ -295,7 +295,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 77,
+      "capability_count": 78,
       "component_id": "raster-service",
       "domain": "remote-sensing-truth",
       "status": {
@@ -491,7 +491,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c",
+  "fingerprint": "953d294edeba7b74050d53d96b5e2a9f6a74f4738997d34cced81bac90376d96",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

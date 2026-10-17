@@ -72,7 +72,8 @@ class PostExecutionBridge:
         except ValueError as exc:
             raise RuntimeError("raster_follow_up_contract_mismatch") from exc
         if (
-            response.status_code != 202 or not isinstance(data, dict)
+            response.status_code != 202
+            or not isinstance(data, dict)
             or data.get("request_id") != headers["Idempotency-Key"]
             or not isinstance(data.get("due_at"), str)
             or data.get("time_basis") != "delivery_receipt_received_at"

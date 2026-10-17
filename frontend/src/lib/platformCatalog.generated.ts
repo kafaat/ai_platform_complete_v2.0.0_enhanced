@@ -14,14 +14,14 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c';
+export const PLATFORM_CATALOG_FINGERPRINT = '953d294edeba7b74050d53d96b5e2a9f6a74f4738997d34cced81bac90376d96';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 31,
-  "capabilities": 832,
+  "capabilities": 834,
   "capabilities_approval_gated": 8,
-  "capabilities_field_scoped": 95,
-  "capabilities_idempotent": 61,
+  "capabilities_field_scoped": 96,
+  "capabilities_idempotent": 62,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 478,
   "components": 35,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1123,
+  "route_rows": 1126,
   "ui_waivers": 53,
-  "unique_method_path": 1004
+  "unique_method_path": 1007
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -72,7 +72,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 62,
+    "capabilityCount": 63,
     "domain": "decision-governance",
     "id": "decision-service",
     "tested": true,
@@ -225,7 +225,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 77,
+    "capabilityCount": 78,
     "domain": "remote-sensing-truth",
     "id": "raster-service",
     "tested": true,

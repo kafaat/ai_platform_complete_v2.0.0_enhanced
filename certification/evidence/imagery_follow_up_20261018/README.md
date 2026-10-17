@@ -3,9 +3,10 @@
 Base: main `7f2d7fa0f8d4fb975337316475c019e769cd4447` (#1209).
 Gap: `VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01`.
 
-- `local-tests.txt`: 21 passing behavioral bridge/router/worker tests.
+- `local-tests.txt`: 23 passing behavioral bridge/router/worker tests.
 - `raster-regression-tests.txt`: 43 passing existing raster regressions in a separate process.
 - `mixed-service-import-collision.txt`: an attempted combined invocation produced six import errors because existing service suites share the top-level `routers` package. Both suites pass in separate processes; the failed mixed run is retained, not presented as a pass.
+- `full-app-route.txt`: actual raster ASGI app OpenAPI contains both new routes (86 paths); no lifespan/database activation was claimed.
 - `pg16-collection.txt`: collection only, not a PostgreSQL execution result.
 - `dependency-audit.json`: pip-audit of the newly added PyJWT[crypto]==2.15.0 dependency
   closure; not an audit of the complete raster image.
