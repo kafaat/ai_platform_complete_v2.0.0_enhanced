@@ -3,7 +3,7 @@
   "scope": "nginx-static-gateway-reachability",
   "runtime_verified": false,
   "production_certified": false,
-  "compose_name_count": 220,
+  "compose_name_count": 134,
   "config_count": 4,
   "upstream_count": 51,
   "proxied_location_count": 72,
@@ -642,105 +642,105 @@
           {
             "host": "auth-service",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "supervisor_backend": [
           {
             "host": "supervisor-agent",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "sentinel_backend": [
           {
             "host": "sentinel-hub-mcp",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "weather_backend": [
           {
             "host": "weather-mcp",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "wofost_backend": [
           {
             "host": "wofost-mcp",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "market_backend": [
           {
             "host": "market-mcp",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "video_backend": [
           {
             "host": "video-processor",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "actuator_backend": [
           {
             "host": "actuator-service",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "edge_backend": [
           {
             "host": "edge-inference",
             "port": 8100,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "fastbee_backend": [
           {
             "host": "fastbee",
             "port": 8080,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "zlmedia_backend": [
           {
             "host": "zlmediakit",
             "port": 8080,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "rag_backend": [
           {
             "host": "local-ai-rag",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "erp_bridge_backend": [
           {
             "host": "erp-bridge",
             "port": 8126,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "agriai_backend": [
           {
             "host": "agriai-engine",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "frontend_backend": [
           {
             "host": "frontend",
             "port": 8080,
-            "compose_declared": true
+            "compose_declared": false
           }
         ]
       },
@@ -967,7 +967,23 @@
           "security_class": "public_or_service_enforced"
         }
       ],
-      "missing_compose_hosts": [],
+      "missing_compose_hosts": [
+        "actuator-service",
+        "agriai-engine",
+        "auth-service",
+        "edge-inference",
+        "erp-bridge",
+        "fastbee",
+        "frontend",
+        "local-ai-rag",
+        "market-mcp",
+        "sentinel-hub-mcp",
+        "supervisor-agent",
+        "video-processor",
+        "weather-mcp",
+        "wofost-mcp",
+        "zlmediakit"
+      ],
       "review_findings": [
         {
           "kind": "sensitive_route_without_gateway_auth",
@@ -998,7 +1014,7 @@
           {
             "host": "sahool-supervisor",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "video_backend": [
@@ -1012,7 +1028,7 @@
           {
             "host": "sahool-actuator",
             "port": 8000,
-            "compose_declared": true
+            "compose_declared": false
           }
         ],
         "edge_backend": [
@@ -1143,7 +1159,10 @@
           "security_class": "public_or_service_enforced"
         }
       ],
-      "missing_compose_hosts": [],
+      "missing_compose_hosts": [
+        "sahool-actuator",
+        "sahool-supervisor"
+      ],
       "review_findings": [
         {
           "kind": "sensitive_route_without_gateway_auth",
@@ -1411,5 +1430,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "0dfdce97d00f6e660638873987c83b6f82a2d726a1d7655f01536b59de120484"
+  "content_sha256": "c3ee20cf967a846408f35479407e23ff734e010e11373bc054230d0433b0ec95"
 }

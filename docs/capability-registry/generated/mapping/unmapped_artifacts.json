@@ -28,10 +28,6 @@
     "kind": "web"
   },
   {
-    "path": "frontend/docker-compose.web.yml",
-    "kind": "web"
-  },
-  {
     "path": "frontend/e2e/accessibility-performance.spec.ts",
     "kind": "tests"
   },
@@ -6616,10 +6612,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/weather-polygon-worker/worker_health_probe.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/weather-service/__init__.py",
     "kind": "backend"
   },
@@ -6921,10 +6913,6 @@
   },
   {
     "path": "tests/test_tts_bakeoff_sandbox.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
     "kind": "tests"
   },
   {
@@ -7392,6 +7380,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compose_roster_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_security_audit.py",
     "kind": "tests"
   },
@@ -7400,15 +7392,7 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_container_command_path_guard.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_container_fleet_contract_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_container_hardening_ratchet_v21.py",
     "kind": "tests"
   },
   {
@@ -7477,10 +7461,6 @@
   },
   {
     "path": "tests_v9/test_db_wiring.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_db_writer_ownership_triage.py",
     "kind": "tests"
   },
   {
@@ -9109,10 +9089,6 @@
   },
   {
     "path": "tests_v9/test_weather_signal_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_weather_worker_health_probe.py",
     "kind": "tests"
   },
   {

@@ -4,12 +4,12 @@
 
 ## Summary
 
-- Services: **32**
+- Services: **31**
 - Health contract: **27**
 - Readiness contract: **26**
 - Metrics endpoint or instrumentation: **17**
 - Tracing instrumentation: **4**
-- Declared configuration/secrets: **30**
+- Declared configuration/secrets: **29**
 - Complete static contracts: **2**
 - Live runtime verified: **0**
 
@@ -46,7 +46,6 @@
 | tts-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | vegetation-analysis-service | 100.0% | ✓ | ✓ | ✓ | ✓ | ✓ |
 | video-processor | 71.4% | ✓ | ✓ | — | — | ✓ |
-| weather-polygon-worker | 42.9% | — | — | — | — | ✓ |
 | weather-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | weather-signal-engine | 42.9% | — | — | — | — | ✓ |
 

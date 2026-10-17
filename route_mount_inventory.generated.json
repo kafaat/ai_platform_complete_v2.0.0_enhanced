@@ -300,18 +300,6 @@
     "reason": "main.py owns direct route handlers"
   },
   {
-    "path": "services/weather-polygon-worker/src/main.py",
-    "service": "weather-polygon-worker",
-    "has_fastapi": false,
-    "direct_routes": 0,
-    "router_routes": 0,
-    "delegates_to_router_registry": false,
-    "delegates_to_app_factory": false,
-    "delegates_to_runtime_module": false,
-    "status": "non_http_entrypoint",
-    "reason": "documented worker/bot entrypoint"
-  },
-  {
     "path": "services/weather-signal-engine/src/main.py",
     "service": "weather-signal-engine",
     "has_fastapi": false,

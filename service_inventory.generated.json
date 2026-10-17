@@ -348,18 +348,6 @@
     "risk": "normal"
   },
   {
-    "service": "weather-polygon-worker",
-    "domain": "Weather Intelligence",
-    "python_files": 2,
-    "python_loc": 230,
-    "tests": 0,
-    "routes": 0,
-    "main": "services/weather-polygon-worker/src/main.py",
-    "dockerfile": "services/weather-polygon-worker/Dockerfile",
-    "requirements": "services/weather-polygon-worker/requirements.txt",
-    "risk": "medium-runtime-contract-gap"
-  },
-  {
     "service": "weather-service",
     "domain": "Weather Intelligence",
     "python_files": 49,

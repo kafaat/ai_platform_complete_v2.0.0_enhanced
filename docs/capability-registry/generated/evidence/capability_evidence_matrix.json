@@ -9763,13 +9763,18 @@
         "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
+        "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
         "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_capabilities.py",
+        "tests_v9/test_container_command_path_guard.py",
+        "tests_v9/test_container_hardening_ratchet_v21.py",
+        "tests_v9/test_db_writer_ownership_triage.py",
         "tests_v9/test_endpoint_auth_coverage.py",
         "tests_v9/test_mcp_servers.py",
+        "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_v13_refinements.py",
-        "tests_v9/test_weather_polygon_worker.py",
-        "tests_v9/test_weather_solar_fields.py"
+        "tests_v9/test_weather_solar_fields.py",
+        "tests_v9/test_weather_worker_health_probe.py"
       ]
     },
     {

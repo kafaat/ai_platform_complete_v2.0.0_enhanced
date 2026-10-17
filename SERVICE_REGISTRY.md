@@ -5,8 +5,8 @@
 
 ## Inventory summary
 
-- Services discovered: **32**
-- Python LOC discovered: **276,246**
+- Services discovered: **31**
+- Python LOC discovered: **276,016**
 - Routes discovered: **1123**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -44,7 +44,6 @@
 | `tts-service` | Voice & Notifications | 10 | 1440 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
 | `vegetation-analysis-service` | Vegetation Analytics | 40 | 3972 | 17 | 21 | `services/vegetation-analysis-service/main.py` | `services/vegetation-analysis-service/Dockerfile` | `services/vegetation-analysis-service/requirements.txt` | `normal` |
 | `video-processor` | Video Processing | 9 | 1053 | 1 | 11 | `services/video-processor/main.py` | `services/video-processor/Dockerfile` | `services/video-processor/requirements.txt` | `normal` |
-| `weather-polygon-worker` | Weather Intelligence | 2 | 230 | 0 | 0 | `services/weather-polygon-worker/src/main.py` | `services/weather-polygon-worker/Dockerfile` | `services/weather-polygon-worker/requirements.txt` | `medium-runtime-contract-gap` |
 | `weather-service` | Weather Intelligence | 49 | 8146 | 30 | 29 | `services/weather-service/main.py` | `services/weather-service/Dockerfile` | `services/weather-service/requirements.txt` | `normal` |
 | `weather-signal-engine` | Weather Intelligence | 2 | 182 | 0 | 0 | `services/weather-signal-engine/src/main.py` | `services/weather-signal-engine/Dockerfile` | `services/weather-signal-engine/requirements.txt` | `medium-runtime-contract-gap` |
 
@@ -70,12 +69,12 @@
 | Vegetation Analytics | `indicators-service`, `vegetation-analysis-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Video Processing | `video-processor` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Voice & Notifications | `tts-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
-| Weather Intelligence | `weather-polygon-worker`, `weather-service`, `weather-signal-engine` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Weather Intelligence | `weather-service`, `weather-signal-engine` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 
 ## Governance rules
 
 1. `SERVICE_REGISTRY.md`, `service_inventory.generated.json`, and `route_inventory.generated.json` are generated from code.
 2. CI must fail when generated inventory differs from committed inventory.
 3. Services with routes and zero tests are `high-zero-test-routes` until a smoke/contract test exists.
-4. `docker-compose.v9.yml` is the production-reference local runtime; `docker-compose.fixed.yml`/`docker-compose.unified.yml` remain at the repository root (guarded by SEC-1 compose tests).
+4. `docker-compose.v9.yml` is the only stack definition; the former alternates (`fixed`/`unified`/`light`) live in `docs/history/compose/`, and every other tracked compose file is a declared overlay/test stack/companion in `docs/architecture/compose_file_roster.json` (enforced by `scripts/ci/compose_roster_guard.py`).
 5. `sahool-platform` hosts the Field Intelligence Backbone (see `docs/backend/ADR_V50_BACKEND_OWNERSHIP_AND_RAW_IMAGERY_DEFAULT.md`).

@@ -2,19 +2,19 @@
 
 ## Scope
 
-Conservative static inventory of literal NATS/JetStream subjects. Dynamic subjects are listed but are not used to declare missing producers or consumers.
+Conservative static inventory of literal NATS/JetStream subjects (a name argument is resolved only from a loop over a module-level tuple of literals, or a single local f-string whose placeholders fill whole tokens, rendered as `*`). Dynamic subjects are listed but are not used to declare missing producers or consumers.
 
 ## Summary
 
 | Metric | Value |
 |---|---:|
-| Python files scanned | 1221 |
-| Resolved literal contracts | 2 |
-| Dynamic contracts | 16 |
-| Unique literal subjects | 2 |
+| Python files scanned | 1219 |
+| Resolved literal contracts | 4 |
+| Dynamic contracts | 14 |
+| Unique literal subjects | 4 |
 | Matched subjects | 0 |
 | Producer-only subjects | 1 |
-| Consumer-only subjects | 1 |
+| Consumer-only subjects | 3 |
 | Cross-component duplicate durables | 0 |
 | Runtime verified | No |
 | Production certified | No |

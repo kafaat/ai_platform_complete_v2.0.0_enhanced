@@ -35,16 +35,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "907124ae5ec1a97f3207ef35272cfdb5793ba9eb84b41e34884c03e2a661e176"
-        }
-      ],
-      "name": "docker-compose.fixed.yml",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "ef338b15275abbc9e898d223e962aed400d148859f344f0f69b99df20244f404"
         }
       ],
@@ -55,27 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46a6255c509aba03d1907cae08b4dec35be18f85abd56f8fb86dc45770c4d0ad"
-        }
-      ],
-      "name": "docker-compose.light.yml",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "cae554a80d8d29322ab31159961ae6819c59a48f3ede04326e08011e0c2ecf19"
-        }
-      ],
-      "name": "docker-compose.odoo-snippet.yml",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f5fc116a534fff8f8f86c01d499d98c4da4aade7176a42b691ad5c5c97dc51d7"
+          "content": "b439e66325704220cb43e7eef0e7073789461df6d4f17ebeb6e858e78a2ad757"
         }
       ],
       "name": "docker-compose.production.yml",
@@ -125,16 +95,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b14444ec5240c3aa79ef9c080241079b5d3b5bea44137c5eba00b07bf069c19"
-        }
-      ],
-      "name": "docker-compose.unified.yml",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "7ead86723a0b4131dd042b55fd9eb8e19cfd08f6b584cc2b6423bc1a99bc9a5a"
         }
       ],
@@ -145,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d5f40903eb89ed050dfb3075b374b106cda8a4ea982dc6b0e0ceb1a24809d90"
+          "content": "0ec2094524e829e683d1141855280a068f02a8fc0a31c64dab95d8cb2be16fee"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -195,7 +155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "765a744c53c0fd0fe2a058de3fe85910f41cba4bac6fb47f7852c684463c275a"
+          "content": "8a93101cbab95cbc4f87eca2bfc044f1f038ed8fd30ca5ab45e61d4e01dfd019"
         }
       ],
       "name": "frontend/DOCKER.md",
@@ -239,16 +199,6 @@
         }
       ],
       "name": "frontend/big-screen/keep_bigscreen/index.html",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "4e77b52f999b9a4bfd3b1e2868ac75b49592f9eca1a6343537e00dbc4c0c77d5"
-        }
-      ],
-      "name": "frontend/docker-compose.web.yml",
       "type": "file"
     },
     {
@@ -4465,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70aa1f4d9a535356685ec49b75c1f43543472d6d61c3dd5a6bf49522d27b03d6"
+          "content": "2924a30196ad69da5a4057fc94316055113d5dfda5d4a3989855276a01b66434"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -30919,56 +30869,6 @@
         }
       ],
       "name": "services/video-processor/zlmedia_client.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "2adc65276c4c0a544c12113899e32888a10609dad5e9c5be9160393638c44d95"
-        }
-      ],
-      "name": "services/weather-polygon-worker/Dockerfile",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f89cf99821d49586240fe9fc87cd5988f0793989c32782b76f41346e65361bc7"
-        }
-      ],
-      "name": "services/weather-polygon-worker/README.md",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "0b40a99fb14f53c38d73c8f3d0c62dc76fc39f2901fd2e36991fc6aae53cb784"
-        }
-      ],
-      "name": "services/weather-polygon-worker/requirements.txt",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "ebf3af36667c191414d75cb99cc84748ea5bda6e6be12fbe04bce2e78fbdd6d8"
-        }
-      ],
-      "name": "services/weather-polygon-worker/src/main.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "445abbce3137c114cd8260bd3693d9daaec313d5ea48dbd79f64d9aafb31641a"
-        }
-      ],
-      "name": "services/weather-polygon-worker/worker_health_probe.py",
       "type": "file"
     },
     {
