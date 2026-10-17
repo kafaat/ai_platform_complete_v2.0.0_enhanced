@@ -23,9 +23,14 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
-PROBES = (
-    "services/weather-signal-engine/worker_health_probe.py",
-    "services/weather-polygon-worker/worker_health_probe.py",
+# النسخ تُكتشَف من الشجرة لا تُسرَد: كانت قائمةً مكتوبة بنسختين، فلمّا أُزيل
+# weather-polygon-worker بقرار مالك (2026-10-15، WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01)
+# صارت تُسمّي ملفّاً غائباً. نسخةٌ جديدة تدخل فحصَ التطابق تلقائيّاً.
+PROBES = tuple(
+    p.relative_to(ROOT).as_posix() for p in sorted(ROOT.glob("services/*/worker_health_probe.py"))
+)
+assert "services/weather-signal-engine/worker_health_probe.py" in PROBES, (
+    "مِسبار weather-signal-engine غائب — الاختبارات أدناه تقيس شجرةً تغيّرت تحتها"
 )
 
 
@@ -270,9 +275,5 @@ def test_the_probe_never_raises_when_the_heartbeat_vanishes_mid_check(monkeypatc
     assert "heartbeat file missing" in reason
 
 
-# WEATHER-IDLE-WORKER-READS-AS-DEAD-01: silence is not worker death.
-def test_enabled_polygon_subscription_has_idle_heartbeat_timeout():
-    source = (ROOT / "services/weather-polygon-worker/src/main.py").read_text(encoding="utf-8")
-    assert "asyncio.wait_for(sub.next_msg(timeout=120), timeout=60)" in source
-    assert "except TimeoutError:" in source
-    assert "_touch_worker_file(HEARTBEAT_FILE)\n            continue" in source
+# WEATHER-IDLE-WORKER-READS-AS-DEAD-01 كان يُثبَت على حلقة اشتراك weather-polygon-worker،
+# والعامل أُزيل كاملاً بقرار مالك (2026-10-15) فلا اشتراكَ يخمد — أُسقِط مع موضوعه، لا تخفيفاً.

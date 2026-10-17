@@ -111,7 +111,9 @@ def test_the_measured_client_count_is_pinned_so_a_new_service_cannot_slip_in():
         for s in _services().values()
         if isinstance(s.get("environment"), dict)
     ]
-    assert len([u for u in urls if u]) == 13, (
+    # 13 → 12 (2026-10-17): أُزيل sahool-weather-polygon-worker بقرار مالك
+    # (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01) — عميلٌ خرج، لا عميلٌ فلت.
+    assert len([u for u in urls if u]) == 12, (
         "تغيّر عددُ عملاء NATS في المكدّس — راجِع أنّ الجديد يحمل الاعتماد ثمّ حدّث العدد"
     )
 

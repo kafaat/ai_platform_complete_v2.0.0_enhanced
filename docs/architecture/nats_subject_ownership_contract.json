@@ -16,7 +16,6 @@
     "sahool-soil-service",
     "sahool-telegram-bot",
     "sahool-vegetation-analysis",
-    "sahool-weather-polygon-worker",
     "sahool-weather-service"
   ],
   "gaps": {
