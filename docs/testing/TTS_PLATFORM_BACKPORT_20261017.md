@@ -76,3 +76,12 @@ The two accompanying #1118 test/registry adjustments are also copied exactly:
 the expiry test derives the day after the configured deadline and checks the
 deadline itself, and the existing waiver mutation uses the unique October 28
 anchor. Mutation count and guard implementation are unchanged.
+
+
+## Security prerequisite after PR #1203 CI
+
+The first published head834c56cfa6291c273426a76f74b6972297a9cec4 failed Security Scan on python-jose3.5.0 (PYSEC-2026-4298). This follow-up ports the approved JWT portion of merged #1198 /239c01a47442df13d9cbb492017afae103b98dc8: PyJWT[crypto]==2.15.0, shared access-token verification, consumers, and compatibility witnesses. It does not copy the gateway/irrigation changes from that PR. The earlier two-production-file scope is therefore superseded by an explicit authentication prerequisite; shared/security/access_tokens.py and its callers now change. Observe mode remains the default; enforce, frozen paths, migrations and tenant policies do not change.
+
+Before the port, the12 dependency/import/waiver witnesses failed. After it, all124 cases in test_python_jose_removed.py, test_jwt_decode_shared_decoder.py and the architecture JWT ratchet passed. The actual CI19-file audit is rerun without advisory exceptions; old ecdsa waiver is removed with the dependency. Generation, final preflight and CI must be measured again on the resulting tree. This remains a candidate without runtime deployment or live TTS acceptance.
+
+The security CI mutation anchor is also copied exactly from #1198 after removal of the old audit waiver. All four existing ci.yml mutations were planted and killed by their named tests; no mutation or ceiling is removed or changed.

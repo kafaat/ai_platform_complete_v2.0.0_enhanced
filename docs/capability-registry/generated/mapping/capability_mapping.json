@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5425,
+    "files_scanned": 5427,
     "files_by_kind": {
       "backend": 1211,
       "database": 280,
       "governance": 64,
       "mobile": 55,
       "other": 1519,
-      "tests": 1838,
+      "tests": 1840,
       "web": 458
     },
-    "unmapped_artifacts": 2200,
+    "unmapped_artifacts": 2202,
     "ambiguous_artifacts": 422
   },
   "capabilities": [
@@ -16272,7 +16272,7 @@
           "score": 48
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:80",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:81",
           "score": 23
         }
       ],
@@ -26377,7 +26377,7 @@
           "score": 24
         },
         {
-          "value": "/runtime-identity @ services/auth/main.py:399",
+          "value": "/runtime-identity @ services/auth/main.py:400",
           "score": 22
         },
         {
@@ -26429,19 +26429,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:24",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:26",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:181",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:183",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:225",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:228",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:125",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:127",
           "score": 12
         },
         {
@@ -43682,6 +43682,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_jwt_decode_shared_decoder.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_jwt_denylist_wired.py",
       "kind": "tests"
     },
@@ -44027,6 +44031,10 @@
     },
     {
       "path": "tests_v9/test_provision_pg_client.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_python_jose_removed.py",
       "kind": "tests"
     },
     {

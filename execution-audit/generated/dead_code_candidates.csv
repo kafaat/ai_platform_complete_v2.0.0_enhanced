@@ -58,7 +58,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,417,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,418,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,39,0,review_before_delete,False
@@ -68,7 +68,7 @@ medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrai
 medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py,150,0,review_before_delete,False
 medium,mcp-servers,function,set_tenant_context,services/mcp_servers/shared/oauth_middleware.py,34,0,review_before_delete,False
 medium,mcp-servers,function,clear_tenant_context,services/mcp_servers/shared/oauth_middleware.py,39,0,review_before_delete,False
-medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,185,0,review_before_delete,False
+medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,192,0,review_before_delete,False
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
 medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,120,0,review_before_delete,False
@@ -157,7 +157,7 @@ medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platf
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,902,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,903,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False
@@ -628,6 +628,8 @@ medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,2
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
+medium,shared,function,would_reject_counts,shared/security/access_tokens.py,118,0,review_before_delete,False
+medium,shared,function,reset_would_reject_counts,shared/security/access_tokens.py,127,0,review_before_delete,False
 medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,90,0,review_before_delete,False
 medium,shared,function,require_attested_reviewer,shared/security/gateway_deps.py,71,0,review_before_delete,False
 medium,shared,function,logbook_size_ok,shared/security/season_logbook.py,68,0,review_before_delete,False

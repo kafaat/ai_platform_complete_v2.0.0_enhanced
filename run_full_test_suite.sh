@@ -25,7 +25,7 @@ echo "━━━ [0/6] تثبيت أدوات الفحص ━━━"
 # هذا السكربتُ بغير ما تقيس به البوّابة الحاجبة — مقيسٌ مرّتين (log.md:4874 · 98a61c5f).
 pip install -q -c constraints-ci-tools.txt \
     pytest pytest-asyncio pytest-cov ruff bandit mypy \
-    python-jose[cryptography] fastapi pydantic httpx asyncpg redis \
+    "PyJWT[crypto]==2.15.0" fastapi pydantic httpx asyncpg redis \
     numpy 2>/dev/null
 echo "  ✓ الأدوات مثبّتة"
 

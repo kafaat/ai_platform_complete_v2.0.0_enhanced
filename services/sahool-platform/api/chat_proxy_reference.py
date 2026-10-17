@@ -75,6 +75,8 @@ try:
     import jwt  # PyJWT
     from fastapi import FastAPI, HTTPException, Request
 
+    from shared.security.access_tokens import decode_access_token
+
     app = FastAPI(title="SAHOOL Chat Proxy")
 
     # مفاتيح التحقّق من التوكن (نفس عقد auth-service): RS256 بمفتاح عامّ، أو HS256 بسرّ.
@@ -93,12 +95,15 @@ try:
         token = auth[len("Bearer ") :]
         # audience="sahool" يطابق عقد JWT عبر الخدمات (auth/platform يُصدران aud=sahool).
         try:
-            if _JWT_PUBLIC_KEY:
-                claims = jwt.decode(token, _JWT_PUBLIC_KEY, algorithms=["RS256"], audience="sahool")
-            elif _JWT_SECRET:
-                claims = jwt.decode(token, _JWT_SECRET, algorithms=["HS256"], audience="sahool")
-            else:
+            if not (_JWT_PUBLIC_KEY or _JWT_SECRET):
                 raise HTTPException(503, "تحقّق التوكن غير مُهيّأ")
+            claims = decode_access_token(
+                token,
+                _JWT_PUBLIC_KEY or _JWT_SECRET,
+                algorithm="RS256" if _JWT_PUBLIC_KEY else "HS256",
+                backend="pyjwt",
+                site="sahool-platform:chat_proxy_reference",
+            )
         except jwt.PyJWTError as e:
             raise HTTPException(401, "توكن غير صالح") from e
         tenant_id = claims.get("tenant_id")

@@ -24,6 +24,8 @@ from tool_contracts import (
     bootstrap_default_tools,
 )
 
+from shared.security.access_tokens import decode_access_token
+
 # تسجيل منظّم موحّد (JSON) — طبقة التنسيق الحرجة تستحقّ رؤية كاملة.
 try:
     from shared.logging_config import setup_logging
@@ -155,8 +157,6 @@ class AgentResponse(BaseModel):
 async def _get_current_user(credentials: Optional = Depends(security)):
     if not credentials:
         raise HTTPException(401, "Authentication required")
-    import jwt
-
     secret = os.getenv("JWT_SECRET", "")
     _pub = os.getenv("JWT_PUBLIC_KEY", "").strip()
     # فشل-مغلق: لا نقبل توكنات بمفتاح فارغ (كان يقبل أيّ توكن مزوّر)
@@ -168,11 +168,12 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         _valg = "RS256" if _pub else "HS256"
         # FIX (اتّساق audience): auth/platform يُصدران aud="sahool" وmcp يتطلّبه.
         # الفكّ بلا audience يرمي InvalidAudienceError ويرفض توكنات auth الصالحة.
-        payload = jwt.decode(
+        payload = decode_access_token(
             credentials.credentials,
             _vkey,
-            algorithms=[_valg],
-            audience="sahool",
+            algorithm=_valg,
+            backend="pyjwt",
+            site="supervisor-agent:_get_current_user",
         )
         # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
         if payload.get("iss") not in _ALLOWED_ISS:

@@ -8609,3 +8609,12 @@ legacy-branch validation backport also carries the exact two companion changes
 from #1118 (892037437): derive the RAG expiry test from its configured date,
 and re-anchor the existing UI-waiver mutation to its unique October 28 entry.
 No mutation added or removed, no ceiling or guard implementation changed.
+
+
+## 2026-10-17 — PR #1203: نقل إصلاح python-jose المعتمد إلى فرع النشر
+
+فشل pip-audit على رأس834c56cf بسبب PYSEC-2026-4298 في python-jose3.5.0. نُقل الجزء الأمني المعتمد من #1198 (239c01a47442df13d9cbb492017afae103b98dc8): PyJWT[crypto]==2.15.0، المفكك المشترك ومستهلكوه واختبارات توافق المطالبات والتوقيع. لا تفعيل enforce؛ يبقى observe افتراضيًا، ولا تعديل ملفات GATE-01 أو هجرات أو بيانات مستأجر. هذا يوسّع نطاق التصحيح الأول ذي الملفين إلى المصادقة، ويُعلن في PR قبل أي نشر. عيوب البوابة الأمامية والري من #1198 غير منقولة.
+
+الشاهد tests_v9/test_python_jose_removed.py: 12 حالة غياب/تبعية/إعفاء حمراء على الرأس القديم؛ بعد النقل124 حالة خضراء مع test_jwt_decode_shared_decoder.py والراتشِت المعماري. أزيل إعفاء ecdsa مع إزالة التبعية؛ لا إضافة ignore-vuln. يبقى TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 open حتى قبول الزوج المنشور. لا ادعاء أن الشيفرة وصلت إلى التشغيل.
+
+متابعة PR #1203: نُقلت مرساة طفرة pip-audit المطابقة لـ#1198 بعد إزالة الإعفاء؛ كُشفت الطفرات الأربع الموجودة في ci.yml باختباراتها المسماة. لا حذف طفرة ولا تغيير سقف.

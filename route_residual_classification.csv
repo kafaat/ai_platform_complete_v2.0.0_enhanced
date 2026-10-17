@@ -21,7 +21,7 @@ ai_agronomist,services/ai_agronomist/main.py,446,POST,/v1/query,query,business_e
 ai_agronomist,services/ai_agronomist/main.py,457,POST,/v1/chat,chat,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,468,POST,/v1/explain,explain,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,479,POST,/v1/recommend,recommend,business_endpoint
-auth,services/auth/main.py,400,GET,/runtime-identity,runtime_identity,business_endpoint
+auth,services/auth/main.py,401,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,510,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,516,GET,/healthz,healthz,health
 decision-service,services/decision-service/main.py,521,GET,/readyz,readyz,readiness
@@ -129,11 +129,11 @@ knowledge-graph,services/knowledge-graph/main.py,152,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,160,POST,/v1/edges,upsert_edge,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,169,GET,/v1/edges,edges,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,183,POST,/graphql,graphql,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,594,POST,/v1/query,query_endpoint,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,604,POST,/v1/ingest,ingest_endpoint,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,659,GET,/healthz,healthz,health
-local-ai-rag,services/local-ai-rag/main.py,677,GET,/health,legacy_health,health
-local-ai-rag,services/local-ai-rag/main.py,682,GET,/readyz,readyz,readiness
+local-ai-rag,services/local-ai-rag/main.py,592,POST,/v1/query,query_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,602,POST,/v1/ingest,ingest_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,657,GET,/healthz,healthz,health
+local-ai-rag,services/local-ai-rag/main.py,675,GET,/health,legacy_health,health
+local-ai-rag,services/local-ai-rag/main.py,680,GET,/readyz,readyz,readiness
 rag-retrieval,services/rag-retrieval/main.py,145,GET,/healthz,healthz,health
 rag-retrieval,services/rag-retrieval/main.py,150,GET,/metrics,metrics,metrics
 rag-retrieval,services/rag-retrieval/main.py,163,GET,/readyz,readyz,readiness

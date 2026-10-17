@@ -1937,7 +1937,7 @@ jobs:
             services/vegetation-analysis-service/requirements.txt
             services/video-processor/requirements.txt
             services/weather-service/requirements.txt
-      - run: pip install bandit pip-audit pytest PyYAML python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
+      - run: pip install bandit pip-audit pytest PyYAML httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       - name: Install pinned GitHub Actions security analyzers
         run: scripts/ci/install_pinned_actions_security_tools.sh
       - name: GitHub Actions security contracts
@@ -1963,16 +1963,11 @@ jobs:
       # توسعة C1: البوّابة كانت تفحص ٤ مسارات فقط فتفلت خدمات كاملة. وُسِّعت لتشمل
       # كلّ ملفات requirements الحقيقيّة، بما فيها local-ai-rag بعد نقل تكاملات
       # LangChain إلى خط 1.x الآمن؛ لا يجوز إعادة الخدمة إلى المسح الإرشادي فقط.
-      # استثناء موثّق واحد (PYSEC-2026-1325 في ecdsa 0.19.2): تبعيّة عبوريّة أساسيّة
-      # لـpython-jose. ثغرة قناة-جانبيّة (Minerva timing) صنّفها صانعو ecdsa WONTFIX
-      # صراحةً (لا نسخة إصلاح — 0.19.2 هي الأحدث 2026-03-26؛ README يوصي بـpyca/
-      # cryptography بديلاً). مسارنا يستعمل python-jose[cryptography] ⇒ توقيع/تحقّق JWT
-      # عبر خلفيّة cryptography/OpenSSL لا خلفيّة ecdsa، فالمسار المُصاب غير مُستخدَم.
-      # يبقى ecdsa مرئيّاً في المسح الإرشاديّ أدناه (غير حاجب) للشفافيّة.
+      # DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01: approved #1198 security backport.
+      # PyJWT replaces python-jose; remove its ecdsa exception with the dependency.
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
-          --ignore-vuln PYSEC-2026-1325
           -r services/sahool-platform/api/requirements.txt
           -r services/auth/requirements.txt
           -r services/guardrails-engine/requirements.txt
@@ -1995,12 +1990,12 @@ jobs:
           --progress-spinner off
       # Every requirements file consumed by a service/bot/agent image is blocking.
       # Resolve images independently; unrelated runtime pins need not share a venv.
-      # The documented python-jose/cryptography ecdsa exception above still applies.
+      # No dependency advisory is ignored after the approved PyJWT migration.
       - name: pip-audit (gating — each runtime image)
         run: |
           set -euo pipefail
           while IFS= read -r -d '' requirements_file; do
-            pip-audit -r "$requirements_file" --ignore-vuln PYSEC-2026-1325 --progress-spinner off
+            pip-audit -r "$requirements_file" --progress-spinner off
           done < <(find services bots agents -name 'requirements*.txt' -print0)
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
