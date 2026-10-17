@@ -173,7 +173,7 @@ services:
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       ZLMEDIA_API_URL: http://sahool-zlmediakit:80
       ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/3
+      REDIS_URL: redis://sahool-video-processor:${REDIS_VIDEO_PROCESSOR_PASSWORD:?REDIS_VIDEO_PROCESSOR_PASSWORD required}@sahool-redis:6379/3
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
@@ -269,7 +269,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/2
+      REDIS_URL: redis://sahool-tts-service:${REDIS_TTS_PASSWORD:?REDIS_TTS_PASSWORD required}@sahool-redis:6379/2
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
@@ -380,10 +380,28 @@ services:
     logging: *id001
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
-    command: 'redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
-      --maxmemory 256mb --maxmemory-policy allkeys-lru
-
-      '
+    # REDIS-SHARED-PASSWORD-NO-ACL-01: مستخدمُ ACL لكلّ خدمة (قرارُ مالك 2026-09-30). كانت كلمةُ سرٍّ
+    # واحدة (`--requirepass`) يحملها كلُّ عميل، فأيُّ عميلٍ يستطيع FLUSHALL/CONFIG ويقرأ مفاتيحَ غيره.
+    # `default` معطَّل (فالكلمةُ المشتركة وحدَها تُرَدّ WRONGPASS)، و`REDIS_PASSWORD` لمستخدم المشغِّل
+    # وفحصِ الصحّة وحدَهما. أوامرُ كلّ مستخدمٍ ومفاتيحُه وقنواتُه مشتقّةٌ من شيفرته بـpath:line في
+    # docs/architecture/redis_acl_matrix.json، وهذه الأسطرُ تُطابقه حرفيّاً (tests_v9/test_redis_acl_per_service.py).
+    # و`&…` بين علامتَي تنصيص **إلزاماً**: compose يقطع سطرَ الأمر عند `&` غير المُنصَّص بصمت (مقيس).
+    command: >-
+      redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+      --user default off resetpass resetkeys resetchannels -@all
+      --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
+      --user sahool-platform on ">${REDIS_PLATFORM_PASSWORD:?REDIS_PLATFORM_PASSWORD required}" resetkeys resetchannels -@all +ping +get +setex +incr +expire +ttl +exists ~sahool:ratelimit:* ~sahool:jti:revoked:* ~sahool:weather:tile:* ~sahool:weather:rate:*
+      --user sahool-tts-service on ">${REDIS_TTS_PASSWORD:?REDIS_TTS_PASSWORD required}" resetkeys resetchannels -@all +ping +select +get +setex ~sahool:tts:*
+      --user sahool-video-processor on ">${REDIS_VIDEO_PROCESSOR_PASSWORD:?REDIS_VIDEO_PROCESSOR_PASSWORD required}" resetkeys resetchannels -@all +ping +select
+      --user sahool-weather-service on ">${REDIS_WEATHER_PASSWORD:?REDIS_WEATHER_PASSWORD required}" resetkeys resetchannels -@all +ping +select +get +setex +ttl ~sahool:weather:fresh:* ~sahool:weather:stale:*
+      --user sahool-field-management on ">${REDIS_FIELD_MANAGEMENT_PASSWORD:?REDIS_FIELD_MANAGEMENT_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
+      --user sahool-decision-service on ">${REDIS_DECISION_PASSWORD:?REDIS_DECISION_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
+      --user sahool-raster-service on ">${REDIS_RASTER_PASSWORD:?REDIS_RASTER_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval +subscribe +unsubscribe ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:* "&raster:layer_evict"
+      --user sahool-raster-backfill-scan-worker on ">${REDIS_RASTER_BACKFILL_PASSWORD:?REDIS_RASTER_BACKFILL_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:*
+      --user sahool-actuator-service on ">${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}" resetkeys resetchannels -@all +ping
+      --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
+      --user sahool-telegram-bot on ">${REDIS_TELEGRAM_BOT_PASSWORD:?REDIS_TELEGRAM_BOT_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del ~fsm:*
+      --user sahool-notification-agent on ">${REDIS_NOTIFICATION_PASSWORD:?REDIS_NOTIFICATION_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
     - redis-data:/data
     networks:
@@ -391,7 +409,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
+      - redis-cli --user sahool-redis-admin -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
       interval: 10s
       timeout: 5s
       retries: 10
@@ -407,10 +425,13 @@ services:
     logging: *id001
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
-    command: 'redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
-      --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes
-
-      '
+    # REDIS-SHARED-PASSWORD-NO-ACL-01: كما في sahool-redis أعلاه — مستخدمٌ لكلّ عميل، و`default` معطَّل.
+    command: >-
+      redis-server --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes
+      --user default off resetpass resetkeys resetchannels -@all
+      --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
+      --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:*
+      --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
     - redis-state-data:/data
     networks:
@@ -418,7 +439,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
+      - redis-cli --user sahool-redis-admin -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
       interval: 10s
       timeout: 5s
       retries: 10
@@ -745,7 +766,7 @@ services:
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
+      REDIS_URL: redis://sahool-auth:${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       # RS256 (غير متماثل، الموصى به): auth يوقّع بالمفتاح الخاصّ والخدمات تتحقّق بالعامّ.
       # لا بدّ أن تُعرَّض هذه هنا كي يكون مسار RS256 قابلاً للضبط على المُوقِّع نفسه — وإلّا
@@ -837,7 +858,7 @@ services:
       FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}
       NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222
       SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-platform:${REDIS_PLATFORM_PASSWORD:?REDIS_PLATFORM_PASSWORD required}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
@@ -1028,7 +1049,7 @@ services:
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
+      REDIS_URL: redis://sahool-guardrails-engine:${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
@@ -1263,7 +1284,7 @@ services:
       FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
       FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID:-previous}
-      FIELD_SERVICE_ASSERTION_REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@sahool-redis:6379/5
+      FIELD_SERVICE_ASSERTION_REDIS_URL: redis://sahool-field-management:${REDIS_FIELD_MANAGEMENT_PASSWORD:?REDIS_FIELD_MANAGEMENT_PASSWORD required}@sahool-redis:6379/5
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1472,7 +1493,7 @@ services:
       RASTER_BATCH_HEARTBEAT_SECONDS: ${RASTER_BATCH_HEARTBEAT_SECONDS:-0}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-raster-service:${REDIS_RASTER_PASSWORD:?REDIS_RASTER_PASSWORD required}@sahool-redis:6379/0
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -1606,7 +1627,7 @@ services:
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
       # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
       HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-raster-backfill-scan-worker:${REDIS_RASTER_BACKFILL_PASSWORD:?REDIS_RASTER_BACKFILL_PASSWORD required}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
@@ -1713,7 +1734,7 @@ services:
     logging: *id001
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      WEATHER_REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/4
+      WEATHER_REDIS_URL: redis://sahool-weather-service:${REDIS_WEATHER_PASSWORD:?REDIS_WEATHER_PASSWORD required}@sahool-redis:6379/4
       WEATHER_OPEN_METEO_TIMEOUT_S: ${WEATHER_OPEN_METEO_TIMEOUT_S:-4}
       WEATHER_OPEN_METEO_BREAKER_FAILURES: ${WEATHER_OPEN_METEO_BREAKER_FAILURES:-3}
       WEATHER_OPEN_METEO_BREAKER_RESET_S: ${WEATHER_OPEN_METEO_BREAKER_RESET_S:-30}
@@ -1879,7 +1900,7 @@ services:
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-actuator-service:${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
       MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
       MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
@@ -2141,7 +2162,7 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
-      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://:${REDIS_PASSWORD}@sahool-redis:6379/0}
+      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://sahool-ai-agronomist:${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}@sahool-redis:6379/0}
     depends_on:
       sahool-rag-retrieval:
         condition: service_healthy
@@ -2313,7 +2334,7 @@ services:
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET
         required}
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-telegram-bot:${REDIS_TELEGRAM_BOT_PASSWORD:?REDIS_TELEGRAM_BOT_PASSWORD required}@sahool-redis:6379/0
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       SUPERVISOR_AGENT_URL: http://sahool-supervisor-agent:8000
       SAHOOL_API_URL: http://sahool-auth:8000
@@ -2351,7 +2372,7 @@ services:
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://sahool-notification-agent:${REDIS_NOTIFICATION_PASSWORD:?REDIS_NOTIFICATION_PASSWORD required}@sahool-redis:6379/0
       NATS_URL: tls://sahool-notification-agent:${NATS_NOTIFICATION_PASSWORD:?NATS_NOTIFICATION_PASSWORD مطلوب — هويّة sahool-notification-agent في nats/nats.conf}@sahool-nats:4222
       SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       SMTP_HOST: ${SMTP_HOST}

@@ -69,6 +69,7 @@
     "platform_extraction_map.json",
     "platform_python_module_baseline.json",
     "platform_shrink_ratchet.json",
+    "redis_acl_matrix.json",
     "s0_s12_execution_baseline.json",
     "s4_kg_consumer_freeze.json",
     "s5_exec_01_edge_freeze.json",

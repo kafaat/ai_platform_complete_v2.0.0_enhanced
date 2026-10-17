@@ -8620,6 +8620,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_redis_acl_per_service.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_redis_mandatory_in_production.py",
     "kind": "tests"
   },

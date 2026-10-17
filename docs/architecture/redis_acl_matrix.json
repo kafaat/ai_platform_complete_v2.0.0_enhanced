@@ -1,0 +1,868 @@
+{
+  "$comment": "REDIS-SHARED-PASSWORD-NO-ACL-01 — one Redis ACL user per v9 service (owner decision 2026-09-30). Each user's commands/keys/channels are derived from the code cited in `evidence` (path:line measured at `measured_on`; the needle is re-checked by tests_v9/test_redis_acl_per_service.py, the line is informational). The `--user` arguments of the two Redis servers in docker-compose.v9.yml must render exactly from this file — the same test compares them. `basis: connection-only` = the service is handed a Redis URL but its code issues no Redis command; it gets PING (+SELECT for a non-zero db) and no key or channel. Human-readable matrix, migration plan and deploy impact: docs/architecture/redis_acl_matrix.md.",
+  "schema": "sahool.redis-acl-matrix",
+  "version": 1,
+  "gap": "REDIS-SHARED-PASSWORD-NO-ACL-01",
+  "measured_on": "ec3927cef45a3da53aaa14950093e734ce8e072a",
+  "compose": "docker-compose.v9.yml",
+  "default_user_rule": [
+    "off",
+    "resetpass",
+    "resetkeys",
+    "resetchannels",
+    "-@all"
+  ],
+  "forbidden_for_service_users": [
+    "flushall",
+    "flushdb",
+    "config",
+    "keys",
+    "acl",
+    "debug",
+    "shutdown",
+    "monitor",
+    "module",
+    "replicaof",
+    "slaveof",
+    "save",
+    "bgsave",
+    "bgrewriteaof",
+    "script",
+    "function",
+    "migrate",
+    "restore",
+    "client",
+    "cluster",
+    "failover",
+    "sync",
+    "psync",
+    "swapdb",
+    "move",
+    "rename",
+    "@admin",
+    "@dangerous",
+    "@all"
+  ],
+  "servers": {
+    "sahool-redis": {
+      "role": "cache (allkeys-lru)",
+      "admin": {
+        "user": "sahool-redis-admin",
+        "password_env": "REDIS_PASSWORD"
+      },
+      "users": {
+        "sahool-platform": {
+          "password_env": "REDIS_PLATFORM_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "setex",
+            "incr",
+            "expire",
+            "ttl",
+            "exists"
+          ],
+          "keys": [
+            "sahool:ratelimit:*",
+            "sahool:jti:revoked:*",
+            "sahool:weather:tile:*",
+            "sahool:weather:rate:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 888,
+              "needle": "rkey = f\"sahool:ratelimit:{key}\"",
+              "why": "key ratelimit"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 890,
+              "needle": "n = _RATE_REDIS.incr(rkey)",
+              "why": "INCR"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 892,
+              "needle": "_RATE_REDIS.expire(rkey, 60)",
+              "why": "EXPIRE"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 894,
+              "needle": "ttl = _RATE_REDIS.ttl(rkey)",
+              "why": "TTL"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 871,
+              "needle": "client.ping()",
+              "why": "PING at startup"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 27,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (shared with sahool-auth's naming)"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 64,
+              "needle": "self._r.setex(JTI_REVOKED_KEY",
+              "why": "SETEX"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 67,
+              "needle": "self._r.exists(JTI_REVOKED_KEY",
+              "why": "EXISTS"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 56,
+              "needle": "_WEATHER_REDIS_KEY_PREFIX = \"sahool:weather:tile\"",
+              "why": "key weather tile cache (opt-in SAHOOL_WEATHER_CACHE_BACKEND=redis)"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 69,
+              "needle": "_WEATHER_RATE_REDIS_KEY_PREFIX = \"sahool:weather:rate\"",
+              "why": "key weather rate limit"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 239,
+              "needle": "raw = await client.get(_redis_cache_key(key))",
+              "why": "GET"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 271,
+              "needle": "await client.setex(_redis_cache_key(key)",
+              "why": "SETEX"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 561,
+              "needle": "count = int(await client.incr(key))",
+              "why": "INCR"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 563,
+              "needle": "await client.expire(key, int(window_s))",
+              "why": "EXPIRE"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "line": 564,
+              "needle": "ttl = int(await client.ttl(key))",
+              "why": "TTL"
+            }
+          ]
+        },
+        "sahool-tts-service": {
+          "password_env": "REDIS_TTS_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 2,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "select",
+            "get",
+            "setex"
+          ],
+          "keys": [
+            "sahool:tts:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/tts-service/main.py",
+              "line": 276,
+              "needle": "return f\"sahool:tts:{tid}:{digest}\"",
+              "why": "key"
+            },
+            {
+              "path": "services/tts-service/main.py",
+              "line": 128,
+              "needle": "await _redis.ping()",
+              "why": "PING"
+            },
+            {
+              "path": "services/tts-service/routers/tts.py",
+              "line": 134,
+              "needle": "cached = await main._redis.get(cache_key)",
+              "why": "GET"
+            },
+            {
+              "path": "services/tts-service/routers/tts.py",
+              "line": 173,
+              "needle": "await main._redis.setex(cache_key",
+              "why": "SETEX"
+            }
+          ]
+        },
+        "sahool-video-processor": {
+          "password_env": "REDIS_VIDEO_PROCESSOR_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 3,
+          "basis": "connection-only",
+          "code_paths": [
+            "services/video-processor"
+          ],
+          "commands": [
+            "ping",
+            "select"
+          ],
+          "keys": [],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/video-processor/main.py",
+              "line": 112,
+              "needle": "REDIS_URL = os.getenv(\"REDIS_URL\", \"\")",
+              "why": "the only Redis reference: read, never used"
+            }
+          ]
+        },
+        "sahool-weather-service": {
+          "password_env": "REDIS_WEATHER_PASSWORD",
+          "client_env": "WEATHER_REDIS_URL",
+          "db": 4,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "select",
+            "get",
+            "setex",
+            "ttl"
+          ],
+          "keys": [
+            "sahool:weather:fresh:*",
+            "sahool:weather:stale:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 39,
+              "needle": "return f\"sahool:weather:fresh:{key}\"",
+              "why": "key"
+            },
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 43,
+              "needle": "return f\"sahool:weather:stale:{key}\"",
+              "why": "key"
+            },
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 29,
+              "needle": "_REDIS_CLIENT.ping()",
+              "why": "PING"
+            },
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 74,
+              "needle": "raw = client.get(_fresh_key(key))",
+              "why": "GET"
+            },
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 114,
+              "needle": "client.setex(_fresh_key(key), int(TTL_S), payload)",
+              "why": "SETEX"
+            },
+            {
+              "path": "services/weather-service/cache.py",
+              "line": 59,
+              "needle": "remaining = int(client.ttl(redis_key))",
+              "why": "TTL"
+            }
+          ]
+        },
+        "sahool-field-management": {
+          "password_env": "REDIS_FIELD_MANAGEMENT_PASSWORD",
+          "client_env": "FIELD_SERVICE_ASSERTION_REDIS_URL",
+          "db": 5,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "select",
+            "set"
+          ],
+          "keys": [
+            "sahool:tenant-assertion:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/field-management-service/main.py",
+              "line": 171,
+              "needle": "if not client.set(replay_key, \"1\", nx=True, ex=70):",
+              "why": "SET NX EX"
+            },
+            {
+              "path": "shared/security/service_tenant_assertion.py",
+              "line": 33,
+              "needle": "return f\"sahool:tenant-assertion:{digest}\"",
+              "why": "key (replay_key)"
+            },
+            {
+              "path": "shared/dependency_readiness.py",
+              "line": 68,
+              "needle": "return bool(await client.ping())",
+              "why": "PING (readiness)"
+            }
+          ]
+        },
+        "sahool-decision-service": {
+          "password_env": "REDIS_DECISION_PASSWORD",
+          "client_env": null,
+          "client_env_note": "DECISION_WORKER_ASSERTION_REDIS_URL is operator-supplied (empty default in compose); when set it must be redis://sahool-decision-service:${REDIS_DECISION_PASSWORD}@sahool-redis:6379/<db>",
+          "db": null,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "select",
+            "set"
+          ],
+          "keys": [
+            "sahool:tenant-assertion:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/decision-service/main.py",
+              "line": 237,
+              "needle": "if not client.set(replay_key, \"1\", nx=True, ex=70):",
+              "why": "SET NX EX"
+            },
+            {
+              "path": "services/decision-service/main.py",
+              "line": 221,
+              "needle": "redis_url = os.getenv(\"DECISION_WORKER_ASSERTION_REDIS_URL\", \"\").strip()",
+              "why": "URL is operator-supplied"
+            },
+            {
+              "path": "shared/security/service_tenant_assertion.py",
+              "line": 33,
+              "needle": "return f\"sahool:tenant-assertion:{digest}\"",
+              "why": "key (replay_key)"
+            }
+          ]
+        },
+        "sahool-raster-service": {
+          "password_env": "REDIS_RASTER_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "set",
+            "del",
+            "scan",
+            "eval",
+            "subscribe",
+            "unsubscribe"
+          ],
+          "keys": [
+            "stac:*",
+            "sahool:raster:job:*",
+            "sahool:raster:indicator-batch:*"
+          ],
+          "channels": [
+            "raster:layer_evict"
+          ],
+          "evidence": [
+            {
+              "path": "services/raster-service/stac_client.py",
+              "line": 116,
+              "needle": "raw = await r.get(f\"stac:{key}\")",
+              "why": "GET key stac"
+            },
+            {
+              "path": "services/raster-service/stac_client.py",
+              "line": 134,
+              "needle": "await r.set(f\"stac:{key}\", payload",
+              "why": "SET"
+            },
+            {
+              "path": "services/raster-service/stac_client.py",
+              "line": 97,
+              "needle": "await r.ping()",
+              "why": "PING"
+            },
+            {
+              "path": "services/raster-service/job_store.py",
+              "line": 32,
+              "needle": "JOB_KEY_PREFIX = \"sahool:raster:job:\"",
+              "why": "key job store"
+            },
+            {
+              "path": "services/raster-service/job_store.py",
+              "line": 88,
+              "needle": "self._redis.set(",
+              "why": "SET"
+            },
+            {
+              "path": "services/raster-service/job_store.py",
+              "line": 134,
+              "needle": "self._redis.scan_iter(match=f\"{JOB_KEY_PREFIX}*\")",
+              "why": "SCAN"
+            },
+            {
+              "path": "services/raster-service/indicator_batch_claim.py",
+              "line": 18,
+              "needle": "CLAIM_PREFIX = \"sahool:raster:indicator-batch:\"",
+              "why": "key batch claim"
+            },
+            {
+              "path": "services/raster-service/indicator_batch_claim.py",
+              "line": 88,
+              "needle": "self._redis.set(redis_key, job_id, nx=True",
+              "why": "SET NX"
+            },
+            {
+              "path": "services/raster-service/indicator_batch_claim.py",
+              "line": 105,
+              "needle": "self._redis.eval(script, 1, redis_key, job_id)",
+              "why": "EVAL"
+            },
+            {
+              "path": "services/raster-service/indicator_batch_claim.py",
+              "line": 104,
+              "needle": "return redis.call('del', KEYS[1])",
+              "why": "DEL inside the script (ACL-checked)"
+            },
+            {
+              "path": "services/raster-service/layer_cache_events.py",
+              "line": 15,
+              "needle": "DEFAULT_LAYER_EVICT_CHANNEL = os.getenv(\"RASTER_LAYER_EVICT_CHANNEL\", \"raster:layer_evict\")",
+              "why": "channel (env override unset in compose)"
+            },
+            {
+              "path": "services/raster-service/layer_cache_events.py",
+              "line": 75,
+              "needle": "await pubsub.subscribe(channel)",
+              "why": "SUBSCRIBE"
+            },
+            {
+              "path": "services/raster-service/routers/processing.py",
+              "line": 14,
+              "needle": "indicator_batch_claim",
+              "why": "batch claims reached from the API process"
+            }
+          ]
+        },
+        "sahool-raster-backfill-scan-worker": {
+          "password_env": "REDIS_RASTER_BACKFILL_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "set",
+            "del",
+            "scan",
+            "eval"
+          ],
+          "keys": [
+            "stac:*",
+            "sahool:raster:job:*",
+            "sahool:raster:indicator-batch:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/raster-service/backfill_scan_worker.py",
+              "line": 36,
+              "needle": "import raster_runtime_state",
+              "why": "job store (sahool:raster:job:*)"
+            },
+            {
+              "path": "services/raster-service/backfill_scan_worker.py",
+              "line": 39,
+              "needle": "import raster_stac_runtime",
+              "why": "STAC cache (stac:*)"
+            },
+            {
+              "path": "services/raster-service/raster_asset_persistence.py",
+              "line": 98,
+              "needle": "indicator_batch_claim",
+              "why": "batch claims (sahool:raster:indicator-batch:*) via raster_asset_persistence"
+            },
+            {
+              "path": "services/raster-service/raster_runtime_state.py",
+              "line": 16,
+              "needle": "return JobStore(redis_url=redis_url if redis_url is not None else os.getenv(\"REDIS_URL\"))",
+              "why": "same REDIS_URL"
+            },
+            {
+              "path": "services/raster-service/indicator_batch_claim.py",
+              "line": 105,
+              "needle": "self._redis.eval(script, 1, redis_key, job_id)",
+              "why": "EVAL"
+            }
+          ]
+        },
+        "sahool-actuator-service": {
+          "password_env": "REDIS_ACTUATOR_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "connection-only",
+          "code_paths": [
+            "services/actuator-service"
+          ],
+          "commands": [
+            "ping"
+          ],
+          "keys": [],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/actuator-service/actuator_runtime.py",
+              "line": 442,
+              "needle": "REDIS_URL = os.getenv(\"REDIS_URL\", \"\")",
+              "why": "the only Redis reference: read, never used"
+            }
+          ]
+        },
+        "sahool-ai-agronomist": {
+          "password_env": "REDIS_AI_AGRONOMIST_PASSWORD",
+          "client_env": "SAHOOL_AGENT_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "set",
+            "sadd",
+            "srem",
+            "smembers",
+            "rpush",
+            "lrange"
+          ],
+          "keys": [
+            "sahool:agent:approval:*",
+            "sahool:agent:approvals:pending",
+            "sahool:agent:audit"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 26,
+              "needle": "_APPROVAL_KEY = \"sahool:agent:approval:\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 27,
+              "needle": "_APPROVAL_PENDING_SET = \"sahool:agent:approvals:pending\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 28,
+              "needle": "_AUDIT_LIST = \"sahool:agent:audit\"",
+              "why": "key"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 86,
+              "needle": "self._c.set(_APPROVAL_KEY + aid",
+              "why": "SET"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 88,
+              "needle": "self._c.sadd(_APPROVAL_PENDING_SET, aid)",
+              "why": "SADD"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 90,
+              "needle": "self._c.srem(_APPROVAL_PENDING_SET, aid)",
+              "why": "SREM"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 98,
+              "needle": "self._c.smembers(_APPROVAL_PENDING_SET)",
+              "why": "SMEMBERS"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 93,
+              "needle": "raw = self._c.get(_APPROVAL_KEY",
+              "why": "GET"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 110,
+              "needle": "self._c.rpush(_AUDIT_LIST",
+              "why": "RPUSH"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 113,
+              "needle": "self._c.lrange(_AUDIT_LIST",
+              "why": "LRANGE"
+            },
+            {
+              "path": "services/ai_agronomist/agent_stores.py",
+              "line": 141,
+              "needle": "client.ping()",
+              "why": "PING"
+            }
+          ]
+        },
+        "sahool-telegram-bot": {
+          "password_env": "REDIS_TELEGRAM_BOT_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived (third-party key builder)",
+          "commands": [
+            "ping",
+            "get",
+            "set",
+            "del"
+          ],
+          "keys": [
+            "fsm:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "bots/telegram/main.py",
+              "line": 266,
+              "needle": "storage = _RedisStorage(redis=_redis_fsm)",
+              "why": "aiogram RedisStorage"
+            },
+            {
+              "path": "bots/telegram/main.py",
+              "line": 297,
+              "needle": "await client.ping()",
+              "why": "PING (readiness)"
+            },
+            {
+              "path": "bots/telegram/requirements.txt",
+              "line": 4,
+              "needle": "aiogram==3.31.0",
+              "why": "aiogram 3.31.0: fsm/storage/base.py DefaultKeyBuilder(prefix=\"fsm\"); fsm/storage/redis.py uses SET/GET/DELETE only"
+            },
+            {
+              "path": "bots/telegram/main.py",
+              "line": 272,
+              "needle": "dp.message.middleware(RedisThrottlingMiddleware())",
+              "why": "throttle built without a Redis client => sahool:throttle:tg:* stays in process memory"
+            }
+          ]
+        },
+        "sahool-notification-agent": {
+          "password_env": "REDIS_NOTIFICATION_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "connection-only",
+          "code_paths": [
+            "agents/notification",
+            "agents/base_agent.py"
+          ],
+          "commands": [
+            "ping"
+          ],
+          "keys": [],
+          "channels": [],
+          "evidence": []
+        }
+      }
+    },
+    "sahool-redis-state": {
+      "role": "security state (noeviction + AOF)",
+      "admin": {
+        "user": "sahool-redis-admin",
+        "password_env": "REDIS_PASSWORD"
+      },
+      "users": {
+        "sahool-auth": {
+          "password_env": "REDIS_AUTH_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "get",
+            "getdel",
+            "setex",
+            "del",
+            "exists",
+            "expire",
+            "ttl",
+            "incr",
+            "sadd",
+            "smembers"
+          ],
+          "keys": [
+            "sahool:refresh:*",
+            "sahool:user:refreshset:*",
+            "sahool:user:token_floor:*",
+            "sahool:jti:revoked:*",
+            "sahool:lockout:*",
+            "sahool:attempts:*",
+            "sahool:ip_rate:*",
+            "sahool:otp_rate:*",
+            "sahool:otp:*",
+            "sahool:reset:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/auth/main.py",
+              "line": 375,
+              "needle": "await _redis.ping()",
+              "why": "PING"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 628,
+              "needle": "await _redis.setex(key, REFRESH_EXPIRE_DAYS * 86400, f\"{user_id}:{tenant_id}\")",
+              "why": "SETEX sahool:refresh:*"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 631,
+              "needle": "await _redis.sadd(setkey, token)",
+              "why": "SADD sahool:user:refreshset:*"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 632,
+              "needle": "await _redis.expire(setkey, REFRESH_EXPIRE_DAYS * 86400)",
+              "why": "EXPIRE"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 641,
+              "needle": "await _redis.setex(f\"sahool:jti:revoked:{jti}\", ttl, \"1\")",
+              "why": "SETEX denylist"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 647,
+              "needle": "return await _redis.exists(f\"sahool:jti:revoked:{jti}\") > 0",
+              "why": "EXISTS"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 671,
+              "needle": "f\"sahool:user:token_floor:{user_id}\"",
+              "why": "key token floor"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 683,
+              "needle": "floor = await _redis.get(f\"sahool:user:token_floor:{sub}\")",
+              "why": "GET"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 698,
+              "needle": "tokens = await _redis.smembers(setkey)",
+              "why": "SMEMBERS"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 701,
+              "needle": "await _redis.delete(*keys)",
+              "why": "DEL sahool:refresh:*"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 754,
+              "needle": "ttl = await _redis.ttl(key)",
+              "why": "TTL"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 752,
+              "needle": "f\"sahool:lockout:{email}\"",
+              "why": "key lockout"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 764,
+              "needle": "f\"sahool:attempts:{email}\"",
+              "why": "key attempts"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 784,
+              "needle": "f\"sahool:ip_rate:{ip}\"",
+              "why": "key ip rate"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 971,
+              "needle": "key = f\"sahool:otp_rate:{channel}:{user_id}\"",
+              "why": "key otp rate"
+            },
+            {
+              "path": "services/auth/main.py",
+              "line": 765,
+              "needle": "count = await _redis.incr(key)",
+              "why": "INCR"
+            },
+            {
+              "path": "services/auth/otp.py",
+              "line": 41,
+              "needle": "return f\"sahool:otp:{channel}:{user_id}\"",
+              "why": "key otp"
+            },
+            {
+              "path": "services/auth/routers/password_reset.py",
+              "line": 34,
+              "needle": "await main._redis.setex(f\"sahool:reset:{token}\"",
+              "why": "key reset"
+            },
+            {
+              "path": "services/auth/session_tokens.py",
+              "line": 40,
+              "needle": "return await getdel(key)",
+              "why": "GETDEL (the MULTI/EXEC fallback is unreachable with redis-py, which has getdel)"
+            }
+          ]
+        },
+        "sahool-guardrails-engine": {
+          "password_env": "REDIS_GUARDRAILS_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "connection-only",
+          "code_paths": [
+            "services/guardrails-engine"
+          ],
+          "commands": [
+            "ping"
+          ],
+          "keys": [],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/guardrails-engine/requirements.txt",
+              "line": 7,
+              "needle": "redis>=5.0.0",
+              "why": "dependency declared; no Python file imports redis"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
