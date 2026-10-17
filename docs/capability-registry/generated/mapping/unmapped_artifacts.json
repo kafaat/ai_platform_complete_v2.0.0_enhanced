@@ -8024,6 +8024,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_learning_success_rate_by_source.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_learning_summary.py",
     "kind": "tests"
   },
