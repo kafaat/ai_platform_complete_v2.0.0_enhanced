@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 router = APIRouter()
@@ -17,7 +18,7 @@ router = APIRouter()
 
 @router.post("/v1/auth/register", response_model=main.TokenResponse, status_code=201)
 async def register(req: main.RegisterRequest, request: Request, response: Response):
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     await main.check_ip_rate(ip)
 
     hashed = main.bcrypt.hashpw(

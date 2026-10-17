@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Annotated
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 router = APIRouter()
@@ -37,7 +38,7 @@ async def change_role(
 ):
     # V29.6.1: احسب IP المتّصِل مرّة واحدة ومرّره إلى step-up وإلى التدقيق — كي تحمل
     # أحداث mfa_stepup_* (success/failed/locked) بصمة IP (مُجزّأة HMAC) لا NULL.
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     # Step-up MFA (مُفعَّل بالبيئة): جلسة admin وحدها لا تكفي لتغيير دور — يلزم
     # رمز TOTP حديث من المُنفِّذ نفسه. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر.
     if main._admin_stepup_required():
@@ -77,7 +78,7 @@ async def deactivate_user(
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
     # V29.6.1: احسب IP مرّة ومرّره إلى step-up (بصمة IP في أحداث mfa_stepup_*).
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     # Step-up MFA (مُفعَّل بالبيئة): تعطيل حساب إجراء حسّاس — يلزم رمز TOTP حديث
     # من المُنفِّذ. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر (لا mfa_code).
     if main._admin_stepup_required():
