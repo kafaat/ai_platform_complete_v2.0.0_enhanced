@@ -1076,6 +1076,29 @@ export interface LearningSummaryRegion {
   calibrated?:                 boolean;
   warnings_ar?:                string[];
 }
+/** Settled-row success for one outcome source, over that source's own rows
+ * (REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01). `settled_rows` is the
+ * denominator; unsettled rows are outside it; a zero denominator gives a null rate. */
+export interface LearningSourceSuccess {
+  rows?:                number | null;
+  settled_rows?:        number | null;
+  succeeded?:           number | null;
+  failed?:              number | null;
+  unsettled_rows?:      number | null;
+  unsettled_by_reason?: Partial<Record<string, number | null>>;
+  success_rate?:        number | null;
+}
+export interface LearningSuccessRateBySource {
+  basis?:          string;
+  sources?:        Partial<Record<string, LearningSourceSuccess | null>>;
+  linked_overlap?: {
+    cases?:                   number | null;
+    rows_by_source?:          Partial<Record<string, number | null>>;
+    settled_in_both_sources?: number | null;
+    counted_in_each_source?:  boolean;
+  } | null;
+  note?:           string;
+}
 /** Counts from the existing reconciliation read path. Linked cases are not
  * proof of statistically independent fields, farms or seasons. */
 export interface LearningOutcomeReconciliation {
@@ -1088,6 +1111,7 @@ export interface LearningOutcomeReconciliation {
   rows_by_source?:         Partial<Record<string, number | null>>;
   sample_count_basis?:     string;
   authoritative_note?:     string;
+  success_rate_by_source?: LearningSuccessRateBySource | null;
 }
 export interface LearningSummary {
   regions?:                LearningSummaryRegion[];
