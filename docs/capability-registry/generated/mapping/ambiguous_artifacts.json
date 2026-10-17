@@ -488,6 +488,28 @@
     ]
   },
   {
+    "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 10,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github.json",
     "kind": "other",
     "candidates": [

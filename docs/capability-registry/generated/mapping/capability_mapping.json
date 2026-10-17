@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5968,
+    "files_scanned": 5975,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1884,
+      "other": 1891,
       "tests": 1965,
       "web": 469
     },
     "unmapped_artifacts": 2302,
-    "ambiguous_artifacts": 462
+    "ambiguous_artifacts": 463
   },
   "capabilities": [
     {
@@ -13025,6 +13025,14 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json",
           "score": 10,
           "signals": [
@@ -13127,7 +13135,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 20
+        "events": 22
       },
       "evidence_counts": {
         "backend": 6,
@@ -13138,7 +13146,7 @@
         "mobile": 0,
         "tests": 16,
         "governance": 1,
-        "other_evidence": 29
+        "other_evidence": 30
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25369,6 +25377,14 @@
           "score": 11
         },
         {
+          "value": "sahool.events.> @ certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json:102",
+          "score": 11
+        },
+        {
+          "value": "sahool.events.> @ certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json:110",
+          "score": 11
+        },
+        {
           "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
           "score": 11
         },
@@ -25726,6 +25742,14 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+          "score": 11,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
           "score": 11,
           "signals": [
@@ -25856,12 +25880,12 @@
         "backend": 14,
         "routes": 70,
         "database": 0,
-        "events": 14,
+        "events": 16,
         "web": 1,
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 31
+        "other_evidence": 32
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -28986,6 +29010,15 @@
           ]
         },
         {
+          "path": "certification/evidence/architecture_remeasure_20261017/ownership_remeasure.json",
+          "score": 16,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "docs/architecture/db_writer_ownership_triage.json",
           "score": 16,
           "signals": [
@@ -29001,6 +29034,15 @@
             "content:MFA",
             "content:mfa",
             "content:totp"
+          ]
+        },
+        {
+          "path": "certification/evidence/architecture_remeasure_20261017/README.md",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
           ]
         },
         {
@@ -29149,7 +29191,7 @@
         "mobile": 4,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 24
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -48141,6 +48183,28 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 11,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 10,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
           ]
         }
       ]
