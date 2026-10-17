@@ -1,0 +1,3 @@
+$ sh -c grep -c -i nats docker-compose.production.yml; true
+0
+[exit=0]

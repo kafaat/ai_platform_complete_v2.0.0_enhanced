@@ -1,0 +1,16 @@
+$ grep -n -A3 -E ^  raster-tiler-service:|raster-tiler-service:$ docker-compose.v9.yml
+11:  raster-tiler-service:
+12-    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+13-    mem_limit: 1024m
+14-    build:
+--
+900:      raster-tiler-service:
+901-        condition: service_healthy
+902-      sahool-postgres:
+903-        condition: service_healthy
+--
+1505:      raster-tiler-service:
+1506-        condition: service_healthy
+1507-    networks:
+1508-    - sahool-internal
+[exit=0]

@@ -1,0 +1,15 @@
+$ grep -n -E user: |^tls|^authorization|default_permissions|no_auth_user nats/nats.conf
+29:#   * لا `no_auth_user`: المجهولُ يُرفَض. و`default_permissions` ترفض كلَّ شيء، فهويّةٌ
+65:tls {
+71:authorization {
+75:  default_permissions: {
+85:      user: "sahool-platform"
+96:      user: "sahool-phase-runtime-outbox-worker"
+111:      user: "sahool-plugin-runtime-worker"
+132:      user: "sahool-model-registry-worker"
+142:      user: "sahool-actuator-dispatch-worker"
+152:      user: "sahool-reservation-dispatch-relay-worker"
+170:      user: "sahool-canonical-execution-learning-worker"
+198:      user: "sahool-notification-agent"
+252:      user: "sahool-vegetation-analysis"
+[exit=0]
