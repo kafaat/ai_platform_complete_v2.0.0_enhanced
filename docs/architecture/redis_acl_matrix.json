@@ -1,9 +1,9 @@
 {
-  "$comment": "REDIS-SHARED-PASSWORD-NO-ACL-01 — one Redis ACL user per v9 service (owner decision 2026-09-30). Each user's commands/keys/channels are derived from the code cited in `evidence` (path:line measured at `measured_at`; the needle is re-checked by tests_v9/test_redis_acl_per_service.py, the line is informational). The `--user` arguments of the two Redis servers in docker-compose.v9.yml must render exactly from this file — the same test compares them. `basis: connection-only` = the service is handed a Redis URL but its code issues no Redis command; it gets PING (+SELECT for a non-zero db) and no key or channel. Human-readable matrix, migration plan and deploy impact: docs/architecture/redis_acl_matrix.md.",
+  "$comment": "REDIS-SHARED-PASSWORD-NO-ACL-01 — one Redis ACL user per v9 service (owner decision 2026-09-30). Each user's commands/keys/channels are derived from the code cited in `evidence` (path:line measured at `measured_on`; the needle is re-checked by tests_v9/test_redis_acl_per_service.py, the line is informational). The `--user` arguments of the two Redis servers in docker-compose.v9.yml must render exactly from this file — the same test compares them. `basis: connection-only` = the service is handed a Redis URL but its code issues no Redis command; it gets PING (+SELECT for a non-zero db) and no key or channel. Human-readable matrix, migration plan and deploy impact: docs/architecture/redis_acl_matrix.md.",
   "schema": "sahool.redis-acl-matrix",
   "version": 1,
   "gap": "REDIS-SHARED-PASSWORD-NO-ACL-01",
-  "measured_at": "ec3927cef",
+  "measured_on": "ec3927cef45a3da53aaa14950093e734ce8e072a",
   "compose": "docker-compose.v9.yml",
   "default_user_rule": [
     "off",

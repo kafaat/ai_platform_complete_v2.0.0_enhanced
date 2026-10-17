@@ -24,7 +24,7 @@ tokens or clear account lockouts. No compose file defined an ACL.
 The machine-readable source is [`redis_acl_matrix.json`](redis_acl_matrix.json). The `--user`
 arguments in `docker-compose.v9.yml` must render **exactly** from it, and
 `tests_v9/test_redis_acl_per_service.py` compares them. Each evidence entry in the JSON has
-`path:line` (measured at `measured_at`) and a `needle` that the test re-checks in the file.
+`path:line` (measured at `measured_on`) and a `needle` that the test re-checks in the file.
 
 ## Matrix
 

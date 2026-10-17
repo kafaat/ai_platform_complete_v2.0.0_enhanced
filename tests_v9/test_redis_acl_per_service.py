@@ -72,7 +72,9 @@ def _compose_raw() -> dict:
 def _compose() -> dict:
     """compose مُستوفى كما يستوفيه هو والمتغيّراتُ غيرُ مضبوطة: ``${REDIS_*PASSWORD}`` بكلمته،
     و``${VAR:-default}`` بافتراضه (رابطُ ai-agronomist متداخلٌ فيه)، والباقي بقيمةٍ محايدة."""
-    text = _REDIS_PW_VAR.sub(lambda m: _password_for(m.group(1)), COMPOSE.read_text("utf-8"))
+    text = _REDIS_PW_VAR.sub(
+        lambda m: _password_for(m.group(1)), COMPOSE.read_text(encoding="utf-8")
+    )
     return yaml.safe_load(_VAR.sub(lambda m: m.group(3) if m.group(2) == "-" else "x", text))
 
 
@@ -270,7 +272,7 @@ def _evidence():
 
 @pytest.mark.parametrize("name,ev", list(_evidence()))
 def test_matrix_evidence_still_exists_in_the_code(name, ev):
-    """الشاهدُ يبقى في الملفّ (السطرُ إعلاميٌّ عند ``measured_at``؛ النصُّ هو المُلزِم)."""
+    """الشاهدُ يبقى في الملفّ (السطرُ إعلاميٌّ عند ``measured_on``؛ النصُّ هو المُلزِم)."""
     lines = (ROOT / ev["path"]).read_text(encoding="utf-8").splitlines()
     assert any(ev["needle"] in line for line in lines), (
         f"{name}: الشاهد {ev['needle']!r} غاب من {ev['path']} — أعِد اشتقاق صلاحيّاته"
@@ -360,7 +362,7 @@ def live_server(request, tmp_path_factory):
                 pytest.fail(f"{server}: المشغِّل {admin['user']} لا يدخل بسطر compose ({exc})")
             except redis.exceptions.ConnectionError:
                 if proc.poll() is not None or time.monotonic() > deadline:
-                    out = log.read_text(errors="replace") if log.exists() else ""
+                    out = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
                     pytest.fail(f"{server}: redis-server لم يُقلِع بسطر compose:\n{out[-2000:]}")
                 time.sleep(0.05)
         yield server, port, admin_client
