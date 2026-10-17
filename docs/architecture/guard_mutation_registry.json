@@ -6218,6 +6218,17 @@
           "why": "معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01)"
         }
       ]
+    },
+    "pr_finding_gap_id_guard.py": {
+      "test": "tests_v9/test_pr_finding_gap_id_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+          "find": "    return any(candidate in known for candidate in gap_id.findall(paragraph))",
+          "replace": "    return bool(gap_id.findall(paragraph))",
+          "why": "قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
