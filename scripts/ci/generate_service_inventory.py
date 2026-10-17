@@ -413,7 +413,7 @@ def write_service_registry(
         "1. `SERVICE_REGISTRY.md`, `service_inventory.generated.json`, and `route_inventory.generated.json` are generated from code.",
         "2. CI must fail when generated inventory differs from committed inventory.",
         "3. Services with routes and zero tests are `high-zero-test-routes` until a smoke/contract test exists.",
-        "4. `docker-compose.v9.yml` is the production-reference local runtime; `docker-compose.fixed.yml`/`docker-compose.unified.yml` remain at the repository root (guarded by SEC-1 compose tests).",
+        "4. `docker-compose.v9.yml` is the only stack definition; the former alternates (`fixed`/`unified`/`light`) live in `docs/history/compose/`, and every other tracked compose file is a declared overlay/test stack/companion in `docs/architecture/compose_file_roster.json` (enforced by `scripts/ci/compose_roster_guard.py`).",
         "5. `sahool-platform` hosts the Field Intelligence Backbone (see `docs/backend/ADR_V50_BACKEND_OWNERSHIP_AND_RAW_IMAGERY_DEFAULT.md`).",
         "",
     ]

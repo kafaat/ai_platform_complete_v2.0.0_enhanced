@@ -217,6 +217,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
@@ -243,6 +245,8 @@ services:
         condition: service_healthy
       sahool-edge:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
       sahool-internal: null
     healthcheck:
@@ -292,6 +296,35 @@ services:
       timeout: 10s
       retries: 6
       start_period: 30s
+  sahool-postgres-tls-init:
+    # POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: sahool-postgres كان بلا أيّ إعداد TLS، فكلُّ
+    # عميلٍ يتّصل نصّاً (`prefer` يسقط إلى النصّ صامتاً). هذه المهمّةُ تسبق الخادمَ
+    # (service_completed_successfully) بالسكربت نفسِه الذي يحرس الوسيط: تفحص ./postgres/tls، وتولّد CA
+    # تطويرٍ وشهادةَ خادمٍ (SAN: sahool-postgres · localhost · 127.0.0.1) **فقط** حين تغيب وSAHOOL_ENV
+    # صريحةٌ غيرُ إنتاجيّة، وترفض خارج التطوير الغائبَ والذاتيَّ ومادّةَ التطوير المنسيّة بفشلٍ مُسمّى.
+    # ثمّ تنسخ الزوجَ إلى الحجم postgres-tls مملوكاً لـpostgres (999:999) بمفتاحٍ 0600 — Postgres يرفض
+    # مفتاحاً يقرؤه غيرُ مالكه، ولا يُغيَّر مالكُ ملفّات المضيف. لا مفتاحَ مُلتزَم (postgres/tls/ في .gitignore).
+    image: python:3.11-slim-bookworm
+    mem_limit: 64m
+    security_opt:
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
+    network_mode: none
+    environment:
+      # بلا افتراضٍ تطويريّ عمداً: الغيابُ ليس «تطويراً صريحاً» ⇒ تُطلَب مادّةٌ حقيقيّة.
+      SAHOOL_ENV: ${SAHOOL_ENV:-}
+      TLS_CODE: POSTGRES
+      TLS_SERVICE_HOST: sahool-postgres
+      TLS_INSTALL_DIR: /etc/postgresql-tls
+      TLS_INSTALL_OWNER: 999:999
+    entrypoint:
+    - /bin/sh
+    - /ensure_service_tls.sh
+    volumes:
+    - ./postgres/tls:/etc/service-tls
+    - postgres-tls:/etc/postgresql-tls
+    - ./scripts/tls/ensure_service_tls.sh:/ensure_service_tls.sh:ro
   sahool-postgres:
     image: postgis/postgis:15-3.4
     mem_limit: 1g
@@ -305,8 +338,29 @@ services:
       POSTGRES_DB: sahool
       POSTGRES_USER: sahool_user
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+    # POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: TLS على الخادم (الزوجُ من postgres-tls الذي
+    # تملؤه sahool-postgres-tls-init) **و**pg_hba مُلتزَمٌ يرفض كلَّ TCP بلا TLS (hostnossl reject ثمّ
+    # hostssl scram-sha-256 وحده). والعملاءُ يكملون الطرفَ الآخر بـsslmode=verify-full.
+    command:
+    - postgres
+    - -c
+    - ssl=on
+    - -c
+    - ssl_cert_file=/etc/postgresql/tls/server.pem
+    - -c
+    - ssl_key_file=/etc/postgresql/tls/server-key.pem
+    - -c
+    - ssl_min_protocol_version=TLSv1.2
+    - -c
+    - hba_file=/etc/postgresql/pg_hba.conf
     volumes:
     - postgres-data:/var/lib/postgresql/data
+    - postgres-tls:/etc/postgresql/tls:ro
+    - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    depends_on:
+      # شهادةٌ حاضرةٌ وصالحة قبل الإقلاع، أو لا إقلاع — لا حلقةَ إعادةٍ على `ssl_cert_file` غائب.
+      sahool-postgres-tls-init:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
     healthcheck:
@@ -369,14 +423,51 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+  sahool-nats-tls-init:
+    # NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01 (TLS): منفذ العملاء 4222 كان
+    # نصّاً صريحاً — كلماتُ المرور في `CONNECT` والأحداثُ تعبر sahool-internal مقروءة. nats.conf صار
+    # يُلزِم TLS، وهذه المهمّةُ تسبق الوسيطَ (service_completed_successfully): تفحص المادّةَ في ./nats/tls،
+    # وتولّد CA تطويرٍ وشهادةَ خادمٍ **فقط** حين تغيب وSAHOOL_ENV صريحةٌ غيرُ إنتاجيّة، وترفض خارج
+    # التطوير الغائبَ والذاتيَّ التوقيع ومادّةَ التطوير المنسيّة بفشلٍ مُسمّى — سياسةُ sahool-nginx-tls-init
+    # نفسُها، بسكربتٍ واحدٍ مع sahool-postgres-tls-init. المنطقُ واختبارُه:
+    # scripts/tls/ensure_service_tls.sh · tests_v9/test_service_tls_init.py · tests_v9/test_nats_tls_init.py.
+    image: python:3.11-slim-bookworm
+    mem_limit: 64m
+    security_opt:
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
+    network_mode: none
+    environment:
+      # بلا افتراضٍ تطويريّ عمداً: الغيابُ ليس «تطويراً صريحاً» ⇒ تُطلَب مادّةٌ حقيقيّة.
+      SAHOOL_ENV: ${SAHOOL_ENV:-}
+      TLS_CODE: NATS
+      TLS_SERVICE_HOST: sahool-nats
+    entrypoint:
+    - /bin/sh
+    - /ensure_service_tls.sh
+    volumes:
+    - ./nats/tls:/etc/service-tls
+    - ./scripts/tls/ensure_service_tls.sh:/ensure_service_tls.sh:ro
   sahool-nats:
     image: nats:2-alpine@sha256:ad7a43eb7e3337c3c38ce5d784d1461791f95f730f252d2b25eee699752a0ca3
-    # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان مفتوحاً لكلّ من بلغ
-    # `sahool-internal`. الاعتمادُ يُورَث من البيئة ويستوفيه `nats.conf` بـ`$NATS_USER`
-    # و`$NATS_PASSWORD`؛ و`:?` تمنع سرّاً افتراضيّاً منشوراً وتُفشِل الإقلاعَ مغلقاً.
+    # NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01 (NATS-AUTHORIZATION-NOT-ENFORCED): كان اعتماداً واحداً
+    # تحمله ثلاثَ عشرةَ خدمة بلا صلاحيّات. صار لكلّ عميلٍ هويّةٌ بمواضيعه في nats.conf، وكلمةُ مرورها
+    # من هنا بـ`:?` (لا سرَّ افتراضيّ؛ الغيابُ يُفشِل الإقلاعَ مغلقاً). وكلُّ عميلٍ يحمل كلمتَه وحدَها.
     environment:
-      NATS_USER: ${NATS_USER:?NATS_USER مطلوب — الوسيط يرفض الاتّصال بلا اعتماد}
-      NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_OUTBOX_WORKER_PASSWORD: ${NATS_OUTBOX_WORKER_PASSWORD:?NATS_OUTBOX_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_PLUGIN_WORKER_PASSWORD: ${NATS_PLUGIN_WORKER_PASSWORD:?NATS_PLUGIN_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_MODEL_WORKER_PASSWORD: ${NATS_MODEL_WORKER_PASSWORD:?NATS_MODEL_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_ACTUATOR_WORKER_PASSWORD: ${NATS_ACTUATOR_WORKER_PASSWORD:?NATS_ACTUATOR_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_RELAY_WORKER_PASSWORD: ${NATS_RELAY_WORKER_PASSWORD:?NATS_RELAY_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_LEARNING_WORKER_PASSWORD: ${NATS_LEARNING_WORKER_PASSWORD:?NATS_LEARNING_WORKER_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_NOTIFICATION_PASSWORD: ${NATS_NOTIFICATION_PASSWORD:?NATS_NOTIFICATION_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+      NATS_VEGETATION_PASSWORD: ${NATS_VEGETATION_PASSWORD:?NATS_VEGETATION_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
+    depends_on:
+      # شهادةٌ حاضرةٌ وصالحة قبل الإقلاع، أو لا إقلاع — لا حلقةَ إعادةٍ على `cert_file` غائب.
+      sahool-nats-tls-init:
+        condition: service_completed_successfully
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -388,6 +479,8 @@ services:
     volumes:
     - nats-js:/data/jetstream
     - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    # الزوجُ الخاصّ بالوسيط وحدَه؛ العملاءُ يُركِّبون ./nats/tls/ca (بلا مفتاح) لا هذا المجلّد.
+    - ./nats/tls/server:/etc/nats/tls:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -607,6 +700,8 @@ services:
     restart: 'no'
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       PGHOST: sahool-postgres
       PGPORT: 5432
       PGUSER: sahool_user
@@ -623,6 +718,7 @@ services:
       SAHOOL_MIGRATE_APPLY: "1"
     volumes:
     - ./migrations:/migrations:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     command:
     - bash
     - /migrations/apply_in_compose.sh
@@ -646,6 +742,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
@@ -695,6 +793,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -722,6 +822,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       SAHOOL_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
@@ -729,11 +831,12 @@ services:
       SAHOOL_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+      NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
@@ -804,6 +907,9 @@ services:
         condition: service_completed_successfully
       sahool-field-segmentation:
         condition: service_started
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -816,45 +922,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-  sahool-weather-polygon-worker:
-    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
-    mem_limit: 512m
-    build:
-      context: .
-      dockerfile: services/weather-polygon-worker/Dockerfile
-    security_opt:
-    - no-new-privileges:true
-    restart: unless-stopped
-    logging: *id001
-    environment:
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
-      WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
-      METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
-      METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye;
-        ops@sahool.ye)}
-      WORKER_HEARTBEAT_CADENCE_SEC: '60'
-    depends_on:
-      sahool-postgres:
-        condition: service_healthy
-      sahool-nats:
-        condition: service_started
-      sahool-migrate:
-        condition: service_completed_successfully
-    networks:
-    - sahool-internal
-    healthcheck:
-      test:
-      - CMD
-      - python
-      - /app/worker_health_probe.py
-      interval: 30s
-      timeout: 5s
-      retries: 6
-      start_period: 40s
   sahool-weather-signal-engine:
     # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
     mem_limit: 512m
@@ -866,10 +933,12 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       WEATHER_SIGNAL_INTERVAL_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
       WORKER_HEARTBEAT_CADENCE_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
     depends_on:
@@ -877,6 +946,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -905,6 +976,8 @@ services:
     ports:
     - 127.0.0.1:8096:8000
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
       MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000
@@ -921,6 +994,8 @@ services:
     depends_on:
       sahool-auth:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -950,6 +1025,8 @@ services:
     ports:
     - 127.0.0.1:8097:8000
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET}
@@ -962,6 +1039,8 @@ services:
       # الـRedis الذي يستهدفه `REDIS_URL` أعلاه (كما في sahool-auth)، لا الكاش.
       sahool-redis-state:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1069,6 +1148,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
@@ -1081,6 +1162,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1103,9 +1186,12 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+      NATS_URL: tls://sahool-vegetation-analysis:${NATS_VEGETATION_PASSWORD:?NATS_VEGETATION_PASSWORD مطلوب — هويّة sahool-vegetation-analysis في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
@@ -1115,7 +1201,7 @@ services:
       TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
       VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
       VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # runtime-truth: real fields come from field-management-service (the declared
       # owner of the `fields` table); load_field/list_fields_from_platform read there.
@@ -1140,6 +1226,8 @@ services:
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
     volumes:
     - vegetation-anomaly-data:/data/vegetation
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1162,9 +1250,11 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       # Declared owner of the `fields` table (docs/architecture/db_ownership.yml).
       # Connects with the restricted sahool_app role so RLS is enforced (NOBYPASSRLS).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
@@ -1181,6 +1271,8 @@ services:
         condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1203,10 +1295,12 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       # Declared owner of `external_submissions` (docs/architecture/db_ownership.yml).
       # Connects with the restricted sahool_ingest role: SELECT+INSERT only, NOBYPASSRLS —
       # RLS stays enforced and the service sets app.current_tenant per operation.
-      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       # Per-source credentials live in external_ingest_sources (X-Scout-Ingest-Token → resolve_ingest_source).
       # No shared SAHOOL_AGENT_TOKEN and no user JWT are ever accepted on this service.
       SCOUT_INGEST_ENABLED: ${SCOUT_INGEST_ENABLED:-0}
@@ -1240,6 +1334,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1262,10 +1358,12 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       # B1.3 projection worker — same restricted sahool_ingest role. Claims accepted submissions and
       # projects them into external_field_observations (scout-ingest-owned; never scouting_pins).
       # projection_status is updated only via SECURITY DEFINER functions ⇒ sahool_ingest keeps no UPDATE.
-      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       SCOUT_INGEST_PROJECTION_ENABLED: ${SCOUT_INGEST_PROJECTION_ENABLED:-0}
       SCOUT_INGEST_PROJECTION_POLL_SECONDS: ${SCOUT_INGEST_PROJECTION_POLL_SECONDS:-5}
     command:
@@ -1277,6 +1375,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1336,6 +1436,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
       # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
@@ -1369,7 +1471,7 @@ services:
       RASTER_WORKER_ID: ${RASTER_WORKER_ID:-raster-api}
       RASTER_BATCH_HEARTBEAT_SECONDS: ${RASTER_BATCH_HEARTBEAT_SECONDS:-0}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
@@ -1398,6 +1500,7 @@ services:
     - raster-data:/data/rasters
     - ./data/dem:/data/dem:ro
     - ./data/soilgrids:/data/soilgrids:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     depends_on:
       raster-tiler-service:
         condition: service_healthy
@@ -1428,6 +1531,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-sahool-rasters}
@@ -1437,9 +1542,9 @@ services:
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-true}
       TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-2592000}
@@ -1450,6 +1555,7 @@ services:
     - cache_invalidation_worker
     volumes:
     - raster-data:/data/rasters
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1479,6 +1585,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-sahool-rasters}
@@ -1488,9 +1596,9 @@ services:
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_PERSISTENCE_MODE: ${RASTER_PERSISTENCE_MODE:-required}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
@@ -1511,6 +1619,7 @@ services:
     - backfill_scan_worker
     volumes:
     - raster-data:/data/rasters
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1603,7 +1712,6 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       WEATHER_REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/4
       WEATHER_OPEN_METEO_TIMEOUT_S: ${WEATHER_OPEN_METEO_TIMEOUT_S:-4}
@@ -1611,8 +1719,6 @@ services:
       WEATHER_OPEN_METEO_BREAKER_RESET_S: ${WEATHER_OPEN_METEO_BREAKER_RESET_S:-30}
     depends_on:
       sahool-redis:
-        condition: service_healthy
-      sahool-nats:
         condition: service_healthy
     networks:
     - sahool-internal
@@ -1653,6 +1759,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       # Default empty ⇒ mirror mode (no accidental authoritative write). Set both at cutover.
       DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
       DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
@@ -1694,6 +1802,8 @@ services:
       DECISION_REQUIRE_SOIL_EVIDENCE_GATE: ${DECISION_REQUIRE_SOIL_EVIDENCE_GATE:-false}
       DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-false}
       DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-false}
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1765,6 +1875,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -1791,6 +1903,8 @@ services:
         condition: service_completed_successfully
       sahool-fastbee:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2100,6 +2214,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL}
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-}
@@ -2116,6 +2232,8 @@ services:
       sahool-odoo:
         condition: service_healthy
         required: false
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
       sahool-internal:
         aliases:
@@ -2147,6 +2265,8 @@ services:
     - bash
     - /opt/odoo-init.sh
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       HOST: sahool-postgres
       # دور Odoo المقيَّد (لا مالك الهجرات sahool_user): يُنشئه apply_in_compose.sh
       # (LOGIN NOBYPASSRLS CREATEDB + سحب CONNECT من PUBLIC). لذا odoo يبدأ بعد sahool-migrate.
@@ -2158,6 +2278,7 @@ services:
     - odoo-web-data:/var/lib/odoo
     - odoo-config:/etc/odoo
     - odoo-addons:/mnt/extra-addons
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -2185,13 +2306,14 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_PLATFORM_URL: ${SAHOOL_PLATFORM_URL:-http://sahool-platform:8000}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET
         required}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       SUPERVISOR_AGENT_URL: http://sahool-supervisor-agent:8000
       SAHOOL_API_URL: http://sahool-auth:8000
@@ -2200,8 +2322,8 @@ services:
         condition: service_healthy
       sahool-redis:
         condition: service_healthy
-      sahool-nats:
-        condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2225,10 +2347,13 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+      NATS_URL: tls://sahool-notification-agent:${NATS_NOTIFICATION_PASSWORD:?NATS_NOTIFICATION_PASSWORD مطلوب — هويّة sahool-notification-agent في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
@@ -2256,6 +2381,9 @@ services:
         condition: service_healthy
       sahool-tts-service:
         condition: service_healthy
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2419,9 +2547,10 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -2430,6 +2559,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2531,13 +2662,16 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+      NATS_URL: tls://sahool-phase-runtime-outbox-worker:${NATS_OUTBOX_WORKER_PASSWORD:?NATS_OUTBOX_WORKER_PASSWORD مطلوب — هويّة sahool-phase-runtime-outbox-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2554,6 +2688,9 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2581,9 +2718,11 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS: ${IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS:-15}
     command:
     - python
@@ -2604,6 +2743,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
   sahool-reservation-dispatch-relay-worker:
@@ -2623,7 +2764,8 @@ services:
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+      NATS_URL: tls://sahool-reservation-dispatch-relay-worker:${NATS_RELAY_WORKER_PASSWORD:?NATS_RELAY_WORKER_PASSWORD مطلوب — هويّة sahool-reservation-dispatch-relay-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
@@ -2647,6 +2789,8 @@ services:
     depends_on:
       sahool-nats:
         condition: service_started
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
     networks:
     - sahool-internal
   sahool-plugin-runtime-worker:
@@ -2662,13 +2806,16 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+      NATS_URL: tls://sahool-plugin-runtime-worker:${NATS_PLUGIN_WORKER_PASSWORD:?NATS_PLUGIN_WORKER_PASSWORD مطلوب — هويّة sahool-plugin-runtime-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2685,6 +2832,9 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2706,13 +2856,16 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+      NATS_URL: tls://sahool-model-registry-worker:${NATS_MODEL_WORKER_PASSWORD:?NATS_MODEL_WORKER_PASSWORD مطلوب — هويّة sahool-model-registry-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2729,6 +2882,9 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2754,12 +2910,14 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       WATER_LEDGER_AUTO_ENABLED: ${WATER_LEDGER_AUTO_ENABLED:-false}
       # WATER-DEFICIT-BRIDGE: جسر عجز الماء المحكوم — default-off مزدوج (جسر + تنفيذ
@@ -2790,6 +2948,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2811,13 +2971,16 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+        required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+      NATS_URL: tls://sahool-actuator-dispatch-worker:${NATS_ACTUATOR_WORKER_PASSWORD:?NATS_ACTUATOR_WORKER_PASSWORD مطلوب — هويّة sahool-actuator-dispatch-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2834,6 +2997,9 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2932,10 +3098,13 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
+      NATS_URL: tls://sahool-canonical-execution-learning-worker:${NATS_LEARNING_WORKER_PASSWORD:?NATS_LEARNING_WORKER_PASSWORD مطلوب — هويّة sahool-canonical-execution-learning-worker في nats/nats.conf}@sahool-nats:4222
+      SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
     command:
     - python
@@ -2956,6 +3125,9 @@ services:
       # stream exists, so the worker's fail-closed startup remains the real guarantee.
       sahool-notification-agent:
         condition: service_started
+    volumes:
+    - ./nats/tls/ca:/etc/sahool/nats-ca:ro
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -2990,6 +3162,8 @@ services:
   sahool-pg-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
     environment:
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       # PG-EXPORTER-EMPTY-DSN-FALSE-POSTGRESDOWN-01: كان هذا السطرَ الوحيد، و`.env.example` يترك
       # `POSTGRES_EXPORTER_DSN` فارغاً ⇒ المُصدِّر بلا مصدر (`GetDataSources()` يُرجِع قائمةً فارغة
       # حين يغيب `DATA_SOURCE_NAME` و`DATA_SOURCE_URI` معاً — exporter/datasource.go في v0.20.1)
@@ -2999,9 +3173,10 @@ services:
       # والافتراضُ مُشتقٌّ من متغيّرات المكدّس نفسها لا من سرٍّ جديد: دورُ التطبيق المقيَّد
       # `sahool_app` (NOSUPERUSER NOBYPASSRLS — لا دورَ مراقبةٍ مخصَّصاً في الشجرة) لا المالك
       # `sahool_user`. ويُمرَّر بالحقول المنفصلة لا بعنوانٍ مُركَّب: المُصدِّر يُرمِّز كلمة السرّ
-      # (`url.UserPassword`) فلا يكسرها `@`/`:`/`/`. و`sslmode=disable` لأنّ `lib/pq` يعدّ الفارغ
-      # `require` و`postgis/postgis` هنا بلا TLS.
-      DATA_SOURCE_URI: sahool-postgres:5432/sahool?sslmode=disable
+      # (`url.UserPassword`) فلا يكسرها `@`/`:`/`/`. و`sslmode=verify-full` بـCA الخادم: كان
+      # `sslmode=disable` (والاستثناءَ الوحيد في scripts/security_audit.sh) حين كان Postgres بلا TLS —
+      # POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01؛ و`lib/pq` يقرأ `sslrootcert` من العنوان.
+      DATA_SOURCE_URI: sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem
       DATA_SOURCE_USER: ${APP_DB_ROLE:-sahool_app}
       DATA_SOURCE_PASS: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
     mem_limit: 128m
@@ -3010,6 +3185,8 @@ services:
     cap_drop: [ALL]
     read_only: true
     logging: *id001
+    volumes:
+    - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks: [sahool-internal]
     depends_on:
       sahool-postgres:
@@ -3038,6 +3215,7 @@ networks:
 
 volumes:
   postgres-data: null
+  postgres-tls: null
   raster-data: null
   redis-data: null
   redis-state-data: null

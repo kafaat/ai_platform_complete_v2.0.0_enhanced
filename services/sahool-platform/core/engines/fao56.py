@@ -342,14 +342,60 @@ _THETA_FC_WP_BY_TEXTURE: dict[str, tuple[float, float]] = {
 }
 
 
+# مرادفات القوام → مفتاح ``_THETA_FC_WP_BY_TEXTURE`` (PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01).
+# انتقلت من ``api/soil_water.py`` حين حُذِف جدول TAW الموازي هناك: هذا الجدول هو المصدر
+# الوحيد لـθFC/θWP ولـTAW = 1000·(θFC − θWP). المفاتيح العربيّة تطابق فئات soil_recommendations.
+_TEXTURE_ALIASES: dict[str, str] = {
+    "رملي": "sand",
+    "رملية": "sand",
+    "طمي-رملي": "sandy loam",
+    "طميي-رملي": "sandy loam",
+    "طمية رملية": "sandy loam",
+    "طميي": "loam",
+    "طمية": "loam",
+    "طيني": "clay",
+    "طينية": "clay",
+    "loamy": "loam",
+}
+
+
+def canonical_texture(texture: str | None) -> str | None:
+    """يطبّع اسم قوام إلى مفتاح جدول FAO-56 القانونيّ، أو ``None`` إن لم يكن فيه.
+
+    يقبل الشرطة السفليّة والمسافة (``sandy_loam`` ≡ ``sandy loam``) والحالة والمرادفات
+    العربيّة. **العطل الذي وُجِد لأجله:** كان ``theta_fc_wp_for_texture("sandy_loam")``
+    يسقط صامتاً إلى ``loam`` لأنّ الجدول مفاتيحه بمسافة، بينما ``soil_water`` مفاتيحه
+    بشرطة سفليّة — فالقوام نفسه أعطى رقمين بحسب الإملاء. صدق: قوام خارج الجدول (مثل
+    ``silty clay loam`` الغائب عن هذا الجدول) ⇒ ``None``؛ لا قيمة مُختلَقة.
+    """
+    if not texture:
+        return None
+    raw = texture.strip()
+    alias = _TEXTURE_ALIASES.get(raw) or _TEXTURE_ALIASES.get(raw.lower())
+    key = alias or " ".join(raw.lower().replace("_", " ").replace("-", " ").split())
+    return key if key in _THETA_FC_WP_BY_TEXTURE else None
+
+
 def theta_fc_wp_for_texture(texture: str) -> tuple[float, float]:
     """يُرجِع (θFC, θWP) بـm³/m³ لقوام تربة، من جدول FAO-56 الافتراضيّ (Table 19).
 
     ⚠️ افتراض صريح: قيم نوعيّة وسطيّة حسب القوام — تقديرات لا قياسات موقعيّة،
     تحتاج معايرة محلّيّة (θFC/θWP الفعليّان يُقاسان مخبريّاً/حقليّاً). القوام
-    المجهول ⇒ "loam".
+    المجهول ⇒ "loam". الإملاء مُطبَّع عبر ``canonical_texture``.
     """
-    return _THETA_FC_WP_BY_TEXTURE.get(texture.strip().lower(), _THETA_FC_WP_BY_TEXTURE["loam"])
+    key = canonical_texture(texture) or "loam"
+    return _THETA_FC_WP_BY_TEXTURE[key]
+
+
+def taw_mm_per_m_for_texture(texture: str | None) -> tuple[float, bool]:
+    """TAW لكلّ متر عمق (مم/م) = 1000·(θFC − θWP) من الجدول القانونيّ ⇒ (القيمة، معروف؟).
+
+    المصدر الوحيد لـTAW حسب القوام في المنصّة (``api.soil_water`` يقرأ منه). القوام
+    المجهول ⇒ قيمة ``loam`` مع ``False`` (موسومة، لا مُختلَقة).
+    """
+    key = canonical_texture(texture)
+    fc, wp = _THETA_FC_WP_BY_TEXTURE[key or "loam"]
+    return round(1000.0 * (fc - wp), 1), key is not None
 
 
 def root_depth_m(

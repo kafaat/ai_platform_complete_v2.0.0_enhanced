@@ -976,66 +976,6 @@
     ]
   },
   {
-    "path": "docker-compose.fixed.yml",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SEC-004",
-        "score": 12,
-        "signals": [
-          "content:MFA",
-          "content:mfa"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 12,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
-        ]
-      },
-      {
-        "capability_id": "FM-008",
-        "score": 12,
-        "signals": [
-          "content:erp bridge",
-          "content:odoo bridge"
-        ]
-      },
-      {
-        "capability_id": "SOIL-001",
-        "score": 10,
-        "signals": [
-          "content:Soil profile",
-          "content:soil profile"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "docker-compose.unified.yml",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "FM-008",
-        "score": 12,
-        "signals": [
-          "content:erp bridge",
-          "content:odoo bridge"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 9,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
-        ]
-      }
-    ]
-  },
-  {
     "path": "docs/API_WIRING_AUDIT.md",
     "kind": "other",
     "candidates": [
@@ -2313,6 +2253,66 @@
     ]
   },
   {
+    "path": "docs/history/compose/docker-compose.fixed.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "FM-008",
+        "score": 12,
+        "signals": [
+          "content:erp bridge",
+          "content:odoo bridge"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 10,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/history/compose/docker-compose.unified.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-008",
+        "score": 12,
+        "signals": [
+          "content:erp bridge",
+          "content:odoo bridge"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/openapi/API_MAP.md",
     "kind": "other",
     "candidates": [
@@ -2524,21 +2524,21 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
         "capability_id": "INT-002",
         "score": 12,
         "signals": [
           "content:event bus",
           "content:jetstream",
           "content:nats"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 9,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
         ]
       }
     ]
@@ -4756,6 +4756,29 @@
         "signals": [
           "content:MFA",
           "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "scripts/ci/event_contract_graph.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "INT-002",
+        "score": 11,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]
@@ -7688,14 +7711,6 @@
         "signals": [
           "content:ET0",
           "content:et0"
-        ]
-      },
-      {
-        "capability_id": "IRR-004",
-        "score": 10,
-        "signals": [
-          "content:Water balance",
-          "content:water balance"
         ]
       },
       {
@@ -11015,6 +11030,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_nats_publisher_coverage.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-002",
+        "score": 15,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 14,
+        "signals": [
+          "path:nats",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_notification_tenant_isolation.py",
     "kind": "tests",
     "candidates": [
@@ -11352,6 +11390,36 @@
     ]
   },
   {
+    "path": "tests_v9/test_taw_kc_single_source.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 12,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
     "kind": "tests",
     "candidates": [
@@ -11555,6 +11623,30 @@
         "signals": [
           "content:Execution request",
           "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tools/sahool_inspector.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]

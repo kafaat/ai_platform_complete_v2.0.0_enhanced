@@ -263,7 +263,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 22,
+    "line": 23,
     "method": "POST",
     "path": "/v1/auth/verify/request",
     "handler": "verify_request",
@@ -272,7 +272,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 55,
+    "line": 56,
     "method": "POST",
     "path": "/v1/auth/verify/confirm",
     "handler": "verify_confirm",
@@ -281,7 +281,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 97,
+    "line": 98,
     "method": "GET",
     "path": "/v1/auth/verify",
     "handler": "verify",
@@ -290,7 +290,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
-    "line": 107,
+    "line": 108,
     "method": "GET",
     "path": "/v1/auth/verify/status",
     "handler": "verify_status",
@@ -299,7 +299,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 25,
+    "line": 26,
     "method": "POST",
     "path": "/v1/auth/invitations",
     "handler": "create_invitation",
@@ -308,7 +308,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 84,
+    "line": 85,
     "method": "GET",
     "path": "/v1/auth/invitations",
     "handler": "list_invitations",
@@ -317,7 +317,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 115,
+    "line": 116,
     "method": "POST",
     "path": "/v1/auth/invitations/accept",
     "handler": "accept_invitation",
@@ -326,7 +326,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 195,
+    "line": 196,
     "method": "DELETE",
     "path": "/v1/auth/invitations/{invitation_id}",
     "handler": "revoke_invitation",
@@ -398,7 +398,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 21,
+    "line": 22,
     "method": "POST",
     "path": "/v1/auth/password-reset/request",
     "handler": "request_password_reset",
@@ -407,7 +407,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
-    "line": 41,
+    "line": 42,
     "method": "POST",
     "path": "/v1/auth/password-reset/confirm",
     "handler": "confirm_password_reset",
@@ -416,7 +416,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
-    "line": 19,
+    "line": 20,
     "method": "POST",
     "path": "/v1/auth/register",
     "handler": "register",
@@ -425,7 +425,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
-    "line": 74,
+    "line": 75,
     "method": "POST",
     "path": "/v1/auth/change-password",
     "handler": "change_password",
@@ -443,7 +443,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 27,
+    "line": 28,
     "method": "POST",
     "path": "/v1/auth/login",
     "handler": "login",
@@ -452,7 +452,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 128,
+    "line": 129,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "handler": "refresh_token",
@@ -461,7 +461,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 184,
+    "line": 185,
     "method": "POST",
     "path": "/v1/auth/logout",
     "handler": "logout",
@@ -470,7 +470,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 229,
+    "line": 230,
     "method": "GET",
     "path": "/v1/auth/me",
     "handler": "me",
@@ -479,7 +479,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/tenants.py",
-    "line": 40,
+    "line": 41,
     "method": "POST",
     "path": "/v1/auth/tenants",
     "handler": "provision_tenant",
@@ -488,7 +488,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 22,
+    "line": 23,
     "method": "GET",
     "path": "/v1/auth/users",
     "handler": "list_users",
@@ -497,7 +497,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 31,
+    "line": 32,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/role",
     "handler": "change_role",
@@ -506,7 +506,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
-    "line": 73,
+    "line": 74,
     "method": "PATCH",
     "path": "/v1/auth/users/{user_id}/deactivate",
     "handler": "deactivate_user",
@@ -1649,7 +1649,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 558,
+    "line": 564,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "mcp_tools_list",
@@ -1658,7 +1658,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 558,
+    "line": 564,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
@@ -1667,7 +1667,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 590,
+    "line": 596,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
@@ -1676,7 +1676,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 644,
+    "line": 650,
     "method": "GET",
     "path": "/v1/products",
     "handler": "api_search_products",
@@ -1685,7 +1685,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 656,
+    "line": 662,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "handler": "api_get_supplier",
@@ -1694,7 +1694,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 661,
+    "line": 667,
     "method": "POST",
     "path": "/v1/procurement",
     "handler": "api_create_procurement",
@@ -1703,7 +1703,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 667,
+    "line": 673,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "handler": "api_get_procurement",
@@ -1712,7 +1712,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 674,
+    "line": 680,
     "method": "POST",
     "path": "/v1/sales",
     "handler": "api_create_sales",
@@ -1721,7 +1721,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 679,
+    "line": 685,
     "method": "GET",
     "path": "/v1/sales",
     "handler": "api_search_sales",
@@ -1730,7 +1730,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 696,
+    "line": 702,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "handler": "api_price_history",
@@ -1739,7 +1739,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 703,
+    "line": 709,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "handler": "api_analytics",
@@ -1748,7 +1748,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 710,
+    "line": 716,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -1757,7 +1757,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 710,
+    "line": 716,
     "method": "GET",
     "path": "/health",
     "handler": "health",
@@ -1766,7 +1766,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 723,
+    "line": 729,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -8777,7 +8777,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 216,
+    "line": 218,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",

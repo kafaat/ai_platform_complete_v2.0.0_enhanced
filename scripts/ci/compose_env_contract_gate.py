@@ -110,11 +110,22 @@ def main() -> int:
             errors.append(f"credential alias mismatch: {non_empty}")
 
     # Compose-level service contract checks.
+    base_services = (
+        yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")) or {}
+    ).get("services") or {}
     for path in COMPOSE_FILES:
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         services = data.get("services") or {}
         for name, service in services.items():
+            # مقطعُ تراكبٍ بلا image/build (مثل `sahool-raster-service: {depends_on: …}` في
+            # docker-compose.production.yml) يُدمَج فوق تعريف v9 ولا يُعرّف الخدمة وحده — فحصُه
+            # منفرداً يُدينه بنقصٍ ليس فيه. كان يمرّ لأنّ
+            # التراكب سمّى `sahool-raster` (اسماً لا وجود له)؛ صُحِّح الاسمُ فظهر
+            # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
             env = compose_env_map(service)
+            if isinstance(service, dict) and "image" not in service and "build" not in service:
+                # يُقاس **المدموج** كما يراه compose: بيئةُ v9 ثمّ ما يُضيفه المقطع فوقها.
+                env = {**compose_env_map(base_services.get(name) or {}), **env}
             if name == "sahool-minio":
                 root = env.get("MINIO_ROOT_USER", "")
                 if root and "${MINIO_ROOT_USER" not in root:

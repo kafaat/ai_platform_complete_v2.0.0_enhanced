@@ -40,33 +40,50 @@ def test_env_example_database_url_uses_restricted_role():
 
 
 # ── F-002: خدمة منطق الأعمال الأساسيّة منشورة ──
-def test_sahool_platform_service_deployed_in_fixed_compose():
-    """F-002: docker-compose.fixed.yml يعرّف خدمة sahool-platform (لا تُنسى كما في v05)."""
-    assert "\n  sahool-platform:" in _read("docker-compose.fixed.yml"), (
-        "خدمة sahool-platform غير منشورة في fixed.yml — انحدار F-002 (المنطق الأساسيّ غائب)"
+# F-002/F-003/F-005 كانت تُقاس على docker-compose.fixed.yml — نُقل إلى docs/history/compose/ بقرار
+# مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17). الخاصّيّاتُ نفسُها تُقاس
+# على تعريف المكدّس الوحيد: v9.
+def test_sahool_platform_service_deployed_in_v9_compose():
+    """F-002: docker-compose.v9.yml يعرّف خدمة sahool-platform (لا تُنسى كما في v05)."""
+    assert "\n  sahool-platform:" in _read("docker-compose.v9.yml"), (
+        "خدمة sahool-platform غير منشورة في v9.yml — انحدار F-002 (المنطق الأساسيّ غائب)"
     )
 
 
 # ── F-003: حوكمة الذكاء الاصطناعيّ تتطلّب توكناً ──
-def test_agent_token_required_in_fixed_compose():
-    """F-003: SAHOOL_AGENT_TOKEN مطلوب (:?required) في fixed.yml — لا تعمل الحوكمة بلا توكن."""
-    compose = _read("docker-compose.fixed.yml")
-    assert "SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?" in compose, (
+def test_agent_token_required_in_v9_compose():
+    """F-003: SAHOOL_AGENT_TOKEN مطلوب (:?required) في v9.yml لكلّ من يحمله."""
+    import yaml
+
+    services = yaml.safe_load(_read("docker-compose.v9.yml"))["services"]
+    carriers = {
+        name: str(spec["environment"]["SAHOOL_AGENT_TOKEN"])
+        for name, spec in services.items()
+        if isinstance((spec or {}).get("environment"), dict)
+        and "SAHOOL_AGENT_TOKEN" in spec["environment"]
+    }
+    assert "sahool-platform" in carriers, (
+        "sahool-platform لا يحمل SAHOOL_AGENT_TOKEN — انحدار F-003"
+    )
+    assert carriers["sahool-platform"].startswith("${SAHOOL_AGENT_TOKEN:?"), (
         "SAHOOL_AGENT_TOKEN ليس مطلوباً بصرامة — انحدار F-003 (تعمل إجراءات AI بلا تحقّق أمان)"
     )
 
 
 # ── F-005: المنافذ الحسّاسة (MinIO/raster) مربوطة بـlocalhost لا 0.0.0.0 ──
 def test_sensitive_ports_bound_to_localhost():
-    """F-005: منافذ MinIO (9000/9001) وraster (8001) مربوطة بـ127.0.0.1 لا مكشوفة للعالم."""
-    compose = _read("docker-compose.fixed.yml")
-    for port in ("9000", "9001", "8001"):
-        assert f'"127.0.0.1:{port}:{port}"' in compose, f"المنفذ {port} ليس مربوطاً بـ127.0.0.1"
-        # لا كشف على كلّ الواجهات (0.0.0.0 أو ربط عارٍ بلا مضيف).
-        assert f"0.0.0.0:{port}" not in compose, f"المنفذ {port} مكشوف على 0.0.0.0 — انحدار F-005"
-        assert not re.search(rf'^\s*-\s*"{port}:{port}"\s*$', compose, re.M), (
-            f"المنفذ {port} مربوط عارياً (كلّ الواجهات) — انحدار F-005"
-        )
+    """F-005: منافذ MinIO (9000/9001) مربوطة بـ127.0.0.1، وraster (8001) لا يُنشَر على المضيف في v9."""
+    import yaml
+
+    services = yaml.safe_load(_read("docker-compose.v9.yml"))["services"]
+    minio = [str(p) for p in services["sahool-minio"].get("ports") or []]
+    for port in ("9000", "9001"):
+        assert f"127.0.0.1:{port}:{port}" in minio, f"المنفذ {port} ليس مربوطاً بـ127.0.0.1"
+    published = [str(p) for spec in services.values() for p in (spec or {}).get("ports") or []]
+    for spec in published:
+        host_port = spec.split(":")[-2] if spec.count(":") >= 1 else spec
+        if host_port.split("/")[0] in {"9000", "9001", "8001"}:
+            assert spec.startswith("127.0.0.1:"), f"{spec} مكشوف على كلّ الواجهات — انحدار F-005"
 
 
 # ── F-006: ترويسات أمان nginx ──

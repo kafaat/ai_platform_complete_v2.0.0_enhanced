@@ -14,6 +14,10 @@ COPY services/sahool-platform/core/weather_overlay.py /app/core/weather_overlay.
 COPY services/sahool-platform/core/weather_signals.py /app/core/weather_signals.py
 COPY services/sahool-platform/core/weather_overlay_pipeline.py /app/core/weather_overlay_pipeline.py
 RUN touch /app/core/__init__.py
+# إعادة محاولة الاتّصال الأوّل عند الإقلاع (RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01):
+# وحدةٌ مكتبيّة قياسيّة فقط، فتُنسَخ وحدها لا shared/ كلّها.
+COPY shared/__init__.py /app/shared/__init__.py
+COPY shared/startup_retry.py /app/shared/startup_retry.py
 COPY services/weather-signal-engine/src/ /app/
 COPY services/weather-signal-engine/worker_health_probe.py /app/worker_health_probe.py
 # مستخدم غير جذري (SEC-2 — محاذاةً لباقي الخدمات)

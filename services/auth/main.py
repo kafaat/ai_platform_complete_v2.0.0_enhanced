@@ -38,6 +38,7 @@ from shared.runtime_identity import load_build_identity
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
+from shared.startup_retry import retry_startup_connect
 
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
 # fallback آمن لو لم تتوفّر الحزمة المشتركة (لا يكسر الخدمة).
@@ -343,9 +344,7 @@ async def lifespan(app: FastAPI):
             "في mfa_audit_events. اضبط مفتاحاً مُخصَّصاً لنظافة المفاتيح (لا يكسر شيئاً)."
         )
 
-    # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
-    # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
-    #
+    # FIX: statement_cache_size معامل عميل لا إعداد خادم (في server_settings: "unrecognized …").
     # CRITICAL (شهادة الإنتاج): جدول users عليه FORCE RLS بسياسة user_self التي
     # تسمح بالوصول عبر app.current_user_id أو app.current_tenant أو
     # app.current_role='admin'. خدمة الهويّة **يجب** أن تقرأ users بالبريد قبل معرفة
@@ -356,7 +355,8 @@ async def lifespan(app: FastAPI):
     async def _init_auth_conn(conn):
         await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
 
-    _pool = await asyncpg.create_pool(
+    _pool = await retry_startup_connect(
+        asyncpg.create_pool,
         DATABASE_URL,
         min_size=2,
         max_size=10,

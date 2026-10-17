@@ -19,6 +19,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import subprocess
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -697,3 +698,129 @@ def test_an_unacknowledged_new_alias_is_still_blocked_regardless_of_any_deadline
     (tmp_path / "migrations" / "other" / "run_migrations.sql").write_text("-- y", encoding="utf-8")
     errors = guard.alias_escape_errors(policy, root=tmp_path)
     assert any("نظيراً حيّاً موجود" in e for e in errors), errors
+
+
+# ── ادّعاءُ الغياب قابلٌ للتكذيب (FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01) ──
+#
+# القائمةُ تُطابَق عضويّةَ سلسلةٍ حرفيّة، فمدخلٌ يُسمّي ملفّاً **لم يُنشَأ قطّ** يُجمِّد اسماً
+# لا ملفّاً: `migrations/run_migrations.sql` كان مُجمَّداً ومُعلَناً «غيرَ موجودٍ بعد»،
+# والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` خارجَ التجميد. و`alias_escape_errors`
+# كان يرى النظيرَ لكنّ إقرارَ النظير أسكته — والإقرارُ يُوقِّت حكماً، لا يُصدِّق ادّعاءً.
+_REAL_RUNNER = "scripts_v9/run_migrations.sql"
+_NEVER_CREATED_RUNNER = "migrations/run_migrations.sql"
+
+
+def test_the_entry_point_rejects_a_falsified_absence_claim(tmp_path, capsys):
+    """شكلُ السياسة الحيّة على `origin/main` قبل الإصلاح، مُشغَّلاً من نقطة الدخول.
+
+    مدخلُ `not_yet_in_tree` غائبٌ في مساره **واسمُه قائمٌ** في `scripts_v9/`، ومعه إقرارُ
+    نظيرٍ ساري الأجل — فـ`alias_escape_errors` يسكت. قبل الإصلاح كان الحارسُ يخرج صفراً.
+    """
+    policy = {
+        "schema": "sahool.gate01_policy/v2",
+        "gate": {"id": "GATE-01", "gap_id": "GAP-X", "state": "CLOSED"},
+        "phase0_baseline": {"commit_sha": "b" * 40},
+        "frozen_paths": [_NEVER_CREATED_RUNNER],
+        "not_yet_in_tree": [_NEVER_CREATED_RUNNER],
+        "alias_mismatch_acknowledged": {
+            _NEVER_CREATED_RUNNER: {"live_alias": _REAL_RUNNER, "decision_due_on": _future(90)}
+        },
+    }
+    assert not (_ROOT / _NEVER_CREATED_RUNNER).exists(), "المقدّمة: المسارُ المُسمّى لم يُنشَأ"
+    assert (_ROOT / _REAL_RUNNER).is_file(), "المقدّمة: المُشغِّلُ الحقيقيّ قائم"
+    assert guard.alias_escape_errors(policy) == [], "المقدّمة: الإقرارُ يُسكِت فحصَ النظائر"
+    ppath = tmp_path / "policy.json"
+    ppath.write_text(json.dumps(policy), encoding="utf-8")
+    adir = tmp_path / "adjudications"
+    adir.mkdir()
+
+    rc = guard.main(["--policy", str(ppath), "--adjudications", str(adir)])
+    out = capsys.readouterr().out
+    assert rc == 1, f"ادّعاءُ غيابٍ تكذّبه الشجرة مرّ أخضرَ من نقطة الدخول: {out}"
+    assert "FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01" in out, out
+    assert _REAL_RUNNER in out, out
+
+
+def _tracked_basenames() -> dict[str, list[str]]:
+    """أسماءُ الملفّات المتتبَّعة — من `git ls-files` لا من الحارس، كي لا يقيس الحارسُ نفسَه."""
+    listing = subprocess.run(
+        ["git", "-C", str(_ROOT), "ls-files"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.splitlines()
+    by_name: dict[str, list[str]] = {}
+    for rel in listing:
+        by_name.setdefault(Path(rel).name, []).append(rel)
+    return by_name
+
+
+def test_the_live_policy_makes_no_falsified_absence_claim():
+    """كلُّ مدخلٍ في `not_yet_in_tree` الحيّة غائبٌ في مساره **وباسمه** في الشجرة كلّها.
+
+    القياسُ مستقلٌّ عن الحارس (`git ls-files`)، ثمّ يُطابَق حكمُ الحارس به.
+    """
+    policy = guard.load_policy(_POLICY)
+    by_name = _tracked_basenames()
+    falsified = {
+        p: by_name.get(Path(p).name, [])
+        for p in policy.get("not_yet_in_tree") or []
+        if (_ROOT / p).exists() or by_name.get(Path(p).name)
+    }
+    assert not falsified, f"`not_yet_in_tree` يدّعي غيابَ ما هو قائمٌ في الشجرة: {falsified}"
+    assert guard.not_yet_in_tree_falsified_errors(policy) == []
+
+
+def test_the_migration_runner_is_frozen_by_its_real_path():
+    """المُجمَّدُ هو الملفُّ الذي يؤدّي الدور لا اسمٌ لم يُنشَأ — ومسُّه يُحجَب بلا تفويض."""
+    policy = guard.load_policy(_POLICY)
+    frozen = policy["frozen_paths"]
+    assert _REAL_RUNNER in frozen, f"المُشغِّلُ الحقيقيّ خارج التجميد: {frozen}"
+    assert _NEVER_CREATED_RUNNER not in frozen, "التجميدُ ما زال يحرس اسماً لم يُنشَأ"
+    errors, used = guard.evaluate([_REAL_RUNNER], policy, [], {_REAL_RUNNER: "f" * 40})
+    assert errors and used is None, "مسُّ المُشغِّل الحقيقيّ مرّ بلا تفويض"
+
+
+def _absence_policy(declared: str, **over) -> dict:
+    pol = {
+        "schema": "sahool.gate01_policy/v2",
+        "gate": {"id": "GATE-01", "gap_id": "GAP-X", "state": "CLOSED"},
+        "phase0_baseline": {"commit_sha": "b" * 40},
+        "frozen_paths": [declared],
+        "not_yet_in_tree": [declared],
+    }
+    pol.update(over)
+    return pol
+
+
+def test_a_declared_absent_path_that_exists_at_its_own_path_is_falsified(tmp_path):
+    (tmp_path / "migrations").mkdir()
+    (tmp_path / "migrations" / "v9_landed.sql").write_text("-- x", encoding="utf-8")
+    errs = guard.not_yet_in_tree_falsified_errors(
+        _absence_policy("migrations/v9_landed.sql"), root=tmp_path
+    )
+    assert len(errs) == 1 and "قائمٌ في مساره" in errs[0], errs
+
+
+def test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged(tmp_path):
+    """صنفُ `run_migrations.sql` بعينه — **والإقرارُ الساري لا يُسكِته**."""
+    (tmp_path / "scripts_v9").mkdir()
+    (tmp_path / "scripts_v9" / "run_migrations.sql").write_text("-- x", encoding="utf-8")
+    policy = _absence_policy(
+        _NEVER_CREATED_RUNNER,
+        alias_mismatch_acknowledged={
+            _NEVER_CREATED_RUNNER: {"live_alias": _REAL_RUNNER, "decision_due_on": _future(90)}
+        },
+    )
+    assert guard.alias_escape_errors(policy, root=tmp_path) == [], "المقدّمة: الإقرارُ ساري"
+    errs = guard.not_yet_in_tree_falsified_errors(policy, root=tmp_path)
+    assert len(errs) == 1 and _REAL_RUNNER in errs[0], errs
+
+
+def test_a_truly_absent_path_is_not_falsified(tmp_path):
+    """لا اتّهامَ لادّعاءٍ صادق — الحارسُ الذي يتّهم الصحيحَ يُنزَع."""
+    (tmp_path / "migrations").mkdir()
+    (tmp_path / "migrations" / "other.sql").write_text("-- x", encoding="utf-8")
+    policy = _absence_policy("migrations/v9_not_yet.sql")
+    assert guard.not_yet_in_tree_falsified_errors(policy, root=tmp_path) == []

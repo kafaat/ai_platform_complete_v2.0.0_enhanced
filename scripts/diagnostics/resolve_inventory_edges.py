@@ -60,6 +60,64 @@ def _is_direct_receiver(code: str, start: int) -> bool:
 
 _PATH = re.compile(r"/[A-Za-z0-9/_{}.-]*")
 _PARAMETER = re.compile(r"\$\{[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\}")
+#: `${fieldId}` · `${tile!.z}` · `${a.b!}` — عضوٌ بسيط، وتوكيدُ TypeScript غيرِ الفارغ (`!`) لا يغيّر القيمة.
+_MEMBER = re.compile(r"[A-Za-z_$][\w$]*!?(?:\.[A-Za-z_$][\w$]*!?)*")
+
+
+def _expression_end(raw: str, start: int) -> int | None:
+    """نهايةُ `${…}` (موضعُ `}` المطابِقة) مع تخطّي النصوص داخلها؛ ``None`` إن لم تُغلق."""
+    depth, i = 1, start
+    while i < len(raw):
+        if raw[i] in "\"'`":
+            i = _literal_end(raw, i)
+            continue
+        depth += (raw[i] == "{") - (raw[i] == "}")
+        if depth == 0:
+            return i
+        i += 1
+    return None
+
+
+def _encoded_value(expr: str) -> bool:
+    """`encodeURIComponent(<أيُّ تعبير>)` بقوسَين متطابقَين يحيطان بالتعبير كلِّه — قيمةٌ مُرمَّزةٌ لمقطعٍ واحد."""
+    if not (expr.startswith("encodeURIComponent(") and expr.endswith(")")):
+        return False
+    depth, opening = 0, len("encodeURIComponent")
+    for index in range(opening, len(expr)):
+        depth += (expr[index] == "(") - (expr[index] == ")")
+        if depth == 0 and index != len(expr) - 1:
+            return False  # `encodeURIComponent(a) + b`: القوسُ الأوّل لا يحيط بالتعبير كلِّه
+    return depth == 0
+
+
+def template_path(raw: str) -> str | None:
+    """قالبُ مسارٍ ⇒ مسارٌ بوسائط `{}`، أو ``None`` إن تعذّر القولُ ما المسار.
+
+    يُقبل: عضوٌ بسيط في أيّ موضع (كما سبق، و`!` غيرُ الفارغ)، و`encodeURIComponent(…)`
+    **يملأ مقطعاً كاملاً** (بين `/` و`/` أو `?` أو النهاية): الترميزُ يمنع أن تحمل القيمةُ
+    `/` فلا تُغيّر عددَ المقاطع. ويُسقَط ما بعد `?` — الاستعلامُ ليس جزءاً من المسار المطابَق.
+    وما سوى ذلك (نداءٌ آخر، تسلسلٌ، لاحقةٌ ديناميّة) يبقى غيرَ مقروء: عمىً معلَن لا تخمين.
+    """
+    out: list[str] = []
+    i = 0
+    while i < len(raw):
+        if raw.startswith("${", i):
+            end = _expression_end(raw, i + 2)
+            if end is None:
+                return None
+            expr = raw[i + 2 : end].strip()
+            before, after = "".join(out), raw[end + 1 :]
+            whole_segment = before.endswith("/") and (after == "" or after[0] in "/?")
+            if not (_MEMBER.fullmatch(expr) or (whole_segment and _encoded_value(expr))):
+                return None
+            out.append("{}")
+            i = end + 1
+        else:
+            out.append(raw[i])
+            i += 1
+    return "".join(out).split("?", 1)[0]
+
+
 _UPSTREAM = re.compile(r"^\s*upstream\s+([A-Za-z0-9_]+)\s*\{")
 _SERVER = re.compile(r"^\s*server\s+([A-Za-z0-9.-]+):\d+")
 _LOCATION = re.compile(r"^\s*location\s+(?:(=|\^~|~\*)\s+)?(\S+)\s*\{")
@@ -142,7 +200,7 @@ def gateway(root: Path = ROOT, components: list[dict[str, Any]] | None = None) -
             continue
         found = _LOCATION.match(line)
         if found:
-            location = (found.group(2), number)
+            location = (found.group(2), number, found.group(1) == "=")
             continue
         if location is None:
             continue
@@ -167,6 +225,7 @@ def gateway(root: Path = ROOT, components: list[dict[str, Any]] | None = None) -
                     "upstream": found.group(1),
                     "service_path": found.group(2) or "/",
                     "line": f"frontend/nginx.conf:{number}",
+                    **({"exact": True} if location[2] else {}),
                 }
             )
     return {"routes": routes, "upstreams": upstreams}
@@ -639,6 +698,8 @@ def _scan_calls(
                 while i < len(code) and code[i].isspace():
                     i += 1
             value = None
+            # ما يُعرف من المسار الديناميّ: نصُّه الحرفيّ قبل أوّل جزءٍ يُبنى وقتَ التشغيل ("" إن لم يكن نصّاً)
+            literal_prefix = ""
             if i < len(code) and code[i] == "(":
                 i += 1
                 # Whitespace/comments may separate the first argument from '('.
@@ -656,17 +717,25 @@ def _scan_calls(
                 if i < len(text) and text[i] in "\"'`":
                     end = _literal_end(text, i)
                     raw = text[i + 1 : end - 1]
-                    candidate = _PARAMETER.sub("{}", raw) if text[i] == "`" else raw
+                    candidate = template_path(raw) if text[i] == "`" else raw.split("?", 1)[0]
+                    literal_prefix = (raw.split("${", 1)[0] if text[i] == "`" else raw).split("?")[
+                        0
+                    ]
                     tail = code[end:].lstrip()
                     if (
                         text[end - 1] == text[i]
+                        and candidate is not None
                         and _PATH.fullmatch(candidate)
                         and tail.startswith((",", ")"))
                     ):
                         value = candidate
             if value is None:
                 (tests if test_source else blind).append(
-                    {**call, "reason": "unsupported_or_dynamic_path"}
+                    {
+                        **call,
+                        "reason": "unsupported_or_dynamic_path",
+                        "literal_prefix": literal_prefix,
+                    }
                 )
             else:
                 (tests if test_source else calls).append({**call, "path": value})
@@ -848,3 +917,452 @@ def resolve(
         "still_unresolved": len(remaining),
     }
     return resolved, remaining, report
+
+
+# ── ما بعد الحسم: كلُّ عمليّةٍ معلَنة مُثبَتة أو منفيّة أو مجهولةٌ **بسببٍ مسمّى وموضع** ─────────────────────
+#
+# ``A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01``. الباقي بعد الحسم كان «declared» بلا تمييز:
+# ما يبنيه العميلُ ديناميّاً، وما لا يبلغه الماسح، وما لا يُنادى أصلاً — كلُّه في سلّةٍ واحدة. والتمييزُ هنا ثلاثُ
+# حالاتٍ لا اثنتان، ولا تُرقّى حالةٌ إلى أقوى منها بلا دليلها:
+#
+# * **مُثبَتة** — سلسلةُ أدلّةٍ كاملة: نداءٌ في الواجهة عبر البوّابة (أعلاه)، أو **اشتراكُ NATS في مصدر Python**
+#   (صفُّ جدول الاشتراكات · استيرادُه · حلقتُه · نداءُ ``subscribe`` بمتغيّرها) — صنفُ الدليل الثاني.
+# * **منفيّة في نطاقٍ مسمّى** — المتصفّحُ لا يبلغ إلّا ما يوجّهه ``nginx.conf``؛ منتِجٌ بلا مُجرىً أعلى هناك لا تصله
+#   نداءاتُ الواجهة **في وضع البوّابة** (``gateway_mode``). وضعُ التطوير المباشر (``VITE_*_BASE_URL``) خارج النطاق، ويُقال.
+# * **مجهولة** — بسببٍ من أصنافٍ مسمّاة، ولكلٍّ موضعُه ``path:line``. صنفٌ جديدٌ لا يُقبل بصمت: سجلُّ
+#   ``docs/architecture/inventory_edge_exemptions.json`` يُعلن كلَّ صنفٍ مقبولٍ بمبرّره وشرط إغلاقه (``exemption_problems``).
+
+#: الأصنافُ المجهولة، من الأقوى دليلاً إلى الأضعف — الأوّلُ في صفّ العمليّة سببُها الرئيس.
+UNKNOWN_REASON_ORDER = (
+    "call_site_binding_unproven",
+    "dynamic_call_may_reach",
+    "client_passed_as_value",
+    "unparsed_source_may_call",
+    "not_seen_by_axios_scanner",
+    "no_static_evidence_class_for_this_edge_kind",
+)
+_NATS_CONSUMER = re.compile(r"^(?P<component>[\w.-]+) \((?P<durable>[\w.-]+)\)$")
+_SUBSCRIBE_CALLS = {"subscribe", "subscribe_bind", "pull_subscribe"}
+
+
+def _segments_compatible(prefix: str, browser_path: str) -> bool:
+    """هل يمكن لمسارٍ يبدأ بالنصّ ``prefix`` (معروفٌ حرفيّاً، وما بعده يُبنى وقتَ التشغيل) أن يكون ``browser_path``؟
+    ``{}`` في المسار المطبَّع يطابق أيَّ مقطع، والمقطعُ الأخيرُ من البادئة قد يكون جزئيّاً."""
+    pre = re.sub(r"/{2,}", "/", prefix).split("/")
+    full = browser_path.split("/")
+    if len(pre) > len(full):
+        return False
+    for index, part in enumerate(pre):
+        target = full[index]
+        last = index == len(pre) - 1
+        if target == "{}" or part == target or (last and target.startswith(part)):
+            continue
+        return False
+    return True
+
+
+def _route_for(browser_path: str, proxies: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """الموقعُ الذي يختاره nginx: المطابقةُ التامّة (``location =``) أوّلاً، ثمّ أطولُ بادئة."""
+    for route in proxies:
+        if route.get("exact") and normalise(route["client"]) == browser_path:
+            return route
+    for route in proxies:
+        base = route["client"].rstrip("/")
+        if not route.get("exact") and (browser_path == base or browser_path.startswith(base + "/")):
+            return route
+    return None
+
+
+def _method_can_match(call_method: str | None, operation_method: str) -> bool:
+    """axios لا يفتح WebSocket؛ و``ANY`` تقبل كلَّ فعل؛ ونسخةٌ مُمرَّرةٌ قيمةً (``None``) قد تُستعمل بأيّ فعل."""
+    if operation_method == "WEBSOCKET":
+        return False
+    return call_method is None or operation_method == "ANY" or call_method == operation_method
+
+
+def _browser_paths(component: str, service_path: str, gate: dict, proxies: list) -> list[tuple]:
+    """كلُّ مسارٍ في المتصفّح توجّهه البوّابةُ إلى ``(component, service_path)`` — بعكس قاعدة proxy_pass؛
+    ومواقعُ ``rewrite`` (لا يُعكس تعبيرُها النمطيّ) تُعاد بمسارٍ ``None``: تبلغ كلَّ عمليّات المكوّن بلا تحديد."""
+    out = []
+    for route in proxies:
+        if gate["upstreams"].get(route["upstream"]) != component:
+            continue
+        if any(r["kind"] == "rewrite" and r["client"] == route["client"] for r in gate["routes"]):
+            out.append((None, route))
+            continue
+        head = normalise(route["service_path"])
+        if route.get("exact"):
+            if service_path == head and _route_for(normalise(route["client"]), proxies) is route:
+                out.append((normalise(route["client"]), route))
+            continue
+        if service_path != head and not service_path.startswith(head.rstrip("/") + "/"):
+            continue
+        tail = service_path[len(head) :].lstrip("/") if head != "/" else service_path.lstrip("/")
+        browser = normalise(route["client"].rstrip("/") + "/" + tail)
+        if _route_for(browser, proxies) is route:
+            out.append((browser, route))
+    return out
+
+
+def _value_uses(root: Path, prefixes: dict[str, Any]) -> list[dict[str, Any]]:
+    """نسخةُ عميلٍ تُستعمل **قيمةً** (تُمرَّر أو تُسنَد أو ``.request(...)``) لا مستقبِلَ نداءٍ مباشر: لا يُعرف أيُّ مسارٍ
+    يُطلب عبرها — يُعاد موضعُها لا يُخمَّن مسارُها."""
+    out: list[dict[str, Any]] = []
+    canonical = (root / "frontend/src/services/api/client.ts").resolve()
+    if not prefixes:
+        return out
+    names = re.compile(r"(?<![\w$.])(" + "|".join(map(re.escape, sorted(prefixes))) + r")(?![\w$])")
+    bindings = _ClientBindings(root, prefixes)
+    for path in sorted((root / "frontend/src").rglob("*.ts*")):
+        relative = path.relative_to(root)
+        if path.suffix not in {".ts", ".tsx"} or _is_test_source(relative):
+            continue
+        if path.resolve() == canonical:
+            continue
+        code, error, links = bindings.module(path)
+        if error:
+            continue
+        spans = [x["span"] for x in links]
+        text = path.read_text(encoding="utf-8")
+        for match in names.finditer(code):
+            pos = match.start()
+            if any(a <= pos < b for a, b in spans) or not _is_direct_receiver(code, pos):
+                continue
+            if _ANY_CALL.match(code, pos):
+                continue  # نداءٌ مباشر: حرفيُّه في calls، وديناميُّه في unsupported_call_sites
+            after = code[match.end() :].lstrip()
+            if re.match(r"\.\s*(defaults|interceptors)\b", after):
+                continue  # إعدادُ النسخة لا طلبٌ عبرها
+            out.append(
+                {
+                    "instance": match.group(1),
+                    "site": f"{relative}:{text[:pos].count(chr(10)) + 1}",
+                }
+            )
+    return out
+
+
+def nats_subscriptions(root: Path, components: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """صنفُ الدليل الثاني: ``(component, durable, subject)`` لكلّ اشتراكٍ في مصدر Python للمكوّن، بسلسلةٍ مقروءةٍ
+    بـ``ast`` لا بنمطٍ نصّيّ: جدولٌ من ثنائيّاتٍ حرفيّة (``SUBSCRIPTIONS = [("subject", "durable"), …]``) يستورده
+    مصدرُ المكوّن، ويمرّ عليه بحلقة ``for subject, durable in …``، وفي جسدها ``…subscribe(subject, …)``.
+    كلُّ خطوةٍ بسطرها؛ وغيابُ خطوةٍ يُسقط الدليل كلَّه (لا ترقيةَ بنصف سلسلة)."""
+    import ast
+
+    found: list[dict[str, Any]] = []
+    for component in components:
+        source = component.get("source_path") or ""
+        base = root / source
+        if not source or not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except (SyntaxError, UnicodeDecodeError):
+                continue
+            imports = {}
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+                    for alias in node.names:
+                        imports[alias.asname or alias.name] = (node.module, alias.name, node.lineno)
+            for loop in ast.walk(tree):
+                if not (
+                    isinstance(loop, ast.For)
+                    and isinstance(loop.iter, ast.Name)
+                    and loop.iter.id in imports
+                    and isinstance(loop.target, ast.Tuple)
+                    and len(loop.target.elts) == 2
+                    and all(isinstance(e, ast.Name) for e in loop.target.elts)
+                ):
+                    continue
+                subject_var = loop.target.elts[0].id
+                calls = sorted(
+                    node.lineno
+                    for node in ast.walk(loop)
+                    if isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr in _SUBSCRIBE_CALLS
+                    and (
+                        (
+                            node.args
+                            and isinstance(node.args[0], ast.Name)
+                            and node.args[0].id == subject_var
+                        )
+                        or any(
+                            isinstance(k.value, ast.Call)
+                            and any(
+                                isinstance(a, ast.Name) and a.id == loop.target.elts[1].id
+                                for a in ast.walk(k.value)
+                            )
+                            for k in node.keywords
+                        )
+                    )
+                )
+                if not calls:
+                    continue
+                module, name, import_line = imports[loop.iter.id]
+                table_path = root / (module.replace(".", "/") + ".py")
+                if not table_path.is_file():
+                    continue
+                table = ast.parse(table_path.read_text(encoding="utf-8"))
+                for node in table.body:
+                    if not (
+                        isinstance(node, ast.Assign)
+                        and any(isinstance(t, ast.Name) and t.id == name for t in node.targets)
+                        and isinstance(node.value, (ast.List, ast.Tuple))
+                    ):
+                        continue
+                    for row in node.value.elts:
+                        if (
+                            isinstance(row, ast.Tuple)
+                            and len(row.elts) == 2
+                            and all(
+                                isinstance(e, ast.Constant) and isinstance(e.value, str)
+                                for e in row.elts
+                            )
+                        ):
+                            found.append(
+                                {
+                                    "component": component["component_id"],
+                                    "subject": row.elts[0].value,
+                                    "durable": row.elts[1].value,
+                                    "table_row": f"{table_path.relative_to(root)}:{row.lineno}",
+                                    "import": f"{path.relative_to(root)}:{import_line}",
+                                    "loop": f"{path.relative_to(root)}:{loop.lineno}",
+                                    "subscribe_calls": [
+                                        f"{path.relative_to(root)}:{line}" for line in calls
+                                    ],
+                                }
+                            )
+    return sorted(found, key=lambda x: (x["component"], x["durable"], x["table_row"]))
+
+
+def classify(
+    edges: list[dict[str, Any]], components: list[dict[str, Any]], root: Path = ROOT
+) -> dict[str, Any]:
+    """كلُّ عمليّةٍ معلَنة ⇒ مُثبَتة (``proven``) · منفيّة في نطاقها (``refuted``) · مجهولةٌ بأسبابٍ مسمّاة (``unknown``).
+
+    ``proven`` = صفوفُ ``resolve`` + اشتراكاتُ NATS المُثبَتة. ``unknown`` صفوفُ الحوافّ الباقية كما هي، وكلُّ عمليّةٍ
+    فيها تحمل ``unknown_reasons[entrypoint] = [{reason, sites}]`` — لا عمليّةَ بلا سبب."""
+    resolved, remaining, report = resolve(edges, components, root)
+    prefixes = client_prefixes(root)
+    gate = gateway(root, components)
+    proxies = sorted(
+        [route for route in gate["routes"] if route["kind"] == "proxy"],
+        key=lambda route: -len(route["client"]),
+    )
+    reachable = {c for c in gate["upstreams"].values() if c}
+    upstream_lines = {}
+    conf = root / "frontend/nginx.conf"
+    if conf.exists():
+        current = None
+        for number, line in enumerate(conf.read_text(encoding="utf-8").splitlines(), 1):
+            found = _UPSTREAM.match(line)
+            if found:
+                current = found.group(1)
+            elif _SERVER.match(line) and current:
+                upstream_lines[current] = f"frontend/nginx.conf:{number}"
+                current = None
+
+    subscriptions = nats_subscriptions(root, components)
+    dynamic = [
+        item
+        for item in report["unsupported_call_sites"]
+        if item["source_kind"] == "application" and item["instance"] in prefixes
+    ]
+    value_uses = _value_uses(root, prefixes)
+    unparsed = [item["site"] for item in report["unparsed_source_files"]]
+
+    proven = list(resolved)
+    refuted: list[dict[str, Any]] = []
+    unknown: list[dict[str, Any]] = []
+    for edge in remaining:
+        pending = list(dict.fromkeys(edge.get("entrypoints") or []))
+        reasons: dict[str, list[dict[str, Any]]] = {}
+        still: list[str] = []
+        consumer = _NATS_CONSUMER.match(edge["to"])
+        for entrypoint in pending:
+            parts = entrypoint.split(None, 1)
+            if consumer and len(parts) == 2 and parts[0] == "NATS":
+                matches = [
+                    s
+                    for s in subscriptions
+                    if s["component"] == consumer["component"]
+                    and s["durable"] == consumer["durable"]
+                    and s["subject"] == parts[1]
+                ]
+                if matches:
+                    for chain in matches:
+                        proven.append(
+                            {
+                                **edge,
+                                "entrypoints": [entrypoint],
+                                "evidence_state": "resolved",
+                                "resolved_entrypoint": entrypoint,
+                                "evidence": {
+                                    "kind": "python_nats_subscription",
+                                    "evidence_scope": "static_source_only",
+                                    **{k: v for k, v in chain.items() if k != "component"},
+                                },
+                            }
+                        )
+                    continue
+            if edge["to"] != "frontend" or len(parts) != 2 or not conf.exists():
+                # لا صنفَ دليلٍ ساكناً لهذا النوع من الحوافّ — أو لا بوّابةَ مقروءة: غيابُ الملفّ ليس دليلَ نفي
+                reasons[entrypoint] = [
+                    {
+                        "reason": "no_static_evidence_class_for_this_edge_kind",
+                        "sites": [f"platform_catalog.generated.json#{edge['capability_id']}"],
+                        "detail": f"consumer={edge['to']!r} entrypoint={entrypoint!r}",
+                    }
+                ]
+                still.append(entrypoint)
+                continue
+            method, service_path = parts[0].upper(), normalise(parts[1])
+            browsers = _browser_paths(edge["from"], service_path, gate, proxies)
+            if edge["from"] not in reachable or not browsers:
+                kind = (
+                    "producer_has_no_gateway_upstream"
+                    if edge["from"] not in reachable
+                    else "operation_not_routed_by_gateway"
+                )
+                refuted.append(
+                    {
+                        **edge,
+                        "entrypoints": [entrypoint],
+                        "evidence_state": "refuted",
+                        "refutation": {
+                            "kind": kind,
+                            "scope": "gateway_mode",
+                            "producer": edge["from"],
+                            "gateway_upstreams": dict(sorted(gate["upstreams"].items())),
+                            "upstream_declarations": sorted(upstream_lines.values()),
+                            "producer_routes": sorted(
+                                r["line"]
+                                for r in gate["routes"]
+                                if r["kind"] == "proxy"
+                                and gate["upstreams"].get(r["upstream"]) == edge["from"]
+                            ),
+                            "why": (
+                                "the browser reaches only what frontend/nginx.conf routes; no upstream "
+                                "there resolves to this producer"
+                                if kind == "producer_has_no_gateway_upstream"
+                                else "every gateway location routed to this producer maps to other "
+                                "service paths (or a longer/exact location shadows it), so no "
+                                "browser path reaches this operation"
+                            )
+                            + " — in gateway mode; direct VITE_*_BASE_URL dev mode is out of scope",
+                        },
+                    }
+                )
+                continue
+            found: dict[str, list[str]] = {}
+            for call in report["unproven_client_bindings"]:
+                client = prefixes.get(call["instance"])
+                if client is None or not _method_can_match(call["method"], method):
+                    continue
+                browser = normalise(client["prefix"] + call["path"])
+                if any(b == browser for b, _ in browsers if b is not None) or any(
+                    b is None and _route_for(browser, proxies) is r for b, r in browsers
+                ):
+                    found.setdefault("call_site_binding_unproven", []).append(call["site"])
+            for call in dynamic:
+                if not _method_can_match(call["method"], method):
+                    continue
+                known = prefixes[call["instance"]]["prefix"] + call.get("literal_prefix", "")
+                if any(
+                    (b is None and _segments_compatible(known, normalise(r["client"])))
+                    or (b is not None and _segments_compatible(known, b))
+                    for b, r in browsers
+                ):
+                    found.setdefault("dynamic_call_may_reach", []).append(call["site"])
+            for use in value_uses if _method_can_match(None, method) else ():
+                known = prefixes[use["instance"]]["prefix"]
+                if any(
+                    _segments_compatible(known, b if b is not None else normalise(r["client"]))
+                    for b, r in browsers
+                ):
+                    found.setdefault("client_passed_as_value", []).append(use["site"])
+            if unparsed and browsers:
+                found["unparsed_source_may_call"] = list(unparsed)
+            if not found:
+                # تبلغها البوّابة ولم يُرَ نداءٌ: الماسحُ يقرأ نداءاتِ axios وحدها — fetch وWebSocket وEventSource
+                # وروابطُ الأصول (بلاطاتُ الخرائط) خارجه. فالغيابُ هنا غيابُ رؤية، وموضعُه قاعدةُ البوّابة التي تبلغها.
+                found["not_seen_by_axios_scanner"] = [r["line"] for _, r in browsers]
+            reasons[entrypoint] = [
+                {"reason": kind, "sites": sorted(set(found[kind]))}
+                for kind in UNKNOWN_REASON_ORDER
+                if kind in found
+            ]
+            still.append(entrypoint)
+        if still:
+            unknown.append(
+                {
+                    **edge,
+                    "entrypoints": still,
+                    "unknown_reasons": {e: reasons.get(e, []) for e in still},
+                }
+            )
+
+    def count(rows):
+        return sum(len(r.get("entrypoints") or []) for r in rows)
+
+    by_reason: dict[str, int] = {}
+    for row in unknown:
+        for entry in row["unknown_reasons"].values():
+            key = entry[0]["reason"] if entry else "none"
+            by_reason[key] = by_reason.get(key, 0) + 1
+    summary = {
+        "proven_rows": len(proven),
+        "proven_nats_rows": sum(
+            1 for r in proven if r["evidence"].get("kind") == "python_nats_subscription"
+        ),
+        "refuted_operations": count(refuted),
+        "refuted_by_producer": {
+            p: sum(1 for r in refuted if r["from"] == p)
+            for p in sorted({r["from"] for r in refuted})
+        },
+        "refutation_scope": "gateway_mode",
+        "unknown_operations": count(unknown),
+        "unknown_by_primary_reason": dict(sorted(by_reason.items())),
+        "unknown_operations_without_reason": by_reason.get("none", 0),
+        "nats_subscriptions_located": len(subscriptions),
+        "client_value_uses": value_uses,
+    }
+    return {
+        "proven": proven,
+        "refuted": refuted,
+        "unknown": unknown,
+        "report": {**report, "classification": summary},
+    }
+
+
+EXEMPTIONS = ROOT / "docs/architecture/inventory_edge_exemptions.json"
+
+
+def exemption_problems(unknown: list[dict[str, Any]], exemptions: dict[str, Any]) -> list[str]:
+    """كلُّ سببِ «مجهول» مستعمَلٍ يجب أن يكون معلَناً بمبرّرٍ وشرطِ إغلاق؛ وما أُعلن ولم يعد مستعمَلاً بائتٌ يُزال —
+    سجلٌّ يطول بأسبابٍ لا تقع يصير إذناً مسبقاً لا قراراً. وعمليّةٌ بلا سببٍ أو سببٌ بلا موضع ⇒ مشكلة."""
+    problems: list[str] = []
+    listed = exemptions.get("accepted_unknown_reasons") or {}
+    used: set[str] = set()
+    for row in unknown:
+        for entrypoint, entries in (row.get("unknown_reasons") or {}).items():
+            if not entries:
+                problems.append(f"unknown_without_reason: {row['from']} {entrypoint}")
+            for entry in entries:
+                used.add(entry["reason"])
+                if not entry.get("sites"):
+                    problems.append(
+                        f"reason_without_site: {entry['reason']} {row['from']} {entrypoint}"
+                    )
+    for kind in sorted(used - set(listed)):
+        problems.append(f"unlisted_reason: {kind}")
+    for kind, decision in sorted(listed.items()):
+        if not isinstance(decision, dict) or not all(
+            str(decision.get(k) or "").strip() for k in ("justification", "closing_condition")
+        ):
+            problems.append(f"unjustified_reason: {kind}")
+        if kind not in used:
+            problems.append(f"stale_reason: {kind}")
+    return problems

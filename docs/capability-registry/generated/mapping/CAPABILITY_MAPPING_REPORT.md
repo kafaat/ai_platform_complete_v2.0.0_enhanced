@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **50**
-- Files scanned: **5945**
-- Ambiguous artifacts queued: **458**
-- Unmapped artifacts queued: **2301**
+- Files scanned: **5968**
+- Ambiguous artifacts queued: **462**
+- Unmapped artifacts queued: **2302**
 
 ## Capability coverage
 
@@ -23,11 +23,11 @@
 | DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 3 | 3 |
-| DEC-004 | decision | 9 | 20 | 41 | 33 | 0 | 0 | 18 | 5 |
+| DEC-004 | decision | 9 | 20 | 41 | 32 | 0 | 0 | 18 | 5 |
 | DEC-005 | decision | 6 | 87 | 22 | 9 | 0 | 0 | 6 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
-| DEC-008 | decision | 5 | 95 | 14 | 5 | 0 | 0 | 4 | 5 |
+| DEC-008 | decision | 5 | 95 | 14 | 4 | 0 | 0 | 4 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 90 | 49 | 7 | 0 | 0 | 6 | 5 |
 | FM-001 | farm_management | 16 | 2 | 26 | 9 | 1 | 0 | 29 | 6 |
@@ -36,20 +36,20 @@
 | FM-004 | farm_management | 30 | 82 | 84 | 58 | 13 | 1 | 34 | 7 |
 | FM-005 | farm_management | 8 | 0 | 0 | 7 | 3 | 1 | 6 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
-| FM-007 | farm_management | 8 | 26 | 26 | 10 | 1 | 1 | 8 | 7 |
+| FM-007 | farm_management | 8 | 26 | 26 | 14 | 1 | 1 | 10 | 7 |
 | FM-008 | farm_management | 10 | 25 | 5 | 1 | 0 | 0 | 9 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 4 | 0 | 0 | 2 | 0 | 2 | 4 |
 | GIS-003 | gis | 28 | 100 | 10 | 51 | 12 | 0 | 39 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 78 | 0 | 0 | 14 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 16 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 1 | 5 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 2 | 3 |
-| IRR-004 | irrigation | 10 | 2 | 3 | 6 | 2 | 0 | 8 | 6 |
+| IRR-004 | irrigation | 9 | 2 | 3 | 6 | 2 | 0 | 9 | 6 |
 | IRR-005 | irrigation | 3 | 2 | 0 | 18 | 3 | 0 | 9 | 5 |
 | IRR-006 | irrigation | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -59,7 +59,7 @@
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
 | OPS-003 | operations | 9 | 7 | 7 | 45 | 22 | 1 | 19 | 7 |
-| OPS-004 | operations | 3 | 12 | 14 | 9 | 0 | 12 | 21 | 6 |
+| OPS-004 | operations | 3 | 12 | 14 | 8 | 0 | 12 | 21 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 0 | 2 | 3 |
@@ -81,22 +81,22 @@
 | SEC-001 | security | 13 | 31 | 100 | 56 | 0 | 0 | 74 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 7 | 24 | 23 | 5 | 5 | 4 | 18 | 7 |
+| SEC-004 | security | 8 | 24 | 23 | 5 | 5 | 4 | 18 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 10 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
-| SOIL-001 | soil | 13 | 96 | 14 | 46 | 1 | 0 | 21 | 6 |
+| SOIL-001 | soil | 13 | 96 | 14 | 45 | 1 | 0 | 21 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 8 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
-| WX-002 | weather | 22 | 63 | 8 | 57 | 9 | 0 | 25 | 6 |
+| WX-002 | weather | 20 | 63 | 12 | 64 | 9 | 0 | 30 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 3 | 0 | 0 | 5 | 5 |
-| WX-004 | weather | 60 | 48 | 0 | 94 | 18 | 0 | 62 | 5 |
+| WX-004 | weather | 60 | 48 | 0 | 94 | 18 | 0 | 63 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 48 | 6 |
+| WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 49 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

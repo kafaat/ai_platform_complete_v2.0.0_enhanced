@@ -32,6 +32,10 @@ COPY services/auth/mfa_runtime.py /app/mfa_runtime.py
 # session_tokens.py is imported by routers/session.py. Keep it in the image or the
 # session router (login/refresh/logout/me) is silently skipped by router_registry.
 COPY services/auth/session_tokens.py /app/session_tokens.py
+# client_address.py is imported by every router that keys a limit/audit row on the client
+# address (AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01). Missing it => those routers
+# (login, register, password reset, ...) are silently skipped by router_registry.
+COPY services/auth/client_address.py /app/client_address.py
 
 # Immutable source identity: generated at image build, never overridden at runtime.
 ARG SAHOOL_GIT_SHA

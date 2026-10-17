@@ -17,6 +17,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: this script runs in a blocking
+# CI step and prints non-ASCII; under LC_ALL=C print() would die with UnicodeEncodeError
+# and report a correct result as a failure. At module level, before anything prints.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 CANONICAL = ROOT / "docs/capability-registry/generated/capability_registry.json"
 LEGACY = ROOT / "capabilities/registry/capabilities.json"

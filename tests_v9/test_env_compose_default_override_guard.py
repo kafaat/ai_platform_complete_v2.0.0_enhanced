@@ -157,7 +157,14 @@ def test_the_real_measured_defect_is_caught():
     تغييرٍ صحيح. والمقيسُ هنا **أنّ الرسالة تُسمّي افتراضَ compose** — لا نصُّ
     الافتراض؛ فيُقرأ من `compose_defaults` نفسِها.
     """
-    defaults = guard.compose_defaults(guard._read(guard.COMPOSE))
+    # NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01: عملاءُ الوسيط لم يعودوا
+    # يقرؤون `NATS_URL` — كلُّ خدمةٍ تبني عنوانَها بهويّتها (ومنعُ العنوان المشترك لكلّ عميلٍ في
+    # tests_v9/test_nats_least_privilege.py). فالمرساةُ تبقى على **صيغتها الحرفيّة كما كانت** (آخرُ
+    # صيغةٍ قبل الهويّات) لا على الشجرة.
+    historical = (
+        "      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}\n"
+    )
+    defaults = guard.compose_defaults(historical)
     problems = guard.violations(defaults, {"NATS_URL": "nats://localhost:4222"})
     assert len(problems) == 1, f"الحارس لا يرى العطل المقيس: {problems}"
     expected = defaults["NATS_URL"]

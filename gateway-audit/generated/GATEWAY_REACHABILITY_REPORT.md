@@ -26,14 +26,14 @@
 - Upstreams: 15
 - Proxied locations: 17
 - Review findings: 2
-- Upstream hosts absent from compose inventory: none
+- Upstream hosts absent from compose inventory: actuator-service, agriai-engine, auth-service, edge-inference, erp-bridge, fastbee, frontend, local-ai-rag, market-mcp, sentinel-hub-mcp, supervisor-agent, video-processor, weather-mcp, wofost-mcp, zlmediakit
 
 ### `nginx/nginx.light.conf`
 
 - Upstreams: 7
 - Proxied locations: 8
 - Review findings: 1
-- Upstream hosts absent from compose inventory: none
+- Upstream hosts absent from compose inventory: sahool-actuator, sahool-supervisor
 
 ### `nginx/nginx.fixed.conf`
 
@@ -46,4 +46,4 @@
 
 Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.
 
-Content SHA-256: `0dfdce97d00f6e660638873987c83b6f82a2d726a1d7655f01536b59de120484`
+Content SHA-256: `2c8b0a741fcf6be66c9913275f1b32139805586d5bff1a6f6eab2b1e457ea172`

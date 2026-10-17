@@ -1,9 +1,26 @@
 #!/usr/bin/env python3
 """Generate a conservative static NATS/JetStream event contract graph.
 
-Only literal subjects passed directly to publish/subscribe calls are treated as
-resolved contracts. Dynamic subjects are inventoried separately and never
-classified as missing producers/consumers.
+Only literal subjects reaching publish/subscribe calls are treated as resolved
+contracts. Dynamic subjects are inventoried separately and never classified as
+missing producers/consumers.
+
+A subject passed as a *name* is resolved only in two provable shapes, each tagged
+in ``resolution`` so a reader can tell them from a literal argument:
+
+* ``module_constant_loop`` -- ``for subject in SUBJECTS: js.subscribe(subject)``
+  where ``SUBJECTS`` is a module-level tuple/list of string literals (one contract
+  per literal);
+* ``local_token_template`` -- ``subject = f"sahool.tenant.{t}.x.{f}.done"`` assigned
+  exactly once in the enclosing function, every placeholder filling a whole
+  dot-delimited token; each placeholder becomes the NATS single-token wildcard ``*``
+  (the same pattern a subscriber declares).
+
+Why (2026-10-17, WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01): the only literal
+NATS edges this scanner ever saw belonged to ``weather-polygon-worker`` -- a scaffold
+subscribed to a subject with no publisher. Removing it left the graph with zero
+EMITS/CONSUMES while the platform's real flows (vegetation's satellite event, the
+canonical learning worker's subscriptions) stayed invisible behind a variable.
 """
 
 from __future__ import annotations
@@ -52,6 +69,7 @@ class Contract:
     durable: str | None = None
     queue: str | None = None
     dynamic_expr: str | None = None
+    resolution: str = "literal"
 
 
 def py_files() -> Iterable[Path]:
@@ -94,6 +112,99 @@ def keyword(call: ast.Call, name: str) -> ast.AST | None:
     return next((k.value for k in call.keywords if k.arg == name), None)
 
 
+def _module_literal_sequences(tree: ast.Module) -> dict[str, list[str]]:
+    """``NAME = ("a", "b")`` at module level, every element a string literal."""
+    out: dict[str, list[str]] = {}
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and isinstance(node.value, ast.Tuple | ast.List)
+            and node.value.elts
+            and all(literal(e) is not None for e in node.value.elts)
+        ):
+            out[node.targets[0].id] = [literal(e) for e in node.value.elts]  # type: ignore[misc]
+    return out
+
+
+def _token_template(node: ast.AST) -> str | None:
+    """f-string whose every placeholder fills a whole dot-delimited token ⇒ ``*``."""
+    if not isinstance(node, ast.JoinedStr):
+        return None
+    text = ""
+    for value in node.values:
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            text += value.value
+        elif isinstance(value, ast.FormattedValue):
+            text += "\0"
+        else:
+            return None
+    tokens = text.split(".")
+    if not tokens or tokens[0] != "sahool":
+        return None
+    out = []
+    for token in tokens:
+        if "\0" in token and token != "\0":
+            return None  # placeholder shares a token with literal text: not a NATS token
+        out.append("*" if token == "\0" else token)
+    return ".".join(out) if "*" in out else None
+
+
+def _function_resolutions(
+    func: ast.AST, module_seqs: dict[str, list[str]]
+) -> dict[str, tuple[list[str], str]]:
+    """name ⇒ (subjects, resolution) inside one function, in the two provable shapes."""
+    params = {
+        a.arg
+        for a in [
+            *func.args.posonlyargs,  # type: ignore[attr-defined]
+            *func.args.args,  # type: ignore[attr-defined]
+            *func.args.kwonlyargs,  # type: ignore[attr-defined]
+        ]
+    }
+    assigned: dict[str, list[ast.AST]] = defaultdict(list)
+    loops: dict[str, list[ast.AST]] = defaultdict(list)
+    for node in ast.walk(func):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigned[target.id].append(node.value)
+        elif isinstance(node, ast.AnnAssign | ast.AugAssign) and isinstance(node.target, ast.Name):
+            assigned[node.target.id].append(node.value or node)
+        elif isinstance(node, ast.For | ast.AsyncFor) and isinstance(node.target, ast.Name):
+            loops[node.target.id].append(node.iter)
+    out: dict[str, tuple[list[str], str]] = {}
+    for name, iters in loops.items():
+        if name in params or name in assigned or len(iters) != 1:
+            continue
+        it = iters[0]
+        if isinstance(it, ast.Name) and it.id in module_seqs:
+            out[name] = (module_seqs[it.id], "module_constant_loop")
+    for name, values in assigned.items():
+        if name in params or name in loops or len(values) != 1:
+            continue
+        template = _token_template(values[0])
+        if template:
+            out[name] = ([template], "local_token_template")
+    return out
+
+
+def _enclosing_functions(tree: ast.Module) -> dict[int, ast.AST]:
+    """id(call) ⇒ innermost enclosing function."""
+    owner: dict[int, ast.AST] = {}
+
+    def visit(node: ast.AST, func: ast.AST | None) -> None:
+        for child in ast.iter_child_nodes(node):
+            inner = child if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef) else func
+            if isinstance(child, ast.Call) and inner is not None:
+                owner[id(child)] = inner
+            visit(child, inner)
+
+    visit(tree, None)
+    return owner
+
+
 def parse_file(path: Path) -> list[Contract]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"), filename=str(path))
@@ -101,6 +212,9 @@ def parse_file(path: Path) -> list[Contract]:
         return []
     rel = path.relative_to(ROOT).as_posix()
     comp = component_for(path)
+    module_seqs = _module_literal_sequences(tree)
+    owners = _enclosing_functions(tree)
+    resolutions: dict[int, dict[str, tuple[list[str], str]]] = {}
     rows: list[Contract] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
@@ -116,23 +230,32 @@ def parse_file(path: Path) -> list[Contract]:
         subject_node = node.args[0] if node.args else keyword(node, "subject")
         if subject_node is None:
             continue
-        subj = literal(subject_node)
         kind = "producer" if method in PUBLISH_NAMES else "consumer"
         durable = literal(keyword(node, "durable"))
         queue = literal(keyword(node, "queue"))
-        rows.append(
-            Contract(
-                kind=kind,
-                subject=subj,
-                file=rel,
-                line=getattr(node, "lineno", 0),
-                component=comp,
-                client_expr=client,
-                durable=durable,
-                queue=queue,
-                dynamic_expr=None if subj is not None else expr_text(subject_node),
+        subj = literal(subject_node)
+        resolved: tuple[list[str], str] | None = None
+        func = owners.get(id(node))
+        if subj is None and isinstance(subject_node, ast.Name) and func is not None:
+            if id(func) not in resolutions:
+                resolutions[id(func)] = _function_resolutions(func, module_seqs)
+            resolved = resolutions[id(func)].get(subject_node.id)
+        subjects, resolution = resolved or ([subj], "literal")
+        for subject in subjects:
+            rows.append(
+                Contract(
+                    kind=kind,
+                    subject=subject,
+                    file=rel,
+                    line=getattr(node, "lineno", 0),
+                    component=comp,
+                    client_expr=client,
+                    durable=durable,
+                    queue=queue,
+                    dynamic_expr=None if subject is not None else expr_text(subject_node),
+                    resolution=resolution if subject is not None else "dynamic",
+                )
             )
-        )
     return rows
 
 
@@ -199,6 +322,7 @@ def build() -> dict:
         "scope": "static_literal_nats_jetstream_contracts",
         "limitations": [
             "Dynamic subjects are review-only and excluded from missing producer/consumer findings.",
+            "A subject passed as a name is resolved only from a loop over a module-level tuple of literals or a single local f-string whose placeholders fill whole tokens (as '*'); see each contract's resolution.",
             "Static presence does not prove stream provisioning, delivery, acknowledgement, or runtime reachability.",
             "Producer-only and consumer-only subjects may be intentional external boundaries.",
         ],
@@ -249,7 +373,7 @@ def write(data: dict) -> None:
 
 ## Scope
 
-Conservative static inventory of literal NATS/JetStream subjects. Dynamic subjects are listed but are not used to declare missing producers or consumers.
+Conservative static inventory of literal NATS/JetStream subjects (a name argument is resolved only from a loop over a module-level tuple of literals, or a single local f-string whose placeholders fill whole tokens, rendered as `*`). Dynamic subjects are listed but are not used to declare missing producers or consumers.
 
 ## Summary
 

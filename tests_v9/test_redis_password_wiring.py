@@ -37,12 +37,9 @@ _INTERP = re.compile(r"\$\{REDIS_PASSWORD(?:[:?-][^}]*)?\}")
 
 #: الحزمُ التي تُقلِع Redis بكلمة سرٍّ ولها عملاء — لكلٍّ منها عميلٌ واحدٌ على الأقلّ،
 #: وإلّا صارت الخاصّيّةُ فارغةً فتمرّ بلا معنى.
-_BUNDLES_WITH_CLIENTS = (
-    "docker-compose.v9.yml",
-    "docker-compose.fixed.yml",
-    "docker-compose.light.yml",
-    "docker-compose.unified.yml",
-)
+# fixed/light/unified أُخرِجت: نُقلت إلى docs/history/compose/ بقرار مالك
+# (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+_BUNDLES_WITH_CLIENTS = ("docker-compose.v9.yml",)
 
 
 @functools.cache
@@ -112,7 +109,9 @@ def test_every_passworded_bundle_has_clients_to_check():
     seen = {row[0] for row in _CLIENTS}
     missing = [b for b in _BUNDLES_WITH_CLIENTS if b not in seen]
     assert not missing, f"لم يُعثَر على عميل Redis في: {missing} — انهار التحليل"
-    assert len(_CLIENTS) >= 30, len(_CLIENTS)
+    # 30 → 12 (2026-10-17): المقيس على main@0e528161 كان 12 في v9 + 18 في المكدّسات الثلاثة
+    # المنقولة إلى التاريخ؛ أرضيّةُ v9 نفسُها لم تنزل.
+    assert len(_CLIENTS) >= 12, len(_CLIENTS)
 
 
 @pytest.mark.parametrize(
@@ -205,7 +204,9 @@ def test_a_hex_password_round_trips_through_every_client_url_and_base64_does_not
         raw_urls += re.findall(
             r"redis://:\$\{REDIS_PASSWORD[^}]*\}@[^\s\"']+", path.read_text(encoding="utf-8")
         )
-    assert len(raw_urls) >= 25, len(raw_urls)  # 29 موضعاً نصّيّاً مقيساً (المرساةُ مرّةً)
+    # 25 → 13 (2026-10-17): 29 موضعاً كانت 13 في v9 + 16 في fixed/light/unified المنقولة إلى
+    # docs/history/compose/؛ مواضعُ v9 كلُّها باقية.
+    assert len(raw_urls) >= 13, len(raw_urls)
     hex_pw, b64_pw = "9c2e" * 16, "q0Zk/8Xr+Jm2Lw4="
     for url in raw_urls:
         assert parse_url(_INTERP.sub(hex_pw, url)).get("password") == hex_pw, url

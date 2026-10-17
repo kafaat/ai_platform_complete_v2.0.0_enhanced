@@ -20,11 +20,10 @@
   "production_stacks": {
     "$comment": "مكدّساتٌ لا يجوز منحُها استثناءً إطلاقاً. الاستثناء التجريبيّ لا يُعمَّم إلى الإنتاج، والحارس يرفض مفتاحَ استثناءٍ يقع على أيٍّ من هذه بغضّ النظر عمّا يُعلِنه المدخل عن نفسه.",
     "files": [
-      "docker-compose.unified.yml",
       "docker-compose.v9.yml",
-      "docker-compose.fixed.yml",
       "docker-compose.production.yml"
-    ]
+    ],
+    "history_note": "2026-10-17: أُخرِج docker-compose.unified.yml وdocker-compose.fixed.yml — بديلان نُقلا إلى docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01)؛ v9 وحدَه يُعرّف المكدّس، والإنتاجُ هو v9 + تراكب production."
   },
   "sinks": {
     "QDRANT__SERVICE__API_KEY": {
@@ -34,7 +33,7 @@
       "requirement": "non_empty",
       "allowed_form": "${QDRANT_API_KEY:?…}",
       "why": "متغيّرُ الضبط الذي يُفعّل استيثاق Qdrant. مفتاحٌ فارغ يُعامَل كغير مضبوط، فتُقلِع الخدمة بلا مصادقة وتقبل كلّ طلب — أي أنّ «لم يصل السرّ» تنقلب إلى «أقلعت بلا الاستيثاق المقصود».",
-      "exposure_measured": "المنفذ مربوطٌ بـ127.0.0.1:6333 في docker-compose.unified.yml — الخطرُ «خدمةٌ محلّيّة بلا مصادقة» لا «مكشوفةٌ للعالم». وحدُّ الثقة يتّسع لكلّ عمليّةٍ أو مستخدمٍ محلّيّ، ولأيّ مسار وكيلٍ يُضاف لاحقاً.",
+      "exposure_measured": "(مقيسٌ 2026-08-20 على docker-compose.unified.yml، المنقول اليوم إلى docs/history/compose/) المنفذ مربوطٌ بـ127.0.0.1:6333 — الخطرُ «خدمةٌ محلّيّة بلا مصادقة» لا «مكشوفةٌ للعالم». وحدُّ الثقة يتّسع لكلّ عمليّةٍ أو مستخدمٍ محلّيّ، ولأيّ مسار وكيلٍ يُضاف لاحقاً.",
       "not_behind_profile": "مقيس: خدمة qdrant في unified.yml وv9.yml بلا `profiles:` — فالاستيفاء `:?` لا يكسر المكدّس الافتراضيّ (وهو القيد الذي فرض `:-` الفارغة في مواضع أخرى).",
       "measured_on": "2026-08-20",
       "gap": "SEC-QDRANT-AUTH-FAIL-CLOSED-01"
@@ -75,22 +74,6 @@
         "measured_on": "2026-08-21"
       },
       "docker-compose.v9.yml::sahool-qdrant-seed::QDRANT_API_KEY": {
-        "service": "sahool-qdrant-seed",
-        "source_env": "QDRANT_API_KEY",
-        "policy": "REQUIRED_NONEMPTY",
-        "allowed_form": "${QDRANT_API_KEY:?…}",
-        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
-        "measured_on": "2026-08-21"
-      },
-      "docker-compose.fixed.yml::sahool-local-ai-rag::QDRANT_API_KEY": {
-        "service": "sahool-local-ai-rag",
-        "source_env": "QDRANT_API_KEY",
-        "policy": "REQUIRED_NONEMPTY",
-        "allowed_form": "${QDRANT_API_KEY:?…}",
-        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
-        "measured_on": "2026-08-21"
-      },
-      "docker-compose.fixed.yml::sahool-qdrant-seed::QDRANT_API_KEY": {
         "service": "sahool-qdrant-seed",
         "source_env": "QDRANT_API_KEY",
         "policy": "REQUIRED_NONEMPTY",

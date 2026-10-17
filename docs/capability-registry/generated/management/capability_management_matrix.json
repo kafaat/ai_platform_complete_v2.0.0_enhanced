@@ -732,7 +732,7 @@
         "web": false,
         "mobile": false,
         "tests": true,
-        "governance": false,
+        "governance": true,
         "other_evidence": true
       },
       "coverage_dimension_count": 5,

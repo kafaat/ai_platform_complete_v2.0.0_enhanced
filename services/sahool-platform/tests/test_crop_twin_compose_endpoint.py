@@ -97,7 +97,7 @@ async def test_response_shape():
 
 async def test_taw_derived_from_texture():
     out = await compose_crop_twin(req=_req(), user=_USER)
-    assert out["water_state"]["taw_mm"] == pytest.approx(175.0)  # loam × 1.0 م
+    assert out["water_state"]["taw_mm"] == pytest.approx(150.0)  # loam FAO-56 150 مم/م × 1.0 م
 
 
 async def test_dynamic_kc_from_ndvi():

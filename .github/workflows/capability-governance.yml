@@ -205,6 +205,12 @@ jobs:
             --pr-number "$PR_NUMBER" \
             --pr-body-file /tmp/pr-body.txt \
             --output /tmp/capability-impact.json
+      # GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01: المتنُ الحيُّ نفسُه الذي جُلِب
+      # أعلاه — ملاحظةُ مراجعةٍ موسومةٌ بخطورة في متن الـPR تسمّي معرّفاً مسجَّلاً.
+      # `!cancelled()`: يُقاس ولو حمرت بوّابةُ الأثر، فلا يختبئ حكمٌ خلف حكم.
+      - name: Labelled review findings in the PR body must name a registered gap ID
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        run: python scripts/ci/pr_finding_gap_id_guard.py --pr-body-file /tmp/pr-body.txt
       - name: Validate PATH-1 static governance closure
         run: python scripts/ci/static_governance_closure.py --check
       - name: Run capability governance + architecture-graph tests

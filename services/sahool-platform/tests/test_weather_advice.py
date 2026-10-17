@@ -5,7 +5,7 @@
 لا حاجة لقاعدة أو شبكة — منطق نقيّ بالكامل.
 """
 
-from api.water_balance import KC_BY_CROP_STAGE
+from api.water_balance import kc_map_for_crop
 from api.weather_advice import disease_risk, irrigation_advice, resolve_kc
 
 
@@ -13,13 +13,13 @@ class TestResolveKc:
     def test_known_crop_uses_fao_table(self):
         kc, known, source = resolve_kc("wheat", "mid")
         assert known is True
-        assert kc == KC_BY_CROP_STAGE["wheat"]["mid"]
+        assert kc == kc_map_for_crop("wheat")[0]["mid"]
         assert "FAO-56" in source
 
     def test_case_insensitive_and_trimmed(self):
         kc, known, _ = resolve_kc("  Wheat  ", "mid")
         assert known is True
-        assert kc == KC_BY_CROP_STAGE["wheat"]["mid"]
+        assert kc == kc_map_for_crop("wheat")[0]["mid"]
 
     def test_unknown_crop_falls_back_and_is_flagged(self):
         kc, known, source = resolve_kc("dragonfruit", "mid")
@@ -95,7 +95,7 @@ class TestPhenologyKcOverride:
     def test_none_override_keeps_stage_based_source(self):
         r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", kc_override=None)
         assert r["kc_source"] != "phenology_fao56"
-        assert r["kc"] == KC_BY_CROP_STAGE["wheat"]["mid"]
+        assert r["kc"] == kc_map_for_crop("wheat")[0]["mid"]
 
     def test_override_scales_etc_higher_than_low_override(self):
         # نفس ET0/المدخلات: Kc أعلى ⇒ ETc أعلى ⇒ ريّ موصى به أكبر.

@@ -324,15 +324,6 @@
       "domain": "media",
       "source_path": "services/video-processor"
     },
-    "weather-polygon-worker": {
-      "authority_kind": "stateless_compute",
-      "component_kind": "worker",
-      "deployment_units": [
-        "sahool-weather-polygon-worker"
-      ],
-      "domain": "weather-truth",
-      "source_path": "services/weather-polygon-worker"
-    },
     "weather-service": {
       "authority_kind": "system_of_record",
       "component_kind": "service",
@@ -362,6 +353,7 @@
     "sahool-minio-init",
     "sahool-nats",
     "sahool-nats-exporter",
+    "sahool-nats-tls-init",
     "sahool-nginx",
     "sahool-nginx-exporter",
     "sahool-nginx-tls-init",
@@ -371,6 +363,7 @@
     "sahool-otel-collector",
     "sahool-pg-exporter",
     "sahool-postgres",
+    "sahool-postgres-tls-init",
     "sahool-prometheus",
     "sahool-qdrant",
     "sahool-redis",

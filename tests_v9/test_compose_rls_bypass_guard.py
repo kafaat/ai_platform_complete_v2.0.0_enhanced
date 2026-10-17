@@ -109,9 +109,14 @@ def test_no_compose_database_url_uses_superuser_role():
 
 @pytest.mark.unit
 def test_fixed_compose_marked_non_canonical():
-    """``docker-compose.fixed.yml`` يبقى مُعلَّماً «ليس القانونيّ» — كي لا يُخلَط بـv9.yml الإنتاجيّ."""
-    path = _REPO_ROOT / "docker-compose.fixed.yml"
-    assert path.exists(), "docker-compose.fixed.yml مفقود"
+    """``docker-compose.fixed.yml`` لا يُخلَط بـv9.yml الإنتاجيّ — كان التمييزُ تعليقاً فيه، وصار
+    موضعَه: نُقل إلى docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-
+    INCOMPATIBLE-01، 2026-10-17)، ويحرس عودتَه إلى الجذر scripts/ci/compose_roster_guard.py."""
+    assert not (_REPO_ROOT / "docker-compose.fixed.yml").exists(), (
+        "docker-compose.fixed.yml عاد إلى الجذر — v9 وحدَه يُعرّف المكدّس"
+    )
+    path = _REPO_ROOT / "docs" / "history" / "compose" / "docker-compose.fixed.yml"
+    assert path.exists(), "docs/history/compose/docker-compose.fixed.yml مفقود"
     text = path.read_text(encoding="utf-8")
     assert "ليس القانونيّ" in text or "docker-compose.v9.yml" in text, (
         "اختفى تمييز fixed.yml عن الإنتاجيّ — أعِد الإشارة إلى أنّ القانونيّ هو docker-compose.v9.yml."

@@ -215,7 +215,9 @@ def test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason(
 
 
 def test_every_documented_sam2_compose_surface_wires_checkpoint_digest():
-    for rel in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+    # docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    for rel in ("docker-compose.v9.yml",):
         text = (ROOT / rel).read_text(encoding="utf-8")
         assert "sahool-sam2-inference:" in text
         assert "SAM2_CHECKPOINT_SHA256: ${SAM2_CHECKPOINT_SHA256:-}" in text

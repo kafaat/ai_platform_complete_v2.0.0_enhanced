@@ -29,6 +29,13 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: this script runs in a blocking
+# CI step and prints non-ASCII; under LC_ALL=C print() would die with UnicodeEncodeError
+# and report a correct result as a failure. At module level, before anything prints.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REPO = Path(__file__).resolve().parent.parent
 MIGRATIONS = REPO / "migrations"
 ROUTERS = REPO / "services" / "sahool-platform" / "api" / "routers"
@@ -235,36 +242,43 @@ def check_nats_subjects() -> Result:
 # ════════════════════════════════════════════════════════════
 # 3b. تغطية ناشري NATS (H2) — حارس عكسيّ: كلّ مُستهلَك له منتِج أو waiver
 # ════════════════════════════════════════════════════════════
+# مواضع إعلان ``SUBSCRIPTIONS`` (tuples في حلقة لا ``.subscribe("literal")``). كان الحارس
+# يقرأ ``agents/notification/agent.py`` وحده، فلمّا نُقلت القائمة إلى
+# ``shared/notification_consumers.py`` (والوكيل يستوردها فقط) صار يرى صفراً منها ويمرّ
+# بلا قياس — WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01. يُقرأ الموضعان معاً.
+_SUBSCRIPTION_SOURCES = (
+    Path("agents") / "notification" / "agent.py",
+    Path("shared") / "notification_consumers.py",
+)
+
+
 def _consumed_subjects() -> dict[str, str]:
-    """الموضوعات المُستهلَكة: قائمة ``SUBSCRIPTIONS`` في وكيل الإشعارات (عبر AST،
-    إذ هي tuples في حلقة لا ``.subscribe("literal")``) + أيّ ``.subscribe("literal")``
-    عبر ``services/`` و``agents/``. يُرجِع {subject: location}.
+    """الموضوعات المُستهلَكة: قوائم ``SUBSCRIPTIONS`` في ``_SUBSCRIPTION_SOURCES`` (عبر
+    AST) + أيّ ``.subscribe("literal")`` عبر ``services/`` و``agents/``. يُرجِع
+    {subject: location}.
     """
     import ast
 
     consumed: dict[str, str] = {}
-    agent_py = REPO / "agents" / "notification" / "agent.py"
-    if agent_py.exists():
+    for rel in _SUBSCRIPTION_SOURCES:
+        src_py = REPO / rel
+        if not src_py.exists():
+            continue
         try:
-            tree = ast.parse(_read(agent_py))
-            for node in ast.walk(tree):
-                if (
-                    isinstance(node, ast.Assign)
-                    and any(
-                        isinstance(t, ast.Name) and t.id == "SUBSCRIPTIONS" for t in node.targets
-                    )
-                    and isinstance(node.value, ast.List | ast.Tuple)
-                ):
-                    for elt in node.value.elts:
-                        if isinstance(elt, ast.Tuple | ast.List) and elt.elts:
-                            first = elt.elts[0]
-                            if isinstance(first, ast.Constant) and isinstance(first.value, str):
-                                consumed.setdefault(
-                                    first.value,
-                                    f"{agent_py.relative_to(REPO)}:SUBSCRIPTIONS",
-                                )
+            tree = ast.parse(_read(src_py))
         except SyntaxError:
-            pass
+            continue
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == "SUBSCRIPTIONS" for t in node.targets)
+                and isinstance(node.value, ast.List | ast.Tuple)
+            ):
+                for elt in node.value.elts:
+                    if isinstance(elt, ast.Tuple | ast.List) and elt.elts:
+                        first = elt.elts[0]
+                        if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                            consumed.setdefault(first.value, f"{rel.as_posix()}:SUBSCRIPTIONS")
     sub_re = re.compile(r'\.subscribe\(\s*["\']([^"\']+)["\']')
     for base in (SERVICES, REPO / "agents"):
         if not base.exists():

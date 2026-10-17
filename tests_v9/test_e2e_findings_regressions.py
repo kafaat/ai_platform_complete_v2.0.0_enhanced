@@ -115,7 +115,9 @@ async def test_wofost_invalid_arguments_are_422_not_500(monkeypatch):
 
 
 def test_compose_wires_mfa_key_and_outbox_switch():
-    for compose in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+    # docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    for compose in ("docker-compose.v9.yml",):
         source = _source(compose)
         assert "MFA_SECRET_ENCRYPTION_KEY:" in source
         assert "FEATURE_NATS_PUBLISHERS:" in source
@@ -149,14 +151,20 @@ def _service_block(source: str, service_name: str) -> str:
 
 
 # nginx bundle -> (compose file that mounts it, nginx service name in that compose).
+# COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 (2026-10-17): fixed/unified/light moved to
+# docs/history/compose/ by owner decision, so only v9 still mounts a gateway. Their nginx configs
+# remain in nginx/ and keep every nginx-level assertion below (_HISTORICAL_NGINX); only the
+# checks that need a live compose mounting them are limited to v9.
 _NGINX_BUNDLES = {
     "nginx/nginx.v9.conf": ("docker-compose.v9.yml", "sahool-nginx"),
-    "nginx/nginx.fixed.conf": ("docker-compose.fixed.yml", "sahool-nginx"),
-    "nginx/nginx.unified.conf": ("docker-compose.unified.yml", "nginx"),
-    "nginx/nginx.light.conf": ("docker-compose.light.yml", "nginx"),
 }
-# Every nginx config that proxies browser/API traffic (the four bundles + the SPA container).
-_NGINX_CONFIGS = (*_NGINX_BUNDLES, "frontend/nginx.conf")
+_HISTORICAL_NGINX = (
+    "nginx/nginx.fixed.conf",
+    "nginx/nginx.unified.conf",
+    "nginx/nginx.light.conf",
+)
+# Every nginx config that proxies browser/API traffic (the bundles + the SPA container).
+_NGINX_CONFIGS = (*_NGINX_BUNDLES, *_HISTORICAL_NGINX, "frontend/nginx.conf")
 
 
 def _nginx_live(text: str) -> str:
@@ -186,10 +194,9 @@ def _location_blocks(text: str) -> list[tuple[str, str]]:
 
 
 def test_v25_live_audit_wiring_regressions():
+    # fixed/unified left the tree's live stacks (docs/history/compose/, 2026-10-17).
     variants = {
         "docker-compose.v9.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
-        "docker-compose.fixed.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
-        "docker-compose.unified.yml": ("supervisor-agent", "local-ai-rag"),
     }
 
     # Finding #6: the tiler must recover after daemon restarts; it is v9-only — fixed/unified
@@ -224,12 +231,14 @@ def test_v25_live_audit_wiring_regressions():
     # after a container is replaced. The resolve parameter requires a shared-memory
     # upstream zone and nginx >= 1.27.3. Previously only v9 was asserted, so fixed and
     # unified (26 upstreams) and light (7) kept the audit's boot-time-pinned 502.
-    for conf, (compose, service) in _NGINX_BUNDLES.items():
-        nginx_service = _service_block(_source(compose), service)
-        assert f"./{conf}:" in nginx_service, (compose, conf)
-        image = re.search(r"image:\s*nginx:(\d+)\.(\d+)\.(\d+)-alpine\b", nginx_service)
-        assert image is not None, f"{compose}: nginx image must be a pinned version tag"
-        assert tuple(int(p) for p in image.groups()) >= (1, 27, 3), compose
+    for conf in (*_NGINX_BUNDLES, *_HISTORICAL_NGINX):
+        if conf in _NGINX_BUNDLES:
+            compose, service = _NGINX_BUNDLES[conf]
+            nginx_service = _service_block(_source(compose), service)
+            assert f"./{conf}:" in nginx_service, (compose, conf)
+            image = re.search(r"image:\s*nginx:(\d+)\.(\d+)\.(\d+)-alpine\b", nginx_service)
+            assert image is not None, f"{compose}: nginx image must be a pinned version tag"
+            assert tuple(int(p) for p in image.groups()) >= (1, 27, 3), compose
 
         nginx = _nginx_live(_source(conf))
         assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx, conf
@@ -297,6 +306,15 @@ def test_every_bundle_routes_the_spa_to_the_port_the_frontend_image_listens_on()
     resolved, never *where* it lands, and the older pin `"frontend:80" in src` is a substring
     of both ports. The port is derived from the image build here, not typed."""
     ports = _frontend_image_listen_ports()
+    # The historical configs have no live compose any more; their SPA upstream port still must
+    # match the image, so the regression this test records cannot come back through them.
+    for conf in _HISTORICAL_NGINX:
+        upstreams = dict(
+            re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", _nginx_live(_source(conf)))
+        )
+        servers = re.findall(r"\bserver\s+([A-Za-z0-9_.-]+):(\d+)\b", upstreams["frontend_backend"])
+        assert servers, conf
+        assert all(int(port) in ports for _, port in servers), (conf, servers, ports)
     for conf, (compose_file, _nginx_service) in _NGINX_BUNDLES.items():
         services = yaml.safe_load(_source(compose_file))["services"]
         frontends = {

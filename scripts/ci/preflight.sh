@@ -417,6 +417,15 @@ run "٢و) text_encoding_locale" python3 -m pytest -q tests_v9/test_text_encodin
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
+# ٣د) C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: §١٠ب تُشعِل `*_guard.py`
+# وحدها تحت لغة C؛ هذا يجرد **كلّ** ما تُشغّله خطوةٌ حاجبة ويقرأ المقدّمةَ من AST —
+# ساكنٌ لا يكتب في الشجرة (~٢ث)، فموضعُه الطبقةُ السريعة.
+require_file scripts/ci/ci_invoked_locale_preamble_guard.py "٣د) ci_invoked_locale_preamble" \
+  && run "٣د) ci_invoked_locale_preamble" python3 scripts/ci/ci_invoked_locale_preamble_guard.py
+# ٣ﻫ) TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01: مرساةٌ على ربطٍ ميّت أو تشترط هروباً
+# نوعيّاً حرفيّاً (`as any` · `@ts-ignore` · `# noqa`) — ساكنٌ، ثوانٍ، بلا تشغيل اختبار.
+require_file scripts/ci/text_anchor_liveness_guard.py "٣ﻫ) text_anchor_liveness" \
+  && run "٣ﻫ) text_anchor_liveness" python3 scripts/ci/text_anchor_liveness_guard.py
 
 # ── ٣ج) نصفُ حارس الطفرات الذي **يزرع** — مقصوراً على ما مسّه تغييرك ────────
 # GUARD-MUTATION-PLANTING-HALF-WAS-NEVER-LOCAL-01: خطوة ٣ب أعلاه تفحص **المواصفة**،
@@ -539,6 +548,9 @@ require_file scripts/ci/brain_annotated_supersession_guard.py "٦و) brain_annot
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
+  # ٦ز) GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01: ملاحظةُ مراجعةٍ موسومةٌ بخطورة
+  # في رسائل الالتزامات تسمّي معرّفاً مسجَّلاً (الوجهُ المقابل لـ٦ج).
+  run "٦ز) pr_finding_gap_id"      python3 scripts/ci/pr_finding_gap_id_guard.py --base "$BASE" --head HEAD
   # ٦هـ: كان غائباً هنا وحاضراً في CI (`no-report-only-change.yml`)، فمرّ تقلّصٌ في سجلّ
   # الدماغ أخضرَ محلّيّاً ثمّ حجب بـ`JOURNAL_SHRANK` — GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01.
   run "٦هـ) brain_append_only"      python3 scripts/ci/brain_append_only_guard.py --base "$BASE" --head HEAD
@@ -687,6 +699,9 @@ if [ -n "$PR_BODY_FILE" ]; then
       echo "   ⊘ متخطّاة: تعذّر حلّ merge-base مع $BASE — **لم تُقَس**"
       skipped=$((skipped + 1))
     fi
+    # ١١ج) GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01: المتنُ وحده، بلا أساس.
+    run "١١ج) pr_finding_gap_id --pr-body-file" \
+      python3 scripts/ci/pr_finding_gap_id_guard.py --pr-body-file "$PR_BODY_FILE"
   fi
 fi
 

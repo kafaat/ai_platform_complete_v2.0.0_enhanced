@@ -81,6 +81,58 @@
       "positive_witness": "test_a_deliberate_history_chain_passes: an intended historical chain of the same gap ID passes; and the guard reads the whole tree, not the diff, so running it in a second job cannot change its verdict.",
       "impact": "merge",
       "$scope_limit_ar": "يُضاف الحارسُ نفسُه دون تغيير إلى وظيفةٍ مطلوبة (Repository Structural Lint)؛ بقيّةُ خطوات no-report-only-change تبقى في وظيفةٍ غير مطلوبة."
+    },
+    "scripts/ci/ci_invoked_locale_preamble_guard.py::ci.yml::lint": {
+      "counterexample": "C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01, measured on main 0e5281614 in a scratch detached worktree under LC_ALL=C LANG=C PYTHONUTF8=0 (PYTHONIOENCODING unset): `python3 tools/sahool_inspector.py` (ci.yml platform-structure-inspector) died with UnicodeEncodeError at line 437 `print(\"\\u2550\" * 64)` and `capability_parity_investment_engine.py --check` died at line 634 — both on their success path (rc=0 under UTF-8). Neither is named *_guard.py, so guard_locale_survival_guard never launched them; the static class inventory flagged 15 such scripts.",
+      "mutation": "test_the_inventory_is_the_class_not_the_naming_convention",
+      "$mutation_ar": "الطفرةُ المسجَّلة تُعيد الجردَ إلى اصطلاح `*_guard.py` فيخرج `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` من البصر، ويقتلها الاختبارُ المسمّى.",
+      "positive_witness": "test_the_preamble_makes_it_pass + test_ascii_only_output_needs_no_preamble: the legitimate remedy (the three-line module-level reconfigure, already carried by guard_locale_survival_guard and guard_catalogue) passes, and a script whose output is ASCII is not asked for one. The guard is static (AST + workflow YAML), launches nothing and writes nothing.",
+      "impact": "merge"
+    },
+    "scripts/ci/text_anchor_liveness_guard.py::ci.yml::lint": {
+      "counterexample": "TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01, measured in #824 (fc88d494): on fc88d494^ this guard reports exactly two anchors — services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:44 (`./sections/FieldWorkspaceMapCard` held only on an unused `lazy(() => import(...))` in App.tsx; the property lived in FieldWorkspaceRouteShell.tsx) and frontend/src/components/maphub/DrawingTools.static.test.ts:57 (regex required `(poly as any)` verbatim, so narrowing the type turned it red). On main 0e5281614 it resolves 2708 positive anchors in 363 test files and flags none.",
+      "mutation": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
+      "$mutation_ar": "الطفرةُ المسجَّلة تعامل كلَّ ربطٍ كأنّه مُستعمَل فتمرّ مرساةُ #824 الميّتة ثانيةً، ويقتلها الاختبارُ المسمّى بنصّ ما قبل #824 حرفيّاً (مُضمَّناً لا مقروءاً من التاريخ، كي لا يُتخطّى في استنساخ CI بعمق ١).",
+      "positive_witness": "test_the_post_824_anchor_where_the_property_lives_passes + test_the_post_824_property_regex_passes + test_an_anchor_on_a_live_lazy_binding_passes: the legitimate remedies #824 applied (anchor the import where it is used; match the guard `!isPivot`, not the cast) pass, and an anchor on a lazy binding that is rendered is not condemned.",
+      "impact": "merge",
+      "$scope_limit_ar": "حدُّ صدقٍ مكتوب: «الخاصّيّةُ تعيش في ملفٍّ آخر» في عمومها غيرُ قابلةٍ للحسم نصّيّاً؛ مرساةٌ على ربطٍ **حيّ** في الملفّ الخطأ تمرّ. يُمسَك الشكلان الميكانيكيّان وحدهما."
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::capability-governance.yml::capability-registry": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::ci.yml::unit-tests": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::no-report-only-change.yml::no-report-only-change": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
+    },
+    "scripts/ci/startup_db_connect_retry_guard.py::ci.yml::structural-lint": {
+      "counterexample": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01, measured on main 0e5281614: 27 docker-compose.v9.yml services depend on sahool-postgres with `condition: service_healthy`, which compose evaluates only on `docker compose up` — a restart-policy restart does not wait. 16 of them failed fast on their first startup connect (9 fixed in this change, 6 behind the GATE-01 freeze, 1 pending removal), and sahool-platform swallowed the refusal and stayed DB-less with /readyz 503. Red on main: tests_v9/test_startup_db_connect_retry.py::test_service_startup_survives_two_refused_connects (e.g. `sahool-auth died on a refused connect: outcome=died:ConnectionRefusedError attempts=1`).",
+      "mutation": "test_an_unclassified_dependant_is_blocked",
+      "$mutation_ar": "طفرةُ الحارس المسجَّلة في guard_mutation_registry.json تُفرِّغ المجموعةَ غير المصنَّفة فتمرّ خدمةٌ جديدة بلا تصنيف — والاختبارُ المسمّى يحمرّ. وطفرةٌ سلوكيّة ثانية في shared/startup_retry.py (الاستسلام على أوّل رفض) يقتلها test_transient_refusals_are_retried_with_exponential_backoff.",
+      "positive_witness": "test_the_guard_is_green_on_the_tree, test_moved_lines_stay_green and test_pending_removal_is_green_before_and_after_the_service_disappears: the legitimate remedy (wrap the first connect in retry_startup_connect, or classify lazy/polling/frozen honestly) passes, anchors are path::function so moved code stays green, and a service removed in a parallel branch is green both before and after it disappears.",
+      "impact": "merge",
+      "$scope_limit_ar": "النطاقُ docker-compose.v9.yml وحده واعتمادُ service_healthy على sahool-postgres وحده؛ connects_lazily يُفحَص داخل وحدة المرساة لا عبر رسم الاستدعاء، وno_postgres_client يفحص مجلّد الخدمة لا shared/."
+    },
+    "scripts/ci/compose_roster_guard.py::ci.yml::structural-lint": {
+      "counterexample": "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01, measured on main 0e528161: 15 tracked compose files besides v9, of which unified/light/fixed defined the stack under other service names (auth-service vs sahool-auth) and 4 were named by no workflow; and docker-compose.production.yml named vegetation-analysis-service and sahool-raster, which do not exist in v9, so `docker compose -f docker-compose.v9.yml -f docker-compose.production.yml config` rejected the project ('neither an image nor a build context') while ci.yml compose-validate skipped the file as an overlay.",
+      "mutation": "test_an_unrostered_compose_file_blocks",
+      "$mutation_ar": "طفرةٌ واحدة مسجَّلة في guard_mutation_registry.json: إسقاطُ نصف مساواة المجموعات (ملفٌّ متعقَّب خارج السجلّ) — يقتلها اختبارُها المسمّى. وأصنافُ العطل الأخرى (مدخلٌ بائت، تراكبٌ يُسمّي خدمةً غائبة، مستهلِكٌ لا يُسمّي الملفّ، اسمُ خدمةٍ مكرَّر، رفيقٌ خارج شبكة v9) مُثبَتةٌ باختباراتٍ اصطناعيّة في الملفّ نفسه.",
+      "positive_witness": "test_the_committed_tree_is_clean and test_a_companion_must_join_a_base_network: the post-decision tree (v9 + 10 declared overlay/test_stack/companion files, alternates in docs/history/compose/) passes, and a companion joining `<project>_sahool-internal` as an external network passes.",
+      "impact": "merge",
+      "$scope_limit_ar": "يقيس الملفّاتِ المتعقَّبة بالاسم (docker-)compose*.y(a)ml وأدوارَها المعلنة ودمجَ أسماء الخدمات وdepends_on؛ لا يُشغّل `docker compose config` (تفعله compose-validate لكلّ overlay فوق v9) ولا يحكم على صحّة بيئة الخدمات."
     }
   }
 }

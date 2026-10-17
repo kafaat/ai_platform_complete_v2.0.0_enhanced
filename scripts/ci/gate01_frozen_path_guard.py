@@ -114,6 +114,25 @@ def _migration_version(name: str) -> str | None:
     return match.group(1) if match else None
 
 
+def same_basename_elsewhere(path: str, root: Path = ROOT) -> list[str]:
+    """ملفّاتٌ حيّةٌ تحمل **الاسمَ الأساسيَّ نفسَه** في مجلّدٍ غير مجلّد ``path``.
+
+    مشيٌ **مُقلَّم**: `rglob` يهبط في `.git` و`node_modules` ثمّ نرفض نتائجَها بعد أن
+    دفعنا ثمنَ المشي. والفرقُ مقيسٌ على هذه الشجرة لكلّ المسارات العشرة:
+    ١٤١٩مس (قبل التسريع) ⇒ ٩١٢مس (`rglob` بالاسم) ⇒ **٩٧مس** بالتقليم. والمشيُ
+    هو الكلفةُ لا عددُ النتائج، فالتقليمُ قبل الهبوط لا بعده.
+    """
+    name = Path(path).name
+    out: set[str] = set()
+    for parent, directories, names in os.walk(root):
+        directories[:] = [d for d in directories if d not in _WALK_PRUNED_DIRS]
+        if name in names:
+            rel = (Path(parent) / name).relative_to(root).as_posix()
+            if rel != path:
+                out.add(rel)
+    return sorted(out)
+
+
 def alias_candidates(frozen_path: str, root: Path = ROOT) -> list[str]:
     """ملفّاتٌ حيّةٌ **تبدو** هي المسارَ المجمَّد الغائب تحت اسمٍ آخر.
 
@@ -128,18 +147,7 @@ def alias_candidates(frozen_path: str, root: Path = ROOT) -> list[str]:
     """
     target = Path(frozen_path)
     version = _migration_version(target.name)
-    out: set[str] = set()
-
-    # مشيٌ **مُقلَّم**: `rglob` يهبط في `.git` و`node_modules` ثمّ نرفض نتائجَها بعد أن
-    # دفعنا ثمنَ المشي. والفرقُ مقيسٌ على هذه الشجرة لكلّ المسارات العشرة:
-    # ١٤١٩مس (قبل التسريع) ⇒ ٩١٢مس (`rglob` بالاسم) ⇒ **٩٧مس** بالتقليم. والمشيُ
-    # هو الكلفةُ لا عددُ النتائج، فالتقليمُ قبل الهبوط لا بعده.
-    for parent, directories, names in os.walk(root):
-        directories[:] = [d for d in directories if d not in _WALK_PRUNED_DIRS]
-        if target.name in names:
-            rel = (Path(parent) / target.name).relative_to(root).as_posix()
-            if rel != frozen_path:
-                out.add(rel)
+    out: set[str] = set(same_basename_elsewhere(frozen_path, root))
 
     if version is not None:
         parent = root / target.parent
@@ -215,6 +223,44 @@ def alias_escape_errors(policy: dict, root: Path = ROOT) -> list[str]:
             f"{frozen_path}: مُعلَنُ الغياب ولكنّ نظيراً حيّاً موجود {extra} — "
             "التجميدُ يحرس اسماً لا ملفّاً. صحّح المسار في السياسة أو أزِل النظير."
         )
+    return errors
+
+
+def not_yet_in_tree_falsified_errors(policy: dict, root: Path = ROOT) -> list[str]:
+    """ادّعاءُ «غيرُ موجودٍ بعد» **قابلٌ للتكذيب** — فيُكذَّب حين تكذّبه الشجرة.
+
+    `FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01`: القائمةُ تُطابَق عضويّةَ
+    سلسلةٍ حرفيّة، فمدخلٌ يُسمّي ملفّاً لم يُنشَأ قطّ يُجمِّد **اسماً لا ملفّاً**.
+    والمقيسُ في سجلّ الفجوة: `migrations/run_migrations.sql` بلا أيّ التزامٍ على كلّ
+    المراجع، والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ ومُعدَّلٌ مراراً —
+    خارجَ التجميد، وعدّلته #954 والبوّابةُ صامتة.
+
+    فمدخلُ `not_yet_in_tree` يُرفَض في حالتين:
+
+    - **قائمٌ في مساره نفسِه** — الادّعاءُ كاذبٌ حرفيّاً؛ أزِله من القائمة.
+    - **اسمُه الأساسيُّ قائمٌ في مجلّدٍ آخر** — الدورُ قائمٌ في الشجرة عند مسارٍ آخر،
+      فالتجميدُ فارغ. جمِّد المسارَ الحقيقيّ.
+
+    **ولا يُسكِته `alias_mismatch_acknowledged`** بخلاف `alias_escape_errors`: الإقرارُ
+    يُوقِّت حكماً معلَّقاً على **نظيرٍ** محتمل، وهذا يحكم على **صدق الادّعاء** نفسِه —
+    وادّعاءٌ تكذّبه الشجرة لا يُصدَّق بإقرار. (والنظيرُ برقم الإصدار يبقى في
+    `alias_escape_errors`: الرقمُ قرينةٌ لا تكذيب.)
+    """
+    errors: list[str] = []
+    for declared in policy.get("not_yet_in_tree") or []:
+        if (root / declared).exists():
+            errors.append(
+                f"{declared}: مُعلَنٌ في `not_yet_in_tree` وهو قائمٌ في مساره — ادّعاءُ الغياب "
+                "كاذب؛ أزِله من القائمة (FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01)."
+            )
+            continue
+        elsewhere = same_basename_elsewhere(declared, root)
+        if elsewhere:
+            errors.append(
+                f"{declared}: مُعلَنٌ «غيرَ موجودٍ بعد» واسمُه قائمٌ في الشجرة عند {elsewhere} — "
+                "التجميدُ يحرس اسماً لم يُنشَأ والملفُّ الحقيقيُّ خارجه. جمِّد المسارَ الحقيقيّ "
+                "في `frozen_paths` (FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01)."
+            )
     return errors
 
 
@@ -540,6 +586,8 @@ def main(argv: list[str] | None = None) -> int:
     # يُكتشَف بالمسّ — يُكتشَف بوجود النظير. ولو رُبِط بالمسّ لبقي صامتاً إلى أن يمسّه
     # أحدٌ، وهو الأوان الذي وُجِد ليسبقه.
     errors = errors + alias_escape_errors(policy)
+    # وتكذيبُ ادّعاء الغياب يجري **دائماً** أيضاً، ولا يُسكِته إقرارُ نظير.
+    errors = errors + not_yet_in_tree_falsified_errors(policy)
     # التحذيرُ يُطبَع في الحالتين: قبل الحجب لأنّه قد يكون سببَ الحجب القادم، وبعد
     # الخضرة لأنّ خضرةً تسكت عن أجلٍ يقترب تُخفي الحجبَ الذي ستراه بعد أسبوع.
     warnings = expiry_warnings(adjudications) + alias_deadline_warnings(policy)

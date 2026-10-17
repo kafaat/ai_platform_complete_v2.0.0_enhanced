@@ -196,6 +196,75 @@ def sandbox_bind_problems(binds, run_id, interpreter=None) -> list[str]:
     return out
 
 
+def closure_digest(closure: dict) -> str:
+    """بصمةُ الإغلاق: كلُّ حقوله عدا بصمته ومصدرِ نسخه (``from_run`` يُضاف عند الربط). تعريفٌ واحد يكتبه run.py
+    في الجرد ويُعاد حسابُه هنا وعند ``--closure-from`` — فلا يُضاف إلى الإغلاق ملفٌّ بلا أن تتغيّر بصمتُه."""
+    import hashlib
+
+    body = {k: v for k, v in closure.items() if k not in ("sha256", "from_run")}
+    return hashlib.sha256(
+        json.dumps(body, sort_keys=True, ensure_ascii=False).encode("utf-8", "surrogateescape")
+    ).hexdigest()
+
+
+_DIR = re.compile(r"dir:(/\S*)")
+_SYMLINK = re.compile(r"symlink:(/[^>]*?)->(.+)")
+CLOSURE_MISSING = (
+    "sandbox.closure مفقود: ربطاتُ مجلّداتٍ (/usr/lib · /usr/bin …) بلا إغلاقٍ من تشغيل جرد — كلُّ ما تحتها مرئيٌّ "
+    "للمحرّك، فلا يُثبَت أنّه لم يقرأ إلّا المعلَن (run.py --inventory --sandbox bwrap ثمّ --closure-from)"
+)
+
+
+def closure_problems(sandbox: dict, run_id) -> list[str]:
+    """صندوقُ المقارنة **ضيّق**: كلُّ ربطِ قراءةٍ ملفٌّ من الإغلاق، أو المُثبَّتُ لهذا التشغيل، أو /sys/fs/cgroup؛ ولا مدخلةَ
+    في الإغلاق مجلّد؛ وبصمةُ الإغلاق تطابق محتواه؛ وملفّاتُه بقيت كما جُردت حتّى نهاية التشغيل."""
+    import posixpath
+
+    closure = sandbox.get("closure")
+    if not isinstance(closure, dict):
+        return [CLOSURE_MISSING]
+    out: list[str] = []
+    if closure.get("sha256") != closure_digest(closure):
+        out.append("بصمةُ الإغلاق لا تطابق محتواه")
+    if closure.get("problems"):
+        out.append(f"إغلاقٌ بمشكلاتٍ من الجرد: {closure['problems'][:3]}")
+    files = closure.get("files")
+    if not isinstance(files, dict) or not files:
+        out.append("closure.files فارغة أو ليست قاموساً")
+        files = {}
+    for path, entry in files.items():
+        if not _clean_abs(path):
+            out.append(f"مدخلةُ إغلاقٍ بمسارٍ غير مطلقٍ مُطبَّع: {path!r}")
+        if not isinstance(entry, dict) or not HEX64.fullmatch(str(entry.get("sha256", ""))):
+            out.append(f"مدخلةُ إغلاقٍ بلا بصمة sha256: {path!r}")
+        if os.path.isdir(path) or (isinstance(entry, dict) and entry.get("kind") == "directory"):
+            out.append(f"مدخلةُ إغلاقٍ مجلّد (يكشف كلَّ ما تحته): {path!r}")
+    if sandbox.get("integrity_after") != "INTACT":
+        out.append(f"integrity_after={sandbox.get('integrity_after')!r}: ملفّاتُ الإغلاق تغيّرت")
+    binds = sandbox.get("binds")
+    if not isinstance(binds, list) or not binds:
+        return out + ["sandbox.binds فارغة أو ليست قائمة"]
+    rws, ros = [], []
+    for b in map(str, binds):
+        m = _BIND.fullmatch(b)
+        if m:
+            (rws if m.group(1) == "rw" else ros).append(m.group(2))
+        elif (d := _DIR.fullmatch(b)) and _clean_abs(d.group(1)):
+            continue  # مجلّدٌ فارغٌ يُنشأ: لا يمنح قراءةَ شيء
+        elif (ln := _SYMLINK.fullmatch(b)) and _clean_abs(ln.group(1)):
+            continue  # رابطٌ لا يمنح وصولاً بنفسه: لا يُرى عبره إلّا ما رُبط
+        else:
+            out.append(f"ربطٌ بصيغةٍ غير مقبولة في الصندوق الضيّق: {b!r}")
+    if len(rws) != 1 or not _clean_abs(rws[0]) or posixpath.basename(rws[0]) != str(run_id):
+        out.append(f"المطلوب ربطُ كتابةٍ واحد لمجلّد ناتج هذا التشغيل ({run_id!r})، وُجد {rws}")
+    rw = rws[0] if len(rws) == 1 else None
+    for path in ros:
+        if path in files or path == "/sys/fs/cgroup" or (rw is not None and path == rw + ".pinned"):
+            continue
+        out.append(f"ربطُ قراءةٍ ليس ملفّاً من الإغلاق ولا المُثبَّت ولا /sys/fs/cgroup: {path!r}")
+    return out
+
+
 def evidence_problems(r: dict) -> list[str]:
     """ما ينقص السجلَّ ليُقارَن أداؤه — **أدلّةٌ** لا أعلام. يُستعمل في run.py لحساب العلَم، وهنا لإعادة حسابه.
 
@@ -219,7 +288,7 @@ def evidence_problems(r: dict) -> list[str]:
         p.append("تشغيلُ جردٍ بـstrace (يُبطئ)")
     # إخفاءٌ صارم (مراجعةُ Copilot على #1133): ``unshare -n -m`` يُبقي نظامَ ملفّات المضيف كلَّه مرئيّاً، فنموذجٌ
     # غيرُ معلَن يؤثّر في الناتج ويمرّ. المقارنةُ تُشترط في جذرٍ فارغ (bwrap) بربطٍ معلَنٍ للقراءة فقط، والربطُ
-    # مُسجَّلٌ في السجلّ؛ وما تحت ربطات النظام نفسها يبقى للجرد المنفصل (``--inventory``).
+    # مُسجَّلٌ في السجلّ؛ وربطاتُ مجلّدات النظام نفسها لا تكفي (v16): يُشترط إغلاقُ جردٍ يُربط ملفّاً ملفّاً.
     sandbox = coord.get("sandbox") or {}
     if sandbox.get("kind") != "bwrap" or not sandbox.get("binds"):
         p.append(
@@ -228,9 +297,17 @@ def evidence_problems(r: dict) -> list[str]:
         )
     else:
         interp = sandbox.get("interpreter")
+        # ربطاتُ المجلّدات وحدها لا تكفي (مقيسٌ: نموذجٌ غيرُ معلَن تحت /usr/lib مرّ ok وقابلاً للمقارنة): يُشترط الإغلاق
         p += [
             f"sandbox: {q}"
-            for q in sandbox_bind_problems(sandbox["binds"], r.get("run_id"), interp)
+            for q in (
+                closure_problems(sandbox, r.get("run_id"))
+                if "closure" in sandbox
+                else [
+                    CLOSURE_MISSING,
+                    *sandbox_bind_problems(sandbox["binds"], r.get("run_id"), interp),
+                ]
+            )
         ]
         # المفسّرُ الذي يُرخِّص بادئتيه هو الذي شُغِّل فعلاً: مسارُه في أمر المنسِّق نفسه
         if interp is not None and (

@@ -19,30 +19,57 @@ Drainage Paper 56)، لا مجرّد ثبات داخليّ:
 from __future__ import annotations
 
 from api.water_balance import (
-    KC_BY_CROP_STAGE,
     _effective_rain,
     kc_from_ndvi,
+    kc_map_for_crop,
 )
+
+# المحاصيل التي كان يغطّيها جدول KC_BY_CROP_STAGE الموازي (حُذِف — PARALLEL-TAW-AND-KC-
+# TABLES-DISAGREE-01). Kc لها الآن من بطاقة المحصول عبر ``kc_map_for_crop`` (المصدر الوحيد).
+_FORMER_TABLE_CROPS = (
+    "wheat",
+    "barley",
+    "sorghum",
+    "maize",
+    "millet",
+    "tomato",
+    "potato",
+    "onion",
+    "alfalfa",
+    "citrus",
+    "date_palm",
+)
+
+
+def _kc(crop: str) -> dict[str, float]:
+    kc_map, known = kc_map_for_crop(crop)
+    assert known, f"{crop}: بلا بطاقة محصول"
+    return kc_map
 
 
 # ── Kc: جدول FAO-56 رقم 12 ──────────────────────────────────────────────────
 def test_kc_mid_season_matches_fao56_table_12():
     # قيم Kc_mid المنشورة (FAO-56 Table 12).
-    assert KC_BY_CROP_STAGE["wheat"]["mid"] == 1.15
-    assert KC_BY_CROP_STAGE["maize"]["mid"] == 1.20
-    assert KC_BY_CROP_STAGE["alfalfa"]["mid"] == 1.20
-    assert KC_BY_CROP_STAGE["tomato"]["mid"] == 1.15
-    assert KC_BY_CROP_STAGE["potato"]["mid"] == 1.15
+    assert _kc("wheat")["mid"] == 1.15
+    assert _kc("maize")["mid"] == 1.20
+    # برسيم: البطاقة تحمل قيمة FAO-56 Table 12 «متوسّط آثار الحشّات» (0.95) لا قيمة
+    # فترة الحشّة الواحدة (1.20) التي كان يحملها الجدول الموازي المحذوف.
+    assert _kc("alfalfa")["mid"] == 0.95
+    assert _kc("tomato")["mid"] == 1.15
+    assert _kc("potato")["mid"] == 1.15
 
 
 def test_kc_stage_ordering_is_physical():
-    for crop, stages in KC_BY_CROP_STAGE.items():
-        assert stages["initial"] <= stages["mid"], f"{crop}: Kc_ini يجب ألّا يتجاوز Kc_mid"
+    for crop in _FORMER_TABLE_CROPS:
+        stages = _kc(crop)
+        # استثناء موثَّق: الحمضيّات دائمة الخضرة (FAO-56 Table 12) Kc_ini 0.70 > Kc_mid 0.65.
+        if crop != "citrus":
+            assert stages["initial"] <= stages["mid"], f"{crop}: Kc_ini يجب ألّا يتجاوز Kc_mid"
         assert 0.2 <= stages["initial"] <= 1.0 and 0.5 <= stages["mid"] <= 1.35, crop
 
 
 def test_kc_from_ndvi_behaviour():
-    kc_map = KC_BY_CROP_STAGE["wheat"]
+    kc_map = _kc("wheat")
     static_kc, fapar = kc_from_ndvi(None, kc_map, "mid")
     assert static_kc == kc_map["mid"] and fapar is None  # NDVI غائب ⇒ ثابت المرحلة
     low_kc, _ = kc_from_ndvi(0.15, kc_map, "mid")
@@ -54,7 +81,7 @@ def test_kc_from_ndvi_behaviour():
 # ── ETc + الاحتياج الصافي ────────────────────────────────────────────────────
 def test_etc_equals_et0_times_kc():
     et0 = 5.0
-    kc = KC_BY_CROP_STAGE["maize"]["mid"]
+    kc = _kc("maize")["mid"]
     assert abs(et0 * kc - 6.0) < 1e-9  # 5.0 × 1.20
 
 

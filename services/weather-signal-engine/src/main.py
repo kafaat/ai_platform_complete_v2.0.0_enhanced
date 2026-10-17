@@ -24,6 +24,8 @@ from pathlib import Path
 import asyncpg
 from core.weather_overlay_pipeline import build_signal_records
 
+from shared.startup_retry import retry_startup_connect
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("weather-signal-engine")
 
@@ -125,7 +127,10 @@ async def run() -> None:
     if not JOBS_DSN:
         log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — المحرّك معطّل")
         return
-    pool = await asyncpg.create_pool(JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4)
+    # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+    pool = await retry_startup_connect(
+        asyncpg.create_pool, JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4
+    )
     _touch_worker_file(READY_FILE)
     _touch_worker_file(HEARTBEAT_FILE)
     log.info("✓ weather-signal-engine بدأ — دورة كلّ %ss", INTERVAL_SEC)

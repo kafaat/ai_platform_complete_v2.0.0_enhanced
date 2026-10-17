@@ -45,6 +45,9 @@ _CROP_ALIASES: dict[str, str] = {
     "فول السوداني": "peanut",
     "peanut": "peanut",
     "groundnut": "peanut",
+    # المفتاح القديم لجدول Kc الموازي المحذوف (water_balance) — يبقى مقبولاً كمدخَل.
+    "dates": "date_palm",
+    "date palm": "date_palm",
 }
 
 
@@ -107,6 +110,33 @@ def crop_kc_profile(crop_id: str | None) -> CropKcProfile | None:
         salt_tolerance_ece=sal.get("threshold_ece_ds_m", 4.0),
         salt_slope_pct=sal.get("slope_pct_per_ds_m", 0.0),
     )
+
+
+# منحنى Kc عامّ (initial/development/mid/late) **للمحاصيل بلا بطاقة فقط** — المصدر الوحيد
+# لهذا الاحتياطيّ (PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01): كانت أربع نسخ منه متفرّقة
+# (water_balance · season_simulation · weather_advice · routers/crop_twin) وإحداها تخالف
+# الباقي (0.75/0.50 بدل 0.8/0.6). تقدير عامّ موسوم «غير مُعرّف» عند المستهلك — لا يُنسَب لمحصول.
+GENERIC_STAGE_KC: dict[str, float] = {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
+
+
+def stage_kc_map(crop_id: str | None) -> dict[str, float] | None:
+    """Kc لكلّ مرحلة مُسمّاة من بطاقة المحصول (المصدر الوحيد لـKc) — أو ``None`` بلا بطاقة.
+
+    الإسقاط من منحنى FAO-56 الرباعيّ (Kc_ini, Kc_mid, Kc_end) إلى أربع مراحل مُسمّاة:
+      initial = Kc_ini · development = (Kc_ini + Kc_mid)/2 (منتصف الصعود الخطّيّ)
+      mid = Kc_mid · late = Kc_end.
+    صدق: لا قيمة مرحلة تُكتَب يدويّاً في أيّ مستهلك — كلّها من البطاقة عبر هذا الإسقاط.
+    """
+    profile = crop_kc_profile(crop_id)
+    if profile is None:
+        return None
+    ini, mid, end = profile.kc_initial, profile.kc_mid, profile.kc_end
+    return {
+        "initial": ini,
+        "development": round((ini + mid) / 2.0, 3),
+        "mid": mid,
+        "late": end,
+    }
 
 
 def stage_kc(crop_id: str | None, days_since_sowing: int | None) -> float | None:

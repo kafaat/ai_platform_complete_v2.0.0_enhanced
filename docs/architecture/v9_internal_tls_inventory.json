@@ -1,0 +1,107 @@
+{
+  "$comment": "جردُ TLS الداخليّ لمكدّس v9 — الخادمان اللذان تسمّيهما الفجوتان وحدهما (NATS على 4222 · Postgres على 5432) وكلُّ عميلٍ لهما في docker-compose.v9.yml. مقيسٌ من compose لا مكتوبٌ باليد، ويُطابِقه tests_v9/test_v9_internal_tls_inventory.py في الاتّجاهين: عميلٌ جديدٌ بلا تحقّقٍ يُسقِط الاختبار، وسطرٌ هنا بلا خدمةٍ يُسقِطه. لا يُدَّعى به أنّ كلَّ قفزةٍ داخليّة مشفَّرة: Redis وMinIO وHTTP بين الخدمات خارج هذا الجرد.",
+  "schema_version": 1,
+  "measured_on": "0e5281614 (origin/main) + claude/w4-tls-20261017, 2026-10-17",
+  "gaps": [
+    "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
+    "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01"
+  ],
+  "nats": {
+    "server": "sahool-nats",
+    "port": 4222,
+    "server_tls": "nats/nats.conf كتلة tls مُلزِمة (tls_required)",
+    "tls_init": "sahool-nats-tls-init",
+    "tls_script": "scripts/tls/ensure_service_tls.sh",
+    "client_trust": "SSL_CERT_DIR=/etc/sahool/nats-ca:/etc/ssl/certs ← ./nats/tls/ca (ro)",
+    "client_verification": "nats-py ssl.create_default_context(): CERT_REQUIRED + فحصُ الاسم sahool-nats",
+    "clients": {
+      "sahool-actuator-dispatch-worker": {
+        "identity": "sahool-actuator-dispatch-worker",
+        "password_env": "NATS_ACTUATOR_WORKER_PASSWORD"
+      },
+      "sahool-canonical-execution-learning-worker": {
+        "identity": "sahool-canonical-execution-learning-worker",
+        "password_env": "NATS_LEARNING_WORKER_PASSWORD"
+      },
+      "sahool-model-registry-worker": {
+        "identity": "sahool-model-registry-worker",
+        "password_env": "NATS_MODEL_WORKER_PASSWORD"
+      },
+      "sahool-notification-agent": {
+        "identity": "sahool-notification-agent",
+        "password_env": "NATS_NOTIFICATION_PASSWORD"
+      },
+      "sahool-phase-runtime-outbox-worker": {
+        "identity": "sahool-phase-runtime-outbox-worker",
+        "password_env": "NATS_OUTBOX_WORKER_PASSWORD"
+      },
+      "sahool-platform": {
+        "identity": "sahool-platform",
+        "password_env": "NATS_PLATFORM_PASSWORD"
+      },
+      "sahool-plugin-runtime-worker": {
+        "identity": "sahool-plugin-runtime-worker",
+        "password_env": "NATS_PLUGIN_WORKER_PASSWORD"
+      },
+      "sahool-reservation-dispatch-relay-worker": {
+        "identity": "sahool-reservation-dispatch-relay-worker",
+        "password_env": "NATS_RELAY_WORKER_PASSWORD"
+      },
+      "sahool-vegetation-analysis": {
+        "identity": "sahool-vegetation-analysis",
+        "password_env": "NATS_VEGETATION_PASSWORD"
+      }
+    }
+  },
+  "postgres": {
+    "server": "sahool-postgres",
+    "port": 5432,
+    "server_tls": "command: ssl=on · ssl_min_protocol_version=TLSv1.2 · ssl_cert_file/ssl_key_file من الحجم postgres-tls",
+    "hba_file": "postgres/pg_hba.conf (local trust · hostnossl reject · hostssl scram-sha-256)",
+    "tls_init": "sahool-postgres-tls-init",
+    "tls_script": "scripts/tls/ensure_service_tls.sh",
+    "client_trust": "PGSSLROOTCERT=/etc/sahool/postgres-ca/ca.pem ← ./postgres/tls/ca (ro)",
+    "client_verification": "PGSSLMODE=verify-full في البيئة، و?sslmode=verify-full&sslrootcert=… في كلّ عنوانٍ افتراضيّ؛ Odoo بـ--db_sslmode من PGSSLMODE",
+    "clients": [
+      "sahool-actuator-dispatch-worker",
+      "sahool-actuator-service",
+      "sahool-agriai-engine",
+      "sahool-auth",
+      "sahool-canonical-execution-learning-worker",
+      "sahool-decision-service",
+      "sahool-erp-bridge",
+      "sahool-field-management",
+      "sahool-guardrails-engine",
+      "sahool-irrigation-reservation-lifecycle-worker",
+      "sahool-market-mcp",
+      "sahool-migrate",
+      "sahool-model-registry-worker",
+      "sahool-notification-agent",
+      "sahool-odoo",
+      "sahool-pg-exporter",
+      "sahool-phase-runtime-outbox-worker",
+      "sahool-platform",
+      "sahool-plugin-runtime-worker",
+      "sahool-raster-backfill-scan-worker",
+      "sahool-raster-cache-invalidation-worker",
+      "sahool-raster-service",
+      "sahool-scout-ingest",
+      "sahool-scout-ingest-projection",
+      "sahool-soil-service",
+      "sahool-supervisor-agent",
+      "sahool-telegram-bot",
+      "sahool-vegetation-analysis",
+      "sahool-water-ledger-worker",
+      "sahool-weather-signal-engine"
+    ]
+  },
+  "unmeasured": [
+    "مصافحةُ TLS داخل مكدّس Docker الحقيقيّ (لا Docker daemon حيث قِيس هذا) — المقيسُ حيّاً: nats-server 2.15.0 وPostgres 16 المحلّيّ بالإعداد نفسِه.",
+    "صورةُ postgis/postgis:15-3.4 بالإصدار 15 لا 16، وuid مستخدم postgres فيها (999) مأخوذٌ من صور Debian الرسميّة لا مقيس.",
+    "وجودُ openssl CLI في python:3.11-slim-bookworm موروثٌ من sahool-nginx-tls-init؛ غيابُه فشلٌ مُسمّى (POSTGRES_TLS_TOOLING_MISSING) لا صمت."
+  ],
+  "out_of_scope": {
+    "railway": "NATS-ON-RAILWAY-STAGING-HAS-NO-AUTH-AND-A-FLOATING-TAG-01 ومكدّسات Railway لم تُمَسّ",
+    "other_compose_stacks": "docker-compose.fixed.yml وغيرُه لا يُركِّب nats.conf ولا pg_hba هذا"
+  }
+}

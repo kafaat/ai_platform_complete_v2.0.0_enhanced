@@ -1,7 +1,7 @@
 {
   "fail_closed": true,
-  "ledger_sha256": "7afd30bd0ae77162c06d17a671df17a2a3fa0235480c64a8a98694d8345239b8",
-  "plan_sha256": "3122693ebf26057c21f458d174ba6b2e9e8543a339fe04a8e167ac5e6f82b58a",
+  "ledger_sha256": "5979ee2cf9660de9ea6ba005c79fa03fc6a583a0327abf72c06ab536e8fdbce8",
+  "plan_sha256": "f1881cd5121822c3b779541e67b5cf67e204bf5667ad5325a36824bbe6c5408c",
   "schema_version": "2.0",
   "services": [
     {
@@ -292,16 +292,6 @@
       "production_certified": false,
       "runtime_verified": false,
       "service": "video-processor",
-      "valid_evidence_count": 0
-    },
-    {
-      "evidence_files": [],
-      "latest_valid_evidence": null,
-      "planned_probe_count": 0,
-      "probeable": false,
-      "production_certified": false,
-      "runtime_verified": false,
-      "service": "weather-polygon-worker",
       "valid_evidence_count": 0
     },
     {

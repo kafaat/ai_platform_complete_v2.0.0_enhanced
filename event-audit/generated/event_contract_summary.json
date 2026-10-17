@@ -1,12 +1,12 @@
 {
-  "consumer_only_subjects": 1,
+  "consumer_only_subjects": 3,
   "cross_component_duplicate_durables": 0,
-  "dynamic_contracts": 16,
+  "dynamic_contracts": 14,
   "files_scanned": 1221,
   "matched_subjects": 0,
   "producer_only_subjects": 1,
   "production_certified": false,
-  "resolved_contracts": 2,
+  "resolved_contracts": 4,
   "runtime_verified": false,
-  "subjects": 2
+  "subjects": 4
 }

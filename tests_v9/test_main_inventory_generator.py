@@ -179,7 +179,13 @@ def test_the_generator_emits_no_verdict(tmp_path, monkeypatch):
     manifest = _load(out, "inventory_manifest.json")
     assert manifest["mode"] == "descriptive"
     assert manifest["verdicts"] is False and manifest["thresholds"] is False
-    assert set(manifest["evidence_semantics"]) == {"resolved", "declared", "unresolved"}
+    assert set(manifest["evidence_semantics"]) == {
+        "resolved",
+        "declared",
+        "unresolved",
+        "refuted",
+        "unknown",
+    }
 
 
 # ── سطحُ ملكيّة الكتابة: الترقيةُ بالقياس لا بالتحرير ──────────────────────────
@@ -608,3 +614,20 @@ def test_the_live_tree_measures_routes_with_the_same_engine_the_budget_uses():
     assert surface["counts"]["domain"] == len(domain)
     assert surface["counts"]["infrastructure"] == len(infrastructure)
     assert surface["counts"]["declarations"] == len(domain) + len(infrastructure)
+
+
+# ── ما بعد الحسم: منفيٌّ في نطاقه ومجهولٌ بسببه (A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01) ──
+
+
+def test_absent_and_unknown_are_written_apart_and_never_as_resolved(tmp_path, monkeypatch):
+    """شجرةُ الاختبار بلا بوّابةٍ ولا واجهة: لا نفيَ بلا ``nginx.conf`` (غيابُ القياس ليس دليلاً)، والمجهولُ يحمل سببَه."""
+    out = _build(tmp_path, monkeypatch, consumers=["svc-b"])
+    assert _load(out, "refuted_edges.json") == []
+    (row,) = _load(out, "unresolved_edges.json")
+    assert row["evidence_state"] == "declared"
+    assert [e["reason"] for e in row["unknown_reasons"]["POST /api/v1/soil"]] == [
+        "no_static_evidence_class_for_this_edge_kind"
+    ]
+    counts = _load(out, "inventory_manifest.json")["counts"]
+    assert counts["refuted_consumer_operations"] == 0
+    assert counts["unknown_consumer_operations"] == 1

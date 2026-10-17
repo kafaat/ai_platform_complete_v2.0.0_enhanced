@@ -627,7 +627,9 @@ def main() -> int:
     why = f"netns={caps['netns'][1]} · cgroup={caps['cgroup'][1]} · bwrap={caps['bwrap'][1]}"
     comparable_ref = None
     if full:
-        sandbox = ("--sandbox", "bwrap")
+        # v16: المقارنةُ في الصندوق **الضيّق** — ملفّاتُ إغلاق تشغيل جردٍ نظيف وحدها، لا مجلّداتُ النظام
+        _, r_inv = run("ok", root, coord=("--sandbox", "bwrap", "--inventory"))
+        sandbox = ("--sandbox", "bwrap", "--closure-from", r_inv["_run_dir"])
         _, r_a = run("ok", root, coord=sandbox)
         _, r_b = run("ok", root, coord=sandbox)
         _, r_blk = run("ok", root, isolation=False)
@@ -896,13 +898,15 @@ def main() -> int:
         probes = r.get("isolation_control", {}).get("probes", {})
         ip_probe = [v for k, v in probes.items() if "بلا DNS" in k]
         check(
-            "v8 bwrap: سليم ⇒ ok · PROVEN بمسبار عنوانٍ بلا DNS · المُثبَّت للقراءة فقط · قابلٌ للمقارنة",
+            "v8 bwrap: سليم ⇒ ok · PROVEN بمسبار عنوانٍ بلا DNS · المُثبَّت للقراءة فقط · وبربطات مجلّدات النظام "
+            "غيرُ قابلٍ للمقارنة (v16: لا إغلاق)",
             rc == 0
             and r.get("network_isolation") == "PROVEN"
             and ip_probe
             and ip_probe[0].startswith("blocked")
             and r.get("files_readonly") == "ENFORCED"
-            and r.get("performance_comparable") is True
+            and r.get("performance_comparable") is False
+            and any("closure" in q for q in r.get("comparability_problems") or [])
             and r["coordinator"]["sandbox"]["kind"] == "bwrap"
             and r["coordinator"]["negative_control"].get("ip"),
             f"rc={rc} probes={probes} ro={r.get('files_readonly')} problems={r.get('comparability_problems')}",
@@ -914,10 +918,13 @@ def main() -> int:
             [sys.executable, "-m", "venv", "--without-pip", "--system-site-packages", str(venv)],
             check=True,
         )
-        rc, r = run("ok", root, coord=bw, python=str(venv / "bin" / "python"))
+        venv_py = str(venv / "bin" / "python")
+        _, r_vinv = run("ok", root, coord=(*bw, "--inventory"), python=venv_py)
+        rc, r = run("ok", root, coord=(*bw, "--closure-from", r_vinv["_run_dir"]), python=venv_py)
         sandbox = r.get("coordinator", {}).get("sandbox", {})
         check(
-            "v15 bwrap ببيئةٍ افتراضيّة ⇒ يعمل · PROVEN · ENFORCED · ربطاتُها كلُّها مقبولة · قابلٌ للمقارنة",
+            "v15 bwrap ببيئةٍ افتراضيّة (جردٌ ثمّ إغلاقُه) ⇒ يعمل · PROVEN · ENFORCED · ربطاتُها كلُّها مقبولة · "
+            "قابلٌ للمقارنة",
             rc == 0
             and r.get("harness_status") == "ok"
             and r.get("network_isolation") == "PROVEN"
@@ -963,6 +970,8 @@ def main() -> int:
             and r.get("pinned_integrity_after") == "INTACT",
             f"error={str(r.get('error'))[:60]}",
         )
+        # v16 — الإغلاق: نموذجٌ غيرُ معلَن تحت /usr/lib كان يمرّ في صندوقٍ بربطات مجلّدات (ok وقابلاً للمقارنة)
+        v16(root, bw)
         rc, r = run("net_native_on_load", root, coord=bw)
         check(
             "v8 bwrap: اتّصالٌ أصليٌّ (خارج حارس بايثون) لا يصل ⇒ ok و PROVEN",
@@ -1224,6 +1233,97 @@ def main() -> int:
         )
 
     return finish()
+
+
+def v16(root: Path, bw: tuple) -> None:
+    """الصندوقُ الضيّق: جردٌ بـstrace داخل bwrap ⇒ إغلاق · ``--closure-from`` يربط ملفّاتِه وحدها · يُرفض إغلاقُ جردٍ غيرِ
+    نظيف أو لمحرّكٍ/بيانٍ آخر · ويُرفض ما تغيّر منذ الجرد. والعيبُ المقيس نفسُه: نموذجٌ تحت /usr/lib بربطات المجلّدات."""
+    rc, inv = run("ok", root, coord=(*bw, "--inventory"))
+    fi = inv.get("file_inventory", {})
+    closure = fi.get("closure", {})
+    files = closure.get("files", {})
+    check(
+        "v16 جردٌ داخل bwrap ⇒ ok · إغلاقٌ بلا مشكلات · لا /newroot · فيه worker.py ومُحمِّلُ المفسّر · لا مجلّدَ فيه",
+        rc == 0
+        and inv.get("harness_status") == "ok"
+        and fi.get("undeclared") == []
+        and closure.get("problems") == []
+        and not any("/newroot" in f for f in files)
+        and str(HERE / "worker.py") in files
+        and any("ld-linux" in v for v in closure.get("loaders", {}).values())
+        and not any(os.path.isdir(f) for f in files)
+        and inv.get("performance_comparable") is False,
+        f"rc={rc} stage={inv.get('stage')} files={len(files)} dirs={len(closure.get('dirs', []))} "
+        f"loaders={closure.get('loaders')} problems={closure.get('problems')}",
+    )
+    rc, r = run("ok", root, coord=(*bw, "--closure-from", inv["_run_dir"]))
+    sb = r.get("coordinator", {}).get("sandbox", {})
+    ros = [b[3:] for b in sb.get("binds", []) if b.startswith("ro:")]
+    pinned_dir = r["_run_dir"] + ".pinned"
+    check(
+        "v16 --closure-from جردٍ نظيف ⇒ ok · PROVEN · ENFORCED · كلُّ ربطِ قراءةٍ ملفٌّ من الإغلاق أو المُثبَّت أو "
+        "/sys/fs/cgroup · قابلٌ للمقارنة",
+        rc == 0
+        and r.get("network_isolation") == "PROVEN"
+        and r.get("files_readonly") == "ENFORCED"
+        and sb.get("integrity_after") == "INTACT"
+        and all(p in files or p in (pinned_dir, "/sys/fs/cgroup") for p in ros)
+        and "/usr/lib" not in ros
+        and r.get("performance_comparable") is True,
+        f"rc={rc} stage={r.get('stage')} ro={len(ros)} problems={r.get('comparability_problems')}",
+    )
+    libdir = Path(tempfile.mkdtemp(prefix="bakeoff-st16-", dir="/usr/lib"))
+    try:
+        hidden = libdir / "voice.onnx"
+        hidden.write_bytes(b"onnx-weights-under-usr-lib")
+        undeclared = {"undeclared_path": str(hidden)}
+        rc, wide = run("reads_undeclared", root, coord=bw, settings=undeclared)
+        check(
+            "v16 العيبُ المقيس: نموذجٌ غيرُ معلَن تحت /usr/lib في صندوقٍ بربطات مجلّدات ⇒ يُقرأ (ok) لكنّه **غيرُ قابلٍ "
+            "للمقارنة** (لا إغلاق) — كان ok وقابلاً للمقارنة",
+            wide.get("harness_status") == "ok"
+            and wide.get("performance_comparable") is False
+            and any("closure" in q for q in wide.get("comparability_problems") or []),
+            f"status={wide.get('harness_status')} comparable={wide.get('performance_comparable')}",
+        )
+        rc, dirty = run("reads_undeclared", root, coord=(*bw, "--inventory"), settings=undeclared)
+        rc2, refused = run(
+            "reads_undeclared",
+            root,
+            coord=(*bw, "--closure-from", dirty["_run_dir"]),
+            settings=undeclared,
+        )
+        check(
+            "v16 جردُ المحرّك نفسه يكشف النموذج (undeclared_files_opened) ⇒ --closure-from منه closure_rejected",
+            dirty.get("stage") == "undeclared_files_opened"
+            and str(hidden) in dirty.get("file_inventory", {}).get("undeclared", [])
+            and refused.get("stage") == "closure_rejected"
+            and rc2 != 0,
+            f"inventory={dirty.get('stage')} closure={refused.get('stage')} {str(refused.get('error'))[:90]}",
+        )
+        rc, foreign = run("silent", root, coord=(*bw, "--closure-from", inv["_run_dir"]))
+        check(
+            "v16 إغلاقُ جردٍ لبيانٍ آخر (إعداداتٌ مختلفة) ⇒ closure_rejected",
+            foreign.get("stage") == "closure_rejected" and "بيان" in str(foreign.get("error")),
+            f"stage={foreign.get('stage')} {str(foreign.get('error'))[:90]}",
+        )
+        corpus = libdir / "corpus.tsv"
+        shutil.copy(HERE / "corpus.tsv", corpus)
+        _, cinv = run("ok", root, "--corpus", str(corpus), coord=(*bw, "--inventory"))
+        with corpus.open("a", encoding="utf-8") as fh:
+            fh.write("\n")
+        rc, stale = run(
+            "ok", root, "--corpus", str(corpus), coord=(*bw, "--closure-from", cinv["_run_dir"])
+        )
+        check(
+            "v16 ملفٌّ من الإغلاق تغيّر بعد الجرد ⇒ closure_stale (ما قِيس ليس ما سيُربط)",
+            str(corpus) in cinv.get("file_inventory", {}).get("closure", {}).get("files", {})
+            and stale.get("stage") == "closure_stale"
+            and str(corpus) in str(stale.get("error")),
+            f"stage={stale.get('stage')} {str(stale.get('error'))[:90]}",
+        )
+    finally:
+        shutil.rmtree(libdir, ignore_errors=True)
 
 
 def finish() -> int:

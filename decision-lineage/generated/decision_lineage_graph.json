@@ -938,7 +938,6 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/salinity_management.py",
-        "services/sahool-platform/api/soil_water.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/unified_decision.py",
@@ -969,6 +968,7 @@
         "services/sahool-platform/core/dispatch_lifecycle.py",
         "services/sahool-platform/core/economic_adaptation.py",
         "services/sahool-platform/core/engines/candidate_generator.py",
+        "services/sahool-platform/core/engines/fao56.py",
         "services/sahool-platform/core/engines/fertility.py",
         "services/sahool-platform/core/engines/input_traceability.py",
         "services/sahool-platform/core/engines/pesticide.py",
@@ -3024,5 +3024,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "7c6b7edd55375d0c815ea951ba844f5e6b33eaab372d794ba56bdd07546ef144"
+  "content_sha256": "e397637485321a2ea9a63243c286f6e96059068dc6983fc6075c4a9ee5c8a499"
 }

@@ -536,6 +536,8 @@ class OutboxWorker:
     #: أقصرُ منها يسمح لعاملٍ ثانٍ بالنشر بينما الأوّلُ ما زال ينشر (تكرارٌ زائد)؛
     #: أطولُ منها يُجمّد الصفَّ بعد موتٍ حقيقيّ. قِيست مهلةُ النشر بخمس ثوانٍ في
     #: `_start_outbox_worker`، فستّون ضعفُها باثني عشر — هامشٌ لإعادة محاولةٍ داخليّة.
+    #: وهي مدّةُ **نشرٍ واحد** لا دُفعة: تُجدَّد قبل نشر كلّ صفّ (`_renew_lease_if_held`)،
+    #: وإلّا أنفقت الدُّفعةُ التسلسليّة إجارةَ آخرِ صفوفها قبل أن يبدأ نشرُه.
     LEASE_SECONDS = 60
 
     async def run(self):
@@ -560,10 +562,15 @@ class OutboxWorker:
     async def _process_batch(self) -> int:
         """يأخذ batch من الـpending events ويرسلها.
 
-        يفتح اتّصالاً من الـpool (OutboxWorker لا يملك conn مُنطّقاً — هو عامل
-        خلفيّ عبر المستأجِرين، يقرأ outbox مباشرةً). يلفّ الكلّ في **معاملة صريحة**
-        كي تبقى أقفال FOR UPDATE SKIP LOCKED محتجَزة حتى تحديث الحالة إلى 'sent'
-        — يمنع الإرسال المزدوج عند تعدّد العمّال.
+        يستعير اتّصالاً من الـpool **لـTX-1 وحدَها** (التقاطٌ ووسمٌ بـ`claim_token`
+        ثمّ commit)، ثمّ يُعيده إلى المسبح **قبل** أيّ نشرٍ على الشبكة. ما يمنع
+        الإرسالَ المزدوج بين العمّال هو الرمزُ المُثبَّت والإجارة، لا قفلٌ ولا معاملةٌ
+        ولا اتّصالٌ محتجَز — والنشرُ وخطواتُ القاعدة القصيرة حوله في `_send_one`.
+
+        **ولمَ يُعاد الاتّصالُ قبل الحلقة**
+        (`OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`): كانت الحلقةُ قد خرجت من `conn.transaction()` ولم تخرج من `pool.acquire()`،
+        فبقي اتّصالُ المسبح مستعاراً طوال نشر الدُّفعة تسلسليّاً — ٥٠ نشراً على الشبكة.
+        فتباطؤُ الوسيط يحبس اتّصالاً لا يحتاجه أحدٌ أثناء الانتظار، ومسبحٌ صغير يجوع.
 
         عابر للمستأجِرين بالتصميم: لا يُضبط app.current_tenant هنا قصداً (يُرسِل
         أحداث كلّ المستأجِرين). تحت الدور المُقيَّد (sahool_app: NOBYPASSRLS, FORCE
@@ -633,13 +640,14 @@ class OutboxWorker:
                     [r["outbox_id"] for r in rows],
                 )
 
-            # ── الشبكةُ خارج كلّ معاملة: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ أثناء I/O ──
-            for row in rows:
-                await self._send_one(conn, row, token)
+        # ── الشبكةُ خارج كلّ معاملة **وخارج المسبح**: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ ولا
+        # اتّصالٌ مستعارٌ أثناء I/O. `None` يعني «استعِر لكلّ خطوة قاعدةٍ قصيرة وأعِد».
+        for row in rows:
+            await self._send_one(None, row, token)
 
-            return len(rows)
+        return len(rows)
 
-    async def _send_one(self, conn, row, claim_token=None):
+    async def _send_one(self, lent, row, claim_token=None):
         """يرسل event واحد إلى NATS مع retry tracking + تعاضُد استهلاك (idempotent).
 
         التعاضُد (P1): تسليم الـoutbox at-least-once (صفّ مُرسَل قبيل تعطّل قبل وسمه
@@ -650,9 +658,15 @@ class OutboxWorker:
         ما كان. كان النشرُ داخل SAVEPOINT مع المطالبة والوسم، فكانت الأقفالُ محتجَزةً
         أثناء I/O الشبكة (`WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01`). صار:
 
-          TX-1 (في `_process_batch`): التقاطٌ ووسمٌ بـ`claim_token` ثمّ **commit**.
+          TX-1 (في `_process_batch`): التقاطٌ ووسمٌ بـ`claim_token` ثمّ **commit**،
+              ثمّ يُعاد اتّصالُ المسبح قبل أيّ نشر.
+          تجديد: `lease_until` يُمدَّد بشرط الرمز لحظةَ بدء نشر **هذا** الصفّ؛ فقدُه
+              ⇒ لا نشر (`_renew_lease_if_held`).
           الشبكة: `publish` خارج كلّ معاملة — لا قفلَ صفٍّ ولا اتّصالٌ محبوس.
           TX-2: `claim_event` + وسمُ 'sent' بشرط `claim_token` (CAS).
+
+        وكلُّ خطوة قاعدةٍ تستعير اتّصالاً بـ`_borrow` وتُعيده؛ `lent` المُمرَّر (غيرُ
+        `None`) يُستعمَل كما هو للمُستدعي المباشر.
 
         **وما تغيّر في الضمانة صراحةً:** لم تعد المطالبةُ والنشرُ ذرّيَّين. تعطّلٌ بين
         النشر وTX-2 يترك صفّاً منشوراً غيرَ موسوم، فتنقضي إجارتُه ويُعاد نشرُه —
@@ -688,34 +702,43 @@ class OutboxWorker:
         }
 
         try:
-            # ── تعاضُدٌ قبل الأثر: **سؤالٌ** لا ادّعاء ────────────────────────────
-            # صفٌّ ثانٍ يحمل `event_id` سبق نشرُه لا يُنشَر ثانيةً. الفحصُ قرائيٌّ
-            # (`event_already_claimed`) فلا يحجز شيئاً — وكتابةُ المطالبة تبقى بعد
-            # النشر كي لا يُبتلَع حدثٌ فشل نشرُه. حدُّ الفحص مُعلَنٌ عند الدالّة.
-            if await event_already_claimed(conn, row["event_id"]):
-                async with conn.transaction():
-                    if not await self._mark_sent_if_lease_held(conn, row, claim_token):
-                        return
-                    await self._record_delivery_attempt(
-                        conn,
-                        row,
-                        attempt_no=attempt_no,
-                        outcome="skipped",
-                        error=None,
-                    )
-                return
+            async with self._borrow(lent) as conn:
+                # ── تجديدُ الإجارة قبل النشر لا عند الالتقاط وحدَه ─────────────────
+                # `OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01`:
+                # الإجارةُ تُمنَح للدُّفعة كلِّها في TX-1 وتُنفَق تسلسليّاً، فقد تنقضي
+                # إجارةُ آخرِ الصفوف قبل أن يبدأ نشرُها بلا أن يبطؤ نشرٌ مفرد. فتُجدَّد
+                # هنا بـCAS على الرمز — ومَن فقدها (التقطه عاملٌ آخر) لا ينشر أصلاً.
+                if not await self._renew_lease_if_held(conn, row, claim_token):
+                    return
+                # ── تعاضُدٌ قبل الأثر: **سؤالٌ** لا ادّعاء ────────────────────────
+                # صفٌّ ثانٍ يحمل `event_id` سبق نشرُه لا يُنشَر ثانيةً. الفحصُ قرائيٌّ
+                # (`event_already_claimed`) فلا يحجز شيئاً — وكتابةُ المطالبة تبقى بعد
+                # النشر كي لا يُبتلَع حدثٌ فشل نشرُه. حدُّ الفحص مُعلَنٌ عند الدالّة.
+                if await event_already_claimed(conn, row["event_id"]):
+                    async with conn.transaction():
+                        if not await self._mark_sent_if_lease_held(conn, row, claim_token):
+                            return
+                        await self._record_delivery_attempt(
+                            conn,
+                            row,
+                            attempt_no=attempt_no,
+                            outcome="skipped",
+                            error=None,
+                        )
+                    return
 
-            # **النشرُ خارج كلّ معاملة** — وهو جوهرُ
-            # `WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01`: لا قفلَ صفٍّ ولا معاملةٌ
-            # مفتوحةٌ أثناء I/O الشبكة. ما يحمي الصفَّ هنا `claim_token` المُثبَّت في
-            # TX-1، لا قفلُ PostgreSQL.
+            # **النشرُ خارج كلّ معاملة وبلا اتّصالٍ مستعار** — جوهرُ
+            # `WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01` و
+            # `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: لا قفلَ صفٍّ
+            # ولا معاملةٌ مفتوحةٌ ولا اتّصالُ مسبحٍ محتجَزٌ أثناء I/O الشبكة. ما يحمي
+            # الصفَّ هنا `claim_token` المُثبَّت في TX-1 والمُجدَّد أعلاه.
             await self.publish(row["nats_subject"], json.dumps(envelope).encode())
 
             # ── TX-2: الإنهاءُ بـCAS على الرمز ──────────────────────────────────
             # **ولمَ رمزٌ ولا تكفي الحالة:** لو انقضت الإجارةُ أثناء نشري فالتقط صفّاً
             # عاملٌ ثانٍ ونشره، فإنهائي بالحالة وحدَها كان سيسم صفّاً يملكه غيري.
             # `claim_token = $2` يجعل الإنهاء يخصّ صاحبَه — ومَن فقد إجارتَه لا يكتب.
-            async with conn.transaction():
+            async with self._borrow(lent) as conn, conn.transaction():
                 await claim_event(conn, row["event_id"])
                 if not await self._mark_sent_if_lease_held(conn, row, claim_token):
                     # فُقِدت الإجارة: عاملٌ آخرُ يملك الصفَّ الآن. لا نكتب حالتَه ولا
@@ -733,32 +756,34 @@ class OutboxWorker:
             err_msg = f"{type(e).__name__}: {str(e)[:200]}"
             new_retry = row["retry_count"] + 1
             new_status = "failed" if new_retry >= self.max_retries else "pending"
-            failed_mark = await conn.execute(
-                """
-                UPDATE event_outbox
-                SET retry_count = $1, last_attempt_at = NOW(),
-                    last_error = $2, status = $3,
-                    claim_token = NULL, claimed_by = NULL, lease_until = NULL
-                WHERE outbox_id = $4 AND claim_token IS NOT DISTINCT FROM $5
-                """,
-                new_retry,
-                err_msg,
-                new_status,
-                row["outbox_id"],
-                claim_token,
-            )
-            if str(failed_mark).endswith(" 0"):
-                logger.warning(
-                    "outbox lease lost before failure attribution: outbox_id=%s event_id=%s",
+            # اتّصالٌ يُستعار لخطوة الإسناد وحدَها ويُعاد — لا يمتدّ عبر الشبكة.
+            async with self._borrow(lent) as conn:
+                failed_mark = await conn.execute(
+                    """
+                    UPDATE event_outbox
+                    SET retry_count = $1, last_attempt_at = NOW(),
+                        last_error = $2, status = $3,
+                        claim_token = NULL, claimed_by = NULL, lease_until = NULL
+                    WHERE outbox_id = $4 AND claim_token IS NOT DISTINCT FROM $5
+                    """,
+                    new_retry,
+                    err_msg,
+                    new_status,
                     row["outbox_id"],
-                    row["event_id"],
+                    claim_token,
                 )
-                return
-            # السجلّ الجنائيّ: صفّ محاولة فاشلة (attempt_no = new_retry المُتزايد) مع نصّ
-            # الخطأ — يُثبَّت مع تحديث retry أعلاه (خارج SAVEPOINT، لا يُتراجَع عنه).
-            await self._record_delivery_attempt(
-                conn, row, attempt_no=new_retry, outcome="failed", error=err_msg
-            )
+                if str(failed_mark).endswith(" 0"):
+                    logger.warning(
+                        "outbox lease lost before failure attribution: outbox_id=%s event_id=%s",
+                        row["outbox_id"],
+                        row["event_id"],
+                    )
+                    return
+                # السجلّ الجنائيّ: صفّ محاولة فاشلة (attempt_no = new_retry المُتزايد) مع
+                # نصّ الخطأ — يُثبَّت مع تحديث retry أعلاه (خارج SAVEPOINT، لا يُتراجَع عنه).
+                await self._record_delivery_attempt(
+                    conn, row, attempt_no=new_retry, outcome="failed", error=err_msg
+                )
             if new_status == "failed":
                 # حدث ميّت (DLQ): استُنفدت المحاولات. تصعيد ERROR ليلتقطه الرصد/التنبيه
                 # — يبقى في event_outbox (status='failed') لإعادة جدولته عبر
@@ -808,6 +833,56 @@ class OutboxWorker:
             # صمتٌ هنا كان سيُخفي سبباً حقيقيّاً لبقاء صفٍّ بلا وسم.
             logger.warning(
                 "outbox lease lost before finish: outbox_id=%s event_id=%s",
+                row["outbox_id"],
+                row["event_id"],
+            )
+            return False
+        return True
+
+    @_asynccontextmanager
+    async def _borrow(self, lent):
+        """اتّصالٌ لخطوة قاعدةٍ **قصيرة** واحدة — المُعار إن مُرِّر، وإلّا من المسبح ويُعاد.
+
+        `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: `_process_batch`
+        يُمرِّر `None` فيُستعار الاتّصالُ لكلّ خطوةٍ (تجديد · TX-2 · إسناد فشل) ويُعاد
+        قبل النشر وبعده، فلا يُحتجَز أثناء الشبكة. والمُستدعي المباشر الذي يُمرِّر
+        اتّصالاً يحتفظ بسلوكه القديم: يُستعمَل ما أعاره ولا يُلمَس المسبح.
+        """
+        if lent is not None:
+            yield lent
+        else:
+            async with self.pool.acquire() as c:
+                yield c
+
+    async def _renew_lease_if_held(self, conn, row, claim_token) -> bool:
+        """يُمدّد إجارةَ الصفّ **لحظةَ بدء نشره** بشرط الرمز — False إن فُقِدت.
+
+        `OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01`: TX-1 تمنح
+        `LEASE_SECONDS` للدُّفعة كلِّها دفعةً واحدة، والنشرُ تسلسليّ — فخمسون صفّاً
+        بثانيتين لكلٍّ تستهلك ~١٠٠ث من إجارةِ ٦٠ث قبل أن يبدأ آخرُها. فتُجدَّد هنا
+        لكلّ صفٍّ قبل نشره: المدّةُ تحكم **نشراً واحداً** لا انتظارَ الدور.
+
+        وتجديدٌ لم يمسّ صفّاً يعني أنّ الإجارة انقضت والتقطه عاملٌ آخر (رمزٌ غيرُ
+        رمزي) أو أنهاه: لا يُنشَر من هنا — ذاك صاحبُه الآن. والضمانةُ تبقى
+        at-least-once، وشرطا الإنهاء والإسناد بالرمز باقيان كما هما.
+
+        بلا رمز (استدعاءٌ مباشرٌ بلا إجارة) لا إجارةَ تُجدَّد: يمرّ كما كان.
+        """
+        if claim_token is None:
+            return True
+        renewed = await conn.execute(
+            """
+            UPDATE event_outbox
+            SET lease_until = NOW() + make_interval(secs => $1::float8)
+            WHERE outbox_id = $2 AND claim_token IS NOT DISTINCT FROM $3
+            """,
+            float(self.LEASE_SECONDS),
+            row["outbox_id"],
+            claim_token,
+        )
+        if str(renewed).endswith(" 0"):
+            logger.warning(
+                "outbox lease lost before publish: outbox_id=%s event_id=%s",
                 row["outbox_id"],
                 row["event_id"],
             )

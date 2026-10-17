@@ -41,7 +41,9 @@ def test_phase1_gateway_routes_are_present():
 
 def test_workers_have_readiness_healthchecks():
     data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
-    for name in ["sahool-weather-polygon-worker", "sahool-weather-signal-engine"]:
+    # sahool-weather-polygon-worker أُزيل بقرار مالك 2026-10-17
+    # (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01)؛ يبقى عاملُ الطقس الحيّ.
+    for name in ["sahool-weather-signal-engine"]:
         service = data["services"][name]
         assert "healthcheck" in service
         assert "/app/worker_health_probe.py" in " ".join(service["healthcheck"]["test"])

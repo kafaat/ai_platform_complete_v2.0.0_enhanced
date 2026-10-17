@@ -89,30 +89,33 @@ def test_plugin_subject_transform_is_declared_as_an_open_divergence() -> None:
     assert gap["status"] == "OPEN"
 
 
-def test_nats_requires_credentials_but_still_has_no_per_service_subject_acl() -> None:
-    """كان هذا الاختبار يُثبِّت **غيابَ** المصادقة شرطاً — لقطةُ عطلٍ صارت ثابتاً.
+def test_per_service_subject_acls_close_the_authorization_gap_with_live_probes() -> None:
+    """الصفُّ يقيس الحقيقتين معاً — **ما أُغلِق** و**بأيّ شاهد** — لا لقطةَ عطلٍ ثابتاً.
 
-    فلمّا أُغلِقت `NATS-BROKER-HAS-NO-AUTHENTICATION-…-01` أحمرَّ الاختبارُ **على
-    الإصلاح**: أي أنّ عملاً صحيحاً كسر اختباراً يفترض بقاءَ الشجرة كما كانت. وهو
-    الصنفُ الذي تمنعه قاعدةُ المالك: لا يحوّل اختبارٌ تشغيليٌّ لقطةً تاريخيّة إلى
-    ثابتٍ أمنيّ.
-
-    والصيغةُ الآن تقيس الحقيقتين معاً — **ما أُغلِق** و**ما لم يُغلَق** — فيبقى
-    الصفُّ صادقاً في الاتّجاهين:
-      * الوسيطُ يشترط اعتماداً (`authorization` مع استيفاءٍ من البيئة).
-      * ولا `accounts`/`permissions`/`nkeys`: لا عزلَ مواضيعَ لكلّ خدمة.
-    ولذلك تبقى الفجوةُ **OPEN**: شرطُ إغلاقها المكتوب يطلب قوائمَ سماحٍ لكلّ خدمة
-    **مُثبَتةً بمِسبارَين حيَّين**، ولم يقع منها إلّا منعُ المجهول — ساكناً.
+    كان هذا الاختبارُ يُثبِّت **غيابَ** `permissions` شرطاً، فأحمرَّ على الإصلاح كما أحمرَّ
+    سلفُه على إغلاق المصادقة: عملٌ صحيحٌ يكسر اختباراً يفترض بقاءَ الشجرة كما كانت. فالصيغةُ
+    الآن تربط الإغلاقَ **بشرطه المكتوب**: قوائمُ سماحٍ لكلّ خدمة، ومنعُ المجهول، ومِسبارٌ سالبٌ
+    وموجبٌ **حيّان** — في `tests_v9/test_nats_least_privilege.py` الذي يُشغَّل على nats-server
+    حقيقيّ في مِرقاة CI (`notification-rollout.yml`، `NATS_LEAST_PRIVILEGE_LIVE_REQUIRED=1`).
     """
     config = (ROOT / "nats/nats.conf").read_text(encoding="utf-8")
-    body = "\n".join(
-        line for line in config.splitlines() if not line.lstrip().startswith("#")
-    ).lower()
+    body = "\n".join(line for line in config.splitlines() if not line.lstrip().startswith("#"))
     assert "authorization" in body, "المصادقةُ أُزيلت — الوسيطُ عاد مفتوحاً"
-    assert "$nats_user" in body and "$nats_password" in body, (
-        "الاعتمادُ يجب أن يُورَث من البيئة لا يُكتَب في ملفٍّ مُلتزَم"
+    assert "no_auth_user" not in body, "مستخدمٌ افتراضيٌّ للمجهول يُعيد الوسيطَ مفتوحاً"
+    assert body.count("permissions:") >= len(_contract()["connected_services"]), (
+        "هويّةٌ بلا `permissions` — العزلُ ناقص"
     )
-    for token in ("accounts", "nkeys", "permissions"):
-        assert token not in body, f"ظهر `{token}` — إن أُضيف عزلُ المواضيع فحدِّث الفجوة وشرطَ إغلاقها"
     gap = _contract()["gaps"]["NATS-AUTHORIZATION-NOT-ENFORCED"]
-    assert gap["status"] == "OPEN", "شرطُ الإغلاق (قوائمُ سماحٍ لكلّ خدمة بمِسبارَين حيَّين) لم يقع"
+    assert gap["status"] == "CLOSED"
+    for witness in gap["verified_by"]:
+        assert (ROOT / witness).is_file(), f"شاهدُ الإغلاق غائب: {witness}"
+    live = (ROOT / "tests_v9/test_nats_least_privilege.py").read_text(encoding="utf-8")
+    assert (
+        "test_live_each_identity_publishes_its_own_subjects_and_is_refused_everyone_elses" in live
+    )
+    assert "test_live_unauthenticated_and_wrong_password_are_refused" in live
+    workflow = (ROOT / ".github/workflows/notification-rollout.yml").read_text(encoding="utf-8")
+    assert "tests_v9/test_nats_least_privilege.py" in workflow, (
+        "المِسباران الحيّان لا يُشغَّلان في CI — الإغلاقُ بلا شاهدٍ مستمرّ"
+    )
+    assert 'NATS_LEAST_PRIVILEGE_LIVE_REQUIRED: "1"' in workflow

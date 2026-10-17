@@ -10,10 +10,10 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **277**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **442**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **375** على 129 مصدراً
+- حرّاس تحجب في CI: **282**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
+- إجماليّ الطفرات المُسجَّلة: **448**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **380** على 131 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (53)
+## الحرّاس المُثبَتة بالتكذيب (58)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -300,6 +300,18 @@
 - سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight — يُسقِط `test_a_declared_producer_that_no_longer_exists_is_rejected`
 - إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج — يُسقِط `test_an_empty_reason_is_rejected`
 
+### `ci_invoked_locale_preamble_guard.py`
+
+**يفرض:** Every Python file a blocking CI step runs prints non-ASCII only after a UTF-8 preamble.
+
+**يحجب في:** `ci.yml` → `lint`
+
+**الاختبار الشاهد:** `tests_v9/test_ci_invoked_locale_preamble_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01) — يُسقِط `test_the_inventory_is_the_class_not_the_naming_convention`
+
 ### `ci_unbounded_wait_guard.py`
 
 **يفرض:** انتظارٌ بلا سقف — `CI-UNBOUNDED-PROVISIONING-WAIT-01`، الشطر الذي يمنع العودة.
@@ -349,7 +361,7 @@
 - الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه. — يُسقِط `test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty`
 - الطفرةُ C: قبولُ `:-` مع `:?` يمرّر `${V:-}` الفارغة. **وتصحيح:** صياغتي الأولى استهدفت `min_expansion` فنجت — لأنّ تلك الدالّة صارت بعد إعادة الكتابة نموذجاً دلاليّاً موازياً **لا يقرّر شيئاً**، والقرارُ عند `_ACCEPTED` وحدها. فحُذفت الدالّة (اشتقاقان لا يُبنى على أحدهما حكمٌ ينحرفان) ووُجِّهت الطفرة إلى مسار الحكم. — يُسقِط `test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty`
 - الطفرةُ D: إخراجُ المصرف من سجلّ المصارف — حارسٌ لا يطابق شيئاً يمرّ أخضر على شجرةٍ منتهَكة، وهو «أخضرُ عن سؤالٍ لم يُطرَح». — يُسقِط `test_a_new_compose_file_carrying_the_sink_is_seen`
-- الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`. — يُسقِط `test_the_guard_actually_scanned_the_stack_that_carried_the_defect`
+- الطفرةُ E: إخراجُ المكدّس الذي يحمل المصرف من سطح الحارس (أُعيد إرساؤها 2026-10-17 من unified إلى v9: unified نُقل إلى docs/history/compose/ — COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01). **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`. — يُسقِط `test_the_guard_actually_scanned_the_stack_that_carried_the_defect`
 - مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ. — يُسقِط `test_a_registered_sink_that_vanishes_from_the_surface_blocks`
 - إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه. — يُسقِط `test_an_exception_on_a_production_stack_is_refused`
 - العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ. — يُسقِط `test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live`
@@ -369,6 +381,18 @@
 
 - القيمة الحرفيّة بلا استيفاء سرٌّ منشور لا يراه فحصُ الافتراضيّات — وإسقاطُ فحصها يدفع الكاتب إلى صيغةٍ لا يراها الحارس. — يُسقِط `test_the_live_tree_carries_no_default_secret`
 - استثناءٌ يُعَدّ حيّاً دائماً يصير إعفاءً أبديّاً بلا صاحب — والقائمة تتوقّف عن التقلّص. — يُسقِط `test_a_stale_exception_is_reported_so_the_list_can_only_shrink`
+
+### `compose_roster_guard.py`
+
+**يفرض:** ملفُّ Compose واحدٌ يُعرّف المكدّس — `COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01`.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_compose_roster_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إسقاطُ نصف مساواة المجموعات (المتعقَّب ⊆ السجلّ): ملفّ compose جديد خارج السجلّ — بديلٌ ثانٍ يُعرّف المكدّس بأسماءٍ أخرى — يمرّ أخضر. وهو عطلُ COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 نفسُه: أربعة عشر ملفّاً لا يراها حارس. — يُسقِط `test_an_unrostered_compose_file_blocks`
 
 ### `container_command_path_guard.py`
 
@@ -542,6 +566,7 @@
 - سكوتٌ لا ينقضي هو السكوتُ الأصليُّ بعينه. والمقيس أنّ النظيرَ الحيَّ مُسّ في ٤ من ٤ من الشرائح المُحكَّمة — فالثقبُ يُستعمَل في كلّ مرّة، وأجلٌ لا يُقارَن لا يسدّه. — يُسقِط `test_a_lapsed_acknowledgement_blocks_again`
 - حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026. — يُسقِط `test_a_live_acknowledgement_still_silences_the_report`
 - شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب. — يُسقِط `test_the_alias_deadline_warns_before_it_blocks`
+- FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954. — يُسقِط `test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged`
 
 ### `github_actions_security_guard.py`
 
@@ -782,6 +807,18 @@
 - ‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01 — يُسقِط `test_the_container_path_maps_to_the_service_root_not_the_repository_root`
 - نزعُ حجبِ القبول ⇒ أرضيّةُ القبول تعود نثراً في ملفّ الأساس: وحدةٌ مستورِدُها الوحيدُ اختبارُها تدخل بتحرير ملفَّي JSON والحارسُ rc=0 قبلها وبعدها (ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01) — يُسقِط `test_a_module_admitted_without_an_executable_root_blocks`
 
+### `pr_finding_gap_id_guard.py`
+
+**يفرض:** A severity-labelled review finding in a PR must name a registered gap ID.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry` · `ci.yml` → `unit-tests` · `no-report-only-change.yml` → `no-report-only-change`
+
+**الاختبار الشاهد:** `tests_v9/test_pr_finding_gap_id_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01) — يُسقِط `test_an_unregistered_id_shaped_text_is_not_a_registration`
+
 ### `probe_leak_guard.py`
 
 **يفرض:** يُسمّي مِسبار اختبار تسرّب إلى الشجرة، بدل تركه يُشخَّص خطأً — `TEST-PROBE-LEAKS-INTO-THE-TREE-01`.
@@ -940,6 +977,18 @@
 - سجلُّ عقد المصنوعة يدخل سجلَّ الاعتماد كما هو — فإن لم يُطابَق موضوعُه (هذه اللقطة، حالة present) صار سجلُّ اعتمادٍ يحمل هويّات مصنوعاتٍ عن شيءٍ آخر، والقارئ يثق بالمجاورة. — يُسقِط `test_an_artifact_provenance_that_is_not_this_subject_is_refused`
 - رفعته مراجعة آليّة على #852 وأصابت: جردٌ غير قاموسيّ كان يُبلَّغ EXECUTION_JOBS_UNDECLARED — دعوى عن الوظائف مكان دعوى عن الوثيقة — ويدخل عقدَ الوظائف المطلوبة بوصفه فراغاً. ورموز الأسباب هي سجلّ التدقيق. — يُسقِط `test_a_non_dict_job_inventory_is_a_malformed_document_not_undeclared_jobs`
 
+### `startup_db_connect_retry_guard.py`
+
+**يفرض:** إقلاعٌ لا يفترض أنّ Postgres جاهز — `RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01`.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_startup_db_connect_retry.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: خدمةٌ جديدة تعتمد على Postgres بشرط service_healthy بلا تصنيف هي العطلُ الأصليّ بعينه — الشرطُ لا يحمي إعادةً بسياسة restart. حارسٌ لا يشتقّ المجموعة من compose يمرّرها أخضر. — يُسقِط `test_an_unclassified_dependant_is_blocked`
+
 ### `tenant_guc_name_convergence_guard.py`
 
 **يفرض:** `TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01` — اسمُ مُتغيّر المستأجِر واحدٌ أو معدود.
@@ -986,6 +1035,18 @@
 
 - إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم — يُسقِط `test_a_file_in_a_subdirectory_is_seen`
 - نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً — يُسقِط `test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker`
+
+### `text_anchor_liveness_guard.py`
+
+**يفرض:** A positive text anchor must hold on live code, not on a dead binding or a mandated escape.
+
+**يحجب في:** `ci.yml` → `lint`
+
+**الاختبار الشاهد:** `tests_v9/test_text_anchor_liveness_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01) — يُسقِط `test_the_app_tsx_dead_lazy_anchor_of_824_is_caught`
 
 ### `undeclared_context_dependency_guard.py`
 

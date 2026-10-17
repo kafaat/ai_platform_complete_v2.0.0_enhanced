@@ -107,7 +107,8 @@ def test_water_balance_known_crop_stage_kc():
 
 def test_water_balance_unknown_crop_uses_default_curve():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = water_balance(w, "qat", "mid", et0_mm=_ET0)
+    # «qat» صار له بطاقة محصول فصار مُعرّفاً؛ dragonfruit بلا بطاقة ⇒ المنحنى العامّ.
+    r = water_balance(w, "dragonfruit", "mid", et0_mm=_ET0)
     # المنحنى الافتراضي: mid = 1.1
     assert r.kc == 1.1
     assert "غير مُعرّف" in r.kc_source_ar

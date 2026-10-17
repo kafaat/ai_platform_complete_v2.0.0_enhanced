@@ -35,7 +35,6 @@ OWNER_OR_SUPERUSER_PATTERNS = (
 
 ALLOWED_JOBS_DB_SERVICES = {
     "sahool-platform",
-    "sahool-weather-polygon-worker",
     "sahool-weather-signal-engine",
     "sahool-phase-runtime-outbox-worker",
     "sahool-plugin-runtime-worker",

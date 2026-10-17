@@ -18,6 +18,7 @@ import logging
 import os
 
 from shared.contracts.ingest.projection import ProjectionSkip, project_submission
+from shared.startup_retry import retry_startup_connect
 
 logger = logging.getLogger("scout-ingest.projection")
 
@@ -41,7 +42,8 @@ async def _connect():
         raise RuntimeError("DATABASE_URL is required for the scout-ingest projection worker")
     import asyncpg
 
-    return await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
+    # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+    return await retry_startup_connect(asyncpg.connect, DATABASE_URL, statement_cache_size=0)
 
 
 async def run_once(conn) -> dict[str, int]:

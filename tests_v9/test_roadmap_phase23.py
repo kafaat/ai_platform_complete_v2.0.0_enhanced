@@ -45,7 +45,7 @@ def test_water_balance():
     res = water_balance(w, "wheat", "initial", rain_mm=50, et0_mm=6.0)
     if res.et0_mm == 6.0:
         r.append(("✓", "ET0 المُقحَم محفوظ في النتيجة (6.0)"))
-    if abs(res.etc_mm - 6.0 * 0.40) < 1e-9:  # Kc قمح ابتدائيّ = 0.40
+    if abs(res.etc_mm - 6.0 * 0.30) < 1e-9:  # Kc قمح ابتدائيّ = 0.30 (بطاقة المحصول)
         r.append(("✓", "ETc = ET0 × Kc"))
     if res.net_irrigation_mm == 0:
         r.append(("✓", "المطر يغطّي الاحتياج → لا ريّ"))
@@ -1262,12 +1262,12 @@ def test_soil_moisture_advisor():
     from api.soil_moisture_advisor import irrigation_amount_mm
 
     a = irrigation_amount_mm(vwc=0.20, soil_type="loam", crop="ذرة")
-    if a["irrigation_mm"] == 200.0:
-        r.append(("✓", "كمّيّة الريّ (FAO-56): (0.40-0.20)×1000 = 200مم (معادلة حجميّة)"))
+    if a["irrigation_mm"] == 50.0:
+        r.append(("✓", "كمّيّة الريّ (FAO-56): (0.25-0.20)×1000 = 50مم (معادلة حجميّة)"))
     v = irrigation_amount_mm(vwc=0.20, soil_type="loam", crop="خضروات")
-    if v["irrigation_mm"] == 80.0:
-        r.append(("✓", "عمق الجذور يؤثّر: خضروات (0.4م) → 80مم vs ذرة (1م) → 200مم"))
-    z = irrigation_amount_mm(vwc=0.40, soil_type="loam", crop="ذرة")
+    if v["irrigation_mm"] == 20.0:
+        r.append(("✓", "عمق الجذور يؤثّر: خضروات (0.4م) → 20مم vs ذرة (1م) → 50مم"))
+    z = irrigation_amount_mm(vwc=0.25, soil_type="loam", crop="ذرة")
     if z["irrigation_mm"] == 0.0:
         r.append(("✓", "عند السعة الحقليّة → 0مم (لا ريّ — صدق)"))
     return r

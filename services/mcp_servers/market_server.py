@@ -80,7 +80,13 @@ async def tenant_connection(tenant_id: str | None):
 async def lifespan(app: FastAPI):
     global _pool
     if DATABASE_URL:
-        _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
+        # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+        # استيرادٌ متأخّر كـdb_role_guard: shared في المستودع تظلّله services/mcp_servers/shared.
+        from shared.startup_retry import retry_startup_connect
+
+        _pool = await retry_startup_connect(
+            asyncpg.create_pool, DATABASE_URL, min_size=1, max_size=5
+        )
         logger.info("✅ Market MCP DB connected")
         # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
         from shared.db_role_guard import assert_db_role_rls_safe

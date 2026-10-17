@@ -69,10 +69,9 @@ def check_platform_proxy_contract() -> None:
 
 
 def check_compose_edge_contracts() -> None:
-    compose_names = [
-        "docker-compose.v9.yml",
-        "docker-compose.light.yml",
-    ]
+    # docker-compose.light.yml كان هنا: بديلٌ نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    compose_names = ["docker-compose.v9.yml"]
     for name in compose_names:
         text = _read(ROOT / name)
         assert "services/edge-inference/Dockerfile.arm64" in text, name

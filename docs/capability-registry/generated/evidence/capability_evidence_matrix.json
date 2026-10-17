@@ -2278,10 +2278,12 @@
         "services/sahool-platform/tests/test_data_inventory.py",
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_element84_legacy_inventory.py",
+        "tests_v9/test_inventory_edge_classification.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_platform_main_subinventory_guard.py",
-        "tests_v9/test_resolve_inventory_edges.py"
+        "tests_v9/test_resolve_inventory_edges.py",
+        "tests_v9/test_v9_internal_tls_inventory.py"
       ]
     },
     {
@@ -3201,7 +3203,9 @@
         "tests_v9/test_event_bus_invariants.py",
         "tests_v9/test_h2_nats_publishers_flag.py",
         "tests_v9/test_nats_broker_authentication.py",
+        "tests_v9/test_nats_least_privilege.py",
         "tests_v9/test_nats_publisher_coverage.py",
+        "tests_v9/test_nats_tls_init.py",
         "tests_v9/test_notification_queue_rollout.py",
         "tests_v9/test_operational_evidence_artefacts.py",
         "tests_v9/test_outbox_claim_lease.py",
@@ -3970,7 +3974,8 @@
         "services/sahool-platform/tests/test_water_balance.py",
         "tests_v9/test_h5_api_salinity.py",
         "tests_v9/test_h5_water_balance_auto.py",
-        "tests_v9/test_predictive_irrigation.py"
+        "tests_v9/test_predictive_irrigation.py",
+        "tests_v9/test_taw_kc_single_source.py"
       ]
     },
     {
@@ -9763,13 +9768,18 @@
         "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
+        "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
         "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_capabilities.py",
+        "tests_v9/test_container_command_path_guard.py",
+        "tests_v9/test_container_hardening_ratchet_v21.py",
+        "tests_v9/test_db_writer_ownership_triage.py",
         "tests_v9/test_endpoint_auth_coverage.py",
         "tests_v9/test_mcp_servers.py",
+        "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_v13_refinements.py",
-        "tests_v9/test_weather_polygon_worker.py",
-        "tests_v9/test_weather_solar_fields.py"
+        "tests_v9/test_weather_solar_fields.py",
+        "tests_v9/test_weather_worker_health_probe.py"
       ]
     },
     {
@@ -10081,6 +10091,7 @@
         "tests_v9/test_predictive_irrigation.py",
         "tests_v9/test_root_zone_balance.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
+        "tests_v9/test_taw_kc_single_source.py",
         "tests_v9/test_v13_refinements.py",
         "tests_v9/test_water_ledger.py",
         "tests_v9/test_weather_analytics_engine_delegation.py",
@@ -10389,6 +10400,7 @@
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_qualification_suite.py",
         "tests_v9/test_season_simulation_behavior_v66.py",
+        "tests_v9/test_taw_kc_single_source.py",
         "tests_v9/test_weather_engine_formula_guard.py"
       ]
     },

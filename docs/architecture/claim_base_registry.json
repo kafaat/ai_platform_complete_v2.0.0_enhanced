@@ -14,6 +14,7 @@
     "claim_base_registry.json",
     "component_registry.json",
     "compose_auth_sinks.json",
+    "compose_file_roster.json",
     "compose_secret_exceptions.json",
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",
@@ -21,6 +22,7 @@
     "expected_control_flow_exceptions.json",
     "gate01_policy.json",
     "guard_mutation_registry.json",
+    "inventory_edge_exemptions.json",
     "knowledge_relation_registry.json",
     "knowledge_source_registry.json",
     "live_pg_schema_contract.json",
@@ -71,8 +73,10 @@
     "s4_kg_consumer_freeze.json",
     "s5_exec_01_edge_freeze.json",
     "source_text_assertion_inventory.json",
+    "startup_db_connect_inventory.json",
     "tenant_guc_scope_baseline.json",
-    "text_encoding_locale_baseline.json"
+    "text_encoding_locale_baseline.json",
+    "v9_internal_tls_inventory.json"
   ],
   "measured_base_keys": [
     "measured_on",
