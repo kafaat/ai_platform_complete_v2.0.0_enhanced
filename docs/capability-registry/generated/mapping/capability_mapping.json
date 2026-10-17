@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 5987,
+    "files_scanned": 5994,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
-      "other": 1901,
+      "other": 1908,
       "tests": 1965,
       "web": 471
     },
@@ -13374,6 +13374,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/chatgpt_w6_20261017/open-gaps-at-base.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
           "score": 20,
           "signals": [
@@ -13436,7 +13443,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 5,
       "mapped": true
