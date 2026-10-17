@@ -26,6 +26,9 @@ nginx/ssl/
 # مادّةُ TLS لوسيط NATS (يولّدها sahool-nats-tls-init للتطوير، أو يضعها المشغِّل). المجلّدُ كلُّه لا
 # `*.pem` وحده: فهرسُ الثقة `ca/<hash>.0` لا يطابق `*.pem`، ومفتاحُ الخادم لا يُلتزَم أبداً.
 nats/tls/
+# مادّةُ TLS لـPostgres v9 (يولّدها sahool-postgres-tls-init للتطوير، أو يضعها المشغِّل): المفتاحُ لا يُلتزَم،
+# ولا فهرسُ الثقة `ca/<hash>.0`. POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01.
+postgres/tls/
 volumes/
 data/
 backups/

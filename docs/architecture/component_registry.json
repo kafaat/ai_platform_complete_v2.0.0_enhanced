@@ -372,6 +372,7 @@
     "sahool-otel-collector",
     "sahool-pg-exporter",
     "sahool-postgres",
+    "sahool-postgres-tls-init",
     "sahool-prometheus",
     "sahool-qdrant",
     "sahool-redis",
