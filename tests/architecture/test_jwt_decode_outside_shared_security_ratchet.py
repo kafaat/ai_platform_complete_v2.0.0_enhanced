@@ -57,10 +57,6 @@ FROZEN_SITES: dict[str, int] = {
     # 2026-10-15: auth (issuer, 3 calls) and tts-service (1) moved to ``decode_access_token``
     # with python-jose claim semantics when python-jose was removed
     # (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01).
-    # MCP: in the dev tree ``shared`` is services/mcp_servers/shared alone (merged only in the
-    # image), and test_blob_store_immune_to_shared_package_shadow pins that shadow on purpose.
-    "services/mcp_servers/market_server.py": 1,
-    "services/mcp_servers/shared/oauth_middleware.py": 1,
 }
 
 

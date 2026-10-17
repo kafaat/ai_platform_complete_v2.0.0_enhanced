@@ -17,6 +17,8 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from shared.security.access_tokens import decode_access_token
+
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ توكن sahool الداخليّ (تدقيق B).
 # هذا الوسيط يتحقّق من توكن sahool الداخليّ (نفس JWT_SECRET/HS256/aud=sahool)،
@@ -69,11 +71,11 @@ def _authenticate_token(token: str, required_scope: str) -> dict:
             "JWT_SECRET not configured or too weak (min 32 chars)",
         )
     try:
-        payload = jwt.decode(
+        payload = decode_access_token(
             token,
             public_key or secret,
-            algorithms=["RS256" if public_key else "HS256"],
-            audience="sahool",
+            algorithm="RS256" if public_key else "HS256",
+            site="mcp.oauth",
         )
     except jwt.InvalidTokenError as e:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e

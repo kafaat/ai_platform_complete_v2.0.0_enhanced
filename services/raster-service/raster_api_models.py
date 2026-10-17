@@ -224,7 +224,16 @@ class AutoBackfillPolicy(BaseModel):
     default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years
     extended_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.extended_3_years
     research_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.research_5_years
-    default_indices: list[str] = ["truecolor", "ndvi", "ndmi", "ndre", "msavi", "ndwi", "ndsi"]
+    default_indices: list[str] = [
+        "truecolor",
+        "ndvi",
+        "ndmi",
+        "ndre",
+        "msi",
+        "msavi",
+        "ndwi",
+        "ndsi",
+    ]
     max_cloud_pct: float = 50
     note: str = (
         "Use last_2_years on field creation (two-season agronomic baseline). Core "

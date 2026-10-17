@@ -14,13 +14,14 @@ from datetime import date, datetime
 from decimal import Decimal
 
 import asyncpg
-import jwt
 import market_db_authz  # FIX(أمان): تفويض ملكيّة field/batch (fail-closed)
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
 from shared.oauth_middleware import require_scope  # FIX(أمان): حارس نطاق لنقاط MCP
+
+from shared.security.access_tokens import decode_access_token
 
 logger = logging.getLogger("market-mcp")
 logging.basicConfig(
@@ -44,7 +45,7 @@ def verify_token(token: str) -> dict:
     if not JWT_SECRET or len(JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
+        payload = decode_access_token(token, JWT_SECRET, algorithm="HS256", site="mcp.market")
     except InvalidTokenError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.

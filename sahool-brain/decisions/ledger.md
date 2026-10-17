@@ -4069,3 +4069,12 @@ Decision: retain all nine remaining gap states as open while preparing source im
 ### 2026-10-16 — متابعة الحصة التساعية على أساس 6e8cc0f9
 
 جمع فرع التكامل `chatgpt/close-nine-gaps-20261016` عمل ستة وكلاء؛ المصدر عند `4e796243344a1cba08e38c4775779cba1376b8da`. أربعة إصلاحات مصدرية: معايرة C1، نسب CDSE إلى Vegetation، ملف Nomic الاختياري، وإعداد إعادة فهرسة كاملة. خمس فجوات تبقى open، منها correlation حتى اختبار PostgreSQL الأصلي؛ لا verified ولا ادعاء دمج أو نشر. السبب: فصل الشاهد المصدري عن شروط الجرد والهجرات وتوافق النشر والسبب التاريخي. المصدر والدليل وحدود القياس في [فهرس المتابعة](../../certification/evidence/chatgpt_closure_nine_20261016/README.md). الفحص الكامل والـPR الموحد خطوتان لاحقتان، لا نتيجتان مفترضتان.
+
+
+### 2026-10-17 — non-Claude source closure on main 2ca779c6
+
+Owner request: close gaps outside Claude’s unpublished batch. Implemented UTC instant comparison and legacy timestamp compatibility for OFFLINE-CURSOR-BOUND-TO-A-NAIVE-TIMESTAMP-01; added default MSI production/quality membership for SPECTRAL-MSI-ABSENT-FROM-DEFAULT-PRODUCTS-01. Both are source fixed, not deployed or live verified. JWT-DECODE-OUTSIDE-SHARED-SECURITY-01 stays open: MCP’s two decoders now use the canonical observe-mode implementation; actuator and enforce rollout remain. No mutation changes, migration execution, frozen source edits, deployment changes or Claude work were included. Source base: `2ca779c6`; implementation branch: `chatgpt/non-claude-gap-closure-20261017`. Evidence and explicit limits: `certification/evidence/non_claude_gap_closure_20261017/README.md`. Railway only confirmed four migrator variable names in each environment; OAuth withheld values, so the operational credential gap remains open. Its code fix had already landed in #1170; no duplicate repair.
+
+متابعة الدليل لنفس الشريحة: فجوة CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01 أصبحت fixed في المصدر بعد قراءة شاهد PostgreSQL الأصلي النهائي لـ#1201 (62 ناجحاً، الوظيفة 117231284805)، دون تطبيق إنتاجي. الدليل: certification/evidence/non_claude_gap_closure_20261017/correlation_pg16_receipt.json. المفتوح الرسمي في المرشح 96.
+
+قياس الشريحة خارج Claude: جناحا المستودع والمنصة نجحا؛ جناح الوحدة 9349 ناجحاً و40 متخطياً وفشل واحد لأساس العناوين اليتيمة، صُحح بخفضه 211→209 ثم نجحت 24 حالة مركزة. Raster: 614 ناجحاً وحالتا PostgreSQL متخطيتان محلياً. Gitleaks بلا تسريبات. أثر القدرات يُشتق بعد الالتزام؛ لا ادعاء preflight شامل أخضر جديد.

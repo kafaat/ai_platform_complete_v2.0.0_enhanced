@@ -1,7 +1,7 @@
 """Tests for offline_first - explicit offline-first architecture.
 Resolves the philosophical gap from AI Ag Template: 'offline as default'."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from core.offline_first import (
     ConnectivityState,
@@ -33,7 +33,7 @@ def _make_obs_op(tenant="tnt_001", field="fld_01", value=0.5):
             "value": value,
             "measured_at": "2026-05-29T00:00:00",
         },
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
 
 

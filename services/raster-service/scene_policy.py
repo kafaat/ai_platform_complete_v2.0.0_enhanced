@@ -49,7 +49,16 @@ def scene_to_dict(scene: dict | Any) -> dict:
 # conservative enough for Yemen/arid operations: do not reject every partially cloudy
 # Sentinel-2 scene, but never put scenes with less than 50% clear coverage into the
 # default NDVI timeline. >=70% clear is treated as high quality in UI/API metadata.
-CORE_TIMELINE_INDICES: set[str] = {"truecolor", "ndvi", "ndre", "ndmi", "msavi", "ndwi", "ndsi"}
+CORE_TIMELINE_INDICES: set[str] = {
+    "truecolor",
+    "ndvi",
+    "ndre",
+    "ndmi",
+    "msi",
+    "msavi",
+    "ndwi",
+    "ndsi",
+}
 NDVI_PULL_MIN_CLEAR_PCT = 50.0
 NDVI_PULL_MAX_CLOUD_PCT = 100.0 - NDVI_PULL_MIN_CLEAR_PCT
 NDVI_HIGH_QUALITY_CLEAR_PCT = 70.0
