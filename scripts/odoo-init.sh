@@ -34,6 +34,14 @@ export PGHOST="${DB_HOST}"
 export PGPORT="${DB_PORT}"
 export PGUSER="${DB_USER}"
 
+# ── TLS إلى Postgres ─────────────────────────────────────────────────────────
+# POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: psql/createdb/pg_isready تقرأ PGSSLMODE
+# وPGSSLROOTCERT من البيئة (libpq)، لكنّ Odoo **يُمرّر sslmode صراحةً** من إعداده
+# (`db_sslmode`، افتراضُه prefer) فيطغى على البيئة ويسقط إلى النصّ. فيُمرَّر هنا من PGSSLMODE نفسِه:
+# مكدّسُ v9 يضبطه verify-full (وPGSSLROOTCERT إلى CA الخادم)، والمكدّساتُ التي لا تضبطه تبقى على
+# prefer كما كانت — هذا السكربتُ يُركَّب في docker-compose.fixed.yml وunified.yml أيضاً.
+DB_SSLMODE="${PGSSLMODE:-prefer}"
+
 # ── 1) انتظار Postgres مع تسامح مع الأعطال العابرة ──────────────────────────
 echo "[odoo-init] في انتظار Postgres على ${DB_HOST}:${DB_PORT} (المستخدم ${DB_USER})…"
 until pg_isready -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" >/dev/null 2>&1; do
@@ -63,7 +71,7 @@ base_installed="$(psql -d "${ODOO_DB}" -tAc \
 # ── 4) تثبيت base مرّة واحدة فقط عند الحاجة ──────────────────────────────────
 if [ "${base_installed}" != "t" ]; then
   echo "[odoo-init] base غير مُثبَّتة (القاعدة مُنشأة لكن غير مُهيّأة) — تثبيتها الآن…"
-  odoo -d "${ODOO_DB}" -i base --without-demo=all \
+  odoo -d "${ODOO_DB}" -i base --without-demo=all --db_sslmode="${DB_SSLMODE}" \
        --db-filter="^${ODOO_DB}\$" --stop-after-init
   echo "[odoo-init] اكتمل تثبيت base."
 else
@@ -72,4 +80,4 @@ fi
 
 # ── 5) العمليّة الطويلة بلا -i (لا إعادة تثبيت عند كلّ إقلاع) ─────────────────
 echo "[odoo-init] إقلاع Odoo (العمليّة الطويلة) على القاعدة «${ODOO_DB}»…"
-exec odoo -d "${ODOO_DB}" --without-demo=all --db-filter="^${ODOO_DB}\$"
+exec odoo -d "${ODOO_DB}" --without-demo=all --db_sslmode="${DB_SSLMODE}" --db-filter="^${ODOO_DB}\$"

@@ -73,7 +73,8 @@
     "s5_exec_01_edge_freeze.json",
     "source_text_assertion_inventory.json",
     "tenant_guc_scope_baseline.json",
-    "text_encoding_locale_baseline.json"
+    "text_encoding_locale_baseline.json",
+    "v9_internal_tls_inventory.json"
   ],
   "measured_base_keys": [
     "measured_on",

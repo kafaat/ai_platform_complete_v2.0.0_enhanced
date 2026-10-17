@@ -294,6 +294,18 @@
         }
       ]
     },
+    "postgres/pg_hba.conf": {
+      "$why_ar": "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: الإغلاقُ على الخادم سطرٌ في ملفّ سياسةٍ لا شيفرة — `hostssl` لا `host`. ولا يمسّه اختبارٌ سلوكيّ إلّا بزرعٍ فيه، فحرفٌ واحدٌ يُعيد قبولَ TCP النصّيّ والملفُّ يبقى يبدو مضبوطاً.",
+      "mutations": [
+        {
+          "expect": "test_pg_hba_accepts_tcp_only_over_tls_with_a_password",
+          "find": "hostssl     all       all   all      scram-sha-256",
+          "replace": "host        all       all   all      scram-sha-256",
+          "test": "tests_v9/test_postgres_tls.py",
+          "why": "`host` يطابق TCP بلا TLS أيضاً: الخادمُ يعود يقبل النصّ من أيّ عميلٍ لا يطلب verify-full، فيصير الإغلاقُ معلّقاً بحسن نيّة كلّ عميلٍ قادم — وهو بعينه نصفُ الإغلاق الذي رفضه المالك."
+        }
+      ]
+    },
     "scripts/architecture/build_platform_catalog.py": {
       "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
       "mutations": [
