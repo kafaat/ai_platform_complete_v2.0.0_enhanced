@@ -9256,7 +9256,7 @@
       ],
       "events": [
         {
-          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:203",
+          "value": "sahool.a @ tests_v9/test_inventory_edge_classification.py:204",
           "score": 14
         },
         {
@@ -9284,11 +9284,11 @@
           "score": 14
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:203",
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:204",
           "score": 14
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:224",
+          "value": "sahool.events.> @ tests_v9/test_inventory_edge_classification.py:225",
           "score": 14
         },
         {
@@ -9549,6 +9549,14 @@
           ]
         },
         {
+          "path": "scripts/diagnostics/resolve_inventory_edges.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "tools/backend_inventory.py",
           "score": 14,
           "signals": [
@@ -9583,14 +9591,6 @@
         },
         {
           "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/validation.json",
-          "score": 12,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        },
-        {
-          "path": "scripts/diagnostics/resolve_inventory_edges.py",
           "score": 12,
           "signals": [
             "path:inventory",
