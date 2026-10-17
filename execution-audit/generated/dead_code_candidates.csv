@@ -213,7 +213,7 @@ medium,sahool-platform,class,JsonModelRegistry,services/sahool-platform/core/mlo
 medium,sahool-platform,function,should_promote,services/sahool-platform/core/mlops_runtime.py,83,0,review_before_delete,False
 medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/core/mlops_runtime.py,99,0,review_before_delete,False
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
-medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,334,0,review_before_delete,False
+medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,355,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
 medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,237,0,review_before_delete,False
 medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,742,0,review_before_delete,False

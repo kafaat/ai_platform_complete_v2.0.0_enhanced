@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 96,
+      "line": 97,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 14,
@@ -2694,7 +2694,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "4ce5ce5d6ad5ccbe5010e57ffcf03d417b5f206760f32a5ba7bca763b3b11492",
+  "inventory_sha256": "80fe5eb9ea849c7d6f306e911891a5795be803d9c4a7e3e62c42f95d19eeadf5",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {

@@ -3004,6 +3004,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/mcp_servers/shared/security/__init__.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/mcp_servers/shared/streamable_http.py",
     "kind": "backend"
   },
@@ -8181,6 +8185,10 @@
   },
   {
     "path": "tests_v9/test_non_ascii_fixture_path_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_non_claude_gap_closure.py",
     "kind": "tests"
   },
   {

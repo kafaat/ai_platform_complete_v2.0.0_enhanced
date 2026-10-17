@@ -1,0 +1,134 @@
+{
+  "base_commit": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+  "tests": [
+    {
+      "suite": "tests_v9/test_non_claude_gap_closure.py",
+      "base": {
+        "failed": 10,
+        "passed": 1
+      },
+      "candidate": {
+        "passed": 11,
+        "failed": 0
+      },
+      "isolated_base_worktree": true
+    },
+    {
+      "suite": "tests_v9/test_deprecated_utc_clock_cleanup.py",
+      "passed": 6
+    },
+    {
+      "suite": "JWT shared decoder, MCP auth-first, market authz, package-shadow regressions",
+      "passed": 144,
+      "failed": 0
+    },
+    {
+      "suite": "platform test_offline_first.py",
+      "passed": 20,
+      "failed": 0
+    },
+    {
+      "suite": "raster test_backfill_scene_policy.py + test_band_math_zones.py",
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "suite": "test_jwt_decode_outside_shared_security_ratchet.py",
+      "passed": 14,
+      "failed": 0
+    }
+  ],
+  "counts_are_separate_suites_not_a_total": true,
+  "live_db_or_hardware_acceptance": false,
+  "remote_ci": "not_run",
+  "deployment": "not_requested_by_this_slice",
+  "source_files": [
+    {
+      "path": "services/sahool-platform/core/offline_first.py",
+      "sha256": "e68fdc61128547db8fb6860d732f13bf064117596120edad058c1a540f468c85"
+    },
+    {
+      "path": "services/sahool-platform/api/sync_delta.py",
+      "sha256": "a71ae14f35683275a2b3b2e4f532892ea4e3dedd76c7d426f98e8e3837cd1576"
+    },
+    {
+      "path": "services/raster-service/scene_policy.py",
+      "sha256": "ac8012f478c8341e0e25e19d41005da1854d0f70bd6a355bd4b615c8cefe556a"
+    },
+    {
+      "path": "services/raster-service/raster_api_models.py",
+      "sha256": "a11919d001679aee1eca3951e64041f52a65d2b2acf37630c29cc5f72c99b256"
+    },
+    {
+      "path": "services/mcp_servers/market_server.py",
+      "sha256": "47e3761763b1c2c984e37740d5e7b3d1ba87bb593f9c7e576595f57d4e81c767"
+    },
+    {
+      "path": "services/mcp_servers/shared/oauth_middleware.py",
+      "sha256": "e9c9acd868c46a8faa3d5b5bf79575041fcd448343c38259faaa65a8dda7f85b"
+    },
+    {
+      "path": "services/mcp_servers/shared/security/__init__.py",
+      "sha256": "114e8193679c135983c7bb74004bec2f05240875d10f1f3af64889b57da6f5ce"
+    },
+    {
+      "path": "tests_v9/test_non_claude_gap_closure.py",
+      "sha256": "0147b67bd77b1cd0f813ee7b97706c33326b07b16a0a783cddda4708d539f939"
+    },
+    {
+      "path": "docs/architecture/gap_heading_state_baseline.json",
+      "sha256": "61a2a67476ba42ea6db6c089f3dc7cd64791190db5ce63cd6ff25fb41649395c"
+    }
+  ],
+  "existing_correlation_proof": "correlation_pg16_receipt.json",
+  "pre_push": {
+    "default_preflight_initial": {
+      "failed_steps": 2,
+      "skipped_steps": 1,
+      "unit": {
+        "passed": 9349,
+        "failed": 1,
+        "skipped": 40,
+        "deselected": 494,
+        "failure": "test_gap_heading_state_guard.py::test_the_live_tree_matches_its_declared_baseline"
+      },
+      "repository_tests_exit_code": 0,
+      "platform_tests_exit_code": 0,
+      "generated_artifact_check_exit_code": 0,
+      "other_failure": "Capability-Impact correctly refuses an uncommitted dirty tree",
+      "skipped": "Capability-Impact cannot derive base..HEAD before committing"
+    },
+    "baseline_correction": {
+      "before": 211,
+      "after": 209,
+      "reason": "Two formerly orphan sections now carry canonical state records",
+      "rerun": "tests_v9/test_gap_heading_state_guard.py + tests_v9/test_non_claude_gap_closure.py",
+      "passed": 24,
+      "failed": 0
+    },
+    "raster_ci_shape": {
+      "passed": 614,
+      "failed": 0,
+      "skipped": 2,
+      "skip_scope": [
+        "test_raster_batch_postgres_integration.py",
+        "test_single_scene_concurrent_pg.py"
+      ]
+    },
+    "gitleaks": {
+      "version": "8.30.1",
+      "mode": "protect --staged --redact",
+      "leaks": 0
+    },
+    "post_commit_checks": "Capability-Impact and brain range checks must run against the committed tree; their outcome is reported in the PR rather than self-referencing this receipt."
+  },
+  "candidate_registry": {
+    "gap_id_count": 530,
+    "gap_id_state_counts": {
+      "fixed": 431,
+      "open": 96,
+      "verified": 3
+    },
+    "orphan_gap_heading_count": 209
+  }
+}

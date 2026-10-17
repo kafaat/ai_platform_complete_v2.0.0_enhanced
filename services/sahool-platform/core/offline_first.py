@@ -42,8 +42,25 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
+
+
+def parse_operation_timestamp(value: object) -> datetime | None:
+    """Compare stored legacy UTC and offset-aware timestamps as the same instant.
+
+    Legacy producers used utcnow(), so a timestamp without an offset is UTC,
+    never the host timezone. Unknown values stay unknown (no data deletion).
+    """
+    if not isinstance(value, str) or len(value) < 19 or value[10] != "T":
+        return None
+    try:
+        stamp = datetime.fromisoformat(value)
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=UTC)
+        return stamp.astimezone(UTC)
+    except (ValueError, OverflowError):
+        return None
 
 
 class SyncStatus(str, Enum):
@@ -164,18 +181,18 @@ class OfflineQueue:
         for op in q:
             if op.op_id == op_id:
                 op.status = status
-                op.last_attempt_at = datetime.utcnow().isoformat()
+                op.last_attempt_at = datetime.now(UTC).isoformat()
                 if error:
                     op.last_error = error
                     op.retry_count += 1
                 if status == SyncStatus.SYNCED:
-                    op.synced_at = datetime.utcnow().isoformat()
+                    op.synced_at = datetime.now(UTC).isoformat()
                 return True
         return False
 
     def clear_synced(self, tenant_id: str, older_than_hours: int = 24) -> int:
         """ينظّف العمليّات المُنجزة. retention للـaudit."""
-        cutoff = (datetime.utcnow() - timedelta(hours=older_than_hours)).isoformat()
+        cutoff = datetime.now(UTC) - timedelta(hours=older_than_hours)
         q = self._queues.get(tenant_id)
         if not q:
             return 0
@@ -185,7 +202,11 @@ class OfflineQueue:
             (
                 op
                 for op in q
-                if not (op.status == SyncStatus.SYNCED and op.synced_at and op.synced_at < cutoff)
+                if not (
+                    op.status == SyncStatus.SYNCED
+                    and (stamp := parse_operation_timestamp(op.synced_at)) is not None
+                    and stamp < cutoff
+                )
             ),
             maxlen=self.max_per_tenant,
         )
@@ -268,7 +289,7 @@ def sync_cycle(
     قاعدة ذهبية: لو الـhandler رفع exception، تُعتبر العمليّة FAILED
     لكنّها تبقى في الـqueue للمحاولة لاحقاً (لا تُحذف).
     """
-    start = datetime.utcnow()
+    start = datetime.now(UTC)
     # ١. طبّق supersession أوّلاً (لا نُرسل عمليّات قديمة بلا داعٍ)
     superseded_now = apply_supersession(queue, tenant_id)
 
@@ -301,7 +322,7 @@ def sync_cycle(
                 queue.mark_status(tenant_id, op.op_id, SyncStatus.FAILED, error=err_msg)
                 failed += 1
 
-    duration = (datetime.utcnow() - start).total_seconds() * 1000
+    duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
     total = len(pending)
     if total == 0:
@@ -363,7 +384,7 @@ def record_operation_offline(
         user_id=user_id,
         kind=kind,
         payload=payload,
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
     queue.enqueue(op)
     return op

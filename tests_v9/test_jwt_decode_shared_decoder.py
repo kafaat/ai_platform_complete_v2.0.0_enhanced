@@ -3,7 +3,7 @@
 **ما يُثبته (أحمر على ``origin/main`` قبل الإصلاح، أخضر بعده):**
 
 1. **المسح الثابت:** لا نداءَ فكّ JWT في ملفّات الإنتاج خارج ``shared/security/`` إلّا في
-   قائمة سماحٍ صريحة مُعلَّلة (المُشغِّل مجمَّد بـGATE-01؛ MCP بظلّ حزمة ``shared``)، وكلُّ
+   قائمة سماحٍ صريحة مُعلَّلة (المُشغِّل مجمَّد بـGATE-01؛ موضعا MCP انتقلا عبر جسر الحزمة الضيّق)، وكلُّ
    ملفٍّ منقول يمرّ بـ``decode_access_token`` بخوارزميّةٍ واحدة مثبَّتة ودلالةِ مطالباتٍ مُعلَنة.
 2. **السلوك:** المفكِّك المشترك (PyJWT وحدها بعد إزالة python-jose) يحفظ حكمَ كلّ موضع:
    ``claim_semantics="pyjwt"`` لمن كان على PyJWT، و``"python-jose"`` لمن كان على python-jose
@@ -40,16 +40,13 @@ SECRET = "unit-test-secret-0123456789-abcdefghijklmnopqrstuvwxyz-0123456789-ABCD
 ALLOWED_DIRECT_DECODE = {
     # GATE-01: frozen_paths في docs/architecture/gate01_policy.json — لا يُمسّ بلا تفويضٍ محكَّم.
     "services/actuator-service/actuator_runtime.py": 1,
-    # MCP: ``shared`` في شجرة التطوير هو ``services/mcp_servers/shared`` وحده (الدمجُ يحدث في
-    # الصورة فقط)، فلا يُرى ``shared.security`` إلّا بدمج مسارَي الحزمة — وهو ما يمنعه عمداً
-    # ``test_season_api_static.py::test_blob_store_immune_to_shared_package_shadow``. قرارٌ مستقلّ.
-    "services/mcp_servers/market_server.py": 1,
-    "services/mcp_servers/shared/oauth_middleware.py": 1,
 }
 
 #: الملفّ ← (دلالةُ المطالبات المحفوظة، عددُ النداءات). ``python-jose`` = الموضعُ كان على
 #: python-jose قبل إزالته (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01) فيُحفَظ حكمُه.
 MIGRATED = {
+    "services/mcp_servers/market_server.py": ("pyjwt", 1),
+    "services/mcp_servers/shared/oauth_middleware.py": ("pyjwt", 1),
     "services/auth/main.py": ("python-jose", 1),  # `_decode_issued_token` (سقفُ أسطر main)
     "services/auth/routers/session.py": ("python-jose", 1),
     "services/guardrails-engine/main.py": ("pyjwt", 2),

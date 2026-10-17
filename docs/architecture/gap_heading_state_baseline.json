@@ -3,8 +3,9 @@
   "$why_not_zero_ar": "صفرٌ مفروضٌ اليوم يُحمِّر السجلَّ كلَّه على ٢١١ مدخلةً تاريخيّة، فيُطفَأ الحقلُ في أوّل أسبوع — وحمايةٌ تُوقِف العمل كلَّه تُطفَأ فتُنتِج حمايةً صفراً. والمنعُ هنا منعُ **النموّ**.",
   "$what_it_does_not_claim_ar": "لا يدّعي أنّ ما في العدد سليم، ولا أنّ ما خرج منه مُصلَح. يقيس **الرؤية** لا الصحّة: مدخلةٌ مرئيّةٌ بحالةٍ خاطئة تمرّ من هنا ويُمسِكها `unclassified_*` أو `contradictory_*`.",
   "measured_by": "scripts/ci/gap_registry_measure.py (orphan_gap_heading_count)",
-  "measured_on": "f90605af09b16d4309799d6532277050c697bf5a",
-  "baseline": 211,
-  "heading_count_at_baseline": 265,
-  "section_state_count_at_baseline": 44
+  "measured_on": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+  "baseline": 209,
+  "heading_count_at_baseline": 359,
+  "section_state_count_at_baseline": 140,
+  "measurement_note": "Candidate based on 2ca779c6: two existing timestamp/MSI sections now carry canonical fixed state records; no new exemption."
 }

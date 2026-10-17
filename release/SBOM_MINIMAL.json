@@ -14025,7 +14025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e33d39ab26cf0c63f5561d4aba01abbcd99ae64aeba4572baa0d7177d97b13ec"
+          "content": "47e3761763b1c2c984e37740d5e7b3d1ba87bb593f9c7e576595f57d4e81c767"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -14065,10 +14065,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4193c66176c67be6dfd1cd309203db89ae141245921efd26902a447fce8d4a9"
+          "content": "e9c9acd868c46a8faa3d5b5bf79575041fcd448343c38259faaa65a8dda7f85b"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "114e8193679c135983c7bb74004bec2f05240875d10f1f3af64889b57da6f5ce"
+        }
+      ],
+      "name": "services/mcp_servers/shared/security/__init__.py",
       "type": "file"
     },
     {
@@ -14755,7 +14765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76b7b032c534ce7a1bf634460f5908acdec76b6e89d9897eda1c216500e78036"
+          "content": "a11919d001679aee1eca3951e64041f52a65d2b2acf37630c29cc5f72c99b256"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -15285,7 +15295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0677ba87d8a254a43c6c67648b1d25ae2c3428a6a30be266e6d7d7a3050362e"
+          "content": "ac8012f478c8341e0e25e19d41005da1854d0f70bd6a355bd4b615c8cefe556a"
         }
       ],
       "name": "services/raster-service/scene_policy.py",
@@ -20405,7 +20415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66d62a8117100aaa814732301c60f013ce95b6702a99d4e24b7771f33f4b0087"
+          "content": "a71ae14f35683275a2b3b2e4f532892ea4e3dedd76c7d426f98e8e3837cd1576"
         }
       ],
       "name": "services/sahool-platform/api/sync_delta.py",
@@ -23325,7 +23335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54e9e7a226247530cbf3da40d081bad7e24342699a15c4e26a2b1832638fffd7"
+          "content": "e68fdc61128547db8fb6860d732f13bf064117596120edad058c1a540f468c85"
         }
       ],
       "name": "services/sahool-platform/core/offline_first.py",
@@ -27315,7 +27325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9edd48d095df2b9526cfa479b2f0078e4cc634ac374571beb9304eef80317b17"
+          "content": "c3053c4e1dfd1c0abf15895868fac73c903d919a37d5901a5206b3dbbd79bb3b"
         }
       ],
       "name": "services/sahool-platform/tests/test_offline_first.py",
