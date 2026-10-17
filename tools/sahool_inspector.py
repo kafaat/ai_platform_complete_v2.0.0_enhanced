@@ -29,6 +29,13 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: this script runs in a blocking
+# CI step and prints non-ASCII; under LC_ALL=C print() would die with UnicodeEncodeError
+# and report a correct result as a failure. At module level, before anything prints.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REPO = Path(__file__).resolve().parent.parent
 MIGRATIONS = REPO / "migrations"
 ROUTERS = REPO / "services" / "sahool-platform" / "api" / "routers"

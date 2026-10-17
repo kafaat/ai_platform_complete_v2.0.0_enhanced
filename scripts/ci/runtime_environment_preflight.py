@@ -22,6 +22,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from deterministic_time import generated_at_utc  # noqa: E402
 
+# C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: this script runs in a blocking
+# CI step and prints non-ASCII; under LC_ALL=C print() would die with UnicodeEncodeError
+# and report a correct result as a failure. At module level, before anything prints.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "runtime-verification" / "generated"
 OUT_JSON = OUT_DIR / "runtime_environment_preflight.json"

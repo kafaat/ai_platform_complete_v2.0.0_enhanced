@@ -81,6 +81,13 @@
       "positive_witness": "test_a_deliberate_history_chain_passes: an intended historical chain of the same gap ID passes; and the guard reads the whole tree, not the diff, so running it in a second job cannot change its verdict.",
       "impact": "merge",
       "$scope_limit_ar": "يُضاف الحارسُ نفسُه دون تغيير إلى وظيفةٍ مطلوبة (Repository Structural Lint)؛ بقيّةُ خطوات no-report-only-change تبقى في وظيفةٍ غير مطلوبة."
+    },
+    "scripts/ci/ci_invoked_locale_preamble_guard.py::ci.yml::lint": {
+      "counterexample": "C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01, measured on main 0e5281614 in a scratch detached worktree under LC_ALL=C LANG=C PYTHONUTF8=0 (PYTHONIOENCODING unset): `python3 tools/sahool_inspector.py` (ci.yml platform-structure-inspector) died with UnicodeEncodeError at line 437 `print(\"\\u2550\" * 64)` and `capability_parity_investment_engine.py --check` died at line 634 — both on their success path (rc=0 under UTF-8). Neither is named *_guard.py, so guard_locale_survival_guard never launched them; the static class inventory flagged 15 such scripts.",
+      "mutation": "test_the_inventory_is_the_class_not_the_naming_convention",
+      "$mutation_ar": "الطفرةُ المسجَّلة تُعيد الجردَ إلى اصطلاح `*_guard.py` فيخرج `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` من البصر، ويقتلها الاختبارُ المسمّى.",
+      "positive_witness": "test_the_preamble_makes_it_pass + test_ascii_only_output_needs_no_preamble: the legitimate remedy (the three-line module-level reconfigure, already carried by guard_locale_survival_guard and guard_catalogue) passes, and a script whose output is ASCII is not asked for one. The guard is static (AST + workflow YAML), launches nothing and writes nothing.",
+      "impact": "merge"
     }
   }
 }

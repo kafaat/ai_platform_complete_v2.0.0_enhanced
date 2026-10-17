@@ -93,34 +93,34 @@ def _job_display_names(job_key: str, job: dict) -> list[str]:
     return names
 
 
-def discover_invocation_sites() -> list[dict]:
-    """Every place a guard is invoked, down to the step — the one parse, richest view.
+def _run_steps() -> list[dict]:
+    """Every ``run:`` step of every workflow job — the one walker both inventories share.
 
-    ``discover_invocations`` below is a projection of this, so the catalogue and any
-    consumer that needs step-level detail (``collect_guard_surface_evidence``) read the
-    **same** parse. Two parsers agreeing today is the drift class this repository keeps
-    measuring; one parse with two views cannot drift.
+    ``discover_invocation_sites`` (guards named ``scripts/ci/<x>.py``) and
+    ``discover_script_invocations`` (every Python file a step executes) are two views of
+    the **same** walk, so they cannot disagree about which steps exist, which job they
+    belong to, or whether a failure there is tolerated.
     """
     import yaml  # Job attribution without a YAML parser would be guesswork, so parse it.
 
-    sites: list[dict] = []
+    steps: list[dict] = []
     for workflow in sorted(WORKFLOWS.glob("*.y*ml")):
         document = yaml.safe_load(workflow.read_text(encoding="utf-8")) or {}
+        workflow_dir = ((document.get("defaults") or {}).get("run") or {}).get("working-directory")
         for job_key, job in (document.get("jobs") or {}).items():
             if not isinstance(job, dict):
                 continue
             job_names = _job_display_names(job_key, job)
+            job_dir = ((job.get("defaults") or {}).get("run") or {}).get("working-directory")
             for index, step in enumerate(job.get("steps") or []):
                 if not isinstance(step, dict):
                     continue
                 run = step.get("run")
                 if not isinstance(run, str):
                     continue
-                guards = sorted({match.group(1) for match in _INVOCATION.finditer(run)})
-                if not guards:
-                    continue
                 name = step.get("name")
-                sites.append(
+                directory = step.get("working-directory") or job_dir or workflow_dir or "."
+                steps.append(
                     {
                         "workflow": workflow.name,
                         "job": job_key,
@@ -132,10 +132,218 @@ def discover_invocation_sites() -> list[dict]:
                         # Expressions may evaluate to false; do not assume an exemption.
                         "continue_on_error": step.get("continue-on-error") is True
                         or job.get("continue-on-error") is True,
-                        "guards": guards,
+                        "working_directory": str(directory),
+                        "run": run,
                     }
                 )
+    return steps
+
+
+def discover_invocation_sites() -> list[dict]:
+    """Every place a guard is invoked, down to the step — the one parse, richest view.
+
+    ``discover_invocations`` below is a projection of this, so the catalogue and any
+    consumer that needs step-level detail (``collect_guard_surface_evidence``) read the
+    **same** parse. Two parsers agreeing today is the drift class this repository keeps
+    measuring; one parse with two views cannot drift.
+    """
+    sites: list[dict] = []
+    for step in _run_steps():
+        guards = sorted({match.group(1) for match in _INVOCATION.finditer(step["run"])})
+        if not guards:
+            continue
+        site = {k: v for k, v in step.items() if k not in ("run", "working_directory")}
+        site["guards"] = guards
+        sites.append(site)
     return sites
+
+
+#: Modules a step may run with ``python -m`` that are installed, not part of this tree.
+#: An unknown module is **not** assumed external: it fails closed as unresolved, because
+#: a guessed exemption is exactly how an inventory silently shrinks.
+EXTERNAL_MODULES = frozenset(
+    {"pip", "pytest", "pip_audit", "piptools", "compileall", "py_compile", "venv", "json"}
+)
+
+_PYTHON = re.compile(r"(?:^|(?<=[\s;&|(`]))python(?:3(?:\.\d+)?)?(?=\s)")
+_SHELL_HOP = re.compile(r"(?:^|(?<=[;&|(])|(?<=\bbash\s)|(?<=\bsh\s))\s*([\w./-]+\.sh)\b")
+_CD = re.compile(r"(?:^|(?<=[;&|(]))\s*cd\s+(\S+)")
+#: ``NAME="$(cd "$(dirname "${BASH_SOURCE[0]}")/<rel>" && pwd)"`` (optionally inside
+#: ``${NAME:-…}``) — the one idiom by which a script names its own root. Its value is
+#: decidable from the script's path, so it is resolved rather than failed closed.
+_SELF_ROOT = re.compile(
+    r"^\s*(?:export\s+)?(\w+)=.*dirname\s+\"?\$\{?(?:BASH_SOURCE(?:\[0\])?|0)\}?\"?\)"
+    r"(/[^\"\s)]*)?\"?\s*&&\s*pwd"
+)
+_HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][\w]*)\1")
+_FLAGS_WITH_VALUE = frozenset({"-X", "-W", "-Q"})
+
+
+def _shell_lines(text: str) -> list[str]:
+    """Shell text as logical command lines: heredoc bodies and comment lines removed.
+
+    A heredoc body is data fed to a command (inline Python, a JSON record), not a
+    command — reading ``python foo`` inside it as an invocation would invent one.
+    """
+    lines: list[str] = []
+    pending = ""
+    terminator: str | None = None
+    for raw in text.splitlines():
+        if terminator is not None:
+            if raw.strip() == terminator:
+                terminator = None
+            continue
+        line = pending + raw
+        if line.rstrip().endswith("\\"):
+            pending = line.rstrip()[:-1] + " "
+            continue
+        pending = ""
+        heredoc = _HEREDOC.search(line)
+        if heredoc:
+            terminator = heredoc.group(2)
+        if line.lstrip().startswith("#"):
+            continue
+        lines.append(line)
+    if pending:
+        lines.append(pending)
+    return lines
+
+
+def _python_target(rest: str) -> tuple[str, str]:
+    """``(kind, token)`` for one interpreter launch, read from the text after ``python``.
+
+    ``kind`` is ``file`` (a script path), ``module`` (``-m``) or ``inline`` (``-c`` / ``-``:
+    nothing on disk to inspect). Tokens are pulled lazily, so an inline program's own
+    quoting never has to parse. A launch whose text cannot be tokenised is ``unresolved``.
+    """
+    import shlex
+
+    lexer = shlex.shlex(rest, posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    try:
+        skip = False
+        for token in lexer:
+            if skip:
+                skip = False
+                continue
+            if token == "-m":
+                return "module", next(lexer, "")
+            if token in ("-c", "-") or token.startswith("<"):
+                return "inline", token
+            if token in _FLAGS_WITH_VALUE:
+                skip = True
+                continue
+            if token.startswith("-"):
+                continue
+            if token[:1] in ";&|()":
+                break
+            return "file", token
+    except ValueError:
+        return "unresolved", rest.strip()
+    return "inline", ""
+
+
+def _resolve(token: str, directory: Path | None, kind: str) -> tuple[str, str | None]:
+    """``(status, repo-relative path)`` — status is ``file`` · ``external`` · ``unresolved``."""
+    if kind == "module" and token.split(".")[0] in EXTERNAL_MODULES:
+        return "external", None
+    if directory is None or "$" in token or "`" in token or not token:
+        return "unresolved", None
+    if kind == "module":
+        parts = token.split(".")
+        candidates = [
+            directory.joinpath(*parts).with_suffix(".py"),
+            directory.joinpath(*parts, "__main__.py"),
+        ]
+    else:
+        candidates = [directory / token]
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved.is_file() and resolved.suffix == ".py" and resolved.is_relative_to(ROOT):
+            return "file", resolved.relative_to(ROOT).as_posix()
+    return "unresolved", None
+
+
+def _cd(target: str, directory: Path | None) -> Path | None:
+    """The directory after ``cd <target>`` — ``None`` (unknown) when it is not literal."""
+    target = target.strip("'\"")
+    if directory is None or "$" in target or "`" in target or target in ("-", "~"):
+        return None
+    return (directory / target).resolve()
+
+
+def _expand(text: str, variables: dict[str, Path]) -> str:
+    for name, value in variables.items():
+        text = re.sub(r"\$\{" + name + r"\}|\$" + name + r"\b", str(value), text)
+    return text
+
+
+def _scan_shell(
+    text: str, directory: Path | None, script: Path | None = None
+) -> tuple[list[dict], list[str]]:
+    """Python launches and ``.sh`` hops in shell text, following literal ``cd``.
+
+    ``script`` is the file's own path when the text is a ``.sh`` reached by a hop, so its
+    self-root idiom (``_SELF_ROOT``) can be resolved instead of read as unknowable.
+    """
+    found: list[dict] = []
+    hops: list[str] = []
+    variables: dict[str, Path] = {}
+    for line in _shell_lines(text):
+        root = _SELF_ROOT.match(line) if script is not None else None
+        if root:
+            variables[root.group(1)] = (
+                script.parent / (root.group(2) or "/").lstrip("/")
+            ).resolve()
+            continue
+        line = _expand(line, variables)
+        for segment in re.split(r"&&|\|\||;", line):
+            cd = _CD.match(segment)
+            if cd:
+                directory = _cd(cd.group(1), directory)
+                continue
+            for match in _PYTHON.finditer(segment):
+                kind, token = _python_target(segment[match.end() :])
+                if kind == "inline":
+                    continue
+                status, path = (
+                    ("unresolved", None)
+                    if kind == "unresolved"
+                    else _resolve(token, directory, kind)
+                )
+                found.append({"token": token, "status": status, "script": path})
+            for hop in _SHELL_HOP.findall(segment):
+                hops.append(hop if directory is None else str((directory / hop).resolve()))
+    return found, hops
+
+
+def discover_script_invocations() -> list[dict]:
+    """Every Python file a **blocking** CI step executes — by class, not by name.
+
+    The same walk as ``discover_invocation_sites`` (``_run_steps``), read differently: any
+    directory (``tools/`` · ``services/`` · ``frontend/``), ``python -m <local module>``,
+    the step's ``working-directory`` and literal ``cd``, and one hop into a ``.sh`` the
+    step runs. A launch whose target is not readable off the text is returned with
+    ``status: unresolved`` rather than dropped, so a consumer can fail closed instead of
+    measuring less than it claims.
+    """
+    rows: list[dict] = []
+    for step in _run_steps():
+        if step["continue_on_error"]:
+            continue
+        directory = (ROOT / step["working_directory"]).resolve()
+        where = {"workflow": step["workflow"], "job": step["job"], "via": None}
+        found, hops = _scan_shell(step["run"], directory)
+        rows += [{**where, **row} for row in found]
+        for hop in hops:
+            shell = Path(hop)
+            if not shell.is_absolute() or not shell.is_file() or not shell.is_relative_to(ROOT):
+                rows.append({**where, "token": hop, "status": "unresolved", "script": None})
+                continue
+            via = shell.relative_to(ROOT).as_posix()
+            inner, _ = _scan_shell(shell.read_text(encoding="utf-8"), directory, shell)
+            rows += [{**where, "via": via, **row} for row in inner]
+    return rows
 
 
 def discover_invocations() -> dict[str, set[tuple[str, str]]]:
