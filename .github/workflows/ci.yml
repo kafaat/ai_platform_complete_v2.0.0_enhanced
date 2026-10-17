@@ -857,6 +857,16 @@ jobs:
       # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
       # المُجمَّد (١٥ ملفّاً بأسبابها المقيسة) يتقلّص ولا ينمو.
       - run: python scripts/ci/test_marker_coverage_guard.py --check
+      # GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 (قرار المالك 2026-10-15): #1133
+      # أصلح أربعة عيوبٍ مادّيّة وكلُّ حرّاس الفجوات خضراء، لأنّ شيئاً لم يطلب تسجيلَ عيبٍ
+      # لم يُمنَح معرّفاً. فقرةٌ في رسائل التزامات الـPR تحمل وسمَ خطورة (High/Medium/
+      # Critical) في سياق مراجعة يجب أن تسمّي معرّفاً **مسجَّلاً**. على مدى الـPR وحده
+      # (التاريخ كامل أعلاه)، فلا يُدان تاريخُ main. والمتنُ يُقرأ في capability-governance.
+      - name: labelled review findings in PR commits must name a registered gap ID
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python scripts/ci/pr_finding_gap_id_guard.py --base "origin/${BASE_REF}" --head HEAD
       # الشطر المُنفَّذ من حارس الطفرات — موضعه هنا لا في *Lint & Format*: يزرع
       # العطل في مصدر كلّ حارس مُواصَف ويُشغّل **pytest** ويؤكّد سقوط الاختبار
       # المُسمّى، فيلزمه جناح اختبار مُثبَّت. (وُضِع أوّلاً في وظيفة الـlint حيث لا

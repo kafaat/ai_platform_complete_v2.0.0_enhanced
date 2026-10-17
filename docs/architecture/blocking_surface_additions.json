@@ -96,6 +96,27 @@
       "positive_witness": "test_the_post_824_anchor_where_the_property_lives_passes + test_the_post_824_property_regex_passes + test_an_anchor_on_a_live_lazy_binding_passes: the legitimate remedies #824 applied (anchor the import where it is used; match the guard `!isPivot`, not the cast) pass, and an anchor on a lazy binding that is rendered is not condemned.",
       "impact": "merge",
       "$scope_limit_ar": "حدُّ صدقٍ مكتوب: «الخاصّيّةُ تعيش في ملفٍّ آخر» في عمومها غيرُ قابلةٍ للحسم نصّيّاً؛ مرساةٌ على ربطٍ **حيّ** في الملفّ الخطأ تمرّ. يُمسَك الشكلان الميكانيكيّان وحدهما."
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::capability-governance.yml::capability-registry": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::ci.yml::unit-tests": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
+    },
+    "scripts/ci/pr_finding_gap_id_guard.py::no-report-only-change.yml::no-report-only-change": {
+      "counterexample": "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01, measured 2026-10-04 by the owner: on da9202533 PR #1133 fixed four material defects (TTS-BAKEOFF-WORKER-INHERITS-HOST-CREDENTIALS-01 and three siblings) with the registry blob identical to main, and every gap guard was green (run 37234904375). Calibrated on main 0e5281614 over 2393 non-merge commits: 7 labelled review-finding paragraphs in 5 commits named no registered ID (e.g. 63a1ad7fd `تدقيق خارجيّ (High)`, 18b64ed0f `مراجعة Copilot (High)`), and the three domain-tier false positives of the previous draft (8722ea99, 79dae5e1, 7c897ea1) stay green. Owner decision 2026-10-15 approved the guard.",
+      "mutation": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+      "$mutation_ar": "الطفرةُ المسجَّلة تقبل أيَّ نصٍّ بشكل المعرّف بدل المسجَّل، ويقتلها الاختبارُ المسمّى بمعرّفٍ مخترَع.",
+      "positive_witness": "test_naming_a_registered_id_is_the_remedy + test_a_severity_without_review_context_is_not_a_finding + the three verbatim domain-tier tests: naming the registered ID in the finding's paragraph passes, and severity vocabulary outside a review (approval tiers, substance tiers, water-stress levels, an owner PR describing alert levels) is not condemned. It reads only the PR's own range, so main's history never reaches it.",
+      "impact": "merge"
     }
   }
 }

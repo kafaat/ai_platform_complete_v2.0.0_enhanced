@@ -548,6 +548,9 @@ require_file scripts/ci/brain_annotated_supersession_guard.py "٦و) brain_annot
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
+  # ٦ز) GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01: ملاحظةُ مراجعةٍ موسومةٌ بخطورة
+  # في رسائل الالتزامات تسمّي معرّفاً مسجَّلاً (الوجهُ المقابل لـ٦ج).
+  run "٦ز) pr_finding_gap_id"      python3 scripts/ci/pr_finding_gap_id_guard.py --base "$BASE" --head HEAD
   # ٦هـ: كان غائباً هنا وحاضراً في CI (`no-report-only-change.yml`)، فمرّ تقلّصٌ في سجلّ
   # الدماغ أخضرَ محلّيّاً ثمّ حجب بـ`JOURNAL_SHRANK` — GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01.
   run "٦هـ) brain_append_only"      python3 scripts/ci/brain_append_only_guard.py --base "$BASE" --head HEAD
@@ -696,6 +699,9 @@ if [ -n "$PR_BODY_FILE" ]; then
       echo "   ⊘ متخطّاة: تعذّر حلّ merge-base مع $BASE — **لم تُقَس**"
       skipped=$((skipped + 1))
     fi
+    # ١١ج) GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01: المتنُ وحده، بلا أساس.
+    run "١١ج) pr_finding_gap_id --pr-body-file" \
+      python3 scripts/ci/pr_finding_gap_id_guard.py --pr-body-file "$PR_BODY_FILE"
   fi
 fi
 
