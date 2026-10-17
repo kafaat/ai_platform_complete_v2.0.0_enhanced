@@ -1,0 +1,3 @@
+$ sh -c git ls-files mobile/sahool_app/ios | grep -c Podfile.lock; true
+0
+[exit=0]

@@ -1,0 +1,15 @@
+$ grep -n -E ^resolver|server sahool-[a-z-]+:[0-9]+ resolve; frontend/nginx.conf
+4:resolver 127.0.0.11 valid=10s ipv6=off;
+5:resolver_timeout 5s;
+47:    server sahool-ai-agronomist:8000 resolve;
+51:    server sahool-auth:8000 resolve;
+55:    server sahool-rag-retrieval:8000 resolve;
+59:    server sahool-tts-service:8000 resolve;
+63:    server sahool-raster-service:8001 resolve;
+67:    server sahool-vegetation-analysis:8000 resolve;
+71:    server sahool-remote-sensing-workspace-bff:8185 resolve;
+75:    server sahool-platform:8000 resolve;
+79:    server sahool-supervisor-agent:8000 resolve;
+83:    server sahool-guardrails-engine:8000 resolve;
+87:    server sahool-notification-agent:8123 resolve;
+[exit=0]

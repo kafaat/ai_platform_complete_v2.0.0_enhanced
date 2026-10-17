@@ -6276,9 +6276,21 @@
       "mutations": [
         {
           "expect": "test_an_unregistered_id_shaped_text_is_not_a_registration",
-          "find": "    return any(candidate in known for candidate in gap_id.findall(paragraph))",
-          "replace": "    return bool(gap_id.findall(paragraph))",
+          "find": "    return {candidate for candidate in gap_id.findall(paragraph) if candidate in known}",
+          "replace": "    return set(gap_id.findall(paragraph))",
           "why": "قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)"
+        },
+        {
+          "expect": "test_two_findings_in_one_paragraph_need_two_ids",
+          "find": "    return labels[len(ids)] if len(ids) < len(labels) else None",
+          "replace": "    return labels[0] if not ids else None",
+          "why": "عودةُ الفقرة وحدةً بدل الملاحظة ⇒ فقرةٌ تسرد ملاحظتين موسومتين تمرّ بمعرّفٍ واحد، فتبقى الثانية بلا أثرٍ في السجلّ بعد الدمج — الشطرُ الأوّل من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
+        },
+        {
+          "expect": "test_an_unregistered_high_review_comment_is_blocked",
+          "find": "        labels = [label for p in paragraphs(thread.root) for label in severity_labels(p)]",
+          "replace": "        labels = []",
+          "why": "تعليقاتُ المراجعة تُجلَب ولا يُحكَم عليها ⇒ ملاحظةُ بوتٍ أو مراجِعٍ «(High)» على GitHub تُصلَح بلا معرّف والخطوةُ خضراء — الشطرُ الثاني من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
         }
       ]
     }

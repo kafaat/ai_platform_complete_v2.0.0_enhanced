@@ -1,0 +1,2 @@
+$ git grep -n -E iot_command_dispatch|actuator_command_outbox|dispatch\.requested -- services/actuator-service
+[exit=1]

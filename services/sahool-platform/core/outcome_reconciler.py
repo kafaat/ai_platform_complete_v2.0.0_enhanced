@@ -145,6 +145,109 @@ _AUTHORITATIVE_NOTE = (
 )
 
 
+SOURCE_MODELS = ("outcome_record", "recommendation_outcomes")
+
+_SOURCE_SPLIT_NOTE = (
+    "نسبة كلّ مصدر = ناجحة ÷ محسومة من صفوف ذلك المصدر وحده (success صريح True/False)؛ "
+    "غير المحسومة تُستبعَد من المقام وتُعدّ بأسبابها؛ مقام صفر ⇒ success_rate=None. "
+    "الحالة المربوطة عبر المصدرين تدخل مقام كلٍّ منهما مرّةً (سؤالان مختلفان) وتُعلَن في "
+    "linked_overlap؛ أمّا overall.success_rate فيجمع صفوف المصدرين (أساس الصفوف)."
+)
+
+
+def _unsettled_reason(item: dict) -> str:
+    """سببُ عدم حسم صفٍّ موحَّد — يُعلَن لا يُخفى (لا None صامتة).
+
+    ``recommendation_outcomes``: سببُ الأهليّة نفسه (U02: missing_prediction · missing_actual ·
+    non_finite_value · immature · not_accepted). ``outcome_record``: عمود ``success`` غائب
+    (``success_missing``) أو ليس قيمةً منطقيّة صريحة (``success_not_boolean``).
+    """
+    if item.get("source_model") == "recommendation_outcomes":
+        eligibility = (item.get("result") or {}).get("eligibility") or {}
+        return eligibility.get("reason") or "success_not_derived"
+    return "success_missing" if item.get("success") is None else "success_not_boolean"
+
+
+def settled_success_by_source(unified: list[dict] | None) -> dict:
+    """نسبة نجاح الصفوف المحسومة **لكلّ مصدر بمقامه** — نقيّ حتميّ.
+
+    REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01. ``unified``: العناصر المُطبَّعة من
+    ``reconcile_outcomes``. لكلّ مصدر في ``SOURCE_MODELS``:
+      • ``rows``: كلّ صفوف المصدر · ``settled_rows`` (المقام): ``success`` صريح True/False ·
+        ``succeeded`` (البسط) · ``failed`` · ``unsettled_rows`` = rows − settled_rows (خارج المقام)
+        مع ``unsettled_by_reason`` · ``success_rate`` = succeeded/settled_rows مقرّبة لثلاث، و``None``
+        (لا صفر) حين المقام صفر.
+    تُحسَب النسبة من قيمة ``success`` لكلّ صفّ لا من عدّادات (``metrics.n_success``/``by_source``).
+
+    ``linked_overlap``: قرارات (``decision_id``) لها صفوف في **المصدرين معاً** بعد الربط عبر
+    dispatch_decisions — تُعلَن ولا تُطرَح: كلّ مصدر يحسب صفوفه هو. مجموعةٌ من مصدر واحد (صفّا
+    outcome_record للقرار نفسه) ليست تداخلاً بين المصدرين.
+    """
+    sources: dict[str, dict] = {
+        name: {
+            "rows": 0,
+            "settled_rows": 0,
+            "succeeded": 0,
+            "failed": 0,
+            "unsettled_rows": 0,
+            "unsettled_by_reason": {},
+        }
+        for name in SOURCE_MODELS
+    }
+    # decision_id → مصدر → قائمة قيم success (لكشف التداخل بين المصدرين).
+    by_decision: dict[str, dict[str, list]] = {}
+    for item in unified or []:
+        source = item.get("source_model")
+        if source not in sources:
+            continue
+        bucket = sources[source]
+        bucket["rows"] += 1
+        success = item.get("success")
+        if success is True:
+            bucket["succeeded"] += 1
+            bucket["settled_rows"] += 1
+        elif success is False:
+            bucket["failed"] += 1
+            bucket["settled_rows"] += 1
+        else:
+            bucket["unsettled_rows"] += 1
+            reasons = bucket["unsettled_by_reason"]
+            reason = _unsettled_reason(item)
+            reasons[reason] = reasons.get(reason, 0) + 1
+        decision_id = item.get("decision_id")
+        if decision_id:
+            by_decision.setdefault(decision_id, {}).setdefault(source, []).append(success)
+
+    for bucket in sources.values():
+        settled = bucket["settled_rows"]
+        bucket["success_rate"] = round(bucket["succeeded"] / settled, 3) if settled else None
+
+    overlap_rows = dict.fromkeys(SOURCE_MODELS, 0)
+    overlap_cases = 0
+    settled_in_both = 0
+    for per_source in by_decision.values():
+        if not all(name in per_source for name in SOURCE_MODELS):
+            continue
+        overlap_cases += 1
+        for name in SOURCE_MODELS:
+            overlap_rows[name] += len(per_source[name])
+        if all(any(s is True or s is False for s in per_source[name]) for name in SOURCE_MODELS):
+            settled_in_both += 1
+
+    return {
+        "basis": "settled_rows_per_source",
+        "sources": sources,
+        "linked_overlap": {
+            "linked_via": "decision_id (dispatch_decisions)",
+            "cases": overlap_cases,
+            "rows_by_source": overlap_rows,
+            "settled_in_both_sources": settled_in_both,
+            "counted_in_each_source": True,
+        },
+        "note": _SOURCE_SPLIT_NOTE,
+    }
+
+
 def reconcile_outcomes(
     outcome_records: list[dict] | None,
     recommendation_outcomes: list[dict] | None,

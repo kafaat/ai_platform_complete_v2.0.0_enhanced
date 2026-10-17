@@ -61,6 +61,26 @@ The learning dashboard read path no longer reads `outcome_record` alone when opt
 
 Evidence inflation guard: unresolved recommendation outcomes stay `success=None` and contribute `n_evaluated=0` to evidence counters until a real actual yield exists.
 
+### Per-source settled-row success rate (REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01)
+
+`overall.success_rate` is unchanged: settled rows of both sources pooled (row basis). The additive field
+`outcome_reconciliation.success_rate_by_source` (computed by `core.outcome_reconciler.settled_success_by_source`)
+gives each source its own rate over its own rows:
+
+- `sources.<outcome_record|recommendation_outcomes>`: `rows`, `settled_rows` (the denominator: `success` is an
+  explicit `True`/`False`), `succeeded` (numerator), `failed`, `unsettled_rows` (excluded from the denominator) with
+  `unsettled_by_reason`, and `success_rate` = `succeeded / settled_rows`, `null` (not 0) when `settled_rows` is 0.
+- Settled means: `outcome_record.success` is a boolean; a `recommendation_outcomes` row passes
+  `recommendation_outcome_eligibility` (otherwise its reason — `missing_prediction`, `missing_actual`,
+  `non_finite_value`, `immature`, `not_accepted` — is counted). `outcome_record` rows with `success` NULL count as
+  `success_missing`.
+- Rates come from each row's `success`, never from row counters (`by_source`, `metrics.n_success`).
+- `linked_overlap`: decisions with rows in both sources after the `dispatch_decisions` link. Such a case is counted
+  once in each source's own denominator (the sources answer different questions) and is declared, not subtracted.
+- The sum of per-source `settled_rows`/`unsettled_rows` equals `overall.outcomes_decided`/`outcomes_pending`.
+
+The learning dashboard shows both per-source rates with their denominators next to the pooled indicator.
+
 ## P1.3 Read-path wiring: Field Season State Projection
 
 `api.field_season_projection.assemble_field_season_state` consumes reconciled outcome inputs in
