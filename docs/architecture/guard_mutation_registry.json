@@ -2093,10 +2093,10 @@
         },
         {
           "expect": "test_the_batch_closes_its_transaction_before_sending",
-          "find": "            # ── الشبكةُ خارج كلّ معاملة: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ أثناء I/O ──\n            for row in rows:\n                await self._send_one(conn, row, token)\n\n            return len(rows)",
-          "replace": "                # mutated: الإرسالُ يعود داخل معاملة الدُّفعة\n                for row in rows:\n                    await self._send_one(conn, row, token)\n\n                return len(rows)",
+          "find": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n        # ── الشبكةُ خارج كلّ معاملة **وخارج المسبح**: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ ولا\n        # اتّصالٌ مستعارٌ أثناء I/O. `None` يعني «استعِر لكلّ خطوة قاعدةٍ قصيرة وأعِد».\n        for row in rows:\n            await self._send_one(None, row, token)\n",
+          "replace": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n                # mutated: الإرسالُ يعود داخل معاملة الدُّفعة\n                for row in rows:\n                    await self._send_one(conn, row, token)\n",
           "test": "tests_v9/test_outbox_claim_lease.py",
-          "why": "إعادةُ حلقة الإرسال داخل معاملة الدُّفعة تُعيد العطلَ الأصليّ حرفيّاً: أقفالُ FOR UPDATE SKIP LOCKED واتّصالُ المسبح محتجَزان أثناء النشر على الشبكة، فتباطؤُ الوسيط يصير تعطّلَ العامل ومسبحِه. وكان هذا مكتوباً في docstring الملفّ بوصفه مقصوداً."
+          "why": "إعادةُ حلقة الإرسال داخل معاملة الدُّفعة تُعيد العطلَ الأصليّ حرفيّاً: أقفالُ FOR UPDATE SKIP LOCKED واتّصالُ المسبح محتجَزان أثناء النشر على الشبكة، فتباطؤُ الوسيط يصير تعطّلَ العامل ومسبحِه. وكان هذا مكتوباً في docstring الملفّ بوصفه مقصوداً. **أُعيد رسوُّها** مع `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: الحلقةُ خرجت من `pool.acquire()` أيضاً فتغيّر نصُّ المرساة، والدعوى نفسُها."
         },
         {
           "expect": "test_send_one_duplicate_event_skips_publish_no_double_side_effect",
@@ -2107,10 +2107,10 @@
         },
         {
           "expect": "test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_letter",
-          "find": "            if str(failed_mark).endswith(\" 0\"):\n                logger.warning(\n                    \"outbox lease lost before failure attribution: outbox_id=%s event_id=%s\",\n                    row[\"outbox_id\"],\n                    row[\"event_id\"],\n                )\n                return\n",
-          "replace": "            if False:  # mutated: stale failure CAS result is ignored\n                return\n",
+          "find": "                if str(failed_mark).endswith(\" 0\"):\n                    logger.warning(\n                        \"outbox lease lost before failure attribution: outbox_id=%s event_id=%s\",\n                        row[\"outbox_id\"],\n                        row[\"event_id\"],\n                    )\n                    return\n",
+          "replace": "                if False:  # mutated: stale failure CAS result is ignored\n                    return\n",
           "test": "tests_v9/test_outbox_idempotent_consumption.py",
-          "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns."
+          "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns. Re-anchored (indent only) when failure attribution moved inside a short `_borrow` block for OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01."
         },
         {
           "expect": "test_the_failure_path_sends_its_state_write_bound_to_the_attempt_token",
@@ -2118,6 +2118,20 @@
           "replace": "WHERE outbox_id = $4  -- mutated: مسارُ الفشل بلا CAS",
           "test": "tests_v9/test_outbox_claim_lease.py",
           "why": "مُكمِّلةٌ للطفرة [3] لا مكرِّرةٌ لها: [3] (#1076) تحرس **قراءةَ نتيجة** التحديث المشروط في مسار الفشل؛ وهذه تحرس **وجودَ الشرط** نفسِه مربوطاً بصفّ المحاولة ورمزِها. بلا الشرط يصير التحديثُ غيرَ مشروطٍ فيُرجِع `UPDATE 1` دائماً — فتمرّ قراءةُ النتيجة في [3] وهي لا تحمي شيئاً. والشاهدُ يقرأ ما يُمرَّر إلى `execute`، فلا يُبطِله تعليقٌ يذكر الشرط."
+        },
+        {
+          "expect": "test_a_publish_in_flight_does_not_hold_the_only_pooled_connection",
+          "find": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n        # ── الشبكةُ خارج كلّ معاملة **وخارج المسبح**: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ ولا\n        # اتّصالٌ مستعارٌ أثناء I/O. `None` يعني «استعِر لكلّ خطوة قاعدةٍ قصيرة وأعِد».\n        for row in rows:\n            await self._send_one(None, row, token)\n",
+          "replace": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n            # mutated: الإرسالُ داخل pool.acquire (خارج المعاملة) — الاتّصالُ محتجَزٌ عبر الشبكة\n            for row in rows:\n                await self._send_one(conn, row, token)\n",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01 بصيغته الحرفيّة: الحلقةُ خارج `conn.transaction()` وداخل `pool.acquire()`. **وهذه الطفرةُ تنجو من الطفرة [1] وشاهدِها** — `test_the_batch_closes_its_transaction_before_sending` يقيس المعاملة لا المسبح، فبقي أخضرَ على هذا العطل بعينه. الشاهدُ المُسمَّى سلوكيّ: مسبحٌ سعتُه اتّصالٌ واحد وناشرٌ موقوف، وعملٌ مستقلٌّ يستعير خلال ٠٫٥ث."
+        },
+        {
+          "expect": "test_the_last_row_of_a_slow_batch_still_holds_its_lease_when_its_publish_starts",
+          "find": "                if not await self._renew_lease_if_held(conn, row, claim_token):\n                    return\n",
+          "replace": "                if False:  # mutated: بلا تجديد إجارةٍ قبل النشر\n                    return\n",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01: بلا تجديدٍ قبل كلّ نشر تعود الإجارةُ إجارةَ دُفعةٍ تُنفَق تسلسليّاً — خمسةُ صفوفٍ بعشرين ثانيةً لكلٍّ يبدأ رابعُها وخامسُها نشرَهما بإجارةٍ منقضية (مقيس على الشيفرة السابقة: `[(4, 60.0, 60.0), (5, 80.0, 60.0)]`)."
         }
       ],
       "test": "tests_v9/test_outbox_claim_lease.py"
