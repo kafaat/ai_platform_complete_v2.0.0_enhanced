@@ -1,3 +1,5 @@
+> 2026-10-17 — PR #1202: ختم تفويض correlation المستهلك في #1201؛ تطابقت البصمات السبع مع `2ca779c6`. المصدر: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. لا فتح للبوابة أو تطبيق هجرات.
+
 متابعة إغلاق خارج Claude: أُسند إغلاق correlation في المصدر إلى شاهد PG16 النهائي لـ#1201 (62 ناجحاً)، والمفتوح الرسمي في المرشح 96؛ لا ادعاء تطبيق إنتاجي.
 
 > **2026-10-17 — خارج نطاق Claude، أساس `2ca779c6`:** إصلاح مصدر لفجوتي توقيت offline وMSI الافتراضي؛ نقل موضعي JWT في MCP مع بقاء actuator وقرار enforce. لا نشر أو verified. [الشواهد والحدود](../certification/evidence/non_claude_gap_closure_20261017/README.md).

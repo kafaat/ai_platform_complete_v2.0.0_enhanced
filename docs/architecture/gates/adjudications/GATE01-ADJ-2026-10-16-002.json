@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-16-002",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner-current-user-delegation",
   "adjudicated_on": "2026-10-16",
   "expires_on": "2026-10-23",
@@ -53,5 +53,18 @@
     "consumed_u07_grant_reused": false
   },
   "acceptance_limits": "Unit and actual-migration PostgreSQL-WASM witnesses are saved; native PG16 full-schema CI, operational schema application and runtime trace acceptance remain separate unclaimed gates. This grant authorizes exact source integration, not an assertion of gap completion.",
-  "supplemental_binding_limit": "The current guard reads policy frozen paths only. The live runner alias is expressly authorized and byte-bound here as supplementary review evidence, without modifying the global policy."
+  "supplemental_binding_limit": "The current guard reads policy frozen paths only. The live runner alias is expressly authorized and byte-bound here as supplementary review evidence, without modifying the global policy.",
+  "merge_sha": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+  "pr": 1201,
+  "consumed_by": {
+    "pr": 1201,
+    "merge_sha": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+    "merged_at": "2026-10-16T23:03:04Z"
+  },
+  "consumption": {
+    "merge_sha": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+    "consumed_on": "2026-10-16",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1201",
+    "scope": "Source merge only. All authorized and supplemental blob bindings match the merge tree. No production migration application or runtime acceptance is asserted."
+  }
 }

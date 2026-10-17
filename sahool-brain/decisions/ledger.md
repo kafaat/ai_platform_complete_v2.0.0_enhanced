@@ -4078,3 +4078,8 @@ Owner request: close gaps outside Claude’s unpublished batch. Implemented UTC 
 متابعة الدليل لنفس الشريحة: فجوة CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01 أصبحت fixed في المصدر بعد قراءة شاهد PostgreSQL الأصلي النهائي لـ#1201 (62 ناجحاً، الوظيفة 117231284805)، دون تطبيق إنتاجي. الدليل: certification/evidence/non_claude_gap_closure_20261017/correlation_pg16_receipt.json. المفتوح الرسمي في المرشح 96.
 
 قياس الشريحة خارج Claude: جناحا المستودع والمنصة نجحا؛ جناح الوحدة 9349 ناجحاً و40 متخطياً وفشل واحد لأساس العناوين اليتيمة، صُحح بخفضه 211→209 ثم نجحت 24 حالة مركزة. Raster: 614 ناجحاً وحالتا PostgreSQL متخطيتان محلياً. Gitleaks بلا تسريبات. أثر القدرات يُشتق بعد الالتزام؛ لا ادعاء preflight شامل أخضر جديد.
+
+
+### 2026-10-17 — Close the consumed correlation grant lifecycle
+
+PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHub merge evidence (`2ca779c6`, merged 2026-10-16T23:03:04Z) and verified all seven authorized/supplemental blob bindings against that merge tree. Stamped GATE01-ADJ-2026-10-16-002 CONSUMED with the merge receipt; preserved its scope and exact byte bindings. No new authority, frozen source edit, production migration or gap-state promotion. Source: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. This is lifecycle bookkeeping required by GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01, not a gate exception.
