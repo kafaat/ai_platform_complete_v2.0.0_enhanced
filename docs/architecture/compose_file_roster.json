@@ -1,6 +1,7 @@
 {
   "$comment": "سجلّ ملفّات Compose — docker-compose.v9.yml هو تعريفُ المكدّس الوحيد، وكلُّ ملفّ compose متعقَّبٍ غيره يجب أن يُسمّى هنا بدوره ومستهلِكه. قرارُ مالك 2026-10-15 (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01): البدائلُ التي عرّفت المكدّس بأسماء خدماتٍ أخرى (unified/light/fixed/odoo-snippet/frontend web) نُقلت إلى docs/history/compose/ ولا تُشغَّل. يفرضه scripts/ci/compose_roster_guard.py: المتعقَّب == الأساس ∪ هذا السجلّ (مساواةُ مجموعات)، ولكلّ مدخلٍ مستهلِكٌ يُسمّيه، وخدماتُ التراكب موجودةٌ في الأساس أو تحمل image/build، والرفيقُ ينضمّ إلى شبكةٍ من الأساس، ومكدّسُ الاختبار لا يُعيد استعمال اسم خدمةٍ من الأساس.",
-  "schema_version": 1,
+  "schema": "sahool.compose-file-roster",
+  "version": 1,
   "adjudicated_on": "2026-10-15",
   "gap": "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01",
   "base": "docker-compose.v9.yml",
