@@ -151,7 +151,12 @@ def test_the_sparse_search_and_the_neighbour_expansion_share_one_predicate():
     source = MODULE.read_text(encoding="utf-8")
     assert source.count("def matches_scope_filters(") == 1
     assert source.count("matches_scope_filters(") == 3, "نسخةٌ ثانية للشرط أو موضعٌ لا يستدعيها"
-    assert source.count("value is not None and chunk.metadata.get(key) != value") == 1
+    # The predicate now also admits general references with no local scope.
+    # Assert behavior, not one obsolete spelling of its implementation.
+    assert m.matches_scope_filters(_chunk("i", "tenant-a", "x", field_id="F1"), {"field_id": "F1"})
+    assert not m.matches_scope_filters(
+        _chunk("o", "tenant-a", "x", field_id="F2"), {"field_id": "F1"}
+    )
 
 
 def test_the_predicate_is_measured_directly_in_both_directions():

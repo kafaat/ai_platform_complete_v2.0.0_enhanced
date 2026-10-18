@@ -7,7 +7,8 @@
 # يظهر هنا بمنتِجٍ موثَّق أو ``reserved_future_subject`` ⇒ **يفشل CI**
 # («مُستهلَك بلا منتِج»). صدق: لا اختلاق ناشر، ولا تقليم اشتراك — توثيق القرار.
 #
-# الموضوعات المُستهلَكة المرجعيّة: ``agents/notification/agent.py: SUBSCRIPTIONS``.
+# الموضوعات المُستهلَكة المرجعيّة: ``shared/notification_consumers.py: SUBSCRIPTIONS``
+# (يستوردها ``agents/notification/agent.py``) + أيّ ``.subscribe("literal")``.
 
 subjects:
   # ── موضوعات لها منتِج حقيقيّ عبر outbox ──
@@ -57,13 +58,9 @@ subjects:
     reserved_future_subject: true
     reason: "توجيه دقيق محجوز؛ التحليل الاقتصاديّ عبر sahool.events.* عند بناء مصدره."
 
-  # ── موضوع شبكة الطقس: مُنتِجه سقالة خلف راية (OFF افتراضاً) ──
-  - subject: "sahool.weather.forecast.updated"
-    consumer: "weather-polygon-worker (polygon-worker)"
-    reserved_future_subject: true
-    reason: >-
-      منتِجه سقالة خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً) —
-      services/weather-polygon-worker/src/main.py. يصير منتِجاً فعليّاً عند تفعيل الراية.
+  # 2026-10-17: أُزيل ``sahool.weather.forecast.updated`` مع مشترِكه الوحيد
+  # weather-polygon-worker بقرار مالك (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01): كان
+  # ``reserved_future_subject`` لموضوعٍ لا ناشرَ له في الشجرة، فيمرّ الحارسُ والعاملُ ينتظر أبداً.
 
 # ════════════════════════════════════════════════════════════════════
 # موضوعات منشورة بلا مشترِك بعد (اتّجاه معاكس — waiver لإنذار «حدث طريق مسدود»)
@@ -72,10 +69,6 @@ subjects:
 # ``tools/sahool_inspector.py: check_nats_subjects`` فلا يُصدِر WARN «موضوع منشور بلا
 # مشترِك» لهذه الموضوعات الموثَّقة. صدق: المنتِج حقيقيّ في الكود؛ المستهلِك مستقبليّ
 # موثَّق — لا نختلق مشترِكاً ولا نحذف نشراً قائماً. أيّ موضوع منشور غير موثَّق هنا ⇒ WARN.
-published_no_consumer:
-  - subject: "sahool.weather.field.overlay.completed"
-    producer: "weather-polygon-worker (polygon-worker)"
-    source: "services/weather-polygon-worker/src/main.py:161 — يَنشُر عند اكتمال overlay المضلّع"
-    reason: >-
-      مخرَج خطّ أنابيب الطقس خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً)؛
-      مستهلِكه (دمج التراكب/الإشارة في المنصّة) محجوز للمستقبل — لا نختلق مشترِكاً.
+# 2026-10-17: ``sahool.weather.field.overlay.completed`` (منتِجه weather-polygon-worker)
+# أُزيل مع العامل — فالقائمة فارغة: أيّ موضوع منشور بلا مشترِك يعود يُصدِر WARN.
+published_no_consumer: []

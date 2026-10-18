@@ -9,10 +9,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import jwt
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import jwt
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -295,3 +295,54 @@ async def test_one_failing_channel_does_not_block_the_healthy_ones(agent, monkey
     telegram.assert_awaited_once()
     assert email.await_count == 3
     assert set(conn.statuses.values()) == {"sent"}
+
+
+@pytest.mark.asyncio
+async def test_logical_event_republication_sends_once_across_stream_sequences(agent, monkeypatch):
+    """C03: distinct broker messages for one logical event share the durable receipt."""
+    conn = Connection()
+    monkeypatch.setattr(
+        agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
+    )
+    sender = AsyncMock(return_value=True)
+    event = {"tenant_id": TENANT, "user_id": "7", "event_id": "logical-1"}
+    await agent._deliver_channel({**event, "_delivery_id": "sahool:12"}, "email", sender)
+    await agent._deliver_channel({**event, "_delivery_id": "sahool:99"}, "email", sender)
+    sender.assert_awaited_once()
+    assert len(conn.statuses) == 1
+
+
+@pytest.mark.asyncio
+async def test_broker_redelivery_without_event_identity_sends_once(agent, monkeypatch):
+    """Legacy messages still deduplicate by their stable stream identity."""
+    conn = Connection()
+    monkeypatch.setattr(
+        agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
+    )
+    sender = AsyncMock(return_value=True)
+    event = {"tenant_id": TENANT, "user_id": "7", "_delivery_id": "sahool:12"}
+    await agent._deliver_channel(event, "email", sender)
+    await agent._deliver_channel(dict(event), "email", sender)
+    sender.assert_awaited_once()
+    await agent._deliver_channel({**event, "_delivery_id": "sahool:99"}, "email", sender)
+    assert sender.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_logical_event_receipts_isolate_tenant_user_and_channel(agent, monkeypatch):
+    """A sent receipt never suppresses a different tenant, recipient, or channel."""
+    conn = Connection()
+    monkeypatch.setattr(
+        agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
+    )
+    sender = AsyncMock(return_value=True)
+    event = {"tenant_id": TENANT, "user_id": "7", "event_id": "logical-1", "_delivery_id": "s:1"}
+    await agent._deliver_channel(event, "email", sender)
+    await agent._deliver_channel(
+        {**event, "tenant_id": "22222222-2222-2222-2222-222222222222"}, "email", sender
+    )
+    await agent._deliver_channel({**event, "user_id": "8"}, "email", sender)
+    await agent._deliver_channel(event, "push", sender)
+    await agent._deliver_channel({**event, "event_id": "logical-2"}, "email", sender)
+    assert sender.await_count == 5
+    assert len(conn.statuses) == 5

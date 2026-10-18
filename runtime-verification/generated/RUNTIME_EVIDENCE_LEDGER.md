@@ -4,7 +4,7 @@
 
 ## Summary
 
-- Services: **32**
+- Services: **31**
 - Runtime verified services: **0**
 - Invalid, stale, or unbound evidence files: **0**
 - Production certified services: **0**
@@ -40,6 +40,5 @@
 | tts-service | 4 | 0 | false |
 | vegetation-analysis-service | 4 | 0 | false |
 | video-processor | 3 | 0 | false |
-| weather-polygon-worker | 0 | 0 | false |
 | weather-service | 4 | 0 | false |
 | weather-signal-engine | 0 | 0 | false |

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
+import urllib.error
+from pathlib import Path
 from typing import Any
 
 from core.rag.production_qdrant import (
@@ -10,7 +13,10 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     OllamaEmbeddingProvider,
     QdrantHttpClient,
+    QdrantHTTPError,
+    payload_snapshot_digest,
     readiness_problems,
+    visible_corpus_count,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -21,6 +27,24 @@ from shared.security.trusted_tenant import (
     TrustedTenantError,
     resolve_trusted_tenant,
     service_token_ok,
+)
+
+# The profile and transport belong to the canonical retrieval runtime.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from retrieval_profile import RetrievalAdmissionError, RetrievalProfile  # noqa: E402
+from runtime_transport import (  # noqa: E402
+    ReindexOllamaProvider,
+    ReindexQdrantClient,
+    RetrievalDependencyError,
+)
+
+_RETRIEVAL_UNAVAILABLE_ERRORS = (
+    RetrievalAdmissionError,
+    RetrievalDependencyError,
+    QdrantHTTPError,
+    urllib.error.URLError,
+    TimeoutError,
+    ConnectionError,
 )
 
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
@@ -35,22 +59,47 @@ _qdrant = QdrantHttpClient(
     vector_size=0,  # learned from live Ollama embedding response before collection creation
     api_key=os.getenv("QDRANT_API_KEY") or None,
 )
-_retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
+_profile_path = os.getenv("RAG_REINDEX_PROFILE_MANIFEST")
+_profile = RetrievalProfile.from_file(_profile_path) if _profile_path else None
+if _profile is not None:
+    _embedding_provider = ReindexOllamaProvider(OLLAMA_BASE_URL, EMBEDDING_MODEL)
+    _qdrant = ReindexQdrantClient(
+        QDRANT_URL, COLLECTION, vector_size=768, api_key=os.getenv("QDRANT_API_KEY") or None
+    )
+_retriever = HybridQdrantRetriever(_qdrant, _embedding_provider, retrieval_profile=_profile)
 _sparse_ready = False
 _sparse_report: dict[str, Any] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
 # D10 — لحظةُ آخرِ إعادةِ تحقّقٍ من صلاحيّة الفهرس الدافئ، وعمرُها.
 # العمرُ مقايضةٌ مُعلَنة: كلُّ نداءٍ عدٌّ إضافيّ، وكلُّ ثانيةٍ نافذةُ تقادمٍ ممكنة.
 _sparse_checked_at: float = 0.0
+_sparse_payload_checked_at: float = 0.0
+# Count checks cannot detect external in-place updates or tenant/scope changes.
+_SPARSE_PAYLOAD_REVALIDATE_SECONDS = 30.0
 _SPARSE_REVALIDATE_SECONDS = float(os.getenv("RAG_SPARSE_REVALIDATE_SECONDS", "30"))
 
 
 def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
-    """Hydrate deterministic BM25 from canonical Qdrant payloads exactly once per process.
+    """Hydrate BM25 and revalidate actual payloads within a bounded 30-second window.
 
     Readiness fails closed if any stored point cannot be reconstructed; otherwise a
     restart would silently advertise hybrid retrieval while serving dense-only.
     """
-    global _sparse_ready, _sparse_report, _sparse_checked_at
+    global _sparse_ready, _sparse_report, _sparse_checked_at, _sparse_payload_checked_at
+    if force:
+        _sparse_ready = False
+    if _sparse_ready and not force:
+        now = time.monotonic()
+        if now - _sparse_payload_checked_at >= _SPARSE_PAYLOAD_REVALIDATE_SECONDS:
+            # A refresh failure must never renew the age of the cached index.
+            _sparse_ready = False
+            rows = _qdrant.scroll_payloads()
+            if len(rows) != _qdrant.collection_point_count():
+                raise ValueError("Qdrant payload refresh scroll/count mismatch")
+            if payload_snapshot_digest(rows) == _sparse_report.get("payload_snapshot_digest"):
+                _sparse_payload_checked_at = now
+                _sparse_checked_at = now
+                _sparse_ready = True
+                return _sparse_report
     if _sparse_ready and not force:
         # D10 — **صلاحيّةُ الفهرس الدافئ تُراجَع، ولا تُفترَض دائمة.**
         #
@@ -113,6 +162,7 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     _sparse_report = report
     _sparse_ready = True
     _sparse_checked_at = time.monotonic()
+    _sparse_payload_checked_at = _sparse_checked_at
     return report
 
 
@@ -290,7 +340,11 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
     if tenant_id == "__seed_quarantine__":
         raise HTTPException(status_code=403, detail="SEED_QUARANTINE_TENANT_RESERVED")
     try:
-        _ensure_sparse_index()
+        sparse = _ensure_sparse_index()
+        if visible_corpus_count(sparse, tenant_id) == 0:
+            raise ValueError("tenant has no active readable corpus")
+    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+        raise HTTPException(503, "rag_retrieval_unavailable") from exc
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
     filters = {
@@ -299,5 +353,12 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
         "region": req.region,
         "source_type": req.source_type,
     }
-    rows = _retriever.retrieve(req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k)
+    try:
+        rows = _retriever.retrieve(
+            req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k
+        )
+    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+        # Warm-index admission is rechecked inside retrieve. Never expose upstream
+        # URLs, response bodies or credentials, and never fall back to legacy.
+        raise HTTPException(503, "rag_retrieval_unavailable") from exc
     return {"annotations": [r.as_annotation() for r in rows]}

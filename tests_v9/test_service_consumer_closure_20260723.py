@@ -63,7 +63,12 @@ def test_gis_workflow_is_truthfully_a_batch_job_not_live_http_service() -> None:
 
 
 def test_agriai_is_not_falsely_registered_as_mcp_or_production_certified() -> None:
-    unified = (ROOT / "docker-compose.unified.yml").read_text(encoding="utf-8")
+    # كان يُقاس على docker-compose.unified.yml — نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17). يُقاس الآن على كلّ
+    # ملفّ compose حيّ (v9 + السجلّ)، فلا يعود التسجيلُ الزائف من أيّ باب.
+    unified = "\n".join(
+        p.read_text(encoding="utf-8") for p in sorted(ROOT.glob("docker-compose*.yml"))
+    )
     supervisor = (ROOT / "services/supervisor-agent/main.py").read_text(encoding="utf-8")
     capability = (ROOT / "services/agriai-engine/simulation_capability.py").read_text(
         encoding="utf-8"

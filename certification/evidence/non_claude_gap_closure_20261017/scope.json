@@ -1,0 +1,520 @@
+{
+  "base_commit": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+  "claude_excluded_ids": [
+    "A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01",
+    "AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01",
+    "C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01",
+    "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01",
+    "FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01",
+    "GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01",
+    "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
+    "OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01",
+    "OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01",
+    "PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01",
+    "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01",
+    "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01",
+    "TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01",
+    "TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01",
+    "WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01"
+  ],
+  "formal_open_outside_claude": [
+    {
+      "id": "AUDIT-FINDINGS-NAMED-BUT-NOT-YET-MEASURED-BY-ME-01",
+      "remaining": "قياس نتائج تدقيق المالك الثلاث المنقولة سرديًا؛ لا يكفي تسميتها، ومنها سيناريو الأقمار لعشرة حقول والموافقة الآمنة.",
+      "action_type": "قياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01",
+      "remaining": "نواة الاقتراحات موجودة ومعطلة؛ يلزم تكامل المحادثة وأدلة الحراس الحية قبل التفعيل.",
+      "action_type": "قرار وتحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "BRAIN-FRAGMENTED-SOURCE-OF-TRUTH-01",
+      "remaining": "الاتجاه المعماري لتوحيد مصدر الحقيقة متفق عليه؛ التصميم التنفيذي والتحويل لم يكتملَا.",
+      "action_type": "قرار وتصميم",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CAP-INT-004-INTEGRATION",
+      "remaining": "ISOXML منجز؛ يبقى النقل الفعلي CAN/ISOBUS وإقرار التنفيذ من الآلة.",
+      "action_type": "أجهزة وتكامل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CAPABILITY-WAVE-V217-V231-DEFERRED",
+      "remaining": "وحدات القدرات المؤجلة v217–v231 تحتاج مستهلكًا وحارسًا واستمرارية بيانات لكل وحدة.",
+      "action_type": "قرار وتنفيذ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01",
+      "remaining": "التشخيص المستقبلي مبني؛ لا تزال أسباب المشهد الفارغ التاريخي غير قابلة للنسب من البايتات المتاحة.",
+      "action_type": "دليل تاريخي",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CONNECTIVITY-AUDIT-20260910",
+      "remaining": "إغلاق TLS وصلاحيات NATS، اتصال الهاتف الأصلي، وإثبات أسماء الخدمات في compose الفعلي.",
+      "action_type": "تحقق حيّ وتكامل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01",
+      "remaining": "أُسند إغلاق المصدر إلى شاهد PG16 النهائي لـ#1201: 62 ناجحاً، بينهم Decision036 وv235. تطبيق الإنتاج غير مقيس؛ لا هجرة جديدة هنا.",
+      "action_type": "مصالحة دليل وتحقق حيّ",
+      "status_this_slice": "fixed_source_native_pg16",
+      "evidence": "correlation_pg16_receipt.json"
+    },
+    {
+      "id": "CP997-05-EDGE-IDEMPOTENCY-GLOBAL-UNIQUE-VS-TENANT-LOOKUP-01",
+      "remaining": "توحيد قيد idempotency مع نطاق المستأجر عبر هجرة إضافية واختبارات العزل؛ لا تعديل للهجرات ضمن هذا التدقيق.",
+      "action_type": "migrations مجمّدة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "CUSTOMER-PRACTICE-DEFERRED-LIVE-VALIDATION-01",
+      "remaining": "أدوات الممارسات المحلية موجودة؛ يلزم دليل العميل والميدان والنتيجة الفعلية.",
+      "action_type": "تحقق ميداني",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DECISION-033-LEGACY-POLICY-UNION-01",
+      "remaining": "إثبات تطبيق033/034 وسياسات RLS بدور محدود؛ نجاح PostgreSQL في CI لا يثبت حالة الإنتاج.",
+      "action_type": "تحقق قاعدة حيّة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DECISION-SERVICE-STAGING-BEHIND-TENANT-BOUNDARY-FIXES-01",
+      "remaining": "النشر الجديد ناجح على main؛ يبقى إثبات ترحيلات033/034 والعزل الفعلي، لا إعادة إصلاح تأخر الشيفرة اعتمادًا على الوصف القديم.",
+      "action_type": "مصالحة نشر وتحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION",
+      "remaining": "أداة الشهادة مثبتة على PostgreSQL؛ يلزم تشغيل القراءة على أدوار Platform وDecision الفعلية قبل نقل SoR.",
+      "action_type": "تحقق قاعدة حيّة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DEPLETION-FRACTION-REGIONAL-CALIBRATION-NOT-RECONCILED-01",
+      "remaining": "تحديد أسبقية ومعايرة معامل الاستنزاف p بين FAO والمراجع الإقليمية.",
+      "action_type": "قرار زراعي",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DEPLOYED-DECISION-SOR-PROMOTION",
+      "remaining": "ترقية Decision إلى SoR تحتاج تطبيقًا وbackfill وحجرًا وتحويل ملكية مع أدلة حية.",
+      "action_type": "قرار وتشغيل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "DIRECT-VS-CANONICAL-DENSE-SEMANTICS-01",
+      "remaining": "تفسير اختلاف dense المباشر والقانوني وأثر المراحل؛ لا خفض للعتبات لإجبار التطابق.",
+      "action_type": "قياس وقرار",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "EFFECTIVE-RAIN-MONTHLY-FORMULA-ON-DAILY-RAIN-01",
+      "remaining": "إثبات صلاحية صيغة المطر الفعال الشهرية عند استعمالها يوميًا أو اعتماد طريقة يومية موثقة.",
+      "action_type": "تحقق زراعي",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "ELEMENT84-LEGACY-PRODUCTS-UNINVENTORIED-01",
+      "remaining": "أداة حصر Element84 القديمة مبنية ومحدودة بالمستأجر؛ يبقى جرد المنتجات الفعلية وإثبات مصدرها.",
+      "action_type": "قراءة حيّة مصرّح بها",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "FERTIGATION-EC-GUARD-HAS-NO-PRODUCER-01",
+      "remaining": "منتج EC لحالة التسميد المائي غير مكتمل؛ الحارس وحده لا يوفر القياس.",
+      "action_type": "تصميم وبرمجة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "FERTIGATION-EXECUTION-CONTROLS-NOT-IMPLEMENTED-01",
+      "remaining": "ضوابط التدفق ومنع الرجوع والمعايرة والفشل الآمن تحتاج تنفيذًا ودليلًا ميدانيًا، بدءًا من نطاق التنقيط المحدد.",
+      "action_type": "أجهزة وقرار تفعيل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "GEOSPATIAL-GOVERNANCE-LIVE-CERT-01",
+      "remaining": "شهادة الحوكمة الجغرافية تحتاج أدلة البيئة الفعلية؛ أوصاف البيئة القديمة لا تكفي.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "IRRIGATION-OUTCOME-IMPROVEMENT-AND-COST-NOT-MEASURED-01",
+      "remaining": "قياس أثر الري على المحصول والماء والكلفة مستقل عن اجتياز اختبارات المطابقة.",
+      "action_type": "تحقق ميداني",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "IRRIGATION-SLICE-NOT-PRODUCTION-PROVEN-01",
+      "remaining": "شريحة الري ليست مثبتة تشغيلًا في الإنتاج؛ يلزم دليل المسار الكامل.",
+      "action_type": "تحقق إنتاج",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "IRRIGATION-WATER-SUITABILITY",
+      "remaining": "استكمال سلامة وجودة ملف المياه وسلطة التوصية والتكييف لليمن H5.1–H5.4.",
+      "action_type": "قرار وخبرة زراعية",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "JWT-DECODE-OUTSIDE-SHARED-SECURITY-01",
+      "remaining": "vegetation يستخدم decoder المشترك بالفعل؛ المتبقي بحسب السجل actuator وMCP market وOAuth، مع احترام GATE-01 وعدم تحويل observe إلى enforce تلقائيًا.",
+      "action_type": "برمجة ضمن القيود",
+      "status_this_slice": "partial_source_repair"
+    },
+    {
+      "id": "LOCAL-AUDIT-REPORT-PINNED-TO-SHAS-NOT-IN-REPOSITORY-01",
+      "remaining": "إعادة نسب التقرير إلى ملفات ورؤوس موجودة؛ بعض النتائج دُحضت أو أُصلحت وبقي قرار ملفات التشغيل.",
+      "action_type": "مصالحة أدلة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "LOCAL-DEV-TENANT-POINTS-PROVENANCE-01",
+      "remaining": "إثبات منشأ نقاط local-dev السبع في Qdrant، دون إعادة بذر أو حذف.",
+      "action_type": "قراءة حيّة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01",
+      "remaining": "نواة سجل bootstrap موجودة ومعطلة؛ تبقى موفّرات البيانات وأدلة RLS الحية.",
+      "action_type": "قرار وتحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "MIGRATION-STATE-IN-PRODUCTION-IS-UNREAD-01",
+      "remaining": "جرد الجداول وحده لا يكفي؛ يلزم فحص الأدوار والسياسات والدوال والترحيلات المطبقة فعليًا.",
+      "action_type": "قراءة قاعدة حيّة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "MIGRATOR-AUTO-DEPLOYS-ON-EVERY-MAIN-PUSH-01",
+      "remaining": "تقليل نطاق المراقبة لا يلغي auto-deploy للمهاجر؛ يلزم قرار سياسة تشغيله ومراجعة إعداداته الفعلية.",
+      "action_type": "قرار نشر",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "MIGRATOR-SCRIPT-DEFAULT-ROLE-PASSWORDS-01",
+      "remaining": "Source repair already merged in #1170. Four variable names present in both Railway environments; values withheld by OAuth. Nonempty/default comparison and authorized apply rejection remain unproved.",
+      "action_type": "migrations مجمّدة",
+      "status_this_slice": "read_only_names_verified_values_unavailable"
+    },
+    {
+      "id": "MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01",
+      "remaining": "السجل يطلب قرار دعم MinIO أو البديل؛ لم يُعد التحقق الخارجي من حالة دعم المورد ضمن هذا التدقيق.",
+      "action_type": "قرار دعم",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "NATS-ON-RAILWAY-STAGING-HAS-NO-AUTH-AND-A-FLOATING-TAG-01",
+      "remaining": "إعادة قياس مصادقة NATS وصورة التشغيل المثبتة على staging؛ لا اعتماد تلقائي على العنوان التاريخي.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "NO-CONTINUOUS-EXTERNAL-MONITOR-01",
+      "remaining": "إنشاء مراقبة خارجية مستمرة ومسار إنذار معتمد؛ نجاح النشر ليس مراقبة مستقلة.",
+      "action_type": "قرار وتشغيل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "NO-SERVICE-IN-THE-INVENTORY-DECLARES-AN-OWNER-01",
+      "remaining": "تعيين مالك فعلي لكل خدمة؛ لا اختراع أسماء لإرضاء العقد.",
+      "action_type": "قرار ملكية",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01",
+      "remaining": "تسوية مستهلكي push القديمة وqueue_v1 وإثبات readyz؛ نجاح نشر يستخدم healthz لا يثبت جاهزية الاشتراكات.",
+      "action_type": "قرار وتحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "OWNER-AUDIT-20260920-FINDINGS-LIVE-OUTSIDE-THE-TRACKED-REGISTRY-01",
+      "remaining": "ربط نتائج تدقيق20 سبتمبر بالسجل وإزالة التكرار وقياس ما لم يُقَس.",
+      "action_type": "مصالحة وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01",
+      "remaining": "الحارس موجود، لكن baseline يضم69 كتابة بحسب السجل؛ يلزم حسم الملكية لكل كتابة لا مجرد إعلان العقد.",
+      "action_type": "قرار وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PLATFORM-DEPLOYED-FROM-STALE-BRANCHES-UNPATCHED-PYJWT-01",
+      "remaining": "Platform ما زال مثبتًا على فروع deploy؛ يلزم ترقية مرحلية متوافقة واختبارات بدل تغيير المرجع تلقائيًا.",
+      "action_type": "قرار ترقية",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PLATFORM-STAGING-DB-CREDENTIAL-PROOF-01",
+      "remaining": "إثبات اتصال Platform staging بقاعدة البيانات وصحة المصادقة دون كشف بيانات الاعتماد.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "POSTGRES-15-8-IS-STALE-MISSING-A-YEAR-OF-FIXES-01",
+      "remaining": "إعادة قراءة إصدار PostgreSQL الفعلي ثم خطة تحديث؛ عنوان15.8 تاريخي وليس قياسًا جديدًا.",
+      "action_type": "تحقق وقرار تحديث",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "POSTGRES-PATCH-PATH-FOR-CUSTOM-POSTGIS-IMAGE-01",
+      "remaining": "مسار تصحيح صورة PostGIS المخصصة يحتاج snapshot وفحص مسبق واسترجاعًا مجربًا.",
+      "action_type": "قرار تحديث",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01",
+      "remaining": "منتجو الأدلة أُصلحوا؛ يبقى11 حارسًا يدويًا ونموذج توفير دليل P-CERT4 بحسب السجل.",
+      "action_type": "قرار وإنفاذ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PRODUCTION-DEPLOYS-FROM-MAIN-WITHOUT-CI-GATE-01",
+      "remaining": "إثبات وتفعيل سياسة انتظار CI للإنتاج بقرار إعدادات؛ لا يكفي كون CI الحالي أخضر.",
+      "action_type": "قرار نشر",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PRODUCTION-ENVIRONMENT-ALL-DEPLOYMENTS-REMOVED-SINCE-20261005-01",
+      "remaining": "حالة إزالة كل النشرات سُوّيت سابقًا، والنشر الحالي ناجح؛ يبقى سبب الحادثة والفاعل وضمان النسخ والاسترجاع.",
+      "action_type": "تحقيق حادثة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "PRODUCTION-MIGRATOR-OLD-UNGATED-REVISION-EXECUTED-20261012-01",
+      "remaining": "تحقيق تنفيذ مراجعة مهاجر قديمة غير محكومة في12 أكتوبر وتحديد ما طبقته وآثاره.",
+      "action_type": "تحقيق حادثة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "QDRANT-KEY-ROTATION-HAS-NO-RECEIPT-01",
+      "remaining": "إثبات تدوير مفتاح Qdrant بإيصال ومطابقة المستهلكين؛ لا تدوير ضمن التدقيق.",
+      "action_type": "إيصال تشغيلي",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RAILWAY-BUILT-WITH-RAILPACK-DESPITE-DOCKERFILE-CONFIG-01",
+      "remaining": "إثبات إعداد البناء الفعال وسبب استخدام Railpack رغم Dockerfile في الحادثة المسجلة.",
+      "action_type": "تحقق إعدادات",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RAILWAY-DEPENDENCY-READINESS-20260920-01",
+      "remaining": "اختبارات قبول التبعيات ومسارات المجال الحية؛ حالة SUCCESS لا تثبتها.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RAILWAY-DEPLOYMENT-STOPPED-BY-EXTERNAL-SIGTERM-AFTER-SUCCESS-01",
+      "remaining": "تحديد مصدر SIGTERM الخارجي وسياسة الإيقاف بعد نجاح النشر.",
+      "action_type": "تحقيق حادثة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RAILWAY-LEFTOVER-SERVICES-01",
+      "remaining": "حصر الخدمات المتروكة ولقطة البيانات قبل أي حذف معتمد.",
+      "action_type": "قرار تنظيف",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RAILWAY-OPERATIONS-OUTSIDE-MCP-REACH-01",
+      "remaining": "إعادة قياس ما تتيحه الأدوات الحالية؛ قيود الوصول التاريخية ليست دليلًا على عجز حالي، وما تبقى قد يحتاج console.",
+      "action_type": "مراجعة صلاحيات",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REDIS-SHARED-PASSWORD-NO-ACL-01",
+      "remaining": "استبدال كلمة Redis المشتركة بهويات وصلاحيات ACL لكل خدمة مع اختبار عدم كسر العملاء.",
+      "action_type": "تصميم وتشغيل",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT2-C04-QUEUED-PUSH-RECEIPTS-HAVE-NO-CONSUMER-01",
+      "remaining": "تحديد مستهلك إيصالات push وTTL وسياسة إعادة التسليم والحالة النهائية.",
+      "action_type": "قرار دورة حياة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-RAG-02-01",
+      "remaining": "حسم الحجر مقابل ظهور corpus بعد مجموعة عربية ذات إصدار وقياس قبل/بعد؛ لا إعادة بذر تلقائيًا.",
+      "action_type": "قرار مالك وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-RAG-05-01",
+      "remaining": "تثبيت هوية embedding والنموذج والبادئة ونسخة corpus ثم قياس الأثر.",
+      "action_type": "قرار مالك وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-RAG-06-01",
+      "remaining": "حسم استقلال local-ai-rag وعلاقته بالمسار القانوني بعقد وقياس معلنين.",
+      "action_type": "قرار مالك وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-RAG-08-01",
+      "remaining": "فصل dense عن RRF النهائي وإثبات دلالة النتائج والعتبات على المجموعة العربية.",
+      "action_type": "قرار مالك وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-RAG-12-01",
+      "remaining": "إثبات صلاحية النموذج للعربية بمجموعة مستقلة ذات إصدار؛ لا اعتماد نجاح تقني كجودة استرجاع.",
+      "action_type": "قرار مالك وقياس",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-U05-FIELD-FORM-NOT-PROJECTED-TO-PRACTICE-01",
+      "remaining": "ربط نموذج الحقل بإسقاط ممارسة ذي إصدار ومتابعة متفق عليها.",
+      "action_type": "قرار منتج ومخطط",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT3-U08-FOLLOWUP-TASK-NOT-LINKED-TO-OUTCOME-01",
+      "remaining": "ربط مهمة المتابعة بالنتيجة مع سياسة الخصوصية والمخطط المناسب؛ ليس تعديل واجهة فقط.",
+      "action_type": "قرار وmigrations",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01",
+      "remaining": "اختلاف مصدر معدل نجاح التعلم استُبعد صراحة من#1004؛ يحتاج قرارًا جديدًا قبل التنفيذ.",
+      "action_type": "قرار مالك",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "REPORTS-MUST-CITE-THIS-REPOSITORY-01",
+      "remaining": "اشتراط الاستشهاد بهذا المستودع سياسة مستمرة، لا عطلًا برمجيًا منفردًا رغم حالة open.",
+      "action_type": "سياسة مستمرة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RLM-72-IN-REGISTRY-CARRY-NO-MEANING-01",
+      "remaining": "حسم دلالة إدخالات RLM-72 أو تنظيفها في نطاق معتمد بدل إبقاء أسماء بلا معنى.",
+      "action_type": "قرار توثيق",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "ROLE-DICTIONARY-DOES-NOT-CARRY-SPECIALIST-AUTHORITY-01",
+      "remaining": "تعريف سلطة الاختصاص المهني وربطها بقاموس الأدوار والتحقق.",
+      "action_type": "قرار صلاحيات",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "ROUTER-SIZE-UNGUARDED-AFTER-MAIN-DECOMPOSITION-01",
+      "remaining": "حارس حجم الموجّهات موجود؛ المتبقي تفكيك معتمد يحافظ على السلوك، لا إضافة الحارس مجددًا أو نسخ عدد أسطر قديم.",
+      "action_type": "قرار تقسيم",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "RUNTIME-FUNCTIONAL-LIVE-PROOF",
+      "remaining": "أدلة الوظائف الفعلية للطقس والتربة والري على البيئة المستهدفة.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "SAHOOL-AI-RAG-LIVE-001",
+      "remaining": "قبول جودة وتطابق الاسترجاع الهجين فعليًا؛ الأدلة الحالية لا تمنح سلطة معرفية تلقائية.",
+      "action_type": "تحقق حيّ",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "SAM2-REF-FLOATS-ON-MAIN-AND-WEIGHTS-UNVERIFIED-01",
+      "remaining": "مرجع مصدر SAM2 ثُبّت؛ تبقى بصمة checkpoint ونسب الأوزان والتحقق منها.",
+      "action_type": "دليل أصول",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "SECURITY-DEFINER-FUNCTIONS-OWNED-BY-SUPERUSER-WITH-PUBLIC-EXECUTE-01",
+      "remaining": "فحص مالكي SECURITY DEFINER وPUBLIC EXECUTE وsearch_path بالأدوار الحقيقية؛ العلاج المتوقع هجرات إضافية معتمدة.",
+      "action_type": "قراءة حيّة ثم migrations",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "SUP-08-DEVICE-COMMAND-SIGNATURE-UNBOUND-TO-DEVICE-01",
+      "remaining": "ربط التوقيع بالمستأجر والجهاز والحمولة وidempotency وإثبات منع النقل بين الأجهزة.",
+      "action_type": "GATE-01 وأجهزة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01",
+      "remaining": "توحيد أسماء GUC بين عائلات السياسات دون كسر RLS، مع إثبات الأدوار والعزل.",
+      "action_type": "migrations مجمّدة",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TERRAIN",
+      "remaining": "المصدر البرمجي مكتمل؛ يلزم DEM فعلي بالدقة المطلوبة ودليل نسبه وتغطيته.",
+      "action_type": "توفير بيانات",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TITILER-UPSTREAM-IMAGE-HAS-NO-METRICS-01",
+      "remaining": "اختيار wrapper أو exporter لمقاييس TiTiler ثم إثبات المقاييس في التشغيل.",
+      "action_type": "قرار نشر",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TTS-BAKEOFF-SEMANTIC-IGNORES-NUMERAL-CASE-01",
+      "remaining": "حسم دخول إعراب العدد ضمن تقييم دلالة النطق قبل تعديل معيار الاختبار.",
+      "action_type": "قرار نطاق",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TTS-KOKORO-ONNX-LOADS-GPL-ESPEAK-IN-PROCESS-01",
+      "remaining": "حسم سياسة دمج eSpeak داخل عملية Kokoro والأثر الترخيصي مع جهة مختصة؛ لا حكم قانوني جديد هنا.",
+      "action_type": "قرار ترخيص",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TTS-PIPER-KAREEM-DATASET-HAS-NO-LICENSE-01",
+      "remaining": "توفير ترخيص بيانات Piper Kareem أو اختيار بديل معتمد قبل اعتمادها.",
+      "action_type": "دليل ترخيص",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01",
+      "remaining": "عقد المصدر أُصلح؛ Platform المثبت يحتاج نسخة متوافقة وإثبات حيّ لسياسة zero-egress قبل الإغلاق.",
+      "action_type": "قرار نشر متزامن",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "TTS-SILMA-WEIGHTS-LINEAGE-UNVERIFIED-01",
+      "remaining": "إثبات سلسلة نسب أوزان SILMA وحق استخدامها المقصود.",
+      "action_type": "دليل أصول وترخيص",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01",
+      "remaining": "أصبح الغياب يوقف القرار بدل أن يعني صفرًا؛ يبقى قياس وتسجيل الري المطبق فعليًا.",
+      "action_type": "تحقق ميداني",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01",
+      "remaining": "قبول تشغيل AI على العتاد والبيانات المقصودة؛ الاختبار المعزول لا يكفي.",
+      "action_type": "قبول محلي فعلي",
+      "status_this_slice": "not_closed"
+    },
+    {
+      "id": "WORKER-IDENTITY-HARDENING",
+      "remaining": "انتحال shared bearer أُغلق؛ تبقى هوية PKI/SPIFFE وتفويض التسجيل وتقاطع البيئات.",
+      "action_type": "قرار هوية وتشغيل",
+      "status_this_slice": "not_closed"
+    }
+  ],
+  "source_fixed_section_only_ids": [
+    "OFFLINE-CURSOR-BOUND-TO-A-NAIVE-TIMESTAMP-01",
+    "SPECTRAL-MSI-ABSENT-FROM-DEFAULT-PRODUCTS-01"
+  ],
+  "scope_limit": "The 82 formal open IDs outside Claude are not all closed by this source slice. No source status substitutes for live DB, hardware, agronomic, license or policy evidence."
+}

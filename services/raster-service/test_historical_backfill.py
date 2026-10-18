@@ -280,3 +280,74 @@ def test_available_dates_cloud_quality_metadata(monkeypatch):
     assert item["cloud_pct"] == 50
     assert item["clear_pct"] == 50
     assert item["quality_label"] == "medium"
+
+
+def test_available_dates_merges_aoi_quality_and_applies_one_timeline_window(monkeypatch):
+    """Route contract survives extraction: tenant reads, AOI precedence, dedup and cutoff."""
+    import asyncio
+    from datetime import UTC, datetime
+    from types import SimpleNamespace
+
+    import db_persist
+    from routers import fields
+
+    tenant = "00000000-0000-4000-8000-000000000001"
+    authorized = []
+
+    async def authorize(field_id, *, hide_existence):
+        authorized.append((field_id, hide_existence))
+
+    async def stored(field_id, *, tenant_id, indices, limit):
+        assert field_id == "F-merge" and tenant_id == tenant and indices == ["ndvi"]
+        return [
+            {
+                "date": "2026-10-15",
+                "index_name": "ndvi",
+                "cloud_pct": 90,
+                "aoi_cloud_pct": 5,
+                "scene_id": "stored-scene",
+                "has_cog": True,
+            },
+            {"date": "2026-08-01", "index_name": "ndvi", "cloud_pct": 0, "has_cog": True},
+        ]
+
+    async def geometry(field_id, tenant_id):
+        assert field_id == "F-merge" and tenant_id == tenant
+        return {"type": "Polygon", "coordinates": [[[44, 15], [45, 15], [45, 16], [44, 15]]]}
+
+    async def search(*args, **kwargs):
+        return {
+            "items": [
+                {"datetime": "2026-10-15T07:30:00Z", "cloud_cover_pct": 95, "item_id": "provider"},
+                {"datetime": "2026-10-14T07:30:00Z", "cloud_cover_pct": 10, "item_id": "new"},
+            ]
+        }
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 16, tzinfo=UTC)
+
+    monkeypatch.setattr(fields, "datetime", Clock)
+    monkeypatch.setattr(fields, "_require_field_tenant", authorize)
+    monkeypatch.setattr(fields, "_REQ_TENANT", SimpleNamespace(get=lambda: tenant))
+    monkeypatch.setattr(fields, "_field_layers", {})
+    monkeypatch.setattr(fields, "_stac_search", search)
+    monkeypatch.setattr(fields, "_month_windows", lambda start, end: [(start, end)])
+    monkeypatch.setattr(db_persist, "list_available_asset_dates", stored)
+    monkeypatch.setattr(db_persist, "fetch_field_geometry", geometry)
+    result = asyncio.run(
+        fields.field_available_dates(
+            "F-merge", index="ndvi", limit=100, include_provider=True, months=1
+        )
+    )
+    assert authorized == [("F-merge", True)]
+    assert "provider_dates_error" not in result
+    assert [item["date"] for item in result["dates"]] == ["2026-10-15", "2026-10-14"]
+    first, second = result["dates"]
+    assert first["scene_cloud_pct"] == first["cloud_pct"] == 90
+    assert first["aoi_cloud_pct"] == 5 and first["clear_pct"] == 95
+    assert first["quality_label"] == "high" and first["has_cog"] is True
+    assert first["scene_id"] == "stored-scene"
+    assert first["acquisition_datetime"] == "2026-10-15T07:30:00Z"
+    assert second["has_cog"] is False and second["aoi_cloud_pct"] is None

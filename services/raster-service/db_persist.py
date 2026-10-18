@@ -961,15 +961,18 @@ async def fetch_latest_asset(
         SELECT cog_uri, acquisition_date::text AS acq, srid, cloud_pct,
                valid_pixel_ratio, coverage_ratio, index_quality_flags::text AS quality_flags,
                provenance #>> '{stats,confidence}' AS confidence,
+               provenance ->> 'data_available_at' AS data_available_at,
                provenance #>> '{stats,quality}' AS quality,
                provenance #>> '{stats,cloud_mask_applied}' AS cloud_mask_applied,
                scene_id, geometry_revision, asset_status, processing_job_id,
+               quality_score, algorithm_version, qa_mask_version, created_at::text AS created_at,
                ST_XMin(env) AS minx, ST_YMin(env) AS miny,
                ST_XMax(env) AS maxx, ST_YMax(env) AS maxy
         FROM (
             SELECT cog_uri, acquisition_date, srid, cloud_pct,
                    valid_pixel_ratio, coverage_ratio, index_quality_flags,
                    provenance, scene_id, geometry_revision, asset_status, processing_job_id,
+                   quality_score, algorithm_version, qa_mask_version, created_at,
                    ST_Envelope(footprint) AS env
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
@@ -1027,6 +1030,14 @@ async def fetch_latest_asset(
             "coverage_ratio": cov,
             "index_quality_flags": flags,
             "confidence": conf,
+            "quality_score": row.get("quality_score"),
+            "algorithm_version": row.get("algorithm_version"),
+            # Old rows recorded the requested mask, not actual execution.
+            "qa_mask_version": row.get("qa_mask_version")
+            if str(row["cloud_mask_applied"]).lower() == "true"
+            else None,
+            "data_available_at": row.get("data_available_at"),
+            "created_at": row.get("created_at"),
             "quality": row["quality"],
             "cloud_mask_applied": str(row["cloud_mask_applied"]).lower() == "true"
             if row["cloud_mask_applied"] is not None

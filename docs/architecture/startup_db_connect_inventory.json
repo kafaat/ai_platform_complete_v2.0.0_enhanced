@@ -1,0 +1,134 @@
+{
+  "$comment": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01 — جردُ الاتّصال الأوّل بـPostgres لكلّ خدمةٍ في docker-compose.v9.yml تحمل `depends_on: sahool-postgres: condition: service_healthy`. ذلك الشرطُ يُقيَّم عند `docker compose up` وحده؛ حاوٍ أعادته سياسةُ `restart:` (بعد إعادة تشغيل الخادم/الـdaemon) لا ينتظر Postgres. فالضمانُ الحقيقيّ في الخدمة: أوّلُ اتّصالٍ عند الإقلاع يُعاد بتراجعٍ وسقفٍ ومهلة (`shared/startup_retry.py`)، أو ينتظر في حلقة، أو لا يقع عند الإقلاع أصلاً. يفرضه `scripts/ci/startup_db_connect_retry_guard.py`: مجموعةُ الخدمات هنا = المجموعة المشتقّة من compose ناقصَ `pending_removal`، وصنفُ كلّ خدمة يُطابَق مع الشيفرة عند المرساة (`path::function` — لا رقمَ سطر، فنقلُ الأسطر لا يُحمِّر)، و`gate01_frozen_fail_fast` لا يُقبَل إلّا لمسارٍ مجمَّد في gate01_policy.json، و`one_shot` لا يُقبَل إلّا مع `restart: \"no\"`.",
+  "gap": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01",
+  "measured_on": "0e5281614f008de1ff73783dfa567a04f1e3b33c",
+  "compose_file": "docker-compose.v9.yml",
+  "postgres_service": "sahool-postgres",
+  "classes": {
+    "retries_with_backoff": "أوّلُ اتّصالٍ في دالّة المرساة يمرّ عبر `retry_startup_connect` (shared/startup_retry.py)، وصورةُ الخدمة تنسخ shared/startup_retry.py.",
+    "polls_until_ready": "أوّلُ اتّصالٍ داخل حلقة `while` ضمن `try` تبتلع الفشل وتعيد المحاولة في الدورة التالية؛ أو سكربت shell ينتظر بـ`until/while pg_isready`.",
+    "connects_lazily": "لا اتّصالَ عند الإقلاع: المرساةُ دالّةٌ يستدعيها الطلب لا دورةُ الحياة (لا تستدعيها دالّةُ دورة الحياة في وحدتها: `lifespan` أو ما يُمرَّر `lifespan=`). حدُّ الفحص: الوحدةُ نفسها لا رسمُ الاستدعاء كاملاً.",
+    "no_postgres_client": "مصدرُ الخدمة (مجلّد Dockerfile) لا يستورد asyncpg ولا psycopg — الاعتمادُ في compose ترتيبٌ لا اتّصال.",
+    "third_party_image": "صورةٌ خارجيّة بلا `build:` — سلوكُ إقلاعها ليس شيفرةَ هذا المستودع.",
+    "one_shot": "مهمّةٌ لمرّةٍ واحدة بـ`restart: \"no\"` — سياسةُ الإعادة لا تُعيدها فلا تتجاوز الشرط.",
+    "gate01_frozen_fail_fast": "يفشل سريعاً عند الإقلاع ولم يُصلَح لأنّ ملفّ المرساة مجمَّد ببوّابة GATE-01 (docs/architecture/gate01_policy.json). بقيّةٌ مُعلَنة: الفجوةُ تبقى partial ما دام صنفٌ منها قائماً."
+  },
+  "services": {
+    "sahool-agriai-engine": {
+      "class": "no_postgres_client",
+      "source_dir": "services/agriai-engine",
+      "evidence": "DATABASE_URL في بيئته بلا عميل Postgres في مصدره."
+    },
+    "sahool-auth": {
+      "class": "retries_with_backoff",
+      "anchor": "services/auth/main.py::lifespan",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض."
+    },
+    "sahool-platform": {
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/main.py::_init_db_pool",
+      "evidence": "كان `except Exception` يبتلع فشل create_pool فتبقى المنصّة بلا قاعدة إلى الأبد (/readyz 503). بعد المهلة يُرفَع StartupConnectDeadlineExceeded (RuntimeError) فيمرّ عبر `except RuntimeError: raise` وتُعيد سياسةُ restart المحاولة."
+    },
+    "sahool-weather-signal-engine": {
+      "class": "retries_with_backoff",
+      "anchor": "services/weather-signal-engine/src/main.py::run"
+    },
+    "sahool-guardrails-engine": {
+      "class": "connects_lazily",
+      "anchor": "services/guardrails-engine/human_in_loop.py::_get_pool",
+      "evidence": "فحصُ دور RLS عند الإقلاع (assert_dsn_role_rls_safe) best-effort يبتلع تعذّر الاتّصال؛ مسبحُ الموافقات يُنشأ عند أوّل طلب."
+    },
+    "sahool-market-mcp": {
+      "class": "retries_with_backoff",
+      "anchor": "services/mcp_servers/market_server.py::lifespan"
+    },
+    "sahool-field-management": {
+      "class": "connects_lazily",
+      "anchor": "services/field-management-service/main.py::_connect",
+      "evidence": "اتّصالٌ لكلّ طلب؛ غيابُ القاعدة 503 للطلب لا موتٌ للحاوية."
+    },
+    "sahool-scout-ingest": {
+      "class": "connects_lazily",
+      "anchor": "services/scout-ingest-service/main.py::_connect",
+      "evidence": "اتّصالٌ لكلّ طلب."
+    },
+    "sahool-scout-ingest-projection": {
+      "class": "retries_with_backoff",
+      "anchor": "services/scout-ingest-service/projection_worker.py::_connect",
+      "evidence": "يُستدعى في كلّ دورة؛ إعادةُ المحاولة تغطّي الإقلاع وإعادةَ اتّصال الدورة معاً."
+    },
+    "sahool-raster-cache-invalidation-worker": {
+      "class": "polls_until_ready",
+      "anchor": "services/raster-service/cache_invalidation_worker.py::loop_worker",
+      "via": "_connect"
+    },
+    "sahool-raster-backfill-scan-worker": {
+      "class": "polls_until_ready",
+      "anchor": "services/raster-service/backfill_scan_worker.py::loop_worker",
+      "via": "_connect"
+    },
+    "sahool-actuator-service": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/actuator-service/actuator_runtime.py::lifespan"
+    },
+    "sahool-erp-bridge": {
+      "class": "retries_with_backoff",
+      "anchor": "services/odoo-bridge/main.py::lifespan"
+    },
+    "sahool-odoo": {
+      "class": "polls_until_ready",
+      "anchor": "scripts/odoo-init.sh",
+      "evidence": "`until pg_isready` قبل أيّ psql/odoo."
+    },
+    "sahool-telegram-bot": {
+      "class": "no_postgres_client",
+      "source_dir": "bots/telegram",
+      "evidence": "DATABASE_URL في بيئته بلا عميل Postgres في مصدره."
+    },
+    "sahool-notification-agent": {
+      "class": "connects_lazily",
+      "anchor": "agents/notification/agent.py::get_pool",
+      "evidence": "دورةُ الحياة تتّصل بـNATS وحده؛ المسبحُ يُنشأ عند الحاجة ويبتلع فشله."
+    },
+    "sahool-soil-service": {
+      "class": "retries_with_backoff",
+      "anchor": "services/soil-service/main.py::lifespan"
+    },
+    "sahool-phase-runtime-outbox-worker": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+    },
+    "sahool-irrigation-reservation-lifecycle-worker": {
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py::run"
+    },
+    "sahool-plugin-runtime-worker": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+    },
+    "sahool-model-registry-worker": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+    },
+    "sahool-water-ledger-worker": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+    },
+    "sahool-actuator-dispatch-worker": {
+      "class": "gate01_frozen_fail_fast",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+    },
+    "sahool-canonical-execution-learning-worker": {
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/workers/canonical_execution_learning_worker.py::run",
+      "evidence": "اتّصالُ NATS الأوّل بعده بلا إعادة محاولة — خارج نطاق هذه الفجوة (Postgres)."
+    },
+    "sahool-pg-exporter": {
+      "class": "third_party_image"
+    },
+    "sahool-migrate": {
+      "class": "one_shot"
+    }
+  },
+  "pending_removal": {}
+}

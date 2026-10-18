@@ -1,0 +1,35 @@
+{
+  "at": "2026-10-16T17:24:57.875882+00:00",
+  "reviewer": "finish_acceptance",
+  "finding": "profile-runtime-error-mapping",
+  "status": "resolved_in_reviewed_worktree_bytes",
+  "basis": "Read-only diff review and author-produced red/green logs; reviewer ran no tests or generators.",
+  "verified_source_behavior": [
+    "Known admission and upstream dependency exceptions are typed and mapped to stable sanitized503 around retrieve.",
+    "The test primes actual ASGI route to200 with warm BM25 then separately changes model, vector, payload or transport.",
+    "No annotation payload returned on failure; authentication and body/header tenant mismatch remain403.",
+    "Unexpected plain ValueError remains500, so the new handler does not hide arbitrary programming defects."
+  ],
+  "author_test_receipts": {
+    "red": {
+      "path": "evidence/closure-nine/rag/profile-warm-route-red.log",
+      "failed": 4,
+      "passed": 1,
+      "baseline": "b1ed5a0b"
+    },
+    "green": {
+      "path": "evidence/closure-nine/rag/profile-warm-route-all-green.log",
+      "passed": 301,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "source_sha256": {
+    "services/rag-retrieval/main.py": "2ea798a83480a2405d2a50b3f72be7fd4936673320b1003fbe9e644ba6c071e6",
+    "services/rag-retrieval/runtime_transport.py": "f425ad134ee44fce6e8f6b4420b6382f3a379a05290569ffc6a7f45d9efcaae7",
+    "services/sahool-platform/core/rag/production_qdrant.py": "5742d2d86fb1809991abae5f103b033d17cad2163e0056f542c69ef58fb0f371",
+    "services/sahool-platform/core/rag/retrieval_profile.py": "4b2c0ce0321f5f8ceea0c0b954a1983f014a4a421fda5fcb0b5b8c1bf1ce4e5d",
+    "tests_v9/test_rag_versioned_nomic_profile.py": "f21869839963bca441d52b43a39eba1757074991227341deff9bb94f76edefdd"
+  },
+  "remaining": "Parent integrate these exact bytes and run full gates; no native or production acceptance added."
+}

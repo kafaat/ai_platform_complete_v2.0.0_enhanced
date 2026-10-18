@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 
 class IndicatorKind(StrEnum):
@@ -80,6 +80,8 @@ class BandMapping(BaseModel):
 
 
 class ProcessRequest(BaseModel):
+    # Internal request-bound provider receipt; never accepted from API JSON.
+    _cdse_native_product: object = PrivateAttr(default=None)
     tenant_id: str
     field_id: str | None = None
     raster_url: str | None = None
@@ -222,7 +224,16 @@ class AutoBackfillPolicy(BaseModel):
     default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years
     extended_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.extended_3_years
     research_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.research_5_years
-    default_indices: list[str] = ["truecolor", "ndvi", "ndmi", "ndre", "msavi", "ndwi", "ndsi"]
+    default_indices: list[str] = [
+        "truecolor",
+        "ndvi",
+        "ndmi",
+        "ndre",
+        "msi",
+        "msavi",
+        "ndwi",
+        "ndsi",
+    ]
     max_cloud_pct: float = 50
     note: str = (
         "Use last_2_years on field creation (two-season agronomic baseline). Core "

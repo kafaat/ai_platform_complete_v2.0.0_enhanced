@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **1939**
+- Python files parsed: **1961**
 - FastAPI-style route handlers: **1058**
-- Static function-call edges: **83066**
+- Static function-call edges: **85876**
 - Dead-code candidates: **645**
-- Duplicate function groups: **58**
+- Duplicate function groups: **57**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -52,9 +52,9 @@
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
-| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 115 |
+| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 117 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
-| `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 221 |
+| `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 223 |
 
 ## Duplicate implementation groups
 
@@ -69,7 +69,6 @@
 | `27213e0b8be4077c` | 4 |
 | `2cab8792318c3811` | 2 |
 | `2ed8e51be38a65b6` | 9 |
-| `309844684b13a7b1` | 2 |
 | `32d2f14c2fac8b6a` | 2 |
 | `342931e6449b397f` | 2 |
 | `3634c7c73fa8d02f` | 9 |
@@ -98,7 +97,6 @@
 | `78da89549056e9b8` | 3 |
 | `81bddc48412d7a77` | 2 |
 | `8c325bfd965af37d` | 2 |
-| `8dee17b28f72139f` | 2 |
 | `8e9f69a9666a9587` | 6 |
 | `914184c711383573` | 5 |
 | `9160c907b799819a` | 2 |
@@ -108,6 +106,8 @@
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
 | `abea79905276671b` | 2 |
+| `b5f52c1314625bcb` | 2 |
+| `c830f52a910d32a5` | 2 |
 | `c92554a020167fed` | 2 |
 | `daa44aded5a16e85` | 2 |
 

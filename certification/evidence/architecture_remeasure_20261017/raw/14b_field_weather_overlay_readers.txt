@@ -1,0 +1,4 @@
+$ git grep -n -w field_weather_overlay -- services/weather-signal-engine services/weather-service
+services/weather-signal-engine/src/main.py:4:تجلب **أحدث تراكب** لكلّ (tenant_id, field_id) من field_weather_overlay خلال الساعة
+services/weather-signal-engine/src/main.py:50:    "FROM field_weather_overlay "
+[exit=0]

@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import os
 from datetime import UTC, datetime
 from typing import Any
@@ -227,12 +228,21 @@ async def persist_decision_record(
                     payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
                 )
                 stored_digest = decision_value_digest(payload.decision_value)
+            # Read the stored identity after insert/replay; never mint in a response.
+            # JSON projection is compatible with pre-036 rows/schema during rollout.
+            correlation_id = await conn.fetchval(
+                "SELECT to_jsonb(d)->>'correlation_id' FROM decision_record d "
+                "WHERE tenant_id=$1::uuid AND decision_id=$2",
+                tenant_id,
+                decision_id,
+            )
         # The version a reviewer will be shown — the stored one on replay, never recomputed from
         # a replayed payload that may differ (035).
         return {
             "decision_id": decision_id,
             "replayed": replayed,
             "decision_value_digest": stored_digest,
+            "correlation_id": correlation_id,
         }
     finally:
         await conn.close()
@@ -566,6 +576,7 @@ def _authoritative_review(row: Any, *, replay: bool) -> dict[str, Any]:
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "decision_id": row["decision_id"],
         "previous_state": row["previous_state"],
         "state": row["new_state"],
@@ -754,30 +765,110 @@ async def review_decision(
         await conn.close()
 
 
-async def list_review_queue(*, tenant_id: str, limit: int = 100) -> list[dict[str, Any]]:
+async def list_review_queue(
+    *,
+    tenant_id: str,
+    limit: int = 100,
+    field_id: str | None = None,
+    season_id: str | None = None,
+) -> list[dict[str, Any]]:
     """Return authoritative pending decision candidates for a tenant.
 
     The dedicated ``review_state`` column is the only operational state source. Candidate
     evidence remains immutable inside ``decision_value`` and is returned for reviewer display.
     """
+    if (field_id is None) != (season_id is None):
+        raise ValueError("field_id and season_id are required together")
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """
-            SELECT decision_id, field_id, decision_type, region, stage, decision_value,
-                   confidence, review_state, candidate_lineage_id, decision_value_digest,
-                   created_at, updated_at
-              FROM decision_record
-             WHERE tenant_id = $1::uuid
-               AND stage = 'candidate'
-               AND review_state = 'pending_approval'
-             ORDER BY created_at ASC, decision_id ASC
-             LIMIT $2
-            """,
-            tenant_id,
-            max(1, min(int(limit), 200)),
-        )
-        return [dict(row) for row in rows]
+        if field_id is not None:
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+                # Explicit workflow read: approvals survive reload without treating JSON evidence
+                # as operational state. A review/plan from another version never appears bound.
+                rows = await conn.fetch(
+                    """
+                    SELECT d.decision_id, d.field_id, d.decision_type, d.region, d.stage,
+                           d.decision_value, d.confidence, d.review_state, d.candidate_lineage_id,
+                           d.decision_value_digest, d.created_at, d.updated_at,
+                           to_jsonb(d)->>'correlation_id' AS correlation_id,
+                           to_jsonb(r) AS saved_review, to_jsonb(p) AS saved_plan
+                      FROM decision_record d
+                      LEFT JOIN decision_reviews r
+                        ON r.tenant_id=d.tenant_id AND r.decision_id=d.decision_id
+                       AND r.candidate_lineage_id=d.candidate_lineage_id
+                       AND r.new_state=d.review_state AND r.action='approve'
+                       AND r.approved_decision_value_digest=d.decision_value_digest
+                      LEFT JOIN LATERAL (
+                        SELECT ep.* FROM decision_execution_plans ep
+                         WHERE ep.tenant_id=d.tenant_id AND ep.decision_id=d.decision_id
+                           AND ep.review_id=r.review_id
+                           AND ep.candidate_lineage_id=d.candidate_lineage_id
+                           AND ep.decision_value_digest=d.decision_value_digest
+                           AND ep.operation_type='manual_irrigation'
+                         ORDER BY ep.created_at DESC, ep.execution_plan_id DESC LIMIT 1
+                      ) p ON true
+                     WHERE d.tenant_id=$1::uuid AND d.field_id=$3
+                       AND d.decision_value->>'season_id'=$4
+                       AND d.stage='candidate' AND d.decision_type='irrigation'
+                       AND d.review_state IN ('pending_approval','approved')
+                     ORDER BY d.created_at DESC, d.decision_id DESC LIMIT $2
+                    """,
+                    tenant_id,
+                    max(1, min(int(limit), 200)),
+                    field_id,
+                    season_id,
+                )
+                items = []
+                for row in rows:
+                    item = dict(row)
+                    # asyncpg's default JSONB codec returns strings. Publish objects to the UI,
+                    # and never expose a malformed candidate as a usable workflow item.
+                    value = item.get("decision_value")
+                    if isinstance(value, str):
+                        try:
+                            value = json.loads(value)
+                        except (TypeError, ValueError):
+                            continue
+                    if not isinstance(value, dict):
+                        continue
+                    item["decision_value"] = value
+                    review = item.pop("saved_review")
+                    plan = item.pop("saved_plan")
+                    if isinstance(review, str):
+                        review = json.loads(review)
+                    if isinstance(plan, str):
+                        plan = json.loads(plan)
+                    item["review"] = _authoritative_review(review, replay=True) if review else None
+                    if review:
+                        item["review"].update(
+                            new_state=review["new_state"],
+                            approved_decision_value_digest=review["approved_decision_value_digest"],
+                        )
+                    item["execution_plan"] = (
+                        _authoritative_execution_plan(plan, replay=True) if plan else None
+                    )
+                    items.append(item)
+                return items
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """
+                SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                       confidence, review_state, candidate_lineage_id, decision_value_digest,
+                       created_at, updated_at,
+                       to_jsonb(decision_record)->>'correlation_id' AS correlation_id
+                  FROM decision_record
+                 WHERE tenant_id = $1::uuid
+                   AND stage = 'candidate'
+                   AND review_state = 'pending_approval'
+                 ORDER BY created_at ASC, decision_id ASC
+                 LIMIT $2
+                """,
+                tenant_id,
+                max(1, min(int(limit), 200)),
+            )
+            return [dict(row) for row in rows]
     finally:
         await conn.close()
 
@@ -787,24 +878,27 @@ async def list_decision_records(
 ) -> dict[str, Any]:
     conn = await _connect()
     try:
-        rows = await conn.fetch(
-            """
-            SELECT decision_id, field_id, decision_type, region, stage, decision_value,
-                   confidence, created_by, created_at
-              FROM decision_record
-             WHERE tenant_id = $1::uuid
-               AND ($2::text IS NULL OR field_id = $2)
-               AND ($3::text IS NULL OR decision_type = $3)
-             ORDER BY created_at DESC
-             LIMIT $4
-            """,
-            tenant_id,
-            field_id,
-            decision_type,
-            limit,
-        )
-        decisions = [dict(row) for row in rows]
-        return {"decisions": decisions, "count": len(decisions)}
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            rows = await conn.fetch(
+                """
+                SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                       confidence, created_by, created_at,
+                       to_jsonb(decision_record)->>'correlation_id' AS correlation_id
+                  FROM decision_record
+                 WHERE tenant_id = $1::uuid
+                   AND ($2::text IS NULL OR field_id = $2)
+                   AND ($3::text IS NULL OR decision_type = $3)
+                 ORDER BY created_at DESC
+                 LIMIT $4
+                """,
+                tenant_id,
+                field_id,
+                decision_type,
+                limit,
+            )
+            decisions = [dict(row) for row in rows]
+            return {"decisions": decisions, "count": len(decisions)}
     finally:
         await conn.close()
 
@@ -817,7 +911,148 @@ MANUAL_IRRIGATION_PLAN_TOLERANCE = 0.10
 def _number(value: Any) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
-    return float(value)
+    try:
+        number = float(value)
+    except OverflowError:
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _manual_source_violation(
+    value: dict[str, Any], field_id: str, tenant_id: str, payload: Any
+) -> str | None:
+    source = value.get("manual_execution_source")
+    if (
+        not isinstance(source, dict)
+        or source.get("schema_version") != "manual-irrigation-source/v1"
+    ):
+        return "manual_irrigation_source_invalid"
+    constraints = payload.constraints or {}
+    required = (
+        "schema_version",
+        "field_id",
+        "season_id",
+        "system_id",
+        "net_depth_mm",
+        "target_depth_mm",
+        "target_volume_m3",
+        "application_efficiency",
+        "irrigated_area_ha",
+        "water_truth_digest",
+        "specification_digest",
+        "valid_from",
+        "valid_until",
+    )
+    if any(key not in source or key not in constraints for key in required):
+        return "manual_irrigation_source_incomplete"
+    # Every constraint the browser supplies must be part of the immutable approved source.
+    if any(key not in source or source[key] != val for key, val in constraints.items()):
+        return "plan_constraints_differ_from_approved_source"
+    if source["field_id"] != field_id or source["season_id"] != value.get("season_id"):
+        return "manual_irrigation_source_scope_mismatch"
+    if any(
+        not isinstance(source[k], str) or not source[k].strip()
+        for k in ("field_id", "season_id", "system_id")
+    ):
+        return "manual_irrigation_source_scope_missing"
+    numeric = (
+        "net_depth_mm",
+        "target_depth_mm",
+        "target_volume_m3",
+        "application_efficiency",
+        "irrigated_area_ha",
+    )
+    numbers = {key: _number(source[key]) for key in numeric}
+    if any(number is None or number <= 0 for number in numbers.values()):
+        return "manual_irrigation_source_amount_invalid"
+    # JSON true == 1 in Python: separately reject booleans/non-numbers in the request.
+    if any(_number(constraints[key]) is None for key in numeric):
+        return "plan_constraints_differ_from_approved_source"
+    net, gross, volume, efficiency, area = (numbers[key] for key in numeric)
+    if efficiency > 1:
+        return "manual_irrigation_source_efficiency_invalid"
+    expected_net = _number((value.get("recommendation") or {}).get("target_refill_mm"))
+    if expected_net is None or not math.isclose(net, expected_net, rel_tol=1e-9, abs_tol=1e-9):
+        return "manual_irrigation_source_net_mismatch"
+    if not math.isclose(gross, net / efficiency, rel_tol=1e-9, abs_tol=1e-9):
+        return "manual_irrigation_source_gross_mismatch"
+    if not math.isclose(volume, gross * area * 10, rel_tol=1e-9, abs_tol=1e-9):
+        return "manual_irrigation_source_volume_mismatch"
+    for key in ("water_truth_digest", "specification_digest"):
+        digest = source[key]
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(c not in "0123456789abcdef" for c in digest)
+        ):
+            return "manual_irrigation_source_digest_invalid"
+    specification = source.get("specification")
+    water = source.get("water_truth")
+    if not isinstance(specification, dict) or not isinstance(water, dict):
+        return "manual_irrigation_source_evidence_missing"
+    canonical = water.get("canonical")
+    if not isinstance(canonical, dict):
+        return "manual_irrigation_source_evidence_missing"
+    for evidence in (specification, canonical):
+        if (
+            evidence.get("tenant_id") != tenant_id
+            or evidence.get("field_id") != field_id
+            or evidence.get("season_id") != source["season_id"]
+        ):
+            return "manual_irrigation_source_evidence_scope_mismatch"
+    if (
+        canonical.get("operational_eligible") is not True
+        or water.get("applied_water_status") != "recorded"
+    ):
+        return "manual_irrigation_source_water_not_operational"
+    if (
+        specification.get("evidence_level") != "user_declared"
+        or specification.get("system_id") != source["system_id"]
+        or _number(specification.get("application_efficiency")) != efficiency
+        or _number(specification.get("irrigated_area_ha")) != area
+        or not isinstance(specification.get("source_reference"), str)
+        or not specification["source_reference"].strip()
+    ):
+        return "manual_irrigation_source_specification_invalid"
+    for evidence, key in ((specification, "specification_digest"), (water, "water_truth_digest")):
+        try:
+            digest = hashlib.sha256(
+                json.dumps(
+                    evidence,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=False,
+                    allow_nan=False,
+                    default=str,
+                ).encode()
+            ).hexdigest()
+        except (TypeError, ValueError):
+            return "manual_irrigation_source_evidence_invalid"
+        if digest != source[key]:
+            return "manual_irrigation_source_evidence_digest_mismatch"
+    try:
+        start = datetime.fromisoformat(source["valid_from"].replace("Z", "+00:00"))
+        end = datetime.fromisoformat(source["valid_until"].replace("Z", "+00:00"))
+        if (
+            start.utcoffset() is None
+            or end.utcoffset() is None
+            or end <= start
+            or payload.planned_start != start
+            or payload.planned_end != end
+        ):
+            return "plan_window_differs_from_approved_source"
+        now = datetime.now(UTC)
+        if end <= now:
+            return "manual_irrigation_source_expired"
+        water_until = datetime.fromisoformat(canonical["valid_until"].replace("Z", "+00:00"))
+        observed = datetime.fromisoformat(specification["observed_at"].replace("Z", "+00:00"))
+        if water_until.utcoffset() is None or end > water_until:
+            return "manual_irrigation_source_water_validity_exceeded"
+        if observed.utcoffset() is None or observed > now or observed > start:
+            return "manual_irrigation_source_observation_invalid"
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return "manual_irrigation_source_window_invalid"
+    return None
 
 
 def _manual_irrigation_plan_violation(decision: Any, payload: Any) -> str | None:
@@ -835,6 +1070,12 @@ def _manual_irrigation_plan_violation(decision: Any, payload: Any) -> str | None
     target = _number(recommendation.get("target_refill_mm"))
     if target is None or target <= 0:
         return "decision_has_no_refill_target"
+    if "manual_execution_source" in value:
+        return _manual_source_violation(
+            value, decision["field_id"], str(decision["tenant_id"]), payload
+        )
+    # Pre-v1 decisions retain their historical amount-only contract. A present but invalid
+    # v1 source never falls back to that legacy contract.
     constraints = payload.constraints or {}
     if constraints.get("field_id") != decision["field_id"]:
         return "plan_field_differs_from_decision"
@@ -881,6 +1122,7 @@ def _authoritative_execution_plan(row: Any, *, replay: bool) -> dict[str, Any]:
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "execution_plan_id": row["execution_plan_id"],
         "decision_id": row["decision_id"],
         "review_id": row["review_id"],
@@ -915,7 +1157,7 @@ async def create_execution_plan(
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             source = await conn.fetchrow(
                 """
-                SELECT d.decision_id, d.review_state, d.candidate_lineage_id, d.field_id,
+                SELECT d.decision_id, d.tenant_id, d.review_state, d.candidate_lineage_id, d.field_id,
                        d.decision_type, d.decision_value, d.decision_value_digest,
                        r.review_id, r.new_state, r.approved_decision_value_digest
                   FROM decision_record d
@@ -1127,6 +1369,7 @@ def _authoritative_dispatch_authorization(row: Any, *, replay: bool) -> dict[str
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "dispatch_authorization_id": row["dispatch_authorization_id"],
         "execution_plan_id": row["execution_plan_id"],
         "decision_id": row["decision_id"],
@@ -1303,6 +1546,7 @@ def _authoritative_execution_request(row: Any, *, replay: bool) -> dict[str, Any
         "replay": replay,
         "authoritative": True,
         "persisted": True,
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "execution_request_id": row["execution_request_id"],
         "dispatch_authorization_id": row["dispatch_authorization_id"],
         "execution_plan_id": row["execution_plan_id"],

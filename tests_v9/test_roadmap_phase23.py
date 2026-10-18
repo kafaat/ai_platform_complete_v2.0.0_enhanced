@@ -45,7 +45,7 @@ def test_water_balance():
     res = water_balance(w, "wheat", "initial", rain_mm=50, et0_mm=6.0)
     if res.et0_mm == 6.0:
         r.append(("✓", "ET0 المُقحَم محفوظ في النتيجة (6.0)"))
-    if abs(res.etc_mm - 6.0 * 0.40) < 1e-9:  # Kc قمح ابتدائيّ = 0.40
+    if abs(res.etc_mm - 6.0 * 0.30) < 1e-9:  # Kc قمح ابتدائيّ = 0.30 (بطاقة المحصول)
         r.append(("✓", "ETc = ET0 × Kc"))
     if res.net_irrigation_mm == 0:
         r.append(("✓", "المطر يغطّي الاحتياج → لا ريّ"))
@@ -1262,12 +1262,12 @@ def test_soil_moisture_advisor():
     from api.soil_moisture_advisor import irrigation_amount_mm
 
     a = irrigation_amount_mm(vwc=0.20, soil_type="loam", crop="ذرة")
-    if a["irrigation_mm"] == 200.0:
-        r.append(("✓", "كمّيّة الريّ (FAO-56): (0.40-0.20)×1000 = 200مم (معادلة حجميّة)"))
+    if a["irrigation_mm"] == 50.0:
+        r.append(("✓", "كمّيّة الريّ (FAO-56): (0.25-0.20)×1000 = 50مم (معادلة حجميّة)"))
     v = irrigation_amount_mm(vwc=0.20, soil_type="loam", crop="خضروات")
-    if v["irrigation_mm"] == 80.0:
-        r.append(("✓", "عمق الجذور يؤثّر: خضروات (0.4م) → 80مم vs ذرة (1م) → 200مم"))
-    z = irrigation_amount_mm(vwc=0.40, soil_type="loam", crop="ذرة")
+    if v["irrigation_mm"] == 20.0:
+        r.append(("✓", "عمق الجذور يؤثّر: خضروات (0.4م) → 20مم vs ذرة (1م) → 50مم"))
+    z = irrigation_amount_mm(vwc=0.25, soil_type="loam", crop="ذرة")
     if z["irrigation_mm"] == 0.0:
         r.append(("✓", "عند السعة الحقليّة → 0مم (لا ريّ — صدق)"))
     return r
@@ -4431,9 +4431,9 @@ def test_rag_hidden_deps_complete():
     missing = [pkg for imp, pkg in imports.items() if imp in main and pkg not in req]
     if not missing:
         r.append(("\u2713", "كلّ استيراد langchain له حزمة مطابقة (لا مفقود)"))
-    # 6. استيرادات غير-langchain مغطّاة (httpx/jose/multipart)
-    if "import httpx" in main and "httpx" in req and "from jose" in main and "python-jose" in req:
-        r.append(("\u2713", "httpx + jose + multipart مغطّاة في requirements"))
+    # 6. استيرادات غير-langchain مغطّاة (httpx/jwt/multipart) — python-jose أُزيل لصالح PyJWT
+    if "import httpx" in main and "httpx" in req and "from jwt" in main and "PyJWT" in req:
+        r.append(("\u2713", "httpx + jwt + multipart مغطّاة في requirements"))
     return r
 
 
@@ -4444,10 +4444,10 @@ def test_review_gaps_addressed():
 
     base = os.path.join(os.path.dirname(__file__), "..")
     r = []
-    # 1. requirements-dev.txt مكتمل (jose موجود → لا ModuleNotFoundError)
+    # 1. requirements-dev.txt مكتمل (PyJWT موجود → لا ModuleNotFoundError؛ python-jose أُزيل)
     dev = open(os.path.join(base, "requirements-dev.txt"), encoding="utf-8").read()
-    if "python-jose" in dev and "fastapi" in dev and "pydantic" in dev:
-        r.append(("\u2713", "بيئة اختبار hermetic: jose+fastapi+pydantic في requirements-dev"))
+    if "PyJWT" in dev and "fastapi" in dev and "pydantic" in dev:
+        r.append(("\u2713", "بيئة اختبار hermetic: PyJWT+fastapi+pydantic في requirements-dev"))
     # 2. circuit breaker موجود (فجوة المراجعة الحقيقيّة)
     cbpath = os.path.join(base, "services/supervisor-agent/circuit_breaker.py")
     if os.path.exists(cbpath):
@@ -4621,10 +4621,10 @@ def test_static_analysis_review_addressed():
 
     base = os.path.join(os.path.dirname(__file__), "..")
     r = []
-    # 1. hermetic: asyncpg+jose+fastapi في requirements-dev
+    # 1. hermetic: asyncpg+PyJWT+fastapi في requirements-dev (python-jose أُزيل)
     dev = open(os.path.join(base, "requirements-dev.txt"), encoding="utf-8").read()
-    if all(p in dev for p in ["asyncpg", "python-jose", "fastapi", "pydantic"]):
-        r.append(("\u2713", "hermetic: asyncpg+jose+fastapi+pydantic في dev"))
+    if all(p in dev for p in ["asyncpg", "PyJWT", "fastapi", "pydantic"]):
+        r.append(("\u2713", "hermetic: asyncpg+PyJWT+fastapi+pydantic في dev"))
     # 2. coverage gate في CI (كان مفقوداً)
     ci = open(os.path.join(base, ".github/workflows/ci.yml"), encoding="utf-8").read()
     if "cov-fail-under" in ci:

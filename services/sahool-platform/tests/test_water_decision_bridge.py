@@ -2,6 +2,7 @@ import os
 from datetime import date
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from api.water_decision_bridge import build_candidate, process_water_deficit
 
 
@@ -72,7 +73,8 @@ async def test_full_auto_chain(monkeypatch):
             field_id="f",
             season_id="s",
             ledger_date=date.today(),
-            entry={"deficit_mm": 20, "confidence": 0.8},
+            # قيدٌ ريُّه مقيس (لا أعلام) — شرطُ الاعتماد الآليّ بعد إغلاق الريّ المجهول.
+            entry={"deficit_mm": 20, "confidence": 0.8, "notes": []},
         )
     assert out["status"] == "execution_queued" and out["execution_request_id"] == "req1"
     # The policy approves the version decision-service stored and reported (035).
@@ -123,7 +125,7 @@ def test_auto_execution_payload_matches_actuator_contract(monkeypatch):
             field_id="field-1",
             season_id="season-1",
             ledger_date=date(2026, 7, 12),
-            entry={"deficit_mm": 25.0, "confidence": 0.9},
+            entry={"deficit_mm": 25.0, "confidence": 0.9, "applied_water_status": "recorded"},
         )
     )
     assert result["status"] == "execution_queued"
@@ -132,3 +134,101 @@ def test_auto_execution_payload_matches_actuator_contract(monkeypatch):
     assert command["command"] == "irrigate"
     assert command["payload"]["amount_mm"] == 25.0
     assert command["payload"]["idempotency_key"]
+
+
+# ── UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01 ─────────────────────────────
+#
+# عجزٌ بُنِي على ريٍّ **قُرِئ صفراً لأنّه مجهول** (مزرعةٌ تروي من بئرٍ ولا تسجّل) هو حدٌّ
+# أعلى للحاجة لا قياسُها. كان الجسرُ يعتمده آليّاً ويُرسل أمرَ ريٍّ بمقداره إلى المُشغِّل.
+
+
+def _auto_mods():
+    return {
+        "record_decision": AsyncMock(
+            return_value={
+                "persisted": True,
+                "authoritative": True,
+                "decision_value_digest": "d" * 64,
+            }
+        ),
+        "review_decision": AsyncMock(return_value={"review_id": "rev1"}),
+        "create_execution_plan": AsyncMock(return_value={"execution_plan_id": "plan1"}),
+        "authorize_dispatch": AsyncMock(return_value={"dispatch_authorization_id": "auth1"}),
+        "create_execution_request": AsyncMock(return_value={"execution_request_id": "req1"}),
+    }
+
+
+def _arm_auto(monkeypatch):
+    monkeypatch.setenv("WATER_DEFICIT_DECISION_BRIDGE_ENABLED", "true")
+    monkeypatch.setenv("WATER_DEFICIT_AUTO_EXECUTION_ENABLED", "true")
+    monkeypatch.setenv("WATER_DEFICIT_EXECUTION_TARGET_ID", "pivot-1")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "entry",
+    [
+        # كما يكتبه العامل ليومٍ بلا صفِّ ريّ (`irrigation_unobserved`).
+        {"deficit_mm": 40.0, "confidence": 0.4, "notes": ["irrigation_unobserved"]},
+        {"deficit_mm": 40.0, "confidence": 0.4, "applied_water_status": "unrecorded"},
+        # صفٌّ موجودٌ بحجمٍ غائب — الاتّجاهُ نفسُه (الماءُ المضاف أدنى تقدير).
+        {"deficit_mm": 40.0, "confidence": 0.4, "notes": ["irrigation_volume_untracked"]},
+        # قيدٌ لا يُعلِن حالةَ الريّ أصلاً: الغيابُ لا يُقرأ «مُسجَّلاً».
+        {"deficit_mm": 40.0, "confidence": 0.9},
+    ],
+)
+async def test_unrecorded_irrigation_is_never_auto_executed(monkeypatch, entry):
+    _arm_auto(monkeypatch)
+    mods = _auto_mods()
+    with patch.multiple("api.decision_service_client", **mods):
+        out = await process_water_deficit(
+            tenant_id="t", field_id="f", season_id="s", ledger_date=date.today(), entry=entry
+        )
+    assert out["status"] == "held_for_review_applied_water_unknown", out
+    assert out["applied_water_status"] != "recorded"
+    mods["review_decision"].assert_not_awaited()
+    mods["create_execution_request"].assert_not_awaited()
+    value = mods["record_decision"].await_args.args[0]["decision_value"]
+    assert value["requires_human_review"] is True
+    assert value["applied_water_status"] in {"unrecorded", "volume_untracked", "undeclared"}
+
+
+@pytest.mark.unit
+def test_candidate_names_the_applied_water_status_and_flags():
+    _, _, payload = build_candidate(
+        tenant_id="t",
+        field_id="f",
+        season_id="s",
+        ledger_date=date(2026, 10, 15),
+        entry={
+            "deficit_mm": 40.0,
+            "notes": ["irrigation_unobserved", "root_zone_texture_fallback"],
+        },
+        policy_version="v1",
+    )
+    value = payload["decision_value"]
+    assert value["applied_water_status"] == "unrecorded"
+    assert value["data_quality_flags"] == ["irrigation_unobserved", "root_zone_texture_fallback"]
+    assert value["requires_human_review"] is True
+
+
+@pytest.mark.unit
+async def test_recorded_irrigation_still_auto_executes(monkeypatch):
+    """الاتّجاهُ الآخر: ريٌّ مسجَّلٌ مقيس يبقى قابلاً للاعتماد الآليّ — لا تعطيلٌ شامل."""
+    _arm_auto(monkeypatch)
+    mods = _auto_mods()
+    with patch.multiple("api.decision_service_client", **mods):
+        out = await process_water_deficit(
+            tenant_id="t",
+            field_id="f",
+            season_id="s",
+            ledger_date=date.today(),
+            entry={
+                "deficit_mm": 40.0,
+                "confidence": 0.7,
+                "notes": [],
+                "applied_water_status": "recorded",
+            },
+        )
+    assert out["status"] == "execution_queued"
+    assert out["applied_water_status"] == "recorded"

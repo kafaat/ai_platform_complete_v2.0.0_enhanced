@@ -174,12 +174,21 @@ async def compose_context_snapshot(
     )
 
 
-async def list_review_queue(*, tenant_id: str | None = None, limit: int = 100) -> dict[str, Any]:
+async def list_review_queue(
+    *,
+    tenant_id: str | None = None,
+    limit: int = 100,
+    field_id: str | None = None,
+    season_id: str | None = None,
+) -> dict[str, Any]:
     """WX-10.8 authoritative pending-candidate queue owned by decision-service."""
     return await decision_get_json(
         "/v1/decisions/review-queue",
         tenant_id=tenant_id,
-        params={"limit": limit},
+        params={
+            "limit": limit,
+            **({"field_id": field_id, "season_id": season_id} if field_id and season_id else {}),
+        },
     )
 
 

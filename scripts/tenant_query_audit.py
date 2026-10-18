@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import ast
 import pathlib
 import re
 
@@ -205,6 +206,13 @@ def audit() -> list[dict]:
             if path.name.startswith("test_") or "tests" in path.parts:
                 continue
             lines = path.read_text(encoding="utf-8").splitlines()
+            # Multiline signatures and sibling functions must not change who
+            # owns a connection or lend an unrelated tenant scope to a query.
+            functions = [
+                node
+                for node in ast.walk(ast.parse("\n".join(lines)))
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            ]
             rel = str(path.relative_to(ROOT)).replace("\\", "/")
             for i, line in enumerate(lines):
                 if not _CALL.search(line):
@@ -214,8 +222,21 @@ def audit() -> list[dict]:
                 if not hit:
                     continue  # GLOBAL أو لا جدول معروف — خارج نطاق العزل
                 fs, fe = _enclosing_function(lines, i)
+                enclosing = [node for node in functions if node.lineno <= i + 1 <= node.end_lineno]
+                function = max(enclosing, key=lambda node: node.lineno) if enclosing else None
+                if function is not None:
+                    fs, fe = function.lineno - 1, function.end_lineno
                 ctx = "\n".join(lines[fs:fe])
-                sig = lines[fs] if fs < len(lines) else ""
+                parameters = (
+                    {
+                        arg.arg
+                        for arg in function.args.posonlyargs
+                        + function.args.args
+                        + function.args.kwonlyargs
+                    }
+                    if function is not None
+                    else set()
+                )
                 if re.search(r"tenant_connection(_for)?\(", ctx):
                     cls = "RLS_CONN"
                 elif "_apply_tenant_guc" in ctx or "_tenant_conn(" in ctx:
@@ -232,9 +253,7 @@ def audit() -> list[dict]:
                     )
                     _in_tx = re.search(r"async\s+with\s+[\w.]*\.?(transaction|begin)\(", ctx)
                     cls = "EXPLICIT" if (not _scoped_local or _in_tx) else "RAW"
-                elif re.search(r"\bconn\b", sig) and not re.search(
-                    r"\.acquire\(\)|get_pool\(\)", ctx
-                ):
+                elif "conn" in parameters and not re.search(r"\.acquire\(\)|get_pool\(\)", ctx):
                     # الدالّة تستقبل conn كمعامل ولا تكتسب اتّصالها ⇒ السياق مسؤوليّة المُنادي.
                     cls = "DELEGATED"
                 elif re.search(r"\.acquire\(\)|get_pool\(\)", ctx):

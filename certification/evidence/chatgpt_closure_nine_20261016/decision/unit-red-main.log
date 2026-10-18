@@ -1,0 +1,62 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/closure-decision
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 15 items
+
+services/decision-service/tests/test_migration_runner_readonly.py .FFFFF [ 40%]
+FFF......                                                                [100%]
+
+=================================== FAILURES ===================================
+_________ test_scoped_034_rejects_unapproved_source_before_connecting __________
+services/decision-service/tests/test_migration_runner_readonly.py:58: in test_scoped_034_rejects_unapproved_source_before_connecting
+    asyncio.run(mr.apply_composition_only("0" * 64))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'apply_composition_only'
+____________ test_scoped_034_requires_explicit_schema_authorization ____________
+services/decision-service/tests/test_migration_runner_readonly.py:64: in test_scoped_034_requires_explicit_schema_authorization
+    asyncio.run(mr.apply_composition_only("0" * 64))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'apply_composition_only'
+___________ test_scoped_034_journal_plan_fails_closed[prior_pending] ___________
+services/decision-service/tests/test_migration_runner_readonly.py:72: in test_scoped_034_journal_plan_fails_closed
+    prior = [m for m in migrations if m.version < mr.COMPOSITION_VERSION]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+__________ test_scoped_034_journal_plan_fails_closed[prior_checksum] ___________
+services/decision-service/tests/test_migration_runner_readonly.py:72: in test_scoped_034_journal_plan_fails_closed
+    prior = [m for m in migrations if m.version < mr.COMPOSITION_VERSION]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+__________ test_scoped_034_journal_plan_fails_closed[target_checksum] __________
+services/decision-service/tests/test_migration_runner_readonly.py:72: in test_scoped_034_journal_plan_fails_closed
+    prior = [m for m in migrations if m.version < mr.COMPOSITION_VERSION]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+__________ test_scoped_034_journal_plan_fails_closed[later_checksum] ___________
+services/decision-service/tests/test_migration_runner_readonly.py:72: in test_scoped_034_journal_plan_fails_closed
+    prior = [m for m in migrations if m.version < mr.COMPOSITION_VERSION]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+______________ test_scoped_034_journal_plan_fails_closed[unknown] ______________
+services/decision-service/tests/test_migration_runner_readonly.py:72: in test_scoped_034_journal_plan_fails_closed
+    prior = [m for m in migrations if m.version < mr.COMPOSITION_VERSION]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+_______________ test_scoped_034_allows_later_pending_and_repeat ________________
+services/decision-service/tests/test_migration_runner_readonly.py:94: in test_scoped_034_allows_later_pending_and_repeat
+    mr.COMPOSITION_VERSION,
+    ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'decision_migration_runner_readonly' has no attribute 'COMPOSITION_VERSION'
+=========================== short test summary info ============================
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_rejects_unapproved_source_before_connecting
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_requires_explicit_schema_authorization
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_journal_plan_fails_closed[prior_pending]
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_journal_plan_fails_closed[prior_checksum]
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_journal_plan_fails_closed[target_checksum]
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_journal_plan_fails_closed[later_checksum]
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_journal_plan_fails_closed[unknown]
+FAILED services/decision-service/tests/test_migration_runner_readonly.py::test_scoped_034_allows_later_pending_and_repeat
+========================= 8 failed, 7 passed in 0.21s ==========================

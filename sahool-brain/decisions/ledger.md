@@ -3946,6 +3946,12 @@ indicators-service الحقيقيّ، و`current_view` الحقيقيّ، ومس
 
 **2026-10-14 — إسناد الحارس إلى PR #1183 وفحوصه المحلية:** إصلاح `BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01` في [PR #1183](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1183)، رأس فتح المسوّدة `a00ff740b09c0a20976b231920ecf72d74b3a8a7` وشجرته `36fa76cae2768bf08f94e0fc046ea29f94092482`؛ أصل المصدر `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ بلا تعديل. اكتمل preflight المحلي بخروج 0 وصفر إخفاقات، مع بوابتي أمن متخطاتين لغياب الأداتين عن PATH؛ قيس Bandit وpip-audit الأصلي لاحقاً بنجاح، وكذلك أمر CI ذي 19 ملف اعتماد، بالاستثناءات القائمة نفسها. الوحدات العادية وتحت لغة C: 8878 ناجحاً و39 متخطى لكل منهما؛ اختبارات المستودع 996 ناجحاً و8 متخطاة، والمنصة 4586 ناجحاً، وحراس لغة C نجحوا 169/169. نجحت حراس النطاق الملتزم الثلاثة على رأس الفتح وبوابة أثر القدرات؛ حزمة الفتح أثبتت 6315 بصمة. الملخص وإيصالات الأوامر وبصمات السجلات في `certification/evidence/arabic_state_guard_20261014/validation_summary.json` و`validation_gate_receipts.json`؛ لا ادعاء JUnit. تظل فحوص GitHub للرأس النهائي والدمج معلقة؛ لا دليل قبول حي أو ترقية verified. الحصيلة 134 open و389 fixed و3 verified؛ خطة135 لقطة تاريخية على `main@9a50aac3` وليست العداد الحالي. وصف عدم إنشاء PR في المدخل السابق محفوظ كتاريخ إعداد الأدلة.
 
+
+## 2026-10-14 — مراقبةٌ قبل الفرض لفكّ JWT، والمفتاحُ الفارغ يُرفَض فوراً
+
+**القرار:** نقلُ فكّ توكن الوصول في المستهلكين إلى `decode_access_token` مع إبقاء مكتبة كلّ خدمةٍ وخوارزميّتها المثبَّتة، وعدُّ ما كانت السياسةُ الأشدّ (exp/sub/aud/iss) سترفضه بدل رفضه (`SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce` للفرض لاحقاً)؛ ورفضُ المفتاح الفارغ في الوضعين. لا يُمسّ actuator (GATE-01) ولا auth (المُصدِر آخِراً) ولا MCP (ظلّ الحزمة يثبّته اختبارٌ عمداً) ولا tts-service/decision-service (توجيه المنسّق: شريحة الجاهزيّة تعدّلهما الآن).
+**السبب:** قرارُ المالك (#1118) أنّ الخطرَ تشديدُ المطالبات دفعةً واحدة؛ والمفتاحُ الفارغ لا يمرّ به توكنٌ شرعيّ أصلاً فرفضُه لا يغيّر حركةً صالحة ويغلق تزويرَ مستأجِرٍ مقيساً.
+**المصدر:** `main@56de3d31` · إصلاح `64874d80` · `shared/security/access_tokens.py` (`decode_access_token`) · الشاهد `tests_v9/test_jwt_decode_shared_decoder.py` (أحمر على main: 11 إخفاقاً و30 خطأً؛ أخضر: 42) · الراتشِت `tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py` · قرار المالك 2026-10-01 (#1118).
 ## 2026-10-14 — الحارس العربي أصبح قانونياً على main في #1183
 
 - **canonical main بعد squash #1183:** `56de3d316fd5243253b6f6d38dc38b331bbddf95`؛ أصل الإصلاح `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ كتاريخ مصدر. شجرة الدمج `6a297aae1272217b9e73e055312d7554f851568c` تطابق رأس PR المختبر `0126ae7894b18cd4f3e3ebcc1afcc7dd19392374`. فحوص السياقات الحالية 65 ناجحاً و2 متخطيان مبرران، والعشرون المطلوبة كلها ناجحة؛ أُعيدت وظيفتا إعداد PostgreSQL بعد ECR429 مرة واحدة دون تغيير المصدر. الدليل `certification/evidence/arabic_state_guard_20261014/pr1183_final_ci_review.json` و`pr1183_merge_observation.json`. هذه إحالة الدمج وCI على رأس PR؛ فحوص main والنشر أدلة لاحقة منفصلة، ولا ترقية verified.
@@ -3983,6 +3989,133 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 - **مسار واحد:** استيرادان في المسار نفسه يتصادمان في كل ملف، ويُبقيان آليتي CI لأداة واحدة.
 - **تصميم #1191 أضيق:** يعمل عند تغيّر الأداة فقط، ويرفض أي اختبار متخطّى، ويحفظ أدلة حالية كمصنوعات CI بدل 2 MB من سجلات تاريخية.
 - **ما نُقل من #1192:** التنسيق، وخريطة init_v8، وإصلاح الترميز.
+## 2026-10-14 — SAR الخليط من الأيونات المخلوطة لا من متوسّط SAR المصادر، وناتجُ الخليط إرشاديّ
+
+**القرار:** تُحسَب جودة الخليط في `compute_blend_water_quality` (`ed78cf5c`): EC متوسّطٌ مرجَّح بالحجم، وSAR من Na/Ca/Mg المرجَّحة حجميّاً ثمّ Na/√((Ca+Mg)/2)؛ نقصُ أيّ مدخل ⇒ `not_computable` بسببٍ مسمّى؛ والنسب تُرفض إن لم تُعلَن (مع أكثر من مصدر) أو خرجت عن [0, 1] أو لم تجمع 1 ضمن 0.001، ولا تُطبَّع إلّا ضمن ذلك التفاوت. الناتج يُعرض في نَسَب الملوحة دون أن يُرخي بوّابة أسوأ مصدر.
+
+**السبب:** SAR غير خطّيّ في النسب: خليط قناة (Na 1، Ca 4، Mg 2) وبئر صوديّ (Na 12، Ca 0.5، Mg 0.5) بنسبة 50/50 يعطي 4.91 من الأيونات و8.78 بمتوسّط SAR المصدرين — فالاختصار خاطئ لا تقريبيّ. وجدول `irrigation_water_quality_samples` لا يحمل أيونات، فالصدق أن يُقال «غير محسوب» حيّاً لا أن يُوزَن عمود `sar`. وإرخاءُ البوّابة على تقدير خليط يسبق قرار قبول مصدر البيانات (توصية مصالحة الموجة صفر).
+
+**المصدر:** `main@56de3d31` · `ed78cf5c` · الشاهد `services/sahool-platform/tests/test_irrigation_blend_water_quality.py` · `WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01`.
+## 2026-10-14 — حدّ معدّل بوّابة Railway بمفتاح X-Forwarded-For الأخير لا real_ip
+
+`RAILWAY-GATEWAY-HAS-NO-RATE-LIMIT-01` صارت fixed عند `f31013afa` على أساس `main@56de3d31`؛ لم يُدفع ولا PR بعد. اختير آخرُ عنصرٍ في X-Forwarded-For مفتاحاً بـ`map` بدل `real_ip`: `$remote_addr` خلف الحافّة عنوانُ الوكيل (دلوٌ للجميع)، وreal_ip يُغيّر X-Real-IP/X-Forwarded-For المُمرَّرة لكلّ الخلفيّات — تغييرُ سلوكٍ أوسع من الفجوة. الإعفاءُ لحلقة الاسترجاع وحدها لأنّ إعفاء نطاقٍ خاصّ (كما في v9) قد يشمل الحافّة. المعدّلات سخيّة (20r/s دفعة 40؛ البلاطات 50r/s دفعة 200) لأنّ تحميل اللوحة وتحريك الخريطة يُطلقان دفعاتٍ متوازية.
+
+**السبب:** سدّ الفجوة بتغييرٍ صغير قابلٍ للاختبار دون المسّ بمواقع الجاهزيّة التي يملكها عملٌ آخر؛ والانتقالُ بعد fixed مشروطٌ بقياس 429 وتمييز عميلين على Railway بعد النشر (الدمج يُعيد بناء الواجهة في staging والإنتاج).
+
+**المصدر:** `main@56de3d316` · إصلاح `f31013afa` (`frontend/nginx.conf`) · الشاهد `tests_v9/test_frontend_gateway_rate_limit_contract.py` (9 خضراء؛ 4 حمراء على إعداد main).
+## 2026-10-15 — /readyz بوّابة الواجهة يُجيب من nginx بلا مسارٍ بديل لجاهزيّة المنصّة
+
+**القرار:** `FRONTEND-READYZ-IMPERSONATES-PLATFORM-READINESS-01` صارت fixed عند `78e981da` على أساس `main@5472740e`؛ لم يُدفع ولا PR بعد. /readyz في `frontend/nginx.conf` يُجيب من nginx: 200 ما دام الإعداد مُحمَّلاً وقشرةُ SPA موجودة، و503 إن غابت؛ و`/runtime-identity` باقٍ وكيلاً إلى المنصّة. نُقِض نصُّ العقد السابق («التمرير لتماثل الدلالة على 3003») صراحةً في الوثيقة نفسها.
+
+**السبب:** جاهزيّةٌ تحمل اسم الواجهة وتقيس المنصّة تُجمِّد نشرَ الواجهة عند عطل المنصّة. ولم يُضَف `/readyz/platform` لأنّ القياس لم يجد مُستدعياً يحتاجه، وإضافتُه تُبقي جسمَ جاهزيّة المنصّة مكشوفاً على البوّابة العامّة؛ وجاهزيّةُ المنصّة تُقرأ من المنصّة أو من /readyz الخاصّ ببوّابة v9. وفحصُ Railway للواجهة باقٍ على `/healthz` بلا مساس.
+
+**المصدر:** `main@5472740e` · إصلاح `78e981da` (`frontend/nginx.conf`) · الشاهد `tests_v9/test_gateway_operational_endpoints_contract.py` (أحمر على إعداد main ⇒ أخضر).
+
+## 2026-10-15 — تكرارُ union في log/ledger يُكشَف بتوسيع الحارس القائم، والقائمُ يُجمَّد لا يُحذف
+
+القرار (`5e7faae1d`): تُغلَق `UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01` بشبكةٍ ثالثة داخل `brain_duplicate_gap_identity_guard.py` تقرأ نصَّ المدخل في `log.md`/`ledger.md`، لا بسكربتٍ حاجبٍ جديد.
+
+السبب:
+- **الموضع:** الحارسُ حاجبٌ أصلاً في `structural-lint` المطلوبة منذ #1186 وعلى المسارات نفسها التي يضمّها union؛ سكربتٌ جديد يفرض تسجيلَ سطحِ حجبٍ وطفراتٍ وكتالوجٍ لحارسٍ يكرّر نطاقَ قائم.
+- **القاعدةُ على السطر لا على العنوان:** القياسُ في مستودعٍ مؤقّت بيّن أنّ union يضمّ الأسطرَ المحرَّرة بجوار أصليّيها؛ «عنوانٌ مكرَّر» وحده كان سيمرّ على الحالة الشائعة.
+- **التشابهُ مقيَّدٌ بالكتلة المتّصلة:** الإيجابيُّ الكاذب الوحيد على main (`log.md:9131/9138`) فقرتان منفصلتان؛ والحرفيّ والبادئةُ يبقيان على مستوى المدخل.
+- **الأساسُ مُجمَّد بالبصمة والعدد:** أربعةُ أزواجٍ قائمة (`log.md:7875/7879` · `7876/7880` · `ledger.md:2102/2104` · `2103/2105`) لا تُحذف لأنّ الملفّين إلحاقيّان؛ والعدُّ لكلّ زوج يُبقي نسخةً ثالثةً مرئيّة.
+
+الحدّ: كشفُ عَرَض لا منعُ سبب؛ السببُ البنيويّ تحت `BRAIN-FRAGMENTED-SOURCE-OF-TRUTH-01`.
+
+## 2026-10-15 — الريُّ المجهول يُحجَز عن الاعتماد الآليّ ولا يُحجَب عن المراجِع
+
+القرار: عجزُ ماءٍ يحمل قيدُه `applied_water_status` غيرَ `recorded` (أو لا يحملها) يُنشئ مرشّحاً بـ`requires_human_review` ولا يمرّ إلى الاعتماد الآليّ. الشيفرة: `76eebccae90bd5837b57ac5e8211bf7be8982b06`.
+
+السبب:
+- **الاتّجاه معروف:** ريٌّ مجهولٌ يُقرأ صفراً يرفع الاستنزاف، فالعجزُ حدٌّ أعلى للحاجة لا قياسُها، والتنفيذُ الآليّ يصرف ماءً فوق ريٍّ حصل.
+- **الأضيق المحافظ:** حجبُ المرشّح كلّه كان سيحرم الحقلَ المطريَّ الصادقَ من التوصية، وخفضُ الثقة وحده لم يمنع التنفيذ.
+- **الفجوةُ تبقى open:** التمييزُ بين المطريّ والمرويّ بلا تسجيل يلزمه إعدادُ مصادر الماء، وهو مخطَّطٌ جديد خارج هذه الشريحة.
+
+
+## 2026-10-15 — إزالةُ python-jose لا تجديدُ إعفائه، مع حفظ دلالة مطالباته موضعاً موضعاً
+
+**القرار:** PyJWT مكتبةُ JWT الوحيدة (`PyJWT[crypto]==2.15.0`)، وحذفُ إعفاءَي `CVE-2026-85394` و`PYSEC-2026-1325` معها. المواضعُ التي كانت على python-jose تُعلن `claim_semantics="python-jose"` فتحفظ حكمَه (فحصُ `aud` حين يوجد، و`iat` بلا مقارنةٍ بالساعة) بدل أن تتشدّد ضمناً؛ والتشديدُ يمرّ بقناته المُعلَنة (`SAHOOL_ACCESS_TOKEN_CLAIM_POLICY=enforce`). المُصدِر auth وtts-service نُقلا إلى المفكِّك المشترك؛ actuator (GATE-01) وMCP (ظلّ الحزمة) لم يُمَسّا.
+**السبب:** قرارُ المالك (مهلة 2026-11-05): لا إصدارَ مُصلِحاً لأيٍّ من الثغرتين، فالإعفاءُ كان سيُجدَّد بلا نهاية؛ وقبولُ PyJWT لـ`iat` المستقبليّ ورفضُه `aud` الغائب كانا سيحوّلان انزياحَ ساعةٍ أو توكناً قديماً إلى 401 جديدة بلا عدّاد — وهو الخطرُ الذي قرّر المالكُ عدَّه قبل فرضه (#1118).
+**المصدر:** `main@5472740e` · إصلاح `2a85159f1` · `shared/security/access_tokens.py` · الشاهد `tests_v9/test_python_jose_removed.py` (أحمر على main: 13 إخفاقاً و38 خطأً؛ أخضر: 61) · `config/security_exceptions.json` · `.github/workflows/ci.yml` (`pip-audit (gating — …)`).
+## 2026-10-15 — الدَّين الوهميّ يُعَدّ بالصنف، ورفعُ أساسه قيدٌ مُبرَّر لا إعادةُ توليد
+
+القرار:
+- `fake_connection_debt_guard.py` يكشف بدائلَ الاتّصال والمسبح بنيويّاً (AST)، ولم يعد يطابق اصطلاحَ التسمية.
+- الأساس يحمل `admissions`: كلُّ موقعٍ يراه الماسح يجب أن يرد في قيدٍ يُسمّيه، ولكلّ قيد تبريرٌ وعدّان `before`/`after` يطابق فرقُهما عددَ المواقع.
+- تصحيحُ القياس سُجِّل قيداً واحداً: «measurement correction (class not name), 2026-10-15, 40 → 98»، بمواقعه الـ58.
+- المصدر `4b105001e`، والأساس `main@5472740e`.
+
+السبب:
+- **العدّ بالاسم أعمى:** 58 ملفّاً تقف مكان اتّصال asyncpg بأسماء أخرى، ومنها ما يدّعي jsonb وCHECK وTRIGGER وUNIQUE. ولم يُعَد تسميةُ أيّ اختبار، فرفعُ العدّ قياسٌ لا دَينٌ جديد.
+- **الرفعُ لا يمرّ صامتاً:** `fake_connection_tests` مُشتقّ، و`verify_all_generated --fix` يُعيد توليده. فبلا سجلّ قبول كان رفعُ العدّ (وأيُّ نموٍّ لاحق) يمرّ بإعادة توليد. السجلّ لا تكتبه `--generate`، والطفرتان «نزعُ القبول» و«محوُ السجلّ بالتوليد» مقتولتان.
+- **حدٌّ معلن:** موقعٌ قُبِل ثمّ سُدِّد ثمّ عاد يُقبَل بقيده القديم، لأنّ السجلّ تاريخٌ لا حالة. ومُسنَد المستأجِر ليس فئةً في `_DB_ENFORCED`.
+
+### 2026-10-16 — ChatGPT unified source recovery (1195/1196/1197)
+
+Recovered a full clone at the pinned main and merged the three pinned source PRs locally. Ten known transferred gaps have source fixes with red/green witnesses; irrigation UI, RAG01 and RAG07 remain open. The original thirteen allocation IDs remain unproven; no 28-gap closure claim. GATE01-ADJ-2026-10-16-001 is a new one-time bytes-scoped U07 authorization under the current user instruction, not an independent signature. PGlite SQL proof is not native PG16 acceptance. Final preflight/remote CI are pending; no push, main merge or deployment in this record. Sources and measured limits: `certification/evidence/chatgpt_unification_20261016/README.md` and `scope.json`; baseline `239c01a47442df13d9cbb492017afae103b98dc8`.
+
+2026-10-16 allocation correction supplied by owner: the original13 are now identified in `certification/evidence/chatgpt_unification_20261016/allocation-roster.json`. Earlier Qdrant1181, raster/CDSE1185 and Arabic-guard1183 fixes predate the allocation and must not count toward28. This resolves attribution only; original-gap source/merge/runtime status is being audited on pinnedmain239c01a4. No merge or deployment authorization is inferred.
+
+### 2026-10-16 — حدود إغلاق المصدر بعد مراجعة الري والراستر
+
+القرار: تُسجل واجهة الري وVRT grid/nodata/normalization-claim وbackfill-version عند fixed في المصدر فقط. لا تستبدل الاختبارات المعزولة قبول المزارع أو PostgreSQL الأصلي، ولا يُفعّل Element84 أو SoR أو dispatch أو Railway. تُحفظ الفجوات التسع المتبقية مفتوحة ضمن الحصة ذات28 معرفاً؛ GHCR من الأصلية لا بند إضافي. أساس القرار هو شهود main239 والرقع النهائية وبصماتها، مع إبقاء تخطيات الاختبارات وحدود SQLite/PGlite والبيانات الاصطناعية ظاهرة. بوابة U07 لا تتسع لأي إصلاح آخر. لا تفويض دمج إلى main أو نشر في هذا الإدخال.
+
+### 2026-10-16 — REMAINING-ALLOCATION-BOUNDARY-20261016
+
+Decision: retain all nine remaining gap states as open while preparing source improvements and reviewable operator steps on main9f0. Preserve Element84 containment and real retrieval acceptance prerequisites. Separate staged Decision034/U07v234 schema operations and TTS deployment from this source change; no global migration switch, new external speech grant or reused GATE01 authorization. Correct correlation ownership through the actual decision/dispatch/run/receipt chains before any migration. Basis: `certification/evidence/chatgpt_remaining_20261016/README.md` and `docs/runbooks/REMAINING_RUNTIME_ACCEPTANCE_20261016.md`; no runtime acceptance or automatic merge is inferred.
+
+
+### 2026-10-16 — متابعة الحصة التساعية على أساس 6e8cc0f9
+
+جمع فرع التكامل `chatgpt/close-nine-gaps-20261016` عمل ستة وكلاء؛ المصدر عند `4e796243344a1cba08e38c4775779cba1376b8da`. أربعة إصلاحات مصدرية: معايرة C1، نسب CDSE إلى Vegetation، ملف Nomic الاختياري، وإعداد إعادة فهرسة كاملة. خمس فجوات تبقى open، منها correlation حتى اختبار PostgreSQL الأصلي؛ لا verified ولا ادعاء دمج أو نشر. السبب: فصل الشاهد المصدري عن شروط الجرد والهجرات وتوافق النشر والسبب التاريخي. المصدر والدليل وحدود القياس في [فهرس المتابعة](../../certification/evidence/chatgpt_closure_nine_20261016/README.md). الفحص الكامل والـPR الموحد خطوتان لاحقتان، لا نتيجتان مفترضتان.
+
+
+### 2026-10-17 — non-Claude source closure on main 2ca779c6
+
+Owner request: close gaps outside Claude’s unpublished batch. Implemented UTC instant comparison and legacy timestamp compatibility for OFFLINE-CURSOR-BOUND-TO-A-NAIVE-TIMESTAMP-01; added default MSI production/quality membership for SPECTRAL-MSI-ABSENT-FROM-DEFAULT-PRODUCTS-01. Both are source fixed, not deployed or live verified. JWT-DECODE-OUTSIDE-SHARED-SECURITY-01 stays open: MCP’s two decoders now use the canonical observe-mode implementation; actuator and enforce rollout remain. No mutation changes, migration execution, frozen source edits, deployment changes or Claude work were included. Source base: `2ca779c6`; implementation branch: `chatgpt/non-claude-gap-closure-20261017`. Evidence and explicit limits: `certification/evidence/non_claude_gap_closure_20261017/README.md`. Railway only confirmed four migrator variable names in each environment; OAuth withheld values, so the operational credential gap remains open. Its code fix had already landed in #1170; no duplicate repair.
+
+متابعة الدليل لنفس الشريحة: فجوة CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01 أصبحت fixed في المصدر بعد قراءة شاهد PostgreSQL الأصلي النهائي لـ#1201 (62 ناجحاً، الوظيفة 117231284805)، دون تطبيق إنتاجي. الدليل: certification/evidence/non_claude_gap_closure_20261017/correlation_pg16_receipt.json. المفتوح الرسمي في المرشح 96.
+
+قياس الشريحة خارج Claude: جناحا المستودع والمنصة نجحا؛ جناح الوحدة 9349 ناجحاً و40 متخطياً وفشل واحد لأساس العناوين اليتيمة، صُحح بخفضه 211→209 ثم نجحت 24 حالة مركزة. Raster: 614 ناجحاً وحالتا PostgreSQL متخطيتان محلياً. Gitleaks بلا تسريبات. أثر القدرات يُشتق بعد الالتزام؛ لا ادعاء preflight شامل أخضر جديد.
+
+
+### 2026-10-17 — Close the consumed correlation grant lifecycle
+
+PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHub merge evidence (`2ca779c6`, merged 2026-10-16T23:03:04Z) and verified all seven authorized/supplemental blob bindings against that merge tree. Stamped GATE01-ADJ-2026-10-16-002 CONSUMED with the merge receipt; preserved its scope and exact byte bindings. No new authority, frozen source edit, production migration or gap-state promotion. Source: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. This is lifecycle bookkeeping required by GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01, not a gate exception.
+
+### 2026-10-17 — قرارات المالك للموجة الرابعة وسجلّ الدمج منذ #1186
+
+**القرارات (المالك kafaat، 2026-10-15، «Approve all 14» ثمّ «نعم» لإضافة AUTH-IP):** (١) تفويض GATE-01 لـ`event_bus.py` لفجوتَي OUTBOX — صار `GATE01-ADJ-2026-10-17-001` المقيَّد ببايتات الملفّ، ويُختَم CONSUMED بعد الدمج. (٢) إزالة weather-polygon-worker وموضوعه بلا ناشر. (٣) `docker-compose.v9.yml` تعريفٌ وحيد ونقل البدائل إلى `docs/history/compose/`. (٤) بطاقة المحصول + FAO-56 مصدرٌ وحيد لـKc/TAW؛ `shared/wofost/engine.py` يبقى نسخةً مستثناةً لأنّ نقله يعكس اتّجاه الاستيراد — قرارٌ لاحق. (٥) تجميد `scripts_v9/run_migrations.sql` بمساره الحقيقيّ وجعل ادّعاء «لم يدخل الشجرة» قابلاً للتكذيب. (٦) حارسٌ يشترط معرّفاً مسجَّلاً لملاحظات المراجعة الموسومة. **السبب:** هذه الفجوات كانت محجوبةً بقرار مالكٍ أو بـGATE-01 لا بشيفرة؛ والبديل كان إبقاءها مفتوحةً بلا مسار. **SHA:** فرع `claude/w4-wave4-gaps-20261017`.
+
+**قرارٌ سابق يُسجَّل الآن (المالك، 2026-10-15، «مقبول»):** يُعلَّق التنفيذ الآليّ للريّ في `water_decision_bridge` ما لم تكن `applied_water_status = recorded` — صفرُ صفوفٍ في `irrigation_runs` يعني «لا نعلم» لا «لم يُروَ» (UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01، إصلاحٌ جزئيّ في #1198 والصفّ open).
+
+**سجلّ الدمج بقرار المالك:** #1186 ⇒ `698a1c53` · #1190 ⇒ `f558b404` (شجرة = الرأس المُختبَر `a1c79971`؛ Railway 24/24 SKIPPED والمنصّة لم تُنشَر لأنّها مثبّتةٌ على فروع `deploy/*`) · #1194 ⇒ `5c9f6bf0` · #1198 ⇒ `239c01a4` (شجرة = الرأس المُختبَر `1f32be31`؛ ١٠ نشرات إنتاج و١٢ staging SUCCESS والمهاجر SKIPPED). ثمّ دمج المالك #1199–#1202 (ChatGPT). **ملاحظة تشغيليّة مقيسة 2026-10-17:** مهاجر الإنتاج على `2ca779c6` (#1201) قرأ ولم يطبّق (`MIGRATIONS_NOT_APPLIED apply_not_permitted`)، فالقاعدة ينقصها ٨ أعمدة من v234/v235 — تطبيقها قرار المالك وحده.
+
+**سجلّ الدمج بقرار المالك (2026-10-17):** #1205 ⇒ `f3fd099e9` (شجرة = الرأس المُختبَر `8eee151ab`؛ squash مثبَّت على الرأس بموافقةٍ صريحة مستقلّة). **السبب:** CI أخضر على الرأس وبلا تعارضات ولا محادثات مفتوحة. التزامات الفرع المذكورة في صفوف السجلّ (`bf6fd06e3` … `9514d4b60`) محفوظةٌ في فرع `claude/w4-wave4-gaps-20261017` وكلّها داخل `f3fd099e9`. وخُتم GATE01-ADJ-2026-10-17-001 `CONSUMED` بعده.
+
+
+### 2026-10-17 — إبقاء حكم المصدر منفصلاً عن القبول الحي
+
+قبول staging قرائي لإصلاحَي PyJWT وTTS، أساس `0e528161` والمنصة `d6ddf38c` (#1203): هوية الصورة200 وحقول بلا توكن401 مع معرفات الطلب محفوظة. لا حساب اختبار متاح، فحالات RS256 الأربع غير منفذة وتبقى DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 fixed؛ سجل عائق PYJWT-RS256-STAGING-ACCEPTANCE-MISSING-TEST-IDENTITY-01. مستهلك TTS المنشور قديم، فقبول الأنماط الثلاثة غير ممكن الآن وتبقى TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 open. لا تغيير Railway أو مصدر تشغيل أو هجرات أو إنتاج؛ لا verified. المصدر: `certification/evidence/pyjwt_rs256_staging_acceptance_20261017/result.json` و`certification/evidence/tts_policy_v2_staging_acceptance_20261017/result.json`.
+
+القرار بطلب المالك: لا تجعل غياب التوكن شاهداً على رفض تزويره، ولا تنشر مستهلك TTS لتغيير شرط التجربة. السبب: غياب القياس الإيجابي وغياب قارئ v2 في staging يمنعان استيفاء شروط القبول. المصدر وسبب القرار مرتبطان بأدلة manifest ذات البصمات في صفّي السجل؛ الدمج قرار المالك بعد PR وCI.
+
+### 2026-10-17 — متابعة قبول staging بعد إنشاء هوية اختبار مأذونة
+
+بعد تفويض المالك بإنشاء حساب staging تجريبي، نجح التسجيل201 ثم الدخول200 للحساب staging-acceptance-20261017-44cdcedb@example.com عبر البوابة. توكن auth من نوع RS256 مقيس: الحالة (أ) لقائمة الحقول200، والحالة (ب) بتعديل بايت من التوقيع401. زال عائق الهوية، وتبقى (ج) غير منفذة لغياب المفتاح العام الفعلي و(د) الاختيارية غير منفذة. DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 تبقى fixed؛ لا verified ولا إصلاح شيفرة. عائق القبول المسجل يبقى جزئياً حتى استيفاء (ج). لا كلمات سر أو توكنات محفوظة؛ الأدلة في certification/evidence/pyjwt_rs256_staging_acceptance_20261017/manifest.json وبصمتها 728f4c118ed4107c30e072407adaf4a94d0946d839b85edbad87efa0dd819694. TTS ما زال غير قابل لقياس v2 بالقارئ المنشور؛ لم يتغير أي إعداد Railway أو نشر أو إنتاج.
+
+**قرارات المالك (2026-10-17، الموجة الخامسة):** (١) تقسيمُ العمل مع ChatGPT: Claude يأخذ Redis والتعلّم وملاحظات المراجعة وأدلّة الحوافّ مع إعادة القياس؛ وChatGPT يأخذ #1204 وسلوكيّات TEXT-GUARD وخطّ أساس RAG وتحليلاً بلا هجرات لفجوات قاعدة البيانات الخمس ومصدر أوزان SAM2. **السبب:** منعُ تكرار العمل والتعارض على الملفّات. (٢) جمعُ الشرائح الجاهزة في PR واحد وإفرادُ Redis. **السبب:** دورةُ CI وتوليدٌ واحد بدل إعادة الأساس قبل كلّ PR؛ وRedis يغيّر اتّصال كلّ خدمة. **SHA:** فرع `claude/w5-wave5-combined-20261017`. (٣) تحديثُ TTS على staging وحده إلى `main@d301c136` بحدودٍ معلنة (نقطة الرجوع النشر `2705c13b`). **السبب:** قبولُ مستهلك v2 للسياسة. التغييرُ مُرحَّل (patch `7a76bd04`) ولم يُطبَّق بعد: تأكيدُه انتهت مهلتُه ثلاثاً بلا أثر.
+
+### 2026-10-17 — W5: شواهد الفجوات المتبقية دون إصلاحات تشغيلية
+
+بتوجيه المالك جُمعت البنود 2–5 في فرع واحد؛ #1204 لجلسة أخرى. مصدر الاختبارات والأدلة `fbb204449f1326f92455cc390ab906b4a867244d` على `main@ec3927ce`: 24 اختبار واجهة و54 اختبار migrator/SAM2 و37 اختبار قياس RAG/حارس النص ناجحة؛ TypeScript ناجح؛ 7 حالات سلوكية جديدة تقتل 3 طفرات. RAG: 32 سؤالاً مُرقّم الإصدار، القياس الحي محجوب والنتائج المنفصلة لـBM25 تاريخية فقط. PG16: أربع حالات جديدة جُمعت داخل ملف 034 الذي يشغله CI القائم؛ لا نجاح تشغيل محلي مدّعى ولا ملف workflow معدل. SAM2: وزن Meta الرسمي طابق بصمته المنشورة، دون تثبيت. كل الفجوات المعنية open، ولا verified أو تعديل migrations/MANIFEST/ملفات Claude أو Railway أو نشر. [الدليل](../../certification/evidence/chatgpt_w5_20261017/README.md).
+
+**سجلّ الدمج بقرار المالك (2026-10-17):** #1207 (ChatGPT) ⇒ `2eab1348d` · #1208 ⇒ `f3936a771` (شجرة = الرأس المُختبَر `c2c492a31`؛ squash مثبَّت على الرأس بموافقةٍ صريحة). **السبب:** CI أخضر بلا تعارضات.
+
+## 2026-10-17 — W6: إكمال حد تزويد SAM2 (`4d0799f3`)
+
+طلب المالك إغلاق الفجوات الأخرى ثم حدّد ستة خارج عمل Claude. استُكمل شرط SAM2 بمسار تزويد يفرض البصمة المقيسة قبل الاستبدال، لأن توثيق البصمة وحده في W5 لم يفرضها. بقاء شروط القرارات والتجميد يمنع تحويل بقية البنود إلى إغلاقات شكلية؛ لا تغيير على migrations أو ملفات Claude أو Railway ولا ترقية verified. إغلاق واحد مثبت، والخمس الإضافية لم تُثبت. [القياس وحدوده](../../certification/evidence/chatgpt_w6_20261017/README.md).
 
 ## 2026-10-15 — حدود معقوليّة ET0 المُسمّاة ومواءمة نسخة WOFOST (فرع محلّيّ `feat/et0-input-validation-golden-tests`، غير مدموج — تجميد الدمج قائم)
 

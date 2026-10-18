@@ -144,8 +144,8 @@ class TestSeasonalWaterNeed:
 
     def test_exact_staged_sum_for_known_crop(self):
         # 10 أيّام، ET₀=5، قمح. التوزيع: initial 2، dev 3، mid 3، late 2.
-        # Kc قمح: 0.40/0.75/1.15/0.40
-        expected = 2 * 5 * 0.40 + 3 * 5 * 0.75 + 3 * 5 * 1.15 + 2 * 5 * 0.40
+        # Kc قمح من بطاقته (المصدر الوحيد): ini 0.30 · dev (0.30+1.15)/2=0.725 · mid 1.15 · end 0.40
+        expected = 2 * 5 * 0.30 + 3 * 5 * 0.725 + 3 * 5 * 1.15 + 2 * 5 * 0.40
         assert _seasonal_water_need("wheat", [5.0] * 10) == pytest.approx(expected)
 
     def test_unknown_crop_uses_generic_kc(self):

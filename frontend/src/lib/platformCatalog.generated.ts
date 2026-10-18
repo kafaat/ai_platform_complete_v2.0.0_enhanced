@@ -14,17 +14,17 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '934fae3409364152e74e40b1f3284807341ecaa7201d2aff3dff421989b27bc1';
+export const PLATFORM_CATALOG_FINGERPRINT = 'aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c';
 
 export const PLATFORM_CATALOG_COUNTS = {
-  "backend_components": 32,
+  "backend_components": 31,
   "capabilities": 832,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 95,
   "capabilities_idempotent": 61,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 478,
-  "components": 36,
+  "components": 35,
   "cross_service_duplicate_method_paths": 12,
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
@@ -329,15 +329,6 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "id": "video-processor",
     "tested": true,
     "type": "service",
-    "wired": true,
-    "wiringDisposition": "consumed"
-  },
-  {
-    "capabilityCount": 0,
-    "domain": "weather-truth",
-    "id": "weather-polygon-worker",
-    "tested": false,
-    "type": "worker",
     "wired": true,
     "wiringDisposition": "consumed"
   },

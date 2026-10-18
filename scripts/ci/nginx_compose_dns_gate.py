@@ -51,8 +51,10 @@ def upstream_hosts(nginx_conf: str) -> list[tuple[str, int]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--compose", default="docker-compose.unified.yml")
-    parser.add_argument("--nginx", default="nginx/nginx.unified.conf")
+    # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 (2026-10-17): الافتراضيّ كان زوجَ
+    # unified — مكدّسٌ بديل نُقل إلى docs/history/compose/ بقرار مالك. يُقاس الزوجُ الذي يعمل.
+    parser.add_argument("--compose", default="docker-compose.v9.yml")
+    parser.add_argument("--nginx", default="nginx/nginx.v9.conf")
     parser.add_argument("--json", default="docs/backend/nginx_compose_dns_gate.generated.json")
     args = parser.parse_args()
 

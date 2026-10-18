@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/383ab1306db0/sahool-work
+configfile: pytest.ini
+plugins: cov-7.1.0, platformdirs-4.13.3, asyncio-1.4.0, xdist-3.8.0, respx-0.23.1, hypothesis-6.170.1, anyio-4.15.1, Faker-40.43.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 28 items
+
+tests_v9/test_sam2_artifact_digest.py .......................            [ 82%]
+tests_v9/test_sam2_ref_pinned.py .....                                   [100%]
+
+=============================== warnings summary ===============================
+tests_v9/test_sam2_artifact_digest.py::test_readyz_surfaces_verified_artifact_digest
+tests_v9/test_sam2_artifact_digest.py::test_predict_metadata_surfaces_verified_artifact_digest
+tests_v9/test_sam2_artifact_digest.py::test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason[env_example_digest_empty]
+tests_v9/test_sam2_artifact_digest.py::test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason[digest_set_weights_absent]
+  /workspace/scratch/383ab1306db0/sahool-work/services/sam2-inference/main.py:18: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests_v9/test_sam2_artifact_digest.py::test_readyz_surfaces_verified_artifact_digest
+tests_v9/test_sam2_artifact_digest.py::test_predict_metadata_surfaces_verified_artifact_digest
+tests_v9/test_sam2_artifact_digest.py::test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason[env_example_digest_empty]
+tests_v9/test_sam2_artifact_digest.py::test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason[digest_set_weights_absent]
+  /tmp/sahool-slice-python/fastapi/applications.py:4598: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+tests_v9/test_sam2_artifact_digest.py::test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason[env_example_digest_empty]
+  /tmp/sahool-slice-python/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /workspace/scratch/383ab1306db0/sahool-work/certification/evidence/chatgpt_w6_20261017/sam2/unit.xml -
+======================== 28 passed, 9 warnings in 0.94s ========================

@@ -1,0 +1,25 @@
+$ sed -n 107,129p nats/nats.conf
+    }
+    {
+      # طلبُ التنفيذ + أحداثُ الخطافات (`KNOWN_HOOKS` بتحويل العامل نفسِه — والتباعدُ عن
+      # `sahool.events.*` مفتوحٌ باسمه: NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE).
+      user: "sahool-plugin-runtime-worker"
+      password: $NATS_PLUGIN_WORKER_PASSWORD
+      permissions: {
+        publish: {
+          allow: [
+            "sahool.plugin.execution.requested"
+            "sahool.field.updated"
+            "sahool.recommendation.before"
+            "sahool.recommendation.after"
+            "sahool.recommendation.created"
+            "sahool.alert.created"
+            "sahool.operation.completed"
+            "sahool.model.promoted"
+            "sahool.billing.usage.recorded"
+            "sahool.digital.twin.snapshot.created"
+          ]
+        }
+        subscribe: { deny: [">"] }
+      }
+[exit=0]

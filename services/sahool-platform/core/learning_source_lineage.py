@@ -59,10 +59,9 @@ def resolve_learning_source(update: dict) -> dict:
     يقبل الحقول مسطّحة على ``update`` أو مُعشَّشة تحت ``update['source']``.
     يُعيد قاموساً بكلّ حقول النَّسَب + ``traceability_status`` + ``applies`` (bool).
 
-    **حدٌّ مُعلَن (U07):** حقولُ المراجعة (``review_status``/``agronomically_approved``/``review``)
-    تُحسَب هنا وتُعرَض في الملخّص، لكنّ كاتبَ ``online_learning_updates`` (``phase_runtime_store``)
-    لا يُديمها — الجدولُ (v151) لا يملك عموداً لها، وإضافتُه هجرةٌ خلف GATE-01. الصفوفُ
-    المقروءة بلا ``review_status`` تُعَدّ ``unreviewed`` (لا اعتماداً ضمنيّاً).
+    U07: phase_runtime_store persists the normalized review separately from traceability
+    after additive migration v234. Legacy rows remain unreviewed; this function does
+    not authenticate reviewers or prove evidence ownership.
     """
     src = update.get("source") if isinstance(update.get("source"), dict) else {}
     source_type = _pick(update, src, "source_type")

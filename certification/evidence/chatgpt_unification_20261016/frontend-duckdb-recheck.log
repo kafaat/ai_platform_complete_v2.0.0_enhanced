@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> sahool-v9-frontend@9.0.0 test
+> vitest run src/services/duckdb.readonly.test.ts
+
+
+ RUN  v5.0.2 /workspace/scratch/881ca3efb91d/frontend-verification/frontend
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  11:31:05
+   Duration  655ms (environment 58%, setup 17%, transform 11%, import 11%, tests 2%, worker 1%)
+

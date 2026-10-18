@@ -16,6 +16,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import main
+from client_address import client_ip
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 router = APIRouter()
@@ -32,7 +33,7 @@ async def create_invitation(
     أمان: tenant_id يُؤخَذ من توكن الداعي (لا من العميل)؛ الدور مُقيَّد بـ
     {expert,farmer,viewer} (Literal + فحص صريح) — owner/admin مرفوضان (تصعيد).
     """
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     if not main.can_invite(user.get("role")):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "الدعوة تتطلّب دور مالك المستأجِر")
     # دفاع عمق: حتى لو تجاوز Literal، نرفض أيّ دور غير قابل للدعوة صراحةً.
@@ -120,7 +121,7 @@ async def accept_invitation(
     أمان: الدور والمستأجِر يُؤخذان من **صفّ الدعوة فقط** — العميل لا يختارهما.
     يرفض إن كان الـtoken غير صالح/منتهٍ/مستهلَكاً أو البريد مسجّلاً مسبقاً.
     """
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     await main.check_ip_rate(ip)
     now = datetime.now(UTC)
 
@@ -198,7 +199,7 @@ async def revoke_invitation(
     user: Annotated[dict, Depends(main.get_current_user)],
 ):
     """يلغي دعوة معلّقة (owner/admin فقط)، tenant-scoped — لا يطال دعوات مستأجِر آخر."""
-    ip = request.client.host if request.client else "unknown"
+    ip = client_ip(request)
     if not main.can_invite(user.get("role")):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "يتطلّب دور مالك المستأجِر")
     tenant_id = user.get("tenant_id")

@@ -297,8 +297,15 @@ def test_pg_exporter_source_is_never_empty_by_default():
     port, _, database = rest.partition("/")
     assert host == "sahool-postgres" and host in services
     assert (port, database) == ("5432", postgres["POSTGRES_DB"])
-    # `lib/pq` يعدّ sslmode الفارغ `require`، وpostgis هنا بلا TLS ⇒ رفضٌ ⇒ pg_up 0 (مقيس).
-    assert "sslmode=disable" in query
+    # POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: كان `sslmode=disable` لأنّ postgis هنا كان
+    # بلا TLS؛ صار الخادمُ يرفض كلَّ TCP بلا TLS (hostssl وحده)، فالمُصدِّرُ يتحقّق كأيّ عميل —
+    # `verify-full` بـCA الخادم المُركَّب (و`lib/pq` يقرأ `sslrootcert` من العنوان).
+    params = dict(p.split("=", 1) for p in query.split("&"))
+    assert params.get("sslmode") == "verify-full", query
+    ca = params.get("sslrootcert", "")
+    assert ca == "/etc/sahool/postgres-ca/ca.pem", query
+    mounts = [str(v) for v in services["sahool-pg-exporter"].get("volumes") or []]
+    assert f"./postgres/tls/ca:{ca.rsplit('/', 1)[0]}:ro" in mounts, "CA الخادم غيرُ مُركَّب للمُصدِّر"
     user = dsn.split("//", 1)[1].split(":", 1)[0]
     assert user != postgres["POSTGRES_USER"], "المراقبة لا تتّصل بدور المالك/الخارق"
     assert user == env.get("APP_DB_ROLE", "sahool_app")

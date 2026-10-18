@@ -1,0 +1,21 @@
+$ sed -n 5,23p migrations/v109_phase9_iot_execution_adapters.sql
+CREATE TABLE IF NOT EXISTS iot_command_dispatch (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    field_id uuid NOT NULL,
+    execution_id text NOT NULL,
+    dispatch_batch_id text NOT NULL,
+    envelope_id text NOT NULL,
+    command_id text NOT NULL,
+    protocol text NOT NULL,
+    target_id text NOT NULL,
+    status text NOT NULL,
+    physical_effect boolean NOT NULL DEFAULT false,
+    reason text,
+    adapter_receipt jsonb NOT NULL DEFAULT '{}'::jsonb,
+    verification_contract jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (tenant_id, envelope_id)
+);
+[exit=0]

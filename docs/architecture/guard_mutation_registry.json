@@ -94,8 +94,8 @@
         },
         {
           "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
-          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off\n",
-          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off || true\n",
+          "find": "            pip-audit -r \"$requirements_file\" --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --progress-spinner off || true\n",
           "test": "tests_v9/test_runtime_image_audit_gate.py",
           "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
@@ -131,15 +131,15 @@
       "mutations": [
         {
           "expect": "test_every_client_url_carries_the_credentials",
-          "find": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}",
-          "replace": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: nats://sahool-nats:4222",
+          "find": "NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222",
+          "replace": "NATS_URL: tls://sahool-nats:4222",
           "test": "tests_v9/test_nats_broker_authentication.py",
-          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (المرساةُ تشمل السطرَ السابق لأنّ العنوانَ نفسَه يتكرّر ١٣ مرّة.)"
+          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (أُعيد إرساؤها: العنوانُ صار يحمل هويّةَ الخدمة — NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01 — فالمرساةُ فريدةٌ بنفسها.)"
         },
         {
           "expect": "test_the_broker_service_inherits_the_credentials_and_refuses_a_published_default",
-          "find": "NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
-          "replace": "NATS_PASSWORD: ${NATS_PASSWORD:-changeme}",
+          "find": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
+          "replace": "NATS_PLATFORM_PASSWORD: ${NATS_PLATFORM_PASSWORD:-changeme}",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ افتراضيّ للوسيط ⇒ كلُّ مكدّسٍ أُقلع بلا ضبطٍ صريح يعمل بكلمةٍ يعرفها كلُّ من قرأ المستودع، فتصير المصادقةُ زينةً"
         },
@@ -164,11 +164,11 @@
           "why": "إعادةُ الاسم المجمَّد إلى ما لا يطابق الملفَّ المُنشأ — وهو العطلُ الذي أفلت في #954. **والاختبارُ الذي يقتلها قِيس لا افتُرِض:** التبديلُ سلسلةٌ واحدة، فيبقى المسارُ القديم مجمَّداً وغيرَ مُعلَنِ الغياب، فيمسكه عقدُ «الغائبُ يُعلَن» قبل أن يبلغ فحصَ النظائر (الذي لا يعمل إلّا على مُعلَنِ الغياب). سُمِّي المُمسِكُ الحقيقيّ بدل المتوقَّع — وتغطيةُ فحصِ النظائر نفسِه في الطفرة التالية وفي حالات `tmp_path` المُصطنَعة."
         },
         {
-          "expect": "test_the_live_policy_has_no_unacknowledged_alias_escape",
-          "find": "\"live_alias\": \"scripts_v9/run_migrations.sql\"",
-          "replace": "\"live_alias\": \"migrations/some_other_file.sql\"",
+          "expect": "test_the_migration_runner_is_frozen_by_its_real_path",
+          "find": "    \"scripts_v9/run_migrations.sql\",\n",
+          "replace": "    \"migrations/run_migrations.sql\",\n",
           "test": "tests_v9/test_gate01_frozen_path_guard.py",
-          "why": "إقرارٌ يُسمّي نظيراً خاطئاً. لولا اشتراطُ التطابق لصار الحقلُ إعفاءً مفتوحاً: يكفي وجودُ المفتاح ليصمت الحارسُ عن أيّ نظير."
+          "why": "أُعيد رسوُّها مع FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: مرساتُها السابقة كانت `live_alias` في إقرار النظير، والإقرارُ أُزيل حين حكم المالك (2026-10-15) بتجميد المسار الحقيقيّ — فلا نظيرَ في السياسة الحيّة يُقَرّ. وهذه تُعيد العطلَ الذي حُكِم فيه حرفيّاً: التجميدُ يعود إلى اسمٍ لم يُنشَأ قطّ والمُشغِّلُ الحقيقيُّ خارجه. (ودعوى السابقة — الإقرارُ يُسمّي نظيرَه بعينه — باقيةٌ مُختبَرةً على سياساتٍ مصطنعة في `test_an_acknowledgement_that_does_not_name_this_alias_still_blocks`.)"
         }
       ]
     },
@@ -254,10 +254,17 @@
         },
         {
           "expect": "test_no_credential_is_written_into_the_committed_config",
-          "find": "password: $NATS_PASSWORD",
+          "find": "password: $NATS_PLATFORM_PASSWORD",
           "replace": "password: hunter2",
           "test": "tests_v9/test_nats_broker_authentication.py",
           "why": "سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ **منشور**: كلُّ من قرأ المستودع يعرفه وكلُّ بيئةٍ أُقلعت بلا ضبطٍ صريح تعمل به — نفسُ صنف COMPOSE-DEFAULT-SECRET-IS-A-PUBLISHED-SECRET-01"
+        },
+        {
+          "expect": "test_the_broker_config_requires_tls_from_the_mounted_pair",
+          "find": "tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "replace": "disabled_tls {\n  cert_file: \"/etc/nats/tls/server.pem\"",
+          "test": "tests_v9/test_nats_tls_init.py",
+          "why": "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01: بلا كتلة tls يعود 4222 نصّاً صريحاً — كلماتُ مرور الهويّات التسع في `CONNECT` والأحداثُ مقروءةٌ لكلّ من يلتقط حركة sahool-internal، والوسيطُ يُقلِع بلا شكوى."
         }
       ]
     },
@@ -284,6 +291,18 @@
           "replace": "            auth_request /_auth_verify                                    # mutated: بلا فاصلة منقوطة",
           "test": "tests_v9/test_connectivity_tile_transport.py",
           "why": "خطأُ صياغةٍ صرف: بلا nginx ولا Docker في العدّاء، كان يمرّ إلى الدمج ويسقط المكدّسَ عند الإقلاع. `crossplane` يُعيد `status: failed` فيحمرّ الشاهد."
+        }
+      ]
+    },
+    "postgres/pg_hba.conf": {
+      "$why_ar": "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01: الإغلاقُ على الخادم سطرٌ في ملفّ سياسةٍ لا شيفرة — `hostssl` لا `host`. ولا يمسّه اختبارٌ سلوكيّ إلّا بزرعٍ فيه، فحرفٌ واحدٌ يُعيد قبولَ TCP النصّيّ والملفُّ يبقى يبدو مضبوطاً.",
+      "mutations": [
+        {
+          "expect": "test_pg_hba_accepts_tcp_only_over_tls_with_a_password",
+          "find": "hostssl     all       all   all      scram-sha-256",
+          "replace": "host        all       all   all      scram-sha-256",
+          "test": "tests_v9/test_postgres_tls.py",
+          "why": "`host` يطابق TCP بلا TLS أيضاً: الخادمُ يعود يقبل النصّ من أيّ عميلٍ لا يطلب verify-full، فيصير الإغلاقُ معلّقاً بحسن نيّة كلّ عميلٍ قادم — وهو بعينه نصفُ الإغلاق الذي رفضه المالك."
         }
       ]
     },
@@ -2093,10 +2112,10 @@
         },
         {
           "expect": "test_the_batch_closes_its_transaction_before_sending",
-          "find": "            # ── الشبكةُ خارج كلّ معاملة: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ أثناء I/O ──\n            for row in rows:\n                await self._send_one(conn, row, token)\n\n            return len(rows)",
-          "replace": "                # mutated: الإرسالُ يعود داخل معاملة الدُّفعة\n                for row in rows:\n                    await self._send_one(conn, row, token)\n\n                return len(rows)",
+          "find": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n        # ── الشبكةُ خارج كلّ معاملة **وخارج المسبح**: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ ولا\n        # اتّصالٌ مستعارٌ أثناء I/O. `None` يعني «استعِر لكلّ خطوة قاعدةٍ قصيرة وأعِد».\n        for row in rows:\n            await self._send_one(None, row, token)\n",
+          "replace": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n                # mutated: الإرسالُ يعود داخل معاملة الدُّفعة\n                for row in rows:\n                    await self._send_one(conn, row, token)\n",
           "test": "tests_v9/test_outbox_claim_lease.py",
-          "why": "إعادةُ حلقة الإرسال داخل معاملة الدُّفعة تُعيد العطلَ الأصليّ حرفيّاً: أقفالُ FOR UPDATE SKIP LOCKED واتّصالُ المسبح محتجَزان أثناء النشر على الشبكة، فتباطؤُ الوسيط يصير تعطّلَ العامل ومسبحِه. وكان هذا مكتوباً في docstring الملفّ بوصفه مقصوداً."
+          "why": "إعادةُ حلقة الإرسال داخل معاملة الدُّفعة تُعيد العطلَ الأصليّ حرفيّاً: أقفالُ FOR UPDATE SKIP LOCKED واتّصالُ المسبح محتجَزان أثناء النشر على الشبكة، فتباطؤُ الوسيط يصير تعطّلَ العامل ومسبحِه. وكان هذا مكتوباً في docstring الملفّ بوصفه مقصوداً. **أُعيد رسوُّها** مع `OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01`: الحلقةُ خرجت من `pool.acquire()` أيضاً فتغيّر نصُّ المرساة، والدعوى نفسُها."
         },
         {
           "expect": "test_send_one_duplicate_event_skips_publish_no_double_side_effect",
@@ -2107,10 +2126,10 @@
         },
         {
           "expect": "test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_letter",
-          "find": "            if str(failed_mark).endswith(\" 0\"):\n                logger.warning(\n                    \"outbox lease lost before failure attribution: outbox_id=%s event_id=%s\",\n                    row[\"outbox_id\"],\n                    row[\"event_id\"],\n                )\n                return\n",
-          "replace": "            if False:  # mutated: stale failure CAS result is ignored\n                return\n",
+          "find": "                if str(failed_mark).endswith(\" 0\"):\n                    logger.warning(\n                        \"outbox lease lost before failure attribution: outbox_id=%s event_id=%s\",\n                        row[\"outbox_id\"],\n                        row[\"event_id\"],\n                    )\n                    return\n",
+          "replace": "                if False:  # mutated: stale failure CAS result is ignored\n                    return\n",
           "test": "tests_v9/test_outbox_idempotent_consumption.py",
-          "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns."
+          "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns. Re-anchored (indent only) when failure attribution moved inside a short `_borrow` block for OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01."
         },
         {
           "expect": "test_the_failure_path_sends_its_state_write_bound_to_the_attempt_token",
@@ -2118,6 +2137,20 @@
           "replace": "WHERE outbox_id = $4  -- mutated: مسارُ الفشل بلا CAS",
           "test": "tests_v9/test_outbox_claim_lease.py",
           "why": "مُكمِّلةٌ للطفرة [3] لا مكرِّرةٌ لها: [3] (#1076) تحرس **قراءةَ نتيجة** التحديث المشروط في مسار الفشل؛ وهذه تحرس **وجودَ الشرط** نفسِه مربوطاً بصفّ المحاولة ورمزِها. بلا الشرط يصير التحديثُ غيرَ مشروطٍ فيُرجِع `UPDATE 1` دائماً — فتمرّ قراءةُ النتيجة في [3] وهي لا تحمي شيئاً. والشاهدُ يقرأ ما يُمرَّر إلى `execute`، فلا يُبطِله تعليقٌ يذكر الشرط."
+        },
+        {
+          "expect": "test_a_publish_in_flight_does_not_hold_the_only_pooled_connection",
+          "find": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n        # ── الشبكةُ خارج كلّ معاملة **وخارج المسبح**: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ ولا\n        # اتّصالٌ مستعارٌ أثناء I/O. `None` يعني «استعِر لكلّ خطوة قاعدةٍ قصيرة وأعِد».\n        for row in rows:\n            await self._send_one(None, row, token)\n",
+          "replace": "                    [r[\"outbox_id\"] for r in rows],\n                )\n\n            # mutated: الإرسالُ داخل pool.acquire (خارج المعاملة) — الاتّصالُ محتجَزٌ عبر الشبكة\n            for row in rows:\n                await self._send_one(conn, row, token)\n",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01 بصيغته الحرفيّة: الحلقةُ خارج `conn.transaction()` وداخل `pool.acquire()`. **وهذه الطفرةُ تنجو من الطفرة [1] وشاهدِها** — `test_the_batch_closes_its_transaction_before_sending` يقيس المعاملة لا المسبح، فبقي أخضرَ على هذا العطل بعينه. الشاهدُ المُسمَّى سلوكيّ: مسبحٌ سعتُه اتّصالٌ واحد وناشرٌ موقوف، وعملٌ مستقلٌّ يستعير خلال ٠٫٥ث."
+        },
+        {
+          "expect": "test_the_last_row_of_a_slow_batch_still_holds_its_lease_when_its_publish_starts",
+          "find": "                if not await self._renew_lease_if_held(conn, row, claim_token):\n                    return\n",
+          "replace": "                if False:  # mutated: بلا تجديد إجارةٍ قبل النشر\n                    return\n",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01: بلا تجديدٍ قبل كلّ نشر تعود الإجارةُ إجارةَ دُفعةٍ تُنفَق تسلسليّاً — خمسةُ صفوفٍ بعشرين ثانيةً لكلٍّ يبدأ رابعُها وخامسُها نشرَهما بإجارةٍ منقضية (مقيس على الشيفرة السابقة: `[(4, 60.0, 60.0), (5, 80.0, 60.0)]`)."
         }
       ],
       "test": "tests_v9/test_outbox_claim_lease.py"
@@ -2740,8 +2773,8 @@
         },
         {
           "expect": "test_the_predicate_is_measured_directly_in_both_directions",
-          "find": "        value is not None and chunk.metadata.get(key) != value for key, value in filters.items()\n",
-          "replace": "        False for key, value in filters.items()  # mutated: كلُّ مقطعٍ يجتاز\n",
+          "find": "        return False\n    return True\n\n\nclass BM25Index:",
+          "replace": "        return True  # mutated: كلُّ مقطعٍ يجتاز\n    return True\n\n\nclass BM25Index:",
           "test": "tests_v9/test_rag_neighbor_scope_filters.py",
           "why": "مُسنَدٌ يقول «اجتاز» أبداً يُفرِّغ الترشيحَ في **الموضعين معاً** — المتناثر والجيران — لأنّ التعريفَ واحد. وهو ثمنُ التوحيد المقصود: عطلٌ واحدٌ بدل اثنين ينحرفان، ويقتله شاهدٌ يقيس المُسنَد مباشرةً لا عبر مستعمِليه."
         },
@@ -3175,6 +3208,17 @@
         }
       ],
       "test": "tests_v9/test_irrigation_manual_slice_routes.py"
+    },
+    "shared/startup_retry.py": {
+      "mutations": [
+        {
+          "expect": "test_transient_refusals_are_retried_with_exponential_backoff",
+          "find": "            if not is_transient_connect_error(exc):\n                raise\n",
+          "replace": "            raise  # mutated: give up on the first refusal\n",
+          "test": "tests_v9/test_startup_db_connect_retry.py",
+          "why": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: الاستسلامُ على أوّل رفضٍ يُعيد كلَّ خدمةٍ مُصلَحة إلى الموت عند إعادةٍ بسياسة restart قبل جهوز Postgres."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -3495,6 +3539,18 @@
           "find": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_.]*(?:-[A-Z0-9_.]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
           "replace": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
           "why": "إسقاط النقطة لا يدمج الهويّات بل يُعمي الشبكة عن الصفوف المنقوطة كلّها — مرساة \\s*\\| تُفشِل المطابقة عند النقطة (مقيس بالزرع، لا مفترَض)"
+        },
+        {
+          "expect": "test_union_on_an_edited_last_entry_is_caught",
+          "find": "                if kind:\n                    found.append((i + 1, j + 1, kind))",
+          "replace": "                if kind and False:  # mutated: قاعدةُ النسخة داخل المدخل تُعطَّل\n                    found.append((i + 1, j + 1, kind))",
+          "why": "تعطيلُ قاعدة السطر شبه المطابق داخل المدخل يُعيد الحارسَ إلى ما كان عليه على 5472740e: يمرّ بـrc=0 على دمج union الذي يُبقي السطرَين المحرَّرَين بجوار أصليّيهما في log.md/ledger.md (UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01) — مقيسٌ بمستودعٍ مؤقّت."
+        },
+        {
+          "expect": "test_a_near_template_in_separate_paragraphs_passes",
+          "find": "kind = _near_copy(a, b, allow_ratio=block_of[i] == block_of[j])",
+          "replace": "kind = _near_copy(a, b, allow_ratio=True)  # mutated: التشابه عبر الفقرات",
+          "why": "رفعُ قيد الكتلة المتّصلة عن قاعدة التشابه يُعيد الإيجابيَّ الكاذب المقيس على main (قالبا «سجلٌّ متأخّرُ الدمج (#1128)/(#1130)» بتشابه 0.932 في فقرتين منفصلتين، log.md:9131/9138) — حارسٌ يُنذِر على سجلٍّ سليم يُعطَّل."
         }
       ],
       "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py"
@@ -4065,8 +4121,8 @@
         {
           "expect": "test_the_guard_actually_scanned_the_stack_that_carried_the_defect",
           "find": "    return list(compose_files())",
-          "replace": "    return [p for p in compose_files() if \"unified\" not in p.name]  # mutated",
-          "why": "الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
+          "replace": "    return [p for p in compose_files() if \"v9\" not in p.name]  # mutated",
+          "why": "الطفرةُ E: إخراجُ المكدّس الذي يحمل المصرف من سطح الحارس (أُعيد إرساؤها 2026-10-17 من unified إلى v9: unified نُقل إلى docs/history/compose/ — COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01). **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
         },
         {
           "expect": "test_a_registered_sink_that_vanishes_from_the_surface_blocks",
@@ -4123,6 +4179,17 @@
         }
       ],
       "test": "tests_v9/test_compose_no_default_secrets_guard.py"
+    },
+    "compose_roster_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_unrostered_compose_file_blocks",
+          "find": "    for rel in sorted(on_disk - declared):",
+          "replace": "    for rel in sorted(on_disk - declared - on_disk):  # mutated",
+          "why": "إسقاطُ نصف مساواة المجموعات (المتعقَّب ⊆ السجلّ): ملفّ compose جديد خارج السجلّ — بديلٌ ثانٍ يُعرّف المكدّس بأسماءٍ أخرى — يمرّ أخضر. وهو عطلُ COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 نفسُه: أربعة عشر ملفّاً لا يراها حارس."
+        }
+      ],
+      "test": "tests_v9/test_compose_roster_guard.py"
     },
     "container_command_path_guard.py": {
       "mutations": [
@@ -4276,8 +4343,8 @@
       "mutations": [
         {
           "expect": "test_the_incident_file_is_named_by_the_survey_not_by_hand",
-          "find": "        if not _FAKE.search(text):\n            continue\n",
-          "replace": "        if _FAKE.search(text):\n            continue\n",
+          "find": "        if not seen:\n            continue\n",
+          "replace": "        if seen:\n            continue\n",
           "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
         },
         {
@@ -4309,6 +4376,36 @@
           "find": "    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())",
           "replace": "    inside = resolved is not None",
           "why": "نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض"
+        },
+        {
+          "expect": "test_the_cited_sites_hidden_by_the_naming_convention_are_counted",
+          "find": "        seen = _stand_in_evidence(tree)\n",
+          "replace": "        seen = re.findall(r\"\\b(?:class\\s+_?Fake\\w*(?:Conn|Pool)\\w*|fake_conn\\w*|fake_pool\\w*)\\b\", text)\n",
+          "why": "الرجوعُ إلى العدّ بالاسم (نمطُ main قبل FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01) ⇒ `_Conn` في `test_farm_fields_tenant_ownership.py` و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` يخرجان من العدّ وهما يدّعيان مُسنَدَ المستأجِر وJSONB نصّاً — ٥٨ موقعاً يعميها الاصطلاح"
+        },
+        {
+          "expect": "test_a_new_arbitrarily_named_fake_fails_the_ratchet_and_regeneration_cannot_admit_it",
+          "find": "    unadmitted = sorted(set(found[\"fake\"]) - admitted)",
+          "replace": "    unadmitted: list[str] = []",
+          "why": "نزعُ اشتراط القبول ⇒ `--generate` (والمكنسة بـ`--fix`) يبتلع أيَّ وهميٍّ جديد بلا كلمة، فيصير «الراتشِت» إعادةَ توليد. وهو بالضبط الطريق الذي كان سيمرّ منه تصحيحُ القياس صامتاً"
+        },
+        {
+          "expect": "test_regenerating_the_baseline_carries_the_admissions",
+          "find": "    admissions = _load_baseline().get(\"admissions\", []) if BASELINE.exists() else []",
+          "replace": "    admissions = []",
+          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو سجلَّ القبول فيسقط الأساس كلُّه عند أوّل إعادة توليد، أو يُعاد كتابته بلا تبرير"
+        },
+        {
+          "expect": "test_non_database_fakes_are_not_counted",
+          "find": "            if (params and _STATEMENT_PARAM.match(params[0])) or (not params and varargs):",
+          "replace": "            if params or varargs:",
+          "why": "نزعُ مرساة توقيع asyncpg ⇒ عميلُ HTTP بـ`fetch(self, url)` يُعَدّ بديلَ اتّصال؛ إيجابيٌّ كاذب يُدرِّب قارئ الحارس على تجاهله"
+        },
+        {
+          "expect": "test_an_unjustified_or_miscounted_admission_is_refused",
+          "find": "        if len((entry.get(\"justification\") or \"\").strip()) < _MIN_JUSTIFICATION:",
+          "replace": "        if False:",
+          "why": "قيدُ قبولٍ بلا تبرير ⇒ السجلّ يصير إعادةَ توليدٍ بخطّ اليد: يُقبَل الدَّين بسطرٍ لا يقول لماذا"
         }
       ],
       "test": "tests_v9/test_fake_connection_debt_guard.py"
@@ -4587,6 +4684,12 @@
           "find": "        if left <= EXPIRY_WARNING_DAYS:\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
           "replace": "        if False:  # mutated: لا تحذير قبل حجب النظير\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
           "why": "شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب."
+        },
+        {
+          "expect": "test_a_declared_absent_basename_elsewhere_is_falsified_even_when_acknowledged",
+          "find": "        elsewhere = same_basename_elsewhere(declared, root)\n        if elsewhere:\n",
+          "replace": "        elsewhere = same_basename_elsewhere(declared, root)\n        if False:  # mutated: الاسمُ في مجلّدٍ آخر لا يُكذِّب ادّعاءَ الغياب\n",
+          "why": "FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01: بلا فرع الاسم الأساسيّ يعود ادّعاءُ «غيرُ موجودٍ بعد» غيرَ قابلٍ للتكذيب — `migrations/run_migrations.sql` يُعلَن غائباً والمُشغِّلُ الحقيقيُّ `scripts_v9/run_migrations.sql` قائمٌ خارج التجميد، وإقرارُ النظير الساري يُسكِت `alias_escape_errors`. فيمرّ الحارسُ أخضرَ على تجميدٍ فارغ، كما مرّ على #954."
         }
       ],
       "test": "tests_v9/test_gate01_frozen_path_guard.py"
@@ -5444,6 +5547,24 @@
           "find": "            if marker not in text:",
           "replace": "            if False:  # mutated: missing cutover markers tolerated",
           "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        },
+        {
+          "expect": "test_u07_label_cannot_authorize_other_scope_or_relaxed_bindings",
+          "find": "    bindings = doc.get(\"bindings\") or {}",
+          "replace": "    return True  # planted: trust every grant as review-only\n    bindings = doc.get(\"bindings\") or {}",
+          "why": "A label or arbitrary grant must not retain cutover deferral; only independently validated reviewed U07 bytes qualify."
+        },
+        {
+          "expect": "test_gate_validator_failure_cannot_be_replaced_by_local_scope_match",
+          "find": "    return not errors and used == _U07_ID",
+          "replace": "    return True  # planted: skip actual GATE evaluation result",
+          "why": "Matching U07 metadata alone must not substitute for the unchanged GATE evaluator checking actual bytes and expiry."
+        },
+        {
+          "expect": "test_another_issued_grant_still_revokes_deferral_alongside_valid_u07",
+          "find": "                if _review_only_u07_authorization(doc, policy):\n                    continue",
+          "replace": "                if _review_only_u07_authorization(doc, policy):\n                    return True  # planted: ignore later broader grant",
+          "why": "The bounded review-only grant must not hide a separate ISSUED grant that lifts the cutover deferral."
         }
       ],
       "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py"
@@ -5899,6 +6020,17 @@
       ],
       "test": "tests_v9/test_sot_provenance_guard.py"
     },
+    "startup_db_connect_retry_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_unclassified_dependant_is_blocked",
+          "find": "    unclassified = sorted(set(derived) - set(services) - set(pending))\n",
+          "replace": "    unclassified: list[str] = []  # mutated\n",
+          "why": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: خدمةٌ جديدة تعتمد على Postgres بشرط service_healthy بلا تصنيف هي العطلُ الأصليّ بعينه — الشرطُ لا يحمي إعادةً بسياسة restart. حارسٌ لا يشتقّ المجموعة من compose يمرّرها أخضر."
+        }
+      ],
+      "test": "tests_v9/test_startup_db_connect_retry.py"
+    },
     "tenant_connection_call_shape_guard.py": {
       "mutations": [
         {
@@ -6116,6 +6248,51 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "ci_invoked_locale_preamble_guard.py": {
+      "test": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_inventory_is_the_class_not_the_naming_convention",
+          "find": "    files = sorted({row[\"script\"] for row in rows if row[\"status\"] == \"file\"})",
+          "replace": "    files = sorted(\n        {r[\"script\"] for r in rows if r[\"status\"] == \"file\" and r[\"script\"].endswith(\"_guard.py\")}\n    )",
+          "why": "عودةُ الجرد إلى اصطلاح التسمية `*_guard.py` ⇒ `guard_catalogue` و`verify_all_generated` و`tools/sahool_inspector.py` وكلُّ `*_gate.py` تخرج من البصر ثانيةً، والحارسُ أخضر لأنّه لا يرى ما مات — وهو العطلُ الذي وُجِد لأجله (C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01)"
+        }
+      ]
+    },
+    "text_anchor_liveness_guard.py": {
+      "test": "tests_v9/test_text_anchor_liveness_guard.py",
+      "mutations": [
+        {
+          "expect": "test_the_app_tsx_dead_lazy_anchor_of_824_is_caught",
+          "find": "    if not names:\n        return False  # a side-effect import is live by construction",
+          "replace": "    if True:\n        return False  # every binding treated as used",
+          "why": "معاملةُ كلّ ربطٍ كأنّه مُستعمَل ⇒ مرساةُ `./sections/FieldWorkspaceMapCard` على `lazy(...)` ميّتٍ في `App.tsx` تمرّ ثانيةً — الحالةُ المقيسة في #824 التي مرّت على صدفةٍ ثمّ أحمرّت على من نظّفها (TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01)"
+        }
+      ]
+    },
+    "pr_finding_gap_id_guard.py": {
+      "test": "tests_v9/test_pr_finding_gap_id_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_unregistered_id_shaped_text_is_not_a_registration",
+          "find": "    return {candidate for candidate in gap_id.findall(paragraph) if candidate in known}",
+          "replace": "    return set(gap_id.findall(paragraph))",
+          "why": "قبولُ أيّ نصٍّ بشكل المعرّف بدل المسجَّل ⇒ يكفي أن يُكتَب معرّفٌ مخترَع بجانب الملاحظة فتمرّ، ولا يبقى للعيب أثرٌ في السجلّ بعد الدمج — وهو بعينه ما كشفه #1133 (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)"
+        },
+        {
+          "expect": "test_two_findings_in_one_paragraph_need_two_ids",
+          "find": "    return labels[len(ids)] if len(ids) < len(labels) else None",
+          "replace": "    return labels[0] if not ids else None",
+          "why": "عودةُ الفقرة وحدةً بدل الملاحظة ⇒ فقرةٌ تسرد ملاحظتين موسومتين تمرّ بمعرّفٍ واحد، فتبقى الثانية بلا أثرٍ في السجلّ بعد الدمج — الشطرُ الأوّل من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
+        },
+        {
+          "expect": "test_an_unregistered_high_review_comment_is_blocked",
+          "find": "        labels = [label for p in paragraphs(thread.root) for label in severity_labels(p)]",
+          "replace": "        labels = []",
+          "why": "تعليقاتُ المراجعة تُجلَب ولا يُحكَم عليها ⇒ ملاحظةُ بوتٍ أو مراجِعٍ «(High)» على GitHub تُصلَح بلا معرّف والخطوةُ خضراء — الشطرُ الثاني من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

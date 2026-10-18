@@ -1,0 +1,37 @@
+"""Replay immutable witnesses against a supplied repository; no provider/DB writes."""
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+from pathlib import Path
+
+BASE = Path('/workspace/scratch/881ca3efb91d')
+EVIDENCE = Path(__file__).resolve().parent
+PYTHON = BASE / 'ci-venv/bin/python'
+FIXED = BASE / 'imagery-original'
+MAIN = BASE / 'sahool'
+FILES = ['backfill_scan_worker.py', 'raster_pixel_processing.py', 'stac_vrt.py', 'test_element84_vrt_defect_witnesses.py', 'test_backfill_processing_version_preflight.py']
+WITNESSES = FILES[-2:]
+for name in WITNESSES:
+    shutil.copyfile(FIXED / 'services/raster-service' / name, EVIDENCE / 'witnesses' / name)
+
+results = {}
+for label, repo in [('red-main', MAIN), ('green', FIXED)]:
+    env = dict(os.environ, PYTHONPATH=str(repo / 'services/raster-service'))
+    cmd = [str(PYTHON), '-m', 'pytest', *(str(EVIDENCE / 'witnesses' / n) for n in WITNESSES), '-q', '--override-ini', 'addopts=']
+    run = subprocess.run(cmd, cwd=repo, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    (EVIDENCE / f'{label}.log').write_text(run.stdout)
+    results[label] = {'exit_code': run.returncode, 'summary': run.stdout.splitlines()[-1], 'command': cmd, 'cwd': str(repo), 'PYTHONPATH': env['PYTHONPATH']}
+regression = ['test_element84_vrt_containment_runtime.py', 'test_historical_backfill.py', 'test_raster_validated_product.py', 'test_raw_data_processing.py', 'test_band_math_zones.py', 'test_backfill_incremental_retry_guard.py']
+cmd = [str(PYTHON), '-m', 'pytest', *(f'services/raster-service/{n}' for n in regression), 'tests_v9/test_backfill_failure_reason_persisted.py', '-q', '--override-ini', 'addopts=']
+run = subprocess.run(cmd, cwd=FIXED, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+(EVIDENCE / 'regression.log').write_text(run.stdout)
+results['regression'] = {'exit_code': run.returncode, 'summary': run.stdout.splitlines()[-1], 'command': cmd}
+results['base_sha'] = subprocess.check_output(['git','rev-parse','HEAD'],cwd=MAIN,text=True).strip()
+results['integration_base_sha'] = subprocess.check_output(['git','rev-parse','HEAD'],cwd=FIXED,text=True).strip()
+results['source_sha256'] = {name:hashlib.sha256((FIXED / 'services/raster-service' / name).read_bytes()).hexdigest() for name in FILES}
+results['containment_unchanged'] = subprocess.check_output(['git','diff','HEAD','--','services/raster-service/radiometry_containment.py'],cwd=FIXED,text=True) == ''
+results['limits'] = ['Offline synthetic fixtures only; no provider calls, DB writes, deployment, historical inventory or incident attribution.', 'Backfill executes actual worker SQL with a cast-only SQLite adapter, not live PostgreSQL/RLS.', 'VRT helper is contained and not called by the production entrypoints. Calibration proof covers declared TIFF/request metadata only; actual STAC missing/contradictory offset remains unresolved.', 'Most numerical tests stub product validation/QA/COG persistence; two normalization cases restore real product builder/assertion and real QA.', 'No full repository preflight claimed.']
+(EVIDENCE / 'results.json').write_text(json.dumps(results,indent=2)+'\n')
+print(json.dumps({k:v for k,v in results.items() if k in ['red-main','green','regression']},indent=2))

@@ -756,4 +756,8 @@ v231_soil_reconciliation_deferrals.sql
 # v233: claim lease for event_outbox — WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01.
 #       أعمدةٌ إضافيّةٌ قابلةٌ للإفراغ؛ الشيفرةُ القديمة تعمل بلا علمٍ بها.
 v233_event_outbox_claim_lease.sql
+# v234: persist review separately from traceability; existing rows remain unreviewed.
+v234_learning_agronomic_review.sql
+# v235: server-owned correlation on actual decision and execution chains.
+v235_decision_chain_correlation.sql
 v206_rls_final_hardening.sql

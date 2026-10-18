@@ -17,7 +17,6 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 import httpx
-import jwt as _jwt
 from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from prometheus_client import (
@@ -29,6 +28,8 @@ from prometheus_client import (
 )
 from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
 
+from shared.contracts.remote_sensing import CanonicalObservationV1
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.service_tenant_assertion import create_tenant_assertion
 
@@ -174,8 +175,12 @@ def _verify_claims(token) -> dict:
     if not _VEG_JWT_SECRET or len(_VEG_JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط")
     try:
-        payload = _jwt.decode(
-            token.credentials, _VEG_JWT_SECRET, algorithms=[_VEG_JWT_ALG], audience="sahool"
+        payload = decode_access_token(
+            token.credentials,
+            _VEG_JWT_SECRET,
+            algorithm=_VEG_JWT_ALG,
+            backend="pyjwt",
+            site="vegetation-analysis:_verify_claims",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
@@ -525,7 +530,9 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         if _nc is None:
             import nats
 
-            _nc = await nats.connect(NATS_URL)
+            # صندوقُ الردّ بهويّة الخدمة في nats/nats.conf: `_INBOX.>` محجوبٌ عنها، فبدونه
+            # لا يصل PubAck ويفشل كلُّ نشرٍ بمهلة.
+            _nc = await nats.connect(NATS_URL, inbox_prefix="_INBOX_sahool-vegetation-analysis")
         subject = f"sahool.tenant.{tenant_id}.satellite.{field_id}.computed"
         payload = json.dumps(
             {
@@ -595,6 +602,14 @@ async def _canonical_observation_bundle_from_indicators(
         observations: dict[str, dict] = {}
         dates: set[str] = set()
         for item in canonical:
+            validated = CanonicalObservationV1.model_validate_json(json.dumps(item))
+            if (
+                str(validated.tenant_id) != str(tenant_id)
+                or validated.field_id != field_id
+                or validated.season_id != season_id
+            ):
+                return None
+            item = validated.model_dump(mode="json")
             indicator = (item.get("indicator") or {}).get("code")
             if not indicator:
                 continue
@@ -604,6 +619,7 @@ async def _canonical_observation_bundle_from_indicators(
             quality = item.get("observation_quality") or {}
             summary = item.get("summary") or {}
             lineage = item.get("lineage") or {}
+            raster_provenance = lineage.get("raster_provenance") or {}
             observations[str(indicator)] = {
                 "real_data": True,
                 "date": acquired_at,
@@ -620,13 +636,16 @@ async def _canonical_observation_bundle_from_indicators(
                 "confidence": _canonical_number(quality.get("score")),
                 "index_quality_flags": quality.get("reason_codes") or [],
                 "indicator_product": {
+                    "source": raster_provenance.get("source"),
                     "quality_score": _canonical_number(quality.get("score")),
                     "valid_pixel_ratio": _canonical_number(quality.get("valid_pixel_ratio")),
-                    "data_available_at": item.get("published_at"),
+                    "data_available_at": raster_provenance.get("data_available_at"),
                     "provenance": {
                         "asset_ref": item.get("asset_ref"),
                         "processing_run_ref": lineage.get("processing_run_ref"),
-                        "algorithm_version": (item.get("indicator") or {}).get("semantic_version"),
+                        "algorithm_version": raster_provenance.get("algorithm_version"),
+                        "scene_id": raster_provenance.get("scene_id"),
+                        "qa_mask_version": raster_provenance.get("qa_mask_version"),
                         "acquisition_datetime": acquired_at,
                         "canonical_observation_ref": item.get("observation_ref"),
                     },
@@ -794,7 +813,11 @@ async def run_analysis(
             if not isinstance(mean, (int, float)):
                 continue
             indices[public_name] = round(float(mean), 3)
-            index_sources[public_name] = str(bundle.get("source") or "raster-service")
+            # The canonical service is the publisher; authority belongs to the
+            # pixel producer only when the typed lineage retained its evidence.
+            index_sources[public_name] = str(
+                product.get("source") or bundle.get("source") or "raster-service"
+            )
             valid = product.get("valid_pixel_ratio")
             provenance = product.get("provenance") or {}
             index_quality[public_name] = {

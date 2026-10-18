@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from datetime import UTC, datetime
 from typing import Any
 
@@ -34,12 +35,24 @@ def derive_lai_from_ndvi(ndvi: float) -> dict[str, Any]:
 def quality_gate(
     indices: dict[str, dict[str, Any]], *, min_quality: float = 0.60
 ) -> dict[str, Any]:
+    if (
+        isinstance(min_quality, bool)
+        or not isinstance(min_quality, (int, float))
+        or not math.isfinite(min_quality)
+        or not 0 <= min_quality <= 1
+    ):
+        raise ValueError("min_quality must be a finite score in [0, 1]")
     ndvi = indices.get("ndvi") or {}
     # single authority check: registry validation (source/estimated/range/provenance
     # incl. qa_mask_version + data availability + valid-pixel threshold).
     reasons: list[str] = validate_observation("ndvi", ndvi)
     quality = ndvi.get("quality_score")
-    if not isinstance(quality, (int, float)) or float(quality) < min_quality:
+    if (
+        isinstance(quality, bool)
+        or not isinstance(quality, (int, float))
+        or not math.isfinite(quality)
+        or not min_quality <= quality <= 1
+    ):
         reasons.append("ndvi_quality_below_threshold")
     return {
         "executable": not reasons,

@@ -348,3 +348,190 @@ def test_inventory_without_strace_is_a_named_stage_not_a_crash(tmp_path):
         env=dict(os.environ, PATH=str(empty)),
     )
     assert (r["harness_status"], r["stage"]) == ("failed", "inventory_tool_missing")
+
+
+# ── 8) الإغلاق: ربطاتُ مجلّدات النظام لا تُثبت حدَّ نظام الملفّات (TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01) ──
+#
+# مقيسٌ على main@0e5281614: محرّكٌ وهميّ يقرأ نموذجاً غيرَ معلَن تحت /usr/lib في ``--sandbox bwrap`` انتهى
+# ``harness_status=ok`` و``performance_comparable=true`` — فـ/usr/lib مربوطٌ كاملاً. ``wide_bwrap_result.json`` سجلٌّ
+# حقيقيٌّ بذلك الصندوق (كان ``comparable_result.json`` حتّى v15)؛ و``comparable_result.json`` الآن تشغيلٌ حقيقيٌّ
+# بـ``--closure-from`` جردٍ نظيف (selftest v16).
+
+
+def _wide() -> dict:
+    return json.loads((PKG / "fixtures" / "wide_bwrap_result.json").read_text(encoding="utf-8"))
+
+
+def test_directory_binds_without_an_inventory_closure_are_not_comparable():
+    r = _wide()
+    binds = r["coordinator"]["sandbox"]["binds"]
+    assert "ro:/usr/lib" in binds, "السجلُّ الشاهد يربط مجلّدَ النظام كاملاً"
+    problems = perf.evidence_problems(r)
+    assert problems, "صندوقٌ يكشف /usr/lib كلَّه قُبل للمقارنة — نموذجٌ غيرُ معلَن تحته يمرّ"
+    assert all("closure" in p for p in problems), problems  # السجلُّ كاملٌ عدا الإغلاق
+    assert perf.why_not_comparable(r)
+
+
+def _closure_record() -> dict:
+    return _fixture()
+
+
+def _redigest(r: dict) -> dict:
+    closure = r["coordinator"]["sandbox"]["closure"]
+    closure["sha256"] = perf.closure_digest(closure)
+    return r
+
+
+def test_every_read_bind_of_a_closure_run_is_a_closure_file():
+    r = _closure_record()
+    sandbox = r["coordinator"]["sandbox"]
+    assert perf.closure_problems(sandbox, r["run_id"]) == []
+    ros = [b[3:] for b in sandbox["binds"] if b.startswith("ro:")]
+    files = sandbox["closure"]["files"]
+    assert ros and all(p in files or p == "/sys/fs/cgroup" or p.endswith(".pinned") for p in ros)
+    for extra in ("ro:/usr/lib", "ro:/usr/share/voice.onnx", "link:/x->/usr/lib", "ro:/"):
+        rr = json.loads(json.dumps(r))
+        rr["coordinator"]["sandbox"]["binds"].append(extra)
+        assert [p for p in perf.evidence_problems(rr) if "sandbox" in p], extra
+
+
+def test_a_closure_entry_that_is_a_directory_or_unhashed_is_refused():
+    for path, entry in (
+        ("/usr/lib", {"sha256": "0" * 64, "access": ["read"]}),
+        ("/usr/lib/x/voice.onnx", {"access": ["read"]}),
+        ("/srv/models", {"sha256": "0" * 64, "kind": "directory"}),
+    ):
+        r = _closure_record()
+        r["coordinator"]["sandbox"]["closure"]["files"][path] = entry
+        r["coordinator"]["sandbox"]["binds"].insert(0, f"ro:{path}")
+        _redigest(r)
+        problems = perf.closure_problems(r["coordinator"]["sandbox"], r["run_id"])
+        assert any(path in p for p in problems), (path, problems)
+
+
+def test_the_closure_digest_binds_its_content():
+    r = _closure_record()
+    closure = r["coordinator"]["sandbox"]["closure"]
+    closure["files"]["/usr/lib/extra.so"] = {"sha256": "1" * 64, "access": ["read"]}
+    r["coordinator"]["sandbox"]["binds"].insert(0, "ro:/usr/lib/extra.so")
+    assert any("بصمة" in p for p in perf.closure_problems(r["coordinator"]["sandbox"], r["run_id"]))
+    assert perf.why_not_comparable(r)
+    rr = _redigest(json.loads(json.dumps(r)))
+    rr["coordinator"]["sandbox"]["integrity_after"] = {"changed": ["/usr/lib/extra.so"]}
+    assert any("integrity_after" in p for p in perf.evidence_problems(rr))
+
+
+def _inventory_run(tmp_path: Path, closure_file: Path, **override) -> tuple[Path, dict, str]:
+    interp = {"path": "/venv/bin/python", "real": "/usr/bin/python3.11"}
+    manifest_sha = run.manifest_digest("fake", {"files": {}, "settings": {"mode": "ok"}})
+    closure = {
+        "version": 1,
+        "files": {
+            str(closure_file): {"sha256": worker.sha256_file(closure_file), "access": ["read"]}
+        },
+        "dirs": [],
+        "symlinks": {},
+        "loaders": {},
+        "stat_only": [],
+        "skipped": {"virtual": 0, "run_private": 0},
+        "problems": [],
+        "engine": "fake",
+        "interpreter": interp,
+        "manifest_sha256": manifest_sha,
+        "inventory_run": "inv",
+    }
+    closure.update(override.pop("closure", {}))
+    closure["sha256"] = perf.closure_digest(closure)
+    record = {
+        "run_id": "inv",
+        "engine": "fake",
+        "harness_status": "ok",
+        "coordinator": {"sandbox": {"kind": "bwrap", "inventory": "strace-inside-sandbox"}},
+        "file_inventory": {"undeclared": [], "closure": closure},
+    }
+    for key, value in override.items():
+        record[key] = value
+    d = tmp_path / f"inv-{len(list(tmp_path.iterdir()))}"
+    d.mkdir()
+    (d / "result.json").write_text(json.dumps(record), encoding="utf-8")
+    return d, interp, manifest_sha
+
+
+def test_closure_from_refuses_an_unclean_foreign_or_stale_inventory(tmp_path):
+    lib = tmp_path / "lib.so"
+    lib.write_bytes(b"\x7fELF-lib")
+    d, interp, msha = _inventory_run(tmp_path, lib)
+    closure, stage, why = run.load_closure(d, "fake", interp, msha)
+    assert stage is None and list(closure["files"]) == [str(lib)], why
+    dirty, _, _ = _inventory_run(tmp_path, lib)
+    rec = json.loads((dirty / "result.json").read_text(encoding="utf-8"))
+    rec["file_inventory"]["undeclared"] = ["/usr/lib/x/voice.onnx"]
+    (dirty / "result.json").write_text(json.dumps(rec), encoding="utf-8")
+    assert run.load_closure(dirty, "fake", interp, msha)[1] == "closure_rejected"
+    for name, override in {
+        "failed": dict(harness_status="failed"),
+        "outside_sandbox": dict(coordinator={"sandbox": {"kind": "unshare"}}),
+        "closure_problems": dict(closure={"problems": ["x"]}),
+    }.items():
+        dd, _, _ = _inventory_run(tmp_path, lib, **override)
+        assert run.load_closure(dd, "fake", interp, msha)[1] == "closure_rejected", name
+    assert run.load_closure(d, "kokoro", interp, msha)[1] == "closure_rejected"
+    assert run.load_closure(d, "fake", {**interp, "path": "/other"}, msha)[1] == "closure_rejected"
+    assert run.load_closure(d, "fake", interp, "f" * 64)[1] == "closure_rejected"
+    rec = json.loads((d / "result.json").read_text(encoding="utf-8"))
+    rec["file_inventory"]["closure"]["files"]["/usr/lib/more.so"] = {"sha256": "0" * 64}
+    (d / "result.json").write_text(json.dumps(rec), encoding="utf-8")
+    assert run.load_closure(d, "fake", interp, msha)[1] == "closure_rejected"  # بصمةٌ لا تطابق
+    d2, _, _ = _inventory_run(tmp_path, lib)
+    lib.write_bytes(b"\x7fELF-changed")
+    assert run.load_closure(d2, "fake", interp, msha)[1] == "closure_stale"
+
+
+def test_the_inventory_trace_becomes_a_closure_of_files_links_and_loaders(tmp_path):
+    """سجلُّ ``strace -ff -y`` داخل الصندوق ⇒ ملفّاتٌ ببصماتها، وروابطُ عُبرت، ومُحمِّلُ التنفيذيّ (لا يظهر في strace)."""
+    real_dir = tmp_path / "lib"
+    real_dir.mkdir()
+    target = real_dir / "libvoice.so.1.2"
+    target.write_bytes(b"lib")
+    (real_dir / "libvoice.so.1").symlink_to("libvoice.so.1.2")
+    data = tmp_path / "data.tsv"
+    data.write_text("x\n", encoding="utf-8")
+    private = tmp_path / "run1"
+    private.mkdir()
+    exe = os.path.realpath(sys.executable)
+    log = tmp_path / "t.1"
+    log.write_text(
+        "\n".join(
+            [
+                f'execve("{exe}", ["python"], 0x7ffe /* 3 vars */) = 0',
+                f'openat(AT_FDCWD<{real_dir}>, "libvoice.so.1", O_RDONLY|O_CLOEXEC) = 3<{target}>',
+                f'newfstatat(AT_FDCWD<{tmp_path}>, "data.tsv", {{st_mode=S_IFREG|0644}}, 0) = 0',
+                f'newfstatat(AT_FDCWD</>, "{real_dir}", {{st_mode=S_IFDIR|0755}}, 0) = 0',
+                f'openat(AT_FDCWD</>, "{private}/result.json", O_WRONLY|O_CREAT, 0644) = 4<{private}/result.json>',
+                'openat(AT_FDCWD</>, "/proc/self/status", O_RDONLY) = 5</proc/1/status>',
+                'openat(AT_FDCWD</>, "/usr/lib/missing.so", O_RDONLY) = -1 ENOENT (No such file)',
+                "newfstatat(3<" + str(target) + '>, "", {st_mode=S_IFREG}, AT_EMPTY_PATH) = 0',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    events, unresolved = run.trace_events([log])
+    assert unresolved == []
+    # tmp_path تحت /tmp: في الصندوق tmpfs، فلا يُرى منه إلّا ما رُبط — وهنا رُبط (كمجلّد تشغيلٍ تحت /tmp)
+    assert run.build_closure(events, unresolved, [str(private) + "/"])["files"].keys() == {exe} | {
+        f for f in run.build_closure(events, [], [])["files"] if not f.startswith(str(tmp_path))
+    }
+    closure = run.build_closure(events, unresolved, [str(private) + "/"], [str(tmp_path)])
+    assert closure["problems"] == [], closure["problems"]
+    assert set(closure["files"]) >= {str(target), str(data), exe}
+    assert closure["files"][str(data)]["access"] == ["stat"] and str(data) in closure["stat_only"]
+    assert closure["files"][str(target)]["sha256"] == worker.sha256_file(target)
+    assert closure["symlinks"][str(real_dir / "libvoice.so.1")] == "libvoice.so.1.2"
+    loader = closure["loaders"].get(exe)
+    assert loader and "ld-linux" in loader, closure["loaders"]
+    assert any(f.endswith(os.path.basename(loader)) or "ld-linux" in f for f in closure["files"])
+    assert str(real_dir) in closure["dirs"]
+    assert not [f for f in closure["files"] if os.path.isdir(f)]
+    assert not [f for f in closure["files"] if f.startswith(("/proc/", str(private)))]
+    assert closure["skipped"]["run_private"] == 1 and closure["skipped"]["virtual"] == 1

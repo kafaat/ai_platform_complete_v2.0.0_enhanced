@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "c878fc8ab80ab897cae42a1af9dd26cca8bfb76f6b11827ed890036594c45745",
+  "plan_sha256": "f1881cd5121822c3b779541e67b5cf67e204bf5667ad5325a36824bbe6c5408c",
   "schema_version": "1.0",
   "services": [
     {
@@ -1033,24 +1033,6 @@
       "source_service": "video-processor"
     },
     {
-      "base_url_env": "WEATHER_POLYGON_WORKER_BASE_URL",
-      "probes": [],
-      "production_certified": false,
-      "required_evidence_fields": [
-        "schema_version",
-        "service",
-        "tested_sha",
-        "environment_id",
-        "started_at",
-        "completed_at",
-        "probe_results",
-        "plan_sha256"
-      ],
-      "runtime_verified": false,
-      "service": "weather-polygon-worker",
-      "source_service": "weather-polygon-worker"
-    },
-    {
       "base_url_env": "WEATHER_SERVICE_BASE_URL",
       "probes": [
         {
@@ -1108,5 +1090,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "51e02eb4071400e9f32d0c7b3282ce3be132944bdcd9dab64a8d183ca028281c"
+  "source_contract_sha256": "67d8542f5e8db42dc4f9bfebe50dae7d53427e30d7fa004f27426126281217c5"
 }

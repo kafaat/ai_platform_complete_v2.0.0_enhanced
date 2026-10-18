@@ -6,8 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import jwt
 import pytest
-from jose import jwt
 
 from conftest import TEST_JWT_SECRET, make_token
 
@@ -19,7 +19,7 @@ def test_real_token_issuer_grants_only_tenant_bound_mcp_reads():
     script = """
 import json
 import main
-from jose import jwt
+import jwt
 roles = ["owner", "admin", "expert", "farmer", "viewer", "service", "unknown"]
 rows = []
 for role in roles:
@@ -88,9 +88,9 @@ class TestJWTStructure:
     @pytest.mark.unit
     def test_expired_token_rejected(self, expired_token):
         import pytest
-        from jose import JWTError
+        from jwt import PyJWTError
 
-        with pytest.raises(JWTError):
+        with pytest.raises(PyJWTError):
             jwt.decode(expired_token, TEST_JWT_SECRET, algorithms=["HS256"], audience="sahool")
 
     @pytest.mark.unit
@@ -101,14 +101,14 @@ class TestJWTStructure:
     @pytest.mark.unit
     def test_wrong_audience_rejected(self):
         token = make_token()
-        with pytest.raises(jwt.JWTError):
+        with pytest.raises(jwt.PyJWTError):
             jwt.decode(token, TEST_JWT_SECRET, algorithms=["HS256"], audience="wrong_audience")
 
     @pytest.mark.unit
     def test_tampered_token_rejected(self):
         token = make_token()
         tampered = token[:-5] + "XXXXX"
-        with pytest.raises(jwt.JWTError):
+        with pytest.raises(jwt.PyJWTError):
             jwt.decode(tampered, TEST_JWT_SECRET, algorithms=["HS256"], audience="sahool")
 
 

@@ -55,6 +55,10 @@ jobs:
 
   capability-registry:
     runs-on: ubuntu-latest
+    # الرمزُ يقرأ متنَ الـPR وتعليقاتِ مراجعتها ولا يكتب شيئاً.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -205,6 +209,66 @@ jobs:
             --pr-number "$PR_NUMBER" \
             --pr-body-file /tmp/pr-body.txt \
             --output /tmp/capability-impact.json
+      # GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 (الشطر الثاني): تعليقاتُ مراجعة
+      # GitHub نفسُها — حيث تقول البوتات والمراجِعون «(High)» — لم تكن تُقرأ. حالةُ GitHub
+      # لا تدخل أداةً: تُقاس هنا وتُجسَّد ملفّاً ويُحكَم عليها في الحارس (نمطُ
+      # `Fetch the protection contract for main` بعينه). كلُّ صفحةٍ تُسجَّل برمز HTTP
+      # كما هو وجسمُها كما هو (أو null إن لم يكن JSON)، فلا حكمَ مدفوناً في `run: |`:
+      # الحارس يُفشل مغلقاً على كلّ خطأ قراءة، ولا يتسامح إلّا مع **فشل الجلب في PR من
+      # fork** (رمزُه قد لا يقرأ المستودع الأساسيّ) ويطبع ذلك باسمه «غيرَ مقيس».
+      # الترقيم: صفحاتٌ بـ100 حتّى صفحةٍ أقلَّ من 100؛ وآخرُ صفحةٍ ممتلئة عند السقف
+      # (30 صفحة) خطأُ قراءةٍ لا نجاح.
+      - name: Fetch the PR's review comments and review bodies
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          set -uo pipefail
+          PER_PAGE=100
+          MAX_PAGES=30
+          API="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/pulls/${PR_NUMBER}"
+          : > /tmp/pr-review-pages.jsonl
+          for KIND in comments reviews; do
+            for PAGE in $(seq 1 "$MAX_PAGES"); do
+              rm -f /tmp/pr-review-page.json
+              STATUS=$(curl -sS --max-time 30 -o /tmp/pr-review-page.json -w '%{http_code}' \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "${API}/${KIND}?per_page=${PER_PAGE}&page=${PAGE}" || true)
+              STATUS=$((10#${STATUS:-0}))  # curl prints 000 when it never got an answer
+              echo "HTTP ${STATUS} ← ${KIND} page ${PAGE}"
+              ITEMS=$(jq -c . /tmp/pr-review-page.json 2>/dev/null || echo null)
+              jq -cn --arg kind "$KIND" --argjson page "$PAGE" --argjson status "$STATUS" \
+                --argjson items "${ITEMS:-null}" \
+                '{kind: $kind, page: $page, http_status: $status, items: $items}' \
+                >> /tmp/pr-review-pages.jsonl
+              [ "$STATUS" = "200" ] || break
+              [ "$(jq 'if type == "array" then length else 0 end' /tmp/pr-review-page.json 2>/dev/null || echo 0)" -ge "$PER_PAGE" ] || break
+            done
+          done
+          jq -s --arg schema 'sahool.pr-review-bodies.v1' --arg repo "$REPO" \
+            --arg head_repo "$HEAD_REPO" --argjson pr "$PR_NUMBER" --argjson per_page "$PER_PAGE" \
+            '{schema_version: $schema, repository: $repo, head_repository: $head_repo,
+              pr_number: $pr, per_page: $per_page,
+              fetches: (group_by(.kind) | map({key: .[0].kind, value: map(del(.kind))}) | from_entries)}' \
+            /tmp/pr-review-pages.jsonl > /tmp/pr-reviews.json
+      # المتنُ الحيُّ الذي جُلِب أعلاه + تعليقاتُ المراجعة: ملاحظةٌ موسومةٌ بخطورة تسمّي
+      # معرّفاً مسجَّلاً **لكلّ ملاحظة**. `!cancelled()` وعلى كلّ حدث: يُقاس ولو حمرت
+      # بوّابةُ الأثر فلا يختبئ حكمٌ خلف حكم، وعلى push يطبع الحارسُ أنّه لم يقرأ مدخلَي
+      # الـPR ولماذا بدل أن تُتخطّى الخطوةُ صامتةً؛ وغيابُ الملفّ على PR فشلٌ مغلق.
+      - name: Labelled review findings in the PR body and review comments must name a registered gap ID
+        if: ${{ !cancelled() }}
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: >-
+          python scripts/ci/pr_finding_gap_id_guard.py
+          --event-name "$EVENT_NAME"
+          --pr-body-file /tmp/pr-body.txt
+          --review-comments-file /tmp/pr-reviews.json
       - name: Validate PATH-1 static governance closure
         run: python scripts/ci/static_governance_closure.py --check
       - name: Run capability governance + architecture-graph tests

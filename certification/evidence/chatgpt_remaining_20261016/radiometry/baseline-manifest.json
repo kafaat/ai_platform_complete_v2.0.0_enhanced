@@ -1,0 +1,7 @@
+{
+  "base_sha": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "baseline_files": {
+    "services/raster-service/stac_vrt.py": "68ed8f04a9b4b58907c3ba925b0842d1ca93b61c0e768a722364ace3f5ae4c91",
+    "services/raster-service/stac_search.py": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c"
+  }
+}

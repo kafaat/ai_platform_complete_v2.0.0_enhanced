@@ -79,6 +79,74 @@ def _process_backfill_scene_cdse(
     )
 
 
+def _native_request(scene, index, clip, is_landsat_thermal=False):
+    if (
+        scene
+        and not is_landsat_thermal
+        and not (scene.get("provider") or "").startswith("landsat")
+        and not scene.get("thermal_urls")
+        and not scene.get("bands_urls")
+        and index != "truecolor"
+    ):
+        from cdse_client import backfill_request_identity
+        from cdse_native_product import MASK_VERSION
+
+        request_sha, algorithm = backfill_request_identity(scene, index, clip)
+        return request_sha, algorithm, MASK_VERSION
+    return None
+
+
+async def _ready_asset(
+    conn, *, tenant, field, index, scene, scene_id, acq, geom_rev, proc_ver, native
+):
+    if scene is None:
+        return None
+    if native:
+        request_sha, algorithm, mask = native
+        # A catalogue candidate is not a Process API contributor. Reuse only a
+        # measured product of the exact request, scoped to its field and job.
+        return await conn.fetchval(
+            "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+            "AND index_name=$3 AND asset_status = 'ready' "
+            "AND geometry_revision IS NOT DISTINCT FROM $4::int "
+            "AND algorithm_version=$5::text AND qa_mask_version=$6::text "
+            "AND processing_job_id IS NOT NULL AND cog_uri IS NOT NULL "
+            "AND provenance ->> 'current_cog_uri'=cog_uri "
+            "AND provenance #>> '{stats,cdse_native_qa,request_sha256}'=$7::text "
+            "AND scene_id=provenance #>> '{stats,cdse_native_qa,scene_id}' "
+            "AND scene_id LIKE 'cdse:sh:%' "
+            "AND acquisition_date=(provenance #>> '{stats,cdse_native_qa,acquisition_datetime}')::text::date "
+            "AND length(provenance #>> '{stats,cdse_native_qa,input_checksum}')=64 "
+            "AND provenance #>> '{stats,cdse_native_qa,algorithm_version}'=$5::text "
+            "AND provenance #>> '{stats,cdse_native_qa,qa_mask_version}'=$6::text "
+            "AND provenance #>> '{stats,cdse_native_qa,local_processing_version}'=$8::text "
+            "AND (provenance #>> '{stats,cdse_native_qa,native_valid_pixels}')::int>0 LIMIT 1",
+            tenant,
+            field,
+            index,
+            geom_rev,
+            algorithm,
+            mask,
+            request_sha,
+            proc_ver,
+        )
+    return await conn.fetchval(
+        "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+        "AND index_name=$3 AND scene_id=$4 "
+        "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
+        "AND asset_status = 'ready' "
+        "AND ($6::int IS NULL OR geometry_revision = $6::int) "
+        "AND algorithm_version=$7::text LIMIT 1",
+        tenant,
+        field,
+        index,
+        scene_id,
+        acq,
+        geom_rev,
+        proc_ver,
+    )
+
+
 def _enabled() -> bool:
     return str(os.getenv("RASTER_ASYNC_BACKFILL_ENABLED", "false")).strip().lower() in (
         "1",
@@ -291,7 +359,11 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             provider_key = (
                 "landsat-element84" if is_landsat_thermal else (scene.get("provider") or "cdse")
             )
-            identity = _identity(tenant, field, geom_rev, provider_key, scene_id, index, proc_ver)
+            native = _native_request(scene, index, clip, is_landsat_thermal)
+            identity_version = "|".join((*native, proc_ver)) if native else proc_ver
+            identity = _identity(
+                tenant, field, geom_rev, provider_key, scene_id, index, identity_version
+            )
             key = identity.to_canonical_key()
             # v10-F6: set_config(...,true) عابرٌ للمعاملة؛ لذا نُغلّف الضبط + الاستعلامات
             # في معاملة واحدة كي يظلّ app.current_tenant سارياً (يهمّ حين يسقط العامل إلى
@@ -315,21 +387,19 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                     # v10-F1: preflight يجب أن يطابق «أصلاً جاهزاً بنفس مراجعة الهندسة».
                     # 'stale' (هندسة قديمة بعد تغيّر الحدود) لا يُعدّ «موجوداً» وإلّا مُنِعت
                     # إعادة التوليد وبقيت الصورة مقصوصةً على حدود قديمة للأبد.
-                    exists = await conn.fetchval(
-                        "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
-                        "AND index_name=$3 AND scene_id=$4 "
-                        # acq نصّ (YYYY-MM-DD)؛ ``$5::date`` يجعل asyncpg يستنتج نوع date
-                        # فيرفض الـstr («'str' has no attribute 'toordinal'»). ``$5::text::date``
-                        # يُجبِر ربطاً نصّيّاً ثمّ يقصّه SQL — نفس نمط INSERT الآمن أدناه.
-                        "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
-                        "AND asset_status = 'ready' "
-                        "AND ($6::int IS NULL OR geometry_revision = $6::int) LIMIT 1",
-                        tenant,
-                        field,
-                        index,
-                        scene_id,
-                        acq,
-                        geom_rev,
+                    # The durable version column is algorithm_version (v154);
+                    # unknown/legacy versions cannot satisfy the current identity.
+                    exists = await _ready_asset(
+                        conn,
+                        tenant=tenant,
+                        field=field,
+                        index=index,
+                        scene=scene,
+                        scene_id=scene_id,
+                        acq=acq,
+                        geom_rev=geom_rev,
+                        proc_ver=proc_ver,
+                        native=native,
                     )
                     item_id = await conn.fetchval(
                         """
@@ -508,6 +578,9 @@ async def _process_single_scene_run(
     items_skipped = 0
     import uuid as _uuid
 
+    from imagery_product_identity import canonical_processing_version
+
+    proc_ver = canonical_processing_version()
     for it in items:
         item_id = it["id"]
         scene_id = it["scene_id"]
@@ -517,18 +590,19 @@ async def _process_single_scene_run(
         async with pool.acquire() as conn:
             async with conn.transaction():
                 await _set_tenant(conn, tenant)
-                exists = await conn.fetchval(
-                    "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
-                    "AND index_name=$3 AND scene_id=$4 "
-                    "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
-                    "AND asset_status='ready' "
-                    "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
-                    tenant,
-                    field,
-                    index,
-                    scene_id,
-                    acq,
-                    geom_rev,
+                scene = scenes_by_id.get(scene_id)
+                native = _native_request(scene, index, clip, is_landsat_thermal)
+                exists = await _ready_asset(
+                    conn,
+                    tenant=tenant,
+                    field=field,
+                    index=index,
+                    scene=scene,
+                    scene_id=scene_id,
+                    acq=acq,
+                    geom_rev=geom_rev,
+                    proc_ver=proc_ver,
+                    native=native,
                 )
         if exists:
             async with pool.acquire() as conn:
@@ -676,8 +750,8 @@ def _process_scene_index(
 
     التحويل إلى CDSE: مشاهد truecolor دائماً عبر CDSE (Fix 2: تجنّب قراءة النطاق الكامل OOM).
     المشاهد بلا ``bands_urls`` (كتالوج Copernicus) عبر Process API مثبَّت على تاريخ المشهد.
-    المشاهد ذات ``bands_urls`` (Element84) **محجوبة**: ``radiometry_unresolved`` قبل أيّ VRT
-    أو معالجة أو حفظ، بسببٍ دائم لا يُعاد صفُّه لهذه النسخة (``radiometry_containment``)."""
+    مشاهد C1 ذات الأصول والقياسات المتطابقة فقط تدخل المعالجة بقصّ محدود؛
+    الموروث أو المتناقض يبقى ``radiometry_unresolved`` قبل المعالجة والحفظ."""
 
     try:
         if (scene.get("provider") or "").startswith("landsat") or scene.get("thermal_urls"):
@@ -710,11 +784,24 @@ def _process_scene_index(
             # مشهد CDSE أو truecolor: معالجة خادميّة عبر Process API.
             _process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
             return _outcome_from_job(jid)
-        # مشهد Element84 (ذو bands_urls): محجوب قبل بناء الـVRT وقبل أيّ معالجة أو كتابة
-        # COG أو حفظ — radiometry_containment. لا ارتداد إلى CDSE: هويّةُ المشهد تُطلَب صراحةً.
-        radiometry_containment.reject_element84_vrt(
-            (scene.get("bands_urls") or {}).keys(), entry_point="backfill_scan_worker"
+        # Only validated C1 assets may reach the VRT. Legacy/ambiguous metadata
+        # remains contained; no fallback silently replaces the selected scene.
+        from stac_c1_processing import process_c1_scene
+
+        process_c1_scene(
+            scene,
+            index,
+            field,
+            tenant,
+            geom_rev,
+            clip,
+            apply_cloud_mask,
+            jid,
+            run_processing=raster_processing_runtime.run_processing,
+            out_dir=raster_settings.UPLOAD_DIR,
+            entry_point="backfill_scan_worker",
         )
+        return _outcome_from_job(jid)
     except radiometry_containment.RadiometryUnresolved as e:
         # سببٌ ثابت لا نصّ استثناء؛ والبادئة يقرؤها مسارُ إعادة الصفّ فلا يُعاد العنصر.
         logger.warning(

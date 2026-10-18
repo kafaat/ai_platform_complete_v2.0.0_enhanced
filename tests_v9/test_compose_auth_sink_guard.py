@@ -145,7 +145,7 @@ def test_the_question_mark_without_colon_lets_an_empty_value_through(tmp_path):
 
 
 @needs_compose
-def test_the_adopted_form_still_validates_the_real_unified_stack():
+def test_the_adopted_form_still_validates_the_real_v9_stack():
     """`:?` لا تكسر المكدّس الحقيقيّ — الخدمة ليست خلف profile.
 
     القياسُ الذي فرض `:-` الفارغة في مواضع أخرى (الاستيفاء يسبق ترشيح الـprofiles)
@@ -154,7 +154,7 @@ def test_the_adopted_form_still_validates_the_real_unified_stack():
     env = dict(os.environ)
     env["QDRANT_API_KEY"] = "probe-key"
     result = subprocess.run(
-        ["docker", "compose", "-f", "docker-compose.unified.yml", "config", "--quiet"],
+        ["docker", "compose", "-f", "docker-compose.v9.yml", "config", "--quiet"],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -162,7 +162,7 @@ def test_the_adopted_form_still_validates_the_real_unified_stack():
         env=env,
     )
     assert "QDRANT_API_KEY" not in (result.stderr or ""), (
-        f"المكدّس الموحَّد يشكو من المفتاح رغم ضبطه: {result.stderr[:400]}"
+        f"مكدّس v9 يشكو من المفتاح رغم ضبطه: {result.stderr[:400]}"
     )
 
 
@@ -242,8 +242,11 @@ def test_the_stack_that_carried_the_defect_is_on_the_surface():
     تساوي المجموعات يكشف خروجَه، لكنّ من يقرأ العقد يستحقّ سطراً يقول الاسم:
     الملفّ الذي حمل العطل يجب أن يبقى مفحوصاً.
     """
+    # 2026-10-17: المكدّسُ الذي حمل العطل (docker-compose.unified.yml) نُقل إلى
+    # docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01).
+    # الشاهدُ يُعاد إرساؤه على v9 — المكدّسِ الوحيد الذي يحمل المصرف اليوم — لا يُحذَف.
     discovered = {str(p.relative_to(ROOT)) for p in surface.compose_files()}
-    assert "docker-compose.unified.yml" in discovered, (
+    assert "docker-compose.v9.yml" in discovered, (
         "المكدّس الذي حمل العطل خرج من سطح الاكتشاف — الحارس يصير حارسَ لا شيء"
     )
 
@@ -255,7 +258,10 @@ def test_the_guard_actually_scanned_the_stack_that_carried_the_defect():
     يُقاس من `findings()` أنّه فُحِص. ولو خرج من سطح الفاحص لبقي كلُّ شيءٍ أخضر
     بينما المكدّس الذي حمل العطل صار بلا حراسة. فيُقاس **ما مرّ عليه الفحص**.
     """
-    assert "docker-compose.unified.yml" in guard.scanned_files(), (
+    # 2026-10-17: المكدّسُ الذي حمل العطل (docker-compose.unified.yml) نُقل إلى
+    # docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01).
+    # الشاهدُ يُعاد إرساؤه على v9 — المكدّسِ الوحيد الذي يحمل المصرف اليوم — لا يُحذَف.
+    assert "docker-compose.v9.yml" in guard.scanned_files(), (
         "المكدّس الذي حمل العطل خرج من سطح الفحص — الحارس أخضرُ عن سؤالٍ لم يُطرَح"
     )
 
@@ -363,7 +369,7 @@ def test_an_exception_on_a_production_stack_is_refused(monkeypatch):
         guard,
         "_exceptions",
         lambda: {
-            f"docker-compose.unified.yml::{SINK}": {
+            f"docker-compose.v9.yml::{SINK}": {
                 "service": "qdrant",
                 "non_production": True,
                 "reason": "مِسبار",
@@ -408,12 +414,15 @@ def test_the_live_tree_proves_required_and_nonempty_for_every_sink():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_the_unified_stack_uses_the_accepted_form():
+def test_the_v9_stack_uses_the_accepted_form():
     """شاهدٌ مباشر على العطل المُصلَح — لا يمرّ عبر الحارس.
 
     فلو عُطِّل الحارس كلُّه بقي هذا يقول إنّ الملفّ نفسه تغيّر.
     """
-    lines = (ROOT / "docker-compose.unified.yml").read_text(encoding="utf-8").splitlines()
+    # 2026-10-17: المكدّسُ الذي حمل العطل (docker-compose.unified.yml) نُقل إلى
+    # docs/history/compose/ بقرار مالك (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01).
+    # الشاهدُ يُعاد إرساؤه على v9 — المكدّسِ الوحيد الذي يحمل المصرف اليوم — لا يُحذَف.
+    lines = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8").splitlines()
     # **أسطرُ الإسناد وحدها.** أوّل صياغةٍ عندي فحصت الملفّ كنصّ، فأدانت التعليقَ
     # الذي يقتبس الصيغة القديمة ليشرح ما أُصلِح — أي أنّها كانت تُعاقِب التوثيق،
     # وهو نمطٌ مُسجَّل في هذا المستودع: عدٌّ يُعاقِب الشرح يُدرِّب كاتبه على حذفه.
@@ -422,7 +431,7 @@ def test_the_unified_stack_uses_the_accepted_form():
         for ln in lines
         if ln.strip().startswith(f"{SINK}:") and not ln.strip().startswith("#")
     ]
-    assert assignments, f"لم يُعثَر على إسنادٍ لـ{SINK} في المكدّس الموحَّد"
+    assert assignments, f"لم يُعثَر على إسنادٍ لـ{SINK} في مكدّس v9"
     for value in assignments:
         assert value.startswith("${QDRANT_API_KEY:?"), f"صيغةٌ غير مقبولة باقية: {value}"
 

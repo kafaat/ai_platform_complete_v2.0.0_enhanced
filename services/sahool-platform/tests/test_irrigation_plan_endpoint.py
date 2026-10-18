@@ -29,14 +29,14 @@ def _days(n, et0=10.0, kc=1.0, rain=0.0):
 
 
 def test_derives_taw_from_texture():
-    # loam = 175 مم/م × عمق 1.0 = 175.
+    # loam = FAO-56 (0.25 − 0.10)·1000 = 150 مم/م × عمق 1.0 = 150.
     req = IrrigationPlanRequest(
         forecast=_days(6), soil_texture="loam", root_depth_m=1.0, raw_fraction=0.5
     )
     out = compute_irrigation_plan(req=req, user=_USER)
-    assert out["soil"]["taw_mm"] == pytest.approx(175.0)
-    assert out["taw_mm_used"] == pytest.approx(175.0)
-    assert out["plan"]["taw_mm"] == pytest.approx(175.0)
+    assert out["soil"]["taw_mm"] == pytest.approx(150.0)
+    assert out["taw_mm_used"] == pytest.approx(150.0)
+    assert out["plan"]["taw_mm"] == pytest.approx(150.0)
     assert out["soil"]["calibrated"] is False
 
 

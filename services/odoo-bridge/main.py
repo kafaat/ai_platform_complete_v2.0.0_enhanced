@@ -25,9 +25,11 @@ from typing import Any  # noqa: F401 — إعادة تصدير (نمط main.X ل
 import asyncpg
 import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi import FastAPI, Header, HTTPException
-from jose import JWTError as _JE
-from jose import jwt as _jwt
+from jwt import PyJWTError as _JE
 from pydantic import BaseModel, Field
+
+from shared.security.access_tokens import decode_access_token
+from shared.startup_retry import retry_startup_connect
 
 try:
     from shared.logging_config import setup_logging
@@ -78,7 +80,10 @@ from erp_runtime import (  # noqa: E402,F401
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if SAHOOL_DB_URL:
-        _erp_runtime._pool = await asyncpg.create_pool(SAHOOL_DB_URL, min_size=1, max_size=5)
+        # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: إعادة restart لا تنتظر Postgres.
+        _erp_runtime._pool = await retry_startup_connect(
+            asyncpg.create_pool, SAHOOL_DB_URL, min_size=1, max_size=5
+        )
         logger.info("DB pool ready")
         # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
         from shared.db_role_guard import assert_db_role_rls_safe
@@ -130,7 +135,13 @@ if (
 def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
-        payload = _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
+        payload = decode_access_token(
+            token,
+            _JWT_SECRET,
+            algorithm=_JWT_ALG,
+            claim_semantics="python-jose",
+            site="erp-bridge:verify_token",
+        )
     except _JE as e:
         raise ValueError(f"Invalid token: {e}") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.

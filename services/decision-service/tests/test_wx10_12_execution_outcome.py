@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from decision_chain_fixture import seed_authorized_parents
 
 SERVICE_DIR = Path(__file__).resolve().parents[1]
 if str(SERVICE_DIR) not in sys.path:
@@ -47,13 +48,14 @@ def test_terminal_request_creates_one_immutable_outcome_and_outbox():
         rid = "exec_" + uuid4().hex
         receipt = "rec_" + uuid4().hex
         try:
+            aid, pid, did = await seed_authorized_parents(c, TENANT)
             await c.execute(
                 """INSERT INTO decision_execution_requests(execution_request_id,tenant_id,dispatch_authorization_id,execution_plan_id,decision_id,target_type,target_id,operation_type,command_payload,status,idempotency_key,request_hash,requested_by,receipt_id,receipt_status,receipt_payload,received_at) VALUES($1,$2::uuid,$3,$4,$5,'task','t','op','{}'::jsonb,'accepted',$6,$7,'u',$8,'accepted','{}'::jsonb,now())""",
                 rid,
                 TENANT,
-                "auth_" + uuid4().hex,
-                "plan_" + uuid4().hex,
-                "dec_" + uuid4().hex,
+                aid,
+                pid,
+                did,
                 "i-" + uuid4().hex,
                 uuid4().hex,
                 receipt,

@@ -3,8 +3,8 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `934fae3409364152e74e40b1f3284807341ecaa7201d2aff3dff421989b27bc1`
-- components: **36** (backend: 32)
+- fingerprint: `aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c`
+- components: **35** (backend: 31)
 - route rows: **1123** → unique method/path: **1004**
 - capabilities (derived, uncurated): **832**
 - cross-service duplicate method/paths: **12**
@@ -48,15 +48,14 @@
 | tts-service | service | media | sahool-tts-service | 0 | True |
 | vegetation-analysis-service | service | vegetation-interpretation | sahool-vegetation-analysis | 1 | True |
 | video-processor | service | media | sahool-video-processor | 0 | True |
-| weather-polygon-worker | worker | weather-truth | sahool-weather-polygon-worker | 0 | True |
 | weather-service | service | weather-truth | sahool-weather-service | 8 | True |
 | weather-signal-engine | worker | weather-truth | sahool-weather-signal-engine | 0 | True |
 
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **844**
-- S2 relations: CALLS=44, CONSUMES=1, EMITS=1, READS=434, ROUTES_TO=72, WRITES=292
+- ARCH-S2 dependency truth: `PASS` — edges **868**
+- S2 relations: CALLS=44, CONSUMES=3, EMITS=1, READS=442, ROUTES_TO=72, WRITES=306
 
 ## Governance gates (U3/U4)
 

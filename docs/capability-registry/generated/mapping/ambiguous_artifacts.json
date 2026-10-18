@@ -488,6 +488,373 @@
     ]
   },
   {
+    "path": "certification/evidence/architecture_remeasure_20261017/connectivity_remeasure.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 10,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/imagery/historical-search-github.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 26,
+        "signals": [
+          "content:cdse",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 24,
+        "signals": [
+          "content:tenant",
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/integration/preflight-repairs/final-route-anchor-refresh.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 10,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 8,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_closure_nine_20261016/inventory_correlation/correlation_sql_fixture.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 8,
+        "signals": [
+          "path:inventory"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/jobs-38744260158-raw.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/jobs-38752463588-raw.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/jobs-38776419430-raw.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/jobs-38776419430.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 8,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/main-runs.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "IRR-005",
+        "score": 12,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      },
+      {
+        "capability_id": "FM-001",
+        "score": 12,
+        "signals": [
+          "content:organization",
+          "content:tenant"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/pr1196.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "IRR-009",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-003",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/pr1198.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "IRR-002",
+        "score": 24,
+        "signals": [
+          "content:water quality",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "FM-008",
+        "score": 24,
+        "signals": [
+          "content:odoo bridge",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 23,
+        "signals": [
+          "content:raster tile",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-003",
+        "score": 23,
+        "signals": [
+          "content:field water source",
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/chatgpt_w5_20261017/database-analysis.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 9,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      }
+    ]
+  },
+  {
     "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
     "kind": "other",
     "candidates": [
@@ -649,66 +1016,6 @@
         "signals": [
           "content:Execution request",
           "content:execution request"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "docker-compose.fixed.yml",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SEC-004",
-        "score": 12,
-        "signals": [
-          "content:MFA",
-          "content:mfa"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 12,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
-        ]
-      },
-      {
-        "capability_id": "FM-008",
-        "score": 12,
-        "signals": [
-          "content:erp bridge",
-          "content:odoo bridge"
-        ]
-      },
-      {
-        "capability_id": "SOIL-001",
-        "score": 10,
-        "signals": [
-          "content:Soil profile",
-          "content:soil profile"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "docker-compose.unified.yml",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "FM-008",
-        "score": 12,
-        "signals": [
-          "content:erp bridge",
-          "content:odoo bridge"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 9,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
         ]
       }
     ]
@@ -1161,6 +1468,28 @@
         "signals": [
           "content:Field forms",
           "content:field form"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/fake_connection_debt.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
         ]
       }
     ]
@@ -1969,6 +2298,66 @@
     ]
   },
   {
+    "path": "docs/history/compose/docker-compose.fixed.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 12,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "FM-008",
+        "score": 12,
+        "signals": [
+          "content:erp bridge",
+          "content:odoo bridge"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 10,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/history/compose/docker-compose.unified.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-008",
+        "score": 12,
+        "signals": [
+          "content:erp bridge",
+          "content:odoo bridge"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/openapi/API_MAP.md",
     "kind": "other",
     "candidates": [
@@ -2180,21 +2569,21 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
         "capability_id": "INT-002",
         "score": 12,
         "signals": [
           "content:event bus",
           "content:jetstream",
           "content:nats"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 9,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
         ]
       }
     ]
@@ -4417,6 +4806,29 @@
     ]
   },
   {
+    "path": "scripts/ci/event_contract_graph.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "INT-002",
+        "score": 11,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/ci/platform_main_subinventory_guard.py",
     "kind": "other",
     "candidates": [
@@ -4500,6 +4912,29 @@
         "signals": [
           "content:ET0",
           "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "scripts/diagnostics/element84_legacy_inventory.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 13,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:row level security"
         ]
       }
     ]
@@ -4837,6 +5272,28 @@
     ]
   },
   {
+    "path": "services/decision-service/migrations/036_decision_chain_correlation.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 12,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/persistence.py",
     "kind": "backend",
     "candidates": [
@@ -4943,6 +5400,29 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_element84_inventory_pg16.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 15,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
     "kind": "tests",
     "candidates": [
@@ -4998,6 +5478,30 @@
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_migration_034_pg16.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 18,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 17,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
         ]
       }
     ]
@@ -5334,7 +5838,7 @@
     "candidates": [
       {
         "capability_id": "SAT-001",
-        "score": 13,
+        "score": 14,
         "signals": [
           "content:cdse",
           "content:sentinel",
@@ -5373,19 +5877,19 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      },
+      {
         "capability_id": "SAT-005",
         "score": 9,
         "signals": [
           "content:aoi cloud",
           "content:cloud mask"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 9,
-        "signals": [
-          "content:cdse",
-          "content:sentinel"
         ]
       }
     ]
@@ -5486,15 +5990,6 @@
     "path": "services/raster-service/routers/fields.py",
     "kind": "backend",
     "candidates": [
-      {
-        "capability_id": "SAT-005",
-        "score": 18,
-        "signals": [
-          "content:aoi cloud",
-          "content:cloud mask",
-          "content:scene cloud"
-        ]
-      },
       {
         "capability_id": "SAT-001",
         "score": 18,
@@ -5609,6 +6104,28 @@
     ]
   },
   {
+    "path": "services/raster-service/test_backfill_processing_version_preflight.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 12,
+        "signals": [
+          "content:cdse",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/raster-service/test_cdse_tilejson_availability.py",
     "kind": "tests",
     "candidates": [
@@ -5718,7 +6235,7 @@
       },
       {
         "capability_id": "SAT-001",
-        "score": 11,
+        "score": 12,
         "signals": [
           "content:sentinel",
           "content:stac"
@@ -5738,6 +6255,15 @@
     "path": "services/raster-service/test_historical_backfill.py",
     "kind": "tests",
     "candidates": [
+      {
+        "capability_id": "SAT-005",
+        "score": 12,
+        "signals": [
+          "content:aoi cloud",
+          "content:scene cloud",
+          "content:scl"
+        ]
+      },
       {
         "capability_id": "SAT-003",
         "score": 12,
@@ -5804,6 +6330,36 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/test_indicator_provenance_transport.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-005",
+        "score": 11,
+        "signals": [
+          "content:cloud mask",
+          "content:scl"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 11,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
         ]
       }
     ]
@@ -7227,51 +7783,12 @@
         ]
       },
       {
-        "capability_id": "IRR-004",
-        "score": 10,
-        "signals": [
-          "content:Water balance",
-          "content:water balance"
-        ]
-      },
-      {
         "capability_id": "WX-009",
         "score": 9,
         "signals": [
           "content:disease risk",
           "content:downy mildew",
           "content:late blight"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/sahool-platform/api/weather_service_client.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
         ]
       }
     ]
@@ -8503,6 +9020,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_eo_stage_mismatch.py",
     "kind": "tests",
     "candidates": [
@@ -8769,6 +9308,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 12,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_map_layer.py",
     "kind": "tests",
     "candidates": [
@@ -8988,6 +9549,28 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_water_decision_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
         ]
       }
     ]
@@ -10137,6 +10720,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_element84_vrt_containment.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-005",
+        "score": 11,
+        "signals": [
+          "content:cloud mask",
+          "content:scl"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_endpoint_auth_coverage.py",
     "kind": "tests",
     "candidates": [
@@ -10301,6 +10906,36 @@
     ]
   },
   {
+    "path": "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 10,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_imagery_batch_wait_before_read.py",
     "kind": "tests",
     "candidates": [
@@ -10459,6 +11094,29 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_nats_publisher_coverage.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-002",
+        "score": 15,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 14,
+        "signals": [
+          "path:nats",
+          "content:nats"
         ]
       }
     ]
@@ -10628,6 +11286,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_remote_sensing_contracts_v1.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:cdse",
+          "content:sentinel"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_roadmap_phase23.py",
     "kind": "tests",
     "candidates": [
@@ -10774,6 +11454,36 @@
         "signals": [
           "content:rls",
           "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_taw_kc_single_source.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 12,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
         ]
       }
     ]
@@ -10982,6 +11692,30 @@
         "signals": [
           "content:Execution request",
           "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tools/sahool_inspector.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]

@@ -1,51 +1,133 @@
 {
-  "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب.",
-  "measured_on": "3cd2ff008df518b42eae6779d997ba131cd57218",
+  "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
+  "measured_on": "e287338c65021636abdb47015f98f348e07a740e",
   "fake_connection_tests": [
+    "services/decision-service/tests/test_migration_runner_readonly.py",
+    "services/decision-service/tests/test_wx10_8_review_queue.py",
+    "services/raster-service/test_backfill_processing_version_preflight.py",
+    "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
+    "services/raster-service/test_element84_vrt_containment_runtime.py",
+    "services/raster-service/test_indicator_provenance_transport.py",
+    "services/raster-service/test_raster_durable_identity.py",
+    "services/raster-service/test_registry_writes_owner_api.py",
+    "services/sahool-platform/tests/test_absent_reading_is_not_zero_at_the_edge.py",
     "services/sahool-platform/tests/test_break_glass.py",
     "services/sahool-platform/tests/test_crop_stress_ingestion.py",
     "services/sahool-platform/tests/test_crop_stress_memory_service.py",
     "services/sahool-platform/tests/test_crop_stress_store.py",
+    "services/sahool-platform/tests/test_decision_impact_endpoint.py",
     "services/sahool-platform/tests/test_decision_interim_bridge.py",
+    "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+    "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
+    "services/sahool-platform/tests/test_farm_operations_ledger.py",
     "services/sahool-platform/tests/test_field_aggregate_ports.py",
     "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+    "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+    "services/sahool-platform/tests/test_governance_modules.py",
+    "services/sahool-platform/tests/test_indicator_observations_route.py",
     "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
+    "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
     "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+    "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+    "services/sahool-platform/tests/test_lab_sampling_router.py",
+    "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
+    "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+    "services/sahool-platform/tests/test_nl_sql_policy.py",
     "services/sahool-platform/tests/test_operations_summary_endpoint.py",
     "services/sahool-platform/tests/test_persisted_canonical_writers.py",
     "services/sahool-platform/tests/test_prescriptions_router.py",
+    "services/sahool-platform/tests/test_readyz_db_probe.py",
     "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
     "services/sahool-platform/tests/test_yield_analysis.py",
     "services/sahool-platform/tests/test_yield_map_ingestion.py",
+    "services/soil-service/test_soil_cutover_readiness.py",
     "services/soil-service/test_soil_projection_jobs.py",
+    "tests/deploy/test_railway_platform_db_probe.py",
     "tests/irrigation/test_irrigation_reservation_adapter.py",
+    "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+    "tests_v9/test_actuation_killswitch_behaviour.py",
+    "tests_v9/test_actuation_killswitch_v29_5_op.py",
+    "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
+    "tests_v9/test_ai_runtime_readiness.py",
     "tests_v9/test_auth_admin_stepup_mfa.py",
+    "tests_v9/test_b6m4_platform_store.py",
     "tests_v9/test_c4m1_mobile_push.py",
     "tests_v9/test_cache_invalidation_worker_v30_0.py",
     "tests_v9/test_canonical_event_emission_contracts.py",
+    "tests_v9/test_canonical_root_zone_profile.py",
     "tests_v9/test_canonical_water_state_mpc.py",
     "tests_v9/test_compensation_killswitch.py",
+    "tests_v9/test_connectivity_tile_transport.py",
     "tests_v9/test_critical_event_fail_closed.py",
+    "tests_v9/test_d1_raster_owner_write_commands.py",
     "tests_v9/test_db_role_guard_shared.py",
+    "tests_v9/test_decision_record_mandatory_persist.py",
+    "tests_v9/test_element84_legacy_inventory.py",
+    "tests_v9/test_erp_sync_recovery.py",
+    "tests_v9/test_field_forms_api_integration.py",
     "tests_v9/test_field_forms_sync_binding_p02.py",
+    "tests_v9/test_field_state_ndvi_enrichment.py",
     "tests_v9/test_field_state_projection.py",
+    "tests_v9/test_field_state_unification.py",
     "tests_v9/test_fields_merge_split_atomic.py",
+    "tests_v9/test_guardrails_contract.py",
     "tests_v9/test_imagery_dates_no_truncation_v29_6.py",
+    "tests_v9/test_irrigation_and_decision_architecture.py",
     "tests_v9/test_irrigation_manual_slice_routes.py",
+    "tests_v9/test_learning_review_persistence_gap.py",
+    "tests_v9/test_manual_command_killswitch_scope.py",
+    "tests_v9/test_market_resource_authz.py",
+    "tests_v9/test_mcp_auth_first_contract.py",
+    "tests_v9/test_notification_delivery_reliability.py",
+    "tests_v9/test_notification_queue_rollout.py",
     "tests_v9/test_odoo_bridge_tenant_honesty.py",
     "tests_v9/test_offline_dispatch_field_update.py",
     "tests_v9/test_offline_pending_queue.py",
+    "tests_v9/test_otlp_tracing_delivery.py",
+    "tests_v9/test_outbox_claim_lease.py",
     "tests_v9/test_outbox_idempotent_consumption.py",
+    "tests_v9/test_outbox_requires_jetstream_ack.py",
+    "tests_v9/test_platform_runtime_db_contract.py",
     "tests_v9/test_raster_asset_date_binding.py",
     "tests_v9/test_raster_db_persist_uuid_hardening_20260626.py",
+    "tests_v9/test_readiness_followup_fixes_20260916.py",
+    "tests_v9/test_readiness_software_repairs.py",
+    "tests_v9/test_recommendation_work_order_idempotency.py",
+    "tests_v9/test_reconciliation_cursor_resumption.py",
+    "tests_v9/test_roadmap_phase23.py",
     "tests_v9/test_scouting_pins_persistence.py",
+    "tests_v9/test_season_workspace.py",
+    "tests_v9/test_signal_cycle_survives_one_bad_row.py",
+    "tests_v9/test_soil_ingest_atomic.py",
+    "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
+    "tests_v9/test_tenant_connection_call_shape.py",
+    "tests_v9/test_v25_advisory_publication.py",
+    "tests_v9/test_variety_policy_resolution.py",
     "tests_v9/test_water_ledger.py",
     "tests_v9/test_work_order_persist_emit.py",
     "tests_v9/test_workflow_store_hardening.py"
   ],
   "claiming_db_enforced": {
+    "services/raster-service/test_raster_durable_identity.py": [
+      "UNIQUE"
+    ],
+    "services/raster-service/test_registry_writes_owner_api.py": [
+      "UNIQUE"
+    ],
+    "services/sahool-platform/tests/test_drawing_features_v38_static.py": [
+      "CHECK"
+    ],
+    "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py": [
+      "jsonb"
+    ],
     "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py": [
       "jsonb"
+    ],
+    "services/sahool-platform/tests/test_irrigation_scenario_value.py": [
+      "CHECK"
+    ],
+    "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py": [
+      "UNIQUE"
     ],
     "services/sahool-platform/tests/test_persisted_canonical_writers.py": [
       "FK",
@@ -63,11 +145,34 @@
       "TRIGGER",
       "jsonb"
     ],
+    "tests_v9/test_canonical_root_zone_profile.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_irrigation_and_decision_architecture.py": [
+      "CHECK",
+      "jsonb"
+    ],
+    "tests_v9/test_learning_review_persistence_gap.py": [
+      "UNIQUE"
+    ],
     "tests_v9/test_offline_pending_queue.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_readiness_followup_fixes_20260916.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_readiness_software_repairs.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_roadmap_phase23.py": [
+      "TRIGGER",
       "UNIQUE"
     ],
     "tests_v9/test_scouting_pins_persistence.py": [
       "UNIQUE"
+    ],
+    "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py": [
+      "TRIGGER"
     ],
     "tests_v9/test_water_ledger.py": [
       "UNIQUE"
@@ -137,5 +242,160 @@
       "proof": "tests_v9/test_live_pg_fake_connection_debt.py",
       "evidence": "TRIGGER: updated_at مُسنَدة صراحةً إلى 2001-01-01 يدهسها المشغّل — فالبقاء والتغيّر يفترقان، والقياس عن المشغّل لا عن DEFAULT now(). والتسجيل BEFORE UPDATE FOR EACH ROW مقروء من pg_trigger. زرعُ الإسقاط وزرعُ تحويله إلى AFTER أسقطا الاثنين."
     }
-  }
+  },
+  "admissions": [
+    {
+      "kind": "initial_name_rule_survey",
+      "date": "2026-08-07",
+      "source": "#807 (9c0647a38)",
+      "before": 0,
+      "after": 40,
+      "rule": "نمطٌ نصّيّ على اصطلاح التسمية: class _?Fake…(Conn|Pool) · fake_conn… · fake_pool…",
+      "justification": "المسحُ الأوّل لـFAKE-CONNECTION-ENFORCES-NOTHING-01 بعد أن سقطت الرحلة القانونيّة أربع مرّات على PG16 حيّة: دَينٌ قائمٌ يومَ قِيس، أُعلِن ليُمنَع نموُّه لا لأنّه سليم.",
+      "sites": [
+        "services/sahool-platform/tests/test_break_glass.py",
+        "services/sahool-platform/tests/test_crop_stress_ingestion.py",
+        "services/sahool-platform/tests/test_crop_stress_memory_service.py",
+        "services/sahool-platform/tests/test_crop_stress_store.py",
+        "services/sahool-platform/tests/test_decision_interim_bridge.py",
+        "services/sahool-platform/tests/test_field_aggregate_ports.py",
+        "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+        "services/sahool-platform/tests/test_operations_summary_endpoint.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py",
+        "services/sahool-platform/tests/test_prescriptions_router.py",
+        "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+        "services/sahool-platform/tests/test_yield_analysis.py",
+        "services/sahool-platform/tests/test_yield_map_ingestion.py",
+        "services/soil-service/test_soil_projection_jobs.py",
+        "tests/irrigation/test_irrigation_reservation_adapter.py",
+        "tests_v9/test_auth_admin_stepup_mfa.py",
+        "tests_v9/test_c4m1_mobile_push.py",
+        "tests_v9/test_cache_invalidation_worker_v30_0.py",
+        "tests_v9/test_canonical_event_emission_contracts.py",
+        "tests_v9/test_canonical_water_state_mpc.py",
+        "tests_v9/test_compensation_killswitch.py",
+        "tests_v9/test_critical_event_fail_closed.py",
+        "tests_v9/test_db_role_guard_shared.py",
+        "tests_v9/test_field_forms_sync_binding_p02.py",
+        "tests_v9/test_field_state_projection.py",
+        "tests_v9/test_fields_merge_split_atomic.py",
+        "tests_v9/test_imagery_dates_no_truncation_v29_6.py",
+        "tests_v9/test_irrigation_manual_slice_routes.py",
+        "tests_v9/test_odoo_bridge_tenant_honesty.py",
+        "tests_v9/test_offline_dispatch_field_update.py",
+        "tests_v9/test_offline_pending_queue.py",
+        "tests_v9/test_outbox_idempotent_consumption.py",
+        "tests_v9/test_raster_asset_date_binding.py",
+        "tests_v9/test_raster_db_persist_uuid_hardening_20260626.py",
+        "tests_v9/test_scouting_pins_persistence.py",
+        "tests_v9/test_water_ledger.py",
+        "tests_v9/test_work_order_persist_emit.py",
+        "tests_v9/test_workflow_store_hardening.py"
+      ]
+    },
+    {
+      "kind": "measurement_correction",
+      "date": "2026-10-15",
+      "source": "FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01",
+      "before": 40,
+      "after": 98,
+      "rule": "measurement correction (class not name): كشفٌ بنيويّ بـAST — صنفُ اتّصال/مسبح، ترقيعُ مُورِّد الاتّصال، محاكاةٌ مُهيَّأة (`_stand_in_evidence`)",
+      "justification": "measurement correction (class not name), 2026-10-15, 40 → 98. هذه المواقع دَينٌ **قائمٌ كان غيرَ مرئيّ** لا دَينٌ جديد: كلُّها على main@5472740e قبل تغيير القاعدة، وأعماها اصطلاحُ التسمية (`_Conn` · `Connection` · `fake_tenant_connection` · `_Pool`). لم يُعَد تسميةُ أيٍّ منها ولم يُعدَّل؛ الماسحُ وحده تغيّر.",
+      "sites": [
+        "services/decision-service/tests/test_migration_runner_readonly.py",
+        "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
+        "services/raster-service/test_element84_vrt_containment_runtime.py",
+        "services/raster-service/test_raster_durable_identity.py",
+        "services/raster-service/test_registry_writes_owner_api.py",
+        "services/sahool-platform/tests/test_absent_reading_is_not_zero_at_the_edge.py",
+        "services/sahool-platform/tests/test_decision_impact_endpoint.py",
+        "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+        "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
+        "services/sahool-platform/tests/test_farm_operations_ledger.py",
+        "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+        "services/sahool-platform/tests/test_governance_modules.py",
+        "services/sahool-platform/tests/test_indicator_observations_route.py",
+        "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+        "services/sahool-platform/tests/test_irrigation_scenario_value.py",
+        "services/sahool-platform/tests/test_lab_sampling_router.py",
+        "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
+        "services/sahool-platform/tests/test_nl_sql_policy.py",
+        "services/sahool-platform/tests/test_readyz_db_probe.py",
+        "services/soil-service/test_soil_cutover_readiness.py",
+        "tests/deploy/test_railway_platform_db_probe.py",
+        "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+        "tests_v9/test_actuation_killswitch_behaviour.py",
+        "tests_v9/test_actuation_killswitch_v29_5_op.py",
+        "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
+        "tests_v9/test_ai_runtime_readiness.py",
+        "tests_v9/test_b6m4_platform_store.py",
+        "tests_v9/test_canonical_root_zone_profile.py",
+        "tests_v9/test_connectivity_tile_transport.py",
+        "tests_v9/test_d1_raster_owner_write_commands.py",
+        "tests_v9/test_decision_record_mandatory_persist.py",
+        "tests_v9/test_erp_sync_recovery.py",
+        "tests_v9/test_field_forms_api_integration.py",
+        "tests_v9/test_field_state_ndvi_enrichment.py",
+        "tests_v9/test_field_state_unification.py",
+        "tests_v9/test_guardrails_contract.py",
+        "tests_v9/test_irrigation_and_decision_architecture.py",
+        "tests_v9/test_manual_command_killswitch_scope.py",
+        "tests_v9/test_market_resource_authz.py",
+        "tests_v9/test_mcp_auth_first_contract.py",
+        "tests_v9/test_notification_delivery_reliability.py",
+        "tests_v9/test_notification_queue_rollout.py",
+        "tests_v9/test_otlp_tracing_delivery.py",
+        "tests_v9/test_outbox_claim_lease.py",
+        "tests_v9/test_outbox_requires_jetstream_ack.py",
+        "tests_v9/test_platform_runtime_db_contract.py",
+        "tests_v9/test_readiness_followup_fixes_20260916.py",
+        "tests_v9/test_readiness_software_repairs.py",
+        "tests_v9/test_recommendation_work_order_idempotency.py",
+        "tests_v9/test_reconciliation_cursor_resumption.py",
+        "tests_v9/test_roadmap_phase23.py",
+        "tests_v9/test_season_workspace.py",
+        "tests_v9/test_signal_cycle_survives_one_bad_row.py",
+        "tests_v9/test_soil_ingest_atomic.py",
+        "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
+        "tests_v9/test_tenant_connection_call_shape.py",
+        "tests_v9/test_v25_advisory_publication.py",
+        "tests_v9/test_variety_policy_resolution.py"
+      ]
+    },
+    {
+      "kind": "u07_writer_parameter_contract",
+      "date": "2026-10-16",
+      "before": 98,
+      "after": 99,
+      "sites": [
+        "tests_v9/test_learning_review_persistence_gap.py"
+      ],
+      "justification": "Explicit one-file admission for recording parameters emitted by the real U07 writer. This test checks SQL binding and tenant GUC calls only; it does not claim native database enforcement. Separate PostgreSQL 18.6 PGlite WASM evidence exercises constraints and RLS, and remains distinct from native PG16 acceptance. No proven_live exemption is added."
+    },
+    {
+      "kind": "irrigation_workflow_and_raster_version_contracts",
+      "date": "2026-10-16",
+      "before": 99,
+      "after": 102,
+      "sites": [
+        "services/decision-service/tests/test_wx10_8_review_queue.py",
+        "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
+        "services/raster-service/test_backfill_processing_version_preflight.py"
+      ],
+      "justification": "Explicit three-file admission for application boundaries: decision review tests capture tenant transaction ordering, JSONB string decoding and scoped query arguments; platform tests capture canonical-source binding, SQL parameters, rollback propagation and retry identity; raster tests execute version/NULL predicates in SQLite while mocking the worker driver and processing boundary. These doubles do not enforce PostgreSQL RLS, UNIQUE, triggers or production persistence. Separate PGlite PostgreSQL 18.6 WASM evidence exercises the exact decision queue transaction under a non-bypass role, but is not native/live PostgreSQL acceptance and adds no proven_live exemption. Native PostgreSQL tests remain explicitly skipped where DATABASE_URL is absent."
+    },
+    {
+      "kind": "remaining_raster_transport_and_readonly_inventory_contracts",
+      "date": "2026-10-16",
+      "before": 102,
+      "after": 104,
+      "sites": [
+        "services/raster-service/test_indicator_provenance_transport.py",
+        "tests_v9/test_element84_legacy_inventory.py"
+      ],
+      "justification": "Explicit two-file admission for application contracts only: provenance tests record persistence arguments and feed actual adapters with deterministic driver responses; inventory tests check read-only transaction arguments, tenant predicates, role and policy refusal, bounded reads and redaction. These doubles do not prove PostgreSQL parsing, RLS enforcement, committed persistence, or production inventory completeness. All nine remaining allocation gaps stay open; no proven_live exemption or database-enforcement claim is added. Native restricted-role SQL acceptance is still required before operation."
+    }
+  ]
 }

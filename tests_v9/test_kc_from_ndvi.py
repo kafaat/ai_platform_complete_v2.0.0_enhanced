@@ -18,15 +18,16 @@ if str(_PLATFORM) not in sys.path:
     sys.path.insert(0, str(_PLATFORM))
 
 from api.water_balance import (  # noqa: E402
-    KC_BY_CROP_STAGE,
     KC_DYN_MAX,
     KC_DYN_MIN,
     WeatherInput,
     kc_from_ndvi,
+    kc_map_for_crop,
     water_balance,
 )
 
-_WHEAT = KC_BY_CROP_STAGE["wheat"]
+# Kc القمح من بطاقته عبر المُوصِل القانونيّ (جدول KC_BY_CROP_STAGE الموازي حُذِف).
+_WHEAT = kc_map_for_crop("wheat")[0]
 
 
 def test_none_ndvi_preserves_static_kc():

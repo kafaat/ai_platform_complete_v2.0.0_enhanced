@@ -143,7 +143,9 @@ def test_with_permission_and_a_ready_database_the_manifest_is_applied_in_order(t
 
 def test_compose_stacks_grant_the_permission_explicitly():
     """المحلّيّ لم يتغيّر سلوكُه: compose يضبط الإذنَ صراحةً في خدمة sahool-migrate."""
-    for name in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+    # docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    for name in ("docker-compose.v9.yml",):
         text = (ROOT / name).read_text(encoding="utf-8")
         # تعريفُ الخدمة (بمسافتين) لا ذِكرُها في depends_on خدماتٍ أخرى (بستّ مسافات).
         block = text.split("\n  sahool-migrate:\n", 1)[1].split("\n  sahool-", 1)[0]

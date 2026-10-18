@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "observed_mask": true,
+      "gate": {
+        "executable": true,
+        "reasons": [],
+        "min_quality": 0.6,
+        "authoritative_indices": [
+          "ndvi"
+        ],
+        "derived_indices": []
+      },
+      "qa_mask_version": "scl/1"
+    },
+    {
+      "observed_mask": false,
+      "gate": {
+        "executable": false,
+        "reasons": [
+          "ndvi_provenance_qa_mask_version_missing"
+        ],
+        "min_quality": 0.6,
+        "authoritative_indices": [
+          "ndvi"
+        ],
+        "derived_indices": []
+      },
+      "qa_mask_version": null
+    },
+    {
+      "observed_mask": null,
+      "gate": {
+        "executable": false,
+        "reasons": [
+          "ndvi_provenance_qa_mask_version_missing"
+        ],
+        "min_quality": 0.6,
+        "authoritative_indices": [
+          "ndvi"
+        ],
+        "derived_indices": []
+      },
+      "qa_mask_version": null
+    },
+    {
+      "row_created_at": "2026-09-03T08:30:00+00:00",
+      "current_cog_available_at": "2026-09-03T08:30:00+00:00",
+      "expected": "2026-09-03T08:30:00+00:00"
+    },
+    {
+      "row_created_at": "2026-09-03T08:30:00+00:00",
+      "current_cog_available_at": "2026-09-04T10:00:00+00:00",
+      "expected": "2026-09-04T10:00:00+00:00"
+    },
+    {
+      "legacy_row_created_at": "2026-09-03T08:30:00+00:00",
+      "current_cog_available_at": null
+    }
+  ],
+  "scope": "Actual writer, DB reader, hydration, COG grid and vegetation gate; SQL network I/O simulated with captured written rows, no native PostgreSQL claim"
+}

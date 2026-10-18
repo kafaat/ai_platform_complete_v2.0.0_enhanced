@@ -13,6 +13,7 @@ import {
 } from '../services/api/irrigationManualOperations';
 import { STORAGE_KEYS } from '../lib/authStorage';
 import IrrigationScenarioComparisonPanel from './IrrigationScenarioComparisonPanel';
+import IrrigationManualCreationPanel from './IrrigationManualCreationPanel';
 
 const STATE_AR: Record<ManualExecutionState, string> = {
   recommended: 'موصى به', approved: 'معتمد', started: 'قيد الري', stopped: 'متوقف',
@@ -101,6 +102,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
         <div className="flex items-center gap-2"><Droplets className="h-5 w-5 text-emerald-300"/><h2 className="font-bold text-slate-100">دورة التشغيل اليدوي</h2></div>
         <p className="mt-1 text-sm text-slate-400">موصى به ≠ معتمد ≠ بدأ ≠ اكتمل ≠ تحقق ≠ رُحّل إلى دفتر المياه.</p>
       </header>
+      {seasonId && <IrrigationManualCreationPanel key={`${fieldId}:${seasonId}`} fieldId={fieldId} seasonId={seasonId} onCreated={() => qc.invalidateQueries({ queryKey: key })} />}
       <IrrigationScenarioComparisonPanel key={`${fieldId}:${seasonId ?? ''}`} fieldId={fieldId} seasonId={seasonId} executions={executionsQ.data ?? []} />
       {(executionsQ.data ?? []).length === 0 ? <EmptyState title="لا توجد عملية ري يدوية" hint="تظهر هنا العمليات المنشأة من توصية ري قانونية؛ لا تولّد الواجهة توصيات أو قيماً مصطنعة." /> : (
         <div className="space-y-3">

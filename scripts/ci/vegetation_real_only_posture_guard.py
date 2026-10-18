@@ -7,7 +7,7 @@ never a synthetic NDVI) in production/staging. Development may opt into soft-fai
 never as the production default.
 
 Two guarantees:
-  1. Production compose (docker-compose.v9.yml, docker-compose.fixed.yml) must declare
+  1. Production compose (docker-compose.v9.yml — the only stack definition) must declare
      VEGETATION_REAL_ONLY with a FAIL-CLOSED default: `${VEGETATION_REAL_ONLY:-1}`.
      A literal "0"/"false" or a `:-0`/`:-false` default is rejected — production must
      not silently degrade.
@@ -22,10 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-PRODUCTION_COMPOSE = [
-    ROOT / "docker-compose.v9.yml",
-    ROOT / "docker-compose.fixed.yml",
-]
+# docker-compose.fixed.yml أُخرِج: بديلٌ نُقل إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+PRODUCTION_COMPOSE = [ROOT / "docker-compose.v9.yml"]
 DEV_OVERRIDE = ROOT / "docker-compose.dev.yml"
 ENV_EXAMPLE = ROOT / ".env.example"
 

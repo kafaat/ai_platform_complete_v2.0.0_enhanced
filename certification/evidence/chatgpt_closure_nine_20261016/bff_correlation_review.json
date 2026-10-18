@@ -1,0 +1,42 @@
+{
+  "reviewed_commit": "34b1919658cdb5f28a85d3918435d9829e284b28",
+  "findings": [
+    {
+      "severity": "P1",
+      "finding": "v235 rejects historical orphan/unbound platform writes; author correcting to nullable trace",
+      "status": "author-owned"
+    },
+    {
+      "severity": "P2",
+      "finding": "036 strict new parent requirement invalidates existing delivery/outcome integration seeds with nonexistent parents",
+      "status": "reported-to-author; preserve strict trigger and repair fixtures"
+    },
+    {
+      "severity": "P2",
+      "finding": "Four actual platform BFF response dictionaries discarded service correlation_id",
+      "status": "fixed in this commit; 24 HTTP witnesses red before, green after"
+    },
+    {
+      "severity": "P2",
+      "finding": "Decision root/create/list/reviewqueue projections omit correlation_id",
+      "status": "author-owned fix"
+    }
+  ],
+  "scope": "Source review plus actual ASGI HTTP route projection. Upstream facade/auth user are test doubles, no DB/runtime acceptance claim",
+  "tests": {
+    "bff_baseline_failed": 24,
+    "bff_final_passed": 24,
+    "combined_bff_review_manual_boundary_passed": 57,
+    "skipped": 0
+  },
+  "frozen_path": false,
+  "log_sha256": {
+    "bff-correlation-red.log": "898504ef4bf624c7d6922e71ad1e77b531dcc4404f1a81cf0ee1dee674096a2a",
+    "bff-correlation-green.log": "46fd8bc55e2b546042d47f5167f3596e240d2267ba78aac73d1c1c46694fac64",
+    "bff-http-final.log": "d1dffdf3a5b603158a6dff5c7c2391df5e692f18e3089b6a3dd6320acf0bd4ee"
+  },
+  "source_sha256": {
+    "services/sahool-platform/api/routers/decision_review.py": "74a11c0b937f79434966c606acf9bd70e74f21e49fe0a8864bdc0f30628a8108",
+    "services/sahool-platform/tests/test_decision_correlation_http_projection.py": "510d6f52dbcd17c6ff7ad076869517b18a54209a018151596d35365f0cd69373"
+  }
+}

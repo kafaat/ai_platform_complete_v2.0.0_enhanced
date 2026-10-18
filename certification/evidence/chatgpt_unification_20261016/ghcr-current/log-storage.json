@@ -1,0 +1,68 @@
+{
+  "purpose": "Exact raw CI bytes are preserved in deterministic gzip archives. Text views escape hidden Unicode marks visibly; no log line removed. Original hashes verify decompressed archives.",
+  "files": [
+    {
+      "view": "job-116412151761.log",
+      "raw_archive": "job-116412151761.log.gz",
+      "raw_sha256": "75c6398f78ad8b9dc4b47120c7dc8bbec7fdf1633a5bd96571eb0ca87621966e",
+      "view_sha256": "fc94ff5e7e1453a34bea6164f8104852ecfeb5b841a6f393875a521d369aa809",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116453631363.log",
+      "raw_archive": "job-116453631363.log.gz",
+      "raw_sha256": "a3f19118d668b9afd6130c9d54584c68903cc92ffe5739cf0d4ec21757f1ffbd",
+      "view_sha256": "41e760234189085fc9cf7e9323a1213ff84c321fb7a4eb0918d5988da0769ad0",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116482112274.log",
+      "raw_archive": "job-116482112274.log.gz",
+      "raw_sha256": "ac13527366a15cb66f9be9cebcac2fc776e608506f1c0aac7a6dc28d15dc6106",
+      "view_sha256": "bd436722d24fba8dede0f7d56be533bed3a1e59ca1d1c7c68b0408d01705155f",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116565126051.log",
+      "raw_archive": "job-116565126051.log.gz",
+      "raw_sha256": "69def0d20b2e68e752da11e0bf25d8810e0c0ac32a5bdd077cd5006b88852e5e",
+      "view_sha256": "261422e8db605a1a67aa1cfe5feeb72a4c62e283cc210387a8e147c727fc6321",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116565127708.log",
+      "raw_archive": "job-116565127708.log.gz",
+      "raw_sha256": "59a5788803ad01f1720aaa08640a837a5c9163547211af27a8d4035ebf68d9a6",
+      "view_sha256": "a75f13631f97a4348f2e4c863547d444fe368d9b226f432db3f902aad0236951",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116565127818.log",
+      "raw_archive": "job-116565127818.log.gz",
+      "raw_sha256": "f97ab1aa8b763439978ca3e3f85974b2a541a95d4a16b2dcb299a1db35174053",
+      "view_sha256": "2a0dba3e5bddcff35938c6031fd88bdac74d4b2f3315e25aef47e0212aa821bd",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    },
+    {
+      "view": "job-116565128418.log",
+      "raw_archive": "job-116565128418.log.gz",
+      "raw_sha256": "a38328300acf65acc3a9f1919801e6fe73d9285985d74c0aa1b74b6d55f12cd0",
+      "view_sha256": "3715ae7a9d58d1681f676db75aa76c8a04c22fc82626c4697741f9a3baba9f47",
+      "escaped_codepoints": [
+        "U+FEFF"
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@
       "kind": "consumer",
       "line": 1086,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -20,17 +21,7 @@
       "kind": "consumer",
       "line": 234,
       "queue": null,
-      "subject": null
-    },
-    {
-      "client_expr": "js",
-      "component": "sahool-platform",
-      "durable": null,
-      "dynamic_expr": "subject",
-      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
-      "kind": "consumer",
-      "line": 107,
-      "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -42,6 +33,7 @@
       "kind": "producer",
       "line": 606,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -51,8 +43,9 @@
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 712,
+      "line": 735,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -64,6 +57,7 @@
       "kind": "producer",
       "line": 178,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -75,17 +69,7 @@
       "kind": "producer",
       "line": 343,
       "queue": null,
-      "subject": null
-    },
-    {
-      "client_expr": "js",
-      "component": "vegetation-analysis-service",
-      "durable": null,
-      "dynamic_expr": "subject",
-      "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-      "kind": "producer",
-      "line": 546,
-      "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -95,8 +79,9 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 382,
+      "line": 383,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -108,6 +93,7 @@
       "kind": "producer",
       "line": 132,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -119,6 +105,7 @@
       "kind": "producer",
       "line": 157,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -130,6 +117,7 @@
       "kind": "producer",
       "line": 61,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -141,6 +129,7 @@
       "kind": "producer",
       "line": 75,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -152,6 +141,7 @@
       "kind": "producer",
       "line": 107,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -163,6 +153,7 @@
       "kind": "producer",
       "line": 72,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     },
     {
@@ -174,73 +165,117 @@
       "kind": "producer",
       "line": 329,
       "queue": null,
+      "resolution": "dynamic",
       "subject": null
     }
   ],
   "limitations": [
     "Dynamic subjects are review-only and excluded from missing producer/consumer findings.",
+    "A subject passed as a name is resolved only from a loop over a module-level tuple of literals or a single local f-string whose placeholders fill whole tokens (as '*'); see each contract's resolution.",
     "Static presence does not prove stream provisioning, delivery, acknowledgement, or runtime reachability.",
     "Producer-only and consumer-only subjects may be intentional external boundaries."
   ],
   "review": {
     "consumer_only_subjects": [
-      "sahool.weather.forecast.updated"
+      "sahool.events.agronomy.projection.requested",
+      "sahool.events.irrigation.execution.completed",
+      "sahool.events.season.closed"
     ],
     "cross_component_duplicate_durables": [],
     "producer_only_subjects": [
-      "sahool.weather.field.overlay.completed"
+      "sahool.tenant.*.satellite.*.computed"
     ]
   },
   "schema_version": 1,
   "scope": "static_literal_nats_jetstream_contracts",
   "subjects": [
     {
-      "consumers": [],
-      "producers": [
+      "consumers": [
         {
           "client_expr": "js",
-          "component": "weather-polygon-worker",
+          "component": "sahool-platform",
           "durable": null,
           "dynamic_expr": null,
-          "file": "services/weather-polygon-worker/src/main.py",
-          "kind": "producer",
-          "line": 193,
+          "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "kind": "consumer",
+          "line": 107,
           "queue": null,
-          "subject": "sahool.weather.field.overlay.completed"
+          "resolution": "module_constant_loop",
+          "subject": "sahool.events.agronomy.projection.requested"
         }
       ],
-      "status": "producer_only",
-      "subject": "sahool.weather.field.overlay.completed"
+      "producers": [],
+      "status": "consumer_only",
+      "subject": "sahool.events.agronomy.projection.requested"
     },
     {
       "consumers": [
         {
           "client_expr": "js",
-          "component": "weather-polygon-worker",
-          "durable": "polygon-worker",
+          "component": "sahool-platform",
+          "durable": null,
           "dynamic_expr": null,
-          "file": "services/weather-polygon-worker/src/main.py",
+          "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
           "kind": "consumer",
-          "line": 165,
+          "line": 107,
           "queue": null,
-          "subject": "sahool.weather.forecast.updated"
+          "resolution": "module_constant_loop",
+          "subject": "sahool.events.irrigation.execution.completed"
         }
       ],
       "producers": [],
       "status": "consumer_only",
-      "subject": "sahool.weather.forecast.updated"
+      "subject": "sahool.events.irrigation.execution.completed"
+    },
+    {
+      "consumers": [
+        {
+          "client_expr": "js",
+          "component": "sahool-platform",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "kind": "consumer",
+          "line": 107,
+          "queue": null,
+          "resolution": "module_constant_loop",
+          "subject": "sahool.events.season.closed"
+        }
+      ],
+      "producers": [],
+      "status": "consumer_only",
+      "subject": "sahool.events.season.closed"
+    },
+    {
+      "consumers": [],
+      "producers": [
+        {
+          "client_expr": "js",
+          "component": "vegetation-analysis-service",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+          "kind": "producer",
+          "line": 553,
+          "queue": null,
+          "resolution": "local_token_template",
+          "subject": "sahool.tenant.*.satellite.*.computed"
+        }
+      ],
+      "status": "producer_only",
+      "subject": "sahool.tenant.*.satellite.*.computed"
     }
   ],
   "summary": {
-    "consumer_only_subjects": 1,
+    "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
-    "dynamic_contracts": 16,
-    "files_scanned": 1211,
+    "dynamic_contracts": 14,
+    "files_scanned": 1221,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,
-    "resolved_contracts": 2,
+    "resolved_contracts": 4,
     "runtime_verified": false,
-    "subjects": 2
+    "subjects": 4
   }
 }

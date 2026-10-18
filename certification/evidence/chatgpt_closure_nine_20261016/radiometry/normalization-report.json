@@ -1,0 +1,13 @@
+{
+  "scope": "Preserve actual provider collection in normalized search APIs; absent collection keeps existing legacy or explicit fallback.",
+  "parent_commit": "dcb94436c9a67eb9fd75074c30000a991cf7df1e",
+  "base_file_same_as_main": true,
+  "red": {
+    "failed": 1,
+    "passed": 2
+  },
+  "green": {
+    "passed": 18
+  },
+  "ruff": "passed"
+}

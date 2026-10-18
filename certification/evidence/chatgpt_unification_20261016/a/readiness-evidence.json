@@ -1,0 +1,30 @@
+{
+  "services/decision-service/main.py": {
+    "changed_function_or_class_AST": [
+      "readyz"
+    ],
+    "all_other_functions_classes_identical": true
+  },
+  "services/tts-service/routers/health.py": {
+    "changed_function_or_class_AST": [
+      "readyz"
+    ],
+    "all_other_functions_classes_identical": true
+  },
+  "services/tts-service/main.py": {
+    "byte_identical_to_base": true
+  },
+  "witness_sha256": "f9d8154c4b2f9636c6e22f5830ee4ad46c8633f01db8bfa038afc5bba3b30c4e",
+  "red": {
+    "base": "239c01a47442df13d9cbb492017afae103b98dc8",
+    "failed": 8,
+    "passed": 1,
+    "skipped": 0
+  },
+  "green": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "ASGI exact route handlers with injected dependencies; no startup/lifespan or deployed service claim"
+  }
+}

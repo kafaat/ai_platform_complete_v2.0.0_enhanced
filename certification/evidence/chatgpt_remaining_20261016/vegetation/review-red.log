@@ -1,0 +1,70 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/sahool-remaining
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 16 items / 11 deselected / 5 selected
+
+services/raster-service/test_indicator_provenance_transport.py FFFFF     [100%]
+
+=================================== FAILURES ===================================
+_____ test_persistence_and_rehydration_do_not_promote_requested_mask[True] _____
+services/raster-service/test_indicator_provenance_transport.py:272: in test_persistence_and_rehydration_do_not_promote_requested_mask
+    assert captured["qa_mask_version"] == ("observed-scl/1" if applied else None)
+E   AssertionError: assert 'cloud-mask/1' == 'observed-scl/1'
+E     
+E     - observed-scl/1
+E     + cloud-mask/1
+____ test_persistence_and_rehydration_do_not_promote_requested_mask[False] _____
+services/raster-service/test_indicator_provenance_transport.py:272: in test_persistence_and_rehydration_do_not_promote_requested_mask
+    assert captured["qa_mask_version"] == ("observed-scl/1" if applied else None)
+E   AssertionError: assert 'cloud-mask/1' == None
+_____ test_persistence_and_rehydration_do_not_promote_requested_mask[None] _____
+services/raster-service/test_indicator_provenance_transport.py:272: in test_persistence_and_rehydration_do_not_promote_requested_mask
+    assert captured["qa_mask_version"] == ("observed-scl/1" if applied else None)
+E   AssertionError: assert 'cloud-mask/1' == None
+_____ test_reprocessing_same_identity_carries_current_cog_publication_time _____
+services/raster-service/test_indicator_provenance_transport.py:305: in test_reprocessing_same_identity_carries_current_cog_publication_time
+    assert write["provenance"].get("data_available_at") == published
+E   AssertionError: assert None == '2026-09-03T08:30:00+00:00'
+E    +  where None = <built-in method get of dict object at 0x7f2fdea7a9c0>('data_available_at')
+E    +    where <built-in method get of dict object at 0x7f2fdea7a9c0> = {'provider': 'cdse', 'stats': {'min': None, 'max': None, 'mean': None, 'std': None, ...}, 'geometry_revision': None}.get
+__________ test_legacy_created_at_is_not_availability_of_replaced_cog __________
+services/raster-service/test_indicator_provenance_transport.py:315: in test_legacy_created_at_is_not_availability_of_replaced_cog
+    assert result["indicator_product"].get("data_available_at") is None
+E   AssertionError: assert '2026-09-03T08:30:00+00:00' is None
+E    +  where '2026-09-03T08:30:00+00:00' = <built-in method get of dict object at 0x7f2fdea8dbc0>('data_available_at')
+E    +    where <built-in method get of dict object at 0x7f2fdea8dbc0> = {'schema': 'sahool.validated_indicator_product/1', 'field_id': '', 'index': 'ndvi', 'date': 'latest', ...}.get
+=============================== warnings summary ===============================
+services/raster-service/raster_validated_product.py:32
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+services/raster-service/raster_validated_product.py:55
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+services/raster-service/raster_indicator_product.py:43
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_indicator_product.py:43: UserWarning: Field name "schema" in "ValidatedIndicatorProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedIndicatorProduct(BaseModel):
+
+services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[True]
+  /workspace/scratch/881ca3efb91d/sahool-remaining/services/raster-service/raster_api_models.py:120: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+    class RawDataProcessResponse(BaseModel):
+
+services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[True]
+services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[False]
+services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[None]
+services/raster-service/test_indicator_provenance_transport.py::test_legacy_created_at_is_not_availability_of_replaced_cog
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[True]
+FAILED services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[False]
+FAILED services/raster-service/test_indicator_provenance_transport.py::test_persistence_and_rehydration_do_not_promote_requested_mask[None]
+FAILED services/raster-service/test_indicator_provenance_transport.py::test_reprocessing_same_identity_carries_current_cog_publication_time
+FAILED services/raster-service/test_indicator_provenance_transport.py::test_legacy_created_at_is_not_availability_of_replaced_cog
+================= 5 failed, 11 deselected, 8 warnings in 0.48s =================

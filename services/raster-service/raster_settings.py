@@ -14,7 +14,8 @@ EARTH_SEARCH_URL = os.getenv("EARTH_SEARCH_URL", "https://earth-search.aws.eleme
 # الافتراض element84: صور Sentinel-2 خام مباشرة (VRT محليّ) بلا وحدات معالجة CDSE.
 # عيّن HISTORICAL_SEARCH_PROVIDER=cdse لاستعمال Copernicus Process API عند توفّر الرصيد.
 HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "element84").strip().lower()
-SENTINEL_COLLECTION = "sentinel-2-l2a"
+# Legacy sentinel-2-l2a has contradictory BOA metadata; do not silently fall back.
+SENTINEL_COLLECTION = "sentinel-2-c1-l2a"
 SENTINEL1_COLLECTION = "sentinel-1-grd"
 LANDSAT_COLLECTION = "landsat-c2-l2"
 LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}

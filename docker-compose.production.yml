@@ -19,10 +19,15 @@ services:
   sahool-field-management:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
-  vegetation-analysis-service:
+  # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 (2026-10-17): كانا
+  # `vegetation-analysis-service` و`sahool-raster` — اسمان لا وجود لهما في v9، فكان
+  # `docker compose -f v9 -f production config` يرفض المشروع كلّه («neither an image nor
+  # a build context») والأمرُ الإنتاجيّ القانونيّ أدناه لا يُقلِع. وصار يحرسه
+  # scripts/ci/compose_roster_guard.py (خدمةُ التراكب موجودةٌ في v9 أو تحمل image/build).
+  sahool-vegetation-analysis:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
-  sahool-raster:
+  sahool-raster-service:
     depends_on:
       production-preflight: {condition: service_completed_successfully}
 

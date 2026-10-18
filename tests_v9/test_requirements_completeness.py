@@ -43,6 +43,8 @@ CHECK = {
     "shapely": "shapely",
     "yaml": "pyyaml",
     "jwt": "pyjwt",
+    # python-jose أُزيل (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01): استيرادُه يعود فيُحمَّر
+    # هنا بلا إعلان، وفي test_python_jose_absent بإعلان.
     "jose": "python-jose",
     "bcrypt": "bcrypt",
     "qdrant_client": "qdrant-client",

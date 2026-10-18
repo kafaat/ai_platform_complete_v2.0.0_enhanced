@@ -1,0 +1,33 @@
+{
+  "commands": {
+    "ollama": null,
+    "qdrant": null,
+    "docker": null,
+    "podman": null,
+    "curl": "/usr/bin/curl"
+  },
+  "packages": {
+    "torch": false,
+    "transformers": false,
+    "sentence_transformers": false,
+    "qdrant_client": false
+  },
+  "ports": {
+    "ollama": "ConnectionRefusedError",
+    "qdrant": "ConnectionRefusedError"
+  },
+  "dns": {
+    "huggingface.co": "gaierror",
+    "registry.ollama.ai": "gaierror",
+    "github.com": "gaierror"
+  },
+  "classification": "INITIAL_PROBE_SUPERSEDED_BY_SUCCESSFUL_NATIVE_RUNTIME_EXECUTION",
+  "normal_https_available": true,
+  "final_runtimes": {
+    "qdrant": "1.19.2",
+    "ollama": "0.40.5",
+    "nomic_manifest_digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
+    "onnx": "1.31.0",
+    "fastembed": "0.9.0"
+  }
+}

@@ -71,6 +71,48 @@ _BIASING_ASSUMPTIONS = frozenset(
 )
 
 
+#: حالةُ **الماء المضاف** في القيد — ما يقوله الدفترُ عن حدِّ ``irrigation_mm`` نفسِه.
+#:
+#: **العطلُ الذي بقي بعد #1070:** خُفِّضت الثقةُ رقماً (0.4) ولم يُسمَّ السبب لمن يستهلك
+#: القيد. الجسرُ المحكوم يقرأ ``deficit_mm`` ويُنفِّذ ريّاً آليّاً بمقداره، وتوصيةُ الحقل
+#: تقرأ ``depletion_mm`` — وكلاهما لا يرى أنّ الريَّ في المعادلة **صفرٌ لأنّه مجهول** لا
+#: لأنّه قِيس صفراً. رقمُ ثقةٍ لا يُميِّز «مجهولُ الريّ» من «تربةٌ افتراضيّة»، والأوّلُ
+#: وحدَه يجعل كمّيّةَ الريّ الموصى بها **فوق** ما يلزم (الاتّجاه معروف، لا ضجيج).
+#:
+#: ``recorded``         صفوفُ ريٍّ مكتملةٌ بأحجامٍ مقيسة (أو مجموعٌ صفريٌّ من صفوفٍ موجودة).
+#: ``unrecorded``       لا صفَّ أصلاً — «لم يُرصَد سجلُّ ريّ»، لا «لم يُروَ».
+#: ``volume_untracked`` صفٌّ موجودٌ بحجمٍ غائب — رُصد ريٌّ وجُهِل مقدارُه.
+#:
+#: **ولا يُخترَع تمييزٌ لا تسنده البيانات:** الحقلُ المطريّ والمرويُّ من بئرٍ بلا تسجيل
+#: كلاهما ``unrecorded`` — والتمييزُ بينهما شرطُ الإغلاق (إعدادُ مصادر الماء لكلّ حقلٍ
+#: وموسم)، لا استنتاجٌ من غياب الصفوف.
+APPLIED_WATER_RECORDED = "recorded"
+APPLIED_WATER_UNRECORDED = "unrecorded"
+APPLIED_WATER_VOLUME_UNTRACKED = "volume_untracked"
+
+
+def applied_water_status(notes) -> str:
+    """حالةُ الماء المضاف من أعلام القيد — مشتقّةٌ من ``notes`` لا من قائمةٍ ثانية."""
+    if "irrigation_unobserved" in notes:
+        return APPLIED_WATER_UNRECORDED
+    if "irrigation_volume_untracked" in notes:
+        return APPLIED_WATER_VOLUME_UNTRACKED
+    return APPLIED_WATER_RECORDED
+
+
+def ledger_notes_from_decision(decision: str | None) -> list[str] | None:
+    """أعلامُ القيد الآليّ من عمود ``decision`` المخزَّن (``auto:a;b`` · ``auto:daily_balance``).
+
+    ``None`` لقيدٍ لم يكتبه العامل (يدويّ أو قديم): لا يُدَّعى عنه ما لم يُعلِنه.
+    """
+    if not isinstance(decision, str) or not decision.startswith("auto:"):
+        return None
+    body = decision[len("auto:") :]
+    if body == "daily_balance":
+        return []
+    return [note for note in body.split(";") if note]
+
+
 def compute_daily_ledger_entry(
     *,
     prev_depletion_mm: float | None,
@@ -191,6 +233,9 @@ def compute_daily_ledger_entry(
             else CONFIDENCE_AUTO
         ),
         "notes": notes,
+        # إضافيّ: يُسمّي سببَ انخفاض الثقة حين يكون الريُّ نفسُه مجهولاً — يقرؤه الجسرُ
+        # المحكوم فلا يُنفِّذ آليّاً عجزاً بُنِي على ريٍّ مجهول (``water_decision_bridge``).
+        "applied_water_status": applied_water_status(notes),
         "decision": ("auto:" + (";".join(notes) if notes else "daily_balance")),
     }
 

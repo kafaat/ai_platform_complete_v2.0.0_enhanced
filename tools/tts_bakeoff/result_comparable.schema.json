@@ -456,7 +456,9 @@
           "type": "object",
           "required": [
             "kind",
-            "binds"
+            "binds",
+            "closure",
+            "integrity_after"
           ],
           "properties": {
             "kind": {
@@ -467,6 +469,61 @@
               "minItems": 1,
               "items": {
                 "type": "string"
+              }
+            },
+            "integrity_after": {
+              "const": "INTACT"
+            },
+            "closure": {
+              "description": "إغلاقُ تشغيل الجرد (run.py --inventory --sandbox bwrap) الذي رُبطت ملفّاتُه وحدها — لا مجلّداتُ النظام",
+              "type": "object",
+              "required": [
+                "files",
+                "sha256",
+                "from_run",
+                "inventory_run",
+                "engine",
+                "manifest_sha256"
+              ],
+              "properties": {
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "manifest_sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "problems": {
+                  "type": "array",
+                  "maxItems": 0
+                },
+                "files": {
+                  "type": "object",
+                  "minProperties": 1,
+                  "propertyNames": {
+                    "pattern": "^/"
+                  },
+                  "additionalProperties": {
+                    "type": "object",
+                    "required": [
+                      "sha256"
+                    ],
+                    "properties": {
+                      "sha256": {
+                        "$ref": "#/$defs/sha256"
+                      }
+                    },
+                    "not": {
+                      "properties": {
+                        "kind": {
+                          "const": "directory"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
               }
             }
           }

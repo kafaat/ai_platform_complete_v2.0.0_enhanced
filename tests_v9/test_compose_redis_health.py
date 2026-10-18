@@ -7,7 +7,8 @@
 
 هذا الحارس (بوّابة CI) يفحص **كلّ** ملفّ compose يُعرّف Redis:
   1. لا يكتب إعداداً إلى /usr/local/etc/redis/ (المجلّد المفقود).
-  2. يستعمل requirepass (سطر أمر أو إعداد بمسار موجود) — لا redis مكشوف.
+  2. يستعمل requirepass (سطر أمر أو إعداد بمسار موجود) أو ACL (``--user``) بمستخدمٍ ``default``
+     معطَّل وكلُّ مستخدمٍ مفعَّل بكلمة سرّ — لا redis مكشوف.
   3. فحص الصحّة يُصادِق (redis-cli -a) — لا NOAUTH.
 """
 
@@ -15,6 +16,7 @@ from __future__ import annotations
 
 import glob
 import os
+import shlex
 
 import pytest
 
@@ -81,16 +83,61 @@ def test_redis_not_writing_to_missing_dir(fname, svc_name, svc):
 _INTERNAL_NOAUTH_OK = {"erpnext-redis-cache", "erpnext-redis-queue"}
 
 
+def _acl_users(svc) -> dict[str, list[str]]:
+    """``--user <name> <rules…>`` في سطر الأمر ⇒ {الاسم: القواعد} (REDIS-SHARED-PASSWORD-NO-ACL-01)."""
+    c = svc.get("command", "")
+    argv = [str(a) for a in c] if isinstance(c, list) else shlex.split(str(c))
+    users: dict[str, list[str]] = {}
+    current: list[str] | None = None
+    for arg in argv:
+        if arg.startswith("--"):
+            current = None
+            if arg == "--user":
+                current = []
+            continue
+        if current is not None:
+            if not current:
+                users[arg] = current
+            current.append(arg)
+    return {name: rules[1:] for name, rules in users.items()}
+
+
+def _acl_enforces_authentication(svc) -> bool:
+    """ACL بديلٌ عن requirepass **بشرطين معاً**: ``default`` معطَّل صراحةً (``off``)، وكلُّ مستخدمٍ
+    مفعَّل (``on``) يحمل كلمةَ سرّ (``>…``) ولا ``nopass``. أيُّهما ناقصٌ ⇒ Redis مكشوف."""
+    users = _acl_users(svc)
+    if "off" not in users.get("default", []):
+        return False
+    enabled = [rules for rules in users.values() if "on" in rules]
+    return bool(enabled) and all(
+        "nopass" not in rules and any(r.startswith(">") and len(r) > 1 for r in rules)
+        for rules in enabled
+    )
+
+
 @pytest.mark.parametrize("fname,svc_name,svc", _cases())
 def test_redis_requires_password(fname, svc_name, svc):
-    """Redis لا يعمل مكشوفاً: requirepass عبر سطر الأمر أو إعداد بمسار موجود."""
+    """Redis لا يعمل مكشوفاً: requirepass عبر سطر الأمر أو إعداد بمسار موجود، أو ACL بلا ``default``."""
     if svc_name in _INTERNAL_NOAUTH_OK:
         pytest.skip(f"{svc_name}: redis داخليّ لـERPNext (بلا مصادقة بحكم العُرف)")
     cmd = _cmd_text(svc)
     writes_conf_to_valid_path = "requirepass" in cmd and _BROKEN_DIR not in cmd
-    assert "--requirepass" in cmd or writes_conf_to_valid_path, (
-        f"{fname}:{svc_name} لا يفرض كلمة مرور Redis (requirepass) — Redis مكشوف."
-    )
+    assert (
+        "--requirepass" in cmd or writes_conf_to_valid_path or _acl_enforces_authentication(svc)
+    ), f"{fname}:{svc_name} لا يفرض كلمة مرور Redis (requirepass/ACL) — Redis مكشوف."
+
+
+def test_acl_branch_rejects_an_enabled_default_or_a_passwordless_user():
+    """الفرعُ الجديد لا يفتح ثغرة: ``default on`` أو مستخدمٌ ``nopass`` ⇒ مكشوف."""
+    ok = {"command": "redis-server --user default off --user a on >pw ~k:* +get"}
+    assert _acl_enforces_authentication(ok)
+    for bad in (
+        "redis-server --user default on >pw --user a on >pw ~k:* +get",
+        "redis-server --user a on >pw ~k:* +get",
+        "redis-server --user default off --user a on nopass ~k:* +get",
+        "redis-server --user default off --user a on ~k:* +get",
+    ):
+        assert not _acl_enforces_authentication({"command": bad}), bad
 
 
 @pytest.mark.parametrize("fname,svc_name,svc", _cases())

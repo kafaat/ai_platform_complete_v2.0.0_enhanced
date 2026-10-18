@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-10-16T17:24:58.362984+00:00",
+  "baseline_sha": "b1ed5a0b89db2d27d6f1548b990fb5ed2cfaf9c6",
+  "method": "Actual FastAPI TestClient requests, authenticated service tenant, first200 warms sparse index, then real profile model/vector/payload admission or URLError transport failure. Exported baseline source runs identical tests.",
+  "baseline": {
+    "failed": 4,
+    "passed": 1,
+    "failure": "Expected503, observed500 after successful200 prime"
+  },
+  "candidate": {
+    "command": "python -m pytest -q tests_v9/test_rag_*.py tests_v9/test_qdrant_probe_classification.py",
+    "passed": 301,
+    "failed": 0,
+    "skipped": 0
+  },
+  "contract": {
+    "known_admission_or_transport": "503 detail=rag_retrieval_unavailable, no annotations or upstream URL",
+    "unauthenticated_or_cross_tenant": "403",
+    "unrelated_plain_ValueError": "500, not swallowed"
+  },
+  "test_sha256": "f21869839963bca441d52b43a39eba1757074991227341deff9bb94f76edefdd",
+  "logs": {
+    "profile-warm-route-red.log": "813f4280eb66eb32458bceb6ab37c6e4808becd29492c561d6b7a560dca2312c",
+    "profile-warm-route-all-green.log": "1d4a98a836893917cf203fb39839aea77c216c51420c525b65aee25045103ae9"
+  },
+  "production_touched": false
+}

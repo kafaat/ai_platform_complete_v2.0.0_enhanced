@@ -508,6 +508,78 @@ def test_route_recommendation_blocks_on_server_bound_salinity(monkeypatch):
     assert "WATER_QUALITY_NOT_DECISION_GRADE" in verdict["blocking_reasons"]
 
 
+def _blend_bindings(limit_ec_ds_m: float):
+    """Two server-bound wells blended 50/50 with fresh certified EC samples (1.0 and 3.0 dS/m)."""
+    from datetime import UTC, datetime, timedelta
+
+    sampled_at = (datetime.now(UTC) - timedelta(days=10)).isoformat()
+    return [
+        {
+            "water_source_id": sid,
+            "priority": prio,
+            "mixing_ratio": 0.5,
+            "maximum_allowed_ec_ds_m": limit_ec_ds_m,
+            "water_quality": {"ec_ds_m": ec, "sampled_at": sampled_at, "quality": "certified"},
+            "non_decision_grade_sample_present": False,
+        }
+        for sid, prio, ec in (("well-a", 1, 1.0), ("well-b", 2, 3.0))
+    ]
+
+
+@_requires_fastapi
+def test_route_recommendation_reports_blend_water_quality(monkeypatch):
+    """WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01: the served recommendation reports the quality of
+    the blend actually applied — EC volume-weighted (1.0/3.0 at 50/50 ⇒ 2.0 dS/m) and SAR
+    honestly not computable (no ion concentrations recorded), not ``mixing_ratio`` echoed raw."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _bound(t, f):
+        return _blend_bindings(limit_ec_ds_m=3.5)
+
+    async def _canonical(u, f, h):
+        return _canonical_state(horizon_days=h)
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _bound)
+    monkeypatch.setattr(route, "_source_canonical_water", _canonical)
+
+    req = route.RecommendationRequest(horizon_days=7)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["mode"] == "operational"
+    salinity = out["facts_provenance"]["water_salinity"]
+    assert salinity["mode"] == "server_bound_sources"
+    blend = salinity["blend_water_quality"]
+    assert blend["ec_ds_m"]["value"] == 2.0
+    assert blend["sar"]["status"] == "not_computable"
+    assert blend["sar"]["value"] is None
+    assert blend["sar"]["reason"] == "source_ions_missing"
+    assert blend["gate_effect"] == "advisory_worst_source_gate_unchanged"
+
+
+@_requires_fastapi
+def test_route_blend_quality_does_not_relax_the_worst_source_gate(monkeypatch):
+    """A blend EC (2.0) under the limit (2.5) must not un-block a source (3.0) that exceeds it."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _bound(t, f):
+        return _blend_bindings(limit_ec_ds_m=2.5)
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _bound)
+
+    req = route.RecommendationRequest(horizon_days=7)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "water_salinity_gate_blocked"
+    assert out["blend_water_quality"]["ec_ds_m"]["value"] == 2.0
+
+
 @_requires_fastapi
 def test_route_recommendation_rejects_client_source_steering(monkeypatch):
     """H5.1: a client-supplied water_source_id that is NOT the field's active binding is rejected

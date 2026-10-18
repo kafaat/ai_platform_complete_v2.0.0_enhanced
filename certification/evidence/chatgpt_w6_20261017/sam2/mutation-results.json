@@ -1,0 +1,23 @@
+{
+  "script_sha256": "bb60420a3f698ba0a5e568d84c7e116519ace6ccb65e06612f20171920551772",
+  "results": [
+    {
+      "mutation": "digest_check_removed",
+      "exit_code": 1,
+      "selection": "bad_download and wrong_digest",
+      "killed": true
+    },
+    {
+      "mutation": "size_check_removed",
+      "exit_code": 1,
+      "selection": "bad_download and truncated",
+      "killed": true
+    },
+    {
+      "mutation": "published_before_verification",
+      "exit_code": 1,
+      "selection": "bad_download and wrong_digest",
+      "killed": true
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "observed_at": "2026-10-16T17:52:59.828126+00:00",
+  "base_sha": "b3eb4c9723910203ea348899e68933184dcdde53",
+  "reason": "Canonical retrieval owns optional profile and shadow preparation; platform module count must not grow for this operation.",
+  "mapping": [
+    {
+      "from": "services/sahool-platform/core/rag/reindex_manifest.py",
+      "to": "services/rag-retrieval/reindex_manifest.py",
+      "before_sha256": "d2d0afc2e61acb99d10ff67798c590c96df63e81848c732f7c80242df6a50a83",
+      "after_sha256": "8a187bc1064dba94e44098afd2ada9e15ec06e149a046b421d774b8ce6edc032",
+      "behavior_ast_identical_except_imports": true
+    },
+    {
+      "from": "services/sahool-platform/core/rag/retrieval_profile.py",
+      "to": "services/rag-retrieval/retrieval_profile.py",
+      "before_sha256": "4b2c0ce0321f5f8ceea0c0b954a1983f014a4a421fda5fcb0b5b8c1bf1ce4e5d",
+      "after_sha256": "12ca9483015cac8d40df8a9f6d76db76154f79722526c0ed92a307404625a9cc",
+      "behavior_ast_identical_except_imports": true
+    }
+  ],
+  "platform_modules": {
+    "before": 683,
+    "after": 681,
+    "unchanged_ceiling": 681
+  },
+  "baseline_and_guard_files_modified": false,
+  "historical_runtime_provenance": "runtime-provenance.json intentionally unchanged; its original source paths and hashes describe that historical measurement, not this relocation.",
+  "verification": {
+    "rag_and_qdrant_suite_passed": 301,
+    "failed": 0,
+    "skipped": 0,
+    "direct_qdrant_consumer_count": 3,
+    "platform_reachability_guard": "PASS",
+    "docker_copy_import_layout": "PASS; installed dependencies, no Dockerengine",
+    "operator_from_outside_checkout_cwd": "PASS --help, no remote request",
+    "independent_review": "evidence/closure-nine/review-rag-resume/owner-relocation-compatibility.json"
+  },
+  "logs": {
+    "owner-relocation-tests.log": "933d250c31929656fbeabfee9ddc070df9788bb08f1bbe46db4150db2962e40a",
+    "owner-module-budget-tests.log": "cb53c77e959a64ec7539b99dbb1e7d325e594d9eb17d8069b3de4dc2872e0526",
+    "owner-platform-module-guard.log": "c9f820512cab89c9a271bd712ec964039cae2939996efa528600361c2e523e8d",
+    "owner-direct-boundary.log": "01c3ead6b635a248e48975ead29726547a9a28cb922f280e969178a13ff687b0",
+    "owner-layout-verification.json": "8e7e10149b3d47edf41b9548fd6229f11623214aa535d645ad38307cd4eab7b4"
+  },
+  "production_touched": false
+}

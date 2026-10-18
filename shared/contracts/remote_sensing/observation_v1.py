@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_serializer, model_validator
 
 from .base import ContractModel, require_aware_utc
 from .enums import PublicationStatus, ValueType
@@ -72,12 +72,35 @@ class ObservationUncertaintyV1(ContractModel):
     detail: str | None = Field(default=None, max_length=512)
 
 
+class RasterObservationProvenanceV1(ContractModel):
+    """Pixel owner's measured lineage, distinct from the canonical publisher."""
+
+    source: Literal["raster-service"] = "raster-service"
+    scene_id: str = Field(min_length=1, max_length=256)
+    qa_mask_version: str = Field(min_length=1, max_length=256)
+    algorithm_version: str = Field(min_length=1, max_length=256)
+    acquisition_datetime: datetime
+    data_available_at: datetime
+
+    _timestamps = field_validator("acquisition_datetime", "data_available_at")(require_aware_utc)
+
+
 class ObservationLineageV1(ContractModel):
     asset_ref: AssetRef
     processing_run_ref: ProcessingRunRef
     input_hash: Sha256Digest
     output_hash: Sha256Digest
     pipeline_version: SemVer
+    raster_provenance: RasterObservationProvenanceV1 | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_lineage(self, handler):
+        data = handler(self)
+        # Existing strict v1 consumers must see the original payload when no
+        # measured raster lineage exists. Preserve every other optional field.
+        if self.raster_provenance is None:
+            data.pop("raster_provenance", None)
+        return data
 
 
 class CanonicalObservationV1(ContractModel):
@@ -114,6 +137,12 @@ class CanonicalObservationV1(ContractModel):
         }[self.indicator.value_type]
         if self.summary.kind != expected:
             raise ValueError("summary_kind_does_not_match_value_type")
+        pixel_owner = self.lineage.raster_provenance
+        if pixel_owner is not None:
+            if pixel_owner.acquisition_datetime != self.acquired_at:
+                raise ValueError("raster_provenance_acquisition_mismatch")
+            if not self.acquired_at <= pixel_owner.data_available_at <= self.published_at:
+                raise ValueError("raster_provenance_availability_invalid")
         if self.supersedes == self.observation_ref:
             raise ValueError("observation_cannot_supersede_itself")
         return self

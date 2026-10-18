@@ -9365,6 +9365,11 @@ fsync يثبت بروتوكول الحفظ المحلي على POSIX واختب�
 
 **2026-10-14 — إسناد الحارس إلى PR #1183 وفحوصه المحلية:** إصلاح `BRAIN-TRANSITION-GUARD-BLIND-TO-ARABIC-STATUS-01` في [PR #1183](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1183)، رأس فتح المسوّدة `a00ff740b09c0a20976b231920ecf72d74b3a8a7` وشجرته `36fa76cae2768bf08f94e0fc046ea29f94092482`؛ أصل المصدر `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ بلا تعديل. اكتمل preflight المحلي بخروج 0 وصفر إخفاقات، مع بوابتي أمن متخطاتين لغياب الأداتين عن PATH؛ قيس Bandit وpip-audit الأصلي لاحقاً بنجاح، وكذلك أمر CI ذي 19 ملف اعتماد، بالاستثناءات القائمة نفسها. الوحدات العادية وتحت لغة C: 8878 ناجحاً و39 متخطى لكل منهما؛ اختبارات المستودع 996 ناجحاً و8 متخطاة، والمنصة 4586 ناجحاً، وحراس لغة C نجحوا 169/169. نجحت حراس النطاق الملتزم الثلاثة على رأس الفتح وبوابة أثر القدرات؛ حزمة الفتح أثبتت 6315 بصمة. الملخص وإيصالات الأوامر وبصمات السجلات في `certification/evidence/arabic_state_guard_20261014/validation_summary.json` و`validation_gate_receipts.json`؛ لا ادعاء JUnit. تظل فحوص GitHub للرأس النهائي والدمج معلقة؛ لا دليل قبول حي أو ترقية verified. الحصيلة 134 open و389 fixed و3 verified؛ خطة135 لقطة تاريخية على `main@9a50aac3` وليست العداد الحالي. وصف عدم إنشاء PR في المدخل السابق محفوظ كتاريخ إعداد الأدلة.
 
+
+## 2026-10-14 — فكّ JWT عبر المفكِّك المشترك بوضع مراقبة (شريحة جزئيّة)
+
+`JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open: نُقل ١١ من ١٨ نداءً في ٨ ملفّات إلى `decode_access_token` عند `64874d80` على `main@56de3d31` (فرعٌ محلّيّ، لا PR ولا نشر). الحكمُ ونوعُ الخطأ لكلّ موضعٍ بلا تغيير؛ السياسةُ الأشدّ تُعَدّ ولا تُفرَض؛ المفتاحُ الفارغ مرفوض (ثقب video-processor). المتبقّي مُعلَن: actuator (GATE-01) · auth ×3 (مُصدِر) · MCP ×2 (ظلّ حزمة `shared`) · tts-service (مؤجَّل لتفادي التداخل مع شريحة الجاهزيّة). الأثر عند الدمج: guardrails-engine · local-ai-rag · odoo-bridge · sahool-platform · supervisor-agent · vegetation-analysis-service · video-processor، وكلُّ خدمةٍ تراقب `shared/**` (منها وكيل الإشعارات). مصنوعاتٌ مولَّدة منحرفة بانتظار إعادة التوليد عند المنسّق.
+**المصدر:** `main@56de3d31` · إصلاح `64874d80` · `shared/security/access_tokens.py` (`decode_access_token`) · الشاهد `tests_v9/test_jwt_decode_shared_decoder.py` (أحمر على main: 11 إخفاقاً و30 خطأً؛ أخضر: 42) · الراتشِت `tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py` · قرار المالك 2026-10-01 (#1118).
 ## 2026-10-14 — الحارس العربي أصبح قانونياً على main في #1183
 
 - **canonical main بعد squash #1183:** `56de3d316fd5243253b6f6d38dc38b331bbddf95`؛ أصل الإصلاح `cc15632d0d5f200d0660a8b41cd576efbdfab5a1` محفوظ كتاريخ مصدر. شجرة الدمج `6a297aae1272217b9e73e055312d7554f851568c` تطابق رأس PR المختبر `0126ae7894b18cd4f3e3ebcc1afcc7dd19392374`. فحوص السياقات الحالية 65 ناجحاً و2 متخطيان مبرران، والعشرون المطلوبة كلها ناجحة؛ أُعيدت وظيفتا إعداد PostgreSQL بعد ECR429 مرة واحدة دون تغيير المصدر. الدليل `certification/evidence/arabic_state_guard_20261014/pr1183_final_ci_review.json` و`pr1183_merge_observation.json`. هذه إحالة الدمج وCI على رأس PR؛ فحوص main والنشر أدلة لاحقة منفصلة، ولا ترقية verified.
@@ -9433,6 +9438,100 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 **جداول `irrigation_*`:** فروقها موثقة في README الأداة، والجسر لم يُبنَ.
 
 لا انتقال لأي فجوة.
+## 2026-10-14 — جودة خليط الآبار تُحسَب: EC مرجَّح حجميّاً وSAR من الأيونات المخلوطة
+
+`WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01` صارت fixed في الكود عند `ed78cf5c` على الفرع `claude/w3-well-blend-quality-20261014` (أساسه `main@56de3d31`؛ غير مدفوع ولا PR). قِيس على main أنّ `resolve_active_bindings` يُعيد `mixing_ratio` كما هو (`services/sahool-platform/api/irrigation_source_binding.py:96`) والراوتر يردّده فقط (`services/sahool-platform/api/routers/irrigation_mpc.py:382`)، ولا حساب لجودة الخليط في الشجرة؛ ولا تداخل مع فروع codex غير المدموجة (سجلّات تخطيط فقط، لا شيفرة). الإصلاح: `compute_blend_water_quality` في `core/irrigation_water_analysis.py` (EC = Σ fᵢ·ECᵢ تقريباً مُعلَناً؛ SAR = Na/√((Ca+Mg)/2) على الأيونات المرجَّحة حجميّاً بإعادة استعمال `compute_sar`؛ نقصٌ ⇒ `not_computable` لا صفر؛ نسبٌ غير صالحة ⇒ رفض)، و`summarize_blend_water_quality` يصله إلى نَسَب الملوحة في توصية MPC إرشاديّاً دون مسّ بوّابة أسوأ مصدر. حدٌّ مقيس: جدول العيّنات بلا أعمدة أيونات، فـSAR الخليط الحيّ `not_computable`.
+
+**المصدر:** `main@56de3d31` · إصلاح `ed78cf5c` · الشاهد `services/sahool-platform/tests/test_irrigation_blend_water_quality.py` و`tests_v9/test_lexicographic_mpc_bridge.py::test_route_recommendation_reports_blend_water_quality` (أحمر على main: ImportError · KeyError؛ أخضر على الفرع). جناح المنصّة 4607 ناجحاً؛ `tests_v9 -k "irrigation or water or blend"` 440 ناجحاً و13 متخطّى. النشر عند الدمج: `sahool-platform` وحده.
+## 2026-10-14 — حدّ معدّل بوّابة Railway العامّة (RAILWAY-GATEWAY-HAS-NO-RATE-LIMIT-01)
+
+- **القياس على main:** `frontend/nginx.conf` بلا أيّ `limit_req`/`limit_conn`، وهو ما يُصيِّره `render_frontend.py` لخدمة الواجهة (`deploy/railway/Dockerfile.frontend`). لا فرع codex غيرُ مدموج يمسّ الملفّ؛ فرعا خطّة الموجة يذكران المعرّف في JSON التخطيط فقط.
+- **الإصلاح:** ثلاث مناطق (api/tiles/auth) على مواقع الوكيل وحدها، 429، مفتاحٌ من آخر عنصر في X-Forwarded-For؛ كتلُ /healthz و/readyz لم تُمسّ.
+- **الدليل:** الشاهد 4 حمراء ⇒ 9 خضراء؛ الاختبارات الاثنا عشر القائمة التي تقرأ nginx.conf مع الشاهد 214 ناجحة (205 على main). nginx 1.24 محلّيّاً: /api/ 42×200 ثمّ 429، والصحّة بلا 429. `frontend/tests/test_nginx_runtime.py` لا يعمل محلّيّاً (nginx 1.24 يرفض `resolve`، وكذلك على main)؛ في CI يعمل بـ`--network=host` فعميلُه 127.0.0.1 المعفى.
+- **ملاحظةٌ خارج النطاق:** خدمة auth تحدّ `check_ip_rate` بـ`request.client.host` وuvicorn لا يثق بترويسات الوكيل (`services/auth/Dockerfile:83` بلا `--forwarded-allow-ips`)، فخلف البوّابة يرى عنوانَ nginx لا العميل.
+- **المصدر:** `main@56de3d316` · إصلاح `f31013afa` (`frontend/nginx.conf`) · الشاهد `tests_v9/test_frontend_gateway_rate_limit_contract.py` (9 خضراء؛ 4 حمراء على إعداد main).
+- **تسجيلُ الملاحظة فجوةً:** `AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01` (open) — ١٢ موضعاً في `services/auth` تأخذ `request.client.host` وتغذّي `check_ip_rate` (`services/auth/main.py:781`، ٢٠/دقيقة)، فكلُّ العملاء خلف البوّابة دلوٌ واحد. لا إصلاح في هذا الفرع؛ الإغلاق يتطلّب قياس X-Forwarded-For حيّاً على staging أوّلاً.
+## 2026-10-15 — جاهزيّة بوّابة الواجهة صارت جاهزيّتَها (FRONTEND-READYZ-IMPERSONATES-PLATFORM-READINESS-01)
+
+- **القياس قبل التغيير:** `location = /readyz` في `frontend/nginx.conf` يُمرِّر إلى `frontend_platform/readyz`. مستهلكوه: عقدُ `docs/architecture/GATEWAY_OPERATIONAL_ENDPOINT_CONTRACT.md` (التمرير لتماثل الدلالة على 3003) واختباران يثبّتان التمرير (`tests_v9/test_gateway_operational_endpoints_contract.py` · `frontend/tests/test_nginx_runtime.py`). لا مُستدعيَ تشغيليّ يحتاج جاهزيّة المنصّة عبرها: `scripts/observability_smoke.sh` يستهدف بوّابة v9، و`useApi.ts` يقرأ /readyz كلِّ خدمة عبر بادئتها، وفحصُ Railway للواجهة على `/healthz`.
+- **الإصلاح:** `78e981da` — /readyz يُجيب من nginx (200 `{"status":"ready","component":"frontend-gateway"}`؛ 503 `not_ready` إن غابت قشرة SPA)، بلا وكيل وبلا `limit_req`؛ عُدِّل العقد واختبارُ التشغيل؛ لم يُضَف مسارٌ بديل لجاهزيّة المنصّة.
+- **الدليل:** الشاهد حالتان حمراوان على إعداد `main@5472740e` (المصدر والمُصيَّر) ⇒ 6 خضراء؛ `pytest -m unit tests_v9 -k "nginx or readyz or gateway or frontend"` 216 ناجحاً و2 متخطّيان؛ ستّةَ عشرَ ملفّاً تقرأ nginx.conf أو /readyz خضراء. nginx 1.24 محلّيّاً بعد نزع `resolve`: /readyz 150×200 والخلفيّات لا تستمع (/runtime-identity 502)، وبلا index.html ⇒ 503. `frontend/tests/test_nginx_runtime.py` لا يعمل محلّيّاً (nginx 1.24 يرفض `resolve`، ولا Docker daemon).
+- **المصدر:** `main@5472740e` · إصلاح `78e981da` · الشاهد `tests_v9/test_gateway_operational_endpoints_contract.py`.
+
+## 2026-10-15 — `UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01`: حارسُ التكرار يقرأ نصَّ المدخل
+
+**القياس قبل الكتابة (مستودعٌ مؤقّت، `merge=union` على `log.md`):** جانبٌ يُصحِّح آخرَ سطرين في آخر مدخل، والآخرُ يُلحِق مدخلاً ⇒ git rc=0، والسطران المحرَّران ثمّ أصليّاهما متتاليان في المدخل نفسه. والعنوانُ لا يتكرّر إلّا إن دخل الكتلةَ المحرَّرة (مدخلٌ قصير حُرِّر عنوانُه ومتنُه)؛ وتعديلُ سطرٍ أوسطَ لا يلاصق الإلحاق يُدمَج نظيفاً. فالفرضيّةُ الأولى («عنوانٌ مكرَّر بمتنٍ متشابه») كانت ستفوت الحالةَ الشائعة كلَّها.
+
+**الإصلاح عند `5e7faae1d`:** شبكةٌ ثالثة في `scripts/ci/brain_duplicate_gap_identity_guard.py` (نفسُ الحارس الحاجب في `structural-lint`، فلا سكربتَ ولا وظيفةَ جديدة)، نطاقُها `log.md` و`ledger.md`:
+- سطرٌ جوهريّ (≥30 حرفاً بعد تطبيع المسافات، لا فاصلَ جدول ولا داخلَ سياج) يتكرّر **حرفيّاً** أو **بادئةً** داخل المدخل الواحد؛
+- أو بتشابه SequenceMatcher ≥ 0.9 **داخل الكتلة المتّصلة وحدها** — القيدُ يُسقط الإيجابيَّ الكاذب الوحيد المقيس (`log.md:9131/9138`، قالبُ «سجلٌّ متأخّرُ الدمج» برقمَي PR مختلفين، 0.932، فقرتان منفصلتان)؛
+- أو عنوانٌ حرفيٌّ مكرَّر بمتنٍ منسوخ ≥ 0.9. العنوانُ نفسه بموضوعٍ مختلف يمرّ.
+
+**ما وُجد قائماً على `main@5472740e`:** أربعةُ أزواجٍ حرفيّة — `log.md:7875/7879` و`7876/7880` (السطران 7879/7880 من #1016 و#1015، وأعاد #1017 إلحاقَهما في 7875/7876) و`ledger.md:2102/2104` و`2103/2105` (#953 ثمّ #954). لا تُحذف (إلحاقيّ)؛ جُمِّدت في `NEAR_DUPLICATE_BASELINE` بالمسار وبصمةِ السطر وعددِ الأزواج، فنسخةٌ ثالثة تحجب، واختبارٌ على الشجرة الحيّة يُبلِّغ أيَّ مدخلٍ بائت.
+
+**الشاهد:** `tests_v9/test_brain_duplicate_gap_identity_guard.py::test_union_on_an_edited_last_entry_is_caught` على ناتج الدمج المُثبَّت، و`…::test_union_merge_of_an_edited_entry_succeeds_while_the_guard_fails` يُعيد الدمج بـgit ويقارن بالمُثبَّت حرفيّاً. حارسُ `origin/main` على الناتج: rc=0؛ الجديد: rc=1. طفرتان مسجَّلتان في `guard_mutation_registry.json` (تعطيلُ القاعدة · رفعُ قيد الكتلة) يقتلهما اختباراهما (5/5 للحارس). الملفّ: 41 اختباراً (كان 23)؛ و`-m unit -k "brain or guard_catalogue or mutation or blocking_surface"`: 456 ناجحاً وسقوطٌ واحد متوقَّع — `GUARD_CATALOGUE.md` يلزم إعادةُ توليده (432⇐434 طفرة).
+
+**الحدّ المُعلَن:** يكشف العَرَض ولا يمنع السبب — `merge=union` باقٍ، وعلاجُه البنيويّ `BRAIN-FRAGMENTED-SOURCE-OF-TRUTH-01` (P2، مؤجَّل). وتعديلٌ أعمقُ من 0.9 بلا بادئة يفلت: من 41 سطراً عُدِّل في مكانه عبر تاريخ الملفّين يفلت 13 (تشابهٌ < 0.9 بلا بادئة) أينما وقعت النسختان. و`hot.md` خارج النطاق، وفيه ثلاثةُ أزواجٍ مقيسة (`hot.md:454/459` حرفيّ، `259/260` و`70/80` تشابهاً) لم تُسجَّل هنا.
+
+انتقال: `UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01` open ⇐ fixed (400 fixed · 124 open · 3 verified).
+
+## 2026-10-15 — الريُّ المجهول لا يُنفَّذ آليّاً: حالةُ الماء المضاف مُسمّاة
+
+**الفجوة:** `UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01` — تبقى `open`.
+
+**ما قيس على `5472740e`:**
+- المُنتِج الوحيد لـ`irrigation_mm` في الميزان هو `run_water_ledger_once` في `phase_runtime_workers.py` (مجمَّد)، ويمرّر `irrigation_unobserved` منذ #1070 فتهبط الثقةُ إلى 0.4.
+- المستهلكون: `water_decision_bridge.process_water_deficit` (يعتمد آليّاً ويُرسل `amount_mm=deficit_mm` متى فُعّل `WATER_DEFICIT_AUTO_EXECUTION_ENABLED`)، و`field_irrigation_recommendation`، وقرّاءُ `depletion_mm` الآخرون (`irrigation_mpc` · `irrigation_engineering` · `irrigation_closed_loop_runtime` · `canonical_water_state` · `field_state_projection` · `fields` · `water_twin` · `water_ledger`).
+- قيدٌ أعلامُه `irrigation_unobserved` بلغ الجسرَ فخرج `execution_queued` — أمرُ ريٍّ على ريٍّ مجهول.
+
+**الإصلاح (`76eebcca`):**
+- `water_ledger_auto`: `applied_water_status` مشتقٌّ من notes، و`ledger_notes_from_decision` لقراءة العمود المخزَّن.
+- `water_decision_bridge`: المرشّحُ يحمل الحالةَ والأعلامَ و`requires_human_review`؛ والاعتمادُ الآليّ يُحجَز بـ`held_for_review_applied_water_unknown` ما لم يكن الريُّ `recorded` صراحةً.
+- `irrigation_recommendation`: `inputs.applied_water_status` وقيدٌ مُعلَن، بلا خصم ثقةٍ ثانٍ.
+- لا مسَّ لمسارٍ مجمَّد ولا لـ`migrations/`.
+
+**ما قيس محلياً:**
+- الشواهدُ الجديدة: ١٢ حالةً حمراء على شيفرة `5472740e` وخضراء بعد الإصلاح.
+- `services/sahool-platform/tests` كاملاً: 4599 ناجحة.
+- `-k "water_balance or irrigation or depletion or water_ledger or water_decision"`: 399 ناجحة.
+- `tests_v9 -m unit -k "irrigation or water"`: 430 ناجحة و2 متخطّاة.
+- ruff check وformat --check على الملفّات الستّة: نظيف.
+
+**لماذا لا إغلاق:** شرطُ الإغلاق (أ) يطلب ألّا يُحسَب `depletion_mm` قُدُماً على حقلٍ غير مُجهَّز، و(ب) و(ج) يطلبان إعدادَ مصادر الماء لكلّ حقلٍ وموسم — مخطَّطٌ جديد وتعديلُ العامل المجمَّد. والعلَمُ يوميٌّ لا يرث الأيّامَ السابقة.
+
+**القرارُ للمالك:** الحجزُ يُعطّل الاعتمادَ الآليّ عمليّاً على كلّ يومٍ بلا ريّةٍ مسجّلة. المرشّحُ يُنشأ للمراجِع البشريّ ولا يُحجَب.
+
+## 2026-10-15 — python-jose أُزيل: PyJWT وحدها، والحكمُ محفوظ (`2a85159f1`)
+
+`DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01` صارت **fixed** على فرعٍ محلّيّ (`claude/w3-pyjwt-migration-20261015` = فرع المفكِّك المشترك مدموجاً مع `main@5472740e`؛ لا PR ولا نشر). المواقعُ المنقولة: `shared/security/access_tokens.py` (`decode_access_token` بخلفيّة PyJWT وحدها و`claim_semantics`، و`verify_access_token`) · `services/auth/main.py` و`routers/session.py` (المُصدِر: توقيع PyJWT، وفكٌّ عبر المفكِّك) · `services/tts-service/main.py` (تبديلُ استيرادٍ ونداء فقط) · `services/local-ai-rag` و`odoo-bridge` و`video-processor` (`backend="jose"` ← `claim_semantics="python-jose"`) · `shared/fcm.py` (توقيع RS256). خريطةُ الأخطاء: `JWTError` ← `jwt.PyJWTError` (يشمل `InvalidKeyError` كما شمل `JWTError` أخطاءَ المفتاح)، فكلُّ مُستدعٍ يُعيد الحالةَ نفسها (401 · 403 في rag-retrieval · `ValueError` في odoo-bridge). ما كان python-jose يقبله يُقبَل: `aud` غائب (يُعَدّ `missing_aud`)، و`iat` في المستقبل؛ والفرقُ الوحيد المقيس: الانتهاءُ عند `exp` نفسه لا بعده بثانية. أُزيل `python-jose`/`ecdsa` من تسعة ملفّات متطلّبات (`PyJWT[crypto]==2.15.0`) وأُزيل إعفاءاهما من `ci.yml` و`preflight.sh` و`config/security_exceptions.json`، ومَرسى طفرة `test_runtime_image_audit_gate` تبع السطر. وكشف الشاهدُ استيرادين مؤجَّلين لـjose في اختباراتٍ ما كان grep الأوّل يراهما، وقائمةَ `find_spec` في `test_video_stream_tenant_authz.py` كانت ستُخمِد ملفّها بصمت بعد الإزالة. **وبقي أثرُ `merge=union` في السجلّ بلا إصلاح هنا:** صفّا `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` و`ROUTER-SIZE-UNGUARDED-AFTER-MAIN-DECOMPOSITION-01` تكرّرا عند دمج `main` في `b518437c` (يحمّران `brain_duplicate_gap_identity_guard`)؛ حذفُ النسختين الأقدم في التزامٍ لاحق يحمّر `brain_append_only_guard` (`JOURNAL_SHRANK`)، فالإصلاحُ إعادةُ بناء الضمّ نفسِه: يُبقى صفُّ JWT من الفرع (يحوي نسخةَ main في «سابقاً») وصفُّ ROUTER-SIZE من main (يحوي نسخةَ الفرع مع إعادة قياس 2026-10-14) — مقيسٌ أنّ كلّاً منهما يحوي الآخر. حُدِّث هنا صفُّ JWT الأوّل (نسخةُ الفرع) وحده. `JWT-DECODE-OUTSIDE-SHARED-SECURITY-01` تبقى open: ١٥ من ١٨، والمتبقّي actuator (GATE-01) وMCP ×2. وكشفٌ جانبيّ: صورةُ المنصّة لا تُثبّت python-jose بينما `core/capabilities.py` و`api/alert_senders.py` يستوردان `shared.fcm` الذي كان يستورده علويّاً — مقيسٌ محلّيّاً (`import shared.fcm` يسقط بلا jose على main وينجح بعد الإصلاح)، ولم يُقَس في الصورة الحيّة.
+**المصدر:** `main@5472740e` · إصلاح `2a85159f1` · الشاهد `tests_v9/test_python_jose_removed.py` (أحمر على main: 13 إخفاقاً و38 خطأً؛ أخضر: 61) · `tests_v9/test_jwt_decode_shared_decoder.py` · `pip-audit` قبل/بعد على الملفّات التسعة (قبل: `CVE-2026-85394` و`PYSEC-2026-1325` في كلٍّ منها؛ بعد: لا شيء، و`nltk PYSEC-2026-3740` في `requirements-dev.txt` قائمٌ قبلُ وبعد) · جناح `-m unit -k "jwt or token or auth or fcm or security or jose"`: main 1 إخفاق/1219 نجاح، بعد 1/1329 (الإخفاقُ نفسُه: soil-service في `test_service_token_constant_time.py`).
+## 2026-10-15 — راتشِتُ الاتّصالات الوهميّة يعدّ صنفاً لا اسماً
+
+`FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01` صارت **fixed** عند `4b105001e` على أساس `main@5472740e` (بلا دفع ولا PR).
+
+**ما تغيّر:** `scripts/ci/fake_connection_debt_guard.py` كان يطابق اصطلاحَ التسمية نصّاً (`class _?Fake…(Conn|Pool)` · `fake_conn…` · `fake_pool…`). صار يكشف البديلَ بنيويّاً بـAST عبر أربع قنوات: صنفُ اتّصالٍ راسٍ على توقيع asyncpg، ومسبحٌ بـ`acquire`، وترقيعُ مُورِّد الاتّصال، ومحاكاةٌ مُهيَّأة.
+
+**المقيس:**
+- الملفّات الوهميّة: 40 ⇒ 98، والأربعون القدامى كلّهم باقون.
+- المُدّعية سلوكَ قاعدة: 9 ⇒ 20، والقائم 1 ⇒ 12 بعد 8 سدادات حيّة.
+- الموقعان المذكوران في الفجوة صارا معدودَين: `_Conn` في `test_farm_fields_tenant_ownership.py`، و`fake_tenant_connection` في `test_geometry_history_decodes_jsonb.py` (يدّعي jsonb).
+
+**الإيجابيّ الكاذب مقيسٌ ومُستبعَد:**
+- وكيلٌ يلفّ اتّصال PG حيّاً (`_PinnedVersion` في `test_decision_sor_role_certify_pg.py`).
+- ترقيعُ `_connect` باتّصال PG16 حيّ (`test_migration_033_pg16.py`).
+- مُحوِّلُ مسبحٍ حول `asyncpg.connect` (`test_d1_raster_invalidation_owner_api_integration.py`).
+- `Skill.execute(self)` و`_Pipe.execute(self)` (Redis).
+- عميلُ HTTP بـ`fetch(url)`، والقفل.
+
+**إعادة الأساس ليست التفافاً:** أُضيف `admissions`، وهو سجلُّ قبولٍ بخطّ اليد تحمله `--generate` ولا تكتبه. فيه قيدان: المسحُ الأوّل (#807، 0 → 40)، و«measurement correction (class not name), 2026-10-15, 40 → 98» بمواقعه الـ58 وتبريره. أيُّ وهميٍّ جديد بعده يُحجَب، وإعادةُ التوليد لا تقبله.
+
+**الشواهد:**
+- 3 حالاتٍ جديدة حمراء على ماسح main وخضراء بعده.
+- `tests_v9/test_fake_connection_debt_guard.py`: 23/23.
+- الطفرات: 11/11 مقتولة، منها 5 جديدة (الرجوع إلى الاسم بينها).
+- الاختيار `-m unit -k "fake_connection or guard_catalogue or mutation or blocking_surface or ratchet"`: 214 ناجحة وإخفاقٌ واحد، هو انجراف `GUARD_CATALOGUE.md`. يحتاج إعادة توليد ولم يُولَّد هنا.
+
+أُضيفت إحالةٌ بلا تغيير حالة في `C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01`.
 
 ## 2026-10-15 — PR #1194 worker heartbeat source fixes
 
@@ -9440,5 +9539,76 @@ PR #1185 نشر إصلاحَي Raster/CDSE من المصدر `6f45d97a8174fd8cc9
 - الدليل: `services/sahool-platform/api/worker_heartbeat.py` و`services/raster-service/worker_heartbeat.py` يقرآن آخر نجاح للعرض دون جعله معيار حياة؛ `services/weather-polygon-worker/src/main.py` يجدد النبضة عند خمول اشتراك JetStream.
 - الشهود: `tests_v9/test_worker_heartbeat_guard_v21.py` و`tests_v9/test_raster_worker_heartbeat_guard_v21.py` و`tests_v9/test_weather_worker_health_probe.py`. اختبارات هذه السلوكيات تُخالف main السابق وتتوافق مع فرع الإصلاح؛ CI النهائي على آخر SHA لا يزال مطلوباً.
 - القيود: `WEATHER_GRID_PIPELINE_ENABLED` لا يزال OFF، ولا ناشر للموضوع بعد؛ لا إثبات تشغيل حيّ، ولا دمج أو نشر بهذا الإدخال.
+
+### 2026-10-16 — ChatGPT unified source recovery (1195/1196/1197)
+
+Recovered a full clone at the pinned main and merged the three pinned source PRs locally. Ten known transferred gaps have source fixes with red/green witnesses; irrigation UI, RAG01 and RAG07 remain open. The original thirteen allocation IDs remain unproven; no 28-gap closure claim. GATE01-ADJ-2026-10-16-001 is a new one-time bytes-scoped U07 authorization under the current user instruction, not an independent signature. PGlite SQL proof is not native PG16 acceptance. Final preflight/remote CI are pending; no push, main merge or deployment in this record. Sources and measured limits: `certification/evidence/chatgpt_unification_20261016/README.md` and `scope.json`; baseline `239c01a47442df13d9cbb492017afae103b98dc8`.
+
+2026-10-16 allocation correction supplied by owner: the original13 are now identified in `certification/evidence/chatgpt_unification_20261016/allocation-roster.json`. Earlier Qdrant1181, raster/CDSE1185 and Arabic-guard1183 fixes predate the allocation and must not count toward28. This resolves attribution only; original-gap source/merge/runtime status is being audited on pinnedmain239c01a4. No merge or deployment authorization is inferred.
+
+### 2026-10-16 — اكتمال مصدر الري وأربع فجوات راستر في التكامل
+
+أُدمجت الرقعتان المراجعتان محلياً: مصدر ري معلن مرتبط بماء قانوني، اعتماد وخطة واستعادة مقيدة، وإصلاح شبكة VRT/NoData/صدق التطبيع/نسخة backfill. حصيلة الحصة المحددة:19 fixed و9 open بلا verified؛ منها11 منقولة في هذا التكامل واثنتان في1194 وست أصلية. يبقى مقياس Element84 مفتوحاً رغم حفظ المعايرة الصريحة، والاحتواء لم يُرفع. الدليل المجمع84 نجاحاً للجاهزية وربط Decision و75 للراستر؛ سجلات الفرع تحفظ19 تخطياً لاختبارات PostgreSQL الأصلية و19 فحص WASM منفصلاً. لا جمع للمجموعات المتداخلة، ولا نسبة قبول حي إليها. المصادر والحدود في certification/evidence/chatgpt_unification_20261016/README.md وscope.json؛ preflight النهائي وCI لا يزالان مطلوبين.
+
+### 2026-10-16 — Remaining allocation source follow-up after PR1199
+
+Started from merged main `9f0bcece487a8e9e2fc1ea590af5f2af5ab17504`. Prepared asset-bound STAC calibration metadata, lossless raster provenance transport with reviewed mask/availability safeguards, and a tenant-scoped read-only inventory tool. Independent review rejected promoting a requested mask to applied evidence and treating row creation as replacement-content availability. RAG runtime experiment and native database acceptance remain unavailable; no remaining gap is promoted. Evidence and limits: `certification/evidence/chatgpt_remaining_20261016/README.md`. This follow-up needs its own exact-tree preflight and CI; earlier #1199 green is not reused.
+
+
+### 2026-10-16 — متابعة الحصة التساعية على أساس 6e8cc0f9
+
+جمع فرع التكامل `chatgpt/close-nine-gaps-20261016` عمل ستة وكلاء؛ المصدر عند `4e796243344a1cba08e38c4775779cba1376b8da`. أربعة إصلاحات مصدرية: معايرة C1، نسب CDSE إلى Vegetation، ملف Nomic الاختياري، وإعداد إعادة فهرسة كاملة. خمس فجوات تبقى open، منها correlation حتى اختبار PostgreSQL الأصلي؛ لا verified ولا ادعاء دمج أو نشر. السبب: فصل الشاهد المصدري عن شروط الجرد والهجرات وتوافق النشر والسبب التاريخي. المصدر والدليل وحدود القياس في [فهرس المتابعة](../certification/evidence/chatgpt_closure_nine_20261016/README.md). الفحص الكامل والـPR الموحد خطوتان لاحقتان، لا نتيجتان مفترضتان.
+
+
+### 2026-10-17 — non-Claude source closure on main 2ca779c6
+
+Owner request: close gaps outside Claude’s unpublished batch. Implemented UTC instant comparison and legacy timestamp compatibility for OFFLINE-CURSOR-BOUND-TO-A-NAIVE-TIMESTAMP-01; added default MSI production/quality membership for SPECTRAL-MSI-ABSENT-FROM-DEFAULT-PRODUCTS-01. Both are source fixed, not deployed or live verified. JWT-DECODE-OUTSIDE-SHARED-SECURITY-01 stays open: MCP’s two decoders now use the canonical observe-mode implementation; actuator and enforce rollout remain. No mutation changes, migration execution, frozen source edits, deployment changes or Claude work were included. Source base: `2ca779c6`; implementation branch: `chatgpt/non-claude-gap-closure-20261017`. Evidence and explicit limits: `certification/evidence/non_claude_gap_closure_20261017/README.md`. Railway only confirmed four migrator variable names in each environment; OAuth withheld values, so the operational credential gap remains open. Its code fix had already landed in #1170; no duplicate repair.
+
+متابعة الدليل لنفس الشريحة: فجوة CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01 أصبحت fixed في المصدر بعد قراءة شاهد PostgreSQL الأصلي النهائي لـ#1201 (62 ناجحاً، الوظيفة 117231284805)، دون تطبيق إنتاجي. الدليل: certification/evidence/non_claude_gap_closure_20261017/correlation_pg16_receipt.json. المفتوح الرسمي في المرشح 96.
+
+قياس الشريحة خارج Claude: جناحا المستودع والمنصة نجحا؛ جناح الوحدة 9349 ناجحاً و40 متخطياً وفشل واحد لأساس العناوين اليتيمة، صُحح بخفضه 211→209 ثم نجحت 24 حالة مركزة. Raster: 614 ناجحاً وحالتا PostgreSQL متخطيتان محلياً. Gitleaks بلا تسريبات. أثر القدرات يُشتق بعد الالتزام؛ لا ادعاء preflight شامل أخضر جديد.
+
+
+### 2026-10-17 — Close the consumed correlation grant lifecycle
+
+PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHub merge evidence (`2ca779c6`, merged 2026-10-16T23:03:04Z) and verified all seven authorized/supplemental blob bindings against that merge tree. Stamped GATE01-ADJ-2026-10-16-002 CONSUMED with the merge receipt; preserved its scope and exact byte bindings. No new authority, frozen source edit, production migration or gap-state promotion. Source: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-16-002.json`. This is lifecycle bookkeeping required by GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01, not a gate exception.
+
+### 2026-10-17 — الموجة الرابعة (Claude): ١٥ فجوة في PR واحد — ٩ fixed و٦ جزئيّة تبقى open
+
+على `main@0e528161`، بقرارات المالك 2026-10-15 («Approve all 14» ثمّ إضافة AUTH-IP). أُعيد تنفيذ العمل كاملاً بعد إعادة تشغيل الحاوية التي أضاعت النسخة الأولى غير المدفوعة؛ والفروع هذه المرّة دُفعت نسخاً احتياطيّة بعد كلّ التزام. **fixed:** OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01 وOUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01 (`bf6fd06e3`، تفويض GATE01-ADJ-2026-10-17-001) · FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01 (`1f6ad553f`) · C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01 (`668725727`) · NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01 (`d2faac8e4`، v9) · POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01 (`cd9ad2a3e`، v9) · TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01 (`10a754772`) · WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01 (`7f681edc4`) · COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01 (`9514d4b60`). **جزئيّة (open):** TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01 · GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 · A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01 · PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01 · RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01 · AUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01. لكلٍّ شاهدٌ أحمر على `0e528161` أخضر بعده؛ والطفرات ٨١٧ ⇒ ٨٢٨ بعد إعادة إرساء الهامش (الجولة `38988030295`). ومصالحةُ الإسناد: أربعة صفوف كانت تقول «لم يُدمج» صارت تُسند إلى #1198 (`239c01a4`). وقياسٌ حيّ لبوّابة staging حُفظ في `certification/evidence/gateway_live_probe_staging_20261015/`.
+
+### 2026-10-17 — دمج #1205 وختم GATE01-ADJ-2026-10-17-001
+
+دمج المالك #1205 (squash مثبَّت على الرأس المُختبَر `8eee151ab`) ⇒ `f3fd099e9` على `main`، وشجرةُ الدمج = شجرةُ الرأس المُختبَر (`64d4a078`). CI على الرأس: 93 ناجحة · 2 متخطّاة · 0 فاشلة. بايتات `services/sahool-platform/api/event_bus.py` في شجرة الدمج = المأذونة (`032a6e7d`)، فحجب `gate01_frozen_path_guard` كلَّ فرعٍ لاحق (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01) حتى الختم؛ خُتم التفويض `CONSUMED` مع `merge_sha` وإيصال الدمج. Railway (قراءة فقط): نشرات `f3fd099e9` بدأت في الإنتاج وstaging، والمهاجر `SKIPPED` في البيئتين (لا شيء تحت `migrations/`). لا تفويض جديد ولا ترقية إلى `verified`. المصدر: `docs/architecture/gates/adjudications/GATE01-ADJ-2026-10-17-001.json`.
+
+
+### 2026-10-17 — قياس قبول staging دون ترقية حالة غير مثبتة
+
+قبول staging قرائي لإصلاحَي PyJWT وTTS، أساس `0e528161` والمنصة `d6ddf38c` (#1203): هوية الصورة200 وحقول بلا توكن401 مع معرفات الطلب محفوظة. لا حساب اختبار متاح، فحالات RS256 الأربع غير منفذة وتبقى DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 fixed؛ سجل عائق PYJWT-RS256-STAGING-ACCEPTANCE-MISSING-TEST-IDENTITY-01. مستهلك TTS المنشور قديم، فقبول الأنماط الثلاثة غير ممكن الآن وتبقى TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01 open. لا تغيير Railway أو مصدر تشغيل أو هجرات أو إنتاج؛ لا verified. المصدر: `certification/evidence/pyjwt_rs256_staging_acceptance_20261017/result.json` و`certification/evidence/tts_policy_v2_staging_acceptance_20261017/result.json`.
+
+### 2026-10-17 — متابعة قبول staging بعد إنشاء هوية اختبار مأذونة
+
+بعد تفويض المالك بإنشاء حساب staging تجريبي، نجح التسجيل201 ثم الدخول200 للحساب staging-acceptance-20261017-44cdcedb@example.com عبر البوابة. توكن auth من نوع RS256 مقيس: الحالة (أ) لقائمة الحقول200، والحالة (ب) بتعديل بايت من التوقيع401. زال عائق الهوية، وتبقى (ج) غير منفذة لغياب المفتاح العام الفعلي و(د) الاختيارية غير منفذة. DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01 تبقى fixed؛ لا verified ولا إصلاح شيفرة. عائق القبول المسجل يبقى جزئياً حتى استيفاء (ج). لا كلمات سر أو توكنات محفوظة؛ الأدلة في certification/evidence/pyjwt_rs256_staging_acceptance_20261017/manifest.json وبصمتها 728f4c118ed4107c30e072407adaf4a94d0946d839b85edbad87efa0dd819694. TTS ما زال غير قابل لقياس v2 بالقارئ المنشور؛ لم يتغير أي إعداد Railway أو نشر أو إنتاج.
+
+### 2026-10-17 — الموجة الخامسة (Claude): أربع شرائح جاهزة في PR واحد بقرار المالك
+
+على `main@d301c1362`. بقرار المالك (2026-10-17) جُمعت الشرائح الجاهزة في PR واحد، وتتبعها Redis في PR مستقلّ. **fixed:** REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01 (`a71262bd7`، حساب وعرض حسب المصدر) · NATS-LIVE-TEST-READS-STREAM-COUNT-BEFORE-STORAGE-01 (`124f9dc05`، شاهدٌ من #1205 كان يتذبذب). **جزئيّة تبقى open:** GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 (`cd2584615`، الباقي قياسٌ حيّ على أوّل PR) · A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01 (`53d6c8edf`، صفرٌ من 383 تحرّك لأنّ الكتالوج لا يعلن مستهلكاً خدميّاً). **إعادة قياس بلا إصلاح** (`1cba75b35`): OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01 (الأساس 67) · CONNECTIVITY-AUDIT-20260910. **فجواتٌ جديدة:** FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01 · VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01 · CATALOG-DECLARES-NO-SERVICE-CONSUMER-FOR-HTTP-OPERATIONS-01. المصدر: `sahool-brain/gaps/registry.md` والدليل `certification/evidence/architecture_remeasure_20261017/`.
+
+### 2026-10-17 — W5: شواهد الفجوات المتبقية دون إصلاحات تشغيلية
+
+بتوجيه المالك جُمعت البنود 2–5 في فرع واحد؛ #1204 لجلسة أخرى. مصدر الاختبارات والأدلة `fbb204449f1326f92455cc390ab906b4a867244d` على `main@ec3927ce`: 24 اختبار واجهة و54 اختبار migrator/SAM2 و37 اختبار قياس RAG/حارس النص ناجحة؛ TypeScript ناجح؛ 7 حالات سلوكية جديدة تقتل 3 طفرات. RAG: 32 سؤالاً مُرقّم الإصدار، القياس الحي محجوب والنتائج المنفصلة لـBM25 تاريخية فقط. PG16: أربع حالات جديدة جُمعت داخل ملف 034 الذي يشغله CI القائم؛ لا نجاح تشغيل محلي مدّعى ولا ملف workflow معدل. SAM2: وزن Meta الرسمي طابق بصمته المنشورة، دون تثبيت. كل الفجوات المعنية open، ولا verified أو تعديل migrations/MANIFEST/ملفات Claude أو Railway أو نشر. [الدليل](../certification/evidence/chatgpt_w5_20261017/README.md).
+
+### 2026-10-17 — دمج #1208، وشريحة Redis ACL في PR مستقلّ
+
+دمج المالك #1208 ⇒ `f3936a771` (شجرة = الرأس المُختبَر `c2c492a31`؛ CI 71 ناجحة و2 متخطّاة؛ Railway: `sahool-frontend` وحدَه أُعيد بناؤه والمهاجر SKIPPED). الجلبُ الحيّ لتعليقات المراجعة قيس على ذلك الـPR (`HTTP 200` للصفحتين). ثمّ شريحة Redis على `main@f3936a771`: REDIS-SHARED-PASSWORD-NO-ACL-01 ⇒ `fixed` لـcompose v9 (`3b5f9e6a4`). وفجواتٌ جديدة: JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 (أمن، عالية) · REDIS-ON-RAILWAY-STILL-USES-THE-SHARED-PASSWORD-01 · RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01. المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
+
+### 2026-10-17 — TTS على staging: مستهلك v2 منشور، والقبول معلَّق
+
+بتفويض المالك (staging وحده): مصدرُ `sahool-tts-service` على staging صار `main@d301c136` مثبَّتاً بدل `claude/project-exploration-dtjw3p@0eaa1e4e`؛ النشر `822c5f96` نجح (20:01Z) وفحصُ `/readyz` مرّ والخدمة اتّصلت بـRedis. الإنتاج لم يُمَسّ (مصدره `main` بلا تثبيت ولا تغييراتٍ معلّقة). نقطةُ الرجوع `2705c13b`. تأكيدُ الترحيل انتهت مهلتُه ثلاثاً لكنّه طُبِّق. **الباقي لـTTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01:** قياسُ v2 (`local_only` · `redacted_external` · `full_external`) يحتاج هويّة اختبار staging؛ لا ترقية قبله. المصدر: سجلّ نشر Railway `822c5f96`.
+
+### 2026-10-17 — إبطال JWT على خادم Redis واحد (compose)
+
+JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 ⇒ `fixed` لـcompose v9 (`9e0328499`، PR مكدَّس فوق شريحة Redis ACL #1210). والإصلاح كشف فجوةً مجاورة: PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01 (المنصّة لا تقرأ أرضيّة التوكن). المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
+> **2026-10-17 — W6 (`4d0799f3`):** طلب المالك ستة إغلاقات خارج عمل Claude؛ تحقق إغلاق SAM2 على مستوى المصدر/التزويد فقط. تنزيل Meta الفعلي طابق البصمة والحجم، و28 اختباراً نجحت، و3 طفرات كُذبت بعد تشديد شاهد سبب الحجم. لا يُدّعى إنجاز الستة ولا قبول حي. [الدليل](../certification/evidence/chatgpt_w6_20261017/README.md).
 > **2026-10-15 — ET0: المُدخَل المستحيل لا يُحسَب «validated» + مثال FAO-56 محلول + مطابقة نسخة WOFOST (محلّيّاً، لا دفع):** `compute_et0` صار يرفض المُدخَلات خارج المعقوليّة الفيزيائيّة ويُعلنها في `invalid_inputs` (إشعاعٌ صفر/سالب/فوق Rso، رياحٌ سالبة، RH خارج نطاق الضجيج، Tmax<Tmin، خطّ عرض خارج ±90، DOY خارج [1،366]، ارتفاعٌ مستحيل) بدل حسابها `validated` أو رمي `ValueError` — فصار عقد «لا يرمي» مقيساً. أُضيف مثال FAO-56 رقم 18 من الطرف إلى الطرف (3.88 مقابل 3.9)، واختبار golden-master يُثبت أنّ `shared/wofost/engine.py:hargreaves_et0` تطابق المصدر الكنسيّ على شبكة عالميّة بعد مواءمة الأرضيّة (0.5→0.0) وقصّ وسيط `acos`. الاختبارات الجديدة: 112 تمرّ، و40 منها تفشل على الكود السابق.
 > **2026-10-15 — ET0 بعد المراجعة العدائيّة (محلّيّاً، لا دفع؛ تجميد الدمج قائم):** أُصلح انحدارٌ كشفته المراجعة في الالتزام الأوّل: سلسلة ET0 كانت تفقد كلّ يوم بعد 31 ديسمبر (DOY > 366 صار مرفوضاً) — الآن تلتفّ DOY. وأيّ رفض يمنع `validated`، والمكسور الأساسيّ `invalid` لا `insufficient`، و`FORMULA_VERSION` ⇒ 1.1.0، وسقف الإشعاع لا يرفض يوماً صافياً في المرتفعات بلا ارتفاع، وDOY يقبل القيم الصحيحة غير-int. المنصّة: 422 بأسماء الحقول المرفوضة بدل 503/500. الاختبارات: `services/weather-service/tests/test_et0_reference_and_input_validity.py` و`tests_v9/test_wofost_hargreaves_matches_canonical.py` و`services/sahool-platform/tests/test_weather_et0_client.py`. القرار في `decisions/ledger.md` (2026-10-15).

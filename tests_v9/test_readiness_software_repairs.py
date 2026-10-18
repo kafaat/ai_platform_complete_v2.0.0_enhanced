@@ -296,7 +296,11 @@ def test_rag_search_authenticates_before_reading(monkeypatch, tenant, token, exp
     module = load_service(monkeypatch, "rag-retrieval")
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unit-credential")
     reads = []
-    monkeypatch.setattr(module, "_ensure_sparse_index", lambda: reads.append(True))
+    monkeypatch.setattr(
+        module,
+        "_ensure_sparse_index",
+        lambda: reads.append(True) or {"serving_chunks_by_tenant": {"t1": 1}},
+    )
     monkeypatch.setattr(module._retriever, "retrieve", lambda *a, **kw: [])
     headers = {"X-Tenant-Id": tenant}
     if token:
@@ -311,7 +315,9 @@ def test_rag_search_authenticates_before_reading(monkeypatch, tenant, token, exp
 def test_public_rag_uses_verified_jwt_tenant(monkeypatch):
     module = load_service(monkeypatch, "rag-retrieval")
     monkeypatch.setattr(module, "_verify_search_user", lambda _token: "t1")
-    monkeypatch.setattr(module, "_ensure_sparse_index", lambda: {})
+    monkeypatch.setattr(
+        module, "_ensure_sparse_index", lambda: {"serving_chunks_by_tenant": {"t1": 1}}
+    )
     monkeypatch.setattr(module._retriever, "retrieve", lambda *a, **kw: [])
     client = TestClient(module.app)
     assert (
@@ -345,7 +351,7 @@ def test_public_rag_uses_verified_jwt_tenant(monkeypatch):
     ],
 )
 def test_public_rag_verifies_signed_access_tokens_before_retrieval(monkeypatch, case, expected):
-    from jose import jwt
+    import jwt
 
     module = load_service(monkeypatch, "rag-retrieval")
     secret = token_urlsafe(48)
@@ -365,7 +371,11 @@ def test_public_rag_verifies_signed_access_tokens_before_retrieval(monkeypatch, 
         claims["aud"] = "another-service"
     token = jwt.encode(claims, secret + "bad" if case == "signature" else secret, algorithm="HS256")
     reads = []
-    monkeypatch.setattr(module, "_ensure_sparse_index", lambda: reads.append(True))
+    monkeypatch.setattr(
+        module,
+        "_ensure_sparse_index",
+        lambda: reads.append(True) or {"serving_chunks_by_tenant": {"t1": 1}},
+    )
     monkeypatch.setattr(module._retriever, "retrieve", lambda *a, **kw: [])
     response = TestClient(module.app).post(
         "/v1/search",
@@ -377,9 +387,9 @@ def test_public_rag_verifies_signed_access_tokens_before_retrieval(monkeypatch, 
 
 
 def test_public_rag_production_uses_rsa_verification_key(monkeypatch):
+    import jwt
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import rsa
-    from jose import jwt
 
     module = load_service(monkeypatch, "rag-retrieval")
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
+import json
 import sys
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -215,7 +218,9 @@ def test_absent_weights_keep_the_process_up_and_answer_503_with_a_named_reason(
 
 
 def test_every_documented_sam2_compose_surface_wires_checkpoint_digest():
-    for rel in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+    # docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ بقرار مالك
+    # (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+    for rel in ("docker-compose.v9.yml",):
         text = (ROOT / rel).read_text(encoding="utf-8")
         assert "sahool-sam2-inference:" in text
         assert "SAM2_CHECKPOINT_SHA256: ${SAM2_CHECKPOINT_SHA256:-}" in text
@@ -223,5 +228,130 @@ def test_every_documented_sam2_compose_surface_wires_checkpoint_digest():
 
 def test_sam2_deployment_runbook_requires_digest_and_verifies_bytes():
     text = (ROOT / "docs" / "SAM2_DEPLOYMENT.md").read_text(encoding="utf-8")
-    assert "SAM2_CHECKPOINT_SHA256=<64-hex-sha256>" in text
-    assert "sha256sum -c -" in text
+    assert "python scripts/ops/provision_sam2_checkpoint.py" in text
+    assert (
+        "SAM2_CHECKPOINT_SHA256=7442e4e9b732a508f80e141e7c2913437a3610ee0c77381a66658c3a445df87b"
+        in text
+    )
+
+
+@pytest.fixture
+def provisioner():
+    spec = importlib.util.spec_from_file_location(
+        "_sam2_provision", ROOT / "scripts/ops/provision_sam2_checkpoint.py"
+    )
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@pytest.fixture
+def checkpoint_stream(provisioner, monkeypatch):
+    payload = b"approved-checkpoint-bytes"
+    monkeypatch.setattr(provisioner, "SIZE", len(payload))
+    monkeypatch.setattr(provisioner, "SHA256", hashlib.sha256(payload).hexdigest())
+    monkeypatch.setattr(provisioner, "CHUNK_SIZE", 5)
+    return payload
+
+
+def test_provision_pin_matches_independently_measured_publisher_bytes(provisioner):
+    evidence = json.loads(
+        (
+            ROOT
+            / "certification/evidence/chatgpt_w5_20261017/sam2/official-weight-verification.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert provisioner.URL == evidence["official_url"]
+    assert provisioner.SHA256 == evidence["sha256"] == evidence["expected_sha256"]
+    assert provisioner.SIZE == evidence["bytes"] == evidence["expected_bytes"]
+
+
+def test_provision_publishes_only_complete_verified_bytes(
+    provisioner, checkpoint_stream, monkeypatch, tmp_path
+):
+    final = tmp_path / provisioner.FILENAME
+    final.write_bytes(b"existing-checkpoint")
+
+    class ObservedStream(io.BytesIO):
+        def read(self, size):
+            assert final.read_bytes() == b"existing-checkpoint"
+            return super().read(size)
+
+    def download(url, timeout):
+        assert url == provisioner.URL
+        assert timeout == 60
+        return ObservedStream(checkpoint_stream)
+
+    monkeypatch.setattr(provisioner.urllib.request, "urlopen", download)
+    receipt = provisioner.provision(tmp_path)
+    assert final.read_bytes() == checkpoint_stream
+    assert receipt["sha256"] == hashlib.sha256(final.read_bytes()).hexdigest()
+    assert receipt["bytes"] == len(checkpoint_stream)
+    assert receipt["status"] == "provisioned"
+    assert receipt["path"] == str(final.resolve())
+    assert sorted(p.name for p in tmp_path.iterdir()) == [provisioner.FILENAME]
+
+
+@pytest.mark.parametrize("existing", [True, False])
+@pytest.mark.parametrize(
+    "fault", ["wrong_digest", "truncated", "oversized", "interrupted", "http_error"]
+)
+def test_bad_download_never_publishes_or_destroys_installed_bytes(
+    provisioner, checkpoint_stream, monkeypatch, tmp_path, existing, fault
+):
+    final = tmp_path / provisioner.FILENAME
+    if existing:
+        final.write_bytes(b"keep-existing")
+
+    class InterruptedStream(io.BytesIO):
+        def read(self, size):
+            if self.tell():
+                raise OSError("connection lost")
+            return super().read(size)
+
+    def download(*_args, **_kwargs):
+        if fault == "http_error":
+            raise urllib.error.HTTPError(provisioner.URL, 403, "Forbidden", {}, None)
+        if fault == "interrupted":
+            return InterruptedStream(checkpoint_stream)
+        data = {
+            "wrong_digest": b"x" * len(checkpoint_stream),
+            "truncated": checkpoint_stream[:-1],
+            "oversized": checkpoint_stream + b"x",
+        }[fault]
+        return io.BytesIO(data)
+
+    monkeypatch.setattr(provisioner.urllib.request, "urlopen", download)
+    reason = {
+        "wrong_digest": "checkpoint_digest_mismatch",
+        "truncated": "checkpoint_size_mismatch",
+        "oversized": "checkpoint_size_mismatch",
+        "interrupted": "connection lost",
+        "http_error": "Forbidden",
+    }[fault]
+    with pytest.raises((OSError, ValueError), match=reason):
+        provisioner.provision(tmp_path)
+    if existing:
+        assert final.read_bytes() == b"keep-existing"
+    else:
+        assert not final.exists()
+    assert not list(tmp_path.glob(".sam2-*.part"))
+
+
+def test_check_mode_rehashes_bytes_without_download(
+    provisioner, checkpoint_stream, monkeypatch, tmp_path, capsys
+):
+    final = tmp_path / provisioner.FILENAME
+    final.write_bytes(checkpoint_stream)
+    monkeypatch.setattr(
+        provisioner.urllib.request, "urlopen", lambda *_a, **_k: pytest.fail("network")
+    )
+    assert provisioner.main(["--check", "--output-dir", str(tmp_path)]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["sha256"] == hashlib.sha256(checkpoint_stream).hexdigest()
+    final.write_bytes(b"x" * len(checkpoint_stream))
+    assert provisioner.main(["--check", "--output-dir", str(tmp_path)]) == 1
+    captured = capsys.readouterr()
+    assert not captured.out
+    assert json.loads(captured.err)["error"] == "checkpoint_digest_mismatch"

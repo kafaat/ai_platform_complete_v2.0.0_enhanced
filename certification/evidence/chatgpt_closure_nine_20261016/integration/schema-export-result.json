@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-16T17:17:39.008978+00:00",
+  "pydantic": "2.13.4",
+  "command": "PYTHONPATH=. ../ci-venv/bin/python ../evidence/closure-nine/governance/regenerate_remote_sensing_exports.py",
+  "files": [
+    {
+      "path": "shared/contracts/remote_sensing/schemas/CanonicalObservationV1.schema.json",
+      "sha256": "c862ae226761ddd1fd879107cf258a779dbb815d0567334c372cc6ec1fd0155b",
+      "model_export_exact": true,
+      "draft_valid": true,
+      "new_reader_allows_field_omission": true,
+      "old_reader_rejects_new_field": true
+    },
+    {
+      "path": "shared/contracts/remote_sensing/schemas/ObservationPublishedEventV1.schema.json",
+      "sha256": "f54eefec6d90585ba5220700c0fd8b5711c175ab756bd3f474b028cc0dbd6d18",
+      "model_export_exact": true,
+      "draft_valid": true,
+      "new_reader_allows_field_omission": true,
+      "old_reader_rejects_new_field": true
+    }
+  ],
+  "diff": "schema-export.diff",
+  "compatibility": "New optional definition accepts omission. Old strict lineage readers reject raster_provenance, including null. Python model cross-field timestamp validators are not expressible by these generated JSON schemas. No backwards-compatible old-reader claim.",
+  "staged": false,
+  "committed": false
+}

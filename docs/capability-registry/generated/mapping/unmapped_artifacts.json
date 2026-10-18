@@ -12,6 +12,10 @@
     "kind": "tests"
   },
   {
+    "path": "docs/runbooks/runtime_acceptance_20261016/catalog_snapshot.sql",
+    "kind": "database"
+  },
+  {
     "path": "frontend/.github/workflows/structural-lint.yml",
     "kind": "web"
   },
@@ -21,10 +25,6 @@
   },
   {
     "path": "frontend/README.md",
-    "kind": "web"
-  },
-  {
-    "path": "frontend/docker-compose.web.yml",
     "kind": "web"
   },
   {
@@ -81,6 +81,10 @@
   },
   {
     "path": "frontend/postcss.config.js",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/AddFieldWithMap.pivot.behavior.test.tsx",
     "kind": "web"
   },
   {
@@ -1492,6 +1496,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/FieldWorkspaceRouteShell.behavior.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
     "kind": "web"
   },
@@ -1537,6 +1545,14 @@
   },
   {
     "path": "frontend/src/sections/IrrigationEngineeringWorkspace.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualCreationPanel.tsx",
     "kind": "web"
   },
   {
@@ -1780,6 +1796,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/services/api/irrigationManualCreation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationManualCreation.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api/irrigationManualOperations.ts",
     "kind": "web"
   },
@@ -1981,6 +2005,14 @@
   },
   {
     "path": "migrations/v233_event_outbox_claim_lease.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v234_learning_agronomic_review.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v235_decision_chain_correlation.sql",
     "kind": "database"
   },
   {
@@ -2188,6 +2220,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/widgets/carbon_not_measured_card.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/widgets/form_kit.dart",
     "kind": "mobile"
   },
@@ -2213,6 +2249,10 @@
   },
   {
     "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/dashboard_carbon_not_measured_test.dart",
     "kind": "tests"
   },
   {
@@ -2676,6 +2716,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_correlation_http_projection.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
     "kind": "tests"
   },
@@ -2964,6 +3008,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/mcp_servers/shared/security/__init__.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/mcp_servers/shared/streamable_http.py",
     "kind": "backend"
   },
@@ -3004,6 +3052,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/qdrant-seed/reindex.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/qdrant-seed/seed.py",
     "kind": "backend"
   },
@@ -3013,6 +3065,18 @@
   },
   {
     "path": "services/rag-retrieval/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/reindex_manifest.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/retrieval_profile.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/runtime_transport.py",
     "kind": "backend"
   },
   {
@@ -6556,10 +6620,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/weather-polygon-worker/worker_health_probe.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/weather-service/__init__.py",
     "kind": "backend"
   },
@@ -6864,10 +6924,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
     "kind": "tests"
   },
@@ -7057,6 +7113,10 @@
   },
   {
     "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_client_ip_rate_key.py",
     "kind": "tests"
   },
   {
@@ -7252,6 +7312,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },
@@ -7332,6 +7396,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compose_roster_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_security_audit.py",
     "kind": "tests"
   },
@@ -7340,15 +7408,7 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_container_command_path_guard.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_container_fleet_contract_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_container_hardening_ratchet_v21.py",
     "kind": "tests"
   },
   {
@@ -7420,15 +7480,15 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_db_writer_ownership_triage.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_decision_confidence_shape.py",
     "kind": "tests"
   },
   {
     "path": "tests_v9/test_decision_consistency_auth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_correlation_projection.py",
     "kind": "tests"
   },
   {
@@ -7537,10 +7597,6 @@
   },
   {
     "path": "tests_v9/test_edge_sync_recovery.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_element84_vrt_containment.py",
     "kind": "tests"
   },
   {
@@ -7689,6 +7745,10 @@
   },
   {
     "path": "tests_v9/test_frontend_ai_key_isolation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_frontend_gateway_rate_limit_contract.py",
     "kind": "tests"
   },
   {
@@ -7940,7 +8000,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_jwt_decode_shared_decoder.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_jwt_denylist_wired.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_jwt_revocation_same_redis.py",
     "kind": "tests"
   },
   {
@@ -7961,6 +8029,14 @@
   },
   {
     "path": "tests_v9/test_learning_loop_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_review_persistence_gap.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_success_rate_by_source.py",
     "kind": "tests"
   },
   {
@@ -8116,6 +8192,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_non_claude_gap_closure.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
     "kind": "tests"
   },
@@ -8252,6 +8332,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_postgres_tls.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_pr_finding_gap_id_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_practice_dataset_review.py",
     "kind": "tests"
   },
@@ -8312,6 +8400,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_python_jose_removed.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_qdrant_probe_classification.py",
     "kind": "tests"
   },
@@ -8325,6 +8417,10 @@
   },
   {
     "path": "tests_v9/test_rag_bm25_corpus_scope.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_complete_reindex_manifest.py",
     "kind": "tests"
   },
   {
@@ -8376,7 +8472,23 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_owned_gap_witnesses.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_reindex_transport.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_relevance_experiment_measurement.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_storage_id_declaration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_versioned_nomic_profile.py",
     "kind": "tests"
   },
   {
@@ -8452,7 +8564,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_readiness_http_status.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_real_findings_closure_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recipe_element_bridge.py",
     "kind": "tests"
   },
   {
@@ -8489,6 +8609,10 @@
   },
   {
     "path": "tests_v9/test_recovery_smoke_truth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_redis_acl_per_service.py",
     "kind": "tests"
   },
   {
@@ -8680,6 +8804,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_service_tls_init.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_services_functional.py",
     "kind": "tests"
   },
@@ -8764,6 +8892,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_startup_db_connect_retry.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
     "kind": "tests"
   },
@@ -8804,6 +8936,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_text_anchor_liveness_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_text_encoding_locale.py",
     "kind": "tests"
   },
@@ -8837,6 +8973,10 @@
   },
   {
     "path": "tests_v9/test_tts_edge_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_network_boundary.py",
     "kind": "tests"
   },
   {
@@ -8997,10 +9137,6 @@
   },
   {
     "path": "tests_v9/test_weather_signal_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_weather_worker_health_probe.py",
     "kind": "tests"
   },
   {

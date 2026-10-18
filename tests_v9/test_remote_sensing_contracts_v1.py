@@ -90,6 +90,104 @@ def valid_observation() -> CanonicalObservationV1:
     )
 
 
+def _actual_legacy_observation_builder(monkeypatch, builder, *, measured=False):
+    import importlib.util
+    from pathlib import Path
+    from uuid import UUID
+
+    path = Path(__file__).resolve().parents[1] / "services/indicators-service"
+    name = "observation_timeline" if builder == "timeline" else "observation_runtime"
+    spec = importlib.util.spec_from_file_location(f"lineage_compat_{name}", path / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class FixedClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 16, 12, tzinfo=UTC)
+
+    monkeypatch.setattr(module, "datetime", FixedClock)
+    common = {
+        "field_id": "fld_34c8ee0dae0c",
+        "tenant_id": UUID("00000000-0000-4000-8000-000000000001"),
+        "season_id": "sea_2026_spring",
+    }
+    if builder == "timeline":
+        return module.canonicalize_timeseries(
+            **common,
+            indicator_code="ndvi",
+            points=[{"datetime": "2026-10-01T07:30:00Z", "mean": 0.5, "valid_pixel_ratio": 0.9}],
+        )[0]
+    item = {
+        "date": "2026-10-01T07:30:00Z",
+        "stats": {"mean": 0.5},
+        "real_data": True,
+        "coverage_ratio": 0.9,
+        "valid_pixel_ratio": 0.9,
+    }
+    if measured:
+        item["indicator_product"] = {
+            "source": "raster-service",
+            "estimated": False,
+            "quality_gate_passed": True,
+            "quality_score": 0.9,
+            "data_available_at": "2026-10-01T09:00:00Z",
+            "provenance": {
+                "scene_id": "cdse:sh:123",
+                "qa_mask_version": "cdse-native-scl-datamask/2",
+                "algorithm_version": "sahool.band_math/1",
+                "acquisition_datetime": item["date"],
+            },
+        }
+    return module.canonicalize_bundle(
+        bundle={"field_id": common["field_id"], "observations": {"ndvi": item}},
+        tenant_id=common["tenant_id"],
+        season_id=common["season_id"],
+    )[0]
+
+
+@pytest.mark.parametrize("builder", ["timeline", "bundle"])
+def test_absent_raster_lineage_preserves_actual_legacy_builder_payload(monkeypatch, builder):
+    import json
+    from pathlib import Path
+
+    observation = _actual_legacy_observation_builder(monkeypatch, builder)
+    # Captured from both real builders at pinned main 6e8cc0f9 with this fixed clock.
+    fixture = Path(__file__).parent / "fixtures/observation_lineage_legacy_payloads.json"
+    expected = json.loads(fixture.read_text(encoding="utf-8"))[builder]
+    assert observation.model_dump(mode="json") == expected
+    assert json.loads(observation.model_dump_json()) == expected
+    assert "raster_provenance" not in observation.lineage.model_dump()
+    # The fix must not omit unrelated optional values from the old wire contract.
+    assert expected["supersedes"] is None
+    assert expected["summary"]["median"] is None
+
+
+def test_present_raster_lineage_survives_real_builder_and_json_serialization(monkeypatch):
+    import json
+
+    observation = _actual_legacy_observation_builder(monkeypatch, "bundle", measured=True)
+    expected = {
+        "source": "raster-service",
+        "scene_id": "cdse:sh:123",
+        "qa_mask_version": "cdse-native-scl-datamask/2",
+        "algorithm_version": "sahool.band_math/1",
+        "acquisition_datetime": "2026-10-01T07:30:00Z",
+        "data_available_at": "2026-10-01T09:00:00Z",
+    }
+    assert observation.model_dump(mode="json")["lineage"]["raster_provenance"] == expected
+    assert json.loads(observation.model_dump_json())["lineage"]["raster_provenance"] == expected
+    assert observation.lineage.model_dump(mode="json")["raster_provenance"] == expected
+
+
+def test_raster_lineage_serializer_keeps_extra_fields_forbidden():
+    payload = valid_observation().lineage.model_dump()
+    payload["unexpected_provenance"] = None
+    with pytest.raises(ValidationError) as error:
+        ObservationLineageV1.model_validate(payload)
+    assert error.value.errors()[0]["type"] == "extra_forbidden"
+
+
 def test_contracts_are_immutable_and_forbid_extra_fields():
     obs = valid_observation()
     with pytest.raises(ValidationError):

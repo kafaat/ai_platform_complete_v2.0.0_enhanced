@@ -15,6 +15,19 @@ on:
       - 'sahool-brain/gaps/registry.md'
       - 'tests_v9/test_gap_registry_claim_guard.py'
       - 'tests_v9/test_main_inventory_generator.py'
+      - 'tests_v9/test_inventory_edge_classification.py'
+      - 'docs/architecture/inventory_edge_exemptions.json'
+      - 'frontend/nginx.conf'
+      - 'frontend/src/**'
+      - 'shared/notification_consumers.py'
+      - 'agents/notification/**'
+      # صنفُ الدليل الثالث (نداءُ HTTP في مصدر Python) يقرأ مصدرَ الخدمات وبيئةَ compose ومنافذَ Dockerfile وجردَ المسارات
+      - 'services/**/*.py'
+      - 'services/**/Dockerfile*'
+      - 'bots/**/*.py'
+      - 'agents/**/*.py'
+      - 'docker-compose.v9.yml'
+      - 'route_inventory.generated.json'
       - 'component_inventory.generated.csv'
       - 'platform_catalog.generated.json'
       - '.github/workflows/diagnostic-inventory.yml'
@@ -43,7 +56,7 @@ jobs:
       - name: Install the declared test dependencies
         run: pip install -r tests_v9/requirements-test.txt
       - name: Generator contract (unknown stays unknown · a changed relation shows up)
-        run: python -m pytest -q tests_v9/test_main_inventory_generator.py tests_v9/test_gap_registry_claim_guard.py
+        run: python -m pytest -q tests_v9/test_main_inventory_generator.py tests_v9/test_inventory_edge_classification.py tests_v9/test_gap_registry_claim_guard.py
       - name: Build the inventory twice from the same tree
         run: |
           python scripts/diagnostics/build_main_inventory.py --out artifacts/diagnostics/inventory
@@ -67,6 +80,8 @@ jobs:
                 f"deployment_units={c['deployment_units']}")
           print(f"declared_consumer_edges_pending_resolution="
                 f"{c['declared_consumer_edges_pending_resolution']}")
+          print(f"refuted_consumer_operations={c['refuted_consumer_operations']} (gateway_mode) "
+                f"unknown_consumer_operations={c['unknown_consumer_operations']} — مجهولٌ بسببٍ مسمّى لا منفيّ")
           print(f"surfaces_not_measured={c['surfaces_not_measured']}"
                 f"/{c['surfaces_declared']} — «لم يُقَس» لا «لا توجد علاقات»")
           PY

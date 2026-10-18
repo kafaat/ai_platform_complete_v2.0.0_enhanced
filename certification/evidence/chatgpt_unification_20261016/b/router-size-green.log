@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/irrigation-router-size
+configfile: pytest.ini
+plugins: Faker-40.43.0, asyncio-1.4.0, xdist-3.8.0, cov-7.1.0, anyio-4.15.1, hypothesis-6.170.0, platformdirs-4.13.2, respx-0.23.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 84 items
+
+services/sahool-platform/tests/test_manual_irrigation_source_boundary.py . [  1%]
+......................                                                   [ 27%]
+services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py . [ 28%]
+............................                                             [ 61%]
+services/sahool-platform/tests/test_decision_review_endpoint.py ........ [ 71%]
+..                                                                       [ 73%]
+services/sahool-platform/tests/test_decision_review_queue_endpoint.py .. [ 76%]
+..                                                                       [ 78%]
+services/sahool-platform/tests/test_irrigation_engineering_workspace.py . [ 79%]
+.......                                                                  [ 88%]
+services/sahool-platform/tests/test_irrigation_engineering_contracts.py . [ 89%]
+....                                                                     [ 94%]
+services/sahool-platform/tests/test_p0_platform_module_growth_guard.py . [ 95%]
+.                                                                        [ 96%]
+tests/architecture/test_router_size_ratchet.py ...                       [100%]
+
+============================== 84 passed in 3.90s ==============================

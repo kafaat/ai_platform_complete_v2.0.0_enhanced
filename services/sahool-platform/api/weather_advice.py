@@ -5,8 +5,8 @@ api/weather_advice.py — منطق صرف (pure) لتوصية الريّ ومخ�
 
 المبدأ:
   • منطق التهديف هنا **نقيّ** (لا شبكة، لا قاعدة) — يُختبَر offline.
-  • نُعيد استخدام رياضيّات FAO-56 الموجودة (water_balance.KC_BY_CROP_STAGE +
-    _effective_rain) بدل إعادة اختراعها — مصدر واحد للحقيقة لمعاملات Kc.
+  • نُعيد استخدام رياضيّات FAO-56 الموجودة (water_balance.kc_map_for_crop ← بطاقة
+    المحصول + _effective_rain) بدل إعادة اختراعها — مصدر واحد للحقيقة لمعاملات Kc.
   • النواة (main.py) تجلب ET₀/الطقس من Open-Meteo (نفس مصدر /api/v1/weather)
     ثمّ تُمرّره لهذه الدوالّ. عند تعذّر الطقس ⇒ 503 صريح في الـendpoint.
 
@@ -22,7 +22,7 @@ from __future__ import annotations
 from core.engines.fao56 import salinity_stress_ks as _salinity_stress_ks
 from core.thresholds import SALINITY_MODERATE_ECE as _SALINITY_MODERATE_ECE
 
-from api.water_balance import KC_BY_CROP_STAGE, _effective_rain
+from api.water_balance import _effective_rain, kc_map_for_crop
 
 
 class _SaltToleranceShim:
@@ -40,9 +40,6 @@ class _SaltToleranceShim:
 # ميل Maas-Hoffman الافتراضيّ (% فقد غلّة لكلّ dS/m فوق العتبة) حين لا يُمرَّر ميل
 # المحصول. 7.1 قيمة معتدلة (قمح، FAO-56 T23) — تُستخدم فقط كـfallback محافظ.
 _DEFAULT_SALT_SLOPE_PCT = 7.1
-
-# منحنى Kc عامّ حين يكون المحصول غير مُعرّف — نفس fallback في water_balance.
-_DEFAULT_KC = {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
 
 # عتبات رطوبة التربة (% من السعة الحقليّة المتاحة) لضبط الإلحاح.
 # المرجع: FAO-56 — الريّ يُستحسن قبل استنزاف الماء المتاح المسموح (MAD ~50٪).
@@ -104,12 +101,11 @@ def precipitation_incomplete_detail(*, context: str, missing_intervals: list[int
 def resolve_kc(crop: str | None, stage: str) -> tuple[float, bool, str]:
     """يُرجع (kc, crop_known, kc_source_ar) لمحصول/مرحلة.
 
-    يُعيد استخدام KC_BY_CROP_STAGE (FAO-56). عند غياب المحصول/المرحلة يستخدم
-    منحنى عامّاً ويوسمه بصدق (تقدير يحتاج معايرة).
+    يُعيد استخدام ``kc_map_for_crop`` (بطاقة المحصول، FAO-56). عند غياب المحصول/المرحلة
+    يستخدم المنحنى العامّ القانونيّ ويوسمه بصدق (تقدير يحتاج معايرة).
     """
     key = (crop or "").strip().lower()
-    crop_known = key in KC_BY_CROP_STAGE
-    kc_map = KC_BY_CROP_STAGE.get(key, _DEFAULT_KC)
+    kc_map, crop_known = kc_map_for_crop(key)
     kc = kc_map.get(stage, kc_map.get("mid", 1.0))
     if crop_known:
         source = f"محصول مُعرّف ({key}) — FAO-56"

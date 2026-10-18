@@ -66,8 +66,11 @@ def test_timeline_window_bounds_processed_dates_by_months():
     src = (HERE / "routers" / "fields.py").read_text(encoding="utf-8")
     # عتبة زمنيّة مُشتقّة من months محكومة بـinclude_provider.
     assert "if include_provider:" in src
-    assert "timedelta(days=months * 31)" in src, "timeline cutoff must derive from months"
+    assert "timeline_cutoff(months, datetime.now(UTC)) if include_provider else None" in src
     # القصّ يُطبَّق على حلقة بناء dates (لا المزوّد وحده).
-    assert 'if cutoff is not None and rec["date"] < cutoff:' in src, (
+    assert "select_available_dates(by_date, cutoff=cutoff, limit=limit)" in src
+    helper = (HERE / "raster_available_dates.py").read_text(encoding="utf-8")
+    assert "timedelta(days=months * 31)" in helper
+    assert 'if cutoff is not None and rec["date"] < cutoff:' in helper, (
         "processed dates must be dropped below the months window"
     )

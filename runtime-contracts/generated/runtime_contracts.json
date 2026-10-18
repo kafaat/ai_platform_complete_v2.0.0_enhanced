@@ -276,6 +276,7 @@
         "AUTH_COOKIE_SAMESITE",
         "AUTH_COOKIE_SECURE",
         "AUTH_TILE_COOKIE_NAME",
+        "AUTH_TRUSTED_PROXY_CIDRS",
         "CORS_ORIGINS",
         "DATABASE_URL",
         "ENFORCE_ADMIN_STEPUP_MFA",
@@ -319,6 +320,7 @@
       "entrypoint": "services/auth/main.py",
       "evidence_paths": {
         "configuration": [
+          "services/auth/client_address.py",
           "services/auth/main.py",
           "services/auth/mfa_crypto.py",
           "services/auth/mfa_runtime.py",
@@ -480,6 +482,7 @@
           "services/decision-service/main.py",
           "services/decision-service/tests/test_activation_evidence_contract.py",
           "services/decision-service/tests/test_agronomic_evidence_contract.py",
+          "services/decision-service/tests/test_correlation_http_projection.py",
           "services/decision-service/tests/test_decision_evidence_read.py",
           "services/decision-service/tests/test_execution_request_feed.py",
           "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
@@ -1330,6 +1333,8 @@
         "QDRANT_SEED_REVISION",
         "QDRANT_SEED_TENANT_ID",
         "QDRANT_URL",
+        "RAG_REINDEX_OLLAMA_URL",
+        "RAG_REINDEX_QDRANT_URL",
         "SAHOOL_ENV"
       ],
       "container": {
@@ -1346,6 +1351,7 @@
       "entrypoint": "-",
       "evidence_paths": {
         "configuration": [
+          "services/qdrant-seed/reindex.py",
           "services/qdrant-seed/seed.py",
           "services/qdrant-seed/test_aljawf_knowledge.py"
         ],
@@ -1360,7 +1366,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
-        "QDRANT_API_KEY"
+        "QDRANT_API_KEY",
+        "RAG_REINDEX_QDRANT_API_KEY"
       ],
       "service": "qdrant-seed",
       "source_service": "qdrant-seed",
@@ -1386,6 +1393,7 @@
         "OLLAMA_BASE_URL",
         "QDRANT_COLLECTION",
         "QDRANT_URL",
+        "RAG_REINDEX_PROFILE_MANIFEST",
         "RAG_SPARSE_REVALIDATE_SECONDS"
       ],
       "container": {
@@ -2861,64 +2869,6 @@
       ],
       "service": "video-processor",
       "source_service": "video-processor",
-      "static_repository_evidence_only": true
-    },
-    {
-      "completeness": {
-        "gates": {
-          "configuration_declared": true,
-          "dockerfile": true,
-          "entrypoint": true,
-          "health": false,
-          "metrics_endpoint_or_instrumentation": false,
-          "readiness": false,
-          "tracing_instrumentation": false
-        },
-        "passed": 3,
-        "score_pct": 42.9,
-        "total": 7
-      },
-      "configuration": [
-        "DATABASE_URL",
-        "JOBS_DATABASE_URL",
-        "NATS_URL",
-        "WEATHER_GRID_PIPELINE_ENABLED",
-        "WEATHER_HORIZON_HOURS",
-        "WORKER_HEALTH_MAX_AGE_SEC",
-        "WORKER_HEARTBEAT_CADENCE_SEC",
-        "WORKER_HEARTBEAT_FILE",
-        "WORKER_READY_FILE"
-      ],
-      "container": {
-        "dockerfile": "services/weather-polygon-worker/Dockerfile",
-        "requirements": "services/weather-polygon-worker/requirements.txt"
-      },
-      "contract_version": "1.0",
-      "domain": "Weather Intelligence",
-      "endpoints": {
-        "health": [],
-        "metrics": [],
-        "readiness": []
-      },
-      "entrypoint": "services/weather-polygon-worker/src/main.py",
-      "evidence_paths": {
-        "configuration": [
-          "services/weather-polygon-worker/src/main.py",
-          "services/weather-polygon-worker/worker_health_probe.py"
-        ],
-        "metrics": [],
-        "routes": [],
-        "tracing": []
-      },
-      "observability": {
-        "metric_names": [],
-        "metrics_instrumented": false,
-        "trace_spans": [],
-        "tracing_instrumented": false
-      },
-      "secrets": [],
-      "service": "weather-polygon-worker",
-      "source_service": "weather-polygon-worker",
       "static_repository_evidence_only": true
     },
     {

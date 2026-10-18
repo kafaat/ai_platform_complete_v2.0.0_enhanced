@@ -30,8 +30,16 @@ class _Tx:
 
 class _FakeConn:
     def __init__(
-        self, *, depletion_mm, age_hours=5.0, confidence=0.9, soil_texture=None, spectral=None
+        self,
+        *,
+        depletion_mm,
+        age_hours=5.0,
+        confidence=0.9,
+        soil_texture=None,
+        spectral=None,
+        decision=None,
     ):
+        self._decision = decision  # عمود ``water_ledger.decision`` كما يكتبه العامل
         self._depletion = depletion_mm
         self._age = age_hours
         self._conf = confidence
@@ -53,6 +61,7 @@ class _FakeConn:
                 "soil_moisture_pct": None,
                 "ledger_date": date(2026, 7, 9),
                 "age_hours": self._age,
+                "decision": self._decision,
             }
         if "FROM soil_lab_tests" in sql:
             if self._soil_texture is None:
@@ -699,3 +708,47 @@ async def test_a_candidate_requiring_expert_review_is_not_submitted(monkeypatch)
     out = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
     assert out["approval_state"] == "blocked_requires_expert_review"
     assert called == []
+
+
+# ── UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01 ─────────────────────────────
+#
+# قيدٌ آليٌّ بلا صفِّ ريّ استنزافُه حدٌّ أعلى — الريُّ فيه صفرٌ لأنّه مجهول. ثقتُه هبطت
+# في القيد (0.4) ولم يكن المخرَجُ يقول **لماذا**: لا اسمَ للحالة ولا قيدَ مُعلَن.
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_unrecorded_irrigation_is_named_not_read_as_zero(monkeypatch):
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0, confidence=0.4, decision="auto:irrigation_unobserved"),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["inputs"]["applied_water_status"] == "unrecorded"
+    assert any(lim.startswith("applied_water_unrecorded") for lim in out["limitations"]), out[
+        "limitations"
+    ]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_recorded_irrigation_has_no_applied_water_limitation(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0, confidence=0.4, decision="auto:daily_balance"))
+    recorded = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert recorded["inputs"]["applied_water_status"] == "recorded"
+    assert not any(lim.startswith("applied_water_") for lim in recorded["limitations"])
+    # والقيدُ خصم الثقةَ أصلاً: التسميةُ لا تخصمها مرّةً ثانية.
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0, confidence=0.4, decision="auto:irrigation_unobserved"),
+    )
+    unrecorded = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert unrecorded["confidence"] == recorded["confidence"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_manual_ledger_entry_is_not_claimed_recorded(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0, decision="manual entry"))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["inputs"]["applied_water_status"] is None

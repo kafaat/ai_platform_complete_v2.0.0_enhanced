@@ -23,9 +23,10 @@ from __future__ import annotations
 
 from typing import Any
 
-# قيمة cursor المقبولة: نصّ ISO-8601 (طابع created_at للعميل). نُبقي المقارنة
-# نصّيّة معجميّة لأنّ طوابع ISO-8601 بنفس المنطقة الزمنيّة قابلة للترتيب معجميّاً،
-# وهي بالضبط ما يُخزّنه PendingOperation.created_at (datetime.utcnow().isoformat()).
+from core.offline_first import parse_operation_timestamp
+
+# Legacy offset-free stamps were produced in UTC. Compare instants, preserving
+# the original stored string on output so existing cursors remain valid.
 
 
 def _op_cursor(op: Any) -> str | None:
@@ -36,11 +37,6 @@ def _op_cursor(op: Any) -> str | None:
     if isinstance(value, str) and value:
         return value
     return None
-
-
-def _is_valid_cursor(cursor: Any) -> bool:
-    """هل الـcursor صالح للمقارنة؟ (نصّ غير فارغ). أيّ شيء آخر ⇒ ارتداد full."""
-    return isinstance(cursor, str) and bool(cursor)
 
 
 def filter_since(operations: list[Any], cursor: str | None) -> list[Any]:
@@ -58,22 +54,19 @@ def filter_since(operations: list[Any], cursor: str | None) -> list[Any]:
 
     لا يُعدّل المُدخل؛ يُرجِع قائمة جديدة.
     """
-    if not _is_valid_cursor(cursor):
-        # None/فارغ/نوع غير نصّيّ ⇒ السلوك الحاليّ (full). لا نرمي على الفاسد.
+    since = parse_operation_timestamp(cursor)
+    if since is None:
+        # Invalid or absent cursors replay all operations; no silent loss.
         return list(operations)
 
     out: list[Any] = []
     for op in operations:
-        op_cur = _op_cursor(op)
+        op_cur = parse_operation_timestamp(_op_cursor(op))
         if op_cur is None:
             # عمليّة بلا طابع ⇒ نُبقيها (لا نُسقط ما لا نؤرّخه — fail-safe).
             out.append(op)
             continue
-        try:
-            if op_cur > cursor:  # type: ignore[operator]
-                out.append(op)
-        except TypeError:
-            # مقارنة فاسدة لعمليّة بعينها ⇒ نُبقيها (لا فقدان).
+        if op_cur > since:
             out.append(op)
     return out
 
@@ -82,9 +75,14 @@ def newest_cursor(operations: list[Any]) -> str | None:
     """أحدث طابع ``created_at`` بين العمليّات (الـcursor الجديد للعميل).
 
     None إن لم توجد طوابع صالحة (لا عمليّات/كلّها بلا تأريخ) ⇒ العميل يُبقي
-    cursorه الحاليّ. يُحسَب عبر ``max`` على الطوابع النصّيّة (ISO قابل للترتيب).
+    cursorه الحاليّ. المقارنة باللحظة UTC؛ النص الأصلي يبقى متوافقًا مع العميل.
     """
-    cursors = [c for c in (_op_cursor(op) for op in operations) if c is not None]
+    cursors = [
+        (stamp, value)
+        for op in operations
+        if (value := _op_cursor(op)) is not None
+        and (stamp := parse_operation_timestamp(value)) is not None
+    ]
     if not cursors:
         return None
-    return max(cursors)
+    return max(cursors, key=lambda item: item[0])[1]

@@ -125,19 +125,26 @@ def test_the_triage_claims_no_resolution() -> None:
         assert row["remedy"].strip(), key
 
 
-def test_weather_signals_exposes_multiple_non_owner_writers() -> None:
+def test_weather_signals_writer_count_follows_the_tree() -> None:
+    """كان هذا الاختبار يُثبِت بُعدَ «كاتبَين غيرِ مالكَين» على ``weather_signals`` الحقيقيّ.
+    وأُزيل أحدُ الكاتبَين (weather-polygon-worker) بقرار مالك 2026-10-17
+    (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01)، فصار الصفُّ كاتباً واحداً. البُعدُ نفسُه
+    يبقى مُثبَتاً على شجرةٍ اصطناعيّة في
+    ``test_an_unobserved_owner_with_two_writers_is_flagged_and_never_called_the_only_one``؛
+    وهنا يُقاس أنّ الصفَّ الحقيقيّ يتبع العدد لا يحمل وصفَ الحالة السابقة."""
     rows = _triage()["rows"]
-    keys = [
-        "weather_signals::weather-polygon-worker",
-        "weather_signals::weather-signal-engine",
-    ]
-    for key in keys:
-        row = rows[key]
-        assert row["declared_owner"] == "weather-service"
-        assert row["owner_writes_table"] is False
-        assert row["measured_writer_count"] == 2
-        assert row["multiple_non_owner_writers"] is True
-        assert "الكاتبُ الوحيد" not in row["remedy"]
+    assert "weather_signals::weather-polygon-worker" not in rows, (
+        "صفُّ كاتبٍ أُزيل من الشجرة ما زال في الفرز — الفرزُ بائت"
+    )
+    row = rows["weather_signals::weather-signal-engine"]
+    assert row["declared_owner"] == "weather-service"
+    assert row["owner_writes_table"] is False
+    assert row["measured_writers_of_table"] == ["weather-signal-engine"]
+    assert row["measured_writer_count"] == 1
+    assert row["multiple_non_owner_writers"] is False
+    for key, r in rows.items():
+        assert r["measured_writer_count"] == len(r["measured_writers_of_table"]), key
+        assert r["multiple_non_owner_writers"] == (len(r["non_owner_writers"]) > 1), key
 
 
 def test_sqlite_only_exclusions_are_visible_not_silent() -> None:

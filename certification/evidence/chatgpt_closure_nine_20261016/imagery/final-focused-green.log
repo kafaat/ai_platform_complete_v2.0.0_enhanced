@@ -1,0 +1,41 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/closure-imagery
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 82 items
+
+services/raster-service/test_cdse_native_product.py ...........          [ 13%]
+services/raster-service/test_indicator_provenance_transport.py ......... [ 24%]
+.......                                                                  [ 32%]
+tests_v9/test_vegetation_raster_ndvi.py .............                    [ 48%]
+tests_v9/test_remote_sensing_contracts_v1.py ........                    [ 58%]
+services/vegetation-analysis-service/test_indicator_registry.py .....    [ 64%]
+services/vegetation-analysis-service/test_vegetation_production_contract.py . [ 65%]
+............................                                             [100%]
+
+=============================== warnings summary ===============================
+services/raster-service/raster_api_models.py:122
+  /workspace/scratch/881ca3efb91d/closure-imagery/services/raster-service/raster_api_models.py:122: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+    class RawDataProcessResponse(BaseModel):
+
+services/raster-service/raster_validated_product.py:32
+  /workspace/scratch/881ca3efb91d/closure-imagery/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+services/raster-service/raster_validated_product.py:55
+  /workspace/scratch/881ca3efb91d/closure-imagery/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+services/raster-service/raster_indicator_product.py:43
+  /workspace/scratch/881ca3efb91d/closure-imagery/services/raster-service/raster_indicator_product.py:43: UserWarning: Field name "schema" in "ValidatedIndicatorProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedIndicatorProduct(BaseModel):
+
+services/raster-service/test_cdse_native_product.py: 11 warnings
+services/raster-service/test_indicator_provenance_transport.py: 6 warnings
+  /workspace/scratch/881ca3efb91d/ci-venv/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 82 passed, 21 warnings in 4.29s ========================

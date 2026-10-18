@@ -595,3 +595,56 @@ async def get_tile_cache_stats() -> dict[str, Any]:
     هذه القفزةُ داخليّة بين المنصّة والخدمة، لا عقدٌ مع الواجهة.
     """
     return await weather_get_json("/v1/weather/cache-stats")
+
+
+async def field_irrigation_weather_snapshot(
+    latitude_deg: float, longitude_deg: float, *, forecast_loader=None
+) -> dict:
+    """لقطة طقس اليوم من محرّك الطقس (المصدر الوحيد) — المسار الأساسيّ لـD.2c.
+
+    يجلب توقّع اليوم لموقع الحقل ويشتقّ day-of-year من ``valid_time``. تعذّر المحرّك
+    أو غياب أيّام ⇒ HTTPException (fail-closed؛ لا توصية على طقس مفقود). RH غير متوفّر
+    في التوقّع اليوميّ (ساعيّ فقط) ⇒ None (ET0 يسقط لـHargreaves صراحةً). نقطة وصل
+    قابلة للـmonkeypatch.
+    """
+    from datetime import date as _date
+
+    from fastapi import HTTPException
+
+    from api.weather_advice import complete_rain_total
+
+    # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — يومُ اليوم لـ``rain_recent_mm``
+    # واليومان التاليان لـ``forecast_rain_mm``، وهي **نفسُ قسمة** ``routers/fields.py``
+    # (رصدُ اليوم + ``forecast[1:3]``). قسمةٌ ثانيةٌ هنا كانت ستُعطي المزارعَ توصيتين
+    # مختلفتين بحسب أيّ مسارٍ سأل.
+    loader = forecast_loader or get_weather_forecast
+    fc = await loader(latitude_deg, longitude_deg, days=3)
+    days = fc.get("days") or []
+    if not days:
+        raise HTTPException(
+            status_code=503,
+            detail="weather-engine forecast returned no days — fail-closed (no recommendation)",
+        )
+    d0 = days[0]
+    valid_time = d0.get("date")
+    try:
+        doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
+    except (TypeError, ValueError):
+        doy = None
+    # مطرُ اليوم + مجموعُ اليومين التاليين. ``complete_rain_total`` هو المصدرُ الواحد
+    # لقاعدة «لا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً» — فترةٌ ناقصةٌ ⇒ ``None``.
+    forecast_rain, _missing = complete_rain_total(
+        [d.get("precipitation_mm") for d in days[1:3]], expected_count=2
+    )
+    return {
+        "t_min_c": d0.get("temp_min_c"),
+        "t_max_c": d0.get("temp_max_c"),
+        "wind_2m_ms": d0.get("wind_max_ms"),
+        "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
+        "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
+        "rain_recent_mm": d0.get("precipitation_mm"),
+        "forecast_rain_mm": forecast_rain,
+        "day_of_year": doy,
+        "valid_time": valid_time,
+        "source": "weather-engine-forecast",
+    }

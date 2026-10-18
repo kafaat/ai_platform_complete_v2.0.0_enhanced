@@ -1,0 +1,37 @@
+{
+  "schema": "sahool.inventory.query-manifest.v1",
+  "source_sha256": "5b4071b2007579e7aa8930828e10e65dad8e8b0dc2424903ea747d55ea9de39d",
+  "tables": [
+    "raster_assets",
+    "raster_registry",
+    "backfill_run_items",
+    "backfill_runs",
+    "raster_batch_jobs",
+    "distributed_raster_jobs"
+  ],
+  "policy_query": "\n    SELECT jsonb_agg(jsonb_build_object(\n        'table', c.relname, 'enabled', c.relrowsecurity, 'forced', c.relforcerowsecurity,\n        'qual', pg_get_expr(p.polqual, p.polrelid),\n        'permissive', COALESCE(p.polpermissive, false),\n        'applicable', EXISTS (\n            SELECT 1 FROM unnest(p.polroles) AS policy_role(role_oid)\n            WHERE CASE WHEN role_oid = 0 THEN true\n                       ELSE pg_has_role(current_user, role_oid, 'USAGE') END\n        )))\n    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\n    LEFT JOIN pg_policy p ON p.polrelid = c.oid AND p.polcmd IN ('r', '*')\n    WHERE n.nspname = 'public' AND c.relname = ANY($1::text[])\n",
+  "queries": {
+    "raster_assets": "\n        SELECT id::text AS id, tenant_id::text AS tenant_id, field_id, scene_id,\n               index_name, provenance->>'provider' AS provider, geometry_revision,\n               provenance->>'processing_version' AS processing_version,\n               algorithm_version, product_identity_key,\n               acquisition_date::text AS product_date, processing_job_id AS job_id\n        FROM raster_assets WHERE tenant_id = $1::uuid ORDER BY id LIMIT $2\n    ",
+    "raster_registry": "\n        SELECT id::text AS id, tenant_id::text AS tenant_id, field_id, scene_id,\n               index_type AS index_name, metadata->>'provider' AS provider,\n               metadata->>'geometry_revision' AS geometry_revision,\n               metadata->>'processing_version' AS processing_version,\n               product_date::text AS product_date\n        FROM raster_registry WHERE tenant_id = $1::uuid ORDER BY id LIMIT $2\n    ",
+    "backfill_run_items": "\n        SELECT i.id::text AS id, i.tenant_id::text AS tenant_id, i.field_id, i.scene_id,\n               i.index_name, i.provider, r.geometry_revision,\n               NULL::text AS processing_version, i.status, i.job_id,\n               i.run_id::text AS run_id, i.error AS error_evidence\n        FROM backfill_run_items i\n        LEFT JOIN backfill_runs r ON r.id = i.run_id AND r.tenant_id = i.tenant_id\n        WHERE i.tenant_id = $1::uuid ORDER BY i.id LIMIT $2\n    ",
+    "backfill_runs_failed": "\n        SELECT id::text AS id, tenant_id::text AS tenant_id, field_id,\n               geometry_revision, status, error AS error_evidence\n        FROM backfill_runs WHERE tenant_id = $1::uuid\n          AND status IN ('failed', 'completed_with_errors') ORDER BY id LIMIT $2\n    ",
+    "raster_batch_jobs_failed": "\n        SELECT job_id AS id, tenant_id::text AS tenant_id, field_id, status,\n               request_payload->>'scene_id' AS scene_id,\n               request_payload->>'provider' AS provider,\n               request_payload->>'geometry_revision' AS geometry_revision,\n               request_payload->>'processing_version' AS processing_version,\n               error_code AS error_evidence\n        FROM raster_batch_jobs WHERE tenant_id = $1::uuid AND status = 'failed'\n        ORDER BY job_id LIMIT $2\n    ",
+    "distributed_raster_jobs_failed": "\n        SELECT id::text AS id, tenant_id::text AS tenant_id, status,\n               input->>'field_id' AS field_id, input->>'scene_id' AS scene_id,\n               input->>'provider' AS provider,\n               input->>'geometry_revision' AS geometry_revision,\n               input->>'processing_version' AS processing_version,\n               error AS error_evidence\n        FROM distributed_raster_jobs WHERE tenant_id = $1::uuid AND status = 'failed'\n        ORDER BY id LIMIT $2\n    "
+  },
+  "transaction": "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY",
+  "settings": [
+    "SET LOCAL statement_timeout='30s'",
+    "SET LOCAL row_security=on",
+    "SET LOCAL search_path=pg_catalog,public"
+  ],
+  "tenant_source": "Must be an explicit authorized deployed worker/service tenant UUID; no synthetic zero UUID or all-tenant query",
+  "role_check": "SELECT current_user, rolsuper, rolbypassrls FROM pg_roles WHERE rolname=current_user",
+  "bind_tenant": "SELECT set_config('app.current_tenant',$1,true)",
+  "parameters": [
+    "tenant_uuid",
+    "limit_plus_one"
+  ],
+  "limit": 10000,
+  "acceptance": "Reject privileged role, missing table/policy, noncanonical SELECT tenant predicate, schema/query errors; output truncation if rows>limit. No prod acceptance from staging-only census. Require applicable/permissive boolean metadata and at least one current-role applicable permissive canonical SELECT policy per table.",
+  "public_output": "Counts per source only, no row IDs/fields/scenes/URL/error strings. Distinguish explicit Element84, unknown-provider candidates, explicit HTTP422-text, unavailable processing_version. Error text must be removed before hashing a private report."
+}

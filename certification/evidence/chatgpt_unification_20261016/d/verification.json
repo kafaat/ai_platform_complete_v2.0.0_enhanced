@@ -1,0 +1,99 @@
+{
+  "base_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "witness_sha256": "3f2524bda9aaa190510cde066905bbcba7445063f103da864b8972d5c6da2f47",
+  "red_green_identical_test_bytes": true,
+  "gaps": {
+    "REPORT3-RAG-03-01": {
+      "red": {
+        "total": 11,
+        "passed": 8,
+        "failed": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "green": {
+        "total": 11,
+        "passed": 11,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "REPORT3-RAG-04-01": {
+      "red": {
+        "total": 4,
+        "passed": 0,
+        "failed": 4,
+        "errors": 0,
+        "skipped": 0
+      },
+      "green": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "REPORT3-RAG-11-01": {
+      "red": {
+        "total": 3,
+        "passed": 0,
+        "failed": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "green": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "source_sha256": {
+    "services/sahool-platform/core/rag/production_qdrant.py": "4d84e4f0fb7a39eebf16fda5315f100677a365c210ea8df7de29523dec2b5234",
+    "services/rag-retrieval/main.py": "2e808b557306dbc3b02015232e0b578683732aef721922ae8710c599b03001c4",
+    "tests_v9/test_rag_owned_gap_witnesses.py": "3f2524bda9aaa190510cde066905bbcba7445063f103da864b8972d5c6da2f47",
+    "tests_v9/test_rag_neighbor_scope_filters.py": "3c56e9c4b8edd1c219a652ab9367cbecd261f03b52121c913efea54108281bc1",
+    "tests_v9/test_ai_rag_delta_p0.py": "390b7480225b2ed4afe1759b1041db52ea746597511765f497ec5f47051718c7",
+    "tests_v9/test_gateway_trusted_identity_sec3.py": "6b1a3a03d8cf5cf93748ba5f071dc898a46be724c87714660b2be20928269343",
+    "tests_v9/test_readiness_software_repairs.py": "7a2a0bdc091e7689491057feef273a927ab885c298a52ac1edf8fb1f82edd287"
+  },
+  "open_empirical_gaps": [
+    "REPORT3-RAG-01-01",
+    "REPORT3-RAG-07-01"
+  ],
+  "limitations": [
+    "No live Ollama/Qdrant experiment; Arabic fixture uses deterministic HashEmbedding and simulated dense storage.",
+    "No seed or prefix change and no full-corpus reindex.",
+    "30-second payload freshness window; paginated Qdrant scroll is not an atomic cross-process snapshot.",
+    "Scope wildcard covers global missing/null/empty-array dimensions; nonempty-array filter matching is a preexisting contract limitation.",
+    "No rerank, expansion, candidate-depth, fusion-weight, or DIRECT-VS-CANONICAL changes."
+  ],
+  "regression": {
+    "rag_unit": {
+      "passed": 237,
+      "deselected_integration": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "service_auth_unit": {
+      "passed": 97,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focused": {
+      "passed": 75,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "reserved_function_AST_unchanged": {
+    "weighted_rrf_scores": true,
+    "retrieve": true,
+    "_expand_neighbors": true,
+    "_rerank": true
+  }
+}

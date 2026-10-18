@@ -75,7 +75,9 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
+from shared.startup_retry import retry_startup_connect
 
 logger = logging.getLogger("sahool.api")
 
@@ -237,19 +239,18 @@ async def _init_db_pool():
     try:
         import asyncpg
 
-        # statement_cache_size=0 لتوافق PgBouncer (مبدأ موثّق)
-        # BLOCKER-01: max_size=10 ثابت كان يوقف المنصّة عند 10 طلبات متزامنة. صار
-        # قابلاً للضبط عبر DB_POOL_MIN/MAX (افتراض 5/20) لتوسّع الإنتاج.
+        # statement_cache_size=0 لتوافق PgBouncer. BLOCKER-01: max_size=10 الثابت أوقف المنصّة
+        # عند 10 طلبات متزامنة؛ صار DB_POOL_MIN/MAX (افتراض 5/20). وإعادةُ المحاولة: RESTART-01.
         _pool_min = int(os.getenv("DB_POOL_MIN", "5"))
         _pool_max = max(_pool_min, int(os.getenv("DB_POOL_MAX", "20")))
-        _DB_POOL = await asyncpg.create_pool(
-            dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
+        _DB_POOL = await retry_startup_connect(
+            asyncpg.create_pool, dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
         )
         app.state.db_pool = _DB_POOL
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
-        raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS + الفرض مُفعَّل) — لا تبتلعه
+        raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS، أو مهلة إقلاع Postgres) — لا تبتلعه
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
         _DB_POOL = None
@@ -257,8 +258,8 @@ async def _init_db_pool():
     # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
     jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
     try:
-        _JOBS_POOL = await asyncpg.create_pool(
-            jobs_dsn, statement_cache_size=0, min_size=1, max_size=4
+        _JOBS_POOL = await retry_startup_connect(
+            asyncpg.create_pool, jobs_dsn, statement_cache_size=0, min_size=1, max_size=4
         )
         logging.info("✓ pool المهامّ الخلفيّة جاهز (sahool_jobs)")
     except Exception as e:  # noqa: BLE001 — غيابه يُعطّل المرسِل لا المنصّة
@@ -567,7 +568,8 @@ async def _start_outbox_worker():
         from shared.broker_url import make_jetstream_publisher, redact_broker_url
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
-        _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
+        inbox = "_INBOX_sahool-platform"  # صندوقُ ردٍّ بهويّتها في nats.conf — لا يقرؤه غيرُها
+        _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1, inbox_prefix=inbox)
 
         # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
         _publish = make_jetstream_publisher(_NATS_CONN)
@@ -576,8 +578,7 @@ async def _start_outbox_worker():
         # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
         _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
         _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
-        # `NATS_URL` صار يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01)،
-        # فطباعتُه خاماً تُسرّب كلمةَ المرور إلى سجلٍّ يُجمَع ويُشحَن.
+        # `NATS_URL` يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01): يُطبَع مُنقّى.
         logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
@@ -1135,17 +1136,17 @@ def create_token(user: UserSchema) -> str:
 
 
 # ─── إبطال JWT (denylist) — يُغلق فجوة: تسجيل الخروج لم يكن يُبطِل التوكن فعليّاً ──
-# يُبنى backend مشترك مع خدمة auth (نفس مفتاح Redis sahool:jti:revoked:{jti}) كي
-# يرى المنصّة إبطالات auth أيضاً؛ وإلّا ذاكرة (dev/offline — إبطال داخل العمليّة).
+# backend مشترك مع auth (مفتاح sahool:jti:revoked:{jti} على خادمه: denylist_redis_url)، وإلّا ذاكرة.
 from core.jwt_denylist import (  # noqa: E402
     InMemoryDenylist,
     RedisDenylist,
+    denylist_redis_url,
     is_token_revoked,
 )
 
 
 def _build_denylist():
-    """backend الإبطال: Redis (مشترك مع auth) إن توفّر REDIS_URL وحيّ، وإلّا ذاكرة.
+    """backend الإبطال: Redis (مشترك مع auth) إن توفّر DENYLIST_REDIS_URL/REDIS_URL وحيّ، وإلّا ذاكرة.
 
     fail-safe (تطوير): أيّ تعذّر اتّصال/استيراد ⇒ ذاكرة (يُبطِل داخل العمليّة على الأقلّ،
     مع fail-open على الفحص). الإنتاج متعدّد العمّال يحتاج Redis لمشاركة الإبطال.
@@ -1154,7 +1155,7 @@ def _build_denylist():
     وتفقد الإبطالات عند إعادة التشغيل، و«fail-open على الفحص» يُمرّر التوكنات المُبطَلة.
     لذا في الإنتاج (SAHOOL_ENV=production) نرفض الإقلاع إن غاب Redis بدل التنازل صامتاً.
     """
-    url = os.getenv("REDIS_URL", "")
+    url = denylist_redis_url()
     if url:
         try:
             import redis as _redis
@@ -1180,11 +1181,10 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     """يستخرج المستخدم من JWT. fail-closed."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(
-            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
+        payload = decode_access_token(
+            token, JWT_VERIFY_KEY, algorithm=JWT_VERIFY_ALGORITHM, backend="pyjwt", site="platform"
         )
     except InvalidTokenError as e:
         logging.warning("JWT validation failed: %s", type(e).__name__)

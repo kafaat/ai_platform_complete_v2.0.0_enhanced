@@ -126,6 +126,16 @@ def test_a_malformed_contract_version_is_local_only(version):
     assert TTS.policy_from_me(_me(envelope), _TENANT) == TTS.LOCAL_ONLY_POLICY
 
 
+@pytest.mark.parametrize("contract", [None, "", "other.policy", 2, True])
+def test_a_missing_or_wrong_contract_identity_is_local_only(contract):
+    envelope = ENV.build_ai_policy_envelope(_TENANT, _row("full_external", ["tts:edge_tts"]))
+    if contract is None:
+        envelope.pop("contract")
+    else:
+        envelope["contract"] = contract
+    assert TTS.policy_from_me(_me(envelope), _TENANT) == TTS.LOCAL_ONLY_POLICY
+
+
 def test_the_old_platform_me_without_an_envelope_is_local_only():
     """منصّةُ الإنتاج اليوم (``/api/v1/me`` بلا ``ai_policy_envelope``) ⇒ الأشدّ."""
     assert TTS.policy_from_me(_me(None), _TENANT) == TTS.LOCAL_ONLY_POLICY

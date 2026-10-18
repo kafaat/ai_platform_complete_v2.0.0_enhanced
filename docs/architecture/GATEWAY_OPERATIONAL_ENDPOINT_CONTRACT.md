@@ -5,7 +5,9 @@ Status: **Accepted** · 2026-08-03
 The canonical infrastructure endpoints are exact paths:
 
 - `GET /healthz` — public liveness response at the gateway.
-- `GET /readyz` — private/operator-only readiness, proxied to `sahool-platform`.
+- `GET /readyz` — readiness of the gateway that answers it. On the production
+  gateway it is private/operator-only and proxied to `sahool-platform`; on the
+  frontend gateway it is answered locally (see below).
 - `GET /runtime-identity` — private/operator-only immutable build identity, proxied to `sahool-platform`.
 - `GET /metrics` — private monitoring surface.
 
@@ -14,9 +16,21 @@ response or an explicit gateway denial/error; `200 text/html` is forbidden. Exac
 matching is required so domain paths such as `/fields/runtime-identity` are not
 reclassified as infrastructure.
 
-The frontend development/production-build gateway proxies `/readyz` and
-`/runtime-identity` directly to the platform to preserve the same semantic
-contract on port 3003. The production gateway restricts both paths to loopback
+The frontend development/production-build gateway (`frontend/nginx.conf`, also
+rendered as the public Railway gateway) proxies `/runtime-identity` directly to
+the platform. Its `/readyz` is the frontend gateway's **own** readiness, answered
+by nginx without any backend: `200 {"status":"ready","component":"frontend-gateway"}`
+when the configuration loaded (which implies a valid config and a configured
+resolver for the `resolve` upstreams) and the SPA shell is servable, otherwise
+`503 {"status":"not_ready",...}`. It was previously proxied to the platform's
+`/readyz`, which made it report the platform's readiness under the frontend's
+name — a frontend deploy gated on it would freeze whenever the platform is down
+(FRONTEND-READYZ-IMPERSONATES-PLATFORM-READINESS-01). Platform readiness is read
+from the platform itself (its own `/readyz`, or the production gateway's private
+`/readyz`), never through the frontend gateway. Witness:
+`tests_v9/test_gateway_operational_endpoints_contract.py`.
+
+The production gateway restricts `/readyz` and `/runtime-identity` to loopback
 and RFC1918 operator networks.
 
 ## Assumption the ACL depends on — stated, not implied

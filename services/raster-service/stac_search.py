@@ -9,6 +9,7 @@ creating a second client or changing runtime behaviour.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 import httpx
@@ -19,7 +20,7 @@ _logger: Any = None
 EARTH_SEARCH_URL = "https://earth-search.aws.element84.com/v1"
 HTTP_TIMEOUT = 30.0
 HISTORICAL_SEARCH_PROVIDER = "element84"  # يُعاد ضبطه من raster_settings عبر configure()
-SENTINEL_COLLECTION = "sentinel-2-l2a"
+SENTINEL_COLLECTION = "sentinel-2-c1-l2a"
 SENTINEL1_COLLECTION = "sentinel-1-grd"
 LANDSAT_COLLECTION = "landsat-c2-l2"
 DEM_COLLECTION = "cop-dem-glo-30"
@@ -122,6 +123,37 @@ def band_urls_from_assets(assets: dict) -> dict:
         "swir1": url("swir16"),  # B11 → BandMapping.swir1   (NDMI / MSI / BSI)
         "swir2": url("swir22"),  # B12 → BandMapping.swir2   (BSI / SATVI / NDTI)
         "scl": url("scl"),
+    }
+
+
+def radiometry_context_from_item(item: dict) -> dict:
+    """Retain calibration provenance for the exact selected assets, without certifying it.
+
+    Search previously discarded raster:bands, making a later per-asset review
+    impossible. This bounded deep copy travels with search results. The C1
+    processing boundary additionally checks exact asset identities and TIFF
+    declarations; the context alone is not permission to process legacy COGs.
+    """
+    assets = item.get("assets", {})
+    selected = {href for href in band_urls_from_assets(assets).values() if href}
+    return {
+        "id": item.get("id"),
+        "collection": item.get("collection"),
+        "properties": {
+            key: deepcopy(value)
+            for key, value in item.get("properties", {}).items()
+            if key in {"earthsearch:boa_offset_applied", "s2:processing_baseline", "datetime"}
+        },
+        "assets": {
+            key: {
+                field: deepcopy(value)
+                for field, value in asset.items()
+                if field
+                in {"href", "raster:bands", "bands", "eo:bands", "type", "roles", "file:checksum"}
+            }
+            for key, asset in assets.items()
+            if asset.get("href") in selected
+        },
     }
 
 
@@ -233,6 +265,7 @@ async def stac_search_cdse(
         items.append(
             {
                 "item_id": feat.get("id", ""),
+                "collection": feat.get("collection") or _cdse._COLLECTION,
                 "datetime": props.get("datetime", ""),
                 "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
                 "bbox": feat.get("bbox"),
@@ -274,10 +307,12 @@ async def stac_search_element84(
         items.append(
             {
                 "item_id": feat.get("id", ""),
+                "collection": feat.get("collection"),
                 "datetime": props.get("datetime", ""),
                 "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
                 "bbox": feat.get("bbox"),
                 "bands_urls": band_urls_from_assets(assets),
+                "radiometry_context": radiometry_context_from_item(feat),
                 "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
                 "preview_url": (assets.get("visual") or {}).get("href"),
                 "platform": props.get("platform", "sentinel-2"),

@@ -275,6 +275,7 @@ def _shape_decision_row(row) -> dict:
         val = _json.loads(val)
     created = row["created_at"]
     return {
+        "correlation_id": str(row["correlation_id"]) if row.get("correlation_id") else None,
         "decision_id": row["decision_id"],
         "field_id": row["field_id"],
         "decision_type": row["decision_type"],

@@ -1,0 +1,206 @@
+{
+  "chosen_dense_weight": 0.1,
+  "acceptance": [
+    {
+      "id": "ar-13",
+      "metrics": {
+        "ids": [
+          "seed:142",
+          "seed:136",
+          "seed:127",
+          "seed:135",
+          "seed:122"
+        ],
+        "precision_at_k": 0.2,
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      }
+    },
+    {
+      "id": "ar-14",
+      "metrics": {
+        "ids": [
+          "seed:109",
+          "seed:107",
+          "seed:3",
+          "seed:137",
+          "seed:10"
+        ],
+        "precision_at_k": 0.6,
+        "recall_at_k": 0.75,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.64356478136362
+      }
+    },
+    {
+      "id": "ar-15",
+      "metrics": {
+        "ids": [
+          "seed:126",
+          "seed:100",
+          "seed:105",
+          "seed:104",
+          "seed:102"
+        ],
+        "precision_at_k": 0.2,
+        "recall_at_k": 0.3333333333333333,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.7452525342261976
+      }
+    },
+    {
+      "id": "ar-16",
+      "metrics": {
+        "ids": [
+          "seed:142",
+          "seed:109",
+          "seed:127",
+          "seed:135",
+          "seed:122"
+        ],
+        "precision_at_k": 0.4,
+        "recall_at_k": 0.6666666666666666,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.938506417451168
+      }
+    },
+    {
+      "id": "ar-17",
+      "metrics": {
+        "ids": [
+          "seed:140",
+          "seed:134",
+          "seed:142",
+          "seed:108",
+          "seed:127"
+        ],
+        "precision_at_k": 0.2,
+        "recall_at_k": 0.5,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.7871546029909718
+      }
+    },
+    {
+      "id": "ar-18",
+      "metrics": {
+        "ids": [
+          "seed:113",
+          "seed:150",
+          "seed:111",
+          "seed:10",
+          "seed:1"
+        ],
+        "precision_at_k": 0.4,
+        "recall_at_k": 0.6666666666666666,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.3776273968978487
+      }
+    },
+    {
+      "id": "ar-19",
+      "metrics": {
+        "ids": [
+          "seed:10",
+          "seed:1",
+          "seed:127",
+          "seed:111",
+          "seed:7"
+        ],
+        "precision_at_k": 0.2,
+        "recall_at_k": 0.5,
+        "mrr_at_k": 0.25,
+        "ndcg_at_k": 0.14528958646619142
+      }
+    },
+    {
+      "id": "ar-20",
+      "metrics": {
+        "ids": [
+          "seed:148",
+          "seed:111",
+          "seed:122",
+          "seed:121",
+          "seed:110"
+        ],
+        "precision_at_k": 0.4,
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "id": "ar-21",
+      "metrics": {
+        "ids": [
+          "seed:149",
+          "seed:150",
+          "seed:113",
+          "seed:4",
+          "seed:109"
+        ],
+        "precision_at_k": 0.6,
+        "recall_at_k": 0.75,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.7037281178154927
+      }
+    },
+    {
+      "id": "ar-22",
+      "metrics": {
+        "ids": [
+          "seed:113",
+          "seed:145",
+          "seed:111",
+          "seed:144",
+          "seed:132"
+        ],
+        "precision_at_k": 0.6,
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.5,
+        "ndcg_at_k": 0.7328286204777911
+      }
+    },
+    {
+      "id": "ar-23",
+      "metrics": {
+        "ids": [
+          "seed:113",
+          "seed:151",
+          "seed:10",
+          "seed:1",
+          "seed:114"
+        ],
+        "precision_at_k": 0.6,
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.5336289373681301
+      }
+    },
+    {
+      "id": "ar-24",
+      "metrics": {
+        "ids": [
+          "seed:4",
+          "seed:8",
+          "seed:1",
+          "seed:150",
+          "seed:108"
+        ],
+        "precision_at_k": 0.2,
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      }
+    }
+  ],
+  "aggregate": {
+    "precision_at_k": 0.3833333333333333,
+    "recall_at_k": 0.7638888888888888,
+    "mrr_at_k": 0.8125,
+    "ndcg_at_k": 0.6557867085166939
+  },
+  "production_changed": false,
+  "reserved_fusion_scope_not_edited": true,
+  "interpretation": "Diagnostic candidate only; reserved fusion owner coordination and expanded independent relevance acceptance remain."
+}

@@ -14,8 +14,8 @@ api/water_balance.py — توصية ميزان الماء (ET0 + المطر)
 
 المبدأ: "human-in-the-loop" — توصية لا ريّ آلي مغلق (رفضناه سابقاً).
 
-⚠ معاملات Kc تقديريّة من FAO-56 (مرجع علمي)، لكن يجب معايرتها محلّيّاً.
-موسومة بمصدرها. الحساب الفيزيائي (Penman-Monteith) معادلة معياريّة لا ثابت مُختلق.
+⚠ معاملات Kc تقديريّة من FAO-56 (مرجع علمي) تُقرأ من بطاقة المحصول (المصدر الوحيد)،
+لكن يجب معايرتها محلّيّاً. موسومة بمصدرها. الحساب الفيزيائي (Penman-Monteith) معادلة معياريّة لا ثابت مُختلق.
 """
 
 from __future__ import annotations
@@ -32,24 +32,27 @@ from core.engines.fao56 import (
 from core.engines.fao56 import (
     salinity_stress_ks as _fao56_salinity_stress_ks,
 )
-from core.season_phenology import crop_kc_profile, resolve_crop_id
+from core.season_phenology import (
+    GENERIC_STAGE_KC,
+    crop_kc_profile,
+    resolve_crop_id,
+    stage_kc_map,
+)
 
-# معاملات Kc حسب مرحلة النموّ (FAO-56 Irrigation & Drainage Paper 56)
-# ⚠ FAO reference values — تحتاج معايرة محلّيّة يمنيّة
-# المراحل: initial / development / mid-season / late-season
-KC_BY_CROP_STAGE: dict[str, dict[str, float]] = {
-    "wheat": {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
-    "barley": {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
-    "sorghum": {"initial": 0.40, "development": 0.75, "mid": 1.10, "late": 0.55},
-    "maize": {"initial": 0.40, "development": 0.80, "mid": 1.20, "late": 0.60},
-    "millet": {"initial": 0.35, "development": 0.70, "mid": 1.00, "late": 0.35},
-    "tomato": {"initial": 0.60, "development": 0.85, "mid": 1.15, "late": 0.80},
-    "potato": {"initial": 0.50, "development": 0.85, "mid": 1.15, "late": 0.75},
-    "onion": {"initial": 0.70, "development": 0.85, "mid": 1.05, "late": 0.75},
-    "alfalfa": {"initial": 0.40, "development": 0.80, "mid": 1.20, "late": 1.15},
-    "citrus": {"initial": 0.70, "development": 0.65, "mid": 0.70, "late": 0.70},
-    "dates": {"initial": 0.90, "development": 0.95, "mid": 0.95, "late": 0.95},
-}
+
+def kc_map_for_crop(crop: str | None) -> tuple[dict[str, float], bool]:
+    """Kc لكلّ مرحلة (initial/development/mid/late) لمحصول ⇒ (الخريطة، هل المحصول مُعرّف).
+
+    PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01: لا جدول Kc هنا. كان ``KC_BY_CROP_STAGE`` نسخةً
+    موازية لبطاقات المحاصيل تخالفها (Kc الابتدائيّ للذرة 0.40 مقابل 0.30 في البطاقة)،
+    فأعطى مستهلكون مختلفون ETc مختلفاً للحقل نفسه. بقرار المالك (2026-10-15): بطاقة
+    المحصول (``core/crop_cards``) عبر ``season_phenology.stage_kc_map`` هي المصدر الوحيد.
+    المحصول بلا بطاقة ⇒ ``GENERIC_STAGE_KC`` موسوماً ``False`` (تقدير عامّ، لا يُنسَب له).
+    """
+    kc_map = stage_kc_map(resolve_crop_id(crop))
+    if kc_map is None:
+        return dict(GENERIC_STAGE_KC), False
+    return kc_map, True
 
 
 @dataclass
@@ -275,10 +278,7 @@ def water_balance(
     """
     et0 = float(et0_mm)
     method = et0_method
-    crop_known = crop in KC_BY_CROP_STAGE
-    kc_map = KC_BY_CROP_STAGE.get(
-        crop, {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
-    )
+    kc_map, crop_known = kc_map_for_crop(crop)
     kc_source = (
         f"محصول مُعرّف ({crop})"
         if crop_known

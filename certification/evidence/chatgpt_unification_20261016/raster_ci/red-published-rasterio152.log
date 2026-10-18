@@ -1,0 +1,37 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_each_band_nodata_and_internal_mask_survive ________________
+
+env = namespace(pp=<module 'raster_pixel_processing' from '/workspace/scratch/881ca3efb91d/raster-ci-fix/services/raster-ser...0x7fd32d362160>, <function compute_quality_score at 0x7fd32d362e80>, <function build_quality_flags at 0x7fd32d363060>))
+
+    def test_each_band_nodata_and_internal_mask_survive(env):
+        red = _tif(env, "mask_red", np.full((2, 2), 1000, dtype="uint16"), nodata=0)
+        nir = _tif(
+            env, "mask_nir", np.array([[3000, 65535], [3000, 3000]], dtype="uint16"), nodata=65535
+        )
+        with rasterio.open(red, "r+") as dst:
+            dst.write_mask(np.array([[255, 255], [0, 255]], dtype="uint8"))
+        path, _ = env.stac_vrt.build_band_vrt({"red": red, "nir": nir}, str(env.dir))
+        with rasterio.open(path) as src:
+            result = _run(env, src, _req("ndvi", bands=_bands(red=1, nir=2)))
+>       assert result["valid_pixels"] == 2
+E       assert 3 == 2
+
+services/raster-service/test_element84_vrt_defect_witnesses.py:476: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  rasterio._env:stac_vrt.py:80 CPLE_AppDefined in Source dataset has both a per-dataset mask band and the warper has been also configured with a source nodata value. Only taking into account the latter (i.e. ignoring the per-dataset mask band)
+WARNING  rasterio._env:env.py:464 CPLE_AppDefined in Source dataset has both a per-dataset mask band and the warper has been also configured with a source nodata value. Only taking into account the latter (i.e. ignoring the per-dataset mask band)
+WARNING  rasterio._err:raster_pixel_processing.py:635 CPLE_AppDefined:Source dataset has both a per-dataset mask band and the warper has been also configured with a source nodata value. Only taking into account the latter (i.e. ignoring the per-dataset mask band)
+=============================== warnings summary ===============================
+services/raster-service/test_element84_vrt_defect_witnesses.py::test_each_band_nodata_and_internal_mask_survive
+  /workspace/scratch/881ca3efb91d/raster-ci-fix/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+    class ProvenanceRecord(BaseModel):
+
+services/raster-service/test_element84_vrt_defect_witnesses.py::test_each_band_nodata_and_internal_mask_survive
+  /workspace/scratch/881ca3efb91d/raster-ci-fix/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+    class ValidatedRasterProduct(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED services/raster-service/test_element84_vrt_defect_witnesses.py::test_each_band_nodata_and_internal_mask_survive
+1 failed, 2 warnings in 0.89s

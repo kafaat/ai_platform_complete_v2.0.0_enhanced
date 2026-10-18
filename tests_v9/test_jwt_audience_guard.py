@@ -60,7 +60,16 @@ def test_issuers_emit_aud_sahool():
 
 @pytest.mark.unit
 def test_supervisor_validates_audience():
+    # منذ JWT-DECODE-OUTSIDE-SHARED-SECURITY-01 يفكّ المشرف عبر المفكِّك المشترك، والجمهورُ
+    # ثابتٌ فيه لا وسيطٌ يختاره المُستدعي — فالعقدُ: النداءُ هناك والثابتُ "sahool".
+    from shared.security.access_tokens import ACCESS_TOKEN_AUDIENCE
+
     sup = open(os.path.join(ROOT, "services/supervisor-agent/main.py"), encoding="utf-8").read()
-    assert re.search(r"""audience\s*=\s*['"]sahool['"]""", sup), (
+    shared_src = open(
+        os.path.join(ROOT, "shared/security/access_tokens.py"), encoding="utf-8"
+    ).read()
+    assert "decode_access_token(" in sup or re.search(r"""audience\s*=\s*['"]sahool['"]""", sup), (
         "supervisor لا يتحقّق من aud=sahool (انتكاسة)"
     )
+    assert ACCESS_TOKEN_AUDIENCE == "sahool"
+    assert "audience=ACCESS_TOKEN_AUDIENCE" in shared_src, "المفكِّك المشترك لا يمرّر الجمهور"

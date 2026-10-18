@@ -1,0 +1,1251 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v5.0.2 /workspace/scratch/383ab1306db0/sahool-work/frontend
+
+ ❯ src/sections/FieldWorkspaceRouteShell.behavior.test.tsx (5 tests | 4 failed) 355ms
+   ❯ TEXT-GUARD: live workspace map binding (5)
+     × renders the route field in overview without a second picker 165ms
+     × renders the route field in map without a second picker 52ms
+     × uses the selected field when the route has none 53ms
+     × mounts the card after changing from weather to the map tab 75ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/sections/FieldWorkspaceRouteShell.behavior.test.tsx > TEXT-GUARD: live workspace map binding > renders the route field in overview without a second picker
+TestingLibraryElementError: Unable to find an accessible element with the role "region" and name "rendered field map"
+
+Here are the accessible roles:
+
+  main:
+
+  Name "مساحة عمل الحقل":
+  [36m<main[39m
+    [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"space-y-4"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "مساحة عمل الحقل":
+  [36m<h1[39m
+    [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "العودة لمركز الخرائط":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "نظرة عامة":
+  [36m<button[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+    [33mtitle[39m=[32m"نظرة عامة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الخريطة":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الخريطة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الموسم":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الموسم"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الصور والمؤشرات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الصور والمؤشرات"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الطقس":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الطقس"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الري":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "العمليات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التوصيات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التقارير":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"التقارير"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "تبويبات مساحة عمل الحقل":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-col gap-3 md:flex-row md:items-center md:justify-between"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+            [36m>[39m
+              [0mField Workspace · [0m
+              [0mroute[0m
+            [36m</p>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+            [36m>[39m
+              [0mمساحة عمل الحقل[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+            [36m>[39m
+              [0mcontext: [0m
+              [36m<code>[39m
+                [0myemen-field[0m
+              [36m</code>[39m
+              [0m · لا يوجد موسم نشط في الرابط[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-right w-4 h-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 5 7 7-7 7"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mالعودة لمركز الخرائط[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<nav[39m
+        [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+        [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+        [33mdir[39m=[32m"rtl"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-current[39m=[32m"page"[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+          [33mtitle[39m=[32m"نظرة عامة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-layout-dashboard w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"12"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"16"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mنظرة عامة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الخريطة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-map w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 5.764v15"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M9 3.236v15"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mالخريطة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الموسم"[39m
+          [33mtype[39m=[3...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/sections/FieldWorkspaceRouteShell.behavior.test.tsx:39:24
+     37|     selected.fieldId = 'another-selected-field';
+     38|     mount(`/fields/yemen-field?tab=${tab}`);
+     39|     const map = screen.getByRole('region', { name: 'rendered field map…
+       |                        ^
+     40|     expect(map).toHaveAttribute('data-field', 'yemen-field');
+     41|     expect(map).toHaveAttribute('data-picker', 'false');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/sections/FieldWorkspaceRouteShell.behavior.test.tsx > TEXT-GUARD: live workspace map binding > renders the route field in map without a second picker
+TestingLibraryElementError: Unable to find an accessible element with the role "region" and name "rendered field map"
+
+Here are the accessible roles:
+
+  main:
+
+  Name "مساحة عمل الحقل":
+  [36m<main[39m
+    [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"space-y-4"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "مساحة عمل الحقل":
+  [36m<h1[39m
+    [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "العودة لمركز الخرائط":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "نظرة عامة":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"نظرة عامة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الخريطة":
+  [36m<button[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+    [33mtitle[39m=[32m"الخريطة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الموسم":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الموسم"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الصور والمؤشرات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الصور والمؤشرات"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الطقس":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الطقس"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الري":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "العمليات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التوصيات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التقارير":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"التقارير"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "تبويبات مساحة عمل الحقل":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-col gap-3 md:flex-row md:items-center md:justify-between"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+            [36m>[39m
+              [0mField Workspace · [0m
+              [0mroute[0m
+            [36m</p>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+            [36m>[39m
+              [0mمساحة عمل الحقل[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+            [36m>[39m
+              [0mcontext: [0m
+              [36m<code>[39m
+                [0myemen-field[0m
+              [36m</code>[39m
+              [0m · لا يوجد موسم نشط في الرابط[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-right w-4 h-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 5 7 7-7 7"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mالعودة لمركز الخرائط[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<nav[39m
+        [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+        [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+        [33mdir[39m=[32m"rtl"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"نظرة عامة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-layout-dashboard w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"12"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"16"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mنظرة عامة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-current[39m=[32m"page"[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+          [33mtitle[39m=[32m"الخريطة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-map w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 5.764v15"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M9 3.236v15"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mالخريطة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الموسم"[39m
+          [33mtype[39m=[3...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/sections/FieldWorkspaceRouteShell.behavior.test.tsx:39:24
+     37|     selected.fieldId = 'another-selected-field';
+     38|     mount(`/fields/yemen-field?tab=${tab}`);
+     39|     const map = screen.getByRole('region', { name: 'rendered field map…
+       |                        ^
+     40|     expect(map).toHaveAttribute('data-field', 'yemen-field');
+     41|     expect(map).toHaveAttribute('data-picker', 'false');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/sections/FieldWorkspaceRouteShell.behavior.test.tsx > TEXT-GUARD: live workspace map binding > uses the selected field when the route has none
+TestingLibraryElementError: Unable to find an accessible element with the role "region" and name "rendered field map"
+
+Here are the accessible roles:
+
+  main:
+
+  Name "مساحة عمل الحقل":
+  [36m<main[39m
+    [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"space-y-4"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "مساحة عمل الحقل":
+  [36m<h1[39m
+    [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "العودة لمركز الخرائط":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "نظرة عامة":
+  [36m<button[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+    [33mtitle[39m=[32m"نظرة عامة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الخريطة":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الخريطة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الموسم":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الموسم"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الصور والمؤشرات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الصور والمؤشرات"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الطقس":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الطقس"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الري":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "العمليات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التوصيات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التقارير":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"التقارير"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "تبويبات مساحة عمل الحقل":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-col gap-3 md:flex-row md:items-center md:justify-between"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+            [36m>[39m
+              [0mField Workspace · [0m
+              [0mselected-field[0m
+            [36m</p>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+            [36m>[39m
+              [0mمساحة عمل الحقل[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+            [36m>[39m
+              [0mcontext: [0m
+              [36m<code>[39m
+                [0mselected-field[0m
+              [36m</code>[39m
+              [0m · لا يوجد موسم نشط في الرابط[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-right w-4 h-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 5 7 7-7 7"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mالعودة لمركز الخرائط[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<nav[39m
+        [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+        [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+        [33mdir[39m=[32m"rtl"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-current[39m=[32m"page"[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+          [33mtitle[39m=[32m"نظرة عامة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-layout-dashboard w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"12"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"16"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mنظرة عامة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الخريطة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-map w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 5.764v15"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M9 3.236v15"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mالخريطة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الموسم"[39m
+          [33mt...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/sections/FieldWorkspaceRouteShell.behavior.test.tsx:47:19
+     45|     selected.fieldId = 'selected-field';
+     46|     mount('/fields');
+     47|     expect(screen.getByRole('region', { name: 'rendered field map' }))…
+       |                   ^
+     48|   });
+     49|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/sections/FieldWorkspaceRouteShell.behavior.test.tsx > TEXT-GUARD: live workspace map binding > mounts the card after changing from weather to the map tab
+TestingLibraryElementError: Unable to find an accessible element with the role "region" and name "rendered field map"
+
+Here are the accessible roles:
+
+  main:
+
+  Name "مساحة عمل الحقل":
+  [36m<main[39m
+    [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"space-y-4"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "مساحة عمل الحقل":
+  [36m<h1[39m
+    [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "العودة لمركز الخرائط":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "نظرة عامة":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"نظرة عامة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الخريطة":
+  [36m<button[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+    [33mtitle[39m=[32m"الخريطة"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الموسم":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الموسم"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الصور والمؤشرات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الصور والمؤشرات"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الطقس":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"الطقس"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "الري":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "العمليات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التوصيات":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 opacity-50 cursor-not-allowed hover:border-slate-800"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtitle[39m=[32m"يتطلب موسماً نشطاً season_id."[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "التقارير":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+    [33mtitle[39m=[32m"التقارير"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "تبويبات مساحة عمل الحقل":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+    [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+    [33mdir[39m=[32m"rtl"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33maria-label[39m=[32m"مساحة عمل الحقل"[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+      [33mdir[39m=[32m"rtl"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"rounded-2xl border border-slate-800 bg-slate-950/70 p-5"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-col gap-3 md:flex-row md:items-center md:justify-between"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-xs text-emerald-300"[39m
+            [36m>[39m
+              [0mField Workspace · [0m
+              [0mroute[0m
+            [36m</p>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl font-bold text-slate-100"[39m
+            [36m>[39m
+              [0mمساحة عمل الحقل[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-slate-400 mt-1"[39m
+            [36m>[39m
+              [0mcontext: [0m
+              [36m<code>[39m
+                [0myemen-field[0m
+              [36m</code>[39m
+              [0m · لا يوجد موسم نشط في الرابط[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-right w-4 h-4"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 5 7 7-7 7"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mالعودة لمركز الخرائط[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<nav[39m
+        [33maria-label[39m=[32m"تبويبات مساحة عمل الحقل"[39m
+        [33mclass[39m=[32m"flex gap-2 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-2"[39m
+        [33mdir[39m=[32m"rtl"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"نظرة عامة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-layout-dashboard w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"3"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"9"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"14"[39m
+              [33my[39m=[32m"12"[39m
+            [36m/>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"5"[39m
+              [33mrx[39m=[32m"1"[39m
+              [33mwidth[39m=[32m"7"[39m
+              [33mx[39m=[32m"3"[39m
+              [33my[39m=[32m"16"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mنظرة عامة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-current[39m=[32m"page"[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-emerald-500 bg-emerald-950/60 text-emerald-100 "[39m
+          [33mtitle[39m=[32m"الخريطة"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-map w-4 h-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 5.764v15"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M9 3.236v15"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mالخريطة[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm border transition border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 "[39m
+          [33mtitle[39m=[32m"الموسم"[39m
+          [33mtype[39m=[3...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/sections/FieldWorkspaceRouteShell.behavior.test.tsx:60:19
+     58|     expect(screen.queryByRole('region', { name: 'rendered field map' }…
+     59|     fireEvent.click(screen.getByRole('button', { name: 'الخريطة' }));
+     60|     expect(screen.getByRole('region', { name: 'rendered field map' }))…
+       |                   ^
+     61|   });
+     62| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  4 failed | 3 passed (7)
+   Start at  04:26:31
+   Duration  1.52s (environment 28%, transform 27%, tests 25%, import 12%, setup 7%)
+

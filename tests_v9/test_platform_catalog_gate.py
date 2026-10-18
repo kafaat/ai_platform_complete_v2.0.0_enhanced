@@ -1,10 +1,10 @@
 """بوّابة الكتالوج الموحّد (U0+U1+U2) — تثبيت الجرد، الأسماء القانونيّة، والحتميّة.
 
-U0: تثبيت الجرد الحاليّ — 32 مكوّن backend و982 تركيبة Method/Path فريدة، بلا drift.
+U0: تثبيت الجرد الحاليّ — 31 مكوّن backend و982 تركيبة Method/Path فريدة، بلا drift.
 U1: كلّ مكوّن له اسم قانونيّ واحد؛ erp-bridge قانونيّ وodoo-bridge اسم مستعار؛
     compose/DNS تُربط بالقانونيّ ولا تُعامل كمكوّنات مستقلّة.
 U2: المُصرِّف حتميّ — إعادة التوليد تنتج نفس البصمة بايتاً-ببايت (--check).
-U3: wired مدفوع بأدلّة fail-closed (بوّابة العقود المُقوّاة): 29 مستهلَكاً مثبتاً،
+U3: wired مدفوع بأدلّة fail-closed (بوّابة العقود المُقوّاة): 28 مستهلَكاً مثبتاً،
     agriai-engine غير-مستهلَك عمداً (بمُحفِّز إعادة فتح)، qdrant-seed وgis-workflow-service
     مهمّتان مستقلّتان؛ سجلّ ملكيّة الجداول نظيف (مدخل IF الزائف أُزيل من مصدره).
 U4: كلّ مجموعة تكرار (method,path) مقاسة تحمل قراراً بشريّاً صالحاً (تصنيف + سبب +
@@ -37,7 +37,10 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 #   وPOST /v1/registry/cogs — الكتابةُ إلى raster_cache_invalidations/raster_registry انتقلت من
 #   المنصّة إلى مالكها. جردٌ مقيس في خدمةٍ أخرى؛ ميزانيّةُ مسارات المنصّة لم تُمَسّ.
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
-PINNED_BACKEND_COMPONENTS = 32
+# 2026-10-17: 32 → 31 — أُزيل weather-polygon-worker بقرار مالك
+#   (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01): عاملٌ يشترك في موضوعٍ لا ناشرَ له. مكوّنٌ خرج
+#   من الشجرة كلّها لا مكوّنٌ سقط من الجرد؛ ومستهلَكوه المثبتون 29 → 28 بالسبب نفسه.
+PINNED_BACKEND_COMPONENTS = 31
 # 2026-09-29: +1 GET /api/v1/fields/{field_id}/indicator-observations/{view} (M4) — واجهةُ
 #   قراءةٍ مُصادَقة تُظهِر ملاحظات المؤشّرات لحقلٍ عبر المنصّة؛ قدرةٌ واحدةٌ جديدة
 #   (sahool-platform.fields.field_id.indicator-observations، field+tenant-scoped) مع إعفاء
@@ -114,7 +117,7 @@ def test_ownership_conflicts_are_zero() -> None:
 
 def test_u3_wired_is_evidence_driven() -> None:
     """U3: السلك من أدلّة بوّابة العقود المُقوّاة لا من تخمينات compose —
-    29 مستهلَكاً مثبتاً؛ agriai-engine غير-مستهلَك عمداً (False + مُحفِّز إعادة فتح)؛
+    28 مستهلَكاً مثبتاً؛ agriai-engine غير-مستهلَك عمداً (False + مُحفِّز إعادة فتح)؛
     qdrant-seed وgis-workflow-service مهمّتان مستقلّتان (null)."""
     comps = {c["component_id"]: c for c in _catalog()["components"]}
     agriai = comps["agriai-engine"]
@@ -129,7 +132,7 @@ def test_u3_wired_is_evidence_driven() -> None:
         for c in comps.values()
         if c["status"]["wired"] is True and c["consumer_contract"]["declared"]
     ]
-    assert len(backend_wired) == 29, sorted(backend_wired)
+    assert len(backend_wired) == 28, sorted(backend_wired)  # 29 → 28 (2026-10-17، انظر U0)
     # كلّ مكوّن backend مصرَّح عقده وأدلّته صالحة (fail-closed مرّت)
     for c in comps.values():
         if c["consumer_contract"]["declared"]:

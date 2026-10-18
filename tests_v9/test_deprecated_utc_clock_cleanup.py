@@ -24,15 +24,9 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# العنقود المُعلَن دَيناً: `core/offline_first.py` يُنتِج `created_at` naive،
-# و`api/sync_delta.py:26-28` يُصرّح أنّ مقارنة الـcursor **معجميّة** ومبنيّة على
-# هذا الشكل بعينه. تحويلُ المُنتِج وحده يُدخِل لاحقة `+00:00` فيخلق حدَّ ترتيبٍ
-# مختلطاً بين قيمٍ قديمة وجديدة عند اللحظة نفسها. إغلاقه يحتاج حسم دلالة الـcursor
-# لا إعادة تسمية دالّة — فهو شريحةٌ بذاتها، لا ذيلٌ لهذه.
-DECLARED_DEBT = {
-    "services/sahool-platform/core/offline_first.py",
-    "services/sahool-platform/tests/test_offline_first.py",
-}
+# OFFLINE-CURSOR-BOUND-TO-A-NAIVE-TIMESTAMP-01 now compares UTC instants.
+# Legacy strings remain readable; no producer needs the deprecated clock.
+DECLARED_DEBT: set[str] = set()
 
 
 def _sources() -> list[Path]:
@@ -79,16 +73,8 @@ def test_the_declared_debt_is_real_and_shrinks_only():
     assert not stale, f"مدخلٌ في الدَّين بلا استدعاءٍ فعليّ — يُحذَف لا يُترَك: {stale}"
 
 
-def test_the_lexical_cursor_contract_that_keeps_the_debt_open_still_says_so():
-    """الدَّينُ مشروطٌ بعقدٍ قائم؛ فإن زال العقد زال سببُ التأجيل.
-
-    وهذا هو ما يمنع الدَّين من أن يصير أبديّاً: إن حُسِمت دلالةُ الـcursor يوماً،
-    يحمرّ هذا الاختبار فيُعاد النظر في التأجيل بدل أن يُنسى.
-    """
-    delta = (ROOT / "services/sahool-platform/api/sync_delta.py").read_text(encoding="utf-8")
-    assert "نصّيّة معجميّة" in delta, (
-        "زال العقد المعجميّ الذي يُبرِّر تأجيل عنقود offline_first — أعِد تقييم الدَّين"
-    )
+def test_offline_timestamp_debt_is_closed():
+    assert not DECLARED_DEBT
 
 
 # ── العطل الذي لم يكن إهمالاً ────────────────────────────────────────────────

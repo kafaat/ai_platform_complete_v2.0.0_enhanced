@@ -1,0 +1,90 @@
+{
+  "schema": "sahool.unified_source_review/v1",
+  "base_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+  "source_fixed_ids": [
+    "PLATFORM-CONNECTOR-STILL-COERCES-AN-ABSENT-WIND-TO-ZERO-01",
+    "FIELDS-ROUTER-REDUNDANT-LOCAL-JSON-IMPORTS-01",
+    "REPORT2-C03-DEDUP-FOLLOWS-STREAM-MESSAGE-NOT-EVENT-ID-01",
+    "MOBILE-DASHBOARD-CARBON-SEQUESTERED-HAS-NO-PRODUCER-01",
+    "IMAGERY-SCAN-READS-ID-BUT-SEARCH-RETURNS-ITEM-ID-01",
+    "OXIDE-ELEMENT-UNIT-BRIDGE-NOT-WIRED-01",
+    "REPORT3-U07-REVIEW-DECISION-NOT-PERSISTED-01",
+    "REPORT3-RAG-03-01",
+    "REPORT3-RAG-04-01",
+    "REPORT3-RAG-11-01",
+    "IRRIGATION-SLICE-HAS-NO-UI-CALLERS-01"
+  ],
+  "remaining_transferred_open": [
+    "REPORT3-RAG-01-01",
+    "REPORT3-RAG-07-01"
+  ],
+  "original_13_ids": [
+    "CI-DOCKER-IMAGE-PULLS-BLOCK-LIVE-TESTS-01",
+    "CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01",
+    "ELEMENT84-LEGACY-PRODUCTS-UNINVENTORIED-01",
+    "ELEMENT84-VRT-BAND-GRID-MISALIGNED-01",
+    "ELEMENT84-VRT-NODATA-NOT-PROPAGATED-01",
+    "ELEMENT84-VRT-NORMALIZED-CLAIM-UNSUPPORTED-01",
+    "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+    "BACKFILL-ALREADY-READY-PREFLIGHT-IGNORES-PROCESSING-VERSION-01",
+    "VEGETATION-ANALYZE-GATE-UNREACHABLE-FOR-CDSE-PRODUCTS-01",
+    "READYZ-RETURNS-200-WHEN-IT-REPORTS-NOT-READY-01",
+    "DECISION-033-LEGACY-POLICY-UNION-01",
+    "CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01",
+    "TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01"
+  ],
+  "ghcr": "member of original13; PR1196 fixed evidence, not permanent verified guarantee",
+  "preflight": "pending_on_final_tree",
+  "remote_push": false,
+  "main_merge": false,
+  "deployment": false,
+  "allocation_source": "allocation-roster.json",
+  "original_13_audit": "completed_read_only; bounded source repairs recorded separately; runtime closures remain open",
+  "original_source_fixed_ids": [
+    "CI-DOCKER-IMAGE-PULLS-BLOCK-LIVE-TESTS-01",
+    "READYZ-RETURNS-200-WHEN-IT-REPORTS-NOT-READY-01",
+    "ELEMENT84-VRT-BAND-GRID-MISALIGNED-01",
+    "ELEMENT84-VRT-NODATA-NOT-PROPAGATED-01",
+    "ELEMENT84-VRT-NORMALIZED-CLAIM-UNSUPPORTED-01",
+    "BACKFILL-ALREADY-READY-PREFLIGHT-IGNORES-PROCESSING-VERSION-01"
+  ],
+  "original_remaining_audit_ids": [
+    "CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01",
+    "ELEMENT84-LEGACY-PRODUCTS-UNINVENTORIED-01",
+    "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+    "VEGETATION-ANALYZE-GATE-UNREACHABLE-FOR-CDSE-PRODUCTS-01",
+    "DECISION-033-LEGACY-POLICY-UNION-01",
+    "CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01",
+    "TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01"
+  ],
+  "original_remaining_open_ids": [
+    "CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01",
+    "ELEMENT84-LEGACY-PRODUCTS-UNINVENTORIED-01",
+    "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+    "VEGETATION-ANALYZE-GATE-UNREACHABLE-FOR-CDSE-PRODUCTS-01",
+    "DECISION-033-LEGACY-POLICY-UNION-01",
+    "CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01",
+    "TTS-PLATFORM-POLICY-CONTRACT-SKEW-IN-PRODUCTION-01"
+  ],
+  "transferred_fixed_before_integration": [
+    "HEARTBEAT-LAST-SUCCESS-UNREAD-01",
+    "WEATHER-IDLE-WORKER-READS-AS-DEAD-01"
+  ],
+  "allocation_counts": {
+    "distinct_total": 28,
+    "original_fixed": 6,
+    "original_open": 7,
+    "transferred_fixed_in_integration": 11,
+    "transferred_fixed_in_pr1194": 2,
+    "transferred_open": 2,
+    "total_fixed": 19,
+    "total_open": 9,
+    "verified": 0
+  },
+  "remaining_limits": [
+    "RAG01/RAG07 require real versioned experiment and coordinated embedding/reindex semantics.",
+    "Original scale/CDSE historical cause/inventory/vegetation/Decision034 staging/correlation/TTSproduction remain open.",
+    "Nineteen Decision native PostgreSQL tests skipped; PGlite does not replace native acceptance.",
+    "Final full preflight and remote final-headCI remain pending; no deployment or main merge."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "engine": "PGlite WASM PostgreSQL",
+  "version": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit",
+  "scope": "Exact captured application SQL against unchanged relevant migrations; not network/native PostgreSQL/runtime acceptance",
+  "persistence_sha256": "9473f764f139ca577c375568bca2cafb4e0044acc5d7275a55f7bedfcea4d763",
+  "checks_passed": 19,
+  "checks": [
+    "Actual migrations 001/002/003/026/035 applied unchanged with pgcrypto",
+    "Approved review and saved plan survive authoritative reload",
+    "Pending candidate remains visible without invented approval",
+    "Excluded tenant-other",
+    "Excluded field-other",
+    "Excluded season-other",
+    "Excluded type-other",
+    "Excluded stage-other",
+    "No approval or plan binding for review-stale",
+    "No approval or plan binding for review-tenant-other",
+    "No approval or plan binding for review-lineage-other",
+    "No plan binding for plan-stale",
+    "No plan binding for plan-tenant-other",
+    "No plan binding for plan-lineage-other",
+    "Default queue remains pending only",
+    "Non-bypass RLS role sees no rows without transaction-local tenant",
+    "Exact application BEGIN/bind/read/COMMIT returns approval under FORCE RLS",
+    "Commit clears transaction-local tenant before pooled connection reuse",
+    "Wrong RLS tenant cannot see requested tenant even with explicit WHERE"
+  ]
+}

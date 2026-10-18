@@ -101,7 +101,7 @@ def normalize_scene(
     return NormalizedScene(
         scene_id=str(item.get("item_id") or ""),
         provider=str(provider),
-        collection=collection,
+        collection=str(item.get("collection") or collection),
         sensor=sensor,
         acquisition_date=str(item.get("datetime") or ""),
         cloud_cover=cloud_f,

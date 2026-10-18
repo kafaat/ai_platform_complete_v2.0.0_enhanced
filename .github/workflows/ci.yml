@@ -414,6 +414,18 @@ jobs:
       - name: compose-auth-sink-guard
         run: python scripts/ci/compose_auth_sink_guard.py
 
+      # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01. `depends_on: service_healthy` يُقيَّم عند
+      # `compose up` وحده؛ إعادةٌ بسياسة restart لا تنتظر Postgres. كلُّ خدمةٍ تعتمد عليه
+      # مُصنَّفةٌ في startup_db_connect_inventory.json وصنفُها يُقرأ من شيفرتها.
+      - name: startup-db-connect-retry-guard
+        run: python scripts/ci/startup_db_connect_retry_guard.py
+
+      # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01: v9 وحدَه يُعرّف المكدّس. كلُّ ملفّ
+      # compose متعقَّب آخر دورٌ مُعلَن في docs/architecture/compose_file_roster.json (مساواةُ
+      # مجموعات)، بمستهلِكٍ يُسمّيه، وتراكبٌ لا يُسمّي خدمةً غائبة، ورفيقٌ في شبكة v9.
+      - name: compose-roster-guard
+        run: python scripts/ci/compose_roster_guard.py
+
       # MUT-REGISTRY-DUPLICATE-KEY-SHADOWS-A-BLOCK-01. وثيقةٌ صحيحةٌ نحويّاً تُحمَّل
       # غيرَ ما كُتِب فيها: `json.load` آخِريُّ الترجيح، فمفتاحٌ مكرَّر يطرح ما قبله
       # بلا رسالةٍ ولا رمزِ خروج. ومقيسٌ على `a1f5da7f`:
@@ -588,34 +600,36 @@ jobs:
               vs |= set(re.findall(r'\$\{([A-Z0-9_]+)', open(f).read()))
           open(".ci.env", "w").write("\n".join(f"{v}=dummy_{v.lower()}_0123456789abcdef" for v in sorted(vs)) + "\n")
           EOF
+          # COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01: الأدوارُ من السجلّ لا من قائمة
+          # تخطٍّ مكتوبةٍ هنا. كانت القائمة تتخطّى docker-compose.production.yml «تراكباً» ولا
+          # تتحقّق منه مع v9 أبداً — فسمّى خدمتين لا وجود لهما ورفض compose المشروعَ كلّه.
+          # الآن: كلُّ overlay يُتحقَّق منه **فوق v9**، وكلُّ ملفّ آخر مستقلّاً.
+          OVERLAYS=$(python3 -c "import json; d=json.load(open('docs/architecture/compose_file_roster.json')); print(' '.join(sorted(k for k, v in d['files'].items() if v['role'] == 'overlay')))")
           for f in docker-compose*.yml; do
             echo "─── Validating $f ───"
-            # odoo-snippet مقتطف (fragment) يُلصق داخل compose آخر، وليس ملفّاً مستقلاً.
-            # rag-kg-mcp تراكُب (overlay) يُشغَّل مع v9 (يعتمد qdrant/ollama/الشبكة من الأساس)
-            # فلا يصحّ التحقّق منه مستقلّاً.
-            # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
-            # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
-            # dev تراكُب تطوير (overlay): environment فقط (soft-fail + كوكي HTTP) فوق v9 ⇒ لا يصحّ standalone.
             # evidence-lab مكدّس معزول زائل يُعلمِن منافذ المضيف (${EVIDENCE_*_PORT}) —
             # لا يتوافق مع env الوهميّ لهذه الحلقة (يجعل المنفذ سلسلة). يُتحقَّق منه في
             # workflow المخصّص .github/workflows/evidence-lab.yml بـenv حقيقيّ.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ] || [ "$f" = "docker-compose.production.yml" ] || [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            if [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (evidence-lab workflow)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
-            # 2. Compose schema (docker compose config) مع env وهمي
-            docker compose --env-file .ci.env -f "$f" config --quiet || {
-              echo "❌ $f failed compose schema validation"
-              exit 1
-            }
-            echo "✓ $f valid"
+            case " $OVERLAYS " in
+              *" $f "*)
+                # 2a. تراكب: يصحّ فقط فوق الأساس (يعتمد خدماته وشبكته). profile gpu لتراكب GPU.
+                docker compose --env-file .ci.env -f docker-compose.v9.yml -f "$f" --profile gpu config --quiet || {
+                  echo "❌ $f failed compose schema validation on top of docker-compose.v9.yml"
+                  exit 1
+                }
+                echo "✓ docker-compose.v9.yml + $f valid" ;;
+              *)
+                # 2b. مستقلّ: Compose schema (docker compose config) مع env وهمي
+                docker compose --env-file .ci.env -f "$f" config --quiet || {
+                  echo "❌ $f failed compose schema validation"
+                  exit 1
+                }
+                echo "✓ $f valid" ;;
+            esac
           done
-          echo "─── Validating docker-compose.v9.yml + docker-compose.v9.gpu.yml overlay ───"
-          python3 -c "import yaml; yaml.safe_load(open('docker-compose.v9.gpu.yml'))"
-          docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu config --quiet || {
-            echo "❌ v9 GPU overlay failed compose schema validation"
-            exit 1
-          }
-          echo "✓ v9 GPU overlay valid"
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern
@@ -710,6 +724,19 @@ jobs:
       # pytest، ووظيفة الـlint لا تُثبّت إلّا ruff وmypy — فموضعه *Unit Tests*.
       - name: guard-mutation guard (static)
         run: python scripts/ci/guard_mutation_guard.py
+      # C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: الجولةُ السلوكيّة تحت
+      # لغة C ترى `scripts/ci/*_guard.py` وحدها، فكان كلُّ ما تُشغّله خطوةٌ حاجبة باسمٍ
+      # آخر خارج بصرها — واثنان منها ماتا بـUnicodeEncodeError على مسار **نجاحهما**.
+      # هذا يجرد الصنفَ (كلّ ملفّ بايثون تُشغّله خطوةٌ حاجبة، من الـworkflows نفسها) ويقرأ
+      # القاعدةَ من AST: لا يُشعِل شيئاً ولا يكتب في الشجرة (~٢ث، PyYAML مُثبَّت أعلاه).
+      - name: every CI-invoked script survives the C locale (class inventory, static)
+        run: python scripts/ci/ci_invoked_locale_preamble_guard.py
+      # TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01: مرساةٌ نصّيّة تمرّ لسببٍ غير سببها —
+      # على `lazy(...)` ميّتٍ في `App.tsx` والخاصّيّةُ في القشرة، أو على `(poly as any)`
+      # حرفيّاً فتُعاقِب تضييقَ النوع. حالتان مقيستان في #824 (`fc88d494`)؛ هذا يمسك
+      # الشكلين الميكانيكيّين في **كلّ** مرساةٍ موجبة (stdlib، بلا تشغيل اختبار).
+      - name: text anchors must hold on live code (no dead binding, no mandated escape)
+        run: python scripts/ci/text_anchor_liveness_guard.py
       # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
       # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
       # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.
@@ -844,6 +871,16 @@ jobs:
       # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
       # المُجمَّد (١٥ ملفّاً بأسبابها المقيسة) يتقلّص ولا ينمو.
       - run: python scripts/ci/test_marker_coverage_guard.py --check
+      # GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 (قرار المالك 2026-10-15): #1133
+      # أصلح أربعة عيوبٍ مادّيّة وكلُّ حرّاس الفجوات خضراء، لأنّ شيئاً لم يطلب تسجيلَ عيبٍ
+      # لم يُمنَح معرّفاً. فقرةٌ في رسائل التزامات الـPR تحمل وسمَ خطورة (High/Medium/
+      # Critical) في سياق مراجعة يجب أن تسمّي معرّفاً **مسجَّلاً**. على مدى الـPR وحده
+      # (التاريخ كامل أعلاه)، فلا يُدان تاريخُ main. والمتنُ يُقرأ في capability-governance.
+      - name: labelled review findings in PR commits must name a registered gap ID
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python scripts/ci/pr_finding_gap_id_guard.py --base "origin/${BASE_REF}" --head HEAD
       # الشطر المُنفَّذ من حارس الطفرات — موضعه هنا لا في *Lint & Format*: يزرع
       # العطل في مصدر كلّ حارس مُواصَف ويُشغّل **pytest** ويؤكّد سقوط الاختبار
       # المُسمّى، فيلزمه جناح اختبار مُثبَّت. (وُضِع أوّلاً في وظيفة الـlint حيث لا
@@ -1086,6 +1123,8 @@ jobs:
           done
           docker exec sahool-redis redis-cli ping | grep -qx PONG
       - run: pip install -r tests_v9/requirements-test.txt
+      - name: Install audited Edge transport for TTS egress acceptance
+        run: pip install 'edge-tts==7.2.8'
       # تطبيق مخطّط الترحيلات على قاعدة الاختبار قبل اختبارات التكامل (RLS/DB)،
       # وإلّا تفشل الاختبارات التي تُدرج في field_boundaries/ndvi_timeseries… (الجداول غير موجودة).
       - name: Apply migrations to test DB
@@ -1635,7 +1674,11 @@ jobs:
         env:
           DECISION_033_TEST_DATABASE_URL: postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/decision033_test
           DECISION_033_REQUIRE_PG16: "1"
-        run: pytest tests/test_migration_033_pg16.py tests/test_migration_034_pg16.py -v -p no:cacheprovider --junitxml=decision-033-pg16.xml
+        run: >-
+          pytest tests/test_migration_033_pg16.py tests/test_migration_034_pg16.py
+          tests/test_migration_036_correlation_pg16.py tests/test_element84_inventory_pg16.py
+          tests/test_platform_v235_correlation_pg16.py
+          -v -p no:cacheprovider --junitxml=decision-033-pg16.xml
       - name: Retain proof even when a regression fails
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -2042,7 +2085,7 @@ jobs:
             services/vegetation-analysis-service/requirements.txt
             services/video-processor/requirements.txt
             services/weather-service/requirements.txt
-      - run: pip install bandit pip-audit pytest PyYAML python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
+      - run: pip install bandit pip-audit pytest PyYAML httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       - name: Install pinned GitHub Actions security analyzers
         run: scripts/ci/install_pinned_actions_security_tools.sh
       - name: GitHub Actions security contracts
@@ -2068,22 +2111,14 @@ jobs:
       # توسعة C1: البوّابة كانت تفحص ٤ مسارات فقط فتفلت خدمات كاملة. وُسِّعت لتشمل
       # كلّ ملفات requirements الحقيقيّة، بما فيها local-ai-rag بعد نقل تكاملات
       # LangChain إلى خط 1.x الآمن؛ لا يجوز إعادة الخدمة إلى المسح الإرشادي فقط.
-      # استثناء موثّق واحد (PYSEC-2026-1325 في ecdsa 0.19.2): تبعيّة عبوريّة أساسيّة
-      # لـpython-jose. ثغرة قناة-جانبيّة (Minerva timing) صنّفها صانعو ecdsa WONTFIX
-      # صراحةً (لا نسخة إصلاح — 0.19.2 هي الأحدث 2026-03-26؛ README يوصي بـpyca/
-      # cryptography بديلاً). مسارنا يستعمل python-jose[cryptography] ⇒ توقيع/تحقّق JWT
-      # عبر خلفيّة cryptography/OpenSSL لا خلفيّة ecdsa، فالمسار المُصاب غير مُستخدَم.
-      # يبقى ecdsa مرئيّاً في المسح الإرشاديّ أدناه (غير حاجب) للشفافيّة.
-      # استثناءٌ موثَّق ثانٍ مؤقّت (CVE-2026-85394 في python-jose ≤3.5.0، نُشر 2026-10-05
-      # بلا إصدارٍ مُصلِح): خلطُ مفتاحٍ عامّ بسرّ HMAC لا يُستغَلّ إلّا إن لم تُقيَّد
-      # الخوارزميّات. كلُّ `jwt.decode` من jose عندنا يمرّر خوارزميّةً واحدة مقترنةً بمفتاحها،
-      # والضبطُ الجزئيّ لمفاتيح RSA يُرفَض عند الإقلاع (validate_rsa_key_pair). قرارُ المالك؛
-      # ينقضي في config/security_exceptions.json ويُزال حين يصدر إصلاح.
+      # لا استثناءات: كان هنا إعفاءان مؤقّتان لـpython-jose — PYSEC-2026-1325 (ecdsa، تبعيّتُه
+      # العبوريّة، WONTFIX عند صانعيه) وCVE-2026-85394 (python-jose ≤3.5.0 يقبل مفتاحاً عامّاً
+      # سرّاً لـHMAC، بلا إصدارٍ مُصلِح). أُزيلا مع إزالة python-jose نفسِه لصالح PyJWT
+      # (DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01؛ tests_v9/test_python_jose_removed.py يحمرّ إن عاد
+      # python-jose أو ecdsa إلى ملفّ متطلّبات، أو عاد إعفاؤهما هنا أو في config/security_exceptions.json).
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
-          --ignore-vuln PYSEC-2026-1325
-          --ignore-vuln CVE-2026-85394
           -r services/sahool-platform/api/requirements.txt
           -r services/auth/requirements.txt
           -r services/guardrails-engine/requirements.txt
@@ -2106,13 +2141,12 @@ jobs:
           --progress-spinner off
       # Every requirements file consumed by a service/bot/agent image is blocking.
       # Resolve images independently; unrelated runtime pins need not share a venv.
-      # The documented python-jose/cryptography ecdsa exception above still applies,
-      # as does the temporary python-jose CVE-2026-85394 exception (no fixed release).
+      # No advisory is ignored: the python-jose/ecdsa exceptions left with python-jose.
       - name: pip-audit (gating — each runtime image)
         run: |
           set -euo pipefail
           while IFS= read -r -d '' requirements_file; do
-            pip-audit -r "$requirements_file" --ignore-vuln PYSEC-2026-1325 --ignore-vuln CVE-2026-85394 --progress-spinner off
+            pip-audit -r "$requirements_file" --progress-spinner off
           done < <(find services bots agents -name 'requirements*.txt' -print0)
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.

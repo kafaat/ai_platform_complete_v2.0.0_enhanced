@@ -463,20 +463,6 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 0,
-      "component_id": "weather-polygon-worker",
-      "domain": "weather-truth",
-      "status": {
-        "activated": null,
-        "built": true,
-        "configured": null,
-        "tested": false,
-        "wired": true
-      },
-      "type": "worker",
-      "wiring_disposition": "consumed"
-    },
-    {
       "capability_count": 22,
       "component_id": "weather-service",
       "domain": "weather-truth",
@@ -505,7 +491,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "934fae3409364152e74e40b1f3284807341ecaa7201d2aff3dff421989b27bc1",
+  "fingerprint": "aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

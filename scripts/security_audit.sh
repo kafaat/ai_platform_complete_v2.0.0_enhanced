@@ -4,7 +4,8 @@ ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ROOT"
 fail=0
 say(){ printf '%s\n' "$*"; }
-scan_files=(.env .env.example docker-compose.v9.yml docker-compose.fixed.yml)
+# docker-compose.fixed.yml أُخرِج: نُقل إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01).
+scan_files=(.env .env.example docker-compose.v9.yml)
 _scan(){ grep -InE "$1" "${scan_files[@]}" 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' || true; }
 fail_if_hits(){
   local pattern="$1"; local label="$2"; local ignore="${3:-$^}"
@@ -26,11 +27,12 @@ fail_if_hits 'SAHOOL_AGENT_TOKEN=[A-Za-z0-9_-]{20,}' 'no generated service token
 fail_if_hits 'POSTGRES_USER=postgres' 'no postgres superuser as application user'
 # Guard equivalent to legacy pattern: DATABASE_URL=.*(postgres|sahool_user)
 fail_if_hits '(^|[[:space:]])DATABASE_URL=postgresql://(postgres|sahool_user):' 'application DATABASE_URL does not use superuser/owner role'
-# استثناءٌ واحدٌ مُراجَع: DSN مُصدِّر المقاييس الداخليّ. سائقُه (lib/pq) يعدّ sslmode الفارغ
-# `require` ولا يقبل `prefer`، وPostgres في v9 بلا TLS أصلاً — فكلُّ عميلٍ آخرَ يتّصل نصّاً
-# صريحاً ضمنيّاً (`prefer` يسقط إلى النصّ). المُصدِّرُ لا يُضعِف الوضعَ؛ يُصرِّح به فقط.
-# الوضعُ الحقيقيّ مُسجَّلٌ فجوةً: POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01.
-fail_if_hits 'sslmode=disable' 'no disabled database TLS mode committed' 'DATA_SOURCE_URI: sahool-postgres:5432/'
+# بلا استثناء: POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01 أُغلِق — sahool-postgres يُلزِم TLS
+# (hostssl وحده في postgres/pg_hba.conf) وكلُّ عميلٍ في v9 يتحقّق بـ`verify-full`. كان هنا استثناءٌ لسطر
+# مُصدِّر المقاييس (`sslmode=disable` لأنّ الخادم كان بلا TLS)، وكانت القاعدةُ لا تلتقط إلّا التصريح —
+# فتُعاقب مَن يقول الحقيقة وتُجيز `prefer` الضمنيّ لغيره. فصارت تلتقط **كلَّ وضعٍ أضعفَ من verify-full**
+# مكتوباً: disable/allow/prefer تسقط إلى النصّ، وrequire يقبل خادماً منتحَلاً.
+fail_if_hits 'sslmode=(disable|allow|prefer|require)([^-[:alnum:]]|$)' 'no disabled database TLS mode committed (nothing weaker than verify-full)'
 if grep -RIn 'BYPASSRLS' docker-compose*.yml services migrations 2>/dev/null \
   | grep -vE '(^|/)(tests?|test_[^/]+)(/|:)|sahool_jobs|bootstrap|NOBYPASSRLS|comment|#|core/db_role_guard.py|tests/test_db_role_guard.py|migrations/|services/raster-service/cache_invalidation_worker.py|services/scout-ingest-service/projection_worker.py|services/sahool-platform/api/(imagery_automation|sharing|main|event_replay|event_bus|weather_automation)\.py' >/tmp/sahool_bypass_hits; then
   say 'FAIL: unclassified BYPASSRLS reference outside the reviewed jobs/bootstrap allowlist:'

@@ -25,6 +25,9 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "scripts" / "ci" / "fake_connection_debt_guard.py"
 BASELINE = ROOT / "docs" / "architecture" / "fake_connection_debt.json"
 _PROOF = "tests_v9/test_live_pg_fake_connection_debt.py"
+# بديلُ اتّصالٍ **بشكله** لا باسمه: الماسح بنيويّ (AST)، فـ`class _FakeConn: pass` لم يعد
+# بديلاً — صنفٌ فارغ لا يقف مكان اتّصال. الزرعات تحمل توقيعَ asyncpg `(sql, *args)`.
+_CONN = "class _FakeConn:\n    async def fetchrow(self, sql, *args):\n        return None\n"
 
 
 @pytest.fixture(scope="module")
@@ -67,7 +70,7 @@ def test_a_new_fake_that_claims_database_semantics_is_denied(guard, tmp_path, mo
     (repo / "tests_v9").mkdir(parents=True)
     subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
     (repo / "tests_v9" / "test_new.py").write_text(
-        "class _FakeConn:\n    pass\n\n# يؤكّد ON CONFLICT بلا قاعدة\n", encoding="utf-8"
+        _CONN + "\n# يؤكّد ON CONFLICT بلا قاعدة\n", encoding="utf-8"
     )
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
 
@@ -84,7 +87,7 @@ def test_a_fake_that_claims_nothing_about_the_database_is_not_denied(guard, tmp_
     (repo / "tests_v9").mkdir(parents=True)
     subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
     (repo / "tests_v9" / "test_pure.py").write_text(
-        "class _FakeConn:\n    pass\n\n# منطق صرف، لا دلالة قاعدة\n", encoding="utf-8"
+        _CONN + "\n# منطق صرف، لا دلالة قاعدة\n", encoding="utf-8"
     )
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
 
@@ -121,9 +124,7 @@ def test_the_self_exemption_does_not_blind_the_guard(guard, tmp_path):
     (repo / "tests_v9").mkdir(parents=True)
     subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
     for name in ("test_fake_connection_debt_guard.py", "test_other.py"):
-        (repo / "tests_v9" / name).write_text(
-            "class _FakeConn:\n    pass\n# ON CONFLICT\n", encoding="utf-8"
-        )
+        (repo / "tests_v9" / name).write_text(_CONN + "# ON CONFLICT\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
 
     found = guard.survey(root=repo)
@@ -222,3 +223,209 @@ def test_a_proof_path_inside_the_root_is_still_accepted(guard):
         "evidence": "x" * 40,
     }
     assert guard._proof_covers("tests_v9/test_water_ledger.py", entry, ["UNIQUE"]) == []
+
+
+# ──────────── الصنف لا الاسم — FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01 ────────────
+#
+# كان الماسح نمطاً على اصطلاح التسمية (`_FakeConn` · `fake_pool`)، فعدَّ ٤٠ ملفّاً وأعمى عن
+# ٥٨ مثلها على main@5472740e بأسماء أخرى — منها اختبارا الفجوة بأعيانهما. الحالات أدناه
+# تُثبّت الصنف: يُرى البديلُ بأيّ اسم، ولا يُرى ما ليس بديلاً ولو حمل اسماً قاعديّاً.
+
+_CITED_TENANT = "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py"
+_CITED_JSONB = "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py"
+
+
+def _plant(tmp_path, files: dict[str, str]) -> Path:
+    repo = tmp_path / "r"
+    (repo / "tests_v9").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
+    for rel, body in files.items():
+        (repo / rel).write_text(body, encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
+    return repo
+
+
+def test_the_cited_sites_hidden_by_the_naming_convention_are_counted(guard):
+    """**الشاهد:** ``_Conn`` و``fake_tenant_connection`` بديلا اتّصالٍ يدّعيان سلوكَ قاعدة.
+
+    على ماسح main (نمط الاسم) لا يظهر أيٌّ منهما — فهذه الحالة تحمرّ عليه وعلى أيّ
+    رجوعٍ إليه. والثاني يدّعي ``jsonb`` (asyncpg يُعيده نصّاً)، فيجب أن يصل إلى المُدَّعين.
+    """
+    found = guard.survey()
+    for rel in (_CITED_TENANT, _CITED_JSONB):
+        assert rel in found["fake"], f"{rel} خارج العدّ — الماسح يعدّ أسماءً لا صنفاً"
+    assert "class _Conn(fetch, fetchval)" in found["evidence"][_CITED_TENANT]
+    assert found["claiming"].get(_CITED_JSONB) == ["jsonb"], found["claiming"].get(_CITED_JSONB)
+
+
+def test_an_arbitrarily_named_fake_connection_is_seen(guard, tmp_path):
+    """بديلٌ باسمٍ لا يُشبه شيئاً (``Thing``) يُرى بشكله — وترقيعُ ``get_pool`` كذلك."""
+    repo = _plant(
+        tmp_path,
+        {
+            "tests_v9/test_thing.py": (
+                "class Thing:\n"
+                "    async def fetch(self, sql, *args):\n        return []\n"
+                "    async def execute(self, sql, *args):\n        return 'INSERT 0 1'\n"
+            ),
+            "tests_v9/test_patched.py": (
+                "def test_x(monkeypatch):\n"
+                "    monkeypatch.setattr(mod, 'get_pool', lambda: object())\n"
+            ),
+        },
+    )
+    found = guard.survey(root=repo)
+    assert found["fake"] == ["tests_v9/test_patched.py", "tests_v9/test_thing.py"], found
+    assert found["evidence"]["tests_v9/test_thing.py"] == ["class Thing(execute, fetch)"]
+
+
+def test_a_new_arbitrarily_named_fake_fails_the_ratchet_and_regeneration_cannot_admit_it(
+    guard, tmp_path, monkeypatch
+):
+    """**الراتشِت بعد التصحيح:** وهميٌّ جديد يُحجَب — و`--generate` (أي `verify_all_generated
+    --fix`) لا يبتلعه، لأنّ القبول قيدٌ مُبرَّر في `admissions` لا يكتبه المولِّد.
+    """
+    old = "tests_v9/test_old.py"
+    repo = _plant(
+        tmp_path,
+        {
+            old: _CONN,
+            "tests_v9/test_new.py": (
+                "class Thing:\n    async def fetchval(self, query):\n        return 1\n"
+            ),
+        },
+    )
+    real_survey = guard.survey
+    monkeypatch.setattr(guard, "survey", lambda root=None: real_survey(root=root or repo))
+    target = tmp_path / "debt.json"
+    target.write_text(
+        json.dumps(
+            {
+                "fake_connection_tests": [old],
+                "claiming_db_enforced": {},
+                "proven_live": {},
+                "admissions": [
+                    {
+                        "kind": "initial",
+                        "date": "2026-10-15",
+                        "before": 0,
+                        "after": 1,
+                        "justification": "x" * 60,
+                        "sites": [old],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(guard, "BASELINE", target)
+
+    problems = guard.check()
+    assert any("tests_v9/test_new.py" in p and "admissions" in p for p in problems), problems
+
+    guard._generate()  # ما تفعله المكنسة — يجب ألّا يكون طريقاً لقبول دَين
+    after = guard.check()
+    assert any("tests_v9/test_new.py" in p and "admissions" in p for p in after), after
+
+
+def test_non_database_fakes_are_not_counted(guard, tmp_path):
+    """**حدُّ الإيجابيّ الكاذب.** اسمٌ قاعديّ بلا توقيع asyncpg ليس بديلَ اتّصال:
+
+    عميل HTTP (`fetch(url)` + `execute(request)`)، خطّ Redis (`execute(self)`)،
+    `transaction(func, *watches)` (Redis)، مهمّة (`Skill.execute(self)`)، قفل
+    (`acquire`/`release(self)`/`locked`)، وكيلٌ يلفّ اتّصالاً قائماً، وترقيعُ `_connect`
+    باتّصالٍ حيّ (`asyncpg.connect`) — كلّها مقيسة في الشجرة أو صنفُها.
+    """
+    repo = _plant(
+        tmp_path,
+        {
+            "tests_v9/test_not_db.py": (
+                "import asyncpg\n"
+                "class FakeHttpClient:\n"
+                "    async def fetch(self, url):\n        return b''\n"
+                "    async def execute(self, request):\n        return 200\n"
+                "class FakeRedisPipe:\n"
+                "    async def execute(self):\n        return []\n"
+                "    def transaction(self, func, *watches):\n        return func(self)\n"
+                "class Skill:\n"
+                "    async def execute(self):\n        return 'ok'\n"
+                "class FakeLock:\n"
+                "    async def acquire(self):\n        return True\n"
+                "    def release(self):\n        pass\n"
+                "    def locked(self):\n        return False\n"
+                "class _Pinned:\n"
+                "    def __init__(self, conn):\n        self._c = conn\n"
+                "    async def fetchval(self, q, *a):\n        return await self._c.fetchval(q, *a)\n"
+                "async def _live():\n"
+                "    return await asyncpg.connect('postgresql://127.0.0.1/x')\n"
+                "def test_live(monkeypatch):\n"
+                "    monkeypatch.setattr(mod, '_connect', _live)\n"
+            ),
+        },
+    )
+    found = guard.survey(root=repo)
+    assert found["fake"] == [], found["evidence"]
+
+
+def test_the_measurement_correction_is_recorded_not_silent(guard):
+    """الرفعُ مُعلَنٌ بقيدٍ يُسمّي مواقعه — لا إعادةُ توليدٍ صامتة.
+
+    القيد يحمل العبارة والعدّين، والمواقع تشمل الموقعين المذكورين في الفجوة، ولا يتداخل
+    مع القيد الأوّل (الدَّين المرئيّ سلفاً لا يُقبَل مرّتين).
+    """
+    declared = json.loads(BASELINE.read_text(encoding="utf-8"))
+    ledger = declared["admissions"]
+    correction = [e for e in ledger if e["kind"] == "measurement_correction"]
+    assert len(correction) == 1, ledger
+    entry = correction[0]
+    assert "measurement correction (class not name)" in entry["justification"]
+    assert f"{entry['before']} → {entry['after']}" in entry["justification"]
+    assert entry["after"] - entry["before"] == len(entry["sites"])
+    assert {_CITED_TENANT, _CITED_JSONB} <= set(entry["sites"])
+    assert not set(entry["sites"]) & set(ledger[0]["sites"])
+
+
+def test_an_unjustified_or_miscounted_admission_is_refused(guard):
+    """قيدٌ بلا تبرير، أو عددٌ لا يطابق مواقعه، لا يقبل ديناً — وإلّا صار السجلّ إعادةَ توليدٍ بخطّ اليد."""
+    short = {
+        "admissions": [
+            {
+                "kind": "k",
+                "date": "d",
+                "before": 0,
+                "after": 1,
+                "justification": "لأنّ",
+                "sites": ["a"],
+            }
+        ]
+    }
+    bad, _ = guard._admission_problems(short)
+    assert any("تبرير" in p for p in bad), bad
+
+    miscount = {
+        "admissions": [
+            {
+                "kind": "k",
+                "date": "d",
+                "before": 0,
+                "after": 5,
+                "justification": "x" * 60,
+                "sites": ["a"],
+            }
+        ]
+    }
+    bad, _ = guard._admission_problems(miscount)
+    assert any("لا يطابق عدد المواقع" in p for p in bad), bad
+
+
+def test_regenerating_the_baseline_carries_the_admissions(guard, tmp_path, monkeypatch):
+    """`admissions` قرارٌ مكتوب لا مُشتقّ — أوّلُ `--generate` يمحوه لو لم يُحمَل، فيسقط الأساس كلُّه."""
+    target = tmp_path / "debt.json"
+    original = json.loads(BASELINE.read_text(encoding="utf-8"))
+    target.write_text(json.dumps(original, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(guard, "BASELINE", target)
+
+    guard._generate()
+
+    after = json.loads(target.read_text(encoding="utf-8"))
+    assert after["admissions"] == original["admissions"], "أُبيد سجلّ القبول بإعادة التوليد"

@@ -1,0 +1,24 @@
+$ python3 -c import json;d=json.load(open('docs/architecture/nats_subject_ownership_contract.json'));print(json.dumps({k:d['gaps'][k] for k in ('NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE','AGENT-TO-ACTUATOR-ADAPTER-ABSENT')},ensure_ascii=False,indent=1))
+{
+ "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE": {
+  "status": "OPEN",
+  "producer": "sahool-plugin-runtime-worker",
+  "current_transform": "sahool.<event_type with underscores replaced by dots>",
+  "examples": [
+   "sahool.field.updated",
+   "sahool.recommendation.created"
+  ],
+  "canonical_domain_transform": "sahool.events.<event_type>",
+  "canonical_consumer": "agents/notification/agent.py subscribes sahool.events.>",
+  "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered"
+ },
+ "AGENT-TO-ACTUATOR-ADAPTER-ABSENT": {
+  "status": "OPEN",
+  "subject": "sahool.actuator.dispatch.requested",
+  "publisher": "services/sahool-platform/api/phase_runtime_workers.py",
+  "consumers": [],
+  "boundary": "services/actuator-service uses MQTT and does not subscribe to this NATS subject",
+  "closing_condition": "owned/versioned simulated-first adapter consumes the exact subject, validates tenant/device/content-pin/idempotency, and emits a correlated receipt"
+ }
+}
+[exit=0]

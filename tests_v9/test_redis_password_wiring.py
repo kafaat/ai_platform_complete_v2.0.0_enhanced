@@ -13,11 +13,17 @@
 الخاصّيّةُ تُقاس على الملفّات كما تُحلَّل (مراسي YAML مُستوفاة)، وكلمةُ السرّ تُستخرَج من
 سطر أمر الخادم لا من افتراضٍ عنه، ورابطُ العميل يُفكّ بـ``redis.connection.parse_url`` —
 المحلِّلُ الذي يستعمله كلُّ عميلٍ فعلاً — لا بتعبيرٍ نمطيّ يُعيد صياغة الشرط.
+
+**ومنذ REDIS-SHARED-PASSWORD-NO-ACL-01** لا كلمةَ سرٍّ مشتركة: الخادمُ يُعرِّف مستخدمي ACL
+(``--user <name> on >pw …``) و``default`` معطَّل، فصار الشرطُ «اسمُ المستخدم في الرابط مستخدمٌ مفعَّل
+على خادمه، وكلمةُ السرّ كلمتُه هو». وكلُّ ``${REDIS_*PASSWORD}`` يُستوفى بقيمةٍ **مختلفة** — وإلّا
+مرّ عميلٌ يحمل كلمةَ خدمةٍ أخرى لأنّ القيم كلَّها متساوية.
 """
 
 from __future__ import annotations
 
 import functools
+import hashlib
 import re
 import shlex
 from pathlib import Path
@@ -30,25 +36,31 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 
-#: كلمةُ سرٍّ ستّ‑عشريّة (شكلُ ``openssl rand -hex``) تُستوفى مكانَ ``${REDIS_PASSWORD…}``.
-#: تُبنى ولا تُكتَب حرفيّاً: سلسلةٌ ثابتة الشكل في الشيفرة تُقرأ سرّاً (gitleaks generic-api-key).
-_PASSWORD = bytes(range(0x10, 0x20)).hex()
-_INTERP = re.compile(r"\$\{REDIS_PASSWORD(?:[:?-][^}]*)?\}")
+#: كلمةُ سرٍّ ستّ‑عشريّة (شكلُ ``openssl rand -hex``) تُستوفى مكانَ ``${REDIS_…PASSWORD…}`` — مشتقّةٌ
+#: من اسم المتغيّر فلكلّ مستخدمٍ كلمتُه. تُبنى ولا تُكتَب حرفيّاً: سلسلةٌ ثابتة الشكل في الشيفرة تُقرأ
+#: سرّاً (gitleaks generic-api-key).
+_INTERP = re.compile(r"\$\{(REDIS_(?:[A-Z_]+_)?PASSWORD)(?:[:?-][^}]*)?\}")
+
+
+def _password_for(var: str) -> str:
+    return hashlib.sha256(var.encode()).hexdigest()[:32]
+
+
+def _interpolate(text: str) -> str:
+    return _INTERP.sub(lambda m: _password_for(m.group(1)), text)
+
 
 #: الحزمُ التي تُقلِع Redis بكلمة سرٍّ ولها عملاء — لكلٍّ منها عميلٌ واحدٌ على الأقلّ،
 #: وإلّا صارت الخاصّيّةُ فارغةً فتمرّ بلا معنى.
-_BUNDLES_WITH_CLIENTS = (
-    "docker-compose.v9.yml",
-    "docker-compose.fixed.yml",
-    "docker-compose.light.yml",
-    "docker-compose.unified.yml",
-)
+# fixed/light/unified أُخرِجت: نُقلت إلى docs/history/compose/ بقرار مالك
+# (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17).
+_BUNDLES_WITH_CLIENTS = ("docker-compose.v9.yml",)
 
 
 @functools.cache
 def _load(path: Path) -> dict:
     """قراءةٌ فقط — مُخزَّنة لأنّ كلَّ حالةٍ مُعامَلة تقرأ ملفَّها."""
-    return yaml.safe_load(_INTERP.sub(_PASSWORD, path.read_text(encoding="utf-8"))) or {}
+    return yaml.safe_load(_interpolate(path.read_text(encoding="utf-8"))) or {}
 
 
 def _env_items(svc: dict):
@@ -61,22 +73,47 @@ def _env_items(svc: dict):
             yield key, value
 
 
-def _requirepass(svc: dict) -> str | None:
+def _accepted_logins(svc: dict) -> dict[str, str] | None:
+    """{اسمُ المستخدم: كلمةُ سرّه} التي يقبلها الخادم، أو None إن لم يفرض مصادقة.
+
+    ``--requirepass pw`` ⇒ ``{"default": pw}``؛ و``--user <name> on >pw …`` ⇒ ``{name: pw}``
+    لكلّ مستخدمٍ مفعَّل. ``default off`` لا يُقبَل بأيّ كلمة، فلا يدخل القاموس.
+    """
     cmd = svc.get("command")
-    argv = list(cmd) if isinstance(cmd, list) else shlex.split(str(cmd or ""))
-    if "--requirepass" in argv:
-        i = argv.index("--requirepass")
-        return argv[i + 1] if i + 1 < len(argv) else ""
-    return None
+    argv = [str(a) for a in cmd] if isinstance(cmd, list) else shlex.split(str(cmd or ""))
+    logins: dict[str, str] = {}
+    enforced = False
+    i = 0
+    while i < len(argv):
+        if argv[i] == "--requirepass":
+            enforced = True
+            logins["default"] = argv[i + 1] if i + 1 < len(argv) else ""
+            i += 2
+            continue
+        if argv[i] == "--user" and i + 1 < len(argv):
+            enforced = True
+            name, j, rules = argv[i + 1], i + 2, []
+            while j < len(argv) and not argv[j].startswith("--"):
+                rules.append(argv[j])
+                j += 1
+            passwords = [r[1:] for r in rules if r.startswith(">")]
+            if "on" in rules and passwords:
+                logins[name] = passwords[-1]
+            else:
+                logins.pop(name, None)
+            i = j
+            continue
+        i += 1
+    return logins if enforced else None
 
 
-def _servers(doc: dict) -> dict[str, tuple[str, str]]:
-    """اسمُ الشبكة (المفتاح/container_name/hostname) ⇒ (اسمُ الخدمة، كلمةُ السرّ المطلوبة)."""
-    out: dict[str, tuple[str, str]] = {}
+def _servers(doc: dict) -> dict[str, tuple[str, dict[str, str]]]:
+    """اسمُ الشبكة (المفتاح/container_name/hostname) ⇒ (اسمُ الخدمة، {المستخدم: كلمةُ السرّ})."""
+    out: dict[str, tuple[str, dict[str, str]]] = {}
     for name, svc in (doc.get("services") or {}).items():
         if not isinstance(svc, dict) or "redis" not in str(svc.get("image", "")).lower():
             continue
-        password = _requirepass(svc)
+        password = _accepted_logins(svc)
         if password is None:
             continue
         for alias in (name, svc.get("container_name"), svc.get("hostname")):
@@ -112,7 +149,9 @@ def test_every_passworded_bundle_has_clients_to_check():
     seen = {row[0] for row in _CLIENTS}
     missing = [b for b in _BUNDLES_WITH_CLIENTS if b not in seen]
     assert not missing, f"لم يُعثَر على عميل Redis في: {missing} — انهار التحليل"
-    assert len(_CLIENTS) >= 30, len(_CLIENTS)
+    # 30 → 12 (2026-10-17): المقيس على main@0e528161 كان 12 في v9 + 18 في المكدّسات الثلاثة
+    # المنقولة إلى التاريخ؛ أرضيّةُ v9 نفسُها لم تنزل.
+    assert len(_CLIENTS) >= 12, len(_CLIENTS)
 
 
 @pytest.mark.parametrize(
@@ -121,11 +160,16 @@ def test_every_passworded_bundle_has_clients_to_check():
     ids=[f"{r[0]}::{r[1]}::{r[2]}" for r in _CLIENTS],
 )
 def test_client_url_carries_the_password_its_server_requires(fname, service, key, parsed, server):
-    server_name, required = server
-    assert parsed.get("password") == required, (
-        f"{fname}: {service}.{key} يتّصل بـ{server_name} (requirepass مضبوط) "
-        f"بكلمة سرّ {parsed.get('password')!r} ⇒ `Authentication required` عند كلّ اتّصال. "
-        "اكتب الرابط `redis://:${REDIS_PASSWORD:?…}@<host>:6379/N` كما في docker-compose.v9.yml."
+    server_name, logins = server
+    user = parsed.get("username") or "default"
+    assert user in logins, (
+        f"{fname}: {service}.{key} يتّصل بـ{server_name} بالمستخدم {user!r} وليس مستخدماً مفعَّلاً "
+        f"عليه ({sorted(logins)}) ⇒ `WRONGPASS` عند كلّ اتّصال. اكتب الرابط "
+        "`redis://<service>:${REDIS_<…>_PASSWORD:?…}@<host>:6379/N` كما في docker-compose.v9.yml."
+    )
+    assert parsed.get("password") == logins[user], (
+        f"{fname}: {service}.{key} يتّصل بـ{server_name} بالمستخدم {user!r} وبكلمة سرٍّ ليست كلمتَه "
+        "⇒ `WRONGPASS`. كلمةُ كلّ مستخدمٍ متغيّرُها هو (`REDIS_<…>_PASSWORD`)، لا كلمةُ خدمةٍ أخرى."
     )
 
 
@@ -203,9 +247,12 @@ def test_a_hex_password_round_trips_through_every_client_url_and_base64_does_not
     raw_urls = []
     for path in sorted(ROOT.glob("docker-compose*.yml")):
         raw_urls += re.findall(
-            r"redis://:\$\{REDIS_PASSWORD[^}]*\}@[^\s\"']+", path.read_text(encoding="utf-8")
+            r"redis://[a-z0-9-]*:\$\{REDIS_(?:[A-Z_]+_)?PASSWORD[^}]*\}@[^\s\"']+",
+            path.read_text(encoding="utf-8"),
         )
-    assert len(raw_urls) >= 25, len(raw_urls)  # 29 موضعاً نصّيّاً مقيساً (المرساةُ مرّةً)
+    # 25 → 13 (2026-10-17): 29 موضعاً كانت 13 في v9 + 16 في fixed/light/unified المنقولة إلى
+    # docs/history/compose/؛ مواضعُ v9 كلُّها باقية.
+    assert len(raw_urls) >= 13, len(raw_urls)
     hex_pw, b64_pw = "9c2e" * 16, "q0Zk/8Xr+Jm2Lw4="
     for url in raw_urls:
         assert parse_url(_INTERP.sub(hex_pw, url)).get("password") == hex_pw, url

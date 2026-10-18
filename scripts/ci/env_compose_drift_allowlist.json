@@ -160,6 +160,10 @@
     "QDRANT_SEED_EXCLUDE_CHUNK_IDS_FILE": {
       "category": "A",
       "why": "راية تشغيلةِ تسويةٍ محكومة (CORPUS-RECONCILIATION-01): يمرّرها منفّذ التسوية للبذّار لاستثناء الهويّات المحجورة من upsert واحد مُفوَّض، وغيابها هو الوضع الافتراضيّ الآمن (لا استثناء = بذر كامل). ليست متغيّرَ تشغيلٍ دائم فلا موضع لها في compose، وملفٌّ مذكور يتعذّر قراءته يُفشل البذر مغلقاً."
+    },
+    "SAHOOL_ENFORCE_RLS_ROLE": {
+      "category": "A",
+      "why": "enforcement_active(): الغياب ⇒ يُفرَض (fail-closed افتراضيّاً)، ولا يُعطَّل إلّا بقيمةٍ falsy صريحة؛ shared/db_role_guard.py:34. كان يُضبَط \"1\" في unified/light/odoo-snippet فقط — المنقولة إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17)، وv9 لم يضبطه قطّ فيعتمد الافتراضيّ الآمن نفسه."
     }
   }
 }

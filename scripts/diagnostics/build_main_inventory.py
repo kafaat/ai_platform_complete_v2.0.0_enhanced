@@ -18,6 +18,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01: this script runs in a blocking
+# CI step and prints non-ASCII; under LC_ALL=C print() would die with UnicodeEncodeError
+# and report a correct result as a failure. At module level, before anything prints.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "artifacts" / "diagnostics" / "inventory"
 
@@ -561,10 +568,19 @@ def build(out: Path) -> None:
 
     # حسمُ ما يُحسَم بدليلٍ مصدريّ، وإبقاءُ الباقي كما هو. الترقيةُ تحتاج سلسلةَ
     # أدلّةٍ كاملة؛ وما انقطعت سلسلتُه يبقى `declared` ولا يُقال عنه إنّه غيرُ موجود.
-    promoted, unresolved, resolution = _resolver().resolve(unresolved, components, ROOT)
-    resolved = promoted
+    # وما بقي يُصنَّف ثلاثاً لا اثنتين (`A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01`):
+    # مُثبَتةٌ بصنف دليلٍ ثانٍ (اشتراكُ NATS في مصدر Python) · منفيّةٌ **في نطاقٍ مسمّى** (وضعُ البوّابة) بدليلها ·
+    # مجهولةٌ بسببٍ مسمّى وموضعه. الوصفُ بلا حكم: لا عتبةَ هنا، والأسبابُ المقبولة قرارٌ في سجلٍّ منفصل.
+    classified = _resolver().classify(unresolved, components, ROOT)
+    resolved, unresolved, refuted = (
+        classified["proven"],
+        classified["unknown"],
+        classified["refuted"],
+    )
+    resolution = classified["report"]
     _write(out / "integration_edges.json", resolved)
     _write(out / "unresolved_edges.json", unresolved)
+    _write(out / "refuted_edges.json", refuted)
     # الترقيةُ **مشروطةٌ بإنتاج الصفوف**: على شجرةٍ بلا عقدٍ أو بلا محرّك يُرجِع
     # القياسُ `None` فيبقى السطحُ `not_measured` بسؤاله ومرشّحاته. وهذا ليس احتياطاً:
     # هو ما يجعل «الترقيةُ بالقياس لا بالتحرير» خاصّيّةً تُختبَر لا جملةً تُقال.
@@ -581,6 +597,11 @@ def build(out: Path) -> None:
     # **سطحٌ واحدٌ خرج من «لم يُقَس» لأنّه قِيس** — لا لأنّ أحداً قرّر ذلك. صفوفُه
     # هي الحوافُّ المحسومةُ بسلسلة أدلّة، وحدُّ الماسح مُعلَنٌ معها في الصفّ نفسِه:
     # «قِيس» هنا تعني «هذا ما رآه ماسحٌ ساكن»، لا «هذا كلُّ ما يقع».
+    frontend_rows = [
+        edge
+        for edge in resolved
+        if edge["evidence"].get("kind") == "frontend_call_site_through_gateway"
+    ]
     surfaces["frontend_consumers.json"] = {
         "schema": "sahool.diagnostic-inventory.surface.v1",
         "surface": "frontend_consumers.json",
@@ -592,9 +613,9 @@ def build(out: Path) -> None:
                 "entrypoint": edge["resolved_entrypoint"],
                 "evidence": edge["evidence"],
             }
-            for edge in resolved
+            for edge in frontend_rows
         ],
-        "row_count": len(resolved),
+        "row_count": len(frontend_rows),
         "what_measured_means_ar": (
             "كلُّ صفٍّ هنا حافّةٌ أثبتتها سلسلةُ أدلّةٍ من أربع خطوات في الشجرة "
             "(بادئةُ العميل · ربطُ النسخة · موضعُ النداء · قاعدةُ البوّابة). "
@@ -622,6 +643,8 @@ def build(out: Path) -> None:
             "capabilities": len(capabilities),
             "declared_consumer_edges_pending_resolution": len(unresolved),
             "resolved_consumer_edges": len(resolved),
+            "refuted_consumer_operations": len(refuted),
+            "unknown_consumer_operations": sum(len(e["entrypoints"]) for e in unresolved),
             # يُعلَن في الترويسة كي لا يحتاج القارئ أن يفتح عشرة ملفّات ليكتشف
             # حالة كل سطح. العدد مشتق من القياس، ولا يفترض بقاء أي سطح غير مقيس.
             "surfaces_not_measured": sum(
@@ -639,6 +662,9 @@ def build(out: Path) -> None:
             "resolved": "supported by an independently located concrete source/runtime edge",
             "declared": "present in a repository registry/catalogue but not independently resolved",
             "unresolved": "insufficient evidence; absence is not inferred",
+            "refuted": "contradicted by a located source fact within a named scope "
+            "(refutation.scope); outside that scope nothing is inferred",
+            "unknown": "neither proven nor refuted; each operation names its reason kinds and sites",
         },
     }
     _write(out / "inventory_manifest.json", manifest)

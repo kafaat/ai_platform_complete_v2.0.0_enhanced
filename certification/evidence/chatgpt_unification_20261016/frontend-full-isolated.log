@@ -1,0 +1,31 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> sahool-v9-frontend@9.0.0 test:ci
+> vitest run --no-file-parallelism --maxWorkers=1
+
+
+ RUN  v5.0.2 /workspace/scratch/881ca3efb91d/frontend-verification/frontend
+
+ ❯ src/services/duckdb.readonly.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/services/duckdb.readonly.test.ts [ src/services/duckdb.readonly.test.ts ]
+Error: Denied ID /workspace/scratch/881ca3efb91d/sahool-unified/frontend/node_modules/@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url
+  File: /workspace/scratch/881ca3efb91d/sahool-unified/frontend/node_modules/@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url
+ ❯ loadAndTransform ../../sahool-unified/frontend/node_modules/vite/dist/node/chunks/node.js:24590:31
+ ❯ doTransform ../../sahool-unified/frontend/node_modules/vite/dist/node/chunks/node.js:24567:17
+ ❯ fetchModule ../../sahool-unified/frontend/node_modules/vite/dist/node/chunks/node.js:23234:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 211 passed (212)
+      Tests  1467 passed (1467)
+   Start at  11:24:31
+   Duration  122.02s (environment 63%, setup 17%, tests 8%, import 7%, transform 4%, worker 1%)
+
+Environment  jsdom was created 212 times · 61.11s total, 63% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+

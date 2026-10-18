@@ -35,7 +35,7 @@ import activation_gate
 import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
-from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
     acquire_connection,
@@ -519,7 +519,7 @@ def healthz() -> dict[str, Any]:
 
 
 @app.get("/readyz")
-async def readyz() -> dict[str, Any]:
+async def readyz(response: Response) -> dict[str, Any]:
     db = await _db_readiness()
     sor_on = sor_enabled()
     misconfigured = sor_requested_without_db()
@@ -532,6 +532,7 @@ async def readyz() -> dict[str, Any]:
         and (not auth_missing)
         and (not sor_on or bool(db["db_reachable"] and db["migrations_current"]))
     )
+    response.status_code = 200 if ready else 503
     return {
         "status": "ready" if ready else "degraded",
         "ready": ready,
@@ -657,6 +658,7 @@ async def record_decision(
             "decision_id": did,
             "replayed": bool(result.get("replayed", False)),
             "decision_value_digest": result.get("decision_value_digest"),
+            "correlation_id": result.get("correlation_id"),
             "stage": payload.stage,
             "outbox": "decision_outbox_events",
             "received_at": datetime.now(UTC).isoformat(),
@@ -687,6 +689,8 @@ def agronomic_context_required() -> bool:
 async def review_queue(
     x_tenant_id: str | None = Header(default=None),
     limit: int = Query(default=100, ge=1, le=200),
+    field_id: str | None = None,
+    season_id: str | None = None,
 ) -> dict[str, Any]:
     """WX-10.8 — authoritative queue of pending decision candidates.
 
@@ -699,7 +703,16 @@ async def review_queue(
             status_code=503,
             detail="decision-service is not the system-of-record (mirror mode) — review queue unavailable",
         )
-    items = await list_review_queue(tenant_id=tenant, limit=limit)
+    if (field_id is None) != (season_id is None) or any(
+        value is not None and not value.strip() for value in (field_id, season_id)
+    ):
+        raise HTTPException(status_code=422, detail="field_id and season_id are required together")
+    if field_id is None:
+        items = await list_review_queue(tenant_id=tenant, limit=limit)
+    else:
+        items = await list_review_queue(
+            tenant_id=tenant, limit=limit, field_id=field_id, season_id=season_id
+        )
     return {
         "authoritative": True,
         "persisted": True,

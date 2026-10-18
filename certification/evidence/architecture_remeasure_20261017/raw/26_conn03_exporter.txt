@@ -1,0 +1,15 @@
+$ sed -n 3139,3151p docker-compose.v9.yml
+  sahool-nats-exporter:
+    image: natsio/prometheus-nats-exporter:0.20.2@sha256:c623b608e148e31e1c1c878673a197f1828e58ce90de4f01d22f1baa84c8fee9
+    command: ["-varz", "-connz", "-subz", "http://sahool-nats:8222"]
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+    depends_on:
+      sahool-nats:
+        condition: service_healthy
+[exit=0]

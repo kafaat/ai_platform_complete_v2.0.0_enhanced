@@ -26,7 +26,7 @@ INT-002,Event bus integration,True,False,True,False,False,False,False,False,Fals
 INT-003,IoT and sensors,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 INT-004,External machinery integrations,False,False,False,False,False,False,False,False,False,0,9,0.0,False,False,False,False
 IRR-001,Water source registry,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-IRR-002,Water quality samples,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+IRR-002,Water quality samples,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 IRR-003,Field water-source binding,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 IRR-004,Water balance,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 IRR-005,Irrigation recommendation,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False

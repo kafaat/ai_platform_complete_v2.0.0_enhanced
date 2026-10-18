@@ -736,12 +736,15 @@ async def phase6_generate_prescription_map(
     req: PrescriptionGenerateRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
-    return generate_prescription_map(
-        req.zone_features,
-        crop=req.crop,
-        prescription_type=req.prescription_type,
-        target_yield_t_ha=req.target_yield_t_ha,
-    )
+    try:
+        return generate_prescription_map(
+            req.zone_features,
+            crop=req.crop,
+            prescription_type=req.prescription_type,
+            target_yield_t_ha=req.target_yield_t_ha,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/phase6/yield-stability")

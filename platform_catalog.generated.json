@@ -17420,58 +17420,6 @@
     },
     {
       "aliases": [
-        "sahool-weather-polygon-worker"
-      ],
-      "authority_kind": "stateless_compute",
-      "canonical_name": "weather-polygon-worker",
-      "component_id": "weather-polygon-worker",
-      "component_kind": "worker",
-      "consumer_contract": {
-        "declared": true,
-        "evidence_kinds": [
-          "internal-consumer",
-          "ui"
-        ],
-        "evidence_valid": true,
-        "reopen_trigger": null,
-        "wiring_disposition": "consumed"
-      },
-      "consumes": {
-        "services": []
-      },
-      "deployment_units": [
-        "sahool-weather-polygon-worker"
-      ],
-      "domain": "weather-truth",
-      "owns": {
-        "tables": []
-      },
-      "runtime": {
-        "compose_reachable": false,
-        "compose_services": [
-          "sahool-weather-polygon-worker"
-        ],
-        "healthcheck": "CMD python /app/worker_health_probe.py",
-        "mount_status": "non_http_entrypoint",
-        "published_ports": []
-      },
-      "source_path": "services/weather-polygon-worker",
-      "sources": {
-        "db_ownership": false,
-        "service_inventory": "weather-polygon-worker",
-        "ui_contract": "ui-indirect"
-      },
-      "status": {
-        "activated": null,
-        "built": true,
-        "configured": null,
-        "tested": false,
-        "wired": true
-      },
-      "type": "worker"
-    },
-    {
-      "aliases": [
         "sahool-weather-service"
       ],
       "authority_kind": "system_of_record",
@@ -17584,14 +17532,14 @@
     }
   ],
   "counts": {
-    "backend_components": 32,
+    "backend_components": 31,
     "capabilities": 832,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 95,
     "capabilities_idempotent": 61,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 478,
-    "components": 36,
+    "components": 35,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
@@ -17858,7 +17806,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "934fae3409364152e74e40b1f3284807341ecaa7201d2aff3dff421989b27bc1",
+  "fingerprint": "aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17908,16 +17856,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 844,
+      "edge_count": 868,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 44,
-        "CONSUMES": 1,
+        "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 434,
+        "READS": 442,
         "ROUTES_TO": 72,
-        "WRITES": 292
+        "WRITES": 306
       }
     },
     "u3_wiring_ownership": {

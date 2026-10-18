@@ -21,8 +21,9 @@ api/soil_moisture_advisor.py — قراءة مستشعر الرطوبة + قرا
   RWC 60-80%  → إجهاد خفيف (راقب)
   RWC > 80%   → آمن (قرب السعة الحقليّة)
 
-⚠ صدق: القيم المرجعيّة (θFC/θWP) تقديريّة حسب نوع التربة (من المستند، مصدرها
-NRCCA). الأدقّ قياسها ميدانيّاً للحقل نفسه (ريّ مُشبع ثمّ صرف — كما يشرح
+⚠ صدق: القيم المرجعيّة (θFC/θWP) تقديريّة حسب نوع التربة — تُقرأ من FAO-56 Table 19
+عبر core.engines.fao56 (المصدر الوحيد؛ لا جدول NRCCA موازٍ). الأدقّ قياسها
+ميدانيّاً للحقل نفسه (ريّ مُشبع ثمّ صرف — كما يشرح
 المستند). نوفّر القيم النوعيّة كبداية، ونحثّ على المعايرة الميدانيّة.
 ⚠ المستشعر يقيس VWC لا "صعوبة الامتصاص"؛ في الدفيئات عالية التسميد يلزم
 أيضاً مراقبة EC وجهد الماء (المستند يفصّل ذلك للخيار مقابل الذرة).
@@ -30,31 +31,40 @@ NRCCA). الأدقّ قياسها ميدانيّاً للحقل نفسه (ريّ
 
 from __future__ import annotations
 
-# جداول رطوبة التربة النوعيّة (من المستند — مصدرها NRCCA)
-# (θs مشبع، θFC سعة حقليّة، θWP نقطة ذبول) — كنسب حجميّة
-_SOIL_PARAMS = {
+from core.engines.fao56 import canonical_texture, theta_fc_wp_for_texture
+
+# PARALLEL-TAW-AND-KC-TABLES-DISAGREE-01 — θFC/θWP **لا تُكتَب هنا**. كان هذا الملفّ يحمل
+# جدولاً ثالثاً (NRCCA: طميّ 0.40/0.125 ⇒ 275 مم/م) يخالف المحرّك (0.25/0.10 ⇒ 150)
+# وsoil_water (175) معاً. بقرار المالك (2026-10-15) يُقرأ θFC/θWP من ``core.engines.fao56``
+# (FAO-56 Table 19) وحده. يبقى هنا ما ليس θFC/θWP: الاسم العربيّ والملاحظة وθs (التشبّع،
+# للعرض فقط — لا يدخل أيّ حساب). القوام خارج هذه الثلاثة ⇒ loam (السلوك القائم).
+_SOIL_DISPLAY = {
     "sand": {  # رمليّة
         "name_ar": "رمليّة",
         "theta_s": 0.33,
-        "theta_fc": 0.20,
-        "theta_wp": 0.075,
         "note_ar": "تحتفظ بماء أقلّ، تسرّب سريع، سعة حقليّة منخفضة.",
     },
     "loam": {  # طميّة
         "name_ar": "طميّة",
         "theta_s": 0.47,
-        "theta_fc": 0.40,
-        "theta_wp": 0.125,
         "note_ar": "احتفاظ معتدل بالماء — الأفضل للزراعة.",
     },
     "clay": {  # طينيّة
         "name_ar": "طينيّة",
         "theta_s": 0.55,
-        "theta_fc": 0.50,
-        "theta_wp": 0.175,
         "note_ar": "ماء كثير 'محبوس' — ليس كلّه متاحاً للنبات.",
     },
 }
+
+
+def _soil_params(soil_type: str | None) -> dict:
+    """خصائص التربة للعرض والحساب: θFC/θWP من FAO-56 (المصدر الوحيد) + بيانات العرض."""
+    key = canonical_texture(soil_type)
+    if key not in _SOIL_DISPLAY:
+        key = "loam"
+    theta_fc, theta_wp = theta_fc_wp_for_texture(key)
+    return {**_SOIL_DISPLAY[key], "theta_fc": theta_fc, "theta_wp": theta_wp}
+
 
 # عتبات قرار الريّ على RWC (من المستند)
 _RWC_NEED = 0.60  # تحتها: يحتاج ريّاً
@@ -89,9 +99,9 @@ _DEFAULT_ROOT_DEPTH_M = 0.6  # افتراضي محافظ حين يُجهل ال�
 def list_soil_types() -> dict:
     """أنواع التربة وقيمها المرجعيّة (للاختيار في الواجهة)."""
     return {
-        "soil_types": _SOIL_PARAMS,
+        "soil_types": {k: _soil_params(k) for k in _SOIL_DISPLAY},
         "note_ar": (
-            "قيم نوعيّة تقديريّة (مصدر NRCCA). للدقّة، عايِر حقلك ميدانيّاً: "
+            "قيم نوعيّة تقديريّة (FAO-56 Table 19). للدقّة، عايِر حقلك ميدانيّاً: "
             "اروِ حتّى الإشباع، انتظر الصرف الطبيعي، وسجّل القراءة المستقرّة "
             "كسعة حقليّة."
         ),
@@ -110,7 +120,7 @@ def compute_rwc(
     soil_type: sand/loam/clay (يحدّد θFC/θWP النوعيّة).
     theta_fc/theta_wp: قيم مُعايَرة ميدانيّاً (تتجاوز النوعيّة — الأدقّ).
     """
-    st = _SOIL_PARAMS.get(soil_type.lower(), _SOIL_PARAMS["loam"])
+    st = _soil_params(soil_type)
     fc = theta_fc if theta_fc is not None else st["theta_fc"]
     wp = theta_wp if theta_wp is not None else st["theta_wp"]
     calibrated = theta_fc is not None or theta_wp is not None
@@ -199,7 +209,7 @@ def irrigation_amount_mm(
     ليست تخميناً — معادلة حجميّة مباشرة. تُرجع 0 إن كانت التربة عند/فوق
     السعة الحقليّة (لا حاجة للريّ).
     """
-    st = _SOIL_PARAMS.get(soil_type.lower(), _SOIL_PARAMS["loam"])
+    st = _soil_params(soil_type)
     fc = theta_fc if theta_fc is not None else st["theta_fc"]
 
     if root_depth_m is not None:

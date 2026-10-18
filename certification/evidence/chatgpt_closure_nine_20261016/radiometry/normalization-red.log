@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/881ca3efb91d/closure-radiometry
+configfile: pytest.ini
+plugins: asyncio-1.4.0, respx-0.23.1, Faker-40.43.0, cov-7.1.0, platformdirs-4.13.2, anyio-4.15.1, xdist-3.8.0, hypothesis-6.170.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 18 items / 15 deselected / 3 selected
+
+tests_v9/test_raster_scene_model_v63.py F..                              [100%]
+
+=================================== FAILURES ===================================
+_________ test_normalized_search_preserves_authoritative_c1_collection _________
+tests_v9/test_raster_scene_model_v63.py:206: in test_normalized_search_preserves_authoritative_c1_collection
+    assert scenes[0].collection == "sentinel-2-c1-l2a"
+E   AssertionError: assert 'sentinel-2-l2a' == 'sentinel-2-c1-l2a'
+E     
+E     - sentinel-2-c1-l2a
+E     ?            ---
+E     + sentinel-2-l2a
+=========================== short test summary info ============================
+FAILED tests_v9/test_raster_scene_model_v63.py::test_normalized_search_preserves_authoritative_c1_collection
+================== 1 failed, 2 passed, 15 deselected in 0.35s ==================

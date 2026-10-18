@@ -37,10 +37,11 @@ FULLY_HARDENED_WORKERS = (
     "sahool-water-ledger-worker",
 )
 
-# الخدمات الأربع التي أُضيف إليها no-new-privileges فقط في هذه الدفعة (لا read_only بعد).
+# الخدمات التي أُضيف إليها no-new-privileges فقط في هذه الدفعة (لا read_only بعد). كانت
+# أربعاً؛ خرج sahool-weather-polygon-worker من المكدّس كلّه بقرار مالك 2026-10-17
+# (WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01) — إزالةُ خدمةٍ لا تراجعُ تصلّب.
 NNP_ADDED_SERVICES = (
     "raster-tiler-service",
-    "sahool-weather-polygon-worker",
     "sahool-weather-signal-engine",
     "sahool-soil-service",
 )

@@ -228,13 +228,28 @@ class RuntimeContract(unittest.TestCase):
             original_pid = self.process.pid
             self.assertEqual(self.request("/")[2], b"frontend fixture shell")
             self.assertEqual(self.request("/fields/example")[2], b"frontend fixture shell")
-            for path in ("/readyz", "/runtime-identity", "/api/agent/health", "/auth/login"):
+            for path in ("/runtime-identity", "/api/agent/health", "/auth/login"):
                 with self.subTest(missing_backend=path):
                     self.assertEqual(self.request(path)[0], 502)
+            # Gateway readiness is the gateway's own (FRONTEND-READYZ-IMPERSONATES-
+            # PLATFORM-READINESS-01): ready with no backend resolvable at all.
+            status, response_headers, body = self.request("/readyz")
+            self.assertEqual(status, 200)
+            self.assertEqual(response_headers["Content-Type"], "application/json")
+            self.assertEqual(json.loads(body), {"status": "ready", "component": "frontend-gateway"})
+            # ...and not ready when the SPA shell it serves is gone.
+            shell = assets / "index.html"
+            shell.rename(assets / "index.html.away")
+            status, _, body = self.request("/readyz")
+            self.assertEqual((status, json.loads(body)["status"]), (503, "not_ready"))
+            (assets / "index.html.away").rename(shell)
+            self.assertEqual(self.request("/readyz")[0], 200)
 
             records = dict.fromkeys(SERVICES, "127.0.0.1")
             dns.replace(records)
-            self.eventually(lambda: self.request("/readyz")[0] == 200, "late platform DNS")
+            self.eventually(
+                lambda: self.request("/runtime-identity")[0] == 200, "late platform DNS"
+            )
             self.eventually(
                 lambda: self.request("/api/agent/health")[0] == 200, "late supervisor DNS"
             )
@@ -265,7 +280,6 @@ class RuntimeContract(unittest.TestCase):
                 ("/auth/login", "sahool-auth", "/v1/auth/login"),
                 ("/auth/auth/register", "sahool-auth", "/v1/auth/register"),
                 ("/ws/notifications", "sahool-notification-agent", "/ws/notifications"),
-                ("/readyz", "sahool-platform", "/readyz"),
                 ("/runtime-identity", "sahool-platform", "/runtime-identity"),
             ]
             query = "?field=a%2Fb&day=1&day=2"
@@ -366,7 +380,12 @@ class RuntimeContract(unittest.TestCase):
             self.assertGreaterEqual(self.request("/api/ai-agronomist/chat", headers)[0], 500)
             self.assertEqual(len(backends["sahool-ai-agronomist"].snapshot()), count)
             self.assertEqual(self.request("/healthz")[0], 200)
+            self.assertEqual(self.request("/readyz")[0], 200)
             self.assertEqual(self.request("/api/weather/forecast")[0], 200)
+            self.assertFalse(
+                [r for r in backends["sahool-platform"].snapshot() if r["path"] == "/readyz"],
+                "gateway /readyz must never consult the platform",
+            )
 
             # Container replacement: the same service name/port now has a new IP.
             replacement = serve(

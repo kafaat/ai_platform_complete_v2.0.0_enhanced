@@ -510,7 +510,9 @@ def _readyz(module):
     return TestClient(module.app).get("/readyz")
 
 
-async def _real_seed_points(monkeypatch, ollama_url: str) -> list[tuple[str, dict]]:
+async def _real_seed_points(
+    monkeypatch, ollama_url: str, *, global_reference: bool = False
+) -> list[tuple[str, dict]]:
     """يُشغّل ``seed()`` الحقيقيّ على محرّك qdrant_client المحلّيّ ويُعيد ما كتبه فعلاً."""
     from qdrant_client import AsyncQdrantClient
 
@@ -524,6 +526,25 @@ async def _real_seed_points(monkeypatch, ollama_url: str) -> list[tuple[str, dic
     spec = importlib.util.spec_from_file_location("_chain_qdrant_seed", directory / "seed.py")
     seed = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(seed)
+    if global_reference:
+        # Explicit synthetic provenance authorizes only this fresh in-memory corpus.
+        # The default quarantine is exercised separately and never promoted in place.
+        monkeypatch.setattr(seed, "SEED_TENANT_ID", "__global__")
+        monkeypatch.setattr(
+            seed,
+            "SEED_PROVENANCE_JSON",
+            json.dumps(
+                {
+                    str(doc["source"]): {
+                        "publisher": "test fixture",
+                        "source_uri": "fixture://approved-reference",
+                        "source_revision": "model-chain-fixture-v1",
+                        "license": "synthetic-fixture",
+                    }
+                    for doc in seed.KNOWLEDGE_BASE
+                }
+            ),
+        )
     store = AsyncQdrantClient(location=":memory:")
 
     async def _keep_open():  # seed() يُغلق عميله؛ المحرّكُ المحلّيّ يُقرَأ بعده
@@ -546,7 +567,7 @@ async def test_retrieval_readiness_names_each_missing_stage_and_turns_green_only
     """من الحالة الحيّة إلى الجاهزيّة، بالشيفرة الحقيقيّة في كلّ خطوة:
 
     صفرُ نماذج ⇒ 503 ``embedding`` · بعد المُهيِّئ وقبل البذر ⇒ 503 ``collection`` ·
-    مجموعةٌ فارغة ⇒ 503 ``corpus`` (الفراغُ ليس تكافؤاً) · بعد البذر ⇒ 200 وبُعدٌ 768.
+    مجموعةٌ فارغة أو بذور محجورة ⇒ 503 ``corpus`` · مراجع مصرّح بها ⇒ 200 وبُعدٌ 768.
     """
     with FakeOllama() as ollama:
         with FakeQdrant(points=None) as qdrant:
@@ -575,11 +596,25 @@ async def test_retrieval_readiness_names_each_missing_stage_and_turns_green_only
 
         seeded_points = await _real_seed_points(monkeypatch, ollama.url)
         assert seeded_points, "البذرُ لم يكتب شيئاً بعد حضور النماذج"
+        assert all(p["metadata"]["tenant_id"] == "__seed_quarantine__" for _, p in seeded_points)
         with FakeQdrant(points=seeded_points) as qdrant:
+            quarantined = _readyz(
+                _load_rag_retrieval(monkeypatch, ollama_url=ollama.url, qdrant_url=qdrant.url)
+            )
+        assert quarantined.status_code == 503
+        assert "quarantine is not coverage" in quarantined.json()["detail"]
+
+        approved_points = await _real_seed_points(monkeypatch, ollama.url, global_reference=True)
+        assert approved_points
+        assert all(p["metadata"]["tenant_id"] == "__global__" for _, p in approved_points)
+        assert all(
+            p["metadata"]["provenance_status"] == "verified_manifest" for _, p in approved_points
+        )
+        with FakeQdrant(points=approved_points) as qdrant:
             ready = _readyz(
                 _load_rag_retrieval(monkeypatch, ollama_url=ollama.url, qdrant_url=qdrant.url)
             )
     assert ready.status_code == 200, ready.text
     body = ready.json()
     assert body["vector_size"] == 768
-    assert body["sparse_index_count"] == len(seeded_points)
+    assert body["sparse_index_count"] == len(approved_points)
