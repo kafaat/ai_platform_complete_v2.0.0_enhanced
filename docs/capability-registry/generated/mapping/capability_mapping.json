@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 6007,
+    "files_scanned": 6008,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
       "other": 1918,
-      "tests": 1968,
+      "tests": 1969,
       "web": 471
     },
-    "unmapped_artifacts": 2307,
+    "unmapped_artifacts": 2308,
     "ambiguous_artifacts": 465
   },
   "capabilities": [
@@ -46852,6 +46852,10 @@
     },
     {
       "path": "tests_v9/test_platform_shrink_ratchet_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_token_floor.py",
       "kind": "tests"
     },
     {

@@ -4,7 +4,7 @@
 
 - File: `services/sahool-platform/api/main.py`
 - Total lines: `2553`
-- Import lines: `139`
+- Import lines: `140`
 - Top-level symbols: `45`
 - Direct route decorators: `0`
 - Status: `route_free_with_embedded_business_logic`
@@ -26,7 +26,7 @@
 
 - Embedded business logic still present in platform main: `688` LOC.
 - This does not reopen P1 because direct routes remain zero, but it makes P3 a real runtime extraction, not a cosmetic cleanup.
-- Uncategorized/residual line estimate after imports and categorized symbols: `1126` LOC. This must be reviewed before any P3 extraction plan is finalized.
+- Uncategorized/residual line estimate after imports and categorized symbols: `1125` LOC. This must be reviewed before any P3 extraction plan is finalized.
 
 ## Largest top-level symbols
 
