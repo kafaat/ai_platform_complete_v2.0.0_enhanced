@@ -1918,6 +1918,23 @@ class ExecutionOutcomeVerificationIn(BaseModel):
     idempotency_key: str
 
 
+@app.get("/v1/execution-requests/{execution_request_id}/observation-context")
+async def execution_observation_context(
+    execution_request_id: str,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Service-authenticated receipt clock; never a physical completion attestation."""
+    from observation_context import read_context
+
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled() or not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip():
+        raise HTTPException(503, "authoritative authenticated receipt source unavailable")
+    result = await read_context(tenant, execution_request_id)
+    if result is None:
+        raise HTTPException(404, "accepted execution receipt not found")
+    return result
+
+
 @app.post("/v1/execution-requests/{execution_request_id}/verify-outcome")
 async def verify_terminal_execution_outcome(
     execution_request_id: str,

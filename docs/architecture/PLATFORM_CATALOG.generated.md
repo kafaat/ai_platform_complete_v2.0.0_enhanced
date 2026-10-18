@@ -3,10 +3,10 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `aa6f46a04c7d1dd97fd4fcdd19f12f551bd81ba7f954b716baa7adac31cfb63c`
+- fingerprint: `7aa09df0bdfd5bdc3db28c243e817ae569430967eb85ab91cf56343f266ab799`
 - components: **35** (backend: 31)
-- route rows: **1123** → unique method/path: **1004**
-- capabilities (derived, uncurated): **832**
+- route rows: **1126** → unique method/path: **1007**
+- capabilities (derived, uncurated): **834**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **53**
@@ -36,7 +36,7 @@
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
 | qdrant-seed | init_job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
-| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 13 | True |
+| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 14 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
@@ -54,8 +54,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **868**
-- S2 relations: CALLS=44, CONSUMES=3, EMITS=1, READS=442, ROUTES_TO=72, WRITES=306
+- ARCH-S2 dependency truth: `PASS` — edges **875**
+- S2 relations: CALLS=44, CONSUMES=3, EMITS=1, READS=448, ROUTES_TO=72, WRITES=307
 
 ## Governance gates (U3/U4)
 

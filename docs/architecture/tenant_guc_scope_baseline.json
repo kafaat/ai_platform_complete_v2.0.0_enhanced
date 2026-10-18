@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "f41a2726a47ec83116db9c5a686882c3752d3850",
+  "measured_on": "8c5c941c3aeb57df7ba70c46c286739e829a17e8",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "ec57ffe77be09f226570c8d679667d1d2d54c2e16ce1c8a26c3bfb5b0dd7b36e",
+  "measurement_input_digest": "0d2ce0b8e3225ab2e2241d0460fb4bfad62390e548ef8667663a1fab680f6acd",
   "measurement_algorithm_digest": "f97be0263384a027232f95dcfff3ed99e755bc80cbf05a280e59f6059f9fa9fd",
-  "measurement_basis_digest": "40c99beb513973c0a1d3a21114753fb8fda8ef37e6ec9356d82631baf6b5c57a",
+  "measurement_basis_digest": "363ece37f5673390d33743728e81ed6a2d87e1fe76e2987634ee330e053d6b6a",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -55,6 +55,10 @@
       "sha256": "da0dac94ccbe79b140dc2b0c148baa61246b1ecc4024ff3c7ea30c5d8ede4c16"
     },
     {
+      "path": "services/decision-service/observation_context.py",
+      "sha256": "679ee098c8e250b1190727a617d715609933b7b7283879371880db5eae3f725f"
+    },
+    {
       "path": "services/decision-service/persistence.py",
       "sha256": "2ac6a5ae36e6adb8798f0e703224d93f2514f889e631f5fb78fb305664f855a5"
     },
@@ -89,6 +93,10 @@
     {
       "path": "services/raster-service/db_persist.py",
       "sha256": "de5ecc161fca5eb4e9e08b0419cfb2a20ccf9f34af849b10d63f784bc9057be1"
+    },
+    {
+      "path": "services/raster-service/follow_up_store.py",
+      "sha256": "33fc9c1bb37470ded9a7e34d55ec9284bc09cc3db5e3535f39f2e04f46cd2cf9"
     },
     {
       "path": "services/raster-service/raster_batch_job_store.py",
