@@ -138,6 +138,9 @@ def auth_mod():
     import importlib.util
     import sys
 
+    # ووحداتٌ أخرى تستعمل الوحدة نفسها (test_platform_token_floor) ⇒ تُخزَّن في sys.modules.
+    if "auth_main_sessions_test" in sys.modules:
+        return sys.modules["auth_main_sessions_test"]
     auth_dir = os.path.join(ROOT, "services/auth")
     if auth_dir not in sys.path:
         sys.path.insert(0, auth_dir)  # كي تُحلّ وحدات الخدمة الشقيقة (otp …)
@@ -147,6 +150,7 @@ def auth_mod():
         spec.loader.exec_module(m)
     except Exception:  # noqa: BLE001 — تبعيّات ناقصة في بيئة خفيفة
         pytest.skip("تعذّر استيراد خدمة auth (تبعيّات ناقصة)")
+    sys.modules["auth_main_sessions_test"] = m
     return m
 
 

@@ -826,7 +826,7 @@
           "client_env": "DENYLIST_REDIS_URL",
           "db": 0,
           "basis": "derived",
-          "note": "JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01: the platform's revocation list lives on the server sahool-auth writes it to. A second user of the sahool-platform service, so the cache credentials never reach the security-state server. SETEX is granted because the platform's own logout writes the list (api/routers/auth.py); without it that write is NOPERM and is swallowed by the logout's fail-safe, so a platform logout would silently stop revoking.",
+          "note": "JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01: the platform's revocation list lives on the server sahool-auth writes it to. A second user of the sahool-platform service, so the cache credentials never reach the security-state server. SETEX is granted because the platform's own logout writes the list (api/routers/auth.py); without it that write is NOPERM and is swallowed by the logout's fail-safe, so a platform logout would silently stop revoking. PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01: the platform also reads auth's per-user token floor (sahool:user:token_floor:*) and rejects a token issued before it, as auth does. That read is a Redis 7 selector granting GET on the floor keys read-only (%R~), so the platform can neither write a floor nor GET a revoked-jti key.",
           "commands": [
             "ping",
             "exists",
@@ -878,6 +878,34 @@
               "line": 131,
               "needle": "_main._DENYLIST.revoke(jti, ttl)",
               "why": "the platform's POST /api/v1/auth/logout writes the list"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 32,
+              "needle": "TOKEN_FLOOR_KEY = \"sahool:user:token_floor:{sub}\"",
+              "why": "key token floor (sahool-auth's naming, services/auth/main.py:671)"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 97,
+              "needle": "raw = self._r.get(TOKEN_FLOOR_KEY.format(sub=sub))",
+              "why": "GET, read-only (selector %R~)"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 1199,
+              "needle": "or is_token_below_floor(_DENYLIST, payload)",
+              "why": "get_current_user rejects a token below the floor"
+            }
+          ],
+          "selectors": [
+            {
+              "commands": [
+                "get"
+              ],
+              "read_keys": [
+                "sahool:user:token_floor:*"
+              ]
             }
           ]
         },

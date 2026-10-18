@@ -2,7 +2,7 @@
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
   "total_lines": 2553,
-  "import_lines": 139,
+  "import_lines": 140,
   "top_level_symbols": 45,
   "direct_route_decorators": 0,
   "category_totals": {
@@ -51,7 +51,7 @@
   },
   "embedded_business_logic_loc": 688,
   "categorized_symbol_loc": 1288,
-  "uncategorized_residual_loc_estimate": 1126,
+  "uncategorized_residual_loc_estimate": 1125,
   "items": [
     {
       "name": "_refuse_hs256_in_production",
