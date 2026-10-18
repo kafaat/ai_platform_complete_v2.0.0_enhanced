@@ -9650,6 +9650,11 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 الرأس المنشور `8c5c941c` صار متعارضاً مع main@`503d7d7c` بعد دمج إصلاحي JWT وET0؛ لم يبدأ CI للطلب. أُدخل main في الفرع مع الحفاظ على مصادر Claude دون تعديل. التعارضات الثلاثة والعشرون في المصنوعات المولدة؛ يُعاد توليدها ثم بناء الحزمة آخراً. log/ledger يحفظان main بادئة ثم إضافات الفرع؛ hot يحتفظ بنص main مع إضافة الأعلى. رأس الدمج المحلي سيختبر قبل دفعه؛ لا دمج في main أو نشر.
 
+
+## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
+
+السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
+
 ## 2026-10-18 — الفجوات السبع عشرة بعد #1213
 
 طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.

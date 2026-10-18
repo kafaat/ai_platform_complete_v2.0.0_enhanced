@@ -172,7 +172,7 @@ def test_the_live_tree_holds_exactly_one_upload_artifact_pin():
     assert shas is not None, "العمل غير موجود — تغيّرت الشجرة، راجع الحارس"
     assert len(shas) == 1, f"بصماتٌ متعدّدة لـupload-artifact: {sorted(shas)}"
     (tags,) = shas.values()
-    assert tags == {"v7.0.1"}, f"وسمٌ غير متوقّع بجانب البصمة: {sorted(tags)}"
+    assert tags == {"v7.0.2"}, f"وسمٌ غير متوقّع بجانب البصمة: {sorted(tags)}"
 
 
 def test_the_live_tree_passes_the_guard():

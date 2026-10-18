@@ -4178,6 +4178,11 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 #1211، بعد قياس `7640288c`: إعادة استخدام require_field_tenant مع lookup من معاملة مقيدة، وربط السياق بالمستأجر المستخرج من JWT ثم استعادته. رفض غياب الملكية وتعذر إثباتها يمنع fallback إلى ذاكرة محلية أو الاعتماد على ملكية وقت الإنشاء وحدها. الحارس الساكن القائم بقي دون تعديل؛ ثمانية شواهد HTTP تقيس القبول والرفض على الطريقتين. حدود PG16 وstaging/الإنتاج كما في [حزمة الأدلة](../../certification/evidence/imagery_follow_up_20261018/README.md).
 
+
+## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
+
+السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
+
 ## 2026-10-18 — الفجوات السبع عشرة بعد #1213
 
 طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.
