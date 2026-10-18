@@ -9653,3 +9653,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-18 — خطّة استخراج الراوترات الكبيرة (بانتظار الإقرار)
 
 بقرار المالك («Router extraction plan»): `docs/architecture/router_extraction_plan_20261018.md` لـROUTER-SIZE-UNGUARDED-AFTER-MAIN-DECOMPOSITION-01، مقيسةٌ على `main@1765d73a0`. لا نقل شيفرة قبل إقرارها؛ الفجوة open. المصدر: الخطّة نفسها.
+
+## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
+
+السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
