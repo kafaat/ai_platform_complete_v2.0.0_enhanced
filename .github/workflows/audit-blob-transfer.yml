@@ -1,0 +1,48 @@
+name: Transfer one verified generated blob
+on:
+  push:
+    branches: [codex/audit-blob-transfer-20261019]
+    paths:
+      - .github/workflows/audit-blob-transfer.yml
+      - transfer/execution_dependency_audit.patch
+permissions:
+  contents: read
+jobs:
+  transfer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Reconstruct the single declared JSON blob from a readable patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/blob-source" ee690901097cd80a2d69045f39daed1eb6388305
+          patch="$GITHUB_WORKSPACE/transfer/execution_dependency_audit.patch"
+          test "$(git apply --numstat "$patch" | cut -f3)" = "execution-audit/generated/execution_dependency_audit.json"
+          git -C "$RUNNER_TEMP/blob-source" apply --check "$patch"
+          git -C "$RUNNER_TEMP/blob-source" apply "$patch"
+          test "$(git -C "$RUNNER_TEMP/blob-source" diff --name-only)" = "execution-audit/generated/execution_dependency_audit.json"
+          test "$(git -C "$RUNNER_TEMP/blob-source" hash-object execution-audit/generated/execution_dependency_audit.json)" = "d2a7748b66baeafc7d412e5167a5bc693563620a"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          text = (root / 'blob-source/execution-audit/generated/execution_dependency_audit.json').read_text()
+          json.loads(text)
+          (root / 'blob-request.json').write_text(json.dumps({'content': text, 'encoding': 'utf-8'}))
+          PY
+      - name: Upload immutable blob only; do not move any source branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha="$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input "$RUNNER_TEMP/blob-request.json" --jq .sha)"
+          test "$sha" = "d2a7748b66baeafc7d412e5167a5bc693563620a"
+          printf 'Verified uploaded blob: %s\n' "$sha"
