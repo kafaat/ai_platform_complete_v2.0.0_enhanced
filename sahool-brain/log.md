@@ -9610,3 +9610,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 ⇒ `fixed` لـcompose v9 (`9e0328499`، PR مكدَّس فوق شريحة Redis ACL #1210). والإصلاح كشف فجوةً مجاورة: PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01 (المنصّة لا تقرأ أرضيّة التوكن). المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
 > **2026-10-17 — W6 (`4d0799f3`):** طلب المالك ستة إغلاقات خارج عمل Claude؛ تحقق إغلاق SAM2 على مستوى المصدر/التزويد فقط. تنزيل Meta الفعلي طابق البصمة والحجم، و28 اختباراً نجحت، و3 طفرات كُذبت بعد تشديد شاهد سبب الحجم. لا يُدّعى إنجاز الستة ولا قبول حي. [الدليل](../certification/evidence/chatgpt_w6_20261017/README.md).
+
+### 2026-10-18 — جلبُ متن الـPR في خطوةٍ مستقلّة (capability-governance)
+
+PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixed` (`4bddf8b7b`): الفشلُ الثانويّ «pr-body.txt does not exist» الذي أدخله #1208 حين تحمرّ خطوةٌ سابقة. بتفويض المالك («قوم بعمل ما تراه صحيح»). المصدر: `sahool-brain/gaps/registry.md`.
