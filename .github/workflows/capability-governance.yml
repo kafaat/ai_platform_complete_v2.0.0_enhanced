@@ -172,16 +172,17 @@ jobs:
         run: python scripts/ci/platform_module_reachability_guard.py --check
       - name: Validate capability impact index drift
         run: python scripts/ci/pr_capability_impact_gate.py --check-index
-      - name: Enforce declared PR capability impact
-        if: github.event_name == 'pull_request'
+      # PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01: كان جلبُ المتن داخل خطوة
+      # الإنفاذ (شرطُها الافتراضيّ success())، فأيُّ خطوةٍ حمراء قبلها تُسقطه، ثمّ يقرأ حارسُ
+      # الملاحظات (!cancelled()) ملفّاً لم يُكتَب فيحمرّ ثانيةً بـ«pr-body.txt does not exist»
+      # — فشلٌ ثانويّ يُقرأ سبباً. الجلبُ خطوتُه الآن، بـ!cancelled() قبل مستهلكَيه كليهما.
+      - name: Fetch the live PR body
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          git cat-file -e "$BASE_SHA^{commit}" || git fetch --no-tags origin "$BASE_SHA"
-          git cat-file -e "$HEAD_SHA^{commit}" || git fetch --no-tags origin "pull/$PR_NUMBER/head"
           # GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: كان المتنُ
           # يُقرأ من حمولة الحدث فيتجمّد لحظتَها، فتصحيحُ المتن بعد
           # انطلاق التشغيل بدقيقةٍ غيرُ مرئيّ، و«أعد التشغيل» يكرّر الحمولةَ القديمة
@@ -203,6 +204,15 @@ jobs:
             exit 1
           fi
           jq -r '.body // ""' /tmp/pr-live.json > /tmp/pr-body.txt
+      - name: Enforce declared PR capability impact
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git cat-file -e "$BASE_SHA^{commit}" || git fetch --no-tags origin "$BASE_SHA"
+          git cat-file -e "$HEAD_SHA^{commit}" || git fetch --no-tags origin "pull/$PR_NUMBER/head"
           python scripts/ci/pr_capability_impact_gate.py \
             --base "$BASE_SHA" \
             --head "$HEAD_SHA" \

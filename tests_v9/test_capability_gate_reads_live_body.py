@@ -34,12 +34,28 @@ sys.modules[spec.name] = gate
 spec.loader.exec_module(gate)
 
 
-def _enforce_step() -> str:
+def _step(name: str) -> str:
     text = WORKFLOW.read_text(encoding="utf-8")
-    start = text.index("- name: Enforce declared PR capability impact")
+    start = text.index(f"- name: {name}\n")
     # حدُّ الخطوة هو الخطوةُ التالية — لا عدُّ أسطرٍ يبيت مع أوّل تعديل.
     end = text.index("- name: ", start + 1)
     return text[start:end]
+
+
+def _enforce_step() -> str:
+    """مسارُ المتن إلى بوّابة الأثر: خطوةُ الجلب الحيّ ثمّ خطوةُ الإنفاذ.
+
+    PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 فصل الجلبَ في خطوته (بـ!cancelled())،
+    فالخصائصُ أدناه تُقاس على الخطوتين معاً لا على إحداهما.
+    """
+    return _step(FETCH) + _step(ENFORCE)
+
+
+FETCH = "Fetch the live PR body"
+ENFORCE = "Enforce declared PR capability impact"
+FINDINGS = (
+    "Labelled review findings in the PR body and review comments must name a registered gap ID"
+)
 
 
 def _shell_if_block(step: str, condition: str) -> str:
@@ -98,3 +114,32 @@ def test_the_frozen_shas_remain_the_judged_subject():
     step = _enforce_step()
     assert "github.event.pull_request.head.sha" in step
     assert "github.event.pull_request.base.sha" in step
+
+
+def test_the_body_is_fetched_even_when_an_earlier_step_failed():
+    """PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01.
+
+    حارسُ الملاحظات يعمل بـ``!cancelled()`` ويقرأ ``/tmp/pr-body.txt``؛ فإن كان كاتبُه خطوةً
+    بشرط ``success()`` الافتراضيّ أسقطته أيُّ خطوةٍ حمراء قبله، وحمرّ الحارسُ ثانيةً على ملفٍّ لم
+    يُكتَب. الكاتبُ وحدَه خطوةُ الجلب، بـ``!cancelled()``، قبل مستهلكَيه كليهما.
+    """
+    import yaml
+
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    steps = next(
+        job["steps"]
+        for job in workflow["jobs"].values()
+        if any(st.get("name") == FINDINGS for st in job.get("steps", []))
+    )
+    names = [st.get("name") for st in steps]
+    by_name = {st.get("name"): st for st in steps}
+    writers = [st.get("name") for st in steps if "> /tmp/pr-body.txt" in str(st.get("run", ""))]
+    assert writers == [FETCH], f"كاتبُ /tmp/pr-body.txt: {writers}"
+    assert names.index(FETCH) < names.index(ENFORCE) < names.index(FINDINGS), names
+    fetch_if = str(by_name[FETCH].get("if", ""))
+    assert "!cancelled()" in fetch_if and "github.event_name == 'pull_request'" in fetch_if, (
+        f"الجلبُ بشرط {fetch_if!r}: خطوةٌ حمراء قبله تُسقطه فيحمرّ حارسُ الملاحظات على ملفٍّ لم يُكتَب"
+    )
+    assert "!cancelled()" in str(by_name[FINDINGS].get("if", "")), "الحارسُ يُقاس ولو حمرت البوّابة"
+    for consumer in (ENFORCE, FINDINGS):
+        assert "/tmp/pr-body.txt" in str(by_name[consumer].get("run", "")), consumer

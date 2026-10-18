@@ -8336,6 +8336,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_token_floor.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_portfolio_allocation.py",
     "kind": "tests"
   },

@@ -114,8 +114,18 @@ def _expected_rules(server: str) -> dict[str, list[str]]:
             + [f"+{c}" for c in u["commands"]]
             + [f"~{k}" for k in u["keys"]]
             + [f"&{c}" for c in u["channels"]]
+            + [_selector_rule(sel) for sel in u.get("selectors", [])]
         )
     return out
+
+
+def _selector_rule(sel: dict) -> str:
+    """محدِّدُ Redis 7 وسيطاً واحداً: ``(+cmd %R~pattern)`` — أوامرُه على مفاتيحه للقراءة فقط."""
+    return (
+        "("
+        + " ".join([f"+{c}" for c in sel["commands"]] + [f"%R~{k}" for k in sel["read_keys"]])
+        + ")"
+    )
 
 
 def _service_users() -> list[tuple[str, str, dict]]:
@@ -239,10 +249,15 @@ def test_no_service_user_can_flush_reconfigure_or_reach_everything(server, name,
         f"{name}: صنفٌ أو أمرٌ فرعيّ ({sorted(granted)}) يتجاوز ما اشتُقّ من الشيفرة"
     )
     assert "*" not in user["keys"] and "*" not in user["channels"], f"{name}: ~* أو &*"
-    for key in user["keys"]:
+    selectors = user.get("selectors", [])
+    for key in user["keys"] + [k for sel in selectors for k in sel["read_keys"]]:
         assert re.fullmatch(r"[a-z][a-z0-9:_-]*(?::\*)?", key) and ":" in key, (
             f"{name}: نمطُ مفتاح بلا بادئةٍ مُسمّاة ({key!r})"
         )
+    for sel in selectors:
+        assert set(sel) == {"commands", "read_keys"}, f"{name}: محدِّدٌ بغير أوامرَ ومفاتيحِ قراءة"
+        assert sel["commands"] and sel["read_keys"], f"{name}: محدِّدٌ فارغ"
+        assert not set(sel["commands"]) & forbidden, f"{name}: {sel['commands']}"
 
 
 def test_each_client_url_uses_its_own_password_variable_and_never_the_admin_one():
@@ -498,6 +513,37 @@ def test_live_each_user_runs_its_commands_inside_its_patterns_only(live_server):
                 args = [a.format(k=key) for a in _KEYED[cmd]]
                 verdict = _dryrun(admin, name, cmd, *args)
                 assert verdict != "OK", f"{name}: {cmd} على {key!r} خارج أنماطه مسموح"
+
+
+@pytest.mark.integration
+def test_live_selectors_read_their_keys_and_write_nothing(live_server):
+    """المحدِّد (``%R~``) يقرأ مفاتيحَه ولا يكتبها: أوامرُه للقراءة بشهادة الخادم (``COMMAND INFO``)،
+    وتمرّ على مفاتيحه، وكلُّ أمرِ كتابةٍ يملكه المستخدمُ يُرفَض عليها، ولا يتّسع المحدِّدُ لمفاتيحه الأخرى."""
+    server, _, admin = live_server
+    every_pattern = {
+        k for s in SERVERS for u in _matrix()["servers"][s]["users"].values() for k in u["keys"]
+    }
+    seen = 0
+    for name, user in _matrix()["servers"][server]["users"].items():
+        for sel in user.get("selectors", []):
+            for cmd in sel["commands"]:
+                info = admin.execute_command("COMMAND", "INFO", cmd)
+                raw = info[cmd]["flags"] if isinstance(info, dict) else info[0][2]
+                flags = {f.decode() if isinstance(f, bytes) else f for f in raw}
+                assert "readonly" in flags and "write" not in flags, (name, cmd, sorted(flags))
+                for pattern in sel["read_keys"]:
+                    args = [a.format(k=_sample(pattern)) for a in _KEYED[cmd]]
+                    assert _dryrun(admin, name, cmd, *args) == "OK", (name, cmd, pattern)
+                for other in every_pattern - set(sel["read_keys"]):
+                    args = [a.format(k=_sample(other)) for a in _KEYED[cmd]]
+                    assert _dryrun(admin, name, cmd, *args) != "OK", (name, cmd, other)
+            for pattern in sel["read_keys"]:
+                for cmd in set(user["commands"]) - set(_UNKEYED) - set(sel["commands"]):
+                    args = [a.format(k=_sample(pattern)) for a in _KEYED[cmd]]
+                    assert _dryrun(admin, name, cmd, *args) != "OK", (name, cmd, pattern)
+            seen += 1
+    if server == "sahool-redis-state":
+        assert seen, "لا محدِّدَ على خادم الحالة — أرضيّةُ auth لم تعد تُقرأ"
 
 
 @pytest.mark.integration
