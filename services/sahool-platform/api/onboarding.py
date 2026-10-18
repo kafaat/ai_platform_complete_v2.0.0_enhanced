@@ -439,8 +439,8 @@ class PlatformBootstrapStore:
                 "UPDATE processing_jobs SET result=jsonb_build_object('journal',$5::jsonb,'lease', "
                 "CASE WHEN $6::boolean THEN NULL::jsonb ELSE jsonb_build_object('token',$4::text, "
                 "'expires_at',clock_timestamp()+make_interval(secs=>$7)) END), "
-                "status=$8,progress=$10,updated_at=clock_timestamp(), "
-                "finished_at=CASE WHEN $8 IN ('completed','failed','cancelled') THEN clock_timestamp() ELSE NULL END "
+                "status=$8::varchar,progress=$10,updated_at=clock_timestamp(), "
+                "finished_at=CASE WHEN $8::varchar IN ('completed','failed','cancelled') THEN clock_timestamp() ELSE NULL END "
                 "WHERE id=$1 AND tenant_id=$2::uuid AND job_type=$3 "
                 "AND parameters->>'scope_key'=$9 AND result->'lease'->>'token'=$4 "
                 "AND (result->'lease'->>'expires_at')::timestamptz>clock_timestamp() RETURNING id",

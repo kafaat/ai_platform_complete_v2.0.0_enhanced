@@ -9653,3 +9653,6 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-18 — الفجوات السبع عشرة بعد #1213
 
 طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.
+
+
+2026-10-18 — PR #1222: مرجع إصلاح RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01 المنشور c2da227a1b40169a650b24035ad476aebe5a1bc2 يطابق شجرة الاختبار المحلي 9e436826. كشف التشغيل 39130214320 لفجوة M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01 تعارض text/varchar للمعامل $8؛ تحويل صريح محدود في الاستعلام، والقبول الحي الكامل ينتظر إعادة CI. لا تفعيل ولا هجرة ولا دمج.

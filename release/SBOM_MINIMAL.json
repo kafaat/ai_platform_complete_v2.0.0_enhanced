@@ -18285,7 +18285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc8fdceec27cf9e1ce16e411bd269ee8ff29f8b7cf99a1e5563a29254661c895"
+          "content": "924ea7106396e9c936f1fb4a9e78db8c2002750a186e6374ef53851fc01db461"
         }
       ],
       "name": "services/sahool-platform/api/onboarding.py",
