@@ -30,6 +30,7 @@ from shared.actuator_idempotency import (
     resolve_idempotency_mode,
 )
 from shared.actuator_mode import resolve_actuator_mode
+from shared.startup_retry import retry_startup_connect
 
 try:
     from shared.logging_config import setup_logging
@@ -1109,7 +1110,14 @@ async def mqtt_sensor_listener():
 async def lifespan(app: FastAPI):
     global _pool
     if DATABASE_URL:
-        _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
+        # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: retry transient refusals only.
+        _pool = await retry_startup_connect(
+            asyncpg.create_pool,
+            DATABASE_URL,
+            min_size=1,
+            max_size=5,
+            startup_what="actuator-service database",
+        )
         logger.info("✅ DB connected")
         # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
         from shared.db_role_guard import assert_db_role_rls_safe

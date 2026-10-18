@@ -27,6 +27,7 @@ from shared.runtime_worker_contracts import (
     env_bool,
     parse_json_env,
 )
+from shared.startup_retry import retry_startup_connect
 
 Json = dict[str, Any]
 
@@ -39,8 +40,14 @@ async def _connect() -> asyncpg.Pool:
     database_url = os.getenv("JOBS_DATABASE_URL") or os.getenv("DATABASE_URL")
     if not database_url:
         raise RuntimeError("JOBS_DATABASE_URL is required for Phase runtime workers")
-    return await asyncpg.create_pool(
-        dsn=database_url, min_size=1, max_size=int(os.getenv("WORKER_DB_POOL_MAX", "4"))
+    # RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: a restart-policy restart does not
+    # wait for Postgres; transient refusals are retried, configuration errors are not.
+    return await retry_startup_connect(
+        asyncpg.create_pool,
+        dsn=database_url,
+        min_size=1,
+        max_size=int(os.getenv("WORKER_DB_POOL_MAX", "4")),
+        startup_what="phase runtime worker database",
     )
 
 

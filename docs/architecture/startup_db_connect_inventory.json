@@ -68,8 +68,9 @@
       "via": "_connect"
     },
     "sahool-actuator-service": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/actuator-service/actuator_runtime.py::lifespan"
+      "class": "retries_with_backoff",
+      "anchor": "services/actuator-service/actuator_runtime.py::lifespan",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-erp-bridge": {
       "class": "retries_with_backoff",
@@ -95,28 +96,33 @@
       "anchor": "services/soil-service/main.py::lifespan"
     },
     "sahool-phase-runtime-outbox-worker": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-irrigation-reservation-lifecycle-worker": {
       "class": "retries_with_backoff",
       "anchor": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py::run"
     },
     "sahool-plugin-runtime-worker": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-model-registry-worker": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-water-ledger-worker": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-actuator-dispatch-worker": {
-      "class": "gate01_frozen_fail_fast",
-      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect"
+      "class": "retries_with_backoff",
+      "anchor": "services/sahool-platform/api/phase_runtime_workers.py::_connect",
+      "evidence": "كان create_pool المباشر يُسقط الخدمة على أوّل رفض؛ عولج بتفويض GATE01-ADJ-2026-10-18-002 المقيَّد."
     },
     "sahool-canonical-execution-learning-worker": {
       "class": "retries_with_backoff",
