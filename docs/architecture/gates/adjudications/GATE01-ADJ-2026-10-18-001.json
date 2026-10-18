@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-18-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner-current-user-delegation",
   "adjudicated_on": "2026-10-18",
   "expires_on": "2026-10-25",
@@ -50,5 +50,17 @@
   "supplemental_byte_bindings": {
     "migrations/v236_raster_follow_up_requests.sql": "9b187988648407c8446fef71059ecde8c3f3646f",
     "migrations/schema_probe_contract.env": "d90ef528799628c375a33790d675af8cdc0b2d83"
+  },
+  "merge_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+  "consumed_by": {
+    "pr": 1211,
+    "merge_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+    "merged_at": "2026-10-18T10:17:29Z"
+  },
+  "consumption": {
+    "merge_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+    "consumed_on": "2026-10-18",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1211",
+    "scope": "Source merge only. All five bound blobs (migrations/MANIFEST.txt 10c2fb2f2f3a, scripts_v9/run_migrations.sql afe04ec5bf82, docs/architecture/db_ownership.yml 2e8f23f0d15f, migrations/v236_raster_follow_up_requests.sql 9b1879886484, migrations/schema_probe_contract.env d90ef5287996) match the tree of merge ac1e48df4. Sealed by Claude so the one-shot authorization cannot re-admit these bytes; it asserts nothing about the production migrator, the schema state or any runtime acceptance."
   }
 }
