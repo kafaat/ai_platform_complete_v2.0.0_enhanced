@@ -9709,3 +9709,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-18 — #1230 مدموج ومنشور: إغلاق فجوتي صورة vegetation، وتسجيل صنف فحص الأسرار
 
 `ee6909010` (#1230، شجرته = المختبَر `b21257edc`): نشر vegetation-analysis `SUCCESS` في staging وproduction بعد فشل نشر #1228، والمهاجر SKIPPED؛ قراءةٌ من Railway فقط بلا تغيير. صارت `VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01` و`VEGETATION-SQLITE-WAL-STARTUP-RACE-01` **fixed** بحدودهما (لا verified). وسُجِّل الصنف `GITLEAKS-PR-SCAN-SKIPS-CONTENT-INTRODUCED-BY-A-MERGE-01` (open): فحص الـPR يتخطّى commits الدمج، فلم يُرَ ملفّ دليل #1228 إلّا بعد squash على main؛ الحالة نفسها عولجت في #1229.
+
+### 2026-10-18 — PR موحّد لـ#1231 و#1232 و#1233 على main@`ee6909010`
+
+بطلب المالك («أيّ دمج يحرّك الرأس»): الفرع `claude/w13-unified-1231-1232-1233-20261019` يجمع commits المصدر الثلاثة بلا تعارض، ثمّ توليدٌ واحد للمصنوعات. وأُصلح سببُ احمرار `Repository Tests (tests/)` على #1232 (وظيفة `117818700605`): نقلت #1232 منطقاً من `routers/fields.py` إلى `gis_geometry_guard.py` فصار 4191 سطراً، وراتشِت `tests/architecture/test_router_size_ratchet.py` يُلزم خفض الأساس؛ خُفِّض 4199 → 4191 (الإعادة إلى 4199 تُحمِّر الاختبار). تفويض GATE-01 `GATE01-ADJ-2026-10-18-002` باقٍ صالحاً لأنّ بايتات ملفّيه لم تتغيّر.
