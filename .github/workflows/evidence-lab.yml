@@ -30,7 +30,7 @@ jobs:
           python-version: "3.12"
       - run: python scripts/certification/evidence_lab.py --validate
       - run: python scripts/certification/evidence_lab.py --mode offline --output certification/evidence-lab/ci-offline
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidence-lab-source
           path: certification/evidence-lab/ci-offline
@@ -48,7 +48,7 @@ jobs:
       # الحتميّة هي source-evidence (offline). فشل بنية حيّة زائلة ليس فشل عقد.
       - continue-on-error: true
         run: python scripts/certification/evidence_lab.py --mode ephemeral --provision --output certification/evidence-lab/ci-ephemeral
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: evidence-lab-ephemeral
