@@ -1,5 +1,5 @@
 {
-  "edge_count": 874,
+  "edge_count": 875,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1103,6 +1103,16 @@
     },
     {
       "evidence": "services/raster-service/follow_up_runtime.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/routers/follow_up.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8760,7 +8770,7 @@
     "CALLS": 44,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 447,
+    "READS": 448,
     "ROUTES_TO": 72,
     "WRITES": 307
   },
@@ -8777,8 +8787,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 755,
-      "resolved": 754,
+      "observed": 756,
+      "resolved": 755,
       "unresolved_component_paths": 0
     }
   }

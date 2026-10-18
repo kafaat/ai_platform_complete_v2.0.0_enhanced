@@ -3708,6 +3708,7 @@
         "services/field-management-service/main.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",

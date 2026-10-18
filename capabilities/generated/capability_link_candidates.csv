@@ -480,7 +480,7 @@ FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-servic
 FM-003,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,4,applied
 FM-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,4,applied
-FM-003,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:104,4,applied
+FM-003,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:144,4,applied
 FM-003,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:653,4,applied
 FM-003,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:891,4,applied
 FM-003,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:929,4,applied
@@ -589,7 +589,7 @@ FM-003,api,POST /v1/fields/{field_id}/baseline-comparisons @ services/vegetation
 FM-003,api,POST /v1/fields/{field_id}/cache-invalidations @ services/raster-service/routers/registry_writes.py:108,4,applied
 FM-003,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1175,4,applied
 FM-003,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:742,4,applied
-FM-003,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:62,4,applied
+FM-003,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:101,4,applied
 FM-003,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:267,4,applied
 FM-003,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:671,4,applied
 FM-003,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:43,4,applied
@@ -1598,7 +1598,7 @@ SAT-009,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-servi
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:104,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id} @ services/raster-service/routers/follow_up.py:144,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:653,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:891,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:929,3,applied
@@ -1653,7 +1653,7 @@ SAT-009,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-servic
 SAT-009,api,POST /v1/fields/{field_id}/cache-invalidations @ services/raster-service/routers/registry_writes.py:108,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1175,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:742,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:62,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/imagery-ingestion-requests @ services/raster-service/routers/follow_up.py:101,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:267,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:671,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1096,3,applied

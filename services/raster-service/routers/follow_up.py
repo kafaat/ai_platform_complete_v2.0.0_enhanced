@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 from uuid import UUID
 
 import follow_up_runtime as runtime
 from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
 from follow_up_store import RequestConflict
+from raster_security_context import REQ_TENANT, require_field_tenant
 
 from shared.contracts.imagery_followup import (
     ImageryFollowUpRequest,
@@ -18,6 +20,7 @@ from shared.security.access_tokens import verify_access_token
 
 router = APIRouter()
 FieldId = Annotated[str, Path(min_length=1, max_length=50, pattern=r"^[A-Za-z0-9_-]+$")]
+logger = logging.getLogger(__name__)
 
 
 def authenticated_tenant(
@@ -35,6 +38,42 @@ def authenticated_tenant(
     if x_tenant_id is not None and x_tenant_id != tenant:
         raise HTTPException(403, "tenant_header_mismatch")
     return tenant
+
+
+async def authorize_follow_up_field(field_id: str, tenant: str) -> None:
+    """Check current ownership on admission, replay and reads using the verified JWT.
+
+    The restricted transaction is authoritative. Missing fields fail closed instead
+    of using the shared guard's DB-less cache fallback. Never trust a header or a
+    previous request's cached ownership for this durable command.
+    """
+
+    async def owner_lookup(field: str) -> str:
+        try:
+            async with runtime.store.transaction(tenant) as conn:
+                owner = await conn.fetchval(
+                    "SELECT tenant_id::text FROM fields WHERE tenant_id=$1::uuid AND field_id=$2",
+                    tenant,
+                    field,
+                )
+        except Exception as exc:  # noqa: BLE001 — unavailable ownership is not permission
+            raise HTTPException(503, "field_ownership_unavailable") from exc
+        if owner is None:
+            raise HTTPException(404, "field_not_found")
+        return owner
+
+    token = REQ_TENANT.set(tenant)
+    try:
+        await require_field_tenant(
+            field_id,
+            hide_existence=True,
+            layers={},
+            field_layers={},
+            logger=logger,
+            owner_lookup=owner_lookup,
+        )
+    finally:
+        REQ_TENANT.reset(token)
 
 
 def public_status(row: dict) -> dict:
@@ -71,6 +110,7 @@ async def create_follow_up(
         or tenant not in runtime.configured_tenants()
     ):
         raise HTTPException(503, "follow_up_worker_not_enabled_for_tenant")
+    await authorize_follow_up_field(field_id, tenant)
     identity = request_identity(tenant, field_id, body.execution_request_id)
     digest = request_digest(body)
     try:
@@ -104,6 +144,7 @@ async def create_follow_up(
 async def get_follow_up(
     field_id: FieldId, request_id: str, tenant: str = Depends(authenticated_tenant)
 ):
+    await authorize_follow_up_field(field_id, tenant)
     try:
         row = await runtime.store.get(tenant, request_id)
     except Exception as exc:  # noqa: BLE001

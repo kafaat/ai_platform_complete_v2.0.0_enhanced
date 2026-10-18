@@ -33,4 +33,17 @@ Integration follow-up: the first general integration job (117529016730) failed
 four read-only schema probes on the stale manifest contract (341 tables).
 The existing contract witness reproduced the mismatch; the contract was regenerated
 using its `_extracted` derivation to 342 tables and 187 columns. No probe/permission
-check was relaxed. General integration CI must pass on the updated head.
+check was relaxed. General integration CI passed on 7640288c in run 39079511074, job 117533577048.
+
+Unit follow-up on 7640288c: 9841 passed and four failed (job 117533577114).
+The corrections update the deliberately pinned catalog inventory to 1007 for the
+three new routes, correct the Decision default port to 8160, and align the v208
+runbook count with the 234-entry manifest. Both follow-up routes now call the
+existing field-ownership guard before replay/read as well as first admission,
+using a restricted tenant transaction and JWT-bound context. Missing/foreign
+fields fail with 404; unavailable ownership fails with 503, with no cache fallback.
+The auth-coverage guard is unchanged. Eight HTTP witnesses cover both methods
+and ownership success/foreign/missing/unavailable outcomes, including context
+restoration; missing/forged/expired tokens and conflicting headers are checked
+on both methods. `ci-corrections-local.txt`: 58 passed. Updated full CI pending;
+this local measurement is not staging/production acceptance.

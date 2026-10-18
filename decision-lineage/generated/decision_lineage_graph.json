@@ -2191,7 +2191,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 307,
+      "evidence_count": 308,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2288,6 +2288,7 @@
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/raster-service/routers/analysis.py",
         "services/raster-service/routers/fields.py",
+        "services/raster-service/routers/follow_up.py",
         "services/raster-service/salinity_calibration.py",
         "services/raster-service/stac_c1_processing.py",
         "services/raster-service/stac_search.py",
@@ -3040,7 +3041,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 53,
-      "target_evidence_count": 307,
+      "target_evidence_count": 308,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3050,5 +3051,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fc3ee5492616c3143165d6e165d3c55666a82cd2acb74a22c6c3d105dfce4e25"
+  "content_sha256": "c4e14c5ed69ec28794860c6f924b4d1b06fafc3d49a0c5048f7a23114eb52c86"
 }

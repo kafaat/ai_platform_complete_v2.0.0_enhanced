@@ -2333,7 +2333,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/follow_up.py",
-    "line": 62,
+    "line": 101,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery-ingestion-requests",
     "handler": "create_follow_up",
@@ -2342,7 +2342,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/follow_up.py",
-    "line": 104,
+    "line": 144,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery-ingestion-requests/{request_id}",
     "handler": "get_follow_up",

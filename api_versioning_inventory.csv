@@ -258,8 +258,8 @@ raster-service,services/raster-service/routers/fields.py,1323,GET,/v1/fields/{fi
 raster-service,services/raster-service/routers/fields.py,1397,GET,/v1/fields/{field_id}/available-dates,field_available_dates,versioned
 raster-service,services/raster-service/routers/fields.py,1510,GET,/v1/fields/{field_id}/terrain,field_terrain,versioned
 raster-service,services/raster-service/routers/fields.py,1576,GET,/v1/fields/{field_id}/tilejson,field_tilejson,versioned
-raster-service,services/raster-service/routers/follow_up.py,62,POST,/v1/fields/{field_id}/imagery-ingestion-requests,create_follow_up,versioned
-raster-service,services/raster-service/routers/follow_up.py,104,GET,/v1/fields/{field_id}/imagery-ingestion-requests/{request_id},get_follow_up,versioned
+raster-service,services/raster-service/routers/follow_up.py,101,POST,/v1/fields/{field_id}/imagery-ingestion-requests,create_follow_up,versioned
+raster-service,services/raster-service/routers/follow_up.py,144,GET,/v1/fields/{field_id}/imagery-ingestion-requests/{request_id},get_follow_up,versioned
 raster-service,services/raster-service/routers/imagery.py,22,GET,/v1/imagery/backfill/policy,historical_backfill_policy,versioned
 raster-service,services/raster-service/routers/imagery.py,44,GET,/v1/imagery/quality/policy,imagery_quality_policy,versioned
 raster-service,services/raster-service/routers/imagery.py,78,POST,/v1/imagery/scenes/rank,rank_imagery_scenes,versioned

@@ -4425,7 +4425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc1d3e8fb23e590f03cf43c62c725c7c7d7c327f6aa7b0b72dcd00134321fd6d"
+          "content": "7ddf456cad57b9c72d020ac839afa8b1f439ab59f004574e102b41f713f88656"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -14615,7 +14615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c38cb2d645006cba6a23855ac2d7b25e97fef000867feb3235bfddfcc4fda6a6"
+          "content": "cfea597e42784950a8f001df535c7c89ee7f45be96f5a9f2196c7d655e4f7c05"
         }
       ],
       "name": "services/raster-service/follow_up_runtime.py",
@@ -15185,7 +15185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6dde5edf39cfc681e4d74dec2ae0cf838b12b991a9e2111b7b7535a652d6f60b"
+          "content": "9e232dc8d1e93be64b1cd6f110f7404dc37609d1bb5942d5ff2c35fe7e86b758"
         }
       ],
       "name": "services/raster-service/routers/follow_up.py",

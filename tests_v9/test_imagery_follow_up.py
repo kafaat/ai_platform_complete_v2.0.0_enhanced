@@ -70,6 +70,19 @@ def bearer(monkeypatch):
     return sign
 
 
+@pytest.fixture
+def ownership():
+    connection = SimpleNamespace(fetchval=AsyncMock(return_value=TENANT))
+    tenants = []
+
+    @asynccontextmanager
+    async def transaction(tenant):
+        tenants.append(tenant)
+        yield connection
+
+    return SimpleNamespace(transaction=transaction, connection=connection, tenants=tenants)
+
+
 def body(**kwargs):
     return ImageryFollowUpRequest(season_id="season", execution_request_id="exec_1", **kwargs)
 
@@ -147,14 +160,16 @@ def test_scene_quality_time_and_provider_are_required(modules):
 
 
 @pytest.mark.asyncio
-async def test_real_bridge_reaches_real_router_and_replays(monkeypatch, modules, bearer):
+async def test_real_bridge_reaches_real_router_and_replays(monkeypatch, modules, bearer, ownership):
     app = FastAPI()
     app.include_router(modules.router.router)
     app.state.follow_up_ready = True
     monkeypatch.setenv("RASTER_FOLLOWUP_TENANTS", TENANT)
     stored = row()
     store = SimpleNamespace(
-        get=AsyncMock(side_effect=[None, stored]), enqueue=AsyncMock(return_value=stored)
+        get=AsyncMock(side_effect=[None, stored]),
+        enqueue=AsyncMock(return_value=stored),
+        transaction=ownership.transaction,
     )
     monkeypatch.setattr(modules.runtime, "store", store)
     admission = AsyncMock(
@@ -190,15 +205,18 @@ async def test_real_bridge_reaches_real_router_and_replays(monkeypatch, modules,
     assert first["request"]["outcome_verified"] is False
     assert store.enqueue.await_count == admission.await_count == 1
     assert "Authorization" not in str(store.enqueue.call_args)
+    assert ownership.tenants == [TENANT, TENANT]
 
 
 @pytest.mark.asyncio
-async def test_api_auth_conflicts_failures_and_status_scope(monkeypatch, modules, bearer):
+async def test_api_auth_conflicts_failures_and_status_scope(
+    monkeypatch, modules, bearer, ownership
+):
     app = FastAPI()
     app.include_router(modules.router.router)
     app.state.follow_up_ready = True
     monkeypatch.setenv("RASTER_FOLLOWUP_TENANTS", TENANT)
-    store = SimpleNamespace(get=AsyncMock(return_value=row()))
+    store = SimpleNamespace(get=AsyncMock(return_value=row()), transaction=ownership.transaction)
     monkeypatch.setattr(modules.runtime, "store", store)
     url = "/v1/fields/field/imagery-ingestion-requests"
     async with httpx.AsyncClient(
@@ -216,7 +234,9 @@ async def test_api_auth_conflicts_failures_and_status_scope(monkeypatch, modules
             assert (
                 await client.post(url, json=body().model_dump(), headers=headers)
             ).status_code == expected
+            assert (await client.get(url + "/request", headers=headers)).status_code == expected
         assert store.get.await_count == 0
+        assert ownership.tenants == []
         result = await client.post(
             url, json=body(days_after=6).model_dump(), headers={"Authorization": bearer()}
         )
@@ -234,6 +254,47 @@ async def test_api_auth_conflicts_failures_and_status_scope(monkeypatch, modules
         assert (
             await client.post(url, json=body().model_dump(), headers={"Authorization": bearer()})
         ).status_code == 503
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["post", "get"])
+@pytest.mark.parametrize(
+    "owner,expected", [(TENANT, 200), (OTHER, 404), (None, 404), ("down", 503)]
+)
+async def test_field_ownership_is_checked_before_replay_or_status(
+    monkeypatch, modules, bearer, ownership, method, owner, expected
+):
+    app = FastAPI()
+    app.include_router(modules.router.router)
+    app.state.follow_up_ready = True
+    monkeypatch.setenv("RASTER_FOLLOWUP_TENANTS", TENANT)
+    store = SimpleNamespace(get=AsyncMock(return_value=row()), transaction=ownership.transaction)
+    monkeypatch.setattr(modules.runtime, "store", store)
+    if owner == "down":
+        ownership.connection.fetchval.side_effect = ConnectionError("private-db-detail")
+    else:
+        ownership.connection.fetchval.return_value = owner
+    # Even a surrounding context cannot override the verified JWT tenant; restore it after.
+    token = modules.router.REQ_TENANT.set(OTHER)
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://witness"
+        ) as client:
+            url = "/v1/fields/field/imagery-ingestion-requests"
+            kwargs = {"headers": {"Authorization": bearer()}}
+            if method == "get":
+                url += "/" + row()["request_id"]
+            else:
+                kwargs["json"] = body().model_dump()
+            response = await client.request(method, url, **kwargs)
+        assert response.status_code == (202 if method == "post" and expected == 200 else expected)
+        assert "private-db-detail" not in response.text
+        assert ownership.tenants == [TENANT]
+        assert ownership.connection.fetchval.await_args.args[1:] == (TENANT, "field")
+        assert store.get.await_count == int(owner == TENANT)
+        assert modules.router.REQ_TENANT.get() == OTHER
+    finally:
+        modules.router.REQ_TENANT.reset(token)
 
 
 @pytest.mark.asyncio

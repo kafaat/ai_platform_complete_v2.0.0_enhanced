@@ -46,7 +46,7 @@ async def receipt_context(tenant: str, execution: str) -> dict:
     bearer = os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
     if not bearer:
         raise HTTPException(503, "authoritative_receipt_source_unconfigured")
-    base = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8000").rstrip("/")
+    base = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
     try:
         async with httpx.AsyncClient(timeout=8, trust_env=False) as client:
             response = await client.get(
