@@ -9610,3 +9610,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 ⇒ `fixed` لـcompose v9 (`9e0328499`، PR مكدَّس فوق شريحة Redis ACL #1210). والإصلاح كشف فجوةً مجاورة: PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01 (المنصّة لا تقرأ أرضيّة التوكن). المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
 > **2026-10-17 — W6 (`4d0799f3`):** طلب المالك ستة إغلاقات خارج عمل Claude؛ تحقق إغلاق SAM2 على مستوى المصدر/التزويد فقط. تنزيل Meta الفعلي طابق البصمة والحجم، و28 اختباراً نجحت، و3 طفرات كُذبت بعد تشديد شاهد سبب الحجم. لا يُدّعى إنجاز الستة ولا قبول حي. [الدليل](../certification/evidence/chatgpt_w6_20261017/README.md).
+
+### 2026-10-18 — دمج #1212، وأرضيّة «إبطال كلّ الجلسات» في المنصّة (compose)
+
+دُمج #1212 بموافقة المالك ⇒ `44afa75e0` (شجرة main = الرأس المُختبَر `f59cc6070`؛ CI: 75 فحصاً بلا إخفاق). Railway قراءةً فقط: كلّ نشرٍ من `44afa75e0` في الإنتاج والـstaging SKIPPED، ولا مشاكل في البيئتين. ثمّ بتفويض المالك («قوم بعمل ما تراه صحيح»): PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01 ⇒ `fixed` لـcompose v9 (`94562557a`)، بمحدِّد Redis 7 للقراءة فقط. المصدر: `sahool-brain/gaps/registry.md` و`docs/architecture/redis_acl_matrix.md`.
