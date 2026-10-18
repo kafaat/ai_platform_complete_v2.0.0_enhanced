@@ -7160,6 +7160,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_b6_real_guardrails_evaluation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_b6m4_platform_store.py",
     "kind": "tests"
   },
@@ -8529,6 +8533,10 @@
   },
   {
     "path": "tests_v9/test_raster_decomposition_wiring_v31_3.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_invalidation_redis_acl.py",
     "kind": "tests"
   },
   {

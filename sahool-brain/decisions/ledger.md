@@ -4177,3 +4177,7 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-18 — الملكية الحالية شرط لإعادة طلب الصور وقراءته
 
 #1211، بعد قياس `7640288c`: إعادة استخدام require_field_tenant مع lookup من معاملة مقيدة، وربط السياق بالمستأجر المستخرج من JWT ثم استعادته. رفض غياب الملكية وتعذر إثباتها يمنع fallback إلى ذاكرة محلية أو الاعتماد على ملكية وقت الإنشاء وحدها. الحارس الساكن القائم بقي دون تعديل؛ ثمانية شواهد HTTP تقيس القبول والرفض على الطريقتين. حدود PG16 وstaging/الإنتاج كما في [حزمة الأدلة](../../certification/evidence/imagery_follow_up_20261018/README.md).
+
+## 2026-10-18 — الفجوات السبع عشرة بعد #1213
+
+طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.

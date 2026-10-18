@@ -1793,6 +1793,7 @@ SAT-009,test,tests_v9/test_raster_db_persist_uuid_hardening_20260626.py,3,applie
 SAT-009,test,tests_v9/test_raster_decomposition_wiring_v31_3.py,3,applied
 SAT-009,test,tests_v9/test_raster_endpoint_auth_coverage.py,3,applied
 SAT-009,test,tests_v9/test_raster_field_tenant_authz.py,3,applied
+SAT-009,test,tests_v9/test_raster_invalidation_redis_acl.py,3,applied
 SAT-009,test,tests_v9/test_raster_job_store.py,3,applied
 SAT-009,test,tests_v9/test_raster_latest_not_stale_after_rehydrate_v2.py,3,applied
 SAT-009,test,tests_v9/test_raster_persist_observability_v30_2.py,3,applied

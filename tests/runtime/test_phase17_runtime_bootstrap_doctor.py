@@ -92,6 +92,7 @@ def safe_env() -> dict[str, str]:
                     "DECISION",
                     "RASTER",
                     "RASTER_BACKFILL",
+                    "RASTER_INVALIDATION",
                     "ACTUATOR",
                     "AI_AGRONOMIST",
                     "TELEGRAM_BOT",

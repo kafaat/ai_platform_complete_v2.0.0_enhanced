@@ -9649,3 +9649,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-18 — مزامنة #1211 بعد #1212 و#1218
 
 الرأس المنشور `8c5c941c` صار متعارضاً مع main@`503d7d7c` بعد دمج إصلاحي JWT وET0؛ لم يبدأ CI للطلب. أُدخل main في الفرع مع الحفاظ على مصادر Claude دون تعديل. التعارضات الثلاثة والعشرون في المصنوعات المولدة؛ يُعاد توليدها ثم بناء الحزمة آخراً. log/ledger يحفظان main بادئة ثم إضافات الفرع؛ hot يحتفظ بنص main مع إضافة الأعلى. رأس الدمج المحلي سيختبر قبل دفعه؛ لا دمج في main أو نشر.
+
+## 2026-10-18 — الفجوات السبع عشرة بعد #1213
+
+طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.

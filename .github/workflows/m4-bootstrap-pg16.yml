@@ -1,0 +1,55 @@
+name: M4 Bootstrap PG16
+on:
+  pull_request:
+    paths:
+      - 'shared/field_bootstrap.py'
+      - 'services/sahool-platform/api/onboarding.py'
+      - 'tests_v9/test_m4_bootstrap_pg16.py'
+      - '.github/workflows/m4-bootstrap-pg16.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  restricted-pg16:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Start disposable PG16
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          postgres_image=public.ecr.aws/docker/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          bash scripts/ci/pull_verified_ci_image.sh "$postgres_image" "$RUNNER_TEMP/m4bootstrap-pg-id"
+          postgres_image="$(cat "$RUNNER_TEMP/m4bootstrap-pg-id")"
+          docker run -d --name m4bootstrap-pg16 --pull=never \
+            -e POSTGRES_DB=m4bootstrap_test -e POSTGRES_USER=m4bootstrap_admin \
+            -e POSTGRES_PASSWORD=disposable_test_only -p 127.0.0.1:5437:5432 "$postgres_image"
+          for _ in $(seq 1 30); do
+            if docker exec m4bootstrap-pg16 pg_isready -U m4bootstrap_admin -d m4bootstrap_test; then break; fi
+            sleep 2
+          done
+          docker exec m4bootstrap-pg16 pg_isready -U m4bootstrap_admin -d m4bootstrap_test
+      - run: pip install -r tests_v9/requirements-test.txt
+      - name: Prove real PostgreSQL concurrency, recovery and FORCE RLS
+        env:
+          M4_TEST_DATABASE_URL: postgresql://m4bootstrap_admin:disposable_test_only@127.0.0.1:5437/m4bootstrap_test
+          M4_REQUIRE_PG16: '1'
+        run: python -m pytest tests_v9/test_m4_bootstrap_pg16.py -v --junitxml=m4bootstrap-pg16.xml
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: imagery-bootstrap-pg16
+          path: m4bootstrap-pg16.xml
+          if-no-files-found: error
+      - name: Remove disposable database
+        if: always()
+        run: docker rm -f m4bootstrap-pg16

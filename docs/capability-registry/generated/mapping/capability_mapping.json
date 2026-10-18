@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6025,
+    "files_scanned": 6038,
     "files_by_kind": {
       "backend": 1234,
       "database": 289,
-      "governance": 77,
+      "governance": 78,
       "mobile": 57,
-      "other": 1924,
-      "tests": 1973,
+      "other": 1933,
+      "tests": 1976,
       "web": 471
     },
-    "unmapped_artifacts": 2311,
+    "unmapped_artifacts": 2313,
     "ambiguous_artifacts": 468
   },
   "capabilities": [
@@ -9578,6 +9578,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/element84_inventory_run.md",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "scripts/ci/generate_service_inventory.py",
           "score": 14,
           "signals": [
@@ -9792,7 +9800,7 @@
         "mobile": 1,
         "tests": 10,
         "governance": 4,
-        "other_evidence": 34
+        "other_evidence": 35
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -13450,6 +13458,13 @@
           ]
         },
         {
+          "path": "certification/evidence/codex_product_gaps_20261018/README.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
           "score": 20,
           "signals": [
@@ -13465,6 +13480,13 @@
         },
         {
           "path": "certification/evidence/non_claude_gap_closure_20261017/scope.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "docs/architecture/decisions_pending/CAP-INT-004BC.md",
           "score": 20,
           "signals": [
             "explicit_id"
@@ -13512,7 +13534,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 10
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -16598,6 +16620,15 @@
           ]
         },
         {
+          "path": "docs/architecture/decisions_pending/REPORT3-U05-FIELD-FORM-NOT-PROJECTED-TO-PRACTICE-01.md",
+          "score": 20,
+          "signals": [
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -16667,7 +16698,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 8
+        "other_evidence": 9
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -19273,6 +19304,15 @@
           ]
         },
         {
+          "path": "docs/architecture/decisions_pending/CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01.md",
+          "score": 19,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "docs/history/RADAR_SENTINEL1_REVIEW.md",
           "score": 19,
           "signals": [
@@ -19858,7 +19898,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 80
+        "other_evidence": 81
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -27280,6 +27320,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_m4_bootstrap_pg16.py",
+          "score": 13,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_readiness_followup_fixes_20260916.py",
           "score": 13,
           "signals": [
@@ -28319,7 +28368,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 800
+        "database": 802
       },
       "evidence_counts": {
         "backend": 13,
@@ -28328,7 +28377,7 @@
         "events": 56,
         "web": 0,
         "mobile": 0,
-        "tests": 74,
+        "tests": 75,
         "governance": 0,
         "other_evidence": 83
       },
@@ -45806,6 +45855,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_b6_real_guardrails_evaluation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_b6m4_platform_store.py",
       "kind": "tests"
     },
@@ -47175,6 +47228,10 @@
     },
     {
       "path": "tests_v9/test_raster_decomposition_wiring_v31_3.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_raster_invalidation_redis_acl.py",
       "kind": "tests"
     },
     {
