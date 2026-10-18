@@ -5123,6 +5123,7 @@
         "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
         "services/vegetation-analysis-service/test_ground_verification_bridge.py",
         "tests_v9/test_ai_tool_loop_v56.py",
+        "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_external_submission_validation.py",
         "tests_v9/test_ingest_kobo_adapter.py",
         "tests_v9/test_live_pg_fake_connection_debt.py",
@@ -6826,8 +6827,7 @@
         "services/gis-workflow-service/tests/test_bulletin_figure.py",
         "services/gis-workflow-service/tests/test_run_bundle.py",
         "services/raster-service/test_landsat_thermal_unique_contract.py",
-        "services/vegetation-analysis-service/test_vegetation_production_contract.py",
-        "tests_v9/test_d1_raster_invalidation_owner_api_integration.py"
+        "services/vegetation-analysis-service/test_vegetation_production_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -6916,6 +6916,7 @@
         "tests_v9/test_cdse_evalscript.py",
         "tests_v9/test_cdse_latest_selection_semantics.py",
         "tests_v9/test_confidence_failures.py",
+        "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",

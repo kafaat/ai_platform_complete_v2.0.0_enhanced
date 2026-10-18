@@ -211,7 +211,7 @@
         "services/indicators-service"
       ],
       "kind": "service",
-      "incoming": 5,
+      "incoming": 6,
       "outgoing": 2,
       "orphan": false
     },
@@ -900,7 +900,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 9,
+      "outgoing": 10,
       "orphan": false
     },
     {
@@ -2007,6 +2007,12 @@
       "source": "vegetation-analysis-service",
       "target": "indicators-service",
       "kind": "code-reference",
+      "evidence": "services/vegetation-analysis-service/routers/insights.py"
+    },
+    {
+      "source": "vegetation-analysis-service",
+      "target": "indicators-service",
+      "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/vegetation_runtime.py"
     },
     {
@@ -2043,11 +2049,11 @@
   "cycles": [],
   "summary": {
     "nodes": 109,
-    "edges": 184,
+    "edges": 185,
     "orphans": 8,
     "cycles": 0,
-    "code_edges": 51,
+    "code_edges": 52,
     "compose_edges": 133
   },
-  "content_sha256": "4847989f4c95ea06c2717380c7f829f83dd46008a8527f7c119dc6077d0546b8"
+  "content_sha256": "2c71af4e4923bfc4589f00a56241c4246e33bfda31f2a41a0d16c99ec20b2b9d"
 }

@@ -22,7 +22,7 @@ evidence-postgres,compose-service,1,0,False,
 field-management-service,service,0,0,True,services/field-management-service
 field-segmentation,service,0,0,True,services/field-segmentation
 guardrails-engine,service,0,0,True,services/guardrails-engine
-indicators-service,service,5,2,False,services/indicators-service
+indicators-service,service,6,2,False,services/indicators-service
 knowledge-graph,service,2,0,False,services/knowledge-graph
 local-ai-rag,service,1,1,False,services/local-ai-rag
 mcp-servers,service,0,3,False,services/mcp_servers
@@ -104,7 +104,7 @@ scout-ingest-service,service,1,0,False,services/scout-ingest-service
 soil-service,service,8,0,False,services/soil-service
 supervisor-agent,service,0,4,False,services/supervisor-agent
 tts-service,service,0,0,True,services/tts-service
-vegetation-analysis-service,service,0,9,False,services/vegetation-analysis-service
+vegetation-analysis-service,service,0,10,False,services/vegetation-analysis-service
 video-processor,service,0,1,False,services/video-processor
 weather-service,service,4,0,False,services/weather-service
 weather-signal-engine,service,0,0,True,services/weather-signal-engine

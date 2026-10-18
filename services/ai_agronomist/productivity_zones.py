@@ -131,7 +131,6 @@ def propose_productivity_zones(
         base_conf += 0.04
     confidence = round(max(0.42, min(base_conf, 0.86)), 2)
     total_area = area_ha_for_bbox(bbox)
-    zone_area = round(total_area / zone_count, 3) if zone_count else total_area
 
     # V60.1 — real NDVI-driven zoning when a grid is available (opt-in); else strips.
     # V60.3 — multi-index zoning (NDVI + NDMI/RECI/MSAVI/slope) when co-registered aux
@@ -186,6 +185,13 @@ def propose_productivity_zones(
             "basis": basis,
             "method": cl_method,
             "feature_names": feature_names,
+            "status": "proposal",
+            "confidence_method": "heuristic_input_support_not_probability",
+            "confidence_is_probability": False,
+            "limitations": [
+                "single_grid_not_multiseason_yield",
+                "caller_grid_georeferencing_required",
+            ],
             "source_evidence_dates": total_dates,
             "cluster_separability": clustered["cluster_separability"],
             "ndvi_centroids": clustered["ndvi_centroids"],
@@ -201,40 +207,16 @@ def propose_productivity_zones(
             "next_step": "v61_soil_sampling_planner",
         }
 
-    zones: list[dict[str, Any]] = []
-    # Stable class ordering: high/medium/low, repeated only if >3 zones.
-    class_order = list(_CLASSES) + ["medium", "low"]
-    for i in range(zone_count):
-        cls = class_order[i]
-        score = round({"high": 0.78, "medium": 0.56, "low": 0.34}[cls] - (0.015 * max(i - 2, 0)), 2)
-        zones.append(
-            {
-                "zone_id": f"pz-{i + 1}",
-                "productivity_class": cls,
-                "label_ar": _LABELS_AR[cls],
-                "zoning_method": "multi_index_quantile_zoning_fallback"
-                if total_dates
-                else "geometry_seeded_zoning_fallback",
-                "score": score,
-                "confidence": confidence,
-                "area_ha": zone_area,
-                "geometry": _zone_polygon(bbox, i, zone_count),
-                "drivers": drivers,
-                "recommended_use": "soil_sampling_stratum"
-                if cls != "medium"
-                else "baseline_management",
-            }
-        )
-
     return {
         "field_id": field_id,
         "basis": basis,
-        "method": "multi_index_quantile_zoning_fallback"
-        if total_dates
-        else "geometry_seeded_zoning_fallback",
+        "method": "insufficient_data",
+        "status": "insufficient_data",
+        "reason_codes": ["usable_indicator_grid_required"],
         "source_evidence_dates": total_dates,
-        "productivity_zones": zones,
+        "productivity_zones": [],
+        "confidence": None,
         "requires_user_confirmation": True,
         "persistence": "proposal_only_until_user_confirms",
-        "next_step": "v61_soil_sampling_planner",
+        "next_step": "acquire_valid_indicator_grid",
     }

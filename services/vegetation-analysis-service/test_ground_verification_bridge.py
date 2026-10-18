@@ -10,7 +10,7 @@ async def test_bridge_creates_reference_only_task(monkeypatch):
         payload = __import__("json").loads(request.content)
         assert "anomaly_ref" in payload
         assert "suspected_condition" not in payload
-        return httpx.Response(201, json={"task_id": "tsk_123"})
+        return httpx.Response(201, json={"task_id": "tsk_123", "persisted": True})
 
     transport = httpx.MockTransport(handler)
     original = httpx.AsyncClient

@@ -105,7 +105,9 @@ def _interpret_ar(
     salinity = index in _HIGHER_IS_WORSE
     if degraded_pct >= 5.0:
         lead = "زحف ملوحة محتمل: " if salinity else ""
-        parts.append(f"{lead}تدهور {degraded_pct}% من الحقل ({severe_pct}% منها بشدّة)")
+        parts.append(
+            f"{lead}تدهور {degraded_pct}% من البكسلات المرصودة المشتركة ({severe_pct}% من البكسلات نفسها بشدّة)"
+        )
         # الرؤية الأساسيّة: المتوسّط يبدو سليماً بينما رقعة تدهورت بشدّة.
         if abs(mean_delta) < 0.1 and severe_pct >= 10.0:
             parts.append(
@@ -113,9 +115,9 @@ def _interpret_ar(
                 "يُخفيه المتوسّط — راجع خريطة الفرق لتحديد الرقعة"
             )
     if improved_pct >= 5.0:
-        parts.append(f"تحسّن {improved_pct}% من الحقل")
+        parts.append(f"تحسّن {improved_pct}% من البكسلات المرصودة المشتركة")
     if not parts:
-        parts.append("لا تغيّر مكانيّ ملموس بين التاريخين (الحقل مستقرّ)")
+        parts.append("لا تغيّر مكانيّ ملموس بين التاريخين (المساحة المرصودة مستقرة)")
     msg = "؛ ".join(parts) + "."
     if cloud_warning:
         msg += f" ⚠️ التغطية {round(coverage * 100, 1)}% فقط — نتيجة جزئيّة (غيوم/فجوات)."
@@ -228,6 +230,8 @@ def detect_change(
         "stats": stats,
         "coverage_pct": round(coverage * 100, 2),
         "valid_pixels": valid,
+        "percentage_denominator": "common_valid_pixels",
+        "degraded_grid_pct": round(degraded_pct * coverage, 2),
         "total_pixels": total,
         "areas": {
             "severe_degraded_pct": severe_pct,

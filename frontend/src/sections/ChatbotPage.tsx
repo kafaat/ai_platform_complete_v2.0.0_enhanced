@@ -280,8 +280,10 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                   {(() => {
                     const zoneData = toolDataFor(msg.harness, 'generate_productivity_zones');
                     const zones = (zoneData?.zones ?? zoneData?.productivity_zones ?? []) as never[];
-                    return zones.length ? (
-                      <ProductivityZonesPanel zones={zones} basis={String(zoneData?.basis ?? 'multi_index')} />
+                    return zoneData ? (
+                      <ProductivityZonesPanel zones={zones} basis={String(zoneData?.basis ?? 'multi_index')}
+                        method={String(zoneData?.method ?? '')} status={String(zoneData?.status ?? '')}
+                        reasonCodes={Array.isArray(zoneData?.reason_codes) ? zoneData.reason_codes.map(String) : []} />
                     ) : null;
                   })()}
                   {(() => {

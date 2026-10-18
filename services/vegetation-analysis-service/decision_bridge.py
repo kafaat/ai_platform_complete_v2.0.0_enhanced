@@ -6,7 +6,6 @@ import hashlib
 import json
 import os
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
 from typing import Any
 
 import httpx
@@ -82,6 +81,8 @@ class DecisionBridge:
                     "diagnosis_ref": diagnosis.diagnosis_ref,
                     "suspected_condition": diagnosis.suspected_condition,
                     "confidence": float(diagnosis.confidence),
+                    "confidence_method": diagnosis.confidence_method,
+                    "confidence_is_probability": False,
                     "evidence_refs": [e.evidence_ref for e in diagnosis.evidence_bundle.evidence],
                 },
                 "confidence": float(diagnosis.confidence),
@@ -114,7 +115,7 @@ class DecisionBridge:
             evidence_bundle=diagnosis.evidence_bundle,
             suggested_action_class=SuggestedActionClassV1(
                 action_type="investigate_and_recommend",
-                urgency="high" if diagnosis.confidence >= Decimal("0.8") else "medium",
+                urgency="medium",  # Input quality is not agronomic urgency.
             ),
             validity_context=ValidityContextV1(
                 valid_from=now,

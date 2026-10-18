@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 from uuid import UUID
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
 
 _SERVICE_DIR = Path(__file__).resolve().parent
@@ -208,17 +209,29 @@ async def observation_timeline(
     field_id: str,
     season_id: str = Query(..., min_length=1),
     indicators: str = Query("ndvi"),
+    authorization: str | None = Header(None, alias="Authorization"),
     x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
 ):
     try:
         tenant_id = UUID(x_tenant_id)
     except ValueError as exc:
         raise HTTPException(400, "invalid X-Tenant-Id") from exc
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "season context requires bearer authorization")
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
     try:
         entries = await fetch_canonical_timeline(
-            field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
+            field_id=field_id,
+            tenant_id=tenant_id,
+            season_id=season_id,
+            indicators=requested,
+            authorization=authorization,
         )
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code
+        raise HTTPException(
+            status if status in {401, 403, 404} else 424, "canonical timeline source unavailable"
+        ) from exc
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
     except Exception as exc:

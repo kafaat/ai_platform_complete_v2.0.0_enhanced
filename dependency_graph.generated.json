@@ -1,5 +1,5 @@
 {
-  "edge_count": 875,
+  "edge_count": 876,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -149,6 +149,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "raster-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "indicators-service",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "sahool-platform",
       "to_kind": "component"
     },
     {
@@ -8767,7 +8777,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 44,
+    "CALLS": 45,
     "CONSUMES": 3,
     "EMITS": 1,
     "READS": 448,

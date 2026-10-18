@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **51**
-- Files scanned: **6049**
+- Files scanned: **6060**
 - Ambiguous artifacts queued: **470**
-- Unmapped artifacts queued: **2314**
+- Unmapped artifacts queued: **2315**
 
 ## Capability coverage
 
@@ -58,7 +58,7 @@
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
-| OPS-003 | operations | 9 | 7 | 7 | 45 | 22 | 1 | 19 | 7 |
+| OPS-003 | operations | 10 | 7 | 7 | 45 | 22 | 1 | 20 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 8 | 0 | 12 | 21 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
@@ -87,7 +87,7 @@
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
 | SOIL-001 | soil | 13 | 97 | 14 | 45 | 1 | 0 | 21 | 6 |
-| SOIL-002 | soil | 14 | 35 | 11 | 8 | 5 | 0 | 12 | 6 |
+| SOIL-002 | soil | 13 | 35 | 11 | 8 | 5 | 0 | 12 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |

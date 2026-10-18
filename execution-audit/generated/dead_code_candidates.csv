@@ -1,4 +1,5 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
+high,ai-agronomist,function,_zone_polygon,services/ai_agronomist/productivity_zones.py,61,0,review_before_delete,False
 high,decision-service,function,_memberships,services/decision-service/decision_sor_role_certify.py,163,0,review_before_delete,False
 high,decision-service,function,_service_token_guard,services/decision-service/main.py,153,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
@@ -588,6 +589,7 @@ medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.p
 medium,soil-service,function,fetch_soil_properties,services/soil-service/soilgrids_client.py,148,0,review_before_delete,False
 medium,tts-service,function,policy_mode_from_me,services/tts-service/tts_tenant_policy.py,124,0,review_before_delete,False
 medium,tts-service,function,resolve_policy_mode,services/tts-service/tts_tenant_policy.py,193,0,review_before_delete,False
+medium,vegetation-analysis-service,function,evaluate_scouting,services/vegetation-analysis-service/scouting_evaluation.py,10,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_routes_witnessed_through_the_request_path.py,51,0,review_before_delete,False

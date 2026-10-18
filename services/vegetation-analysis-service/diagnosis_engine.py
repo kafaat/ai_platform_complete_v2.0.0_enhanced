@@ -6,6 +6,7 @@ This module deliberately produces hypotheses, never prescriptions or approved ac
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -18,7 +19,6 @@ from shared.contracts.remote_sensing import (
 )
 from shared.contracts.remote_sensing.enums import (
     DiagnosisAssessmentStatus,
-    EvidenceRelationType,
     EvidenceVerificationState,
     VerificationRequirement,
 )
@@ -53,22 +53,23 @@ def build_diagnosis(*, anomaly_record: dict[str, Any], tenant_id: UUID) -> Diagn
     refs = tuple(p.get("verification_evidence_refs") or ())
     now = datetime.now(UTC)
     evidence = tuple(
-        EvidenceRefV1(
-            evidence_ref=ref,
-            tenant_id=tenant_id,
-            source_system="task-service",
-            evidence_type="ground_verification",
-            relation_type=EvidenceRelationType.CORROBORATING,
-            captured_at=now,
-            content_hash=hashlib.sha256(ref.encode()).hexdigest(),
-            verification_state=EvidenceVerificationState.VERIFIED,
-        )
-        for ref in refs
+        EvidenceRefV1.model_validate_json(json.dumps(e)) for e in p.get("verification_evidence", [])
     )
+    if not evidence or {e.evidence_ref for e in evidence} != set(refs):
+        raise ValueError("diagnosis_requires_original_evidence_metadata")
+    if any(
+        e.tenant_id != tenant_id
+        or e.verification_state != EvidenceVerificationState.VERIFIED
+        or e.captured_at > now
+        for e in evidence
+    ):
+        raise ValueError("diagnosis_evidence_scope_or_state_invalid")
     suspected, alternatives, method = _condition(
         str(p.get("signal_type", "")), list(p.get("disposition_reason_codes") or ())
     )
-    confidence = min(Decimal("0.95"), Decimal(str(p.get("confidence", "0.5"))) + Decimal("0.10"))
+    confidence = Decimal(str(p.get("confidence", "0")))
+    if not confidence.is_finite() or not Decimal(0) <= confidence <= Decimal(1):
+        raise ValueError("invalid_input_quality_score")
     diagnosis_key = hashlib.sha256(
         f"{anomaly_record['anomaly_ref']}|{suspected}|diagnosis-v1".encode()
     ).hexdigest()[:24]
@@ -82,7 +83,7 @@ def build_diagnosis(*, anomaly_record: dict[str, Any], tenant_id: UUID) -> Diagn
         alternative_conditions=alternatives,
         evidence_bundle=EvidenceBundleV1(evidence=evidence),
         confidence=confidence,
-        confidence_method=method,
+        confidence_method=f"{method}:input_quality_not_diagnostic_probability",
         ground_verification_requirement=VerificationRequirement.NOT_REQUIRED,
         assessment_status=DiagnosisAssessmentStatus.PENDING,
         diagnosis_model_ref="urn:sahool:model:diagnosis_rules_v1",

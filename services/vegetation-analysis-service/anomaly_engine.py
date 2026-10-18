@@ -39,6 +39,8 @@ class DetectedSignal:
             "signal_type": self.signal_type,
             "severity": self.severity,
             "confidence": str(self.confidence),
+            "confidence_method": "minimum_measured_input_quality_v2",
+            "confidence_is_probability": False,
             "deviation": str(self.deviation),
             "deviation_percent": (
                 str(self.deviation_percent) if self.deviation_percent is not None else None
@@ -73,15 +75,9 @@ def _severity(percent: Decimal | None, absolute: Decimal) -> str:
 
 
 def _confidence(baseline_confidence: Decimal, severity: str, sample_size: int) -> Decimal:
-    severity_bonus = {
-        "critical": Decimal("0.08"),
-        "high": Decimal("0.06"),
-        "medium": Decimal("0.04"),
-        "low": Decimal("0.02"),
-        "info": Decimal("0.00"),
-    }[severity]
-    sample_bonus = min(Decimal("0.08"), Decimal(sample_size) * Decimal("0.01"))
-    return min(Decimal("0.99"), baseline_confidence + severity_bonus + sample_bonus)
+    # An input-quality score, not a calibrated probability of agronomic harm.
+    # Severity and sample count cannot create evidence about correctness.
+    return max(Decimal("0"), min(Decimal("1"), baseline_confidence))
 
 
 def detect_signals(
@@ -95,22 +91,34 @@ def detect_signals(
     """Return deterministic signal anomalies for material deviations only.
 
     Multiple baseline comparisons for the same observation are deduplicated by
-    retaining the strongest absolute deviation. No suspected cause is emitted.
+    preferring matched stage, then previous valid, then historical median. No suspected cause is emitted.
     """
     now = now or datetime.now(UTC)
     candidates: list[DetectedSignal] = []
+    # Select the scientific reference before applying the alert threshold. A quiet
+    # matched stage must not fall back to a large normal seasonal growth signal.
+    order = {"same_phenological_stage": 0, "previous_valid": 1, "historical_robust_median": 2}
+    if comparisons:
+        best = min(order.get(c.get("baseline_type"), 3) for c in comparisons)
+        comparisons = [c for c in comparisons if order.get(c.get("baseline_type"), 3) == best]
     for item in comparisons:
         try:
             deviation = Decimal(str(item["deviation"]))
             pct_raw = item.get("deviation_percent")
             deviation_percent = Decimal(str(pct_raw)) if pct_raw is not None else None
-            baseline_confidence = Decimal(str(item.get("expected_confidence", "0.5")))
+            baseline_confidence = Decimal(str(item.get("expected_confidence")))
             sample_size = int(item.get("sample_size") or 0)
             primary_ref = str(item["primary_observation_ref"])
             baseline_run_ref = str(item["baseline_run_ref"])
         except (KeyError, TypeError, ValueError, ArithmeticError):
             continue
+        if deviation_percent is not None and not deviation_percent.is_finite():
+            continue
         if deviation_percent is not None and abs(deviation_percent) < min_deviation_percent:
+            continue
+        if not deviation.is_finite() or not baseline_confidence.is_finite():
+            continue
+        if deviation_percent is None or not deviation_percent.is_finite():
             continue
         severity = _severity(deviation_percent, deviation)
         direction = "decline" if deviation < 0 else "increase"
@@ -123,7 +131,7 @@ def detect_signals(
             indicator,
             primary_ref,
             baseline_run_ref,
-            "signal-detector-v1",
+            "signal-detector-v2",
         )
         anomaly_ref = _ref(
             "anomaly", field_id, indicator, primary_ref, baseline_run_ref, str(deviation)
@@ -151,7 +159,7 @@ def detect_signals(
         )
     if not candidates:
         return []
-    # One signal per primary observation/indicator. Preserve the strongest evidence.
+    # Within the selected reference type, retain the strongest signal.
     strongest = max(
         candidates,
         key=lambda c: (

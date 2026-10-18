@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -24,6 +25,7 @@ class BaselineRequest(BaseModel):
     current_stage: str | None = Field(default=None, max_length=128)
     stage_by_observation: dict[str, str] = Field(default_factory=dict)
     max_history: int = Field(default=12, ge=1, le=60)
+    max_gap_days: int = Field(default=32, ge=1, le=90)
 
 
 @router.post("/v1/fields/{field_id}/baseline-comparisons")
@@ -39,7 +41,7 @@ async def baseline_comparisons(
             response = await client.get(
                 f"{INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observation-timeline",
                 params={"season_id": request.season_id, "indicators": request.indicator},
-                headers={"X-Tenant-Id": tenant_id},
+                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token.credentials}"},
             )
         if response.status_code != 200:
             raise HTTPException(424, "canonical observation timeline unavailable")
@@ -56,6 +58,8 @@ async def baseline_comparisons(
         current_stage=request.current_stage,
         stage_by_observation=request.stage_by_observation,
         max_history=request.max_history,
+        max_gap_days=request.max_gap_days,
+        as_of=datetime.now(UTC),
     )
     if not comparisons:
         raise HTTPException(424, "insufficient canonical history for baseline")
@@ -66,5 +70,6 @@ async def baseline_comparisons(
         "baseline_comparisons": [item.to_dict() for item in comparisons],
         "source": "vegetation-analysis-service",
         "canonical_observations_only": True,
+        "confidence_is_probability": False,
         "phenology_context_applied": bool(request.current_stage),
     }

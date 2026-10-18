@@ -1,0 +1,8 @@
+{
+  "services/raster-service/cdse_client.py": "4b895393fadfd09fdec9330d5b425845e9f144bb0550ffec5083b0b20cf3ca34",
+  "services/raster-service/cdse_diagnostics.py": "1bd4c842c28818089bc5204fdb1cf4bf034a63feeb0d96f7caf6ff99105c862e",
+  "services/raster-service/cdse_native_product.py": "a99789fbc1a668f84755ec00ebf6d359cefca480b35299149e5ed05aea48daf6",
+  "services/raster-service/raster_cdse_tile_runtime.py": "19ef755ce630b9bce4d219e5bfcaa1ab028879f29239b203e5e67242ad6fd173",
+  "services/raster-service/test_cdse_cause_evidence.py": "4a7319ea1b58e4ec23593cc4c1b6a707aabeb65916819911ca6971254962f4d2",
+  "tests_v9/test_cdse_catalog_hardening_20260626.py": "ca202cdc15bef22b0076474fdf90b8c76c912e652e7fa25328bd93ba3744679a"
+}

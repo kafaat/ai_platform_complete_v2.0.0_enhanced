@@ -1250,7 +1250,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 63,
+    "line": 64,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1258,7 +1258,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 68,
+    "line": 69,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1266,7 +1266,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 73,
+    "line": 74,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1274,7 +1274,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 84,
+    "line": 85,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -1282,7 +1282,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 98,
+    "line": 99,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "function": "ownership"
@@ -1290,7 +1290,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 103,
+    "line": 104,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "function": "catalog"
@@ -1298,7 +1298,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 113,
+    "line": 114,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1306,7 +1306,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 136,
+    "line": 137,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1314,7 +1314,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 158,
+    "line": 159,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "function": "compute_indicator"
@@ -1322,7 +1322,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 166,
+    "line": 167,
     "method": "GET",
     "path": "/",
     "function": "root"
@@ -1330,7 +1330,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 176,
+    "line": 177,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observations",
     "function": "field_observations"
@@ -1338,7 +1338,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 207,
+    "line": 208,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observation-timeline",
     "function": "observation_timeline"
@@ -8570,7 +8570,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 66,
+    "line": 68,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "function": "detect_signal_anomalies"
@@ -8578,7 +8578,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 123,
+    "line": 126,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "function": "list_signal_anomalies"
@@ -8586,7 +8586,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 137,
+    "line": 140,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "function": "transition_anomaly"
@@ -8594,7 +8594,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 161,
+    "line": 164,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "function": "request_ground_verification"
@@ -8602,7 +8602,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 195,
+    "line": 198,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "function": "accept_verification_result"
@@ -8610,7 +8610,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/baselines.py",
-    "line": 30,
+    "line": 32,
     "method": "POST",
     "path": "/v1/fields/{field_id}/baseline-comparisons",
     "function": "baseline_comparisons"
@@ -8662,6 +8662,14 @@
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/insights.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/reports/weekly-field-insights",
+    "function": "weekly_field_insights"
   },
   {
     "service": "vegetation-analysis-service",

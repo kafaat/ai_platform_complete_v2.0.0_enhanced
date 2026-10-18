@@ -159,6 +159,8 @@ class RemoteSensingSkill:
                     "date_before": "YYYY-MM-DD",
                     "date_after": "YYYY-MM-DD",
                     "grid_before": "شبكة المؤشّر للتاريخ الأقدم (من /v1/process)",
+                    "grid_before_identity": "CRS وtransform وستة معاملات وgeometry_revision وrows وcols من المصدر",
+                    "grid_after_identity": "هوية مكانية مطابقة للشبكة الأولى؛ اختلافها يرفض المقارنة",
                     "grid_after": "شبكة المؤشّر للتاريخ الأحدث (من /v1/process)",
                 },
                 "recommendation": (

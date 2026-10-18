@@ -309,3 +309,66 @@ def test_unexpected_catalog_provider_exception_is_sanitized(catalog_api, monkeyp
         "provider": "cdse",
         "reason": "provider_error",
     }
+
+
+@pytest.mark.parametrize(
+    "response_body,status,expected",
+    [
+        (
+            {"features": [{"id": "unknown", "properties": {"eo:cloud_cover": "bad"}}]},
+            200,
+            "acquisitions_cloud_cover_unknown",
+        ),
+        (
+            {"features": [{"id": "invalid", "properties": {"eo:cloud_cover": 101}}]},
+            200,
+            "acquisitions_cloud_cover_unknown",
+        ),
+        (
+            {"features": [{"id": "invalid", "properties": {"eo:cloud_cover": -1}}]},
+            200,
+            "acquisitions_cloud_cover_unknown",
+        ),
+        (
+            {
+                "features": [{"id": "cloudy", "properties": {"eo:cloud_cover": 90}}],
+                "context": {"next": "page-two"},
+            },
+            200,
+            "catalogue_unavailable",
+        ),
+        ({"features": []}, 200, "no_acquisition"),
+        ({"error": "upstream unavailable"}, 503, "catalogue_unavailable"),
+    ],
+)
+def test_failure_probe_uses_unfiltered_complete_single_catalogue_response(
+    monkeypatch, response_body, status, expected
+):
+    import cdse_diagnostics
+    import httpx
+    import raster_cdse_tile_runtime as runtime
+
+    calls = []
+
+    def post(url, **kwargs):
+        calls.append(kwargs["json"])
+        # A second request must not hide a pagination/fallback error.
+        if len(calls) > 1:
+            raise AssertionError("diagnostic catalogue request exceeded one call")
+        return httpx.Response(status, json=response_body, request=httpx.Request("POST", url))
+
+    monkeypatch.setenv("CDSE_DIAGNOSTIC_CATALOGUE_PROBE", "1")
+    monkeypatch.setattr(cdse_diagnostics, "_probe_cache", {})
+    monkeypatch.setattr(httpx, "post", post)
+    client = cdse_client.CdseClient(base_url="https://catalogue.invalid")
+    monkeypatch.setattr(client, "token", lambda: "injected-test-token")
+    result = runtime.catalogue_probe(
+        client,
+        bbox=[44, 15, 45, 16],
+        geometry=None,
+        date_from="2026-10-01",
+        date_to="2026-10-14",
+    )
+    assert result == expected
+    assert len(calls) == 1
+    assert "filter" not in calls[0] and "filter-lang" not in calls[0]

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, PrivateAttr, model_validator
 
 
 class IndicatorKind(StrEnum):
@@ -292,6 +292,15 @@ class ManagementZonesRequest(BaseModel):
 MAX_CHANGE_GRID_CELLS = 256 * 256
 
 
+class ChangeGridIdentity(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    crs: str = Field(min_length=1, max_length=128)
+    transform: tuple[FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat]
+    geometry_revision: int = Field(ge=0)
+    rows: int = Field(ge=1, le=256)
+    cols: int = Field(ge=1, le=256)
+
+
 class ChangeDetectRequest(BaseModel):
     field_id: str
     index: str = "ndvi"
@@ -299,6 +308,22 @@ class ChangeDetectRequest(BaseModel):
     date_after: str
     grid_before: list[list[float | None]]
     grid_after: list[list[float | None]]
+    grid_before_identity: ChangeGridIdentity
+    grid_after_identity: ChangeGridIdentity
+
+    @model_validator(mode="after")
+    def aligned_spatial_support(self):
+        before, after = self.grid_before_identity, self.grid_after_identity
+        if before != after:
+            raise ValueError("change_grid_spatial_identity_mismatch")
+        a, b, _, d, e, _ = before.transform
+        if a * e - b * d == 0:
+            raise ValueError("change_grid_singular_transform")
+        for grid in (self.grid_before, self.grid_after):
+            if len(grid) != before.rows or any(len(row) != before.cols for row in grid):
+                raise ValueError("change_grid_dimensions_mismatch")
+        return self
+
     slight_threshold: float = 0.1
     severe_threshold: float = 0.2
 

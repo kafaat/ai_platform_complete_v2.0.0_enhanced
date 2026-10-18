@@ -952,6 +952,7 @@
         "total": 7
       },
       "configuration": [
+        "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "RS_OBSERVATION_POLICY_ID",
         "RS_TIMELINE_POLICY_ID",
@@ -2779,6 +2780,7 @@
           "services/vegetation-analysis-service/routers/baselines.py",
           "services/vegetation-analysis-service/routers/diagnoses.py",
           "services/vegetation-analysis-service/routers/health.py",
+          "services/vegetation-analysis-service/routers/insights.py",
           "services/vegetation-analysis-service/routers/outcomes.py",
           "services/vegetation-analysis-service/test_production_truth_closure.py"
         ],

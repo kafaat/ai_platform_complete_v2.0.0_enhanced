@@ -249,6 +249,7 @@ def catalogue_probe(client, *, bbox, geometry, date_from, date_to) -> str:
             limit=100,
             geometry=geometry,
             max_retries=0,
+            diagnostic_unfiltered=True,
         )
         evidence = cdse_diagnostics.catalogue_evidence(scenes, MAX_CLOUD_PCT)
     except Exception:  # noqa: BLE001 — an unanswered probe is not evidence of absence

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import secrets
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -38,7 +38,7 @@ async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[
             response = await client.get(
                 f"{baseline_router.INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observation-timeline",
                 params={"season_id": request.season_id, "indicators": request.indicator},
-                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token}"},
+                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token.credentials}"},
             )
         if response.status_code != 200:
             raise HTTPException(424, "canonical observation timeline unavailable")
@@ -58,6 +58,8 @@ async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[
             current_stage=request.current_stage,
             stage_by_observation=request.stage_by_observation,
             max_history=request.max_history,
+            max_gap_days=request.max_gap_days,
+            as_of=datetime.now(UTC),
         )
     ]
 
@@ -87,7 +89,7 @@ async def detect_signal_anomalies(
             "season_id": request.season_id,
             "geometry_ref": None,
             "status": "detected",
-            "detector_model_ref": "urn:sahool:model:signal_detector_v1",
+            "detector_model_ref": "urn:sahool:model:signal_detector_v2",
         }
         record = await _store.upsert_detected(payload)
         if request.auto_request_verification and signal.verification_requirement == "required":
@@ -114,6 +116,7 @@ async def detect_signal_anomalies(
         "season_id": request.season_id,
         "indicator": request.indicator,
         "anomalies": created,
+        "evaluation_status": "assessed" if comparisons else "insufficient_qualified_history",
         "signal_only": True,
         "diagnosis_emitted": False,
     }
@@ -209,7 +212,10 @@ async def accept_verification_result(
             raise AnomalyNotFound(anomaly_ref)
         if record.get("task_ref") and record["task_ref"] != request.task_ref:
             raise InvalidTransition("verification_task_ref_mismatch")
+        if any(str(e.tenant_id) != tenant_id for e in request.evidence):
+            raise HTTPException(403, "verification_evidence_tenant_mismatch")
         patch = {
+            "verification_evidence": [e.model_dump(mode="json") for e in request.evidence],
             "verification_result": request.verification_result,
             "verification_evidence_refs": request.evidence_refs,
             "disposition_reason_codes": request.reason_codes,

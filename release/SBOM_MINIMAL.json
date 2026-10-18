@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be860340762da2bc717452d328174b0e236237a070e529a054fa308bd0864f24"
+          "content": "c3055dd8d2cc57cf03b7401292dd356388f1811c9c777860e955b27e38cffad8"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -1945,7 +1945,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89d4a9ce02f8889c0db7c4c0191f97dea7e428692b36de66ade5ddb7ecbc58e4"
+          "content": "0ddb3ce0eddb30e2df730550fa61fe150c3f34fa8dc75f951b63d25c3db40939"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ProductivityZonesPanel.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "19343286bcaacab0abbd7f296e96be8bcfaeeaeb6c46a76a6973be5664820e95"
         }
       ],
       "name": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
@@ -4425,7 +4435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ddf456cad57b9c72d020ac839afa8b1f439ab59f004574e102b41f713f88656"
+          "content": "0cef84fbc69e065e085d52224fa40c348f82a70305b399d9ca68b70b1da3ea94"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5045,7 +5055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd60d58549587ea821527ce39cc1153467396893ef20fd4d6c3c65d4c2de3aad"
+          "content": "41f018df1f0358ddfc4dd823a2cbf6019a4ae2ad1d4aeec70e5aba7fef71a4f7"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -11425,7 +11435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e933eae4a9223cfa3758e976d614216cc59678db5b5498539b02ddb97475f8f"
+          "content": "2e5517f51dfa259adbfe7fe6b704177e82f003263d0ddc5fcbdc8134fa89b64d"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -13795,7 +13805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91f93bb651913ba1670e5b57c86a50c2201cd06aa4d9515db0f10f807c5dbe36"
+          "content": "8c4a7980e0f6f8e35affc1b5b9ec46eef445c7d850438ff7a946ee4b535c440c"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -13805,7 +13815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bec91cf748a2625818dee68446845b854f3cef409e6ae780ecf82c4c8b6740d"
+          "content": "8c9ac4c859359bd6785e392b1379ca08a052f4977b1e46178e71b500435c3309"
         }
       ],
       "name": "services/indicators-service/observation_runtime.py",
@@ -13815,7 +13825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f94478937dc07887d1ce2255eb05be3654b2f6078ba8960acafff1891cc650a"
+          "content": "f049bdbdf2adee40986b0e7d3e40c9e3db89b7f99c4a453e554044dcfff8446c"
         }
       ],
       "name": "services/indicators-service/observation_timeline.py",
@@ -14525,7 +14535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2c9971b950961a8d8810d41565303aa6c52f9cc869066a12a1f1d88c30b61d0"
+          "content": "4b895393fadfd09fdec9330d5b425845e9f144bb0550ffec5083b0b20cf3ca34"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -14535,7 +14545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d54edba6f39fbb1e13b32f9e39e8b21b29162e91ef63381b302b19c36091bb9c"
+          "content": "1bd4c842c28818089bc5204fdb1cf4bf034a63feeb0d96f7caf6ff99105c862e"
         }
       ],
       "name": "services/raster-service/cdse_diagnostics.py",
@@ -14565,7 +14575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a2563a54b70eacfe6bc0683ffee0dce8e95247035936db1ae5a00f17610410d"
+          "content": "b3a73e4d483fc43c36af6a0ac227d2acb79018ff33bc4c73aae2d13c4ae9fc66"
         }
       ],
       "name": "services/raster-service/change_detection.py",
@@ -14795,7 +14805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a11919d001679aee1eca3951e64041f52a65d2b2acf37630c29cc5f72c99b256"
+          "content": "8e66134b5ce95bcecedf0a6aa08f380505371bda8483c53de4db26fd08594be7"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -14895,7 +14905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25b27415b6fcc9802dde71de0ce4482b02b40e39541b4b20b450ab2b7b64e90b"
+          "content": "19ef755ce630b9bce4d219e5bfcaa1ab028879f29239b203e5e67242ad6fd173"
         }
       ],
       "name": "services/raster-service/raster_cdse_tile_runtime.py",
@@ -30205,7 +30215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60d33d6aa5b49b279843620dcb47354c1018fe27e8971156f8bff54122d20594"
+          "content": "c3f39785de6c1826cc0e6360a828572a08d4c6558fae3e13e63a4bd51c6a6901"
         }
       ],
       "name": "services/supervisor-agent/skills/remote_sensing_skill.py",
@@ -30455,7 +30465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8907440c4eab5bb6da433b6ebde324236365a0223e4e6227a125746c2e7bfb3d"
+          "content": "55e9bc027bb333388271bfb8ca2294ea72359f34f81105709ba801eaf9af2811"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_engine.py",
@@ -30465,7 +30475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2908e0c0aa78f7a369f386d8f06bd1a3c5a9170d7720c6b3486e53f1634cd719"
+          "content": "c0f6217d836f0d79a942c85d47438d0102f579e5bd708f0be6b56f14d98eb2ef"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_requests.py",
@@ -30505,7 +30515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a8ae2215d39e0cd9677a23b8f71449458bba1c17a78257de05a372923c2d2187"
+          "content": "afa2252d5b58ce80a8097022b8e9aa08e2ad9a35cedd03409ca9aa2fa775424a"
         }
       ],
       "name": "services/vegetation-analysis-service/baseline_engine.py",
@@ -30515,7 +30525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74c9f5cea86e1723ee2be7770be990554cbefe02583169899f2b27f60a2e04c1"
+          "content": "f92df76521cc754791b6fc294d9be8c0a4d47b6443ea839443250629e7ecab35"
         }
       ],
       "name": "services/vegetation-analysis-service/decision_bridge.py",
@@ -30525,7 +30535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7827b6db2c3e4249ff6a6a9926baf06186aa1dced7bf2b91c591eab06f72541"
+          "content": "099ced8289938f25d25485dd7d1438455a56391d8b0756f17958a2a95626883e"
         }
       ],
       "name": "services/vegetation-analysis-service/diagnosis_engine.py",
@@ -30535,7 +30545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03c9a5ecdebc5a2778aaf7d014c63744dc6390a822293ae92e385056d321e7eb"
+          "content": "b7b9324a0d44a0e170182c947d40fe98f1c83aaebe8354582f6149d42b914bf4"
         }
       ],
       "name": "services/vegetation-analysis-service/ground_verification_bridge.py",
@@ -30625,7 +30635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "950a0c34ef0fa9278470020c8a631be5b5b130d8fbd84c104f64c701ad7ea7b0"
+          "content": "56b5b2b5df29d61e17dfa7a1de0cbdf521c321381a890a365730044bddb0e067"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/anomalies.py",
@@ -30635,7 +30645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fea8f669e1820832ddc9af119a16276c0140c0e9a8a3f232d12b2bb4777bbec"
+          "content": "e507d21e374b1d0dd74c6b68f1bb7ef0d8a17a330f0ac7fbef6de8d85322ec05"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/baselines.py",
@@ -30665,10 +30675,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "478c1ad441f3c0b6ff2e82505417d641427df7d83a90b3ba2a12ce3c59ae16c6"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/insights.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "13fbcccb883f0a300bee69b2e412c2740156a947a42a89bdbd8c38eb675d73af"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/outcomes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "690e48f8c8b48197c38c796f896ba456cca13706c80f5c0ac2617ca0c1cebc4a"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/scouting_evaluation.py",
       "type": "file"
     },
     {
@@ -30695,7 +30725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d5d0e7cf55f99198ab548770e7fc989dd6eff21953604e0d16297ad43639d9c"
+          "content": "44ee0ce3e85eb12dbe797db6aff53e0f9119ed92f37d5bfd02d969706edbe053"
         }
       ],
       "name": "services/vegetation-analysis-service/test_baseline_engine.py",
@@ -30705,7 +30735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4dccb3872400cca7e98e7ff3b10d19e91737c906ea41a5035cfd6bf4426ec4f7"
+          "content": "33933f483c02402d99dd27a6a896d3aaa9407ab7399a91d92f878398a84ea5a2"
         }
       ],
       "name": "services/vegetation-analysis-service/test_diagnosis_engine.py",
@@ -30725,7 +30755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdc7022f603c69cc57e3b853c452b964681d193eee2c387bc22c794f92d6e646"
+          "content": "016e78034704f28be3e4464522dbbde1c41baeaf941b2326e7b9bf0402b2b6b8"
         }
       ],
       "name": "services/vegetation-analysis-service/test_ground_verification_bridge.py",
@@ -30859,6 +30889,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c94c97088697772ac0c5d7246fdd2a332df235833899fb0569ef5b1846be8cc1"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/weekly_insights.py",
       "type": "file"
     },
     {
@@ -31965,6 +32005,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "11395fb1bdd336cb0d41d91b8ca8921ea997a6ea663f824840e9aea0b07bb9ba"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/admission.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d2af52142cf8f4a3b80ce63c50894862ea610acf7978cad7516e0fca6319c15d"
         }
       ],
@@ -32105,7 +32155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22ca4a5cdf694e0e23fbfd569026b8f5c923f81dd33a0d1fe1cb9d66c31bc2b6"
+          "content": "86da846743729e29e43850e64eed6f4dce6cab7971f6a73caf3230cd8f77b84c"
         }
       ],
       "name": "shared/contracts/remote_sensing/quality_v1.py",

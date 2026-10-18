@@ -789,11 +789,15 @@ class CdseClient:
         limit: int = 20,
         geometry: dict | None = None,
         max_retries: int | None = None,
+        diagnostic_unfiltered: bool = False,
     ) -> list[dict]:
         """Search CDSE Sentinel Hub Catalog for Sentinel-2 scenes.
 
         ``max_retries`` overrides ``CDSE_PROCESS_MAX_RETRIES`` for callers that must
         not wait out the transport backoff (the failure-path diagnostic probe).
+        ``diagnostic_unfiltered`` preserves unknown cloud metadata for evidence only:
+        one catalogue response, no cloud filter, pagination, fallback or retry.
+        Incomplete answers raise instead of providing evidence of absence.
 
         Hardened behavior:
         - normalizes date inputs to explicit RFC3339 intervals;
@@ -835,6 +839,9 @@ class CdseClient:
             # which is deterministic and does not depend on undocumented provider order.
         }
         geom = _geometry_object(geometry)
+        if diagnostic_unfiltered:
+            payload.pop("filter")
+            payload.pop("filter-lang")
         if geom:
             payload["intersects"] = geom
         else:
@@ -857,7 +864,9 @@ class CdseClient:
         # قطع TLS/الاتّصال العابر (`SSL: UNEXPECTED_EOF_WHILE_READING` وأمثاله) كان
         # يُبتَلع فوراً إلى [] فيبدو «لا مشهد» بينما المشكلة شبكيّة عابرة (هذا سبب فشل
         # SAM2/backfill المُبلَّغ). نعيد على TransportError بـbackoff قبل الاستسلام.
-        if max_retries is None:
+        if diagnostic_unfiltered:
+            max_retries = 0
+        elif max_retries is None:
             max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
         base_backoff = _env_float("CDSE_PROCESS_RETRY_BASE_SECONDS", 5.0, minimum=0.0)
         max_backoff = _env_float("CDSE_PROCESS_RETRY_MAX_SECONDS", 120.0, minimum=1.0)
@@ -876,6 +885,8 @@ class CdseClient:
                         resp.text[:1200],
                         _safe_log_payload(payload),
                     )
+                    if diagnostic_unfiltered:
+                        raise CdseCatalogError("http_error", resp.status_code)
                     fallback = _minimal_fallback(payload)
                     resp = httpx.post(url, json=fallback, headers=headers, timeout=30.0)
                     if resp.status_code >= 400:
@@ -890,6 +901,10 @@ class CdseClient:
                 data = resp.json()
                 features, token = _catalog_page(data)
                 features = list(features)
+                if diagnostic_unfiltered:
+                    if token:
+                        raise CdseCatalogError("incomplete_diagnostic_response")
+                    return features
                 # ترقيم الصفحات (STAC ``context.next``). كان مفقوداً تماماً، فكان
                 # الجواب «أوّل صفحة صادف أن أعادها المزوّد» — ومع نافذة استرجاع
                 # واسعة يصير ادّعاء «الأحدث»/«الأفضل» عليها غير قابل للإثبات

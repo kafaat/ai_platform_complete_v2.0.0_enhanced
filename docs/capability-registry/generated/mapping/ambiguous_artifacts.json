@@ -5164,30 +5164,6 @@
     ]
   },
   {
-    "path": "services/ai_agronomist/productivity_zones.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "PA-001",
-        "score": 17,
-        "signals": [
-          "content:management zone",
-          "path:productivity zone",
-          "content:productivity zone"
-        ]
-      },
-      {
-        "capability_id": "SOIL-002",
-        "score": 16,
-        "signals": [
-          "content:Soil sampling",
-          "content:sampling plan",
-          "content:soil sampling"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/ai_agronomist/provider_tooling.py",
     "kind": "backend",
     "candidates": [
@@ -10704,6 +10680,28 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_cropwise_evidence_quality.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
         ]
       }
     ]

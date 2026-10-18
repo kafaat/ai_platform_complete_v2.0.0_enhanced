@@ -55,10 +55,10 @@ class ObservationQualityV1(ContractModel):
     schema_version: SchemaVersion = "1.0.0"
     gate_status: QualityGateStatus
     policy: QualityPolicyRefV1
-    field_coverage_ratio: Decimal = Field(ge=0, le=1)
-    valid_pixel_ratio: Decimal = Field(ge=0, le=1)
-    field_cloud_ratio: Decimal = Field(ge=0, le=1)
-    field_shadow_ratio: Decimal = Field(ge=0, le=1)
+    field_coverage_ratio: Decimal | None = Field(default=None, ge=0, le=1)
+    valid_pixel_ratio: Decimal | None = Field(default=None, ge=0, le=1)
+    field_cloud_ratio: Decimal | None = Field(default=None, ge=0, le=1)
+    field_shadow_ratio: Decimal | None = Field(default=None, ge=0, le=1)
     indicator_in_range: bool
     indicator_range_min: Decimal | None = None
     indicator_range_max: Decimal | None = None

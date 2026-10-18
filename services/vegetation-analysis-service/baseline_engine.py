@@ -10,11 +10,14 @@ comparisons to the same phenological stage.
 from __future__ import annotations
 
 import hashlib
+import json
 import statistics
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
+
+from shared.contracts.remote_sensing.admission import admissible, finite_decimal
 
 
 @dataclass(frozen=True)
@@ -46,18 +49,13 @@ class BaselineComparison:
             "expected_confidence": str(self.expected_confidence),
             "sample_size": self.sample_size,
             "reason_codes": list(self.reason_codes),
+            "confidence_method": "minimum_measured_input_quality_v2",
+            "confidence_is_probability": False,
         }
 
 
 def _value(entry: dict[str, Any]) -> Decimal | None:
-    summary = entry.get("summary") or {}
-    raw = summary.get("mean")
-    if raw is None:
-        return None
-    try:
-        return Decimal(str(raw))
-    except (ArithmeticError, ValueError, TypeError):
-        return None
+    return finite_decimal((entry.get("summary") or {}).get("mean"))
 
 
 def _acquired(entry: dict[str, Any]) -> datetime:
@@ -67,10 +65,38 @@ def _acquired(entry: dict[str, Any]) -> datetime:
     return datetime.fromisoformat(raw)
 
 
-def _run_ref(field_id: str, indicator: str, current_ref: str, baseline_type: str) -> str:
-    digest = hashlib.sha256(
-        f"{field_id}|{indicator}|{current_ref}|{baseline_type}".encode()
-    ).hexdigest()[:24]
+def _run_ref(
+    field_id: str,
+    indicator: str,
+    current: dict,
+    members: list[dict],
+    baseline_type: str,
+    policy: dict,
+) -> str:
+    def snapshot(item):
+        return {
+            key: item.get(key)
+            for key in (
+                "observation_ref",
+                "acquired_at",
+                "indicator",
+                "summary",
+                "observation_quality",
+                "lineage",
+            )
+        }
+
+    payload = {
+        "field_id": field_id,
+        "indicator": indicator,
+        "current": snapshot(current),
+        "members": [snapshot(item) for item in members],
+        "baseline_type": baseline_type,
+        "policy": policy,
+        "algorithm": "temporal-baseline-v2",
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    digest = hashlib.sha256(encoded.encode()).hexdigest()[:24]
     return f"urn:sahool:processing-run:run_{digest}"
 
 
@@ -81,6 +107,7 @@ def _comparison(
     current: dict[str, Any],
     members: list[dict[str, Any]],
     baseline_type: str,
+    policy: dict,
 ) -> BaselineComparison | None:
     current_value = _value(current)
     values = [v for item in members if (v := _value(item)) is not None]
@@ -92,16 +119,18 @@ def _comparison(
     deviation = current_value - expected
     deviation_percent = None if expected == 0 else (deviation / abs(expected)) * Decimal("100")
     sample_size = len(values)
-    confidence = min(Decimal("0.95"), Decimal("0.55") + Decimal(sample_size) * Decimal("0.08"))
+    confidence = min(
+        Decimal(str(item["observation_quality"][key]))
+        for item in [current, *members]
+        for key in ("valid_pixel_ratio", "field_coverage_ratio")
+    )
     reasons = ["canonical_observations_only"]
     if baseline_type == "historical_robust_median":
         reasons.append("robust_median")
     if baseline_type == "same_phenological_stage":
         reasons.append("stage_matched")
     return BaselineComparison(
-        baseline_run_ref=_run_ref(
-            field_id, indicator, str(current["observation_ref"]), baseline_type
-        ),
+        baseline_run_ref=_run_ref(field_id, indicator, current, members, baseline_type, policy),
         baseline_type=baseline_type,
         primary_observation_ref=str(current["observation_ref"]),
         member_observation_refs=tuple(str(item["observation_ref"]) for item in members),
@@ -123,19 +152,49 @@ def build_baselines(
     stage_by_observation: dict[str, str] | None = None,
     current_stage: str | None = None,
     max_history: int = 12,
+    max_gap_days: int = 32,
+    as_of: datetime | None = None,
 ) -> list[BaselineComparison]:
+    candidates = []
+    for item in entries:
+        if (item.get("indicator") or {}).get("code") != indicator:
+            continue
+        try:
+            acquired = _acquired(item)
+            if acquired.tzinfo is None or not item.get("observation_ref"):
+                continue
+        except (ValueError, TypeError):
+            continue
+        candidates.append(item)
+    candidates.sort(key=_acquired)
+    if (
+        not candidates
+        or _value(candidates[-1]) is None
+        or not admissible(candidates[-1].get("observation_quality") or {})
+    ):
+        return []
+    current = candidates[-1]
+    if as_of is not None and not timedelta(0) <= as_of - _acquired(current) <= timedelta(
+        days=max_gap_days
+    ):
+        return []
     valid = [
         item
-        for item in entries
-        if (item.get("indicator") or {}).get("code") == indicator
-        and (item.get("observation_quality") or {}).get("gate_status") == "passed"
-        and _value(item) is not None
+        for item in candidates
+        if _value(item) is not None and admissible(item.get("observation_quality") or {})
     ]
-    valid.sort(key=_acquired)
     if len(valid) < 2:
         return []
-    current = valid[-1]
     history = valid[max(0, len(valid) - 1 - max_history) : -1]
+    dates = [_acquired(item) for item in [*history, current]]
+    if any(b - a > timedelta(days=max_gap_days) for a, b in zip(dates, dates[1:], strict=False)):
+        return []
+    policy = {
+        "max_history": max_history,
+        "max_gap_days": max_gap_days,
+        "current_stage": current_stage,
+        "stage_by_observation": stage_by_observation or {},
+    }
     output: list[BaselineComparison] = []
 
     previous = _comparison(
@@ -144,6 +203,7 @@ def build_baselines(
         current=current,
         members=[history[-1]],
         baseline_type="previous_valid",
+        policy=policy,
     )
     if previous:
         output.append(previous)
@@ -154,22 +214,27 @@ def build_baselines(
         current=current,
         members=history,
         baseline_type="historical_robust_median",
+        policy=policy,
     )
     if robust:
         output.append(robust)
 
-    if current_stage and stage_by_observation:
+    if current_stage:
+        stage_by_observation = stage_by_observation or {}
         stage_members = [
             item
             for item in history
             if stage_by_observation.get(str(item.get("observation_ref"))) == current_stage
         ]
+        if not stage_members:
+            return []
         stage = _comparison(
             field_id=field_id,
             indicator=indicator,
             current=current,
             members=stage_members,
             baseline_type="same_phenological_stage",
+            policy=policy,
         )
         if stage:
             output.append(stage)

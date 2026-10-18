@@ -51,6 +51,8 @@ class GroundVerificationBridge:
         if response.status_code not in {200, 201, 202}:
             raise RuntimeError(f"task_service_rejected:{response.status_code}")
         data = response.json()
+        if data.get("persisted") is not True:
+            raise RuntimeError("task_service_persistence_unconfirmed")
         task_ref = data.get("task_ref") or data.get("task_id")
         if not task_ref:
             raise RuntimeError("task_service_missing_task_ref")

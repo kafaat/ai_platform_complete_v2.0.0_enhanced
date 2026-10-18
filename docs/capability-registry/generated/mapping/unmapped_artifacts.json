@@ -492,6 +492,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/maphub/ProductivityZonesPanel.test.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
     "kind": "web"
   },
@@ -2953,10 +2957,6 @@
   },
   {
     "path": "services/indicators-service/observation_runtime.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/indicators-service/observation_timeline.py",
     "kind": "backend"
   },
   {
@@ -6569,6 +6569,10 @@
   },
   {
     "path": "services/vegetation-analysis-service/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/routers/insights.py",
     "kind": "backend"
   },
   {
