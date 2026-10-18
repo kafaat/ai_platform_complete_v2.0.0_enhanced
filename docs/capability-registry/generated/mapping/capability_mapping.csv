@@ -73,7 +73,7 @@ SOIL-005,soil,Soil water properties,True,3,6,0,0,20,0,0,3,0
 WX-001,weather,Current weather,True,4,1,4,0,3,0,0,2,0
 WX-002,weather,Weather forecast,True,6,20,63,12,64,9,0,30,0
 WX-003,weather,Weather history,True,5,4,6,4,3,0,0,5,0
-WX-004,weather,ET0,True,5,60,48,0,94,18,0,63,0
+WX-004,weather,ET0,True,5,60,48,0,94,18,0,65,0
 WX-005,weather,VPD,True,5,9,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,84,26,33,29,17,0,49,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0

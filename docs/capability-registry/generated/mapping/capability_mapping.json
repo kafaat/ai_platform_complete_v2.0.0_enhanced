@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 50,
-    "files_scanned": 6007,
+    "files_scanned": 6009,
     "files_by_kind": {
       "backend": 1229,
       "database": 288,
       "governance": 76,
       "mobile": 57,
       "other": 1918,
-      "tests": 1968,
+      "tests": 1970,
       "web": 471
     },
     "unmapped_artifacts": 2307,
@@ -13873,7 +13873,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:65",
+          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:62",
           "score": 28
         },
         {
@@ -14111,18 +14111,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:215",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:220",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:142",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:144",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:77",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:79",
           "score": 28
         },
         {
@@ -34481,23 +34481,23 @@
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:142",
+          "value": "/api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:143",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/planting-date @ services/sahool-platform/api/routers/scenario.py:235",
+          "value": "/api/v1/scenario/planting-date @ services/sahool-platform/api/routers/scenario.py:236",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/rainfall @ services/sahool-platform/api/routers/scenario.py:285",
+          "value": "/api/v1/scenario/rainfall @ services/sahool-platform/api/routers/scenario.py:286",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/temperature @ services/sahool-platform/api/routers/scenario.py:192",
+          "value": "/api/v1/scenario/temperature @ services/sahool-platform/api/routers/scenario.py:193",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/water-twin @ services/sahool-platform/api/routers/scenario.py:163",
+          "value": "/api/v1/scenario/water-twin @ services/sahool-platform/api/routers/scenario.py:164",
           "score": 12
         },
         {
@@ -35177,6 +35177,16 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_et0_reference_and_input_validity.py",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_et0_series.py",
           "score": 28,
           "signals": [
@@ -35527,6 +35537,14 @@
         },
         {
           "path": "tests_v9/test_weather_engine_formula_guard.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "tests_v9/test_wofost_hargreaves_matches_canonical.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -35909,7 +35927,7 @@
         "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 63,
+        "tests": 65,
         "governance": 0,
         "other_evidence": 30
       },
@@ -37012,23 +37030,23 @@
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:142",
+          "value": "/api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:143",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/planting-date @ services/sahool-platform/api/routers/scenario.py:235",
+          "value": "/api/v1/scenario/planting-date @ services/sahool-platform/api/routers/scenario.py:236",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/rainfall @ services/sahool-platform/api/routers/scenario.py:285",
+          "value": "/api/v1/scenario/rainfall @ services/sahool-platform/api/routers/scenario.py:286",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/temperature @ services/sahool-platform/api/routers/scenario.py:192",
+          "value": "/api/v1/scenario/temperature @ services/sahool-platform/api/routers/scenario.py:193",
           "score": 12
         },
         {
-          "value": "/api/v1/scenario/water-twin @ services/sahool-platform/api/routers/scenario.py:163",
+          "value": "/api/v1/scenario/water-twin @ services/sahool-platform/api/routers/scenario.py:164",
           "score": 12
         },
         {

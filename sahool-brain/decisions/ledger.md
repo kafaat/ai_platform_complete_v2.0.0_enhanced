@@ -4116,3 +4116,41 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ## 2026-10-17 — W6: إكمال حد تزويد SAM2 (`4d0799f3`)
 
 طلب المالك إغلاق الفجوات الأخرى ثم حدّد ستة خارج عمل Claude. استُكمل شرط SAM2 بمسار تزويد يفرض البصمة المقيسة قبل الاستبدال، لأن توثيق البصمة وحده في W5 لم يفرضها. بقاء شروط القرارات والتجميد يمنع تحويل بقية البنود إلى إغلاقات شكلية؛ لا تغيير على migrations أو ملفات Claude أو Railway ولا ترقية verified. إغلاق واحد مثبت، والخمس الإضافية لم تُثبت. [القياس وحدوده](../../certification/evidence/chatgpt_w6_20261017/README.md).
+
+## 2026-10-15 — حدود معقوليّة ET0 المُسمّاة ومواءمة نسخة WOFOST (فرع محلّيّ `feat/et0-input-validation-golden-tests`، غير مدموج — تجميد الدمج قائم)
+
+القرار (مقترح للمراجعة، لا يُدمج قبل رفع التجميد):
+- `compute_et0` يرفض المُدخَل خارج حدود مُسمّاة في `services/weather-service/et0.py` ويُعلنه في `invalid_inputs` (منفصلاً عن `missing_inputs`): الحرارة [−90، 60]°م · الارتفاع [−450، 9000]م · الرياح على 2م [0، 50] م/ث · الإشعاع ≤ 1.10×Rso + 0.5 MJ (Rso بارتفاع 9000م حين لا يُمرَّر الارتفاع) والصفر غيابٌ فقط حين Ra > 1 MJ · RH بنطاق ضجيج المستشعر نفسه في `vapor_pressure.py` · Tmean ضمن [Tmin−0.5، Tmax+0.5] · DOY صحيح في [1، 366].
+- أيّ رفض يمنع `validated`؛ المُدخَل الأساسيّ المكسور ⇒ `quality_status=invalid` و`et0_mm=None`. `FORMULA_VERSION` ⇒ `et0/fao56-pm/1.1.0`.
+- سلسلة ET0 تلتفّ DOY عبر نهاية السنة (Ra دوريّ بـ365) فلا يفقد موسمٌ يعبر 31 ديسمبر أيّامه.
+- المنصّة: `et0_unavailable_http_exception` يميّز المكسور (422 بأسماء الحقول) عن العطل (503 fail-closed) في water-balance وscenario وetc-dual وirrigation-recommendation؛ ومسار الحقل يعيد `dependency_unavailable` بدل `float(None)` ⇒ 500.
+- `shared/wofost/engine.py:hargreaves_et0` تطابق المصدر الكنسيّ كما تُعلن: الأرضيّة 0.5⇒0.0 (يغيّر ناتج محاكاة WOFOST للأيّام الباردة الضيّقة المدى) وقصّ وسيط `acos`.
+
+السبب:
+- **مُدخَلٌ مستحيل كان يخرج `validated`:** إشعاع صفر ⇒ 1.52، رياح −1، Tmax<Tmin، خطّ عرض 95، Tmax=10000 ⇒ ~2×10⁹ mm/يوم؛ وRH 150٪ رمى `ValueError` رغم عقد «لا يرمي».
+- **«نسخة حرفيّة» لم تكن حرفيّة:** اختلفت على شبكة عالميّة؛ صار الادّعاء مقيساً بـ`tests_v9/test_wofost_hargreaves_matches_canonical.py`.
+- **مراجعة عدائيّة قبل التسليم** كشفت انحداراً في فرع أوّل (DOY > 366 في السلسلة) وأُصلح باختبار عبور السنة في `services/weather-service/tests/test_et0_reference_and_input_validity.py`.
+
+## 2026-10-18 — دمج `main@44afa75e` في فرع ET0 بالتزام دمج لا بإعادة تأسيس (`f25b7d5f`)
+
+القرار:
+- دُمج `origin/main` (`44afa75e05166843817a539498a8d5b68edc81e1`، ١٣ التزاماً #1198..#1212) في `feat/et0-input-validation-golden-tests` بالتزام الدمج `f25b7d5f14e38e0c771c66a989fe6f0a3296dc5d` فوق `e287338c65021636abdb47015f98f348e07a740e`؛ التزامات الفرع `84d1f9a` و`c4aac9f` و`e287338` لم تُعَد كتابتها.
+- تعارضُ المصدر الوحيد في استيرادات `services/sahool-platform/api/routers/irrigation_recommendation.py:48-55`: main نقل لقطة طقس الحقل إلى `field_irrigation_weather_snapshot` (`services/sahool-platform/api/weather_service_client.py:635`) وأسقط `complete_rain_total`، والفرع أضاف `et0_unavailable_http_exception` (`weather_service_client.py:151`)؛ أُبقي الطرفان.
+- مراسي `docs/architecture/platform_extraction_map.json` (وثيقة سياسة لا يُعيد `--fix` توليدها) حُدِّثت يدويّاً للملفّ المدموج.
+- ٣١ مصنوعةً مولَّدة من جانب main بـ`scripts/ci/resolve_merge_conflicts.py`، و`release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json` من جانب main يدويّاً (المحلّل يقف عنده بوصفه غيرَ مولَّد، ويكتبه `platform_route_release_binding.py --write-source`)، ثمّ `verify_all_generated.py --fix` و`--check` أخضر.
+- مدخلا الفرع في `log.md` و`ledger.md` وُضعا بعد مدخلات main (main أوّلاً، لا سطر مفقود).
+
+السبب:
+- **الدمج لا إعادة التأسيس:** مدخل 2026-10-15 أعلاه وسطرا `log.md` يُحيلان إلى التزامات الفرع؛ إعادة كتابتها تُبطل تلك الإحالات.
+- **مستدعو main الجدد للمسارات الأربعة لا يحتاجون تكييفاً:** المسار اليدويّ الجديد يعود `dependency_unavailable` حين لا ET0 (`irrigation_recommendation.py:586-590`) قبل `build_manual_source` (`:684`)، فلا يُبنى مصدرٌ يدويّ على ET0 مرفوض؛ ولا اختبار في main يتوقّع 503 لمُدخَلٍ رفضه المحرّك — الـ503 في `tests_v9/test_etc_dual_weather.py:110` و`:133` لطقسٍ مفقود في `_resolve_weather` لا لـET0.
+
+## 2026-10-18 — فرع ET0 جاهزٌ لـPR عند `8b247263` — غير مدموج في main، غير منشور، غير مُتحقَّق منه في الإنتاج
+
+القرار:
+- بعد الدمج صار `routers/irrigation_recommendation.py` 813 سطراً (main 789) فسقط `tests/architecture/test_router_size_ratchet.py:34` (السقف 800). في `8b247263b5bedbf22525b5f4c276bda247dcc756` نُقل جسم `dependency_unavailable` لمسار الحقل حين يعيد المحرّك `et0_mm=None` حرفيّاً إلى `et0_unavailable_field_response` (`services/sahool-platform/api/weather_service_client.py:177`) فصار الراوتر 799 سطراً؛ الشاهدان `services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:759` (المسار نفسه، لم يكن مُختبَراً) و`services/sahool-platform/tests/test_weather_et0_client.py:159`. المراسي `docs/architecture/platform_extraction_map.json:4206` ⇒ 220 و`:4216` ⇒ 144.
+- القياس عند `8b247263b5bedbf22525b5f4c276bda247dcc756`: `bash scripts/ci/preflight.sh --full` ⇒ ٤٣ خطوة خضراء، إخفاقات 0، متخطّاة 0، وCapability-Impact المشتقّ: GIS-003,IRR-003,IRR-004,IRR-005,IRR-009,PA-001,SAT-003,SOIL-002,WX-002,WX-003,WX-004,WX-006؛ `pytest -m unit` 9867 ناجحاً و35 متخطّى؛ اختبارات ET0 الثلاثة 139؛ جناح weather-service 403 ناجحاً وواحد متخطّى؛ `services/sahool-platform/tests/test_weather_et0_client.py` 15؛ `tests_v9/test_wofost_hargreaves_matches_canonical.py:48` 10.
+- H4 يبقى `fixed` (لا `verified`).
+
+السبب:
+- **لا رفع للسقف ولا إضافة إلى `FROZEN_OVERSIZE`** (`tests/architecture/test_router_size_ratchet.py:37`: «يُخفَّض عند التقسيم ولا يُرفَع»)، ولا وحدة جديدة؛ والجسم يجاور `et0_unavailable_http_exception` لأنّهما معاً يترجمان «مكسور ≠ عطل» من منتج المحرّك.
+- **الدمج إلى main لا يجعل الفجوة `verified`** (README: الحالة تُقاس عند الـSHA، والدمج مصدرٌ لا حالة). والدفع وفتح الـPR والدمج بعد CI للجلسة الرئيسة بتفويض المالك؛ هذا المدخل لا يدّعي أيّاً منها.

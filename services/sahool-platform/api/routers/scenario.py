@@ -42,7 +42,11 @@ from api.water_twin import (
     delay_irrigation,
     scale_irrigation,
 )
-from api.weather_service_client import get_et0_product, get_gdd_product
+from api.weather_service_client import (
+    et0_unavailable_http_exception,
+    get_et0_product,
+    get_gdd_product,
+)
 
 router = APIRouter()
 
@@ -74,10 +78,7 @@ async def _engine_et0(
         raise
     et0 = prod.get("et0_mm")
     if et0 is None:
-        raise HTTPException(
-            status_code=503,
-            detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
-        )
+        raise et0_unavailable_http_exception(prod)
     return float(et0), str(prod.get("method") or "weather-engine")
 
 
