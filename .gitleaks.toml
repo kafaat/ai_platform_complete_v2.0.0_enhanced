@@ -85,3 +85,10 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/cropwise_review_20261018/source-sha256\.json$''']
 regexes = ['''^5900c2b58897335c6c8a5f29a400250844ba0e6c268c044b63784292c38dd375$''']
+
+[[rules.allowlists]]
+description = "Historical raster_api_models.py SHA-256 in the original #1228 quality evidence, not an API credential"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/cropwise_quality_20261018/source-sha256\.json$''']
+regexes = ['''^8e66134b5ce95bcecedf0a6aa08f380505371bda8483c53de4db26fd08594be7$''']

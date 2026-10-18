@@ -7533,3 +7533,8 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **العلاج المقترح:** إضافة COPY للوحدة، وقبول تشغيل الصورة في وظيفة البناء القائمة، بعقد مستقل للوحدات والمسارات وتبعية Raster متحكم فيها. طفرة تحذف COPY يجب أن تُبنى ثم تُرفض تشغيلياً للسبب المحدد.
 - **حد الإغلاق:** دخول الرقعة إلى main ونجاح قبول الصورة على الرأس المعني يغلق نقص التغليف في الكود؛ قبول نشر Railway يحتاج إيصالاً مستقلاً للصورة والإعداد والبيئة. لا يغلق هذا `RS-WEEKLY-INSIGHTS-DELIVERY-01`، فالحفظ والتسليم خارج هذا الإصلاح.
 - **العقد:** [`runtime_closure_acceptance.md`](../../docs/architecture/runtime_closure_acceptance.md)؛ الاختبار `scripts/ci/vegetation_smoke.py`، والطفرة في `.github/workflows/railway-dockerfile-pr-build.yml`.
+## 2026-10-18 — بصمة دليل Cropwise بعد squash
+
+| ID | العنوان | المجال/الخدمة | المصدر | الحالة |
+|---|---|---|---|---|
+| GITLEAKS-QUALITY-EVIDENCE-DIGEST-FALSE-POSITIVE-01 | فحص push لدمج #1228 يفسّر بصمة الملف التاريخية في دليل quality كاعتماد API؛ استثناء exact-path AND exact-digest لقاعدة generic-api-key وحدها. | CI · evidence | `.gitleaks.toml` · `certification/evidence/cropwise_quality_20261018/README.md` · #1228 | **fixed** محلياً: Gitleaks8.30.1 أحمر قبل التصحيح وأخضر بعده، وحالتا تغيير المسار/البصمة تبقيان حمراوين؛ 8 اختبارات نطاق ناجحة. CI التصحيح غير مقيس بعد؛ لا ادعاء قبول تشغيلي. |
