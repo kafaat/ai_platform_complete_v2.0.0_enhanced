@@ -35,7 +35,7 @@ CEILING = 800
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بـ`wc -l`. **يُخفَّض عند التقسيم ولا يُرفَع.**
 FROZEN_OVERSIZE: dict[str, int] = {
-    "services/sahool-platform/api/routers/fields.py": 4199,
+    "services/sahool-platform/api/routers/fields.py": 4191,
     "services/sahool-platform/api/routers/weather.py": 3022,
     # 1712 → 1675 (#1135) → 1673: date/cloud aggregation moved to raster_available_dates.
     "services/raster-service/routers/fields.py": 1673,
