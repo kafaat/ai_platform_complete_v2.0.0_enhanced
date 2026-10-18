@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "eb493f5c491b42bcf1280e2d82fd7a7350157fb3e2f88813fc46c0f3ccbb7314",
+  "inventory_sha256": "fb8fba3bcca9af95759b39c008b6ae181f0973824437bb9eab7830db7e8e4f79",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "6e79e8588b2bd42033d51d2ffc15a423015b737c0bcf94ed70d31cc6dc6b3f3f",
+  "map_sha256": "46b24caa24279f21ceca634f3e6eaf221f216e623e55c28672e203ff955be29f",
   "routes": [
     {
       "classification": null,
@@ -6357,7 +6357,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/irrigation_recommendation.py",
       "function": "field_irrigation_recommendation",
-      "line": 219,
+      "line": 220,
       "method": "POST",
       "owner": "sahool-platform",
       "owner_type": "bff-decision-candidate",
@@ -6847,7 +6847,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/irrigation_recommendation.py",
       "function": "irrigation_recommendation",
-      "line": 143,
+      "line": 144,
       "method": "POST",
       "owner": "agriai-engine",
       "owner_type": "decision-compute",

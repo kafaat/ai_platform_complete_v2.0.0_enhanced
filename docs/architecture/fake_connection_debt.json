@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "e287338c65021636abdb47015f98f348e07a740e",
+  "measured_on": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
   "fake_connection_tests": [
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",

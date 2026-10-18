@@ -14111,18 +14111,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:219",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:220",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:143",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:144",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:78",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:79",
           "score": 28
         },
         {

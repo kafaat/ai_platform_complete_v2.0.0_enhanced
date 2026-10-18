@@ -675,7 +675,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 524,
+      "evidence_count": 525,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1158,6 +1158,7 @@
         "services/sahool-platform/tests/test_weather_engine_v21_rate_limit_actions.py",
         "services/sahool-platform/tests/test_weather_engine_v22_runtime_contract.py",
         "services/sahool-platform/tests/test_weather_engine_v26_runtime_smoke_assets.py",
+        "services/sahool-platform/tests/test_weather_et0_client.py",
         "services/sahool-platform/tests/test_weather_field_timeline_link.py",
         "services/sahool-platform/tests/test_wind_geometry.py",
         "services/sahool-platform/tests/test_work_order.py",
@@ -2615,7 +2616,7 @@
         "services/sahool-platform/api/routers/fields.py"
       ],
       "source_evidence_count": 631,
-      "target_evidence_count": 524,
+      "target_evidence_count": 525,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2726,7 +2727,7 @@
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
       ],
-      "source_evidence_count": 524,
+      "source_evidence_count": 525,
       "target_evidence_count": 184,
       "static_supported": true,
       "runtime_verified": false
@@ -3025,5 +3026,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "78bb725234432f8b24231eb2138c2ffeb1adc225fa86f625d872316171486670"
+  "content_sha256": "9b53fc65fccccff23ef31096e64cf994b59b99e8b9b8622bab0ae358675ec747"
 }

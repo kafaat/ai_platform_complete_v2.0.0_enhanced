@@ -154,3 +154,25 @@ def test_no_et0_without_rejections_stays_503_fail_closed(prod):
     exc = wsc.et0_unavailable_http_exception(prod)
     assert exc.status_code == 503
     assert "fail-closed" in exc.detail
+
+
+def test_field_response_keeps_the_route_shape_and_names_the_rejection():
+    out = wsc.et0_unavailable_field_response(
+        {"et0_mm": None, "invalid_inputs": ["wind_2m_ms"], "limitations": ["wind rejected"]},
+        "fld_1",
+        "season_2026",
+        {"crop": "wheat"},
+        ["water-ledger:x"],
+        ["state note"],
+    )
+    assert out["status"] == "dependency_unavailable"
+    assert (out["field_id"], out["season_id"], out["inputs"]) == (
+        "fld_1",
+        "season_2026",
+        {"crop": "wheat"},
+    )
+    assert out["recommendation"] is None and out["calibrated"] is False
+    assert out["invalid_inputs"] == ["wind_2m_ms"]
+    assert out["limitations"][0] == "state note"
+    assert out["limitations"][-1] == "wind rejected"
+    assert wsc.et0_unavailable_field_response(None, "f", None, {}, [], [])["invalid_inputs"] == []
