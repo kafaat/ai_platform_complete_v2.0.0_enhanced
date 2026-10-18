@@ -756,7 +756,7 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: {node-version: "22"}
       # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
       # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
@@ -805,7 +805,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: {node-version: "22"}
       # بوّابة QA الوظيفيّة لمحرّك MapLibre/WebGL على Chromium حقيقيّ (SwiftShader).
       # هرمسيّة: لا خلفيّة — التركيبات تُعترَض في طبقة Playwright (e2e/support/seed.ts).
