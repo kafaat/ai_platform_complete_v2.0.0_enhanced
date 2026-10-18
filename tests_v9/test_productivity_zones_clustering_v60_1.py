@@ -72,10 +72,8 @@ def test_propose_uses_clustering_when_grid_present():
     assert all("ndvi_grid_kmeans" in z["drivers"] for z in out["productivity_zones"])
 
 
-def test_propose_falls_back_to_strips_without_grid():
+def test_propose_reports_insufficient_data_without_grid():
     out = PZ.propose_productivity_zones({"bbox": _BBOX, "zone_count": 3}, field_id="f")
-    assert out["method"] in {
-        "multi_index_quantile_zoning_fallback",
-        "geometry_seeded_zoning_fallback",
-    }
-    assert [z["productivity_class"] for z in out["productivity_zones"]] == ["high", "medium", "low"]
+    assert out["method"] == "insufficient_data"
+    assert out["productivity_zones"] == []
+    assert out["confidence"] is None

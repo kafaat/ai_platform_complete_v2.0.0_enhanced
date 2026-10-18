@@ -78,3 +78,10 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/chatgpt_closure_nine_20261016/rag/onnx-experiment-results\.json$''']
 regexes = ['''^d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66$''']
+
+[[rules.allowlists]]
+description = "SHA-256 of raster_api_models.py in the #1228 review evidence, not an API credential"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/cropwise_review_20261018/source-sha256\.json$''']
+regexes = ['''^5900c2b58897335c6c8a5f29a400250844ba0e6c268c044b63784292c38dd375$''']

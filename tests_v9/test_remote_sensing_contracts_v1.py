@@ -147,13 +147,14 @@ def _actual_legacy_observation_builder(monkeypatch, builder, *, measured=False):
 
 
 @pytest.mark.parametrize("builder", ["timeline", "bundle"])
-def test_absent_raster_lineage_preserves_actual_legacy_builder_payload(monkeypatch, builder):
+def test_quality_v2_preserves_absent_lineage_and_unrelated_wire_fields(monkeypatch, builder):
     import json
     from pathlib import Path
 
     observation = _actual_legacy_observation_builder(monkeypatch, builder)
-    # Captured from both real builders at pinned main 6e8cc0f9 with this fixed clock.
-    fixture = Path(__file__).parent / "fixtures/observation_lineage_legacy_payloads.json"
+    # Policy v2 intentionally changes admission, nullable quality and content identity.
+    # Retain the historical v1 fixture separately; freeze this new wire contract.
+    fixture = Path(__file__).parent / "fixtures/observation_quality_v2_payloads.json"
     expected = json.loads(fixture.read_text(encoding="utf-8"))[builder]
     assert observation.model_dump(mode="json") == expected
     assert json.loads(observation.model_dump_json()) == expected
@@ -330,3 +331,19 @@ def test_identifier_and_ownership_invariants():
     data["field_id"] = str(uuid4())
     with pytest.raises(ValidationError):
         CanonicalObservationV1.model_validate(data)
+
+
+def test_published_remote_sensing_schemas_match_runtime_models():
+    import json
+    from pathlib import Path
+
+    import shared.contracts.remote_sensing as contracts
+
+    directory = Path(__file__).resolve().parents[1] / "shared/contracts/remote_sensing/schemas"
+    for path in directory.glob("*.schema.json"):
+        model = getattr(contracts, path.name.removesuffix(".schema.json"))
+        expected = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            **model.model_json_schema(),
+        }
+        assert json.loads(path.read_text(encoding="utf-8")) == expected, path.name

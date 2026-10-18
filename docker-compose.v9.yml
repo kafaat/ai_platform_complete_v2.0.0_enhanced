@@ -1712,6 +1712,7 @@ services:
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       INDICATORS_RUNTIME_MODE: canonical-observation-adapter
+      PLATFORM_API_URL: http://sahool-platform:8000
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       RS_OBSERVATION_POLICY_ID: ${RS_OBSERVATION_POLICY_ID:-NDVI_CURRENT_REAL_ONLY_V1}

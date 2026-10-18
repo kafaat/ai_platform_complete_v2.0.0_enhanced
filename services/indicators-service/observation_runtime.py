@@ -9,6 +9,7 @@ and NATS consumption can be introduced after parity certification.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -29,6 +30,7 @@ from shared.contracts.remote_sensing import (
     QualityPolicyRefV1,
     ValueType,
 )
+from shared.contracts.remote_sensing.admission import POLICY_VERSION, quality_reasons
 from shared.contracts.remote_sensing.observation_v1 import RasterObservationProvenanceV1
 
 RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
@@ -96,19 +98,26 @@ def canonicalize_bundle(
             "ast", tenant_id, field_id, scene_id, indicator_code, acquired.isoformat()
         )
         observation_native = _stable_id(
-            "obs", tenant_id, field_id, season_id, asset_native, indicator_code
+            "obs",
+            tenant_id,
+            field_id,
+            season_id,
+            asset_native,
+            indicator_code,
+            POLICY_VERSION,
+            json.dumps(item, sort_keys=True, separators=(",", ":"), default=str),
         )
         run_native = str(provenance.get("processing_job_id") or _stable_id("run", asset_native))
         input_hash = hashlib.sha256(
-            f"{tenant_id}|{field_id}|{scene_id}|{indicator_code}|{acquired.isoformat()}".encode()
+            json.dumps(item, sort_keys=True, separators=(",", ":"), default=str).encode()
         ).hexdigest()
         output_hash = hashlib.sha256(repr(sorted(stats.items())).encode()).hexdigest()
-        coverage = _to_decimal(item.get("coverage_ratio")) or Decimal("0")
-        valid = _to_decimal(item.get("valid_pixel_ratio")) or Decimal("0")
+        coverage = _to_decimal(item.get("coverage_ratio"))
+        valid = _to_decimal(item.get("valid_pixel_ratio"))
         cloud = _to_decimal(item.get("cloud_cover"))
         if cloud is None:
             pct = _to_decimal(item.get("cloud_pct"))
-            cloud = (pct / Decimal("100")) if pct is not None else Decimal("0")
+            cloud = (pct / Decimal("100")) if pct is not None else None
         score = _to_decimal(product.get("quality_score", item.get("confidence")))
         raster_provenance = None
         if (
@@ -142,8 +151,19 @@ def canonicalize_bundle(
                     product["data_available_at"].replace("Z", "+00:00")
                 ),
             )
+        admission_reasons = quality_reasons(
+            {
+                "field_coverage_ratio": coverage,
+                "valid_pixel_ratio": valid,
+                "field_cloud_ratio": cloud,
+            }
+        )
         gate = (
-            QualityGateStatus.PASSED if bool(item.get("real_data")) else QualityGateStatus.REJECTED
+            QualityGateStatus.NOT_EVALUATED
+            if any(code.endswith("unavailable") for code in admission_reasons)
+            else QualityGateStatus.PASSED
+            if bool(item.get("real_data")) and not admission_reasons
+            else QualityGateStatus.REJECTED
         )
         output.append(
             CanonicalObservationV1(
@@ -175,23 +195,25 @@ def canonicalize_bundle(
                     gate_status=gate,
                     policy=QualityPolicyRefV1(
                         policy_id=DEFAULT_POLICY_ID,
-                        policy_version="1.0.0",
+                        policy_version=POLICY_VERSION,
                         policy_hash=hashlib.sha256(
-                            f"{DEFAULT_POLICY_ID}|1.0.0|anomaly_detection".encode()
+                            f"{DEFAULT_POLICY_ID}|{POLICY_VERSION}|anomaly_detection".encode()
                         ).hexdigest(),
                         use_case="anomaly_detection",
                     ),
                     field_coverage_ratio=coverage,
                     valid_pixel_ratio=valid,
                     field_cloud_ratio=cloud,
-                    field_shadow_ratio=Decimal("0"),
+                    field_shadow_ratio=_to_decimal(item.get("shadow_ratio")),
                     indicator_in_range=True,
                     score=score,
-                    reason_codes=tuple(item.get("index_quality_flags") or ()),
+                    reason_codes=tuple(item.get("index_quality_flags") or ()) + admission_reasons,
                 ),
                 uncertainty=ObservationUncertaintyV1(
                     method="quality-propagation-v1",
-                    confidence=score if score is not None else valid,
+                    confidence=score
+                    if score is not None
+                    else (valid if valid is not None else Decimal("0")),
                 ),
                 lineage=ObservationLineageV1(
                     asset_ref=f"urn:sahool:raster-asset:{asset_native}",

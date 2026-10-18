@@ -126,7 +126,7 @@ def catalogue_evidence(scenes, max_cloud_pct) -> str:
     for scene in scenes:
         props = scene.get("properties") if isinstance(scene, dict) else None
         raw = props.get("eo:cloud_cover") if isinstance(props, dict) else None
-        if type(raw) in (int, float) and math.isfinite(raw):
+        if type(raw) in (int, float) and math.isfinite(raw) and 0 <= raw <= 100:
             within += raw <= max_cloud_pct
         else:
             unknown += 1

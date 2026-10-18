@@ -177,6 +177,7 @@ vegetation-analysis-service,decision-service,code-reference,services/vegetation-
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/anomalies.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/baselines.py
+vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/insights.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/main.py
 vegetation-analysis-service,raster-service,code-reference,services/vegetation-analysis-service/post_execution_bridge.py

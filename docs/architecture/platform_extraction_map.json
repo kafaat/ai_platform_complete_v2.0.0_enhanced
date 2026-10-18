@@ -3833,7 +3833,7 @@
       "function": "field_indicator_observations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
-      "line": 167,
+      "line": 170,
       "target_owner": "indicators-service",
       "owner_type": "bff-facade-to-indicators",
       "route_key": "api/routers/indicators.py::GET /api/v1/fields/{field_id}/indicator-observations/{view}::field_indicator_observations"

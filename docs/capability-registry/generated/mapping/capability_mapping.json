@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6049,
+    "files_scanned": 6062,
     "files_by_kind": {
-      "backend": 1234,
+      "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1942,
-      "tests": 1978,
-      "web": 471
+      "other": 1950,
+      "tests": 1979,
+      "web": 472
     },
-    "unmapped_artifacts": 2314,
+    "unmapped_artifacts": 2315,
     "ambiguous_artifacts": 470
   },
   "capabilities": [
@@ -10320,7 +10320,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:167",
+          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:170",
           "score": 12
         },
         {
@@ -10928,27 +10928,27 @@
           "score": 18
         },
         {
-          "value": "/v1/cog/validate @ services/raster-service/routers/analysis.py:152",
+          "value": "/v1/cog/validate @ services/raster-service/routers/analysis.py:165",
           "score": 18
         },
         {
-          "value": "/v1/fvc/compute @ services/raster-service/routers/analysis.py:84",
+          "value": "/v1/fvc/compute @ services/raster-service/routers/analysis.py:97",
           "score": 18
         },
         {
-          "value": "/v1/salinity/calibrate @ services/raster-service/routers/analysis.py:174",
+          "value": "/v1/salinity/calibrate @ services/raster-service/routers/analysis.py:187",
           "score": 18
         },
         {
-          "value": "/v1/salinity/classify @ services/raster-service/routers/analysis.py:167",
+          "value": "/v1/salinity/classify @ services/raster-service/routers/analysis.py:180",
           "score": 18
         },
         {
-          "value": "/v1/sar/rvi @ services/raster-service/routers/analysis.py:110",
+          "value": "/v1/sar/rvi @ services/raster-service/routers/analysis.py:123",
           "score": 18
         },
         {
-          "value": "/v1/terrain/slope @ services/raster-service/routers/analysis.py:134",
+          "value": "/v1/terrain/slope @ services/raster-service/routers/analysis.py:147",
           "score": 18
         },
         {
@@ -15316,6 +15316,16 @@
           ]
         },
         {
+          "path": "services/vegetation-analysis-service/scouting_evaluation.py",
+          "score": 26,
+          "signals": [
+            "path:Scouting",
+            "content:Scouting",
+            "path:scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/districts/central_highlands.yaml",
           "score": 12,
           "signals": [
@@ -15348,6 +15358,14 @@
           ]
         },
         {
+          "path": "services/vegetation-analysis-service/routers/anomalies.py",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/disease_diagnosis.py",
           "score": 8,
           "signals": [
@@ -15357,14 +15375,6 @@
         },
         {
           "path": "services/sahool-platform/api/field_timeline.py",
-          "score": 8,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
-          "path": "services/vegetation-analysis-service/routers/anomalies.py",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -15382,24 +15392,24 @@
           "score": 28
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/transition @ services/vegetation-analysis-service/routers/anomalies.py:136",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/transition @ services/vegetation-analysis-service/routers/anomalies.py:160",
+          "score": 10
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/verification-requests @ services/vegetation-analysis-service/routers/anomalies.py:160",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/verification-requests @ services/vegetation-analysis-service/routers/anomalies.py:184",
+          "score": 10
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/verification-results @ services/vegetation-analysis-service/routers/anomalies.py:194",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/verification-results @ services/vegetation-analysis-service/routers/anomalies.py:218",
+          "score": 10
         },
         {
-          "value": "/v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:122",
-          "score": 8
+          "value": "/v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:146",
+          "score": 10
         },
         {
-          "value": "/v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:65",
-          "score": 8
+          "value": "/v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:68",
+          "score": 10
         }
       ],
       "database": [
@@ -15860,6 +15870,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_cropwise_evidence_quality.py",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "tests_v9/test_live_pg_fake_connection_debt.py",
           "score": 12,
           "signals": [
@@ -16084,13 +16102,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 9,
+        "backend": 10,
         "routes": 7,
         "database": 7,
         "events": 45,
         "web": 22,
         "mobile": 1,
-        "tests": 19,
+        "tests": 20,
         "governance": 0,
         "other_evidence": 12
       },
@@ -18684,11 +18702,11 @@
           "score": 9
         },
         {
-          "value": "sahool.rs.asset.persisted.v1 @ tests_v9/test_remote_sensing_contracts_v1.py:269",
+          "value": "sahool.rs.asset.persisted.v1 @ tests_v9/test_remote_sensing_contracts_v1.py:270",
           "score": 9
         },
         {
-          "value": "sahool.rs.observation.published.v1 @ tests_v9/test_remote_sensing_contracts_v1.py:266",
+          "value": "sahool.rs.observation.published.v1 @ tests_v9/test_remote_sensing_contracts_v1.py:267",
           "score": 9
         },
         {
@@ -19495,6 +19513,14 @@
           ]
         },
         {
+          "path": "certification/evidence/cropwise_quality_20261018/cdse-integration-source-sha256.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
           "path": "docs/audits/branch_archive_20261012/branches_20261012.md",
           "score": 14,
           "signals": [
@@ -19603,6 +19629,14 @@
         },
         {
           "path": "docs/audits/RIV_THREE_CONTAINERS_FINAL_BOUNDARY_COMPLETION_20260712.md",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
+          "path": "docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md",
           "score": 12,
           "signals": [
             "content:cdse",
@@ -19922,7 +19956,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 82
+        "other_evidence": 84
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -20694,6 +20728,14 @@
           ]
         },
         {
+          "path": "services/indicators-service/observation_timeline.py",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/raster-service/band_math.py",
           "score": 10,
           "signals": [
@@ -20815,14 +20857,6 @@
         },
         {
           "path": "services/ai_agronomist/tool_governance.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/decision-service/eligibility_policy.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -21036,7 +21070,7 @@
           "score": 10
         },
         {
-          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:167",
+          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:170",
           "score": 10
         },
         {
@@ -21084,7 +21118,7 @@
           "score": 10
         },
         {
-          "value": "/ @ services/indicators-service/main.py:165",
+          "value": "/ @ services/indicators-service/main.py:166",
           "score": 8
         },
         {
@@ -21104,19 +21138,19 @@
           "score": 8
         },
         {
-          "value": "/capabilities @ services/indicators-service/main.py:112",
+          "value": "/capabilities @ services/indicators-service/main.py:113",
           "score": 8
         },
         {
-          "value": "/contract @ services/indicators-service/main.py:135",
+          "value": "/contract @ services/indicators-service/main.py:136",
           "score": 8
         },
         {
-          "value": "/health @ services/indicators-service/main.py:67",
+          "value": "/health @ services/indicators-service/main.py:68",
           "score": 8
         },
         {
-          "value": "/healthz @ services/indicators-service/main.py:62",
+          "value": "/healthz @ services/indicators-service/main.py:63",
           "score": 8
         },
         {
@@ -21136,11 +21170,11 @@
           "score": 8
         },
         {
-          "value": "/metrics @ services/indicators-service/main.py:72",
+          "value": "/metrics @ services/indicators-service/main.py:73",
           "score": 8
         },
         {
-          "value": "/readyz @ services/indicators-service/main.py:83",
+          "value": "/readyz @ services/indicators-service/main.py:84",
           "score": 8
         },
         {
@@ -21148,11 +21182,11 @@
           "score": 8
         },
         {
-          "value": "/v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:206",
+          "value": "/v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:207",
           "score": 8
         },
         {
-          "value": "/v1/fields/{field_id}/observations @ services/indicators-service/main.py:175",
+          "value": "/v1/fields/{field_id}/observations @ services/indicators-service/main.py:176",
           "score": 8
         },
         {
@@ -21168,15 +21202,15 @@
           "score": 8
         },
         {
-          "value": "/v1/indicators/catalog @ services/indicators-service/main.py:102",
+          "value": "/v1/indicators/catalog @ services/indicators-service/main.py:103",
           "score": 8
         },
         {
-          "value": "/v1/indicators/compute @ services/indicators-service/main.py:157",
+          "value": "/v1/indicators/compute @ services/indicators-service/main.py:158",
           "score": 8
         },
         {
-          "value": "/v1/indicators/ownership @ services/indicators-service/main.py:97",
+          "value": "/v1/indicators/ownership @ services/indicators-service/main.py:98",
           "score": 8
         },
         {
@@ -23058,7 +23092,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+          "path": "tests_v9/test_cropwise_evidence_quality.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -23528,6 +23562,14 @@
           ]
         },
         {
+          "path": "tests_v9/fixtures/observation_quality_v2_payloads.json",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
           "score": 12,
           "signals": [
@@ -23877,9 +23919,9 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "backend": 24,
-        "events": 59,
-        "tests": 83
+        "backend": 26,
+        "events": 60,
+        "tests": 84
       },
       "evidence_counts": {
         "backend": 100,
@@ -23890,7 +23932,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 99
+        "other_evidence": 100
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -31457,15 +31499,6 @@
           ]
         },
         {
-          "path": "services/ai_agronomist/productivity_zones.py",
-          "score": 16,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
           "path": "services/raster-service/routers/soil_tiles.py",
           "score": 16,
           "signals": [
@@ -32106,7 +32139,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 14,
+        "backend": 13,
         "routes": 35,
         "database": 11,
         "events": 8,
@@ -39271,6 +39304,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/maphub/ProductivityZonesPanel.test.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
       "kind": "web"
     },
@@ -41732,10 +41769,6 @@
     },
     {
       "path": "services/indicators-service/observation_runtime.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/indicators-service/observation_timeline.py",
       "kind": "backend"
     },
     {
@@ -45348,6 +45381,10 @@
     },
     {
       "path": "services/vegetation-analysis-service/routers/health.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/vegetation-analysis-service/routers/insights.py",
       "kind": "backend"
     },
     {
@@ -53201,30 +53238,6 @@
       ]
     },
     {
-      "path": "services/ai_agronomist/productivity_zones.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "PA-001",
-          "score": 17,
-          "signals": [
-            "content:management zone",
-            "path:productivity zone",
-            "content:productivity zone"
-          ]
-        },
-        {
-          "capability_id": "SOIL-002",
-          "score": 16,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        }
-      ]
-    },
-    {
       "path": "services/ai_agronomist/provider_tooling.py",
       "kind": "backend",
       "candidates": [
@@ -58741,6 +58754,28 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_cropwise_evidence_quality.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "OPS-003",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
           ]
         }
       ]

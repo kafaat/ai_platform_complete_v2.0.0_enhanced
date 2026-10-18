@@ -158,11 +158,13 @@ class RemoteSensingSkill:
                     "index": "ndvi|ndmi|salinity",
                     "date_before": "YYYY-MM-DD",
                     "date_after": "YYYY-MM-DD",
-                    "grid_before": "شبكة المؤشّر للتاريخ الأقدم (من /v1/process)",
-                    "grid_after": "شبكة المؤشّر للتاريخ الأحدث (من /v1/process)",
+                    "grid_before": "grid من مسار indicator-grid المصادق للحقل والتاريخ الأقدم",
+                    "grid_before_identity": "grid_identity من استجابة indicator-grid نفسها؛ لا تُختلق عند غيابها",
+                    "grid_after_identity": "هوية مكانية مطابقة للشبكة الأولى؛ اختلافها يرفض المقارنة",
+                    "grid_after": "grid من مسار indicator-grid المصادق للحقل والتاريخ الأحدث",
                 },
                 "recommendation": (
-                    "احسب شبكتي المؤشّر للتاريخين عبر /v1/process ثمّ استدعِ "
+                    "اجلب شبكتي المؤشر وgrid_identity من indicator-grid للحقل والتاريخين ثم استدعِ "
                     "/v1/change/detect للحصول على خريطة فرق بكسل-بكسل ونسب المساحة "
                     "المتدهورة (تكشف الرقع الموضعيّة التي يُخفيها المتوسّط الزمني)."
                 ),

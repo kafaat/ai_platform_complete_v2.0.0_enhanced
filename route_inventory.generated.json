@@ -1250,7 +1250,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 63,
+    "line": 64,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1258,7 +1258,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 68,
+    "line": 69,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1266,7 +1266,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 73,
+    "line": 74,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1274,7 +1274,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 84,
+    "line": 85,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -1282,7 +1282,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 98,
+    "line": 99,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "function": "ownership"
@@ -1290,7 +1290,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 103,
+    "line": 104,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "function": "catalog"
@@ -1298,7 +1298,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 113,
+    "line": 114,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1306,7 +1306,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 136,
+    "line": 137,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1314,7 +1314,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 158,
+    "line": 159,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "function": "compute_indicator"
@@ -1322,7 +1322,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 166,
+    "line": 167,
     "method": "GET",
     "path": "/",
     "function": "root"
@@ -1330,7 +1330,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 176,
+    "line": 177,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observations",
     "function": "field_observations"
@@ -1338,7 +1338,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 207,
+    "line": 208,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observation-timeline",
     "function": "observation_timeline"
@@ -1866,7 +1866,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 85,
+    "line": 98,
     "method": "POST",
     "path": "/v1/fvc/compute",
     "function": "fvc_compute"
@@ -1874,7 +1874,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 111,
+    "line": 124,
     "method": "POST",
     "path": "/v1/sar/rvi",
     "function": "sar_rvi_endpoint"
@@ -1882,7 +1882,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 135,
+    "line": 148,
     "method": "POST",
     "path": "/v1/terrain/slope",
     "function": "terrain_slope"
@@ -1890,7 +1890,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 153,
+    "line": 166,
     "method": "GET",
     "path": "/v1/cog/validate",
     "function": "cog_validate"
@@ -1898,7 +1898,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 168,
+    "line": 181,
     "method": "POST",
     "path": "/v1/salinity/classify",
     "function": "salinity_classify"
@@ -1906,7 +1906,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
-    "line": 175,
+    "line": 188,
     "method": "POST",
     "path": "/v1/salinity/calibrate",
     "function": "salinity_calibrate"
@@ -5642,7 +5642,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/indicators.py",
-    "line": 168,
+    "line": 171,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
     "function": "field_indicator_observations"
@@ -8570,7 +8570,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 66,
+    "line": 69,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "function": "detect_signal_anomalies"
@@ -8578,7 +8578,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 123,
+    "line": 147,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "function": "list_signal_anomalies"
@@ -8586,7 +8586,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 137,
+    "line": 161,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "function": "transition_anomaly"
@@ -8594,7 +8594,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 161,
+    "line": 185,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "function": "request_ground_verification"
@@ -8602,7 +8602,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 195,
+    "line": 219,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "function": "accept_verification_result"
@@ -8610,7 +8610,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/baselines.py",
-    "line": 30,
+    "line": 35,
     "method": "POST",
     "path": "/v1/fields/{field_id}/baseline-comparisons",
     "function": "baseline_comparisons"
@@ -8662,6 +8662,14 @@
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/insights.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/reports/weekly-field-insights",
+    "function": "weekly_field_insights"
   },
   {
     "service": "vegetation-analysis-service",

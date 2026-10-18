@@ -36,6 +36,27 @@ class AnomalyNotFound(KeyError):
     pass
 
 
+def validate_transition(current: str, new_status: str, payload: dict, patch: dict | None) -> None:
+    """Allow one metadata-only recovery of a legacy confirmed aggregate.
+
+    The trusted task callback supplies the original metadata; no status or
+    evidence reference can be replaced during recovery. Both stores use this.
+    """
+    if current == new_status == "confirmed":
+        patch = patch or {}
+        evidence = patch.get("verification_evidence") or []
+        if (
+            not payload.get("verification_evidence")
+            and evidence
+            and set(patch) == {"verification_evidence", "verification_metadata_recovered_at"}
+            and {e.get("evidence_ref") for e in evidence}
+            == set(payload.get("verification_evidence_refs") or [])
+        ):
+            return
+    if new_status not in _ALLOWED_TRANSITIONS.get(current, set()):
+        raise InvalidTransition(f"invalid_transition:{current}->{new_status}")
+
+
 class AnomalyStore:
     def __init__(self, path: str | None = None) -> None:
         self.path = path or os.getenv("VEGETATION_ANOMALY_DB_PATH", "/tmp/sahool-anomalies.db")
@@ -147,9 +168,8 @@ class AnomalyStore:
             current = str(row["status"])
             if int(row["version"]) != expected_version:
                 raise InvalidTransition("aggregate_version_conflict")
-            if new_status not in _ALLOWED_TRANSITIONS.get(current, set()):
-                raise InvalidTransition(f"invalid_transition:{current}->{new_status}")
             payload = json.loads(row["payload_json"])
+            validate_transition(current, new_status, payload, patch)
             payload.update(patch or {})
             payload["status"] = new_status
             payload["updated_at"] = datetime.now(UTC).isoformat()

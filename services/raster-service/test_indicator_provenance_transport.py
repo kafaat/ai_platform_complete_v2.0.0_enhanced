@@ -404,3 +404,74 @@ def test_legacy_created_at_is_not_availability_of_replaced_cog(tmp_path):
         SimpleNamespace(to_gdal_path=lambda x: x),
     )
     assert result["indicator_product"].get("data_available_at") is None
+
+
+def test_real_cog_grid_supplies_change_identity_and_legacy_is_explicit(tmp_path, monkeypatch):
+    import pytest
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from raster_api_models import ChangeDetectRequest
+    from routers import analysis
+
+    path = tmp_path / "aligned.tif"
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        height=5,
+        width=7,
+        count=1,
+        dtype="float32",
+        crs="EPSG:32638",
+        transform=from_origin(400000, 1600000, 10, 10),
+    ) as dst:
+        dst.write(np.full((5, 7), 0.6, dtype="float32"), 1)
+    layer = {"cog_url": str(path), "field_id": "fld_1", "geometry_revision": 3}
+    product = layer_lookup.grid_from_cog(
+        layer, "ndvi", "2026-07-01", 2, SimpleNamespace(to_gdal_path=lambda p: p)
+    )
+    ident = product["grid_identity"]
+    assert ident == {
+        "crs": "EPSG:32638",
+        "transform": [35.0, 0.0, 400000.0, 0.0, -25.0, 1600000.0],
+        "geometry_revision": 3,
+        "rows": 2,
+        "cols": 2,
+    }
+    data = dict(
+        field_id="fld_1",
+        date_before="2026-07-01",
+        date_after="2026-07-03",
+        grid_before=product["grid"],
+        grid_after=[[0.3, 0.3], [0.3, 0.3]],
+    )
+    monkeypatch.setattr(analysis, "AGENT_TOKEN", "grid-test-token")
+    app = FastAPI()
+    app.include_router(analysis.router)
+    client = TestClient(app)
+    headers = {"X-Agent-Token": "grid-test-token"}
+    legacy = client.post("/v1/change/detect", headers=headers, json=data)
+    assert legacy.status_code == 200, legacy.text
+    assert legacy.json()["status"] == "not_assessable"
+    assert legacy.json()["change_grid"] is None
+    response = client.post(
+        "/v1/change/detect",
+        headers=headers,
+        json={**data, "grid_before_identity": ident, "grid_after_identity": ident},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "assessed"
+    assert response.json()["degraded_pct"] == 100
+    with pytest.raises(ValueError, match="spatial_identity_mismatch"):
+        ChangeDetectRequest(
+            **data,
+            grid_before_identity=ident,
+            grid_after_identity={**ident, "geometry_revision": 4},
+        )
+    layer.pop("geometry_revision")
+    assert (
+        layer_lookup.grid_from_cog(
+            layer, "ndvi", "2026-07-01", 2, SimpleNamespace(to_gdal_path=lambda p: p)
+        )["grid_identity"]
+        is None
+    )

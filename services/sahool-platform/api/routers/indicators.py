@@ -18,7 +18,7 @@ from typing import Any, Literal
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from api.analytics_shapers import (
     _shape_indicator_catalog,
@@ -146,14 +146,17 @@ def _upstream_detail(resp: httpx.Response) -> Any:
 
 
 async def _indicators_get_json(
-    path: str, *, tenant_id: str, params: dict[str, str]
+    path: str, *, tenant_id: str, params: dict[str, str], authorization: str | None = None
 ) -> dict[str, Any]:
     """GET من indicators-service بنمط ``raster_service_client``: ``HTTPError`` ⇒ 502،
     وردٌّ ≥400 يُمرَّر برمزه وتفصيله (424 «لا مشاهدة حقيقيّة» يبقى 424 لا يُلفَّق)."""
     url = f"{indicators_service_url()}/{path.lstrip('/')}"
+    headers = {"X-Tenant-Id": tenant_id}
+    if authorization:
+        headers["Authorization"] = authorization
     try:
         async with httpx.AsyncClient(timeout=_INDICATORS_TIMEOUT_S) as client:
-            resp = await client.get(url, params=params, headers={"X-Tenant-Id": tenant_id})
+            resp = await client.get(url, params=params, headers=headers)
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=502, detail=f"indicators-service غير متاح: {type(exc).__name__}"
@@ -166,6 +169,7 @@ async def _indicators_get_json(
 
 @router.get("/api/v1/fields/{field_id}/indicator-observations/{view}")
 async def field_indicator_observations(
+    request: Request,
     field_id: str,
     view: IndicatorObservationView,
     season_id: str = Query(..., min_length=1),
@@ -189,5 +193,6 @@ async def field_indicator_observations(
         # الملكيّةُ فُحِصت أعلاه؛ والترميزُ يمنع مع ذلك أن يصير المعرّفُ مقطعَ مسارٍ آخر.
         _VIEW_PATHS[view].format(field_id=quote(field_id, safe="")),
         tenant_id=str(user.tenant_id),
+        authorization=request.headers.get("authorization"),
         params={"season_id": season_id, "indicators": indicators},
     )

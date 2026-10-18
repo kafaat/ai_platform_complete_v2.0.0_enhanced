@@ -952,6 +952,7 @@
         "total": 7
       },
       "configuration": [
+        "PLATFORM_API_URL",
         "RASTER_SERVICE_URL",
         "RS_OBSERVATION_POLICY_ID",
         "RS_TIMELINE_POLICY_ID",
@@ -1614,6 +1615,7 @@
           "services/raster-service/test_db_rehydrate.py",
           "services/raster-service/test_enterprise_imagery_best_practices.py",
           "services/raster-service/test_historical_backfill.py",
+          "services/raster-service/test_indicator_provenance_transport.py",
           "services/raster-service/test_p2_tile_observability_static.py",
           "services/raster-service/test_stac_vrt.py",
           "services/raster-service/test_tile_tenant_query.py",
@@ -2199,6 +2201,7 @@
           "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
           "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
           "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py",
+          "services/sahool-platform/tests/test_indicator_observations_route.py",
           "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_me_ai_policy_envelope.py",
@@ -2779,6 +2782,7 @@
           "services/vegetation-analysis-service/routers/baselines.py",
           "services/vegetation-analysis-service/routers/diagnoses.py",
           "services/vegetation-analysis-service/routers/health.py",
+          "services/vegetation-analysis-service/routers/insights.py",
           "services/vegetation-analysis-service/routers/outcomes.py",
           "services/vegetation-analysis-service/test_production_truth_closure.py"
         ],

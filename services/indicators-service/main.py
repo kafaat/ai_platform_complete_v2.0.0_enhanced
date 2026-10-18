@@ -15,13 +15,14 @@ import sys
 from pathlib import Path
 from uuid import UUID
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
 
 _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 from observation_runtime import fetch_canonical_observations  # noqa: E402
-from observation_timeline import fetch_canonical_timeline  # noqa: E402
+from observation_timeline import TimelineSourceError, fetch_canonical_timeline  # noqa: E402
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
 
@@ -208,23 +209,35 @@ async def observation_timeline(
     field_id: str,
     season_id: str = Query(..., min_length=1),
     indicators: str = Query("ndvi"),
+    authorization: str | None = Header(None, alias="Authorization"),
     x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
 ):
     try:
         tenant_id = UUID(x_tenant_id)
     except ValueError as exc:
         raise HTTPException(400, "invalid X-Tenant-Id") from exc
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "season context requires bearer authorization")
     requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
     try:
         entries = await fetch_canonical_timeline(
-            field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
+            field_id=field_id,
+            tenant_id=tenant_id,
+            season_id=season_id,
+            indicators=requested,
+            authorization=authorization,
         )
+    except TimelineSourceError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code
+        raise HTTPException(
+            status if status in {401, 403, 404} else 424, "canonical timeline source unavailable"
+        ) from exc
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
     except Exception as exc:
         raise HTTPException(424, "canonical raster timeline unavailable") from exc
-    if not entries:
-        raise HTTPException(424, "no real canonical timeline available")
     latest = {}
     for item in entries:
         code = item.indicator.code
@@ -238,4 +251,5 @@ async def observation_timeline(
         "source": "indicators-service",
         "canonical": True,
         "supersession_projected": True,
+        "evaluation_status": "available" if entries else "insufficient_history",
     }

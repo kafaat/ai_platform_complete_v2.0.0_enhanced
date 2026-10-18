@@ -14776,6 +14776,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "vegetation-analysis-service.reports.weekly-field-insights",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/reports/weekly-field-insights"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "vegetation-analysis-service",
+      "producer": "vegetation-analysis-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "vegetation-analysis-service.timeseries.field_id",
       "consumers": [
         "frontend"
@@ -16040,7 +16057,8 @@
       },
       "consumes": {
         "services": [
-          "raster-service"
+          "raster-service",
+          "sahool-platform"
         ]
       },
       "deployment_units": [
@@ -17569,7 +17587,7 @@
   ],
   "counts": {
     "backend_components": 31,
-    "capabilities": 834,
+    "capabilities": 835,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 62,
@@ -17580,9 +17598,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1126,
+    "route_rows": 1127,
     "ui_waivers": 53,
-    "unique_method_path": 1007
+    "unique_method_path": 1008
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17842,7 +17860,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "7aa09df0bdfd5bdc3db28c243e817ae569430967eb85ab91cf56343f266ab799",
+  "fingerprint": "14aef146203267e9e5897c8317a770fad4c357aea622233757359822d3ff9c44",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17892,11 +17910,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 875,
+      "edge_count": 876,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 44,
+        "CALLS": 45,
         "CONSUMES": 3,
         "EMITS": 1,
         "READS": 448,

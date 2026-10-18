@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1968**
-- FastAPI-style route handlers: **1061**
-- Static function-call edges: **86318**
-- Dead-code candidates: **646**
+- Python files parsed: **1972**
+- FastAPI-style route handlers: **1062**
+- Static function-call edges: **86672**
+- Dead-code candidates: **648**
 - Duplicate function groups: **57**
 - Automatic deletions: **0**
 
@@ -15,6 +15,7 @@
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
+| `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 153 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |

@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 166,
+          "line": 167,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 113,
+          "line": 114,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 136,
+          "line": 137,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -134,7 +134,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 68,
+          "line": 69,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/health",
@@ -317,7 +317,7 @@
         },
         {
           "function": "healthz",
-          "line": 63,
+          "line": 64,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/healthz",
@@ -524,7 +524,7 @@
         },
         {
           "function": "metrics",
-          "line": 73,
+          "line": 74,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/metrics",
@@ -683,7 +683,7 @@
         },
         {
           "function": "ready",
-          "line": 84,
+          "line": 85,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/readyz",
@@ -1182,8 +1182,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1109,
-  "route_inventory_sha256": "b61ad9cc907bd3c051caf6c728038f162622e318ec7a51d390674aadf8ba5b02",
+  "route_count": 1110,
+  "route_inventory_sha256": "b44539fc6581dece64408093b3e0e7dd2585989cb6607b5c0814ffeb33756c91",
   "runtime_verified": false,
   "schema_version": 1
 }

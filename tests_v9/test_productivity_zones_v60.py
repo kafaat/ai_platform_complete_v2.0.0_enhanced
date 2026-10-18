@@ -18,7 +18,7 @@ from services.ai_agronomist.productivity_zones import propose_productivity_zones
 from shared.ai import tool_schema as SCH  # noqa: E402
 
 
-def test_generate_productivity_zones_proposes_three_confirmable_zones():
+def test_timeline_counts_without_pixels_do_not_fabricate_zones():
     out = propose_productivity_zones(
         {
             "bbox": [44.18, 16.16, 44.21, 16.18],
@@ -36,11 +36,10 @@ def test_generate_productivity_zones_proposes_three_confirmable_zones():
 
     assert out["requires_user_confirmation"] is True
     assert out["persistence"] == "proposal_only_until_user_confirms"
-    assert out["next_step"] == "v61_soil_sampling_planner"
-    zones = out["productivity_zones"]
-    assert [z["productivity_class"] for z in zones] == ["high", "medium", "low"]
-    assert all(z["geometry"]["type"] == "Polygon" for z in zones)
-    assert zones[0]["confidence"] >= 0.7
+    assert out["next_step"] == "acquire_valid_indicator_grid"
+    assert out["status"] == "insufficient_data"
+    assert out["productivity_zones"] == []
+    assert out["confidence"] is None
 
 
 def test_productivity_zones_fail_closed_without_boundary_or_bbox():

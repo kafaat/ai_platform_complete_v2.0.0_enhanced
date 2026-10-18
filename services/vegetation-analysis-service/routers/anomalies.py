@@ -5,8 +5,9 @@ from __future__ import annotations
 import hashlib
 import os
 import secrets
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 import main
@@ -36,9 +37,9 @@ async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.get(
-                f"{baseline_router.INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observation-timeline",
+                f"{baseline_router.INDICATORS_SERVICE_URL}/v1/fields/{quote(field_id, safe='')}/observation-timeline",
                 params={"season_id": request.season_id, "indicators": request.indicator},
-                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token}"},
+                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token.credentials}"},
             )
         if response.status_code != 200:
             raise HTTPException(424, "canonical observation timeline unavailable")
@@ -58,6 +59,8 @@ async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[
             current_stage=request.current_stage,
             stage_by_observation=request.stage_by_observation,
             max_history=request.max_history,
+            max_gap_days=request.max_gap_days,
+            as_of=datetime.now(UTC),
         )
     ]
 
@@ -79,6 +82,7 @@ async def detect_signal_anomalies(
         min_deviation_percent=request.min_deviation_percent,
     )
     created = []
+    existing = await _store.list(tenant_id, field_id, request.season_id) if signals else []
     for signal in signals:
         payload = {
             **signal.to_dict(),
@@ -87,10 +91,29 @@ async def detect_signal_anomalies(
             "season_id": request.season_id,
             "geometry_ref": None,
             "status": "detected",
-            "detector_model_ref": "urn:sahool:model:signal_detector_v1",
+            "detector_model_ref": "urn:sahool:model:signal_detector_v2",
         }
-        record = await _store.upsert_detected(payload)
-        if request.auto_request_verification and signal.verification_requirement == "required":
+        # A baseline policy upgrade may select a different reference for the
+        # same acquisition/direction. Reuse its tenant-scoped lifecycle rather
+        # than duplicating already requested/confirmed scouting work.
+        record = next(
+            (
+                item
+                for item in existing
+                if item["payload"].get("primary_observation_ref") == signal.primary_observation_ref
+                and item["payload"].get("signal_type") == signal.signal_type
+            ),
+            None,
+        )
+        if record is None:
+            record = await _store.upsert_detected(payload)
+        record["current_evaluation"] = {**signal.to_dict(), "anomaly_ref": record["anomaly_ref"]}
+        if (
+            request.auto_request_verification
+            and signal.verification_requirement == "required"
+            and record["status"] in {"detected", "triaged"}
+            and not record.get("task_ref")
+        ):
             try:
                 key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
                 task = await _bridge.create_scouting_task(
@@ -114,6 +137,7 @@ async def detect_signal_anomalies(
         "season_id": request.season_id,
         "indicator": request.indicator,
         "anomalies": created,
+        "evaluation_status": "assessed" if comparisons else "insufficient_qualified_history",
         "signal_only": True,
         "diagnosis_emitted": False,
     }
@@ -209,12 +233,43 @@ async def accept_verification_result(
             raise AnomalyNotFound(anomaly_ref)
         if record.get("task_ref") and record["task_ref"] != request.task_ref:
             raise InvalidTransition("verification_task_ref_mismatch")
+        if any(str(e.tenant_id) != tenant_id for e in request.evidence):
+            raise HTTPException(403, "verification_evidence_tenant_mismatch")
         patch = {
+            "verification_evidence": [e.model_dump(mode="json") for e in request.evidence],
             "verification_result": request.verification_result,
             "verification_evidence_refs": request.evidence_refs,
             "disposition_reason_codes": request.reason_codes,
             "verification_completed_at": request.completed_at.astimezone(UTC).isoformat(),
         }
+        if record["status"] == request.verification_result == "confirmed":
+            previous = record["payload"]
+            if (
+                not record.get("task_ref")
+                or record["task_ref"] != request.task_ref
+                or previous.get("verification_evidence")
+                or set(previous.get("verification_evidence_refs") or [])
+                != set(request.evidence_refs)
+            ):
+                raise InvalidTransition("legacy_evidence_recovery_binding_mismatch")
+            completed = previous.get("verification_completed_at")
+            if completed:
+                try:
+                    original_completed = datetime.fromisoformat(
+                        str(completed).replace("Z", "+00:00")
+                    )
+                except (ValueError, TypeError) as exc:
+                    raise InvalidTransition("legacy_completion_timestamp_invalid") from exc
+                if original_completed.tzinfo is None or any(
+                    e.captured_at > original_completed for e in request.evidence
+                ):
+                    raise InvalidTransition("legacy_evidence_postdates_confirmation")
+            # The completion timestamp/reasons remain the original persisted
+            # values; recovery supplies metadata only, never a new confirmation.
+            patch = {
+                "verification_evidence": patch["verification_evidence"],
+                "verification_metadata_recovered_at": datetime.now(UTC).isoformat(),
+            }
         return await _store.transition(
             anomaly_ref,
             request.verification_result,
