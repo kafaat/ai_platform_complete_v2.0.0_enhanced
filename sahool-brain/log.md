@@ -9701,3 +9701,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-18 — حارس ساكن لإغلاق استيرادات صورة vegetation (ضمن #1230)
 
 بطلب المالك: رقعةٌ للحارس الساكن فوق رأس #1230 `b21257e`، تُطبَّق على فرعه أو على فرعٍ مستقلّ بحسب قراره (وصف #1230 يسجّل الخيار A). `missing_local_imports()` في `scripts/ci/vegetation_container_contract_guard.py` يطابق كلّ استيرادٍ لوحدةٍ محلّيّة في شيفرة الصورة، ومنها الاستيراد داخل الدوالّ، مع أسطر COPY. الحالة المقيسة التي لا يبلغها إقلاع `vegetation_smoke.py`: `anomaly_store_pg` يُستورد داخل `anomaly_runtime._make_backend` عند `VEGETATION_ANOMALY_STORE=postgres` وحده، فيُخفق `routers.anomalies` عند إقلاع نشرٍ على Postgres ولا يراه اختبار SQLite. الشاهد `tests_v9/test_vegetation_container_contract_guard.py` (4 ناجحة)؛ حذف سطر COPY لـ`anomaly_store_pg.py` يُحمِّر الحارس، وكذلك حذف سطر `weekly_insights.py`. لا يُغني عن قبول الصورة ولا يحلّ محلّه؛ لا مساس بشيفرة الخدمة ولا بـDockerfile.
+
+### 2026-10-18 — #1230 مدموج ومنشور: إغلاق فجوتي صورة vegetation، وتسجيل صنف فحص الأسرار
+
+`ee6909010` (#1230، شجرته = المختبَر `b21257edc`): نشر vegetation-analysis `SUCCESS` في staging وproduction بعد فشل نشر #1228، والمهاجر SKIPPED؛ قراءةٌ من Railway فقط بلا تغيير. صارت `VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01` و`VEGETATION-SQLITE-WAL-STARTUP-RACE-01` **fixed** بحدودهما (لا verified). وسُجِّل الصنف `GITLEAKS-PR-SCAN-SKIPS-CONTENT-INTRODUCED-BY-A-MERGE-01` (open): فحص الـPR يتخطّى commits الدمج، فلم يُرَ ملفّ دليل #1228 إلّا بعد squash على main؛ الحالة نفسها عولجت في #1229.
