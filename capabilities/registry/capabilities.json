@@ -1303,6 +1303,7 @@
         "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
         "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
         "services/raster-service/test_backfill_scene_policy.py",
+        "services/raster-service/test_cdse_cause_evidence.py",
         "services/raster-service/test_cdse_date_normalization.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
@@ -1322,8 +1323,7 @@
         "tests_v9/test_cdse_latest_scene_day_binding.py",
         "tests_v9/test_cdse_latest_selection_semantics.py",
         "tests_v9/test_cdse_latest_window_singleflight_guard.py",
-        "tests_v9/test_cdse_process_throttle_retry_guard.py",
-        "tests_v9/test_deferred_satellite_integration_v30_4.py"
+        "tests_v9/test_cdse_process_throttle_retry_guard.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1366,7 +1366,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 6
+        "tests": 7
       }
     },
     {
@@ -1920,6 +1920,7 @@
         "services/raster-service/test_batch_single_open_certification.py",
         "services/raster-service/test_batch_single_open_metrics.py",
         "services/raster-service/test_c7_latest_cache_provenance.py",
+        "services/raster-service/test_cdse_cause_evidence.py",
         "services/raster-service/test_cdse_date_normalization.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
@@ -1934,8 +1935,7 @@
         "services/raster-service/test_cloud_native_catalog.py",
         "services/raster-service/test_cog_writer_internal_mask.py",
         "services/raster-service/test_db_rehydrate.py",
-        "services/raster-service/test_element84_vrt_containment_runtime.py",
-        "services/raster-service/test_element84_vrt_defect_witnesses.py"
+        "services/raster-service/test_element84_vrt_containment_runtime.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1979,7 +1979,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 110
+        "tests": 112
       }
     },
     {
@@ -4270,6 +4270,7 @@
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
+        "services/raster-service/test_cdse_cause_evidence.py",
         "services/sahool-platform/tests/test_adapt_from_evidence.py",
         "services/sahool-platform/tests/test_evidence_class.py",
         "services/sahool-platform/tests/test_evidence_graph.py",
@@ -4289,8 +4290,7 @@
         "tests_v9/test_collect_guard_surface_evidence.py",
         "tests_v9/test_d09_live_evidence_receipt.py",
         "tests_v9/test_evidence_contract_v62_3.py",
-        "tests_v9/test_evidence_graph_nodes_migration_v149.py",
-        "tests_v9/test_evidence_lab_contract.py"
+        "tests_v9/test_evidence_graph_nodes_migration_v149.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4333,7 +4333,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 11
+        "tests": 12
       }
     },
     {

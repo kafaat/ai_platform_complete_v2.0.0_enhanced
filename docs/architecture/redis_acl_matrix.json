@@ -662,6 +662,40 @@
           "keys": [],
           "channels": [],
           "evidence": []
+        },
+        "sahool-raster-cache-invalidation-worker": {
+          "password_env": "REDIS_RASTER_INVALIDATION_PASSWORD",
+          "client_env": "REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "commands": [
+            "ping",
+            "publish"
+          ],
+          "keys": [],
+          "channels": [
+            "raster:layer_evict"
+          ],
+          "evidence": [
+            {
+              "path": "services/raster-service/cache_invalidation_worker.py",
+              "line": 54,
+              "needle": "url = os.getenv(\"REDIS_URL\")",
+              "why": "Publisher uses its own connection URL."
+            },
+            {
+              "path": "services/raster-service/cache_invalidation_worker.py",
+              "line": 62,
+              "needle": "await _redis_pub.publish(LAYER_EVICT_CHANNEL, field_id)",
+              "why": "Only publishes field eviction; no key operations."
+            },
+            {
+              "path": "services/raster-service/cache_invalidation_worker.py",
+              "line": 42,
+              "needle": "raster:layer_evict",
+              "why": "Default eviction channel."
+            }
+          ]
         }
       }
     },

@@ -1,3 +1,13 @@
+2026-10-18 — M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01: نجح PG16 الحي تحت FORCE RLS في CI 39131088261 على 602869e54f809e99fac64e34e59d695837766813، 1 passed. الشاهد الخام m4-ci-green.txt؛ لا قياس staging أو إنتاج، والحالة open والراية مطفأة. PR #1222 دون دمج.
+
+## 2026-10-18 — الفجوات السبع عشرة بعد #1213
+
+طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.
+> **2026-10-18 — خطّة استخراج الراوترات الكبيرة مكتوبة بانتظار إقرار المالك:** أربع شرائح (ledger · weather · fields · learning)، بلا نقل شيفرة قبل الإقرار. [الخطّة](../docs/architecture/router_extraction_plan_20261018.md)
+> **2026-10-18 — تكافؤ TiTiler مقيس على الشيفرة لا الصور (الدفعة B):** طلبات SAHOOL متطابقة بين 0.18.6 و0.22.4 حيث تُرجع بيانات؛ لكنّ الغلاف بلا حجم ولا S3 فالإيقاف يُفقد التشخيص. COG عائم بلا `rescale` يخرج مسطّحاً بصمت في الغلاف (فجوة جديدة). وGHSA-9cfx-96xx-wmh9 غير مؤكَّدة. [الدليل](../certification/evidence/titiler_parity_20261018/README.md)
+
+> **2026-10-18 — نتائج CDSE الفارغة تأخذ سببها من الفهرس فقط (الدفعة C):** فحص بلا مرشّح السحب يميّز «لا التقاط» من «السحاب أقصى البلاطة»، مطفأ افتراضيّاً (`CDSE_DIAGNOSTIC_CATALOGUE_PROBE`). backfill يميّز «لا بلاطة مساهمة» عن عطل الصيغة. الفجوة open. [الدليل](../certification/evidence/cdse_cause_evidence_20261018/README.md)
+
 > **2026-10-18 — حدّ المعدّل خلف Railway يقع على عقدة Railway لا على العميل (staging، مقيس):** البوّابة وauth كلاهما يأخذان `152.233.30.x`. ترويسة Railway الموثَّقة `X-Real-IP`؛ الإصلاح قرار مالك لأنّ الواجهة تُنشَر من main إلى الإنتاج. [الدليل](../certification/evidence/edge_hop_measure_staging_20261018/README.md)
 > **2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.**
 

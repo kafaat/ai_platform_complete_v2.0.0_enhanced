@@ -7160,6 +7160,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_b6_real_guardrails_evaluation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_b6m4_platform_store.py",
     "kind": "tests"
   },
@@ -8532,6 +8536,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_raster_invalidation_redis_acl.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raster_persist_observability_v30_2.py",
     "kind": "tests"
   },
@@ -8969,6 +8977,10 @@
   },
   {
     "path": "tests_v9/test_tile_auth_cookie_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_titiler_parity_harness.py",
     "kind": "tests"
   },
   {

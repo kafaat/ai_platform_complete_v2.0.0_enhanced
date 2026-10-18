@@ -397,6 +397,7 @@ services:
       --user sahool-field-management on ">${REDIS_FIELD_MANAGEMENT_PASSWORD:?REDIS_FIELD_MANAGEMENT_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
       --user sahool-decision-service on ">${REDIS_DECISION_PASSWORD:?REDIS_DECISION_PASSWORD required}" resetkeys resetchannels -@all +ping +select +set ~sahool:tenant-assertion:*
       --user sahool-raster-service on ">${REDIS_RASTER_PASSWORD:?REDIS_RASTER_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval +subscribe +unsubscribe ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:* "&raster:layer_evict"
+      --user sahool-raster-cache-invalidation-worker on ">${REDIS_RASTER_INVALIDATION_PASSWORD:?REDIS_RASTER_INVALIDATION_PASSWORD required}" resetkeys resetchannels -@all +ping +publish "&raster:layer_evict"
       --user sahool-raster-backfill-scan-worker on ">${REDIS_RASTER_BACKFILL_PASSWORD:?REDIS_RASTER_BACKFILL_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +del +scan +eval ~stac:* ~sahool:raster:job:* ~sahool:raster:indicator-batch:*
       --user sahool-actuator-service on ">${REDIS_ACTUATOR_PASSWORD:?REDIS_ACTUATOR_PASSWORD required}" resetkeys resetchannels -@all +ping
       --user sahool-ai-agronomist on ">${REDIS_AI_AGRONOMIST_PASSWORD:?REDIS_AI_AGRONOMIST_PASSWORD required}" resetkeys resetchannels -@all +ping +get +set +sadd +srem +smembers +rpush +lrange ~sahool:agent:approval:* ~sahool:agent:approvals:pending ~sahool:agent:audit
@@ -1559,6 +1560,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      REDIS_URL: redis://sahool-raster-cache-invalidation-worker:${REDIS_RASTER_INVALIDATION_PASSWORD:?REDIS_RASTER_INVALIDATION_PASSWORD required}@sahool-redis:6379/0
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /etc/sahool/postgres-ca/ca.pem
       RASTER_UPLOAD_DIR: /data/rasters

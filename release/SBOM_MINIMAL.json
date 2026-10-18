@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "061d8456e337fe98b14bc6c7d8dd5e52215455d620a8aeba4e309e8ef4c488a6"
+          "content": "be860340762da2bc717452d328174b0e236237a070e529a054fa308bd0864f24"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -14525,7 +14525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99e59460bf00d9649db05a5a50185df51e01e7baee4dcce9266fa0c95fcfead1"
+          "content": "a2c9971b950961a8d8810d41565303aa6c52f9cc869066a12a1f1d88c30b61d0"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -14535,7 +14535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c64d2e2eb039348e56b0b606aa9219ca58314cf63be5948b786fc7edfdb67aa2"
+          "content": "d54edba6f39fbb1e13b32f9e39e8b21b29162e91ef63381b302b19c36091bb9c"
         }
       ],
       "name": "services/raster-service/cdse_diagnostics.py",
@@ -14545,7 +14545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20cf9b7d3c8eff1d2a4024b2eab4ee92c49c3550c6722290634d33db5cde1b82"
+          "content": "a99789fbc1a668f84755ec00ebf6d359cefca480b35299149e5ed05aea48daf6"
         }
       ],
       "name": "services/raster-service/cdse_native_product.py",
@@ -14895,7 +14895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe6d7771d5d6c629dd20b93b7c66ecc4810c767b5290effeb95d0e8147557527"
+          "content": "25b27415b6fcc9802dde71de0ce4482b02b40e39541b4b20b450ab2b7b64e90b"
         }
       ],
       "name": "services/raster-service/raster_cdse_tile_runtime.py",
@@ -15529,6 +15529,16 @@
         }
       ],
       "name": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a7319ea1b58e4ec23593cc4c1b6a707aabeb65916819911ca6971254962f4d2"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_cause_evidence.py",
       "type": "file"
     },
     {
@@ -18285,7 +18295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc8fdceec27cf9e1ce16e411bd269ee8ff29f8b7cf99a1e5563a29254661c895"
+          "content": "924ea7106396e9c936f1fb4a9e78db8c2002750a186e6374ef53851fc01db461"
         }
       ],
       "name": "services/sahool-platform/api/onboarding.py",

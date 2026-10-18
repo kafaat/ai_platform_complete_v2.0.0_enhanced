@@ -21,6 +21,17 @@ MAX_RESPONSE_BYTES = 128 * 1024 * 1024
 MAX_METADATA_BYTES = 65536
 
 
+class CdseNoContributingScene(ValueError):
+    """CDSE reported that no tile fed the output.
+
+    ``updateOutputMetadata`` lists the tiles the provider mosaicked. An empty list
+    is the provider's own statement that no acquisition passed the request's
+    ``dataFilter`` (time window and ``maxCloudCoverage``), so the output carries no
+    observation. It is a ``ValueError`` like every other rejection here, so callers
+    still fail closed; only the reason differs from a malformed response.
+    """
+
+
 @dataclass(frozen=True)
 class NativeProduct:
     tiff: bytes
@@ -91,6 +102,8 @@ def decode_response(
     if not isinstance(metadata, dict) or metadata.get("schema") != SCHEMA:
         raise ValueError("cdse_native_metadata_schema_invalid")
     tiles = metadata.get("tiles")
+    if isinstance(tiles, list) and not tiles:
+        raise CdseNoContributingScene("cdse_native_no_contributing_scene")
     if not isinstance(tiles, list) or not 1 <= len(tiles) <= 256:
         raise ValueError("cdse_native_tiles_invalid")
     normalized = []

@@ -227,6 +227,35 @@ def bind_scene_day_window(
     return window[0], window[1], selected
 
 
+def catalogue_probe(client, *, bbox, geometry, date_from, date_to) -> str:
+    """Failure-path evidence only: one catalogue search over the failed window with
+    the tile cloud filter lifted. It never chooses a scene and never retries.
+
+    Off unless ``CDSE_DIAGNOSTIC_CATALOGUE_PROBE=1`` because it adds a provider
+    call; a failed search is ``catalogue_unavailable``, never "no acquisition".
+    """
+    if not cdse_diagnostics.catalogue_probe_enabled() or client is None or not bbox:
+        return "not_available"
+    key = cdse_diagnostics.probe_key(bbox, geometry, date_from, date_to, MAX_CLOUD_PCT)
+    cached = cdse_diagnostics.cached_probe(key)
+    if cached is not None:
+        return cached
+    try:
+        scenes = client.search_scenes(
+            bbox=list(bbox),
+            time_from=date_from,
+            time_to=date_to,
+            max_cloud_pct=100.0,
+            limit=100,
+            geometry=geometry,
+            max_retries=0,
+        )
+        evidence = cdse_diagnostics.catalogue_evidence(scenes, MAX_CLOUD_PCT)
+    except Exception:  # noqa: BLE001 — an unanswered probe is not evidence of absence
+        evidence = "catalogue_unavailable"
+    return cdse_diagnostics.remember_probe(key, evidence)
+
+
 async def ensure_field_cog(
     field_id: str,
     internal: str,
@@ -265,6 +294,16 @@ async def ensure_field_cog(
 
     async def record_failure(outcome: str, error: Exception | None = None) -> None:
         try:
+            catalogue = "not_available"
+            if outcome in cdse_diagnostics.CATALOGUE_PROBE_OUTCOMES:
+                catalogue = await asyncio.to_thread(
+                    catalogue_probe,
+                    client,
+                    bbox=field_bbox,
+                    geometry=field_geom,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
             receipt = cdse_diagnostics.failure_receipt(
                 tenant=tenant,
                 field_id=field_id,
@@ -282,6 +321,7 @@ async def ensure_field_cog(
                 scene_id=selected.scene_id if selected else None,
                 quota_exhausted=isinstance(error, _cdse.CdseQuotaExhausted),
                 stage=diagnostic_stage,
+                catalogue=catalogue,
             )
             receipt_id = await asyncio.to_thread(cdse_diagnostics.persist, receipt)
             logger.info("CDSE failure receipt retained: id=%s outcome=%s", receipt_id, outcome)
@@ -349,8 +389,9 @@ async def ensure_field_cog(
                 break
 
         if selected is None:
-            # The legacy search API returns [] for outages too. No catalogue
-            # response evidence was supplied, so attribution must stay unknown.
+            # Outages now raise CdseCatalogError (caught above as provider_error).
+            # An empty list under the cloud filter still cannot tell absence from
+            # cloud; only the optional unfiltered probe in record_failure can.
             await record_failure("no_selected_scene")
             logger.warning(
                 "CDSE latest unavailable (%s/%s): no eligible scene — fail-closed",

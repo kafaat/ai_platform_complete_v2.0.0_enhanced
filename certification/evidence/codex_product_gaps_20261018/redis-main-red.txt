@@ -1,0 +1,50 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________________ test_worker_has_own_publish_only_identity ___________________
+
+    def test_worker_has_own_publish_only_identity():
+>       user = _matrix()["servers"]["sahool-redis"]["users"][WORKER]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'sahool-raster-cache-invalidation-worker'
+
+tests_v9/test_raster_invalidation_redis_acl.py:20: KeyError
+____ test_live_compose_publisher_reaches_subscriber_and_denies_other_access ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-6/test_live_compose_publisher_re0')
+
+    @pytest.mark.integration
+    def test_live_compose_publisher_reaches_subscriber_and_denies_other_access(tmp_path):
+        import redis
+    
+        binary = _redis_server_bin()
+        if not binary:
+            if _live_required():
+                pytest.fail("REDIS_ACL_LIVE_REQUIRED=1 requires redis-server")
+            pytest.skip("redis-server unavailable")
+        with _running_server(binary, "sahool-redis", tmp_path) as (port, _admin):
+            services = _compose()["services"]
+    
+            def client(service):
+                url = _env(services[service])["REDIS_URL"]
+                return redis.Redis.from_url(
+                    url.replace("sahool-redis:6379", f"127.0.0.1:{port}"), decode_responses=True
+                )
+    
+>           with client(WORKER) as publisher, client("sahool-raster-service") as subscriber:
+                 ^^^^^^^^^^^^^^
+
+tests_v9/test_raster_invalidation_redis_acl.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = 'sahool-raster-cache-invalidation-worker'
+
+    def client(service):
+>       url = _env(services[service])["REDIS_URL"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'REDIS_URL'
+
+tests_v9/test_raster_invalidation_redis_acl.py:43: KeyError
+=========================== short test summary info ============================
+FAILED tests_v9/test_raster_invalidation_redis_acl.py::test_worker_has_own_publish_only_identity
+FAILED tests_v9/test_raster_invalidation_redis_acl.py::test_live_compose_publisher_reaches_subscriber_and_denies_other_access
+2 failed in 0.46s
