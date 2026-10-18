@@ -1,0 +1,57 @@
+{
+  "legacy": {
+    "fastapi": "0.144.0",
+    "gdal": "3.12.2",
+    "install": "pip install titiler.application==0.18.6 (resolver-chosen dependencies)",
+    "numexpr": "2.14.2",
+    "numpy": "2.5.4",
+    "rasterio": "1.5.2",
+    "rio_tiler": "6.8.0",
+    "titiler": "0.18.6"
+  },
+  "pip_audit": {
+    "legacy_environment": {
+      "note": "only pip 24.0 of the local venv; pip is not part of the parity question",
+      "packages": 74,
+      "vulnerable": [
+        [
+          "pip",
+          "24.0"
+        ]
+      ]
+    },
+    "tool": "pip-audit (PyPI vulnerability service)",
+    "wrapper_requirements": {
+      "packages": 78,
+      "vulnerable": []
+    }
+  },
+  "pypi_vulnerability_feed": {
+    "rio-tiler 6.8.0": [],
+    "rio-tiler 7.9.5": [],
+    "rio-tiler 7.9.6": [],
+    "titiler-core 0.18.6": [],
+    "titiler-core 0.22.4": []
+  },
+  "python": "3.12 (both)",
+  "reference_cogs_sha256": {
+    "ndvi_float32_epsg4326.tif": "17c2c21a48bb7584c0bd191379e949b6a8160cb3b64bc373442340f0f28399db",
+    "rgb_uint8_epsg32638.tif": "28102362431238906aa74be9e8af5cf550f374f85511ffdb106d0bce0cfcb1ca"
+  },
+  "schema": "sahool.titiler-parity-environment.v1",
+  "unreachable_from_this_session": [
+    "ghcr.io blob host (image pull 403)",
+    "api.osv.dev (403)",
+    "github.com/advisories (403)"
+  ],
+  "wrapper": {
+    "fastapi": "0.141.1",
+    "gdal": "3.12.4",
+    "install": "pip install -r services/raster-tiler-service/requirements.txt (pinned)",
+    "numexpr": "2.14.2",
+    "numpy": "2.5.3",
+    "rasterio": "1.5.1",
+    "rio_tiler": "7.9.6",
+    "titiler": "0.22.4"
+  }
+}

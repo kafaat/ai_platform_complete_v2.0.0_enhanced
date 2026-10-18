@@ -1,0 +1,203 @@
+{
+  "a": "legacy",
+  "b": "wrapper",
+  "cog_sha256": "d280390e8fddb49f9ae563456f00a49666c5e53ce1545091b75b93af71e9fd4a",
+  "measured_at": "2026-10-18T14:31:36.833873+00:00",
+  "results": [
+    {
+      "a": {
+        "bytes": 694,
+        "content_type": "image/png",
+        "sha256": "c688b6268b61e632b9ab295bd9adfbae35424ef0b5ed3a1990d5fe5d46a38e4e",
+        "status": 200
+      },
+      "b": {
+        "bytes": 694,
+        "content_type": "image/png",
+        "sha256": "c688b6268b61e632b9ab295bd9adfbae35424ef0b5ed3a1990d5fe5d46a38e4e",
+        "status": 200
+      },
+      "case": "tile",
+      "detail": {
+        "shape": [
+          256,
+          256,
+          4
+        ],
+        "verdict": "identical"
+      },
+      "path": "/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
+      "used_by": "sahool-platform gis_cloud_native (no colormap)",
+      "verdict": "identical"
+    },
+    {
+      "a": {
+        "bytes": 72,
+        "content_type": "application/json",
+        "sha256": "ae86f6d639debd224b0ab37576ad57e1622f9d769e875a8760cc6c15b275127b",
+        "status": 500
+      },
+      "b": {
+        "bytes": 857,
+        "content_type": "image/png",
+        "sha256": "f39aa36e2d704b831c5eb694237465257816eb4d1394853d2408eca40de282dd",
+        "status": 200
+      },
+      "case": "tile_viridis",
+      "path": "/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
+      "used_by": "raster-service routers/tiles.py (default colormap)",
+      "verdict": "status_differs"
+    },
+    {
+      "a": {
+        "bytes": 6224,
+        "content_type": "image/png",
+        "sha256": "aa343a4e4c2f6bb81ecf9b5eb4be6bc4e237385003f017d84c339590a2795efd",
+        "status": 200
+      },
+      "b": {
+        "bytes": 6224,
+        "content_type": "image/png",
+        "sha256": "aa343a4e4c2f6bb81ecf9b5eb4be6bc4e237385003f017d84c339590a2795efd",
+        "status": 200
+      },
+      "case": "tile_viridis_rescale",
+      "detail": {
+        "shape": [
+          256,
+          256,
+          4
+        ],
+        "verdict": "identical"
+      },
+      "path": "/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
+      "used_by": "raster-service routers/tiles.py (colormap + rescale)",
+      "verdict": "identical"
+    },
+    {
+      "a": {
+        "bytes": 4659,
+        "content_type": "application/json",
+        "sha256": "9abad62f3bea65d9f3bbfabe64cded12572b070cae64aef2df2fb0d2ad1847c0",
+        "status": 422
+      },
+      "b": {
+        "bytes": 4659,
+        "content_type": "application/json",
+        "sha256": "9abad62f3bea65d9f3bbfabe64cded12572b070cae64aef2df2fb0d2ad1847c0",
+        "status": 422
+      },
+      "case": "tile_colormap_mixed_case",
+      "path": "/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
+      "used_by": "caller regex [A-Za-z0-9_-] admits mixed case",
+      "verdict": "same_non_200"
+    },
+    {
+      "a": {
+        "bytes": 59,
+        "content_type": "application/json",
+        "sha256": "65cf7f114df9224ccae4bc8249c2873ceb4ce49ab353ef9a2fd2bc90eb819228",
+        "status": 404
+      },
+      "b": {
+        "bytes": 59,
+        "content_type": "application/json",
+        "sha256": "65cf7f114df9224ccae4bc8249c2873ceb4ce49ab353ef9a2fd2bc90eb819228",
+        "status": 404
+      },
+      "case": "tile_outside_bounds",
+      "path": "/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png",
+      "used_by": "any caller panning off the raster",
+      "verdict": "same_non_200"
+    },
+    {
+      "a": {
+        "bytes": 16,
+        "content_type": "application/json",
+        "sha256": "6ef4202d728aa4976f0fff4ccfeb394a79632f9b66c1ff84deb9998a199dcbde",
+        "status": 200
+      },
+      "b": {
+        "bytes": 99,
+        "content_type": "application/json",
+        "sha256": "6830524bcfac6a5d637fe717bd996ffe97e32b9f67f53e01f0d4278f9a278282",
+        "status": 200
+      },
+      "case": "healthz",
+      "path": "/healthz",
+      "used_by": "compose healthchecks (status only)",
+      "verdict": "same_status"
+    },
+    {
+      "a": {
+        "bytes": 303,
+        "content_type": "application/json",
+        "sha256": "88e38beb23a02aa0686eea641fe2cc476c402b1f94aebee09d767205ea937325",
+        "status": 200
+      },
+      "b": {
+        "bytes": 328,
+        "content_type": "application/json",
+        "sha256": "26b9bbba15669914f30ee8835d40bd5fe95c9739cb877cceebb71ba39a90f966",
+        "status": 200
+      },
+      "case": "info",
+      "detail": {
+        "changed": {},
+        "only_a": [
+          "maxzoom",
+          "minzoom"
+        ],
+        "only_b": [
+          "crs"
+        ],
+        "verdict": "differs"
+      },
+      "path": "/cog/info",
+      "used_by": "operator diagnostic, no code caller",
+      "verdict": "differs"
+    },
+    {
+      "a": {
+        "bytes": 687,
+        "content_type": "application/json",
+        "sha256": "b1971c8eef93edd881253010b7b193c55e3efa03db7b14933b16309fa1464bde",
+        "status": 200
+      },
+      "b": {
+        "bytes": 687,
+        "content_type": "application/json",
+        "sha256": "b1971c8eef93edd881253010b7b193c55e3efa03db7b14933b16309fa1464bde",
+        "status": 200
+      },
+      "case": "statistics",
+      "detail": {
+        "differences": {},
+        "verdict": "identical"
+      },
+      "path": "/cog/statistics",
+      "used_by": "operator diagnostic, no code caller",
+      "verdict": "identical"
+    },
+    {
+      "a": {
+        "bytes": 694,
+        "content_type": "image/png",
+        "sha256": "c688b6268b61e632b9ab295bd9adfbae35424ef0b5ed3a1990d5fe5d46a38e4e",
+        "status": 200
+      },
+      "b": {
+        "bytes": 22,
+        "content_type": "application/json",
+        "sha256": "37ec4665a8102d115ffd1ac20dae94c98b4dac64b0c1a68228aa2a531caeb35d",
+        "status": 404
+      },
+      "case": "tile_without_tms",
+      "path": "/cog/tiles/{z}/{x}/{y}.png",
+      "used_by": "no SAHOOL caller; external clients only",
+      "verdict": "status_differs"
+    }
+  ],
+  "schema": "sahool.titiler-parity.v1",
+  "scope": "measured cases on this COG only; not a statement about other clients or images"
+}

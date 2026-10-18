@@ -9654,3 +9654,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
 
 السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
+
+### 2026-10-18 — تكافؤ TiTiler القديم والغلاف (الدفعة B، بلا نشر)
+
+بقرار المالك («قوم بتنفيذ» على خطّة الدفعات): أداة مقارنة `scripts/diagnostics/titiler_parity.py` مصفوفتها مشتقّة من المستدعي الوحيد `shared/gis/cog_tile_proxy.py`، واختبارها يحمرّ إن انحرف المستدعي (طفرتان يدويّتان). قيس 0.18.6 و0.22.4 من PyPI على Python 3.12 (سحب الصور محجوب 403) بملفّين COG مرجعيّين: الطلبات المستعملة متطابقة حيث تُرجع بيانات. الفروق: مسار البلاطات بلا TMS، وحدود `info`، وجسم `/healthz`. وفجوة جديدة FLOAT-COG-TILE-WITHOUT-RESCALE-RENDERS-FLAT-01 (open). وتصحيح ادّعاء سابق: GHSA-9cfx-96xx-wmh9 غير مؤكَّدة في سجلّ PyPI. TITILER-UPSTREAM-IMAGE-HAS-NO-METRICS-01 تبقى open. [الدليل](../certification/evidence/titiler_parity_20261018/README.md)
