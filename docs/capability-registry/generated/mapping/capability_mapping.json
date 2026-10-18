@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6060,
+    "files_scanned": 6062,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1948,
+      "other": 1950,
       "tests": 1979,
       "web": 472
     },
@@ -10320,7 +10320,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:167",
+          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:170",
           "score": 12
         },
         {
@@ -10928,27 +10928,27 @@
           "score": 18
         },
         {
-          "value": "/v1/cog/validate @ services/raster-service/routers/analysis.py:152",
+          "value": "/v1/cog/validate @ services/raster-service/routers/analysis.py:165",
           "score": 18
         },
         {
-          "value": "/v1/fvc/compute @ services/raster-service/routers/analysis.py:84",
+          "value": "/v1/fvc/compute @ services/raster-service/routers/analysis.py:97",
           "score": 18
         },
         {
-          "value": "/v1/salinity/calibrate @ services/raster-service/routers/analysis.py:174",
+          "value": "/v1/salinity/calibrate @ services/raster-service/routers/analysis.py:187",
           "score": 18
         },
         {
-          "value": "/v1/salinity/classify @ services/raster-service/routers/analysis.py:167",
+          "value": "/v1/salinity/classify @ services/raster-service/routers/analysis.py:180",
           "score": 18
         },
         {
-          "value": "/v1/sar/rvi @ services/raster-service/routers/analysis.py:110",
+          "value": "/v1/sar/rvi @ services/raster-service/routers/analysis.py:123",
           "score": 18
         },
         {
-          "value": "/v1/terrain/slope @ services/raster-service/routers/analysis.py:134",
+          "value": "/v1/terrain/slope @ services/raster-service/routers/analysis.py:147",
           "score": 18
         },
         {
@@ -15358,6 +15358,14 @@
           ]
         },
         {
+          "path": "services/vegetation-analysis-service/routers/anomalies.py",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/disease_diagnosis.py",
           "score": 8,
           "signals": [
@@ -15367,14 +15375,6 @@
         },
         {
           "path": "services/sahool-platform/api/field_timeline.py",
-          "score": 8,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
-          "path": "services/vegetation-analysis-service/routers/anomalies.py",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -15392,24 +15392,24 @@
           "score": 28
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/transition @ services/vegetation-analysis-service/routers/anomalies.py:139",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/transition @ services/vegetation-analysis-service/routers/anomalies.py:160",
+          "score": 10
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/verification-requests @ services/vegetation-analysis-service/routers/anomalies.py:163",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/verification-requests @ services/vegetation-analysis-service/routers/anomalies.py:184",
+          "score": 10
         },
         {
-          "value": "/v1/anomalies/{anomaly_ref:path}/verification-results @ services/vegetation-analysis-service/routers/anomalies.py:197",
-          "score": 8
+          "value": "/v1/anomalies/{anomaly_ref:path}/verification-results @ services/vegetation-analysis-service/routers/anomalies.py:218",
+          "score": 10
         },
         {
-          "value": "/v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:125",
-          "score": 8
+          "value": "/v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:146",
+          "score": 10
         },
         {
-          "value": "/v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:67",
-          "score": 8
+          "value": "/v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:68",
+          "score": 10
         }
       ],
       "database": [
@@ -21070,7 +21070,7 @@
           "score": 10
         },
         {
-          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:167",
+          "value": "/api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:170",
           "score": 10
         },
         {

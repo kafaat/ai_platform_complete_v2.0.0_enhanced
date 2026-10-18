@@ -9,6 +9,8 @@ from datetime import UTC, datetime, timedelta
 from anomaly_engine import detect_signals
 from baseline_engine import build_baselines
 
+from shared.contracts.remote_sensing.admission import admission_reasons
+
 
 def build_weekly_insights(*, tenant_id: str, week_end: datetime, fields: list[dict]) -> dict:
     if week_end.tzinfo is None:
@@ -19,10 +21,26 @@ def build_weekly_insights(*, tenant_id: str, week_end: datetime, fields: list[di
     rows = []
     for field in sorted(fields, key=lambda x: (x["field_id"], x["season_id"])):
         entries = []
+        reasons = list(field.get("reason_codes") or [])
+        invalid_timestamp = False
         for entry in field.get("entries", []):
-            acquired = datetime.fromisoformat(str(entry["acquired_at"]).replace("Z", "+00:00"))
+            try:
+                acquired = datetime.fromisoformat(
+                    str(entry.get("acquired_at") or "").replace("Z", "+00:00")
+                )
+                if acquired.tzinfo is None:
+                    raise ValueError("naive observation timestamp")
+            except (ValueError, TypeError, AttributeError):
+                invalid_timestamp = True
+                continue
             if history_start <= acquired <= week_end:
                 entries.append(entry)
+                quality = entry.get("observation_quality") or {}
+                reasons.extend(admission_reasons(quality))
+        if invalid_timestamp:
+            # Do not resurrect an older signal when the newest date is unknowable.
+            reasons.append("invalid_observation_timestamp")
+            entries = []
         comparisons = build_baselines(
             field_id=field["field_id"],
             indicator="ndvi",
@@ -65,8 +83,9 @@ def build_weekly_insights(*, tenant_id: str, week_end: datetime, fields: list[di
                 "season_id": field["season_id"],
                 "status": status,
                 "summary": summaries[status],
-                "reason_codes": field.get("reason_codes", [])
-                or ([] if comparisons else ["insufficient_qualified_history"]),
+                "reason_codes": sorted(
+                    set(reasons + ([] if comparisons else ["insufficient_qualified_history"]))
+                ),
                 "comparisons": [c.to_dict() for c in comparisons],
                 "signals": [signal.to_dict() for signal in signals],
             }

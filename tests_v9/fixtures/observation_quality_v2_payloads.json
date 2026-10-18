@@ -1,7 +1,7 @@
 {
   "timeline": {
     "schema_version": "1.0.0",
-    "observation_ref": "urn:sahool:observation:obs_16b5d4f3ac5bfb3bd5f7b0f3",
+    "observation_ref": "urn:sahool:observation:obs_a8e1d80f8446d105f90a651b",
     "tenant_id": "00000000-0000-4000-8000-000000000001",
     "field_id": "fld_34c8ee0dae0c",
     "season_id": "sea_2026_spring",
@@ -58,7 +58,7 @@
     },
     "lineage": {
       "asset_ref": "urn:sahool:raster-asset:ast_5cee1dc53542f4c15014ee79",
-      "processing_run_ref": "urn:sahool:processing-run:run_5de3c58ca0bd86266e3dc516",
+      "processing_run_ref": "urn:sahool:processing-run:run_d16c10a2ce0be73008a9927d",
       "input_hash": "2519c0112f8f2777e7768f7c4a4ad1a9f6928178c1f63507651b2b8e941545ea",
       "output_hash": "d2cbad71ff333de67d07ec676e352ab7f38248eb69c942950157220607c55e84",
       "pipeline_version": "1.0.0"
@@ -96,7 +96,7 @@
     },
     "observation_quality": {
       "schema_version": "1.0.0",
-      "gate_status": "rejected",
+      "gate_status": "not_evaluated",
       "policy": {
         "policy_id": "NDVI_CURRENT_REAL_ONLY_V1",
         "policy_version": "2.0.0",

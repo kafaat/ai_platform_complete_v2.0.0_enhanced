@@ -22,7 +22,7 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 from observation_runtime import fetch_canonical_observations  # noqa: E402
-from observation_timeline import fetch_canonical_timeline  # noqa: E402
+from observation_timeline import TimelineSourceError, fetch_canonical_timeline  # noqa: E402
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
 
@@ -227,6 +227,8 @@ async def observation_timeline(
             indicators=requested,
             authorization=authorization,
         )
+    except TimelineSourceError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
     except httpx.HTTPStatusError as exc:
         status = exc.response.status_code
         raise HTTPException(
@@ -236,8 +238,6 @@ async def observation_timeline(
         raise HTTPException(503, str(exc)) from exc
     except Exception as exc:
         raise HTTPException(424, "canonical raster timeline unavailable") from exc
-    if not entries:
-        raise HTTPException(424, "no real canonical timeline available")
     latest = {}
     for item in entries:
         code = item.indicator.code
@@ -251,4 +251,5 @@ async def observation_timeline(
         "source": "indicators-service",
         "canonical": True,
         "supersession_projected": True,
+        "evaluation_status": "available" if entries else "insufficient_history",
     }

@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
-from anomaly_store import _ALLOWED_TRANSITIONS, AnomalyNotFound, InvalidTransition
+from anomaly_store import AnomalyNotFound, InvalidTransition, validate_transition
 
 
 def _database_url() -> str:
@@ -126,11 +126,10 @@ class PostgresAnomalyStore:
             current = str(row["status"])
             if int(row["version"]) != expected_version:
                 raise InvalidTransition("aggregate_version_conflict")
-            if new_status not in _ALLOWED_TRANSITIONS.get(current, set()):
-                raise InvalidTransition(f"invalid_transition:{current}->{new_status}")
             payload = row["payload_json"]
             if isinstance(payload, str):
                 payload = json.loads(payload)
+            validate_transition(current, new_status, payload, patch)
             payload.update(patch or {})
             payload["status"] = new_status
             payload["updated_at"] = datetime.now(UTC).isoformat()

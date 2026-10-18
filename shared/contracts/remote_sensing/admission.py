@@ -34,10 +34,19 @@ def quality_reasons(quality: dict) -> tuple[str, ...]:
     return tuple(reasons)
 
 
+def admission_reasons(quality: dict) -> tuple[str, ...]:
+    reasons = list(quality_reasons(quality))
+    policy = quality.get("policy") or {}
+    if quality.get("gate_status") != "passed":
+        reasons.append("quality_gate_not_passed")
+    if policy.get("use_case") != "anomaly_detection":
+        reasons.append("quality_policy_use_case_mismatch")
+    if policy.get("policy_version") != POLICY_VERSION:
+        reasons.append("unsupported_quality_policy_version")
+    if quality.get("indicator_in_range") is False:
+        reasons.append("indicator_out_of_range")
+    return tuple(reasons)
+
+
 def admissible(quality: dict) -> bool:
-    return (
-        quality.get("gate_status") == "passed"
-        and (quality.get("policy") or {}).get("use_case") == "anomaly_detection"
-        and quality.get("indicator_in_range") is not False
-        and not quality_reasons(quality)
-    )
+    return not admission_reasons(quality)

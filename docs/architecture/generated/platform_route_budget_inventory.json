@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "2be2b2210040e3da1ed6f97f3a1a599abf5661ff409a15e5ae6beebd0a753b64",
+  "inventory_sha256": "c37e3630014c59722c1b27aa3ac29d5b70a40907ff3dd3aebb6b848ee1c35eaa",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "46b24caa24279f21ceca634f3e6eaf221f216e623e55c28672e203ff955be29f"
+    "policy_sha256": "fe4c8fbba339dcb60fe5f98da775e3f657308a495c16afb94f4b395cf83108f6"
   },
   "routes": [
     {
@@ -1178,7 +1178,7 @@
     {
       "classification": "domain",
       "function": "field_indicator_observations",
-      "line": 167,
+      "line": 170,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/indicator-observations/{view}",
       "source": "api/routers/indicators.py"

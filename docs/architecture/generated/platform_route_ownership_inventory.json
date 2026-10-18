@@ -5,9 +5,9 @@
     "mapped_routes": 637,
     "surface_routes": 637
   },
-  "inventory_sha256": "fb8fba3bcca9af95759b39c008b6ae181f0973824437bb9eab7830db7e8e4f79",
+  "inventory_sha256": "fe574a1bc1decebc255b7f7ad4b170d216500177ca8c51972cb2910e0dbc65e0",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "46b24caa24279f21ceca634f3e6eaf221f216e623e55c28672e203ff955be29f",
+  "map_sha256": "fe4c8fbba339dcb60fe5f98da775e3f657308a495c16afb94f4b395cf83108f6",
   "routes": [
     {
       "classification": null,
@@ -2059,7 +2059,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/indicators.py",
       "function": "field_indicator_observations",
-      "line": 167,
+      "line": 170,
       "method": "GET",
       "owner": "indicators-service",
       "owner_type": "bff-facade-to-indicators",

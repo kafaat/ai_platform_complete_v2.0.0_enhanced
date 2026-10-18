@@ -308,12 +308,16 @@ class ChangeDetectRequest(BaseModel):
     date_after: str
     grid_before: list[list[float | None]]
     grid_after: list[list[float | None]]
-    grid_before_identity: ChangeGridIdentity
-    grid_after_identity: ChangeGridIdentity
+    grid_before_identity: ChangeGridIdentity | None = None
+    grid_after_identity: ChangeGridIdentity | None = None
 
     @model_validator(mode="after")
     def aligned_spatial_support(self):
         before, after = self.grid_before_identity, self.grid_after_identity
+        if before is None and after is None:
+            return self
+        if before is None or after is None:
+            raise ValueError("change_grid_identity_pair_required")
         if before != after:
             raise ValueError("change_grid_spatial_identity_mismatch")
         a, b, _, d, e, _ = before.transform

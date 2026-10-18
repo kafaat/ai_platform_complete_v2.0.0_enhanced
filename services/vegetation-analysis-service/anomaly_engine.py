@@ -133,9 +133,10 @@ def detect_signals(
             baseline_run_ref,
             "signal-detector-v2",
         )
-        anomaly_ref = _ref(
-            "anomaly", field_id, indicator, primary_ref, baseline_run_ref, str(deviation)
-        )
+        # Lifecycle identity is stable for an acquisition and signal direction.
+        # Content/policy changes belong to detection_run_ref. The route matches
+        # old aggregate keys by their stable observation reference before upsert.
+        anomaly_ref = _ref("anomaly", field_id, indicator, primary_ref, direction)
         candidates.append(
             DetectedSignal(
                 anomaly_ref=anomaly_ref,

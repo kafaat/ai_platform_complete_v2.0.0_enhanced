@@ -186,8 +186,18 @@ def build_baselines(
     if len(valid) < 2:
         return []
     history = valid[max(0, len(valid) - 1 - max_history) : -1]
-    dates = [_acquired(item) for item in [*history, current]]
-    if any(b - a > timedelta(days=max_gap_days) for a, b in zip(dates, dates[1:], strict=False)):
+    # Use only the contiguous suffix ending at the current observation. An old
+    # cloudy month cannot disable comparisons after adequate observations resume.
+    contiguous = []
+    next_date = _acquired(current)
+    for item in reversed(history):
+        acquired = _acquired(item)
+        if next_date - acquired > timedelta(days=max_gap_days):
+            break
+        contiguous.append(item)
+        next_date = acquired
+    history = list(reversed(contiguous))
+    if not history:
         return []
     policy = {
         "max_history": max_history,

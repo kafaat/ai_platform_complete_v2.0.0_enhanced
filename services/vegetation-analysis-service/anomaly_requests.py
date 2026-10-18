@@ -55,6 +55,8 @@ class VerificationCompletion(BaseModel):
     @field_validator("evidence", mode="before")
     @classmethod
     def parse_evidence_wire_contract(cls, values):
+        if not isinstance(values, list):
+            raise ValueError("evidence_must_be_an_array")
         return [
             EvidenceRefV1.model_validate_json(json.dumps(e)) if isinstance(e, dict) else e
             for e in values

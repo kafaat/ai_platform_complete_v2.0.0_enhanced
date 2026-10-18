@@ -62,6 +62,17 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
                 status_code=413,
                 detail=f"{name} كبير جدّاً: {cells} خليّة > الحدّ {MAX_CHANGE_GRID_CELLS}",
             )
+    if req.grid_before_identity is None:
+        return {
+            "field_id": req.field_id,
+            "date_before": req.date_before,
+            "date_after": req.date_after,
+            "status": "not_assessable",
+            "reason_codes": ["change_grid_spatial_identity_required"],
+            "grid_identity_source": "authenticated field indicator-grid responses",
+            "change_grid": None,
+            "areas": None,
+        }
     import change_detection as cd
 
     result = cd.detect_change(
@@ -76,6 +87,8 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
             "field_id": req.field_id,
             "date_before": req.date_before,
             "date_after": req.date_after,
+            "status": "assessed",
+            "grid_identity": req.grid_before_identity.model_dump(mode="json"),
         }
     )
     return result

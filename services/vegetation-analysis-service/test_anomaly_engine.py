@@ -51,3 +51,14 @@ def test_deduplicates_multiple_baselines_to_strongest():
     )
     assert len(result) == 1
     assert result[0].severity == "critical"
+
+
+def test_lifecycle_identity_does_not_depend_on_recalculation_policy():
+    first = detect_signals(field_id="fld_demo", indicator="ndvi", comparisons=[_comparison()])[0]
+    changed = {
+        **_comparison(deviation="-0.2", pct="-31"),
+        "baseline_run_ref": "urn:sahool:processing-run:run_new",
+    }
+    second = detect_signals(field_id="fld_demo", indicator="ndvi", comparisons=[changed])[0]
+    assert first.anomaly_ref == second.anomaly_ref
+    assert first.detection_run_ref != second.detection_run_ref

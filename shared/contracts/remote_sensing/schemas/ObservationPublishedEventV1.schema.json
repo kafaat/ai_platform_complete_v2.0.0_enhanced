@@ -433,8 +433,12 @@
             {
               "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Field Cloud Ratio"
         },
         "field_coverage_ratio": {
@@ -447,8 +451,12 @@
             {
               "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Field Coverage Ratio"
         },
         "field_shadow_ratio": {
@@ -461,8 +469,12 @@
             {
               "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Field Shadow Ratio"
         },
         "gate_status": {
@@ -557,18 +569,18 @@
             {
               "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Valid Pixel Ratio"
         }
       },
       "required": [
         "gate_status",
         "policy",
-        "field_coverage_ratio",
-        "valid_pixel_ratio",
-        "field_cloud_ratio",
-        "field_shadow_ratio",
         "indicator_in_range"
       ],
       "title": "ObservationQualityV1",

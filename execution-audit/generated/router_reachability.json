@@ -2296,7 +2296,7 @@
     },
     {
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.vegetation-analysis-service.routers.anomalies",
       "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
       "route_count": 5,
@@ -2305,7 +2305,7 @@
     },
     {
       "kind": "router",
-      "line": 15,
+      "line": 18,
       "module": "services.vegetation-analysis-service.routers.baselines",
       "node_id": "services.vegetation-analysis-service.routers.baselines:router",
       "route_count": 1,
@@ -2385,7 +2385,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 36,
+  "include_edge_count": 37,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2430,6 +2430,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.raster-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "analysis.router",
+      "line": 450,
+      "module": "services/raster-service/test_indicator_provenance_transport.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.raster-service.test_indicator_provenance_transport:<dynamic-source>",
       "target": null
     },
     {
@@ -2712,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "eb76ce90a46addf7c6527f6ff5ce1d692a40cb999c476ba8582b7efc547afb1e",
+  "inventory_sha256": "287290202d2fa627b51168a1f4ed6408bfe2b368e585635b7c34e98e3059693e",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -4928,7 +4937,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 25,
+      "line": 26,
       "module": "services.vegetation-analysis-service.routers.anomalies",
       "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
       "route_count": 5,
@@ -4938,7 +4947,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 15,
+      "line": 18,
       "module": "services.vegetation-analysis-service.routers.baselines",
       "node_id": "services.vegetation-analysis-service.routers.baselines:router",
       "route_count": 1,
@@ -5013,7 +5022,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 34,
+  "unresolved_include_count": 35,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5054,6 +5063,14 @@
       "module": "services.raster-service.router_registry",
       "source": null,
       "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/raster-service/test_indicator_provenance_transport.py",
+      "line": 450,
+      "module": "services.raster-service.test_indicator_provenance_transport",
+      "source": null,
+      "target_expression": "analysis.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

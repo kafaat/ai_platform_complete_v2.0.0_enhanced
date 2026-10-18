@@ -291,7 +291,7 @@
         "GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3737",
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:999",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
-        "GET /api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:168",
+        "GET /api/v1/fields/{field_id}/indicator-observations/{view} @ services/sahool-platform/api/routers/indicators.py:171",
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3081",
         "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
         "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
@@ -1130,7 +1130,7 @@
         "GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45",
         "GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101",
         "POST /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:69",
-        "POST /v1/terrain/slope @ services/raster-service/routers/analysis.py:135"
+        "POST /v1/terrain/slope @ services/raster-service/routers/analysis.py:148"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -1882,7 +1882,7 @@
         "GET /readyz @ services/raster-service/routers/observability.py:189",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/raster-tiler-service/main.py:11",
-        "GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153",
+        "GET /v1/cog/validate @ services/raster-service/routers/analysis.py:166",
         "GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73",
         "GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1397",
         "GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191",
@@ -3272,9 +3272,9 @@
         "GET /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:160",
         "POST /api/v1/salinity/assess @ services/sahool-platform/api/routers/salinity.py:30",
         "POST /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:107",
-        "POST /v1/salinity/calibrate @ services/raster-service/routers/analysis.py:175",
-        "POST /v1/salinity/classify @ services/raster-service/routers/analysis.py:168",
-        "POST /v1/sar/rvi @ services/raster-service/routers/analysis.py:111"
+        "POST /v1/salinity/calibrate @ services/raster-service/routers/analysis.py:188",
+        "POST /v1/salinity/classify @ services/raster-service/routers/analysis.py:181",
+        "POST /v1/sar/rvi @ services/raster-service/routers/analysis.py:124"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

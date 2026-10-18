@@ -5,12 +5,15 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 import main
 from baseline_engine import build_baselines
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
+
+from shared.contracts.remote_sensing.admission import admission_reasons
 
 router = APIRouter()
 INDICATORS_SERVICE_URL = os.getenv(
@@ -39,7 +42,7 @@ async def baseline_comparisons(
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.get(
-                f"{INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observation-timeline",
+                f"{INDICATORS_SERVICE_URL}/v1/fields/{quote(field_id, safe='')}/observation-timeline",
                 params={"season_id": request.season_id, "indicators": request.indicator},
                 headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token.credentials}"},
             )
@@ -62,7 +65,20 @@ async def baseline_comparisons(
         as_of=datetime.now(UTC),
     )
     if not comparisons:
-        raise HTTPException(424, "insufficient canonical history for baseline")
+        reasons = sorted(
+            {
+                reason
+                for entry in timeline.get("entries") or []
+                for reason in admission_reasons(entry.get("observation_quality") or {})
+            }
+        )
+        raise HTTPException(
+            424,
+            {
+                "code": "insufficient_canonical_history",
+                "reason_codes": reasons or ["insufficient_qualified_history"],
+            },
+        )
     return {
         "field_id": field_id,
         "season_id": request.season_id,

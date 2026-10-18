@@ -76,7 +76,7 @@ def _client(monkeypatch, *, owned: bool = True, handler=None, db_error: bool = F
     app = FastAPI()
     app.include_router(mod.router)
     app.dependency_overrides[get_current_user] = _user
-    return TestClient(app), upstream, conn
+    return TestClient(app, headers={"Authorization": "Bearer user-session"}), upstream, conn
 
 
 @pytest.mark.parametrize("view", ["observations", "observation-timeline"])
@@ -97,7 +97,7 @@ def test_each_view_reaches_its_service_route_with_the_authenticated_tenant(
     assert req.url.path == f"/v1/fields/fld-1/{view}"
     assert dict(req.url.params) == {"season_id": "s-1", "indicators": "ndvi,ndmi"}
     assert req.headers["x-tenant-id"] == _TENANT, "المستأجِر من JWT لا من ترويسة العميل"
-    assert "authorization" not in req.headers
+    assert req.headers["authorization"] == "Bearer user-session"
     assert conn.queries and conn.queries[0][1] == ("fld-1",), "الملكيّة فُحِصت قبل النداء"
 
 
@@ -170,3 +170,115 @@ def test_the_route_is_registered_on_the_real_app() -> None:
 
     paths = {r.path for r in app.routes if isinstance(getattr(r, "path", None), str)}
     assert "/api/v1/fields/{field_id}/indicator-observations/{view}" in paths
+
+
+@pytest.mark.parametrize("has_images", [True, False])
+def test_platform_timeline_reaches_real_indicators_app(monkeypatch, has_images):
+    """Exercise both ASGI routers and the timeline reader, not a fake indicators response."""
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    service = Path(__file__).resolve().parents[2] / "indicators-service"
+    monkeypatch.syspath_prepend(str(service))
+    spec = importlib.util.spec_from_file_location("review_indicators_main", service / "main.py")
+    indicators = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(indicators)
+    timeline = sys.modules["observation_timeline"]
+    monkeypatch.setattr(timeline, "RASTER_SERVICE_TOKEN", "test-agent")
+    monkeypatch.setenv("PLATFORM_API_URL", "http://platform.test")
+    service_transport = httpx.ASGITransport(app=indicators.app)
+    seen = []
+
+    async def dispatch(request):
+        seen.append(request)
+        if request.url.host == "indicators.test":
+            return await service_transport.handle_async_request(request)
+        if request.url.path.endswith("/seasons"):
+            assert request.headers["authorization"] == "Bearer user-session"
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "field_id": "fld_probe",
+                        "season_id": "s-1",
+                        "sowing_date": "2026-07-01",
+                        "season_end": "2026-07-10",
+                    }
+                ],
+            )
+        assert request.headers["x-tenant-id"] == _TENANT
+        assert request.headers["x-agent-token"] == "test-agent"
+        return httpx.Response(
+            200,
+            json={
+                "available": has_images,
+                "real_data": has_images,
+                "points": [
+                    {
+                        "datetime": "2026-07-03",
+                        "mean": 0.5,
+                        "valid_pixel_ratio": 0.9,
+                        "coverage_ratio": 0.9,
+                        "cloud_pct": 5,
+                    }
+                ],
+            },
+        )
+
+    client, _, _ = _client(monkeypatch, handler=dispatch)
+    response = client.get(
+        "/api/v1/fields/fld_probe/indicator-observations/observation-timeline",
+        params={"season_id": "s-1"},
+    )
+    assert response.status_code == 200, response.text
+    assert len(response.json()["entries"]) == int(has_images)
+    if not has_images:
+        assert response.json()["evaluation_status"] == "insufficient_history"
+    assert len(seen) == 3
+
+
+@pytest.mark.parametrize(
+    ("scenario", "expected"),
+    [("missing", 404), ("planned", 409), ("user_auth", 401), ("raster_auth", 502)],
+)
+def test_timeline_context_and_service_auth_have_distinct_statuses(monkeypatch, scenario, expected):
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    service = Path(__file__).resolve().parents[2] / "indicators-service"
+    monkeypatch.syspath_prepend(str(service))
+    spec = importlib.util.spec_from_file_location("review_indicators_errors", service / "main.py")
+    indicators = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(indicators)
+    monkeypatch.setattr(sys.modules["observation_timeline"], "RASTER_SERVICE_TOKEN", "test-agent")
+    transport = httpx.ASGITransport(app=indicators.app)
+
+    async def dispatch(request):
+        if request.url.host == "indicators.test":
+            return await transport.handle_async_request(request)
+        if request.url.path.endswith("/seasons"):
+            if scenario == "user_auth":
+                return httpx.Response(401)
+            if scenario == "missing":
+                return httpx.Response(200, json=[])
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "field_id": "fld_probe",
+                        "season_id": "sea_probe",
+                        "sowing_date": None if scenario == "planned" else "2026-07-01",
+                    }
+                ],
+            )
+        assert scenario == "raster_auth"
+        return httpx.Response(401)
+
+    client, _, _ = _client(monkeypatch, handler=dispatch)
+    response = client.get(
+        "/api/v1/fields/fld_probe/indicator-observations/observation-timeline",
+        params={"season_id": "sea_probe"},
+    )
+    assert response.status_code == expected, response.text

@@ -12,7 +12,7 @@ def _entry(ref, date, value, stage=None):
             "valid_pixel_ratio": "0.9",
             "field_coverage_ratio": "0.9",
             "field_cloud_ratio": "0.1",
-            "policy": {"use_case": "anomaly_detection"},
+            "policy": {"use_case": "anomaly_detection", "policy_version": "2.0.0"},
         },
         "stage": stage,
     }

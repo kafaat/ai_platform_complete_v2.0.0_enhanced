@@ -87,6 +87,8 @@ def grid_from_cog(
         import indicator_grid as ig
         import numpy as np
         import rasterio
+        from affine import Affine
+        from rasterio.enums import Resampling
         from rasterio.warp import transform_bounds
     except Exception:  # noqa: BLE001
         return None
@@ -95,7 +97,30 @@ def grid_from_cog(
     path = object_store_module.to_gdal_path(cog_url)
     try:
         with rasterio.open(path) as src:
-            arr = src.read(1, masked=True).astype("float64").filled(np.nan)
+            rows, cols = min(grid, src.height), min(grid, src.width)
+            # Average onto a regular output grid. Rounded block boundaries are
+            # not an affine grid when source dimensions are not divisible.
+            arr = (
+                src.read(1, out_shape=(rows, cols), resampling=Resampling.average, masked=True)
+                .astype("float64")
+                .filled(np.nan)
+            )
+            output_transform = src.transform * Affine.scale(src.width / cols, src.height / rows)
+            revision = layer.get("geometry_revision")
+            grid_identity = None
+            if (
+                src.crs is not None
+                and isinstance(revision, int)
+                and not isinstance(revision, bool)
+                and revision >= 0
+            ):
+                grid_identity = {
+                    "crs": src.crs.to_string(),
+                    "transform": list(output_transform)[:6],
+                    "geometry_revision": revision,
+                    "rows": rows,
+                    "cols": cols,
+                }
             if src.nodata is not None:
                 arr = np.where(arr == src.nodata, np.nan, arr)
             if src.crs is not None:
@@ -116,6 +141,7 @@ def grid_from_cog(
         "rows": part["rows"],
         "cols": part["cols"],
         "grid": part["grid"],
+        "grid_identity": grid_identity,
         "stats": part["stats"],
         "zones": part["zones"],
         "source": layer.get("source_format") or "raster",

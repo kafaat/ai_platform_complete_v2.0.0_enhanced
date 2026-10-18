@@ -14,6 +14,7 @@ import os
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
+from urllib.parse import quote
 from uuid import UUID
 
 import httpx
@@ -41,6 +42,14 @@ RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-servi
 )
 RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN") or os.getenv("RASTER_SERVICE_TOKEN", "")
 TIMELINE_POLICY_ID = os.getenv("RS_TIMELINE_POLICY_ID", "NDVI_TIMELINE_REAL_ONLY_V1")
+
+
+class TimelineSourceError(RuntimeError):
+    """Public status for a known context or service-auth failure."""
+
+    def __init__(self, status_code: int, code: str):
+        super().__init__(code)
+        self.status_code = status_code
 
 
 def _stable_id(prefix: str, *parts: object) -> str:
@@ -93,8 +102,6 @@ def canonicalize_timeseries(
             season_id,
             indicator_code,
             acquired.isoformat(),
-            json.dumps(point, sort_keys=True, separators=(",", ":"), default=str),
-            POLICY_VERSION,
         )
         refs.append(f"urn:sahool:observation:{native}")
 
@@ -114,7 +121,14 @@ def canonicalize_timeseries(
             point.get("geometry_revision"),
             point.get("algorithm_version"),
         )
-        run_native = _stable_id("run", asset_native)
+        # Aggregate observation identity stays stable across policy upgrades.
+        # Computation identity and hashes bind the exact reprocessed input.
+        run_native = _stable_id(
+            "run",
+            asset_native,
+            json.dumps(point, sort_keys=True, separators=(",", ":"), default=str),
+            POLICY_VERSION,
+        )
         value = Decimal(str(point["mean"]))
         is_latest = observation_ref == latest_ref
         # RS-4 honesty: carry the REAL per-observation quality reported by
@@ -232,7 +246,7 @@ async def fetch_canonical_timeline(
     async with httpx.AsyncClient(timeout=20) as client:
         platform = os.getenv("PLATFORM_API_URL", "http://sahool-platform:8000").rstrip("/")
         response = await client.get(
-            f"{platform}/api/v1/fields/{field_id}/seasons",
+            f"{platform}/api/v1/fields/{quote(field_id, safe='')}/seasons",
             headers={"Authorization": authorization, "X-Tenant-Id": str(tenant_id)},
         )
         response.raise_for_status()
@@ -240,24 +254,32 @@ async def fetch_canonical_timeline(
         matches = [
             s for s in seasons if s.get("season_id") == season_id and s.get("field_id") == field_id
         ]
+        if not matches:
+            raise TimelineSourceError(404, "canonical_season_not_found")
         if len(matches) != 1 or not matches[0].get("sowing_date"):
-            raise RuntimeError("canonical_season_window_unavailable")
+            raise TimelineSourceError(409, "canonical_season_window_unavailable")
         season = matches[0]
-        start = _parse_date(str(season["sowing_date"]))
-        end = (
-            _parse_date(str(season["season_end"]))
-            if season.get("season_end")
-            else datetime.now(UTC)
-        )
+        try:
+            start = _parse_date(str(season["sowing_date"]))
+            end = (
+                _parse_date(str(season["season_end"]))
+                if season.get("season_end")
+                else datetime.now(UTC)
+            )
+        except (ValueError, TypeError) as exc:
+            raise TimelineSourceError(409, "canonical_season_window_invalid") from exc
         if end < start:
-            raise RuntimeError("canonical_season_window_invalid")
+            raise TimelineSourceError(409, "canonical_season_window_invalid")
         for indicator in indicators:
             response = await client.get(
-                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/timeseries",
+                f"{RASTER_SERVICE_URL}/v1/fields/{quote(field_id, safe='')}/timeseries",
                 params={"index": indicator},
                 headers={"X-Tenant-Id": str(tenant_id), "X-Agent-Token": RASTER_SERVICE_TOKEN},
             )
-            response.raise_for_status()
+            if response.status_code in {401, 403}:
+                raise TimelineSourceError(502, "raster_service_authentication_failed")
+            if response.is_error:
+                raise TimelineSourceError(424, "raster_timeline_source_unavailable")
             payload = response.json()
             if not payload.get("available") or not payload.get("real_data"):
                 continue

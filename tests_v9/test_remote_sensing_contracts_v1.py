@@ -331,3 +331,19 @@ def test_identifier_and_ownership_invariants():
     data["field_id"] = str(uuid4())
     with pytest.raises(ValidationError):
         CanonicalObservationV1.model_validate(data)
+
+
+def test_published_remote_sensing_schemas_match_runtime_models():
+    import json
+    from pathlib import Path
+
+    import shared.contracts.remote_sensing as contracts
+
+    directory = Path(__file__).resolve().parents[1] / "shared/contracts/remote_sensing/schemas"
+    for path in directory.glob("*.schema.json"):
+        model = getattr(contracts, path.name.removesuffix(".schema.json"))
+        expected = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            **model.model_json_schema(),
+        }
+        assert json.loads(path.read_text(encoding="utf-8")) == expected, path.name

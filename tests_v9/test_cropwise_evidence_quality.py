@@ -38,7 +38,7 @@ def entries(values):
                 "valid_pixel_ratio": "0.9",
                 "field_coverage_ratio": "0.9",
                 "field_cloud_ratio": "0.1",
-                "policy": {"use_case": "anomaly_detection"},
+                "policy": {"use_case": "anomaly_detection", "policy_version": "2.0.0"},
                 "score": "0.9",
             },
         }
@@ -179,7 +179,8 @@ def test_reprocessed_point_and_policy_change_identity():
     }
     original = T.canonicalize_timeseries(**kwargs, points=[point])[0]
     changed = T.canonicalize_timeseries(**kwargs, points=[{**point, "mean": 0.61}])[0]
-    assert original.observation_ref != changed.observation_ref
+    assert original.observation_ref == changed.observation_ref
+    assert original.lineage.processing_run_ref != changed.lineage.processing_run_ref
     assert original.lineage.input_hash != changed.lineage.input_hash
 
 
@@ -232,7 +233,7 @@ async def test_timeline_uses_authorized_season_window(monkeypatch):
     )
     assert [x.acquired_at.day for x in rows] == [3]
     assert len(calls) == 2
-    with pytest.raises(RuntimeError, match="season_window_unavailable"):
+    with pytest.raises(T.TimelineSourceError, match="canonical_season_not_found") as error:
         await T.fetch_canonical_timeline(
             field_id="fld_probe",
             tenant_id=UUID(int=1),
@@ -240,6 +241,7 @@ async def test_timeline_uses_authorized_season_window(monkeypatch):
             indicators=["ndvi"],
             authorization="Bearer owner",
         )
+    assert error.value.status_code == 404
     assert len(calls) == 3  # Reject before any raster read.
 
 
@@ -294,8 +296,10 @@ def test_change_grid_requires_spatial_identity_not_only_shape():
     ]:
         with pytest.raises(ValidationError, match="spatial_identity_mismatch"):
             model.ChangeDetectRequest(**{**data, "grid_after_identity": {**identity, **changes}})
-    with pytest.raises(ValidationError):
-        model.ChangeDetectRequest(**{k: v for k, v in data.items() if not k.endswith("_identity")})
+    legacy = model.ChangeDetectRequest(
+        **{k: v for k, v in data.items() if not k.endswith("_identity")}
+    )
+    assert legacy.grid_before_identity is None
 
 
 def test_change_percent_denominator_is_common_valid_pixels():
@@ -353,6 +357,8 @@ async def upstream(request):
         return httpx.Response(403)
     if 'fld_unavailable' in request.url.path:
         return httpx.Response(503)
+    if 'fld_quality' in request.url.path:
+        return httpx.Response(200,json={'entries':[{'observation_ref':'obs1','acquired_at':'2026-07-01T00:00:00Z','indicator':{'code':'ndvi'},'summary':{'mean':.5},'observation_quality':{'gate_status':'passed','policy':{'policy_version':'1.0.0','use_case':'anomaly_detection'}}}]})
     return httpx.Response(200, json={'entries': []})
 httpx.AsyncClient = lambda **kw: original(transport=httpx.MockTransport(upstream), **kw)
 client = TestClient(main.app)
@@ -369,7 +375,11 @@ body['fields'][0]['field_id'] = 'fld_foreign'
 assert client.post(url, json=body, headers=headers).status_code == 403
 body['fields'][0]['field_id'] = 'fld_unavailable'
 response = client.post(url, json=body, headers=headers)
-assert response.json()['fields'][0]['reason_codes'] == ['canonical_source_unavailable']
+assert response.json()['fields'][0]['reason_codes'] == ['canonical_source_unavailable', 'insufficient_qualified_history']
+baseline = client.post('/v1/fields/fld_quality/baseline-comparisons',headers=headers,json={'season_id':'sea_probe'})
+assert baseline.status_code == 424
+assert 'unsupported_quality_policy_version' in baseline.json()['detail']['reason_codes']
+assert 'valid_pixel_ratio_unavailable' in baseline.json()['detail']['reason_codes']
 body['fields'] *= 2
 assert client.post(url, json=body, headers=headers).status_code == 422
 """
@@ -425,18 +435,16 @@ def test_scouting_evaluation_counts_abstentions_and_rejects_field_leakage():
         module.evaluate_scouting(field_weeks=rows, training_fields={"a"}, k=2)
 
 
-def test_tiler_wrapper_has_local_and_object_storage_access_without_removing_legacy():
+def test_default_tiler_cannot_bypass_tenant_storage_authorization():
     import yaml
 
     services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))[
         "services"
     ]
     wrapper = services["raster-tiler-service"]
-    assert "raster-data:/data/rasters:ro" in wrapper["volumes"]
+    assert not wrapper.get("volumes")
     env = dict(item.split("=", 1) for item in wrapper["environment"])
-    assert env["AWS_S3_ENDPOINT"] == services["sahool-titiler"]["environment"]["AWS_S3_ENDPOINT"]
-    assert "RASTER_S3_ACCESS_KEY:?" in env["AWS_ACCESS_KEY_ID"]
-    assert "RASTER_S3_SECRET_KEY:?" in env["AWS_SECRET_ACCESS_KEY"]
+    assert not any(key.startswith("AWS_") for key in env)
     assert services["sahool-titiler"]["profiles"] == ["legacy-tiler"]
 
 
@@ -453,3 +461,216 @@ def test_invalid_latest_raster_point_cannot_expose_an_older_alert():
         ],
     )
     assert rows == []
+
+
+def test_old_gap_keeps_the_recent_contiguous_history():
+    rows = entries([0.95, 0.6, 0.3])
+    rows[0]["acquired_at"] = "2026-01-01T00:00:00Z"
+    result = B.build_baselines(field_id="fld_probe", indicator="ndvi", entries=rows)
+    assert result and result[0].expected_value == __import__("decimal").Decimal("0.6")
+    assert all("obs1" not in item.member_observation_refs for item in result)
+
+
+@pytest.mark.parametrize("version", [None, "1.0.0", "3.0.0"])
+def test_unrecognized_policy_version_is_not_admitted(version):
+    from shared.contracts.remote_sensing.admission import admissible
+
+    quality = entries([0.6])[0]["observation_quality"]
+    quality["policy"]["policy_version"] = version
+    assert not admissible(quality)
+
+
+def test_observation_aggregate_identity_survives_policy_upgrade():
+    import hashlib
+
+    args = dict(
+        field_id="fld_probe", tenant_id=UUID(int=1), season_id="sea_probe", indicator_code="ndvi"
+    )
+    point = {
+        "datetime": "2026-07-01",
+        "mean": 0.6,
+        "valid_pixel_ratio": 0.9,
+        "coverage_ratio": 0.9,
+        "cloud_pct": 5,
+    }
+    obs = T.canonicalize_timeseries(**args, points=[point])[0]
+    legacy = hashlib.sha256(
+        f"{UUID(int=1)}|fld_probe|sea_probe|ndvi|2026-07-01T00:00:00+00:00".encode()
+    ).hexdigest()[:24]
+    assert obs.observation_ref == f"urn:sahool:observation:obs_{legacy}"
+
+
+@pytest.mark.parametrize("bad_date", [None, "nonsense", "2026-07-02T00:00:00"])
+def test_bad_report_row_cannot_crash_other_fields(monkeypatch, bad_date):
+    from datetime import UTC, datetime
+
+    monkeypatch.setitem(sys.modules, "baseline_engine", B)
+    monkeypatch.setitem(sys.modules, "anomaly_engine", A)
+    weekly = load(
+        "cropwise_weekly_bad_date", "services/vegetation-analysis-service/weekly_insights.py"
+    )
+    bad = entries([0.6, 0.3])
+    bad[-1]["acquired_at"] = bad_date
+    result = weekly.build_weekly_insights(
+        tenant_id=str(UUID(int=1)),
+        week_end=datetime(2026, 7, 3, tzinfo=UTC),
+        fields=[
+            {"field_id": "fld_bad", "season_id": "sea_probe", "entries": bad},
+            {"field_id": "fld_good", "season_id": "sea_probe", "entries": entries([0.6, 0.3])},
+        ],
+    )
+    rows = {r["field_id"]: r for r in result["fields"]}
+    assert rows["fld_bad"]["status"] == "not_assessable"
+    assert "invalid_observation_timestamp" in rows["fld_bad"]["reason_codes"]
+    assert rows["fld_good"]["status"] == "review_requested"
+
+
+def test_null_evidence_is_validation_error_not_type_error():
+    from pydantic import ValidationError
+
+    module = load(
+        "cropwise_review_requests", "services/vegetation-analysis-service/anomaly_requests.py"
+    )
+    with pytest.raises(ValidationError):
+        module.VerificationCompletion(
+            expected_version=1,
+            task_ref="task1",
+            verification_result="confirmed",
+            evidence=None,
+            completed_at="2026-07-03T00:00:00Z",
+        )
+
+
+@pytest.mark.parametrize("legacy_baseline_type", ["previous_valid", "historical_robust_median"])
+def test_legacy_anomaly_is_reused_and_evidence_can_be_recovered(tmp_path, legacy_baseline_type):
+    """Real route/store roundtrip for old aggregate keys and trusted metadata repair."""
+    import os
+    import subprocess
+
+    script = r"""
+import asyncio, hashlib, os, time
+from datetime import UTC, datetime
+from uuid import UUID
+import jwt
+from fastapi.testclient import TestClient
+import main
+from routers import anomalies
+from anomaly_store import AnomalyStore
+from anomaly_runtime import AnomalyStoreFacade
+from baseline_engine import build_baselines
+from diagnosis_engine import build_diagnosis
+from observation_timeline import canonicalize_timeseries
+
+tenant = str(UUID(int=1))
+secret = 's' * 64
+claims = {'sub':'usr_test', 'tenant_id':tenant, 'iss':'sahool-auth', 'aud':'sahool', 'exp':int(time.time())+300, 'iat':int(time.time()), 'token_type':'access'}
+token = jwt.encode(claims,secret,algorithm='HS256')
+headers = {'Authorization':'Bearer '+token}
+store = AnomalyStore()
+anomalies._store = AnomalyStoreFacade(store)
+anomalies._TASK_CALLBACK_TOKEN = 'trusted-callback'
+points = [{'datetime':'2026-07-01','mean':.6}, {'datetime':'2026-07-02','mean':.3}]
+for point in points:
+    point.update(valid_pixel_ratio=.9, coverage_ratio=.9, cloud_pct=5)
+entries = [x.model_dump(mode='json') for x in canonicalize_timeseries(field_id='fld_probe',tenant_id=UUID(tenant),season_id='sea_probe',indicator_code='ndvi',points=points)]
+comparisons = [x.to_dict() for x in build_baselines(field_id='fld_probe',indicator='ndvi',entries=entries)]
+# The actual pre-v2 aggregate formula, independent of the new detector.
+obs_hash = hashlib.sha256(f'{tenant}|fld_probe|sea_probe|ndvi|2026-07-02T00:00:00+00:00'.encode()).hexdigest()[:24]
+obs_ref = 'urn:sahool:observation:obs_'+obs_hash
+kind = os.environ['LEGACY_BASELINE_TYPE']
+old_baseline = 'urn:sahool:processing-run:run_'+hashlib.sha256(f'fld_probe|ndvi|{obs_ref}|{kind}'.encode()).hexdigest()[:24]
+old_ref = 'urn:sahool:anomaly:anomaly_'+hashlib.sha256(f'fld_probe|ndvi|{obs_ref}|{old_baseline}|-0.3'.encode()).hexdigest()[:24]
+evidence_ref = 'urn:sahool:evidence:evd_original'
+payload = dict(anomaly_ref=old_ref,tenant_id=tenant,field_id='fld_probe',season_id='sea_probe',primary_observation_ref=obs_ref,baseline_run_ref=old_baseline,signal_type='ndvi_decline',confidence='0.7')
+store.upsert_detected(payload)
+store.transition(old_ref,'verification_requested',expected_version=1,task_ref='task_original')
+store.transition(old_ref,'confirmed',expected_version=2,patch={'verification_evidence_refs':[evidence_ref], 'verification_completed_at':'2026-07-03T00:00:00+00:00'})
+async def baselines(*args): return comparisons
+anomalies._baselines = baselines
+class NeverCreate:
+    async def create_scouting_task(self, **kwargs): raise AssertionError('duplicate scouting task')
+anomalies._bridge = NeverCreate()
+client = TestClient(main.app)
+response = client.post('/v1/fields/fld_probe/signal-anomalies/detect',headers=headers,json={'season_id':'sea_probe','auto_request_verification':True})
+assert response.status_code == 200, response.text
+assert response.json()['anomalies'][0]['anomaly_ref'] == old_ref
+assert response.json()['anomalies'][0]['status'] == 'confirmed'
+assert len(store.list(tenant,'fld_probe','sea_probe')) == 1
+metadata = {'evidence_ref':evidence_ref,'tenant_id':tenant,'source_system':'task-service','evidence_type':'ground_verification','relation_type':'corroborating','captured_at':'2026-07-02T10:00:00Z','content_hash':'a'*64,'verification_state':'verified'}
+body = {'expected_version':3,'task_ref':'task_original','verification_result':'confirmed','evidence_refs':[evidence_ref],'evidence':[metadata],'completed_at':'2026-07-03T00:00:00Z'}
+url = '/v1/anomalies/'+old_ref+'/verification-results'
+assert client.post(url,headers={**headers,'X-Task-Service-Token':'wrong'},json=body).status_code == 403
+trusted = {**headers,'X-Task-Service-Token':'trusted-callback'}
+assert client.post(url,headers=trusted,json={**body,'evidence':None}).status_code == 422
+assert client.post(url,headers=trusted,json={**body,'task_ref':'task_other'}).status_code == 409
+assert client.post(url,headers=trusted,json={**body,'evidence':[{**metadata,'tenant_id':str(UUID(int=2))}]}).status_code == 403
+assert client.post(url,headers=trusted,json={**body,'expected_version':2}).status_code == 409
+assert store.get(old_ref)['aggregate_version'] == 3
+response = client.post(url,headers=trusted,json=body)
+assert response.status_code == 200, response.text
+record = response.json()
+assert record['status'] == 'confirmed' and record['aggregate_version'] == 4
+assert record['payload']['verification_completed_at'] == '2026-07-03T00:00:00+00:00'
+diagnosis = build_diagnosis(anomaly_record=record,tenant_id=UUID(tenant))
+assert diagnosis.evidence_bundle.evidence[0].content_hash == 'a'*64
+assert diagnosis.evidence_bundle.evidence[0].captured_at == datetime(2026,7,2,10,tzinfo=UTC)
+assert client.post(url,headers=trusted,json={**body,'expected_version':4}).status_code == 409
+"""
+    env = {
+        **os.environ,
+        "JWT_SECRET": "s" * 64,
+        "JWT_PUBLIC_KEY": "",
+        "SAHOOL_ENV": "test",
+        "LEGACY_BASELINE_TYPE": legacy_baseline_type,
+        "VEGETATION_ANOMALY_STORE": "sqlite",
+        "VEGETATION_ANOMALY_DB_PATH": str(tmp_path / "legacy.db"),
+        "PYTHONPATH": os.pathsep.join(
+            str(ROOT / p)
+            for p in ["services/vegetation-analysis-service", "services/indicators-service", ""]
+        ),
+    }
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.asyncio
+async def test_timeline_encodes_field_id_as_one_url_segment(monkeypatch):
+    import httpx
+
+    seen = []
+    field = "fld_a/b?query=1#fragment"
+    real = httpx.AsyncClient
+
+    async def upstream(request):
+        seen.append(request)
+        assert b"fld_a%2Fb%3Fquery%3D1%23fragment/" in request.url.raw_path
+        if request.url.path.endswith("/seasons"):
+            return httpx.Response(
+                200,
+                json=[{"field_id": field, "season_id": "sea_probe", "sowing_date": "2026-07-01"}],
+            )
+        assert dict(request.url.params) == {"index": "ndvi"}
+        return httpx.Response(200, json={"available": False, "real_data": False})
+
+    monkeypatch.setattr(T, "RASTER_SERVICE_TOKEN", "test-token")
+    monkeypatch.setattr(
+        httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(upstream), **kw)
+    )
+    assert (
+        await T.fetch_canonical_timeline(
+            field_id=field,
+            tenant_id=UUID(int=1),
+            season_id="sea_probe",
+            indicators=["ndvi"],
+            authorization="Bearer owner",
+        )
+        == []
+    )
+    assert len(seen) == 2

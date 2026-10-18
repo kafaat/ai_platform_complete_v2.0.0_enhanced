@@ -159,7 +159,9 @@ def canonicalize_bundle(
             }
         )
         gate = (
-            QualityGateStatus.PASSED
+            QualityGateStatus.NOT_EVALUATED
+            if any(code.endswith("unavailable") for code in admission_reasons)
+            else QualityGateStatus.PASSED
             if bool(item.get("real_data")) and not admission_reasons
             else QualityGateStatus.REJECTED
         )
