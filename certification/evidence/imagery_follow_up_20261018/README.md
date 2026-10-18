@@ -47,3 +47,5 @@ and ownership success/foreign/missing/unavailable outcomes, including context
 restoration; missing/forged/expired tokens and conflicting headers are checked
 on both methods. `ci-corrections-local.txt`: 58 passed. Updated full CI pending;
 this local measurement is not staging/production acceptance.
+
+Synchronization: main@503d7d7c (#1212 JWT revocation and #1218 ET0) is incorporated after 8c5c941c. The 23 generated conflicts are resolved through repository generators; Claude-owned source files are preserved verbatim from main. Acceptance of the new head remains pending, independent of earlier evidence.

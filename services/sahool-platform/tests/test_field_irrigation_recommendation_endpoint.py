@@ -752,3 +752,24 @@ async def test_a_manual_ledger_entry_is_not_claimed_recorded(monkeypatch):
     _patch(monkeypatch, _FakeConn(depletion_mm=60.0, decision="manual entry"))
     out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
     assert out["inputs"]["applied_water_status"] is None
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_engine_rejected_field_weather_fails_closed_with_named_inputs(monkeypatch):
+    """المحرّك رفض طقسَ الحقل (``et0_mm=None``) ⇒ لا توصية ولا ``float(None)`` ⇒ 500."""
+    rejected = _fake_et0_product(
+        et0_mm=None,
+        method="insufficient",
+        quality_status="invalid",
+        invalid_inputs=["t_max_c", "t_min_c"],
+        limitations=["t_max_c rejected: t_max_c < t_min_c"],
+    )
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=rejected)
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "dependency_unavailable"
+    assert out["recommendation"] is None and out["confidence"] is None
+    assert out["invalid_inputs"] == ["t_max_c", "t_min_c"]
+    assert "t_max_c rejected: t_max_c < t_min_c" in out["limitations"]
+    assert any("fail-closed" in lim for lim in out["limitations"])
+    assert not any(e.startswith("weather-engine-et0:") for e in out["evidence_ids"])

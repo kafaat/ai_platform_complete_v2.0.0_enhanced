@@ -10077,6 +10077,7 @@
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_et0.py",
         "services/weather-service/tests/test_et0_agro_product.py",
+        "services/weather-service/tests/test_et0_reference_and_input_validity.py",
         "services/weather-service/tests/test_et0_series.py",
         "services/weather-service/tests/test_hourly_etc_product.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
@@ -10103,7 +10104,8 @@
         "tests_v9/test_weather_engine_formula_guard.py",
         "tests_v9/test_weather_model_identity.py",
         "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
-        "tests_v9/test_wired_endpoints.py"
+        "tests_v9/test_wired_endpoints.py",
+        "tests_v9/test_wofost_hargreaves_matches_canonical.py"
       ]
     },
     {

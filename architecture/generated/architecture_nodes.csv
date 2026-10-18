@@ -27,7 +27,7 @@ knowledge-graph,service,2,0,False,services/knowledge-graph
 local-ai-rag,service,1,1,False,services/local-ai-rag
 mcp-servers,service,0,3,False,services/mcp_servers
 model-registry-adapter,service,0,2,False,services/model-registry-adapter
-platform,service,5,22,False,services/sahool-platform
+platform,service,5,23,False,services/sahool-platform
 production-preflight,compose-service,3,0,False,
 qdrant-seed,service,0,0,True,services/qdrant-seed
 rag-retrieval,service,1,0,False,services/rag-retrieval
@@ -79,7 +79,7 @@ sahool-raster-backfill-scan-worker,compose-service,0,2,False,
 sahool-raster-cache-invalidation-worker,compose-service,0,2,False,
 sahool-raster-service,compose-service,1,2,False,
 sahool-redis,compose-service,8,0,False,
-sahool-redis-state,compose-service,2,0,False,
+sahool-redis-state,compose-service,3,0,False,
 sahool-remote-sensing-workspace-bff,compose-service,1,2,False,
 sahool-reservation-dispatch-relay-worker,compose-service,0,1,False,
 sahool-sam2-inference,compose-service,1,0,False,
