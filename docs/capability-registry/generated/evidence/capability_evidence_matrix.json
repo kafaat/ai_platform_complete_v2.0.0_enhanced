@@ -6535,6 +6535,7 @@
         "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
         "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
+        "services/raster-service/test_cdse_cause_evidence.py",
         "services/raster-service/test_cdse_date_normalization.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",

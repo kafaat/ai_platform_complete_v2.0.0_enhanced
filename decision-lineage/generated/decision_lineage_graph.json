@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 635,
+      "evidence_count": 637,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -197,6 +197,7 @@
         "services/qdrant-seed/seed.py",
         "services/rag-retrieval/main.py",
         "services/raster-service/cdse_diagnostics.py",
+        "services/raster-service/cdse_native_product.py",
         "services/raster-service/db_persist.py",
         "services/raster-service/dem_quality.py",
         "services/raster-service/follow_up_runtime.py",
@@ -212,6 +213,7 @@
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/timeseries_routes.py",
         "services/raster-service/stac_search.py",
+        "services/raster-service/test_cdse_cause_evidence.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_imagery_source_gate.py",
@@ -2583,6 +2585,7 @@
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/qdrant-seed/reindex.py",
+        "services/raster-service/cdse_native_product.py",
         "services/raster-service/follow_up_store.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/stac_search.py",
@@ -2631,10 +2634,9 @@
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/evidence.py",
         "services/sahool-platform/api/routers/evidence_map.py",
-        "services/sahool-platform/api/routers/field_ai_context.py",
-        "services/sahool-platform/api/routers/field_intelligence.py"
+        "services/sahool-platform/api/routers/field_ai_context.py"
       ],
-      "source_evidence_count": 635,
+      "source_evidence_count": 637,
       "target_evidence_count": 526,
       "static_supported": true,
       "runtime_verified": false
@@ -3052,5 +3054,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "1e733a42df087005ffbb27f0b5c6d015db9a37934dbe120d55ec99415fafc969"
+  "content_sha256": "5e4a3a2e710d45f6b4578ee0970bd91d57399f31ceababb788b1d2d51ba0544b"
 }
