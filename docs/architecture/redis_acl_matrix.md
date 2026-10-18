@@ -36,7 +36,7 @@ connect).
 
 | User (= compose service) | Password var | Client env · db | Commands | Keys | Channels | Evidence (path:line) |
 |---|---|---|---|---|---|---|
-| `sahool-platform` | `REDIS_PLATFORM_PASSWORD` | `REDIS_URL` · 0 | ping get setex incr expire ttl exists | `sahool:ratelimit:*` `sahool:jti:revoked:*` `sahool:weather:tile:*` `sahool:weather:rate:*` | — | `services/sahool-platform/api/main.py:888-894` (rate limit INCR/EXPIRE/TTL) · `core/jwt_denylist.py:27,64,67` (SETEX/EXISTS) · `api/routers/weather.py:56,69,239,271,561-564` |
+| `sahool-platform` | `REDIS_PLATFORM_PASSWORD` | `REDIS_URL` · 0 | ping get setex incr expire ttl | `sahool:ratelimit:*` `sahool:weather:tile:*` `sahool:weather:rate:*` | — | `services/sahool-platform/api/main.py:888-894` (rate limit INCR/EXPIRE/TTL) · `api/routers/weather.py:56,69,239,271,561-564`. The JWT denylist moved to `sahool-platform-denylist` on the state server (below). |
 | `sahool-tts-service` | `REDIS_TTS_PASSWORD` | `REDIS_URL` · 2 | ping select get setex | `sahool:tts:*` | — | `services/tts-service/main.py:276,128` · `routers/tts.py:134,173` |
 | `sahool-video-processor` | `REDIS_VIDEO_PROCESSOR_PASSWORD` | `REDIS_URL` · 3 | ping select | — | — | connection-only: `services/video-processor/main.py:112` reads the URL; no Redis client is built |
 | `sahool-weather-service` | `REDIS_WEATHER_PASSWORD` | `WEATHER_REDIS_URL` · 4 | ping select get setex ttl | `sahool:weather:fresh:*` `sahool:weather:stale:*` | — | `services/weather-service/cache.py:39,43,29,74,114,59` |
@@ -54,6 +54,7 @@ connect).
 | User | Password var | Client env · db | Commands | Keys | Channels | Evidence |
 |---|---|---|---|---|---|---|
 | `sahool-auth` | `REDIS_AUTH_PASSWORD` | `REDIS_URL` · 0 | ping get getdel setex del exists expire ttl incr sadd smembers | `sahool:refresh:*` `sahool:user:refreshset:*` `sahool:user:token_floor:*` `sahool:jti:revoked:*` `sahool:lockout:*` `sahool:attempts:*` `sahool:ip_rate:*` `sahool:otp_rate:*` `sahool:otp:*` `sahool:reset:*` | — | `services/auth/main.py:375-971` · `otp.py:41` · `routers/password_reset.py:34` · `session_tokens.py:40` |
+| `sahool-platform-denylist` (service `sahool-platform`) | `REDIS_PLATFORM_DENYLIST_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists setex | `sahool:jti:revoked:*` | — | `services/sahool-platform/core/jwt_denylist.py:42` (URL choice) · `api/main.py:1158,1164` (builder, PING) · `core/jwt_denylist.py:29,79,82` (key, SETEX, EXISTS) · `api/routers/auth.py:131` (the platform's own logout writes the list) |
 | `sahool-guardrails-engine` | `REDIS_GUARDRAILS_PASSWORD` | `REDIS_URL` · 0 | ping | — | — | connection-only: `redis>=5.0.0` in `requirements.txt:7`, no Python file imports it |
 
 ## Where precision stops (stated, not hidden)
@@ -76,8 +77,9 @@ connect).
 - **Pre-existing, outside this slice:** (1) `sahool-raster-cache-invalidation-worker` has no
   `REDIS_URL` in v9, so its eviction `PUBLISH` (`cache_invalidation_worker.py:62`) is skipped. No
   user is created for it; wiring it needs a user with `+publish &raster:layer_evict`. (2) The
-  platform checks `sahool:jti:revoked:*` on the **cache** server while auth writes it on the
-  **state** server. The ACL grants the platform what its code does; it does not repair that split.
+  revocation split (the platform checked `sahool:jti:revoked:*` on the **cache** server while auth
+  wrote it on the **state** server) is **fixed for compose** by
+  `JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01`: see the next section.
 - **Redis 7.2+ `CLIENT SETINFO`:** redis-py sends it on connect and ignores the error, so it is not
   granted. `+client|setinfo` would also break startup on Redis 7.0, where that subcommand is unknown.
 - **Passwords sit in the server's argv** (visible to `docker inspect`), the same exposure as the
@@ -86,6 +88,55 @@ connect).
 - **`&` must be quoted in the compose `command`.** Compose splits the string with a shell-word
   parser and silently stops at a bare `&`. This was measured with `docker compose config`: 17 of
   175 arguments survived, so every user after the operator was dropped. The test enforces quoting.
+
+## JWT revocation: one server for writer and readers
+
+**Defect (measured textually on `main@f3936a771`):** auth writes `sahool:jti:revoked:{jti}`
+(`services/auth/main.py:641`, read at `:647`) on its `REDIS_URL`, which compose points at
+`sahool-redis-state`. The platform's denylist (`api/main.py` `_build_denylist` ⇒ `RedisDenylist`)
+read the same key on *its* `REDIS_URL`, the cache `sahool-redis`. A token revoked at the auth
+logout stayed accepted by the platform until it expired, and a logout through the platform
+(`POST /api/v1/auth/logout`, `api/routers/auth.py:131`) revoked on the cache, where auth never looks.
+
+**Measured checkers and writers** (`grep` for `jti:revoked`, `is_token_revoked`, `RedisDenylist`,
+`denylist` over `services/ shared/ agents/ bots/`; decision-service, tts-service, `services/mcp_servers`
+and `shared/security` neither read nor write the key):
+
+| Service | Reads | Writes | Client env | Compose server · db |
+|---|---|---|---|---|
+| `sahool-auth` | `main.py:647` (`EXISTS`, in `get_current_user` `:730`) | `main.py:641` (`SETEX`, from `routers/session.py:207`) | `REDIS_URL` | `sahool-redis-state` · 0 |
+| `sahool-platform` | `core/jwt_denylist.py:82` (`EXISTS`, in `get_current_user` `api/main.py:1199`) | `core/jwt_denylist.py:79` (`SETEX`, from `api/routers/auth.py:131`) | `DENYLIST_REDIS_URL`, else `REDIS_URL` | `sahool-redis-state` · 0 (was `sahool-redis` · 0) |
+
+Services built from the platform image with their own `command` (the eight `*-worker` services) do
+not import `api.main`, so they neither build nor check the denylist.
+
+**Fix:** `core/jwt_denylist.denylist_redis_url()` returns `DENYLIST_REDIS_URL` when it is set and
+non-blank, and otherwise `REDIS_URL` exactly as before. **A deployment that does not set
+`DENYLIST_REDIS_URL` (Railway today, local runs) behaves exactly as it did.** Compose sets it for
+`sahool-platform` to `redis://sahool-platform-denylist:${REDIS_PLATFORM_DENYLIST_PASSWORD:?…}@sahool-redis-state:6379/0`,
+adds `sahool-redis-state` to its `depends_on`, and the cache user loses `+exists` and
+`~sahool:jti:revoked:*`. Rate limit and weather keys stay on the cache. The production rule is
+unchanged: no reachable Redis for the denylist in production ⇒ the platform refuses to start.
+
+**Why `+setex` and not only `+exists`:** the platform's own logout writes the list. Without
+`SETEX` that write is `NOPERM`, which the logout's fail-safe swallows (`api/routers/auth.py:132-133`),
+so a platform logout would silently stop revoking. **Limit:** `SETEX` can also overwrite an existing
+revocation with a shorter TTL; Redis ACL cannot grant "create only". The platform could already do
+the same on the cache before this change.
+
+**Witnesses:** `tests_v9/test_jwt_revocation_same_redis.py` — the builder prefers
+`DENYLIST_REDIS_URL` and falls back to `REDIS_URL` (unit); every checker derived from the code and
+compose reaches the same server and db, which is `noeviction` (unit); and, on a real redis-server
+started with the compose argv, auth's write is seen by the platform user, which is `NOPERM` on
+`SET`/`DEL`/`GET`/`FLUSHALL`/`KEYS`/`CONFIG`/other keys, the platform's real builder rejects a token
+auth revoked with 401, and a platform logout is seen by auth (integration).
+
+**Not proven:** nothing was run against Railway. Whether Railway's platform and auth read the same
+Redis is **unmeasured** (variable values are not readable there; auth's code default is
+`redis://sahool-redis:6379/0`, `services/auth/main.py:137`). The platform does not check auth's
+"revoke all sessions" floor (`sahool:user:token_floor:*`, `services/auth/main.py:661-683`); that
+is a separate question, outside this fix. No HTTP test drives auth's `/auth/logout` and then the
+platform; the auth side is reproduced by the exact command auth issues.
 
 ## Client migration plan (for a running deployment)
 
@@ -117,7 +168,7 @@ that are still on the shared password work again, and clients already switched k
 | Client | Production behaviour | Development behaviour |
 |---|---|---|
 | `sahool-auth` | refuses to start (`services/auth/main.py:382-383`) | `_redis = None`: revocation, lockout and refresh tokens silently off (`:385-386`) |
-| `sahool-platform` | refuses to start (denylist, `api/main.py:1169`) | in-process denylist and rate limit (`:875`, `:1170`) |
+| `sahool-platform` | refuses to start (denylist, `api/main.py:1169`; the denylist uses `sahool-platform-denylist` on the state server) | in-process denylist and rate limit (`:875`, `:1170`) |
 | `sahool-field-management` | every tenant-asserted request returns 503 (`main.py:174-177`), readiness false | the same once a URL is set |
 | `sahool-decision-service` | worker-asserted requests return 503 (`main.py:241-243`) when the URL is set | the same |
 | `sahool-ai-agronomist` | refuses to start when `SAHOOL_AGENT_STORE_BACKEND=redis` (`agent_stores.py:145-146`) | in-memory approvals and audit (lost on restart) |
@@ -133,8 +184,9 @@ that are still on the shared password work again, and clients already switched k
   and its JSON, `tests_v9/`, and the needle in `scripts/ci/v9_feature_transfer_gate.py`. No service
   code changed. `docker compose -f docker-compose.v9.yml -f docker-compose.production.yml config`
   still resolves.
-- **An existing compose deployment must set the 14 new `REDIS_<…>_PASSWORD` variables** (compose
-  fails fast with `required` otherwise), and should follow the migration plan above if it cannot
+- **An existing compose deployment must set the 15 new `REDIS_<…>_PASSWORD` variables** (compose
+  fails fast with `required` otherwise; the 15th, `REDIS_PLATFORM_DENYLIST_PASSWORD`, came with the
+  revocation fix), and should follow the migration plan above if it cannot
   restart Redis and all clients together.
 - **Railway is not affected and was not changed.** Railway runs `sahool-redis` and
   `sahool-redis-state` as its own services, with start commands and variables set in Railway, not

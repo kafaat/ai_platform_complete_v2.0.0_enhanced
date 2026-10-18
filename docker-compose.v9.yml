@@ -390,7 +390,7 @@ services:
       redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
       --user default off resetpass resetkeys resetchannels -@all
       --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
-      --user sahool-platform on ">${REDIS_PLATFORM_PASSWORD:?REDIS_PLATFORM_PASSWORD required}" resetkeys resetchannels -@all +ping +get +setex +incr +expire +ttl +exists ~sahool:ratelimit:* ~sahool:jti:revoked:* ~sahool:weather:tile:* ~sahool:weather:rate:*
+      --user sahool-platform on ">${REDIS_PLATFORM_PASSWORD:?REDIS_PLATFORM_PASSWORD required}" resetkeys resetchannels -@all +ping +get +setex +incr +expire +ttl ~sahool:ratelimit:* ~sahool:weather:tile:* ~sahool:weather:rate:*
       --user sahool-tts-service on ">${REDIS_TTS_PASSWORD:?REDIS_TTS_PASSWORD required}" resetkeys resetchannels -@all +ping +select +get +setex ~sahool:tts:*
       --user sahool-video-processor on ">${REDIS_VIDEO_PROCESSOR_PASSWORD:?REDIS_VIDEO_PROCESSOR_PASSWORD required}" resetkeys resetchannels -@all +ping +select
       --user sahool-weather-service on ">${REDIS_WEATHER_PASSWORD:?REDIS_WEATHER_PASSWORD required}" resetkeys resetchannels -@all +ping +select +get +setex +ttl ~sahool:weather:fresh:* ~sahool:weather:stale:*
@@ -431,6 +431,7 @@ services:
       --user default off resetpass resetkeys resetchannels -@all
       --user sahool-redis-admin on ">${REDIS_PASSWORD:?REDIS_PASSWORD required}" ~* "&*" +@all
       --user sahool-auth on ">${REDIS_AUTH_PASSWORD:?REDIS_AUTH_PASSWORD required}" resetkeys resetchannels -@all +ping +get +getdel +setex +del +exists +expire +ttl +incr +sadd +smembers ~sahool:refresh:* ~sahool:user:refreshset:* ~sahool:user:token_floor:* ~sahool:jti:revoked:* ~sahool:lockout:* ~sahool:attempts:* ~sahool:ip_rate:* ~sahool:otp_rate:* ~sahool:otp:* ~sahool:reset:*
+      --user sahool-platform-denylist on ">${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}" resetkeys resetchannels -@all +ping +exists +setex ~sahool:jti:revoked:*
       --user sahool-guardrails-engine on ">${REDIS_GUARDRAILS_PASSWORD:?REDIS_GUARDRAILS_PASSWORD required}" resetkeys resetchannels -@all +ping
     volumes:
     - redis-state-data:/data
@@ -859,6 +860,10 @@ services:
       NATS_URL: tls://sahool-platform:${NATS_PLATFORM_PASSWORD:?NATS_PLATFORM_PASSWORD مطلوب — هويّة sahool-platform في nats/nats.conf}@sahool-nats:4222
       SSL_CERT_DIR: /etc/sahool/nats-ca:/etc/ssl/certs
       REDIS_URL: redis://sahool-platform:${REDIS_PLATFORM_PASSWORD:?REDIS_PLATFORM_PASSWORD required}@sahool-redis:6379/0
+      # JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01: قائمةُ الإبطال على خادم auth نفسه
+      # (`sahool-redis-state`، حيث يكتب `sahool:jti:revoked:*`)، لا على الكاش أعلاه؛ مستخدمُها لا يملك
+      # إلّا PING/EXISTS/SETEX على ذلك النمط (redis_acl_matrix.json). `REDIS_URL` يبقى لحدّ المعدّل والطقس.
+      DENYLIST_REDIS_URL: redis://sahool-platform-denylist:${REDIS_PLATFORM_DENYLIST_PASSWORD:?REDIS_PLATFORM_DENYLIST_PASSWORD required}@sahool-redis-state:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
@@ -923,6 +928,8 @@ services:
       sahool-postgres:
         condition: service_healthy
       sahool-redis:
+        condition: service_healthy
+      sahool-redis-state:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully

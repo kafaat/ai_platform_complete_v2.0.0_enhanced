@@ -1,5 +1,5 @@
 {
-  "$comment": "REDIS-SHARED-PASSWORD-NO-ACL-01 — one Redis ACL user per v9 service (owner decision 2026-09-30). Each user's commands/keys/channels are derived from the code cited in `evidence` (path:line measured at `measured_on`; the needle is re-checked by tests_v9/test_redis_acl_per_service.py, the line is informational). The `--user` arguments of the two Redis servers in docker-compose.v9.yml must render exactly from this file — the same test compares them. `basis: connection-only` = the service is handed a Redis URL but its code issues no Redis command; it gets PING (+SELECT for a non-zero db) and no key or channel. Human-readable matrix, migration plan and deploy impact: docs/architecture/redis_acl_matrix.md.",
+  "$comment": "REDIS-SHARED-PASSWORD-NO-ACL-01 — one Redis ACL user per v9 service (owner decision 2026-09-30). Each user's commands/keys/channels are derived from the code cited in `evidence` (path:line measured at `measured_on`; the needle is re-checked by tests_v9/test_redis_acl_per_service.py, the line is informational). The `--user` arguments of the two Redis servers in docker-compose.v9.yml must render exactly from this file — the same test compares them. A user whose name is not its compose service's name says which service it belongs to in `service` (sahool-platform has two: the cache user and `sahool-platform-denylist` on the state server). `basis: connection-only` = the service is handed a Redis URL but its code issues no Redis command; it gets PING (+SELECT for a non-zero db) and no key or channel. Human-readable matrix, migration plan and deploy impact: docs/architecture/redis_acl_matrix.md.",
   "schema": "sahool.redis-acl-matrix",
   "version": 1,
   "gap": "REDIS-SHARED-PASSWORD-NO-ACL-01",
@@ -62,12 +62,10 @@
             "setex",
             "incr",
             "expire",
-            "ttl",
-            "exists"
+            "ttl"
           ],
           "keys": [
             "sahool:ratelimit:*",
-            "sahool:jti:revoked:*",
             "sahool:weather:tile:*",
             "sahool:weather:rate:*"
           ],
@@ -102,24 +100,6 @@
               "line": 871,
               "needle": "client.ping()",
               "why": "PING at startup"
-            },
-            {
-              "path": "services/sahool-platform/core/jwt_denylist.py",
-              "line": 27,
-              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
-              "why": "key denylist (shared with sahool-auth's naming)"
-            },
-            {
-              "path": "services/sahool-platform/core/jwt_denylist.py",
-              "line": 64,
-              "needle": "self._r.setex(JTI_REVOKED_KEY",
-              "why": "SETEX"
-            },
-            {
-              "path": "services/sahool-platform/core/jwt_denylist.py",
-              "line": 67,
-              "needle": "self._r.exists(JTI_REVOKED_KEY",
-              "why": "EXISTS"
             },
             {
               "path": "services/sahool-platform/api/routers/weather.py",
@@ -837,6 +817,67 @@
               "line": 40,
               "needle": "return await getdel(key)",
               "why": "GETDEL (the MULTI/EXEC fallback is unreachable with redis-py, which has getdel)"
+            }
+          ]
+        },
+        "sahool-platform-denylist": {
+          "service": "sahool-platform",
+          "password_env": "REDIS_PLATFORM_DENYLIST_PASSWORD",
+          "client_env": "DENYLIST_REDIS_URL",
+          "db": 0,
+          "basis": "derived",
+          "note": "JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01: the platform's revocation list lives on the server sahool-auth writes it to. A second user of the sahool-platform service, so the cache credentials never reach the security-state server. SETEX is granted because the platform's own logout writes the list (api/routers/auth.py); without it that write is NOPERM and is swallowed by the logout's fail-safe, so a platform logout would silently stop revoking.",
+          "commands": [
+            "ping",
+            "exists",
+            "setex"
+          ],
+          "keys": [
+            "sahool:jti:revoked:*"
+          ],
+          "channels": [],
+          "evidence": [
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 42,
+              "needle": "return (env.get(\"DENYLIST_REDIS_URL\") or \"\").strip() or env.get(\"REDIS_URL\", \"\")",
+              "why": "client env: DENYLIST_REDIS_URL, falling back to REDIS_URL"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 1158,
+              "needle": "url = denylist_redis_url()",
+              "why": "the denylist builder reads that URL"
+            },
+            {
+              "path": "services/sahool-platform/api/main.py",
+              "line": 1164,
+              "needle": "client.ping()",
+              "why": "PING at startup (denylist builder)"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 29,
+              "needle": "JTI_REVOKED_KEY = \"sahool:jti:revoked:{jti}\"",
+              "why": "key denylist (shared with sahool-auth's naming)"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 82,
+              "needle": "return bool(self._r.exists(JTI_REVOKED_KEY.format(jti=jti)))",
+              "why": "EXISTS (get_current_user, api/main.py:1199)"
+            },
+            {
+              "path": "services/sahool-platform/core/jwt_denylist.py",
+              "line": 79,
+              "needle": "self._r.setex(JTI_REVOKED_KEY.format(jti=jti), max(1, ttl_seconds), \"1\")",
+              "why": "SETEX"
+            },
+            {
+              "path": "services/sahool-platform/api/routers/auth.py",
+              "line": 131,
+              "needle": "_main._DENYLIST.revoke(jti, ttl)",
+              "why": "the platform's POST /api/v1/auth/logout writes the list"
             }
           ]
         },

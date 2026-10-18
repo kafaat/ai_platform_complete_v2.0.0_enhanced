@@ -1136,17 +1136,17 @@ def create_token(user: UserSchema) -> str:
 
 
 # ─── إبطال JWT (denylist) — يُغلق فجوة: تسجيل الخروج لم يكن يُبطِل التوكن فعليّاً ──
-# يُبنى backend مشترك مع خدمة auth (نفس مفتاح Redis sahool:jti:revoked:{jti}) كي
-# يرى المنصّة إبطالات auth أيضاً؛ وإلّا ذاكرة (dev/offline — إبطال داخل العمليّة).
+# backend مشترك مع auth (مفتاح sahool:jti:revoked:{jti} على خادمه: denylist_redis_url)، وإلّا ذاكرة.
 from core.jwt_denylist import (  # noqa: E402
     InMemoryDenylist,
     RedisDenylist,
+    denylist_redis_url,
     is_token_revoked,
 )
 
 
 def _build_denylist():
-    """backend الإبطال: Redis (مشترك مع auth) إن توفّر REDIS_URL وحيّ، وإلّا ذاكرة.
+    """backend الإبطال: Redis (مشترك مع auth) إن توفّر DENYLIST_REDIS_URL/REDIS_URL وحيّ، وإلّا ذاكرة.
 
     fail-safe (تطوير): أيّ تعذّر اتّصال/استيراد ⇒ ذاكرة (يُبطِل داخل العمليّة على الأقلّ،
     مع fail-open على الفحص). الإنتاج متعدّد العمّال يحتاج Redis لمشاركة الإبطال.
@@ -1155,7 +1155,7 @@ def _build_denylist():
     وتفقد الإبطالات عند إعادة التشغيل، و«fail-open على الفحص» يُمرّر التوكنات المُبطَلة.
     لذا في الإنتاج (SAHOOL_ENV=production) نرفض الإقلاع إن غاب Redis بدل التنازل صامتاً.
     """
-    url = os.getenv("REDIS_URL", "")
+    url = denylist_redis_url()
     if url:
         try:
             import redis as _redis
