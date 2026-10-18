@@ -27,6 +27,7 @@ DEC-001,test,docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md,3,applied
 DEC-001,test,services/decision-service/tests/test_activation_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_agronomic_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_decision_evidence_read.py,7,applied
+DEC-001,test,services/raster-service/test_cdse_cause_evidence.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_adapt_from_evidence.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_evidence_class.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_evidence_graph.py,3,applied
@@ -1424,6 +1425,7 @@ SAT-001,test,services/decision-service/tests/test_satellite_cdse_activation_endp
 SAT-001,test,services/decision-service/tests/test_satellite_cdse_activation_gate.py,5,applied
 SAT-001,test,services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py,5,applied
 SAT-001,test,services/raster-service/test_backfill_scene_policy.py,3,applied
+SAT-001,test,services/raster-service/test_cdse_cause_evidence.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_date_normalization.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_durable_diagnostics.py,3,applied
 SAT-001,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,applied
@@ -1690,6 +1692,7 @@ SAT-009,test,services/raster-service/test_band_math_zones.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_certification.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_metrics.py,3,applied
 SAT-009,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
+SAT-009,test,services/raster-service/test_cdse_cause_evidence.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_date_normalization.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_durable_diagnostics.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,applied
@@ -1793,6 +1796,7 @@ SAT-009,test,tests_v9/test_raster_db_persist_uuid_hardening_20260626.py,3,applie
 SAT-009,test,tests_v9/test_raster_decomposition_wiring_v31_3.py,3,applied
 SAT-009,test,tests_v9/test_raster_endpoint_auth_coverage.py,3,applied
 SAT-009,test,tests_v9/test_raster_field_tenant_authz.py,3,applied
+SAT-009,test,tests_v9/test_raster_invalidation_redis_acl.py,3,applied
 SAT-009,test,tests_v9/test_raster_job_store.py,3,applied
 SAT-009,test,tests_v9/test_raster_latest_not_stale_after_rehydrate_v2.py,3,applied
 SAT-009,test,tests_v9/test_raster_persist_observability_v30_2.py,3,applied

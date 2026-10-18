@@ -911,6 +911,50 @@
     ]
   },
   {
+    "path": "certification/evidence/titiler_parity_20261018/README.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 10,
+        "signals": [
+          "content:cog",
+          "content:raster tile"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 14,
+        "signals": [
+          "path:cog",
+          "content:cog"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "config/endpoint_ui_coverage.json",
     "kind": "other",
     "candidates": [

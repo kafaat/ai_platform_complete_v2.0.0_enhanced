@@ -788,8 +788,12 @@ class CdseClient:
         max_cloud_pct: float = 40.0,
         limit: int = 20,
         geometry: dict | None = None,
+        max_retries: int | None = None,
     ) -> list[dict]:
         """Search CDSE Sentinel Hub Catalog for Sentinel-2 scenes.
+
+        ``max_retries`` overrides ``CDSE_PROCESS_MAX_RETRIES`` for callers that must
+        not wait out the transport backoff (the failure-path diagnostic probe).
 
         Hardened behavior:
         - normalizes date inputs to explicit RFC3339 intervals;
@@ -853,7 +857,8 @@ class CdseClient:
         # قطع TLS/الاتّصال العابر (`SSL: UNEXPECTED_EOF_WHILE_READING` وأمثاله) كان
         # يُبتَلع فوراً إلى [] فيبدو «لا مشهد» بينما المشكلة شبكيّة عابرة (هذا سبب فشل
         # SAM2/backfill المُبلَّغ). نعيد على TransportError بـbackoff قبل الاستسلام.
-        max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
+        if max_retries is None:
+            max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
         base_backoff = _env_float("CDSE_PROCESS_RETRY_BASE_SECONDS", 5.0, minimum=0.0)
         max_backoff = _env_float("CDSE_PROCESS_RETRY_MAX_SECONDS", 120.0, minimum=1.0)
         attempt = 0

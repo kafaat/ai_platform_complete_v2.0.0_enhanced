@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6026,
+    "files_scanned": 6049,
     "files_by_kind": {
       "backend": 1234,
       "database": 289,
-      "governance": 77,
+      "governance": 78,
       "mobile": 57,
-      "other": 1925,
-      "tests": 1973,
+      "other": 1942,
+      "tests": 1978,
       "web": 471
     },
-    "unmapped_artifacts": 2311,
-    "ambiguous_artifacts": 468
+    "unmapped_artifacts": 2314,
+    "ambiguous_artifacts": 470
   },
   "capabilities": [
     {
@@ -1545,6 +1545,14 @@
           ]
         },
         {
+          "path": "docs/architecture/router_extraction_plan_20261018.md",
+          "score": 8,
+          "signals": [
+            "content:Dispatch authorization",
+            "content:dispatch authorization"
+          ]
+        },
+        {
           "path": "docs/audits/WATER_AUTO_ACTUATOR_TIMELINE_FORENSIC_REVIEW_20260712.md",
           "score": 8,
           "signals": [
@@ -1566,7 +1574,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -9578,6 +9586,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/element84_inventory_run.md",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "scripts/ci/generate_service_inventory.py",
           "score": 14,
           "signals": [
@@ -9792,7 +9808,7 @@
         "mobile": 1,
         "tests": 10,
         "governance": 4,
-        "other_evidence": 34
+        "other_evidence": 35
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -13450,6 +13466,13 @@
           ]
         },
         {
+          "path": "certification/evidence/codex_product_gaps_20261018/README.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "certification/evidence/gap_reconciliation_20261014/remaining_136_open_delta.json",
           "score": 20,
           "signals": [
@@ -13465,6 +13488,13 @@
         },
         {
           "path": "certification/evidence/non_claude_gap_closure_20261017/scope.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "docs/architecture/decisions_pending/CAP-INT-004BC.md",
           "score": 20,
           "signals": [
             "explicit_id"
@@ -13512,7 +13542,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 10
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -16598,6 +16628,15 @@
           ]
         },
         {
+          "path": "docs/architecture/decisions_pending/REPORT3-U05-FIELD-FORM-NOT-PROJECTED-TO-PRACTICE-01.md",
+          "score": 20,
+          "signals": [
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -16667,7 +16706,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 8
+        "other_evidence": 9
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -18561,11 +18600,11 @@
           "score": 14
         },
         {
-          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:160",
+          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:236",
           "score": 14
         },
         {
-          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:219",
+          "value": "sahool.cdse-failure-receipt.v1 @ services/raster-service/cdse_diagnostics.py:295",
           "score": 14
         },
         {
@@ -18890,6 +18929,14 @@
         },
         {
           "path": "certification/evidence/cdse_diagnostics_20261014/test_portability_provenance.json",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "services/raster-service/test_cdse_cause_evidence.py",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -19273,6 +19320,15 @@
           ]
         },
         {
+          "path": "docs/architecture/decisions_pending/CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01.md",
+          "score": 19,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "docs/history/RADAR_SENTINEL1_REVIEW.md",
           "score": 19,
           "signals": [
@@ -19344,6 +19400,14 @@
         },
         {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE16_ROUTER_TILES_CDSE_20260706.md",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "certification/evidence/cdse_cause_evidence_20261018/README.md",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -19856,9 +19920,9 @@
         "events": 49,
         "web": 5,
         "mobile": 0,
-        "tests": 57,
+        "tests": 58,
         "governance": 0,
-        "other_evidence": 80
+        "other_evidence": 82
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21346,6 +21410,10 @@
           "score": 24
         },
         {
+          "value": "sahool.titiler-parity.v1 @ certification/evidence/titiler_parity_20261018/parity_ndvi_float32_epsg4326.json:201",
+          "score": 16
+        },
+        {
           "value": "MyFieldsPage.tsx @ frontend/src/sections/MapHubSatelliteDefault.static.test.ts:10",
           "score": 12
         },
@@ -21723,10 +21791,6 @@
         },
         {
           "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:184",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:185",
           "score": 12
         }
       ],
@@ -23064,6 +23128,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/parity_ndvi_float32_epsg4326.json",
+          "score": 16,
+          "signals": [
+            "path:NDVI",
+            "path:ndvi"
+          ]
+        },
+        {
           "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
           "score": 12,
           "signals": [
@@ -23121,6 +23193,14 @@
         },
         {
           "path": "certification/evidence/chatgpt_remaining_20261016/review-recheck.json",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -23640,6 +23720,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/README.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/UNIFIED_SETUP.md",
           "score": 8,
           "signals": [
@@ -23790,7 +23878,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 24,
-        "events": 58,
+        "events": 59,
         "tests": 83
       },
       "evidence_counts": {
@@ -23802,7 +23890,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 96
+        "other_evidence": 99
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -25485,6 +25573,10 @@
           "score": 11
         },
         {
+          "value": "sahool.titiler-parity.v1 @ scripts/diagnostics/titiler_parity.py:239",
+          "score": 11
+        },
+        {
           "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
           "score": 11
         },
@@ -25776,6 +25868,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
           "path": "docs/adr/ADR-0032-lexicographic-irrigation-mpc.md",
           "score": 14,
           "signals": [
@@ -25868,11 +25968,27 @@
           ]
         },
         {
+          "path": "scripts/diagnostics/titiler_parity.py",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
           "score": 10,
           "signals": [
             "content:raster tile",
             "content:tilejson"
+          ]
+        },
+        {
+          "path": "certification/evidence/titiler_parity_20261018/README.md",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
           ]
         },
         {
@@ -25948,6 +26064,14 @@
           ]
         },
         {
+          "path": "docs/architecture/decisions_pending/TITILER-UPSTREAM-IMAGE-HAS-NO-METRICS-01.md",
+          "score": 8,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json",
           "score": 8,
           "signals": [
@@ -25980,12 +26104,12 @@
         "backend": 14,
         "routes": 70,
         "database": 0,
-        "events": 16,
+        "events": 17,
         "web": 1,
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 36
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -27280,6 +27404,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_m4_bootstrap_pg16.py",
+          "score": 13,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_readiness_followup_fixes_20260916.py",
           "score": 13,
           "signals": [
@@ -28319,7 +28452,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 800
+        "database": 802
       },
       "evidence_counts": {
         "backend": 13,
@@ -28328,7 +28461,7 @@
         "events": 56,
         "web": 0,
         "mobile": 0,
-        "tests": 74,
+        "tests": 75,
         "governance": 0,
         "other_evidence": 83
       },
@@ -45806,6 +45939,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_b6_real_guardrails_evaluation.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_b6m4_platform_store.py",
       "kind": "tests"
     },
@@ -47178,6 +47315,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_raster_invalidation_redis_acl.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_raster_persist_observability_v30_2.py",
       "kind": "tests"
     },
@@ -47615,6 +47756,10 @@
     },
     {
       "path": "tests_v9/test_tile_auth_cookie_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_titiler_parity_harness.py",
       "kind": "tests"
     },
     {
@@ -48798,6 +48943,50 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/titiler_parity_20261018/README.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]

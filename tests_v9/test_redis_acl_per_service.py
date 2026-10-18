@@ -454,7 +454,7 @@ _KEYED = {
     "eval": ["return 1", "1", "{k}"],
 }
 _UNKEYED = {"ping": [], "select": ["0"], "scan": ["0"]}
-_CHANNEL = {"subscribe": ["{c}"], "unsubscribe": ["{c}"]}
+_CHANNEL = {"subscribe": ["{c}"], "unsubscribe": ["{c}"], "publish": ["{c}", "acl-probe"]}
 
 
 @pytest.mark.integration
@@ -583,7 +583,10 @@ def test_live_denials_are_real_noperm_for_command_key_and_channel(live_server):
                 client.execute_command("SUBSCRIBE", "sahool:acl-outsider")
             with pytest.raises(redis.exceptions.NoPermissionError):
                 client.publish(
-                    user["channels"][0] if user["channels"] else "raster:layer_evict", "x"
+                    "sahool:acl-outsider"
+                    if "publish" in user["commands"]
+                    else "raster:layer_evict",
+                    "x",
                 )
         finally:
             client.close()

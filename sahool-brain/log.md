@@ -9657,3 +9657,23 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
 
 السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
+### 2026-10-18 — خطّة استخراج الراوترات الكبيرة (بانتظار الإقرار)
+
+بقرار المالك («Router extraction plan»): `docs/architecture/router_extraction_plan_20261018.md` لـROUTER-SIZE-UNGUARDED-AFTER-MAIN-DECOMPOSITION-01، مقيسةٌ على `main@1765d73a0`. لا نقل شيفرة قبل إقرارها؛ الفجوة open. المصدر: الخطّة نفسها.
+
+## 2026-10-18 — الفجوات السبع عشرة بعد #1213
+
+طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.
+
+
+2026-10-18 — PR #1222: مرجع إصلاح RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01 المنشور c2da227a1b40169a650b24035ad476aebe5a1bc2 يطابق شجرة الاختبار المحلي 9e436826. كشف التشغيل 39130214320 لفجوة M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01 تعارض text/varchar للمعامل $8؛ تحويل صريح محدود في الاستعلام، والقبول الحي الكامل ينتظر إعادة CI. لا تفعيل ولا هجرة ولا دمج.
+
+
+2026-10-18 — M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01: نجح PG16 الحي تحت FORCE RLS في CI 39131088261 على 602869e54f809e99fac64e34e59d695837766813، 1 passed. الشاهد الخام m4-ci-green.txt؛ لا قياس staging أو إنتاج، والحالة open والراية مطفأة. PR #1222 دون دمج.
+### 2026-10-18 — تكافؤ TiTiler القديم والغلاف (الدفعة B، بلا نشر)
+
+بقرار المالك («قوم بتنفيذ» على خطّة الدفعات): أداة مقارنة `scripts/diagnostics/titiler_parity.py` مصفوفتها مشتقّة من المستدعي الوحيد `shared/gis/cog_tile_proxy.py`، واختبارها يحمرّ إن انحرف المستدعي (طفرتان يدويّتان). قيس 0.18.6 و0.22.4 من PyPI على Python 3.12 (سحب الصور محجوب 403) بملفّين COG مرجعيّين: الطلبات المستعملة متطابقة حيث تُرجع بيانات. الفروق: مسار البلاطات بلا TMS، وحدود `info`، وجسم `/healthz`. وفجوة جديدة FLOAT-COG-TILE-WITHOUT-RESCALE-RENDERS-FLAT-01 (open). وتصحيح ادّعاء سابق: GHSA-9cfx-96xx-wmh9 غير مؤكَّدة في سجلّ PyPI. TITILER-UPSTREAM-IMAGE-HAS-NO-METRICS-01 تبقى open. [الدليل](../certification/evidence/titiler_parity_20261018/README.md)
+
+### 2026-10-18 — دليل الفهرس لنتائج CDSE الفارغة (الدفعة C، بلا نشر)
+
+بقرار المالك («قوم بتنفيذ»): فحص فهرس بلا مرشّح السحب على النتيجتين الفارغتين، مطفأ افتراضيّاً، ونسبة لا تُسمّي سبباً إلّا من دليل الفهرس. وسبب مميَّز لغياب البلاطات المساهمة في backfill. حارس `test_imagery_source_gate_no_bypass_static` رفض نداء البحث داخل `cdse_diagnostics.py`، فنُقل إلى `raster_cdse_tile_runtime.py` (نقطة مراقبة قائمة) بلا توسيع القائمة المسموحة. CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01 تبقى open. [الدليل](../certification/evidence/cdse_cause_evidence_20261018/README.md)

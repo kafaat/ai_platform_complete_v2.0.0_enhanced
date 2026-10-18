@@ -233,3 +233,7 @@ that are still on the shared password work again, and clients already switched k
   therefore remains on Railway.** Closing it there means applying the three-step plan to the
   Railway Redis start commands and service variables. That is an operator action, outside this
   slice.
+
+## Raster invalidation publisher (2026-10-18)
+
+`RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01`: compose assigns the worker its own required `REDIS_RASTER_INVALIDATION_PASSWORD` and `REDIS_URL`. Its matrix-derived ACL is `+ping +publish &raster:layer_evict`, with no keys. The channel argument is quoted in compose. Evidence: `services/raster-service/cache_invalidation_worker.py:54-62`. This covers compose only; Railway is outside scope. Redis Pub/Sub remains best-effort, at-most-once delivery; reconnect recovery is not established by this fix.

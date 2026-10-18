@@ -1,0 +1,20 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_real_store_concurrency_rls_lease_and_retry_window ____________
+
+    @pytest.mark.asyncio
+    async def test_real_store_concurrency_rls_lease_and_retry_window():
+        from urllib.parse import urlparse
+    
+        import asyncpg
+    
+        dsn = os.getenv("M4_TEST_DATABASE_URL", "")
+        if not dsn:
+            if os.getenv("M4_REQUIRE_PG16") == "1":
+>               pytest.fail("M4_REQUIRE_PG16=1 requires M4_TEST_DATABASE_URL")
+E               Failed: M4_REQUIRE_PG16=1 requires M4_TEST_DATABASE_URL
+
+tests_v9/test_m4_bootstrap_pg16.py:42: Failed
+=========================== short test summary info ============================
+FAILED tests_v9/test_m4_bootstrap_pg16.py::test_real_store_concurrency_rls_lease_and_retry_window
+1 failed in 0.15s
