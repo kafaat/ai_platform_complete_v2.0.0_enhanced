@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/383ab1306db0/sahool-work
+configfile: pytest.ini
+plugins: cov-7.1.0, platformdirs-4.13.3, asyncio-1.4.0, xdist-3.8.0, respx-0.23.1, hypothesis-6.170.1, anyio-4.15.1, Faker-40.43.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 9 items
+
+<Dir sahool-work>
+  <Dir tests_v9>
+    <Module test_imagery_follow_up_pg16.py>
+      <Coroutine test_concurrent_replay_and_payload_conflict>
+      <Coroutine test_real_role_rls_read_write_and_missing_context[False]>
+      <Coroutine test_real_role_rls_read_write_and_missing_context[True]>
+      <Coroutine test_no_early_claim_and_expiry_are_persistent>
+      <Coroutine test_only_one_concurrent_claim_and_stale_worker_cannot_finish>
+      <Coroutine test_progress_survives_retry_and_worker_loss>
+      <Coroutine test_cancellation_and_budget_are_honest_terminal_states>
+      <Coroutine test_authoritative_receipt_query_uses_matching_accepted_tenant_rows>
+      <Coroutine test_schema_rejects_orphaned_lease>
+
+========================== 9 tests collected in 0.28s ==========================

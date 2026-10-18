@@ -965,6 +965,11 @@ tables:
     writers: [raster-service]
     readers: [sahool-platform]
     source: "migrations/v96_spatial_geometry_integrity.sql"
+  raster_follow_up_requests:
+    owner: raster-service
+    writers: [raster-service]
+    readers: [raster-service]
+    source: "migrations/v236_raster_follow_up_requests.sql"
   raster_registry:
     owner: raster-service
     writers: [raster-service]

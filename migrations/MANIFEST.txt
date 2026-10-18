@@ -760,4 +760,6 @@ v233_event_outbox_claim_lease.sql
 v234_learning_agronomic_review.sql
 # v235: server-owned correlation on actual decision and execution chains.
 v235_decision_chain_correlation.sql
+# v236: tenant-scoped durable imagery timers and fenced hand-offs; no physical execution.
+v236_raster_follow_up_requests.sql
 v206_rls_final_hardening.sql

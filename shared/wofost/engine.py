@@ -210,7 +210,8 @@ def hargreaves_et0(tmax: float, tmin: float, lat_deg: float, doy: int) -> float:
     # الإشعاع الفضائي Ra (Equation 21)
     dr = 1 + 0.033 * math.cos(2 * math.pi / 365 * doy)
     delta = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)
-    ws = math.acos(-math.tan(lat) * math.tan(delta))
+    # قصّ وسيط acos إلى [-1, 1] كما في المصدر الكنسيّ (خطوط العرض القطبيّة لا ترمي).
+    ws = math.acos(max(-1.0, min(1.0, -math.tan(lat) * math.tan(delta))))
     Ra = (
         (24 * 60 / math.pi)
         * 0.082
@@ -218,7 +219,8 @@ def hargreaves_et0(tmax: float, tmin: float, lat_deg: float, doy: int) -> float:
         * (ws * math.sin(lat) * math.sin(delta) + math.cos(lat) * math.cos(delta) * math.sin(ws))
     )
     et0 = 0.0023 * (tmean + 17.8) * math.sqrt(trange) * Ra * 0.408
-    return max(0.5, round(et0, 2))
+    # أرضيّة 0.0 كالمصدر الكنسيّ (hargreaves_et0_mm) — كانت 0.5 فتباعد الناتج عن «النسخة الحرفيّة».
+    return max(0.0, round(et0, 2))
 
 
 # ══════════════════════════════════════════════════════════════

@@ -58,7 +58,7 @@ def test_hargreaves_fallback_is_degraded_not_fao56():
     assert out["et0_mm"] is not None
     assert set(out["missing_inputs"]) == {"solar_rad_mj_m2", "rh_mean_pct", "wind_2m_ms"}
     assert any("NOT full FAO-56" in lim for lim in out["limitations"])
-    assert out["formula_version"] == "et0/fao56-pm/1.0.0"
+    assert out["formula_version"] == "et0/fao56-pm/1.1.0"
 
 
 def test_partial_pm_inputs_still_fallback():

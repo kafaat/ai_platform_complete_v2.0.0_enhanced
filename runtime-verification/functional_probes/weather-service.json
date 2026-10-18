@@ -38,7 +38,7 @@
         },
         {
           "field": "formula_version",
-          "equals": "et0/fao56-pm/1.0.0"
+          "equals": "et0/fao56-pm/1.1.0"
         },
         {
           "field": "quality_status",

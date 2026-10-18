@@ -9614,3 +9614,35 @@ JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01 ⇒ `fixed` لـco
 ### 2026-10-18 — جلبُ متن الـPR في خطوةٍ مستقلّة (capability-governance)
 
 PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixed` (`4bddf8b7b`): الفشلُ الثانويّ «pr-body.txt does not exist» الذي أدخله #1208 حين تحمرّ خطوةٌ سابقة. بتفويض المالك («قوم بعمل ما تراه صحيح»). المصدر: `sahool-brain/gaps/registry.md`.
+> **2026-10-15 — ET0: المُدخَل المستحيل لا يُحسَب «validated» + مثال FAO-56 محلول + مطابقة نسخة WOFOST (محلّيّاً، لا دفع):** `compute_et0` صار يرفض المُدخَلات خارج المعقوليّة الفيزيائيّة ويُعلنها في `invalid_inputs` (إشعاعٌ صفر/سالب/فوق Rso، رياحٌ سالبة، RH خارج نطاق الضجيج، Tmax<Tmin، خطّ عرض خارج ±90، DOY خارج [1،366]، ارتفاعٌ مستحيل) بدل حسابها `validated` أو رمي `ValueError` — فصار عقد «لا يرمي» مقيساً. أُضيف مثال FAO-56 رقم 18 من الطرف إلى الطرف (3.88 مقابل 3.9)، واختبار golden-master يُثبت أنّ `shared/wofost/engine.py:hargreaves_et0` تطابق المصدر الكنسيّ على شبكة عالميّة بعد مواءمة الأرضيّة (0.5→0.0) وقصّ وسيط `acos`. الاختبارات الجديدة: 112 تمرّ، و40 منها تفشل على الكود السابق.
+> **2026-10-15 — ET0 بعد المراجعة العدائيّة (محلّيّاً، لا دفع؛ تجميد الدمج قائم):** أُصلح انحدارٌ كشفته المراجعة في الالتزام الأوّل: سلسلة ET0 كانت تفقد كلّ يوم بعد 31 ديسمبر (DOY > 366 صار مرفوضاً) — الآن تلتفّ DOY. وأيّ رفض يمنع `validated`، والمكسور الأساسيّ `invalid` لا `insufficient`، و`FORMULA_VERSION` ⇒ 1.1.0، وسقف الإشعاع لا يرفض يوماً صافياً في المرتفعات بلا ارتفاع، وDOY يقبل القيم الصحيحة غير-int. المنصّة: 422 بأسماء الحقول المرفوضة بدل 503/500. الاختبارات: `services/weather-service/tests/test_et0_reference_and_input_validity.py` و`tests_v9/test_wofost_hargreaves_matches_canonical.py` و`services/sahool-platform/tests/test_weather_et0_client.py`. القرار في `decisions/ledger.md` (2026-10-15).
+> **2026-10-18 — تكامل فرع ET0 مع main (جاهزٌ لـPR؛ غير مدموج في main، غير منشور، غير مُتحقَّق منه في الإنتاج):** `git fetch --depth=1000 origin main` ثمّ دمج `44afa75e` بالتزام دمج `f25b7d5f` فوق `e287338c` (لا إعادة تأسيس، التزامات الفرع الثلاثة كما هي). ٣٤ تعارضاً: ٣١ مولَّدة بجانب main عبر `scripts/ci/resolve_merge_conflicts.py` و`release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json` بجانب main يدويّاً ثمّ `verify_all_generated.py --fix` و`--check` (6894 بصمة)؛ مراسي `docs/architecture/platform_extraction_map.json:4206` و`:4216`؛ واستيرادات الراوتر بإبقاء الطرفين. ومدخلا الفرع في `log.md` و`decisions/ledger.md` صارا بعد مدخلات main. ثمّ `8b247263`: سقط `tests/architecture/test_router_size_ratchet.py` (813 > 800) فنُقل جسمُ `dependency_unavailable` لـET0 المرفوض إلى `services/sahool-platform/api/weather_service_client.py:177` (الراوتر 799) بشاهدين `services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py:759` و`services/sahool-platform/tests/test_weather_et0_client.py:159`، وأُعيدت أختامُ `measured_on` الخمسة إلى قيم main. القياس عند `8b247263`: preflight `--full` إخفاقات 0 · متخطّاة 0؛ `pytest -m unit` 9867/35 متخطّى؛ ET0 139؛ weather-service 403؛ WOFOST 10. القرار في `decisions/ledger.md` (2026-10-18).
+
+
+### 2026-10-18 — متابعة صور دائمة على أساس main بعد #1209
+
+مصدر التنفيذ `ea1995b8`: مسار الراستر المفقود صار عقد POST202/GET مع تحقق JWT وعزل المستأجر، ومؤقت PostgreSQL وإجارات واستعادة تسليم جزئي إلى طابور الراستر القائم. المرجع الزمني إيصال التسليم المحفوظ لا التنفيذ الميداني؛ dispatched ليس تحقق محصول. التفويض الحالي للمالك بفك التجميد الضروري مسجل بصدق وبصمات محددة في GATE01-ADJ-2026-10-18-001، دون فتح عالمي أو مس ملفات Claude. نجح 21 اختبار سلوك و43 انحدار في عمليتين؛ احتُفظ بفشل جمعهما بسبب تصادم حزمة routers. 9 اختبارات PG16 جمعت فقط وينفذها CI؛ لا قبول PostgreSQL محلي أو staging أو إنتاج، والفجوة VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01 تبقى open حتى الدليل المطلوب. [الأدلة](../certification/evidence/imagery_follow_up_20261018/README.md).
+
+دُمج #1209 بإذن المالك عند `7f2d7fa0f8d4fb975337316475c019e769cd4447` بعد 31 workflow ناجحة على `7284f58d`؛ شجرة الدمج `e6b59dbe21242861f3b55ce2f14777af8d3e7773` تطابق الرأس المختبر.
+
+
+### 2026-10-18 — مزامنة متابعة الصور مع Redis #1210
+
+بعد نشر المصدر `ea1995b8` وتحديث الاختبارات `a4677ed2` (شجرة مطابقة محلياً)، جرى إدخال main@`45dfdc53` دون تغيير ملفات Redis الخاصة بـClaude. التعارضات في المصنوعات المولدة فقط وأُعيد توليدها بأدوات المستودع. أعيد تشغيل 19 حالة متابعة صور و4 حالات جسر في عمليتين: 23 ناجحة؛ العدد 21 أعلاه يصف لقطة المصدر الأولية. لا دليل PG16 حي بعد، والفجوة باقية open.
+
+
+### 2026-10-18 — قبول PG16 لمتابعة الصور في #1211
+
+الرأس `fc1f5ec3` اجتاز شواهد PostgreSQL التسعة فعلياً (run39077990697/job117529016438)، صفر فشل وصفر تخطٍ؛ checkout `c315c4af` وشجرة الرأس كلاهما `e4718161`. سُجلت الفجوة VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01 fixed على مستوى المصدر وعقد قاعدة الاختبار فقط. 23 سلوك و43 انحدار محلي؛ لا crash/restart للخادم ولا ترقية Decision ولا قبول staging/إنتاج ولا verified. [السجل الخام](../certification/evidence/imagery_follow_up_20261018/pg16-ci.txt) و[بصمته وحدوده](../certification/evidence/imagery_follow_up_20261018/pg16-ci-receipt.json).
+
+**متابعة تكامل #1211:** فشلت 4 حالات من test_apply_in_compose_live_pg على `fc1f5ec3` لأن عقد فحص المخطط ظل يحمل بصمة MANIFEST السابقة (341 جدولاً). أعيد إنتاجه محلياً بالاختبار القائم test_the_schema_probe_contract_matches_the_manifest؛ اشتُق العقد من _extracted فأصبح 342 جدولاً و187 عموداً وبصمة f7582ca2f044. بقي حارس المطابقة وفرض القراءة فقط دون تخفيف؛ يلزم إعادة CI التكامل على الرأس المحدّث.
+
+
+### 2026-10-18 — تصحيح إخفاقات الوحدة في #1211
+
+على `7640288c` نجحت Integration Tests (run39079511074/job117533577048) بعد تصحيح manifest_contract_mismatch. أظهرت الوحدة 9841 نجاحاً وأربعة إخفاقات: جرد 1007 مقابل 1004؛ غياب حارس ملكية صريح للمسارين؛ منفذ Decision الافتراضي8000 مقابل8160؛ دليل v208 يقول233 بدلاً من234. أضيف الحارس المشترك بمصدر ملكية داخل معاملة المستأجر وبسياق JWT دون fallback، مع ثمانية شواهد HTTP للملكية والتحقق من رفض JWT على GET وPOST. عُدّل الجرد بتوثيق المسارات الثلاثة ودليل العدد والمنفذ؛ 58 اختباراً محلياً ناجحاً في [الدليل](../certification/evidence/imagery_follow_up_20261018/ci-corrections-local.txt). لا تعديل لحارس تصنيف المصادقة ولا تخفيف للأرضيات؛ CI للرأس التالي لم يقس بعد.
+
+
+### 2026-10-18 — مزامنة #1211 بعد #1212 و#1218
+
+الرأس المنشور `8c5c941c` صار متعارضاً مع main@`503d7d7c` بعد دمج إصلاحي JWT وET0؛ لم يبدأ CI للطلب. أُدخل main في الفرع مع الحفاظ على مصادر Claude دون تعديل. التعارضات الثلاثة والعشرون في المصنوعات المولدة؛ يُعاد توليدها ثم بناء الحزمة آخراً. log/ledger يحفظان main بادئة ثم إضافات الفرع؛ hot يحتفظ بنص main مع إضافة الأعلى. رأس الدمج المحلي سيختبر قبل دفعه؛ لا دمج في main أو نشر.

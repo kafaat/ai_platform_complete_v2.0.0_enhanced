@@ -3088,6 +3088,14 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/follow_up_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/follow_up_worker.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/gis_boundaries_read.py",
     "kind": "backend"
   },
@@ -3185,6 +3193,10 @@
   },
   {
     "path": "services/raster-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/routers/follow_up.py",
     "kind": "backend"
   },
   {

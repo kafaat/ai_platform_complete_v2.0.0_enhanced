@@ -148,6 +148,67 @@ async def weather_post_json(
     return data if isinstance(data, dict) else {"value": data}
 
 
+def et0_unavailable_http_exception(prod: dict[str, Any] | None):
+    """HTTPException حين يعيد المحرّك ``et0_mm=None`` — مكسور ≠ عطل تبعيّة.
+
+    المحرّك يرفض المُدخَل المستحيل فيزيائيّاً ويُسمّيه في ``invalid_inputs``: هذا خطأ
+    مُدخَل من المستدعي ⇒ **422** بأسماء الحقول المرفوضة وأسبابها (لا يُعاد المحاولة).
+    غيرُ ذلك (مُدخَل مفقود/استجابة بلا ET0) ⇒ **503** fail-closed كما كان (لا ET0 محلّيّ).
+    """
+    from fastapi import HTTPException
+
+    prod = prod or {}
+    invalid = [str(n) for n in (prod.get("invalid_inputs") or [])]
+    if invalid:
+        return HTTPException(
+            status_code=422,
+            detail={
+                "reason_code": "invalid_weather_inputs",
+                "invalid_inputs": invalid,
+                "limitations": [str(x) for x in (prod.get("limitations") or [])],
+            },
+        )
+    return HTTPException(
+        status_code=503,
+        detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+    )
+
+
+def et0_unavailable_field_response(
+    prod: dict[str, Any] | None,
+    field_id: str,
+    season_id: str | None,
+    inputs: dict[str, Any],
+    evidence_ids: list[str],
+    limitations: list[str],
+) -> dict[str, Any]:
+    """جسمُ ``dependency_unavailable`` لتوصية ريّ الحقل حين يعيد المحرّك ``et0_mm=None``.
+
+    طقسُ الحقل نفسُه رُفض أو نقص (لا خطأ من المستدعي): فشلٌ مُغلَق بلا توصية، بأسماء
+    المرفوض (``invalid_inputs``) وأسباب المحرّك بدل ``float(None)`` ⇒ 500. يعيش هنا لا في
+    الراوتر كي يبقى ``routers/irrigation_recommendation.py`` تحت سقف
+    ``tests/architecture/test_router_size_ratchet.py``؛ الشكلُ نفسُه حرفيّاً.
+    """
+    prod = prod or {}
+    return {
+        "status": "dependency_unavailable",
+        "field_id": field_id,
+        "season_id": season_id,
+        "inputs": inputs,
+        "recommendation": None,
+        "ownership": "recommendation_candidate → decision-service",
+        "confidence": None,
+        "evidence_ids": evidence_ids,
+        "invalid_inputs": list(prod.get("invalid_inputs") or []),
+        "limitations": [
+            *limitations,
+            "weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+            *[str(x) for x in (prod.get("limitations") or [])],
+        ],
+        "calibrated": False,
+    }
+
+
 async def get_et0_product(
     *,
     t_max_c: float | None,

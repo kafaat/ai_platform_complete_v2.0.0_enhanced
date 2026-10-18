@@ -49,7 +49,7 @@ def test_builder_pm_carries_provenance():
     )
     assert out["method"] == "fao56_penman_monteith"
     assert out["quality_status"] == "validated"
-    assert out["formula_version"] == "et0/fao56-pm/1.0.0"
+    assert out["formula_version"] == "et0/fao56-pm/1.1.0"
     assert out["valid_time"] == "2026-07-10T00:00:00Z"
     assert out["weather_snapshot_id"].startswith("wsnap/sha1/1:")
     assert out["snapshot_source"] == "consumer_supplied_inputs"

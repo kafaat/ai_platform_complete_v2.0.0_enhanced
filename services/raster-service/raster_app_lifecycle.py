@@ -31,12 +31,24 @@ def make_lifespan(
         from shared.db_role_guard import assert_dsn_role_rls_safe
 
         await assert_dsn_role_rls_safe(database_url_getter(), service="raster-service")
+        from follow_up_runtime import configured_tenants, process, startup_check, store
+        from follow_up_worker import serve
+
+        tenants = configured_tenants()
+        await startup_check(tenants)
+        follow_up_task = asyncio.create_task(serve(tenants, store, process)) if tenants else None
+        app.state.follow_up_ready = bool(tenants)
         evict_task = None
         if layer_evict_enabled():
             evict_task = asyncio.create_task(layer_evict_subscriber())
         try:
             yield
         finally:
+            app.state.follow_up_ready = False
+            if follow_up_task is not None:
+                follow_up_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await follow_up_task
             if evict_task is not None:
                 evict_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):

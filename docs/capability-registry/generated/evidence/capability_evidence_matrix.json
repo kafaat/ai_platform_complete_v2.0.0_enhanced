@@ -527,6 +527,8 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py",
         "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
         "tests/irrigation/test_irrigation_reservation_adapter.py",
+        "tests_v9/test_imagery_follow_up.py",
+        "tests_v9/test_imagery_follow_up_pg16.py",
         "tests_v9/test_irr_f01_reservation_live_pg.py"
       ]
     },
@@ -6565,6 +6567,7 @@
         "tests_v9/test_historical_search_cdse_v30_8.py",
         "tests_v9/test_imagery_auto_process_real_activation.py",
         "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
+        "tests_v9/test_imagery_follow_up.py",
         "tests_v9/test_imagery_product_identity_canonical.py",
         "tests_v9/test_landsat_thermal_unique_v31_0.py",
         "tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py",
@@ -7060,6 +7063,7 @@
         "tests_v9/test_field_state_unification.py",
         "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
         "tests_v9/test_imagery_batch_wait_before_read.py",
+        "tests_v9/test_imagery_follow_up.py",
         "tests_v9/test_sahool_brain_forensic.py",
         "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
         "tests_v9/test_tool_loop_budget_v58_2c.py"
@@ -10073,6 +10077,7 @@
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_et0.py",
         "services/weather-service/tests/test_et0_agro_product.py",
+        "services/weather-service/tests/test_et0_reference_and_input_validity.py",
         "services/weather-service/tests/test_et0_series.py",
         "services/weather-service/tests/test_hourly_etc_product.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
@@ -10099,7 +10104,8 @@
         "tests_v9/test_weather_engine_formula_guard.py",
         "tests_v9/test_weather_model_identity.py",
         "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
-        "tests_v9/test_wired_endpoints.py"
+        "tests_v9/test_wired_endpoints.py",
+        "tests_v9/test_wofost_hargreaves_matches_canonical.py"
       ]
     },
     {

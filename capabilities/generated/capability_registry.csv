@@ -26,7 +26,7 @@ INT-002,Event bus integration,farm_management,sahool-platform,active,3,3,behavio
 INT-003,IoT and sensors,irrigation,actuator-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
 INT-004,External machinery integrations,precision,sahool-platform,active,3,3,documentation_or_scaffold,low,False,PA-005
 IRR-001,Water source registry,irrigation,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
-IRR-002,Water quality samples,irrigation,sahool-platform,active,3,3,runtime_or_workflow_unverified,medium,False,IRR-001
+IRR-002,Water quality samples,irrigation,sahool-platform,active,3,3,runtime_or_workflow_unverified,high,False,IRR-001
 IRR-003,Field water-source binding,irrigation,sahool-platform,planned,0,0,missing_confirmed,medium,False,"FM-003,IRR-001"
 IRR-004,Water balance,irrigation,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"IRR-003,SOIL-005,WX-004"
 IRR-005,Irrigation recommendation,irrigation,sahool-platform,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,IRR-004

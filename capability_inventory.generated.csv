@@ -73,6 +73,7 @@ decision-service.execution-plans.execution_plan_id,query,decision-service,GET /v
 decision-service.execution-plans.execution_plan_id.authorize-dispatch,command,decision-service,POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch,,route,False
 decision-service.execution-requests,query,decision-service,GET /v1/execution-requests,,route,False
 decision-service.execution-requests.execution_request_id.claim,command,decision-service,POST /v1/execution-requests/{execution_request_id}/claim,,route,False
+decision-service.execution-requests.execution_request_id.observation-context,query,decision-service,GET /v1/execution-requests/{execution_request_id}/observation-context,,route,False
 decision-service.execution-requests.execution_request_id.receipt,command,decision-service,POST /v1/execution-requests/{execution_request_id}/receipt,,route,False
 decision-service.execution-requests.execution_request_id.verify-outcome,command,decision-service,POST /v1/execution-requests/{execution_request_id}/verify-outcome,,route,False
 decision-service.execution-requests.recovery,query,decision-service,GET /v1/execution-requests/recovery,,route,False
@@ -158,6 +159,7 @@ raster-service.fields.field_id.change,command,raster-service,POST /v1/fields/{fi
 raster-service.fields.field_id.contours.geojson,query,raster-service,GET /v1/fields/{field_id}/contours.geojson,frontend,route,False
 raster-service.fields.field_id.geometry,command,raster-service,POST /v1/fields/{field_id}/geometry/versions,frontend,route,False
 raster-service.fields.field_id.imagery,mixed,raster-service,GET /v1/fields/{field_id}/imagery/backfill/{run_id}|POST /v1/fields/{field_id}/imagery/backfill|POST /v1/fields/{field_id}/imagery/process-date,frontend,route,False
+raster-service.fields.field_id.imagery-ingestion-requests,mixed,raster-service,GET /v1/fields/{field_id}/imagery-ingestion-requests/{request_id}|POST /v1/fields/{field_id}/imagery-ingestion-requests,frontend,route,False
 raster-service.fields.field_id.indicator-grid,query,raster-service,GET /v1/fields/{field_id}/indicator-grid,frontend,route,False
 raster-service.fields.field_id.indicator-observation-bundle,query,raster-service,GET /v1/fields/{field_id}/indicator-observation-bundle,frontend,route,False
 raster-service.fields.field_id.pixel,query,raster-service,GET /v1/fields/{field_id}/pixel,frontend,route,False

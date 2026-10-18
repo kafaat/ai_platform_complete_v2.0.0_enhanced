@@ -66,7 +66,7 @@ def test_hargreaves_et0():
     """يتحقق من صحة معادلة Hargreaves-Samani (FAO-56)."""
     from shared.wofost import hargreaves_et0
 
-    # قيم مرجعية من FAO-56 Example 17 (اليمن تقريباً)
+    # فحص معقوليّة لمناخ يمنيّ نموذجيّ — ليس مثالاً محلولاً من FAO-56 (مثال 17 لبانكوك/PM).
     # تماز يناير: tmax=24, tmin=11, lat=15°, DOY=15
     et0 = hargreaves_et0(24, 11, 15.0, 15)
     assert 2.0 <= et0 <= 5.0, f"ET0 out of range: {et0}"
