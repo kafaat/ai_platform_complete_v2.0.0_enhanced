@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6025,
+    "files_scanned": 6032,
     "files_by_kind": {
       "backend": 1234,
       "database": 289,
       "governance": 77,
       "mobile": 57,
-      "other": 1924,
-      "tests": 1973,
+      "other": 1930,
+      "tests": 1974,
       "web": 471
     },
-    "unmapped_artifacts": 2311,
-    "ambiguous_artifacts": 468
+    "unmapped_artifacts": 2312,
+    "ambiguous_artifacts": 470
   },
   "capabilities": [
     {
@@ -21346,6 +21346,10 @@
           "score": 24
         },
         {
+          "value": "sahool.titiler-parity.v1 @ certification/evidence/titiler_parity_20261018/parity_ndvi_float32_epsg4326.json:201",
+          "score": 16
+        },
+        {
           "value": "MyFieldsPage.tsx @ frontend/src/sections/MapHubSatelliteDefault.static.test.ts:10",
           "score": 12
         },
@@ -21723,10 +21727,6 @@
         },
         {
           "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:184",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation @ services/sahool-platform/tests/test_yield_heuristics.py:185",
           "score": 12
         }
       ],
@@ -23064,6 +23064,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/parity_ndvi_float32_epsg4326.json",
+          "score": 16,
+          "signals": [
+            "path:NDVI",
+            "path:ndvi"
+          ]
+        },
+        {
           "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
           "score": 12,
           "signals": [
@@ -23121,6 +23129,14 @@
         },
         {
           "path": "certification/evidence/chatgpt_remaining_20261016/review-recheck.json",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -23640,6 +23656,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/README.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/UNIFIED_SETUP.md",
           "score": 8,
           "signals": [
@@ -23790,7 +23814,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 24,
-        "events": 58,
+        "events": 59,
         "tests": 83
       },
       "evidence_counts": {
@@ -23802,7 +23826,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 96
+        "other_evidence": 99
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -25485,6 +25509,10 @@
           "score": 11
         },
         {
+          "value": "sahool.titiler-parity.v1 @ scripts/diagnostics/titiler_parity.py:239",
+          "score": 11
+        },
+        {
           "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
           "score": 11
         },
@@ -25776,6 +25804,14 @@
           ]
         },
         {
+          "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
           "path": "docs/adr/ADR-0032-lexicographic-irrigation-mpc.md",
           "score": 14,
           "signals": [
@@ -25868,11 +25904,27 @@
           ]
         },
         {
+          "path": "scripts/diagnostics/titiler_parity.py",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
           "score": 10,
           "signals": [
             "content:raster tile",
             "content:tilejson"
+          ]
+        },
+        {
+          "path": "certification/evidence/titiler_parity_20261018/README.md",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
           ]
         },
         {
@@ -25980,12 +26032,12 @@
         "backend": 14,
         "routes": 70,
         "database": 0,
-        "events": 16,
+        "events": 17,
         "web": 1,
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 35
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47618,6 +47670,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_titiler_parity_harness.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_tls_policy.py",
       "kind": "tests"
     },
@@ -48798,6 +48854,50 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/titiler_parity_20261018/README.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/titiler_parity_20261018/make_reference_cogs.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]

@@ -8972,6 +8972,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_titiler_parity_harness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tls_policy.py",
     "kind": "tests"
   },
