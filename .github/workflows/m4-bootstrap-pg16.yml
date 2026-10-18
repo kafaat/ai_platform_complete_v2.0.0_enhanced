@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   restricted-pg16:
+    name: M4 Bootstrap Restricted PG16
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
