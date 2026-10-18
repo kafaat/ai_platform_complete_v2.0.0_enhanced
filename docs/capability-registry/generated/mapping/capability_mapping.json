@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6071,
+    "files_scanned": 6072,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1957,
+      "other": 1958,
       "tests": 1981,
       "web": 472
     },
@@ -3606,7 +3606,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:727",
           "score": 12
         },
         {
@@ -3618,19 +3618,19 @@
           "score": 12
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:507",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:514",
           "score": 12
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:398",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:405",
           "score": 12
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:446",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:453",
           "score": 12
         },
         {
-          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:280",
+          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:287",
           "score": 12
         }
       ],
@@ -33286,23 +33286,23 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:727",
           "score": 14
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:507",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:514",
           "score": 14
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:398",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:405",
           "score": 14
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:446",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:453",
           "score": 14
         },
         {
-          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:280",
+          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:287",
           "score": 14
         },
         {
@@ -34915,7 +34915,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:720",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:727",
           "score": 12
         },
         {
@@ -35023,7 +35023,7 @@
           "score": 12
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:507",
+          "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:514",
           "score": 12
         },
         {
@@ -35043,15 +35043,15 @@
           "score": 12
         },
         {
-          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:398",
+          "value": "sahool.model.promotion.requested @ services/sahool-platform/api/phase_runtime_workers.py:405",
           "score": 12
         },
         {
-          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:446",
+          "value": "sahool.model.rollback.requested @ services/sahool-platform/api/phase_runtime_workers.py:453",
           "score": 12
         },
         {
-          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:280",
+          "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:287",
           "score": 12
         },
         {
