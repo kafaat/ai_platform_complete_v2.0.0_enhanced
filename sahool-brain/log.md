@@ -9654,3 +9654,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
 
 السبب: الطلبات الثلاثة تغيّر workflows دون تجديد بصمات الإصدار، و#1215 يترك شاهد وسم قديم. حفظ تغييرات Dependabot كاملة على فرع chatgpt/unified-actions-1215-1216-1217؛ لا تعديل سياسة حماية الفروع لتجاوز غياب سرّ التدقيق في سياق Dependabot.
+
+### 2026-10-18 — دليل الفهرس لنتائج CDSE الفارغة (الدفعة C، بلا نشر)
+
+بقرار المالك («قوم بتنفيذ»): فحص فهرس بلا مرشّح السحب على النتيجتين الفارغتين، مطفأ افتراضيّاً، ونسبة لا تُسمّي سبباً إلّا من دليل الفهرس. وسبب مميَّز لغياب البلاطات المساهمة في backfill. حارس `test_imagery_source_gate_no_bypass_static` رفض نداء البحث داخل `cdse_diagnostics.py`، فنُقل إلى `raster_cdse_tile_runtime.py` (نقطة مراقبة قائمة) بلا توسيع القائمة المسموحة. CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01 تبقى open. [الدليل](../certification/evidence/cdse_cause_evidence_20261018/README.md)

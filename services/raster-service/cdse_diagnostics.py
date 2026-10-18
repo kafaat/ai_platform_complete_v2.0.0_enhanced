@@ -61,6 +61,21 @@ _REQUEST_FIELDS = {
     "geometry_sha256",
     "max_cloud_pct",
 }
+# What the catalogue said about the request window when it was asked without the
+# tile-level cloud filter. ``not_available`` means it was not asked.
+_CATALOGUE_EVIDENCE = {
+    "not_available",
+    "catalogue_unavailable",
+    "no_acquisition",
+    "acquisitions_above_cloud_limit",
+    "acquisitions_within_cloud_limit",
+    "acquisitions_cloud_cover_unknown",
+}
+# Outcomes where "was there anything to observe?" is the open question.
+CATALOGUE_PROBE_OUTCOMES = frozenset({"empty_raster", "no_selected_scene"})
+CATALOGUE_PROBE_TTL_SECONDS = 300
+CATALOGUE_PROBE_MAX_ENTRIES = 256
+_probe_cache: dict[str, tuple[float, str]] = {}
 _RESPONSE_FIELDS = {
     "http_status",
     "bytes",
@@ -97,6 +112,58 @@ def _observation(value) -> dict | None:
     }
 
 
+def catalogue_evidence(scenes, max_cloud_pct) -> str:
+    """Classify a catalogue answer fetched **without** the cloud filter.
+
+    Only a successful search reaches here; an outage is ``catalogue_unavailable``
+    and is never read as "no acquisition".
+    """
+    if not isinstance(scenes, list):
+        return "catalogue_unavailable"
+    if not scenes:
+        return "no_acquisition"
+    within = unknown = 0
+    for scene in scenes:
+        props = scene.get("properties") if isinstance(scene, dict) else None
+        raw = props.get("eo:cloud_cover") if isinstance(props, dict) else None
+        if type(raw) in (int, float) and math.isfinite(raw):
+            within += raw <= max_cloud_pct
+        else:
+            unknown += 1
+    if within:
+        return "acquisitions_within_cloud_limit"
+    if unknown:
+        return "acquisitions_cloud_cover_unknown"
+    return "acquisitions_above_cloud_limit"
+
+
+def catalogue_probe_enabled() -> bool:
+    """Off unless ``CDSE_DIAGNOSTIC_CATALOGUE_PROBE=1``: it adds a provider call."""
+    return os.getenv("CDSE_DIAGNOSTIC_CATALOGUE_PROBE", "0").strip() == "1"
+
+
+def probe_key(bbox, geometry, date_from, date_to, max_cloud_pct) -> str:
+    return _digest([list(bbox), geometry, str(date_from), str(date_to), max_cloud_pct])
+
+
+def cached_probe(key: str, now: float | None = None) -> str | None:
+    """A recent answer for the same window, so a field whose tiles keep failing
+    does not turn every map tile into a catalogue request."""
+    clock = _utc_now().timestamp() if now is None else now
+    cached = _probe_cache.get(key)
+    return cached[1] if cached and cached[0] > clock else None
+
+
+def remember_probe(key: str, evidence: str, now: float | None = None) -> str:
+    clock = _utc_now().timestamp() if now is None else now
+    if evidence not in _CATALOGUE_EVIDENCE:
+        evidence = "not_available"
+    if key not in _probe_cache and len(_probe_cache) >= CATALOGUE_PROBE_MAX_ENTRIES:
+        _probe_cache.pop(min(_probe_cache, key=lambda k: _probe_cache[k][0]))
+    _probe_cache[key] = (clock + CATALOGUE_PROBE_TTL_SECONDS, evidence)
+    return evidence
+
+
 def failure_receipt(
     *,
     tenant,
@@ -115,6 +182,7 @@ def failure_receipt(
     scene_id=None,
     quota_exhausted=False,
     stage="unknown",
+    catalogue="not_available",
 ) -> dict:
     """Separate a request's parameters from actually observed response evidence."""
     clean_bbox = None
@@ -155,6 +223,14 @@ def failure_receipt(
         and after["observable_pixels"] == 0
     ):
         attribution = "polygon_mask_removed_observations"
+    catalogue = catalogue if catalogue in _CATALOGUE_EVIDENCE else "not_available"
+    if attribution == "unknown" and outcome in CATALOGUE_PROBE_OUTCOMES:
+        # Only a catalogue answer can say there was nothing to observe. Zero
+        # observable pixels alone never decide between absence, cloud and mask.
+        if catalogue == "no_acquisition":
+            attribution = "no_acquisition_in_window"
+        elif catalogue == "acquisitions_above_cloud_limit":
+            attribution = "filtered_by_tile_cloud_cover"
     raw = payload if isinstance(payload, bytes) else None
     return {
         "schema": "sahool.cdse-failure-receipt.v1",
@@ -185,7 +261,7 @@ def failure_receipt(
             "bytes": len(raw) if raw is not None else None,
             "sha256": hashlib.sha256(raw).hexdigest() if raw is not None else None,
             "scene_id_sha256": _digest(scene_id) if scene_id else None,
-            "catalogue_evidence": "not_available",
+            "catalogue_evidence": catalogue,
             "before_mask": before,
             "after_mask": after,
         },
