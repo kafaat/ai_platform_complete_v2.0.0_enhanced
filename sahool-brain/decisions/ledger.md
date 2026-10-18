@@ -4184,3 +4184,6 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 
 2026-10-18 — PR #1222: مرجع إصلاح RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01 المنشور c2da227a1b40169a650b24035ad476aebe5a1bc2 يطابق شجرة الاختبار المحلي 9e436826. كشف التشغيل 39130214320 لفجوة M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01 تعارض text/varchar للمعامل $8؛ تحويل صريح محدود في الاستعلام، والقبول الحي الكامل ينتظر إعادة CI. لا تفعيل ولا هجرة ولا دمج.
+
+
+2026-10-18 — M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01: نجح PG16 الحي تحت FORCE RLS في CI 39131088261 على 602869e54f809e99fac64e34e59d695837766813، 1 passed. الشاهد الخام m4-ci-green.txt؛ لا قياس staging أو إنتاج، والحالة open والراية مطفأة. PR #1222 دون دمج.

@@ -1,3 +1,5 @@
+2026-10-18 — M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01: نجح PG16 الحي تحت FORCE RLS في CI 39131088261 على 602869e54f809e99fac64e34e59d695837766813، 1 passed. الشاهد الخام m4-ci-green.txt؛ لا قياس staging أو إنتاج، والحالة open والراية مطفأة. PR #1222 دون دمج.
+
 ## 2026-10-18 — الفجوات السبع عشرة بعد #1213
 
 طلب المالك تجميع العمل في PR واحد دون دمج. أساس `1765d73a036499318beeb6d267fdaf803e4b0a40`؛ شيفرة واختبارات ووثائق `de800e014c063732a92d383e4df22384902c8c0f`. `RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01` fixed في compose فقط بشاهد main أحمر وفرع أخضر على Redis حقيقي؛ `M4-BOOTSTRAP-JOURNAL-CORE-LANDED-DISABLED-01` محجوب محلياً بـPG16؛ `B6-STRUCTURED-PROPOSAL-CORE-LANDED-DISABLED-01` شاهد HTTP بالقواعد الحقيقية يمر على الطرفين ولا يفعّل الميزة. ست وثائق قرار دون تنفيذ، وست فجوات RAG محجوبة بناتج docker info فقط وتبقى NOT_YET_AUTHORITATIVE، وrunbook Element84 وعقد INT-004BC دون اتصال أو عتاد. باقي الفجوات open. الدليل وحدود القبول: `certification/evidence/codex_product_gaps_20261018/README.md`. لم يقس CI أو staging أو الإنتاج بعد.
