@@ -1,0 +1,26 @@
+/workspace/scratch/383ab1306db0/sahool-work/services/raster-service/raster_api_models.py:122: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
+  class RawDataProcessResponse(BaseModel):
+{"ts": "2026-10-17T22:09:03.920572+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.analysis"}
+{"ts": "2026-10-17T22:09:03.940035+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.cdse_tiles"}
+/workspace/scratch/383ab1306db0/sahool-work/services/raster-service/raster_validated_product.py:32: UserWarning: Field name "schema" in "ProvenanceRecord" shadows an attribute in parent "BaseModel"
+  class ProvenanceRecord(BaseModel):
+/workspace/scratch/383ab1306db0/sahool-work/services/raster-service/raster_validated_product.py:55: UserWarning: Field name "schema" in "ValidatedRasterProduct" shadows an attribute in parent "BaseModel"
+  class ValidatedRasterProduct(BaseModel):
+/workspace/scratch/383ab1306db0/sahool-work/services/raster-service/raster_indicator_product.py:43: UserWarning: Field name "schema" in "ValidatedIndicatorProduct" shadows an attribute in parent "BaseModel"
+  class ValidatedIndicatorProduct(BaseModel):
+{"ts": "2026-10-17T22:09:04.138139+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.fields"}
+{"ts": "2026-10-17T22:09:04.172156+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.follow_up"}
+{"ts": "2026-10-17T22:09:04.177511+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.imagery"}
+{"ts": "2026-10-17T22:09:04.205492+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.imagery_search"}
+{"ts": "2026-10-17T22:09:04.208662+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.jobs"}
+{"ts": "2026-10-17T22:09:04.215782+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.observability"}
+{"ts": "2026-10-17T22:09:04.222890+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.processing"}
+{"ts": "2026-10-17T22:09:04.230068+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.registry_writes"}
+{"ts": "2026-10-17T22:09:04.248205+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.soil_tiles"}
+{"ts": "2026-10-17T22:09:04.252599+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.stac"}
+{"ts": "2026-10-17T22:09:04.264387+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.storage"}
+{"ts": "2026-10-17T22:09:04.275485+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.terrain_tiles"}
+{"ts": "2026-10-17T22:09:04.282429+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.tiles"}
+{"ts": "2026-10-17T22:09:04.289684+00:00", "level": "INFO", "service": "raster-service", "logger": "raster-service", "message": "راوتر مُسجَّل تلقائيّاً: routers.timeseries_routes"}
+PASS: actual raster app registers POST and GET follow-up routes
+OpenAPI paths: 86

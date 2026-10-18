@@ -1,0 +1,54 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-10-18-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner-current-user-delegation",
+  "adjudicated_on": "2026-10-18",
+  "expires_on": "2026-10-25",
+  "pr": 1211,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt",
+    "scripts_v9/run_migrations.sql",
+    "docs/architecture/db_ownership.yml"
+  ],
+  "allowed_gap_closures": [
+    "VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01"
+  ],
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "10c2fb2f2f3af7c77970d1da09a6ef0452145d0b",
+    "scripts_v9/run_migrations.sql": "afe04ec5bf82452ccc4dc1506fe5fa73d3def1b3",
+    "docs/architecture/db_ownership.yml": "2e8f23f0d15f5a90f933a0aea43efef381f26fd8"
+  },
+  "authorized_patch_sha256": "402c1f845d246b82d12e98c48710c3324c569a2427136dba686c2da5f44d3faf",
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "owner_decision_on": "2026-10-18",
+    "timezone": "Asia/Aden",
+    "text_ar": "إذا تطلب الأمر قوم بفك التجميد",
+    "followup_text_ar": "قوم بعمل ما تراه مناسبا بدون اي قيود ولو قمت بتشغيلها",
+    "context_ar": "تفويض المالك لتنفيذ الحل المهني الصحيح لجدولة متابعة صور الحقل، ثم السماح بفك التجميد اللازم وتشغيل الحل. يسجل هذا الملف نطاق التسجيل والملكية فقط؛ لا يفتح السياسة عالمياً ولا يغير مسارات Claude."
+  },
+  "scope_limit": "Register additive v236 timer/hand-off table before v206, update legacy runner and declare raster ownership. No actuator, physical commands, outcome verification, Decision SoR promotion, or unrelated migration repair. Changed frozen bytes are bound above; production rollout still requires measured schema/role/consumer readiness, not inferred success. Regenerate the schema probe contract from the exact manifest and extracted object counts; keep fail-closed validation intact.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only"
+  },
+  "supplemental_byte_bindings": {
+    "migrations/v236_raster_follow_up_requests.sql": "9b187988648407c8446fef71059ecde8c3f3646f",
+    "migrations/schema_probe_contract.env": "d90ef528799628c375a33790d675af8cdc0b2d83"
+  }
+}

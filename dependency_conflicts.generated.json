@@ -46,7 +46,7 @@
     "version_count": 2,
     "versions": "5.2.1, 5.3.1",
     "services": "5.2.1=>field-management-service; 5.3.1=>ai_agronomist,raster-service,sahool-platform,weather-service",
-    "files": "services/ai_agronomist/requirements.txt:6; services/field-management-service/requirements.txt:8; services/raster-service/requirements.txt:11; services/sahool-platform/api/requirements.txt:27; services/weather-service/requirements.txt:6"
+    "files": "services/ai_agronomist/requirements.txt:6; services/field-management-service/requirements.txt:8; services/raster-service/requirements.txt:13; services/sahool-platform/api/requirements.txt:27; services/weather-service/requirements.txt:6"
   },
   {
     "package": "shapely",

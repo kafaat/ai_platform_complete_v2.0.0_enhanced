@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "8d8dec886dd11ef5ad06439798c5ed935d018b76",
+  "measured_on": "8c5c941c3aeb57df7ba70c46c286739e829a17e8",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "6630b100d90525431c90de0e70fcce3412a6ef14289685d0f98ced03cf872114",
+  "measurement_input_digest": "0d2ce0b8e3225ab2e2241d0460fb4bfad62390e548ef8667663a1fab680f6acd",
   "measurement_algorithm_digest": "f97be0263384a027232f95dcfff3ed99e755bc80cbf05a280e59f6059f9fa9fd",
-  "measurement_basis_digest": "c6ac01e304704d8c3157633b6e72afcc075926932da7f5410a171bed45b6699e",
+  "measurement_basis_digest": "363ece37f5673390d33743728e81ed6a2d87e1fe76e2987634ee330e053d6b6a",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -55,6 +55,10 @@
       "sha256": "da0dac94ccbe79b140dc2b0c148baa61246b1ecc4024ff3c7ea30c5d8ede4c16"
     },
     {
+      "path": "services/decision-service/observation_context.py",
+      "sha256": "679ee098c8e250b1190727a617d715609933b7b7283879371880db5eae3f725f"
+    },
+    {
       "path": "services/decision-service/persistence.py",
       "sha256": "2ac6a5ae36e6adb8798f0e703224d93f2514f889e631f5fb78fb305664f855a5"
     },
@@ -91,6 +95,10 @@
       "sha256": "de5ecc161fca5eb4e9e08b0419cfb2a20ccf9f34af849b10d63f784bc9057be1"
     },
     {
+      "path": "services/raster-service/follow_up_store.py",
+      "sha256": "33fc9c1bb37470ded9a7e34d55ec9284bc09cc3db5e3535f39f2e04f46cd2cf9"
+    },
+    {
       "path": "services/raster-service/raster_batch_job_store.py",
       "sha256": "8e42b21c59f2a3e4f5eb30a5609db38963d0229458dbec9bc13b8fabefb405c3"
     },
@@ -108,7 +116,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "c05a25c86374584dcb2c66b3346733c5821117c9664d9f87c92376342c801bc8"
+      "sha256": "77b975635fe00059d1d65eda99b1637cb95beeb4cfdfab5a96761fba70e01344"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",

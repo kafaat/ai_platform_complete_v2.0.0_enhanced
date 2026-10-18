@@ -5217,11 +5217,11 @@
         ]
       },
       {
-        "capability_id": "DEC-005",
+        "capability_id": "DEC-006",
         "score": 12,
         "signals": [
-          "content:Dispatch authorization",
-          "content:dispatch authorization"
+          "content:Execution receipt",
+          "content:execution receipt"
         ]
       }
     ]
@@ -5806,6 +5806,28 @@
         "signals": [
           "content:sentinel",
           "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/raster-service/follow_up_runtime.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-006",
+        "score": 10,
+        "signals": [
+          "content:Execution receipt",
+          "content:execution receipt"
         ]
       }
     ]
@@ -10050,6 +10072,28 @@
     ]
   },
   {
+    "path": "shared/contracts/imagery_followup.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 10,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "shared/contracts/soil/p2.py",
     "kind": "other",
     "candidates": [
@@ -10953,6 +10997,44 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_imagery_follow_up.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:stac"
         ]
       }
     ]

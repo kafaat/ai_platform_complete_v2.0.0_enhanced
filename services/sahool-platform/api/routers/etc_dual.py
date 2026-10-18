@@ -42,7 +42,7 @@ from api.main import (
     tenant_connection,
 )
 from api.raster_service_client import get_indicator_grid
-from api.weather_service_client import get_et0_product
+from api.weather_service_client import et0_unavailable_http_exception, get_et0_product
 
 logger = logging.getLogger(__name__)
 
@@ -339,10 +339,7 @@ async def field_etc_dual(
         raise
     et0_mm = et0_prod.get("et0_mm")
     if et0_mm is None:
-        raise HTTPException(
-            status_code=503,
-            detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
-        )
+        raise et0_unavailable_http_exception(et0_prod)
 
     try:
         result = compute_etc_dual(

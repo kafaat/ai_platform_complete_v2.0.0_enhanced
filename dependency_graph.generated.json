@@ -1,5 +1,5 @@
 {
-  "edge_count": 868,
+  "edge_count": 875,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -672,6 +672,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/observation_context.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/persistence.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -1072,7 +1082,37 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/follow_up_runtime.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_geometry_history",
+      "to": "db://field_geometry_history",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/follow_up_runtime.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/routers/follow_up.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1149,6 +1189,26 @@
       "relation": "READS",
       "resource": "db://raster_cache_invalidations",
       "to": "db://raster_cache_invalidations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/follow_up_runtime.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_follow_up_requests",
+      "to": "db://raster_follow_up_requests",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/follow_up_store.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_follow_up_requests",
+      "to": "db://raster_follow_up_requests",
       "to_kind": "resource"
     },
     {
@@ -6332,6 +6392,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/raster-service/follow_up_store.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_follow_up_requests",
+      "to": "db://raster_follow_up_requests",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/raster-service/db_persist.py",
       "from": "raster-service",
       "from_kind": "component",
@@ -8700,9 +8770,9 @@
     "CALLS": 44,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 442,
+    "READS": 448,
     "ROUTES_TO": 72,
-    "WRITES": 306
+    "WRITES": 307
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8717,8 +8787,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 749,
-      "resolved": 748,
+      "observed": 756,
+      "resolved": 755,
       "unresolved_component_paths": 0
     }
   }

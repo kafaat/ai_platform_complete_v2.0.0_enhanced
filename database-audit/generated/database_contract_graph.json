@@ -233,6 +233,7 @@
       "v233_event_outbox_claim_lease.sql",
       "v234_learning_agronomic_review.sql",
       "v235_decision_chain_correlation.sql",
+      "v236_raster_follow_up_requests.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1391,6 +1392,13 @@
       "has_using": true,
       "has_with_check": true,
       "name": "tenant_isolation",
+      "source": "v236_raster_follow_up_requests.sql",
+      "table": "raster_follow_up_requests"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
       "source": "v114_cloud_native_gis_best_practices.sql",
       "table": "raster_registry"
     },
@@ -1649,17 +1657,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 233,
+    "manifest_entries": 234,
     "manifest_missing_count": 0,
-    "policies": 201,
+    "policies": 202,
     "production_certified": false,
-    "rls_enabled": 214,
-    "rls_forced": 195,
+    "rls_enabled": 215,
+    "rls_forced": 196,
     "runtime_verified": false,
-    "sql_files": 235,
-    "tables": 341,
+    "sql_files": 236,
+    "tables": 342,
     "tenant_rls_gaps": 135,
-    "tenant_tables": 321,
+    "tenant_tables": 322,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2547,6 +2555,7 @@
         "services/decision-service/migrations/020_learning_agronomic_lineage.sql",
         "services/decision-service/migrations/026_content_digest_lineage.sql",
         "services/decision-service/migrations/036_decision_chain_correlation.sql",
+        "services/decision-service/observation_context.py",
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
@@ -3503,6 +3512,7 @@
     },
     {
       "code_readers": [
+        "services/raster-service/follow_up_runtime.py",
         "services/sahool-platform/api/routers/fields.py"
       ],
       "code_writers": [
@@ -3697,6 +3707,8 @@
       "code_readers": [
         "services/field-management-service/main.py",
         "services/raster-service/db_persist.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py",
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
@@ -5844,6 +5856,24 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "raster_cache_invalidations",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/follow_up_store.py"
+      ],
+      "code_writers": [
+        "services/raster-service/follow_up_store.py"
+      ],
+      "created_in": "v236_raster_follow_up_requests.sql",
+      "has_tenant_id": true,
+      "manifest_position": 232,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "raster_follow_up_requests",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },

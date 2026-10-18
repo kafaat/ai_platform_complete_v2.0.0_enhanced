@@ -5,16 +5,14 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from post_execution_bridge import PostExecutionBridge
 from pydantic import BaseModel, ConfigDict, Field
 
+from shared.contracts.imagery_followup import ImageryFollowUpRequest
+
 router = APIRouter()
 _bridge = PostExecutionBridge()
 
 
-class FollowUpRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    season_id: str
-    execution_request_id: str
-    days_after: int = Field(default=5, ge=1, le=30)
-    indicators: list[str] = Field(default_factory=lambda: ["ndvi", "ndmi"])
+class FollowUpRequest(ImageryFollowUpRequest):
+    pass
 
 
 class OutcomeVerificationRequest(BaseModel):
@@ -41,7 +39,7 @@ class LearningAttributionRequest(BaseModel):
     metadata: dict = Field(default_factory=dict)
 
 
-@router.post("/v1/fields/{field_id}/post-execution-observations")
+@router.post("/v1/fields/{field_id}/post-execution-observations", status_code=202)
 async def schedule_post_execution_observation(
     field_id: str,
     request: FollowUpRequest,
@@ -57,6 +55,7 @@ async def schedule_post_execution_observation(
             authorization=authorization,
             tenant_id=tenant,
             days_after=request.days_after,
+            window_days=request.window_days,
             indicators=request.indicators,
         )
     except RuntimeError as exc:
