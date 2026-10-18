@@ -10,7 +10,7 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **282**
+- حرّاس تحجب في CI: **283**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
 - إجماليّ الطفرات المُسجَّلة: **450**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **380** على 131 مصدراً
@@ -20,7 +20,7 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **224** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **225** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1086,7 +1086,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (224)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (225)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1306,6 +1306,7 @@
 | `vegetation_agriai_production_gate.py` | — | `structural-lint` · `contract` |
 | `vegetation_container_contract_guard.py` | Guard vegetation-analysis-service container/runtime contract. | `guard` |
 | `vegetation_runtime_truth_guard.py` | Fail closed when vegetation runtime regains synthetic field/provider ownership. | `structural-lint` |
+| `vegetation_smoke.py` | Accept a built Vegetation image, not an import from the source checkout. | `build` |
 | `verify_all_generated.py` | يشغّل **كلّ** خطوات ``--check`` المولَّدة بأمر واحد — وبالترتيب الذي تتطلّبه التبعيّات. | `capability-registry` |
 | `verify_certification_evidence_digests.py` | يقارن بصمةَ كلّ ملفِّ دليلٍ **مجلوب** ببصمةٍ سجّلها مُنتِجُه على قناةٍ أخرى. | `certification-verdict` |
 | `waiver_expiry_guard.py` | WAIVER-EXPIRY-GUARD — fail CI once a governance waiver has expired. | `structural-lint` |

@@ -14,8 +14,6 @@ import argparse
 import json
 import subprocess
 import time
-import urllib.error
-import urllib.request
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,17 +23,26 @@ WEEKLY = "/v1/reports/weekly-field-insights"
 
 
 def docker(*args, check=True):
-    return subprocess.run(
-        ["docker", *args], check=check, capture_output=True, text=True, timeout=120
-    )
+    result = subprocess.run(["docker", *args], capture_output=True, text=True, timeout=120)
+    if check and result.returncode:
+        print(result.stderr)
+        result.check_returncode()
+    return result
 
 
-def get(base, path):
-    try:
-        with urllib.request.urlopen(base + path, timeout=5) as response:
-            return response.status, json.load(response)
-    except urllib.error.HTTPError as exc:
-        return exc.code, json.load(exc)
+def get(container, path):
+    # Internal Docker networks intentionally have no published host port. Probe
+    # the running HTTP server through container loopback; expectations stay on
+    # the host and no source or replacement app is mounted into the container.
+    probe = """import json,sys,urllib.request,urllib.error
+try:
+    response = urllib.request.urlopen('http://127.0.0.1:8000' + sys.argv[1], timeout=5)
+except urllib.error.HTTPError as exc:
+    response = exc
+with response:
+    print(json.dumps([response.code, json.load(response)]))
+"""
+    return json.loads(docker("exec", container, "python", "-c", probe, path).stdout)
 
 
 def check_routes(schema, expected):
@@ -110,8 +117,6 @@ def main():
             app,
             "--network",
             network,
-            "-p",
-            "127.0.0.1::8000",
             "-e",
             "SAHOOL_ENV=production",
             "-e",
@@ -128,15 +133,14 @@ def main():
             f"JWT_PUBLIC_KEY={public_key}",
             image_id,
         )
-        address = docker("port", app, "8000/tcp").stdout.strip()
-        base = f"http://{address}"
+        base = app
         deadline = time.monotonic() + 60
         while True:
             try:
                 status, _ = get(base, "/healthz")
                 if status == 200:
                     break
-            except (OSError, ValueError):
+            except (OSError, ValueError, subprocess.CalledProcessError):
                 pass
             if time.monotonic() >= deadline:
                 raise AssertionError("Container did not become live in 60 seconds")

@@ -7528,7 +7528,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 ## VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01
 
-- **الحالة: open** — 2026-10-18؛ إصلاح وقبول تشغيل مقترحان في فرع `codex/closure-runtime-acceptance-20261018`، لم يدخلا main بعد.
+- **الحالة:** open — 2026-10-18؛ إصلاح وقبول تشغيل مقترحان في فرع `codex/closure-runtime-acceptance-20261018`، لم يدخلا main بعد.
 - **الشاهد:** على `a97cba6f97e1c10745c64c35dcfa67c2106749a1` يستورد `routers/insights.py` الوحدة `weekly_insights` ولا ينسخها Dockerfile. بناء الصورة ينجح، والاستيراد يفشل، والتقرير يغيب وreadiness تعيد 503. فشل نشر production `c4fba1bb-9c85-4cee-98bc-a5afc702d4a3` حمل الخطأ نفسه؛ هذا لا يعني توقف الصورة السابقة الناجحة.
 - **العلاج المقترح:** إضافة COPY للوحدة، وقبول تشغيل الصورة في وظيفة البناء القائمة، بعقد مستقل للوحدات والمسارات وتبعية Raster متحكم فيها. طفرة تحذف COPY يجب أن تُبنى ثم تُرفض تشغيلياً للسبب المحدد.
 - **حد الإغلاق:** دخول الرقعة إلى main ونجاح قبول الصورة على الرأس المعني يغلق نقص التغليف في الكود؛ قبول نشر Railway يحتاج إيصالاً مستقلاً للصورة والإعداد والبيئة. لا يغلق هذا `RS-WEEKLY-INSIGHTS-DELIVERY-01`، فالحفظ والتسليم خارج هذا الإصلاح.
