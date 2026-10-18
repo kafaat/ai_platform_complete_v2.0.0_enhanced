@@ -54,7 +54,7 @@ connect).
 | User | Password var | Client env · db | Commands | Keys | Channels | Evidence |
 |---|---|---|---|---|---|---|
 | `sahool-auth` | `REDIS_AUTH_PASSWORD` | `REDIS_URL` · 0 | ping get getdel setex del exists expire ttl incr sadd smembers | `sahool:refresh:*` `sahool:user:refreshset:*` `sahool:user:token_floor:*` `sahool:jti:revoked:*` `sahool:lockout:*` `sahool:attempts:*` `sahool:ip_rate:*` `sahool:otp_rate:*` `sahool:otp:*` `sahool:reset:*` | — | `services/auth/main.py:375-971` · `otp.py:41` · `routers/password_reset.py:34` · `session_tokens.py:40` |
-| `sahool-platform-denylist` (service `sahool-platform`) | `REDIS_PLATFORM_DENYLIST_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists setex | `sahool:jti:revoked:*` | — | `services/sahool-platform/core/jwt_denylist.py:42` (URL choice) · `api/main.py:1158,1164` (builder, PING) · `core/jwt_denylist.py:29,79,82` (key, SETEX, EXISTS) · `api/routers/auth.py:131` (the platform's own logout writes the list) |
+| `sahool-platform-denylist` (service `sahool-platform`) | `REDIS_PLATFORM_DENYLIST_PASSWORD` | `DENYLIST_REDIS_URL` · 0 | ping exists setex · selector `(+get %R~sahool:user:token_floor:*)` | `sahool:jti:revoked:*` · read-only `sahool:user:token_floor:*` | — | `services/sahool-platform/core/jwt_denylist.py:42` (URL choice) · `api/main.py:1158,1164` (builder, PING) · `core/jwt_denylist.py:29,79,82` (key, SETEX, EXISTS) · `api/routers/auth.py:131` (the platform's own logout writes the list) · `core/jwt_denylist.py:32,97` and `api/main.py:1199` (floor key, GET, check) |
 | `sahool-guardrails-engine` | `REDIS_GUARDRAILS_PASSWORD` | `REDIS_URL` · 0 | ping | — | — | connection-only: `redis>=5.0.0` in `requirements.txt:7`, no Python file imports it |
 
 ## Where precision stops (stated, not hidden)
@@ -135,8 +135,44 @@ auth revoked with 401, and a platform logout is seen by auth (integration).
 Redis is **unmeasured** (variable values are not readable there; auth's code default is
 `redis://sahool-redis:6379/0`, `services/auth/main.py:137`). The platform does not check auth's
 "revoke all sessions" floor (`sahool:user:token_floor:*`, `services/auth/main.py:661-683`); that
-is a separate question, outside this fix. No HTTP test drives auth's `/auth/logout` and then the
+is a separate question, outside this fix (now fixed for compose, see the next section). No HTTP test drives auth's `/auth/logout` and then the
 platform; the auth side is reproduced by the exact command auth issues.
+
+## Auth's "revoke all sessions" floor, read by the platform
+
+**Defect (measured textually on `main@44afa75e0`):** auth revokes every session of a user when the
+password is changed or reset, the role changes, or the account is deactivated
+(`revoke_all_user_sessions`, `services/auth/main.py:692`, called from `routers/users.py:62,97`,
+`routers/registration.py:95`, `routers/password_reset.py:62`). It sets
+`sahool:user:token_floor:{sub}` (`:661-672`) and rejects a token whose `iat` is older
+(`is_token_below_floor`, `:675-689`, in `get_current_user` `:733`). The platform checked the `jti`
+only, so a deactivated or re-passworded account kept working on the platform until its token expired.
+
+**Fix:** `core/jwt_denylist.is_token_below_floor(backend, payload)` applies auth's rule verbatim
+(`int(iat) < int(floor)`; no `sub`, `iat` or floor ⇒ not revoked) and `get_current_user` rejects
+such a token with 401 (`api/main.py:1199`, line-neutral). Like the `jti` check it **fails open**: a
+backend without floors or a failed read lets the request through with a warning; production still
+refuses to start without the denylist's Redis. It applies to tokens of either issuer, as auth does.
+
+**ACL:** the read is a Redis 7 selector on `sahool-platform-denylist`:
+`(+get %R~sahool:user:token_floor:*)`. `GET` is allowed only on the floor keys and only for
+reading (`%R~`), so the platform cannot write, shorten or delete a floor, and still cannot `GET` a
+revoked-`jti` key. Compose passes the selector as one quoted argument (`docker compose config`
+keeps it whole) and redis-server 7.0.15 accepts it in that form. The matrix records it under
+`selectors`, rendered as `(+cmd %R~pattern)`.
+
+**Witnesses:** `tests_v9/test_platform_token_floor.py` — the key is the one auth writes; the rule
+matches auth's real `is_token_below_floor` on the same cases; fail-open; `get_current_user` returns
+401 below the floor and accepts a token issued after it (unit); on a redis-server started with the
+compose argv, auth's real `revoke_all_user_sessions` (as `sahool-auth`) makes the platform's real
+builder return 401, a later token is accepted, and the platform user reads the floor but is
+`NOPERM` on `SETEX`/`SET`/`DEL`/`EXPIRE` of it (integration).
+`tests_v9/test_redis_acl_per_service.py::test_live_selectors_read_their_keys_and_write_nothing`
+checks every selector against the server's own `COMMAND INFO` flags.
+
+**Not proven:** nothing was run against Railway, where `DENYLIST_REDIS_URL` is not set, so the
+platform reads the floor from its `REDIS_URL`. Whether that is the server auth writes to there is
+unmeasured. `api/chat_proxy_reference.py` (a reference proxy) checks neither the `jti` nor the floor.
 
 ## Client migration plan (for a running deployment)
 

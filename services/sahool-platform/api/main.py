@@ -1135,12 +1135,12 @@ def create_token(user: UserSchema) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-# ─── إبطال JWT (denylist) — يُغلق فجوة: تسجيل الخروج لم يكن يُبطِل التوكن فعليّاً ──
-# backend مشترك مع auth (مفتاح sahool:jti:revoked:{jti} على خادمه: denylist_redis_url)، وإلّا ذاكرة.
+# ─── إبطال JWT: jti وأرضيّة auth على خادمه (denylist_redis_url)، وإلّا ذاكرة ──
 from core.jwt_denylist import (  # noqa: E402
     InMemoryDenylist,
     RedisDenylist,
     denylist_redis_url,
+    is_token_below_floor,
     is_token_revoked,
 )
 
@@ -1194,9 +1194,9 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status_code=401, detail="Invalid token issuer")
 
-    # إبطال التوكن (denylist): توكن مُبطَل (سُجّل خروجه/أُلغي) ⇒ 401 رغم سريانه.
-    # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل is_token_revoked).
-    if is_token_revoked(_DENYLIST, payload.get("jti")):
+    # إبطال: jti مُبطَل (خروج) أو iat أقدم من أرضيّة auth (إبطال كلّ الجلسات) ⇒ 401 رغم سريانه.
+    # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل الدالّتين).
+    if is_token_revoked(_DENYLIST, payload.get("jti")) or is_token_below_floor(_DENYLIST, payload):
         raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
 
     role = _normalize_role(payload.get("role"))
