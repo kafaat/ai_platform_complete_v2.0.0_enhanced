@@ -18,3 +18,12 @@ Owner requested replacing already-merged #1223 with #1226 in this integration. M
 Six actual-client regression cases failed before correction. The diagnostic path now omits both server and client cloud filters, rejects incomplete pages and avoids catalogue fallback/retries. Invalid cloud percentages remain unknown. Regular scene selection is unchanged. `cdse-targeted-tests.txt`: 198 passed. `raster-suite.txt`: 639 passed, two PostgreSQL cases skipped because RASTER_TEST_DATABASE_URL is unset. The two initial router-import failures disappeared after installing the existing platform pin python-multipart==0.0.31 in the test environment; no dependency files changed.
 
 No live CDSE call, database acceptance, deployment or gap closure is claimed. The diagnostic probe stays off by default. Final integrated preflight results are recorded in the PR body against the published tree.
+
+## Post-squash digest false-positive correction — 2026-10-18
+
+Finding ID: GITLEAKS-QUALITY-EVIDENCE-DIGEST-FALSE-POSITIVE-01.
+The push scan of merge a97cba6f97e1c10745c64c35dcfa67c2106749a1 flags the original quality source manifest, not the separate review manifest. Recomputing services/raster-service/raster_api_models.py at 8424b32e68adcdb0207be13347dea9991159c833 yields the recorded digest on source-sha256.json:11. This is historical source evidence, not a credential; the original digest is preserved.
+
+Measured with Gitleaks 8.30.1 using detect --redact --exit-code=2 --log-opts=-1 on the merge commit: original configuration exits 2 with one finding; corrected configuration exits 0 with no findings. The added generic-api-key allowlist requires BOTH the exact quality-manifest path and exact extracted digest. The review-manifest exception is unchanged.
+
+Three isolated Git-history control scans with the corrected configuration: exact path+digest exits 0; another high-entropy digest at the same path exits 2; the original digest at another path exits 2. The existing test_gitleaks_allowlist_scope.py suite passes all 8 cases. No credential, application behavior, workflow scope or historical evidence value is changed. CI on the correction remains a separate publication check.

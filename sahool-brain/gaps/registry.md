@@ -7525,3 +7525,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 | LEGACY-CONFIRMED-ANOMALY-EVIDENCE-RECOVERY-MISSING-01 | السجل المؤكد القديم بلا مسار لاستكمال metadata الأصلية | vegetation | `tests_v9/test_cropwise_evidence_quality.py` · `docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md` | **fixed** في المصدر المرشح لـ#1228؛ اختبارات محلية موثقة، وقبول CI والتشغيل مستقلان. |
 | BASELINE-OLD-GAP-DISABLES-RECENT-HISTORY-01 | فجوة قديمة تلغي تاريخا حديثا متصلا | vegetation | `tests_v9/test_cropwise_evidence_quality.py` · `docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md` | **fixed** في المصدر المرشح لـ#1228؛ اختبارات محلية موثقة، وقبول CI والتشغيل مستقلان. |
 | OBSERVATION-ADMISSION-IGNORES-POLICY-VERSION-01 | إصدار سياسة غير معترف به يدخل الاستدلال | remote-sensing | `tests_v9/test_cropwise_evidence_quality.py` · `docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md` | **fixed** في المصدر المرشح لـ#1228؛ اختبارات محلية موثقة، وقبول CI والتشغيل مستقلان. |
+
+## 2026-10-18 — بصمة دليل Cropwise بعد squash
+
+| ID | العنوان | المجال/الخدمة | المصدر | الحالة |
+|---|---|---|---|---|
+| GITLEAKS-QUALITY-EVIDENCE-DIGEST-FALSE-POSITIVE-01 | فحص push لدمج #1228 يفسّر بصمة الملف التاريخية في دليل quality كاعتماد API؛ استثناء exact-path AND exact-digest لقاعدة generic-api-key وحدها. | CI · evidence | `.gitleaks.toml` · `certification/evidence/cropwise_quality_20261018/README.md` · #1228 | **fixed** محلياً: Gitleaks8.30.1 أحمر قبل التصحيح وأخضر بعده، وحالتا تغيير المسار/البصمة تبقيان حمراوين؛ 8 اختبارات نطاق ناجحة. CI التصحيح غير مقيس بعد؛ لا ادعاء قبول تشغيلي. |
