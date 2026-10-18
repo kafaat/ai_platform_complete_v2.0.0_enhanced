@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-18-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner-current-user-delegation",
   "adjudicated_on": "2026-10-18",
   "expires_on": "2026-10-25",
@@ -50,5 +50,15 @@
   "supplemental_byte_bindings": {
     "migrations/v236_raster_follow_up_requests.sql": "9b187988648407c8446fef71059ecde8c3f3646f",
     "migrations/schema_probe_contract.env": "d90ef528799628c375a33790d675af8cdc0b2d83"
+  },
+  "merge_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+  "consumption": {
+    "merge_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+    "merged_on": "2026-10-18",
+    "pr": 1211,
+    "pr_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1211",
+    "tested_head_sha": "8aa6d883ea19f19766c860dd18824d8242ec71e4",
+    "merge_tree_sha": "2bd4fcb507d80c7eb37137e121bdc342f6785e6d",
+    "scope": "Source merge only. All authorized and supplemental blobs match the merged tree, identical to the CI-tested head. Latest CI, Integration Tests and Imagery Follow-up PG16 succeeded. No staging/production acceptance or deployment outcome is asserted; runtime activation still requires explicit tenant allowlist and readiness."
   }
 }
