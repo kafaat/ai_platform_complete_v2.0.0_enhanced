@@ -9650,6 +9650,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 الرأس المنشور `8c5c941c` صار متعارضاً مع main@`503d7d7c` بعد دمج إصلاحي JWT وET0؛ لم يبدأ CI للطلب. أُدخل main في الفرع مع الحفاظ على مصادر Claude دون تعديل. التعارضات الثلاثة والعشرون في المصنوعات المولدة؛ يُعاد توليدها ثم بناء الحزمة آخراً. log/ledger يحفظان main بادئة ثم إضافات الفرع؛ hot يحتفظ بنص main مع إضافة الأعلى. رأس الدمج المحلي سيختبر قبل دفعه؛ لا دمج في main أو نشر.
 
+### 2026-10-18 — ما يحدّ عليه حدُّ المعدّل خلف Railway (staging، قراءةٌ فقط)
+
+بقرار المالك («Deploy auth to staging»): تبيّن أنّ إصلاح auth منشورٌ أصلاً على staging (`ac1e48df4`)، فلم يُعَد النشر. قياسُ سجلّ البوّابة: العنصرُ الأيمن في X-Forwarded-For عقدةُ Railway `152.233.30.x` لا العميل، فحدّا البوّابة وauth يقعان على العقدة. فجوةٌ جديدة RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01 (open)، وAUTH-IP-RATE-LIMIT-KEYS-ON-THE-GATEWAY-ADDRESS-01 تبقى open بباقٍ مقيس. المصدر: `certification/evidence/edge_hop_measure_staging_20261018/README.md`.
 
 ## 2026-10-18 — توحيد تحديثات Actions #1215/#1216/#1217 على main@3d91897c: upload-artifact v7.0.2، download-artifact v8.0.2، setup-node v7.1.0 ببصمات كاملة؛ تحديث شاهد الوسم وإعادة توليد المصنوعات. قبول محلي وCI منفصلان؛ لا قبول staging أو إنتاج ولا نشر.
 
