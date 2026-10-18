@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "9f0bcece487a8e9e2fc1ea590af5f2af5ab17504",
+  "measured_on": "0891cf3ee7168bcda15b0d9061eaee235fe5f08c",
   "fake_connection_tests": [
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
@@ -103,6 +103,7 @@
     "tests_v9/test_tenant_connection_call_shape.py",
     "tests_v9/test_v25_advisory_publication.py",
     "tests_v9/test_variety_policy_resolution.py",
+    "tests_v9/test_vegetation_sqlite_startup.py",
     "tests_v9/test_water_ledger.py",
     "tests_v9/test_work_order_persist_emit.py",
     "tests_v9/test_workflow_store_hardening.py"
@@ -396,6 +397,16 @@
         "tests_v9/test_element84_legacy_inventory.py"
       ],
       "justification": "Explicit two-file admission for application contracts only: provenance tests record persistence arguments and feed actual adapters with deterministic driver responses; inventory tests check read-only transaction arguments, tenant predicates, role and policy refusal, bounded reads and redaction. These doubles do not prove PostgreSQL parsing, RLS enforcement, committed persistence, or production inventory completeness. All nine remaining allocation gaps stay open; no proven_live exemption or database-enforcement claim is added. Native restricted-role SQL acceptance is still required before operation."
+    },
+    {
+      "kind": "vegetation_wal_startup_fault_injection",
+      "date": "2026-10-18",
+      "before": 104,
+      "after": 105,
+      "sites": [
+        "tests_v9/test_vegetation_sqlite_startup.py"
+      ],
+      "justification": "One explicit fault-injection site for the SQLite WAL startup race observed in CI job 117775774224. BusyOnce subclasses a real sqlite3.Connection and injects SQLITE_BUSY at the first WAL pragma to measure fresh-connection retry, connection cleanup and deadline exhaustion deterministically. Separate connections exercise a real SQLite file concurrently. This injection does not establish the real lock frequency, PostgreSQL enforcement or Railway persistence; the unchanged two-worker container command and its strict missing-module mutation remain independent CI witnesses. No proven_live exemption is added."
     }
   ]
 }

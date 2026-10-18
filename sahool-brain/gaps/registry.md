@@ -7526,6 +7526,22 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 | BASELINE-OLD-GAP-DISABLES-RECENT-HISTORY-01 | فجوة قديمة تلغي تاريخا حديثا متصلا | vegetation | `tests_v9/test_cropwise_evidence_quality.py` · `docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md` | **fixed** في المصدر المرشح لـ#1228؛ اختبارات محلية موثقة، وقبول CI والتشغيل مستقلان. |
 | OBSERVATION-ADMISSION-IGNORES-POLICY-VERSION-01 | إصدار سياسة غير معترف به يدخل الاستدلال | remote-sensing | `tests_v9/test_cropwise_evidence_quality.py` · `docs/runbooks/CROPWISE_RESEARCH_IMPLEMENTATION_20261018.md` | **fixed** في المصدر المرشح لـ#1228؛ اختبارات محلية موثقة، وقبول CI والتشغيل مستقلان. |
 
+## VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01
+
+- **الحالة:** open — 2026-10-18؛ إصلاح وقبول تشغيل مقترحان في فرع `codex/closure-runtime-acceptance-20261018`، لم يدخلا main بعد.
+- **الشاهد:** على `a97cba6f97e1c10745c64c35dcfa67c2106749a1` يستورد `routers/insights.py` الوحدة `weekly_insights` ولا ينسخها Dockerfile. بناء الصورة ينجح، والاستيراد يفشل، والتقرير يغيب وreadiness تعيد 503. فشل نشر production `c4fba1bb-9c85-4cee-98bc-a5afc702d4a3` حمل الخطأ نفسه؛ هذا لا يعني توقف الصورة السابقة الناجحة.
+- **العلاج المقترح:** إضافة COPY للوحدة، وقبول تشغيل الصورة في وظيفة البناء القائمة، بعقد مستقل للوحدات والمسارات وتبعية Raster متحكم فيها. طفرة تحذف COPY يجب أن تُبنى ثم تُرفض تشغيلياً للسبب المحدد.
+- **حد الإغلاق:** دخول الرقعة إلى main ونجاح قبول الصورة على الرأس المعني يغلق نقص التغليف في الكود؛ قبول نشر Railway يحتاج إيصالاً مستقلاً للصورة والإعداد والبيئة. لا يغلق هذا `RS-WEEKLY-INSIGHTS-DELIVERY-01`، فالحفظ والتسليم خارج هذا الإصلاح.
+- **العقد:** [`runtime_closure_acceptance.md`](../../docs/architecture/runtime_closure_acceptance.md)؛ الاختبار `scripts/ci/vegetation_smoke.py`، والطفرة في `.github/workflows/railway-dockerfile-pr-build.yml`.
+
+## VEGETATION-SQLITE-WAL-STARTUP-RACE-01
+
+- **الحالة:** open — 2026-10-18؛ إصلاح محدود واختبارات في #1230، لم يدخلا main بعد.
+- **الشاهد:** وظيفة CI `117775774224` على `0891cf3ee7168bcda15b0d9061eaee235fe5f08c` شغّلت أمر Docker الأصلي بعاملين. نجح قبول الصورة السليمة، ثم كشف تشغيل صورة طفرة COPY فشل `routers.anomalies` عند `PRAGMA journal_mode=WAL` بخطأ `sqlite3.OperationalError: database is locked`، إضافة إلى فشل insights المقصود. هذا شاهد تهيئة متزامنة في المختبر، لا قياس لتكراره في الإنتاج.
+- **العلاج المقترح:** إعادة اتصال جديدة عند SQLITE_BUSY ضمن ميزانية عشر ثوانٍ، وإغلاق الاتصال الفاشل؛ بقية أخطاء SQLite تبقى فشلاً. الاختبارات تثبت التزامن، استعادة المحاولة، انتهاء المهلة ورفض المسار غير القابل للفتح.
+- **حد الإغلاق:** دمج الرقعة وقبول الصورة بعامليها وطفرة الوحدة المفقودة دون فشل راوتر إضافي. لا يثبت هذا إدامة volume على Railway أو سلامة كل استعمالات SQLite.
+- **المصدر:** `services/vegetation-analysis-service/anomaly_store.py` · `tests_v9/test_vegetation_sqlite_startup.py` · `docs/architecture/runtime_closure_acceptance.md`.
+
 ## 2026-10-18 — بصمة دليل Cropwise بعد squash
 
 | ID | العنوان | المجال/الخدمة | المصدر | الحالة |

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "imports": ["vegetation_runtime", "weekly_insights", "routers.analysis", "routers.anomalies", "routers.baselines", "routers.diagnoses", "routers.health", "routers.insights", "routers.outcomes"],
+  "routes": {
+    "/health": ["get"],
+    "/healthz": ["get"],
+    "/readyz": ["get"],
+    "/metrics": ["get"],
+    "/v1/analyze": ["get"],
+    "/v1/timeseries/{field_id}": ["get"],
+    "/v1/ndvi/current/{field_id}": ["get"],
+    "/v1/all_fields": ["get"],
+    "/v1/indicators/registry": ["get"],
+    "/v1/indicators/registry/{name}": ["get"],
+    "/v1/fields/{field_id}/signal-anomalies/detect": ["post"],
+    "/v1/fields/{field_id}/signal-anomalies": ["get"],
+    "/v1/anomalies/{anomaly_ref}/transition": ["post"],
+    "/v1/anomalies/{anomaly_ref}/verification-requests": ["post"],
+    "/v1/anomalies/{anomaly_ref}/verification-results": ["post"],
+    "/v1/anomalies/{anomaly_ref}/diagnoses": ["post"],
+    "/v1/anomalies/{anomaly_ref}/decision-referrals": ["post"],
+    "/v1/fields/{field_id}/baseline-comparisons": ["post"],
+    "/v1/fields/{field_id}/post-execution-observations": ["post"],
+    "/v1/execution-requests/{execution_request_id}/remote-sensing-outcome": ["post"],
+    "/v1/outcomes/{outcome_id}/remote-sensing-attribution": ["post"],
+    "/v1/reports/weekly-field-insights": ["post"]
+  }
+}

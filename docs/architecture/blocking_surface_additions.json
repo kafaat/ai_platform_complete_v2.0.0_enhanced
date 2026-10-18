@@ -133,6 +133,14 @@
       "positive_witness": "test_the_committed_tree_is_clean and test_a_companion_must_join_a_base_network: the post-decision tree (v9 + 10 declared overlay/test_stack/companion files, alternates in docs/history/compose/) passes, and a companion joining `<project>_sahool-internal` as an external network passes.",
       "impact": "merge",
       "$scope_limit_ar": "يقيس الملفّاتِ المتعقَّبة بالاسم (docker-)compose*.y(a)ml وأدوارَها المعلنة ودمجَ أسماء الخدمات وdepends_on؛ لا يُشغّل `docker compose config` (تفعله compose-validate لكلّ overlay فوق v9) ولا يحكم على صحّة بيئة الخدمات."
+    },
+    "scripts/ci/vegetation_smoke.py::railway-dockerfile-pr-build.yml::build": {
+      "counterexample": "VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01: main a97cba6f97e1c10745c64c35dcfa67c2106749a1 omitted weekly_insights.py from the image; Railway staging 22432850-dc1f-42f8-a241-d1d453c95e4e and production c4fba1bb-9c85-4cee-98bc-a5afc702d4a3 reported ModuleNotFoundError. The existing build alone did not exercise the report router.",
+      "mutation": "test_runtime_contract_rejects_whole_missing_router_and_wrong_http_method",
+      "$mutation_ar": "نزع رفض المسارات المفقودة في المسبار تقتله الحالة المسجلة. وشاهد الصورة المستقل في workflow يحذف COPY للوحدة مع بقاء البناء ناجحاً ثم يشترط فشل الراوتر المحدد والجاهزية 503؛ لا يُقرأ فشل بناء أو شبكة طفرةً مقتولة.",
+      "positive_witness": "test_runtime_contract_rejects_whole_missing_router_and_wrong_http_method first accepts the complete independent route/method inventory; the build job additionally requires the actual image readiness 200 -> 503 -> 200 with a controlled Raster dependency.",
+      "impact": "merge",
+      "$scope_limit_ar": "قبول صورة Vegetation في وظيفة البناء القائمة بناءً على طلب المستخدم الصريح؛ لا تغيير في branch protection ولا شهادة نشر أو بيانات إنتاج."
     }
   }
 }

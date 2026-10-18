@@ -113,6 +113,15 @@ def plan(changed_files: list[str], root: Path = ROOT, force: list[str] | None = 
         reasons += [f"verifier_changed:{v}" for v in VERIFIER_PATHS if v in changed_files]
         if dockerfile in changed_files:
             reasons.append(f"dockerfile_changed:{dockerfile}")
+        # A new Python module omitted from COPY is exactly what runtime acceptance
+        # must catch. COPY-derived watch paths alone cannot select that regression.
+        if service == "sahool-vegetation-analysis":
+            for changed in changed_files:
+                if (
+                    changed.startswith("services/vegetation-analysis-service/")
+                    and changed.endswith(".py")
+                ) or changed.startswith("scripts/ci/vegetation_smoke"):
+                    reasons.append(f"runtime_contract_changed:{changed}")
         for changed in changed_files:
             hit = next((s for s in sources if touches(changed, s)), None)
             if hit:

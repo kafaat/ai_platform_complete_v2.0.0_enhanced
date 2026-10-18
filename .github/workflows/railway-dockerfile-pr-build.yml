@@ -122,6 +122,45 @@ jobs:
             -t "pr-build/$SERVICE:$GIT_SHA" \
             .
 
+      - name: Accept the actual Vegetation container and controlled Raster failure
+        if: matrix.service == 'sahool-vegetation-analysis'
+        env:
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/vegetation_smoke.py \
+            --image "pr-build/sahool-vegetation-analysis:$GIT_SHA" \
+            --output "$RUNNER_TEMP/vegetation-smoke/accepted"
+
+      - name: Prove missing weekly COPY builds but fails runtime acceptance
+        if: matrix.service == 'sahool-vegetation-analysis'
+        env:
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/Dockerfile.vegetation.missing-weekly" <<'PY'
+          from pathlib import Path
+          import sys
+          source = Path('services/vegetation-analysis-service/Dockerfile').read_text()
+          target = 'COPY services/vegetation-analysis-service/weekly_insights.py /app/weekly_insights.py\n'
+          assert source.count(target) == 1, 'Mutation must remove exactly the weekly module COPY'
+          Path(sys.argv[1]).write_text(source.replace(target, '', 1))
+          PY
+          docker build -f "$RUNNER_TEMP/Dockerfile.vegetation.missing-weekly" \
+            -t "pr-build/vegetation-missing-weekly:$GIT_SHA" .
+          python3 scripts/ci/vegetation_smoke.py \
+            --image "pr-build/vegetation-missing-weekly:$GIT_SHA" \
+            --expect-missing-weekly --output "$RUNNER_TEMP/vegetation-smoke/mutation"
+
+      - name: Retain Vegetation runtime receipts and container logs
+        if: always() && matrix.service == 'sahool-vegetation-analysis'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vegetation-container-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vegetation-smoke/
+          if-no-files-found: error
+          retention-days: 14
+
   verdict:
     needs: [plan, build]
     if: always()

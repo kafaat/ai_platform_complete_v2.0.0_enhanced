@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6062,
+    "files_scanned": 6068,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1950,
-      "tests": 1979,
+      "other": 1954,
+      "tests": 1981,
       "web": 472
     },
-    "unmapped_artifacts": 2315,
+    "unmapped_artifacts": 2317,
     "ambiguous_artifacts": 470
   },
   "capabilities": [
@@ -1176,6 +1176,14 @@
             "content:Execution request",
             "content:execution request"
           ]
+        },
+        {
+          "path": "scripts/ci/vegetation_smoke_contract.json",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
         }
       ],
       "ambiguous": [],
@@ -1191,7 +1199,7 @@
         "mobile": 0,
         "tests": 20,
         "governance": 1,
-        "other_evidence": 17
+        "other_evidence": 18
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12744,6 +12752,10 @@
           "score": 12
         },
         {
+          "value": "sahool.ci.dead_letter_source @ tests_v9/test_notification_queue_rollout.py:385",
+          "score": 12
+        },
+        {
           "value": "sahool.economic.analysis @ event_publish_contracts.yaml:56",
           "score": 12
         },
@@ -12788,6 +12800,10 @@
           "score": 12
         },
         {
+          "value": "sahool.notification.dead_letter @ tests_v9/test_notification_queue_rollout.py:386",
+          "score": 12
+        },
+        {
           "value": "sahool.pest.alert @ event_publish_contracts.yaml:36",
           "score": 12
         },
@@ -12798,14 +12814,6 @@
         {
           "value": "sahool.tenant.*.satellite.*.computed @ event_publish_contracts.yaml:15",
           "score": 12
-        },
-        {
-          "value": "sahool.wave0.reconcile.readonly.v1 @ certification/evidence/gap_reconciliation_20261014/reconcile_open_b.json:2",
-          "score": 12
-        },
-        {
-          "value": "field.created @ tests_v9/test_outbox_claim_lease.py:214",
-          "score": 11
         }
       ],
       "web": [],
@@ -13212,7 +13220,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 22
+        "events": 24
       },
       "evidence_counts": {
         "backend": 6,
@@ -47929,6 +47937,14 @@
     },
     {
       "path": "tests_v9/test_vegetation_real_only_posture_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_vegetation_smoke_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_vegetation_sqlite_startup.py",
       "kind": "tests"
     },
     {

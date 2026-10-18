@@ -11,6 +11,7 @@ import json
 import os
 import sqlite3
 import threading
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -65,12 +66,32 @@ class AnomalyStore:
         self._init()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.path, timeout=10, isolation_level=None)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=FULL")
-        conn.execute("PRAGMA busy_timeout=10000")
-        return conn
+        # Two image workers can race while converting a new database to WAL.
+        # SQLite may return BUSY immediately for that lock upgrade despite the
+        # connection timeout. Retry a fresh connection within one bounded budget.
+        deadline = time.monotonic() + 10
+        while True:
+            conn = sqlite3.connect(
+                self.path, timeout=max(0, deadline - time.monotonic()), isolation_level=None
+            )
+            try:
+                conn.row_factory = sqlite3.Row
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=FULL")
+                conn.execute("PRAGMA busy_timeout=10000")
+                return conn
+            except sqlite3.OperationalError as exc:
+                conn.close()
+                remaining = deadline - time.monotonic()
+                if (
+                    getattr(exc, "sqlite_errorcode", 0) & 0xFF != sqlite3.SQLITE_BUSY
+                    or remaining <= 0
+                ):
+                    raise
+                time.sleep(min(0.05, remaining))
+            except BaseException:
+                conn.close()
+                raise
 
     def _init(self) -> None:
         with self._connect() as conn:

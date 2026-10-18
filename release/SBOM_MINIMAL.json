@@ -12725,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0734f98e5fd9fb81ebf0fdcc7eddec126637b3f7ff14005b352fdfcc18806191"
+          "content": "33e253d5334c00250657614a70b9bc2fd570c0adc1e9c2a6867f05092b2498f6"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
@@ -12735,7 +12735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3cacfd9c4c1755984fbd5cc6564b372228d87981df2228ef664d5c4d5d6ee058"
+          "content": "5a1e1c2caf8d1aac294aa67a1c2e68c407cb577c0de8363985622b66bf09ebc8"
         }
       ],
       "name": "services/decision-service/tests/test_migration_034_pg16.py",
@@ -30445,7 +30445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ccee97ea48446f93eb23e6055d2e7efd9260bc2f4c87082e2a08e6415e2bf7e"
+          "content": "dc3ab4976e536a1a2981f2fbb387495a3980cb1bc58cc71d8412f302e6e83336"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -30495,7 +30495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8fdb3c4261c40dca0546d15f9399ecac75603f8364752a478925ee83235c7df4"
+          "content": "99833e911f57dd23827695ef963c088024a72890e18c39f593954df922e6d55d"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_store.py",
