@@ -30,6 +30,7 @@ COPY services/vegetation-analysis-service/anomaly_store_pg.py /app/anomaly_store
 COPY services/vegetation-analysis-service/anomaly_requests.py /app/anomaly_requests.py
 COPY services/vegetation-analysis-service/anomaly_runtime.py /app/anomaly_runtime.py
 COPY services/vegetation-analysis-service/ground_verification_bridge.py /app/ground_verification_bridge.py
+COPY services/vegetation-analysis-service/weekly_insights.py /app/weekly_insights.py
 COPY services/vegetation-analysis-service/diagnosis_engine.py /app/diagnosis_engine.py
 COPY services/vegetation-analysis-service/decision_bridge.py /app/decision_bridge.py
 COPY services/vegetation-analysis-service/post_execution_bridge.py /app/post_execution_bridge.py

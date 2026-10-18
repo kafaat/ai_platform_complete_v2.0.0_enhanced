@@ -132,7 +132,11 @@ async def database(monkeypatch):
         finally:
             await app.close()
         yield SimpleNamespace(
-            admin=admin, admin_connection=admin_connection, app_connection=app_connection, role=role
+            admin=admin,
+            admin_connection=admin_connection,
+            app_connection=app_connection,
+            app_dsn=app_dsn,
+            role=role,
         )
     finally:
         if admin is not None:

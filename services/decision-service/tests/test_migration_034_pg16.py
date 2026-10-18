@@ -494,3 +494,114 @@ async def test_pg16_password_null_disables_password_credentials(database):
     assert await database.admin.fetchval(
         "SELECT rolpassword IS NULL FROM pg_authid WHERE rolname=$1", database.role
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ending", ["commit", "rollback", "cancel"])
+@pytest.mark.parametrize("table", TABLES)
+async def test_actual_application_pool_reuse_clears_tenant_after_transaction(
+    database, monkeypatch, table, ending
+):
+    """Application asyncpg pool, one real backend: A -> absent context -> B.
+
+    No claim about an unobserved PgBouncer topology. Fixture _connect is bypassed
+    deliberately: acquire_connection exercises the shipped pool/release adapter.
+    Policies are pinned to 034 to isolate RLS from later parent-link triggers.
+    """
+    import persistence
+
+    migrations = runner.load_migrations()
+    with monkeypatch.context() as scoped:
+        scoped.setattr(
+            runner,
+            "load_migrations",
+            lambda: [m for m in migrations if m.version <= COMPOSITION_VERSION],
+        )
+        await runner.apply_migrations()
+    for row_id, tenant in [("pool-a", TENANT), ("pool-b", OTHER)]:
+        await _insert(database.admin, table, row_id, tenant)
+    monkeypatch.setattr(persistence, "_POOLS", {})
+    monkeypatch.setattr(persistence, "database_url", lambda: database.app_dsn)
+    monkeypatch.setenv("DECISION_DB_POOL_MAX", "1")
+    entered = asyncio.Event()
+    pid = None
+
+    class RollbackProbe(Exception):
+        pass
+
+    async def tenant_a():
+        nonlocal pid
+        conn = await persistence.acquire_connection()
+        try:
+            pid = await conn.fetchval("SELECT pg_backend_pid()")
+            identity = await conn.fetchrow(
+                "SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"
+            )
+            assert tuple(identity) == (False, False)
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.current_tenant',$1,true)", TENANT)
+                assert await conn.fetchval(f"SELECT count(*) FROM {table}") == 1
+                assert str(await conn.fetchval(f"SELECT tenant_id FROM {table}")) == TENANT
+                entered.set()
+                if ending == "rollback":
+                    raise RollbackProbe()
+                if ending == "cancel":
+                    await conn.execute("SELECT pg_sleep(30)")
+        finally:
+            await conn.close()  # The real production adapter releases to its pool.
+
+    try:
+        if ending == "cancel":
+            task = asyncio.create_task(tenant_a())
+            try:
+                await asyncio.wait_for(entered.wait(), 5)
+                for _ in range(100):
+                    sleeping = await database.admin.fetchval(
+                        "SELECT wait_event='PgSleep' FROM pg_stat_activity WHERE pid=$1", pid
+                    )
+                    if sleeping:
+                        break
+                    await asyncio.sleep(0.02)
+                assert sleeping, "Cancel a query actually running on the server"
+            finally:
+                task.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await task
+        elif ending == "rollback":
+            with pytest.raises(RollbackProbe):
+                await tenant_a()
+        else:
+            await tenant_a()
+
+        conn = await persistence.acquire_connection()
+        try:
+            assert await conn.fetchval("SELECT pg_backend_pid()") == pid
+            assert not await conn.fetchval("SELECT current_setting('app.current_tenant',true)")
+            async with conn.transaction():
+                assert await conn.fetchval(f"SELECT count(*) FROM {table}") == 0
+                with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
+                    async with conn.transaction():
+                        await _insert(conn, table, "pool-no-context", TENANT)
+            async with conn.transaction():
+                await conn.execute("SELECT set_config('app.current_tenant',$1,true)", OTHER)
+                assert str(await conn.fetchval(f"SELECT tenant_id FROM {table}")) == OTHER
+                assert await conn.fetchval(f"SELECT count(*) FROM {table}") == 1
+                assert (
+                    await conn.execute(
+                        f"UPDATE {table} SET tenant_id=tenant_id WHERE tenant_id=$1::uuid", TENANT
+                    )
+                    == "UPDATE 0"
+                )
+                assert (
+                    await conn.execute(f"DELETE FROM {table} WHERE tenant_id=$1::uuid", TENANT)
+                    == "DELETE 0"
+                )
+                with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
+                    async with conn.transaction():
+                        await _insert(conn, table, "pool-cross-tenant", TENANT)
+        finally:
+            await conn.close()
+        assert await database.admin.fetchval(f"SELECT count(*) FROM {table}") == 2
+    finally:
+        for pool in persistence._POOLS.values():
+            await asyncio.wait_for(pool.close(), 5)

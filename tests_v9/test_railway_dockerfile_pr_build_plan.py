@@ -70,6 +70,19 @@ def test_copy_parsing_skips_other_stages_and_flags() -> None:
     assert planner.copy_sources(text) == ["frontend", "a b.txt", "c", "migrations"]
 
 
+@pytest.mark.parametrize(
+    "changed",
+    [
+        "services/vegetation-analysis-service/not_yet_copied.py",
+        "scripts/ci/vegetation_smoke.py",
+        "scripts/ci/vegetation_smoke_contract.json",
+        "scripts/ci/vegetation_smoke_raster.py",
+    ],
+)
+def test_runtime_acceptance_selects_omitted_modules_and_its_own_contract(changed):
+    assert _services([changed]) == ["sahool-vegetation-analysis"]
+
+
 def test_a_forced_build_is_planned_without_any_change() -> None:
     """التشغيلُ اليدويّ يُثبت البناءَ نفسه — حين لا يمسّ الـPR سياقاً فلا شيءَ آخر يُثبته."""
     builds = planner.plan([], ROOT, force=["sahool-migrate-main"])["builds"]
