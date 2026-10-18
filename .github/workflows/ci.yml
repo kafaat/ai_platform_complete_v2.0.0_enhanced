@@ -822,7 +822,7 @@ jobs:
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: playwright-report
@@ -1631,7 +1631,7 @@ jobs:
           fi
       - name: Preserve Decision Service harness setup evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: decision-service-harness-${{ github.run_id }}-${{ github.run_attempt }}
           path: decision_service_primary_cause.txt
@@ -1681,7 +1681,7 @@ jobs:
           -v -p no:cacheprovider --junitxml=decision-033-pg16.xml
       - name: Retain proof even when a regression fails
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: decision-033-pg16-proof
           path: services/decision-service/decision-033-pg16.xml
@@ -1991,7 +1991,7 @@ jobs:
         # الدليل الخام يُرفَع **دائماً** وبفشلٍ مغلق على الغياب. لا يدّعي منشأً:
         # `live_pg_evidence.sha256` سلامةٌ داخليّة فقط، والمنشأ في المصنوعة التالية.
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: live-pg-evidence-${{ github.sha }}-attempt-${{ github.run_attempt }}
           path: |
@@ -2006,7 +2006,7 @@ jobs:
         # مصنوعةٌ منفصلة اسمُها يقول ما تحمله: وجودُها إثباتُ منشأ، وغيابُها غيابُه —
         # ولا يُقرأ غيابُها فقداناً للدليل. وهذا ما يجعل شرط التوقيع صادقاً بلا ثمن.
         if: always() && steps.live_pg_copy_attestation.outcome == 'success'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: live-pg-evidence-attestation-${{ github.sha }}-attempt-${{ github.run_attempt }}
           path: live_pg_evidence.attestation.json
@@ -2015,7 +2015,7 @@ jobs:
 
       - name: Upload the verified evidence archive
         if: always() && steps.live_pg_copy_attestation.outcome == 'success'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: live-pg-verified-evidence-${{ github.sha }}-attempt-${{ github.run_attempt }}
           path: |

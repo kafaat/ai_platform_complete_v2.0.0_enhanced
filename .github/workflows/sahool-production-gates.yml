@@ -142,7 +142,7 @@ jobs:
         run: python3 scripts/ci/container_image_pin_guard.py
       - name: Generate CycloneDX dependency SBOM
         run: python3 scripts/release/generate_dependency_sbom.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dependency-sbom
           path: release/SBOM_DEPENDENCIES.cdx.json
@@ -183,7 +183,7 @@ jobs:
       - run: python3 -m pip install --upgrade pip pyyaml
       - name: Build unified release-candidate verdict
         run: python3 scripts/ci/unified_production_readiness_gate.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: unified-readiness-evidence
           path: certification/evidence/unified_readiness_summary.json

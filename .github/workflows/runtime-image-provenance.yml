@@ -193,7 +193,7 @@ jobs:
                'builder_run_attempt':os.environ['BUILDER_RUN_ATTEMPT'],'evidence':evidence}
           Path(f'image-manifest-fragments/{service}.json').write_text(json.dumps(row,sort_keys=True,indent=2)+'\n')
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: runtime-image-fragment-${{ matrix.service }}
           path: |
@@ -233,7 +233,7 @@ jobs:
           PY
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: runtime-image-manifest-${{ inputs.source_sha }}
           path: runtime-image-manifest.json
