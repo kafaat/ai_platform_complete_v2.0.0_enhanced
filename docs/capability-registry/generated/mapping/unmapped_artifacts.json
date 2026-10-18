@@ -9124,6 +9124,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_vegetation_sqlite_startup.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
     "kind": "tests"
   },

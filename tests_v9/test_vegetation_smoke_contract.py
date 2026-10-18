@@ -14,7 +14,9 @@ SPEC = importlib.util.spec_from_file_location(
 )
 smoke = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(smoke)
-CONTRACT = json.loads((ROOT / "scripts/ci/vegetation_smoke_contract.json").read_text())
+CONTRACT = json.loads(
+    (ROOT / "scripts/ci/vegetation_smoke_contract.json").read_text(encoding="utf-8")
+)
 pytestmark = pytest.mark.unit
 
 
@@ -25,7 +27,7 @@ def test_external_inventory_covers_all_source_routers_and_route_methods():
         if path.name == "__init__.py":
             continue
         modules.add(f"routers.{path.stem}")
-        for node in ast.walk(ast.parse(path.read_text())):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
                 continue
             if not isinstance(node.func.value, ast.Name) or node.func.value.id != "router":

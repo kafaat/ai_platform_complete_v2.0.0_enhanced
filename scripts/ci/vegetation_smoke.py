@@ -23,7 +23,9 @@ WEEKLY = "/v1/reports/weekly-field-insights"
 
 
 def docker(*args, check=True):
-    result = subprocess.run(["docker", *args], capture_output=True, text=True, timeout=120)
+    result = subprocess.run(
+        ["docker", *args], capture_output=True, text=True, encoding="utf-8", timeout=120
+    )
     if check and result.returncode:
         print(result.stderr)
         result.check_returncode()
@@ -63,7 +65,7 @@ def main():
     parser.add_argument("--expect-missing-weekly", action="store_true")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    contract = json.loads((HERE / "vegetation_smoke_contract.json").read_text())
+    contract = json.loads((HERE / "vegetation_smoke_contract.json").read_text(encoding="utf-8"))
     suffix = uuid.uuid4().hex[:12]
     network, raster, app = (
         f"vegetation-smoke-{kind}-{suffix}" for kind in ("net", "raster", "app")
@@ -188,13 +190,15 @@ def main():
     finally:
         for name in (app, raster):
             logs = docker("logs", name, check=False)
-            (args.output / f"{name}.log").write_text(logs.stdout + logs.stderr)
+            (args.output / f"{name}.log").write_text(logs.stdout + logs.stderr, encoding="utf-8")
             if not receipt["accepted"]:
                 print(logs.stdout + logs.stderr)
             docker("rm", "-f", name, check=False)
         docker("network", "rm", network, check=False)
         receipt["finished_at"] = datetime.now(UTC).isoformat()
-        (args.output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+        (args.output / "receipt.json").write_text(
+            json.dumps(receipt, indent=2) + "\n", encoding="utf-8"
+        )
     print(json.dumps(receipt, indent=2))
 
 

@@ -3219,6 +3219,17 @@
           "why": "RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01: الاستسلامُ على أوّل رفضٍ يُعيد كلَّ خدمةٍ مُصلَحة إلى الموت عند إعادةٍ بسياسة restart قبل جهوز Postgres."
         }
       ]
+    },
+    "scripts/ci/vegetation_smoke.py": {
+      "mutations": [
+        {
+          "expect": "test_runtime_contract_rejects_whole_missing_router_and_wrong_http_method",
+          "find": "    if missing:\n",
+          "replace": "    if False:\n",
+          "why": "Disabling rejection of missing route/method pairs must fail the externally anchored inventory test; a missing whole router cannot silently pass acceptance."
+        }
+      ],
+      "test": "tests_v9/test_vegetation_smoke_contract.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

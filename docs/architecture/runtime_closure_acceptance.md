@@ -26,6 +26,14 @@ failure, readiness 503, and absence of the report route. Unrelated build/startup
 failures cannot pass this mutation witness. Source Python changes select the
 Vegetation build even when the new module was omitted from COPY.
 
+The first image witness also exposed a concurrent SQLite WAL initialization
+failure in the unchanged two-worker Docker command (CI job 117775774224).
+The store now closes a failed connection and retries SQLITE_BUSY within a
+ten-second budget; other errors still fail immediately. Tests cover concurrent
+connections, a lost first initialization attempt, deadline exhaustion and an
+unopenable database. The missing-module mutation still requires exactly the
+insights failure, so an unrelated missing router cannot satisfy acceptance.
+
 Run locally with Docker after building the image:
 
 ```sh
