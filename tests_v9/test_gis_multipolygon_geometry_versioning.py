@@ -81,3 +81,22 @@ def test_validate_field_geometry_accepts_multipolygon_without_collapsing():
         "min_lat": pytest.approx(16.09),
         "max_lat": pytest.approx(16.2),
     }
+
+
+@pytest.mark.parametrize(
+    "codes,named",
+    [
+        ("self_intersection", True),
+        ("part_1:self_intersection,part_1:area_too_small", True),
+        ("area_too_small", False),
+        ("not_self_intersection", False),
+        ("unexpected:self_intersection", False),
+    ],
+)
+def test_geometry_rejection_only_names_a_reported_self_intersection(codes, named):
+    from api.gis_geometry_guard import field_geometry_error_detail
+
+    detail = field_geometry_error_detail(ValueError(codes))
+    assert detail["code"] == "invalid_field_geometry"
+    assert detail["issues"] == codes.split(",")
+    assert ("تتقاطع" in detail["message_ar"]) is named

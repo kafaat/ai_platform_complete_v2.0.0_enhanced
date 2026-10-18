@@ -448,3 +448,47 @@ async def test_split_active_season_rejected_409(fields_mod, monkeypatch):
         await fields_mod.split_field(req=req, background_tasks=_BG(), user=user, idem=None)
     assert ei.value.status_code == 409
     assert conn.executes == []
+
+
+@pytest.mark.parametrize("operation", ["create_or_import", "update", "merge_or_split"])
+async def test_rejected_self_intersection_names_the_cause(fields_mod, monkeypatch, operation):
+    """Exercise real validation on an unrepaired bow-tie; never write a field."""
+    from api import gis_geometry_guard
+    from fastapi import BackgroundTasks, HTTPException
+
+    # The optional repairer can legitimately repair a bow-tie. This witness is
+    # specifically for the rejection path when repair cannot resolve the input.
+    monkeypatch.setattr(gis_geometry_guard, "_try_shapely_make_valid", lambda value: value)
+    geometry = {
+        "type": "Polygon",
+        "coordinates": [[[44, 15], [44.003, 15.003], [44, 15.003], [44.003, 15], [44, 15]]],
+    }
+    conn = _FakeConn()
+    monkeypatch.setattr(fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn))
+
+    async def field_exists(*args):
+        return None
+
+    monkeypatch.setattr(fields_mod, "_assert_field_in_tenant", field_exists)
+    with pytest.raises(HTTPException) as caught:
+        if operation == "create_or_import":
+            await fields_mod._persist_field(
+                fields_mod.FieldCreateRequest(name="اختبار", geometry=geometry), _FakeUser()
+            )
+        elif operation == "update":
+            await fields_mod.update_field(
+                "test-field",
+                fields_mod.FieldUpdateRequest(geometry=geometry),
+                BackgroundTasks(),
+                user=_FakeUser(),
+                idem=None,
+            )
+        else:
+            fields_mod._guard_merge_split_geometry(geometry)
+    detail = caught.value.detail
+    assert caught.value.status_code == 422
+    assert detail["code"] == "invalid_field_geometry"
+    assert "self_intersection" in detail["issues"]
+    assert "تتقاطع" in detail["message_ar"]
+    assert "أعد رسم" in detail["message_ar"]
+    assert conn.executes == []
