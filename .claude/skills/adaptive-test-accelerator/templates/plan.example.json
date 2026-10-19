@@ -1,0 +1,30 @@
+{
+  "schema": "ata/plan/v1",
+  "work_id": "demo-01",
+  "min_free_disk_mib": 256,
+  "units": [
+    {
+      "id": "unit-a",
+      "kind": "test",
+      "cwd": "/REPLACE_WITH_SOURCE_DIRECTORY",
+      "argv": ["python", "-B", "-m", "pytest", "-p", "no:cacheprovider", "tests/unit_a.py", "-q", "--junitxml={unit_dir}/junit.xml"],
+      "junit": "junit.xml",
+      "timeout_seconds": 600,
+      "expected_tests": 10,
+      "max_skipped": 0,
+      "pass_env": []
+    },
+    {
+      "id": "unit-b",
+      "kind": "test",
+      "cwd": "/REPLACE_WITH_SOURCE_DIRECTORY",
+      "argv": ["python", "-B", "-m", "pytest", "-p", "no:cacheprovider", "tests/unit_b.py", "-q", "--junitxml={unit_dir}/junit.xml"],
+      "junit": "junit.xml",
+      "timeout_seconds": 600,
+      "expected_tests": 10,
+      "max_skipped": 0,
+      "pass_env": []
+    }
+  ],
+  "note": "This is a non-executable illustration. Verify exact pytest collection, source paths, test count, and policy before approving a real plan digest."
+}
