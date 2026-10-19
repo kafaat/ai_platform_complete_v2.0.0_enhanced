@@ -82,11 +82,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "856d0155c99aea0d4cf40c005d3941d2a2b04697",
-  "tree": "cedd2f6665a7fd3ea79fe841b6a01e1132893809",
-  "verified": "remote ref == pushed commit"
+  "commit": "b93a54791e52b7d5994776411f6918f3f686aadb",
+  "tree": "22ea838b09474c5c5d6168e17ae3e0dcc17ef1a2",
+  "contents": [
+   "state.json",
+   "HANDOFF.md"
+  ],
+  "verified": "remote ref == pushed commit; history reset with force-with-lease from 856d0155c (own branch, created this session) to drop raw logs"
  },
- "updated": "2026-10-19T10:37:21Z",
+ "updated": "2026-10-19T10:37:32Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
