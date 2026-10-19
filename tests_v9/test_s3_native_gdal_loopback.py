@@ -133,8 +133,8 @@ def test_native_gdal_cog_roundtrip_and_blob_bucket_path(monkeypatch):
     rasterio = pytest.importorskip("rasterio")
     boto3 = pytest.importorskip("boto3")  # noqa: F841  (real botocore HTTP, not mocked)
     np = pytest.importorskip("numpy")
-    from rasterio.transform import from_origin
     from rasterio.shutil import copy as rasterio_copy
+    from rasterio.transform import from_origin
 
     with s3_http_fixture() as (port, objects, requests), TemporaryDirectory() as temp:
         # Synthetic data, loopback transport, no production credentials.
@@ -268,6 +268,6 @@ def test_blob_signing_region_pinned_to_explicit_s3_region(monkeypatch):
         }.items():
             monkeypatch.setenv(key, val)
         blob = _module("shared/storage/blob_store.py", "acceptance_blob_region_contract")
-        raster = _module("services/raster-service/object_store.py", "acceptance_raster_region_contract")
+        _module("services/raster-service/object_store.py", "acceptance_raster_region_contract")
         assert blob._s3_client().meta.region_name == "eu-west-1"
         assert os.environ["AWS_DEFAULT_REGION"] == "eu-west-1"
