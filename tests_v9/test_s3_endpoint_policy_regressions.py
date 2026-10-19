@@ -361,5 +361,50 @@ def test_policy_error_never_carries_the_input(endpoint):
     assert info.value.__cause__ is None and info.value.__suppress_context__
 
 
+# ── A bucket-qualified endpoint would address the bucket twice under path style ──
+# (ported from the parallel candidate #1243)
+@pytest.mark.parametrize(
+    ("endpoint", "bucket", "rejected"),
+    [
+        ("https://sahool-data.s3.example.test", "sahool-data", True),
+        ("https://SAHOOL-DATA.s3.example.test", "sahool-data", True),
+        ("https://s3.example.test", "sahool-data", False),
+        ("https://sahool-data-archive.s3.example.test", "sahool-data", False),
+        ("https://sahool-data.s3.example.test", "", False),
+    ],
+)
+def test_bucket_prefixed_endpoint_is_rejected(endpoint, bucket, rejected):
+    decision = _POLICY.resolve_configured_s3_endpoint(endpoint, None)
+    if rejected:
+        with pytest.raises(_POLICY.EndpointPolicyError, match="bucket_prefixed_endpoint"):
+            _POLICY.require_path_style_service_root(decision, bucket)
+    else:
+        _POLICY.require_path_style_service_root(decision, bucket)
+
+
+def test_both_adapters_refuse_a_bucket_prefixed_endpoint():
+    blob = load_file("shared/storage/blob_store.py", "candidate_blob_bucket_prefix")
+    raster = load_file("services/raster-service/object_store.py", "candidate_raster_bucket_prefix")
+    with ExitStack() as stack:
+        patched(
+            stack,
+            blob,
+            S3_ENDPOINT="https://logbooks.s3.example.test",
+            S3_BUCKET="logbooks",
+            S3_USE_SSL=None,
+        )
+        patched(
+            stack,
+            raster,
+            S3_ENDPOINT="https://rasters.s3.example.test",
+            S3_BUCKET="rasters",
+            S3_USE_SSL=None,
+        )
+        with pytest.raises(blob.BlobStoreError, match="bucket_prefixed_endpoint"):
+            blob._endpoint_url()
+        with pytest.raises(raster.ObjectStoreUploadError, match="bucket_prefixed_endpoint"):
+            raster._endpoint_url()
+
+
 if __name__ == "__main__":
     unittest.main()

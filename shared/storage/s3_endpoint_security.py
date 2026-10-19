@@ -138,6 +138,17 @@ def resolve_endpoint(
     )
 
 
+def require_path_style_service_root(decision: EndpointDecision, bucket: str) -> None:
+    """Reject a bucket-qualified endpoint: the path-style client adds /<bucket>/<key> itself.
+
+    With S3_ENDPOINT=https://sahool-data.s3.example and S3_BUCKET=sahool-data, every
+    request would address the bucket twice. The endpoint must be the service root.
+    """
+    normalized_bucket = str(bucket or "").strip().lower()
+    if normalized_bucket and decision.host.startswith(normalized_bucket + "."):
+        raise EndpointPolicyError("bucket_prefixed_endpoint_forbidden_in_path_style")
+
+
 # Only explicit service identifiers, never substring checks such as "minio" in a URL.
 # Railway currently has no MinIO service; these are local Compose identities only.
 TRUSTED_S3_SERVICE_HOSTS = frozenset({"sahool-minio", "sahool-minio.railway.internal"})

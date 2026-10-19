@@ -65,6 +65,7 @@ def _load_endpoint_policy():
 _endpoint_policy = _load_endpoint_policy()
 EndpointPolicyError = _endpoint_policy.EndpointPolicyError
 resolve_configured_s3_endpoint = _endpoint_policy.resolve_configured_s3_endpoint
+require_path_style_service_root = _endpoint_policy.require_path_style_service_root
 
 logger = logging.getLogger("shared.storage.blob_store")
 
@@ -94,12 +95,14 @@ def _s3_endpoint_decision():
     # Fail before creating a boto3 client, including when file fallback is
     # explicitly enabled. A malformed endpoint must not silently degrade.
     try:
-        return resolve_configured_s3_endpoint(
+        decision = resolve_configured_s3_endpoint(
             S3_ENDPOINT,
             S3_USE_SSL,
             S3_ALLOW_PLAINTEXT_INTERNAL,
             S3_ALLOW_PLAINTEXT_LOOPBACK,
         )
+        require_path_style_service_root(decision, S3_BUCKET)
+        return decision
     except EndpointPolicyError as exc:
         raise BlobStoreError(f"unsafe S3 endpoint configuration: {exc}") from exc
 

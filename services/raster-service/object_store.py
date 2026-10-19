@@ -19,6 +19,7 @@ import os
 
 from shared.storage.s3_endpoint_security import (
     EndpointPolicyError,
+    require_path_style_service_root,
     resolve_configured_s3_endpoint,
 )
 
@@ -46,12 +47,14 @@ def _allow_file_fallback() -> bool:
 
 def _s3_endpoint_decision():
     try:
-        return resolve_configured_s3_endpoint(
+        decision = resolve_configured_s3_endpoint(
             S3_ENDPOINT,
             S3_USE_SSL,
             S3_ALLOW_PLAINTEXT_INTERNAL,
             S3_ALLOW_PLAINTEXT_LOOPBACK,
         )
+        require_path_style_service_root(decision, S3_BUCKET)
+        return decision
     except EndpointPolicyError as exc:
         raise ObjectStoreUploadError(f"unsafe S3 endpoint configuration: {exc}") from exc
 
