@@ -54,6 +54,22 @@ cap, then approved archival, never silent removal. So:
   not exceed it at the head, and the budget at the head may not exceed the budget at the
   base. The remedy for a full snapshot is archival, never a higher number.
 
+Two review findings (2026-10-19) narrowed this further:
+
+* **archived text may not come back** (``ARCHIVED_TEXT_RESURRECTED``). ``hot.md`` is merged
+  with ``merge=union`` (``.gitattributes``), and a branch cut before an archival that appends
+  at the end or edits a kept line merges with NO conflict while union keeps both sides of the
+  hunk — measured on the real files, 150,007 and 383,028 archived bytes came back. Against
+  the branch parent such a merge reads as an archival, against main it only grows, so no rule
+  above saw it. A line whose count in the journal grows against a parent, byte-identical to a
+  line of an archive file at the commit, blocks. Separators and the snapshot's skeleton
+  (headings, table rows) are not archived text: the first archive holds hot.md's standing
+  headings and table rows, which a session may write again;
+* **only the archive files that count fund a shrink**: a regular ``100644`` file directly in
+  the folder, named ``hot_*.md`` (``resolve_merge_conflicts.counts_as_archive``), the same
+  definition the archive's readers use. Anything else under the folder funds nothing and
+  stays strictly append-only.
+
 The file list is not written here: it is imported from ``resolve_merge_conflicts``, which
 already owns that classification. A second list is a second thing to keep in step.
 
@@ -67,8 +83,10 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import subprocess
 import sys
+from collections import Counter
 from difflib import SequenceMatcher
 from functools import cache
 from pathlib import Path
@@ -114,6 +132,12 @@ def append_only_files() -> tuple[str, ...]:
 def archive_dirs() -> dict[str, str]:
     """Journal → its archive directory, imported from the same classifier as the list."""
     return dict(_load_resolver().ARCHIVES)
+
+
+@cache
+def _archive_policy() -> ModuleType:
+    """The classifier once per run: ``counts_as_archive`` is asked for every pair."""
+    return _load_resolver()
 
 
 @cache
@@ -215,18 +239,37 @@ def archive_files(ref: str, folders: list[str], *, root: Path = ROOT) -> list[st
     return sorted(p for p in result.stdout.decode("utf-8").split("\0") if p)
 
 
+def counted_archives(ref: str, folder: str, *, root: Path = ROOT) -> list[str]:
+    """The archive files at ``ref`` that can fund a shrink, sorted.
+
+    ``ls-tree`` without ``-r`` lists the folder's direct entries with their modes, and
+    ``resolve_merge_conflicts.counts_as_archive`` decides — the predicate the readers apply
+    to the working tree, so what may receive moved text is exactly what is read.
+    """
+    result = _git("ls-tree", "-z", ref, "--", folder, root=root)
+    if result.returncode != 0:
+        raise SystemExit(f"✗ تعذّرت قراءة شجرة الأرشيف عند {ref} — يفشل مُغلَقاً.")
+    counted: list[str] = []
+    for record in result.stdout.decode("utf-8").split("\0"):
+        meta, _tab, path = record.partition("\t")
+        if path and _archive_policy().counts_as_archive(path, meta.split(" ", 1)[0], folder):
+            counted.append(path)
+    return sorted(counted)
+
+
 def archive_additions(
     parent: str, commit: str, folder: str, *, root: Path = ROOT
 ) -> list[tuple[str, bytes]]:
-    """Bytes this commit ADDED under ``folder``: a new file whole, an append its suffix.
+    """Bytes this commit ADDED to the counted archive files: a new file whole, an append its suffix.
 
     Content that was already archived at the parent is not a credit: it moved in another
     commit, and letting it fund a second shrink would let one archive excuse any deletion
     of text it happens to contain. A rewritten archive contributes nothing; the archive
-    rule below blocks it on its own.
+    rule below blocks it on its own. A file under ``folder`` that does not count (deeper,
+    another name or extension, a symlink) funds nothing: no reader opens it.
     """
     added: list[tuple[str, bytes]] = []
-    for archive in archive_files(commit, [folder], root=root):
+    for archive in counted_archives(commit, folder, root=root):
         now = blob(commit, archive, root=root) or b""
         kept = blob(parent, archive, root=root)
         if kept is None:
@@ -239,6 +282,40 @@ def archive_additions(
 def _cannot_anchor(line: bytes) -> bool:
     """A blank or a lone ``>`` separates entries; it says nothing about which entry it is."""
     return line.strip() in (b"", b">")
+
+
+_SKELETON = re.compile(rb"(#{1,6}\s|\|)")
+
+
+def _is_archived_text(line: bytes) -> bool:
+    """A line that names archived text: not a separator, not the snapshot's skeleton.
+
+    Measured: the first archive holds hot.md's standing headings and table rows (``## ماذا
+    بعد؟``, ``| ID | العنوان | الحالة |``, ``|---|---|---|``), each present in all of the last
+    300 first-parent versions of hot.md on main up to ``2a759d06``; writing one again is
+    ordinary work. A union merge brings entry lines with them, and those are what this reads.
+    """
+    return not _cannot_anchor(line) and not _SKELETON.match(line.strip())
+
+
+def archived_lines(ref: str, folder: str, *, root: Path = ROOT) -> dict[bytes, str]:
+    """Every line of archived text in the counted archive files at ``ref`` → the file holding it."""
+    held: dict[bytes, str] = {}
+    for archive in counted_archives(ref, folder, root=root):
+        for line in (blob(ref, archive, root=root) or b"").splitlines():
+            if _is_archived_text(line):
+                held.setdefault(line, archive)
+    return held
+
+
+def resurrected_lines(before: bytes, after: bytes, archived: dict[bytes, str]) -> list[bytes]:
+    """Lines whose count in the journal grew from ``before`` and that an archive holds.
+
+    A count, not a set: a line moved within the journal does not grow, and a second copy of
+    a line already there does. In journal order, one entry per added copy.
+    """
+    grown = Counter(after.splitlines()) - Counter(before.splitlines())
+    return [line for line in grown.elements() if line in archived]
 
 
 def removed_blocks(before: bytes, after: bytes) -> list[tuple[int, bytes]]:
@@ -340,6 +417,7 @@ def check_range(
     blocking: list[Finding] = []
     advisory: list[Finding] = []
     pairs = 0
+    archived: dict[tuple[str, str], dict[bytes, str]] = {}
 
     # Fail closed on absence, before comparing anything. Every pair below is skipped when
     # the journal is missing at the parent, so a tree where the journals no longer exist
@@ -376,6 +454,30 @@ def check_range(
                         )
                     )
                     continue
+                folder = archives.get(path)
+                # Review 2026-10-19: a `merge=union` merge of a branch cut before an archival
+                # puts archived text back with no conflict, and the pair against main only
+                # grows. Checked on every pair, before any exception below can `continue`.
+                if folder and after != before:
+                    key = (commit, folder)
+                    if key not in archived:
+                        archived[key] = archived_lines(commit, folder, root=root)
+                    back = resurrected_lines(before, after, archived[key])
+                    if back:
+                        first = after.splitlines().index(back[0]) + 1
+                        held = " · ".join(sorted({archived[key][line] for line in back}))
+                        blocking.append(
+                            Finding(
+                                "ARCHIVED_TEXT_RESURRECTED",
+                                path,
+                                parent,
+                                commit,
+                                f"{len(back):,} سطراً ({sum(len(x) + 1 for x in back):,} بايت) "
+                                f"عادت من {held} (أوّلها السطر {first} عند الابن). الأرجح دمجُ "
+                                "`merge=union` لفرعٍ أقدم من الأرشفة: خُذ الملفّ من main وأضِف "
+                                "أسطر فرعك وحدها، لا ناتج union (sahool-brain/README.md)",
+                            )
+                        )
                 # Keep the shrink-to-advisory mutation anchored to the blocking rule.
                 # The lossless exception is proved before that rule, not inserted into it.
                 if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):
@@ -393,7 +495,6 @@ def check_range(
                 # BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: the archival exception, proved
                 # before the blocking rule like the one above, never folded into it.
                 reason = ""
-                folder = archives.get(path)
                 if len(after) < len(before) and folder:
                     additions = archive_additions(parent, commit, folder, root=root)
                     moved, reason = verbatim_archival(path, before, after, additions, folder)
@@ -620,7 +721,9 @@ def main(argv: list[str] | None = None) -> int:
         print("\nbrain_append_only_guard: FAIL", file=sys.stderr)
         for finding in blocking:
             print(finding, file=sys.stderr)
-        if any(not f.code.startswith("BUDGET_") for f in blocking):
+        # «أعِد البناء من كلا الوالدَين» هو بالضبط ما يُعيد النصَّ المؤرشَف، فالعودةُ تحمل علاجها.
+        own_remedy = ("BUDGET_", "ARCHIVED_TEXT_RESURRECTED")
+        if any(not f.code.startswith(own_remedy) for f in blocking):
             head_sha = _git("rev-parse", args.head).stdout.strip()
             print(shrink_remedy(blocking, head_sha), file=sys.stderr)
         return 1

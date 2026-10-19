@@ -179,3 +179,22 @@ def test_every_frozen_baseline_line_is_still_read_by_the_guard():
     assert [line[:80] for line in baseline if line not in hot_lines] == [], (
         "an exempt line left hot.md; it can no longer be edited to leave the baseline"
     )
+
+
+def test_the_guard_reads_exactly_the_archive_files_that_count(private_brain):
+    """Review finding (2026-10-19): the same unregistered deferral gave 1 violation in
+    ``archive/hot_a.md`` and 0 in ``archive/2026/hot_b.md``, ``hot_c.txt`` or ``hot_d.MD``,
+    while the append-only guard credited an archival into any of them. The files that count
+    are defined once in ``resolve_merge_conflicts`` and the guard reads exactly those; the
+    append-only guard funds a shrink with nothing else, so nothing moved out of ``hot.md`` is
+    left unread."""
+    guard, brain = private_brain
+    line = "> **مؤجَّل:** بند مستقل بلا معرّف.\n"
+    archive = brain / "archive"
+    (archive / "2026").mkdir()
+    for name in ("hot_a.md", "2026/hot_b.md", "hot_c.txt", "hot_d.MD", "notes.md"):
+        (archive / name).write_text(line, encoding="utf-8")
+    (archive / "hot_link.md").symlink_to("hot_a.md")  # a symlink blob funds no shrink either
+    assert guard.scanned_files() == [brain / "hot.md", archive / "hot_a.md"]
+    found = guard.violations(baseline=set())
+    assert [entry.split(":")[0] for entry in found] == ["sahool-brain/archive/hot_a.md"], found

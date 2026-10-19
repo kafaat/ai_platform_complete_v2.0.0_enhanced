@@ -24,6 +24,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from types import ModuleType
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
@@ -45,8 +46,8 @@ REGISTRY = ROOT / "sahool-brain" / "gaps" / "registry.md"
 BASELINE = ROOT / "docs" / "architecture" / "brain_deferral_baseline.json"
 
 
-def _hot_archive_dir() -> Path:
-    """مجلّد أرشيف `hot.md` كما يُعلِنه المُصنِّف الذي يستورده حارسُ الإلحاق أيضاً."""
+def _archive_policy() -> ModuleType:
+    """المُصنِّف الذي يستورده حارسُ الإلحاق أيضاً: مجلّدُ الأرشيف وأيُّ ملفّاته يُحتسَب."""
     source = Path(__file__).resolve().with_name("resolve_merge_conflicts.py")
     spec = importlib.util.spec_from_file_location("_deferral_archive_policy", source)
     if not spec or not spec.loader:
@@ -54,10 +55,12 @@ def _hot_archive_dir() -> Path:
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return ROOT / module.ARCHIVES[HOT.relative_to(ROOT).as_posix()]
+    return module
 
 
-ARCHIVE_DIR = _hot_archive_dir()
+_POLICY = _archive_policy()
+_ARCHIVE_FOLDER = _POLICY.ARCHIVES[HOT.relative_to(ROOT).as_posix()]
+ARCHIVE_DIR = ROOT / _ARCHIVE_FOLDER
 
 # أنماط تأجيل: عبارات تُرحّل عملاً إلى المستقبل. مقصودة ضيّقة — كلّ نمط يُنشئ التزاماً.
 _DEFERRAL = re.compile(
@@ -101,8 +104,12 @@ def load_baseline() -> set[str]:
 
 
 def scanned_files() -> list[Path]:
-    """`hot.md` ثمّ ملفّات أرشيفه بترتيب أسمائها — كلُّ ما كان يوماً في اللقطة."""
-    return [HOT, *sorted(ARCHIVE_DIR.glob("*.md"))]
+    """`hot.md` ثمّ ملفّات أرشيفه التي تُحتسَب، بترتيب أسمائها — كلُّ ما كان يوماً في اللقطة.
+
+    التعريفُ `counted_archive_files` من المُصنِّف، وهو نفسُه ما يقبل به `brain_append_only_guard`
+    تقلّصاً (مراجعة 2026-10-19: كان الحارس يقبل أيَّ مسارٍ تحت المجلّد، وهذا يقرأ `*.md` في أعلاه).
+    """
+    return [HOT, *_POLICY.counted_archive_files(ARCHIVE_DIR, _ARCHIVE_FOLDER)]
 
 
 def violations(baseline: set[str] | None = None) -> list[str]:

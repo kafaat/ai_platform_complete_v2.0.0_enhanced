@@ -3508,6 +3508,12 @@
           "find": "    matcher = SequenceMatcher(_cannot_anchor, old, new, autojunk=False)\n",
           "replace": "    matcher = SequenceMatcher(None, old, new, autojunk=False)\n",
           "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: السماحُ للفاصل بأن يُرسي المحاذاة ⇒ يُطابَق السطرُ الفارغ بين سطرين مُبقَيَين مع فارغٍ داخل قطع، فيُقرأ سطرٌ مُبقىً محذوفاً ويُرفض نقلٌ بلا فقد — وهو ما وقع فعلاً على الأرشفة الأولى قبل الإصلاح."
+        },
+        {
+          "expect": "test_a_real_union_merge_that_brings_archived_text_back_blocks",
+          "find": "    return [line for line in grown.elements() if line in archived]\n",
+          "replace": "    return []\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ."
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"

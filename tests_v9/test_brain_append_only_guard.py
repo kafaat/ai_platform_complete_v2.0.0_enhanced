@@ -784,7 +784,9 @@ def _archive_init(tmp_path: Path) -> Path:
     return root
 
 
-def _snapshot(root: Path, files: dict[str, str | bytes], *parents: str) -> str:
+def _snapshot(
+    root: Path, files: dict[str, str | bytes], *parents: str, modes: dict[str, str] | None = None
+) -> str:
     """A commit whose tree is exactly ``files`` — built in a private index, HEAD untouched."""
     import os
 
@@ -793,7 +795,8 @@ def _snapshot(root: Path, files: dict[str, str | bytes], *parents: str) -> str:
     for path, content in files.items():
         data = content.encode("utf-8") if isinstance(content, str) else content
         blob = _archive_git(root, "hash-object", "-w", "--stdin", data=data)
-        _archive_git(root, "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}", env=env)
+        mode = (modes or {}).get(path, "100644")
+        _archive_git(root, "update-index", "--add", "--cacheinfo", f"{mode},{blob},{path}", env=env)
     tree = _archive_git(root, "write-tree", env=env)
     parent_args = [item for parent in parents for item in ("-p", parent)]
     return _archive_git(root, "commit-tree", tree, *parent_args, "-m", "snapshot")
@@ -970,6 +973,206 @@ def test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank(guard,
     blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
     assert not blocking, "\n".join(str(f) for f in blocking)
     assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+
+
+# ── a real `merge=union` merge must not bring archived text back ─────────────
+#
+# Review finding (2026-10-19): ``.gitattributes`` merges ``hot.md`` with ``merge=union``.
+# A branch cut before an archival that adds lines at the end of ``hot.md`` (19 of the 119
+# commits that touched it in the 30 days to 2a759d06 did, against their first parent, the
+# latest on 2026-10-03) or edits a line the archival kept merges with NO conflict, and union
+# keeps both sides of the hunk: the archived text comes back. Measured on the real files
+# (2a759d06 as ancestor, this branch's head as main): the end-of-file append brought back 411
+# archived lines (150,007 bytes); a top entry plus an edit of the kept route-count line brought
+# back 383,028 bytes and left hot.md at 522,569, under the 526,815 budget. Every rule above
+# passes it: against the branch parent the merge reads as an archival, against main it only
+# grows. The hand-written merge in the test above never ran git, so it never saw this.
+
+_UNION_SHAPES = {
+    "end-of-file-append": lambda hot: (
+        hot + "> **2026-10-20 — appended at the end by an older branch**\n"
+    ),
+    "kept-line-edit": lambda hot: hot.replace(
+        _MID, _MID.replace("depends on", "depends on, edited")
+    ),
+}
+
+
+def _union_merge(tmp_path: Path, shape: str) -> tuple[Path, str, str, str]:
+    """(root, ancestor, compacted main, merge): a real ``git merge`` under this repo's attribute."""
+    attribute = "sahool-brain/hot.md              merge=union"
+    assert attribute in (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()
+    root = _archive_init(tmp_path)
+    (root / ".gitattributes").write_text(attribute + "\n", encoding="utf-8")
+    hot, archive = root / _HOT, root / _ARCHIVE
+    archive.parent.mkdir(parents=True)
+    hot.write_text(_TOP + _OLD_A + _MID + _OLD_B, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "ancestor")
+    ancestor = _archive_git(root, "rev-parse", "HEAD")
+    _archive_git(root, "checkout", "-qb", "older-branch")
+    hot.write_text(_UNION_SHAPES[shape](_TOP + _OLD_A + _MID + _OLD_B), encoding="utf-8")
+    _archive_git(root, "commit", "-qam", "older branch work")
+    _archive_git(root, "checkout", "-q", "main")
+    hot.write_text(_TOP + _POINTER + _MID, encoding="utf-8")
+    archive.write_text(_OLD_A + _OLD_B, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "archival")
+    compacted = _archive_git(root, "rev-parse", "HEAD")
+    _archive_git(root, "checkout", "-q", "older-branch")
+    _archive_git(root, "merge", "-q", "--no-edit", "main")  # check=True: git saw no conflict
+    return root, ancestor, compacted, _archive_git(root, "rev-parse", "HEAD")
+
+
+@pytest.mark.parametrize("shape", sorted(_UNION_SHAPES))
+def test_a_real_union_merge_that_brings_archived_text_back_blocks(guard, tmp_path, shape):
+    root, ancestor, compacted, merge = _union_merge(tmp_path, shape)
+    merged = (root / _HOT).read_text(encoding="utf-8")
+    back = [line for line in (_OLD_A + _OLD_B).splitlines() if line.strip() not in ("", ">")]
+    assert any(line in merged.splitlines() for line in back), "git did not reproduce the shape"
+    blocking, _, _ = guard.check_range(ancestor, merge, files=(_HOT,), root=root)
+    hits = [f for f in blocking if f.code == "ARCHIVED_TEXT_RESURRECTED"]
+    assert [(f.parent, f.commit) for f in hits] == [(compacted, merge)], "\n".join(
+        map(str, blocking)
+    )
+    assert _ARCHIVE in hits[0].detail, hits[0].detail
+
+
+@pytest.mark.parametrize("shape", sorted(_UNION_SHAPES))
+def test_resolving_hot_md_as_main_plus_the_branch_lines_passes(guard, tmp_path, shape):
+    """The README step: main's ``hot.md`` plus the branch's own change, never the union."""
+    root, ancestor, _compacted, _merge = _union_merge(tmp_path, shape)
+    resolved = _UNION_SHAPES[shape](_TOP + _POINTER + _MID)
+    (root / _HOT).write_text(resolved, encoding="utf-8")
+    _archive_git(root, "commit", "-q", "--amend", "--no-edit", "-a")
+    blocking, _, _ = guard.check_range(ancestor, "HEAD", files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+
+
+@pytest.mark.parametrize(
+    "added,resurrected",
+    [
+        pytest.param(_OLD_B, True, id="an-archived-entry"),
+        pytest.param("> **2026-10-20 — a new entry**\n", False, id="new-text"),
+        pytest.param("## ماذا بعد؟\n", False, id="a-heading-the-archive-also-holds"),
+        pytest.param("| ID | العنوان | الحالة |\n|---|---|---|\n", False, id="a-table-skeleton"),
+    ],
+)
+def test_only_archived_entry_text_counts_as_resurrected(guard, tmp_path, added, resurrected):
+    """The snapshot's skeleton is not archived text: measured, the first archive holds hot.md's
+    standing headings and table rows (``## ماذا بعد؟``, ``|---|---|---|``), each present in all
+    of the last 300 first-parent versions of hot.md on main up to 2a759d06. Re-adding one is
+    normal work."""
+    root = _archive_init(tmp_path)
+    archive = _OLD_A + _OLD_B + "## ماذا بعد؟\n| ID | العنوان | الحالة |\n|---|---|---|\n"
+    parent = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: archive})
+    candidate = _snapshot(root, {_HOT: added + _TOP + _POINTER + _MID, _ARCHIVE: archive}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == (["ARCHIVED_TEXT_RESURRECTED"] if resurrected else [])
+
+
+@pytest.mark.parametrize(
+    "after,resurrected",
+    [
+        pytest.param(_OLD_B + _TOP + _POINTER + _MID + _OLD_B, True, id="a-second-copy"),
+        pytest.param(_TOP + _POINTER + _MID + _OLD_B, False, id="the-same-copy-moved"),
+    ],
+)
+def test_a_line_counts_by_occurrence_not_by_presence(guard, tmp_path, after, resurrected):
+    """A copy already in the journal is not new; a second copy of it is."""
+    root = _archive_init(tmp_path)
+    archive = {_ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, {_HOT: _OLD_B + _TOP + _POINTER + _MID, **archive})
+    candidate = _snapshot(root, {_HOT: after, **archive}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == (["ARCHIVED_TEXT_RESURRECTED"] if resurrected else [])
+
+
+# ── which archive files count: one definition, shared with the readers ────────
+#
+# Review finding (2026-10-19): the guard credited an archival into ANY path under the folder
+# (any depth, any extension, hidden, even a symlink blob), while the readers of the archive read
+# only top-level ``*.md`` — so text could leave ``hot.md`` into a file no reader opens. The files
+# that count are defined once in ``resolve_merge_conflicts``; everything under the folder stays
+# strictly append-only.
+
+
+@pytest.mark.parametrize(
+    "path,mode,counted",
+    [
+        pytest.param(_ARCHIVE, "100644", True, id="hot_star_md-directly-in-the-folder"),
+        pytest.param("sahool-brain/archive/2026/hot_x.md", "100644", False, id="one-level-deeper"),
+        pytest.param("sahool-brain/archive/sub/deeper/hot_x.md", "100644", False, id="deeper"),
+        pytest.param("sahool-brain/archive/hot_x.txt", "100644", False, id="txt"),
+        pytest.param("sahool-brain/archive/hot_x.MD", "100644", False, id="upper-case-MD"),
+        pytest.param("sahool-brain/archive/notes.md", "100644", False, id="not-hot_star"),
+        pytest.param("sahool-brain/archive/.hidden", "100644", False, id="hidden"),
+        pytest.param(_ARCHIVE, "120000", False, id="symlink-blob"),
+        pytest.param(_ARCHIVE, "100755", False, id="executable"),
+    ],
+)
+def test_only_a_regular_hot_md_file_directly_in_the_folder_funds_a_shrink(
+    guard, tmp_path, path, mode, counted
+):
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(
+        root, {_HOT: _TOP + _POINTER + _MID, path: _OLD_A + _OLD_B}, parent, modes={path: mode}
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    if counted:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+        assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+    else:
+        assert _codes(blocking) == ["JOURNAL_SHRANK"], "\n".join(str(f) for f in blocking)
+
+
+@pytest.mark.parametrize(
+    "path,mode,counted",
+    [
+        ("sahool-brain/archive/hot_x.md", "100644", True),
+        ("sahool-brain/archive/2026/hot_x.md", "100644", False),  # what `ls-tree -r` would list
+        ("sahool-brain/archive/hot_2026/notes.md", "100644", False),  # `*` alone would match it
+        ("sahool-brain/hot_x.md", "100644", False),
+        ("sahool-brain/archive/hot_x.md", "100755", False),
+        ("sahool-brain/archive/hot_x.md", "040000", False),
+    ],
+)
+def test_counts_as_archive_holds_on_its_own(path, mode, counted):
+    """The predicate does not lean on the listing that feeds it: a path one level deeper
+    is refused even when a caller lists the folder recursively."""
+    resolver = _load(RESOLVER, "_resolve_counts_as_archive_probe")
+    assert resolver.counts_as_archive(path, mode, resolver.ARCHIVES[_HOT]) is counted
+
+
+def test_a_file_under_the_folder_that_does_not_count_is_still_append_only(guard, tmp_path):
+    other = "sahool-brain/archive/2026/notes.txt"
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP, other: _OLD_A + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP, other: _OLD_A}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert [(f.code, f.path) for f in blocking] == [("ARCHIVE_REWRITTEN", other)]
+
+
+def test_the_guard_and_the_readers_see_the_same_archive_files(guard, tmp_path):
+    """The git listing (guard) and the disk listing (readers) go through one predicate."""
+    import os
+
+    resolver = _load(RESOLVER, "_resolve_counted_archive_probe")
+    folder = resolver.ARCHIVES[_HOT]
+    root = _archive_init(tmp_path)
+    (root / folder / "2026").mkdir(parents=True)
+    for name in ("2026/hot_b.md", "hot_c.txt", "hot_d.MD", ".hidden", "hot_exec.md", _ARCHIVE):
+        (root / (name if name == _ARCHIVE else folder + name)).write_text("x\n", encoding="utf-8")
+    (root / folder / "hot_exec.md").chmod(0o755)
+    os.symlink(Path(_ARCHIVE).name, root / folder / "hot_link.md")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "decoys")
+    on_disk = [
+        p.relative_to(root).as_posix()
+        for p in resolver.counted_archive_files(root / folder, folder)
+    ]
+    assert on_disk == guard.counted_archives("HEAD", folder, root=root) == [_ARCHIVE]
 
 
 # ── the size budget: a ratchet, never raised ────────────────────────────────

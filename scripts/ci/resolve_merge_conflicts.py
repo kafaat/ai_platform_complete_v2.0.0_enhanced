@@ -38,8 +38,10 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import stat
 import subprocess
 import sys
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
@@ -89,6 +91,44 @@ APPEND_ONLY = (
 # وسجلُّ الفجوات مرجعُ هويّات تُطابِقها حرّاسٌ أخرى. الحارسُ يستورد هذا القاموس كما
 # يستورد `APPEND_ONLY`، وملفّاتُ الأرشيف تُصنَّف إلحاقيّةً هنا: ما نُقِل لا يُحرَّر.
 ARCHIVES = {"sahool-brain/hot.md": "sahool-brain/archive/"}
+
+# **أيُّ ملفٍّ تحت المجلّد يُحتسَب أرشيفاً — تعريفٌ واحد، هنا** (مراجعة 2026-10-19): كان
+# `brain_append_only_guard` يقبل نقلاً إلى أيّ مسارٍ تحت المجلّد (أيّ عمق، أيّ امتداد، ملفٌّ خفيّ،
+# بل كائنُ رابطٍ رمزيّ)، وقرّاءُ الأرشيف (`brain_deferral_registry_guard` واختبارُ الرواية) يقرؤون
+# `*.md` في أعلاه وحده — فكان نصٌّ يغادر `hot.md` إلى ملفٍّ لا يفتحه قارئ. التعريف: ملفٌّ عاديّ
+# (`100644`) في المجلّد نفسه مباشرةً، اسمُه `hot_*.md` بحساسيّة الحالة. الحارسُ يموِّل التقلّص به
+# وحده والقرّاءُ يقرؤونه وحده، وكلُّ ما تحت المجلّد يبقى إلحاقيّاً صارماً (`classify` أدناه).
+ARCHIVE_FILE_PATTERN = "hot_*.md"
+
+
+def counts_as_archive(path: str, mode: str, folder: str) -> bool:
+    """A regular (git mode ``100644``) file directly in ``folder``, named ``hot_*.md``."""
+    name = path[len(folder) :] if path.startswith(folder) else ""
+    return mode == "100644" and "/" not in name and fnmatchcase(name, ARCHIVE_FILE_PATTERN)
+
+
+def git_mode(entry: Path) -> str:
+    """The git mode a working-tree entry is committed with — read with ``lstat``, never followed."""
+    info = entry.lstat()
+    if stat.S_ISLNK(info.st_mode):
+        return "120000"
+    if stat.S_ISDIR(info.st_mode):
+        return "040000"
+    if stat.S_ISREG(info.st_mode):
+        return "100755" if info.st_mode & stat.S_IXUSR else "100644"
+    return ""
+
+
+def counted_archive_files(directory: Path, folder: str) -> list[Path]:
+    """The working-tree files ``counts_as_archive`` accepts, sorted — what the readers read."""
+    if not directory.is_dir():
+        return []
+    return sorted(
+        entry
+        for entry in directory.iterdir()
+        if counts_as_archive(folder + entry.name, git_mode(entry), folder)
+    )
+
 
 # مصنوعات مولَّدة: تُؤخَذ من `main` ثمّ يُعاد توليدها. حلُّها يدويّاً يُنتِج رقماً
 # لم يحسبه أحد — والبصمة تحديداً لا تُدمَج، تُحسَب.
