@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/uwrp/shard-receipt/v3",
+  "title": "UWRP v3 test-shard receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "work_id", "shard_id", "attempt_id", "status", "verification_status", "exit_code", "counts", "evidence_sha256", "validity_key", "result_scope", "contiguous_preflight_proven"],
+  "properties": {
+    "schema_version": {"const": "uwrp/shard-receipt/v3"},
+    "example_only": {"type": "boolean"},
+    "work_id": {"type": "string", "minLength": 1},
+    "shard_id": {"type": "string", "minLength": 1},
+    "attempt_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["NOT_RUN", "PASSED", "FAILED", "SKIPPED", "INTERRUPTED", "BLOCKED"]},
+    "verification_status": {"enum": ["RECORDED_UNVERIFIED", "VERIFIED_CURRENT", "STALE"]},
+    "source_head": {"type": ["string", "null"]},
+    "source_tree": {"type": ["string", "null"]},
+    "base_head": {"type": ["string", "null"]},
+    "merge_base": {"type": ["string", "null"]},
+    "input_digest": {"$ref": "#/$defs/digest_or_null"},
+    "dependency_digest": {"$ref": "#/$defs/digest_or_null"},
+    "environment_digest": {"$ref": "#/$defs/digest_or_null"},
+    "command_digest": {"$ref": "#/$defs/digest_or_null"},
+    "policy_digest": {"$ref": "#/$defs/digest_or_null"},
+    "validity_key": {"$ref": "#/$defs/digest_or_null"},
+    "started_at": {"type": ["string", "null"], "format": "date-time"},
+    "finished_at": {"type": ["string", "null"], "format": "date-time"},
+    "exit_code": {"type": ["integer", "null"]},
+    "counts": {"type": "object", "additionalProperties": false, "required": ["passed", "failed", "skipped", "xfailed", "xpassed", "error"], "properties": {
+      "passed": {"type": "integer", "minimum": 0},
+      "failed": {"type": "integer", "minimum": 0},
+      "skipped": {"type": "integer", "minimum": 0},
+      "xfailed": {"type": "integer", "minimum": 0},
+      "xpassed": {"type": "integer", "minimum": 0},
+      "error": {"type": "integer", "minimum": 0}
+    }},
+    "evidence_uri": {"type": ["string", "null"]},
+    "evidence_sha256": {"$ref": "#/$defs/digest_or_null"},
+    "result_scope": {"enum": ["SHARDED_VERIFICATION_ONLY", "CONTIGUOUS_PREFLIGHT", "SINGLE_TEST"]},
+    "contiguous_preflight_proven": {"type": "boolean"}
+  },
+  "$defs": {"digest_or_null": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}]}}
+}

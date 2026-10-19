@@ -1,0 +1,13 @@
+{
+  "schema_version": "uwrp/event/v3",
+  "example_only": true,
+  "work_id": "example-recovery-task",
+  "event_id": 1,
+  "event_type": "WORK_INITIALIZED",
+  "recorded_at": "2026-10-19T00:00:00Z",
+  "actor_claim": "EXAMPLE_ONLY",
+  "prior_event_sha256": null,
+  "event_sha256": null,
+  "payload": {"status": "RECORDED_UNVERIFIED"},
+  "note": "If hashing a journal, hash canonical event bytes excluding event_sha256; tamper-evidence is not authentication."
+}

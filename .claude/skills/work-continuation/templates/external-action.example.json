@@ -1,0 +1,16 @@
+{
+  "schema_version": "uwrp/external-action/v3",
+  "example_only": true,
+  "work_id": "example-recovery-task",
+  "operation_id": "logical-action-id-001",
+  "target": {"kind": "github-branch", "resource_id": "EXAMPLE_ONLY"},
+  "action": "create_review_branch",
+  "authorization": {"verified": false, "source_ref": null},
+  "request_digest": null,
+  "expected_before": null,
+  "external_idempotency_supported": "UNKNOWN",
+  "status": "NOT_ATTEMPTED",
+  "reconciliation_plan": "Read the target ref and compare expected SHA before deciding whether to attempt or retry",
+  "result_ref": null,
+  "observed_at": null
+}

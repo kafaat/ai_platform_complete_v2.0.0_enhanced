@@ -1,0 +1,13 @@
+{
+  "schema_version": "uwrp/backup-plan/v3",
+  "example_only": true,
+  "work_id": "example-recovery-task",
+  "status": "BACKUP_PENDING",
+  "authorization_source": null,
+  "private_repository": null,
+  "target_path": "work-states/example-recovery-task/",
+  "included_files": ["state.json", "HANDOFF.md"],
+  "preupload_checks": ["review claims", "scrub secrets and private data", "check no raw logs", "confirm repository rules"],
+  "remote_readback": {"status": "NOT_RUN", "state_sha256": null, "handoff_sha256": null},
+  "retention": "One stable work path; avoid a new backup branch per checkpoint"
+}

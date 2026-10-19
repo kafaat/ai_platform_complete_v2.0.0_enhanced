@@ -1,0 +1,48 @@
+{
+  "schema_version": "uwrp/state/v3",
+  "work_id": "example-recovery-task",
+  "level": "L1",
+  "project": "EXAMPLE_ONLY",
+  "objective": "Demonstrate a safe handoff without claiming real work was performed",
+  "verification_status": "RECORDED_UNVERIFIED",
+  "source": {
+    "kind": "git",
+    "repo": "EXAMPLE_ONLY",
+    "head": null,
+    "tree": null,
+    "base_ref": "main",
+    "base_head": null,
+    "merge_base": null
+  },
+  "checkpoint": {
+    "phase": "initial-verification",
+    "status": "NOT_STARTED",
+    "run_id": null,
+    "plan_digest": null,
+    "updated_at": "2026-10-19T00:00:00Z"
+  },
+  "units": [
+    {
+      "unit_id": "example-unit-01",
+      "status": "NOT_RUN",
+      "validity_key": null,
+      "evidence_ref": null,
+      "exit_code": null,
+      "output_sha256": null
+    }
+  ],
+  "external_actions": [],
+  "backup": {
+    "status": "BACKUP_PENDING",
+    "destination": null,
+    "remote_sha256": null,
+    "verified_at": null
+  },
+  "next_step": {
+    "action": "Verify the current source and relevant repository policy before planning any write",
+    "verification_required": true,
+    "risk": "read_only"
+  },
+  "last_event_id": 0,
+  "last_event_digest": null
+}

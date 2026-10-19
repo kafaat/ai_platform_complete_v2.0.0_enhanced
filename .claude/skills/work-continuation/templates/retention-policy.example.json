@@ -1,0 +1,13 @@
+{
+  "schema_version": "uwrp/retention-policy/v3",
+  "example_only": true,
+  "enforcement": "REQUIRES_PROJECT_POLICY_AND_AUTHORIZATION",
+  "max_scratch_bytes_per_work": 2000000000,
+  "minimum_free_disk_percent_before_heavy_runs": 15,
+  "raw_log_retention_days": 7,
+  "result_receipts_retention_days": 90,
+  "exceptions": ["audit", "legal_hold", "required_release_proof"],
+  "remove_raw_artifacts_only_after_verified_small_receipts": true,
+  "backup_allowed_types": ["state.json", "HANDOFF.md"],
+  "never_auto_delete_user_files_or_remote_refs": true
+}
