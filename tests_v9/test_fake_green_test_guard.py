@@ -18,7 +18,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "ci"))
 import assertion_presence_guard as guard  # noqa: E402
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.tree_writer]
 
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "docs" / "architecture" / "assertion_presence_baseline.json"

@@ -34,7 +34,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.tree_writer]
 
 ROOT = Path(__file__).resolve().parents[1]
 GUARD_SRC = ROOT / "scripts" / "ci" / "production_evidence_pack_guard.py"
