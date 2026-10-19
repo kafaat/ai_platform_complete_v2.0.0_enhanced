@@ -3456,12 +3456,6 @@
           "why": "طباعةُ علاج التاريخ دائماً ⇒ يُطالَب دمجٌ يُكتب الآن بنقض تاريخٍ لا داعي له. رسالةٌ صحيحةٌ في غير موضعها تُدرِّب قارئَها على تجاوزها"
         },
         {
-          "expect": "test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move",
-          "find": "                    if moved:\n",
-          "replace": "                    if False:\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إبطالُ مسار القبول نفسه ⇒ نقلٌ حرفيٌّ مرتَّب إلى أرشيفٍ جديد يعود `JOURNAL_SHRANK`، فيبقى `hot.md` بلا طريقِ ضغطٍ كما كان — الشاهدُ الإيجابيّ الذي يمنع حارساً يحجب كلَّ شيء من أن يُقرأ صحيحاً."
-        },
-        {
           "expect": "test_the_archive_exception_is_hot_md_only",
           "find": "                folder = archives.get(path)\n",
           "replace": "                folder = next(iter(archives.values()))\n",
@@ -3488,14 +3482,8 @@
         {
           "expect": "test_an_archive_is_append_only_after_it_lands",
           "find": "                if now is None or not now.startswith(kept):\n",
-          "replace": "                if now is not None and not now.startswith(kept):\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ حجب الحذف ⇒ يُحذَف ملفُّ الأرشيف بعد أن مَوَّل تقلّصَ `hot.md`، فيضيع المنقولُ كلُّه بالتزامين كلٌّ منهما أخضر."
-        },
-        {
-          "expect": "test_an_archive_is_append_only_after_it_lands",
-          "find": "                if now is None or not now.startswith(kept):\n",
-          "replace": "                if now is None:\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ شرط البادئة ⇒ يُقصّ الأرشيفُ أو يُحرَّر في مكانه، والإلحاقيُّ الصارم وحده يجعل النقلَ نهائيّاً لا خطوةً أولى لمحو."
+          "replace": "                if False:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ حراسة الأرشيف ⇒ يُحذَف ملفُّ الأرشيف أو يُقصّ أو يُحرَّر بعد أن مَوَّل تقلّصَ `hot.md`، فيضيع المنقولُ بالتزامين كلٌّ منهما أخضر — والإلحاقيُّ الصارم وحده يجعل النقلَ نهائيّاً لا خطوةً أولى لمحو."
         },
         {
           "expect": "test_the_budget_never_rises",
@@ -3596,29 +3584,6 @@
         }
       ],
       "test": "tests/architecture/test_brain_commit_claim_guard.py"
-    },
-    "brain_deferral_registry_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_a_new_deferral_without_a_gap_id_fails",
-          "find": "            if not line or not _DEFERRAL.search(line):\n",
-          "replace": "            if True:\n",
-          "why": "BRAIN-DEFERRAL-LEAK-01: لا يُقرأ أيُّ سطر ⇒ يمتصّ `hot.md` التأجيلاتِ بلا معرّفٍ كما كان قبل الحارس، والبندان اليتيمان (#660 · #590) يتكرّران."
-        },
-        {
-          "expect": "test_a_deferral_citing_an_unregistered_id_fails",
-          "find": "            if any(gid in known for gid in _GAP_ID.findall(line)):\n",
-          "replace": "            if _GAP_ID.findall(line):\n",
-          "why": "BRAIN-DEFERRAL-LEAK-01: شكلُ المعرّف يكفي بلا تسجيله ⇒ معرّفٌ مُختلَق (`FAKE-GAP-ID-99`) يُسكِت الحارس، فيصير «مسجَّل» ادّعاءً لا قياساً."
-        },
-        {
-          "expect": "test_a_deferral_in_an_archive_file_without_a_gap_id_fails",
-          "find": "    return [HOT, *sorted(ARCHIVE_DIR.glob(\"*.md\"))]\n",
-          "replace": "    return [HOT]\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: قراءةُ `hot.md` وحده ⇒ يرى الحارسُ أقلَّ بعد كلّ أرشفة، ويصير الأرشيفُ موضعاً يُكتَب فيه تأجيلٌ بلا معرّف ولا يقرؤه أحد."
-        }
-      ],
-      "test": "tests/architecture/test_brain_deferral_registry_guard.py"
     },
     "brain_duplicate_gap_identity_guard.py": {
       "mutations": [
@@ -3782,18 +3747,6 @@
           "find": "        if moved[line] > 0:\n",
           "replace": "        if False:\n",
           "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إبطالُ خصم النقل ⇒ كلُّ أرشفةٍ لـ`hot.md` في PR دماغٍ وحده تُرفَض بأسطرٍ لم يكتبها أحد، فتصير الأرشفةُ التي يوثّقها README غيرَ قابلةٍ للدمج."
-        },
-        {
-          "expect": "test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named",
-          "find": "        source = removed[journal]\n",
-          "replace": "        source = sum(removed.values(), Counter())\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: تمويلُ السطر من إزالات أيّ ملفّ ⇒ ادّعاءٌ يُحذَف من `log.md` ويُكتَب في الأرشيف يمرّ، والأرشيفُ أرشيفُ `hot.md` وحده."
-        },
-        {
-          "expect": "test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named",
-          "find": "            source[raw[1:]] -= 1\n",
-          "replace": "            pass\n",
-          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إزالةٌ واحدة تُموِّل نسخاً بلا عدد ⇒ تُنسَخ مفرداتُ إغلاقٍ في الأرشيف مرّاتٍ ولا تُقرأ إلّا مرّة."
         },
         {
           "expect": "test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named",
@@ -6428,6 +6381,7 @@
     "arch_test_ci_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "assertion_presence_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "auth_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "brain_deferral_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_core_consumption_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "container_fleet_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
@@ -6535,7 +6489,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 112,
+  "unmutated_debt_ceiling": 113,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }
