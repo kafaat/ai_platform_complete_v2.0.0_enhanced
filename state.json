@@ -36,24 +36,14 @@
  ],
  "in_progress": [
   {
-   "id": "skill-pr-v3",
-   "status": "RUNNING_PIPELINE",
+   "id": "PR-1238",
+   "status": "WAITING_CI",
    "branch": "claude/work-continuation-skill-20261019",
-   "worktree": "/home/user/wt_skill",
+   "head": "e2a3a826f09f0da7e5b44007e435b4a590d129a0",
+   "tree": "de2c2ab2f2faae7d6ca8aaf893446b6328609b7f",
    "base": "e02baf4fd",
-   "package": {
-    "archive_sha256": "fe704ebb76317ae8f0cf57d43f8f3c71c17032f94b66e4f0a1de36c2816d6026",
-    "skill_sha256": "ccfaa69b9a6a7de9e6acc0f8446da5111094cef718de618be3b5a36a2be551b8",
-    "validator": "PASS",
-    "tests": "16 pytest / 12 as script (unittest.main precedes schema classes)"
-   },
-   "findings": [
-    "legacy v2.1 copy differs from the earlier-uploaded v2.1 at clause C (corrected text)",
-    "2 package .py files fail ruff -> excluded .claude/skills in ruff.toml",
-    "v3 recommends a private state repo; current backup branch lives in the main repo"
-   ],
-   "log": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/skill-v3-pipeline.log",
-   "next": "on preflight 0/0: push, PR, CI green, merge pinned (owner delegation), verify tree"
+   "local_preflight": "standard 0/0 under global lock",
+   "next": "CI green on e2a3a826f -> merge squash pinned (owner delegation: فأنت مفوض) -> verify tree -> backup"
   }
  ],
  "awaiting_owner": [
@@ -92,15 +82,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "67fe47c93c1cf123bad36ed59c7f0d2ec8c2d2c9",
-  "tree": "eaab8fe58b4182c26532ad500631222fb4bcb699",
+  "commit": "682333c6287ffe9c3be2fda3631509360d896af7",
+  "tree": "67979962232dd732636f1b81ac2873c4d64606ee",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-19T11:21:55Z",
+ "updated": "2026-10-19T12:21:12Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
