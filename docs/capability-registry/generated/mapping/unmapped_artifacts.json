@@ -6808,6 +6808,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/integration/s3_minio_gdal.compose.yml",
+    "kind": "tests"
+  },
+  {
     "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
     "kind": "tests"
   },
@@ -8733,6 +8737,10 @@
   },
   {
     "path": "tests_v9/test_s3_endpoint_policy_regressions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s3_minio_live_gate_contract.py",
     "kind": "tests"
   },
   {
