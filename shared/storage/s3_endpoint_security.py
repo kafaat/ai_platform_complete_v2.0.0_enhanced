@@ -1,6 +1,6 @@
 """Fail-closed S3 endpoint contract shared by boto3 and GDAL adapters.
 
-Local PR candidate; not merged/deployed to SAHOOL. No DNS or network I/O.
+Also applied to the legacy TiTiler image by gdal_s3_env_gate.py. No DNS or network I/O.
 """
 
 from __future__ import annotations

@@ -9815,3 +9815,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 واختبار العقد `test_ci_runs_the_live_gate_on_a_docker_runner` في `tests_v9/test_s3_minio_live_gate_contract.py` يفشل إن فُصلت الخطوة عن CI أو أُعفيت بـ`continue-on-error`. كُذِّب محلّيّاً: استبدال الاستدعاء بـ`true` أسقطه.
 
 هذا لا يغني عن تشغيل Compose الكامل؛ ذاك يقيس التهيئة والأذونات والخدمات المستهلكة معاً، ويبقى شرطاً لدمج #1244.
+
+### 2026-10-19 — TiTiler القديم يمرّ بسياسة نقطة S3
+
+رفعت مراجعة المالك الثانية الفجوة `TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01` إلى P0. صورة TiTiler من المنبع لا تشغّل شيفرتنا، فلا يمكن استدعاء السياسة داخلها. أُضيف `shared/storage/gdal_s3_env_gate.py`، وهو مكتبة معياريّة فقط تُركَّب للقراءة في الحاوية مع ملفّ السياسة. يحلّ القرار، ويكتب متغيّرات GDAL منه، ثمّ `exec` لـuvicorn. وأُزيل `S3_ENDPOINT_HOST` لأنّ TiTiler كان مستهلكه الوحيد.
+
+الحارسان واختبار compose يحمرّون على ربط main القديم ويخضرّون على الجديد. والقياس الحيّ في سجلّ الفجوة.

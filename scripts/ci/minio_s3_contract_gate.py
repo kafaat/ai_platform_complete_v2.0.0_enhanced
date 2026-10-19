@@ -183,7 +183,6 @@ def main() -> int:
 
     required_env = [
         "S3_ENDPOINT",
-        "S3_ENDPOINT_HOST",
         "S3_BUCKET",
         "S3_ACCESS_KEY",
         "S3_SECRET_KEY",
@@ -306,8 +305,16 @@ def main() -> int:
             fail(
                 "sahool-titiler must mount raster-data read-only for local file:// COG diagnostics"
             )
-        if "AWS_S3_ENDPOINT:" not in titiler_block:
-            fail("sahool-titiler must receive AWS_S3_ENDPOINT for MinIO/S3 COG diagnostics")
+        # TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01: the upstream image cannot run the
+        # endpoint policy, so its GDAL variables must come from the entry gate, never from
+        # Compose (a raw AWS_HTTPS let an external host through over plaintext).
+        if "/opt/sahool/storage/gdal_s3_env_gate.py" not in titiler_block:
+            fail("sahool-titiler must start through shared/storage/gdal_s3_env_gate.py")
+        if "S3_ENDPOINT:" not in titiler_block:
+            fail("sahool-titiler must receive S3_ENDPOINT for the endpoint policy gate")
+        for raw_key in ("AWS_S3_ENDPOINT:", "AWS_HTTPS:", "AWS_VIRTUAL_HOSTING:"):
+            if raw_key in titiler_block:
+                fail(f"sahool-titiler must not set {raw_key[:-1]} directly; the gate derives it")
 
     print("✓ MinIO/S3 credential and storage contract is consistent")
     return 0

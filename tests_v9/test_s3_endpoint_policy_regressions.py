@@ -200,11 +200,25 @@ class ActualS3IntegrationTests(unittest.TestCase):
             ):
                 self.raster._endpoint_url()
 
-    def test_compose_current_four_s3_apps_explicit_internal_opt_in(self):
-        txt = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
-        self.assertEqual(
-            txt.count("S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}"), 4
-        )
+    def test_compose_every_s3_app_has_explicit_internal_opt_in(self):
+        import yaml
+
+        services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))[
+            "services"
+        ]
+        s3_apps = {
+            name: svc["environment"]
+            for name, svc in services.items()
+            if isinstance(svc.get("environment"), dict) and "S3_ENDPOINT" in svc["environment"]
+        }
+        # Four platform apps plus the legacy TiTiler entry gate.
+        self.assertEqual(len(s3_apps), 5, sorted(s3_apps))
+        for name, env in s3_apps.items():
+            self.assertEqual(
+                env.get("S3_ALLOW_PLAINTEXT_INTERNAL"),
+                "${S3_ALLOW_PLAINTEXT_INTERNAL:-false}",
+                name,
+            )
         self.assertIn(
             "S3_ALLOW_PLAINTEXT_INTERNAL=true", (ROOT / ".env.example").read_text(encoding="utf-8")
         )
