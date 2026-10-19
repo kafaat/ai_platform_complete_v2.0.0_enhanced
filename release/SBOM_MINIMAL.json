@@ -14775,7 +14775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a85a8885ac299cdfc839822fb02a6a1ef4c5c81005c89d54c9d9eb7fe9fb04a"
+          "content": "7ae282ed34c32681635b7ab57c263316e8e3f6709a62f75d0045e7663952dd97"
         }
       ],
       "name": "services/raster-service/object_store.py",
