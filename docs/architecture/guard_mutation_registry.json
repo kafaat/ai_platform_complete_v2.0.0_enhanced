@@ -3379,8 +3379,8 @@
         },
         {
           "expect": "test_both_parents_are_examined_not_just_one",
-          "find": "        for parent in parents_of(commit, root=root):",
-          "replace": "        for parent in parents_of(commit, root=root)[:1]:",
+          "find": "        for parent in merged_from:",
+          "replace": "        for parent in merged_from[:1]:",
           "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
         },
         {
@@ -3451,8 +3451,8 @@
         },
         {
           "expect": "test_a_dip_at_the_head_keeps_the_tip_remedy_only",
-          "find": "    if not historical:\n        return _TIP_REMEDY",
-          "replace": "    if False:\n        return _TIP_REMEDY",
+          "find": "    if not historical:\n        return tip",
+          "replace": "    if False:\n        return tip",
           "why": "طباعةُ علاج التاريخ دائماً ⇒ يُطالَب دمجٌ يُكتب الآن بنقض تاريخٍ لا داعي له. رسالةٌ صحيحةٌ في غير موضعها تُدرِّب قارئَها على تجاوزها"
         },
         {

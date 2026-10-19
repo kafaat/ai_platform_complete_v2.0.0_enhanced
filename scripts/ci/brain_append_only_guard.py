@@ -70,6 +70,32 @@ Two review findings (2026-10-19) narrowed this further:
   definition the archive's readers use. Anything else under the folder funds nothing and
   stays strictly append-only.
 
+A second review round (2026-10-19) found two more:
+
+* **a counted archive may not stop counting** (``ARCHIVE_UNCOUNTED``). A plain mode change
+  (``100644`` -> ``100755``, same bytes) kept the old bytes a prefix, so the archive rule
+  passed, while the resurrection rule (which read the counted archives at the commit) and the
+  readers stopped seeing the file. Measured on the real files: ``chmod +x`` alone passed, and
+  with five archived entries re-added to hot.md in the same commit it passed too. A file that
+  counts at the parent and still exists at the commit must still count; and the archived lines
+  are read from the counted archives at the parent and at the commit together;
+* **a merge is judged three-way** (``MERGE_LOST_LINES``). Every line the branch parent loses
+  in a merge had to be in the archive bytes the merge added; a line main edited after the
+  fork is not, so merging main into a branch older than an archival was ``JOURNAL_SHRANK``
+  whenever main had edited an existing hot.md line since the fork (7 of the 120 first-parent
+  commits that touched it in the 30 days to ``2a759d06``; the latest ``18b64ed0``), and CI
+  checks the same pair on the pull-request merge ref, so a code-only branch was blocked too
+  (measured: a branch cut at ``18b64ed0^``, 842,256 -> 138,530). For a merge of two parents
+  with one merge base, a journal with an archive is judged by line counts against that base:
+  of a parent's copies of a line the merge may drop only as many as the other parent removed
+  since the base, so every line either side added survives and an absent line is one a side
+  removed — in that side's own pairs, where the per-pair rule checked it. Separators (a blank,
+  a lone ``>``) carry no content and are not counted. The resurrection rule and the budget
+  stay as they are; union output passes this rule and is caught by the resurrection rule. An
+  octopus merge, several merge bases, or a journal missing at the base or the other parent
+  fall back to the per-pair rule, which never accepts a loss. Other journals keep the
+  per-pair rule.
+
 The file list is not written here: it is imported from ``resolve_merge_conflicts``, which
 already owns that classification. A second list is a second thing to keep in step.
 
@@ -229,6 +255,17 @@ def parents_of(commit: str, *, root: Path = ROOT) -> list[str]:
     return result.stdout.decode("utf-8").split()[1:]
 
 
+def merge_base(first: str, second: str, *, root: Path = ROOT) -> str | None:
+    """The one merge base of two commits; None when there are several, none, or no history.
+
+    None sends the merge back to the per-pair rule, which never accepts a loss: a guessed
+    base could excuse a line no side removed.
+    """
+    result = _git("merge-base", "--all", first, second, root=root)
+    bases = result.stdout.decode("utf-8").split() if result.returncode == 0 else []
+    return bases[0] if len(bases) == 1 else None
+
+
 def archive_files(ref: str, folders: list[str], *, root: Path = ROOT) -> list[str]:
     """Every file under the archive directories at ``ref``, sorted (an empty list if none)."""
     if not folders:
@@ -246,15 +283,23 @@ def counted_archives(ref: str, folder: str, *, root: Path = ROOT) -> list[str]:
     ``resolve_merge_conflicts.counts_as_archive`` decides — the predicate the readers apply
     to the working tree, so what may receive moved text is exactly what is read.
     """
+    entries = folder_entries(ref, folder, root=root)
+    return sorted(
+        p for p, mode in entries.items() if _archive_policy().counts_as_archive(p, mode, folder)
+    )
+
+
+def folder_entries(ref: str, folder: str, *, root: Path = ROOT) -> dict[str, str]:
+    """The folder's direct entries at ``ref`` → their git modes (``ls-tree`` without ``-r``)."""
     result = _git("ls-tree", "-z", ref, "--", folder, root=root)
     if result.returncode != 0:
         raise SystemExit(f"✗ تعذّرت قراءة شجرة الأرشيف عند {ref} — يفشل مُغلَقاً.")
-    counted: list[str] = []
+    entries: dict[str, str] = {}
     for record in result.stdout.decode("utf-8").split("\0"):
         meta, _tab, path = record.partition("\t")
-        if path and _archive_policy().counts_as_archive(path, meta.split(" ", 1)[0], folder):
-            counted.append(path)
-    return sorted(counted)
+        if path:
+            entries[path] = meta.split(" ", 1)[0]
+    return entries
 
 
 def archive_additions(
@@ -316,6 +361,27 @@ def resurrected_lines(before: bytes, after: bytes, archived: dict[bytes, str]) -
     """
     grown = Counter(after.splitlines()) - Counter(before.splitlines())
     return [line for line in grown.elements() if line in archived]
+
+
+def _content(data: bytes) -> Counter[bytes]:
+    """Line counts without separators: a blank or a lone ``>`` carries no content."""
+    return Counter(line for line in data.splitlines() if not _cannot_anchor(line))
+
+
+def three_way_losses(base: bytes, ours: bytes, theirs: bytes, merged: bytes) -> list[bytes]:
+    """Lines of ``ours`` that the merge drops and ``theirs`` did not remove since ``base``.
+
+    By count: of ``ours``'s copies of a line the merge may drop only as many as ``theirs``
+    removed since the merge base. So a line either side added survives, and a line both kept
+    survives; a line may be absent only because a side removed it, and that side's own
+    (commit, parent) pairs are where the removal was checked. In the order of ``ours``.
+    """
+    common, mine, other, result = (_content(x) for x in (base, ours, theirs, merged))
+    lost: list[bytes] = []
+    for line, count in mine.items():
+        excused = max(0, common[line] - other[line])
+        lost.extend([line] * max(0, count - result[line] - excused))
+    return lost
 
 
 def removed_blocks(before: bytes, after: bytes) -> list[tuple[int, bytes]]:
@@ -419,6 +485,11 @@ def check_range(
     pairs = 0
     archived: dict[tuple[str, str], dict[bytes, str]] = {}
 
+    def held_at(ref: str, folder: str) -> dict[bytes, str]:
+        if (ref, folder) not in archived:
+            archived[(ref, folder)] = archived_lines(ref, folder, root=root)
+        return archived[(ref, folder)]
+
     # Fail closed on absence, before comparing anything. Every pair below is skipped when
     # the journal is missing at the parent, so a tree where the journals no longer exist
     # would examine zero pairs and report "ok" — the exact silent zero this guard exists
@@ -436,7 +507,11 @@ def check_range(
             )
 
     for commit in commits_in_range(base, head, root=root):
-        for parent in parents_of(commit, root=root):
+        merged_from = parents_of(commit, root=root)
+        # Review 2026-10-19, round 2: a merge of two parents with one merge base is judged
+        # three-way on a journal with an archive (docstring); anything else stays per pair.
+        fork = merge_base(*merged_from, root=root) if len(merged_from) == 2 else None
+        for parent in merged_from:
             for path in targets:
                 before = blob(parent, path, root=root)
                 if before is None:
@@ -459,13 +534,13 @@ def check_range(
                 # puts archived text back with no conflict, and the pair against main only
                 # grows. Checked on every pair, before any exception below can `continue`.
                 if folder and after != before:
-                    key = (commit, folder)
-                    if key not in archived:
-                        archived[key] = archived_lines(commit, folder, root=root)
-                    back = resurrected_lines(before, after, archived[key])
+                    # At the parent too: an archive that stops counting at the commit
+                    # (ARCHIVE_UNCOUNTED below) still holds what was archived.
+                    held = {**held_at(parent, folder), **held_at(commit, folder)}
+                    back = resurrected_lines(before, after, held)
                     if back:
                         first = after.splitlines().index(back[0]) + 1
-                        held = " · ".join(sorted({archived[key][line] for line in back}))
+                        sources = " · ".join(sorted({held[line] for line in back}))
                         blocking.append(
                             Finding(
                                 "ARCHIVED_TEXT_RESURRECTED",
@@ -473,11 +548,47 @@ def check_range(
                                 parent,
                                 commit,
                                 f"{len(back):,} سطراً ({sum(len(x) + 1 for x in back):,} بايت) "
-                                f"عادت من {held} (أوّلها السطر {first} عند الابن). الأرجح دمجُ "
+                                f"عادت من {sources} (أوّلها السطر {first} عند الابن). الأرجح دمجُ "
                                 "`merge=union` لفرعٍ أقدم من الأرشفة: خُذ الملفّ من main وأضِف "
                                 "أسطر فرعك وحدها، لا ناتج union (sahool-brain/README.md)",
                             )
                         )
+                other = next((p for p in merged_from if p != parent), None)
+                common = blob(fork, path, root=root) if folder and fork else None
+                theirs = blob(other, path, root=root) if common is not None and other else None
+                if common is not None and theirs is not None:
+                    lost = three_way_losses(common, before, theirs, after)
+                    if lost:
+                        first = before.splitlines().index(lost[0]) + 1
+                        shown = lost[0].decode("utf-8", "replace")
+                        shown = shown if len(shown) <= 160 else shown[:160] + "…"
+                        blocking.append(
+                            Finding(
+                                "MERGE_LOST_LINES",
+                                path,
+                                parent,
+                                commit,
+                                f"{len(lost):,} سطراً ({sum(len(x) + 1 for x in lost):,} بايت) من "
+                                f"هذا الوالد غابت عن الدمج، ولم يحذفها الوالدُ الآخر {other[:8]} "
+                                f"منذ أساس الدمج {fork[:8]}. أوّلها السطر {first} عند الوالد: "
+                                f"«{shown}». ما أضافه أيُّ جانبٍ يبقى، ولا يغيب إلّا ما حذفه "
+                                "جانب: خُذ الملفّ من main وأضِف أسطر فرعك وحدها (sahool-brain/README.md)",
+                            )
+                        )
+                        continue
+                    if len(after) < len(before):
+                        advisory.append(
+                            Finding(
+                                "JOURNAL_MERGED",
+                                path,
+                                parent,
+                                commit,
+                                f"{len(before):,} -> {len(after):,} bytes: three-way against the "
+                                f"merge base {fork[:8]}, every line this parent loses was removed "
+                                f"by the other parent {other[:8]} since then",
+                            )
+                        )
+                        continue
                 # Keep the shrink-to-advisory mutation anchored to the blocking rule.
                 # The lossless exception is proved before that rule, not inserted into it.
                 if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):
@@ -551,6 +662,26 @@ def check_range(
                             "ومحتوى الوالد لم يبقَ بادئةً — ما نُقِل إليه لا يُحرَّر ولا يُحذَف",
                         )
                     )
+            # Review 2026-10-19, round 2: an archive that counts may not stop counting while it
+            # still exists. A mode change keeps its bytes a prefix (the rule above passes) and
+            # takes it away from the readers and from the resurrection rule.
+            policy = _archive_policy()
+            for folder in folders:
+                now_entries = folder_entries(commit, folder, root=root)
+                for archive in counted_archives(parent, folder, root=root):
+                    mode = now_entries.get(archive)
+                    if mode is not None and not policy.counts_as_archive(archive, mode, folder):
+                        blocking.append(
+                            Finding(
+                                "ARCHIVE_UNCOUNTED",
+                                archive,
+                                parent,
+                                commit,
+                                f"أرشيفٌ يُعَدّ عند الوالد (100644) وموجودٌ عند الابن بوضع {mode} "
+                                "فلم يعُد يُعَدّ: لا يقرؤه قارئٌ ولا تراه قاعدةُ العودة. وضعُ الملفّ "
+                                "واسمُه ومكانُه لا تتغيّر (counts_as_archive، sahool-brain/README.md)",
+                            )
+                        )
     return blocking, advisory, pairs
 
 
@@ -645,6 +776,15 @@ _TIP_REMEDY = (
     "  الجانب الفارغ: أعِد بناء المحتوى من **كلا** الوالدَين، لا من أحدهما."
 )
 
+# Review 2026-10-19, round 2: for a journal with an archive "both parents" is the `merge=union`
+# result that ARCHIVED_TEXT_RESURRECTED blocks, so that journal gets the README step instead.
+_ARCHIVED_JOURNAL_REMEDY = (
+    "\n  دفترٌ له أرشيف (hot.md): لا يتقلّص إلّا بنقلٍ حرفيّ إلى أرشيفه في الالتزام نفسه، ولا\n"
+    "  يُعاد بناؤه من الوالدَين كاملَين — ذلك ناتجُ union الذي يُعيد المؤرشَف. في دمجٍ: خُذ الملفّ\n"
+    "  من main وأضِف أسطر فرعك وحدها، وأبقِ كلَّ سطرٍ أضافه أيُّ جانبٍ منذ أساس الدمج\n"
+    "  (sahool-brain/README.md، «دمجُ main في فرعٍ أُسِّس قبل أرشفة»)."
+)
+
 
 def shrink_remedy(blocking: list[Finding], head: str) -> str:
     """نصُّ العلاج — **مشتقٌّ من موضع الانخفاض** لا ثابتاً.
@@ -661,13 +801,17 @@ def shrink_remedy(blocking: list[Finding], head: str) -> str:
     رسالةٌ تصف علاجاً لا يعمل في الحالة المعروضة صنفُ عطلٍ مسجَّلٌ هنا باسم «رسالةٌ بلا
     علاج»، وهذا فرعُه الثاني: علاجٌ حاضرٌ لكنّه لغير الحالة.
     """
+    archived = archive_dirs()
+    tip = (_TIP_REMEDY if any(f.path not in archived for f in blocking) else "") + (
+        _ARCHIVED_JOURNAL_REMEDY if any(f.path in archived for f in blocking) else ""
+    )
     historical = sorted(
         {f.commit for f in blocking if f.code == "JOURNAL_SHRANK" and f.commit != head}
     )
     if not historical:
-        return _TIP_REMEDY
+        return tip
     return (
-        _TIP_REMEDY + "\n\n"
+        tip + "\n\n"
         "  وهذا الانخفاضُ **محفورٌ في التاريخ لا في الرأس**: رأسُك قد يكون أكبرَ من\n"
         "  الأساس في كلّ سجلّ ويبقى الحجبُ قائماً، فالفحصُ على الأزواج لا على الرأس.\n"
         "  التزامٌ إصلاحيٌّ فوقه لا يُزيله — أعِد تشكيلَ النافذة نفسِها (ادمج التزامَ\n"
@@ -723,9 +867,10 @@ def main(argv: list[str] | None = None) -> int:
             print(finding, file=sys.stderr)
         # «أعِد البناء من كلا الوالدَين» هو بالضبط ما يُعيد النصَّ المؤرشَف، فالعودةُ تحمل علاجها.
         own_remedy = ("BUDGET_", "ARCHIVED_TEXT_RESURRECTED")
-        if any(not f.code.startswith(own_remedy) for f in blocking):
-            head_sha = _git("rev-parse", args.head).stdout.strip()
-            print(shrink_remedy(blocking, head_sha), file=sys.stderr)
+        rest = [f for f in blocking if not f.code.startswith(own_remedy)]
+        if rest:
+            head_sha = _git("rev-parse", args.head).stdout.decode("utf-8").strip()
+            print(shrink_remedy(rest, head_sha), file=sys.stderr)
         return 1
 
     print("brain_append_only_guard_ok")
