@@ -1,0 +1,18 @@
+{
+  "action_id": "EX-001",
+  "authorized": false,
+  "effect_verified_at": null,
+  "idempotency_key": null,
+  "kind": "REMOTE_REVERSIBLE",
+  "operation": "REPLACE",
+  "permission_source": "NONE",
+  "postcondition": null,
+  "precondition": {
+    "checked_at": null,
+    "version": "UNKNOWN"
+  },
+  "rollback_ref": null,
+  "schema": "uwrp-professional/external-action/v1",
+  "state": "NOT_STARTED",
+  "target": "REPLACE"
+}

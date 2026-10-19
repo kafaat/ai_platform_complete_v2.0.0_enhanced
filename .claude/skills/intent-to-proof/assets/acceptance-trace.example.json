@@ -1,0 +1,25 @@
+{
+  "goal_id": "GOAL-001",
+  "requirements": [
+    {
+      "acceptance_condition": "Observable proof required",
+      "evidence_refs": [],
+      "id": "REQ-001",
+      "status": "EVIDENCE_MISSING",
+      "task_ids": [
+        "TASK-001"
+      ],
+      "text": "Measurable claim"
+    }
+  ],
+  "schema": "uwrp-professional/acceptance-trace/v1",
+  "tasks": [
+    {
+      "depend_on": [],
+      "id": "TASK-001",
+      "output_ref": null,
+      "owner": "UNASSIGNED",
+      "status": "PENDING"
+    }
+  ]
+}
