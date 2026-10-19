@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07d67f67df945c8bb29dcc6921fa88dfa69ce2d2fc5873e1d11797d20fe5531e"
+          "content": "ec17ae8b862adee36910745fb3ff919bc3cd8def2dcc40e7b41da20cdd04ed92"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -14775,7 +14775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0970271d8b1b8495a022e721a4c5a51b67ff533138b4dec30505519bc2fa23b1"
+          "content": "9a85a8885ac299cdfc839822fb02a6a1ef4c5c81005c89d54c9d9eb7fe9fb04a"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -33165,10 +33165,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5231b0c13ba77adcb3cfe696c57ee8f80aea825595f8e1d47bb13ea29791984e"
+          "content": "9d928a58302f046d3d0ae23110efb2c2f6e501fe7db19fa30315e7d561970e64"
         }
       ],
       "name": "shared/storage/blob_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "991114ab6d22cd2b1ee40f61bab0bc88efebea584a29c7104b08e082712416e5"
+        }
+      ],
+      "name": "shared/storage/s3_endpoint_security.py",
       "type": "file"
     },
     {

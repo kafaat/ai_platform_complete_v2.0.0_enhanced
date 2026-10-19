@@ -8728,6 +8728,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_s3_endpoint_policy_regressions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_s4_field_kg_closure_contract.py",
     "kind": "tests"
   },
