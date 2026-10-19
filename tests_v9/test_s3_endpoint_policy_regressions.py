@@ -270,6 +270,7 @@ class ClientCallsiteTests(unittest.TestCase):
             patch.dict(sys.modules, {"boto3": fake}),
         ):
             self.blob._s3_client()
+        assert len(calls) == 1, "boto3 client must be constructed exactly once"
         self.assertEqual(calls[0][0], "s3")
         self.assertEqual(calls[0][1]["endpoint_url"], "https://s3.vendor.test:9443")
 
@@ -316,6 +317,7 @@ class ClientCallsiteTests(unittest.TestCase):
                 ),
             ):
                 result = self.raster.upload_cog(local, "foo.tif")
+            assert len(calls) == 3, "expected one client, one HEAD and one upload"
             self.assertEqual(result, "s3://rasters/foo.tif")
             self.assertEqual(calls[0][2]["endpoint_url"], "https://s3.vendor.test:9443")
             self.assertTrue(calls[0][2]["use_ssl"])
