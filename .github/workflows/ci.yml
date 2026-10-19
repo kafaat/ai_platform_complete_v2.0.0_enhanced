@@ -2068,6 +2068,16 @@ jobs:
         env:
           PYTHONPATH: .
         run: pytest -q -p no:cacheprovider test_*.py
+      # S3 endpoint policy (#1244) against a real store: disposable digest-pinned MinIO
+      # on loopback (tmpfs, no volumes), real boto3 SigV4 path-style + GDAL /vsis3/ COG
+      # read. Same deps as the step above. No Docker ⇒ the runner exits 3 ⇒ red, never
+      # a silent pass. The report carries no secret (the root password is per-run).
+      - name: S3 MinIO + GDAL live acceptance (disposable, digest-pinned)
+        env:
+          S3_TEST_REPORT: ${{ runner.temp }}/s3-minio-gdal-acceptance.json
+        run: |
+          bash scripts/ci/run_s3_minio_gdal_live.sh
+          cat "$S3_TEST_REPORT"
 
   security-scan:
     name: Security Scan

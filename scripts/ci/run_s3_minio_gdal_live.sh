@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Detached disposable MinIO, real boto3 + GDAL. RUN LOCALLY ONLY.
+# Detached disposable MinIO, real boto3 + GDAL. Runs in CI (ci.yml, Raster Service
+# Tests) and locally; never against a shared or production store.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 if ! command -v docker >/dev/null 2>&1; then

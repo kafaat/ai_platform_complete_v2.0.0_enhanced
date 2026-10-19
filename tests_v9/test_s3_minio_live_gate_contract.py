@@ -80,3 +80,23 @@ def test_orchestrator_records_docker_unavailable_as_not_run():
     assert "@sha256:[0-9a-f]{64}$" in text
     assert "docker inspect --format" in text
     assert "S3_TEST_IMAGE_ID" in text
+
+
+def test_ci_runs_the_live_gate_on_a_docker_runner():
+    """Un-wiring the gate from CI would turn it back into an unrun promise."""
+    jobs = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))["jobs"]
+    hosts = [
+        job
+        for job in jobs.values()
+        if any(
+            "scripts/ci/run_s3_minio_gdal_live.sh" in str(step.get("run", ""))
+            for step in job.get("steps", [])
+        )
+    ]
+    assert len(hosts) == 1
+    assert str(hosts[0]["runs-on"]).startswith("ubuntu-")
+    assert "continue-on-error" not in hosts[0]
+    step = next(
+        s for s in hosts[0]["steps"] if "run_s3_minio_gdal_live.sh" in str(s.get("run", ""))
+    )
+    assert "continue-on-error" not in step

@@ -9807,3 +9807,11 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 اختار المالك الاحتواء: أُزيلت المهارات الثلاث، وعاد `work-router` و`skill-evaluator` إلى نسخة v4.2 كما في `9a897635d`. `verify_pack.py` يمرّ على 8 مهارات و49 ملفّاً، واختبارات الحزمة تمرّ. الفجوة `UWRP-V43-LEARNING-SCRIPTS-UNSAFE-01` مفتوحة حتى إصدار مُصلَح مقيس.
 
 درس: الاختبار الأعمى لاختيار المهارات لا يقيس سلامة سكربتاتها؛ دُمجت v4.3 بعد قياس الاختيار ومطابقة البايتات وحدهما.
+
+### 2026-10-19 — بوّابة MinIO الحيّة تعمل في CI لا يدويّاً فقط
+
+قالت مراجعة المالك المضادّة إنّ مشغّل البوّابة لا يستدعيه أيّ workflow، فصار نجاح فحوص #1244 لا يشمله. هذا صحيح، ومشغّلات GitHub فيها Docker. أُضيفت خطوة إلى وظيفة *Raster Service Tests* (`.github/workflows/ci.yml:2079`) تشغّل `scripts/ci/run_s3_minio_gdal_live.sh` بالتبعيّات نفسها (boto3 وrasterio وnumpy). غياب Docker يخرج بالرمز 3 فتحمرّ الخطوة، فلا نجاح صامت.
+
+واختبار العقد `test_ci_runs_the_live_gate_on_a_docker_runner` في `tests_v9/test_s3_minio_live_gate_contract.py` يفشل إن فُصلت الخطوة عن CI أو أُعفيت بـ`continue-on-error`. كُذِّب محلّيّاً: استبدال الاستدعاء بـ`true` أسقطه.
+
+هذا لا يغني عن تشغيل Compose الكامل؛ ذاك يقيس التهيئة والأذونات والخدمات المستهلكة معاً، ويبقى شرطاً لدمج #1244.
