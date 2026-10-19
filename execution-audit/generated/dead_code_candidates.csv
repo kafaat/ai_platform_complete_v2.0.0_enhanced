@@ -137,7 +137,7 @@ medium,sahool-platform,class,DailyTemp,services/sahool-platform/api/gdd_tracker.
 medium,sahool-platform,class,RasterAlignmentSpec,services/sahool-platform/api/geospatial_integrity.py,538,0,review_before_delete,False
 medium,sahool-platform,function,check_bbox_in_utm_zones,services/sahool-platform/api/geospatial_integrity.py,547,0,review_before_delete,False
 medium,sahool-platform,function,is_valid_yemen_utm_zone,services/sahool-platform/api/geospatial_integrity.py,555,0,review_before_delete,False
-medium,sahool-platform,function,normalize_geojson_polygon,services/sahool-platform/api/gis_geometry_guard.py,116,0,review_before_delete,False
+medium,sahool-platform,function,normalize_geojson_polygon,services/sahool-platform/api/gis_geometry_guard.py,145,0,review_before_delete,False
 medium,sahool-platform,function,require_polygonal,services/sahool-platform/api/gis_kernel.py,155,0,review_before_delete,False
 medium,sahool-platform,function,create_collaboration_event,services/sahool-platform/api/gis_phase7_enterprise.py,24,0,review_before_delete,False
 medium,sahool-platform,function,merge_collaboration_events,services/sahool-platform/api/gis_phase7_enterprise.py,36,0,review_before_delete,False
@@ -174,8 +174,8 @@ medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/r
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,797,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,833,0,review_before_delete,False
-medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2503,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3790,0,review_before_delete,False
+medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2495,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3782,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,91,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False

@@ -1,5 +1,5 @@
 diff --git a/execution-audit/generated/execution_dependency_audit.json b/execution-audit/generated/execution_dependency_audit.json
-index 59e472a..0748252 100644
+index c56210ce..1619edb6 100644
 --- a/execution-audit/generated/execution_dependency_audit.json
 +++ b/execution-audit/generated/execution_dependency_audit.json
 @@ -3,9 +3,9 @@
@@ -9,8 +9,8 @@ index 59e472a..0748252 100644
 -"python_files_parsed":1972,
 +"python_files_parsed":1973,
  "route_handlers":1062,
--"call_edges":86753,
-+"call_edges":86801,
+-"call_edges":86754,
++"call_edges":86802,
  "dead_code_candidates":648,
  "duplicate_function_groups":57,
  "route_owners":27,
@@ -1350,7 +1350,7 @@ index 59e472a..0748252 100644
  "file":"services/raster-service/test_db_rehydrate.py",
  "source":"main_test",
  "target":"makedirs",
-@@ -302746,1659 +302907,1666 @@
+@@ -302753,1659 +302914,1666 @@
  "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
  "source":"_records",
  "target":"fetch",
@@ -3254,7 +3254,7 @@ index 59e472a..0748252 100644
  },
  {
  "owner":"sahool-platform",
-@@ -594828,826 +594996,994 @@
+@@ -594835,826 +595003,994 @@
  "file":"shared/gis/cloud_native_runtime.py",
  "source":"_jsonish",
  "target":"isinstance",

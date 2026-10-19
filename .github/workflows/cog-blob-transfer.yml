@@ -22,13 +22,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git worktree add --detach "$RUNNER_TEMP/blob-source" ee690901097cd80a2d69045f39daed1eb6388305
+          git worktree add --detach "$RUNNER_TEMP/blob-source" 2268b4424ba2a64699930883c053a2deb441f74a
           patch="$GITHUB_WORKSPACE/transfer/execution_dependency_audit.patch"
           test "$(git apply --numstat "$patch" | cut -f3)" = "execution-audit/generated/execution_dependency_audit.json"
           git -C "$RUNNER_TEMP/blob-source" apply --check "$patch"
           git -C "$RUNNER_TEMP/blob-source" apply "$patch"
           test "$(git -C "$RUNNER_TEMP/blob-source" diff --name-only)" = "execution-audit/generated/execution_dependency_audit.json"
-          test "$(git -C "$RUNNER_TEMP/blob-source" hash-object execution-audit/generated/execution_dependency_audit.json)" = "074825210a499fd85793a591eb4a939f564fe0aa"
+          test "$(git -C "$RUNNER_TEMP/blob-source" hash-object execution-audit/generated/execution_dependency_audit.json)" = "1619edb65c14bb1308848da3e0bdfa44e745045c"
           python3 - <<'PY'
           import json, os
           from pathlib import Path
@@ -44,5 +44,5 @@ jobs:
         run: |
           set -euo pipefail
           sha="$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input "$RUNNER_TEMP/blob-request.json" --jq .sha)"
-          test "$sha" = "074825210a499fd85793a591eb4a939f564fe0aa"
+          test "$sha" = "1619edb65c14bb1308848da3e0bdfa44e745045c"
           printf 'Verified uploaded blob: %s\n' "$sha"

@@ -55,7 +55,11 @@ from api.field_models import (
 # مباشرةً (نفس الرموز التي كان main يستوردها) لإزالة تحذيرات F401 من main بعد النقل.
 from api.field_timeline import assemble_timeline
 from api.geospatial_integrity import validate_field_geometry
-from api.gis_geometry_guard import geometry_metadata, guard_field_geometry
+from api.gis_geometry_guard import (
+    field_geometry_error_detail,
+    geometry_metadata,
+    guard_field_geometry,
+)
 from api.imagery_automation import _kick_imagery_processing
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
@@ -366,11 +370,7 @@ async def _persist_field(
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
-            detail={
-                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                "code": "invalid_field_geometry",
-                "issues": str(exc).split(","),
-            },
+            detail=field_geometry_error_detail(exc),
         ) from exc
     geometry = guarded.geometry
     area_ha = round(guarded.area_ha, 2)
@@ -1302,11 +1302,7 @@ async def update_field(
                     except ValueError as exc:
                         raise HTTPException(
                             status_code=422,
-                            detail={
-                                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                                "code": "invalid_field_geometry",
-                                "issues": str(exc).split(","),
-                            },
+                            detail=field_geometry_error_detail(exc),
                         ) from exc
                     try:
                         validate_boundary_for_save(guarded.geometry, area_ha=guarded.area_ha)
@@ -1795,11 +1791,7 @@ def _guard_merge_split_geometry(
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
-            detail={
-                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                "code": "invalid_field_geometry",
-                "issues": str(exc).split(","),
-            },
+            detail=field_geometry_error_detail(exc),
         ) from exc
     return guarded.geometry, round(guarded.area_ha, 2), guarded.centroid
 
