@@ -42,7 +42,24 @@
    "skill": "UWRP Portable v3.1 SKILL.md a51e98d7"
   }
  ],
- "in_progress": [],
+ "in_progress": [
+  {
+   "id": "PR-1239",
+   "status": "WAITING_CI",
+   "branch": "claude/adaptive-test-accelerator-20261019",
+   "head": "ced3355a6",
+   "local_preflight": "0/0",
+   "next": "CI green -> merge pinned (delegation) -> verify tree"
+  },
+  {
+   "id": "xdist-fix",
+   "status": "MEASURING",
+   "branch": "claude/xdist-deterministic-collection-20261019",
+   "commit": "9abad3fda",
+   "measure": "pytest -m unit -n 4 under global lock vs serial baseline 10014 passed/35 skipped in 21m12s (C locale)",
+   "next": "if counts equal: CI change -n to Unit Tests step; preflight; PR"
+  }
+ ],
  "awaiting_owner": [
   {
    "id": "delete-transfer-branches",
@@ -79,15 +96,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "fc32cb1d1d8f267a0868bccf0a153d064847faaf",
-  "tree": "4737d3f129da3a12d9185529f74cb0d245cec656",
+  "commit": "6aff45b29d45b6bc65e7d9b842a4ca66391b4204",
+  "tree": "5de0c1b5cd81143fb224abf67e0bf3775198920f",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-19T13:03:34Z",
+ "updated": "2026-10-19T13:52:50Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
