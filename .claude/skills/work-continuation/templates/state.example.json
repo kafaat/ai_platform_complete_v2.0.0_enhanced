@@ -1,48 +1,48 @@
 {
-  "schema_version": "uwrp/state/v3",
-  "work_id": "example-recovery-task",
-  "level": "L1",
-  "project": "EXAMPLE_ONLY",
-  "objective": "Demonstrate a safe handoff without claiming real work was performed",
+  "schema_version": "uwrp/state/v3.1",
+  "example_only": true,
+  "work_id": "EXAMPLE-work-001",
+  "task_kind": "document",
+  "mode": "CHECKPOINTED",
+  "objective": "Review a sample document",
   "verification_status": "RECORDED_UNVERIFIED",
-  "source": {
-    "kind": "git",
-    "repo": "EXAMPLE_ONLY",
-    "head": null,
-    "tree": null,
-    "base_ref": "main",
-    "base_head": null,
-    "merge_base": null
-  },
-  "checkpoint": {
-    "phase": "initial-verification",
-    "status": "NOT_STARTED",
-    "run_id": null,
-    "plan_digest": null,
-    "updated_at": "2026-10-19T00:00:00Z"
-  },
+  "capability_profile_ref": "templates/capability-profile.example.json",
+  "sources": [
+    {
+      "kind": "document",
+      "locator": "EXAMPLE-input-document",
+      "version_id": null,
+      "content_sha256": null,
+      "observed_at": null,
+      "freshness": "unknown"
+    }
+  ],
+  "optional_git_context": null,
   "units": [
     {
-      "unit_id": "example-unit-01",
-      "status": "NOT_RUN",
+      "unit_id": "section-01",
+      "status": "NOT_STARTED",
+      "input_versions": [],
       "validity_key": null,
       "evidence_ref": null,
-      "exit_code": null,
-      "output_sha256": null
+      "result_sha256": null,
+      "exit_code": null
     }
   ],
   "external_actions": [],
+  "checkpoint": {
+    "phase": "source-reconciliation",
+    "status": "NOT_STARTED",
+    "updated_at": null,
+    "last_verified_evidence": null
+  },
   "backup": {
     "status": "BACKUP_PENDING",
+    "storage_kind": null,
     "destination": null,
-    "remote_sha256": null,
+    "remote_digest": null,
     "verified_at": null
   },
-  "next_step": {
-    "action": "Verify the current source and relevant repository policy before planning any write",
-    "verification_required": true,
-    "risk": "read_only"
-  },
-  "last_event_id": 0,
-  "last_event_digest": null
+  "next_action": "Read current source revision before edits",
+  "notes": "EXAMPLE ONLY. No work or backup has been verified."
 }

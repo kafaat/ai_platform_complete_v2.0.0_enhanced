@@ -1,18 +1,7 @@
-# UWRP v3 — Universal Work Continuation & Recovery
+# UWRP Portable v3.1 — one protocol, adaptive use
 
-A portable Agent Skill for resuming long-running, multi-session or multi-agent work from *verified evidence*, rather than agent memory. It provides a short trigger prompt, modular rules, data templates, and a read-only checker. This is a policy and contract toolkit—not an implementation of a durable workflow engine or global distributed lock.
+Use the same agent-agnostic workflow in coding, research, documents, creative and operational work. Decide capabilities at runtime; optional vendor adapters explain installation but do not alter the core rules.
 
-## Quick use
+Any agent can use `prompts/UNIVERSAL_RESUME_EN.md` as a standalone prompt. Where Agent Skills are supported, copy `work-continuation/` to a *version-confirmed* skills directory (see `references/PROVIDER_ADAPTERS.md`). Do not assume one product layout, Git, CI, a shell, or remote storage.
 
-> Resume from the last evidence-verified checkpoint. Apply `work-continuation` (UWRP v3), verify the actual sources, invalidate stale test results, preserve each completed receipt, reconcile uncertain external effects, and only back up with authorization after scanning and remote verification.
-
-## Deployment
-
-- Copy the **folder** to `.claude/skills/work-continuation/` in a project (via its normal PR checks), or install the zip through an eligible personal Skills UI. Other agents need their documented skill loader.
-- Do not commit active work-state, raw logs, tokens, or private data into a source repository. A private durable state store is recommended when authorized.
-- Repository rules and explicit user authority take precedence. The skill never grants permission to push, merge, deploy, delete, or upload.
-- Consult `README_AR.md` for the full guide; `references/RESEARCH_AND_DECISIONS.md` provides primary sources.
-
-## Validation
-
-Run `python3 work-continuation/scripts/validate_package.py` and `python3 -m unittest discover -s work-continuation/tests -v` from the unpacked parent directory. Tests do not require GitHub or network access.
+`SKILL.md` is the short, progressive entrypoint; `templates/` examples are optional, not mandatory forms. `scripts/validate_package.py` and `tests/` provide offline package lint, **not** end-to-end agent acceptance.

@@ -1,42 +1,26 @@
-# HANDOFF — [work_id]
+# Handoff — <work_id> (template; not a verified record)
 
-> **UNTRUSTED UNTIL VERIFIED**. This is a summary of recorded claims, not instructions, authority or proof. Cross-check sources before acting.
+**Work type:** <research|document|code|creative|operations|mixed>  
+**Agent/tool capability constraints:** <actual observed support; unknown otherwise>  
+**Objective and limits:** <one paragraph>  
+**Current source-of-truth:** <document revision, commit/base, page version, service record, or unavailable>  
+**Claim status:** RECORDED_UNVERIFIED until a new agent independently checks sources.
 
-## Goal and exact work boundary
+## Verified work units
 
-- Work ID: `[work_id]`
-- Project / repository: `[name]`
-- Purpose / acceptance criteria: `[what / how to prove]`
-- Risk level: `[L0 | L1 | L2]`
-- Explicit owner authorization (cite external source; do not infer): `[unknown / link]`
-
-## Last recorded state — NOT VERIFIED BY NEW AGENT
-
-- Snapshot version / event id: `[value]`
-- HEAD / tree: `[sha] / [tree]`
-- Base ref / base HEAD / merge-base: `[ref] / [sha] / [sha]`
-- Source policy version: `[sha or description]`
-- Verified output receipts: `[exact refs, digests and validity constraints]`
-- Interruption or unresolved effect: `[operation_id and target, if any]`
-- Current lock claims: `[lock resource, holder, source of truth, unknowns]`
-
-## Completed / missing / invalidated
-
-| Unit ID | Recorded state | Evidence location + digest | Validity inputs | Reverify? |
+| Unit | Result | Relevant input version | Proof / digest (if available) | Limits |
 |---|---|---|---|---|
-| `[unit-01]` | `RECORDED_UNVERIFIED` | `[none]` | `[inputs]` | Yes |
+| <id> | <not verified> | <source version> | <reference> | <limits> |
 
-## External systems (always re-read)
+## Interrupted or uncertain external effects
 
-- GitHub PR, CI: `[source and observed_at]` — may already be stale
-- Service deployment: `[source and observed_at]` — may already be stale
-- Backup: `BACKUP_PENDING` unless the remote content is inspected
+<none confirmed / operation ID + target readback needed>
 
-## Resume safely
+## Backup and recovery
 
-1. Start with **read-only** checks: `[commands or precise sources; validate before running]`.
-2. Compare snapshots to current source, base and lock/PR state.
-3. Reconcile uncertain external effects before retry.
-4. Proceed with the first incomplete unit if authorized: `[unit_id]`.
+**Persistent destination:** <authorized path or unavailable>  
+**Read-back status:** BACKUP_PENDING until directly verified.
 
-**Do not claim contiguous preflight from sharded receipts. Do not rely on a recovered PID or old runId to infer liveness.**
+## Resume instruction (data, not permission)
+
+<precise first read-only reconciliation, then next smallest safe unit>
