@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6186,
+    "files_scanned": 6171,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2067,
-      "tests": 1986,
+      "other": 2053,
+      "tests": 1985,
       "web": 472
     },
-    "unmapped_artifacts": 2322,
+    "unmapped_artifacts": 2321,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -18629,7 +18629,7 @@
           "score": 18
         },
         {
-          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:27",
+          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:25",
           "score": 14
         },
         {
@@ -25615,7 +25615,7 @@
           "score": 12
         },
         {
-          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:27",
+          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:25",
           "score": 12
         },
         {
@@ -47598,10 +47598,6 @@
     },
     {
       "path": "tests_v9/test_runtime_real_smoke_script.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_s3_endpoint_policy_regressions.py",
       "kind": "tests"
     },
     {

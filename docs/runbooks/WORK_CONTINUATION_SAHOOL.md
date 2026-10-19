@@ -57,9 +57,9 @@
 - **`--resume-interrupted`:** لا يفحص حياة العمليّة إذا كان مضيف علامة `inflight` مختلفاً. لا يُستعمل بين الحاويات.
 - **نطاق الإيصالات:** `SHARDED_VERIFICATION` لما شُغِّل فقط، لا preflight ولا CI.
 
-## 11. منظومة UWRP Professional v4.3 (إحدى عشرة مهارة بجوار المجمَّدتين)
+## 11. منظومة UWRP Professional v4.2 (ثماني مهارات بجوار المجمَّدتين)
 
-مصدرها حزمة المالك v4.1 (`2e178008…`)، وحُسِّنت إلى v4.2. ثمّ أضاف أرشيف المالك v4.3 (`2f5d0994…`) ثلاث مهارات تعلّم، والمهارات هنا مطابقة لملفّاته بايتاً ببايت. كلّ مهارة مستقلّة في `.claude/skills/<الاسم>/`، ومركزها `work-router` (جدول التوجيه `references/routing.json`، والتحقّق `scripts/verify_pack.py`، والأبحاث). ما قيس وما لم يُقَس: `.claude/skills/work-router/references/EVALUATION_RESULTS.md`.
+مصدرها حزمة المالك v4.1 (`2e178008…`)، وحُسِّنت إلى v4.2. وأُدخلت مهارات التعلّم الثلاث من أرشيف المالك v4.3 (`2f5d0994…`) في #1242 ثمّ أُزيلت: سكربت السجلّ يقبل بيانات اعتماد (6 من 7 صيغ مقيسة)، و`draft_proposals --out` يكتب فوق أيّ ملفّ بما فيه `SKILL.md` (`UWRP-V43-LEARNING-SCRIPTS-UNSAFE-01`). المهارات هنا مطابقة لـv4.2 كما في `9a897635d`. كلّ مهارة مستقلّة في `.claude/skills/<الاسم>/`، ومركزها `work-router` (جدول التوجيه `references/routing.json`، والتحقّق `scripts/verify_pack.py`، والأبحاث). ما قيس وما لم يُقَس: `.claude/skills/work-router/references/EVALUATION_RESULTS.md`.
 
 كلّ مهارة تقابلها آليّة هنا، ولا تحلّ محلّها:
 
@@ -71,9 +71,6 @@
 | `collaboration-coordination` | قفل preflight لكلّ worktree لا للمستودع (§3)؛ لا تشغيلان ثقيلان معاً |
 | `failure-investigation` | `docs/runbooks/GUARD_CATALOGUE.md` نقطة البدء عند فشل حارس |
 | `skill-evaluator` | `trigger_eval.py` قبل تعديل أيّ وصف مهارة هنا |
-| `experience-collector` | سجلّه في مساحة مؤقّتة خارج الشجرة؛ والدرس المعتمد يدخل `sahool-brain/log.md` بمصدره |
-| `improvement-engine` | المقترح مسوّدة لا تعديل؛ التغيير PR عاديّ بسطر في `sahool-brain/decisions/ledger.md` |
-| `skill-regression-lab` | مقارنة الإصدارين على الحالات نفسها قبل تبديل أيّ مهارة، مع `trigger_eval.py` |
 
 والفحص: `python3 -I .claude/skills/work-router/scripts/verify_pack.py .claude/skills --require-baselines`. يتحقّق أيضاً من أنّ المهارتين المجمَّدتين مطابقتان لإصدارهما بايتاً ببايت.
 

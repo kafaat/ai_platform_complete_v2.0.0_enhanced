@@ -1,6 +1,6 @@
 # UWRP Professional v4.2 — حزمة مهارات موحّدة / unified skill pack
 
-ثلاث عشرة مهارة مستقلّة؛ يُحمَّل منها ما تحتاجه المهمّة فقط. لا تحتاج المهمّة البسيطة أيّ مهارة.
+عشر مهارات مستقلّة؛ يُحمَّل منها ما تحتاجه المهمّة فقط. لا تحتاج المهمّة البسيطة أيّ مهارة.
 
 | المهارة | الدور |
 |---|---|
@@ -14,9 +14,6 @@
 | `skill-evaluator` | اختبار المهارة قبل تعميمها: تقييم استدعاء أعمى ومقارنة مع/بدون |
 | `work-continuation` | UWRP Portable v3.1 — مجمَّدة بايتاً ببايت |
 | `adaptive-test-accelerator` | Adaptive Test Accelerator v1.1 — مجمَّدة بايتاً ببايت |
-| `experience-collector` | تسجيل خبرات مختصرة ومجهولة الهوية، مع سلسلة بصمات وسجل مصدر غير متحقق |
-| `improvement-engine` | تجميع ملاحظات مستقلة واقتراح تغيير مسوّد، دون تعديلات تلقائية |
-| `skill-regression-lab` | قياس مقارنة A/B على مدخلات مجمّدة؛ لا اعتماد تلقائي |
 
 ## أين تعمل الحزمة — حقائق موثَّقة (تحقّق 2026-10-19)
 
@@ -48,4 +45,4 @@ python3 skill-evaluator/scripts/trigger_eval.py emit --skills-root <root> --scen
 
 ---
 
-**English.** Thirteen independent skills. The eight v4.1 skills are improved and self-contained; the two baselines are byte-frozen. Install per repository in `.claude/skills/`, which reaches cloud sessions. To reach every project, upload each skill zip to claude.ai: enabled skills sync to Claude Code, including cloud sessions. `~/.claude/skills` is local only. Descriptions are ≤ 200 characters and frontmatter is upload-safe; `verify_pack.py` enforces both. Measured results and limits: [EVALUATION_RESULTS.md](EVALUATION_RESULTS.md). No skill grants permission to push, merge, deploy, delete or upload.
+**English.** Ten independent skills. The eight v4.1 skills are improved and self-contained; the two baselines are byte-frozen. Install per repository in `.claude/skills/`, which reaches cloud sessions. To reach every project, upload each skill zip to claude.ai: enabled skills sync to Claude Code, including cloud sessions. `~/.claude/skills` is local only. Descriptions are ≤ 200 characters and frontmatter is upload-safe; `verify_pack.py` enforces both. Measured results and limits: [EVALUATION_RESULTS.md](EVALUATION_RESULTS.md). No skill grants permission to push, merge, deploy, delete or upload.
