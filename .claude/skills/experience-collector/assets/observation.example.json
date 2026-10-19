@@ -1,0 +1,12 @@
+{
+  "schema": "uwrp.experience.v1",
+  "observation_id": "EXP-DEMO-001",
+  "skill_name": "adaptive-test-accelerator",
+  "skill_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_kind": "code",
+  "signal": "resource_exhaustion",
+  "outcome": "failure",
+  "summary": "Synthetic fixture: parallel tests exhausted temporary disk space.",
+  "evidence_ref": "receipt:synthetic-001",
+  "evidence_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}
