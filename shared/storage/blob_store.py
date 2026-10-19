@@ -158,6 +158,7 @@ def _s3_client():
         )
     try:
         import boto3  # lazy — only the S3 branch needs it
+        from botocore.client import Config
     except ImportError as exc:  # boto3 must be present when S3 is configured
         raise BlobStoreError("S3 configured but boto3 is not installed") from exc
     return boto3.client(
@@ -165,6 +166,8 @@ def _s3_client():
         endpoint_url=_endpoint_url(),
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        # Path-style, as raster's object_store: a MinIO endpoint has no per-bucket DNS.
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
     )
 
 

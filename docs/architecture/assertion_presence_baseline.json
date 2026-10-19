@@ -182,7 +182,7 @@
     "tests_v9/test_roadmap_phase23.py::test_workflow_saga",
     "tests_v9/test_roadmap_phase23.py::test_zone_sampling",
     "tests_v9/test_roadmap_phase23.py::test_zones",
-    "tests_v9/test_s3_endpoint_policy_regressions.py::test_real_blob_client_constructor_receives_https",
+    "tests_v9/test_s3_endpoint_policy_regressions.py::test_real_blob_client_constructor_receives_https_and_path_style",
     "tests_v9/test_s3_endpoint_policy_regressions.py::test_real_raster_upload_file_client_https",
     "tests_v9/test_trueup_endpoint.py::test_endpoint_field_mismatch",
     "tests_v9/test_trueup_endpoint.py::test_endpoint_happy_path",

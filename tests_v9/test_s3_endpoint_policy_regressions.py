@@ -223,8 +223,16 @@ class ClientCallsiteTests(unittest.TestCase):
                 "services/raster-service/object_store.py", "candidate_raster_boto3"
             )
 
-    def test_real_blob_client_constructor_receives_https(self):
+    def test_real_blob_client_constructor_receives_https_and_path_style(self):
         fake = ModuleType("boto3")
+        botocore = ModuleType("botocore")
+        botocore_client = ModuleType("botocore.client")
+
+        class Config:
+            def __init__(self, **kw):
+                self.kw = kw
+
+        botocore_client.Config = Config
         calls = []
 
         def client(name, **kwargs):
@@ -237,10 +245,17 @@ class ClientCallsiteTests(unittest.TestCase):
             stack.enter_context(
                 patch.dict(os.environ, {"S3_ACCESS_KEY": "fake_id", "S3_SECRET_KEY": "fake_secret"})
             )
-            stack.enter_context(patch.dict(sys.modules, {"boto3": fake}))
+            stack.enter_context(
+                patch.dict(
+                    sys.modules,
+                    {"boto3": fake, "botocore": botocore, "botocore.client": botocore_client},
+                )
+            )
             self.blob._s3_client()
             self.assertEqual(calls[0][0], "s3")
             self.assertEqual(calls[0][1]["endpoint_url"], "https://s3.vendor.test:9443")
+            # The bucket goes in the path, never in the host (MinIO has no per-bucket DNS).
+            self.assertEqual(calls[0][1]["config"].kw["s3"], {"addressing_style": "path"})
 
     def test_real_raster_upload_file_client_https(self):
         fake = ModuleType("boto3")
