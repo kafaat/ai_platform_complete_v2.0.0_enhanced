@@ -827,3 +827,71 @@ def test_arabic_heading_leading_fixed_state_wins_over_old_verified_parenthesis()
 @pytest.mark.parametrize("state", ["fixed", "`verified`", "**CLOSED_IN_CODE**", "runtime_verified"])
 def test_leading_english_state_does_not_inherit_an_arabic_historical_parenthesis(state):
     assert guard._arabic_heading_state(f" — {state} (مُتحقَّقة سابقاً)") is None
+
+
+# ── `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01`: a verbatim move is not a new claim ──
+#
+# `hot.md` now shrinks only by moving older entries byte for byte into
+# `sahool-brain/archive/` (`brain_append_only_guard`). Those entries quote closure
+# vocabulary by the hundred, so read naively every move re-asserts every old claim: on
+# the first compaction a brain-only archival PR is rejected for lines it did not write.
+# A line counts as moved only if the SAME text left `hot.md` in the same diff; anything
+# else added to an archive is read as before.
+
+_ARCHIVE_FILE = "sahool-brain/archive/hot_2026-07-01_2026-07-03.md"
+_MOVED = "- **الحالة:** CLOSED"
+
+
+def _diff(*files: tuple[str, list[str]]) -> str:
+    """A real ``git diff --unified=0`` shape: headers, hunks, ``+``/``-`` lines."""
+    out: list[str] = []
+    for path, lines in files:
+        out += [f"diff --git a/{path} b/{path}", f"--- a/{path}", f"+++ b/{path}", "@@ -1 +1 @@"]
+        out += lines
+    return "\n".join(out) + "\n"
+
+
+def test_a_line_moved_verbatim_from_hot_md_to_its_archive_is_not_a_new_claim(capsys):
+    diff = _diff(
+        ("sahool-brain/hot.md", ["-" + _MOVED, "+> **2026-10-19 — pointer to the archive**"]),
+        (_ARCHIVE_FILE, ["+" + _MOVED]),
+    )
+    guard.check(["sahool-brain/hot.md", _ARCHIVE_FILE], diff)
+    assert "brain_state_transition_guard_ok" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "files",
+    [
+        pytest.param(
+            [("sahool-brain/hot.md", ["-" + _MOVED]), (_ARCHIVE_FILE, ["+" + _MOVED + " "])],
+            id="archive-text-differs",
+        ),
+        pytest.param(
+            [("sahool-brain/log.md", ["-" + _MOVED]), (_ARCHIVE_FILE, ["+" + _MOVED])],
+            id="removed-from-another-journal",
+        ),
+        pytest.param(
+            [
+                ("sahool-brain/hot.md", ["-" + _MOVED]),
+                (_ARCHIVE_FILE, ["+" + _MOVED, "+" + _MOVED]),
+            ],
+            id="one-removal-funds-one-line-only",
+        ),
+        pytest.param(
+            [("sahool-brain/hot.md", ["-" + _MOVED, "+" + _MOVED + " again"])],
+            id="new-claim-in-hot-md-itself",
+        ),
+        pytest.param(
+            [
+                ("sahool-brain/hot.md", ["-" + _MOVED]),
+                ("sahool-brain/gaps/registry.md", ["+" + _MOVED]),
+            ],
+            id="moved-into-the-registry-not-the-archive",
+        ),
+    ],
+)
+def test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named(files):
+    with pytest.raises(SystemExit, match="sahool-brain-only") as raised:
+        guard.check([path for path, _ in files], _diff(*files))
+    assert _MOVED in str(raised.value), "the rejection must name the line it read as a claim"

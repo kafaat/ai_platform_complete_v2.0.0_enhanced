@@ -79,6 +79,17 @@ APPEND_ONLY = (
     "docs/evidence/operational_evidence_log.md",
 )
 
+# دفترٌ إلحاقيٌّ يُسمَح له بالتقلّص **بالأرشفة وحدها** ⇒ مجلّدُ أرشيفه.
+# `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01` (قِيس 2026-10-19 على `2a759d06`):
+# `hot.md` ‏٨٩٦٬٦٧٠ بايتاً يُقرأ في بداية كلّ جلسة، ونما ١٩٤٬٦٠٨ بايتاً في ثلاثين يوماً،
+# و`brain_append_only_guard` يحجب كلَّ تقلّص فلم يكن له طريقُ ضغطٍ قطّ. قاعدةُ الاحتفاظ
+# (UWRP Professional v4.3، بموافقة المالك): سقفُ حجمٍ ثمّ أرشفةٌ معتمدة، لا محوٌ صامت.
+#
+# **دفترٌ واحد لا الأربعة:** `log`/`ledger`/`registry` تُقرأ عند الحاجة لا في كلّ جلسة،
+# وسجلُّ الفجوات مرجعُ هويّات تُطابِقها حرّاسٌ أخرى. الحارسُ يستورد هذا القاموس كما
+# يستورد `APPEND_ONLY`، وملفّاتُ الأرشيف تُصنَّف إلحاقيّةً هنا: ما نُقِل لا يُحرَّر.
+ARCHIVES = {"sahool-brain/hot.md": "sahool-brain/archive/"}
+
 # مصنوعات مولَّدة: تُؤخَذ من `main` ثمّ يُعاد توليدها. حلُّها يدويّاً يُنتِج رقماً
 # لم يحسبه أحد — والبصمة تحديداً لا تُدمَج، تُحسَب.
 GENERATED_MARKERS = (
@@ -191,6 +202,8 @@ def classify(path: str) -> str:
     ويفرض اختبارٌ أنّ المجموعتين منفصلتان.
     """
     if path in APPEND_ONLY:
+        return "append_only"
+    if any(path.startswith(folder) for folder in ARCHIVES.values()):
         return "append_only"
     if path in HAND_WRITTEN_POLICY:
         return "source"

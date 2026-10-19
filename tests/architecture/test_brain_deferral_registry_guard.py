@@ -91,3 +91,91 @@ def test_the_three_orphans_are_now_registered():
     assert "CI-RLS-SUPERUSER-ROLE-01" not in registry, (
         "معرّف مكرّر لـAUTH-E2E-UNDER-RESTRICTED-ROLE عاد إلى السجلّ"
     )
+
+
+# ── `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01`: the archive is part of what is read ──
+#
+# `hot.md` can now shrink by moving older entries verbatim into `sahool-brain/archive/`.
+# A guard that reads `hot.md` alone would then see less after every archival, and an
+# archive file would be a place where a deferral can be written without an ID. These
+# run on a private copy (monkeypatched paths), never on the tree.
+
+
+def _load_guard():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("_deferral_guard_probe", GUARD)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def private_brain(tmp_path, monkeypatch):
+    guard = _load_guard()
+    brain = tmp_path / "sahool-brain"
+    (brain / "gaps").mkdir(parents=True)
+    (brain / "archive").mkdir()
+    (brain / "gaps" / "registry.md").write_text(
+        "## IMAGERY-BLANK-THUMBNAIL-01 — registered\n", encoding="utf-8"
+    )
+    (brain / "hot.md").write_text("> **2026-10-19 — a plain entry**\n", encoding="utf-8")
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    monkeypatch.setattr(guard, "HOT", brain / "hot.md")
+    monkeypatch.setattr(guard, "REGISTRY", brain / "gaps" / "registry.md")
+    monkeypatch.setattr(guard, "ARCHIVE_DIR", brain / "archive", raising=False)
+    return guard, brain
+
+
+def test_a_deferral_in_an_archive_file_without_a_gap_id_fails(private_brain):
+    guard, brain = private_brain
+    (brain / "archive" / "hot_2026-07-01_2026-07-02.md").write_text(
+        "> **مؤجَّل:** بند مستقل بلا معرّف.\n", encoding="utf-8"
+    )
+    found = guard.violations(baseline=set())
+    assert len(found) == 1, found
+    assert "sahool-brain/archive/hot_2026-07-01_2026-07-02.md:1" in found[0]
+
+
+def test_an_archived_deferral_that_cites_a_registered_id_passes(private_brain):
+    guard, brain = private_brain
+    (brain / "archive" / "hot_2026-07-01_2026-07-02.md").write_text(
+        "> **مؤجَّل:** انظر IMAGERY-BLANK-THUMBNAIL-01.\n", encoding="utf-8"
+    )
+    assert guard.violations(baseline=set()) == []
+
+
+def test_a_frozen_baseline_line_moved_to_the_archive_stays_exempt_and_visible(private_brain):
+    """The baseline is shrink-only; archival must not turn an exempt line into a new failure."""
+    guard, brain = private_brain
+    line = "> **مؤجَّل:** بند مستقل قديم سبق الحارس."
+    (brain / "archive" / "hot_2026-07-01_2026-07-02.md").write_text(line + "\n", encoding="utf-8")
+    assert guard.violations(baseline={line}) == []
+    assert guard.violations(baseline=set()), "the archived line must still be read"
+
+
+def test_every_frozen_baseline_line_is_still_read_by_the_guard():
+    """After the compaction the 14 exempt lines must still be in what the guard reads.
+
+    They were kept in ``hot.md`` on purpose: an exempt line leaves the baseline only by being
+    edited (it gains a registered ID) or removed, and an archive file can do neither.
+    """
+    import json
+
+    guard = _load_guard()
+    baseline = json.loads(
+        (ROOT / "docs/architecture/brain_deferral_baseline.json").read_text(encoding="utf-8")
+    )["exempt_lines"]
+    read = {
+        line.strip()
+        for path in guard.scanned_files()
+        for line in path.read_text(encoding="utf-8").splitlines()
+    }
+    missing = [line[:80] for line in baseline if line not in read]
+    assert missing == [], missing
+    hot_lines = {line.strip() for line in HOT.read_text(encoding="utf-8").splitlines()}
+    assert [line[:80] for line in baseline if line not in hot_lines] == [], (
+        "an exempt line left hot.md; it can no longer be edited to leave the baseline"
+    )

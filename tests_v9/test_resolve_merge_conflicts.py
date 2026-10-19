@@ -111,6 +111,9 @@ _LOG_FEATURE = _LOG_BASE + "- مدخل من الفرع\n"
         ("sahool-brain/gaps/registry.md", "append_only"),
         ("sahool-brain/decisions/ledger.md", "append_only"),
         ("sahool-brain/hot.md", "append_only"),
+        # أرشيفُ اللقطة إلحاقيٌّ صارم (BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01): ما نُقل
+        # إليه لا يُحرَّر، فتعارضُه يُحلّ بإبقاء الجانبين كبقيّة الدفاتر.
+        ("sahool-brain/archive/hot_2026-07-12_2026-10-03.md", "append_only"),
         ("capability-registry/generated/mapping/x.json", "generated"),
         ("runtime-contracts/generated/runtime_contracts.json", "generated"),
         ("release/FILE_CHECKSUMS.txt", "generated"),

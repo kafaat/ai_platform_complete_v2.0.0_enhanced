@@ -742,3 +742,309 @@ def test_a_refounding_that_keeps_both_entries_passes(guard, tmp_path):
     )
     blocking, _, _ = guard.check_range(None, "HEAD", files=(_EVIDENCE_LOG,), root=root)
     assert not blocking, "\n".join(str(f) for f in blocking)
+
+
+# ── `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01` ──────────────────────────────
+#
+# قِيس 2026-10-19 على `2a759d06`: `sahool-brain/hot.md` ‏٨٩٦٬٦٧٠ بايتاً يُقرأ في بداية كلّ
+# جلسة (CLAUDE.md)، ونما ١٩٤٬٦٠٨ بايتاً في ثلاثين يوماً. والحارسُ أعلاه يحجب كلَّ تقلّص،
+# فلم يكن للّقطة طريقُ ضغطٍ قطّ. قاعدةُ الاحتفاظ (UWRP Professional v4.3): سقفُ حجمٍ ثمّ
+# أرشفةٌ معتمدة، لا محوٌ صامت. فالاستثناءُ ضيّق: تقلّصُ `hot.md` يُقبَل **فقط** إن ظهرت كلُّ
+# كتلةٍ محذوفة حرفيّاً وبترتيبها في ملفٍّ تحت `sahool-brain/archive/` أُضيف أو أُلحِق به في
+# الالتزام نفسه؛ والأرشيفُ نفسُه إلحاقيٌّ صارم؛ والسقفُ راتشِت لا يرتفع.
+#
+# كلُّ تاريخٍ هنا اصطناعيّ (كائنات git بلا HEAD متحرّك)، فلا اختبارَ يُتخطّى في استنساخٍ ضحل.
+
+_HOT = "sahool-brain/hot.md"
+_ARCHIVE = "sahool-brain/archive/hot_2026-07-01_2026-07-03.md"
+_TOP = "> **2026-10-19 — newest entry stays in the snapshot**\n\n"
+_OLD_A = "> **2026-07-01 — old entry A**\n>\n"
+_MID = "> **2026-07-02 — a kept line a guard depends on**\n\n"
+_OLD_B = "> **2026-07-03 — old entry B, `CLOSED_IN_CODE` quoted**\n\n"
+_POINTER = (
+    "> **2026-10-19 — older entries moved verbatim to archive/hot_2026-07-01_2026-07-03.md**\n"
+)
+_BUDGET = "docs/architecture/brain_hot_budget.json"
+
+
+def _archive_git(root: Path, *args: str, data: bytes | None = None, env=None) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=root, check=True, capture_output=True, input=data, env=env
+    )
+    return result.stdout.decode("utf-8").strip()
+
+
+def _archive_init(tmp_path: Path) -> Path:
+    root = tmp_path / "archive-probe"
+    root.mkdir()
+    _archive_git(root, "init", "-q", "-b", "main", ".")
+    _archive_git(root, "config", "user.email", "guard-test@example.invalid")
+    _archive_git(root, "config", "user.name", "Guard Test")
+    _archive_git(root, "config", "commit.gpgsign", "false")
+    return root
+
+
+def _snapshot(root: Path, files: dict[str, str | bytes], *parents: str) -> str:
+    """A commit whose tree is exactly ``files`` — built in a private index, HEAD untouched."""
+    import os
+
+    env = {**os.environ, "GIT_INDEX_FILE": str(root / ".git" / "probe-index")}
+    _archive_git(root, "read-tree", "--empty", env=env)
+    for path, content in files.items():
+        data = content.encode("utf-8") if isinstance(content, str) else content
+        blob = _archive_git(root, "hash-object", "-w", "--stdin", data=data)
+        _archive_git(root, "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}", env=env)
+    tree = _archive_git(root, "write-tree", env=env)
+    parent_args = [item for parent in parents for item in ("-p", parent)]
+    return _archive_git(root, "commit-tree", tree, *parent_args, "-m", "snapshot")
+
+
+def _codes(findings) -> list[str]:
+    return [f.code for f in findings]
+
+
+@pytest.mark.parametrize(
+    "archived,accepted",
+    [
+        pytest.param(_OLD_A + _OLD_B, True, id="in-order-verbatim-move"),
+        pytest.param(_OLD_B + _OLD_A, False, id="reordered-move"),
+    ],
+)
+def test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move(
+    guard, tmp_path, archived, accepted
+):
+    """The narrow exception, and the order it requires — two removed blocks, one archive."""
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    after = _TOP + _POINTER + _MID
+    assert len(after.encode()) < len((_TOP + _OLD_A + _MID + _OLD_B).encode())
+    candidate = _snapshot(root, {_HOT: after, _ARCHIVE: archived}, parent)
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    if accepted:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+        assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+        assert _ARCHIVE in advisory[0].detail
+    else:
+        assert _codes(blocking) == ["JOURNAL_SHRANK"]
+        assert "out of order" in blocking[0].detail, blocking[0].detail
+
+
+def test_a_hot_md_deletion_without_an_archive_blocks_and_names_the_archive(guard, tmp_path):
+    """Deletion stays a loss, and the message names the only remedy that exists."""
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP + _POINTER + _MID}, parent)
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "sahool-brain/archive/" in blocking[0].detail, blocking[0].detail
+    assert "JOURNAL_ARCHIVED" not in _codes(advisory)
+
+
+@pytest.mark.parametrize(
+    "archived",
+    [
+        pytest.param(
+            _OLD_A + _OLD_B.replace("old entry B", "old entry b"), id="one-letter-changed"
+        ),
+        pytest.param(_OLD_A, id="second-block-missing"),
+        pytest.param((_OLD_A + _OLD_B).replace("\n", "\r\n"), id="line-endings-rewritten"),
+    ],
+)
+def test_an_archive_that_does_not_hold_the_removed_bytes_verbatim_blocks(guard, tmp_path, archived):
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: archived}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "not verbatim" in blocking[0].detail, blocking[0].detail
+
+
+def test_archive_text_from_an_earlier_commit_cannot_fund_a_new_shrink(guard, tmp_path):
+    """Only bytes ADDED in the same diff count: an old archive is not a credit to spend."""
+    root = _archive_init(tmp_path)
+    duplicated = _TOP + _OLD_A + _MID + _OLD_A
+    parent = _snapshot(root, {_HOT: duplicated, _ARCHIVE: _OLD_A})
+    candidate = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID, _ARCHIVE: _OLD_A}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "sahool-brain/archive/" in blocking[0].detail, blocking[0].detail
+
+
+@pytest.mark.parametrize(
+    "later,code",
+    [
+        pytest.param(_OLD_A, "ARCHIVE_REWRITTEN", id="archive-shrunk"),
+        pytest.param(_OLD_A + _OLD_B.replace("B", "C"), "ARCHIVE_REWRITTEN", id="archive-edited"),
+        pytest.param(None, "ARCHIVE_DELETED", id="archive-deleted"),
+        pytest.param(_OLD_A + _OLD_B + _TOP, None, id="archive-appended-is-legal"),
+    ],
+)
+def test_an_archive_is_append_only_after_it_lands(guard, tmp_path, later, code):
+    root = _archive_init(tmp_path)
+    archived_tree = {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, archived_tree)
+    files = dict(archived_tree)
+    if later is None:
+        del files[_ARCHIVE]
+    else:
+        files[_ARCHIVE] = later
+    candidate = _snapshot(root, files, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert pairs == 2, "the archive itself must be one of the examined pairs"
+    if code is None:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+    else:
+        assert _codes(blocking) == [code]
+        assert blocking[0].path == _ARCHIVE
+
+
+@pytest.mark.parametrize(
+    "journal",
+    ["sahool-brain/log.md", "sahool-brain/gaps/registry.md", "sahool-brain/decisions/ledger.md"],
+)
+def test_the_archive_exception_is_hot_md_only(guard, tmp_path, journal):
+    """Every other journal keeps its behaviour: an archive copy does not license a shrink."""
+    assert guard.archive_dirs() == {_HOT: "sahool-brain/archive/"}
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {journal: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(
+        root,
+        {journal: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B},
+        parent,
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(journal,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "JOURNAL_ARCHIVED" not in _codes(advisory)
+
+
+def test_the_archive_policy_comes_from_the_existing_classifier(guard):
+    resolver = _load(RESOLVER, "_resolve_archive_probe")
+    assert guard.archive_dirs() == dict(resolver.ARCHIVES)
+    for archive_dir in resolver.ARCHIVES.values():
+        assert f'"{archive_dir}"' not in GUARD.read_text(encoding="utf-8"), (
+            "the archive directory is restated in the guard; it must come from the classifier"
+        )
+        assert resolver.classify(archive_dir + "hot_x.md") == "append_only"
+
+
+@pytest.mark.parametrize("main_compacted_first", [True, False])
+def test_an_older_branch_merging_the_compaction_passes_on_both_parents(
+    guard, tmp_path, main_compacted_first
+):
+    """The shape every open PR meets after the compaction lands: one parent still has it all."""
+    root = _archive_init(tmp_path)
+    ancestor = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    compacted = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}, ancestor)
+    branch_top = "> **2026-10-20 — a line the older branch added**\n"
+    branch = _snapshot(root, {_HOT: branch_top + _TOP + _OLD_A + _MID + _OLD_B}, ancestor)
+    parents = (compacted, branch) if main_compacted_first else (branch, compacted)
+    merge = _snapshot(
+        root,
+        {_HOT: branch_top + _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B},
+        *parents,
+    )
+    blocking, advisory, _ = guard.check_range(ancestor, merge, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    archived_pairs = {(f.parent, f.commit) for f in advisory if f.code == "JOURNAL_ARCHIVED"}
+    assert archived_pairs == {(ancestor, compacted), (branch, merge)}
+
+
+def test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank(guard, tmp_path):
+    """Found by the first real compaction, which the guard refused (2026-10-19).
+
+    Fifteen old lines stayed in ``hot.md`` between the archived runs, with a blank line
+    between them. An alignment that may anchor on a blank matched the inserted blank to a
+    blank inside a cut, and then read a KEPT line as removed — a removal no archive holds,
+    so a lossless move was blocked as ``not verbatim``. Blank and lone ``>`` lines may not
+    anchor the alignment; they still travel with the run they sit in.
+    """
+    kept = "> **2026-07-02 — a kept line a guard depends on**\n"
+    row = "| WS-C.1c | a kept table row a guard depends on |\n"
+    old_a = "> **2026-07-01 — archived A**\n\n> **2026-07-01 — archived B**\n"
+    old_c = "> **2026-07-03 — archived C**\n"
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + old_a + kept + old_c + row})
+    candidate = _snapshot(
+        root, {_HOT: _TOP + _POINTER + kept + "\n" + row, _ARCHIVE: old_a + old_c}, parent
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+
+
+# ── the size budget: a ratchet, never raised ────────────────────────────────
+
+
+def _budget(max_bytes: int) -> str:
+    import json
+
+    return json.dumps({"budgets": {_HOT: {"max_bytes": max_bytes}}}, indent=2) + "\n"
+
+
+@pytest.mark.parametrize(
+    "base_limit,head_limit,code",
+    [
+        pytest.param(100, 120, "BUDGET_RAISED", id="raised"),
+        pytest.param(100, 100, None, id="unchanged"),
+        pytest.param(100, 80, None, id="lowered"),
+    ],
+)
+def test_the_budget_never_rises(guard, tmp_path, base_limit, head_limit, code):
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(base_limit)})
+    head = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(head_limit)}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+
+
+@pytest.mark.parametrize("excess,code", [(1, "BUDGET_EXCEEDED"), (0, None)])
+def test_hot_md_may_not_exceed_its_budget_at_head(guard, tmp_path, excess, code):
+    root = _archive_init(tmp_path)
+    limit = len((_TOP + _MID).encode())
+    head_text = _TOP + _MID + ("x" * excess)
+    base = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(limit)})
+    head = _snapshot(root, {_HOT: head_text, _BUDGET: _budget(limit)}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+    if code:
+        assert "sahool-brain/archive/" in blocking[0].detail, "the remedy is archival, not a raise"
+
+
+@pytest.mark.parametrize(
+    "base_files,head_files,code",
+    [
+        pytest.param({_BUDGET: _budget(100)}, {}, "BUDGET_ABSENT_AT_HEAD", id="budget-deleted"),
+        pytest.param({}, {}, "BUDGET_ABSENT_AT_HEAD", id="never-declared-is-not-a-pass"),
+        pytest.param(
+            {_BUDGET: _budget(100)},
+            {_BUDGET: '{"budgets": {}}\n'},
+            "BUDGET_RAISED",
+            id="journal-dropped-from-budget",
+        ),
+        pytest.param({}, {_BUDGET: "{not json"}, "BUDGET_UNREADABLE", id="malformed"),
+        pytest.param({}, {_BUDGET: _budget(100)}, None, id="introduced"),
+    ],
+)
+def test_a_missing_or_unreadable_budget_fails_closed(guard, tmp_path, base_files, head_files, code):
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: _TOP, **base_files})
+    head = _snapshot(root, {_HOT: _TOP, **head_files}, base)
+    blocking, advisory = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+    if code is None:
+        assert _codes(advisory) == ["BUDGET_INTRODUCED"]
+
+
+def test_the_committed_budget_holds_on_this_tree(guard):
+    """The live number: hot.md at this tree fits the committed budget, which is a decision."""
+    import json
+
+    doc = json.loads((ROOT / _BUDGET).read_text(encoding="utf-8"))
+    limit = doc["budgets"][_HOT]["max_bytes"]
+    size = (ROOT / _HOT).stat().st_size
+    assert size <= limit, f"hot.md is {size:,} bytes, budget {limit:,}"
+    registry = json.loads(
+        (ROOT / "docs/architecture/claim_base_registry.json").read_text(encoding="utf-8")
+    )
+    assert Path(_BUDGET).name in registry["decided"], "the budget is an owner decision"
+    assert doc.get("adjudicated_on"), "a decision carries its date"

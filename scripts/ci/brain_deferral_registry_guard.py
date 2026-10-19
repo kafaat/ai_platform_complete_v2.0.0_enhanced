@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 import sys
@@ -36,8 +37,27 @@ for _stream in (sys.stdout, sys.stderr):
 
 ROOT = Path(__file__).resolve().parents[2]
 HOT = ROOT / "sahool-brain" / "hot.md"
+# `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01`: `hot.md` يتقلّص الآن بنقل أقدم مداخله
+# حرفيّاً إلى هذا المجلّد (`brain_append_only_guard`). فحارسٌ يقرأ `hot.md` وحده كان
+# سيرى أقلّ بعد كلّ أرشفة، وكان الأرشيفُ موضعاً يُكتَب فيه تأجيلٌ بلا معرّف ولا يُقرأ.
+# المجلّد من تصنيف `resolve_merge_conflicts.ARCHIVES` نفسه، لا نسخةٌ ثانية منه.
 REGISTRY = ROOT / "sahool-brain" / "gaps" / "registry.md"
 BASELINE = ROOT / "docs" / "architecture" / "brain_deferral_baseline.json"
+
+
+def _hot_archive_dir() -> Path:
+    """مجلّد أرشيف `hot.md` كما يُعلِنه المُصنِّف الذي يستورده حارسُ الإلحاق أيضاً."""
+    source = Path(__file__).resolve().with_name("resolve_merge_conflicts.py")
+    spec = importlib.util.spec_from_file_location("_deferral_archive_policy", source)
+    if not spec or not spec.loader:
+        raise SystemExit(f"✗ لا يمكن قراءة سياسة الأرشيف من {source}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return ROOT / module.ARCHIVES[HOT.relative_to(ROOT).as_posix()]
+
+
+ARCHIVE_DIR = _hot_archive_dir()
 
 # أنماط تأجيل: عبارات تُرحّل عملاً إلى المستقبل. مقصودة ضيّقة — كلّ نمط يُنشئ التزاماً.
 _DEFERRAL = re.compile(
@@ -80,20 +100,27 @@ def load_baseline() -> set[str]:
     return set(json.loads(BASELINE.read_text(encoding="utf-8"))["exempt_lines"])
 
 
+def scanned_files() -> list[Path]:
+    """`hot.md` ثمّ ملفّات أرشيفه بترتيب أسمائها — كلُّ ما كان يوماً في اللقطة."""
+    return [HOT, *sorted(ARCHIVE_DIR.glob("*.md"))]
+
+
 def violations(baseline: set[str] | None = None) -> list[str]:
-    """أسطر تأجيل بلا معرّف مسجَّل، خارج الأساس المُجمَّد."""
+    """أسطر تأجيل بلا معرّف مسجَّل، خارج الأساس المُجمَّد — في `hot.md` وأرشيفه."""
     known = registry_ids()
     exempt = load_baseline() if baseline is None else baseline
     out: list[str] = []
-    for lineno, raw in enumerate(HOT.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line or not _DEFERRAL.search(line):
-            continue
-        if any(gid in known for gid in _GAP_ID.findall(line)):
-            continue  # مؤجَّل ومسجَّل — سليم
-        if line in exempt:
-            continue  # قائم قبل الحارس
-        out.append(f"sahool-brain/hot.md:{lineno}: تأجيل بلا معرّف مسجَّل — {line[:90]}")
+    for path in scanned_files():
+        rel = path.relative_to(ROOT).as_posix()
+        for lineno, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            line = raw.strip()
+            if not line or not _DEFERRAL.search(line):
+                continue
+            if any(gid in known for gid in _GAP_ID.findall(line)):
+                continue  # مؤجَّل ومسجَّل — سليم
+            if line in exempt:
+                continue  # قائم قبل الحارس
+            out.append(f"{rel}:{lineno}: تأجيل بلا معرّف مسجَّل — {line[:90]}")
     return out
 
 

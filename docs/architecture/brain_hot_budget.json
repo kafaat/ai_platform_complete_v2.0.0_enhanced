@@ -1,0 +1,14 @@
+{
+  "$comment": "ميزانيّة حجم `sahool-brain/hot.md` بالبايت — قرارُ المالك (2026-10-19)، يفرضها `scripts/ci/brain_append_only_guard.py` (`check_budget`) على طرفَي مدى الـPR: الدفترُ لا يتجاوزها عند الرأس، والميزانيّةُ عند الرأس لا تتجاوز ميزانيّةَ الأساس. راتشِت يهبط ولا يرتفع؛ وإزالةُ دفترٍ منها رفعٌ إلى ما لا نهاية فتُحجَب كرفع. علاجُ اللقطة الممتلئة أرشفةٌ حرفيّة لأقدم مداخلها إلى `sahool-brain/archive/` (sahool-brain/README.md)، لا رقمٌ أكبر.",
+  "schema": "sahool.brain-journal-budget",
+  "version": 1,
+  "adjudicated_on": "2026-10-19",
+  "adjudication_ar": "موافقةُ المالك في الجلسة على قاعدة الاحتفاظ في UWRP Professional v4.3 (سقفُ حجمٍ ثمّ أرشفةٌ معتمدة، لا محوٌ صامت)؛ القرارُ وسببُه في sahool-brain/decisions/ledger.md (2026-10-19).",
+  "gap": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01",
+  "budgets": {
+    "sahool-brain/hot.md": {
+      "max_bytes": 896670,
+      "derivation": "نقطةُ بدء الراتشِت: حجمُ hot.md المقيس عند 2a759d06 (main، 2026-10-19). لا يرتفع؛ تُنزِله الأرشفةُ الأولى في الالتزام التالي."
+    }
+  }
+}
