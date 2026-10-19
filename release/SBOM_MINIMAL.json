@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec17ae8b862adee36910745fb3ff919bc3cd8def2dcc40e7b41da20cdd04ed92"
+          "content": "5cf01c3ea161afc62a59534a8fc14dc5efadbcb5867088f58070dd50fa239717"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -33175,7 +33175,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fbaa188fc13bdf8298ab27cc9a47d47d513f8b5011a5d5dbdb4eeda1c456957"
+          "content": "4f86f37f486e559939fe7f624017eb0e66623585ef233c1d898c93563a032e2e"
+        }
+      ],
+      "name": "shared/storage/gdal_s3_env_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1e6342f6641993b93487e54be8331bae65e54516f539ace8d9320cb871cb4838"
         }
       ],
       "name": "shared/storage/s3_endpoint_security.py",

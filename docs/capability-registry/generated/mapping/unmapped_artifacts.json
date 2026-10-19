@@ -7832,6 +7832,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gdal_s3_env_gate.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_generated_artifact_contract.py",
     "kind": "tests"
   },
