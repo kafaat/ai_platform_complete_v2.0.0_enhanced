@@ -17,6 +17,35 @@ CANONICAL_CRS = "EPSG:4326"
 GEOMETRY_PROCESSING_VERSION = "gis-guard-v2-multipolygon"
 
 
+def field_geometry_error_detail(error: ValueError) -> dict[str, Any]:
+    """Name a measured self-intersection without changing validation or repair.
+
+    Keep the existing machine codes, including MultiPolygon part prefixes.
+    Unknown failures retain the generic message; never infer a cause from a
+    substring of arbitrary exception text.
+    """
+    issues = str(error).split(",")
+    self_intersection = False
+    for issue in issues:
+        prefix, separator, code = issue.partition(":")
+        if issue == "self_intersection" or (
+            separator
+            and prefix.startswith("part_")
+            and prefix[5:].isdigit()
+            and code == "self_intersection"
+        ):
+            self_intersection = True
+    return {
+        "message_ar": (
+            "حدود الحقل تتقاطع مع نفسها — أعد رسم الحدود دون تقاطعات ثم حاول الحفظ مجدداً."
+            if self_intersection
+            else "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة."
+        ),
+        "code": "invalid_field_geometry",
+        "issues": issues,
+    }
+
+
 @dataclass(frozen=True)
 class GuardedGeometry:
     geometry: dict[str, Any]

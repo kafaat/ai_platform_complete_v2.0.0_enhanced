@@ -52,8 +52,8 @@ guard = _load_guard()
 
 # ─── (١) كلُّ خدمةٍ مُصلَحة تنجو من رفضين عند الإقلاع ─────────────────────────
 
-#: الخدمة → (Dockerfile، نوع المدخل، الهدف). ``lifespan`` يُشغّل دورة حياة FastAPI؛
-#: ``coro`` يستدعي دالّة الإقلاع؛ ``file`` يحمّل ملفّاً بمساره ثمّ يستدعي دالّته.
+#: الخدمة → (Dockerfile، نوع المدخل، الهدف[، وسائط]). ``lifespan`` يُشغّل دورة حياة FastAPI؛
+#: ``coro`` يستدعي دالّة الإقلاع بالوسائط إن وُجدت؛ ``file`` يحمّل ملفّاً بمساره ثمّ يستدعي دالّته.
 SERVICES = {
     "sahool-auth": ("services/auth/Dockerfile", "lifespan", "main:app"),
     "sahool-platform": ("services/sahool-platform/Dockerfile", "coro", "api.main:_init_db_pool"),
@@ -80,16 +80,48 @@ SERVICES = {
         "file",
         "workers/canonical_execution_learning_worker.py:run",
     ),
+    # GATE01-ADJ-2026-10-18-002: the five phase runtime workers start through
+    # ``loop_worker(kind)`` exactly as their compose ``command`` does.
+    **{
+        service: (
+            "services/sahool-platform/Dockerfile",
+            "coro",
+            "api.phase_runtime_workers:loop_worker",
+            kind,
+        )
+        for service, kind in (
+            ("sahool-phase-runtime-outbox-worker", "outbox"),
+            ("sahool-plugin-runtime-worker", "plugin"),
+            ("sahool-model-registry-worker", "model"),
+            ("sahool-water-ledger-worker", "water_ledger"),
+            ("sahool-actuator-dispatch-worker", "actuator"),
+        )
+    },
+    "sahool-actuator-service": (
+        "services/actuator-service/Dockerfile",
+        "lifespan",
+        "actuator_runtime:app",
+    ),
 }
 
 _RUNNER = textwrap.dedent(
     """
     import asyncio, importlib, importlib.util, json, sys
 
-    app_dir, kind, target = sys.argv[1], sys.argv[2], sys.argv[3]
+    app_dir, kind, target, extra = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
     sys.path.insert(0, app_dir)
 
     import asyncpg
+
+    try:
+        import aiomqtt  # noqa: F401
+    except ModuleNotFoundError:
+        # The test environment leaves aiomqtt out on purpose (as in
+        # test_compensation_killswitch); the actuator imports it at load time and
+        # only uses it after the database connect, which is what this measures.
+        import types
+
+        sys.modules["aiomqtt"] = types.SimpleNamespace(Client=object)
 
     attempts = 0
 
@@ -123,7 +155,7 @@ _RUNNER = textwrap.dedent(
             async with obj.router.lifespan_context(obj):
                 pass
         else:
-            await obj()
+            await obj(*extra)
 
 
     try:
@@ -177,7 +209,7 @@ def image_root(tmp_path_factory):
 
 
 def _start(service: str, base: Path) -> dict:
-    dockerfile, kind, target = SERVICES[service]
+    dockerfile, kind, target, *extra = SERVICES[service]
     app, pythonpath = _assemble_image(dockerfile, base)
     runner = base / "runner" / "start_service.py"
     runner.parent.mkdir(exist_ok=True)
@@ -205,7 +237,7 @@ def _start(service: str, base: Path) -> dict:
     )
     (base / "heartbeat").mkdir(exist_ok=True)
     proc = subprocess.run(
-        [sys.executable, str(runner), str(app), kind, target],
+        [sys.executable, str(runner), str(app), kind, target, *extra],
         cwd=app,
         env=env,
         capture_output=True,

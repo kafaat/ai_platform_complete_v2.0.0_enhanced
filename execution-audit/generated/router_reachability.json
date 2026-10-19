@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 1132,
+      "line": 1140,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -1216,7 +1216,7 @@
     },
     {
       "kind": "router",
-      "line": 145,
+      "line": 149,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "3aa79308ae9770abf7bd5ab3accf7ba87751649ca1ac9b95a1b1e652aeccc28e",
+  "inventory_sha256": "ca2575c83862ea8be2deed9229ad0f13fba00c999ca999910de97d77cf947aad",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3827,7 +3827,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 145,
+      "line": 149,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
