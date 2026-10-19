@@ -180,8 +180,18 @@ def _load(rel: str, name: str):
 
     path = Path(ROOT).resolve() / rel
     svc = str(path.parent)
-    if svc not in sys.path:
-        sys.path.insert(0, svc)
+    # عدّة خدمات تسمّي وحدتَيها `main` و`routers`؛ فإن سبقتها خدمةٌ أخرى في العامل نفسه
+    # بقيت الغريبة في sys.modules ⇒ ModuleNotFoundError: routers.readings، أو
+    # «module 'main' has no attribute 'SoilReading'» (قيس تحت pytest-xdist). أزِل
+    # الغريبة وضع مسار الخدمة أوّلاً.
+    shared = ("main", "routers")
+    for key in [k for k in sys.modules if any(k == n or k.startswith(n + ".") for n in shared)]:
+        origin = getattr(sys.modules[key], "__file__", None) or ""
+        if not origin.startswith(svc + os.sep):
+            del sys.modules[key]
+    if svc in sys.path:
+        sys.path.remove(svc)
+    sys.path.insert(0, svc)
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

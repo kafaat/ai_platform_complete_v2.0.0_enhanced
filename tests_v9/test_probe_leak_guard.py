@@ -26,7 +26,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.tree_writer]
 
 _ROOT = Path(__file__).resolve().parents[1]
 _GUARD = _ROOT / "scripts" / "ci" / "probe_leak_guard.py"

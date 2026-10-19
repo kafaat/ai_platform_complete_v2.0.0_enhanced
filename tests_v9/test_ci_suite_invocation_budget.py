@@ -17,11 +17,19 @@ The check is deliberately narrow: it counts *suite invocations* per job, where a
 invocation is a pytest command with no explicit test paths (an unmarked-file step that
 names its four paths is not a second run of the suite). A job that legitimately needs two
 different selections will name them.
+
+``UNIT-SUITE-XDIST-SPLIT-01``. The Unit Tests job now runs the suite in two halves: the
+bulk under pytest-xdist (``-m "unit and not tree_writer"``) and, serially after it, the
+handful of tests that rewrite files inside the checkout (``-m "unit and tree_writer"``).
+A quoted expression is one selection, so commands are tokenised with ``shlex``: the old
+whitespace split read ``and`` as a test path and dropped both halves from the count
+without a word.
 """
 
 from __future__ import annotations
 
 import re
+import shlex
 from collections import defaultdict
 from pathlib import Path
 
@@ -33,7 +41,6 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github/workflows"
 
-_MARKER = re.compile(r"(?:^|\s)-m\s+(\S+)")
 # Options whose value is a separate token, so the value must not be read as a test path.
 _TAKES_A_VALUE = {"-m", "-k", "-p", "-n", "-o", "--rootdir", "--junitxml", "--deselect"}
 # `pytest …` or `python -m pytest …` at the start of a command, possibly after `run: >-`.
@@ -69,6 +76,30 @@ def _commands(job: dict) -> list[str]:
     return out
 
 
+def _tokens(command: str) -> list[str]:
+    """The arguments after `pytest`, split the way the shell will split them."""
+    rest = _INVOCATION.sub("", command.lstrip(), count=1)
+    try:
+        return shlex.split(rest)
+    except ValueError:  # an unbalanced quote: fall back rather than hide the command
+        return rest.split()
+
+
+def _marker(command: str) -> str:
+    """The `-m` expression of a pytest command, read after the `python -m pytest` prefix.
+
+    Searching the whole line found the interpreter's own `-m`: `python -m pytest -m unit`
+    reported its marker as `pytest`.
+    """
+    tokens = _tokens(command)
+    for index, token in enumerate(tokens):
+        if token == "-m" and index + 1 < len(tokens):
+            return tokens[index + 1]
+        if token.startswith("-m") and not token.startswith("--") and len(token) > 2:
+            return token[2:]
+    return "<no marker>"
+
+
 def _suite_invocations(commands: list[str]) -> list[str]:
     """pytest calls that select by marker alone — i.e. that run a whole suite.
 
@@ -81,7 +112,7 @@ def _suite_invocations(commands: list[str]) -> list[str]:
         stripped = command.lstrip()
         if stripped.startswith("#") or not _INVOCATION.match(stripped):
             continue
-        tokens = _INVOCATION.sub("", stripped, count=1).split()
+        tokens = _tokens(stripped)
         skip_next = False
         has_path = False
         for token in tokens:
@@ -114,8 +145,7 @@ def test_no_job_runs_the_same_suite_twice():
         invocations = _suite_invocations(_commands(job))
         by_marker: dict[str, list[str]] = defaultdict(list)
         for command in invocations:
-            marker = _MARKER.search(command)
-            by_marker[marker.group(1) if marker else "<no marker>"].append(command)
+            by_marker[_marker(command)].append(command)
         for marker, commands in by_marker.items():
             if len(commands) > 1:
                 offenders[(workflow, job_name)].append(
@@ -201,3 +231,37 @@ def test_no_step_translates_a_pytest_failure_into_a_coverage_diagnosis():
                 "a `||` fallback after a coverage run cannot tell a failed test from a "
                 f"missed floor: {stripped}"
             )
+
+
+def test_a_quoted_marker_expression_is_one_selection_not_a_path():
+    """Measured: the whitespace split read `and` as a path and counted neither half."""
+    split = [
+        'pytest -v -m "unit and not tree_writer" -n auto --cov=services --cov-report=',
+        'pytest -v -m "unit and tree_writer" --cov=services --cov-append --cov-fail-under=43',
+    ]
+    assert _suite_invocations(split) == split
+    assert {_marker(c) for c in split} == {"unit and not tree_writer", "unit and tree_writer"}
+    # The same quoted half twice is still the defect this file exists for.
+    assert len(_suite_invocations([split[0], split[0]])) == 2
+
+
+def test_the_interpreter_flag_is_not_read_as_the_marker():
+    assert _marker("python -m pytest -m unit") == "unit"
+    assert _marker("python3 -m pytest -q") == "<no marker>"
+
+
+def test_a_tree_writer_split_keeps_both_halves_in_the_same_job():
+    """`X and not tree_writer` without `X and tree_writer` silently drops tests.
+
+    The halves are only a partition of `X` together; a job that keeps the parallel half and
+    loses the serial one stays green while running fewer tests than before.
+    """
+    missing = []
+    for workflow, job_name, job in _jobs():
+        markers = {_marker(c) for c in _suite_invocations(_commands(job))}
+        for marker in markers:
+            if marker.endswith(" and not tree_writer"):
+                base = marker[: -len(" and not tree_writer")]
+                if f"{base} and tree_writer" not in markers:
+                    missing.append(f"{workflow}:{job_name}: {marker!r} has no serial half")
+    assert not missing, "\n".join(missing)

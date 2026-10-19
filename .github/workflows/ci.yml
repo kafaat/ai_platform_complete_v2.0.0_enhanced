@@ -920,10 +920,25 @@ jobs:
       # الراتشِت: 20→40 (2026-07) → 42 → 43 (2026-07-28)؛ ارفعها نحو 55 مع نموّ
       # التغطية. UNIT-TEST-DORMANCY-01 وTESTS-UNMARKED-DESELECTED-01 رفعا المقيس إلى
       # ~47% بأمر CI نفسه. راجع docs/testing/coverage_ratchet.md.
-      - name: Unit suite + coverage ratchet (one run — see UNIT-SUITE-RUN-TWICE-01)
+      #
+      # UNIT-SUITE-XDIST-SPLIT-01: الجناح نفسه مرّةً واحدة، مقسوماً نصفين **متتامَّين**
+      # لا مكرَّرين. الأكثريّة تحت pytest-xdist؛ ثمّ ستّة ملفّات `tree_writer` تكتب داخل
+      # الشجرة (بيان الأدلّة · أساس التأكيدات · سجلّ الدماغ · مِسبار الراوترات…) تسلسليّاً
+      # **بعدها**، لأنّ قارئاً موازياً يرى الملفّ في منتصف تعديله: قيس أنّ اختبار حتميّة
+      # البيان يحمرّ حين يُعيد أحدُها كتابةَ ملفٍّ مُتعقَّب أثناء البناء. والتغطية تُجمَع
+      # عبر النصفين (`--cov-append`) فتُقاس الأرضيّة ٤٣ على الجناح كاملاً كما كانت.
+      # والتتامّ مفروض: test_a_tree_writer_split_keeps_both_halves_in_the_same_job.
+      - name: Unit suite — parallel half (all unit tests except tree_writer)
         run: >-
-          pytest -v -m unit
+          pytest -v -m "unit and not tree_writer"
+          -n auto --maxprocesses=4
           --cov=services
+          --cov-report=
+      - name: Unit suite — serial tree_writer half + coverage ratchet over both halves
+        run: >-
+          pytest -v -m "unit and tree_writer"
+          --cov=services
+          --cov-append
           --cov-report=xml
           --cov-report=term
           --cov-fail-under=43
