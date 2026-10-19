@@ -21,6 +21,9 @@ extend-exclude = [
     "*/backups",
     ".git",
     "frontend/dist",
+    # حزم مهارات مورَّدة تُحفظ بايتاً ببايت ويُتحقَّق منها بـSHA256SUMS الخاصّ بها؛
+    # إعادة تنسيقها تكسر بصماتها المنشورة. فحصها: scripts/validate_package.py داخل الحزمة.
+    ".claude/skills",
 ]
 
 [lint]

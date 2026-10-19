@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent-independent UWRP state; evidence claims only, no authority",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_id",
+    "task_kind",
+    "mode",
+    "objective",
+    "verification_status",
+    "sources",
+    "units",
+    "checkpoint",
+    "backup",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "uwrp/state/v3.1"
+    },
+    "example_only": {
+      "type": "boolean"
+    },
+    "work_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_kind": {
+      "enum": [
+        "creative",
+        "research",
+        "document",
+        "code",
+        "operations",
+        "mixed"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "LIGHT",
+        "CHECKPOINTED",
+        "COORDINATED"
+      ]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verification_status": {
+      "enum": [
+        "RECORDED_UNVERIFIED",
+        "VERIFIED_CURRENT",
+        "STALE",
+        "CONFLICT",
+        "BLOCKED"
+      ]
+    },
+    "capability_profile_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "locator"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "string"
+          },
+          "version_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_sha256": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "observed_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "freshness": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "optional_git_context": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "unit_id",
+          "status"
+        ],
+        "properties": {
+          "unit_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "NOT_STARTED",
+              "NOT_RUN",
+              "RECORDED_UNVERIFIED",
+              "VERIFIED_CURRENT",
+              "STALE",
+              "FAILED",
+              "SKIPPED",
+              "INTERRUPTED",
+              "BLOCKED"
+            ]
+          },
+          "input_versions": {
+            "type": "array"
+          },
+          "validity_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "result_sha256": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exit_code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "external_actions": {
+      "type": "array"
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": [
+        "phase",
+        "status"
+      ],
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "NOT_STARTED",
+            "IN_PROGRESS",
+            "PARTIAL",
+            "INTERRUPTED",
+            "BLOCKED",
+            "DONE_RECORDED",
+            "DONE_VERIFIED"
+          ]
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_verified_evidence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "BACKUP_PENDING",
+            "BACKUP_UNAVAILABLE",
+            "BACKUP_FAILED",
+            "BACKUP_VERIFIED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "storage_kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "destination": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "remote_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "verified_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

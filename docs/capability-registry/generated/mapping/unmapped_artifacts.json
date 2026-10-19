@@ -1,5 +1,9 @@
 [
   {
+    "path": ".claude/skills/work-continuation/tests/test_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": "agent-memory/TEST_FACTS.md",
     "kind": "tests"
   },

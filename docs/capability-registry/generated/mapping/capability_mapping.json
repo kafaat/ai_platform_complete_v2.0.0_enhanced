@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6077,
+    "files_scanned": 6099,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1963,
-      "tests": 1981,
+      "other": 1984,
+      "tests": 1982,
       "web": 472
     },
-    "unmapped_artifacts": 2317,
+    "unmapped_artifacts": 2318,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -38861,6 +38861,10 @@
     }
   ],
   "unmapped_artifacts": [
+    {
+      "path": ".claude/skills/work-continuation/tests/test_contracts.py",
+      "kind": "tests"
+    },
     {
       "path": "agent-memory/TEST_FACTS.md",
       "kind": "tests"

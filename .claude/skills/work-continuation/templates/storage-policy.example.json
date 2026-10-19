@@ -1,0 +1,19 @@
+{
+  "schema_version": "uwrp/storage-policy/v3.1",
+  "example_only": true,
+  "authorized_backend": null,
+  "backup_required_for_task": true,
+  "permitted_content": [
+    "sanitized_state",
+    "sanitized_handoff"
+  ],
+  "forbidden_content": [
+    "secrets",
+    "raw_logs",
+    "tokens"
+  ],
+  "retention_days": 7,
+  "quota_megabytes": 10,
+  "readback_required": true,
+  "on_missing_backend": "BACKUP_PENDING_WITH_COPYABLE_HANDOFF"
+}
