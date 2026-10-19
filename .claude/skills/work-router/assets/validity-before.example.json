@@ -1,0 +1,13 @@
+{
+  "base_head": "cccccccccccccccccccccccccccccccccccccccc",
+  "command_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "environment_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "has_volatile_external_inputs": false,
+  "inputs_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "merge_base": "dddddddddddddddddddddddddddddddddddddddd",
+  "requires_environment": true,
+  "requires_git": true,
+  "schema": "uwrp-professional/validity/v1",
+  "source_head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

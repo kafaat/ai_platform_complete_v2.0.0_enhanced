@@ -1,0 +1,128 @@
+{
+  "schema": "uwrp.skill-ab-results.v1",
+  "baseline_skill_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "candidate_skill_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "dataset_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "measurement_origin": "synthetic",
+  "grader": "deterministic",
+  "blind": true,
+  "context": {
+    "agent_family": "example-only",
+    "model": "none",
+    "toolset_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "environment_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "cases": [
+    {
+      "case_id": "CASE-01",
+      "task_digest": "0000000000000000000000000000000000000000000000000000000000000001",
+      "critical": true,
+      "baseline": [
+        {
+          "trial_id": "b0-0",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000000a"
+        },
+        {
+          "trial_id": "b0-1",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000000b"
+        }
+      ],
+      "candidate": [
+        {
+          "trial_id": "c0-0",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000032"
+        },
+        {
+          "trial_id": "c0-1",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000033"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE-02",
+      "task_digest": "0000000000000000000000000000000000000000000000000000000000000002",
+      "critical": false,
+      "baseline": [
+        {
+          "trial_id": "b1-0",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000014"
+        },
+        {
+          "trial_id": "b1-1",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000015"
+        }
+      ],
+      "candidate": [
+        {
+          "trial_id": "c1-0",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000003c"
+        },
+        {
+          "trial_id": "c1-1",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000003d"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE-03",
+      "task_digest": "0000000000000000000000000000000000000000000000000000000000000003",
+      "critical": false,
+      "baseline": [
+        {
+          "trial_id": "b2-0",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000001e"
+        },
+        {
+          "trial_id": "b2-1",
+          "quality": 0.7,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "000000000000000000000000000000000000000000000000000000000000001f"
+        }
+      ],
+      "candidate": [
+        {
+          "trial_id": "c2-0",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000046"
+        },
+        {
+          "trial_id": "c2-1",
+          "quality": 0.8,
+          "cost_units": 10,
+          "safety_violation": false,
+          "evidence_digest": "0000000000000000000000000000000000000000000000000000000000000047"
+        }
+      ]
+    }
+  ]
+}

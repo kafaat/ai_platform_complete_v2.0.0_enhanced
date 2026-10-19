@@ -1,0 +1,13 @@
+{
+  "claim_method": "ATOMIC_CREATE_IF_ABSENT_WHEN_AVAILABLE",
+  "claimed_at": null,
+  "fencing_token": null,
+  "holder": "UNKNOWN",
+  "note": "A git ref alone is not a distributed lease or fencing mechanism.",
+  "release_permitted": false,
+  "remote_backend": null,
+  "resource_id": "EXAMPLE",
+  "schema": "uwrp-professional/coordination-reservation/v1",
+  "scope": "READ_ONLY",
+  "verified_live": false
+}

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6122,
+    "files_scanned": 6184,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2005,
-      "tests": 1984,
+      "other": 2066,
+      "tests": 1985,
       "web": 472
     },
-    "unmapped_artifacts": 2320,
+    "unmapped_artifacts": 2321,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -120,6 +120,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": ".claude/skills/intent-to-proof/assets/decision-record.example.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/platform_module_reachability_guard.py",
           "score": 8,
           "signals": [
@@ -141,7 +148,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -38871,6 +38878,10 @@
     },
     {
       "path": ".claude/skills/work-continuation/tests/test_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": ".claude/skills/work-router/tests/test_pack.py",
       "kind": "tests"
     },
     {

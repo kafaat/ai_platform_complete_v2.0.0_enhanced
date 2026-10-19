@@ -1,0 +1,8 @@
+{
+  "schema": "uwrp.skill-ab-policy.v1",
+  "min_cases": 3,
+  "min_trials_per_arm": 2,
+  "min_mean_gain": 0.02,
+  "max_case_regression": 0.05,
+  "max_mean_cost_increase_ratio": 0.1
+}
