@@ -39,3 +39,20 @@
 ## 9. ruff والحزمة المورَّدة
 
 `ruff.toml` يستثني `.claude/skills` لأنّ إعادة تنسيق الحزمة تكسر بصماتها. فحصها بأداتها: `python3 -I -B .claude/skills/work-continuation/scripts/validate_package.py`، واختباراتها 18 (`tests/test_contracts.py`)، ومطابقتها للمواصفة بـ`agentskills validate` (skills-ref 0.1.1).
+
+## 10. مسرّع الاختبارات (`.claude/skills/adaptive-test-accelerator`، v1.1)
+
+حزمة مورَّدة بايتاً ببايت، كحزمة الاستئناف. تجربة 2026-10-19 على main@`bf0356f01` (الشجرة `de2c2ab2`):
+
+- جرد `pytest -m unit`: 10074 حالة في 890 ملفّاً، مطابق لعدّ pytest.
+- خطّة بوحدتين، قيست بـ`checkpoint_runner.py run` بعد اعتماد بصمة الخطّة `4ba1684f`:
+  - `unit-00`: 282 من 282، في 39.4 ث.
+  - `unit-01`: 284 من 284، في 114.3 ث.
+- إعادة التشغيل نفسه تخطّت الوحدتين في 0.19 ث، و`status` أعطى `PASS_VERIFIED`، والشجرة بقيت نظيفة.
+
+حدود الاستعمال هنا:
+
+- **التشغيل تسلسليّ:** يمنح الاستئناف لا السرعة. أمّا التوازي فيعطّله فشل جمع xdist (§7).
+- **التخطّيات:** JUnit في pytest يعدّ xfail «skipped». لذلك يُشتقّ `max_skipped` لكلّ وحدة من خطّ أساس مقيس، لا يُرفع اعتباطاً.
+- **`--resume-interrupted`:** لا يفحص حياة العمليّة إذا كان مضيف علامة `inflight` مختلفاً. لا يُستعمل بين الحاويات.
+- **نطاق الإيصالات:** `SHARDED_VERIFICATION` لما شُغِّل فقط، لا preflight ولا CI.

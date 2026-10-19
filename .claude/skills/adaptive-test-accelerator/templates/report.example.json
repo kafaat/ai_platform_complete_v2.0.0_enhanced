@@ -1,0 +1,16 @@
+{
+  "schema": "ata/report/v1-example-only",
+  "work_id": "CHANGE_ME",
+  "scope": "QUICK_FEEDBACK|PR_VERIFICATION|RELEASE_ACCEPTANCE",
+  "plan_sha256": "REPLACE_WITH_HASH",
+  "context_sha256": "REPLACE_WITH_HASH",
+  "baseline": {"comparability_verified": false, "wall_seconds": null},
+  "current": {"wall_seconds": null, "tests_collected": null, "tests_executed": null,
+              "passed": null, "failed": null, "errors": null, "skipped": null},
+  "partition": {"inventory_sha256": "REPLACE_WITH_HASH", "missing_test_ids": [], "duplicate_test_ids": [], "coverage_verified": false},
+  "resources": {"peak_rss_bytes": null, "peak_scratch_bytes": null, "min_free_disk_bytes": null},
+  "proof": {"all_receipts_verified": false, "continuous_preflight_proven": false,
+            "mandatory_gates_complete": false, "remote_ci_last_checked_at": null},
+  "limitations": ["Example only; values null until measured"],
+  "next_step": "Verify primary sources, test inventory and policy before claiming completion"
+}
