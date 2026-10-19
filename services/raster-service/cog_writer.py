@@ -65,13 +65,14 @@ def write_cog(
         return {"written": False, "reason": "مصفوفة غير صالحة (متوقَّع مصفوفة ثنائيّة الأبعاد)"}
 
     h, w = array.shape
-    # نكتب قيم NaN كما هي للحفاظ على توافق مسار الإحصاء/الاختبارات، لكن لا نعتمد
-    # على NaN كـnodata tag. نضيف mask داخلياً كي يتعامل GDAL/overviews/tiles مع
-    # خارج الحقل كمنطقة شفافة لا كقيم صالحة قد تُنتج حوافاً أو شرائط.
+    # وحّد التخزين مع nodata: بعض قرّاء WarpedVRT يقدّمون القيمة المعلنة على
+    # القناع الداخلي. NaN/Inf مع tag رقمي كان يُصيَّر معتماً في TiTiler 0.22.4.
+    # القيم العلمية الصالحة ومصفوفة المستدعي لا تتغير؛ التبديل للقيم المفقودة فقط.
     write_array = np.asarray(array, dtype="float32")
-    valid_mask = np.isfinite(write_array)
-    if isinstance(nodata, float) and np.isnan(nodata):
+    if not np.isfinite(nodata):
         nodata = DEFAULT_NODATA
+    valid_mask = np.isfinite(write_array) & (write_array != nodata)
+    write_array = np.where(valid_mask, write_array, nodata).astype("float32")
     profile = {
         **COG_PROFILE,
         "height": h,

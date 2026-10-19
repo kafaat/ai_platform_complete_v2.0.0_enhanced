@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "ed36ca17cc74bf171b2df2f2cccb50042d600ea6b1e965e93b4220d20455bd86"
+      "sha256": "af64e99d18446c3bdad75aa4a914e402f24f4e18003c5c933fc3e5dc1138d5bf"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "f84e23e7bfbba747a945ab851b33fd9a85355cd8d6a19c0f35be5d41a597c608"
+      "sha256": "d22d06bbb2f9c86761140457393bb4a994e3ae6ebc4a48761a2fa38efee581a2"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "93334ac27f756fbba07c2916a4e5e8b12d1b844f3d0ad9d32791611edf3699e0"
+      "sha256": "9f38fccef7db761c3677e220988a2d024efa3c8496434185e097ab179bd70bcd"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "267fb1dd53e97ec8bd6adb15d1331d7cb98202e6bad90009552e4ee407b17cf7",
+    "budget_inventory_sha256": "f21990d162848bf40e049d85b2ea16b2310ad6392499c1bc6c5a5782429fa936",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
     "domain_budget_routes": 629,
     "domain_route_budget": 629,
     "full_ownership_surface": 637,
     "infrastructure_routes": 4,
-    "map_sha256": "ed36ca17cc74bf171b2df2f2cccb50042d600ea6b1e965e93b4220d20455bd86",
-    "ownership_inventory_sha256": "beef657947d5db75efadaefb290ee19bfa9bcfeb3aea93ff0585070d61d626c3",
+    "map_sha256": "af64e99d18446c3bdad75aa4a914e402f24f4e18003c5c933fc3e5dc1138d5bf",
+    "ownership_inventory_sha256": "5f986e9a4b46e4e1ec7dd83ca7fb2db69df54bd4dd3917e720803fbb78b8c779",
     "raw_routes": 633
   },
-  "statement_sha256": "68bdf55374fb43fa744d77cf7a4f5de6ac859aace425d7f229197fbe3288d873"
+  "statement_sha256": "5c029ff216e62c1b850e4c74f3d89c5a5c80ecf3b7e9c90effff2c5567ab2bcf"
 }

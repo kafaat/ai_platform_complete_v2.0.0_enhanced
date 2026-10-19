@@ -10136,6 +10136,28 @@
     ]
   },
   {
+    "path": "shared/gis/cog_display_policy.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 13,
+        "signals": [
+          "path:cog",
+          "content:cog"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "shared/gis/test_cloud_native_runtime.py",
     "kind": "tests",
     "candidates": [

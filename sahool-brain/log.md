@@ -9698,6 +9698,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 2026-10-18 — GITLEAKS-QUALITY-EVIDENCE-DIGEST-FALSE-POSITIVE-01: إنذار push على دمج #1228@a97cba6f يخص بصمة raster_api_models.py التاريخية في دليل quality، لا دليل review. أُعيدت البصمة من 8424b32e وأُضيف استثناء المسار والبصمة معاً لقاعدة generic-api-key فقط. Gitleaks 8.30.1: قبل التصحيح exit2/بلاغ واحد، بعده exit0؛ تغيير المسار أو البصمة يبقى exit2، و8 اختبارات نطاق ناجحة. المصدر: certification/evidence/cropwise_quality_20261018/README.md و.gitleaks.toml. fixed محلياً؛ CI التصحيح غير مقيس بعد، ولا تغيير تطبيق أو نشر.
 
+### 2026-10-19 — قبول عرض COG ونطاقاته وحدود PNG
+
+دفعة مستقلة بطلب المالك بعد إحالة #1231/#1232/#1233 إلى الوكيل الآخر. نطاق ثابت NDVI/NDMI/NDWI/GNDVI، وتصريح rescale للمنتجات الأخرى مع رفض مسمى عند غيابه، والتحقق من ترتيب الحدود، وحد أبعاد PNG. كشف اختبار TiTiler-core 0.22.4/rio-tiler 7.9.6 أن NaN المخزن مع tag رقمي يظهر معتماً؛ وحّد الكاتب تمثيل المفقود دون تعديل القيم العلمية الصالحة أو مصفوفة المستدعي. الدليل `certification/evidence/cog_rendering_20261019/README.md`: 10 حالات حمراء قبل الإصلاح و82 حالة قبول ناجحة، وتصوير فعلي محلي لأربعة COG. لا نشر أو هجرة أو تعديل ملفات مخزنة، ولا إغلاق تشغيلي للـTiTiler القديم. الدمج وCI لاحقان لهذا القيد.
 2026-10-19 — إعادة قياس بنود تدقيق المالك على main@ee690901: HIL-APPROVAL-SANDBOX-UNDOCUMENTED-01 عولج بدليل واختبار HTTP معزول (12 حالة جديدة)، وFIELD-GEOMETRY-REJECTION-HIDES-SELF-INTERSECTION-01 أُعيد إنتاجه في ثلاثة مسارات وأُصلحت رسالة الرفض مع حفظ قبول الهندسة. 125 حالة ناجحة محلياً بلا تخطٍّ. مصدر القياس certification/evidence/owner_audit_remeasure_20261019/README.md. F-GLOBAL-07 والصف الجامع يبقيان open؛ لا تفسير تاريخي مختلق، ولا نشر أو تغيير GATE-01 أو عمل مكرر على Vegetation/RESTART.
 ### 2026-10-18 — تفويض GATE-01 مقيَّد لبقيّة RESTART-POLICY (بلا دمج ولا نشر)
 

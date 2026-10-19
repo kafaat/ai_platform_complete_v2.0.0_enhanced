@@ -1,0 +1,68 @@
+{
+  "scope": "local libraries; not Docker/staging/production",
+  "versions": {
+    "titiler-core": "0.22.4",
+    "rio-tiler": "7.9.6",
+    "rasterio": "1.5.2",
+    "numpy": "2.5.4",
+    "Pillow": "13.0.0"
+  },
+  "policy": {
+    "policy": "scalar-cog-v1",
+    "mode": "scalar",
+    "rescale": "-1,1",
+    "source": "normalized_difference",
+    "units": "dimensionless",
+    "clips_display_only": true
+  },
+  "cases": {
+    "week_a": {
+      "source_sha256": "af2fe2b2159f3c36fbb3080e704f234fef97b70ef8ea081f68b7a408ef637673",
+      "shape": [
+        256,
+        256,
+        4
+      ],
+      "opaque_pixels": 57344,
+      "colors": 254,
+      "source_unchanged": true
+    },
+    "week_b": {
+      "source_sha256": "06b1713c8c478f23e8bddc27b9f290d8e26d0bf0c28643a25c39c0b61b8c7604",
+      "shape": [
+        256,
+        256,
+        4
+      ],
+      "opaque_pixels": 57344,
+      "colors": 254,
+      "source_unchanged": true
+    },
+    "all_nodata": {
+      "source_sha256": "7cc0e6be7d01c05abf5bb79f4932259ac1d0afab6e2ae2d14cea885cd01dbd67",
+      "shape": [
+        256,
+        256,
+        4
+      ],
+      "opaque_pixels": 0,
+      "colors": 1,
+      "source_unchanged": true
+    },
+    "constant": {
+      "source_sha256": "7df3642c9bad5ea22d3cb5d205740170a6b615560e9017f340864c9bad82cec4",
+      "shape": [
+        256,
+        256,
+        4
+      ],
+      "opaque_pixels": 65536,
+      "colors": 1,
+      "source_unchanged": true
+    }
+  },
+  "same_value_same_color": true,
+  "nodata_and_nan_transparent": true,
+  "all_nodata_transparent": true,
+  "scientific_pixels_unchanged": true
+}

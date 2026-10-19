@@ -2026,8 +2026,8 @@
         },
         {
           "expect": "test_layer_tile_endpoint_serves_a_public_cog_through_the_bounded_transport",
-          "find": "            cog_url, z, x, y, base_url=TITILER_URL, colormap=colormap, rescale=rescale",
-          "replace": "            cog_url, z, x, y, base_url=TITILER_URL, rescale=rescale  # mutated: colormap يُسقَط",
+          "find": "            colormap=None if display[\"mode\"] == \"rgba\" else colormap,",
+          "replace": "            colormap=None,  # mutated: requested colormap is dropped",
           "test": "tests_v9/test_connectivity_tile_transport.py",
           "why": "عطلُ وصلٍ صامت: البلاطةُ تُخدَم لكن بلا خريطةِ الألوان المطلوبة. الشاهدُ يقرأ `colormap_name` من طلبِ الخلفيّة الفعليّ."
         }
@@ -2439,15 +2439,15 @@
         },
         {
           "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
-          "find": "    y: int,\n    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),",
-          "replace": "    y: int,\n    user: UserSchema = UserSchema(tenant_id=\"anonymous\"),  # mutated: بلا مصادقة",
+          "find": "    y: int,\n    rescale: str | None = None,\n    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),",
+          "replace": "    y: int,\n    rescale: str | None = None,\n    user: UserSchema = UserSchema(tenant_id=\"anonymous\"),  # mutated: بلا مصادقة",
           "test": "tests_v9/test_connectivity_tile_transport.py",
           "why": "البلاطاتُ تُحمَّل كـ`<img>` بلا ترويسة Authorization، فالإغراءُ قائمٌ لإعفاء هذه النقطة من البوّابة. الشاهدُ يشترط 401 على نداءٍ بلا هُويّة."
         },
         {
           "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
-          "find": "        async with tenant_connection(user) as conn:\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
-          "replace": "        async with tenant_connection(None) as conn:  # mutated: اتّصالٌ غيرُ مُنسَب\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
+          "find": "        async with tenant_connection(user) as conn:\n            row = await conn.fetchrow(\n                \"SELECT cog_url, index_type FROM raster_registry WHERE id::text = $1\", raster_id",
+          "replace": "        async with tenant_connection(None) as conn:  # mutated: اتّصالٌ غيرُ مُنسَب\n            row = await conn.fetchrow(\n                \"SELECT cog_url, index_type FROM raster_registry WHERE id::text = $1\", raster_id",
           "test": "tests_v9/test_connectivity_tile_transport.py",
           "why": "العزلُ هنا ليس في جملة SQL — لا `tenant_id` فيها — بل في **نَسَب الاتّصال** إلى المستخدم المُصادَق؛ فنزعُ الهُويّة من `tenant_connection` ينزع RLS كلَّه. الشاهدُ يشترط 404 لمستأجِرٍ آخر و`transport == []`، أي أنّ بلاطةً لا تُطلَب لسجلٍّ لا يُقرأ."
         }
@@ -3102,8 +3102,8 @@
       "mutations": [
         {
           "expect": "test_record_stac_tilejson_are_db_backed_contracts",
-          "find": "    base = f\"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles\"\n    tiles = [f\"{base}/{{z}}/{{x}}/{{y}}.png\"]",
-          "replace": "    tiles = [f\"{record.cog_url}/{{z}}/{{x}}/{{y}}.png\"]  # mutated: العنوانُ يعبُر",
+          "find": "    base = f\"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles\"",
+          "replace": "    base = record.cog_url  # mutated: source address crosses browser boundary",
           "test": "shared/gis/test_cloud_native_runtime.py",
           "why": "تُعيد العطلَ الأخطر بأثرٍ رجعيّ: عنوانُ COG يعبُر إلى المتصفّح فيصير المصدرُ اختيارَ العميل. الشاهدُ يشترط `rec.cog_url not in str(tilejson)` — أي غيابَ العنوان نفسِه لا مجرّد شكلِ مسارٍ نسبيّ."
         }
@@ -3129,8 +3129,8 @@
         },
         {
           "expect": "test_bad_backend_response_is_not_a_successful_tile",
-          "find": "    if not content.startswith(PNG_SIGNATURE):\n        raise HTTPException(502, \"cog_tile_backend_not_png\")\n    return bytes(content)",
-          "replace": "    return bytes(content)  # mutated: الترويسةُ وحدَها تُصدّق النوع",
+          "find": "    if (\n        len(content) < 33",
+          "replace": "    return  # mutated: trust Content-Type without validating PNG bytes\n    if (\n        len(content) < 33",
           "test": "tests_v9/test_connectivity_tile_transport.py",
           "why": "يبقى فحصُ `content-type` فيبدو النوعُ محروساً — لكنّ الترويسةَ يملكها الطرفُ البعيد. حالةُ الشاهد `(200, b\"not a png\", \"image/png\")` تفصل تصديقَ البايتات عن تصديق الترويسة بالضبط."
         }

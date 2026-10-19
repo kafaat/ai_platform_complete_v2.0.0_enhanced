@@ -145,3 +145,19 @@ def test_cog_writer_actually_writes_internal_mask_and_numeric_nodata():
         # nodata رقميّ لا NaN.
         assert src.nodata == cog_writer.DEFAULT_NODATA == -9999.0, src.nodata
         assert not (src.nodata is None or math.isnan(src.nodata))
+
+
+def test_missing_samples_match_the_declared_nodata_without_mutating_science(tmp_path):
+    source = np.full((32, 32), 0.25, dtype="float32")
+    source[0, :4] = [np.nan, np.inf, -np.inf, -9999.0]
+    original = source.copy()
+    path = str(tmp_path / "missing.tif")
+    result = cog_writer.write_cog(source, path, rasterio.transform.from_origin(44, 16, 0.01, 0.01))
+    assert result["written"] is True
+    with rasterio.open(path) as dataset:
+        stored, mask = dataset.read(1), dataset.read_masks(1)
+        assert np.all(stored[0, :4] == dataset.nodata)
+        assert np.all(mask[0, :4] == 0)
+        assert np.all(stored[1:, :] == original[1:, :])
+        assert np.all(mask[1:, :] == 255)
+    np.testing.assert_array_equal(source, original)

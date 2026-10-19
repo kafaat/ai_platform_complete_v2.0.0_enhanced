@@ -16,6 +16,7 @@ from raster_security_context import (
 )
 from raster_settings import TITILER_URL, TRANSPARENT_PNG, UPLOAD_DIR
 
+from shared.gis.cog_display_policy import display_for_cog
 from shared.gis.cog_tile_proxy import fetch_registered_cog_tile
 
 logger = logging.getLogger("raster-service")
@@ -38,8 +39,15 @@ async def get_tile(
     layer = LAYERS[layer_id]
     cog_url = public_cog_url(layer.get("cog_url") or layer.get("raster_url"))
     if cog_url:
+        display = display_for_cog(layer.get("index"), rescale)
         content = await fetch_registered_cog_tile(
-            cog_url, z, x, y, base_url=TITILER_URL, colormap=colormap, rescale=rescale
+            cog_url,
+            z,
+            x,
+            y,
+            base_url=TITILER_URL,
+            colormap=None if display["mode"] == "rgba" else colormap,
+            rescale=display["rescale"],
         )
         return Response(
             content, media_type="image/png", headers={"Cache-Control": "private, no-store"}
@@ -60,12 +68,14 @@ async def layer_tilejson(
     cog_url = public_cog_url(layer.get("cog_url") or layer.get("raster_url"))
 
     if TITILER_URL and cog_url:
-        options = {"colormap": colormap or "viridis"}
-        if rescale:
-            options["rescale"] = rescale
+        display = display_for_cog(layer.get("index"), rescale)
+        options = {} if display["mode"] == "rgba" else {"colormap": colormap or "viridis"}
+        if display["rescale"] is not None:
+            options["rescale"] = display["rescale"]
         params = urlencode(options)
         return {
             "source": "titiler-dynamic",
+            "display": {**display, "colormap": options.get("colormap")},
             "tilejson": "2.2.0",
             "tiles": [
                 f"/api/raster/v1/tiles/{quote(layer_id, safe='')}/{{z}}/{{x}}/{{y}}.png?{params}"

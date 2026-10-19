@@ -153,11 +153,13 @@ def test_clip_index_bounds_and_grid():
     print(f"(ج) حدود 4326 معقولة: {[round(x, 4) for x in bounds]}")
 
     # ── (أ) بكسلات خارج المضلّع = NaN ────────────────────────────────
-    # نعيد فتح COG المكتوب ونتحقّق أنّ النصف الأيمن NaN والأيسر = 0.5
+    # نقرأ المفقود عبر القناع؛ تخزينه رقمي يطابق nodata، وتمثيله الحسابي NaN.
     cog_path = meta["cog_url"].replace("file://", "")
     assert os.path.exists(cog_path), "COG لم يُكتب"
     with rasterio.open(cog_path) as src:
-        out = src.read(1).astype("float64")
+        masked = src.read(1, masked=True).astype("float64")
+        assert np.all(src.read(1)[np.ma.getmaskarray(masked)] == src.nodata)
+        out = masked.filled(np.nan)
     finite_mask = np.isfinite(out)
     # عمود منتصف الشبكة المقصوصة: يمينه يجب أن يكون كلّه NaN (خارج الحقل)
     n_finite = int(finite_mask.sum())
