@@ -7,7 +7,7 @@ import os
 
 import pytest
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.tree_writer]
 
 _GUARD = os.path.join(
     os.path.dirname(__file__), "..", "scripts", "ci", "no_merge_conflict_markers_guard.py"
