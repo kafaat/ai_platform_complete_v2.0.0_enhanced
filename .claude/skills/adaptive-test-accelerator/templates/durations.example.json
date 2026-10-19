@@ -1,0 +1,9 @@
+{
+  "schema": "ata/durations/v1",
+  "groups": [
+    {"id": "tests/unit_a.py", "seconds": 120, "affinity": "independent-A"},
+    {"id": "tests/unit_b.py", "seconds": 95, "affinity": "independent-B"},
+    {"id": "tests/integration/db_a.py", "seconds": 260, "affinity": "exclusive-database"},
+    {"id": "tests/integration/db_b.py", "seconds": 70, "affinity": "exclusive-database"}
+  ]
+}

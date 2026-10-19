@@ -9731,3 +9731,16 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **تصحيحات بحثيّة واردة من المالك (مصادر خارجيّة لم يُتحقّق منها في هذه الجلسة)، تُقيَّد ملاحظاتٍ لا تغيير حالة:** D14 يمسّ `RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01`: القاعدة الصحيحة أوّل عنوان غير موثوق من اليمين في X-Forwarded-For، لا آخر عنصر. D11 يمسّ `MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01`: البدء بـ`rclone copy` مع مقارنة SHA-256 (`hashsum --download`) قبل أيّ طبقة ترجمة S3. D05 يتّسق مع `COG-NAN-STORAGE-DIVERGES-FROM-NODATA-TAG-01` كما أُصلحت في #1235: `-a_nodata` يعيّن بيانات وصفيّة ولا يغيّر البكسلات المخزَّنة.
 - **مهارة الاستئناف:** حزمة المالك UWRP Portable v3.1 في `.claude/skills/work-continuation/` بايتاً ببايت (SKILL.md `a51e98d7`، الأرشيف `5e9c7895`، SHA256SUMS سليمة، المدقّق PASS، 18 اختباراً، `agentskills validate` صالحة)؛ وحلّت محلّ v3 (الأرشيف `fe704ebb`) التي فُحصت ثمّ استُبدلت قبل الدمج، وطبقة المستودع `docs/runbooks/WORK_CONTINUATION_SAHOOL.md` بوقائع هذه الجلسة، واستثناء `.claude/skills` من ruff حفاظاً على البصمات. حالة التشغيل خارج الشجرة، والنسخة الاحتياطيّة `state.json` و`HANDOFF.md` فقط على فرع orphan `claude/backup-work-state-20261019`.
 - **فرعا النقل** `codex/audit-blob-transfer-20261019` (`cdaba457`) و`codex/cog-blob-transfer-20261019` (`486dba77`) يحملان وظيفة `contents: write` تعمل عند الدفع إليهما؛ حذفهما مُعتمد من المالك لكنّ مُصنِّف الأذونات حجب `git push --delete`، فبقيا.
+
+### 2026-10-19 — مسرّع الاختبارات Adaptive Test Accelerator v1.1: فحص وتجربة على main
+
+حزمة المالك: الأرشيف `d598d94e`، و`SKILL.md` `2f09209d`، و23 من 23 بصمة سليمة، و47 اختباراً ناجحاً، و`agentskills validate` صالحة. قرأتُ ملفّاتها كلّها قبل التشغيل؛ `checkpoint_runner.py` يرفض shell، ويشترط اعتماد بصمة الخطّة، ويجرّد البيئة.
+
+التجربة على main@`bf0356f01`: وحدتان من `pytest -m unit`، 282 و284 حالة، ناجحتان بالعدد المتوقَّع (39.4 ث و114.3 ث). إعادة التشغيل تخطّتهما في 0.19 ث.
+
+الملاحظات:
+- `--resume-interrupted` لا يفحص المضيف الأجنبيّ.
+- قائمة الأوامر الممنوعة قائمة منعٍ قابلة للالتفاف؛ الحماية الحقيقيّة اعتماد البصمة.
+- لا تسريع بلا إصلاح جمع xdist.
+
+النطاق: تحقّق مجزّأ لـ566 من 10074 حالة، لا preflight. لا تغيير حالة فجوة.

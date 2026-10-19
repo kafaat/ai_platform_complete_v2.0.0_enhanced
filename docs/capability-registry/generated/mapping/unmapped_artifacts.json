@@ -1,5 +1,13 @@
 [
   {
+    "path": ".claude/skills/adaptive-test-accelerator/tests/test_accelerator.py",
+    "kind": "tests"
+  },
+  {
+    "path": ".claude/skills/adaptive-test-accelerator/tests/test_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": ".claude/skills/work-continuation/tests/test_contracts.py",
     "kind": "tests"
   },
