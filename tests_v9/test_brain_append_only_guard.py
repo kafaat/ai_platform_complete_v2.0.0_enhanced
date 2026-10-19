@@ -1546,7 +1546,12 @@ def test_the_printed_remedy_of_a_dip_at_the_head(guard, monkeypatch, capsys, jou
     needs a force-push.
     """
     head = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
     ).stdout.strip()
     found = guard.Finding("JOURNAL_SHRANK", journal, "a" * 40, head, "probe")
     monkeypatch.setattr(guard, "check_range", lambda base, head_ref: ([found], [], 1))
