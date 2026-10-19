@@ -1,0 +1,101 @@
+{
+ "schema": "work-state/v1",
+ "work_id": "sahool-pr-stewardship-20261019",
+ "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+ "owner": "kafaat",
+ "main": {
+  "head": "accbfa7f8e8644d245a43959216eb8eadfc6bb4e",
+  "tree": "76eb284d8ae2b05b4d5ca7dc4fdbcec92b4cc1d8",
+  "verified_at": "2026-10-19T10:23:39Z"
+ },
+ "done_verified": [
+  {
+   "id": "PR-1234",
+   "status": "DONE_VERIFIED",
+   "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
+   "evidence": "merge tree bb59906f == tested 71337af24; Railway all deployments SKIPPED for 2268b4424 (read-only list-deployments)"
+  },
+  {
+   "id": "PR-1236",
+   "status": "CLOSED_SUPERSEDED",
+   "head": "94b5dabf1af74b72b193ed8f3a8931871b9be032",
+   "evidence": "seal blob 85ef2ae5536ec69427e219c7484082c377cbd431 identical on main; comment #issuecomment-6264938333; branch kept"
+  },
+  {
+   "id": "PR-1235",
+   "status": "DONE_VERIFIED",
+   "merge_sha": "accbfa7f8e8644d245a43959216eb8eadfc6bb4e",
+   "tested_head": "aece4ea576d2ea5838e4a416c90b40375a7d7c75",
+   "tree": "76eb284d8ae2b05b4d5ca7dc4fdbcec92b4cc1d8",
+   "evidence": "85 checks on aece4ea57: 83 success, 2 skipped, 0 failed; squash tree == tested tree; standard preflight 0/0 on 735645630 (logs/preflight-standard-1235-735645630.log)"
+  },
+  {
+   "id": "GATE01-ADJ-2026-10-18-002",
+   "status": "DONE_VERIFIED",
+   "evidence": "CONSUMED on main via #1235; gate01_frozen_path_guard_ok"
+  }
+ ],
+ "in_progress": [
+  {
+   "id": "PR-1237",
+   "status": "WAITING_CI",
+   "branch": "claude/brain-et0-merged-followup",
+   "head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
+   "what": "brain-only note: hot.md +1 (prepend), log.md +4 (append); ET0 merged as 503d7d7c (#1218)",
+   "done": "merged main accbfa7f8 into branch (ff push ce3b7f869..8bbef1f00) to clear gate01 (only red check on ce3b7f869, 1 of 66); fast preflight 0/0; RLM counts hot 10 log 42 ledger 1 registry 72; hot prepend-only True",
+   "next": "when CI green on 8bbef1f00 → ask owner for explicit merge approval on that head; merge squash with expectedHeadSha; verify tree; unsubscribe"
+  }
+ ],
+ "awaiting_owner": [
+  {
+   "id": "delete-transfer-branches",
+   "what": "codex/audit-blob-transfer-20261019 (cdaba457) and codex/cog-blob-transfer-20261019 (486dba77): each has a job with contents: write triggered on push to itself; purpose served",
+   "recommendation": "delete both",
+   "do_not": "delete without explicit approval"
+  },
+  {
+   "id": "research-notes-pr",
+   "what": "small brain PR annotating gap rows with research corrections D14 (RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01), D11 (MINIO-*), D05 (COG gaps); no status changes",
+   "external_claims_verified": false
+  },
+  {
+   "id": "railway-check-accbfa7f8",
+   "what": "read-only list-deployments for accbfa7f8 not yet done"
+  }
+ ],
+ "findings": [
+  "pytest -m unit -n auto fails at collection: 'Different tests were collected between gw1 and gw0' — xdist needs deterministic collection first",
+  "scripts/ci/preflight.sh lock is per-worktree ($(git rev-parse --git-dir)/preflight.lock) — concurrent preflights in different worktrees are not blocked; use .work-state/bin/run_locked.sh (lock in git common dir)",
+  "serial C-locale unit: 10014 passed, 35 skipped in 21m12s (logs/unit-Clocale-seal002-94b5dabf1.log)"
+ ],
+ "constraints": [
+  "every real merge needs separate explicit owner approval on the final head; never merge before current-head CI is green",
+  "no force-push on shared branches; pushes to claude/* (+ approved exceptions)",
+  "incident freeze: no migrator rerun, no migrations rollback, no SAHOOL_MIGRATE_APPLY=1, no Railway Agent config changes, no deleting deployments/volumes/backups; Railway read-only",
+  "never use credentials pasted in chat; never list-variables",
+  "brain: log/ledger append-only, hot prepend-only, registry never shrinks; U+200F counts registry 72 / log 42 / ledger 1 / hot 10",
+  "never run two preflights concurrently"
+ ],
+ "worktrees": {
+  "/home/user/wt1235": "fix/1237-sync @ 8bbef1f00 (pushed)"
+ },
+ "backup": {
+  "status": "DONE_VERIFIED",
+  "branch": "claude/backup-work-state-20261019",
+  "commit": "856d0155c99aea0d4cf40c005d3941d2a2b04697",
+  "tree": "cedd2f6665a7fd3ea79fe841b6a01e1132893809",
+  "verified": "remote ref == pushed commit"
+ },
+ "updated": "2026-10-19T10:37:21Z",
+ "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
+ "protocol": {
+  "version": "v2",
+  "aligned": [
+   "state outside repo tree (moved from repo/.work-state)",
+   "backup = state.json + HANDOFF.md only",
+   "shard validity key = head+tree+env+command_digest; base_head/merge_base recorded",
+   "disk budget check before each shard (min 1024 MB)"
+  ],
+  "state_trust": "RECORDED_UNVERIFIED until re-checked"
+ }
+}
