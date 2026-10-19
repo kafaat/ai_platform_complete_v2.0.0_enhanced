@@ -79,15 +79,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "da01169e32f90938dc247bc6a01aad39748c342d",
-  "tree": "ed10db6ef41578cfcdfbf252998ae6a54808d50d",
+  "commit": "fc32cb1d1d8f267a0868bccf0a153d064847faaf",
+  "tree": "4737d3f129da3a12d9185529f74cb0d245cec656",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-19T12:43:18Z",
+ "updated": "2026-10-19T13:03:34Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
@@ -134,5 +134,32 @@
   "tested_head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
   "ci": "66: 64 success, 2 skipped, 0 failed",
   "authorization": "owner: قوم بعمل ماهو صحيح و مناسب فأنت مفوض"
+ },
+ "ata_v1_1_trial": {
+  "package": {
+   "zip_sha256": "d598d94e4815fdf7fc9aebe073235f65eeabfc16a7e84bfd0abed5c4b0b2b130",
+   "skill_sha256": "2f09209d061a9a609becc5b350ba7e16769064d34d8e973f876b0b8876792a33",
+   "sums": "23/23 OK",
+   "tests": "47 OK (4.6s)",
+   "agentskills_validate": "valid"
+  },
+  "trial": {
+   "source_head": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
+   "tree": "de2c2ab2f2faae7d6ca8aaf893446b6328609b7f",
+   "inventory": "10074 unit tests / 890 files",
+   "plan_sha256": "4ba1684fe4b314baf5141bf64c30f79a6ae35132a51bf3129ab43e30e5138d11",
+   "units": {
+    "unit-00": "PASS 282/282 39.4s",
+    "unit-01": "PASS 284/284 114.3s"
+   },
+   "resume": "second run SKIP both in 0.19s; status PASS_VERIFIED x2",
+   "scope": "SHARDED_VERIFICATION of 566/10074 tests only; not a preflight"
+  },
+  "findings": [
+   "--resume-interrupted does not check liveness when inflight host differs (proceeds)",
+   "EXTERNAL_MUTATORS is a denylist (python -c bypasses); plan-SHA approval is the real control",
+   "sequential runner gives resume, not speed; xdist collection mismatch in SAHOOL blocks parallel speedup",
+   "pytest JUnit reports xfail as skipped; per-unit max_skipped must come from a measured baseline"
+  ]
  }
 }
