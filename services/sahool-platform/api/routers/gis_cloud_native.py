@@ -27,6 +27,7 @@ from shared.gis.cloud_native_runtime import (
     stac_item_from_record,
     tilejson_for_cog,
 )
+from shared.gis.cog_display_policy import display_for_cog
 from shared.gis.cog_tile_proxy import fetch_registered_cog_tile
 from shared.gis.phase5_runtime import (
     OGC_CONFORMANCE,
@@ -533,6 +534,7 @@ async def mosaicjson(
 @router.get("/rasters/{raster_id}/tilejson.json")
 async def raster_tilejson(
     raster_id: str,
+    rescale: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
@@ -548,7 +550,7 @@ async def raster_tilejson(
             )
         if row is None:
             raise HTTPException(status_code=404, detail="Raster not found")
-        return tilejson_for_cog(record_from_db_row(row))
+        return tilejson_for_cog(record_from_db_row(row), rescale)
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
@@ -561,13 +563,14 @@ async def raster_cog_tile(
     z: int,
     x: int,
     y: int,
+    rescale: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """Resolve the COG under tenant RLS before contacting the internal tile service."""
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
-                "SELECT cog_url FROM raster_registry WHERE id::text = $1", raster_id
+                "SELECT cog_url, index_type FROM raster_registry WHERE id::text = $1", raster_id
             )
     except HTTPException:
         raise
@@ -575,8 +578,15 @@ async def raster_cog_tile(
         raise _db_unavailable("قراءة مصدر بلاطة الراستر", exc) from exc
     if row is None:
         raise HTTPException(404, "Raster not found")
+    display = display_for_cog(row["index_type"], rescale)
     content = await fetch_registered_cog_tile(
-        row["cog_url"], z, x, y, base_url=os.getenv("TITILER_URL", "")
+        row["cog_url"],
+        z,
+        x,
+        y,
+        base_url=os.getenv("TITILER_URL", ""),
+        colormap=None if display["mode"] == "rgba" else "viridis",
+        rescale=display["rescale"],
     )
     return Response(content, media_type="image/png", headers={"Cache-Control": "private, no-store"})
 

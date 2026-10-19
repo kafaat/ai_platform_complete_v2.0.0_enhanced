@@ -1,0 +1,37 @@
+SOURCE services/raster-service/routers/tiles.py
+guard_mutation_guard: 68 حارساً مُواصَفاً (450 طفرة) · 113 ديناً مُعلَناً · 132 مصدراً سلوكيّاً (381 طفرة)
+
+زرعٌ وتشغيل فعليّ:
+  ✓ services/raster-service/routers/tiles.py[0] نزعُ الفحص المدعوم بالقاعدة يجعل **ذاكرةً بائتة** كافيةً لخدمة بلاطةِ مستأجِرٍ آخر. وأوّلُ شاهدٍ سمّيتُه نجا من هذه الطفرة لأنّه كان يُخالِف الذاكرةَ أيضاً فيكفيه الفحصُ السريع؛ فعُزِّز الشاهدُ إلى حالة الذاكرة البائتة بدل حذف الطفرة. ⇒ test_a_stale_ownership_cache_does_not_serve_another_tenants_tile
+  ✓ services/raster-service/routers/tiles.py[1] عطلُ وصلٍ صامت: البلاطةُ تُخدَم لكن بلا خريطةِ الألوان المطلوبة. الشاهدُ يقرأ `colormap_name` من طلبِ الخلفيّة الفعليّ. ⇒ test_layer_tile_endpoint_serves_a_public_cog_through_the_bounded_transport
+
+guard_mutation_guard_ok
+EXIT 0
+SOURCE services/sahool-platform/api/routers/gis_cloud_native.py
+guard_mutation_guard: 68 حارساً مُواصَفاً (450 طفرة) · 113 ديناً مُعلَناً · 132 مصدراً سلوكيّاً (381 طفرة)
+
+زرعٌ وتشغيل فعليّ:
+  ✓ services/sahool-platform/api/routers/gis_cloud_native.py[0] Restores the original missing argument: injected DB connection failure must produce 503, not HTTP 500. ⇒ test_gis_database_failures_remain_503
+  ✓ services/sahool-platform/api/routers/gis_cloud_native.py[1] البلاطاتُ تُحمَّل كـ`<img>` بلا ترويسة Authorization، فالإغراءُ قائمٌ لإعفاء هذه النقطة من البوّابة. الشاهدُ يشترط 401 على نداءٍ بلا هُويّة. ⇒ test_registry_tile_route_authorizes_before_contacting_backend
+  ✓ services/sahool-platform/api/routers/gis_cloud_native.py[2] العزلُ هنا ليس في جملة SQL — لا `tenant_id` فيها — بل في **نَسَب الاتّصال** إلى المستخدم المُصادَق؛ فنزعُ الهُويّة من `tenant_connection` ينزع RLS كلَّه. الشاهدُ يشترط 404 لمستأجِرٍ آخر و`transport == []`، أي أنّ بلاطةً لا تُطلَب لسجلٍّ لا يُقرأ. ⇒ test_registry_tile_route_authorizes_before_contacting_backend
+
+guard_mutation_guard_ok
+EXIT 0
+SOURCE shared/gis/cloud_native_runtime.py
+guard_mutation_guard: 68 حارساً مُواصَفاً (450 طفرة) · 113 ديناً مُعلَناً · 132 مصدراً سلوكيّاً (381 طفرة)
+
+زرعٌ وتشغيل فعليّ:
+  ✓ shared/gis/cloud_native_runtime.py[0] تُعيد العطلَ الأخطر بأثرٍ رجعيّ: عنوانُ COG يعبُر إلى المتصفّح فيصير المصدرُ اختيارَ العميل. الشاهدُ يشترط `rec.cog_url not in str(tilejson)` — أي غيابَ العنوان نفسِه لا مجرّد شكلِ مسارٍ نسبيّ. ⇒ test_record_stac_tilejson_are_db_backed_contracts
+
+guard_mutation_guard_ok
+EXIT 0
+SOURCE shared/gis/cog_tile_proxy.py
+guard_mutation_guard: 68 حارساً مُواصَفاً (450 طفرة) · 113 ديناً مُعلَناً · 132 مصدراً سلوكيّاً (381 طفرة)
+
+زرعٌ وتشغيل فعليّ:
+  ✓ shared/gis/cog_tile_proxy.py[0] بلا القائمة يصير الناقلُ وكيلاً مفتوحاً (SSRF): أيُّ مضيفٍ يُقرأ من داخل الشبكة. والشاهدُ يشترط الرفضَ **قبل** أيّ نداءٍ شبكيّ (`requests == []`)، فلا يمرّ على رفضٍ متأخّرٍ بعد أن وقع الاتّصال. ⇒ test_untrusted_source_is_rejected_before_transport
+  ✓ shared/gis/cog_tile_proxy.py[1] السقفُ يُقاس **أثناء** البثّ لا بعده؛ نزعُه يجعل حجمَ الاستجابة قرارَ الخادم البعيد. حالةُ الشاهد تبدأ ببصمة PNG صحيحة وتتجاوز السقف، فلا يلتقطها فحصُ النوع. ⇒ test_bad_backend_response_is_not_a_successful_tile
+  ✓ shared/gis/cog_tile_proxy.py[2] يبقى فحصُ `content-type` فيبدو النوعُ محروساً — لكنّ الترويسةَ يملكها الطرفُ البعيد. حالةُ الشاهد `(200, b"not a png", "image/png")` تفصل تصديقَ البايتات عن تصديق الترويسة بالضبط. ⇒ test_bad_backend_response_is_not_a_successful_tile
+
+guard_mutation_guard_ok
+EXIT 0

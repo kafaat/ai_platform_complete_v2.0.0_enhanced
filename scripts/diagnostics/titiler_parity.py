@@ -42,12 +42,18 @@ class Case:
 def request_matrix(rescale: str) -> list[Case]:
     """Every case names the SAHOOL caller it stands for, or says it has none."""
     return [
-        Case("tile", SAHOOL_TILE_PATH, "png", "sahool-platform gis_cloud_native (no colormap)"),
+        Case(
+            "tile",
+            SAHOOL_TILE_PATH,
+            "png",
+            "sahool-platform gis_cloud_native (declared display range)",
+            {"colormap_name": "viridis", "rescale": rescale},
+        ),
         Case(
             "tile_viridis",
             SAHOOL_TILE_PATH,
             "png",
-            "raster-service routers/tiles.py (default colormap)",
+            "historical regression only: viridis without a range; no current scalar caller",
             {"colormap_name": "viridis"},
         ),
         Case(
@@ -68,7 +74,7 @@ def request_matrix(rescale: str) -> list[Case]:
             "tile_outside_bounds",
             SAHOOL_TILE_PATH,
             "png",
-            "any caller panning off the raster",
+            "operator diagnostic: outside raster without a display override",
             tile="outside",
         ),
         Case("healthz", "/healthz", "status", "compose healthchecks (status only)", tile="none"),
