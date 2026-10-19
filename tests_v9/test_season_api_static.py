@@ -165,7 +165,9 @@ def test_missing_keys_fail_closed_when_s3_enabled(monkeypatch):
     blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_BUCKET", "b")
-    monkeypatch.setattr(blob_store, "S3_ENDPOINT", "http://minio:9000")
+    # HTTPS endpoint is valid; reach the missing-credentials branch deliberately.
+    monkeypatch.setattr(blob_store, "S3_ENDPOINT", "https://objects.example.test:9000")
+    monkeypatch.setattr(blob_store, "S3_USE_SSL", "true")
     monkeypatch.delenv("S3_ACCESS_KEY", raising=False)
     monkeypatch.delenv("S3_SECRET_KEY", raising=False)
     with pytest.raises(blob_store.BlobStoreError, match="ACCESS_KEY|SECRET_KEY"):
@@ -183,14 +185,15 @@ def test_bucket_without_endpoint_is_broken_not_dev(monkeypatch):
 
 
 def test_endpoint_scheme_from_ssl_flag_no_silent_http(monkeypatch):
-    """②: المخطّط من S3_USE_SSL صراحةً — لا استنتاج صامت من الـendpoint."""
+    """②: HTTPS succeeds, but a false SSL flag must never allow external HTTP."""
     blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_ENDPOINT", "minio.example.com:9000")
     monkeypatch.setattr(blob_store, "S3_USE_SSL", "true")
     assert blob_store._endpoint_url() == "https://minio.example.com:9000"
     monkeypatch.setattr(blob_store, "S3_USE_SSL", "false")
-    assert blob_store._endpoint_url() == "http://minio.example.com:9000"
+    with pytest.raises(blob_store.BlobStoreError, match="plaintext_external_forbidden"):
+        blob_store._endpoint_url()
 
 
 # ── ③ برهان ترتيبيّ ضدّ الارتداد: تصادم اسم الحزمة shared لا يكسر تحميل blob_store ──

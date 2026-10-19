@@ -44,7 +44,10 @@ logger = logging.getLogger("shared.storage.blob_store")
 # S3_* is the platform-wide convention, not raster's private keys).
 S3_BUCKET = os.getenv("S3_BUCKET", "")
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "")
-S3_USE_SSL = os.getenv("S3_USE_SSL", "false")
+S3_USE_SSL = os.getenv("S3_USE_SSL")
+S3_REGION = os.getenv("S3_REGION", "us-east-1")
+S3_ALLOW_PLAINTEXT_INTERNAL = os.getenv("S3_ALLOW_PLAINTEXT_INTERNAL", "false")
+S3_ALLOW_PLAINTEXT_LOOPBACK = os.getenv("S3_ALLOW_PLAINTEXT_LOOPBACK", "false")
 # Explicit degradation gate (mirrors object_store): when S3 is configured but a real
 # upload can't happen (missing keys / put failure), fail-closed by default; only degrade
 # to file:// with a HIGH warning when S3_ALLOW_FILE_FALLBACK=1 (dev). Never a silent drop.
@@ -52,16 +55,37 @@ S3_ALLOW_FILE_FALLBACK = os.getenv("S3_ALLOW_FILE_FALLBACK", "false")
 # Dev fallback directory (marked file:// refs). Never used when S3 is enabled.
 LOCAL_DIR = os.getenv("LOGBOOK_LOCAL_DIR", "/tmp/sahool-logbooks")
 
-# Hosts treated as in-cluster/local (http acceptable). Anything else + http ⇒ high warn.
-_INTERNAL_HOST_MARKERS = ("sahool-minio", "minio", "localhost", "127.0.0.1", "::1")
-
-
 class BlobStoreError(RuntimeError):
     """Raised on a real (non-dev-fallback) object-store failure — never swallowed."""
 
 
+def _s3_endpoint_decision():
+    # Lazy import preserves path-based loading of blob_store when another service
+    # shadows the top-level "shared" package. Any missing policy module then fails
+    # closed before the S3 client or dev fallback can be reached.
+    from shared.storage.s3_endpoint_security import (
+        EndpointPolicyError,
+        require_path_style_service_root,
+        resolve_configured_s3_endpoint,
+    )
+
+    # Fail before creating a boto3 client, including when file fallback is
+    # explicitly enabled. A malformed endpoint must not silently degrade.
+    try:
+        decision = resolve_configured_s3_endpoint(
+            S3_ENDPOINT,
+            S3_USE_SSL,
+            S3_ALLOW_PLAINTEXT_INTERNAL,
+            S3_ALLOW_PLAINTEXT_LOOPBACK,
+        )
+        require_path_style_service_root(decision, S3_BUCKET)
+        return decision
+    except EndpointPolicyError as exc:
+        raise BlobStoreError(f"unsafe S3 endpoint configuration: {exc}") from exc
+
+
 def _use_ssl() -> bool:
-    return str(S3_USE_SSL).strip().lower() in ("1", "true", "yes", "on")
+    return _s3_endpoint_decision().tls
 
 
 def _allow_file_fallback() -> bool:
@@ -94,24 +118,8 @@ def _require_reachable_config() -> None:
 
 
 def _endpoint_url() -> str:
-    """Full URL with an EXPLICIT scheme from S3_USE_SSL (never a silent http guess)."""
-    ep = S3_ENDPOINT.strip()
-    host = ep
-    for prefix in ("https://", "http://"):
-        if host.startswith(prefix):
-            host = host[len(prefix) :]
-            break
-    host = host.rstrip("/")
-    scheme = "https" if _use_ssl() else "http"
-    # Condition ②: external host over plaintext http ⇒ attachments/creds travel exposed.
-    external = not any(m in host for m in _INTERNAL_HOST_MARKERS)
-    if scheme == "http" and external:
-        logger.warning(
-            "blob_store: S3_ENDPOINT '%s' is an EXTERNAL host over plaintext http — "
-            "logbook bytes and credentials travel unencrypted; set S3_USE_SSL=true",
-            host,
-        )
-    return f"{scheme}://{host}"
+    """Preserve explicit HTTPS; reject scheme/flag mismatch and unsafe HTTP."""
+    return _s3_endpoint_decision().endpoint_url
 
 
 def _local_path_for(key: str) -> str:
@@ -130,13 +138,19 @@ def _s3_client():
         )
     try:
         import boto3  # lazy — only the S3 branch needs it
-    except ImportError as exc:  # boto3 must be present when S3 is configured
-        raise BlobStoreError("S3 configured but boto3 is not installed") from exc
+        from botocore.config import Config
+    except ImportError as exc:  # both are needed for explicit SigV4/path-style
+        raise BlobStoreError("S3 configured but boto3/botocore is not installed") from exc
+    # Match the raster COG adapter and GDAL /vsis3/: bucket is exactly one
+    # URI path component, never an implicit virtual-host subdomain.
+    # S3_ENDPOINT MUST be a service root, not a bucket-prefixed host or path.
     return boto3.client(
         "s3",
         endpoint_url=_endpoint_url(),
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        region_name=S3_REGION,
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
     )
 
 
@@ -147,6 +161,7 @@ def upload_bytes(key: str, data: bytes, content_type: str) -> str:
     """
     _require_reachable_config()  # ①: bucket-without-endpoint is broken, not dev
     if s3_enabled():
+        _s3_endpoint_decision()  # config failures must not trigger dev file:// fallback
         try:
             client = _s3_client()  # raises on missing keys (fail-closed)
             client.put_object(Bucket=S3_BUCKET, Key=key, Body=data, ContentType=content_type)
