@@ -10,13 +10,47 @@ from __future__ import annotations
 
 import os
 import re
+import struct
+import zlib
 from urllib.parse import urlsplit
 
 import httpx
 from fastapi import HTTPException
 
+from shared.gis.cog_display_policy import validate_rescale
+
 MAX_TILE_BYTES = 2 * 1024 * 1024
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+MAX_TILE_EDGE = 1024
+
+
+def _validate_png_header(content: bytes | bytearray) -> None:
+    """Bound the advertised pixel buffer without decompressing an upstream PNG.
+
+    A 1024-square RGBA16 image is at most 8 MiB of sample data. This is
+    header validation, not a complete PNG decoder or a bound on TiTiler's
+    upstream COG reads. The request uses the ordinary 256-pixel tile endpoint.
+    """
+    if (
+        len(content) < 33
+        or content[:8] != PNG_SIGNATURE
+        or content[8:16] != b"\x00\x00\x00\x0dIHDR"
+    ):
+        raise HTTPException(502, "cog_tile_backend_not_png")
+    width, height, depth, color, compression, filtering, interlace = struct.unpack(
+        ">IIBBBBB", content[16:29]
+    )
+    depths = {0: {1, 2, 4, 8, 16}, 2: {8, 16}, 3: {1, 2, 4, 8}, 4: {8, 16}, 6: {8, 16}}
+    if (
+        depth not in depths.get(color, set())
+        or compression != 0
+        or filtering != 0
+        or interlace not in {0, 1}
+        or zlib.crc32(content[12:29]) != struct.unpack(">I", content[29:33])[0]
+    ):
+        raise HTTPException(502, "cog_tile_backend_not_png")
+    if not (0 < width <= MAX_TILE_EDGE and 0 < height <= MAX_TILE_EDGE):
+        raise HTTPException(502, "cog_tile_backend_invalid_dimensions")
 
 
 async def fetch_registered_cog_tile(
@@ -70,9 +104,7 @@ async def fetch_registered_cog_tile(
             raise HTTPException(422, "invalid_tile_colormap")
         params["colormap_name"] = colormap
     if rescale is not None:
-        if not re.fullmatch(r"-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?", rescale):
-            raise HTTPException(422, "invalid_tile_rescale")
-        params["rescale"] = rescale
+        params["rescale"] = validate_rescale(rescale)
     url = f"{base_url.rstrip('/')}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png"
     try:
         async with httpx.AsyncClient(
@@ -84,12 +116,16 @@ async def fetch_registered_cog_tile(
                 if response.headers.get("content-type", "").split(";", 1)[0] != "image/png":
                     raise HTTPException(502, "cog_tile_backend_not_png")
                 content = bytearray()
+                header_checked = False
                 async for chunk in response.aiter_bytes():
                     content.extend(chunk)
                     if len(content) > MAX_TILE_BYTES:
                         raise HTTPException(502, "cog_tile_backend_response_too_large")
+                    if len(content) >= 33 and not header_checked:
+                        _validate_png_header(content)
+                        header_checked = True
     except httpx.HTTPError:
         raise HTTPException(502, "cog_tile_backend_unavailable") from None
-    if not content.startswith(PNG_SIGNATURE):
-        raise HTTPException(502, "cog_tile_backend_not_png")
+    if not header_checked:
+        _validate_png_header(content)
     return bytes(content)

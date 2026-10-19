@@ -259,6 +259,8 @@ def test_registry_tile_route_authorizes_before_contacting_backend(monkeypatch, t
     assert response.content == PNG
     assert response.headers["cache-control"] == "private, no-store"
     assert len(transport[0]) == 1
+    assert transport[0][0].url.params["rescale"] == "-1,1"
+    assert transport[0][0].url.params["colormap_name"] == "viridis"
 
 
 def _load_public_cog_url(monkeypatch):
@@ -409,6 +411,7 @@ def test_layer_tile_endpoint_serves_a_public_cog_through_the_bounded_transport(
     requests, _ = transport
     layers["layer-1"] = {
         "tenant_id": "tenant-a",
+        "index": "ndvi",
         "cog_url": "https://cogs.example.test/a.tif",
     }
 
@@ -604,3 +607,199 @@ def test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed()
     ]
     assert len(verify) == 1
     assert _directives(verify[0].get("block") or [], "internal")
+
+
+@pytest.mark.parametrize(
+    "rescale",
+    ["1,1", "2,1", "-1,-2", "9" * 400 + ",10"],
+    ids=["equal", "reverse", "negative_reverse", "overflow"],
+)
+async def test_rescale_requires_finite_increasing_bounds_before_transport(rescale, transport):
+    with pytest.raises(HTTPException) as caught:
+        await cog_tile_proxy.fetch_registered_cog_tile(
+            "https://cogs.example.test/a.tif",
+            2,
+            1,
+            1,
+            base_url="http://tiler:8088",
+            rescale=rescale,
+        )
+    assert caught.value.status_code == 422
+    assert caught.value.detail == "invalid_tile_rescale"
+    assert not transport[0]
+
+
+@pytest.mark.parametrize("width,height", [(65536, 65536), (0, 256), (1025, 1)])
+async def test_png_header_cannot_hide_unbounded_pixel_dimensions(width, height, transport):
+    import zlib
+
+    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    content = (
+        cog_tile_proxy.PNG_SIGNATURE
+        + struct.pack(">I", 13)
+        + b"IHDR"
+        + header
+        + struct.pack(">I", zlib.crc32(b"IHDR" + header))
+        + PNG[33:]
+    )
+    transport[1](content=content)
+    with pytest.raises(HTTPException) as caught:
+        await cog_tile_proxy.fetch_registered_cog_tile(
+            "https://cogs.example.test/a.tif",
+            2,
+            1,
+            1,
+            base_url="http://tiler:8088",
+        )
+    assert caught.value.status_code == 502
+    assert caught.value.detail == "cog_tile_backend_invalid_dimensions"
+
+
+def _layer_tile_router(monkeypatch):
+    """Real layer routes with only registry identity/auth/environment adapters replaced."""
+    layers = {
+        "ndvi-1": {"index": "ndvi", "cog_url": "https://cogs.example.test/a.tif"},
+        "other-1": {"index": "unknown", "cog_url": "https://cogs.example.test/b.tif"},
+    }
+    state = types.ModuleType("raster_runtime_state")
+    state.LAYERS = layers
+    security = types.ModuleType("raster_security_context")
+    security.public_cog_url = lambda value: value
+    security.require_layer_tenant = lambda *args, **kwargs: None
+
+    async def authorize(layer_id, **kwargs):
+        if layer_id == "other-tenant":
+            raise HTTPException(403, "tenant_mismatch")
+
+    security.require_layer_tenant_authorized = authorize
+    settings = types.ModuleType("raster_settings")
+    settings.TITILER_URL = "http://tiler:8088"
+    settings.TRANSPARENT_PNG = PNG
+    settings.UPLOAD_DIR = "/nonexistent-cog-test-data"
+    for mod in (state, security, settings):
+        monkeypatch.setitem(sys.modules, mod.__name__, mod)
+    spec = importlib.util.spec_from_file_location(
+        "cog_policy_layer_router", ROOT / "services/raster-service/routers/tiles.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    app = FastAPI()
+    app.include_router(module.router)
+    return TestClient(app), layers
+
+
+def test_ndvi_default_display_range_is_stable_in_tilejson_and_transport(monkeypatch, transport):
+    client, layers = _layer_tile_router(monkeypatch)
+    template = client.get("/v1/layers/ndvi-1/tilejson")
+    assert template.status_code == 200
+    assert template.json()["display"]["rescale"] == "-1,1"
+    for coordinates in ("2/1/1", "2/2/1"):
+        response = client.get(f"/v1/tiles/ndvi-1/{coordinates}.png")
+        assert response.status_code == 200
+    assert [r.url.params.get("rescale") for r in transport[0]] == ["-1,1", "-1,1"]
+    assert layers["ndvi-1"] == {"index": "ndvi", "cog_url": "https://cogs.example.test/a.tif"}
+
+
+def test_undefined_display_range_rejects_only_that_layer(monkeypatch, transport):
+    client, _ = _layer_tile_router(monkeypatch)
+    for route in ("/v1/layers/other-1/tilejson", "/v1/tiles/other-1/2/1/1.png"):
+        response = client.get(route)
+        assert response.status_code == 422
+        assert response.json()["detail"] == "tile_display_range_required"
+    assert not transport[0]
+    assert client.get("/v1/tiles/ndvi-1/2/1/1.png").status_code == 200
+
+
+def test_display_policy_never_precedes_tenant_authorization(monkeypatch, transport):
+    client, _ = _layer_tile_router(monkeypatch)
+    response = client.get("/v1/tiles/other-tenant/2/1/1.png")
+    assert response.status_code == 403
+    assert not transport[0]
+
+
+@pytest.mark.parametrize("index", ["ndvi", "NDMI", "ndwi", "gndvi"])
+def test_normalized_difference_defaults_are_dataset_independent(index):
+    from shared.gis.cog_display_policy import display_for_cog
+
+    result = display_for_cog(index)
+    assert result["rescale"] == "-1,1"
+    assert result["units"] == "dimensionless"
+    assert result["clips_display_only"] is True
+
+
+@pytest.mark.parametrize("index", ["msi", "evi", "temperature", "classes", None])
+def test_non_normalized_products_require_declared_range(index):
+    from shared.gis.cog_display_policy import display_for_cog
+
+    with pytest.raises(HTTPException, match="tile_display_range_required"):
+        display_for_cog(index)
+    result = display_for_cog(index, "0,10")
+    assert result["rescale"] == "0,10"
+    assert result["source"] == "explicit_request"
+    assert result["units"] is None
+
+
+def test_explicit_range_is_advertised_and_reaches_transport(monkeypatch, transport):
+    client, _ = _layer_tile_router(monkeypatch)
+    response = client.get("/v1/layers/other-1/tilejson?rescale=0,5")
+    assert response.status_code == 200
+    assert response.json()["display"]["source"] == "explicit_request"
+    assert "rescale=0%2C5" in response.json()["tiles"][0]
+    assert client.get("/v1/tiles/other-1/2/1/1.png?rescale=0,5").status_code == 200
+    assert transport[0][-1].url.params["rescale"] == "0,5"
+
+
+@pytest.mark.parametrize("content", [PNG[:8], PNG[:32], PNG[:29] + b"bad!" + PNG[33:]])
+async def test_incomplete_or_corrupt_png_header_fails_closed(content, transport):
+    transport[1](content=content)
+    with pytest.raises(HTTPException) as caught:
+        await cog_tile_proxy.fetch_registered_cog_tile(
+            "https://cogs.example.test/a.tif", 2, 1, 1, base_url="http://tiler:8088"
+        )
+    assert caught.value.detail == "cog_tile_backend_not_png"
+
+
+async def test_large_valid_png_within_pixel_budget_is_preserved(transport):
+    from io import BytesIO
+
+    from PIL import Image
+
+    output = BytesIO()
+    Image.new("RGBA", (1024, 1024), (32, 64, 96, 128)).save(output, format="PNG")
+    content = output.getvalue()
+    transport[1](content=content)
+    actual = await cog_tile_proxy.fetch_registered_cog_tile(
+        "https://cogs.example.test/a.tif", 2, 1, 1, base_url="http://tiler:8088"
+    )
+    assert actual == content
+    with Image.open(BytesIO(actual)) as image:
+        assert image.getpixel((1023, 1023)) == (32, 64, 96, 128)
+
+
+def test_truecolor_keeps_encoded_channels_without_scalar_defaults(monkeypatch, transport):
+    client, layers = _layer_tile_router(monkeypatch)
+    layers["photo"] = {"index": "truecolor", "cog_url": "https://cogs.example.test/photo.tif"}
+    advertised = client.get("/v1/layers/photo/tilejson")
+    assert advertised.status_code == 200
+    assert advertised.json()["display"]["mode"] == "rgba"
+    assert advertised.json()["display"]["colormap"] is None
+    assert client.get("/v1/tiles/photo/2/1/1.png").status_code == 200
+    assert "colormap_name" not in transport[0][0].url.params
+    assert "rescale" not in transport[0][0].url.params
+
+
+def test_registry_truecolor_template_preserves_raw_display_contract():
+    from shared.gis.cloud_native_runtime import RasterRegistryRecord, tilejson_for_cog
+
+    record = RasterRegistryRecord(
+        id="photo",
+        tenant_id="a",
+        field_id="f",
+        product_date="2026-10-19",
+        index_type="truecolor",
+        cog_url="https://cogs.example.test/photo.tif",
+    )
+    result = tilejson_for_cog(record)
+    assert result["display"]["rescale"] is None
+    assert result["display"]["colormap"] is None
+    assert "?" not in result["tiles"][0]

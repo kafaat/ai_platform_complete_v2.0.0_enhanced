@@ -3,11 +3,11 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-10-18-002",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-10-18",
   "expires_on": "2026-11-17",
-  "pr": null,
+  "pr": 1234,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -47,6 +47,18 @@
     "record_authored_by": "agent-for-current-user-instruction",
     "independently_signed": false,
     "guard_binds": "bytes_only",
-    "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ. الحارسُ يربط البايتاتِ المحدّدة فقط، و`pr` فارغٌ (`null`) لأنّ الـPR لم تُفتَح بعد عند الإصدار — لا رقمَ يُخمَّن؛ يُملأ ويُختَم السجلُّ `CONSUMED` مع `merge_sha` بعد الدمج."
+    "note_ar": "سجلٌّ لقرار المالك في الجلسة، لا توقيعٌ مستقلّ. الحارسُ يربط البايتاتِ المحدّدة فقط، و`pr` كان فارغاً (`null`) عند الإصدار لأنّ الـPR لم تُفتَح بعد عند الإصدار — لا رقمَ يُخمَّن؛ يُملأ ويُختَم السجلُّ `CONSUMED` مع `merge_sha` بعد الدمج. — مُلئ وخُتِم بعد دمج #1234."
+  },
+  "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
+  "consumed_by": {
+    "pr": 1234,
+    "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
+    "merged_at": "2026-10-19T00:45:39Z"
+  },
+  "consumption": {
+    "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
+    "consumed_on": "2026-10-19",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1234",
+    "scope": "Source merge only. Both bound blobs (services/actuator-service/actuator_runtime.py 8deaad902596, services/sahool-platform/api/phase_runtime_workers.py e3fa9136ddff) match the tree of merge 2268b4424, whose tree bb59906fc034 equals the tested head 71337af24. Sealed by Claude so the one-shot authorization cannot re-admit these bytes; it asserts nothing about a live restart after Docker restart (unmeasured) or any deployment — Railway recorded every service deployment for 2268b4424 as SKIPPED in staging and production."
   }
 }

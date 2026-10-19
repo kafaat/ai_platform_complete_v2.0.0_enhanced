@@ -14595,7 +14595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90389aa50083839673477f809a6049c2445c0684013041b5421b4b4d25e2dcd1"
+          "content": "3dc3680440517fd2d849e0c69171ae0ffc204d9aa61dbb477eeb2a4d536ccf11"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -15305,7 +15305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8996f1a0a039f87181ba6e876f105e66f0425ccf425d2649898dbed14800006b"
+          "content": "220df4c263723b8613bcea14e8e0e406978aa5f204e03f5a685c0904d66fbff2"
         }
       ],
       "name": "services/raster-service/routers/tiles.py",
@@ -15635,7 +15635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18ad821926609035f610d564142b5bd94a81bee60c3551c394c58caf34793d55"
+          "content": "dafdbfb9a220286620ddb404108f35f7c013f79907cbbf17682e062c9f590b6b"
         }
       ],
       "name": "services/raster-service/test_clip_grid.py",
@@ -15675,7 +15675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "210cf68bd3351c1bd9cdaa949b21e7c776597f73dc898c9e915ec0862513d9e1"
+          "content": "811804229f7705edb76a5843b33c60cac3ae15ff602be074e334b2a2127c0b35"
         }
       ],
       "name": "services/raster-service/test_cog_writer_internal_mask.py",
@@ -19345,7 +19345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db57c658cb33530036a2964adfbb3b09311e6b2b56a1668726d74c0810fa1b63"
+          "content": "772020e117e0385f76445601700821f953edfbfdfa3c2ddf80860a5ac78e870d"
         }
       ],
       "name": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -32585,7 +32585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "046b6b344be5ccbb91def4ff1aa1bb44dffe1065369534d77f4d983e9d8c7a3b"
+          "content": "eac670206011fd608091fb0e14b28db1e3d61717950432241be367b43e41e55d"
         }
       ],
       "name": "shared/gis/cloud_native_runtime.py",
@@ -32595,7 +32595,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "548b46f1e8de2dca39fea5e1d03f0a6518d6c35ccc9fd81765c167291eb6022d"
+          "content": "4cbceda40ece19f50ad23a09b8097cd23609870113712d392bf49498d9d1a720"
+        }
+      ],
+      "name": "shared/gis/cog_display_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1ac18b9c185245b9047c6e9382fd1ab8fa742a34d527c05fee6001a9bfb85caf"
         }
       ],
       "name": "shared/gis/cog_tile_proxy.py",
@@ -32635,7 +32645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dcf49f1f19c89cbc80f664ffd6c51def8a5a88bc23d59b452b326d3af9c6cfb"
+          "content": "d31c78e6905eff5a102994bbecfd635cb1434aa258159a2d1b28bcf33510b27e"
         }
       ],
       "name": "shared/gis/test_cloud_native_runtime.py",

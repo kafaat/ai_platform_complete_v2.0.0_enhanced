@@ -1,0 +1,16 @@
+{
+  "base": "ee690901097cd80a2d69045f39daed1eb6388305",
+  "files": {
+    "shared/gis/cog_display_policy.py": "4cbceda40ece19f50ad23a09b8097cd23609870113712d392bf49498d9d1a720",
+    "shared/gis/cog_tile_proxy.py": "1ac18b9c185245b9047c6e9382fd1ab8fa742a34d527c05fee6001a9bfb85caf",
+    "shared/gis/cloud_native_runtime.py": "eac670206011fd608091fb0e14b28db1e3d61717950432241be367b43e41e55d",
+    "services/raster-service/routers/tiles.py": "220df4c263723b8613bcea14e8e0e406978aa5f204e03f5a685c0904d66fbff2",
+    "services/sahool-platform/api/routers/gis_cloud_native.py": "772020e117e0385f76445601700821f953edfbfdfa3c2ddf80860a5ac78e870d",
+    "services/raster-service/cog_writer.py": "3dc3680440517fd2d849e0c69171ae0ffc204d9aa61dbb477eeb2a4d536ccf11",
+    "services/raster-service/test_cog_writer_internal_mask.py": "811804229f7705edb76a5843b33c60cac3ae15ff602be074e334b2a2127c0b35",
+    "tests_v9/test_connectivity_tile_transport.py": "bcbe0ca1174012a0da911fde38208dcf96b63aea2504bf9d1b8411c87f3e4778",
+    "certification/evidence/cog_rendering_20261019/render_probe.py": "6ae36165f18c75e2b005e9eeb48752434c298a2f843f9997cdbe73a7eee46eae",
+    "services/raster-service/test_clip_grid.py": "dafdbfb9a220286620ddb404108f35f7c013f79907cbbf17682e062c9f590b6b",
+    "docs/architecture/guard_mutation_registry.json": "3b3138403f2945cd77d714b785eea5cae3a9e86d529dc1f9e3cc0a485225f4a1"
+  }
+}

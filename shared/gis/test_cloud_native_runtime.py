@@ -39,7 +39,7 @@ def test_record_stac_tilejson_are_db_backed_contracts():
     assert item["properties"]["sahool:field_id"] == "33333333-3333-3333-3333-333333333333"
     tilejson = tilejson_for_cog(rec)
     assert tilejson["tiles"] == [
-        f"/api/v1/gis/cloud-native/rasters/{rec.id}/tiles/{{z}}/{{x}}/{{y}}.png"
+        f"/api/v1/gis/cloud-native/rasters/{rec.id}/tiles/{{z}}/{{x}}/{{y}}.png?rescale=-1%2C1"
     ]
     assert rec.cog_url not in str(tilejson)
 

@@ -505,7 +505,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.raster-service.routers.tiles",
       "node_id": "services.raster-service.routers.tiles:router",
       "route_count": 2,
@@ -1261,7 +1261,7 @@
     },
     {
       "kind": "router",
-      "line": 57,
+      "line": 58,
       "module": "services.sahool-platform.api.routers.gis_cloud_native",
       "node_id": "services.sahool-platform.api.routers.gis_cloud_native:router",
       "route_count": 31,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "289f2cb0fa2af19b2661090d2143480fe6825452f0f0bb3ea47f5d5b2f6580a3",
+  "inventory_sha256": "ca2575c83862ea8be2deed9229ad0f13fba00c999ca999910de97d77cf947aad",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -3057,7 +3057,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 23,
       "module": "services.raster-service.routers.tiles",
       "node_id": "services.raster-service.routers.tiles:router",
       "route_count": 2,
@@ -3877,7 +3877,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 57,
+      "line": 58,
       "module": "services.sahool-platform.api.routers.gis_cloud_native",
       "node_id": "services.sahool-platform.api.routers.gis_cloud_native:router",
       "route_count": 31,

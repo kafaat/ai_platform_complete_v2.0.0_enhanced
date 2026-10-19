@@ -2490,7 +2490,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/tiles.py",
-    "line": 26,
+    "line": 27,
     "method": "GET",
     "path": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png",
     "function": "get_tile"
@@ -2498,7 +2498,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/tiles.py",
-    "line": 51,
+    "line": 59,
     "method": "GET",
     "path": "/v1/layers/{layer_id}/tilejson",
     "function": "layer_tilejson"
@@ -5282,7 +5282,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 182,
+    "line": 183,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac",
     "function": "stac_root"
@@ -5290,7 +5290,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 189,
+    "line": 190,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac/conformance",
     "function": "stac_conformance"
@@ -5298,7 +5298,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 196,
+    "line": 197,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac/queryables",
     "function": "get_stac_queryables"
@@ -5306,7 +5306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 203,
+    "line": 204,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac/collections",
     "function": "list_stac_collections"
@@ -5314,7 +5314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 218,
+    "line": 219,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/stac/search",
     "function": "stac_search_post"
@@ -5322,7 +5322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 248,
+    "line": 249,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/scene-ranking",
     "function": "scene_ranking"
@@ -5330,7 +5330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 265,
+    "line": 266,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/scene-processing-plan",
     "function": "scene_processing_plan"
@@ -5338,7 +5338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 282,
+    "line": 283,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/tile-cache-plan",
     "function": "get_tile_cache_plan"
@@ -5346,7 +5346,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 298,
+    "line": 299,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/ogc",
     "function": "ogc_root"
@@ -5354,7 +5354,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 305,
+    "line": 306,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/ogc/conformance",
     "function": "ogc_conformance"
@@ -5362,7 +5362,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 312,
+    "line": 313,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/ogc/collections",
     "function": "get_ogc_collections"
@@ -5370,7 +5370,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 319,
+    "line": 320,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/ogc/collections/fields/items",
     "function": "ogc_field_items"
@@ -5378,7 +5378,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 345,
+    "line": 346,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/ai-boundary/plan",
     "function": "plan_ai_boundary_extraction"
@@ -5386,7 +5386,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 355,
+    "line": 356,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/management-zones/summary",
     "function": "summarize_management_zones"
@@ -5394,7 +5394,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 363,
+    "line": 364,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/editing-sessions/undo-redo",
     "function": "editing_session_undo_redo"
@@ -5402,7 +5402,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 423,
+    "line": 424,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/cog-registry",
     "function": "register_cog"
@@ -5410,7 +5410,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 478,
+    "line": 479,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac/search",
     "function": "stac_search"
@@ -5418,7 +5418,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 499,
+    "line": 500,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/stac/collections/{collection_id}",
     "function": "get_collection"
@@ -5426,7 +5426,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 515,
+    "line": 516,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/mosaicjson",
     "function": "mosaicjson"
@@ -5434,7 +5434,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 534,
+    "line": 535,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json",
     "function": "raster_tilejson"
@@ -5442,7 +5442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 559,
+    "line": 561,
     "method": "GET",
     "path": "/api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png",
     "function": "raster_cog_tile"
@@ -5450,7 +5450,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 585,
+    "line": 595,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/editing-sessions",
     "function": "upsert_editing_session"
@@ -5458,7 +5458,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 620,
+    "line": 630,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/locks",
     "function": "acquire_geometry_lock"
@@ -5466,7 +5466,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 656,
+    "line": 666,
     "method": "DELETE",
     "path": "/api/v1/gis/cloud-native/locks/{field_id}",
     "function": "release_geometry_lock"
@@ -5474,7 +5474,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 674,
+    "line": 684,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/geoparquet/export",
     "function": "export_geoparquet"
@@ -5482,7 +5482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 700,
+    "line": 710,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/boundaries/extract",
     "function": "phase6_extract_boundary"
@@ -5490,7 +5490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 719,
+    "line": 729,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/management-zones/generate",
     "function": "phase6_generate_management_zones"
@@ -5498,7 +5498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 735,
+    "line": 745,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/prescriptions/generate",
     "function": "phase6_generate_prescription_map"
@@ -5506,7 +5506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 751,
+    "line": 761,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/yield-stability",
     "function": "phase6_yield_stability"
@@ -5514,7 +5514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 759,
+    "line": 769,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/profitability-map",
     "function": "phase6_profitability_map"
@@ -5522,7 +5522,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
-    "line": 771,
+    "line": 781,
     "method": "POST",
     "path": "/api/v1/gis/cloud-native/phase6/digital-twin/snapshot",
     "function": "phase6_digital_twin_snapshot"

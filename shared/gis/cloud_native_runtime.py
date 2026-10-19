@@ -13,9 +13,10 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from shared.gis.cloud_native_gis import score_scene_quality
+from shared.gis.cog_display_policy import display_for_cog
 
 
 @dataclass(frozen=True)
@@ -192,17 +193,20 @@ def mosaicjson_from_records(
     }
 
 
-def tilejson_for_cog(record: RasterRegistryRecord) -> dict[str, Any]:
+def tilejson_for_cog(record: RasterRegistryRecord, rescale: str | None = None) -> dict[str, Any]:
     # Record identity, not a user-controlled COG URL, crosses the browser boundary.
     # The runtime API has one authorized tile path, not an arbitrary URL proxy.
     base = f"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles"
-    tiles = [f"{base}/{{z}}/{{x}}/{{y}}.png"]
+    display = display_for_cog(record.index_type, rescale)
+    params = "" if display["rescale"] is None else "?" + urlencode({"rescale": display["rescale"]})
+    tiles = [f"{base}/{{z}}/{{x}}/{{y}}.png{params}"]
     return {
         "tilejson": "3.0.0",
         "name": f"{record.index_type}:{record.id}",
         "version": "1.0.0",
         "scheme": "xyz",
         "tiles": tiles,
+        "display": {**display, "colormap": None if display["mode"] == "rgba" else "viridis"},
         "minzoom": 8,
         "maxzoom": 18,
         "bounds": record.bbox,
