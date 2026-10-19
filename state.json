@@ -4,9 +4,8 @@
  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
  "owner": "kafaat",
  "main": {
-  "head": "accbfa7f8e8644d245a43959216eb8eadfc6bb4e",
-  "tree": "76eb284d8ae2b05b4d5ca7dc4fdbcec92b4cc1d8",
-  "verified_at": "2026-10-19T10:23:39Z"
+  "head": "e02baf4fdfb05198f231f8723aaf61d86f2acca2",
+  "tree": "a70b7255ce4eea2cc5f35bdabf1b0ccca109179f"
  },
  "done_verified": [
   {
@@ -37,13 +36,13 @@
  ],
  "in_progress": [
   {
-   "id": "PR-1237",
-   "status": "WAITING_CI",
-   "branch": "claude/brain-et0-merged-followup",
-   "head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
-   "what": "brain-only note: hot.md +1 (prepend), log.md +4 (append); ET0 merged as 503d7d7c (#1218)",
-   "done": "merged main accbfa7f8 into branch (ff push ce3b7f869..8bbef1f00) to clear gate01 (only red check on ce3b7f869, 1 of 66); fast preflight 0/0; RLM counts hot 10 log 42 ledger 1 registry 72; hot prepend-only True",
-   "next": "when CI green on 8bbef1f00 → ask owner for explicit merge approval on that head; merge squash with expectedHeadSha; verify tree; unsubscribe"
+   "id": "skill-pr",
+   "status": "RUNNING_PIPELINE",
+   "branch": "claude/work-continuation-skill-20261019",
+   "worktree": "/home/user/wt_skill",
+   "base": "e02baf4fd",
+   "pipeline_log": "/tmp/claude-0/-home-user-ai-platform-complete-v2-0-0-enhanced/f31fb6e3-fb2d-56ad-95cb-c3ae66c91adb/scratchpad/skill-pipeline.log",
+   "next": "on preflight 0/0: push branch, open PR with derived Capability-Impact, wait CI green, merge pinned to head (owner delegation), verify tree, backup"
   }
  ],
  "awaiting_owner": [
@@ -82,15 +81,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "b93a54791e52b7d5994776411f6918f3f686aadb",
-  "tree": "22ea838b09474c5c5d6168e17ae3e0dcc17ef1a2",
+  "commit": "969eeb7c57be6d52b8bae0849a859721c3fbaff0",
+  "tree": "0c5648d58c19947bfd03603bb82d8db74d364eca",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
-  "verified": "remote ref == pushed commit; history reset with force-with-lease from 856d0155c (own branch, created this session) to drop raw logs"
+  "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-19T10:37:32Z",
+ "updated": "2026-10-19T10:53:13Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
@@ -101,5 +100,41 @@
    "disk budget check before each shard (min 1024 MB)"
   ],
   "state_trust": "RECORDED_UNVERIFIED until re-checked"
+ },
+ "railway": {
+  "accbfa7f8": {
+   "checked": "read-only list-deployments",
+   "production": {
+    "SUCCESS": 9,
+    "SKIPPED": 2,
+    "FAILED": 0,
+    "migrate-main_5659ab3d": "SKIPPED (04eb8471)"
+   },
+   "staging": {
+    "SUCCESS": 11,
+    "SKIPPED": 2,
+    "FAILED": 0,
+    "migrate-main_5659ab3d": "SKIPPED (3acb792d)"
+   },
+   "note": "auto-deploy on merge; runtime COG acceptance (tenant probes) NOT measured"
+  }
+ },
+ "awaiting_owner_note": {
+  "transfer_branches": {
+   "status": "BLOCKED_BY_PERMISSION",
+   "detail": "git push --delete denied by auto-mode classifier [Git Destructive]; not retried. Owner can delete in GitHub UI or allow the command.",
+   "shas": {
+    "codex/audit-blob-transfer-20261019": "cdaba457eac3fc1ac1d2e763a871a3679bbb43c3",
+    "codex/cog-blob-transfer-20261019": "486dba7739987509ee64f7ebc155a7483a020f1f"
+   },
+   "local_bundle": "checkpoints/transfer-branches/transfer-branches.bundle"
+  }
+ },
+ "pr1237": {
+  "status": "DONE_VERIFIED",
+  "merge_sha": "e02baf4fdfb05198f231f8723aaf61d86f2acca2",
+  "tested_head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
+  "ci": "66: 64 success, 2 skipped, 0 failed",
+  "authorization": "owner: قوم بعمل ماهو صحيح و مناسب فأنت مفوض"
  }
 }
