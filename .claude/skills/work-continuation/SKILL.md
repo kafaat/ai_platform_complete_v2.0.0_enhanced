@@ -1,6 +1,6 @@
 ---
 name: work-continuation
-description: Universal Work Continuation & Recovery Protocol v2.1 (Arabic). Apply it to long multi-phase work (expected to take over an hour, long test suites such as preflight or integration tests, actions with an external effect, or several agents or sessions on one piece of work), and whenever work resumes after an interruption, a lost session or a container restart. Triggers include "تابع من آخر نقطة توقف" and "طبّق Universal Work Continuation & Recovery Protocol v2". Use lighter procedures for simple tasks.
+description: Universal Work Continuation & Recovery Protocol v2.2 (Arabic; v2.1 text plus measured implementation notes). Apply it to long multi-phase work (expected to take over an hour, long test suites such as preflight or integration tests, actions with an external effect, or several agents or sessions on one piece of work), and whenever work resumes after an interruption, a lost session or a container restart. Triggers include "تابع من آخر نقطة توقف" and "طبّق Universal Work Continuation & Recovery Protocol v2". Use lighter procedures for simple tasks.
 ---
 
 # Universal Work Continuation & Recovery Protocol — v2.1
@@ -128,3 +128,26 @@ source_head + source_tree + base_head + merge_base + input_digest + environment_
 * لا تضع ملفات الحالة داخل شجرة المستودع: في المستودعات فحوص مثل `tree_unchanged` وقوائم المسارات الملتزمة وماسح الأسرار، وملف حالة داخل الشجرة يكسرها أو يُلتزَم خطأً.
 * عند إطلاق Workflow طويل، اكتب في الحالة فوراً: `runId`، و`scriptPath`، والمدخلات (`args`) كاملة، والمخرجات المتوقعة. الاستئناف يكون بـ`resumeFromRunId` مع المدخلات نفسها، ونتائج الوكلاء المكتملة في `journal.jsonl` داخل مجلد نسخ ذلك التشغيل. إعادة تشغيل الحاوية توقف كل العمليات الخلفية.
 * شغّل الاختبارات الثقيلة بالتتابع لا بالتوازي على قرص مشترك، وضع ملفاتها المؤقتة الكبيرة في `/dev/shm` عند توفره، واحذفها بعد حفظ البصمات.
+
+## ملحق v2.2 — ملاحظات من التطبيق الفعليّ (2026-10-19)
+
+أُضيف بتفويض المالك. لا يغيّر نصّ v2/v2.1 أعلاه. كلّ بند يستند إلى واقعة قيست في هذا المستودع في التاريخ نفسه.
+
+**د. الموافقة مربوطة برأس.** موافقة المالك على دمجٍ تخصّ SHA بعينه. احفظ في الحالة الموافقةَ ونصّها، والرأسَ الذي تسري عليه. وإذا تغيّر الرأس (دفعٌ جديد أو مزامنة مع main)، فالموافقة **لاغية** حتى تُجدَّد، ولا تُنقل إلى رأسٍ لاحق ولو كان الفرق ملفّات مولَّدة فقط.
+
+**هـ. حالة التشغيل ليست الدماغ.** `state.json` حالة تشغيل مؤقّتة لعملٍ واحد. وفي هذا المستودع `sahool-brain/` (hot/log/ledger/registry) هو السجلّ المعرفيّ الدائم وله قواعده. لا يحلّ أحدهما محلّ الآخر، ولا يُنسخ أحدهما في الآخر. ما يستحقّ البقاء يُكتب في الدماغ بمصدره عند نهاية الجلسة.
+
+**و. موضع القفل المحلّيّ.** قفل `scripts/ci/preflight.sh` يقع في `$(git rev-parse --git-dir)`، أي أنّه قفلٌ **لكلّ worktree**. فلا يمنع تشغيلين في worktree مختلفين على الجهاز نفسه، وكان في الجلسة أكثر من 30 worktree. المطلوب أن يقع القفل المحلّيّ في `$(git rev-parse --git-common-dir)` المشترك بين كلّ worktree، وبين الحاويات حجزٌ ذرّيّ وفق البند ج.
+
+**ز. فرع النسخ الاحتياطيّ في المستودع نفسه.** إن تعذّر مستودع خاصّ منفصل، فاجعل الفرع orphan لا يحوي `.github/` إطلاقاً، وإلّا شغّل دفعُه الـworkflows. وارفعه بـcommit-tree وفهرسٍ مؤقّت دون checkout، كي لا تلمس شجرة العمل. فإن حمل الفرع خطأً سجلّاتٍ خاماً، فاستبدل تاريخه بلقطةٍ نظيفة عبر `--force-with-lease` مربوطٍ بآخر رأس معروف، وهذا على فرعٍ خاصّ بالوكيل وحده.
+
+**ح. الأفعال الخارجيّة بأسلوب «قارن ثم بدّل».** هذا ما يجعل إعادة المحاولة بعد الانقطاع آمنة (القسم 8):
+- الدمج: مع `expectedHeadSha`.
+- الدفع إلى فرع مشترك: تقدّم مباشر فقط، بعد التحقّق من أنّ الرأس البعيد ما زال الرأس المتوقَّع.
+- الكتابة فوق فرعٍ خاصّ: `--force-with-lease=<ref>:<sha>`.
+
+**ط. اختبر أداة الاستئناف قبل الثقة بها.** شغّل دفعةً واحدة، وطابق عدد الحالات المجموعة بعدد pytest نفسه، قبل الاعتماد على المشغّل المقسَّم. أوّل نسخة جمعت 149 «حالة» وهميّة، لأنّ `addopts` في المستودع غيّرت معنى `-q` فصار الخرج شجرة. الصحيح أن تُقرأ `session.items` عبر plugin لا من النصّ المطبوع، فيظهر العدد الصحيح: 10074 حالة في 36 دفعة.
+
+**ي. التوازي ليس افتراضاً آمناً.** `pytest -m unit -n auto` فشل قبل أي اختبار برسالة «Different tests were collected between gw1 and gw0». التقسيم بالملفّات يتجنّب ذلك، لكنّه «تحقّق مجزّأ» لا يكافئ تشغيلاً متّصلاً (القسم 4).
+
+**ك. الحذف والدمج قد يُحجبان آليّاً.** في جلسات السحابة قد يرفض مُصنِّف الأذونات حذف فرع أو دمجاً لم يُطلب صراحة، رغم تفويضٍ عامّ. لا يُلتفّ على الرفض: سجّل الحالة `BLOCKED_BY_PERMISSION` مع ما يلزم للاستعادة (SHA أو bundle محلّيّ)، وأعد القرار إلى المالك.
