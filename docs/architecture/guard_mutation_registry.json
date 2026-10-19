@@ -3379,8 +3379,8 @@
         },
         {
           "expect": "test_both_parents_are_examined_not_just_one",
-          "find": "        for parent in parents_of(commit, root=root):",
-          "replace": "        for parent in parents_of(commit, root=root)[:1]:",
+          "find": "        for parent in merged_from:",
+          "replace": "        for parent in merged_from[:1]:",
           "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
         },
         {
@@ -3451,9 +3451,69 @@
         },
         {
           "expect": "test_a_dip_at_the_head_keeps_the_tip_remedy_only",
-          "find": "    if not historical:\n        return _TIP_REMEDY",
-          "replace": "    if False:\n        return _TIP_REMEDY",
+          "find": "    if not historical:\n        return tip",
+          "replace": "    if False:\n        return tip",
           "why": "طباعةُ علاج التاريخ دائماً ⇒ يُطالَب دمجٌ يُكتب الآن بنقض تاريخٍ لا داعي له. رسالةٌ صحيحةٌ في غير موضعها تُدرِّب قارئَها على تجاوزها"
+        },
+        {
+          "expect": "test_the_archive_exception_is_hot_md_only",
+          "find": "                folder = archives.get(path)\n",
+          "replace": "                folder = next(iter(archives.values()))\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ قيد الدفتر ⇒ يصير الاستثناءُ ملفّيّاً عامّاً، فيُفرَّغ `log.md` أو `ledger.md` أو سجلُّ الفجوات بنسخةٍ في الأرشيف، وهي دفاترُ لم يُعتمَد لها أرشيفٌ ولا تقرؤها حرّاسُها منه."
+        },
+        {
+          "expect": "test_an_archive_that_does_not_hold_the_removed_bytes_verbatim_blocks",
+          "find": "        at = segments[seg][1].find(block, pos)\n",
+          "replace": "        at = segments[seg][1].find(block[:1], pos)\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: مطابقةُ بادئةٍ بدل الكتلة كاملةً ⇒ أرشيفٌ تغيّر فيه حرفٌ أو سقطت منه كتلةٌ أو أُعيدت كتابةُ نهايات أسطره يُقرأ نقلاً حرفيّاً — محوٌ صامتٌ بلباس أرشفة."
+        },
+        {
+          "expect": "test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move",
+          "find": "        cursor = found\n",
+          "replace": "        cursor = (0, 0)\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ المؤشّر ⇒ تُبحَث كلُّ كتلةٍ من أوّل الأرشيف، فيمرّ أرشيفٌ بترتيبٍ معكوس؛ والترتيبُ جزءٌ من السجلّ — مدخلٌ يُروى قبل سببه ليس المدخلَ نفسه."
+        },
+        {
+          "expect": "test_archive_text_from_an_earlier_commit_cannot_fund_a_new_shrink",
+          "find": "        if kept is None:\n            added.append((archive, now))\n",
+          "replace": "        if True:\n            added.append((archive, now))\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: عدُّ محتوى الأرشيف القديم مضافاً ⇒ أرشيفٌ واحد يصير رصيداً يُبرِّر لاحقاً حذفَ أيّ نصٍّ يصادف أن يحويه، بلا نقلٍ في الالتزام نفسه."
+        },
+        {
+          "expect": "test_an_archive_is_append_only_after_it_lands",
+          "find": "                if now is None or not now.startswith(kept):\n",
+          "replace": "                if False:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ حراسة الأرشيف ⇒ يُحذَف ملفُّ الأرشيف أو يُقصّ أو يُحرَّر بعد أن مَوَّل تقلّصَ `hot.md`، فيضيع المنقولُ بالتزامين كلٌّ منهما أخضر — والإلحاقيُّ الصارم وحده يجعل النقلَ نهائيّاً لا خطوةً أولى لمحو."
+        },
+        {
+          "expect": "test_the_budget_never_rises",
+          "find": "            if raised is None or raised > limit:\n",
+          "replace": "            if raised is None:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ الراتشِت ⇒ يُرفَع الرقمُ كلّما امتلأت اللقطة، فيعود النموّ بلا حدّ وقد صار الرفعُ هو العلاجَ بدل الأرشفة."
+        },
+        {
+          "expect": "test_hot_md_may_not_exceed_its_budget_at_head",
+          "find": "        elif len(content) > limit:\n",
+          "replace": "        elif False:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ فحص السقف ⇒ ميزانيّةٌ مكتوبةٌ لا يقيسها أحد، وهو الصنفُ الذي سجّله §٣.٢٥أ: «ملفٌّ يوصَف بخاصّيّةٍ ليس محروساً بها»."
+        },
+        {
+          "expect": "test_a_missing_or_unreadable_budget_fails_closed",
+          "find": "    if head_budgets is None:\n        blocking.append(\n",
+          "replace": "    if head_budgets is None:\n        advisory.append(\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: غيابُ الميزانيّة عند الرأس يصير ملاحظةً ⇒ حذفُ الملفّ يُسقِط السقفَ والراتشِت معاً بالتزامٍ أخضر — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنفُ الفجوة داخل علاجها."
+        },
+        {
+          "expect": "test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank",
+          "find": "    matcher = SequenceMatcher(_cannot_anchor, old, new, autojunk=False)\n",
+          "replace": "    matcher = SequenceMatcher(None, old, new, autojunk=False)\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: السماحُ للفاصل بأن يُرسي المحاذاة ⇒ يُطابَق السطرُ الفارغ بين سطرين مُبقَيَين مع فارغٍ داخل قطع، فيُقرأ سطرٌ مُبقىً محذوفاً ويُرفض نقلٌ بلا فقد — وهو ما وقع فعلاً على الأرشفة الأولى قبل الإصلاح."
+        },
+        {
+          "expect": "test_a_real_union_merge_that_brings_archived_text_back_blocks",
+          "find": "    return [line for line in grown.elements() if line in archived]\n",
+          "replace": "    return []\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ."
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
@@ -3687,6 +3747,18 @@
           "find": "    if len(annotations) == 1 and annotations[0] in g.NON_STATE_KINDS:",
           "replace": "    if annotations:",
           "why": "إسقاطُ كلِّ خليّةٍ موسومة ⇒ `<!-- gap-registry: current --> \\`verified\\`` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166)"
+        },
+        {
+          "expect": "test_a_line_moved_verbatim_from_hot_md_to_its_archive_is_not_a_new_claim",
+          "find": "        if moved[line] > 0:\n",
+          "replace": "        if False:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إبطالُ خصم النقل ⇒ كلُّ أرشفةٍ لـ`hot.md` في PR دماغٍ وحده تُرفَض بأسطرٍ لم يكتبها أحد، فتصير الأرشفةُ التي يوثّقها README غيرَ قابلةٍ للدمج."
+        },
+        {
+          "expect": "test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named",
+          "find": "                if path.startswith(folder):\n",
+          "replace": "                if True:\n",
+          "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: قبولُ أيّ ملفٍّ وجهةً للنقل ⇒ سطرٌ يُنقَل من `hot.md` إلى موضع حالةٍ في السجلّ يُقرأ نقلاً، وهو انتقالُ حالةٍ حقيقيّ في PR دماغٍ وحده."
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"

@@ -742,3 +742,836 @@ def test_a_refounding_that_keeps_both_entries_passes(guard, tmp_path):
     )
     blocking, _, _ = guard.check_range(None, "HEAD", files=(_EVIDENCE_LOG,), root=root)
     assert not blocking, "\n".join(str(f) for f in blocking)
+
+
+# ── `BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01` ──────────────────────────────
+#
+# قِيس 2026-10-19 على `2a759d06`: `sahool-brain/hot.md` ٨٩٦٬٦٧٠ بايتاً يُقرأ في بداية كلّ
+# جلسة (CLAUDE.md)، ونما ١٩٤٬٦٠٨ بايتاً في ثلاثين يوماً. والحارسُ أعلاه يحجب كلَّ تقلّص،
+# فلم يكن للّقطة طريقُ ضغطٍ قطّ. قاعدةُ الاحتفاظ (UWRP Professional v4.3): سقفُ حجمٍ ثمّ
+# أرشفةٌ معتمدة، لا محوٌ صامت. فالاستثناءُ ضيّق: تقلّصُ `hot.md` يُقبَل **فقط** إن ظهرت كلُّ
+# كتلةٍ محذوفة حرفيّاً وبترتيبها في ملفٍّ تحت `sahool-brain/archive/` أُضيف أو أُلحِق به في
+# الالتزام نفسه؛ والأرشيفُ نفسُه إلحاقيٌّ صارم؛ والسقفُ راتشِت لا يرتفع.
+#
+# كلُّ تاريخٍ هنا اصطناعيّ (كائنات git بلا HEAD متحرّك)، فلا اختبارَ يُتخطّى في استنساخٍ ضحل.
+
+_HOT = "sahool-brain/hot.md"
+_ARCHIVE = "sahool-brain/archive/hot_2026-07-01_2026-07-03.md"
+_TOP = "> **2026-10-19 — newest entry stays in the snapshot**\n\n"
+_OLD_A = "> **2026-07-01 — old entry A**\n>\n"
+_MID = "> **2026-07-02 — a kept line a guard depends on**\n\n"
+_OLD_B = "> **2026-07-03 — old entry B, `CLOSED_IN_CODE` quoted**\n\n"
+_POINTER = (
+    "> **2026-10-19 — older entries moved verbatim to archive/hot_2026-07-01_2026-07-03.md**\n"
+)
+_BUDGET = "docs/architecture/brain_hot_budget.json"
+
+
+def _archive_git(root: Path, *args: str, data: bytes | None = None, env=None) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=root, check=True, capture_output=True, input=data, env=env
+    )
+    return result.stdout.decode("utf-8").strip()
+
+
+def _archive_init(tmp_path: Path) -> Path:
+    root = tmp_path / "archive-probe"
+    root.mkdir()
+    _archive_git(root, "init", "-q", "-b", "main", ".")
+    _archive_git(root, "config", "user.email", "guard-test@example.invalid")
+    _archive_git(root, "config", "user.name", "Guard Test")
+    _archive_git(root, "config", "commit.gpgsign", "false")
+    return root
+
+
+def _snapshot(
+    root: Path, files: dict[str, str | bytes], *parents: str, modes: dict[str, str] | None = None
+) -> str:
+    """A commit whose tree is exactly ``files`` — built in a private index, HEAD untouched."""
+    import os
+
+    env = {**os.environ, "GIT_INDEX_FILE": str(root / ".git" / "probe-index")}
+    _archive_git(root, "read-tree", "--empty", env=env)
+    for path, content in files.items():
+        data = content.encode("utf-8") if isinstance(content, str) else content
+        blob = _archive_git(root, "hash-object", "-w", "--stdin", data=data)
+        mode = (modes or {}).get(path, "100644")
+        _archive_git(root, "update-index", "--add", "--cacheinfo", f"{mode},{blob},{path}", env=env)
+    tree = _archive_git(root, "write-tree", env=env)
+    parent_args = [item for parent in parents for item in ("-p", parent)]
+    return _archive_git(root, "commit-tree", tree, *parent_args, "-m", "snapshot")
+
+
+def _codes(findings) -> list[str]:
+    return [f.code for f in findings]
+
+
+@pytest.mark.parametrize(
+    "archived,accepted",
+    [
+        pytest.param(_OLD_A + _OLD_B, True, id="in-order-verbatim-move"),
+        pytest.param(_OLD_B + _OLD_A, False, id="reordered-move"),
+    ],
+)
+def test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move(
+    guard, tmp_path, archived, accepted
+):
+    """The narrow exception, and the order it requires — two removed blocks, one archive."""
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    after = _TOP + _POINTER + _MID
+    assert len(after.encode()) < len((_TOP + _OLD_A + _MID + _OLD_B).encode())
+    candidate = _snapshot(root, {_HOT: after, _ARCHIVE: archived}, parent)
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    if accepted:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+        assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+        assert _ARCHIVE in advisory[0].detail
+    else:
+        assert _codes(blocking) == ["JOURNAL_SHRANK"]
+        assert "out of order" in blocking[0].detail, blocking[0].detail
+
+
+def test_a_hot_md_deletion_without_an_archive_blocks_and_names_the_archive(guard, tmp_path):
+    """Deletion stays a loss, and the message names the only remedy that exists."""
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP + _POINTER + _MID}, parent)
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "sahool-brain/archive/" in blocking[0].detail, blocking[0].detail
+    assert "JOURNAL_ARCHIVED" not in _codes(advisory)
+
+
+@pytest.mark.parametrize(
+    "archived",
+    [
+        pytest.param(
+            _OLD_A + _OLD_B.replace("old entry B", "old entry b"), id="one-letter-changed"
+        ),
+        pytest.param(_OLD_A, id="second-block-missing"),
+        pytest.param((_OLD_A + _OLD_B).replace("\n", "\r\n"), id="line-endings-rewritten"),
+    ],
+)
+def test_an_archive_that_does_not_hold_the_removed_bytes_verbatim_blocks(guard, tmp_path, archived):
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: archived}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "not verbatim" in blocking[0].detail, blocking[0].detail
+
+
+def test_archive_text_from_an_earlier_commit_cannot_fund_a_new_shrink(guard, tmp_path):
+    """Only bytes ADDED in the same diff count: an old archive is not a credit to spend."""
+    root = _archive_init(tmp_path)
+    duplicated = _TOP + _OLD_A + _MID + _OLD_A
+    parent = _snapshot(root, {_HOT: duplicated, _ARCHIVE: _OLD_A})
+    candidate = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID, _ARCHIVE: _OLD_A}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "sahool-brain/archive/" in blocking[0].detail, blocking[0].detail
+
+
+@pytest.mark.parametrize(
+    "later,code",
+    [
+        pytest.param(_OLD_A, "ARCHIVE_REWRITTEN", id="archive-shrunk"),
+        pytest.param(_OLD_A + _OLD_B.replace("B", "C"), "ARCHIVE_REWRITTEN", id="archive-edited"),
+        pytest.param(None, "ARCHIVE_DELETED", id="archive-deleted"),
+        pytest.param(_OLD_A + _OLD_B + _TOP, None, id="archive-appended-is-legal"),
+    ],
+)
+def test_an_archive_is_append_only_after_it_lands(guard, tmp_path, later, code):
+    root = _archive_init(tmp_path)
+    archived_tree = {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, archived_tree)
+    files = dict(archived_tree)
+    if later is None:
+        del files[_ARCHIVE]
+    else:
+        files[_ARCHIVE] = later
+    candidate = _snapshot(root, files, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert pairs == 2, "the archive itself must be one of the examined pairs"
+    if code is None:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+    else:
+        assert _codes(blocking) == [code]
+        assert blocking[0].path == _ARCHIVE
+
+
+@pytest.mark.parametrize(
+    "journal",
+    ["sahool-brain/log.md", "sahool-brain/gaps/registry.md", "sahool-brain/decisions/ledger.md"],
+)
+def test_the_archive_exception_is_hot_md_only(guard, tmp_path, journal):
+    """Every other journal keeps its behaviour: an archive copy does not license a shrink."""
+    assert guard.archive_dirs() == {_HOT: "sahool-brain/archive/"}
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {journal: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(
+        root,
+        {journal: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B},
+        parent,
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(journal,), root=root)
+    assert _codes(blocking) == ["JOURNAL_SHRANK"]
+    assert "JOURNAL_ARCHIVED" not in _codes(advisory)
+
+
+def test_the_archive_policy_comes_from_the_existing_classifier(guard):
+    resolver = _load(RESOLVER, "_resolve_archive_probe")
+    assert guard.archive_dirs() == dict(resolver.ARCHIVES)
+    for archive_dir in resolver.ARCHIVES.values():
+        assert f'"{archive_dir}"' not in GUARD.read_text(encoding="utf-8"), (
+            "the archive directory is restated in the guard; it must come from the classifier"
+        )
+        assert resolver.classify(archive_dir + "hot_x.md") == "append_only"
+
+
+@pytest.mark.parametrize("main_compacted_first", [True, False])
+def test_an_older_branch_merging_the_compaction_passes_on_both_parents(
+    guard, tmp_path, main_compacted_first
+):
+    """The shape every open PR meets after the compaction lands: one parent still has it all.
+
+    The archival commit is proved as a move; the merge is judged three-way against the merge
+    base (review 2026-10-19, round 2): what it drops from the branch is what main removed.
+    """
+    root = _archive_init(tmp_path)
+    ancestor = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    compacted = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}, ancestor)
+    branch_top = "> **2026-10-20 — a line the older branch added**\n"
+    branch = _snapshot(root, {_HOT: branch_top + _TOP + _OLD_A + _MID + _OLD_B}, ancestor)
+    parents = (compacted, branch) if main_compacted_first else (branch, compacted)
+    merge = _snapshot(
+        root,
+        {_HOT: branch_top + _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B},
+        *parents,
+    )
+    blocking, advisory, _ = guard.check_range(ancestor, merge, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    archived_pairs = {(f.parent, f.commit) for f in advisory if f.code == "JOURNAL_ARCHIVED"}
+    assert archived_pairs == {(ancestor, compacted)}
+    merged_pairs = {(f.parent, f.commit) for f in advisory if f.code == "JOURNAL_MERGED"}
+    assert merged_pairs == {(branch, merge)}
+
+
+def test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank(guard, tmp_path):
+    """Found by the first real compaction, which the guard refused (2026-10-19).
+
+    Fifteen old lines stayed in ``hot.md`` between the archived runs, with a blank line
+    between them. An alignment that may anchor on a blank matched the inserted blank to a
+    blank inside a cut, and then read a KEPT line as removed — a removal no archive holds,
+    so a lossless move was blocked as ``not verbatim``. Blank and lone ``>`` lines may not
+    anchor the alignment; they still travel with the run they sit in.
+    """
+    kept = "> **2026-07-02 — a kept line a guard depends on**\n"
+    row = "| WS-C.1c | a kept table row a guard depends on |\n"
+    old_a = "> **2026-07-01 — archived A**\n\n> **2026-07-01 — archived B**\n"
+    old_c = "> **2026-07-03 — archived C**\n"
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + old_a + kept + old_c + row})
+    candidate = _snapshot(
+        root, {_HOT: _TOP + _POINTER + kept + "\n" + row, _ARCHIVE: old_a + old_c}, parent
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+
+
+# ── a real `merge=union` merge must not bring archived text back ─────────────
+#
+# Review finding (2026-10-19): ``.gitattributes`` merges ``hot.md`` with ``merge=union``.
+# A branch cut before an archival that adds lines at the end of ``hot.md`` (19 of the 119
+# commits that touched it in the 30 days to 2a759d06 did, against their first parent, the
+# latest on 2026-10-03) or edits a line the archival kept merges with NO conflict, and union
+# keeps both sides of the hunk: the archived text comes back. Measured on the real files
+# (2a759d06 as ancestor, this branch's head as main): the end-of-file append brought back 411
+# archived lines (150,007 bytes); a top entry plus an edit of the kept route-count line brought
+# back 383,028 bytes and left hot.md at 522,569, under the 526,815 budget. Every rule above
+# passes it: against the branch parent the merge reads as an archival, against main it only
+# grows. The hand-written merge in the test above never ran git, so it never saw this.
+
+_UNION_SHAPES = {
+    "end-of-file-append": lambda hot: (
+        hot + "> **2026-10-20 — appended at the end by an older branch**\n"
+    ),
+    "kept-line-edit": lambda hot: hot.replace(
+        _MID, _MID.replace("depends on", "depends on, edited")
+    ),
+}
+
+
+# Review 2026-10-19, round 2: main edits an existing hot.md line after the fork in ordinary work
+# (7 of the 120 first-parent commits that touched it in the 30 days to 2a759d06, the latest
+# 18b64ed0 on 2026-10-13), so every merge shape below runs with and without such an edit.
+# These merges archive a third, longer entry: the real archival moved 760,019 bytes for a
+# one-line pointer, so the merge is smaller than its branch parent (842,256 -> 138,530 on the
+# real files), which is the pair the size rule judged. A and B alone move 4 bytes net.
+_TOP_EDITED_ON_MAIN = _TOP.replace(
+    "in the snapshot", "in the snapshot, edited on main after the fork"
+)
+_OLD_C = (
+    "> **2026-07-03 — old entry C:** a long archived entry; the real archival moved 760,019 "
+    "bytes and left one pointer line, so a merge is smaller than its branch parent.\n\n"
+)
+_ANCESTOR_HOT = _TOP + _OLD_A + _MID + _OLD_B + _OLD_C
+_ARCHIVED = _OLD_A + _OLD_B + _OLD_C
+
+
+def _main_hot(main_edit: bool) -> str:
+    return (_TOP_EDITED_ON_MAIN if main_edit else _TOP) + _POINTER + _MID
+
+
+def _union_merge(
+    tmp_path: Path, shape: str, *, main_edit: bool = False
+) -> tuple[Path, str, str, str]:
+    """(root, ancestor, main tip, merge): a real ``git merge`` under this repo's attribute.
+
+    Main archives, then (``main_edit``) edits a kept line in a later commit, as main did at
+    18b64ed0 to a branch forked before it.
+    """
+    attribute = "sahool-brain/hot.md              merge=union"
+    assert attribute in (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()
+    root = _archive_init(tmp_path)
+    (root / ".gitattributes").write_text(attribute + "\n", encoding="utf-8")
+    hot, archive = root / _HOT, root / _ARCHIVE
+    archive.parent.mkdir(parents=True)
+    hot.write_text(_ANCESTOR_HOT, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "ancestor")
+    ancestor = _archive_git(root, "rev-parse", "HEAD")
+    _archive_git(root, "checkout", "-qb", "older-branch")
+    hot.write_text(_UNION_SHAPES[shape](_ANCESTOR_HOT), encoding="utf-8")
+    _archive_git(root, "commit", "-qam", "older branch work")
+    _archive_git(root, "checkout", "-q", "main")
+    hot.write_text(_TOP + _POINTER + _MID, encoding="utf-8")
+    archive.write_text(_ARCHIVED, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "archival")
+    if main_edit:
+        hot.write_text(_main_hot(main_edit), encoding="utf-8")
+        _archive_git(root, "commit", "-qam", "main edits a kept line after the fork")
+    compacted = _archive_git(root, "rev-parse", "HEAD")
+    _archive_git(root, "checkout", "-q", "older-branch")
+    _archive_git(root, "merge", "-q", "--no-edit", "main")  # check=True: git saw no conflict
+    return root, ancestor, compacted, _archive_git(root, "rev-parse", "HEAD")
+
+
+_MAIN_EDIT = pytest.mark.parametrize(
+    "main_edit", [False, True], ids=["main-no-edit-after-fork", "main-edits-a-kept-line"]
+)
+
+
+@_MAIN_EDIT
+@pytest.mark.parametrize("shape", sorted(_UNION_SHAPES))
+def test_a_real_union_merge_that_brings_archived_text_back_blocks(
+    guard, tmp_path, shape, main_edit
+):
+    root, ancestor, compacted, merge = _union_merge(tmp_path, shape, main_edit=main_edit)
+    merged = (root / _HOT).read_text(encoding="utf-8")
+    back = [line for line in (_OLD_A + _OLD_B).splitlines() if line.strip() not in ("", ">")]
+    assert any(line in merged.splitlines() for line in back), "git did not reproduce the shape"
+    blocking, _, _ = guard.check_range(ancestor, merge, files=(_HOT,), root=root)
+    hits = [f for f in blocking if f.code == "ARCHIVED_TEXT_RESURRECTED"]
+    assert [(f.parent, f.commit) for f in hits] == [(compacted, merge)], "\n".join(
+        map(str, blocking)
+    )
+    assert _ARCHIVE in hits[0].detail, hits[0].detail
+
+
+@_MAIN_EDIT
+@pytest.mark.parametrize("shape", sorted(_UNION_SHAPES))
+def test_resolving_hot_md_as_main_plus_the_branch_lines_passes(guard, tmp_path, shape, main_edit):
+    """The README step: main's ``hot.md`` plus the branch's own change, never the union.
+
+    Review 2026-10-19, round 2: with ``main_edit`` this was ``JOURNAL_SHRANK``. Against the
+    branch parent every line hot.md lost had to be in the archive bytes the merge added, and
+    main's edited line is not; CI checks the same pair on the pull-request merge ref. A merge
+    is now judged three-way against its merge base: a line may be absent only because one
+    side removed it since then, and every line either side added stays.
+    """
+    root, ancestor, _compacted, _merge = _union_merge(tmp_path, shape, main_edit=main_edit)
+    resolved = _UNION_SHAPES[shape](_main_hot(main_edit))
+    (root / _HOT).write_text(resolved, encoding="utf-8")
+    _archive_git(root, "commit", "-q", "--amend", "--no-edit", "-a")
+    blocking, advisory, _ = guard.check_range(ancestor, "HEAD", files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    merged = _archive_git(root, "rev-parse", "HEAD")
+    assert ("JOURNAL_MERGED", merged) in {(f.code, f.commit) for f in advisory}
+
+
+def _code_only_merge(tmp_path: Path, *, main_first: bool) -> tuple[Path, str, str]:
+    """(root, ancestor, merge): a branch that never touches hot.md, cut before the archival and
+    before main's later edit of a kept line, merged by git itself.
+
+    ``main_first`` is the pull-request merge ref CI checks out (main is the first parent);
+    otherwise main is merged into the branch. Measured on the real files (2026-10-19): a
+    branch cut at 18b64ed0^ (hot.md 842,256 bytes) merged with this branch's head was
+    ``JOURNAL_SHRANK`` 842,256 -> 138,530 in both shapes.
+    """
+    root = _archive_init(tmp_path)
+    (root / ".gitattributes").write_text(
+        "sahool-brain/hot.md              merge=union\n", encoding="utf-8"
+    )
+    hot, archive = root / _HOT, root / _ARCHIVE
+    archive.parent.mkdir(parents=True)
+    hot.write_text(_ANCESTOR_HOT, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "ancestor")
+    ancestor = _archive_git(root, "rev-parse", "HEAD")
+    _archive_git(root, "checkout", "-qb", "code-only")
+    (root / "service.py").write_text("VALUE = 1\n", encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "code only")
+    _archive_git(root, "checkout", "-q", "main")
+    hot.write_text(_TOP + _POINTER + _MID, encoding="utf-8")
+    archive.write_text(_ARCHIVED, encoding="utf-8")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "archival")
+    hot.write_text(_main_hot(True), encoding="utf-8")
+    _archive_git(root, "commit", "-qam", "main edits a kept line after the fork")
+    if not main_first:
+        _archive_git(root, "checkout", "-q", "code-only")
+    other = "code-only" if main_first else "main"
+    _archive_git(root, "merge", "-q", "--no-ff", "--no-edit", other)
+    assert (root / _HOT).read_text(encoding="utf-8") == _main_hot(True)
+    return root, ancestor, _archive_git(root, "rev-parse", "HEAD")
+
+
+@pytest.mark.parametrize("main_first", [True, False], ids=["pr-merge-ref", "main-into-branch"])
+def test_a_code_only_branch_older_than_a_main_edit_merges_cleanly(guard, tmp_path, main_first):
+    root, ancestor, merge = _code_only_merge(tmp_path, main_first=main_first)
+    blocking, advisory, _ = guard.check_range(ancestor, merge, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    assert "JOURNAL_MERGED" in _codes(advisory)
+
+
+# The three-way rule, by content: ``base`` is the merge base, main adds a line and the branch
+# adds a line after it (cut after the archival, so no side shrinks against the other).
+_BASE_HOT = _TOP + _POINTER + _MID
+_MAIN_LINE = "> **2026-10-21 — an entry main added after the fork, longer than the branch's**\n"
+_BRANCH_LINE = "> **2026-10-20 — the branch's own entry**\n"
+_MID_ON_MAIN = _MID.replace("depends on", "depends on (main)")
+_MID_ON_BRANCH = _MID.replace("depends on", "depends on (branch)")
+
+
+@pytest.mark.parametrize(
+    "main_hot,branch_hot,merged,lost",
+    [
+        pytest.param(
+            _MAIN_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _BRANCH_LINE + _MAIN_LINE + _BASE_HOT,
+            None,
+            id="every-line-kept",
+        ),
+        pytest.param(
+            _MAIN_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _MAIN_LINE + _BASE_HOT,
+            _BRANCH_LINE,
+            id="readme-step-1-only-the-branch-line-forgotten",
+        ),
+        pytest.param(
+            _MAIN_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _MAIN_LINE,
+            id="a-line-main-added-dropped",
+        ),
+        pytest.param(
+            _MAIN_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _BRANCH_LINE + _MAIN_LINE + _TOP + _POINTER,
+            _MID,
+            id="a-line-both-sides-kept-dropped",
+        ),
+        pytest.param(
+            _BASE_HOT.replace(_MID, _MID_ON_MAIN),
+            _BASE_HOT.replace(_MID, _MID_ON_BRANCH),
+            _BASE_HOT.replace(_MID, _MID_ON_BRANCH),
+            _MID_ON_MAIN,
+            id="both-sides-edited-one-line-and-main-s-edit-dropped",
+        ),
+        pytest.param(
+            _BASE_HOT.replace(_MID, _MID_ON_MAIN),
+            _BASE_HOT.replace(_MID, _MID_ON_BRANCH),
+            _BASE_HOT.replace(_MID, _MID_ON_MAIN + _MID_ON_BRANCH),
+            None,
+            id="both-sides-edited-one-line-and-both-kept",
+        ),
+        pytest.param(
+            _MAIN_LINE + "\n" + _BASE_HOT,
+            _BRANCH_LINE + "\n" + _BASE_HOT,
+            _BRANCH_LINE + _MAIN_LINE + _BASE_HOT,
+            None,
+            id="a-separator-is-not-content",
+        ),
+        pytest.param(
+            _BRANCH_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            _BRANCH_LINE + _BASE_HOT,
+            None,
+            id="the-same-line-added-on-both-sides-kept-once",
+        ),
+    ],
+)
+@pytest.mark.parametrize("main_first", [True, False], ids=["main-first", "branch-first"])
+def test_a_merge_keeps_every_line_either_side_added_since_the_merge_base(
+    guard, tmp_path, main_hot, branch_hot, merged, lost, main_first
+):
+    """A line may be absent from a merge only because one side removed it since the merge
+    base; every line either side added stays. Each side's own removals were checked in its own
+    (commit, parent) pairs. The first shape is README step 1 without step 2: no pair shrinks,
+    so the size rule never saw the branch's entry vanish."""
+    root = _archive_init(tmp_path)
+    archive = {_ARCHIVE: _OLD_A + _OLD_B}
+    base = _snapshot(root, {_HOT: _BASE_HOT, **archive})
+    main = _snapshot(root, {_HOT: main_hot, **archive}, base)
+    branch = _snapshot(root, {_HOT: branch_hot, **archive}, base)
+    parents = (main, branch) if main_first else (branch, main)
+    merge = _snapshot(root, {_HOT: merged, **archive}, *parents)
+    blocking, _, _ = guard.check_range(base, merge, files=(_HOT,), root=root)
+    if lost is None:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+    else:
+        holders = {
+            parent for parent, hot in ((main, main_hot), (branch, branch_hot)) if lost in hot
+        }
+        assert sorted((f.code, f.parent, f.commit) for f in blocking) == sorted(
+            ("MERGE_LOST_LINES", parent, merge) for parent in holders
+        ), "\n".join(str(f) for f in blocking)
+        assert all(lost.strip() in f.detail for f in blocking), blocking[0].detail
+
+
+def test_a_merge_with_no_single_merge_base_is_judged_per_pair(guard, tmp_path):
+    """Criss-cross history has two merge bases; the three-way rule needs one, so such a merge
+    (and an octopus) falls back to the per-pair rule, which never accepts a loss."""
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: _BASE_HOT})
+    left = _snapshot(root, {_HOT: _MAIN_LINE + _BASE_HOT}, base)
+    right = _snapshot(root, {_HOT: _BRANCH_LINE + _BASE_HOT}, base)
+    both = _BRANCH_LINE + _MAIN_LINE + _BASE_HOT
+    cross_a = _snapshot(root, {_HOT: both}, left, right)
+    cross_b = _snapshot(root, {_HOT: both}, right, left)
+    assert guard.merge_base(left, right, root=root) == base
+    assert guard.merge_base(cross_a, cross_b, root=root) is None
+
+
+@pytest.mark.parametrize("code", ["JOURNAL_SHRANK", "MERGE_LOST_LINES"])
+def test_a_hot_md_block_prints_the_readme_merge_step_not_both_parents(guard, code):
+    """Review 2026-10-19, round 2: the printed tip said "rebuild from both parents" for hot.md
+    too, and for hot.md that is the ``merge=union`` result ``ARCHIVED_TEXT_RESURRECTED`` blocks.
+    For a journal with an archive the tip is the README step; other journals keep theirs."""
+    found = guard.Finding(code, _HOT, "a" * 40, "b" * 40, "probe")
+    remedy = guard.shrink_remedy([found], "b" * 40)
+    assert "كلا** الوالدَين" not in remedy
+    assert "sahool-brain/README.md" in remedy
+    assert "أسطر فرعك وحدها" in remedy
+    other = guard.Finding("JOURNAL_SHRANK", "sahool-brain/log.md", "a" * 40, "b" * 40, "probe")
+    assert "كلا** الوالدَين" in guard.shrink_remedy([other], "b" * 40)
+
+
+@pytest.mark.parametrize(
+    "added,resurrected",
+    [
+        pytest.param(_OLD_B, True, id="an-archived-entry"),
+        pytest.param("> **2026-10-20 — a new entry**\n", False, id="new-text"),
+        pytest.param("## ماذا بعد؟\n", False, id="a-heading-the-archive-also-holds"),
+        pytest.param("| ID | العنوان | الحالة |\n|---|---|---|\n", False, id="a-table-skeleton"),
+    ],
+)
+def test_only_archived_entry_text_counts_as_resurrected(guard, tmp_path, added, resurrected):
+    """The snapshot's skeleton is not archived text: measured, the first archive holds hot.md's
+    standing headings and table rows (``## ماذا بعد؟``, ``|---|---|---|``), each present in all
+    of the last 300 first-parent versions of hot.md on main up to 2a759d06. Re-adding one is
+    normal work."""
+    root = _archive_init(tmp_path)
+    archive = _OLD_A + _OLD_B + "## ماذا بعد؟\n| ID | العنوان | الحالة |\n|---|---|---|\n"
+    parent = _snapshot(root, {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: archive})
+    candidate = _snapshot(root, {_HOT: added + _TOP + _POINTER + _MID, _ARCHIVE: archive}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == (["ARCHIVED_TEXT_RESURRECTED"] if resurrected else [])
+
+
+@pytest.mark.parametrize(
+    "after,resurrected",
+    [
+        pytest.param(_OLD_B + _TOP + _POINTER + _MID + _OLD_B, True, id="a-second-copy"),
+        pytest.param(_TOP + _POINTER + _MID + _OLD_B, False, id="the-same-copy-moved"),
+    ],
+)
+def test_a_line_counts_by_occurrence_not_by_presence(guard, tmp_path, after, resurrected):
+    """A copy already in the journal is not new; a second copy of it is."""
+    root = _archive_init(tmp_path)
+    archive = {_ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, {_HOT: _OLD_B + _TOP + _POINTER + _MID, **archive})
+    candidate = _snapshot(root, {_HOT: after, **archive}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert _codes(blocking) == (["ARCHIVED_TEXT_RESURRECTED"] if resurrected else [])
+
+
+# ── which archive files count: one definition, shared with the readers ────────
+#
+# Review finding (2026-10-19): the guard credited an archival into ANY path under the folder
+# (any depth, any extension, hidden, even a symlink blob), while the readers of the archive read
+# only top-level ``*.md`` — so text could leave ``hot.md`` into a file no reader opens. The files
+# that count are defined once in ``resolve_merge_conflicts``; everything under the folder stays
+# strictly append-only.
+
+
+@pytest.mark.parametrize(
+    "path,mode,counted",
+    [
+        pytest.param(_ARCHIVE, "100644", True, id="hot_star_md-directly-in-the-folder"),
+        pytest.param("sahool-brain/archive/2026/hot_x.md", "100644", False, id="one-level-deeper"),
+        pytest.param("sahool-brain/archive/sub/deeper/hot_x.md", "100644", False, id="deeper"),
+        pytest.param("sahool-brain/archive/hot_x.txt", "100644", False, id="txt"),
+        pytest.param("sahool-brain/archive/hot_x.MD", "100644", False, id="upper-case-MD"),
+        pytest.param("sahool-brain/archive/notes.md", "100644", False, id="not-hot_star"),
+        pytest.param("sahool-brain/archive/.hidden", "100644", False, id="hidden"),
+        pytest.param(_ARCHIVE, "120000", False, id="symlink-blob"),
+        pytest.param(_ARCHIVE, "100755", False, id="executable"),
+    ],
+)
+def test_only_a_regular_hot_md_file_directly_in_the_folder_funds_a_shrink(
+    guard, tmp_path, path, mode, counted
+):
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP + _OLD_A + _MID + _OLD_B})
+    candidate = _snapshot(
+        root, {_HOT: _TOP + _POINTER + _MID, path: _OLD_A + _OLD_B}, parent, modes={path: mode}
+    )
+    blocking, advisory, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    if counted:
+        assert not blocking, "\n".join(str(f) for f in blocking)
+        assert _codes(advisory) == ["JOURNAL_ARCHIVED"]
+    else:
+        assert _codes(blocking) == ["JOURNAL_SHRANK"], "\n".join(str(f) for f in blocking)
+
+
+@pytest.mark.parametrize(
+    "path,mode,counted",
+    [
+        ("sahool-brain/archive/hot_x.md", "100644", True),
+        ("sahool-brain/archive/2026/hot_x.md", "100644", False),  # what `ls-tree -r` would list
+        ("sahool-brain/archive/hot_2026/notes.md", "100644", False),  # `*` alone would match it
+        ("sahool-brain/hot_x.md", "100644", False),
+        ("sahool-brain/archive/hot_x.md", "100755", False),
+        ("sahool-brain/archive/hot_x.md", "040000", False),
+    ],
+)
+def test_counts_as_archive_holds_on_its_own(path, mode, counted):
+    """The predicate does not lean on the listing that feeds it: a path one level deeper
+    is refused even when a caller lists the folder recursively."""
+    resolver = _load(RESOLVER, "_resolve_counts_as_archive_probe")
+    assert resolver.counts_as_archive(path, mode, resolver.ARCHIVES[_HOT]) is counted
+
+
+def test_a_file_under_the_folder_that_does_not_count_is_still_append_only(guard, tmp_path):
+    other = "sahool-brain/archive/2026/notes.txt"
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_HOT: _TOP, other: _OLD_A + _OLD_B})
+    candidate = _snapshot(root, {_HOT: _TOP, other: _OLD_A}, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert [(f.code, f.path) for f in blocking] == [("ARCHIVE_REWRITTEN", other)]
+
+
+def test_the_guard_and_the_readers_see_the_same_archive_files(guard, tmp_path):
+    """The git listing (guard) and the disk listing (readers) go through one predicate."""
+    import os
+
+    resolver = _load(RESOLVER, "_resolve_counted_archive_probe")
+    folder = resolver.ARCHIVES[_HOT]
+    root = _archive_init(tmp_path)
+    (root / folder / "2026").mkdir(parents=True)
+    for name in ("2026/hot_b.md", "hot_c.txt", "hot_d.MD", ".hidden", "hot_exec.md", _ARCHIVE):
+        (root / (name if name == _ARCHIVE else folder + name)).write_text("x\n", encoding="utf-8")
+    (root / folder / "hot_exec.md").chmod(0o755)
+    os.symlink(Path(_ARCHIVE).name, root / folder / "hot_link.md")
+    _archive_git(root, "add", "-A")
+    _archive_git(root, "commit", "-qm", "decoys")
+    on_disk = [
+        p.relative_to(root).as_posix()
+        for p in resolver.counted_archive_files(root / folder, folder)
+    ]
+    assert on_disk == guard.counted_archives("HEAD", folder, root=root) == [_ARCHIVE]
+
+
+# Review 2026-10-19, round 2: a plain mode change (100644 -> 100755, same bytes) took the archive
+# out of the counted set and no rule saw it. Its bytes stayed a prefix, so the archive rule
+# passed; the resurrection rule read only the archives that count at the commit; and the readers
+# (``counted_archive_files``) stopped reading it. Measured on the real files: chmod +x alone
+# passed, and chmod +x with five archived entries re-added to hot.md (7,336 bytes) passed too,
+# while the same five lines without the chmod were ``ARCHIVED_TEXT_RESURRECTED``.
+
+
+@pytest.mark.parametrize("mode", ["100755", "120000"], ids=["executable", "symlink-blob"])
+@pytest.mark.parametrize(
+    "readd,codes",
+    [
+        pytest.param(False, ["ARCHIVE_UNCOUNTED"], id="mode-change-alone"),
+        pytest.param(
+            True,
+            ["ARCHIVED_TEXT_RESURRECTED", "ARCHIVE_UNCOUNTED"],
+            id="mode-change-and-archived-lines-re-added",
+        ),
+    ],
+)
+def test_a_counted_archive_may_not_stop_counting(guard, tmp_path, mode, readd, codes):
+    """Same path, same bytes, another mode: the archive leaves what the readers read."""
+    root = _archive_init(tmp_path)
+    archived_tree = {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, archived_tree)
+    files = dict(archived_tree)
+    if readd:
+        files[_HOT] = _OLD_B + files[_HOT]
+    candidate = _snapshot(root, files, parent, modes={_ARCHIVE: mode})
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert sorted(_codes(blocking)) == sorted(codes), "\n".join(str(f) for f in blocking)
+    assert [f.path for f in blocking if f.code == "ARCHIVE_UNCOUNTED"] == [_ARCHIVE]
+
+
+def test_a_file_that_never_counted_may_change_mode(guard, tmp_path):
+    """The rule is about leaving the counted set, not about modes: an executable file under the
+    folder was never an archive, so making it a regular one takes nothing from a reader."""
+    root = _archive_init(tmp_path)
+    tree = {_HOT: _TOP + _POINTER + _MID, _ARCHIVE: _OLD_A + _OLD_B}
+    parent = _snapshot(root, tree, modes={_ARCHIVE: "100755"})
+    candidate = _snapshot(root, tree, parent)
+    blocking, _, _ = guard.check_range(parent, candidate, files=(_HOT,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+
+
+# ── the size budget: a ratchet, never raised ────────────────────────────────
+
+
+def _budget(max_bytes: int) -> str:
+    import json
+
+    return json.dumps({"budgets": {_HOT: {"max_bytes": max_bytes}}}, indent=2) + "\n"
+
+
+@pytest.mark.parametrize(
+    "base_limit,head_limit,code",
+    [
+        pytest.param(100, 120, "BUDGET_RAISED", id="raised"),
+        pytest.param(100, 100, None, id="unchanged"),
+        pytest.param(100, 80, None, id="lowered"),
+    ],
+)
+def test_the_budget_never_rises(guard, tmp_path, base_limit, head_limit, code):
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(base_limit)})
+    head = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(head_limit)}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+
+
+@pytest.mark.parametrize("excess,code", [(1, "BUDGET_EXCEEDED"), (0, None)])
+def test_hot_md_may_not_exceed_its_budget_at_head(guard, tmp_path, excess, code):
+    root = _archive_init(tmp_path)
+    limit = len((_TOP + _MID).encode())
+    head_text = _TOP + _MID + ("x" * excess)
+    base = _snapshot(root, {_HOT: _TOP, _BUDGET: _budget(limit)})
+    head = _snapshot(root, {_HOT: head_text, _BUDGET: _budget(limit)}, base)
+    blocking, _ = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+    if code:
+        assert "sahool-brain/archive/" in blocking[0].detail, "the remedy is archival, not a raise"
+
+
+@pytest.mark.parametrize(
+    "base_files,head_files,code",
+    [
+        pytest.param({_BUDGET: _budget(100)}, {}, "BUDGET_ABSENT_AT_HEAD", id="budget-deleted"),
+        pytest.param({}, {}, "BUDGET_ABSENT_AT_HEAD", id="never-declared-is-not-a-pass"),
+        pytest.param(
+            {_BUDGET: _budget(100)},
+            {_BUDGET: '{"budgets": {}}\n'},
+            "BUDGET_RAISED",
+            id="journal-dropped-from-budget",
+        ),
+        pytest.param({}, {_BUDGET: "{not json"}, "BUDGET_UNREADABLE", id="malformed"),
+        pytest.param({}, {_BUDGET: _budget(100)}, None, id="introduced"),
+    ],
+)
+def test_a_missing_or_unreadable_budget_fails_closed(guard, tmp_path, base_files, head_files, code):
+    root = _archive_init(tmp_path)
+    base = _snapshot(root, {_HOT: _TOP, **base_files})
+    head = _snapshot(root, {_HOT: _TOP, **head_files}, base)
+    blocking, advisory = guard.check_budget(base, head, root=root)
+    assert _codes(blocking) == ([code] if code else [])
+    if code is None:
+        assert _codes(advisory) == ["BUDGET_INTRODUCED"]
+
+
+@pytest.mark.parametrize("over_budget", [True, False], ids=["exceeded", "within"])
+def test_the_command_line_exit_carries_the_budget_findings(guard, monkeypatch, capsys, over_budget):
+    """``main()`` adds the budget findings to the blocking list it exits on.
+
+    Found by mutation (2026-10-19): emptying ``budget_blocking`` in ``main()`` survived every
+    test, because the budget tests call ``check_budget`` directly. The CLI is what CI runs.
+    """
+    found = guard.Finding("BUDGET_EXCEEDED", _HOT, "-", "HEAD", "probe: over the budget")
+    monkeypatch.setattr(guard, "check_range", lambda base, head: ([], [], 0))
+    monkeypatch.setattr(
+        guard, "check_budget", lambda base, head: ([found] if over_budget else [], [])
+    )
+    code = guard.main(["--base", "HEAD", "--head", "HEAD"])
+    out = capsys.readouterr()
+    if over_budget:
+        assert code == 1, out.out + out.err
+        assert "BUDGET_EXCEEDED" in out.err
+    else:
+        assert code == 0, out.out + out.err
+        assert "brain_append_only_guard_ok" in out.out
+
+
+@pytest.mark.parametrize(
+    "journal,tip",
+    [
+        pytest.param(_HOT, "أسطر فرعك وحدها", id="hot-md-the-readme-step"),
+        pytest.param("sahool-brain/log.md", "كلا** الوالدَين", id="log-md-both-parents"),
+    ],
+)
+def test_the_printed_remedy_of_a_dip_at_the_head(guard, monkeypatch, capsys, journal, tip):
+    """What ``main()`` prints, not what ``shrink_remedy`` returns when called by hand.
+
+    Found in review round 2 (2026-10-19): ``main()`` passed the head SHA as bytes, so no
+    finding ever matched it and a dip at the head was also told it is carved in history and
+    needs a force-push.
+    """
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    found = guard.Finding("JOURNAL_SHRANK", journal, "a" * 40, head, "probe")
+    monkeypatch.setattr(guard, "check_range", lambda base, head_ref: ([found], [], 1))
+    monkeypatch.setattr(guard, "check_budget", lambda base, head_ref: ([], []))
+    assert guard.main(["--base", "HEAD", "--head", "HEAD"]) == 1
+    err = capsys.readouterr().err
+    assert tip in err, err
+    assert "محفورٌ في التاريخ" not in err, err
+
+
+def test_the_committed_budget_holds_on_this_tree(guard):
+    """The live number: hot.md at this tree fits the committed budget, which is a decision."""
+    import json
+
+    doc = json.loads((ROOT / _BUDGET).read_text(encoding="utf-8"))
+    limit = doc["budgets"][_HOT]["max_bytes"]
+    size = (ROOT / _HOT).stat().st_size
+    assert size <= limit, f"hot.md is {size:,} bytes, budget {limit:,}"
+    registry = json.loads(
+        (ROOT / "docs/architecture/claim_base_registry.json").read_text(encoding="utf-8")
+    )
+    assert Path(_BUDGET).name in registry["decided"], "the budget is an owner decision"
+    assert doc.get("adjudicated_on"), "a decision carries its date"
