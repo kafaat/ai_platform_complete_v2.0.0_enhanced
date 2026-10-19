@@ -606,3 +606,71 @@ def test_hil_ci_requires_the_live_database_certificate():
     assert selected[0]["env"].get("HIL_CERTIFICATION_REQUIRED") == "1", (
         "The shared integration run must require the HIL live proof; DB failure cannot skip it"
     )
+
+
+@pytest.mark.parametrize("approved", [True, False])
+@pytest.mark.parametrize(
+    "case,expected_http,expected_status",
+    [
+        ("authorized", 200, None),
+        ("other_tenant", 404, "not_found"),
+        ("wrong_specialist", 403, "unauthorized"),
+        ("expired_workflow", 409, "expired"),
+        ("unknown_workflow", 404, "not_found"),
+        ("no_token", 401, None),
+    ],
+)
+def test_approval_http_sandbox_is_scoped_and_has_no_external_io(
+    gr_mod, monkeypatch, storage, approved, case, expected_http, expected_status
+):
+    """F-GLOBAL-08: real ASGI/JWT/HIL path, isolated in-memory storage only."""
+    import socket
+
+    import asyncpg
+
+    from conftest import make_token
+
+    def forbidden_io(*args, **kwargs):
+        raise AssertionError("approval sandbox attempted external I/O")
+
+    # Install before creating the workflow. Any fallback to a real pool or any
+    # provider/device network connection must fail the test, never escape it.
+    monkeypatch.setattr(asyncpg, "create_pool", forbidden_io)
+    monkeypatch.setattr(asyncpg, "connect", forbidden_io)
+    monkeypatch.setattr(socket.socket, "connect", forbidden_io)
+    monkeypatch.setattr(gr_mod, "_GR_JWT_SECRET", os.environ["JWT_SECRET"])
+    monkeypatch.setattr(gr_mod, "_GR_JWT_ALG", "HS256")
+    wid = asyncio.run(
+        gr_mod.HumanApprovalWorkflow().create(
+            gr_mod.GuardrailsRequest(**payload()),
+            [{"tier": "economic", "passed": False}],
+            "MEDIUM",
+        )
+    )
+    if case == "expired_workflow":
+        storage.rows[wid]["expires_at"] = datetime.now(UTC) - timedelta(seconds=1)
+    requested_id = "unknown-workflow" if case == "unknown_workflow" else wid
+    token = make_token(
+        role="water_specialist" if case == "wrong_specialist" else "financial_advisor",
+        tenant_id=OTHER if case == "other_tenant" else TENANT,
+    )
+    response = TestClient(gr_mod.app).post(
+        f"/v1/approve/{requested_id}",
+        params={"approved": str(approved).lower(), "reason": "isolated acceptance"},
+        headers={} if case == "no_token" else {"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == expected_http, response.text
+    result = response.json()
+    row = storage.rows[wid]
+    if case == "authorized":
+        assert result["status"] == ("approved" if approved else "rejected")
+        decisions = json.loads(row["approvals"] if approved else row["rejections"])
+        assert len(decisions) == 1 and decisions[0]["expert_id"] == "1"
+    else:
+        if expected_status:
+            assert result["detail"]["status"] == expected_status
+        assert json.loads(row["approvals"]) == []
+        assert json.loads(row["rejections"]) == []
+        assert row["status"] == ("expired" if case == "expired_workflow" else "pending")
+    assert not storage.settings
+    assert list(storage.rows) == [wid]

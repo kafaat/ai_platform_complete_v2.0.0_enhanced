@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/3617284f5190/audit-unmeasured
+configfile: pytest.ini
+plugins: anyio-4.15.1, cov-7.1.0, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 13 items / 10 deselected / 3 selected
+
+tests_v9/test_fields_merge_split_atomic.py FFF                           [100%]
+
+=================================== FAILURES ===================================
+______ test_rejected_self_intersection_names_the_cause[create_or_import] _______
+tests_v9/test_fields_merge_split_atomic.py:495: in test_rejected_self_intersection_names_the_cause
+    assert "تتقاطع" in detail["message_ar"]
+E   AssertionError: assert 'تتقاطع' in 'هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.'
+------------------------------ Captured log setup ------------------------------
+WARNING  api.routers.readiness:readiness.py:25 SAHOOL_DEBUG=off
+___________ test_rejected_self_intersection_names_the_cause[update] ____________
+tests_v9/test_fields_merge_split_atomic.py:495: in test_rejected_self_intersection_names_the_cause
+    assert "تتقاطع" in detail["message_ar"]
+E   AssertionError: assert 'تتقاطع' in 'هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.'
+_______ test_rejected_self_intersection_names_the_cause[merge_or_split] ________
+tests_v9/test_fields_merge_split_atomic.py:495: in test_rejected_self_intersection_names_the_cause
+    assert "تتقاطع" in detail["message_ar"]
+E   AssertionError: assert 'تتقاطع' in 'هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.'
+=========================== short test summary info ============================
+FAILED tests_v9/test_fields_merge_split_atomic.py::test_rejected_self_intersection_names_the_cause[create_or_import]
+FAILED tests_v9/test_fields_merge_split_atomic.py::test_rejected_self_intersection_names_the_cause[update]
+FAILED tests_v9/test_fields_merge_split_atomic.py::test_rejected_self_intersection_names_the_cause[merge_or_split]
+======================= 3 failed, 10 deselected in 3.35s =======================
