@@ -118,7 +118,7 @@ def upload_cog(local_path: str, key: str) -> str:
         raise ObjectStoreUploadError("S3 bucket configured without S3 endpoint")
     if not enabled():
         return f"file://{local_path}"
-    _s3_endpoint_decision()  # hard-fail before file:// fallback, even in dev
+    _s3_endpoint_decision()  # a rejected endpoint raises here, before any file:// degradation
     if not S3_ACCESS_KEY or not S3_SECRET_KEY:
         # S3 مُهيّأة (bucket/endpoint) لكن بلا مفاتيح: fail-closed افتراضاً كبقيّة أخطاء
         # الرفع — إلّا إذا سُمِح fallback (تطوير) فنتدهور إلى file:// بتحذير (لا رفع صامت
