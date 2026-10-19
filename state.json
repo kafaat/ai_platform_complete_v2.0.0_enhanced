@@ -53,11 +53,21 @@
   },
   {
    "id": "xdist-fix",
-   "status": "MEASURING",
+   "status": "MEASURING_STABILITY",
    "branch": "claude/xdist-deterministic-collection-20261019",
-   "commit": "9abad3fda",
-   "measure": "pytest -m unit -n 4 under global lock vs serial baseline 10014 passed/35 skipped in 21m12s (C locale)",
-   "next": "if counts equal: CI change -n to Unit Tests step; preflight; PR"
+   "commits": [
+    "9abad3fda (soil-lab set order)"
+   ],
+   "uncommitted": "test_service_token_constant_time._load purges foreign routers (repro: fails before, passes after)",
+   "measured": {
+    "-n4 first run": "5m19s; 3 failed (2 probe-writer races, 1 routers sys.modules pollution); 10037 passed; 35 skipped",
+    "serial baseline": "21m12s, 10014 passed 35 skipped (older tree)"
+   },
+   "probe_writers": [
+    "tests_v9/test_probe_leak_guard.py",
+    "tests_v9/test_api_versioning_policy_guard.py"
+   ],
+   "next": "2 stability runs -n4 excluding writers; then design: writers serial, rest parallel; CI change"
   }
  ],
  "awaiting_owner": [
@@ -96,15 +106,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "6aff45b29d45b6bc65e7d9b842a4ca66391b4204",
-  "tree": "5de0c1b5cd81143fb224abf67e0bf3775198920f",
+  "commit": "4f35c72f1db7a7e7884806fa9a33ddb6e9b48cf5",
+  "tree": "5a388943d52d8def16e6951a91170ed5c38b068e",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-19T13:52:50Z",
+ "updated": "2026-10-19T14:00:18Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
