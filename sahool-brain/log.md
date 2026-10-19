@@ -9732,6 +9732,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **مهارة الاستئناف:** حزمة المالك UWRP Portable v3.1 في `.claude/skills/work-continuation/` بايتاً ببايت (SKILL.md `a51e98d7`، الأرشيف `5e9c7895`، SHA256SUMS سليمة، المدقّق PASS، 18 اختباراً، `agentskills validate` صالحة)؛ وحلّت محلّ v3 (الأرشيف `fe704ebb`) التي فُحصت ثمّ استُبدلت قبل الدمج، وطبقة المستودع `docs/runbooks/WORK_CONTINUATION_SAHOOL.md` بوقائع هذه الجلسة، واستثناء `.claude/skills` من ruff حفاظاً على البصمات. حالة التشغيل خارج الشجرة، والنسخة الاحتياطيّة `state.json` و`HANDOFF.md` فقط على فرع orphan `claude/backup-work-state-20261019`.
 - **فرعا النقل** `codex/audit-blob-transfer-20261019` (`cdaba457`) و`codex/cog-blob-transfer-20261019` (`486dba77`) يحملان وظيفة `contents: write` تعمل عند الدفع إليهما؛ حذفهما مُعتمد من المالك لكنّ مُصنِّف الأذونات حجب `git push --delete`، فبقيا.
 
+### 2026-10-19 — عبارتا المالك وسطر التحقّق في قسم الاستئناف
+
+قسمُ `CLAUDE.md` «الأعمال الطويلة والاستئناف» الذي أضافه #1238 (`bf0356f0`) عُدِّل في موضعه: عبارتا المالك «تابع من آخر نقطة توقف» و«طبّق Universal Work Continuation & Recovery Protocol»، وسطرُ التحقّق `sha256sum -c --ignore-missing SHA256SUMS` داخل مجلّد المهارة. لم يتغيّر ملفٌّ من الحزمة. ودرسٌ مقيس في `docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md` §٣.٩ عن `no_report_only_change_guard` مع تحديث سطر «آخر تحقّق ميدانيّ». الأساس main@`bf0356f0`، الفرع `claude/work-continuation-protocol`؛ القرار وسببه في `decisions/ledger.md` (2026-10-19). لا نشر.
 ### 2026-10-19 — مسرّع الاختبارات Adaptive Test Accelerator v1.1: فحص وتجربة على main
 
 حزمة المالك: الأرشيف `d598d94e`، و`SKILL.md` `2f09209d`، و23 من 23 بصمة سليمة، و47 اختباراً ناجحاً، و`agentskills validate` صالحة. قرأتُ ملفّاتها كلّها قبل التشغيل؛ `checkpoint_runner.py` يرفض shell، ويشترط اعتماد بصمة الخطّة، ويجرّد البيئة.
