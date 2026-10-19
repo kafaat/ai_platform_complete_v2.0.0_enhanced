@@ -8,6 +8,7 @@
 |---|---|
 | [`README.md`](README.md) | ما هو الـbrain + القواعد الصارمة + بروتوكول الصيانة |
 | [`hot.md`](hot.md) | لقطة التركيز الحاليّ (تُحدَّث نهاية كلّ جلسة) |
+| [`archive/`](archive/) | أرشيف `hot.md`: مداخل نُقلت بايتاً ببايت تحت سقف الحجم (إلحاقيّ صارم، لا يُقرأ في بداية الجلسة) — البروتوكول في [`README.md`](README.md) |
 | [`log.md`](log.md) | سجلّ الجلسات الإلحاقيّ (append-only) |
 | [`dashboard.md`](dashboard.md) | قائمة الفحص الصحّيّ (8 فئات) |
 | [`architecture/index.md`](architecture/index.md) | مدخل المعماريّة (يربط الوثيقة + ADRs) |
