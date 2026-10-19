@@ -1,0 +1,18 @@
+{
+  "authority_verified": false,
+  "current_status": "PROPOSED",
+  "decided_by": "NOT_SPECIFIED",
+  "decision_id": "DEC-001",
+  "evidence_refs": [],
+  "options": [
+    {
+      "benefit": "...",
+      "name": "A",
+      "risk": "..."
+    }
+  ],
+  "problem": "Describe decision context",
+  "rationale": "Explain why",
+  "schema": "uwrp-professional/decision/v1",
+  "supersedes": null
+}

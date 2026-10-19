@@ -12,6 +12,10 @@
     "kind": "tests"
   },
   {
+    "path": ".claude/skills/work-router/tests/test_pack.py",
+    "kind": "tests"
+  },
+  {
     "path": "agent-memory/TEST_FACTS.md",
     "kind": "tests"
   },
