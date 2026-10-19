@@ -93,8 +93,11 @@ def test_every_disallowed_transition_raises(cur, tgt):
 
 
 def _all_valid_pairs():
+    # الأهداف مجموعة (set) يتبع ترتيبُها بذرةَ التجزئة، فتختلف معرّفات الحالات بين عمّال
+    # pytest-xdist («Different tests were collected»). الترتيب بإعلان الـenum يثبّتها.
+    order = list(SoilTestStatus)
     for cur, targets in SOIL_TEST_TRANSITIONS.items():
-        for tgt in targets:
+        for tgt in sorted(targets, key=order.index):
             yield cur, tgt
 
 
