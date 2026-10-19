@@ -1,0 +1,85 @@
+{
+  "schema": "uwrp-professional/routing/v3",
+  "note": "The v4.3 router includes three optional learning skills; no auto-execution/authorization or forced multi-skill activation.",
+  "modes": {
+    "LIGHT": "Answer or act directly. No state files, no extra skills.",
+    "CHECKPOINTED": "Independent units with durable receipts; resume from verified evidence.",
+    "COORDINATED": "Several writers or an external/irreversible effect; exclusive ownership and live preconditions."
+  },
+  "routes": [
+    {
+      "skill": "work-continuation",
+      "flag": "interrupted",
+      "when": "Interrupted, resumed or handed-off work; state files exist.",
+      "mode": "CHECKPOINTED",
+      "baseline": true
+    },
+    {
+      "skill": "adaptive-test-accelerator",
+      "flag": "long_tests",
+      "when": "Slow, fragile or repeatedly interrupted test suites.",
+      "mode": "CHECKPOINTED",
+      "baseline": true
+    },
+    {
+      "skill": "intent-to-proof",
+      "flag": "ambiguous_goal",
+      "when": "Multi-step outcome without acceptance criteria, or scope changed mid-work.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "evidence-research",
+      "flag": "needs_research",
+      "when": "External facts, tool comparison, provenance or mirror questions.",
+      "mode": "LIGHT"
+    },
+    {
+      "skill": "failure-investigation",
+      "flag": "unknown_failure",
+      "when": "Failure with unknown cause, intermittent, or a fix already failed.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "collaboration-coordination",
+      "flag": "multi_agent",
+      "when": "Several agents, branches or sessions share files, locks or tasks.",
+      "mode": "COORDINATED"
+    },
+    {
+      "skill": "change-review",
+      "flag": "change_review",
+      "when": "A proposed change must be accepted, rejected or merged.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "safe-delivery",
+      "flag": "external_action",
+      "when": "Push, merge, deploy, send, upload or delete.",
+      "mode": "COORDINATED"
+    },
+    {
+      "skill": "skill-evaluator",
+      "flag": "new_or_updated_skill",
+      "when": "Creating, changing, importing or rolling out a skill.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "experience-collector",
+      "flag": "capture_lessons",
+      "when": "A long task or incident produced reusable observed lessons with evidence.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "improvement-engine",
+      "flag": "repeated_lessons",
+      "when": "Multiple evidence-linked experiences suggest a skill change proposal.",
+      "mode": "CHECKPOINTED"
+    },
+    {
+      "skill": "skill-regression-lab",
+      "flag": "compare_skill_versions",
+      "when": "Need reproducible A/B skill comparison before adoption.",
+      "mode": "CHECKPOINTED"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "base_version": "UNKNOWN",
+  "change_id": "CHANGE-001",
+  "findings": [],
+  "head_version": "UNKNOWN",
+  "human_acceptance": false,
+  "required_gates": [],
+  "reviewed_diff_hash": null,
+  "reviewer_role": "INDEPENDENT_NOT_VERIFIED",
+  "schema": "uwrp-professional/review-decision/v1",
+  "scope": "REFERENCE_ONLY",
+  "verdict": "EVIDENCE_MISSING"
+}

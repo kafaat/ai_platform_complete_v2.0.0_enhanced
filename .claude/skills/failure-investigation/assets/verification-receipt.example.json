@@ -1,0 +1,16 @@
+{
+  "checked_at": null,
+  "evidence_refs": [],
+  "exit_code": null,
+  "limitations": [],
+  "result": "NOT_RUN",
+  "reviewed_by": null,
+  "schema": "uwrp-professional/verification-receipt/v1",
+  "skipped_count": null,
+  "unit_id": "TASK-001",
+  "version_context": {
+    "base_ref": null,
+    "inputs_digest": "UNVERIFIED",
+    "merge_base": null
+  }
+}

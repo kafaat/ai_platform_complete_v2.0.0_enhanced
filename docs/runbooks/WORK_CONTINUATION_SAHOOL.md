@@ -56,3 +56,25 @@
 - **التخطّيات:** JUnit في pytest يعدّ xfail «skipped». لذلك يُشتقّ `max_skipped` لكلّ وحدة من خطّ أساس مقيس، لا يُرفع اعتباطاً.
 - **`--resume-interrupted`:** لا يفحص حياة العمليّة إذا كان مضيف علامة `inflight` مختلفاً. لا يُستعمل بين الحاويات.
 - **نطاق الإيصالات:** `SHARDED_VERIFICATION` لما شُغِّل فقط، لا preflight ولا CI.
+
+## 11. منظومة UWRP Professional v4.3 (إحدى عشرة مهارة بجوار المجمَّدتين)
+
+مصدرها حزمة المالك v4.1 (`2e178008…`)، وحُسِّنت إلى v4.2. ثمّ أضاف أرشيف المالك v4.3 (`2f5d0994…`) ثلاث مهارات تعلّم، والمهارات هنا مطابقة لملفّاته بايتاً ببايت. كلّ مهارة مستقلّة في `.claude/skills/<الاسم>/`، ومركزها `work-router` (جدول التوجيه `references/routing.json`، والتحقّق `scripts/verify_pack.py`، والأبحاث). ما قيس وما لم يُقَس: `.claude/skills/work-router/references/EVALUATION_RESULTS.md`.
+
+كلّ مهارة تقابلها آليّة هنا، ولا تحلّ محلّها:
+
+| المهارة | الآليّة الحاكمة في هذا المستودع |
+|---|---|
+| `intent-to-proof` | الفجوة بمصدر وحالة في `sahool-brain/gaps/registry.md`؛ و`check_contract.py` لعقد العمل الطويل خارج الشجرة |
+| `change-review` | `scripts/ci/preflight.sh` وCI على **رأس** الـPR نفسه؛ والمراجعة لا تغني عن البوّابات (§1) |
+| `safe-delivery` | الدمج مثبَّت بـ`expectedHeadSha`، وتجميد الحوادث وقيود Railway في هذا الملف وCLAUDE.md |
+| `collaboration-coordination` | قفل preflight لكلّ worktree لا للمستودع (§3)؛ لا تشغيلان ثقيلان معاً |
+| `failure-investigation` | `docs/runbooks/GUARD_CATALOGUE.md` نقطة البدء عند فشل حارس |
+| `skill-evaluator` | `trigger_eval.py` قبل تعديل أيّ وصف مهارة هنا |
+| `experience-collector` | سجلّه في مساحة مؤقّتة خارج الشجرة؛ والدرس المعتمد يدخل `sahool-brain/log.md` بمصدره |
+| `improvement-engine` | المقترح مسوّدة لا تعديل؛ التغيير PR عاديّ بسطر في `sahool-brain/decisions/ledger.md` |
+| `skill-regression-lab` | مقارنة الإصدارين على الحالات نفسها قبل تبديل أيّ مهارة، مع `trigger_eval.py` |
+
+والفحص: `python3 -I .claude/skills/work-router/scripts/verify_pack.py .claude/skills --require-baselines`. يتحقّق أيضاً من أنّ المهارتين المجمَّدتين مطابقتان لإصدارهما بايتاً ببايت.
+
+**مرشّح v4.4 (`reliable-agent-execution`) لم يُثبَّت.** في الاختبار الأعمى (44 حالة، منها 9 سالبة، على نموذجين) لم يختره أيّ نموذج في أيّ حالة. والسبب أنّ `safe-delivery` و`work-continuation` يغطّيان محفّزاته. الجديد فيه صار مقترحاً على `safe-delivery` ينتظر مراجعة المالك ومقارنة قبل وبعد: مستويات إثبات القراءة الراجعة، وفئتا الأدوات `EGRESS` و`UNKNOWN`، وتسجيل نيّة الإرسال قبل الاستدعاء.

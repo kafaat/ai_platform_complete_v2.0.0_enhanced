@@ -5,7 +5,7 @@
 
 ## المصدر (source of truth)
 
-- الأمر (نفس CI): `pytest -m unit --cov=services --cov-fail-under=<floor> -q`
+- الأمر (نفس CI، نصفان متتامّان): `pytest -m "unit and not tree_writer" -n auto --maxprocesses=4 --cov=services --cov-report=` ثمّ `pytest -m "unit and tree_writer" --cov=services --cov-append --cov-fail-under=<floor>`. تسلسليّاً بلا xdist يبقى `pytest -m unit --cov=services --cov-fail-under=<floor> -q` مكافئاً.
 - الأرضيّة مضبوطة في `.github/workflows/ci.yml` (خطوة *Coverage gate (fail-under)*).
 - **مهمّ (تغيّر في 2026-07-28 — `UNIT-TEST-DORMANCY-01`):** وظيفة CI *Unit Tests* لم تعد
   تعمل في «بيئة دنيا بلا fastapi». `tests_v9/requirements-test.txt` صار يحمل

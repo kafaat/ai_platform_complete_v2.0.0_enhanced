@@ -1,0 +1,42 @@
+{
+  "schema": "uwrp-professional/work-contract/v2",
+  "work_id": "REPLACE-WITH-STABLE-ID",
+  "objective": "State an observable user outcome",
+  "exclusions": ["What will not be changed"],
+  "mode": "CHECKPOINTED",
+  "authority": {
+    "read": true,
+    "local_write": "UNVERIFIED",
+    "remote_push": "NOT_AUTHORIZED",
+    "merge": "NOT_AUTHORIZED",
+    "deploy": "NOT_AUTHORIZED"
+  },
+  "sources_of_truth": [
+    {"kind": "file-or-service", "reference": "REPLACE", "version": "UNKNOWN"}
+  ],
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "text": "Measurable claim",
+      "acceptance": "Observable proof condition",
+      "evidence_type": "test",
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "REQ-002",
+      "text": "Second claim, already proven",
+      "acceptance": "Command exits 0 on the pinned version",
+      "evidence_type": "test",
+      "status": "VERIFIED",
+      "evidence": [
+        {"result": "PASS", "exit_code": 0, "ref": "logs/run-1.txt", "version": "REPLACE-SHA"}
+      ]
+    }
+  ],
+  "tasks": [
+    {"id": "TASK-001", "requirements": ["REQ-001"], "depends_on": [], "owner": "UNASSIGNED", "writes": ["src/feature.py"], "status": "PENDING"},
+    {"id": "TASK-002", "requirements": ["REQ-002"], "depends_on": ["TASK-001"], "owner": "UNASSIGNED", "writes": [], "status": "DONE"}
+  ],
+  "next_action": "Verify sources and permissions"
+}

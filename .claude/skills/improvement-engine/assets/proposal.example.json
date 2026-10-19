@@ -1,0 +1,20 @@
+{
+  "schema": "uwrp.change-proposal.v1",
+  "proposal_id": "CAND-EXAMPLE",
+  "status": "DRAFT_REQUIRES_EVIDENCE_REVIEW",
+  "skill_name": "adaptive-test-accelerator",
+  "baseline_skill_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evidence_refs": [
+    "receipt:synthetic-001"
+  ],
+  "change_hypothesis": "Bound parallelism based on available resources.",
+  "candidate_diff": "NOT_WRITTEN",
+  "regression_cases": [
+    "disk-full",
+    "small-machine",
+    "baseline-time"
+  ],
+  "authorized_to_apply": false,
+  "authorized_to_publish": false,
+  "owner_review": "PENDING"
+}
