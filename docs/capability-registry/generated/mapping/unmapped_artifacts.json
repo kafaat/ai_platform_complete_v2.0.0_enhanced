@@ -1,6 +1,6 @@
 [
   {
-    "path": ".claude/skills/work-continuation/tests/test_package_contracts.py",
+    "path": ".claude/skills/work-continuation/tests/test_contracts.py",
     "kind": "tests"
   },
   {

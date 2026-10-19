@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6109,
+    "files_scanned": 6099,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 1994,
+      "other": 1984,
       "tests": 1982,
       "web": 472
     },
@@ -38862,7 +38862,7 @@
   ],
   "unmapped_artifacts": [
     {
-      "path": ".claude/skills/work-continuation/tests/test_package_contracts.py",
+      "path": ".claude/skills/work-continuation/tests/test_contracts.py",
       "kind": "tests"
     },
     {
