@@ -9858,3 +9858,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 `scripts/ci/run_s3_compose_slice_acceptance.sh` في *Raster Service Tests* يُقلع من تعريفات compose الفعليّة: `sahool-minio` و`sahool-minio-init` (دلوان وحساب لكلّ خدمة) و`sahool-raster-service` وصورة `sahool-scout-ingest` و`sahool-titiler`، بقيم اصطناعيّة لكلّ متغيّر `:?`. لا يُقلع raster-service على قاعدة: فحص الدور يتجاوز القاعدة غير المتاحة (`shared/db_role_guard.py:110-114`).
 
 نقطة HTTP لرفع الدفتر (`services/scout-ingest-service/season_api.py:305`) تقرأ `season_records` قبل S3، فلا تُختبَر بلا هجرات؛ سُجّل ذلك عائقاً لا تجاوزاً، ويُختبَر `blob_store` داخل صورة الخدمة نفسها. ورُصد أثناء البناء أنّ TiTiler القديم يحمل مفاتيح إدارة MinIO: `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`.
+
+### 2026-10-20 — موافقة المالك على دمج #1244، والفجوة تنتقل إلى fixed
+
+وافق المالك صراحةً على دمج #1244 بشروط: مزامنة مع `main` (الفرع يحويه أصلاً عند `c9e8c15e0`)، ونقل الفجوة إلى fixed إن اكتملت أدلّتها، وpreflight وCI على الرأس النهائي، ثمّ دمج الرأس المختبَر نفسه. اكتمل شرطا قبول `TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01` في CI (الصورة الفعليّة على `ea0867053` وشريحة compose على `b670059c6`)، فصار صفّها fixed عند الدمج.
