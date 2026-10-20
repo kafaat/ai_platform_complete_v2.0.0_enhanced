@@ -12,6 +12,7 @@ import {
   Sunrise, Sunset, CloudSun, X, Info,
 } from 'lucide-react';
 import { useFields, useWeatherForecast, useAlerts } from '../hooks/useApi';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 import {
   T, Card, Pill, Badge, StatBox, ProgressBar, Row, SectionLabel,
   TabBar, FAB, BottomSheet, ndviColor, severityTone,
@@ -276,6 +277,8 @@ function WeatherTab({
           )}
         </Card>
       )}
+      {/* بيانات Open-Meteo بـCC BY 4.0: رابط النسبة بجوار موضع العرض. */}
+      <OpenMeteoAttribution />
     </div>
   );
 }

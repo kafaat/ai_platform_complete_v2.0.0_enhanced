@@ -371,7 +371,7 @@ export default function FieldIndicatorMap({
           url={baseUrl}
           attribution={basemap === 'satellite'
             ? '&copy; <a href="https://www.esri.com/">Esri</a>'
-            : '&copy; <a href="https://carto.com/">CARTO</a>'}
+            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
         />
 
         {/* طبقة بلاطات المؤشر (شفّافة خارج الحقل) — {z}/{x}/{y} حرفيّ.
