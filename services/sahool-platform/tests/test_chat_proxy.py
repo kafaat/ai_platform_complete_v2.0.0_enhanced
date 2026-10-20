@@ -63,3 +63,58 @@ class TestProxyRequest:
         assert "system" not in req  # لا حقل system منفصل في صيغة OpenAI
         assert req["messages"][0] == {"role": "system", "content": "SERVER_CTX"}
         assert req["messages"][-1]["content"] == "hi"
+
+
+class TestProviderPreferencesOnTheWire:
+    """مسار ``POST /api/chat`` المرجعيّ: ما يُرسَل فعلاً إلى OpenRouter يحمل تفضيلات
+    الخصوصيّة (``data_collection=deny`` و``zdr=true``)، ولا تستطيع الواجهة إرخاءها."""
+
+    def _post(self, monkeypatch, provider):
+        import pytest
+
+        pytest.importorskip("fastapi")
+        from types import SimpleNamespace
+
+        assert proxy.app is not None, "تطبيق المرجع لم يُبنَ رغم توفّر FastAPI"
+
+        from fastapi.testclient import TestClient
+
+        for key in ("AI_MODEL", "AI_MODELS", "OPENROUTER_BASE_URL", "OLLAMA_BASE_URL"):
+            monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("AI_PROVIDER", provider)
+        monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+        sent = []
+
+        class _Upstream:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, headers=None, json=None):
+                sent.append(json)
+                return SimpleNamespace(json=lambda: {"ok": True})
+
+        monkeypatch.setattr(proxy, "httpx", SimpleNamespace(AsyncClient=_Upstream))
+        monkeypatch.setattr(proxy, "_tenant_from_jwt", lambda request: "farm_wire")
+        proxy._calls.clear()
+        body = {
+            "messages": [{"role": "user", "content": "hi"}],
+            "provider": {"data_collection": "allow", "zdr": False},
+        }
+        resp = TestClient(proxy.app).post("/api/chat", json=body)
+        assert resp.status_code == 200
+        assert len(sent) == 1
+        return sent[0]
+
+    def test_openrouter_request_carries_privacy_preferences(self, monkeypatch):
+        payload = self._post(monkeypatch, "openrouter")
+        assert payload["provider"] == {"data_collection": "deny", "zdr": True}
+
+    def test_local_request_carries_no_provider_preferences(self, monkeypatch):
+        payload = self._post(monkeypatch, "local")
+        assert "provider" not in payload
