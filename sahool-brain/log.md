@@ -9850,3 +9850,11 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - قراءة COG، وأنّ uvicorn هو PID 1 ويُنهيه SIGTERM بالرمز 0، وغياب السرّ عن كلّ المخرجات.
 
 نُقلت البوّابة في compose من `command` إلى `entrypoint`. وأُعيدت الفجوة `TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01` إلى «open» بطلب المالك: لا تُغلق قبل نجاح الاختبار داخل الحاوية على الرأس النهائي وتشغيل Compose الكامل. ونطاق دليل الحارس محدود: لا اتّصال TCP بهذه الأسماء على المنفذ 9000، لا غيابَ كلّ خروج شبكيّ.
+
+### 2026-10-20 — قبول شريحة S3 من compose بلا قاعدة، وموافقة المالك على كسر التوافق
+
+وافق المالك صراحةً على كسر التوافق (`S3_ALLOW_PLAINTEXT_INTERNAL=true` لـMinIO الداخليّ فقط) وأبقى الدمج معلَّقاً على قبول Compose. ولأنّ مهاجر compose يضبط `SAHOOL_MIGRATE_APPLY: "1"` (`docker-compose.v9.yml:741`) والتجميد يمنعه ولو على قاعدة مؤقّتة، حدّد المالك شريحةً معزولة بلا مهاجر.
+
+`scripts/ci/run_s3_compose_slice_acceptance.sh` في *Raster Service Tests* يُقلع من تعريفات compose الفعليّة: `sahool-minio` و`sahool-minio-init` (دلوان وحساب لكلّ خدمة) و`sahool-raster-service` وصورة `sahool-scout-ingest` و`sahool-titiler`، بقيم اصطناعيّة لكلّ متغيّر `:?`. لا يُقلع raster-service على قاعدة: فحص الدور يتجاوز القاعدة غير المتاحة (`shared/db_role_guard.py:110-114`).
+
+نقطة HTTP لرفع الدفتر (`services/scout-ingest-service/season_api.py:305`) تقرأ `season_records` قبل S3، فلا تُختبَر بلا هجرات؛ سُجّل ذلك عائقاً لا تجاوزاً، ويُختبَر `blob_store` داخل صورة الخدمة نفسها. ورُصد أثناء البناء أنّ TiTiler القديم يحمل مفاتيح إدارة MinIO: `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`.

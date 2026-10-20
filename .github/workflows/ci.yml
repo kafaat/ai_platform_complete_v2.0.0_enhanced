@@ -2088,6 +2088,15 @@ jobs:
         run: |
           bash scripts/ci/run_s3_titiler_gate_live.sh
           cat "$S3_TEST_REPORT"
+      # S3 slice of docker-compose.v9.yml from its real service definitions, with no
+      # database and no migration (incident freeze): minio + minio-init, raster-service,
+      # scout-ingest's image, legacy TiTiler. Synthetic credentials generated per run.
+      - name: S3 Compose slice acceptance (real services, no database)
+        env:
+          S3_TEST_REPORT: ${{ runner.temp }}/s3-compose-slice-acceptance.json
+        run: |
+          bash scripts/ci/run_s3_compose_slice_acceptance.sh
+          cat "$S3_TEST_REPORT"
 
   security-scan:
     name: Security Scan
