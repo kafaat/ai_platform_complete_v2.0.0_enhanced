@@ -17,6 +17,12 @@ from __future__ import annotations
 import logging
 import os
 
+from shared.storage.s3_endpoint_security import (
+    EndpointPolicyError,
+    require_path_style_service_root,
+    resolve_configured_s3_endpoint,
+)
+
 logger = logging.getLogger("raster-service.object_store")
 
 # ─── الإعداد من البيئة ────────────────────────────────────────────
@@ -25,7 +31,9 @@ S3_BUCKET = os.getenv("S3_BUCKET", "")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "")
 S3_REGION = os.getenv("S3_REGION", "us-east-1")
-S3_USE_SSL = os.getenv("S3_USE_SSL", "false")
+S3_USE_SSL = os.getenv("S3_USE_SSL")
+S3_ALLOW_PLAINTEXT_INTERNAL = os.getenv("S3_ALLOW_PLAINTEXT_INTERNAL", "false")
+S3_ALLOW_PLAINTEXT_LOOPBACK = os.getenv("S3_ALLOW_PLAINTEXT_LOOPBACK", "false")
 # fail-closed افتراضيّاً: حين تكون S3 مُهيّأة لكنّ الرفع يفشل، لا نتدهور بصمت إلى
 # file:// (غير قابل للخدمة عبر المضيفين ويُخزَّن في raster_assets كأنّه صالح). نرفع
 # استثناءً صريحاً فيسجّله المُستدعي (cog_url=None، سبب موثَّق). للتطوير فقط: يمكن
@@ -37,32 +45,30 @@ def _allow_file_fallback() -> bool:
     return str(S3_ALLOW_FILE_FALLBACK).strip().lower() in ("1", "true", "yes", "on")
 
 
+def _s3_endpoint_decision():
+    try:
+        decision = resolve_configured_s3_endpoint(
+            S3_ENDPOINT,
+            S3_USE_SSL,
+            S3_ALLOW_PLAINTEXT_INTERNAL,
+            S3_ALLOW_PLAINTEXT_LOOPBACK,
+        )
+        require_path_style_service_root(decision, S3_BUCKET)
+        return decision
+    except EndpointPolicyError as exc:
+        raise ObjectStoreUploadError(f"unsafe S3 endpoint configuration: {exc}") from exc
+
+
 def _use_ssl() -> bool:
-    return str(S3_USE_SSL).strip().lower() in ("1", "true", "yes", "on")
+    return _s3_endpoint_decision().tls
 
 
 def _endpoint_host() -> str:
-    """يجرّد المخطّط (http/https) من S3_ENDPOINT ليُرجِع host:port فقط — هذا ما
-    يتوقّعه GDAL في AWS_S3_ENDPOINT (بلا scheme)."""
-    ep = S3_ENDPOINT.strip()
-    for prefix in ("https://", "http://"):
-        if ep.startswith(prefix):
-            ep = ep[len(prefix) :]
-            break
-    return ep.rstrip("/")
+    return _s3_endpoint_decision().authority
 
 
 def _endpoint_url() -> str:
-    """URL كامل بمخطّط (http/https) لـboto3 — يتطلّب scheme، عكس GDAL.
-
-    FIX: تمرير S3_ENDPOINT الخام (host:port بلا scheme) إلى boto3 endpoint_url
-    يرمي 'Invalid endpoint' فيسقط الرفع لـfile://. نبني المخطّط من S3_USE_SSL.
-    """
-    host = _endpoint_host()
-    if not host:
-        return ""
-    scheme = "https" if _use_ssl() else "http"
-    return f"{scheme}://{host}"
+    return _s3_endpoint_decision().endpoint_url
 
 
 def enabled() -> bool:
@@ -72,7 +78,7 @@ def enabled() -> bool:
     أو الاستيراد في بيئات التطوير التي لا تستخدم S3. عند تفعيل S3 فعلياً بدون
     مفاتيح، يفشل upload_cog برسالة صريحة بدلاً من تدهور صامت إلى file://.
     """
-    return bool(S3_BUCKET) and bool(S3_ENDPOINT)
+    return bool(S3_BUCKET.strip()) and bool(S3_ENDPOINT.strip())
 
 
 def gdal_configure() -> None:
@@ -80,15 +86,18 @@ def gdal_configure() -> None:
 
     آمنٌ للاستدعاء دائماً (no-op إن لم يكن enabled()). يُستدعى مرّة عند الاستيراد.
     """
+    if S3_BUCKET.strip() and not S3_ENDPOINT.strip():
+        raise ObjectStoreUploadError("S3 bucket configured without S3 endpoint")
     if not enabled():
         return
-    os.environ["AWS_S3_ENDPOINT"] = _endpoint_host()
+    decision = _s3_endpoint_decision()
+    os.environ["AWS_S3_ENDPOINT"] = decision.authority
     if S3_ACCESS_KEY:
         os.environ["AWS_ACCESS_KEY_ID"] = S3_ACCESS_KEY
     if S3_SECRET_KEY:
         os.environ["AWS_SECRET_ACCESS_KEY"] = S3_SECRET_KEY
     os.environ["AWS_DEFAULT_REGION"] = S3_REGION
-    os.environ["AWS_HTTPS"] = "YES" if _use_ssl() else "NO"
+    os.environ["AWS_HTTPS"] = "YES" if decision.tls else "NO"
     # MinIO يستخدم path-style (bucket في المسار) لا virtual-hosting (bucket في النطاق).
     os.environ["AWS_VIRTUAL_HOSTING"] = "FALSE"
     # تحسين القراءة الجزئيّة من /vsis3 (لا فهرسة دليل عند الفتح).
@@ -108,8 +117,11 @@ def upload_cog(local_path: str, key: str) -> str:
     ``ObjectStoreUploadError`` (fail-closed) بدل إرجاع file:// غير القابل للخدمة
     عبر المضيفين — إلّا إذا ضُبط S3_ALLOW_FILE_FALLBACK=1 (تطوير) فنتدهور بتحذير عالٍ.
     """
+    if S3_BUCKET.strip() and not S3_ENDPOINT.strip():
+        raise ObjectStoreUploadError("S3 bucket configured without S3 endpoint")
     if not enabled():
         return f"file://{local_path}"
+    _s3_endpoint_decision()  # a rejected endpoint raises here, before any file:// degradation
     if not S3_ACCESS_KEY or not S3_SECRET_KEY:
         # S3 مُهيّأة (bucket/endpoint) لكن بلا مفاتيح: fail-closed افتراضاً كبقيّة أخطاء
         # الرفع — إلّا إذا سُمِح fallback (تطوير) فنتدهور إلى file:// بتحذير (لا رفع صامت

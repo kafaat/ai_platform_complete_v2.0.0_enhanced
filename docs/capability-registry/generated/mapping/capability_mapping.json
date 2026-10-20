@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6172,
+    "files_scanned": 6184,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2054,
-      "tests": 1985,
+      "other": 2058,
+      "tests": 1993,
       "web": 472
     },
-    "unmapped_artifacts": 2321,
+    "unmapped_artifacts": 2329,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -18629,7 +18629,7 @@
           "score": 18
         },
         {
-          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:25",
+          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:27",
           "score": 14
         },
         {
@@ -25615,7 +25615,7 @@
           "score": 12
         },
         {
-          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:25",
+          "value": "fields.py @ tests_v9/test_cdse_and_storage_failclosed_v29_8.py:27",
           "score": 12
         },
         {
@@ -45677,6 +45677,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests/integration/s3_minio_gdal.compose.yml",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/integration/s3_titiler_gate.compose.yml",
+      "kind": "tests"
+    },
+    {
       "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
       "kind": "tests"
     },
@@ -46697,6 +46705,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gdal_s3_env_gate.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_gdal_s3_vars_single_writer.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_generated_artifact_contract.py",
       "kind": "tests"
     },
@@ -47598,6 +47614,22 @@
     },
     {
       "path": "tests_v9/test_runtime_real_smoke_script.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_compose_slice_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_endpoint_policy_regressions.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_minio_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_titiler_gate_live_contract.py",
       "kind": "tests"
     },
     {
