@@ -40,6 +40,8 @@
 
 `ruff.toml` يستثني `.claude/skills` لأنّ إعادة تنسيق الحزمة تكسر بصماتها. فحصها بأداتها: `python3 -I -B .claude/skills/work-continuation/scripts/validate_package.py`، واختباراتها 18 (`tests/test_contracts.py`)، ومطابقتها للمواصفة بـ`agentskills validate` (skills-ref 0.1.1).
 
+وفحص البصمات داخل المجلّد صارم: `sha256sum -c SHA256SUMS`، بلا `--ignore-missing`. فذلك العلَم يتخطّى الملفّ المُدرَج الغائب ويخرج بـ0 ما دام ملفٌّ واحد مطابقاً. قيس في 2026-10-20 على main@`c9e8c15e`: الملفّات المُدرَجة 21، وكلّها حاضرة، والفحص الصارم خرج بـ0. وفي نسخة حُذف منها أيّ ملفّ من الـ21، فشل الصارم ونجح `--ignore-missing`. يحرس ذلك `tests_v9/test_work_continuation_checksum_strict.py`، ويشغّل الأمر كما يكتبه `CLAUDE.md`. أمّا الملفّ الزائد غير المُدرَج فلا يكشفه `sha256sum` أصلاً، ويكشفه `validate_package.py` («manifest coverage differs»).
+
 ## 10. مسرّع الاختبارات (`.claude/skills/adaptive-test-accelerator`، v1.1)
 
 حزمة مورَّدة بايتاً ببايت، كحزمة الاستئناف. تجربة 2026-10-19 على main@`bf0356f01` (الشجرة `de2c2ab2`):
