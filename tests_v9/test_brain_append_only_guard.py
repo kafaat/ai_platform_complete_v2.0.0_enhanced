@@ -156,6 +156,63 @@ def test_both_parents_are_examined_not_just_one(guard, tmp_path):
     assert pairs == 2, f"a merge commit has two parents; examined {pairs}"
 
 
+# ── the parents a commit records, never the ones a graft file claims ───────
+#
+# A graft file (`<git-dir>/info/grafts`, or the file GIT_GRAFT_FILE names) is deprecated
+# and still honoured by git 2.43: it rewrites the parents of the commits it lists on every
+# read. One line holding the shrinking commit's SHA makes that commit a root, so
+# `rev-list --parents` gives it no parent and the guard had no pair to compare. Grafts are
+# local state that no fetch transfers; CI's fresh full-depth checkout has none, a local
+# preflight or a mirror can. Synthetic objects, no skips.
+
+
+@pytest.mark.parametrize("graft_file", ["info-grafts", "caller-env"])
+def test_a_graft_cannot_turn_a_shrinking_commit_into_a_root(
+    guard, tmp_path, monkeypatch, graft_file
+):
+    """The pair is judged against the recorded parent, whatever a graft file says."""
+    root = tmp_path / "grafted"
+    root.mkdir()
+
+    def git(*args: str) -> str:
+        result = subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+        return result.stdout.decode("utf-8").strip()
+
+    journal = root / "sahool-brain/log.md"
+    journal.parent.mkdir()
+    git("init", "-q", "-b", "main", ".")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    journal.write_text("line 1\nline 2\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    parent = git("rev-parse", "HEAD")
+    journal.write_text("line 1\n", encoding="utf-8")
+    git("commit", "-qam", "drops a journal line")
+    shrunk = git("rev-parse", "HEAD")
+
+    # A graft line with no parent after the SHA: the commit reads as a root.
+    if graft_file == "info-grafts":
+        monkeypatch.delenv("GIT_GRAFT_FILE", raising=False)
+        grafts = root / ".git/info/grafts"
+        grafts.parent.mkdir(exist_ok=True)
+    else:
+        # The caller's environment does not decide this either: the guard sets it itself.
+        grafts = tmp_path / "grafts-elsewhere"
+        monkeypatch.setenv("GIT_GRAFT_FILE", str(grafts))
+    grafts.write_text(f"{shrunk}\n", encoding="utf-8")
+
+    # The graft is live, or this test would prove nothing: a plain read sees a root.
+    assert git("rev-list", "--parents", "-n", "1", shrunk).split() == [shrunk]
+    blocking, _, pairs = guard.check_range(
+        parent, shrunk, files=("sahool-brain/log.md",), archives={}, root=root
+    )
+    assert pairs == 1, f"the shrinking commit has one recorded parent; examined {pairs}"
+    assert _codes(blocking) == ["JOURNAL_SHRANK"], "\n".join(str(f) for f in blocking)
+    assert (blocking[0].parent, blocking[0].commit) == (parent, shrunk)
+    assert "14 ← 7" in blocking[0].detail, blocking[0].detail
+
+
 # ── fail closed ────────────────────────────────────────────────────────────
 
 

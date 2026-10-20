@@ -139,6 +139,18 @@ RESOLVER = Path(__file__).resolve().parent / "resolve_merge_conflicts.py"
 # The byte budget is an owner decision (``claim_base_registry.json`` → ``decided``), read at
 # the base and at the head of the range — never from the working tree.
 BUDGET = "docs/architecture/brain_hot_budget.json"
+# The parents a commit records, never the ones a graft file claims. A graft file
+# (``<git-dir>/info/grafts``, deprecated and still honoured by git 2.43) rewrites the parents
+# of the commits it lists on every read: one line holding a shrinking commit's SHA made it a
+# root, ``rev-list --parents`` gave it no parent, and this guard examined zero pairs and
+# passed. Git reads the file ``GIT_GRAFT_FILE`` names INSTEAD of ``info/grafts`` (git 2.43:
+# environment.c ``setup_git_env``, repository.c ``repo_set_gitdir``), and a path that cannot
+# be opened reads as no grafts: ``read_graft_file`` returns before reading, and
+# ``fopen_or_warn`` is silent on ENOENT and ENOTDIR. Nothing can exist under ``/dev/null``.
+# Shallow boundaries are a separate file (``<git-dir>/shallow``) and are still read, so a
+# shallow clone behaves as before. ``_git`` sets this itself rather than trusting the caller's
+# environment.
+_NO_GRAFT_FILE = os.path.join(os.devnull, "grafts")
 
 
 def _load_resolver() -> ModuleType:
@@ -241,8 +253,11 @@ def _git(*args: str, root: Path = ROOT) -> subprocess.CompletedProcess[bytes]:
     one that grew it: the pair passes. CI's checkout does not fetch replace refs, but a local
     preflight or a mirror can hold one. Git honours the variable by its presence, and it is
     set here rather than trusted from the caller's environment.
+
+    A graft file is switched off the same way (``_NO_GRAFT_FILE``): it rewrites parents, not
+    objects, and one graft line made a shrinking commit a root with no pair to compare.
     """
-    env = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"}
+    env = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1", "GIT_GRAFT_FILE": _NO_GRAFT_FILE}
     return subprocess.run(["git", *args], cwd=root, capture_output=True, env=env)
 
 
