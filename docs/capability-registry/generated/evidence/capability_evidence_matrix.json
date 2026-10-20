@@ -9784,6 +9784,7 @@
         "tests_v9/test_db_writer_ownership_triage.py",
         "tests_v9/test_endpoint_auth_coverage.py",
         "tests_v9/test_mcp_servers.py",
+        "tests_v9/test_mcp_weather_archive_host.py",
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_v13_refinements.py",
         "tests_v9/test_weather_solar_fields.py",

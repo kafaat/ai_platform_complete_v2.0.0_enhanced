@@ -1829,7 +1829,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 92,
+    "line": 102,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1838,7 +1838,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 164,
+    "line": 174,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1847,7 +1847,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 368,
+    "line": 378,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1856,7 +1856,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 368,
+    "line": 378,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -1865,7 +1865,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 373,
+    "line": 383,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",

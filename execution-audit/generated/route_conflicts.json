@@ -166,7 +166,7 @@
         },
         {
           "function": "healthz",
-          "line": 368,
+          "line": 378,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/health",
@@ -365,7 +365,7 @@
         },
         {
           "function": "healthz",
-          "line": 368,
+          "line": 378,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/healthz",
@@ -731,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 373,
+          "line": 383,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/readyz",
@@ -961,7 +961,7 @@
         },
         {
           "function": "list_tools",
-          "line": 92,
+          "line": 102,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "call_tool",
-          "line": 164,
+          "line": 174,
           "method": "POST",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1110,
-  "route_inventory_sha256": "9469c57560d33b9e46f841203229d8fd26c4ffbf0e54b9d46a555f9cd8e51a4c",
+  "route_inventory_sha256": "8d42e044010256f48b6c4163fb99513dc5b5d836c849162d7cde146e6e7b7abd",
   "runtime_verified": false,
   "schema_version": 1
 }

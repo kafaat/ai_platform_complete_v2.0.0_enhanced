@@ -185,7 +185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a599fe8fc2c3f8ab602ce50b8944b7ebb9291523588ed113c7bd27de39fea86"
+          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
         }
       ],
       "name": "frontend/big-screen/index.html",
@@ -195,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a599fe8fc2c3f8ab602ce50b8944b7ebb9291523588ed113c7bd27de39fea86"
+          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
         }
       ],
       "name": "frontend/big-screen/keep_bigscreen/index.html",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
+          "content": "0afe078aaf6ef9b8f89a69096b6e8753a592acb7b548ae792097c66220fd37ed"
         }
       ],
       "name": "frontend/gis-overlay/index.html",
@@ -355,7 +355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
+          "content": "0afe078aaf6ef9b8f89a69096b6e8753a592acb7b548ae792097c66220fd37ed"
         }
       ],
       "name": "frontend/gis-overlay/keep_gisoverlay/index.html",
@@ -605,7 +605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2aaa46fc144ab74e90f0b10f979a4264f83c643826e9bc703655e8aff9b9eca1"
+          "content": "1be43587405f57f1a481ac39784eb25261155ee3fb88a7f83e4b11363b259b5f"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -639,6 +639,16 @@
         }
       ],
       "name": "frontend/src/components/NDVIGauge.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7d2026d4dc878a452d173422dcf6292ac1ef60676f606829ad648230203a231"
+        }
+      ],
+      "name": "frontend/src/components/OpenMeteoAttribution.tsx",
       "type": "file"
     },
     {
@@ -1225,7 +1235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25d77230e96df11d6f3b4ce54350db99eb1e463b3d8500db4a3cfc2373959dae"
+          "content": "a2d6415c86e0379a417ce3fc2f8b11a5c293424472d8aa4c6485d46b202ab342"
         }
       ],
       "name": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
@@ -1295,7 +1305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc6447352ca9b05c87c320767e6885297814594e097ab0e915a20b71c61b5fb8"
+          "content": "c0b44851a67d868c6828845ebba5902dbcbec08c2e5180fac0755a1c3f7910c6"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
@@ -1545,7 +1555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d89e84f5b82e0d5af402e44afb14beadfcbf386588dc2b1c94daf1016301436"
+          "content": "961522850ec5ddd93598ceaaf7a9a5d814cda69eb2c00309e263952d9e22cec5"
         }
       ],
       "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
@@ -1775,7 +1785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0cc28f8785ac48895f6dda2d3e93d32f44173b4fd89af9cb313d7af49b9f6f7"
+          "content": "76492d17be038cb6cadd5e580ce48626cbb79c5001458233c21a14676a9d6395"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2455,7 +2465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0534792ead0f0515cf21d157c00b20033ead5896fc69de41967c4262162fd46d"
+          "content": "03477c2f900501dfe878724ed75a03c09aad5fe5f2ec7f7bb587d98379e79c31"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -4265,7 +4275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6e092802f0b4348d1c9126f73ccd1905dda4dff3192fe5576079687880f86a7"
+          "content": "2cdc0eae49d813193d1ce9c1293bff81e96f2b1254c016f1b29c1af82cd0ba8b"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -4369,6 +4379,16 @@
         }
       ],
       "name": "frontend/src/lib/measureDrawWiring.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bdc41ceb0f654e693ddf648ba99bedbd6220f81f2f4fe60dbb63c3fbb7a9dadd"
+        }
+      ],
+      "name": "frontend/src/lib/openMeteoAttribution.ts",
       "type": "file"
     },
     {
@@ -4945,7 +4965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dd83773e441f077a2bf80313cde827b6a383e47045eb3189f98ad142ae98db7"
+          "content": "2e4a862041081e024690d8741c5c60e589537c5c5b05fa940b6c599f925b48bb"
         }
       ],
       "name": "frontend/src/sections/AnalyzeCabin.tsx",
@@ -5085,7 +5105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02502087d62b7f2b9b034c81b14732de4937df94a522aefd62308993a7f93df8"
+          "content": "36da5aad49b0081aaf674617b997bfb01cfdac820a01efc8a0636b67abe2cbfd"
         }
       ],
       "name": "frontend/src/sections/DashboardPage.tsx",
@@ -5255,7 +5275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "971c56d2e07d8de1390907c941c371bbd5460875ec458fb95ec349f87de4bc4a"
+          "content": "f6380357dfb136579a90335f195161e96037a0ce61b8f81ff550e183f32c77f3"
         }
       ],
       "name": "frontend/src/sections/FarmAdvisoryReport.tsx",
@@ -5285,7 +5305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1744474449b67a461ea948385ed32cd573b33a4042fe6fc000414fc453346db5"
+          "content": "404e75e794fe14bae5f3513acb2bb9de6c33a257d5e2d0a68c1d2a551141f1f7"
         }
       ],
       "name": "frontend/src/sections/FieldAppPreview.tsx",
@@ -5385,7 +5405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09a582919d12540bfbadf0bbc5926d9802aac52f5d1e55056043f82d94524db2"
+          "content": "ac7f56358fc602fe8d29077aa2df847e22de621d2b69bff32e0893a2648fa2b0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
@@ -5505,7 +5525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ade37cbd0f0fc0acacba9f931ffd84baba6475f88a7b90db5a6ddb019192219"
+          "content": "40942c157513059893135c57501b596a28d7adebe66bec55e11c9f018a3fb6e0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
@@ -5935,7 +5955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb97c8ce58cd2a227f5c83b2f00007f61751feda47af4113d764557f695aa042"
+          "content": "efeaeea6739ab11c28a600e624801aed069b13d66356e2ebea6f5a5938297e37"
         }
       ],
       "name": "frontend/src/sections/OperationCenterWallPage.tsx",
@@ -5945,7 +5965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96ccaf02472ab132471843cae0e6e8a7bfa63760c127f3bb4abf75a1756ca9b7"
+          "content": "4185b963e4376b13de6146b16b39dce2fee28a6b57a1a9bf8e59e0b0542da59d"
         }
       ],
       "name": "frontend/src/sections/OperationCommand.tsx",
@@ -6025,7 +6045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f3f940b5382bc6f0ea942abf4bed8ba780b45a872fbd46e9e9bb30681047c13"
+          "content": "d811acd723f813cc6c3eea563a7b8c6a3b5659f72ecc9f51d65014a6dcc99e40"
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
@@ -6295,7 +6315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69ce8a7526131b4a3d172606a67393655773a34cbeb0a365cf8cf89eba0e60fc"
+          "content": "bcd7f80429a435f2716be0e3de655a19b5fac1f2fcd839057f0de8b4636c0d50"
         }
       ],
       "name": "frontend/src/sections/WeatherAdvicePage.tsx",
@@ -11205,7 +11225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac46175c6b5a8cc699deb8e4103bc4aab7e4f9185f06d39567bb1ee9cb4263bb"
+          "content": "078ad394a18889f04abc953a5175fdd395e006303eb3cd33c60991c0fda2e7fd"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -14115,7 +14135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "867b5f7a89728459586afaddcf8b7829576df6d52850a9ad78c8e546fdf9bbb2"
+          "content": "262edcc036bb868cfe4936dd630e10f10699b7e9b2ad72d20768b1010f1e7ca4"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -16535,7 +16555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fcd4642f632e7b1b6e4600f993564b626ed984e945f409ef7ff71452814e6f8b"
+          "content": "bd1d13209a13fff920af381a5ce7196f2a4782e1a177f2a86c3580c348042e3d"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -16835,7 +16855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0d8845a758a533a975a84968b50321ffa73c9a5c051e83a486cfde9123bd03b"
+          "content": "1637424759f5f668283f0d52faacfa8c3c217180a4d6237ae5379c6eae9c8a13"
         }
       ],
       "name": "services/sahool-platform/api/chat_proxy_reference.py",
@@ -19205,7 +19225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ed60a0a5de47dd0382a4e764053df142c5bac37e1239b567a247cb310c5121e"
+          "content": "5ba6040759fdfb1d88f2f18f11b09bf223cf79a6d81b268e577c781732ee9c09"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -24805,7 +24825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b49e02ef73cc6db8a6c4ebe79ad8bc2a14f1382f208de3637f45a535356b8ec5"
+          "content": "dee5b50bb2f0b3de81a1947eb6027b6a2a0ce621c48f9ce4c278021ae5a17d1d"
         }
       ],
       "name": "services/sahool-platform/tests/test_ai_provider_config.py",
@@ -25105,7 +25125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f3b67478ecf66ccc896ee8b873b3393754f4995d46c9fa5abd70eba38a893ac"
+          "content": "74a24e8da22b59722ea8fe0da3abcec6aea1f95d6d1f5b77568d62a9c7009806"
         }
       ],
       "name": "services/sahool-platform/tests/test_chat_proxy.py",
@@ -31635,7 +31655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbec173099ae5183d404f60df60b92c73c3fff4bc718f6350c47d9eb53dff792"
+          "content": "afc0ae6df332c4de39863073709587ab0e787f7a5f04fa7ca2c6cb0cf19a98f7"
         }
       ],
       "name": "shared/ai/provider_contract.py",
@@ -33285,7 +33305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82b6f17636ee9397e942c107e4ac5e534acedb91a6b5972428fdee065ec855c7"
+          "content": "a15b694f13685ef3471fb24c67c774e7706aaadc6a26cab2ef736eeed0fab0bf"
         }
       ],
       "name": "shared/wofost/engine.py",

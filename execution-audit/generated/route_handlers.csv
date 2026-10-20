@@ -196,10 +196,10 @@ mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/sentinel_hub_serve
 mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/sentinel_hub_server.py,286
 mcp-servers,GET,/healthz,healthz,services/mcp_servers/sentinel_hub_server.py,488
 mcp-servers,GET,/readyz,readyz,services/mcp_servers/sentinel_hub_server.py,493
-mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/weather_server.py,92
-mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/weather_server.py,164
-mcp-servers,GET,/healthz,healthz,services/mcp_servers/weather_server.py,368
-mcp-servers,GET,/readyz,readyz,services/mcp_servers/weather_server.py,373
+mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/weather_server.py,102
+mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/weather_server.py,174
+mcp-servers,GET,/healthz,healthz,services/mcp_servers/weather_server.py,378
+mcp-servers,GET,/readyz,readyz,services/mcp_servers/weather_server.py,383
 mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/wofost_server.py,58
 mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/wofost_server.py,130
 mcp-servers,GET,/healthz,healthz,services/mcp_servers/wofost_server.py,319
