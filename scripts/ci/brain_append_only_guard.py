@@ -102,6 +102,11 @@ already owns that classification. A second list is a second thing to keep in ste
 Fails closed. An unreadable history, an unresolvable ref, or a deleted journal is a
 failure — "there is nothing to compare against" is never a pass. So is a missing or
 unreadable budget at the head.
+
+It reads the objects as stored. ``git replace`` refs (``refs/replace/*``) make an ordinary
+git read return another commit or blob in place of the one named, so a clone or a mirror
+holding one could show this guard a journal that grew where the commit deleted text. Every
+git call here runs with ``GIT_NO_REPLACE_OBJECTS=1`` (``_git``).
 """
 
 from __future__ import annotations
@@ -109,6 +114,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -228,7 +234,16 @@ def is_lossless_row_deduplication(path: str, before: bytes, after: bytes) -> boo
 
 
 def _git(*args: str, root: Path = ROOT) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(["git", *args], cwd=root, capture_output=True)
+    """Every git call of this guard, on the objects as stored: replace refs are ignored.
+
+    With a ``refs/replace/<commit>`` or ``refs/replace/<blob>`` in the clone, ``git show
+    <commit>:<path>`` reads the replacement, and a commit that deleted journal text reads as
+    one that grew it: the pair passes. CI's checkout does not fetch replace refs, but a local
+    preflight or a mirror can hold one. Git honours the variable by its presence, and it is
+    set here rather than trusted from the caller's environment.
+    """
+    env = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"}
+    return subprocess.run(["git", *args], cwd=root, capture_output=True, env=env)
 
 
 def blob(ref: str, path: str, *, root: Path = ROOT) -> bytes | None:
