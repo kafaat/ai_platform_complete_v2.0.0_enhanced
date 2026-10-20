@@ -19,6 +19,12 @@ def main() -> int:
         'GITLEAKS_VERSION: "8.30.1"': "pinned scanner engine",
         'GITLEAKS_ENABLE_COMMENTS: "false"': "no pull-request write requirement",
         "schedule:": "periodic rescan",
+        "id: pr-merge-history": "supplemental PR merge-history scan",
+        "if: github.event_name == 'pull_request'": "PR event scope",
+        "PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}": "event base commit",
+        "PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}": "event head commit",
+        "gitleaks git --redact --exit-code=2": "redacted, gating supplemental scanner",
+        '--log-opts="--full-history --diff-merges=first-parent ${PR_BASE_SHA}..${PR_HEAD_SHA}"': "all PR parents and merge-resolution diffs",
     }
     if not text:
         errors.append(f"missing workflow: {WORKFLOW.relative_to(ROOT)}")
