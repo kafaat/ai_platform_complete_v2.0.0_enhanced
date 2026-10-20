@@ -9749,7 +9749,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 92,
+    "line": 95,
     "method": "DELETE",
     "path": "/v1/streams/{stream_id}",
     "handler": "stop_stream",
@@ -9758,7 +9758,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 113,
+    "line": 116,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "handler": "get_stream",
@@ -9767,7 +9767,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 136,
+    "line": 139,
     "method": "GET",
     "path": "/v1/streams",
     "handler": "list_streams",
@@ -9776,7 +9776,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 162,
+    "line": 165,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot",
@@ -9785,7 +9785,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 180,
+    "line": 183,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot_zlm",
@@ -9794,7 +9794,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 203,
+    "line": 206,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "handler": "record_start",
@@ -9803,7 +9803,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 223,
+    "line": 226,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "handler": "record_stop",
