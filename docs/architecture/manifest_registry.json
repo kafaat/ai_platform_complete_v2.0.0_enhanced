@@ -22,6 +22,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/brain_hot_budget.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/c8_c13_execution_contract.json",
       "kind": "governed"
     },

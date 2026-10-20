@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **283**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
-- إجماليّ الطفرات المُسجَّلة: **450**
+- إجماليّ الطفرات المُسجَّلة: **462**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **381** على 132 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -105,6 +105,16 @@
 - إبطالُ مسار القبول الضيّق نفسه ⇒ الشاهدُ الذي يجعل الحارسين يحكمان المرشّحَ نفسه يحمَرّ، ويعود الإصلاح lossless إلى `JOURNAL_SHRANK` رغم أنه أزال النسخ المتطابقة فقط — يُسقِط `test_lossless_row_deduplication_satisfies_both_real_guards`
 - إسكاتُ اشتقاق موضع الانخفاض ⇒ تعود الرسالةُ الثابتة وحدها، فيُقال لقارئٍ انخفاضُه في التاريخ إنّ علاجَه إعادةُ البناء من كلا الوالدَين — علاجٌ لا يعمل على حالته، وهو ما وقع في #1036 — يُسقِط `test_a_historical_dip_says_that_a_later_commit_cannot_repair_it`
 - طباعةُ علاج التاريخ دائماً ⇒ يُطالَب دمجٌ يُكتب الآن بنقض تاريخٍ لا داعي له. رسالةٌ صحيحةٌ في غير موضعها تُدرِّب قارئَها على تجاوزها — يُسقِط `test_a_dip_at_the_head_keeps_the_tip_remedy_only`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ قيد الدفتر ⇒ يصير الاستثناءُ ملفّيّاً عامّاً، فيُفرَّغ `log.md` أو `ledger.md` أو سجلُّ الفجوات بنسخةٍ في الأرشيف، وهي دفاترُ لم يُعتمَد لها أرشيفٌ ولا تقرؤها حرّاسُها منه. — يُسقِط `test_the_archive_exception_is_hot_md_only`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: مطابقةُ بادئةٍ بدل الكتلة كاملةً ⇒ أرشيفٌ تغيّر فيه حرفٌ أو سقطت منه كتلةٌ أو أُعيدت كتابةُ نهايات أسطره يُقرأ نقلاً حرفيّاً — محوٌ صامتٌ بلباس أرشفة. — يُسقِط `test_an_archive_that_does_not_hold_the_removed_bytes_verbatim_blocks`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ المؤشّر ⇒ تُبحَث كلُّ كتلةٍ من أوّل الأرشيف، فيمرّ أرشيفٌ بترتيبٍ معكوس؛ والترتيبُ جزءٌ من السجلّ — مدخلٌ يُروى قبل سببه ليس المدخلَ نفسه. — يُسقِط `test_a_hot_md_shrink_is_accepted_only_as_an_in_order_verbatim_move`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: عدُّ محتوى الأرشيف القديم مضافاً ⇒ أرشيفٌ واحد يصير رصيداً يُبرِّر لاحقاً حذفَ أيّ نصٍّ يصادف أن يحويه، بلا نقلٍ في الالتزام نفسه. — يُسقِط `test_archive_text_from_an_earlier_commit_cannot_fund_a_new_shrink`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ حراسة الأرشيف ⇒ يُحذَف ملفُّ الأرشيف أو يُقصّ أو يُحرَّر بعد أن مَوَّل تقلّصَ `hot.md`، فيضيع المنقولُ بالتزامين كلٌّ منهما أخضر — والإلحاقيُّ الصارم وحده يجعل النقلَ نهائيّاً لا خطوةً أولى لمحو. — يُسقِط `test_an_archive_is_append_only_after_it_lands`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ الراتشِت ⇒ يُرفَع الرقمُ كلّما امتلأت اللقطة، فيعود النموّ بلا حدّ وقد صار الرفعُ هو العلاجَ بدل الأرشفة. — يُسقِط `test_the_budget_never_rises`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إسقاطُ فحص السقف ⇒ ميزانيّةٌ مكتوبةٌ لا يقيسها أحد، وهو الصنفُ الذي سجّله §٣.٢٥أ: «ملفٌّ يوصَف بخاصّيّةٍ ليس محروساً بها». — يُسقِط `test_hot_md_may_not_exceed_its_budget_at_head`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: غيابُ الميزانيّة عند الرأس يصير ملاحظةً ⇒ حذفُ الملفّ يُسقِط السقفَ والراتشِت معاً بالتزامٍ أخضر — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنفُ الفجوة داخل علاجها. — يُسقِط `test_a_missing_or_unreadable_budget_fails_closed`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: السماحُ للفاصل بأن يُرسي المحاذاة ⇒ يُطابَق السطرُ الفارغ بين سطرين مُبقَيَين مع فارغٍ داخل قطع، فيُقرأ سطرٌ مُبقىً محذوفاً ويُرفض نقلٌ بلا فقد — وهو ما وقع فعلاً على الأرشفة الأولى قبل الإصلاح. — يُسقِط `test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ. — يُسقِط `test_a_real_union_merge_that_brings_archived_text_back_blocks`
 
 ### `brain_commit_claim_guard.py`
 
@@ -174,6 +184,8 @@
 - نزعُ اشتراط الدليل التنفيذيّ عن انتقال verified ⇒ الانتقالُ يُكتشف ثمّ يُترك يمرّ — يُسقِط `test_brain_only_section_state_moved_to_verified_is_rejected`
 - نزعُ ربط check_verified من main() ⇒ الاختباراتُ المباشرة تبقى خضراء والحارسُ في CI لا يرى verified (مراجعةُ Copilot على #1166) — يُسقِط `test_the_cli_rejects_a_brain_only_backticked_verified_row`
 - إسقاطُ كلِّ خليّةٍ موسومة ⇒ `<!-- gap-registry: current --> \`verified\`` يعدّها القياسُ verified ولا يراها الحارس (مراجعةُ Copilot على #1166) — يُسقِط `test_a_cell_with_a_non_exempting_annotation_is_still_read_as_its_state`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: إبطالُ خصم النقل ⇒ كلُّ أرشفةٍ لـ`hot.md` في PR دماغٍ وحده تُرفَض بأسطرٍ لم يكتبها أحد، فتصير الأرشفةُ التي يوثّقها README غيرَ قابلةٍ للدمج. — يُسقِط `test_a_line_moved_verbatim_from_hot_md_to_its_archive_is_not_a_new_claim`
+- BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: قبولُ أيّ ملفٍّ وجهةً للنقل ⇒ سطرٌ يُنقَل من `hot.md` إلى موضع حالةٍ في السجلّ يُقرأ نقلاً، وهو انتقالُ حالةٍ حقيقيّ في PR دماغٍ وحده. — يُسقِط `test_anything_but_a_verbatim_move_is_still_a_claim_and_is_named`
 
 ### `branch_protection_contract_guard.py`
 

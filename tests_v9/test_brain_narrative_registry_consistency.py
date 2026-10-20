@@ -31,6 +31,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import subprocess
 from pathlib import Path
@@ -42,7 +43,32 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 BRAIN = ROOT / "sahool-brain"
 REGISTRY = BRAIN / "gaps" / "registry.md"
-NARRATIVES = (BRAIN / "log.md", BRAIN / "hot.md", BRAIN / "decisions" / "ledger.md")
+
+
+def _hot_archives() -> list[Path]:
+    """ملفّاتُ أرشيف ``hot.md`` التي تُحتسَب — من التعريف الواحد في ``resolve_merge_conflicts``.
+
+    هو التعريفُ نفسُه الذي يقبل به ``brain_append_only_guard`` تقلّصاً، فما يُقرأ هنا هو
+    بعينه ما يجوز أن يُنقَل إليه (مراجعة 2026-10-19: كان الحارس يقبل أيَّ مسارٍ تحت المجلّد
+    وهذا الفحص يقرأ ``*.md`` في أعلاه وحده).
+    """
+    source = ROOT / "scripts" / "ci" / "resolve_merge_conflicts.py"
+    spec = importlib.util.spec_from_file_location("_narrative_archive_policy", source)
+    assert spec and spec.loader
+    policy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(policy)
+    folder = policy.ARCHIVES["sahool-brain/hot.md"]
+    return policy.counted_archive_files(ROOT / folder, folder)
+
+
+# ``BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01``: ما نُقل من ``hot.md`` إلى أرشيفه يبقى روايةً —
+# النقلُ حرفيٌّ والأرشيفُ إلحاقيٌّ صارم، فلا يُترَك دفترٌ لا يقرؤه هذا الفحص.
+NARRATIVES = (
+    BRAIN / "log.md",
+    BRAIN / "hot.md",
+    BRAIN / "decisions" / "ledger.md",
+    *_hot_archives(),
+)
 
 # معرِّف فجوة: أحرف كبيرة وشرطات، ينتهي برقم تسلسليّ من رقمين — الصيغة السائدة في
 # هذا المستودع (`WORKER-TENANT-GUC-SET-OUTSIDE-ANY-TRANSACTION-01`). الشرط على الطول
@@ -252,3 +278,19 @@ def test_a_longer_identifier_is_not_truncated_from_either_end():
     # والشاهدُ السويّ: التضييقُ لم يُعطِّل الالتقاط الصحيح.
     real = "WORKER-TENANT-GUC-SET-OUTSIDE-ANY-TRANSACTION-01"
     assert _ids(f"راجع `{real}` في السجلّ.") == {real}, "ضاع معرِّفٌ صحيحٌ بالتضييق"
+
+
+def test_every_hot_archive_is_read_as_a_narrative():
+    """``BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01``: an archived entry is still narration.
+
+    Measured on the first compaction: ``HISTORICAL-SEASON-COMPOSITION-02`` is narrated in
+    ``hot.md`` alone, in an entry dated 2026-07-23 that moved to the archive. With the
+    archive unread, the baseline above names an ID no journal narrates and goes red —
+    and worse, an archive would be a journal no check reads. The archive is append-only,
+    so whatever it narrates stays narrated; that is a property of the record, not a debt.
+    """
+    archives = _hot_archives()
+    assert archives, "no hot.md archive exists — this check would be vacuous"
+    assert set(archives) <= set(NARRATIVES), "archive files outside NARRATIVES: " + ", ".join(
+        p.name for p in archives
+    )

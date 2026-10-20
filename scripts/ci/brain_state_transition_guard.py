@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import re
 import subprocess
 import sys
@@ -372,12 +373,69 @@ def check_verified(paths: list[str], base_text: str, head_text: str) -> None:
         )
 
 
+# BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01. ``hot.md`` يتقلّص الآن بنقل أقدم مداخله **حرفيّاً** إلى
+# أرشيفه (``brain_append_only_guard`` يُثبت النقلَ بايتاً ببايت). وتلك المداخل تقتبس مفرداتِ الإغلاق بالمئات،
+# فقراءةُ الفرق قراءةً ساذجة تجعل كلَّ أرشفةٍ تُعيد إعلانَ كلِّ ادّعاءٍ قديم: قِيس على الأرشفة الأولى أنّ PR
+# دماغٍ وحده يُرفَض بأسطرٍ لم يكتبها. فالسطرُ المُضاف إلى ملفِّ أرشيف لا يُقرأ ادّعاءً **إلّا** إن لم يغادر
+# نصُّه نفسُه دفترَه في الفرق ذاته — وكلُّ إزالةٍ تُموِّل سطراً واحداً. ما عدا ذلك يُقرأ كما كان.
+def _archives() -> dict[str, str]:
+    """دفترٌ ⇒ مجلّدُ أرشيفه، من ``resolve_merge_conflicts.ARCHIVES`` لا نسخةٌ هنا."""
+    source = Path(__file__).resolve().with_name("resolve_merge_conflicts.py")
+    spec = importlib.util.spec_from_file_location("_transition_archive_policy", source)
+    if not spec or not spec.loader:
+        raise SystemExit(f"cannot load the archive policy from {source}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return dict(module.ARCHIVES)
+
+
+def moved_into_archive(diff: str) -> Counter:
+    """أسطرُ ``+`` في ملفّات الأرشيف التي غادر نصُّها دفترَها في الفرق نفسه (عدٌّ لا مجموعة)."""
+    archives = _archives()
+    removed: dict[str, Counter] = defaultdict(Counter)
+    added: list[tuple[str, str]] = []
+    path: str | None = None
+    in_hunk = False
+    for raw in diff.splitlines():
+        if raw.startswith("diff --git "):
+            path, in_hunk = None, False
+        elif not in_hunk:
+            if raw.startswith("+++ "):
+                path = raw[6:] if raw.startswith("+++ b/") else None
+            elif raw.startswith("@@"):
+                in_hunk = True
+        elif raw.startswith("-") and path:
+            removed[path][raw[1:]] += 1
+        elif raw.startswith("+") and path:
+            for journal, folder in archives.items():
+                if path.startswith(folder):
+                    added.append((journal, raw))
+    # كلُّ سطرٍ مُضاف يُموَّل من إزالات **دفترِه** وحده، وكلُّ إزالةٍ تُموِّل سطراً واحداً.
+    moved: Counter = Counter()
+    for journal, raw in added:
+        source = removed[journal]
+        if source[raw[1:]] > 0:
+            source[raw[1:]] -= 1
+            moved[raw] += 1
+    return moved
+
+
 def check(paths: list[str], diff: str) -> None:
-    claims = [line for line in diff.splitlines() if _is_claim(line)]
+    moved = moved_into_archive(diff)
+    claims: list[str] = []
+    for line in diff.splitlines():
+        if not _is_claim(line):
+            continue
+        if moved[line] > 0:
+            moved[line] -= 1
+            continue
+        claims.append(line)
     brain_changed = any(p.startswith("sahool-brain/") for p in paths)
     if brain_changed and claims and not _has_executable_evidence(paths):
         raise SystemExit(
             "sahool-brain-only closure/verification transition rejected; include executable code/test/evidence outside the brain knowledge base"
+            f"\n  first line read as a claim: {claims[0][:160]}"
         )
     print("brain_state_transition_guard_ok")
 
