@@ -287,7 +287,7 @@ async def _fetch_card_signals(
         except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
             _logger.warning("soil baseline fetch failed for %s: %s", field_id, exc)
 
-        # weather_window من توقّع Open-Meteo (keyless، نشط) — دوافع اليوم الموضوعيّة.
+        # weather_window من توقّع Open-Meteo (نشط؛ لغير التجاري فقط: OPEN-METEO-COMMERCIAL-TERMS-01) — دوافع اليوم الموضوعيّة.
         # آمن الفشل (منع خروج/شبكة ⇒ القسم يبقى missing بصدق). لا يُعيد حساب الرشّ/الريّ.
         try:
             from types import SimpleNamespace

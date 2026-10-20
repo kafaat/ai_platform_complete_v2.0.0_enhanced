@@ -121,3 +121,13 @@ def test_external_providers_no_drift():
     assert "local" not in CONTRACT.EXTERNAL_PROVIDERS
     assert "vllm" not in CONTRACT.EXTERNAL_PROVIDERS
     assert GEN.provider_is_external("anthropic") and not GEN.provider_is_external("local")
+
+
+def test_openrouter_privacy_preferences_no_drift():
+    """تفضيلات OpenRouter للخصوصيّة ولاحقة النماذج المرفوضة متطابقة بين العقد والنسختين —
+    نسخة تُسقِط ``zdr`` أو تُرخي ``data_collection`` تُرسِل مطالبات المزارعين بلا قيد."""
+    assert CONTRACT.OPENROUTER_PROVIDER_PREFERENCES == {"data_collection": "deny", "zdr": True}
+    assert CONTRACT.OPENROUTER_REFUSED_MODEL_SUFFIX == ":free"
+    for mod in (GEN, CFG):
+        assert mod._OPENROUTER_PROVIDER_PREFERENCES == CONTRACT.OPENROUTER_PROVIDER_PREFERENCES
+        assert mod._OPENROUTER_REFUSED_MODEL_SUFFIX == CONTRACT.OPENROUTER_REFUSED_MODEL_SUFFIX

@@ -442,6 +442,8 @@ def _run_shipped_step(tmp_path: Path, registry: str, *, with_guard: bool) -> tup
         (root / other).write_text("# لا عناوين\n", encoding="utf-8")
     script = (
         "set -u\nfailures=0\nskipped=0\n"
+        + _shipped_function("init_step_log")
+        + "init_step_log\n"
         + _shipped_function("require_file")
         + _shipped_function("run")
         + _shipped_invocation(_DUP_GUARD)
@@ -455,7 +457,12 @@ def _run_shipped_step(tmp_path: Path, registry: str, *, with_guard: bool) -> tup
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env={"PATH": f"{python_dir}:/usr/bin:/bin", "PYTHONIOENCODING": "utf-8", "HOME": str(root)},
+        env={
+            "PATH": f"{python_dir}:/usr/bin:/bin",
+            "PYTHONIOENCODING": "utf-8",
+            "HOME": str(root),
+            "TMPDIR": str(tmp_path),
+        },
         timeout=120,
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
@@ -1118,6 +1125,186 @@ def test_a_second_preflight_in_the_same_worktree_exits_3_before_measuring_anythi
     assert "── " not in result.stdout, "لا بوّابة تُقاس بعد رفض القفل"
 
 
+# ── سجلُّ الخطوة لكلّ تشغيلة — الوجهُ العابرُ للأشجار من LESSON-CONCURRENT-PREFLIGHT-CONTAMINATION-01 ──
+#
+# القفلُ أعلاه لكلّ شجرة عمل، بينما كان كلُّ `run` يكتب إلى `/tmp/preflight_step.log` الثابت.
+# فتشغيلتان في شجرتين (أو وكيلان على الجهاز نفسه) تكتبان الملفَّ نفسه: خطوةٌ ساقطة تطبع
+# ذيلَ تشغيلةٍ **أخرى** فيُقرأ سببُ حمرتها من مخرجٍ ليس لها، وتشغيلةٌ مقتولة تترك الملفّ
+# خلفها. يُقاس هنا بالمقدّمة **المشحونة** — كلُّ ما يسبق أوّلَ خطوة: الجذر · القفل ·
+# سجلُّ الخطوة وفخُّه · الدوالّ — لا بنسخةٍ منها في الاختبار، وفي مستودعٍ مؤقّت لكلّ تشغيلة
+# (القفلُ لكلّ شجرة، فالتزامنُ المقيس هو تزامنُ شجرتين).
+
+_CONCURRENT_RUNS = 20
+
+# خطوةٌ تطبع علامتَها ثمّ تنتظر حتّى تكتب **كلُّ** التشغيلات علامتَها، ثمّ تسقط فيُطبَع
+# ذيلُها. الحاجزُ يجعل التداخلَ حتميّاً لا رهنَ توقيت: لا تقرأ تشغيلةٌ ذيلَها قبل أن تكون
+# كلُّ الكتابات قد وقعت. وسقفُ الانتظار (٩٩) يمنع تعليقاً إن لم تبدأ تشغيلةٌ أصلاً، ويُبلَّغ
+# «barrier timed out» باسمه لا تلوّثاً: تشغيلةٌ لم تجتز الحاجز لا تقيس شيئاً عن السجلّ.
+_BARRIER_STEP = (
+    'printf "%s\\n" "$1"; : > "$2/$1"; n=0; '
+    'while [ "$(ls "$2" | wc -l)" -lt "$3" ]; do '
+    'n=$((n + 1)); [ "$n" -gt 3000 ] && exit 99; sleep 0.01; done; exit 1'
+)
+
+# خطوةٌ تُعلِن بدءَها بملفّ ثمّ تنام — فتُقتَل التشغيلةُ وسطها لا قبلها ولا بعدها.
+_KILLED_STEP = ': > "$1"; exec sleep 30'
+
+
+def _shipped_prologue() -> str:
+    """كلُّ ما يسبق أوّلَ خطوةٍ في `preflight.sh` **المشحون**، حرفيّاً."""
+    text = _text()
+    return text[: text.index('echo "═══ preflight (')]
+
+
+def _git_repo(path: Path) -> Path:
+    path.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True)
+    return path
+
+
+def _step_logs_in(tmpdir: Path) -> list[str]:
+    return sorted(p.name for p in tmpdir.iterdir() if p.name.startswith("preflight_step"))
+
+
+def test_concurrent_runs_each_print_only_their_own_step_log(tmp_path):
+    """عشرون تشغيلةً متزامنة في عشرين شجرة: كلٌّ يطبع ذيلَه هو، وبالشكل نفسه.
+
+    على المسار المشترك تبقى في الملفّ علامةُ آخرِ كاتب وحدها، فتطبع تسعَ عشرةَ تشغيلةً
+    ذيلَ غيرها. وبعد انتهاء الكلّ لا يبقى في `$TMPDIR` سجلُّ خطوة.
+    """
+    import shlex
+
+    tmpdir = tmp_path / "tmp"
+    tmpdir.mkdir()
+    barrier = tmp_path / "barrier"
+    barrier.mkdir()
+    env = {**os.environ, "TMPDIR": str(tmpdir)}
+    markers = [f"OWN-STEP-OUTPUT-{i:02d}" for i in range(_CONCURRENT_RUNS)]
+    procs = []
+    for i, marker in enumerate(markers):
+        repo = _git_repo(tmp_path / f"repo{i:02d}")
+        script = tmp_path / f"run{i:02d}.sh"
+        script.write_text(
+            _shipped_prologue()
+            + f'run "خطوةٌ ساقطة" sh -c {shlex.quote(_BARRIER_STEP)} _ {marker} '
+            + f"{shlex.quote(str(barrier))} {_CONCURRENT_RUNS}\n",
+            encoding="utf-8",
+        )
+        procs.append(
+            subprocess.Popen(
+                ["bash", str(script)],
+                cwd=repo,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+            )
+        )
+    contaminated = []
+    timed_out = []
+    for marker, proc in zip(markers, procs, strict=True):
+        out, err = proc.communicate(timeout=120)
+        assert proc.returncode == 0, out + err
+        if "   ✗ فشل (99)" in out.splitlines():
+            timed_out.append(marker)
+            continue
+        expected = ["── خطوةٌ ساقطة", "   ✗ فشل (1)", f"     {marker}"]
+        if out.splitlines() != expected:
+            contaminated.append((marker, out.splitlines()[2:]))
+    assert not timed_out, (
+        f"barrier timed out: {len(timed_out)}/{_CONCURRENT_RUNS} تشغيلةً انتظرت نحو ٣٠ث ولم تكتب "
+        f"كلُّ التشغيلات علامتَها، فلا يقيس هذا شيئاً عن سجلّ الخطوة: {timed_out}"
+    )
+    assert not contaminated, (
+        f"{len(contaminated)}/{_CONCURRENT_RUNS} تشغيلةً طبعت ذيلاً ليس لها — "
+        f"أوّلُها: {contaminated[0]}"
+    )
+    assert _step_logs_in(tmpdir) == [], "سجلُّ الخطوة يُحذَف عند الخروج لا يبقى خلف التشغيلة"
+
+
+def test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log(tmp_path):
+    """السكربتُ الحقيقيّ كاملاً في شجرةٍ فارغة: يسقط بـ١ (الفخُّ لا يبتلع الرمز) ولا يُبقي سجلّاً."""
+    repo = _git_repo(tmp_path / "repo")
+    tmpdir = tmp_path / "tmp"
+    tmpdir.mkdir()
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--fast", "--no-fetch"],
+        cwd=repo,
+        env={**os.environ, "TMPDIR": str(tmpdir)},
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    assert result.returncode == 1, result.stdout[-2000:] + result.stderr[-2000:]
+    assert "   ✗ فشل (" in result.stdout, "خطوةٌ ساقطة واحدةٌ على الأقلّ تطبع ذيلَ سجلّها"
+    assert _step_logs_in(tmpdir) == [], _step_logs_in(tmpdir)
+
+
+@pytest.mark.parametrize("signame", ["SIGINT", "SIGTERM"])
+def test_a_killed_run_removes_its_step_log_and_still_dies_by_the_signal(tmp_path, signame):
+    """تشغيلةٌ مقتولة وسط خطوة: السجلُّ كان في `$TMPDIR` أثناءها ويُحذَف بعدها، والموتُ بالإشارة نفسها.
+
+    الفخُّ على EXIT وحده لا يُبدِّل موتاً بإشارةٍ خروجاً عاديّاً: bash يُشغّله ثمّ يقتل نفسه
+    بالإشارة ذاتها، فيرى المستدعي رمزَ الإشارة (`returncode == -sig`) لا صفراً. وتُعاد الإشارتان إلى
+    افتراضيّهما في الابن لأنّ عمليّةً خلفيّة تُورِّث SIGINT مُتجاهَلة، وbash لا يفخّ ما ورثه مُتجاهَلاً.
+    """
+    import shlex
+    import signal
+    import time
+
+    sig = getattr(signal, signame)
+    repo = _git_repo(tmp_path / "repo")
+    tmpdir = tmp_path / "tmp"
+    tmpdir.mkdir()
+    started = tmp_path / "started"
+    script = tmp_path / "run.sh"
+    script.write_text(
+        _shipped_prologue()
+        + f'run "خطوةٌ تُقتَل" sh -c {shlex.quote(_KILLED_STEP)} '
+        + f"_ {shlex.quote(str(started))}\n"
+        + 'echo "AFTER-THE-KILLED-STEP"\n',
+        encoding="utf-8",
+    )
+
+    def _default_signals() -> None:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
+    proc = subprocess.Popen(
+        ["bash", str(script)],
+        cwd=repo,
+        env={**os.environ, "TMPDIR": str(tmpdir)},
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        start_new_session=True,
+        preexec_fn=_default_signals,
+    )
+    try:
+        deadline = time.monotonic() + 30
+        while not started.exists():
+            assert proc.poll() is None, proc.communicate()
+            assert time.monotonic() < deadline, "الخطوةُ لم تبدأ خلال ٣٠ث"
+            time.sleep(0.01)
+        during = _step_logs_in(tmpdir)
+        os.killpg(proc.pid, sig)
+        out, err = proc.communicate(timeout=30)
+    finally:
+        if proc.poll() is None:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.communicate()
+    assert len(during) == 1, f"سجلُّ الخطوة يجب أن يكون في $TMPDIR أثناء الخطوة: {during}"
+    assert proc.returncode == -sig, (proc.returncode, out, err)
+    assert "AFTER-THE-KILLED-STEP" not in out, out
+    assert _step_logs_in(tmpdir) == [], "تشغيلةٌ مقتولة لا تترك سجلَّ خطوتها خلفها"
+
+
 # ── LESSON-READ-SUMMARY-NOT-TAIL-01 ─────────────────────────────────────────────
 #
 # المقيس: أُبلِغ «إخفاقٌ واحد» والخلاصةُ تقول ٢ — قُرِئ الذيلُ وفُلتِر باسمٍ متوقَّع، وكان
@@ -1130,6 +1317,8 @@ def _run_shipped_tail(tmp_path: Path, tier: str) -> list[str]:
 
     script = (
         "set -uo pipefail\nfailures=0\nskipped=0\nfailed_steps=()\n"
+        + _shipped_function("init_step_log")
+        + "init_step_log\n"
         + _shipped_function("require_file")
         + _shipped_function("run")
         + _shipped_function("print_tail_summary")
@@ -1144,6 +1333,7 @@ def _run_shipped_tail(tmp_path: Path, tier: str) -> list[str]:
         ["bash", "-s"],
         input=script,
         cwd=tmp_path,
+        env={**os.environ, "TMPDIR": str(tmp_path)},
         capture_output=True,
         text=True,
         encoding="utf-8",

@@ -3,6 +3,7 @@ import { Droplets, Timer } from 'lucide-react';
 import { getFieldIrrigationAdvice, getFieldIrrigationSchedules } from '../services/api/fieldIrrigation';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 import IrrigationManualOperationsPanel from './IrrigationManualOperationsPanel';
 import IrrigationEngineeringCalculator from './IrrigationEngineeringCalculator';
 import ReservoirBoosterNetworkCalculator from './ReservoirBoosterNetworkCalculator';
@@ -49,6 +50,8 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
           <p className="mt-2 text-sm text-slate-300">{adviceQ.data.timing_ar ?? 'لا يوجد توقيت محفوظ من الخادم.'}</p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">{typeof adviceQ.data.et0 === 'number' && <span>ET0: {adviceQ.data.et0}</span>}{typeof adviceQ.data.kc === 'number' && <span>Kc: {adviceQ.data.kc}</span>}{adviceQ.data.stage && <span>stage: {adviceQ.data.stage}</span>}</div>
           {adviceQ.data.rationale_ar && <p className="mt-2 text-xs leading-relaxed text-slate-400">{adviceQ.data.rationale_ar}</p>}
+          {/* ET0 والمطر الداخلان في النصيحة من توقّع Open-Meteo (CC BY 4.0). */}
+          <OpenMeteoAttribution className="mt-2" />
         </div>}
       </div>
 

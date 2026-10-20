@@ -173,3 +173,71 @@ def test_local_respects_overrides(monkeypatch):
     assert cfg.base_url == "http://my-ollama:11434/v1"
     assert cfg.model == "llama3.2:3b"
     assert cfg.endpoint == "http://my-ollama:11434/v1/chat/completions"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# OpenRouter: تفضيلات التوجيه للخصوصيّة + رفض نماذج ``:free``.
+# المصدر الأوّليّ: أنواع SDK الرسميّة لـOpenRouter (OpenRouterTeam/typescript-sdk
+# ``src/models/providerpreferences.ts``) — ``provider: {data_collection, zdr}``.
+# ──────────────────────────────────────────────────────────────────────────
+_NO_TRAINING = {"data_collection": "deny", "zdr": True}
+
+
+def test_openrouter_request_extras_carry_privacy_preferences(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    cfg = resolve_ai_provider()
+    assert cfg.available is True
+    assert cfg.request_extras == {"provider": _NO_TRAINING}
+    # نسخة مستقلّة في كلّ قراءة: تعديلها لا يُرخي الطلب التالي.
+    cfg.request_extras["provider"]["zdr"] = False
+    assert cfg.request_extras == {"provider": _NO_TRAINING}
+
+
+def test_request_extras_are_openrouter_only(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("AI_MODEL", "test-model")
+    for provider in ("local", "vllm", "anthropic"):
+        monkeypatch.setenv("AI_PROVIDER", provider)
+        assert resolve_ai_provider().request_extras == {}, provider
+
+
+@pytest.mark.parametrize(
+    ("model_env", "catalog_env", "refused_id"),
+    [
+        ("meta-llama/llama-3.3-70b-instruct:free", None, "meta-llama/llama-3.3-70b-instruct:free"),
+        (
+            "deepseek/deepseek-chat",
+            "deepseek/deepseek-chat|DeepSeek,deepseek/deepseek-r1:free|R1 Free",
+            "deepseek/deepseek-r1:free",
+        ),
+        (None, "qwen/qwen3-coder:FREE|Qwen", "qwen/qwen3-coder:FREE"),
+    ],
+)
+def test_openrouter_free_model_refused_with_clear_reason(
+    monkeypatch, model_env, catalog_env, refused_id
+):
+    """نموذج ``:free`` في تهيئة OpenRouter ⇒ ``available=False`` بسبب صريح يسمّيه —
+    فيرفض مسار الدردشة بـ503 بدل أن يُرسِل المطالبة."""
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    if model_env:
+        monkeypatch.setenv("AI_MODEL", model_env)
+    if catalog_env:
+        monkeypatch.setenv("AI_MODELS", catalog_env)
+    cfg = resolve_ai_provider("deepseek/deepseek-chat")
+    assert cfg.available is False
+    assert ":free" in cfg.reason_ar
+    assert refused_id in cfg.reason_ar
+
+
+def test_free_suffix_refusal_is_openrouter_only(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "local")
+    monkeypatch.setenv("AI_MODELS", "my-farm-model:free|Local")
+    cfg = resolve_ai_provider()
+    assert cfg.available is True
+    assert cfg.model == "my-farm-model:free"

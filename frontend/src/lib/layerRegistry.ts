@@ -159,7 +159,9 @@ export const LAYER_REGISTRY = [
     opacity: 1,
     defaultVisible: false,
     maxZoom: 19,
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+    // أنماط CARTO مرسومة من بيانات OpenStreetMap: ODbL تشترط نسبة OSM برابط صفحة الحقوق،
+    // وهي صيغة CARTO نفسها في README مستودع CartoDB/basemap-styles.
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     description: 'خريطة أساس فاتحة (CARTO light) — بديل للصور الجوّيّة.',
   },
 

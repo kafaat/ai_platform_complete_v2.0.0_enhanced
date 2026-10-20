@@ -1056,6 +1056,7 @@
         "tests_v9/test_a6_print_map.py",
         "tests_v9/test_evidence_map_shape.py",
         "tests_v9/test_layer_evict_v30_9.py",
+        "tests_v9/test_map_and_weather_data_credit.py",
         "tests_v9/test_service_map_image_pin_parity.py",
         "tests_v9/test_soil_layer_v31_7.py",
         "tests_v9/test_terrain_layers_v31_6.py",
@@ -1093,7 +1094,7 @@
           "path": "migrations/v215_yield_map_ingestion.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=17, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=18, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

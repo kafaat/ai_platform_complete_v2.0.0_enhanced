@@ -286,6 +286,7 @@ medium,sahool-platform,class,TestCatalog,services/sahool-platform/tests/test_can
 medium,sahool-platform,class,TestEnumsCompleteness,services/sahool-platform/tests/test_canonical_schemas.py,117,0,review_before_delete,False
 medium,sahool-platform,class,TestRateLimit,services/sahool-platform/tests/test_chat_proxy.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestProxyRequest,services/sahool-platform/tests/test_chat_proxy.py,37,0,review_before_delete,False
+medium,sahool-platform,class,TestProviderPreferencesOnTheWire,services/sahool-platform/tests/test_chat_proxy.py,68,0,review_before_delete,False
 medium,sahool-platform,class,TestCompleteness,services/sahool-platform/tests/test_completeness.py,6,0,review_before_delete,False
 medium,sahool-platform,class,TestWheatOMThreshold,services/sahool-platform/tests/test_completeness.py,43,0,review_before_delete,False
 medium,sahool-platform,class,TestCropCards,services/sahool-platform/tests/test_crop_cards.py,6,0,review_before_delete,False

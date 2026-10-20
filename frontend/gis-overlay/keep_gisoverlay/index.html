@@ -49,6 +49,9 @@
   }
   .stat-value { font-size:22px; font-weight:700; color:#7fff7f; }
   .stat-label { font-size:11px; color:#88bb88; margin-top:4px; }
+  /* شريط نسب Leaflet بألوان الصفحة الداكنة (يبقى مقروءاً فوق بلاطات Dark Matter) */
+  .leaflet-control-attribution { background:rgba(10,30,10,0.8) !important; color:#88bb88; }
+  .leaflet-control-attribution a { color:#7fff7f; }
 </style>
 
 <!-- W08: Offline map tiles — add to manifest.json for PWA support
@@ -123,13 +126,15 @@ const PEST_POINTS = [
 const map = L.map('map-container', {
   center: [15.35, 44.21],
   zoom: 15,
-  zoomControl: false,
-  attributionControl: false
+  zoomControl: false
+  // شريط النسب يبقى ظاهراً: بلاطات CARTO مرسومة من بيانات OpenStreetMap (ODbL)،
+  // وإطفاؤه كان يُخفي النسبة التي تشترطها الرخصة.
 });
 
 // Dark satellite-style tiles (CartoDB Dark Matter)
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 20, subdomains: 'abcd'
+  maxZoom: 20, subdomains: 'abcd',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 }).addTo(map);
 
 // Add zoom control to top-left

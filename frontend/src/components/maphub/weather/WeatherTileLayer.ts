@@ -22,6 +22,7 @@ import {
   safeMod,
 } from './weatherLayerDefinitions';
 import { getWeatherTileData, weatherTileDataUrl } from '../../../services/api/weatherMap';
+import { OPEN_METEO_ATTRIBUTION_HTML } from '../../../lib/openMeteoAttribution';
 
 
 function interpolationColor(payload: WeatherTilePayload | undefined, cfg: ReturnType<typeof layerConfig>, id: string, fallback: number | null, palette: WeatherPalette = 'coldwarm'): string {
@@ -211,5 +212,8 @@ export function createWeatherWindGridLayer(
     updateWhenIdle: false,
     updateWhenZooming: true,
     keepBuffer: 3,
+    // بيانات Open-Meteo بـCC BY 4.0: Leaflet يعرض هذه النسبة في شريط نسب الخريطة ما دامت
+    // طبقة الطقس مرسومة، ويُزيلها مع إزالتها — فتبقى بجوار البيانات لا في صفحةٍ أخرى.
+    attribution: OPEN_METEO_ATTRIBUTION_HTML,
   });
 }

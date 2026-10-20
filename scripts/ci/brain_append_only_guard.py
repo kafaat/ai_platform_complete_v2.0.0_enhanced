@@ -102,6 +102,11 @@ already owns that classification. A second list is a second thing to keep in ste
 Fails closed. An unreadable history, an unresolvable ref, or a deleted journal is a
 failure — "there is nothing to compare against" is never a pass. So is a missing or
 unreadable budget at the head.
+
+It reads the objects as stored. ``git replace`` refs (``refs/replace/*``) make an ordinary
+git read return another commit or blob in place of the one named, so a clone or a mirror
+holding one could show this guard a journal that grew where the commit deleted text. Every
+git call here runs with ``GIT_NO_REPLACE_OBJECTS=1`` (``_git``).
 """
 
 from __future__ import annotations
@@ -109,6 +114,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -133,6 +139,21 @@ RESOLVER = Path(__file__).resolve().parent / "resolve_merge_conflicts.py"
 # The byte budget is an owner decision (``claim_base_registry.json`` → ``decided``), read at
 # the base and at the head of the range — never from the working tree.
 BUDGET = "docs/architecture/brain_hot_budget.json"
+# The parents a commit records, never the ones a graft file claims. A graft file
+# (``<git-dir>/info/grafts``, deprecated and still honoured by git 2.43) rewrites the parents
+# of the commits it lists on every read: one line holding a shrinking commit's SHA made it a
+# root, ``rev-list --parents`` gave it no parent, and this guard examined zero pairs and
+# passed. Git reads the file ``GIT_GRAFT_FILE`` names INSTEAD of ``info/grafts`` (git 2.43:
+# environment.c ``setup_git_env``, repository.c ``repo_set_gitdir``), and a path that cannot
+# be opened reads as no grafts: ``read_graft_file`` returns before reading, and
+# ``fopen_or_warn`` is silent on ENOENT and ENOTDIR. Nothing can exist under ``/dev/null``.
+# Shallow boundaries are a separate file (``<git-dir>/shallow``) and are still read, so a
+# shallow clone behaves as before. That leaves one local way around this guard, open by
+# design: a hand-written ``shallow`` file naming the shrinking commit gives the same zero-pair
+# pass (measured on git 2.43). The blocking job checks out with ``fetch-depth: 0``
+# (no-report-only-change.yml), so it has no shallow boundary. ``_git`` sets this itself rather
+# than trusting the caller's environment.
+_NO_GRAFT_FILE = os.path.join(os.devnull, "grafts")
 
 
 def _load_resolver() -> ModuleType:
@@ -228,7 +249,19 @@ def is_lossless_row_deduplication(path: str, before: bytes, after: bytes) -> boo
 
 
 def _git(*args: str, root: Path = ROOT) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(["git", *args], cwd=root, capture_output=True)
+    """Every git call of this guard, on the objects as stored: replace refs are ignored.
+
+    With a ``refs/replace/<commit>`` or ``refs/replace/<blob>`` in the clone, ``git show
+    <commit>:<path>`` reads the replacement, and a commit that deleted journal text reads as
+    one that grew it: the pair passes. CI's checkout does not fetch replace refs, but a local
+    preflight or a mirror can hold one. Git honours the variable by its presence, and it is
+    set here rather than trusted from the caller's environment.
+
+    A graft file is switched off the same way (``_NO_GRAFT_FILE``): it rewrites parents, not
+    objects, and one graft line made a shrinking commit a root with no pair to compare.
+    """
+    env = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1", "GIT_GRAFT_FILE": _NO_GRAFT_FILE}
+    return subprocess.run(["git", *args], cwd=root, capture_output=True, env=env)
 
 
 def blob(ref: str, path: str, *, root: Path = ROOT) -> bytes | None:

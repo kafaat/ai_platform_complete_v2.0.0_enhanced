@@ -156,6 +156,63 @@ def test_both_parents_are_examined_not_just_one(guard, tmp_path):
     assert pairs == 2, f"a merge commit has two parents; examined {pairs}"
 
 
+# ── the parents a commit records, never the ones a graft file claims ───────
+#
+# A graft file (`<git-dir>/info/grafts`, or the file GIT_GRAFT_FILE names) is deprecated
+# and still honoured by git 2.43: it rewrites the parents of the commits it lists on every
+# read. One line holding the shrinking commit's SHA makes that commit a root, so
+# `rev-list --parents` gives it no parent and the guard had no pair to compare. Grafts are
+# local state that no fetch transfers; CI's fresh full-depth checkout has none, a local
+# preflight or a mirror can. Synthetic objects, no skips.
+
+
+@pytest.mark.parametrize("graft_file", ["info-grafts", "caller-env"])
+def test_a_graft_cannot_turn_a_shrinking_commit_into_a_root(
+    guard, tmp_path, monkeypatch, graft_file
+):
+    """The pair is judged against the recorded parent, whatever a graft file says."""
+    root = tmp_path / "grafted"
+    root.mkdir()
+
+    def git(*args: str) -> str:
+        result = subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+        return result.stdout.decode("utf-8").strip()
+
+    journal = root / "sahool-brain/log.md"
+    journal.parent.mkdir()
+    git("init", "-q", "-b", "main", ".")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    journal.write_text("line 1\nline 2\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    parent = git("rev-parse", "HEAD")
+    journal.write_text("line 1\n", encoding="utf-8")
+    git("commit", "-qam", "drops a journal line")
+    shrunk = git("rev-parse", "HEAD")
+
+    # A graft line with no parent after the SHA: the commit reads as a root.
+    if graft_file == "info-grafts":
+        monkeypatch.delenv("GIT_GRAFT_FILE", raising=False)
+        grafts = root / ".git/info/grafts"
+        grafts.parent.mkdir(exist_ok=True)
+    else:
+        # The caller's environment does not decide this either: the guard sets it itself.
+        grafts = tmp_path / "grafts-elsewhere"
+        monkeypatch.setenv("GIT_GRAFT_FILE", str(grafts))
+    grafts.write_text(f"{shrunk}\n", encoding="utf-8")
+
+    # The graft is live, or this test would prove nothing: a plain read sees a root.
+    assert git("rev-list", "--parents", "-n", "1", shrunk).split() == [shrunk]
+    blocking, _, pairs = guard.check_range(
+        parent, shrunk, files=("sahool-brain/log.md",), archives={}, root=root
+    )
+    assert pairs == 1, f"the shrinking commit has one recorded parent; examined {pairs}"
+    assert _codes(blocking) == ["JOURNAL_SHRANK"], "\n".join(str(f) for f in blocking)
+    assert (blocking[0].parent, blocking[0].commit) == (parent, shrunk)
+    assert "14 ← 7" in blocking[0].detail, blocking[0].detail
+
+
 # ── fail closed ────────────────────────────────────────────────────────────
 
 
@@ -1575,3 +1632,121 @@ def test_the_committed_budget_holds_on_this_tree(guard):
     )
     assert Path(_BUDGET).name in registry["decided"], "the budget is an owner decision"
     assert doc.get("adjudicated_on"), "a decision carries its date"
+
+
+# ── what the guard reads: the objects as stored, never a replace ref ─────────
+#
+# `git replace` (refs/replace/*) makes every ordinary git read return another object in
+# place of the one named: `git show <commit>:<path>` reads the replacement's tree, or the
+# replacement blob. A clone or a mirror that holds such a ref could show the guard a
+# journal that grew where the commit itself deleted text. CI's checkout does not fetch
+# replace refs; a local preflight or a mirror can hold one. Synthetic objects, no skips.
+
+_LOG = "sahool-brain/log.md"
+_LOG_BEFORE = "line 1\nline 2\n"
+_LOG_SHRUNK = "line 1\n"
+_LOG_DECOY = "line 1\nline 2\nline 3\n"
+
+
+def _shrink_behind_a_replace_ref(tmp_path: Path, replaced: str) -> tuple[Path, str, str]:
+    """A commit that deletes a journal line, and a replace ref that shows a grown journal."""
+    root = _archive_init(tmp_path)
+    parent = _snapshot(root, {_LOG: _LOG_BEFORE})
+    shrunk = _snapshot(root, {_LOG: _LOG_SHRUNK}, parent)
+    if replaced == "commit":
+        decoy = _snapshot(root, {_LOG: _LOG_DECOY}, parent)
+        _archive_git(root, "replace", shrunk, decoy)
+    else:
+        real = _archive_git(root, "rev-parse", f"{shrunk}:{_LOG}")
+        decoy = _archive_git(root, "hash-object", "-w", "--stdin", data=_LOG_DECOY.encode())
+        _archive_git(root, "replace", real, decoy)
+    return root, parent, shrunk
+
+
+@pytest.mark.parametrize("replaced", ["commit", "blob"])
+def test_a_replace_ref_cannot_hide_a_shrink(guard, tmp_path, monkeypatch, replaced):
+    """The pair is judged on the commit's own objects, whatever refs/replace/ says."""
+    # The caller's environment does not decide this: the guard must set the switch itself.
+    monkeypatch.delenv("GIT_NO_REPLACE_OBJECTS", raising=False)
+    root, parent, shrunk = _shrink_behind_a_replace_ref(tmp_path, replaced)
+    # The replace ref is live, or this test would prove nothing: a plain read sees the decoy.
+    assert _archive_git(root, "show", f"{shrunk}:{_LOG}") == _LOG_DECOY.rstrip("\n")
+    blocking, _, pairs = guard.check_range(parent, shrunk, files=(_LOG,), archives={}, root=root)
+    assert pairs == 1
+    assert _codes(blocking) == ["JOURNAL_SHRANK"], "\n".join(str(f) for f in blocking)
+    assert blocking[0].commit == shrunk
+    assert "14 ← 7" in blocking[0].detail, blocking[0].detail
+
+
+_SUBPROCESS_STARTS = frozenset(
+    {"run", "Popen", "call", "check_call", "check_output", "getoutput", "getstatusoutput"}
+)
+_OS_STARTS = ("system", "popen", "exec", "spawn", "posix_spawn")
+
+
+def _process_calls_outside_git(source: str) -> list[int]:
+    """Lines of ``source`` that could start a process without passing through ``_git``.
+
+    ``subprocess.<a call that starts a process>``, a name taken out of ``subprocess`` by
+    ``from subprocess import``, the module under another name (``import subprocess as``),
+    and the ``os`` calls that start a process (``system``, ``popen``, ``exec*``, ``spawn*``).
+    """
+    import ast
+
+    tree = ast.parse(source)
+    helper = next(
+        node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_git"
+    )
+    inside = {id(node) for node in ast.walk(helper)}
+    found = []
+    for node in ast.walk(tree):
+        if id(node) in inside:
+            continue
+        if isinstance(node, ast.ImportFrom) and node.module == "subprocess":
+            found.append(node.lineno)
+        elif isinstance(node, ast.Import) and any(
+            alias.name == "subprocess" and alias.asname for alias in node.names
+        ):
+            found.append(node.lineno)
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            module, name = node.value.id, node.attr
+            if (module == "subprocess" and name in _SUBPROCESS_STARTS) or (
+                module == "os" and name.startswith(_OS_STARTS)
+            ):
+                found.append(node.lineno)
+    return sorted(found)
+
+
+def test_every_git_call_of_the_guard_goes_through_the_one_helper():
+    """``_git`` is where replace refs are switched off, so no git call may bypass it."""
+    outside = _process_calls_outside_git(GUARD.read_text(encoding="utf-8"))
+    assert not outside, f"git run outside _git (no GIT_NO_REPLACE_OBJECTS) at lines {outside}"
+
+
+_SHOW = "'git', 'show', 'HEAD:sahool-brain/log.md'"
+
+
+@pytest.mark.parametrize(
+    "bypass",
+    [
+        pytest.param(f"subprocess.run([{_SHOW}])", id="run"),
+        pytest.param(f"subprocess.check_output([{_SHOW}])", id="check_output"),
+        pytest.param("subprocess.getoutput('git show HEAD:sahool-brain/log.md')", id="getoutput"),
+        pytest.param(
+            "subprocess.getstatusoutput('git show HEAD:sahool-brain/log.md')", id="getstatusoutput"
+        ),
+        pytest.param("from subprocess import check_output", id="from-import"),
+        pytest.param("import subprocess as sp", id="aliased-import"),
+        pytest.param("os.system('git show HEAD:sahool-brain/log.md')", id="os.system"),
+        pytest.param("os.popen('git show HEAD:sahool-brain/log.md')", id="os.popen"),
+        pytest.param(f"os.execvp('git', [{_SHOW}])", id="os.exec"),
+        pytest.param(f"os.spawnvp(os.P_WAIT, 'git', [{_SHOW}])", id="os.spawn"),
+        pytest.param(f"os.posix_spawnp('git', [{_SHOW}], {{}})", id="os.posix_spawn"),
+    ],
+)
+def test_the_one_helper_check_sees_each_way_around_it(bypass):
+    """A git call planted outside ``_git`` is found, on the line where it was planted."""
+    source = GUARD.read_text(encoding="utf-8").rstrip("\n")
+    planted_line = len(source.splitlines()) + 2
+    found = _process_calls_outside_git(f"{source}\n\n{bypass}\n")
+    assert found == [planted_line], f"{bypass!r} slipped past the check: {found}"

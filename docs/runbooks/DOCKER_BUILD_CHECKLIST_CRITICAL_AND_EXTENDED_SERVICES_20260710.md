@@ -37,9 +37,9 @@ Run before any image build:
 
 ```bash
 python scripts/ci/pip_audit_resolution_guard.py
-python scripts/ci/dependency_inventory_guard.py --check
+# python scripts/ci/dependency_inventory_guard.py --check  # 2026-10-20: script deleted in 9ddde2c26 (2026-07-09); do not run
 python scripts/ci/service_dependency_conflict_guard.py --check
-python scripts/ci/test_requirements_inventory_guard.py --check
+# python scripts/ci/test_requirements_inventory_guard.py --check  # 2026-10-20: script deleted in 9ddde2c26 (2026-07-09); do not run
 python scripts/ci/route_mount_contract_guard.py --check
 python scripts/ci/api_versioning_policy_guard.py --check
 python scripts/ci/health_readiness_schema_guard.py

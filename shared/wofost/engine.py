@@ -145,7 +145,11 @@ SOIL_PARAMS = {
 # OPEN-METEO: جلب بيانات طقس يومية حقيقية
 # ══════════════════════════════════════════════════════════════
 async def fetch_weather_real(lat: float, lon: float, start: date, end: date) -> list[dict]:
-    """Open-Meteo ERA5 + Forecast — مجاني 100% بدون مفتاح."""
+    """Open-Meteo ERA5 + Forecast — الواجهة المجانية بلا مفتاح، لغير التجاري فقط.
+
+    الاستخدام التجاري يحتاج اشتراكاً بمفتاح أو نسخة مستضافة ذاتياً؛ القرار معلق لدى المالك:
+    docs/architecture/decisions_pending/OPEN-METEO-COMMERCIAL-TERMS-01.md
+    """
     url = (
         f"https://archive-api.open-meteo.com/v1/archive"
         f"?latitude={lat}&longitude={lon}"
@@ -479,5 +483,6 @@ async def simulate_wofost(
         },
         "daily_series": daily_series,
         "model": "WOFOST-RUE + FAO-56 + Open-Meteo ERA5",
-        "data_source": "Open-Meteo (حقيقي — بلا API key)",
+        # الواجهة المجانية لغير التجاري فقط — OPEN-METEO-COMMERCIAL-TERMS-01.
+        "data_source": "Open-Meteo (حقيقي — الواجهة المجانية لغير التجاري فقط)",
     }

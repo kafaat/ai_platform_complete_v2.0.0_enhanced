@@ -3,6 +3,7 @@ import { CloudSun, ShieldAlert, Wind } from 'lucide-react';
 import { getFieldDiseaseRisk, getFieldWeatherOperationWindows } from '../services/api/fieldWeather';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -71,6 +72,8 @@ export default function FieldWorkspaceWeatherPanel({ fieldId, seasonId }: { fiel
           </div>}
         </div>
       </div>
+      {/* نوافذ التشغيل ومخاطر الأمراض مشتقّة من طقس Open-Meteo (CC BY 4.0): النسبة حين تُعرَض. */}
+      {(windowsQ.data || diseaseQ.data) ? <OpenMeteoAttribution /> : null}
     </section>
   );
 }
