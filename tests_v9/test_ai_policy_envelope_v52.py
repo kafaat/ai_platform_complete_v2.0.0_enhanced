@@ -114,6 +114,60 @@ def test_missing_envelope_blocks_external_provider():
     assert gate["reason"] == PE.REASON_ENVELOPE_MISSING
 
 
+
+def test_missing_envelope_blocks_local_generation_too():
+    # Local-only *data residency* is not an authorization to bypass policy.
+    for bad in (None, {}, {"policy_mode": "local_only"}):
+        gate = PE.gate_generation(bad, external=False)
+        assert gate["decision"] == PE.DECISION_BLOCKED
+        assert gate["reason"] in {
+            PE.REASON_ENVELOPE_MISSING,
+            PE.REASON_ENVELOPE_MALFORMED,
+        }
+
+
+def test_tenant_runtime_missing_envelope_blocks_every_tool_not_legacy_passthrough():
+    called = []
+
+    def fetcher(name, params):
+        called.append((name, params))
+        return {"ok": True}
+
+    for pack in (None, {}, {"ai_policy_envelope": {"invalid": True}}):
+        envelope, decision = PE.enforce_request(pack)
+        assert decision["decision"] == PE.DECISION_BLOCKED
+        allow_list = PE.enforced_allowed_tools(envelope)
+        assert allow_list == set(), "Missing envelope must not pass None into tool_loop"
+        result = LOOP.run_tool_calls(
+            [{"tool": "get_field_state", "params": {"field_id": "f1"}}],
+            allowed_capabilities=["can_read_field_data"],
+            fetcher=fetcher,
+            tenant_id=_TENANT,
+            actor="ai_agronomist",
+            timestamp=_TS,
+            allowed_tools=allow_list,
+        )
+        assert result["tool_calls"][0]["outcome"] == LOOP.OUTCOME_TOOL_BLOCKED_BY_POLICY
+    assert called == []
+
+
+def test_model_never_receives_schema_for_tool_forbidden_by_envelope():
+    pytest.importorskip("httpx")
+    from types import SimpleNamespace
+    from services.ai_agronomist import ai_generation
+
+    cfg = SimpleNamespace(provider="local", wire_format="openai_chat")
+    out = ai_generation._provider_tools(
+        cfg,
+        ["can_read_field_data", "can_read_historical_imagery"],
+        allowed_tools={"get_field_state"},
+    )
+    assert out
+    assert {item["function"]["name"] for item in out} == {"get_field_state"}
+    assert ai_generation._provider_tools(
+        cfg, ["can_read_field_data"], allowed_tools=set()
+    ) == []
+
 # ── Consumer: per-mode external-provider gating ─────────────────────────────
 def _env(mode: str, external_allowed: bool) -> dict:
     return BUILDER.build_ai_policy_envelope(
