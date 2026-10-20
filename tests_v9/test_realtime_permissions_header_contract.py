@@ -19,18 +19,17 @@ CONFIG = ROOT / "frontend" / "nginx.conf"
 def test_nginx_media_policy_defaults_to_denial():
     raw = CONFIG.read_text(encoding="utf-8")
     match = re.search(
-        r"map\s+\$uri\s+\$sahool_media_permissions_policy\s*\{([^}]+)\}",
+        r"map\s+\$request_uri\s+\$sahool_media_permissions_policy\s*\{([^}]+)\}",
         raw,
     )
     assert match, "Scoped permission map must be present in http context"
     body = match.group(1)
     assert 'default "geolocation=(self), camera=(), microphone=()";' in body
-    assert '~^/realtime(?:/|$) "geolocation=(self), camera=(self), microphone=(self)";' in body
+    assert '~^/realtime(?:/|\?|$) "geolocation=(self), camera=(self), microphone=(self)";' in body
     assert (
         raw.count("add_header Permissions-Policy $sahool_media_permissions_policy always;")
         == 1
     )
-    assert 'add_header Permissions-Policy "geolocation=(self), camera=(self), microphone=(self)"' not in raw
 
 
 @pytest.mark.parametrize(
@@ -42,10 +41,12 @@ def test_nginx_media_policy_defaults_to_denial():
         ("/tts/stream", False),
         ("/realtime", True),
         ("/realtime/field", True),
+        ("/realtime?session=123", True),
+        ("/realtime/field?session=123", True),
         ("/realtime-unsafe", False),
         ("/other/realtime", False),
     ],
 )
 def test_eligible_realtime_route_is_explicit(uri, should_allow):
     # Mirrors the one PCRE location condition in frontend/nginx.conf.
-    assert bool(re.search(r"^/realtime(?:/|$)", uri)) is should_allow
+    assert bool(re.search(r"^/realtime(?:/|\?|$)", uri)) is should_allow

@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.util
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -153,7 +154,6 @@ def test_tenant_runtime_missing_envelope_blocks_every_tool_not_legacy_passthroug
 
 def test_model_never_receives_schema_for_tool_forbidden_by_envelope():
     pytest.importorskip("httpx")
-    from types import SimpleNamespace
     from services.ai_agronomist import ai_generation
 
     cfg = SimpleNamespace(provider="local", wire_format="openai_chat")
