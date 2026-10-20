@@ -23,6 +23,7 @@ import {
   StatGrid, RadialGauge, AlertChip, ExpandableCard, severityTone,
   taskStatusAr, equipStatusAr, equipStatusTone, FieldCabin, MiniLine,
 } from '../components/ds';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 type FieldLike = { field_id?: string; ndvi?: number };
 type AlertLike = {
@@ -160,6 +161,10 @@ export default function OperationCommand() {
               <RadialGauge pct={onlinePct} label="اتّصال الأجهزة" color={T.info} />
               <RadialGauge pct={donePct} label="إنجاز المهام" color={T.gold} />
             </div>
+            {/* حرارة الترويسة واتّجاهها من طقس Open-Meteo (CC BY 4.0): النسبة حين تُعرَض. */}
+            {(typeof cur?.tmean === 'number' || tmeanSeries.length >= 2) && (
+              <OpenMeteoAttribution className="mt-2" />
+            )}
             {/* ── إشعار توفّر رادار SAR (Sentinel-1) ── إعلاميّ محايد، لا ادّعاء ──
                 لا تكشف خطّافات هذه الشاشة عَلَماً فعليّاً لتغطية SAR، لذا نعرض إشعاراً
                 محايداً صادقاً: «يُظهَر عند توفّره» — لا نؤكّد «SAR نشط» بلا بيانات.

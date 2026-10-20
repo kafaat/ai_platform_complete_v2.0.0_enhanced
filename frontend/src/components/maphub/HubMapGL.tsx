@@ -43,6 +43,7 @@ import type { DrawFeature } from './drawing';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
 import type { AlertMarker, DeviceMarker, WeatherMarker, OperationalMarker } from './OverlayMarkers';
+import { OpenMeteoAttribution } from '../OpenMeteoAttribution';
 
 const YEMEN_CENTER: [number, number] = [44.0, 15.0]; // [lng, lat] — MapLibre
 const SELECTED_COLOR = '#22d3ee';
@@ -128,7 +129,7 @@ function basemapTileSpec(basemapId: string): { url: string; attribution: string 
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
   const url = toMapLibreRasterUrl(raw);
   const attribution = layer?.attribution ?? (basemapId === 'light'
-    ? '© <a href="https://carto.com/">CARTO</a>'
+    ? '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
     : '© <a href="https://www.esri.com/">Esri</a> — World Imagery');
   return { url, attribution };
 }
@@ -854,6 +855,18 @@ export default function HubMapGL({
             ))}
           </div>
           )}
+        </div>
+      )}
+      {/* تراكب الطقس أعلاه من بيانات Open-Meteo (CC BY 4.0): النسبة بجواره. شريط نسب MapLibre
+          يجمع نسب **المصادر** وحدها، والتراكب هنا عنصر DOM لا مصدر — فتُعرَض صراحةً. */}
+      {weatherMarker && (
+        <div
+          style={{
+            position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', zIndex: 4,
+            background: 'rgba(13,22,17,.85)', borderRadius: 6, padding: '2px 8px',
+          }}
+        >
+          <OpenMeteoAttribution />
         </div>
       )}
 

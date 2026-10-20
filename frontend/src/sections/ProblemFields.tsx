@@ -31,6 +31,7 @@ import {
   T, Card, Pill, Badge, SectionLabel, StatGrid, ProgressBar, FieldCabin, ndviColor, severityTone,
 } from '../components/ds';
 import { isRealData } from '../lib/realData';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 // ── أوزان شدّة التنبيه (حرِج > تحذير > معلومة) ──────────────────
 function severityWeight(severity?: string | null): number {
@@ -322,6 +323,8 @@ export default function ProblemFields() {
               {diseaseQ.data.advice_ar && (
                 <div style={{ color: T.ink, fontSize: 12, lineHeight: 1.6 }}>{diseaseQ.data.advice_ar}</div>
               )}
+              {/* النصيحة تقتبس الرطوبة والحرارة والمطر من طقس Open-Meteo (CC BY 4.0). */}
+              <OpenMeteoAttribution className="mt-1" />
               <div style={{ color: T.faint, fontSize: 10, marginTop: 8 }}>
                 مخاطر الأمراض تفصيل للحقل المُحدَّد فقط — لا تدخل في ترتيب المشكلات (يرتكز على NDVI + التنبيهات).
               </div>

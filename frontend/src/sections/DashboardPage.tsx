@@ -15,6 +15,7 @@ import { GradientScale, SegmentedScale } from '../components/insights/ScaleLegen
 import { NDVI_GRADIENT, NDVI_BANDS, WEATHER_QUICK_REFERENCE } from '../components/insights/scalePresets';
 import type { PageId } from '../App';
 import { useSelectedField } from '../hooks/useSelectedField';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 function ndviStatus(v: number) {
   return v>=0.70 ? 'excellent' : v>=0.50 ? 'good' : v>=0.30 ? 'fair' : 'poor';
@@ -110,22 +111,26 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
       {/* Live weather — موحّد على المنصّة (/api/v1/weather). GDD غير متاح للحاضر من
           المنصّة (لا قيمة current) فأُسقِط بصدق بدل عرض undefined. */}
       {weather && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { label:'الحرارة', val:weather.tmean != null ? `${weather.tmean}°C` : '—', color:'#f97316', emoji:'🌡' },
-            { label:'الرطوبة', val:weather.humidity_pct != null ? `${weather.humidity_pct}%` : '—', color:'#38bdf8', emoji:'💧' },
-            { label:'الرياح', val:weather.wind_speed_kmh != null ? `${weather.wind_speed_kmh} كم/س` : '—', color:'#94a3b8', emoji:'💨' },
-            { label:'ET₀', val:weather.et0_mm != null ? `${weather.et0_mm} مم` : '—', color:'#0ea5e9', emoji:'🌿' },
-          ].map((w,i) => (
-            <div key={i} className="rounded-xl p-3 border flex items-center gap-3"
-              style={{ background:'#172032', borderColor:'#1e3a4a', borderInlineStartWidth: 3, borderInlineStartColor: w.color }}>
-              <span style={{ fontSize:18, opacity:.9 }}>{w.emoji}</span>
-              <div>
-                <div className="font-bold text-base leading-none" style={{ color:w.color }}>{w.val}</div>
-                <div className="text-[10px] text-slate-500 mt-1">{w.label}</div>
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { label:'الحرارة', val:weather.tmean != null ? `${weather.tmean}°C` : '—', color:'#f97316', emoji:'🌡' },
+              { label:'الرطوبة', val:weather.humidity_pct != null ? `${weather.humidity_pct}%` : '—', color:'#38bdf8', emoji:'💧' },
+              { label:'الرياح', val:weather.wind_speed_kmh != null ? `${weather.wind_speed_kmh} كم/س` : '—', color:'#94a3b8', emoji:'💨' },
+              { label:'ET₀', val:weather.et0_mm != null ? `${weather.et0_mm} مم` : '—', color:'#0ea5e9', emoji:'🌿' },
+            ].map((w,i) => (
+              <div key={i} className="rounded-xl p-3 border flex items-center gap-3"
+                style={{ background:'#172032', borderColor:'#1e3a4a', borderInlineStartWidth: 3, borderInlineStartColor: w.color }}>
+                <span style={{ fontSize:18, opacity:.9 }}>{w.emoji}</span>
+                <div>
+                  <div className="font-bold text-base leading-none" style={{ color:w.color }}>{w.val}</div>
+                  <div className="text-[10px] text-slate-500 mt-1">{w.label}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          {/* بيانات Open-Meteo بـCC BY 4.0: رابط النسبة بجوار موضع العرض. */}
+          <OpenMeteoAttribution className="mt-1" />
         </div>
       )}
 

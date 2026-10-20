@@ -18,6 +18,7 @@ import {
 import type { DiseaseRisk } from '../services/api';
 import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 import { SegmentedScale, type ScaleBand } from '../components/insights/ScaleLegend';
 import { OPERATION_SUITABILITY_BANDS } from '../components/insights/scalePresets';
 
@@ -256,6 +257,8 @@ export default function WeatherAdvicePage() {
             <IrrigationCard fieldId={fieldId} />
             <DiseaseCard fieldId={fieldId} />
           </div>
+          {/* البطاقتان محسوبتان من طقس Open-Meteo (CC BY 4.0): النسبة بجوارهما. */}
+          <OpenMeteoAttribution />
           {/* مرجع: سلّم ملاءمة الطقس للعمليّات الحقليّة (0..1) — يطابق طبقات الطقس على الخريطة */}
           <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
             <div className="flex items-center gap-2 mb-3">

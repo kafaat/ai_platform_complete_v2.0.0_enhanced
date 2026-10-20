@@ -28,6 +28,7 @@ import {
   useValves, useSchedules, useDecisionRecords, useOperationsSummary,
 } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 import type { AlertRecord, OperationsSummary } from '../services/api';
 
 // تحديث دوريّ معقول لعرض جداريّ مستمرّ — متباعد كي لا يُثقِل البوّابة.
@@ -304,6 +305,8 @@ function WeatherTile() {
               <Wind className="w-5 h-5 text-slate-400" aria-hidden="true" />
               <BigStat value={cur!.wind_speed_kmh != null ? `${cur!.wind_speed_kmh}` : '—'} label="كم/س" color="#cbd5e1" />
             </div>
+            {/* بيانات Open-Meteo بـCC BY 4.0: رابط النسبة بجوار موضع العرض. */}
+            <OpenMeteoAttribution className="col-span-3" />
           </div>
         )}
     </Tile>

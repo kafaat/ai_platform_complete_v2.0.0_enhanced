@@ -129,6 +129,8 @@ try:
         # سياق المزرعة يُجلب من قاعدة البيانات حسب tenant_id (مبسّط هنا)
         farm_context = body.get("system", "")
         payload = build_proxy_request(body, farm_context, cfg.model, cfg.wire_format)
+        # حقول المزوّد الخادميّة تغلب (OpenRouter: data_collection=deny + zdr=true).
+        payload.update(cfg.request_extras)
 
         # الوجهة/الترويسة/الصيغة من cfg (الأسرار خادميّاً فقط) — محايد عن المزوّد.
         async with httpx.AsyncClient(timeout=30) as client:

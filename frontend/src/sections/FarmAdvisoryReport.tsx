@@ -42,6 +42,7 @@ import {
   FieldCabin, ndviColor, severityTone,
 } from '../components/ds';
 import type { Tone } from '../components/ds';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 // الصفحة داكنة (نغمة ds الداكنة): أسطح/نصوص من T_DARK؛ ألوان التمييز من T.
 const t = T_DARK;
@@ -508,6 +509,8 @@ export default function FarmAdvisoryReport() {
                     <Pill tone="neutral">الرطوبة: {disease.humidity_pct}%</Pill>
                     <Pill tone="neutral">مطر 3 أيّام: {disease.rain_mm_3d} مم</Pill>
                   </div>
+                  {/* القيم الثلاث أعلاه من طقس Open-Meteo (CC BY 4.0): النسبة بجوارها. */}
+                  <OpenMeteoAttribution className="-mt-1 mb-2" />
 
                   {disease.diseases_ar.length > 0 && (
                     <div className="flex items-center gap-1" style={{ flexWrap: 'wrap', marginBottom: 8 }}>

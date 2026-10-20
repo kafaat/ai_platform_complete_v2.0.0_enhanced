@@ -12,6 +12,7 @@ import {
   useWeatherPlantingGuide,
   useWeatherTileSeries,
 } from '../../hooks/useDistrictsWeather';
+import { OpenMeteoAttribution } from '../OpenMeteoAttribution';
 import {
   activePestsList,
   analysisFacts,
@@ -414,6 +415,10 @@ export default function DistrictsWeatherCard({ fieldId, cropLabel, enabled = tru
               </>
             )}
           </div>
+
+          {/* ملخّص الطقس والسلسلة الزمنيّة أعلاه من Open-Meteo (CC BY 4.0) — النسبة بجوارهما؛
+              تحليل السجلّ أدناه يقرأ ما يلصقه المستخدم فلا يُنسَب إليه. */}
+          <OpenMeteoAttribution />
 
           {/* تحليلات سجلّ الطقس (سجلّ يوميّ يُدخِله المستخدم) */}
           <div className="flex flex-col gap-1.5">

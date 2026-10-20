@@ -1081,6 +1081,7 @@ GIS-002,test,services/sahool-platform/tests/test_yield_map_ingestion.py,3,applie
 GIS-002,test,tests_v9/test_a6_print_map.py,3,applied
 GIS-002,test,tests_v9/test_evidence_map_shape.py,3,applied
 GIS-002,test,tests_v9/test_layer_evict_v30_9.py,3,applied
+GIS-002,test,tests_v9/test_map_and_weather_data_credit.py,3,applied
 GIS-002,test,tests_v9/test_service_map_image_pin_parity.py,3,applied
 GIS-002,test,tests_v9/test_soil_layer_v31_7.py,3,applied
 GIS-002,test,tests_v9/test_terrain_layers_v31_6.py,3,applied

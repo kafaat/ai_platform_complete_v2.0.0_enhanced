@@ -41,6 +41,8 @@
     background:#2e8b57;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;
   }
   .chart-box{flex:1;min-height:0;}
+  .data-credit{font-size:10px;color:#558855;margin-top:4px;direction:ltr;text-align:left;}
+  .data-credit a{color:#88bb88;}
   .kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
   .kpi{
     background:#0f2a0f;border:1px solid #1a4a1a;border-radius:6px;padding:10px;text-align:center;
@@ -184,6 +186,8 @@
       <div class="panel" style="height:220px;flex:none;">
         <div class="panel-title">🌤️ الطقس — 7 أيام <span class="badge">Open-Meteo</span></div>
         <div ref="weatherChart" class="chart-box"></div>
+        <!-- بيانات Open-Meteo بـCC BY 4.0: رابط نسبة بجوار موضع العرض شرطُ الرخصة -->
+        <div class="data-credit"><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></div>
       </div>
 
       <!-- Carbon / Sustainability -->

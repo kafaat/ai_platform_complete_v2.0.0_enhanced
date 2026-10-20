@@ -13,6 +13,7 @@ import {
   type FieldIntelligenceCard,
 } from '../../lib/fieldIntelligenceCard';
 import { T } from '../ds';
+import { OpenMeteoAttribution } from '../OpenMeteoAttribution';
 
 interface Props {
   fieldId?: string | null;
@@ -227,6 +228,9 @@ export default function FieldIntelligenceCardView({ fieldId, enabled = true }: P
               ))}
             </div>
           ) : null}
+
+          {/* نافذة الطقس أعلاه من توقّع Open-Meteo (CC BY 4.0): النسبة حين تُعرَض. */}
+          {isPresent(card.sections.weather_window) ? <OpenMeteoAttribution className="pt-1" /> : null}
         </div>
       )}
     </section>

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6190,
+    "files_scanned": 6196,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2064,
-      "tests": 1993,
-      "web": 472
+      "other": 2065,
+      "tests": 1996,
+      "web": 474
     },
-    "unmapped_artifacts": 2329,
+    "unmapped_artifacts": 2333,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -33044,23 +33044,23 @@
           "score": 14
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:367",
+          "value": "/health @ services/mcp_servers/weather_server.py:377",
           "score": 14
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:376",
           "score": 14
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:382",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 14
         },
         {
@@ -33442,6 +33442,10 @@
           "score": 12
         },
         {
+          "value": "weather_server.py @ tests_v9/test_mcp_weather_archive_host.py:33",
+          "score": 12
+        },
+        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         },
@@ -33665,6 +33669,15 @@
           "signals": [
             "path:forecast",
             "content:forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_mcp_weather_archive_host.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         },
         {
@@ -34039,10 +34052,10 @@
         "backend": 20,
         "routes": 63,
         "database": 12,
-        "events": 64,
+        "events": 65,
         "web": 9,
         "mobile": 0,
-        "tests": 30,
+        "tests": 31,
         "governance": 0,
         "other_evidence": 23
       },
@@ -34832,7 +34845,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:367",
+          "value": "/health @ services/mcp_servers/weather_server.py:377",
           "score": 12
         },
         {
@@ -34840,7 +34853,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:376",
           "score": 12
         },
         {
@@ -34848,7 +34861,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:382",
           "score": 12
         },
         {
@@ -34868,11 +34881,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 12
         },
         {
@@ -35373,6 +35386,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
           "score": 12,
           "signals": [
@@ -35430,14 +35451,6 @@
         },
         {
           "path": "frontend/src/sections/FieldAppPreview.tsx",
-          "score": 10,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
           "score": 10,
           "signals": [
             "content:ET0",
@@ -39012,6 +39025,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/OpenMeteoAttribution.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/ReferenceQueryState.tsx",
       "kind": "web"
     },
@@ -40094,6 +40111,10 @@
     {
       "path": "frontend/src/lib/measureDrawWiring.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/openMeteoAttribution.ts",
+      "kind": "web"
     },
     {
       "path": "frontend/src/lib/paginated.test.ts",
@@ -47004,6 +47025,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_map_and_weather_data_credit.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mapbox_basemap_contract_20260703.py",
       "kind": "tests"
     },
@@ -48109,6 +48134,10 @@
     },
     {
       "path": "tests_v9/test_wofost_unknown_fallback.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_work_continuation_checksum_strict.py",
       "kind": "tests"
     },
     {
