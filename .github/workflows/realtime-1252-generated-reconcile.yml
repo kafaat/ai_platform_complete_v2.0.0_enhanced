@@ -85,4 +85,5 @@ jobs:
           name: realtime-1252-generated-${{ github.event.pull_request.head.sha }}
           path: ${{ runner.temp }}/realtime-generated/
           if-no-files-found: error
+          include-hidden-files: true # generator owns .audit.sha256 and other dotfile receipts
           retention-days: 3
