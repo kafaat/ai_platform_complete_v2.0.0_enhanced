@@ -153,7 +153,9 @@ def legacy_titiler_policy_errors(policy: object) -> list[str]:
     seen = set()
     for statement in statements:
         if not isinstance(statement, dict) or set(statement) != {"Effect", "Action", "Resource"}:
-            return [f"legacy-titiler statement must carry only Effect/Action/Resource: {statement!r}"]
+            return [
+                f"legacy-titiler statement must carry only Effect/Action/Resource: {statement!r}"
+            ]
         actions, resources = statement["Action"], statement["Resource"]
         if not (isinstance(actions, list) and isinstance(resources, list)):
             return [f"legacy-titiler Action/Resource must be lists: {statement!r}"]
