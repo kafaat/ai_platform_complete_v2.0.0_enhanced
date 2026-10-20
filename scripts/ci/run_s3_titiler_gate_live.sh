@@ -103,7 +103,7 @@ stable_connections() {
 # (IPv4 or IPv6), or a refusal could have gone somewhere the counter does not see.
 SENTINEL_IP="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
   "$(dc ps -q sahool-endpoint-sentinel)")"
-resolved="$(dc run --rm -T --no-deps --entrypoint python sahool-titiler -c \
+resolved="$(dc run --rm -T --no-deps --entrypoint=python sahool-titiler -c \
   "import socket
 for name in ('sahool-minio', 'objects.example.test'):
     print('DNS', name, ' '.join(sorted({a[4][0] for a in socket.getaddrinfo(name, 9000)})))" 2>&1)"
