@@ -21,6 +21,14 @@
       "category": "A",
       "why": "راية محرّك AquaCrop للملوحة، معطَّلة افتراضاً (غيابها=نموذج عتبيّ ساكن)؛ agriai-engine/aquacrop_adapter.py + core/capabilities.py (P1-9)."
     },
+    "AWS_HTTPS": {
+      "category": "C",
+      "why": "تكتبه gdal_configure() في services/raster-service/object_store.py (وبوّابة shared/storage/gdal_s3_env_gate.py لـTiTiler القديم) من قرار سياسة نقطة S3، ولا يُقرأ من الإعداد. غيابه من compose مقصود: ضبطُه هناك خاماً كان تجاوزَ السياسة في TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01، ويمنعه minio_s3_contract_gate.py."
+    },
+    "AWS_S3_ENDPOINT": {
+      "category": "C",
+      "why": "تكتبه gdal_configure() في services/raster-service/object_store.py (وبوّابة shared/storage/gdal_s3_env_gate.py لـTiTiler القديم) من قرار سياسة نقطة S3، ولا يُقرأ من الإعداد. غيابه من compose مقصود: ضبطُه هناك خاماً كان تجاوزَ السياسة في TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01، ويمنعه minio_s3_contract_gate.py."
+    },
     "COLLECTION": {
       "category": "A",
       "why": "مرادف توافقيّ لاسم المجموعة في services/qdrant-seed/seed.py — يُقرأ بعد COLLECTION_NAME وقبل الافتراضيّ القانونيّ 'sahool_agri_kb'. compose يُمرّر COLLECTION_NAME صراحةً، فغياب COLLECTION هو الوضع الطبيعيّ ولا يُغيّر سلوكاً: الافتراضيّ يطابق ما يقرؤه المستهلكان local-ai-rag وrag-retrieval."
