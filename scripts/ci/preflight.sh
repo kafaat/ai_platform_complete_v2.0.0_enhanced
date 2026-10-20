@@ -83,6 +83,27 @@ if ! flock -n 9; then
   exit 3
 fi
 
+# ── سجلُّ الخطوة: ملفٌّ لكلّ تشغيلة، لا مسارٌ مشترك ─────────────────────────────
+# الوجهُ العابرُ للأشجار من LESSON-CONCURRENT-PREFLIGHT-CONTAMINATION-01: القفلُ أعلاه
+# لكلّ شجرة عمل، وكان كلُّ `run` يكتب إلى مسارٍ ثابت في `/tmp`. فتشغيلتان في شجرتين (أو
+# وكيلان على الجهاز نفسه) تكتبان الملفَّ نفسه، وخطوةٌ ساقطة تطبع ذيلَ تشغيلةٍ **أخرى** —
+# مقيس: من عشرين تشغيلةً متزامنة طبعت تسعَ عشرةَ ذيلَ غيرها — وتشغيلةٌ مقتولة تترك الملفّ
+# (`test_concurrent_runs_each_print_only_their_own_step_log`).
+# الآن: `mktemp` في `$TMPDIR` لكلّ تشغيلة تستعمله كلُّ خطوة، ويحذفه فخُّ EXIT. ويُنشأ بعد
+# القفل عمداً: تشغيلةٌ رُفِضت (٣) لا تُنشئ شيئاً.
+# **والفخُّ لا يستدعي `exit` عمداً:** bash يُبقي الرمزَ الذي خرج به السكربت (١ عند
+# الإخفاق، ٠ عند الأخضر)، وعند SIGINT/SIGTERM/SIGHUP يُشغّل فخَّ EXIT ثمّ يموت بالإشارة
+# نفسها — ففخٌّ لكلّ إشارةٍ يُنهي بـ`exit` كان سيُبدِّل موتاً بإشارةٍ خروجاً عاديّاً.
+init_step_log() {
+  STEP_LOG="$(mktemp "${TMPDIR:-/tmp}/preflight_step.XXXXXX")" || {
+    echo "✗ تعذّر إنشاء سجلّ الخطوة في ${TMPDIR:-/tmp} — لا خطوةَ تُقاس بلا سجلّها" >&2
+    exit 1
+  }
+  trap 'rm -f -- "$STEP_LOG"' EXIT
+  return 0
+}
+init_step_log
+
 # رموز الخروج تُقرأ بالصيغة التي أثبتت صحّتها في §٢، لا بـ`&&/||`:
 #   `"$@" || rc=$?` يلتقط الحالة الحقيقيّة ويحمي من `set -e`
 #   `if/fi` + `return 0` صريح، فلا تصير قيمة آخر شرط قيمةَ إرجاع الدالّة
@@ -114,12 +135,12 @@ run() {
   # خطوة ١٠ (`LC_ALL=C PYTHONUTF8=0`) وهي موجودة **لتقيس متّجه الترميز نفسه**، فيُبطِل
   # غرضها. قيس ذلك مباشرةً: `test_new_assertionless_test_is_rejected` يمرّ بلا المتغيّر
   # ويسقط معه. فالنطاق جزءٌ من الإصلاح لا تفصيلاً فيه. CI-GUARDS-CRASH-ON-NON-UTF8-CONSOLE-01
-  PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}" "$@" >/tmp/preflight_step.log 2>&1 || rc=$?
+  PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}" "$@" >"$STEP_LOG" 2>&1 || rc=$?
   if [ "$rc" -ne 0 ]; then
     failures=$((failures + 1))
     failed_steps+=("$label ($rc)")
     echo "   ✗ فشل ($rc)"
-    tail -15 /tmp/preflight_step.log | sed 's/^/     /'
+    tail -15 "$STEP_LOG" | sed 's/^/     /'
   else
     echo "   ✓"
   fi
