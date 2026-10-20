@@ -1829,7 +1829,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 153,
+      "evidence_count": 154,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2007,7 +2007,8 @@
         "shared/helpers.py",
         "shared/iot_execution_runtime.py",
         "shared/security/cors_policy.py",
-        "shared/security/decision_service_auth.py"
+        "shared/security/decision_service_auth.py",
+        "shared/storage/s3_endpoint_security.py"
       ],
       "runtime_verified": false
     },
@@ -2930,7 +2931,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 43,
-      "target_evidence_count": 153,
+      "target_evidence_count": 154,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2964,7 +2965,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 153,
+      "source_evidence_count": 154,
       "target_evidence_count": 37,
       "static_supported": true,
       "runtime_verified": false
@@ -3069,5 +3070,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9ec0b7f1b3c4bd53116862a9a4b8a92041a0f6a04800588e1da36623c305dda0"
+  "content_sha256": "c3625374029c45af8b279327fb75c02c52adb407f6d21bbd411a84fc523c8199"
 }

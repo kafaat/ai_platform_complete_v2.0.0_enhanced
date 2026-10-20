@@ -1507,6 +1507,8 @@
         "RASTER_WORKER_ID",
         "REDIS_URL",
         "S3_ALLOW_FILE_FALLBACK",
+        "S3_ALLOW_PLAINTEXT_INTERNAL",
+        "S3_ALLOW_PLAINTEXT_LOOPBACK",
         "S3_BUCKET",
         "S3_ENDPOINT",
         "S3_REGION",

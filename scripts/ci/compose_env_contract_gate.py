@@ -154,7 +154,7 @@ def main() -> int:
                     )
             if name == "sahool-titiler":
                 required = [
-                    "AWS_S3_ENDPOINT",
+                    "S3_ENDPOINT",
                     "AWS_ACCESS_KEY_ID",
                     "AWS_SECRET_ACCESS_KEY",
                     "AWS_DEFAULT_REGION",

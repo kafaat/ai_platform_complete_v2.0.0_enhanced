@@ -1354,7 +1354,9 @@ services:
       S3_BUCKET: ${SCOUT_INGEST_S3_BUCKET:-sahool-scout-ingest}
       S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
-      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_USE_SSL: ${S3_USE_SSL:-}
+      # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       LOGBOOK_LOCAL_DIR: ${LOGBOOK_LOCAL_DIR:-/tmp/sahool-logbooks}
@@ -1489,7 +1491,9 @@ services:
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
-      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_USE_SSL: ${S3_USE_SSL:-}
+      # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       RASTER_PERSISTENCE_MODE: ${RASTER_PERSISTENCE_MODE:-required}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
@@ -1569,7 +1573,9 @@ services:
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
-      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_USE_SSL: ${S3_USE_SSL:-}
+      # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
@@ -1623,7 +1629,9 @@ services:
       S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
       S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
-      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_USE_SSL: ${S3_USE_SSL:-}
+      # Explicit local-Compose opt-in; only exact sahool-minio hosts may use HTTP.
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool?sslmode=verify-full&sslrootcert=/etc/sahool/postgres-ca/ca.pem}
@@ -1671,8 +1679,22 @@ services:
     profiles:
     - legacy-tiler
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
-    command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers
-      1
+    # The upstream image runs none of our code, so GDAL's S3 variables come from the
+    # same endpoint decision as blob_store/object_store via an entry gate that then
+    # execs uvicorn. A rejected endpoint stops here (TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01).
+    # The gate is the entrypoint, so overriding `command` still passes through it.
+    entrypoint:
+    - python
+    - /opt/sahool/storage/gdal_s3_env_gate.py
+    command:
+    - uvicorn
+    - titiler.application.main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8000'
+    - --workers
+    - '1'
     mem_limit: 1024m
     security_opt:
     - no-new-privileges:true
@@ -1680,14 +1702,17 @@ services:
     logging: *id001
     environment:
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      AWS_S3_ENDPOINT: ${S3_ENDPOINT_HOST:-sahool-minio:9000}
+      # Inputs to the gate; it alone writes AWS_S3_ENDPOINT / AWS_HTTPS / AWS_VIRTUAL_HOSTING.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_USE_SSL: ${S3_USE_SSL:-}
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_ALLOW_PLAINTEXT_INTERNAL:-false}
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
       AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
-      AWS_HTTPS: ${S3_USE_SSL:-false}
-      AWS_VIRTUAL_HOSTING: ${AWS_VIRTUAL_HOSTING:-false}
     volumes:
     - raster-data:/data/rasters:ro
+    - ./shared/storage/gdal_s3_env_gate.py:/opt/sahool/storage/gdal_s3_env_gate.py:ro
+    - ./shared/storage/s3_endpoint_security.py:/opt/sahool/storage/s3_endpoint_security.py:ro
     networks:
     - sahool-internal
     healthcheck:

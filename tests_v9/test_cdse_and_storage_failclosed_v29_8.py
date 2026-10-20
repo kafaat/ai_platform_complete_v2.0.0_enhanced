@@ -10,7 +10,9 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 
@@ -95,17 +97,50 @@ def test_field_tilejson_urlencodes_version_token() -> None:
 # ─── v3-Finding-9: object_store fail-closed on configured-S3 upload failure ────
 
 
-def test_upload_cog_fails_closed_when_s3_configured_and_upload_fails() -> None:
+def test_upload_cog_fails_closed_when_s3_configured_and_upload_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     mod = _load(OBJECT_STORE, "raster_object_store")
     # بلا S3 (افتراضيّ): file:// مشروع.
     assert mod.upload_cog("/tmp/x.tif", "k").startswith("file://")
 
-    # S3 مُهيّأة والرفع يفشل + fallback مُطفأ ⇒ يرفع ObjectStoreUploadError (لا file://).
-    mod.enabled = lambda: True  # type: ignore[assignment]
-    mod._allow_file_fallback = lambda: False  # type: ignore[assignment]
-    with pytest.raises(mod.ObjectStoreUploadError):
+    # لا تكفِي محاكاة enabled() فقط: عنوانٌ فارغٌ ليس تكوين S3 صالحاً.
+    # جهّز عنوان HTTPS ومفاتيح اصطناعيّة، واحقن فشل نقل دون شبكة أو boto3 حقيقيّ.
+    for name, value in {
+        "S3_BUCKET": "rasters",
+        "S3_ENDPOINT": "https://objects.example.test",
+        "S3_USE_SSL": "true",
+        "S3_ACCESS_KEY": "synthetic-access-key",
+        "S3_SECRET_KEY": "synthetic-secret-key",
+    }.items():
+        monkeypatch.setattr(mod, name, value)
+
+    class BrokenClient:
+        def head_bucket(self, **kwargs):
+            return None
+
+        def upload_file(self, *args, **kwargs):
+            raise OSError("synthetic_s3_write_failure")
+
+    boto3 = ModuleType("boto3")
+    boto3.client = lambda *args, **kwargs: BrokenClient()  # type: ignore[attr-defined]
+    botocore = ModuleType("botocore")
+    botocore_client = ModuleType("botocore.client")
+
+    class FakeConfig:
+        def __init__(self, **kwargs):
+            self.options = kwargs
+
+    botocore_client.Config = FakeConfig  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "boto3", boto3)
+    monkeypatch.setitem(sys.modules, "botocore", botocore)
+    monkeypatch.setitem(sys.modules, "botocore.client", botocore_client)
+
+    # S3 مُهيّأة ورفض الوسيط للرفع + fallback مُطفأ ⇒ فشل ظاهر دون file://.
+    monkeypatch.setattr(mod, "S3_ALLOW_FILE_FALLBACK", "false")
+    with pytest.raises(mod.ObjectStoreUploadError, match="synthetic_s3_write_failure"):
         mod.upload_cog("/tmp/x.tif", "k")
 
-    # S3_ALLOW_FILE_FALLBACK=1 (تطوير) ⇒ يتدهور إلى file:// بتحذير.
-    mod._allow_file_fallback = lambda: True  # type: ignore[assignment]
+    # وضع التطوير الصريح وحده يُجيز الرجوع لـfile:// عند فشل الرفع، لا عند فساد الإعداد.
+    monkeypatch.setattr(mod, "S3_ALLOW_FILE_FALLBACK", "true")
     assert mod.upload_cog("/tmp/x.tif", "k").startswith("file://")
