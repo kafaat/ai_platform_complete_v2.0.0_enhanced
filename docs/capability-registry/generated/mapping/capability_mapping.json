@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6179,
+    "files_scanned": 6183,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2057,
-      "tests": 1989,
+      "other": 2058,
+      "tests": 1992,
       "web": 472
     },
-    "unmapped_artifacts": 2325,
+    "unmapped_artifacts": 2328,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -45681,6 +45681,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/integration/s3_titiler_gate.compose.yml",
+      "kind": "tests"
+    },
+    {
       "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
       "kind": "tests"
     },
@@ -46705,6 +46709,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gdal_s3_vars_single_writer.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_generated_artifact_contract.py",
       "kind": "tests"
     },
@@ -47614,6 +47622,10 @@
     },
     {
       "path": "tests_v9/test_s3_minio_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_s3_titiler_gate_live_contract.py",
       "kind": "tests"
     },
     {
