@@ -11,6 +11,10 @@ if ! docker compose version >/dev/null 2>&1; then
   echo 'NOT_RUN_DOCKER_COMPOSE_UNAVAILABLE: install Docker Compose plugin' >&2
   exit 3
 fi
+if ! docker info >/dev/null 2>&1; then
+  echo 'NOT_RUN_DOCKER_DAEMON_UNAVAILABLE: Docker CLI present but no reachable daemon; NOT a pass' >&2
+  exit 3
+fi
 if ! command -v curl >/dev/null 2>&1; then
   echo 'NOT_RUN_CURL_UNAVAILABLE: curl is required for direct HTTP health probe' >&2
   exit 3

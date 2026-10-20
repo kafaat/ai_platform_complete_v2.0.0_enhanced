@@ -1,0 +1,103 @@
+# Disposable lab: the legacy TiTiler image started through the S3 endpoint gate
+# (shared/storage/gdal_s3_env_gate.py), reading from a tmpfs MinIO. Loopback-only
+# ports; the only mounts are the two gate files, read-only. Both images digest-pinned.
+# The MinIO service is named sahool-minio, as in docker-compose.v9.yml, so the gate
+# sees the same trusted internal host as production Compose. The sentinel answers for
+# the refused hosts before MinIO starts and records every TCP connection it receives.
+services:
+  sahool-endpoint-sentinel:
+    profiles:
+      - sentinel
+    image: ${S3_TEST_TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6@sha256:ab05b8d0b18155f3d43570a200c3205617419d5276593377ce48f96810aa8992}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    entrypoint:
+      - python
+      - -u
+      - -c
+    command:
+      - |
+        import socket
+        server = socket.socket()
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("0.0.0.0", 9000))
+        server.listen(16)
+        print("SENTINEL_LISTENING", flush=True)
+        while True:
+            conn, _ = server.accept()
+            print("SENTINEL_CONNECTION", flush=True)
+            conn.close()
+    networks:
+      default:
+        aliases:
+          - sahool-minio
+          - objects.example.test
+  sahool-minio:
+    image: ${S3_TEST_MINIO_IMAGE:-coollabsio/minio:2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+    ports:
+      - "127.0.0.1:${S3_TEST_HOST_PORT:?set test port}:9000"
+    environment:
+      MINIO_ROOT_USER: ${S3_TEST_ROOT_USER:?test-only credential required}
+      MINIO_ROOT_PASSWORD: ${S3_TEST_ROOT_PASSWORD:?test-only credential required}
+    command: server /data --console-address ":9001"
+    tmpfs:
+      - /data:size=128m
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 6s
+  sahool-titiler:
+    image: ${S3_TEST_TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6@sha256:ab05b8d0b18155f3d43570a200c3205617419d5276593377ce48f96810aa8992}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1024m
+    entrypoint:
+      - python
+      - /opt/sahool/storage/gdal_s3_env_gate.py
+    command:
+      - uvicorn
+      - titiler.application.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8000'
+      - --workers
+      - '1'
+    ports:
+      - "127.0.0.1:${S3_TEST_TITILER_PORT:?set titiler test port}:8000"
+    environment:
+      S3_ENDPOINT: http://sahool-minio:9000
+      S3_USE_SSL: ""
+      S3_ALLOW_PLAINTEXT_INTERNAL: ${S3_TEST_ALLOW_PLAINTEXT_INTERNAL:-false}
+      AWS_ACCESS_KEY_ID: ${S3_TEST_ROOT_USER:?test-only credential required}
+      AWS_SECRET_ACCESS_KEY: ${S3_TEST_ROOT_PASSWORD:?test-only credential required}
+      AWS_DEFAULT_REGION: us-east-1
+      # Stale values on purpose: the read only succeeds if the gate discards them.
+      AWS_S3_ENDPOINT: stale-endpoint.invalid
+      AWS_HTTPS: "YES"
+      AWS_VIRTUAL_HOSTING: "TRUE"
+    volumes:
+      - ../../shared/storage/gdal_s3_env_gate.py:/opt/sahool/storage/gdal_s3_env_gate.py:ro
+      - ../../shared/storage/s3_endpoint_security.py:/opt/sahool/storage/s3_endpoint_security.py:ro
+    depends_on:
+      sahool-minio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s

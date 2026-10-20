@@ -308,8 +308,12 @@ def main() -> int:
         # TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01: the upstream image cannot run the
         # endpoint policy, so its GDAL variables must come from the entry gate, never from
         # Compose (a raw AWS_HTTPS let an external host through over plaintext).
-        if "/opt/sahool/storage/gdal_s3_env_gate.py" not in titiler_block:
-            fail("sahool-titiler must start through shared/storage/gdal_s3_env_gate.py")
+        entrypoint = titiler_block.split("\n    entrypoint:", 1)[-1].split("\n    command:", 1)[0]
+        if (
+            "\n    entrypoint:" not in titiler_block
+            or "/opt/sahool/storage/gdal_s3_env_gate.py" not in entrypoint
+        ):
+            fail("sahool-titiler must use shared/storage/gdal_s3_env_gate.py as its entrypoint")
         if "S3_ENDPOINT:" not in titiler_block:
             fail("sahool-titiler must receive S3_ENDPOINT for the endpoint policy gate")
         for raw_key in ("AWS_S3_ENDPOINT:", "AWS_HTTPS:", "AWS_VIRTUAL_HOSTING:"):

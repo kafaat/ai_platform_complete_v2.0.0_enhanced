@@ -71,6 +71,7 @@ def test_docker_compose_lab_has_no_data_volumes_or_public_ports():
 def test_orchestrator_records_docker_unavailable_as_not_run():
     text = RUNNER.read_text(encoding="utf-8")
     assert "NOT_RUN_DOCKER_UNAVAILABLE" in text
+    assert "NOT_RUN_DOCKER_DAEMON_UNAVAILABLE" in text
     assert "exit 3" in text
     assert "SAHOOL_S3_ACCEPTANCE_DISPOSABLE=1" in text
     assert "docker compose" in text

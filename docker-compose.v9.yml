@@ -1682,9 +1682,11 @@ services:
     # The upstream image runs none of our code, so GDAL's S3 variables come from the
     # same endpoint decision as blob_store/object_store via an entry gate that then
     # execs uvicorn. A rejected endpoint stops here (TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01).
-    command:
+    # The gate is the entrypoint, so overriding `command` still passes through it.
+    entrypoint:
     - python
     - /opt/sahool/storage/gdal_s3_env_gate.py
+    command:
     - uvicorn
     - titiler.application.main:app
     - --host

@@ -153,8 +153,9 @@ def test_gate_without_a_command_is_a_usage_error():
 def test_compose_starts_legacy_titiler_through_the_gate_only():
     compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     service = compose["services"]["sahool-titiler"]
-    assert service["command"][:2] == ["python", "/opt/sahool/storage/gdal_s3_env_gate.py"]
-    assert service["command"][2] == "uvicorn"
+    # Entrypoint, not command: overriding `command` must still pass through the gate.
+    assert service["entrypoint"] == ["python", "/opt/sahool/storage/gdal_s3_env_gate.py"]
+    assert service["command"][0] == "uvicorn"
     env = service["environment"]
     for raw in ("AWS_S3_ENDPOINT", "AWS_HTTPS", "AWS_VIRTUAL_HOSTING"):
         assert raw not in env, f"{raw} must come from the gate, not from Compose"

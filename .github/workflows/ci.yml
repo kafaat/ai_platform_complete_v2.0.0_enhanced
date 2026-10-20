@@ -2078,6 +2078,16 @@ jobs:
         run: |
           bash scripts/ci/run_s3_minio_gdal_live.sh
           cat "$S3_TEST_REPORT"
+      # Legacy TiTiler image (digest-pinned) through the S3 endpoint gate: refusals exit 78
+      # before uvicorn with no TCP connection to a sentinel standing in for the refused
+      # hosts; COG read over /vsis3/ despite stale GDAL values; SIGTERM reaches uvicorn as
+      # PID 1; no secret in any output. Raw output stays in a temp file, never uploaded.
+      - name: Legacy TiTiler S3 gate (real image, disposable MinIO)
+        env:
+          S3_TEST_REPORT: ${{ runner.temp }}/s3-titiler-gate-acceptance.json
+        run: |
+          bash scripts/ci/run_s3_titiler_gate_live.sh
+          cat "$S3_TEST_REPORT"
 
   security-scan:
     name: Security Scan
