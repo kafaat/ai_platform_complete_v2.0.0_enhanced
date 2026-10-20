@@ -148,8 +148,11 @@ BUDGET = "docs/architecture/brain_hot_budget.json"
 # be opened reads as no grafts: ``read_graft_file`` returns before reading, and
 # ``fopen_or_warn`` is silent on ENOENT and ENOTDIR. Nothing can exist under ``/dev/null``.
 # Shallow boundaries are a separate file (``<git-dir>/shallow``) and are still read, so a
-# shallow clone behaves as before. ``_git`` sets this itself rather than trusting the caller's
-# environment.
+# shallow clone behaves as before. That leaves one local way around this guard, open by
+# design: a hand-written ``shallow`` file naming the shrinking commit gives the same zero-pair
+# pass (measured on git 2.43). The blocking job checks out with ``fetch-depth: 0``
+# (no-report-only-change.yml), so it has no shallow boundary. ``_git`` sets this itself rather
+# than trusting the caller's environment.
 _NO_GRAFT_FILE = os.path.join(os.devnull, "grafts")
 
 

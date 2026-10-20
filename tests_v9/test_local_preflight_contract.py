@@ -1138,7 +1138,8 @@ _CONCURRENT_RUNS = 20
 
 # خطوةٌ تطبع علامتَها ثمّ تنتظر حتّى تكتب **كلُّ** التشغيلات علامتَها، ثمّ تسقط فيُطبَع
 # ذيلُها. الحاجزُ يجعل التداخلَ حتميّاً لا رهنَ توقيت: لا تقرأ تشغيلةٌ ذيلَها قبل أن تكون
-# كلُّ الكتابات قد وقعت. وسقفُ الانتظار (٩٩) يمنع تعليقاً إن لم تبدأ تشغيلةٌ أصلاً.
+# كلُّ الكتابات قد وقعت. وسقفُ الانتظار (٩٩) يمنع تعليقاً إن لم تبدأ تشغيلةٌ أصلاً، ويُبلَّغ
+# «barrier timed out» باسمه لا تلوّثاً: تشغيلةٌ لم تجتز الحاجز لا تقيس شيئاً عن السجلّ.
 _BARRIER_STEP = (
     'printf "%s\\n" "$1"; : > "$2/$1"; n=0; '
     'while [ "$(ls "$2" | wc -l)" -lt "$3" ]; do '
@@ -1202,12 +1203,20 @@ def test_concurrent_runs_each_print_only_their_own_step_log(tmp_path):
             )
         )
     contaminated = []
+    timed_out = []
     for marker, proc in zip(markers, procs, strict=True):
         out, err = proc.communicate(timeout=120)
         assert proc.returncode == 0, out + err
+        if "   ✗ فشل (99)" in out.splitlines():
+            timed_out.append(marker)
+            continue
         expected = ["── خطوةٌ ساقطة", "   ✗ فشل (1)", f"     {marker}"]
         if out.splitlines() != expected:
             contaminated.append((marker, out.splitlines()[2:]))
+    assert not timed_out, (
+        f"barrier timed out: {len(timed_out)}/{_CONCURRENT_RUNS} تشغيلةً انتظرت نحو ٣٠ث ولم تكتب "
+        f"كلُّ التشغيلات علامتَها، فلا يقيس هذا شيئاً عن سجلّ الخطوة: {timed_out}"
+    )
     assert not contaminated, (
         f"{len(contaminated)}/{_CONCURRENT_RUNS} تشغيلةً طبعت ذيلاً ليس لها — "
         f"أوّلُها: {contaminated[0]}"
