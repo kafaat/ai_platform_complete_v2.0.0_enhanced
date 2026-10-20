@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/3617284f5190/gitleaks-current
+configfile: pytest.ini
+plugins: platformdirs-4.13.5, asyncio-1.4.0, Faker-40.43.0, respx-0.23.1, xdist-3.8.0, anyio-4.15.1, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 35 items
+
+tests_v9/test_gitleaks_allowlist_scope.py ............                   [ 34%]
+tests_v9/test_text_encoding_locale.py .......................            [100%]
+
+============================= 35 passed in 17.57s ==============================
