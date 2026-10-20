@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97a9f959722836aba726acb012da153a4a6288c6e910efea83c91e2277ac95bd"
+          "content": "614e64a4cc0f511e787ed23e22817ab24199c09cdcbb0bfe283c96c707a16865"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -11215,7 +11215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5930cf9352a32d77cce45557d969999e64afc06b2b13716cd3f810866b81215c"
+          "content": "e3e957f0c9e36837457e2c6e85d4d298a31834a19bbf175ace95bde15163dcaa"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -11225,7 +11225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "078ad394a18889f04abc953a5175fdd395e006303eb3cd33c60991c0fda2e7fd"
+          "content": "f336c44780afbe8d0f71cc35dfe6944a87b18f25bffc389e41e71022ca1e6e3f"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -11435,7 +11435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "065f181eace900b4541dd18fe46c2249b1bf0a5d8b7d7b6cacf7b135abd9f65d"
+          "content": "d9bbac5e7eac7214523c871ceb85c379136c9fc296bdf21aba9abd1801529cb7"
         }
       ],
       "name": "services/ai_agronomist/policy_envelope.py",
@@ -30985,7 +30985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6b3e63e9b1fd43522c943301c2a1cbeaec43522eb4daff2f3c5ef17ba9b7f2f"
+          "content": "4de66ea776e500fda05327a4a12ef856c2f899a75b3675d34a294866f9a260d7"
         }
       ],
       "name": "services/video-processor/routers/streams.py",
@@ -30995,7 +30995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50648a190b1cfe5f447334f7373d8bdfc1ca6f68c93ba1d918edc5aed639959d"
+          "content": "d519e3c019158a18a1db41c6c21868d635add7b1030587a7faffa0aa9d628e52"
         }
       ],
       "name": "services/video-processor/stream_events.py",
