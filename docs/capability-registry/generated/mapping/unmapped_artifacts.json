@@ -8748,6 +8748,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_s3_compose_slice_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_s3_endpoint_policy_regressions.py",
     "kind": "tests"
   },
