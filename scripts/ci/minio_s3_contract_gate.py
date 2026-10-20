@@ -11,6 +11,7 @@ This static gate keeps the credential source-of-truth explicit and aligned.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -136,6 +137,35 @@ def service_blocks(lines: list[str]) -> list[list[str]]:
     return blocks
 
 
+# TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01: the legacy TiTiler's account may list and read
+# the raster bucket and nothing else — no write, no delete, no other bucket, no wildcard action,
+# no condition that could widen it. Exact, so any added statement or action fails.
+LEGACY_TITILER_POLICY = {
+    ("Allow", ("s3:ListBucket",), ("arn:aws:s3:::sahool-rasters",)),
+    ("Allow", ("s3:GetObject",), ("arn:aws:s3:::sahool-rasters/*",)),
+}
+
+
+def legacy_titiler_policy_errors(policy: object) -> list[str]:
+    statements = policy.get("Statement") if isinstance(policy, dict) else None
+    if not isinstance(statements, list):
+        return ["legacy-titiler policy has no Statement list"]
+    seen = set()
+    for statement in statements:
+        if not isinstance(statement, dict) or set(statement) != {"Effect", "Action", "Resource"}:
+            return [f"legacy-titiler statement must carry only Effect/Action/Resource: {statement!r}"]
+        actions, resources = statement["Action"], statement["Resource"]
+        if not (isinstance(actions, list) and isinstance(resources, list)):
+            return [f"legacy-titiler Action/Resource must be lists: {statement!r}"]
+        seen.add((statement["Effect"], tuple(sorted(actions)), tuple(sorted(resources))))
+    if len(seen) != len(statements) or seen != LEGACY_TITILER_POLICY:
+        return [
+            "legacy-titiler policy must be exactly s3:ListBucket on sahool-rasters and "
+            f"s3:GetObject on sahool-rasters/* (read-only), got {sorted(seen)!r}"
+        ]
+    return []
+
+
 def load_env(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -219,9 +249,19 @@ def main() -> int:
         if required not in compose:
             fail(f"docker-compose.v9.yml missing MinIO least-privilege provisioning: {required}")
     provision = (ROOT / "scripts/minio/provision.sh").read_text(encoding="utf-8")
-    for denial in ("scout/sahool-rasters", "raster/sahool-scout-ingest"):
+    for denial in (
+        "scout/sahool-rasters",
+        "raster/sahool-scout-ingest",
+        "titiler/sahool-scout-ingest",
+        "titiler/sahool-rasters/.legacy-titiler-write-probe",
+    ):
         if denial not in provision:
             fail(f"MinIO provisioning lacks cross-scope negative check: {denial}")
+    policy_path = ROOT / "deploy/minio/policies/legacy-titiler.json"
+    if not policy_path.is_file():
+        fail("deploy/minio/policies/legacy-titiler.json is missing (read-only TiTiler policy)")
+    for err in legacy_titiler_policy_errors(json.loads(policy_path.read_text(encoding="utf-8"))):
+        fail(err)
 
     # MinIO version pin: the community admin console was gutted in RELEASE.2025-05-24,
     # the repo was archived (2026-04), and later Docker Hub images carry a HIGH CVE and

@@ -64,6 +64,37 @@ def compose_env_map(service: dict[str, Any]) -> dict[str, str]:
     return {}
 
 
+# TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01: the legacy TiTiler read the shared S3_ACCESS_KEY,
+# which the equality group below ties to the MinIO admin user. Its keys come only from the
+# read-only account sahool-minio-init provisions; the account stays optional (`:-`, never `:?`),
+# because Compose interpolates every service, profile or not.
+TITILER_CREDENTIALS = {
+    "AWS_ACCESS_KEY_ID": "TITILER_S3_ACCESS_KEY",
+    "AWS_SECRET_ACCESS_KEY": "TITILER_S3_SECRET_KEY",
+}
+
+
+def _optional_ref(name: str) -> set[str]:
+    return {f"${{{name}:-}}", f"${{{name}}}"}
+
+
+def titiler_credential_errors(titiler_env: dict[str, str], init_env: dict[str, str]) -> list[str]:
+    errors: list[str] = []
+    for key, source in TITILER_CREDENTIALS.items():
+        value = titiler_env.get(key)
+        if value is not None and value not in _optional_ref(source):
+            errors.append(
+                f"sahool-titiler {key} must be ${{{source}:-}} (read-only account), got {value!r}"
+            )
+        provisioned = init_env.get(source)
+        if provisioned not in _optional_ref(source):
+            errors.append(
+                f"sahool-minio-init must pass {source} as ${{{source}:-}} (optional), "
+                f"got {provisioned!r}"
+            )
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -164,6 +195,12 @@ def main() -> int:
                     errors.append(
                         f"{path.name}:{name} missing TiTiler S3 env: {', '.join(missing_env)}"
                     )
+                init_env = compose_env_map(services.get("sahool-minio-init") or {})
+                if "sahool-minio-init" not in services:
+                    init_env = compose_env_map(base_services.get("sahool-minio-init") or {})
+                errors.extend(
+                    f"{path.name}: {err}" for err in titiler_credential_errors(env, init_env)
+                )
                 vols = "\n".join(str(v) for v in service.get("volumes", []) or [])
                 if "raster-data" not in vols:
                     warnings.append(
