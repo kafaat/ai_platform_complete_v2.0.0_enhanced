@@ -870,7 +870,9 @@ async def build_evidence_response(
     # enforces the envelope carried in the pack (it never opens the DB for policy). Absent/
     # invalid envelope ⇒ fail-closed refusal (no external LLM, envelope tool-gate closed).
     _envelope, _envelope_refusal = policy_envelope.enforce_request(ai_pack)
-    _envelope_tool_gate = policy_envelope.allowed_tools_set(_envelope)
+    # Missing/malformed tenant envelope must never become allowed_tools=None:
+    # tool_loop treats None as a backwards-compatible unrestricted envelope gate.
+    _envelope_tool_gate = policy_envelope.enforced_allowed_tools(_envelope)
     policy_envelope_decision: dict[str, Any] = _envelope_refusal or {
         "decision": policy_envelope.DECISION_ALLOWED,
         "reason": "policy_envelope_valid",
