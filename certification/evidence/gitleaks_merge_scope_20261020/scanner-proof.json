@@ -1,0 +1,67 @@
+{
+  "scanner": "8.30.1",
+  "cases": [
+    {
+      "case": "second_parent",
+      "pinned_action": {
+        "exit_code": 0,
+        "findings": 0,
+        "rules": []
+      },
+      "supplemental": {
+        "exit_code": 2,
+        "findings": 4,
+        "rules": [
+          "generic-api-key",
+          "github-pat"
+        ]
+      }
+    },
+    {
+      "case": "merge_resolution",
+      "pinned_action": {
+        "exit_code": 0,
+        "findings": 0,
+        "rules": []
+      },
+      "supplemental": {
+        "exit_code": 2,
+        "findings": 2,
+        "rules": [
+          "generic-api-key",
+          "github-pat"
+        ]
+      }
+    },
+    {
+      "case": "removed_later",
+      "pinned_action": {
+        "exit_code": 0,
+        "findings": 0,
+        "rules": []
+      },
+      "supplemental": {
+        "exit_code": 2,
+        "findings": 4,
+        "rules": [
+          "generic-api-key",
+          "github-pat"
+        ]
+      }
+    },
+    {
+      "case": "clean",
+      "pinned_action": {
+        "exit_code": 0,
+        "findings": 0,
+        "rules": []
+      },
+      "supplemental": {
+        "exit_code": 0,
+        "findings": 0,
+        "rules": []
+      }
+    }
+  ],
+  "scope": "disposable Git fixtures with synthetic credentials; no production access"
+}
