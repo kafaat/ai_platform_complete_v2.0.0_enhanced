@@ -1,0 +1,88 @@
+name: Temporary source-generated reconciliation for PR 1252
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: realtime-1252-artifact-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    if: ${{ github.event.pull_request.number == 1252 && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Establish source identity and remove temporary workflow from generated source
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          rm .github/workflows/realtime-1252-generated-reconcile.yml
+          git rev-parse HEAD
+      - name: Install static generator dependencies
+        run: python -m pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Regenerate all source-owned artifacts and validate graph closure
+        shell: bash
+        run: |
+          set -uo pipefail
+          python scripts/ci/verify_all_generated.py --fix 2>&1 | tee "$RUNNER_TEMP/reconcile.log"
+          exit "${PIPESTATUS[0]}"
+      - name: Export only generated changed files with provenance
+        if: always()
+        shell: bash
+        env:
+          EVIDENCE_DIR: ${{ runner.temp }}/realtime-generated
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, os, shutil, subprocess
+          root = Path.cwd()
+          dest = Path(os.environ["EVIDENCE_DIR"])
+          dest.mkdir(parents=True, exist_ok=True)
+          changed = subprocess.check_output(["git", "diff", "--name-only", "-z"]).decode().split("\0")
+          changed = [p for p in changed if p and p != ".github/workflows/realtime-1252-generated-reconcile.yml"]
+          untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "-z"]).decode().split("\0")
+          changed.extend(p for p in untracked if p)
+          changed = sorted(set(changed))
+          receipt = {"source_sha": os.environ["EXPECTED_HEAD"], "files": []}
+          for rel in changed:
+              path = (root / rel).resolve()
+              if not path.is_relative_to(root) or not path.is_file() or path.is_symlink():
+                  raise SystemExit(f"unsafe generated artifact: {rel}")
+              dest_path = dest / rel
+              dest_path.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(path, dest_path)
+              receipt["files"].append({"path": rel, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "bytes": path.stat().st_size})
+          (dest / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+          print(f"source={receipt['source_sha']} changed_files={len(changed)}")
+          for item in receipt["files"]:
+              print(f"{item['path']} ({item['bytes']} bytes)")
+          PY
+          cp "$RUNNER_TEMP/reconcile.log" "$EVIDENCE_DIR/log.txt" 2>/dev/null || true
+      - name: Publish generated diff as non-executable artifact
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: realtime-1252-generated-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/realtime-generated/
+          if-no-files-found: error
+          retention-days: 3
