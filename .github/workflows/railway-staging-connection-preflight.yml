@@ -110,3 +110,87 @@ jobs:
           path: ${{ runner.temp }}/railway-staging-connection-evidence.json
           if-no-files-found: error
           retention-days: 14
+
+  impact-release-cascade:
+    name: Temporary impact-index and release proof (no write token)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Regenerate index and release against exact final workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install PyYAML==6.0.3
+          python - <<'PY'
+          from pathlib import Path
+          target = Path(".github/workflows/railway-staging-connection-preflight.yml")
+          data = target.read_text(encoding="utf-8")
+          marker = "\n  impact-release-cascade:\n"
+          assert data.count(marker) == 1
+          target.write_text(data.split(marker, 1)[0].rstrip() + "\n", encoding="utf-8")
+          PY
+          python scripts/ci/guard_catalogue.py --check
+          python scripts/ci/capability_mapping_engine.py --check
+          python scripts/ci/capability_management_engine.py --check
+          python scripts/ci/pr_capability_impact_gate.py --generate-index
+          python scripts/ci/pr_capability_impact_gate.py --check-index
+          python scripts/release/build_release_bundle.py
+          python scripts/release/validate_release_package.py --root .
+      - name: Emit bounded, reviewed index and release patch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          import difflib
+          import hashlib
+          import json
+          from pathlib import Path
+          import subprocess
+
+          workflow = ".github/workflows/railway-staging-connection-preflight.yml"
+          allowed = {
+              workflow,
+              "docs/capability-registry/generated/impact/impact_index_summary.json",
+              "release/FILE_CHECKSUMS.sha256",
+              "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+          }
+          changed = subprocess.check_output(["git", "diff", "--name-only", "HEAD"], text=True).splitlines()
+          if workflow not in changed or any(p not in allowed for p in changed):
+              raise SystemExit("SAHOOL_IMPACT_CASCADE_OUT_OF_SCOPE")
+          targets = [p for p in changed if p != workflow]
+          if "docs/capability-registry/generated/impact/impact_index_summary.json" not in targets:
+              raise SystemExit("SAHOOL_IMPACT_INDEX_NOT_REGENERATED")
+          print(f"SAHOOL_IMPACT_FILES|{len(targets)}|{','.join(targets)}")
+          for p in targets:
+              old = subprocess.check_output(["git", "show", f"HEAD:{p}"])
+              new = Path(p).read_bytes()
+              a, b = old.decode().splitlines(keepends=True), new.decode().splitlines(keepends=True)
+              ops = [
+                  {"start": i1, "end": i2, "lines": "".join(b[j1:j2])}
+                  for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+                      None, a, b, autojunk=False
+                  ).get_opcodes() if tag != "equal"
+              ]
+              obj = {
+                  "path": p,
+                  "before_sha256": hashlib.sha256(old).hexdigest(),
+                  "after_sha256": hashlib.sha256(new).hexdigest(),
+                  "ops": ops,
+              }
+              data = base64.b64encode(json.dumps(obj, ensure_ascii=False, separators=(",", ":")).encode()).decode()
+              parts = [data[i:i+1700] for i in range(0, len(data), 1700)]
+              print(f"SAHOOL_IMPACT_SUMMARY|{p}|{len(old)}|{len(new)}|{len(ops)}|{len(parts)}")
+              for i, part in enumerate(parts):
+                  print(f"SAHOOL_IMPACT_PATCH|{p}|{i}|{len(parts)}|{part}")
+          print("SAHOOL_IMPACT_DONE")
+          PY
