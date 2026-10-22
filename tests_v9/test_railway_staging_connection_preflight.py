@@ -1,4 +1,5 @@
 """Regression proof for Railway staging connectivity without side effects."""
+
 from __future__ import annotations
 
 import json
@@ -79,17 +80,23 @@ class RailwayPreflightTests(unittest.TestCase):
         self.assertNotIn("variables", json.dumps(receipt))
 
     def test_workflow_has_no_railway_write_step(self) -> None:
-        wf = (ROOT / ".github" / "workflows" /
-              "railway-staging-connection-preflight.yml").read_text(encoding="utf-8")
+        wf = (
+            ROOT / ".github" / "workflows" / "railway-staging-connection-preflight.yml"
+        ).read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", wf)
         self.assertIn("if: github.event_name == 'workflow_dispatch'", wf)
         self.assertIn("secrets.SAHOOL_RAILWAY_STAGING_PROJECT_TOKEN", wf)
         self.assertIn("refs/heads/main", wf)
         self.assertIn("expected_sha", wf)
         self.assertIn("railway status --json", wf)
-        for forbidden in ("railway up", "railway redeploy", "railway ssh",
-                          "railway run", "railway variable set",
-                          "railway environment edit"):
+        for forbidden in (
+            "railway up",
+            "railway redeploy",
+            "railway ssh",
+            "railway run",
+            "railway variable set",
+            "railway environment edit",
+        ):
             self.assertNotIn(forbidden, wf.lower())
 
 

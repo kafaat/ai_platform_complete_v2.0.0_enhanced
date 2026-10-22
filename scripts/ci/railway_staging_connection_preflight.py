@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed Railway staging status verification. Never emit raw CLI data."""
+
 from __future__ import annotations
 
 import argparse
@@ -30,8 +31,7 @@ def _identity(value: Any) -> str | None:
 
 def _read_id(payload: dict[str, Any], nested: str, flat: str) -> str:
     values = [
-        v for v in (_identity(payload.get(nested)), _identity(payload.get(flat)))
-        if v is not None
+        v for v in (_identity(payload.get(nested)), _identity(payload.get(flat))) if v is not None
     ]
     if not values:
         raise PreflightError(f"MISSING_{flat.upper()}")
@@ -88,9 +88,7 @@ def main() -> int:
             raise PreflightError("MALFORMED_STATUS_JSON") from None
         receipt = validate_status(payload, args.source_sha)
         receipt["observed_at_utc"] = datetime.now(UTC).isoformat()
-        receipt["verifier_sha256"] = hashlib.sha256(
-            Path(__file__).read_bytes()
-        ).hexdigest()
+        receipt["verifier_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
         args.evidence.write_text(
             json.dumps(receipt, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
