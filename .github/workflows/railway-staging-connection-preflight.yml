@@ -34,6 +34,14 @@ jobs:
           python-version: "3.12"
       - name: Prove fail-closed staging scope and secret-free receipts
         run: python tests_v9/test_railway_staging_connection_preflight.py
+      - name: TEMP generate exact guard catalogue diff for drift fix
+        run: |
+          set -euo pipefail
+          python -m pip install -c constraints-ci-tools.txt PyYAML
+          python scripts/ci/guard_catalogue.py
+          echo "CATALOGUE_DIFF_BEGIN"
+          git diff --no-ext-diff --no-color -- docs/runbooks/GUARD_CATALOGUE.md
+          echo "CATALOGUE_DIFF_END"
 
   staging-connection:
     name: Staging project-token status read (never deploy)
