@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "ci"))
@@ -24,8 +24,13 @@ class RailwayPreflightTests(unittest.TestCase):
     def test_success_does_not_claim_live_acceptance(self) -> None:
         result = p.validate_status(self.status, TEST_SHA)
         self.assertEqual(result["verdict"], "CONNECTION_ONLY_PASS")
-        for flag in ("deployment_performed", "migration_performed",
-                     "database_access_verified", "runtime_verified", "production_certified"):
+        for flag in (
+            "deployment_performed",
+            "migration_performed",
+            "database_access_verified",
+            "runtime_verified",
+            "production_certified",
+        ):
             self.assertFalse(result[flag], flag)
 
     def test_accepts_consistent_flat_ids(self) -> None:

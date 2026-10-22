@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import hashlib
 import json
-from pathlib import Path
 import re
 import sys
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 PROJECT_ID = "33c50993-1110-43eb-8e92-04c15edae51e"
@@ -87,7 +87,7 @@ def main() -> int:
         except (UnicodeError, json.JSONDecodeError):
             raise PreflightError("MALFORMED_STATUS_JSON") from None
         receipt = validate_status(payload, args.source_sha)
-        receipt["observed_at_utc"] = datetime.now(timezone.utc).isoformat()
+        receipt["observed_at_utc"] = datetime.now(UTC).isoformat()
         receipt["verifier_sha256"] = hashlib.sha256(
             Path(__file__).read_bytes()
         ).hexdigest()
