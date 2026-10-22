@@ -110,3 +110,69 @@ jobs:
           path: ${{ runner.temp }}/railway-staging-connection-evidence.json
           if-no-files-found: error
           retention-days: 14
+
+  generator-cascade:
+    name: Temporary management and release cascade evidence (no write token)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Produce canonical management manifest and release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install PyYAML==6.0.3
+          python - <<'PY'
+          from pathlib import Path
+          p = Path(".github/workflows/railway-staging-connection-preflight.yml")
+          src = p.read_text(encoding="utf-8")
+          marker = "\n  generator-cascade:\n"
+          assert src.count(marker) == 1
+          p.write_text(src.split(marker, 1)[0], encoding="utf-8")
+          PY
+          python scripts/ci/capability_management_engine.py --generate
+          python scripts/ci/capability_management_engine.py --check
+          python scripts/release/build_release_bundle.py
+          python scripts/release/validate_release_package.py
+          python - <<'PY'
+          import base64
+          import difflib
+          import hashlib
+          import json
+          from pathlib import Path
+          import subprocess
+          allowed = [
+              "docs/capability-registry/generated/management/management_manifest.json",
+              "release/FILE_CHECKSUMS.sha256",
+              "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+          ]
+          for path in allowed:
+              old = subprocess.check_output(["git", "show", f"HEAD:{path}"])
+              new = Path(path).read_bytes()
+              if old == new:
+                  continue
+              a = old.decode().splitlines(keepends=True)
+              b = new.decode().splitlines(keepends=True)
+              ops = [{"start": i1, "end": i2, "lines": "".join(b[j1:j2])}
+                     for tag, i1, i2, j1, j2 in
+                     difflib.SequenceMatcher(None, a, b).get_opcodes()
+                     if tag != "equal"]
+              obj = {"path": path,
+                     "before_sha256": hashlib.sha256(old).hexdigest(),
+                     "after_sha256": hashlib.sha256(new).hexdigest(),
+                     "ops": ops}
+              payload = base64.b64encode(json.dumps(obj, separators=(",", ":")).encode()).decode()
+              chunks = [payload[i:i+1800] for i in range(0, len(payload), 1800)]
+              print(f"SAHOOL_CASCADE_SUMMARY|{path}|{len(old)}|{len(new)}|{len(ops)}|{len(chunks)}")
+              for i, part in enumerate(chunks):
+                  print(f"SAHOOL_CASCADE_PATCH|{path}|{i}|{len(chunks)}|{part}")
+          print("SAHOOL_CASCADE_DONE")
+          PY
