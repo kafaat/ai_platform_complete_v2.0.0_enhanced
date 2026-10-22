@@ -1,0 +1,110 @@
+name: SAHOOL Railway staging connection preflight
+
+# Staging only. No deployments, database calls, migrations or config mutations.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/railway-staging-connection-preflight.yml"
+      - "scripts/ci/railway_staging_connection_preflight.py"
+      - "tests_v9/test_railway_staging_connection_preflight.py"
+      - "docs/runbooks/RAILWAY_GITHUB_ACTIONS_CONNECTION.md"
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "Exact reviewed 40-character main SHA for read-only staging connectivity"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sahool-railway-staging-connection-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  parser-contract:
+    name: Read-only staging parser and receipt contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Prove fail-closed staging scope and secret-free receipts
+        run: python -m unittest discover -s tests_v9 -p 'test_railway_staging_connection_preflight.py' -v
+
+  staging-connection:
+    name: Staging project-token status read (never deploy)
+    needs: parser-contract
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      CI: "true"
+      RAILWAY_NO_AUTO_UPDATE: "1"
+      SAHOOL_RAILWAY_PROJECT_ID: "33c50993-1110-43eb-8e92-04c15edae51e"
+      SAHOOL_RAILWAY_STAGING_ENVIRONMENT_ID: "70cc51f8-b11f-4506-87b2-4b6615e472be"
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Refuse non-main source and SHA drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::Only refs/heads/main is eligible for staging connection proof"
+            exit 1
+          fi
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ || "$EXPECTED_SHA" != "$GITHUB_SHA" ]]; then
+            echo "::error::Expected SHA differs from checked-out main commit"
+            exit 1
+          fi
+          echo "source_sha=$GITHUB_SHA scope=read-only-staging"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Install pinned Railway CLI before exposing project token
+        run: npm install --global @railway/cli@5.63.1
+      - name: Read Railway staging context (raw output never printed)
+        shell: bash
+        env:
+          RAILWAY_TOKEN: ${{ secrets.SAHOOL_RAILWAY_STAGING_PROJECT_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ -z "${RAILWAY_TOKEN:-}" ]]; then
+            echo "::error::Missing SAHOOL_RAILWAY_STAGING_PROJECT_TOKEN secret"
+            exit 1
+          fi
+          if [[ -n "${RAILWAY_API_TOKEN:-}" ]]; then
+            echo "::error::Account-wide Railway token is forbidden"
+            exit 1
+          fi
+          status_file="$RUNNER_TEMP/railway-staging-status.json"
+          error_file="$RUNNER_TEMP/railway-staging-stderr.txt"
+          if ! timeout 90s railway status --json \
+              --project "$SAHOOL_RAILWAY_PROJECT_ID" \
+              --environment "$SAHOOL_RAILWAY_STAGING_ENVIRONMENT_ID" \
+              >"$status_file" 2>"$error_file"; then
+            echo "::error::Railway status read failed; check token, scope or platform incident. Raw response withheld"
+            exit 1
+          fi
+      - name: Verify exact IDs and produce redacted evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/railway_staging_connection_preflight.py \
+            --status-json "$RUNNER_TEMP/railway-staging-status.json" \
+            --source-sha "$GITHUB_SHA" \
+            --evidence "$RUNNER_TEMP/railway-staging-connection-evidence.json"
+      - name: Store sanitized read-only receipt only
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sahool-railway-staging-connection-${{ github.sha }}
+          path: ${{ runner.temp }}/railway-staging-connection-evidence.json
+          if-no-files-found: error
+          retention-days: 14
