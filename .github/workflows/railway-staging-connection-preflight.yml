@@ -32,8 +32,10 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
+      - name: Install pinned pytest for registered unit marker
+        run: python -m pip install pytest==9.1.1
       - name: Prove fail-closed staging scope and secret-free receipts
-        run: python tests_v9/test_railway_staging_connection_preflight.py
+        run: python -m pytest -q -m unit tests_v9/test_railway_staging_connection_preflight.py
 
   staging-connection:
     name: Staging project-token status read (never deploy)

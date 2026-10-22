@@ -7,6 +7,10 @@ import sys
 import unittest
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "ci"))
 import railway_staging_connection_preflight as p  # noqa: E402
