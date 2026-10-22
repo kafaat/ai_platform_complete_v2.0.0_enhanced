@@ -64,7 +64,7 @@ jobs:
             exit 1
           fi
           echo "source_sha=$GITHUB_SHA scope=read-only-staging"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
       - name: Install pinned Railway CLI before exposing project token
