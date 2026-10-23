@@ -70,7 +70,7 @@ async def test_unauthenticated_chunked_json_stops_before_framework_reads_complet
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
         response = await client.post(
-            "/api/realtime/sessions",
+            "/api/v1/realtime/sessions",
             content=oversized_body(),
             headers={"Content-Type": "application/json"},
         )
@@ -93,7 +93,7 @@ async def test_service_factory_rejects_declared_oversize_without_reading_unauthe
         transport=httpx.ASGITransport(app=create_app()), base_url="http://test"
     ) as client:
         response = await client.post(
-            "/api/realtime/sessions",
+            "/api/v1/realtime/sessions",
             content=body(),
             headers={"Content-Type": "application/json", "Content-Length": "8192"},
         )
@@ -154,7 +154,7 @@ async def test_http_create_serializes_inflight_room_creation_against_stale_pendi
     ) as client:
         request_task = asyncio.create_task(
             client.post(
-                "/api/realtime/sessions",
+                "/api/v1/realtime/sessions",
                 headers={"Authorization": "Bearer synthetic"},
                 json={"field_id": "field-a", "consent": True},
             )

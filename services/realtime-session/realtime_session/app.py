@@ -154,17 +154,17 @@ def create_app(service: SessionService | None = None) -> FastAPI:
         ok = bool(instance and app.state.cleanup_healthy and await instance.ready())
         return JSONResponse(status_code=200 if ok else 503, content={"ready": ok})
 
-    @app.post("/api/realtime/sessions", status_code=201)
+    @app.post("/api/v1/realtime/sessions", status_code=201)
     async def create_session(body: CreateSession, token: str = Depends(bearer)):
         if app.state.service is not None and not app.state.cleanup_healthy:
             raise SessionError(503, "session_cleanup_unavailable")
         return await current().create(token, body.field_id, body.consent)
 
-    @app.get("/api/realtime/sessions/{session_id}")
+    @app.get("/api/v1/realtime/sessions/{session_id}")
     async def get_session(session_id: str, token: str = Depends(bearer)):
         return await current().get(token, session_id)
 
-    @app.delete("/api/realtime/sessions/{session_id}", status_code=202)
+    @app.delete("/api/v1/realtime/sessions/{session_id}", status_code=202)
     async def close_session(session_id: str, token: str = Depends(bearer)):
         return await current().close(token, session_id)
 

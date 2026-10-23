@@ -40,7 +40,7 @@ async def test_invalid_input_does_not_echo_an_input_credential():
         transport=httpx.ASGITransport(app=create_app()), base_url="http://test"
     ) as client:
         response = await client.post(
-            "/api/realtime/sessions",
+            "/api/v1/realtime/sessions",
             headers={"Authorization": "Bearer test"},
             json={"field_id": "field-a", "consent": True, "api_secret": secret},
         )

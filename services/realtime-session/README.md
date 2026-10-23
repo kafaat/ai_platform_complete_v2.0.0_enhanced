@@ -28,9 +28,9 @@ or infer consent for STT, video analysis, recording, or retention from the
 | --- | --- |
 | `GET /healthz` | Process liveness; does not certify dependencies. |
 | `GET /readyz` | Readiness subject to enabled feature, valid configuration and dependency checks. |
-| `POST /api/realtime/sessions` | Authenticated creation with `{"field_id":"…","consent":true}`. |
-| `GET /api/realtime/sessions/{id}` | Tenant- and actor-authorized session read. |
-| `DELETE /api/realtime/sessions/{id}` | Authorized closure request; returns `202` with state `CLOSING`. |
+| `POST /api/v1/realtime/sessions` | Authenticated creation with `{"field_id":"…","consent":true}`. |
+| `GET /api/v1/realtime/sessions/{id}` | Tenant- and actor-authorized session read. |
+| `DELETE /api/v1/realtime/sessions/{id}` | Authorized closure request; returns `202` with state `CLOSING`. |
 
 Session leases govern this service's lifecycle; no webhook receiver is implemented
 here. Deleting a self-hosted LiveKit room does not revoke an issued participant

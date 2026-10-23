@@ -123,7 +123,7 @@ async def harness(tmp_path, *, max_per_tenant=2, max_per_actor=1):
 
 
 async def created(h, actor="alice"):
-    response = await h.client.post("/api/realtime/sessions", headers=auth(actor), json=CREATE)
+    response = await h.client.post("/api/v1/realtime/sessions", headers=auth(actor), json=CREATE)
     assert response.status_code == 201, response.text
     return response
 
@@ -135,7 +135,7 @@ async def test_default_service_remains_disabled_and_does_not_issue_tokens(monkey
     ) as client:
         health = await client.get("/healthz")
         ready = await client.get("/readyz")
-        response = await client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        response = await client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
     assert health.status_code == 200
     assert ready.status_code == 503
     assert response.status_code == 503
@@ -145,7 +145,7 @@ async def test_default_service_remains_disabled_and_does_not_issue_tokens(monkey
 @pytest.mark.parametrize("headers", [{}, {"Authorization": "Basic synthetic"}])
 async def test_http_authentication_is_required_before_room_allocation(tmp_path, headers):
     async with harness(tmp_path) as h:
-        response = await h.client.post("/api/realtime/sessions", headers=headers, json=CREATE)
+        response = await h.client.post("/api/v1/realtime/sessions", headers=headers, json=CREATE)
         assert response.status_code == 401
         assert "no-store" in response.headers.get("Cache-Control", "")
         assert h.gateway.created == []
@@ -155,7 +155,7 @@ async def test_http_authentication_is_required_before_room_allocation(tmp_path, 
 async def test_missing_explicit_consent_denies_allocation(tmp_path):
     async with harness(tmp_path) as h:
         response = await h.client.post(
-            "/api/realtime/sessions", headers=auth(), json={"field_id": FIELD, "consent": False}
+            "/api/v1/realtime/sessions", headers=auth(), json={"field_id": FIELD, "consent": False}
         )
         assert response.status_code == 403
         assert "consent_required" in response.text
@@ -166,7 +166,9 @@ async def test_missing_explicit_consent_denies_allocation(tmp_path):
 async def test_non_boolean_consent_cannot_be_coerced_into_permission(tmp_path, consent):
     async with harness(tmp_path) as h:
         response = await h.client.post(
-            "/api/realtime/sessions", headers=auth(), json={"field_id": FIELD, "consent": consent}
+            "/api/v1/realtime/sessions",
+            headers=auth(),
+            json={"field_id": FIELD, "consent": consent},
         )
         assert response.status_code == 422
         assert h.gateway.created == []
@@ -185,7 +187,7 @@ async def test_non_boolean_consent_cannot_be_coerced_into_permission(tmp_path, c
 async def test_body_cannot_supply_authority_or_room_privileges(tmp_path, injected):
     async with harness(tmp_path) as h:
         response = await h.client.post(
-            "/api/realtime/sessions", headers=auth(), json={**CREATE, **injected}
+            "/api/v1/realtime/sessions", headers=auth(), json={**CREATE, **injected}
         )
         assert response.status_code == 422
         assert h.gateway.created == []
@@ -194,7 +196,7 @@ async def test_body_cannot_supply_authority_or_room_privileges(tmp_path, injecte
 async def test_field_permission_is_checked_before_allocation(tmp_path):
     async with harness(tmp_path) as h:
         h.authority.denied_fields.add("alice")
-        response = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        response = await h.client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
         assert response.status_code == 403
         assert h.gateway.created == []
         assert h.gateway.tokens == []
@@ -210,13 +212,13 @@ async def test_owner_can_read_and_close_without_disclosing_credentials(tmp_path)
         assert payload["token_expires_at"] <= payload["expires_at"]
         assert FIELD not in h.gateway.created[0].room_name
         assert TENANT not in h.gateway.created[0].room_name
-        status = await h.client.get(f"/api/realtime/sessions/{session_id}", headers=auth())
+        status = await h.client.get(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
         assert status.status_code == 200
         assert status.json()["status"] == "ACTIVE"
         assert set(status.json()).isdisjoint(
             {"participant_token", "room_name", "tenant_id", "user_id", "api_secret"}
         )
-        closing = await h.client.delete(f"/api/realtime/sessions/{session_id}", headers=auth())
+        closing = await h.client.delete(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
         assert closing.status_code == 202
         assert closing.json()["status"] == "CLOSING"
         assert h.gateway.deleted == [h.gateway.created[0].room_name]
@@ -225,7 +227,7 @@ async def test_owner_can_read_and_close_without_disclosing_credentials(tmp_path)
         h.clock.now = payload["expires_at"] + 1
         await h.service.cleanup()
         status_after_cleanup = await h.client.get(
-            f"/api/realtime/sessions/{session_id}", headers=auth()
+            f"/api/v1/realtime/sessions/{session_id}", headers=auth()
         )
         assert status_after_cleanup.json()["status"] == "CLOSED"
         for item in (response, status, closing, status_after_cleanup):
@@ -237,11 +239,11 @@ async def test_other_actor_or_tenant_cannot_read_or_close_session(tmp_path, acto
     async with harness(tmp_path) as h:
         session_id = (await created(h)).json()["session_id"]
         for method in (h.client.get, h.client.delete):
-            response = await method(f"/api/realtime/sessions/{session_id}", headers=auth(actor))
+            response = await method(f"/api/v1/realtime/sessions/{session_id}", headers=auth(actor))
             assert response.status_code == 404
             assert "synthetic-room-token" not in response.text
         assert h.gateway.deleted == []
-        owner = await h.client.get(f"/api/realtime/sessions/{session_id}", headers=auth())
+        owner = await h.client.get(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
         assert owner.json()["status"] == "ACTIVE"
 
 
@@ -249,10 +251,12 @@ async def test_actor_quota_is_held_through_close_until_lease_cleanup(tmp_path):
     async with harness(tmp_path) as h:
         payload = (await created(h)).json()
         session_id = payload["session_id"]
-        limited = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        limited = await h.client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
         assert limited.status_code == 429
-        await h.client.delete(f"/api/realtime/sessions/{session_id}", headers=auth())
-        still_limited = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        await h.client.delete(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
+        still_limited = await h.client.post(
+            "/api/v1/realtime/sessions", headers=auth(), json=CREATE
+        )
         assert still_limited.status_code == 429
         h.clock.now = payload["expires_at"] + 1
         await h.service.cleanup()
@@ -264,7 +268,9 @@ async def test_tenant_quota_is_shared_by_distinct_actors(tmp_path):
     async with harness(tmp_path) as h:
         await created(h, "alice")
         await created(h, "bob")
-        limited = await h.client.post("/api/realtime/sessions", headers=auth("carol"), json=CREATE)
+        limited = await h.client.post(
+            "/api/v1/realtime/sessions", headers=auth("carol"), json=CREATE
+        )
         assert limited.status_code == 429
         assert len(h.gateway.created) == 2
 
@@ -273,13 +279,13 @@ async def test_uncertain_create_and_failed_delete_preserve_cleanup_and_do_not_is
     async with harness(tmp_path) as h:
         h.gateway.fail_create = True
         h.gateway.fail_delete = True
-        response = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        response = await h.client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
         assert response.status_code == 503
         assert "participant_token" not in response.text
         assert h.gateway.tokens == []
         allocated = h.gateway.created[0]
         assert (await h.store.get(allocated.session_id)).status == "CLOSING"
-        limited = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        limited = await h.client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
         assert limited.status_code == 429
         h.gateway.fail_delete = False
         h.clock.now = allocated.expires_at + 1
@@ -292,13 +298,13 @@ async def test_failed_close_retains_quota_and_retry_closes_the_same_room(tmp_pat
         payload = (await created(h)).json()
         session_id = payload["session_id"]
         h.gateway.fail_delete = True
-        failed = await h.client.delete(f"/api/realtime/sessions/{session_id}", headers=auth())
+        failed = await h.client.delete(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
         assert failed.status_code == 503
         assert (await h.store.get(session_id)).status == "CLOSING"
-        limited = await h.client.post("/api/realtime/sessions", headers=auth(), json=CREATE)
+        limited = await h.client.post("/api/v1/realtime/sessions", headers=auth(), json=CREATE)
         assert limited.status_code == 429
         h.gateway.fail_delete = False
-        closing = await h.client.delete(f"/api/realtime/sessions/{session_id}", headers=auth())
+        closing = await h.client.delete(f"/api/v1/realtime/sessions/{session_id}", headers=auth())
         assert closing.status_code == 202
         assert closing.json()["status"] == "CLOSING"
         h.clock.now = payload["expires_at"] + 1
@@ -328,7 +334,7 @@ async def test_expired_session_is_closed_after_engine_restart_from_durable_state
 async def test_invalid_bearer_is_not_reflected_in_an_error(tmp_path):
     async with harness(tmp_path) as h:
         response = await h.client.post(
-            "/api/realtime/sessions", headers=auth("synthetic-private-bearer"), json=CREATE
+            "/api/v1/realtime/sessions", headers=auth("synthetic-private-bearer"), json=CREATE
         )
         assert response.status_code == 401
         assert "synthetic-private-bearer" not in response.text
