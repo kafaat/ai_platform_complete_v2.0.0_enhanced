@@ -23,24 +23,13 @@ class PreflightError(ValueError):
     """Only constant, secret-free error codes."""
 
 
-def _identity(value: Any) -> str | None:
-    if isinstance(value, dict):
-        value = value.get("id")
-    return value if isinstance(value, str) and value else None
-
-
-def _read_id(payload: dict[str, Any], nested: str, flat: str) -> str:
-    values = [
-        v for v in (_identity(payload.get(nested)), _identity(payload.get(flat))) if v is not None
-    ]
-    if not values:
-        raise PreflightError(f"MISSING_{flat.upper()}")
-    if len(set(values)) != 1:
-        raise PreflightError(f"CONFLICTING_{flat.upper()}")
-    return values[0]
-
-
 def validate_status(payload: Any, source_sha: str) -> dict[str, Any]:
+    """Validate native Railway CLI v5.63.1 ProjectProject JSON, not a wrapper.
+
+    With explicit project/environment flags, the CLI filters
+    environments.edges to the selected environment. Exactly one accessible
+    staging edge must be present. A project-level ID alone is not enough.
+    """
     if SHA_PATTERN.fullmatch(source_sha) is None:
         raise PreflightError("INVALID_SOURCE_SHA")
     if not isinstance(payload, dict):
@@ -48,15 +37,24 @@ def validate_status(payload: Any, source_sha: str) -> dict[str, Any]:
     if "error" in payload or "errors" in payload:
         raise PreflightError("STATUS_HAS_ERROR")
 
-    project = _read_id(payload, "project", "projectId")
-    environment = _read_id(payload, "environment", "environmentId")
-    if project != PROJECT_ID:
+    if payload.get("id") != PROJECT_ID:
         raise PreflightError("PROJECT_ID_MISMATCH")
-    if environment == PRODUCTION_ID or environment != STAGING_ID:
+    environments = payload.get("environments")
+    if not isinstance(environments, dict):
+        raise PreflightError("MISSING_ENVIRONMENTS")
+    edges = environments.get("edges")
+    if not isinstance(edges, list) or len(edges) != 1:
+        raise PreflightError("ENVIRONMENT_SCOPE_MISMATCH")
+    edge = edges[0]
+    if not isinstance(edge, dict) or not isinstance(edge.get("node"), dict):
+        raise PreflightError("INVALID_ENVIRONMENT_SHAPE")
+    environment = edge["node"]
+    if environment.get("id") != STAGING_ID:
         raise PreflightError("ENVIRONMENT_ID_MISMATCH")
-    details = payload.get("environment")
-    if isinstance(details, dict) and details.get("name") not in (None, "staging"):
+    if environment.get("name") != "staging":
         raise PreflightError("ENVIRONMENT_NAME_MISMATCH")
+    if environment.get("canAccess") is False:
+        raise PreflightError("STAGING_ACCESS_DENIED")
 
     return {
         "verdict": "CONNECTION_ONLY_PASS",
@@ -71,7 +69,6 @@ def validate_status(payload: Any, source_sha: str) -> dict[str, Any]:
         "runtime_verified": False,
         "production_certified": False,
     }
-
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)

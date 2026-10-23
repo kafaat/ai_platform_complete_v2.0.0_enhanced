@@ -27,3 +27,18 @@ Success only means that a staging project token can read the staging context. It
 Before any Stage-2 staging rollout: verify the tested SHA, actual deployed source branch and build identity, relevant Postgres/NATS backup evidence and migration state, and obtain explicit coordinated approval. Do not switch the production platform branch, enable SAHOOL_MIGRATE_APPLY, probe through the migrator, or promote any gap to verified using this receipt.
 
 Technical references: https://docs.railway.com/cli/status ; https://docs.railway.com/cli/deploying ; https://docs.railway.com/cli/login .
+
+## Railway CLI JSON source contract (v5.63.1)
+
+The command railway status --json --project ID --environment ID returns the
+raw project object: the project ID is a top-level id, and the environment
+is in environments.edges[].node. The CLI scopes the edge list to the
+explicitly selected environment. It does not return a project/environment
+wrapper. The verifier requires exactly one accessible staging edge and
+refuses missing, extra, inaccessible or production environments.
+
+Source: https://github.com/railwayapp/cli/blob/v5.63.1/src/commands/status.rs
+
+This contract is validated offline; no Railway token or live deployment
+was used while preparing this change. The final live proof still requires
+an operator-provided staging token and an exact-main-SHA manual dispatch.

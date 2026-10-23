@@ -20,15 +20,28 @@ TEST_SHA = "d23b320ae6c437273a8c8a6a1ba9fc5f111b1e1c"
 
 class RailwayPreflightTests(unittest.TestCase):
     def setUp(self) -> None:
+        # Railway CLI v5.63.1 serializes ProjectProject directly as JSON.
         self.status = {
-            "project": {"id": p.PROJECT_ID, "name": "sahool-staging"},
-            "environment": {"id": p.STAGING_ID, "name": "staging"},
-            "services": [{"status": "CRASHED"}],
+            "id": p.PROJECT_ID,
+            "name": "sahool-staging",
+            "environments": {
+                "edges": [
+                    {
+                        "node": {
+                            "id": p.STAGING_ID,
+                            "name": "staging",
+                            "canAccess": True,
+                        }
+                    }
+                ]
+            },
+            "services": {"edges": [{"node": {"status": "CRASHED"}}]},
         }
 
-    def test_success_does_not_claim_live_acceptance(self) -> None:
+    def test_real_cli_shape_without_runtime_claims(self) -> None:
         result = p.validate_status(self.status, TEST_SHA)
         self.assertEqual(result["verdict"], "CONNECTION_ONLY_PASS")
+        self.assertEqual(result["environment_id"], p.STAGING_ID)
         for flag in (
             "deployment_performed",
             "migration_performed",
@@ -38,33 +51,58 @@ class RailwayPreflightTests(unittest.TestCase):
         ):
             self.assertFalse(result[flag], flag)
 
-    def test_accepts_consistent_flat_ids(self) -> None:
-        self.status["projectId"] = p.PROJECT_ID
-        self.status["environmentId"] = p.STAGING_ID
-        self.assertEqual(p.validate_status(self.status, TEST_SHA)["scope"], "staging")
-
-    def test_rejects_missing_id(self) -> None:
-        self.status.pop("project")
-        with self.assertRaisesRegex(p.PreflightError, "MISSING_PROJECTID"):
+    def test_rejects_legacy_wrapper_instead_of_real_cli_json(self) -> None:
+        self.status = {
+            "project": {"id": p.PROJECT_ID},
+            "environment": {"id": p.STAGING_ID, "name": "staging"},
+        }
+        with self.assertRaisesRegex(p.PreflightError, "PROJECT_ID_MISMATCH"):
             p.validate_status(self.status, TEST_SHA)
 
-    def test_rejects_conflicting_ids(self) -> None:
-        self.status["environmentId"] = p.PRODUCTION_ID
-        with self.assertRaisesRegex(p.PreflightError, "CONFLICTING_ENVIRONMENTID"):
+    def test_rejects_missing_project_id(self) -> None:
+        self.status.pop("id")
+        with self.assertRaisesRegex(p.PreflightError, "PROJECT_ID_MISMATCH"):
+            p.validate_status(self.status, TEST_SHA)
+
+    def test_rejects_missing_environments(self) -> None:
+        self.status.pop("environments")
+        with self.assertRaisesRegex(p.PreflightError, "MISSING_ENVIRONMENTS"):
+            p.validate_status(self.status, TEST_SHA)
+
+    def test_rejects_empty_environment_edges(self) -> None:
+        self.status["environments"]["edges"] = []
+        with self.assertRaisesRegex(p.PreflightError, "ENVIRONMENT_SCOPE_MISMATCH"):
+            p.validate_status(self.status, TEST_SHA)
+
+    def test_rejects_unscoped_multiple_environments(self) -> None:
+        self.status["environments"]["edges"].append(
+            {"node": {"id": p.PRODUCTION_ID, "name": "production"}}
+        )
+        with self.assertRaisesRegex(p.PreflightError, "ENVIRONMENT_SCOPE_MISMATCH"):
+            p.validate_status(self.status, TEST_SHA)
+
+    def test_rejects_missing_edge_node(self) -> None:
+        self.status["environments"]["edges"] = [{}]
+        with self.assertRaisesRegex(p.PreflightError, "INVALID_ENVIRONMENT_SHAPE"):
             p.validate_status(self.status, TEST_SHA)
 
     def test_rejects_production_environment(self) -> None:
-        self.status["environment"]["id"] = p.PRODUCTION_ID
+        self.status["environments"]["edges"][0]["node"]["id"] = p.PRODUCTION_ID
         with self.assertRaisesRegex(p.PreflightError, "ENVIRONMENT_ID_MISMATCH"):
             p.validate_status(self.status, TEST_SHA)
 
     def test_rejects_wrong_environment_name(self) -> None:
-        self.status["environment"]["name"] = "production"
+        self.status["environments"]["edges"][0]["node"]["name"] = "production"
         with self.assertRaisesRegex(p.PreflightError, "ENVIRONMENT_NAME_MISMATCH"):
             p.validate_status(self.status, TEST_SHA)
 
+    def test_rejects_staging_inaccessible(self) -> None:
+        self.status["environments"]["edges"][0]["node"]["canAccess"] = False
+        with self.assertRaisesRegex(p.PreflightError, "STAGING_ACCESS_DENIED"):
+            p.validate_status(self.status, TEST_SHA)
+
     def test_rejects_wrong_project(self) -> None:
-        self.status["project"]["id"] = "00000000-0000-4000-8000-000000000000"
+        self.status["id"] = "00000000-0000-4000-8000-000000000000"
         with self.assertRaisesRegex(p.PreflightError, "PROJECT_ID_MISMATCH"):
             p.validate_status(self.status, TEST_SHA)
 
