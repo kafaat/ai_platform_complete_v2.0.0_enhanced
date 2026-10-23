@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from collections import deque
+from datetime import UTC, datetime
 from urllib.parse import urljoin, urlsplit
 
 
@@ -118,11 +119,23 @@ def crawl(client, endpoint, payload, limiter, token=None, max_pages=10000):
 def compare(old, new):
     """URLs may legitimately differ; expose metadata deltas for review."""
 
+    def normalized_datetime(value):
+        if not isinstance(value, str):
+            return value
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.astimezone(UTC).isoformat() if parsed.tzinfo else value
+        except ValueError:
+            return value
+
     def fingerprint(item):
         return {
-            "datetime": item.get("properties", {}).get("datetime"),
+            "datetime": normalized_datetime(item.get("properties", {}).get("datetime")),
             "assets": {
-                k: {p: a.get(p) for p in ("type", "roles", "raster:bands", "eo:bands")}
+                k: {
+                    p: sorted(a[p]) if p == "roles" and isinstance(a.get(p), list) else a.get(p)
+                    for p in ("type", "roles", "raster:bands", "eo:bands")
+                }
                 for k, a in item.get("assets", {}).items()
             },
         }

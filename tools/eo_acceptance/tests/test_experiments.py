@@ -1,11 +1,48 @@
 import json
 import os
+import sys
 
 import httpx
 import numpy as np
 import pytest
 
 from tools.eo_acceptance.stac import Limiter, compare, crawl
+
+
+def test_runner_retains_partial_evidence_and_redacts_http_error(tmp_path, monkeypatch):
+    from tools.eo_acceptance import run, stac
+
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "old": "https://old.example/v1",
+                "new": "https://new.example/v1",
+                "queries": [{"name": "fixed-aoi", "payload": {}}],
+            }
+        )
+    )
+    output = tmp_path / "report.json"
+    monkeypatch.setattr(
+        sys, "argv", ["run", "stac", "--manifest", str(manifest), "--output", str(output)]
+    )
+    calls = []
+
+    def fake_crawl(*args):
+        calls.append(True)
+        if len(calls) == 1:
+            return {}, {"seconds": 0.1, "requests": 1, "429": 0, "pages": 1}
+        request = httpx.Request("POST", "https://example.com/?token=redaction_marker")
+        response = httpx.Response(401, request=request)
+        raise httpx.HTTPStatusError("redaction_marker", request=request, response=response)
+
+    monkeypatch.setattr(stac, "crawl", fake_crawl)
+    assert run.main() == 1
+    report = json.loads(output.read_text())
+    assert report["status"] == "ERROR" and report["upstream_status"] == 401
+    assert len(report["partial_samples"]["fixed-aoi"]["old"]) == 1
+    assert report["partial_samples"]["fixed-aoi"]["new"] == []
+    assert "redaction_marker" not in output.read_text()
 
 
 class Clock:
@@ -125,6 +162,15 @@ def test_empty_or_changed_catalogues_do_not_pass():
     new = feature("1")
     new["assets"] = {"B04": {"raster:bands": [{"offset": -0.1}]}}
     assert not compare({("s2", "1"): old}, {("s2", "1"): new})["correctness_pass"]
+
+
+def test_equivalent_datetime_precision_and_role_order_are_not_differences():
+    old, new = feature("one"), feature("one")
+    old["properties"]["datetime"] = "2025-01-01T07:23:11.024Z"
+    new["properties"]["datetime"] = "2025-01-01T07:23:11.024000Z"
+    old["assets"] = {"B04": {"roles": ["data", "reflectance"]}}
+    new["assets"] = {"B04": {"roles": ["reflectance", "data"]}}
+    assert compare({("s2", "one"): old}, {("s2", "one"): new})["correctness_pass"]
 
 
 def test_missing_next_link_cannot_prove_completeness():

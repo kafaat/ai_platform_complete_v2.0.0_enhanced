@@ -19,6 +19,13 @@ python -m tools.eo_acceptance.run stac \
   --repeats 20 --output /tmp/eo-stac.json
 ```
 
+For a complete correctness comparison before spending quota on 20 repeats, add
+`--correctness-only`. This performs one paired crawl per query, leaves P50/P95 and
+the adoption verdict unset, and explicitly marks performance as unmeasured.
+Reports checkpoint completed crawls atomically; an HTTP failure retains partial
+sample metrics and a numeric upstream status without exposing request URLs or
+credentials. Partial samples are not automatically reused as a new benchmark.
+
 The fixed 24-month windows and example AOIs represent Al Hazm and Tihama, not
 verified farm boundaries. Check collection names and sort support on both APIs.
 Unsupported requests fail; the runner never silently drops filters or ordering.

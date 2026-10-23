@@ -64,3 +64,44 @@ the standalone spatial runner. Evidence is retained in
 (artifact 12490536175). This validates the synthetic integration, not production
 speed or the real-scene matrix. Workflow-only follow-up adds required version
 comments and pins the actually pulled image digest.
+
+## Continuation: live catalogue parity and dependency security
+
+`CDSE-SFEOS-CATALOGUE-PARITY-20261023-01`: a complete anonymous paired crawl
+of the fixed AOIs found 798 old versus 782 new scenes in Al Hazm (20 old-only,
+4 new-only IDs), and 402 versus 392 in Tihama (10 old-only IDs). Both APIs returned
+HTTP 200 and pagination completed without 429. The first observation is retained
+in `evidence/stac_equivalence_20261023.json`. These differences are unexplained;
+they do not establish their cause or justify changing the production provider.
+One observation per endpoint is not a P95 benchmark.
+
+A sampled common item had equivalent timestamp precision (`.024Z` versus
+`.024000Z`) and additional cloud/snow asset declarations on the new endpoint.
+The comparator now normalizes equivalent zoned timestamps and role order while
+retaining asset/calibration differences for review. A second complete crawl with
+this comparator is recorded separately in
+`evidence/stac_equivalence_semantic_20261023.json`.
+It confirmed the same identity differences and flagged asset-declaration deltas
+on 426 common Al Hazm items and 218 common Tihama items even after normalization.
+Both paired observations therefore fail parity; discovery performance quantiles
+and real raster-matrix results remain unmeasured.
+The access probe in `evidence/cdse_asset_access_20261023.json` found
+`s3://eodata` references for B04/B08/SCL and no `raster:bands` calibration
+declarations in the sampled assets. No CDSE client credentials or STAC token are
+available locally. Pixel access and source calibration are therefore not proven;
+the live NDVI matrix must wait for declared, readable, calibrated source inputs.
+
+CI also reported `CVE-2026-114603` / `GHSA-xcq7-p3pf-p88h` in the existing
+OpenTelemetry API dependency. The upstream advisory identifies 1.45.1 as fixed:
+https://github.com/open-telemetry/opentelemetry-python/security/advisories/GHSA-xcq7-p3pf-p88h
+Platform, auth, notification and test requirements now use the compatible
+SDK/exporter 1.45.1 and FastAPI instrumentation 0.66b1 stack. Historical fixtures
+are retained as historical evidence. The canonical direct-dependency bundle and
+dependency SBOM are regenerated; SBOM generation also reconciles pre-existing
+manifest drift, including frontend and experiment dependencies.
+
+The exact multi-requirement CI `pip-audit` critical path and the notification
+requirements audit both reported no known vulnerabilities after the update.
+Nine tracing tests passed locally, including bounded subprocess tests proving
+oversized space/tab tracestate inputs are discarded and normal input is retained.
+No vulnerability suppression or scanner relaxation is introduced.
