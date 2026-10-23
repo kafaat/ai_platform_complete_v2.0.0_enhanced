@@ -18,9 +18,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/realtime-session"))
 
-from realtime_session.session_runtime import create_app  # noqa: E402
 from realtime_session.contracts import Principal, SessionError  # noqa: E402
 from realtime_session.engine import SessionService  # noqa: E402
+from realtime_session.session_runtime import create_app  # noqa: E402
 from realtime_session.store import SessionStore  # noqa: E402
 
 sys.path.remove(str(ROOT / "services/realtime-session"))
