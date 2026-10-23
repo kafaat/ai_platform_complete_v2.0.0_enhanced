@@ -317,6 +317,11 @@ raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/v1/
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/v1/imagery/timeseries/parallel,imagery_timeseries_parallel
 raster-tiler-service,services/raster-tiler-service/main.py,11,GET,/runtime-identity,runtime_identity
 raster-tiler-service,services/raster-tiler-service/main.py,16,GET,/metrics,metrics
+realtime-session,services/realtime-session/realtime_session/app.py,148,GET,/healthz,health
+realtime-session,services/realtime-session/realtime_session/app.py,152,GET,/readyz,ready
+realtime-session,services/realtime-session/realtime_session/app.py,158,POST,/api/v1/realtime/sessions,create_session
+realtime-session,services/realtime-session/realtime_session/app.py,164,GET,/api/v1/realtime/sessions/{session_id},get_session
+realtime-session,services/realtime-session/realtime_session/app.py,168,DELETE,/api/v1/realtime/sessions/{session_id},close_session
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GET,/healthz,healthz
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace

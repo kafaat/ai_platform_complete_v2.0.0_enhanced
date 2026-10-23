@@ -4318,3 +4318,14 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
 السبب: تقييد المسار وحده لا يعزل صلاحية مستند SPA؛ لا يُفتح media قبل بناء حدود الجلسة والمستند.
+
+
+## 2026-10-23 — جلسات realtime منفصلة ومعطلة افتراضيًا
+
+- **القرار/السبب:** مصدر `82d77ab40aa6beec85c65a1d98722db4b6978711` يعيد استخدام هوية المنصة وFIELD_VIEW/RLS دون زيادة مساراتها أو نقل الوسائط عبر FastAPI الزراعية. قاعدة SQLite وحيدة محلية تحفظ الحصص والتعافي في الأساس الأول؛ ليست مخزنًا موزعًا.
+- **حد القبول:** شرط مستقل وصريح لإعداد SFU الفعلي `room.auto_create=false`، لأن LiveKit يجدد JWT ولا يعني حذف الغرفة إبطال الاعتماد. اختبارات الانضمام بعد الحذف بتوكن أصلي ومجدد حاجبة للإطلاق. راجع `services/realtime-session/README.md` والدليل `certification/evidence/realtime_session_foundation_20261023/README.md`.
+
+### 2026-10-23 — ترقيم عقد خدمة الجلسات الجديدة
+
+- المصدر: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ `services/realtime-session/realtime_session/app.py` و`docs/architecture/api_versioning_legacy_baseline.json`.
+- القرار والسبب: اعتماد `/api/v1/realtime/sessions` بدل المسار التصميمي غير المُرقّم؛ الخدمة غير منشورة ولا يوجد عميل يتطلب اسم توافق. يحافظ ذلك على سقف الدين صفر دون استثناء أو رفع ميزانية. اختبارات وفحص HTTP في `certification/evidence/realtime_session_foundation_20261023/`.

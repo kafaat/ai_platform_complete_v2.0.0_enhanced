@@ -404,6 +404,14 @@
           "receiver": "router"
         },
         {
+          "function": "health",
+          "line": 148,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/app.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
           "function": "healthz",
           "line": 39,
           "method": "GET",
@@ -768,6 +776,14 @@
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
           "receiver": "router"
+        },
+        {
+          "function": "ready",
+          "line": 152,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/app.py",
+          "path": "/readyz",
+          "receiver": "app"
         },
         {
           "function": "readyz",
@@ -1182,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1110,
-  "route_inventory_sha256": "34d5a5bc805ae9ba67bb5af16f354ab297d22da0075028965e5503dc5987638d",
+  "route_count": 1115,
+  "route_inventory_sha256": "e58679d82ed77bbd8f455142c6707dcf068870d7c3fff8758d4d8b8a7dae137b",
   "runtime_verified": false,
   "schema_version": 1
 }

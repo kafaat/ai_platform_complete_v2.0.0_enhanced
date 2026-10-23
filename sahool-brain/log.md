@@ -9892,3 +9892,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 2026-10-23 — تجميع #1256/#1257/#1258 داخل #1257 على main@ccf19539: مصدر e83810912a3ceefb80f815887382b104b377bb1f يحفظ الرؤوس الأربعة. إصلاح concurrency لا يلغي إلا تشغيلات الطلب نفسه؛ 55 اختبارًا مستهدفًا ناجحًا. استؤنفت الأجنحة على الشجرة نفسها: 10615 وحدة (57 تخطيًا)، 1016 tests (8 تخطيات)، 4777 منصة (بلا تخطٍ)، دون إخفاقات. التشغيل المنقطع ليس نجاحًا شاملاً منفردًا؛ قبول CI النهائي مستقل. المصدر: certification/evidence/pr_consolidation_1256_1257_1258_20261023/validation.json. لا دمج main أو نشر إنتاج.
 
 2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
+
+
+## 2026-10-23 — أساس خدمة جلسات LiveKit المعطلة افتراضيًا
+
+- مصدر مرشح `82d77ab40aa6beec85c65a1d98722db4b6978711` على main `569d0159`، بستة أدوار متوازية؛ هوية/FIELD_VIEW من المنصة، SQLite محلية وحصص ذرية، رموز SDK محدودة بالميكروفون والغرفة، وتنظيف مؤجل دون ادعاء إبطال فوري.
+- 135 اختبارًا مستهدفًا و38 تبعية تشغيل مدققة دون ثغرات معروفة؛ المصدر والحدود: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فحص HTTP لمصدر العملية لا يثبت الصورة أو SFU.
+- يبقى LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 مفتوحًا؛ وتجربة STT/الوكيل/الواجهة والتسجيل خارج الرقعة. لا دمج أو نشر لخدمة الجلسات.
+
+- 2026-10-23 — تصحيح عقد خدمة الجلسات إلى `/api/v1/realtime/sessions` دون استثناء API: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ 135 اختبارًا وفحص HTTP للمسار الجديد/غياب القديم، الأدلة في `certification/evidence/realtime_session_foundation_20261023/`. المصالحة والحوكمة وCI لم تكتمل بعد؛ لا نشر.

@@ -1,0 +1,58 @@
+{
+  "source_commit": "2eebce88ac1a2d2751fb553904d7f0870409702f",
+  "source_tree": "b13777730f8f7cc29ce017dbeac1b800a1a56082",
+  "base_commit": "569d01596c2b8d9db3e12e6210103bc5306055df",
+  "scope": "Disabled standalone realtime control-plane source foundation, not live SFU/media acceptance",
+  "checked_at": "2026-10-23T20:36:52.704292+00:00",
+  "focused_tests": {
+    "tests": 135,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "runtime_audit": {
+    "scanner": "pip-audit 2.10.1",
+    "distributions": 38,
+    "known_vulnerabilities": 0,
+    "scope": "Complete isolated installed runtime, not a combined resolver for other service images"
+  },
+  "source_http_smoke": {
+    "healthz": 200,
+    "readyz_disabled": 503,
+    "unauthenticated_create": 401,
+    "authenticated_create_disabled": 503,
+    "oversized_chunked": 413,
+    "limitation": "Real source-process HTTP, not Docker image acceptance",
+    "unversioned_contract_absent": 404
+  },
+  "default_disabled": true,
+  "source_digests": {
+    ".github/workflows/realtime-session.yml": "7176de008c19fa51d1e7c35a48f51c5cc4370562c025aa1970071d1896d33554",
+    "config/service_feature_ui_contracts.json": "77260233e7c65fbdc3b59d0a2fdfc190e92d90282e154eb5692f390f536185d5",
+    "services/realtime-session/Dockerfile": "4bbbc637e55a10880bc59075306a03d63cfd3dbcfcdb18007790c2459fb2c76f",
+    "services/realtime-session/README.md": "c734c54e34f613d12ab475f6ec4c31d7536bc9a10700cf6f3a1830480602ad2f",
+    "services/realtime-session/main.py": "1c4d10b7074671da63630124450d1faf5805c3c72bda25529ca1383fe43fbc6d",
+    "services/realtime-session/realtime_session/__init__.py": "8c41de99d32fc947b33ef388fd4432e3d8e97d717bb6d7ca01024fd6f81e04d1",
+    "services/realtime-session/realtime_session/app.py": "7c19d6bf4a9c82351ddb2875bdfad2dae8d58b668bed838755dbce850fd12e6d",
+    "services/realtime-session/realtime_session/body_limit.py": "958737f29801567f4f35d0c1ed1b7c834f595ceb3981b55df55ed094bd7fea1c",
+    "services/realtime-session/realtime_session/contracts.py": "c53944ee95aa27ed3a165a9d31ca20df75d98e66e9fe32dacb6177704f1e355b",
+    "services/realtime-session/realtime_session/engine.py": "68a5b4b5c95387a77e178e41dcda75459c39263433e8469362c8f62a17128c18",
+    "services/realtime-session/realtime_session/livekit_adapter.py": "efd2efabb9223d882309768450a4cbcd6ec3156933b09dd6cf946fdbbb3220c4",
+    "services/realtime-session/realtime_session/platform.py": "796fb9e1950c10556de735f5b18abf03e0e9b5a940d771f1137b6e767c9d8b31",
+    "services/realtime-session/realtime_session/store.py": "0106b0f64f8dee97165f594cb206bf97f90e203cee0eeb5fedd6c7233bab325c",
+    "services/realtime-session/requirements.txt": "8c8e1fe87ad8ee59bda75b2e2a786cdc11af92361ba3c806cfbd49ecba41a4d8",
+    "services/realtime-session/tests/test_livekit_adapter.py": "d4cb4bf2e6a1c8677927b82db2142114e9183bce1ea20fce8aaa092094a1c364",
+    "tests_v9/test_realtime_session_api.py": "2a77f210a02e0594421e14b627814705e6419db73b843ea3d07435bf21ef74ad",
+    "tests_v9/test_realtime_session_body_limit.py": "8f4b1e6d57f960612c97c2cb6900a89c341d22b4ef42406d5acf7a6204c90f4d",
+    "tests_v9/test_realtime_session_platform.py": "000577af3489e209441c24ea7e29b1df16775fae89e7e9bfdfc12281729ceaaf",
+    "tests_v9/test_realtime_session_startup.py": "ed227473690993f5f5aeff2374a04eb9ee4b66c7c1361497d1b791be9e7d3fe1",
+    "tests_v9/test_realtime_session_store.py": "97f6ee419cd3b9060ce1d2267cde31032be3ce6d234667185df6b17e7738a09f"
+  },
+  "limitations": [
+    "Actual self-hosted SFU room.auto_create=false and fresh/refreshed token rejoin-after-delete acceptance remain required. ListRooms cannot verify this setting.",
+    "SQLite single local volume and one process only; no distributed replicas.",
+    "No agent dispatch, Arabic STT, TTS audio adaptation, browser/mobile call UI, media capture enablement, recording or agricultural actuation.",
+    "Dedicated image/isolated SDK workflow authored; Docker is unavailable locally and CI has not run for this candidate.",
+    "No merge or runtime deployment of this session service."
+  ]
+}

@@ -7617,3 +7617,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `frontend/src/App.tsx`، fallback `Navigate to="/"`؛ `frontend/nginx.conf`؛ `docs/architecture/SAHOOL_LIVEKIT_REALTIME_INTEGRATION_ADR_20261020.md`. مسار `/realtime` غير منفذ، وصلاحية Permissions-Policy تبقى للمستند خلال تنقل SPA.
 - **الاحتواء المرشح:** رفض camera/microphone على كل المستندات بما فيها `/realtime`، بدل منحها للواجهة العامة عبر fallback أو مسار ملتبس.
 - **شرط الإغلاق:** مستند/نطاق موثوق معزول، هوية مستأجر وحقل خادمية، قبول المتصفح عند الدخول والخروج والمسارات المرمزة، وفحص ترويسات edge النهائية؛ لا يكفي تعديل Nginx وحده.
+
+
+## LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01
+
+- **الحالة:** open — مصدر خدمة الجلسات مرشح ومعطّل افتراضيًا، وليس قبول SFU حيًا.
+- **المصدر:** `services/realtime-session/README.md` و`realtime_session/app.py` و`realtime_session/livekit_adapter.py` داخل الخدمة؛ `certification/evidence/realtime_session_foundation_20261023/validation.json`، أساس المصدر `82d77ab40aa6beec85c65a1d98722db4b6978711`.
+- **الشاهد:** LiveKit يجدد رموز المشاركين؛ TTL الأول ومدة الجلسة لا يثبتان الإبطال. مصدر الخادم `9644b99247f5bf770e83d61d186315588372e408` يمنع إنشاء غرفة غائبة من join-only عند إعداد room.auto_create=false، لكن الإعداد الحي ومسار إعادة الانضمام لم يقاسا.
+- **شرط الإغلاق:** SFU مثبت المصدر والإعداد، وانضمام ناجح قبل الحذف ثم رفض توكن أصلي ومجدد بعده، مع سباق إنشاء/تنظيف وتعافٍ وحصص مثبتة؛ مستأجران معزولان. لا يثبت ListRooms الإعداد، ولا تكفي اختبارات SDK المستبدلة عند حد RPC.

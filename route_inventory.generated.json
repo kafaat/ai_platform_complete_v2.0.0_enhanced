@@ -2544,6 +2544,46 @@
     "function": "metrics"
   },
   {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/app.py",
+    "line": 148,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "health"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/app.py",
+    "line": 152,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "ready"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/app.py",
+    "line": 158,
+    "method": "POST",
+    "path": "/api/v1/realtime/sessions",
+    "function": "create_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/app.py",
+    "line": 164,
+    "method": "GET",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "function": "get_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/app.py",
+    "line": 168,
+    "method": "DELETE",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "function": "close_session"
+  },
+  {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
     "line": 39,

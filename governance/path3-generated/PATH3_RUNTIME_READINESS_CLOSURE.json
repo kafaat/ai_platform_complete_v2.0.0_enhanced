@@ -1,7 +1,7 @@
 {
   "checks": {
     "all_probeable_services_have_target_records": true,
-    "all_target_records_resolved": true,
+    "all_target_records_resolved": false,
     "mcp_fanout_is_complete": true,
     "model_registry_adapter_profile_is_explicit": true,
     "no_production_truth_claimed": true,
@@ -9,13 +9,13 @@
     "resolver_remains_fail_closed": true,
     "target_plan_hash_matches": true
   },
-  "closed": true,
-  "closure_sha256": "ffb50cd175c0f3e9955b8aa44f4399ae97ee8a9626adf798abe048e73ddb2827",
+  "closed": false,
+  "closure_sha256": "77ed423cf987c1c0cb339c5d357ece408298ab1f243bdd7bd96b0612ea49a705",
   "fanout_targets": {
     "mcp_servers": 4
   },
   "missing_services": [],
-  "planned_services": 28,
+  "planned_services": 29,
   "production_certified_services": 0,
   "required_profiles": {
     "erp-bridge": [
@@ -31,6 +31,8 @@
   "resolved_services": 28,
   "runtime_verified_services": 0,
   "schema_version": 1,
-  "status": "READY_FOR_LIVE_EXECUTION",
-  "unresolved_services": []
+  "status": "BLOCKED_STATIC_READINESS",
+  "unresolved_services": [
+    "realtime-session"
+  ]
 }

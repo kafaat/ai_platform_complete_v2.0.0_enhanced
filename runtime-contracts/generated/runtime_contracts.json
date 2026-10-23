@@ -1715,6 +1715,71 @@
         "total": 7
       },
       "configuration": [
+        "LIVEKIT_AUTO_CREATE_DISABLED",
+        "LIVEKIT_URL",
+        "LIVEKIT_WS_URL",
+        "PLATFORM_API_URL",
+        "REALTIME_SQLITE_PATH",
+        "SAHOOL_REALTIME_ENABLED",
+        "SAHOOL_REALTIME_MEDIA_TRUST"
+      ],
+      "container": {
+        "dockerfile": "services/realtime-session/Dockerfile",
+        "requirements": "services/realtime-session/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/realtime-session/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/realtime-session/realtime_session/app.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/realtime-session/realtime_session/app.py",
+          "services/realtime-session/realtime_session/platform.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET"
+      ],
+      "service": "realtime-session",
+      "source_service": "realtime-session",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
         "DECISION_SERVICE_URL",
         "INDICATORS_SERVICE_URL",
         "PLATFORM_API_URL",

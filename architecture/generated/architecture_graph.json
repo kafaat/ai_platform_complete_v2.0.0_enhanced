@@ -261,7 +261,7 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 5,
+      "incoming": 6,
       "outgoing": 23,
       "orphan": false
     },
@@ -311,6 +311,16 @@
       "kind": "service",
       "incoming": 2,
       "outgoing": 0,
+      "orphan": false
+    },
+    {
+      "id": "realtime-session",
+      "paths": [
+        "services/realtime-session"
+      ],
+      "kind": "service",
+      "incoming": 0,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1248,6 +1258,12 @@
       "evidence": "services/raster-service/imagery_source_gate.py"
     },
     {
+      "source": "realtime-session",
+      "target": "platform",
+      "kind": "code-reference",
+      "evidence": "services/realtime-session/realtime_session/app.py"
+    },
+    {
       "source": "remote-sensing-workspace-bff",
       "target": "decision-service",
       "kind": "code-reference",
@@ -2048,12 +2064,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 109,
-    "edges": 185,
+    "nodes": 110,
+    "edges": 186,
     "orphans": 8,
     "cycles": 0,
-    "code_edges": 52,
+    "code_edges": 53,
     "compose_edges": 133
   },
-  "content_sha256": "2c71af4e4923bfc4589f00a56241c4246e33bfda31f2a41a0d16c99ec20b2b9d"
+  "content_sha256": "16bf5ce8bf1b26af87b0ff988a1d4c9c562499e45efc753aaee3d4dfee54cddc"
 }

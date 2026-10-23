@@ -4,7 +4,7 @@
 
 ## Summary
 
-- Services: **31**
+- Services: **32**
 - Runtime verified services: **0**
 - Invalid, stale, or unbound evidence files: **0**
 - Production certified services: **0**
@@ -31,6 +31,7 @@
 | rag-retrieval | 3 | 0 | false |
 | raster-service | 3 | 0 | false |
 | raster-tiler-service | 1 | 0 | false |
+| realtime-session | 2 | 0 | false |
 | remote-sensing-workspace-bff | 2 | 0 | false |
 | sahool-platform | 11 | 0 | false |
 | sam2-inference | 3 | 0 | false |

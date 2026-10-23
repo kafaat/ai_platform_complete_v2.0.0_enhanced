@@ -16405,6 +16405,136 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4bbbc637e55a10880bc59075306a03d63cfd3dbcfcdb18007790c2459fb2c76f"
+        }
+      ],
+      "name": "services/realtime-session/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c734c54e34f613d12ab475f6ec4c31d7536bc9a10700cf6f3a1830480602ad2f"
+        }
+      ],
+      "name": "services/realtime-session/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c4d10b7074671da63630124450d1faf5805c3c72bda25529ca1383fe43fbc6d"
+        }
+      ],
+      "name": "services/realtime-session/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c41de99d32fc947b33ef388fd4432e3d8e97d717bb6d7ca01024fd6f81e04d1"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c19d6bf4a9c82351ddb2875bdfad2dae8d58b668bed838755dbce850fd12e6d"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/app.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "958737f29801567f4f35d0c1ed1b7c834f595ceb3981b55df55ed094bd7fea1c"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/body_limit.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c53944ee95aa27ed3a165a9d31ca20df75d98e66e9fe32dacb6177704f1e355b"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68a5b4b5c95387a77e178e41dcda75459c39263433e8469362c8f62a17128c18"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "efd2efabb9223d882309768450a4cbcd6ec3156933b09dd6cf946fdbbb3220c4"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/livekit_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "796fb9e1950c10556de735f5b18abf03e0e9b5a940d771f1137b6e767c9d8b31"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/platform.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0106b0f64f8dee97165f594cb206bf97f90e203cee0eeb5fedd6c7233bab325c"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c8e1fe87ad8ee59bda75b2e2a786cdc11af92361ba3c806cfbd49ecba41a4d8"
+        }
+      ],
+      "name": "services/realtime-session/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d4cb4bf2e6a1c8677927b82db2142114e9183bce1ea20fce8aaa092094a1c364"
+        }
+      ],
+      "name": "services/realtime-session/tests/test_livekit_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "505ce900af46fea68bd4bb7c92b4262c2e8ca4ead10a30e1ce7e2c24debe3d1e"
         }
       ],
