@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+cachedir: /workspace/scratch/77e9f9ae309e/platform-eo-union-pytest-cache
+rootdir: /workspace/scratch/77e9f9ae309e/sahool-platform-pr-check
+configfile: pytest.ini
+plugins: asyncio-1.4.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 18 items
+
+tools/eo_acceptance/tests/test_experiments.py .................s         [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tools/eo_acceptance/tests/test_experiments.py:258: requires isolated PostGIS; not a passed spatial experiment
+======================== 17 passed, 1 skipped in 1.42s =========================

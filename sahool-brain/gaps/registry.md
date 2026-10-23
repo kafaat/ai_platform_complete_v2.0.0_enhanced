@@ -7588,3 +7588,18 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 |---|---|---|---|---|
 | ET0-INCOMPLETE-PERIOD-REPORTED-AS-ZERO-01 | سلسلة ET₀ ناقصة تُجمع صفراً أو مجموعاً مكتملاً، ويعلن مستهلكها اكتمال التحليل. | weather · platform | `services/weather-service/et0.py:355` · `services/sahool-platform/api/weather_analytics.py:75` · `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md` | **fixed** في الشيفرة المرشحة `235a9729`، مع شاهد أحمر/أخضر؛ مجموع الفترة null عند النقص، وصفر القيم الحقيقية محفوظ. لا verified أو قبول نشر. |
 | ET0-DEGRADED-CANDIDATE-SUBMISSION-01 | جودة ET₀ المتدهورة لا تمنع مسار توصية الحقل من تقديم مرشح قرار أو بناء مواصفة يدوية. | irrigation · advisory | `services/sahool-platform/api/routers/irrigation_recommendation.py:184` · `services/sahool-platform/tests/test_manual_irrigation_source_boundary.py` · `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md` | **fixed** عند الحد المحدد في `235a9729` بشاهد عدم الكتابة وعدم الإرسال؛ العرض الاستشاري باقٍ. لا ادعاء إنفاذ معايرة شامل أو تحقق تشغيل حي. |
+## DEP-TITILER-CERTIFI-PYSEC-2026-4320-01 — شهادة الجذور المثبتة تحجب تدقيق صورة TiTiler
+
+- **الحالة:** open — مرشح محلي؛ قبول CI للرأس النهائي وبناء الصورة لم يُقاسا.
+- **المصدر:** `services/raster-tiler-service/requirements.txt:9` يثبت certifi القديم؛ `pip-audit` كشف `PYSEC-2026-4320` والإصلاح `2026.10.19`. المصدر المنشور: `1b2d8530fef69fd2322ee3db5fbd75b51673f9a6`.
+- **العلاج المرشح:** تغيير دبوس certifi فقط وإعادة الحزمة المباشرة المولدة؛ تدقيق الخدمة وقراءة COG محلي ورسم PNG عبر TiTiler الحقيقي على Python 3.12 ناجحة. [الدليل وحدوده](../../certification/evidence/security_dependency_admission_20261023/README.md).
+- **شرط الإغلاق:** قبول CI وبناء الصورة النهائي. قبول checkpoint certifi-only لا يشمل مانع OTel؛ المتابعة أدناه تجمع متطلبات #1256 في المصدر المركب دون ادعاء قبول Security Scan كله. لا Docker محلي أو نشر تشغيلي.
+
+## DEP-OTEL-API-CVE-2026-114603-01 — تبعية التتبع القديمة تحجب Security Scan
+
+- **الحالة:** open — متطلب سابق مرشح؛ CI للرأس الأمني النهائي لم يكتمل.
+- **المصدر:** `services/auth/requirements.txt:16` و`services/sahool-platform/api/requirements.txt:35`؛ `pip-audit` كشف API1.44.0/CVE-2026-114603. متطلبات الإصلاح موجودة أصلًا في PR #1256 ويعاد استخدامها دون تغيير ذلك الطلب؛ source `0d229cb94534dd8e169dce7afee8d00e417d752b`.
+- **العلاج المرشح:** الأسرة 1.45.1/0.66b1؛ مع certifi المصدر المركب `8591fc835b2487d389287b8a0699a893a54aeec5`. [الدليل وحدود كل إيصال](../../certification/evidence/security_dependency_admission_20261023/README.md). لا ادعاء نجاح collector حي أو قبول كل الرأس من جمع اختبارات جزئية.
+- **شرط الإغلاق:** قبول CI للرأس الأمني النهائي؛ لا استثناء pip-audit أو تغيير baseline أو نشر تشغيلي.
+
+2026-10-23 — متابعة DEP-TITILER-CERTIFI-PYSEC-2026-4320-01: جُمعت المتطلبات في مرشح أمني واحد مع OTel الموجود في #1256؛ source `8591fc835b2487d389287b8a0699a893a54aeec5`. الحالة open كما هي؛ لم يُدمج main أو أي PR. إثبات TiTiler يخص ملفه عند `1b2d8530` ولا يُنسب كامل جرد31/32 للرأس المركب.

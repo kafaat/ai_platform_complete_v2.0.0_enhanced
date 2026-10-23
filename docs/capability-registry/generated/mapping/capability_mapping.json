@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6201,
+    "files_scanned": 6221,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
-      "governance": 78,
+      "governance": 80,
       "mobile": 57,
-      "other": 2069,
-      "tests": 1997,
+      "other": 2085,
+      "tests": 1999,
       "web": 474
     },
-    "unmapped_artifacts": 2332,
+    "unmapped_artifacts": 2333,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -19360,6 +19360,16 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_semantic_20261023.json",
+          "score": 20,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/decisions_pending/CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01.md",
           "score": 19,
           "signals": [
@@ -19396,6 +19406,15 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_20261023.json",
+          "score": 17,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
           "score": 16,
           "signals": [
@@ -19419,6 +19438,24 @@
           "signals": [
             "content:cdse",
             "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/SOURCE_REVIEW.md",
+          "score": 16,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/stac-manifest.json",
+          "score": 16,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
             "content:stac"
           ]
         },
@@ -19560,6 +19597,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/stac.py",
+          "score": 14,
+          "signals": [
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_log_contract_review.json",
           "score": 13,
           "signals": [
@@ -19573,6 +19618,15 @@
           "signals": [
             "path:cdse",
             "content:cdse"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/README.md",
+          "score": 13,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
           ]
         },
         {
@@ -19687,6 +19741,14 @@
           "score": 11,
           "signals": [
             "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/evidence/cdse_asset_access_20261023.json",
+          "score": 11,
+          "signals": [
+            "path:cdse",
             "content:sentinel"
           ]
         },
@@ -19853,6 +19915,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/run.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
           "score": 8,
           "signals": [
@@ -19978,7 +20048,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 92
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -23592,6 +23662,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/raster.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
           "score": 12,
           "signals": [
@@ -23926,14 +24004,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tools/sahool_qa/examples/rules.example.json",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
@@ -23943,8 +24013,8 @@
       "evidence_truncated": {
         "backend": 26,
         "events": 60,
-        "tests": 84,
-        "other_evidence": 1
+        "tests": 85,
+        "other_evidence": 2
       },
       "evidence_counts": {
         "backend": 100,
@@ -36184,6 +36254,14 @@
           ]
         },
         {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/README.md",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/history/REVIEW_RESPONSE_10_11.md",
           "score": 10,
           "signals": [
@@ -36217,6 +36295,14 @@
         },
         {
           "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/source_heads.json",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -36325,7 +36411,7 @@
         "mobile": 0,
         "tests": 66,
         "governance": 0,
-        "other_evidence": 34
+        "other_evidence": 36
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47510,6 +47596,10 @@
     },
     {
       "path": "tests_v9/test_railway_dockerfile_pr_build_plan.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_railway_staging_connection_preflight.py",
       "kind": "tests"
     },
     {

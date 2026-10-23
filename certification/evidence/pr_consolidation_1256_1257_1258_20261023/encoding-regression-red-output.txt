@@ -1,0 +1,17 @@
+── ٢و) text_encoding_locale
+   ✗ فشل (1)
+     asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+     collected 1 item
+     
+     tests_v9/test_text_encoding_locale.py F                                  [100%]
+     
+     =================================== FAILURES ===================================
+     ____________ test_no_new_file_decodes_text_with_the_machines_locale ____________
+     tests_v9/test_text_encoding_locale.py:198: in test_no_new_file_decodes_text_with_the_machines_locale
+         assert not new, (
+     E   AssertionError: ملفّات جديدة تفكّ ترميز النصّ بترميز الآلة: tests_v9/test_otlp_tracing_delivery.py
+     E     أضِف encoding="utf-8" إلى القراءة أو إلى subprocess — لا تُضِف المدخل إلى الأساس.
+     E   assert not ['tests_v9/test_otlp_tracing_delivery.py']
+     =========================== short test summary info ============================
+     FAILED tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale
+     ============================== 1 failed in 4.82s ===============================

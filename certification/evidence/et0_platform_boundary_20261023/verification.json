@@ -102,5 +102,18 @@
     "skipped_gates": 0,
     "log": "full-preflight.txt",
     "sha256": "bcac223a63a2e13733a97a3512a0d2e460508f322d8af0634454ecf5ceff758d"
+  },
+  "security_prerequisite_acceptance": {
+    "local_execution_head": "6e10b806",
+    "head_kind": "actual local execution checkpoint, not a published-commit claim",
+    "security_source": "8591fc835b2487d389287b8a0699a893a54aeec5",
+    "result": "926 passed, 1 Redis skip",
+    "installed_otel_api": "1.45.1",
+    "installed_otel_sdk": "1.45.1",
+    "installed_otel_fastapi_instrumentation": "0.66b1",
+    "pip_check": "passed",
+    "log": "security-prerequisite-acceptance.txt",
+    "sha256": "4374e12a32b7f598c91f3672434ed93e31d166d78142cb022310f6253866438f",
+    "full_preflight_limit": "Earlier default full preflight predates security prerequisites; combined fast tier and final remote CI are separate results."
   }
 }

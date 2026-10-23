@@ -25,3 +25,7 @@ The final source uses one pure Pydantic input validator in `shared/weather_input
 Published canonical source: `235a972938f9f634e228dcd0627f088ca8a3d906`. `verification.json` preserves the actual local execution checkpoints and verifies all accepted Python/route-policy Git blobs against this canonical source. Remote CI belongs to the final PR head.
 
 The final local default preflight completed with **0 failed / 0 skipped gates**, including generated convergence and all three test suites. Raw output: [full-preflight.txt](full-preflight.txt). Live test skips are distinct from skipped gates.
+
+## Security prerequisite acceptance
+
+The exact existing OTel version pins from PR #1256 are reused with the TiTiler certifi fix as published source `8591fc835b2487d389287b8a0699a893a54aeec5`. After applying those requirements to the ET0 source, local execution checkpoint `6e10b806` passed 926 focused cases / 1 live Redis skip; pip check passed. The raw log is `security-prerequisite-acceptance.txt`. This repeats ET0 acceptance with installed OTel API/SDK 1.45.1 and FastAPI instrumentation 0.66b1. The earlier default full preflight predates this prerequisite; combined fast-tier and final-head remote CI have separate receipts.

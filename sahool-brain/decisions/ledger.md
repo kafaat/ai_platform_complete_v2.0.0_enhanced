@@ -4312,3 +4312,6 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ### 2026-10-23 — ET₀ advisory boundary
 
 القرار على الشيفرة `235a9729`: يبقى weather-service مالك المعادلة؛ لا نقل نواة ثانية من الحاسبة. السبب: توحيد المصدر وحفظ تشخيص النقص، ومنع نتيجة degraded من بناء مواصفة تنفيذ أو تقديم مرشح قرار من مسار توصية الحقل. قبول PM للمدخلات لا يرفع calibrated=False؛ لا تعديل قرار نشر أو تفويض تشغيل. المصدر: `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md`.
+2026-10-23 — أساس `d23b320ae6c437273a8c8a6a1ba9fc5f111b1e1c` ومصدر `1b2d8530fef69fd2322ee3db5fbd75b51673f9a6`: فصل إصلاح `DEP-TITILER-CERTIFI-PYSEC-2026-4320-01` بسطر certifi واحد لأن التدقيق المنفصل كشف المانع في صورة TiTiler، بينما OTel مغطى أصلًا في PR #1256. لا ترقية عامة أو استثناء أمني؛ الفجوة open إلى CI. الدليل: `certification/evidence/security_dependency_admission_20261023/README.md`.
+
+2026-10-23 — source `8591fc835b2487d389287b8a0699a893a54aeec5` على أساس `d23b320ae6c437273a8c8a6a1ba9fc5f111b1e1c`: جمع متطلبات OTel الموجودة في PR #1256 مع إصلاح certifi بمتطلب أمني سابق واحد، لتجنب اعتماد دائري بين إصلاح Security Scan وPR ET0 #1257. مصدرَا القبول المستقلان `0d229cb9` و`1b2d8530` محفوظان؛ لا يعاد اختراع إصلاح OTel ولا ينسب جرد31/32 للرأس الجديد. الفجوتان open إلىCI، والدليل `certification/evidence/security_dependency_admission_20261023/README.md`.
