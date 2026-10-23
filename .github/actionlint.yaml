@@ -1,5 +1,0 @@
-self-hosted-runner:
-  labels:
-    - docker
-    - sahool-path3-trusted
-    - sim-golden

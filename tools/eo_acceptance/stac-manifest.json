@@ -1,8 +1,0 @@
-{
-  "old": "https://stac.dataspace.copernicus.eu/v1",
-  "new": "https://stac.opensearch.dataspace.copernicus.eu/v1",
-  "queries": [
-    {"name": "al_hazm_24_months", "payload": {"collections": ["sentinel-2-l2a"], "bbox": [44.7,16.0,44.9,16.2], "datetime": "2024-10-23T00:00:00Z/2026-10-23T00:00:00Z", "limit": 100, "sortby": [{"field":"properties.datetime","direction":"asc"},{"field":"id","direction":"asc"}]}},
-    {"name": "tihama_24_months", "payload": {"collections": ["sentinel-2-l2a"], "bbox": [43.0,14.7,43.2,14.9], "datetime": "2024-10-23T00:00:00Z/2026-10-23T00:00:00Z", "limit": 100, "sortby": [{"field":"properties.datetime","direction":"asc"},{"field":"id","direction":"asc"}]}}
-  ]
-}
