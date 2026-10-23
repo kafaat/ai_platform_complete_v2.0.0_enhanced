@@ -3380,10 +3380,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/realtime-session/realtime_session/app.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/realtime-session/realtime_session/body_limit.py",
     "kind": "backend"
   },
@@ -3397,6 +3393,10 @@
   },
   {
     "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/session_runtime.py",
     "kind": "backend"
   },
   {

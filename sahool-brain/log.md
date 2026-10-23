@@ -9901,3 +9901,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - يبقى LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 مفتوحًا؛ وتجربة STT/الوكيل/الواجهة والتسجيل خارج الرقعة. لا دمج أو نشر لخدمة الجلسات.
 
 - 2026-10-23 — تصحيح عقد خدمة الجلسات إلى `/api/v1/realtime/sessions` دون استثناء API: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ 135 اختبارًا وفحص HTTP للمسار الجديد/غياب القديم، الأدلة في `certification/evidence/realtime_session_foundation_20261023/`. المصالحة والحوكمة وCI لم تكتمل بعد؛ لا نشر.
+
+- 2026-10-23 — مصالحة main `5f730646` في أساس الجلسات وحفظ ملفات إصلاح NATS حرفيًا؛ المصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`. تعريف runtime فعلي وتصنيف مكون/بيئة؛ 135 اختبارًا وفحص HTTP بعد المصالحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. التوليد وpreflight/CI غير مكتملة؛ لا نشر.
+
+- 2026-10-23 — صحح تصنيف سلطة realtime-session إلى `operational_coordination` في `docs/architecture/component_registry.json` مع تفسير حالة SQLite التشغيلية في README؛ القرار السابق system_of_record محفوظ تاريخيًا ومصحح في ledger. لا تعديل حارس أو ملكية جداول المجال.
+
+- 2026-10-23 — هدف Compose اختياري `realtime-foundation` للخدمة عند `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`، بلا منافذ مضيف وبالتفعيل مثبتًا 0 وبلا LiveKit credentials؛ لا تشغيل أو نشر. ملكية Platform/NATS محفوظة. السبب: PATH-3 يلزم كل خدمة قابلة للفحص بهدف بنيوي محلول، دون ادعاء نجاح readiness المعطلة. README و`docker-compose.v9.yml` هما المصدر.

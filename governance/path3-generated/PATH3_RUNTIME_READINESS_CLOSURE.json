@@ -1,7 +1,7 @@
 {
   "checks": {
     "all_probeable_services_have_target_records": true,
-    "all_target_records_resolved": false,
+    "all_target_records_resolved": true,
     "mcp_fanout_is_complete": true,
     "model_registry_adapter_profile_is_explicit": true,
     "no_production_truth_claimed": true,
@@ -9,8 +9,8 @@
     "resolver_remains_fail_closed": true,
     "target_plan_hash_matches": true
   },
-  "closed": false,
-  "closure_sha256": "77ed423cf987c1c0cb339c5d357ece408298ab1f243bdd7bd96b0612ea49a705",
+  "closed": true,
+  "closure_sha256": "e267a8cc5551461c4e7a29221a5d7aa784c1e87979e5254e6fbf892d3662c57a",
   "fanout_targets": {
     "mcp_servers": 4
   },
@@ -24,15 +24,16 @@
     "model-registry-adapter": [
       "model-lifecycle"
     ],
+    "realtime-session": [
+      "realtime-foundation"
+    ],
     "sam2-inference": [
       "gpu"
     ]
   },
-  "resolved_services": 28,
+  "resolved_services": 29,
   "runtime_verified_services": 0,
   "schema_version": 1,
-  "status": "BLOCKED_STATIC_READINESS",
-  "unresolved_services": [
-    "realtime-session"
-  ]
+  "status": "READY_FOR_LIVE_EXECUTION",
+  "unresolved_services": []
 }

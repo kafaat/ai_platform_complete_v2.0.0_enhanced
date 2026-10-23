@@ -1261,7 +1261,7 @@
       "source": "realtime-session",
       "target": "platform",
       "kind": "code-reference",
-      "evidence": "services/realtime-session/realtime_session/app.py"
+      "evidence": "services/realtime-session/realtime_session/session_runtime.py"
     },
     {
       "source": "remote-sensing-workspace-bff",
@@ -2071,5 +2071,5 @@
     "code_edges": 53,
     "compose_edges": 133
   },
-  "content_sha256": "16bf5ce8bf1b26af87b0ff988a1d4c9c562499e45efc753aaee3d4dfee54cddc"
+  "content_sha256": "01096d9ce59f959ba91984b43200111c902c9f6ae5ad941f0dd7b2ee0c327dce"
 }

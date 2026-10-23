@@ -1925,8 +1925,8 @@
         "services/raster-service/routers/follow_up.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
-        "services/realtime-session/realtime_session/app.py",
         "services/realtime-session/realtime_session/platform.py",
+        "services/realtime-session/realtime_session/session_runtime.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/ai_provider_config.py",
@@ -3081,5 +3081,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "51e01444a8d3429f3bcd4995924a6a0d946190e23fb076d8f43f07e7a4e4e3e4"
+  "content_sha256": "44c7f40f22217189c2d9cf225ca8504e896f15cd9737333e148173be1ee3f735"
 }

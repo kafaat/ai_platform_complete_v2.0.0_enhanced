@@ -7625,3 +7625,5 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `services/realtime-session/README.md` و`realtime_session/app.py` و`realtime_session/livekit_adapter.py` داخل الخدمة؛ `certification/evidence/realtime_session_foundation_20261023/validation.json`، أساس المصدر `82d77ab40aa6beec85c65a1d98722db4b6978711`.
 - **الشاهد:** LiveKit يجدد رموز المشاركين؛ TTL الأول ومدة الجلسة لا يثبتان الإبطال. مصدر الخادم `9644b99247f5bf770e83d61d186315588372e408` يمنع إنشاء غرفة غائبة من join-only عند إعداد room.auto_create=false، لكن الإعداد الحي ومسار إعادة الانضمام لم يقاسا.
 - **شرط الإغلاق:** SFU مثبت المصدر والإعداد، وانضمام ناجح قبل الحذف ثم رفض توكن أصلي ومجدد بعده، مع سباق إنشاء/تنظيف وتعافٍ وحصص مثبتة؛ مستأجران معزولان. لا يثبت ListRooms الإعداد، ولا تكفي اختبارات SDK المستبدلة عند حد RPC.
+
+- تحديث مصدر LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 (2026-10-23): التطبيق الحالي `services/realtime-session/realtime_session/session_runtime.py` عند `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ المرجع الأصلي `82d77ab4` تاريخي محفوظ. الحالة تبقى open؛ اختبارات SFU الأصلية/المجددة بعد حذف الغرفة غير منفذة.

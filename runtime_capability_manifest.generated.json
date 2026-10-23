@@ -323,6 +323,20 @@
       "wiring_disposition": "consumed"
     },
     {
+      "capability_count": 2,
+      "component_id": "realtime-session",
+      "domain": "realtime-control-plane-experimental",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": false
+      },
+      "type": "service",
+      "wiring_disposition": "intentional-unconsumed"
+    },
+    {
       "capability_count": 1,
       "component_id": "remote-sensing-workspace-bff",
       "domain": "remote-sensing-workspace",
@@ -491,7 +505,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "14aef146203267e9e5897c8317a770fad4c357aea622233757359822d3ff9c44",
+  "fingerprint": "8991324a8c2a6ad2e4c2030596a1637a4c5f278cc08b894cb7b3e2ef493e1dae",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

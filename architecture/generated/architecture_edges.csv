@@ -51,7 +51,7 @@ platform,weather-service,code-reference,services/sahool-platform/core/capabiliti
 platform,weather-service,code-reference,services/sahool-platform/core/field_intelligence_adapters.py
 raster-service,decision-service,code-reference,services/raster-service/follow_up_runtime.py
 raster-service,decision-service,code-reference,services/raster-service/imagery_source_gate.py
-realtime-session,platform,code-reference,services/realtime-session/realtime_session/app.py
+realtime-session,platform,code-reference,services/realtime-session/realtime_session/session_runtime.py
 remote-sensing-workspace-bff,decision-service,code-reference,services/remote-sensing-workspace-bff/main.py
 remote-sensing-workspace-bff,indicators-service,code-reference,services/remote-sensing-workspace-bff/main.py
 remote-sensing-workspace-bff,platform,code-reference,services/remote-sensing-workspace-bff/main.py

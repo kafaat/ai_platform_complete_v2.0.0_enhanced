@@ -1741,12 +1741,12 @@
       "entrypoint": "services/realtime-session/main.py",
       "evidence_paths": {
         "configuration": [
-          "services/realtime-session/realtime_session/app.py"
+          "services/realtime-session/realtime_session/session_runtime.py"
         ],
         "metrics": [],
         "routes": [
-          "services/realtime-session/realtime_session/app.py",
-          "services/realtime-session/realtime_session/platform.py"
+          "services/realtime-session/realtime_session/platform.py",
+          "services/realtime-session/realtime_session/session_runtime.py"
         ],
         "tracing": []
       },

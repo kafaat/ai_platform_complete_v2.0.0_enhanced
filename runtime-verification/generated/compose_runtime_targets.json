@@ -4,7 +4,7 @@
   "production_certified": false,
   "runtime_verified": false,
   "schema_version": 1,
-  "source_plan_sha256": "79d3f1abffdb9928a4ef0b26c3a1a2bc5474027696ed3f1ae232346381a69ed1",
+  "source_plan_sha256": "b8bfe08d7c9364a9be7c74d88ea4b1785890c15a54dc0bd324e255493891e3dd",
   "targets": [
     {
       "base_url": "http://sahool-actuator-service:8000",
@@ -353,16 +353,20 @@
       "source_service": "raster-tiler-service"
     },
     {
-      "base_url": null,
+      "base_url": "http://sahool-realtime-session:8000",
       "base_url_env": "REALTIME_SESSION_BASE_URL",
-      "candidate_matches": [],
-      "compose_service": null,
+      "candidate_matches": [
+        "sahool-realtime-session"
+      ],
+      "compose_service": "sahool-realtime-session",
       "members": [],
-      "port": null,
-      "port_source": null,
+      "port": 8000,
+      "port_source": "healthcheck_url",
       "production_certified": false,
-      "profiles": [],
-      "resolved": false,
+      "profiles": [
+        "realtime-foundation"
+      ],
+      "resolved": true,
       "runtime_verified": false,
       "service": "realtime-session",
       "source_service": "realtime-session"
@@ -540,5 +544,5 @@
       "source_service": "weather-service"
     }
   ],
-  "targets_sha256": "d7b94a7990f5d4d9a23976b212705cdd48157ce0326bd9891837b04bf373c7fb"
+  "targets_sha256": "ad1b0324754aad7854950a60a0391e64fe06bbcf66c9d28993e9b5d4c09f807c"
 }

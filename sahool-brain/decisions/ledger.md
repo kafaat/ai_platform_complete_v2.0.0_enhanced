@@ -4329,3 +4329,18 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 - المصدر: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ `services/realtime-session/realtime_session/app.py` و`docs/architecture/api_versioning_legacy_baseline.json`.
 - القرار والسبب: اعتماد `/api/v1/realtime/sessions` بدل المسار التصميمي غير المُرقّم؛ الخدمة غير منشورة ولا يوجد عميل يتطلب اسم توافق. يحافظ ذلك على سقف الدين صفر دون استثناء أو رفع ميزانية. اختبارات وفحص HTTP في `certification/evidence/realtime_session_foundation_20261023/`.
+
+### 2026-10-23 — تعريف runtime مستقل وتصنيف متغيرات الجلسات
+
+- المصدر: `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ `services/realtime-session/main.py` و`realtime_session/session_runtime.py` و`docs/architecture/component_registry.json` و`scripts/ci/env_compose_drift_allowlist.json`.
+- السبب والقرار: مالك بناء التطبيق ومساراته هو runtime مستقل، فيتبع main عقد تفويض runtime القائم دون استثناء non-HTTP أو تعديل الحارس. SQLite هو سجل الجلسات المحلي وحده، لذلك authority_kind=system_of_record، وdeployment_units فارغة لأن الخدمة غير موصولة. مفاتيح LiveKit حقن بيئي إلزامي عند التفعيل فقط، بلا قيم سرية في Compose. مصالحة main تحفظ إصلاح NATS.
+
+### 2026-10-23 — تصحيح سلطة الجلسات إلى التنسيق التشغيلي
+
+- المصدر: `docs/architecture/component_registry.json` و`services/realtime-session/README.md`، امتداد مصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`.
+- يصحح هذا القرار وصف system_of_record في المدخل السابق: كتالوج المستودع يقيس ملكية جداول المجال، ولا تملك خدمة الجلسات أيًا منها. تخزين SQLite لديمومة الحصص والتنظيف حالة تشغيلية فعلية، لذلك أضيفت مفردة `operational_coordination` صراحةً بدل وسم الخدمة عديمة الحالة أو توسيع ملكية جداول المنصة. حارس تطابق ملكية الجداول باقٍ بلا تعديل. هوية المستأجر والحقل والحقيقة الزراعية تبقى لدى Platform.
+
+### 2026-10-23 — هدف صورة اختياري لا يفعّل الجلسات
+
+- المصدر: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`؛ `docker-compose.v9.yml` و`services/realtime-session/README.md`.
+- القرار والسبب: رفض PATH-3 هدفًا مجهولًا للخدمة الجديدة، فأضيف `sahool-realtime-session` تحت profile اختياري `realtime-foundation` فقط. SAHOOL_REALTIME_ENABLED مثبت 0، بلا منافذ مضيف أو أسرار LiveKit، وبحجم موارد محدود وحجم بيانات مخصص ومستخدم غير جذري وجذر للقراءة فقط. deployment_units تعكس هذا الهدف المعلن، ولا تعني نشرًا حيًا. لا تعديل حارس أو تجاوز readiness=503؛ تمكينها يحتاج override مقبولًا مستقلًا بعد إثبات SFU. كتلة NATS في Compose مطابقة لأساس main.

@@ -1,7 +1,7 @@
 # Realtime session foundation — source validation
 
-Source checkpoint: `2eebce88ac1a2d2751fb553904d7f0870409702f`, based on merged
-`569d01596c2b8d9db3e12e6210103bc5306055df`. This adds a separate, default-disabled
+Source checkpoint: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`, based on merged
+`5f730646a112ceb770fb89ce194c259e94921f30`. This adds a separate, default-disabled
 control plane. It does not enable a call screen or deploy a media service.
 
 `validation.json` records 135 passing focused tests without skips and file
