@@ -30,14 +30,18 @@ jobs:
           test "$GITHUB_REF" = 'refs/heads/chatgpt/livekit-readiness-security-20261020'
           git rm -f -- .github/workflows/pr1252-generated-reconcile.yml
           git add -A
-          python scripts/release/build_release_bundle.py
-          git add -A
-          python scripts/ci/verify_all_generated.py --fix
-          git add -A
-          python scripts/release/build_release_bundle.py
-          git add -A
-          python scripts/ci/verify_all_generated.py --fix
-          git add -A
+          stable=0
+          for pass in 1 2 3; do
+            echo "Regeneration pass $pass"
+            python scripts/release/build_release_bundle.py
+            git add -A
+            if python scripts/ci/verify_all_generated.py --fix; then
+              stable=1
+              break
+            fi
+            git add -A
+          done
+          test "$stable" -eq 1
           python scripts/release/build_release_bundle.py
           git add -A
           python scripts/ci/verify_all_generated.py --check
