@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6251,
+    "files_scanned": 6254,
     "files_by_kind": {
       "backend": 1247,
       "database": 289,
-      "governance": 81,
+      "governance": 82,
       "mobile": 57,
-      "other": 2096,
-      "tests": 2007,
+      "other": 2097,
+      "tests": 2008,
       "web": 474
     },
     "unmapped_artifacts": 2349,
@@ -12886,6 +12886,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_nats_compose_policy.py",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
           "path": "tests_v9/test_nats_password_expansion.py",
           "score": 14,
           "signals": [
@@ -12984,6 +12992,14 @@
       ],
       "governance": [
         {
+          "path": ".github/workflows/nats-compose-acceptance.yml",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
           "path": ".github/workflows/notification-rollout.yml",
           "score": 9,
           "signals": [
@@ -13026,6 +13042,15 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        },
+        {
+          "path": "scripts/ci/run_nats_compose_acceptance.py",
+          "score": 19,
+          "signals": [
+            "content:jetstream",
+            "path:nats",
+            "content:nats"
           ]
         },
         {
@@ -13258,9 +13283,9 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 17,
-        "governance": 1,
-        "other_evidence": 30
+        "tests": 18,
+        "governance": 2,
+        "other_evidence": 31
       },
       "coverage_dimensions": 5,
       "mapped": true

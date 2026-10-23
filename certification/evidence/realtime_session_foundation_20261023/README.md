@@ -1,7 +1,7 @@
 # Realtime session foundation — source validation
 
-Source checkpoint: `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a`, based on merged
-`5f730646a112ceb770fb89ce194c259e94921f30`. This adds a separate, default-disabled
+Source checkpoint: `c1ce54808e06c52479454776c0abe3d5442a997c`, based on merged
+`88719df2cf491f5407ee01ea8b32c44097feb90d`. This adds a separate, default-disabled
 control plane. It does not enable a call screen or deploy a media service.
 
 `validation.json` records 135 passing focused tests without skips and file
@@ -38,3 +38,5 @@ Integration regression correction: the initial root unit preflight at `19b26a99`
 CI follow-up: the actual isolated Docker build and real disabled-image HTTP checks passed on `ba6b06a4`; see `ci-image.json`. The default-tier preflight also passed on that candidate, with zero failed or skipped steps. Two later CI failures were a shellcheck unused loop variable and three generic detector matches against source identifiers. The follow-up consumes the variable and limits exceptions to the exact reviewed path and extracted value. Runtime code is unchanged; 135 service tests and 30 security-contract tests were rerun. SFU/media acceptance remains open.
 
 `ci-security-corrections.json` records actual pinned Gitleaks range scans, six positive/negative scope witnesses, and Actionlint with ShellCheck plus an SC2034 mutation. The whole working-tree scan reports three findings in unchanged baseline files; none is in a modified file. This is not a claim that the entire repository has zero findings.
+
+Main synchronization: PR1261 merged as `88719df2`; source merge checkpoint `c1ce54808e06c52479454776c0abe3d5442a997c` preserves its NATS runner, workflow, tests and governance registrations byte-for-byte. The175-test post-sync batch passes without skips, including all135 realtime tests. Actual NATS Docker acceptance must rerun in CI on the final synchronized head. Earlier preflight and image receipts retain their execution-source attribution.

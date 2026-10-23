@@ -9916,3 +9916,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-24 — تصحيح بوابتي CI للخدمة
 
 2026-10-24 — المصدر `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a` يصحح حلقة انتظار الصورة واستثناءات قيم مصدر محددة. على المرشح السابق ba6b06a4 نجح preflight الافتراضي وصورة Docker وHTTP الفعلي المعطل في CI؛ 135 اختبار خدمة و30 عقد أمان معادة ناجحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/ci-image.json` و`validation.json`. قبول SFU الحي وعزل مستند الاتصال ما زالا مفتوحين؛ لا دمج أو نشر.
+
+## 2026-10-24 — مصالحة قبول NATS الجديد
+
+2026-10-24 — مصالحة #1262 مع main بعد دمج #1261 عند `88719df2cf491f5407ee01ea8b32c44097feb90d`: التزام المصدر `c1ce54808e06c52479454776c0abe3d5442a997c` يحفظ شيفرة قبول NATS وحراسه؛ اقتصرت التعارضات السبعة على مخرجات مولدة تعاد قانونيًا. نجحت175 حالة، منها135 للخدمة. قبول NATS الفعلي يعاد على الرأس النهائي في CI ولا يُورث من main. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. لا دمج للخدمة أو نشر، وقبول SFU مفتوح.

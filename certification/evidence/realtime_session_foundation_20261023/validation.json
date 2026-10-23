@@ -1,16 +1,16 @@
 {
-  "source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
-  "source_tree": "149299c8c84ded2a1259b1e20605cabd51f6552c",
-  "base_commit": "5f730646a112ceb770fb89ce194c259e94921f30",
+  "source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+  "source_tree": "937521686635c9e0db90b6abc6a9c32a24b7f9e5",
+  "base_commit": "88719df2cf491f5407ee01ea8b32c44097feb90d",
   "scope": "Disabled standalone realtime control-plane source foundation, not live SFU/media acceptance",
-  "checked_at": "2026-10-23T22:06:10.999266+00:00",
+  "checked_at": "2026-10-23T22:30:22.414837+00:00",
   "focused_tests": {
     "tests": 135,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "execution_source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
-    "reuse_basis": "135 realtime runtime/SDK tests rerun on this source correction; unchanged runtime, requirements and realtime tests. Workflow change only consumes the existing image-readiness loop variable."
+    "execution_source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+    "reuse_basis": "135 realtime runtime/SDK tests rerun after merging main88719df2; included in the175-test post-sync batch. Runtime and requirements remain unchanged."
   },
   "runtime_audit": {
     "scanner": "pip-audit 2.10.1",
@@ -108,5 +108,30 @@
     "actionlint": "PASS including ShellCheck; SC2034 mutation rejected",
     "all_workflow_actionlint": "PASS",
     "workingtree": "Three findings in byte-identical base files; zero in changed files. No repository-wide zero-finding claim."
+  },
+  "post_main_sync_tests": {
+    "execution_source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+    "main_commit": "88719df2cf491f5407ee01ea8b32c44097feb90d",
+    "tests": 175,
+    "failures": 0,
+    "skipped": 0,
+    "scope": [
+      "realtime service and SDK",
+      "NATS Compose acceptance and policy contracts",
+      "Gitleaks scope and workflow security contracts"
+    ],
+    "main_source_paths_verified_identical": [
+      ".github/workflows/capability-governance.yml",
+      ".github/workflows/nats-compose-acceptance.yml",
+      "scripts/ci/run_nats_compose_acceptance.py",
+      "tests/architecture/test_nats_compose_acceptance.py",
+      "tests_v9/test_nats_compose_policy.py",
+      "docs/architecture/guard_mutation_registry.json",
+      "docs/architecture/blocking_surface_additions.json",
+      "capabilities/registry/capabilities.json",
+      "nats/start-nats.sh",
+      "nats/nats.conf"
+    ],
+    "actual_nats_compose": "Pending CI on the final synchronized head; previous main acceptance is not inherited."
   }
 }

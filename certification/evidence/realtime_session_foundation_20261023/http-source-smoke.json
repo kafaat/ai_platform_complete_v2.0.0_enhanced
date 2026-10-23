@@ -1,7 +1,7 @@
 {
   "scope": "Real HTTP source-process smoke; not Docker image acceptance or live SFU/media",
   "disabled_by_default": true,
-  "source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
+  "source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
   "session_endpoint": "/api/v1/realtime/sessions",
   "results": {
     "healthz": 200,
