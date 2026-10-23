@@ -3242,6 +3242,36 @@
         }
       ],
       "test": "tests_v9/test_vegetation_smoke_contract.py"
+    },
+    "scripts/ci/run_nats_compose_acceptance.py": {
+      "$policy": "NATS Compose acceptance must reject restarts, unhealthy state, wrong source identity, and acceptance of a wrong client password before publishing a scoped PASS receipt. Tests replace Docker transport, not the acceptance policy; the actual Compose job supplies live proof.",
+      "test": "tests_v9/test_nats_compose_policy.py",
+      "mutations": [
+        {
+          "expect": "test_restarted_broker_cannot_publish_pass",
+          "find": "        assert restarts == 0, \"Broker restarted\"",
+          "replace": "        assert True, \"Broker restarted\"",
+          "why": "A broker restart must never be converted into a successful Compose acceptance receipt."
+        },
+        {
+          "expect": "test_wrong_source_sha_cannot_publish_pass",
+          "find": "        assert actual == args.expected_sha, \"Source HEAD differs from requested SHA\"",
+          "replace": "        assert True, \"Source HEAD differs from requested SHA\"",
+          "why": "A test of a different source SHA cannot certify the requested commit."
+        },
+        {
+          "expect": "test_unhealthy_broker_cannot_publish_pass",
+          "find": "        assert state[\"Status\"] == \"running\" and state[\"Health\"][\"Status\"] == \"healthy\"",
+          "replace": "        assert True",
+          "why": "An unhealthy running broker must fail, not publish a fabricated healthy receipt."
+        },
+        {
+          "expect": "test_wrong_password_acceptance_cannot_publish_pass",
+          "find": "        assert not authenticate(port, ca, \"knownWrongDisposableCredential\")",
+          "replace": "        assert True",
+          "why": "If the broker accepts a wrong password, the negative authentication probe must stop acceptance."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

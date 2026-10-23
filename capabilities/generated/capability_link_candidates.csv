@@ -1119,6 +1119,7 @@ INT-002,test,tests/architecture/test_nats_compose_acceptance.py,3,applied
 INT-002,test,tests_v9/test_event_bus_invariants.py,5,applied
 INT-002,test,tests_v9/test_h2_nats_publishers_flag.py,3,applied
 INT-002,test,tests_v9/test_nats_broker_authentication.py,3,applied
+INT-002,test,tests_v9/test_nats_compose_policy.py,3,applied
 INT-002,test,tests_v9/test_nats_least_privilege.py,3,applied
 INT-002,test,tests_v9/test_nats_password_expansion.py,3,applied
 INT-002,test,tests_v9/test_nats_publisher_coverage.py,3,applied

@@ -150,6 +150,16 @@
       "positive_witness": "test_runtime_contract_rejects_whole_missing_router_and_wrong_http_method first accepts the complete independent route/method inventory; the build job additionally requires the actual image readiness 200 -> 503 -> 200 with a controlled Raster dependency.",
       "impact": "merge",
       "$scope_limit_ar": "قبول صورة Vegetation في وظيفة البناء القائمة بناءً على طلب المستخدم الصريح؛ لا تغيير في branch protection ولا شهادة نشر أو بيانات إنتاج."
+    },
+    "scripts/ci/run_nats_compose_acceptance.py::nats-compose-acceptance.yml::nats-compose": {
+      "counterexample": "PR #1260 fixed a measured NATS crash loop caused by numeric-looking environment passwords (tested source b1700d39f4d557e65ccc42fbcf5fe1479a4225ce, merged5f730646a112ceb770fb89ce194c259e94921f30). Native broker success did not prove Docker Compose readiness. This added job must never publish acceptance when the broker restarts, is unhealthy, accepts a wrong password, or the source SHA differs. Live positive Compose witness: GitHub Actions run40027152458 on91851d7dab38d4095ee1f3601053b41375987c8f.",
+      "mutation": "test_restarted_broker_cannot_publish_pass",
+      "$mutation_ar": "Four exact behavioural plants are registered for this source in guard_mutation_registry.json. The named plant removes the real restart-count decision and must turn its specific negative receipt test red; the other plants remove exact-SHA, health, and negative-authentication decisions.",
+      "positive_witness": "test_healthy_exact_source_broker_publishes_scoped_receipt",
+      "$positive_witness_ar": "The positive fixture executes the real acceptance control flow with deterministic Docker transport and proves the legitimate exact-source, healthy, zero-restart, authenticated case publishes PASS and cleans up. Live container execution is separately proven by the named GitHub Compose run; these unit fixtures do not claim to execute Docker.",
+      "impact": "merge",
+      "$impact_ar": "Runs for pull requests and main pushes; this gates merge acceptance of NATS Compose integration rather than production deployment or full-stack certification.",
+      "$scope_limit_ar": "Isolated NATS Compose slice using pinned source image, source config and startup wrapper, TLS, raw-password acceptance and wrong/quoted rejection. Does not certify all SAHOOL services or production readiness."
     }
   }
 }
