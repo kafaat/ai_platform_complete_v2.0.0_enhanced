@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 642,
+      "evidence_count": 644,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -342,6 +342,7 @@
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/trial_models.py",
         "services/sahool-platform/api/unified_decision.py",
+        "services/sahool-platform/api/water_balance_models.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/agri_tools/tools/index_explorer.py",
@@ -677,7 +678,8 @@
         "shared/runtime_identity.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_federated_agent_runtime.py",
-        "shared/test_field_runtime_cohesion.py"
+        "shared/test_field_runtime_cohesion.py",
+        "shared/weather_input_contract.py"
       ],
       "runtime_verified": false
     },
@@ -2209,7 +2211,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 309,
+      "evidence_count": 310,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2360,6 +2362,7 @@
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
+        "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/learning.py",
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/prescriptions.py",
@@ -2652,7 +2655,7 @@
         "services/sahool-platform/api/routers/evidence_map.py",
         "services/sahool-platform/api/routers/field_ai_context.py"
       ],
-      "source_evidence_count": 642,
+      "source_evidence_count": 644,
       "target_evidence_count": 527,
       "static_supported": true,
       "runtime_verified": false
@@ -3060,7 +3063,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 53,
-      "target_evidence_count": 309,
+      "target_evidence_count": 310,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -3070,5 +3073,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "c3625374029c45af8b279327fb75c02c52adb407f6d21bbd411a84fc523c8199"
+  "content_sha256": "0ea2efc62365b0adb4ec89d86a072a13708b0db1f8e20619f0f064bcdf46885a"
 }

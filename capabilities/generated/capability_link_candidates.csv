@@ -548,7 +548,7 @@ FM-003,api,POST /api/v1/fields/{field_id}/growth-narrative @ services/sahool-pla
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:927,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:668,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:724,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:221,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:184,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35,4,applied
@@ -1141,7 +1141,7 @@ IRR-002,test,services/sahool-platform/tests/test_irrigation_blend_water_quality.
 IRR-003,service,services/sahool-platform/api/main.py,10,applied
 IRR-003,test,services/decision-service/tests/test_manual_irrigation_source_binding.py,3,applied
 IRR-003,test,tests_v9/test_h51_field_source_binding_pg.py,3,applied
-IRR-004,api,POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:63,5,applied
+IRR-004,api,POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:66,5,applied
 IRR-004,service,services/sahool-platform/api/main.py,10,applied
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_trigger.py,3,applied
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py,3,applied
@@ -1150,10 +1150,10 @@ IRR-004,test,tests_v9/test_h5_water_balance_auto.py,5,applied
 IRR-005,api,GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:388,3,applied
 IRR-005,api,GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:648,3,applied
 IRR-005,api,GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593,3,applied
-IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:221,7,applied
+IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:184,7,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,3,applied
-IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:145,7,applied
+IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:106,7,applied
 IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922,3,applied
 IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,3,applied
@@ -1971,6 +1971,7 @@ WX-004,test,services/weather-service/tests/test_et0.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_agro_product.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_reference_and_input_validity.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_series.py,3,applied
+WX-004,test,tests_v9/test_et0_http_platform_hop.py,3,applied
 WX-004,test,tests_v9/test_mcp_weather_et0_engine_delegation.py,3,applied
 WX-005,api,POST /v1/weather/agro/vpd @ services/weather-service/main.py:43,3,applied
 WX-005,service,services/weather-service/main.py,10,applied

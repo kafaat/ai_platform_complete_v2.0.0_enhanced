@@ -3736,10 +3736,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/irrigation_models.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/irrigation_network.py",
     "kind": "backend"
   },

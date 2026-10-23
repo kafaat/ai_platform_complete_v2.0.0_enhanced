@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6196,
+    "files_scanned": 6201,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 78,
       "mobile": 57,
-      "other": 2065,
-      "tests": 1996,
+      "other": 2069,
+      "tests": 1997,
       "web": 474
     },
-    "unmapped_artifacts": 2333,
+    "unmapped_artifacts": 2332,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -13986,7 +13986,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:62",
+          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:65",
           "score": 28
         },
         {
@@ -14224,18 +14224,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:220",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:183",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:144",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:105",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:79",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:84",
           "score": 28
         },
         {
@@ -21718,7 +21718,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -24208,7 +24208,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -34611,6 +34611,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/irrigation_models.py",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/irrigation_mpc.py",
           "score": 10,
           "signals": [
@@ -35000,7 +35008,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -35008,7 +35016,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:49",
+          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:50",
           "score": 12
         },
         {
@@ -35537,6 +35545,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_et0_http_platform_hop.py",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "tests_v9/test_mcp_weather_et0_engine_delegation.py",
           "score": 28,
           "signals": [
@@ -36015,6 +36033,36 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/et0_platform_boundary_20261023/README.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/et0_platform_boundary_20261023/verification.json",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -36065,6 +36113,14 @@
         },
         {
           "path": "scripts/ci/weather_engine_formula_guard.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "shared/weather_input_contract.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -36261,15 +36317,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
+        "backend": 61,
         "routes": 48,
         "database": 0,
         "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 65,
+        "tests": 66,
         "governance": 0,
-        "other_evidence": 30
+        "other_evidence": 34
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -42622,10 +42678,6 @@
     },
     {
       "path": "services/sahool-platform/api/irrigation_method.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/irrigation_models.py",
       "kind": "backend"
     },
     {
