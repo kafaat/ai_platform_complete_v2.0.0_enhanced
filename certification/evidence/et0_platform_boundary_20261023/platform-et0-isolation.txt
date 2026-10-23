@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/77e9f9ae309e/sahool-platform-source
+configfile: pytest.ini
+plugins: cov-7.1.0, hypothesis-6.170.8, Faker-40.43.0, respx-0.23.1, anyio-4.15.1, platformdirs-4.13.5, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 35 items
+
+tests_v9/test_tenant_connection_call_shape.py .............              [ 37%]
+tests_v9/test_tenant_guc_scope_guard.py ........                         [ 60%]
+tests_v9/test_rls_tenant_isolation_live_pg.py ssssssssssssss             [100%]
+
+======================== 21 passed, 14 skipped in 4.42s ========================

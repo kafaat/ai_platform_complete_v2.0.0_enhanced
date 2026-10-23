@@ -7580,3 +7580,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** شروط Open-Meteo في `open-meteo/open-meteo-website@53f0bf01` (`src/routes/en/terms/+page.svelte` السطران 34 و70)، ودليل الاستضافة الذاتية في `open-meteo/open-meteo@7afe0fdb` (`docs/getting-started.md` السطر 119)، مقروءان 2026-10-20 لأن open-meteo.com محجوب DNS هنا. وفي الشجرة عند `c9e8c15e`: `services/weather-service/open_meteo.py:10` (المضيف المجاني افتراضياً ولا معامل مفتاح)، و`services/mcp_servers/weather_server.py:33`، و`services/sahool-platform/api/connectors/openmeteo.py:190`، و`shared/wofost/engine.py:150`.
 - **العطل:** الوثائق قالت «مجاني بلا مفتاح» دون قيد غير التجاري، والشروط تعد التطبيقات ذات الاشتراكات أو الإعلانات والمنتجات التجارية استخداماً تجارياً يحتاج اشتراكاً بمفتاح أو نسخة مستضافة ذاتياً. وسجلات الخادم المجاني قد تحوي الإحداثيات حتى 90 يوماً.
 - **شرط الإغلاق:** قرار المالك بأحد الخيارين قبل أي مستأجر مدفوع أو إعلان أو إطلاق تجاري، ثم تنفيذه بشروط القبول المكتوبة في وثيقة القرار. لا تكامل فوترة في الشجرة اليوم (`services/sahool-platform/api/cost_governance.py:16`)، فصفة الاستخدام الحالي حكم المالك لا قياس هنا. الأسعار غير متحقق منها.
+
+
+### 2026-10-23 — ET₀ platform boundary
+
+| ID | العنوان | المجال/الخدمة | المصدر | الحالة |
+|---|---|---|---|---|
+| ET0-INCOMPLETE-PERIOD-REPORTED-AS-ZERO-01 | سلسلة ET₀ ناقصة تُجمع صفراً أو مجموعاً مكتملاً، ويعلن مستهلكها اكتمال التحليل. | weather · platform | `services/weather-service/et0.py:355` · `services/sahool-platform/api/weather_analytics.py:75` · `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md` | **fixed** في الشيفرة المرشحة `235a9729`، مع شاهد أحمر/أخضر؛ مجموع الفترة null عند النقص، وصفر القيم الحقيقية محفوظ. لا verified أو قبول نشر. |
+| ET0-DEGRADED-CANDIDATE-SUBMISSION-01 | جودة ET₀ المتدهورة لا تمنع مسار توصية الحقل من تقديم مرشح قرار أو بناء مواصفة يدوية. | irrigation · advisory | `services/sahool-platform/api/routers/irrigation_recommendation.py:184` · `services/sahool-platform/tests/test_manual_irrigation_source_boundary.py` · `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md` | **fixed** عند الحد المحدد في `235a9729` بشاهد عدم الكتابة وعدم الإرسال؛ العرض الاستشاري باقٍ. لا ادعاء إنفاذ معايرة شامل أو تحقق تشغيل حي. |
