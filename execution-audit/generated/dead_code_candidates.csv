@@ -58,7 +58,7 @@ medium,ai-agronomist,class,InMemoryFeedbackRepository,services/ai_agronomist/fee
 medium,ai-agronomist,function,new_feedback_id,services/ai_agronomist/feedback_repository.py,73,0,review_before_delete,False
 medium,ai-agronomist,function,select_backend_name,services/ai_agronomist/field_boundary_backends.py,256,0,review_before_delete,False
 medium,ai-agronomist,class,PolicyEngine,services/ai_agronomist/policy_engine.py,11,0,review_before_delete,False
-medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelope.py,163,0,review_before_delete,False
+medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelope.py,173,0,review_before_delete,False
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False

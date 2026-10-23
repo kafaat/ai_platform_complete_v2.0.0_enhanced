@@ -13,6 +13,7 @@ import json
 import logging
 from collections.abc import Callable
 from typing import Any
+from urllib.parse import urlsplit
 
 logger = logging.getLogger("video-processor")
 
@@ -29,6 +30,28 @@ VALID_KINDS: frozenset[str] = frozenset(
 
 # بادئة موضوع NATS: ``sahool.video.<kind>`` ⇒ مثال ``sahool.video.stream.started``.
 NATS_SUBJECT_PREFIX = "sahool.video"
+
+# Public events carry only allow-listed metadata. StreamEntry retains source_url
+# for capture, but RTSP/HTTP URLs may include userinfo credentials or query tokens.
+PUBLIC_EVENT_FIELDS = ("kind", "stream_id", "tenant_id", "source_type", "state", "ts")
+PUBLIC_SOURCE_TYPES = frozenset({"rtsp", "http", "usb", "unknown"})
+
+
+def _public_source_type(source_url: Any) -> str:
+    """Only disclose the protocol family, never a hostname, URL, or secret."""
+    if not isinstance(source_url, str):
+        return "unknown"
+    try:
+        scheme = urlsplit(source_url).scheme.lower()
+    except ValueError:
+        return "unknown"
+    if scheme in {"rtsp", "rtsps"}:
+        return "rtsp"
+    if scheme in {"http", "https"}:
+        return "http"
+    if scheme == "usb":
+        return "usb"
+    return "unknown"
 
 
 def nats_subject(kind: str) -> str:
@@ -59,7 +82,7 @@ def build_stream_event(kind: str, stream: Any, ts: Any = None) -> dict[str, Any]
         "kind": kind,
         "stream_id": _f("stream_id"),
         "tenant_id": _f("tenant_id"),
-        "source_url": _f("source_url"),
+        "source_type": _public_source_type(_f("source_url")),
         "state": _f("state"),
         "ts": ts,
     }
@@ -67,7 +90,12 @@ def build_stream_event(kind: str, stream: Any, ts: Any = None) -> dict[str, Any]
 
 def event_payload(event: dict[str, Any]) -> bytes:
     """يُسلسِل الحدث JSON (UTF-8، عربيّ غير مهروب) — الحمولة المنشورة."""
-    return json.dumps(event, ensure_ascii=False, default=str).encode("utf-8")
+    # Defense in depth: a caller may bypass build_stream_event. Serialize only
+    # the public schema; never echo source_url, URI tokens or arbitrary fields.
+    public_event = {key: event.get(key) for key in PUBLIC_EVENT_FIELDS}
+    if public_event["source_type"] not in PUBLIC_SOURCE_TYPES:
+        public_event["source_type"] = "unknown"
+    return json.dumps(public_event, ensure_ascii=False, default=str).encode("utf-8")
 
 
 async def _maybe_await(value: Any) -> Any:

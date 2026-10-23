@@ -1,0 +1,78 @@
+test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) ...
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/index.html') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/chat') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime-unsafe') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime/%2e%2e%2fchat') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime?session=123') ... FAIL
+  test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime/field?session=123') ... FAIL
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/index.html')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/chat')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime-unsafe')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime/%2e%2e%2fchat')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime?session=123')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+======================================================================
+FAIL: test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) (document_headers='/realtime/field?session=123')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5af7ba70c4d0/browser-policy/frontend/tests/test_nginx_runtime.py", line 248, in test_cold_start_routing_auth_and_dns_recovery
+    self.assertEqual(
+AssertionError: None != 'geolocation=(self), camera=(), microphone=()'
+
+----------------------------------------------------------------------
+Ran 1 test in 33.528s
+
+FAILED (failures=8)

@@ -91,7 +91,7 @@
       "dynamic_expr": "subject",
       "file": "services/video-processor/stream_events.py",
       "kind": "producer",
-      "line": 132,
+      "line": 160,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -103,7 +103,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/stream_events.py",
       "kind": "producer",
-      "line": 157,
+      "line": 185,
       "queue": null,
       "resolution": "dynamic",
       "subject": null

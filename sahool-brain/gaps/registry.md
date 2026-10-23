@@ -7603,3 +7603,17 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** قبول CI للرأس الأمني النهائي؛ لا استثناء pip-audit أو تغيير baseline أو نشر تشغيلي.
 
 2026-10-23 — متابعة DEP-TITILER-CERTIFI-PYSEC-2026-4320-01: جُمعت المتطلبات في مرشح أمني واحد مع OTel الموجود في #1256؛ source `8591fc835b2487d389287b8a0699a893a54aeec5`. الحالة open كما هي؛ لم يُدمج main أو أي PR. إثبات TiTiler يخص ملفه عند `1b2d8530` ولا يُنسب كامل جرد31/32 للرأس المركب.
+
+## FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01
+
+- **الحالة:** open — إصلاح مرشح في PR #1252؛ قبول CI للرأس النهائي والدمج وترويسات النشر غير مثبتة.
+- **المصدر:** `frontend/nginx.conf`، كتلة `location = /index.html`؛ `frontend/tests/test_nginx_runtime.py`، فحص `document_headers`. توجيها cache `add_header` يمنعان وراثة ترويسات الأمان من server بعد إعادة توجيه SPA داخليًا.
+- **الإصلاح المرشح:** إعادة ترويسات الأمان الست إلى استجابة مستند SPA؛ شاهد nginx 1.28 محلي أحمر على الأساس وأخضر على الإصلاح، بحدود fixture لا موقع منشور. الدليل `certification/evidence/livekit_readiness_20261023/README.md`.
+- **شرط الإغلاق:** نجاح CI على الشجرة النهائية ودمج الإصلاح؛ قبول ترويسات edge الحية مستقل ولا يُدعى verified.
+
+## LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01
+
+- **الحالة:** open — تمكين الميكروفون والكاميرا مؤجل حتى بناء مستند اتصال معزول وجلسة موثوقة.
+- **المصدر:** `frontend/src/App.tsx`، fallback `Navigate to="/"`؛ `frontend/nginx.conf`؛ `docs/architecture/SAHOOL_LIVEKIT_REALTIME_INTEGRATION_ADR_20261020.md`. مسار `/realtime` غير منفذ، وصلاحية Permissions-Policy تبقى للمستند خلال تنقل SPA.
+- **الاحتواء المرشح:** رفض camera/microphone على كل المستندات بما فيها `/realtime`، بدل منحها للواجهة العامة عبر fallback أو مسار ملتبس.
+- **شرط الإغلاق:** مستند/نطاق موثوق معزول، هوية مستأجر وحقل خادمية، قبول المتصفح عند الدخول والخروج والمسارات المرمزة، وفحص ترويسات edge النهائية؛ لا يكفي تعديل Nginx وحده.

@@ -128,6 +128,8 @@ async def test_create_binds_token_tenant(vp):
         {"tenant_id": "tenant_a", "role": "user"},
     )
     assert res["stream_id"] == "s1"
+    assert res["source_type"] == "usb"
+    assert "source" not in res and "source_url" not in res
     assert vp.STREAMS["s1"].config.tenant_id == "tenant_a"
     vp.STREAMS["s1"].status = "inactive"  # أوقِف حلقة الخلفيّة
 

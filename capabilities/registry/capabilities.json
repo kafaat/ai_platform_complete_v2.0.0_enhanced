@@ -5653,6 +5653,7 @@
         "tests_v9/test_h2_nats_publishers_flag.py",
         "tests_v9/test_nats_broker_authentication.py",
         "tests_v9/test_nats_least_privilege.py",
+        "tests_v9/test_nats_password_expansion.py",
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_nats_tls_init.py",
         "tests_v9/test_outbox_requires_jetstream_ack.py"
@@ -5669,7 +5670,7 @@
           "path": "services/sahool-platform/api/event_bus.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
