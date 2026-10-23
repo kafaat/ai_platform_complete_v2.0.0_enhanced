@@ -20,6 +20,12 @@ def test_nginx_media_policy_stays_fail_closed_before_realtime_feature():
     # nginx does not inherit server add_header directives.
     denied = 'add_header Permissions-Policy "geolocation=(self), camera=(), microphone=()" always;'
     assert raw.count(denied) == 2
-    assert "camera=(self)" not in raw
-    assert "microphone=(self)" not in raw
-    assert "$sahool_media_permissions_policy" not in raw
+    assert "camera=(self)" not in raw, (
+        "Camera capture must remain denied until an isolated realtime document and trusted session exist"
+    )
+    assert "microphone=(self)" not in raw, (
+        "Microphone capture must remain denied until an isolated realtime document and trusted session exist"
+    )
+    assert "$sahool_media_permissions_policy" not in raw, (
+        "The former raw-URI media grant survives SPA fallback and navigation into ordinary pages"
+    )
