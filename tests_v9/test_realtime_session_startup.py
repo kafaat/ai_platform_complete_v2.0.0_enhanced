@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services/realtime-session"))
 
-from realtime_session.app import create_app  # noqa: E402
+from realtime_session.session_runtime import create_app  # noqa: E402
 
 # Keep other services' legacy main imports independent of this test module.
 sys.path.remove(str(Path(__file__).resolve().parents[1] / "services/realtime-session"))

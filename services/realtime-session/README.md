@@ -95,7 +95,7 @@ docker build -f services/realtime-session/Dockerfile -t sahool-realtime-session 
 
 The image installs the service's requirements and copies the
 `realtime_session` package plus its `main.py` entrypoint shim. Uvicorn loads
-`main:app`; the shim re-exports `realtime_session.app:app`, allowing existing
+`main:app`; the shim re-exports `realtime_session.session_runtime:app`, allowing existing
 service inventory to identify the entrypoint without generator changes.
 It runs as UID/GID `10001:10001`, listens on port 8000,
 and provides a writable `/data` directory. Application code is not writable by

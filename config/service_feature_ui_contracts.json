@@ -818,7 +818,7 @@
         {
           "kind": "activation-safety-contract",
           "roots": [
-            "services/realtime-session/realtime_session/app.py",
+            "services/realtime-session/realtime_session/session_runtime.py",
             "tests_v9/test_realtime_session_api.py"
           ],
           "patterns": [
