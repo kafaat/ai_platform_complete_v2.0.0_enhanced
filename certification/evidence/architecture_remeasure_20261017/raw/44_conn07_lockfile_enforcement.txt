@@ -1,3 +1,0 @@
-$ grep -n flutter pub get .github/workflows/ci.yml
-2186:      - run: flutter pub get
-[exit=0]

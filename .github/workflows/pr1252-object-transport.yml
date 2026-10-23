@@ -1,0 +1,37 @@
+name: PR1252 Git object transport
+on:
+  push:
+    branches:
+      - chatgpt/transport-pr1252-5bd1b534-20261023
+permissions:
+  contents: write
+jobs:
+  transport:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/chatgpt/transport-pr1252-5bd1b534-20261023'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Verify and transfer the already tested Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=5bd1b534df201a95244c08f3ac43dfac614affc4
+          expected_tree=32c3d80d7058a4defeeed000f98585a66241e043
+          old_head=95df92a2b591b383702388284adc70e7b3baf50f
+          main_head=617f03664073b7d22db8d43f53e9af848f6dc999
+          ready_branch=chatgpt/objects-ready-pr1252-5bd1b534-20261023
+          pack_file="$RUNNER_TEMP/pr1252-final.pack"
+          base64 --decode transport/pack.b64 > "$pack_file"
+          printf '%s  %s\n' '7274c314627af40730b0bc961d063797eb8c146bf5f789d1aa8b42f15af01b8a' "$pack_file" | sha256sum -c -
+          git fetch --no-tags --depth=1 origin "$old_head" "$main_head"
+          git unpack-objects -r < "$pack_file"
+          git cat-file -e "$target^{commit}"
+          test "$(git rev-parse "$target^{tree}")" = "$expected_tree"
+          git merge-base --is-ancestor "$old_head" "$target"
+          git merge-base --is-ancestor "$main_head" "$target"
+          git push origin "$target:refs/heads/$ready_branch"
+          printf 'Transferred tested commit %s with tree %s to %s\n' "$target" "$expected_tree" "$ready_branch"
