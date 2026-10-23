@@ -55,3 +55,12 @@ STAC transport behavior is tested with controlled HTTP responses. Live CDSE and
 the production 12-scene/100-field matrix remain unproven. Local PostGIS is absent;
 its integration test explicitly skips and the added CI job supplies a disposable
 database. No production provider, database version or agricultural policy changed.
+
+CI execution on `14ea5a78f20703706895d444013c2236fdd81950` subsequently
+passed all **16/16 tests**, including real temporary PostGIS queries, and completed
+the standalone spatial runner. Evidence is retained in
+[run 39928216767](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/39928216767):
+`eo-acceptance-evidence` (artifact 12489852966) and `eo-spatial-measurements`
+(artifact 12490536175). This validates the synthetic integration, not production
+speed or the real-scene matrix. Workflow-only follow-up adds required version
+comments and pins the actually pulled image digest.
