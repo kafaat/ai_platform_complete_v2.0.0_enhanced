@@ -13,7 +13,12 @@ from api.irrigation_engineering_workspace import ManualIrrigationIntent, build_m
 from api.routers import irrigation_recommendation as route
 from fastapi import HTTPException
 from pydantic import ValidationError
-from test_field_irrigation_recommendation_endpoint import _FakeConn, _patch
+from test_field_irrigation_recommendation_endpoint import (
+    _fake_et0_product,
+    _FakeConn,
+    _patch,
+    _pm_et0_product,
+)
 
 pytestmark = pytest.mark.unit
 TENANT = "11111111-1111-1111-1111-111111111111"
@@ -146,7 +151,9 @@ async def setup_route(monkeypatch, *, decision="auto:daily_balance", operational
 
     conn.fetchrow = fetch
     conn.execute = AsyncMock()
-    _patch(monkeypatch, conn)
+    product = _pm_et0_product()
+    product["valid_time"] = date.today().isoformat()
+    _patch(monkeypatch, conn, engine=product)
     monkeypatch.setattr(route, "has_permission", lambda *_: True)
     import api.canonical_water_state as water
 
@@ -162,6 +169,9 @@ async def setup_route(monkeypatch, *, decision="auto:daily_balance", operational
             return_value=dict(
                 t_min_c=18,
                 t_max_c=34,
+                wind_2m_ms=2.0,
+                solar_rad_mj_m2=22.0,
+                rh_mean_pct=50.0,
                 source="weather-engine-forecast",
                 valid_time=date.today().isoformat(),
                 day_of_year=date.today().timetuple().tm_yday,
@@ -192,6 +202,7 @@ async def test_route_persists_explicit_spec_and_binds_current_canonical_source_b
         USER,
     )
     assert result["approval_state"] == "pending_approval"
+    assert result["calibrated"] is False
     payload = submit.await_args.args[0]["decision_value"]
     snapshot = payload["manual_execution_source"]
     assert snapshot["water_truth"]["canonical"]["taw_mm"] == 100
@@ -201,6 +212,39 @@ async def test_route_persists_explicit_spec_and_binds_current_canonical_source_b
     assert snapshot["target_volume_m3"] == pytest.approx(snapshot["target_depth_mm"] * 4 * 10)
     assert "INSERT INTO irrigation_system_specifications" in conn.execute.await_args.args[0]
     assert payload["candidate_lineage_id"]
+    assert payload["provenance"]["et0_product"] == result["et0"]
+    assert payload["calibrated"] is False
+
+
+@pytest.mark.parametrize(
+    "method,quality",
+    [
+        ("hargreaves_fallback", "degraded"),
+        ("hargreaves_fallback", "validated"),
+        ("fao56_penman_monteith", "degraded"),
+    ],
+)
+async def test_advisory_et0_never_persists_manual_spec_or_submits(monkeypatch, method, quality):
+    conn, submit = await setup_route(monkeypatch)
+    product = _fake_et0_product(et0_mm=0.0, method=method, quality_status=quality)
+    monkeypatch.setattr(route, "_engine_et0", AsyncMock(return_value=product))
+    build = AsyncMock(side_effect=AssertionError("must not build execution source"))
+    persist = AsyncMock(side_effect=AssertionError("must not persist execution specification"))
+    monkeypatch.setattr(route, "build_manual_source", build)
+    monkeypatch.setattr(route, "persist_manual_specification", persist)
+    result = await route.field_irrigation_recommendation(
+        "fld_1",
+        route.FieldIrrigationRequest(submit_to_decision=True, manual_execution=intent()),
+        USER,
+    )
+    assert result["status"] == "recommendation_ready"
+    assert result["et0"]["et0_mm"] == 0.0
+    assert result["approval_state"] == "blocked_et0_advisory_only"
+    assert result["decision_id"] is None
+    conn.execute.assert_not_awaited()
+    submit.assert_not_awaited()
+    build.assert_not_called()
+    persist.assert_not_awaited()
 
 
 @pytest.mark.parametrize(

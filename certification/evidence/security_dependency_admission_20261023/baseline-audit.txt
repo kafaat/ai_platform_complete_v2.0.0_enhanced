@@ -1,0 +1,4 @@
+Name    Version   ID              Fix Versions
+------- --------- --------------- ------------
+certifi 2026.7.22 PYSEC-2026-4320 2026.10.19
+Found 1 known vulnerability in 1 package

@@ -9,6 +9,7 @@ P3.4 Platform Weather Facade:
 from __future__ import annotations
 
 import asyncio
+import math
 import os
 from typing import Any
 
@@ -243,7 +244,130 @@ async def get_et0_product(
         "valid_time": valid_time,
         "weather_snapshot_id": weather_snapshot_id,
     }
-    return await weather_post_json("/v1/weather/agro/et0", json_body=body, tenant_id=tenant_id)
+    product = await weather_post_json("/v1/weather/agro/et0", json_body=body, tenant_id=tenant_id)
+    return _validated_et0_product(product)
+
+
+def _validated_et0_product(product: Any) -> dict[str, Any]:
+    """Check the ET0 owner contract, without recalculation or quality promotion.
+
+    A valid degraded numeric result remains advisory data. Missing ET0 remains
+    None with the owner's rejection details for existing 422/503 handling.
+    Malformed successful HTTP responses are dependency failures, not caller
+    input errors. This validator deliberately does not apply to other products.
+    """
+    from fastapi import HTTPException
+
+    def invalid_response():
+        return HTTPException(
+            status_code=502,
+            detail={
+                "reason_code": "weather_service_invalid_response",
+                "message_ar": "استجابة منتج ET₀ من خدمة الطقس غير صالحة.",
+            },
+        )
+
+    if not isinstance(product, dict):
+        raise invalid_response()
+    if product.get("product") != "et0" or product.get("unit") != "mm/day":
+        raise invalid_response()
+    for key in ("formula_version", "weather_snapshot_id"):
+        if not isinstance(product.get(key), str) or not product[key].strip():
+            raise invalid_response()
+    if "valid_time" not in product or (
+        product["valid_time"] is not None and not isinstance(product["valid_time"], str)
+    ):
+        raise invalid_response()
+    for key in ("missing_inputs", "invalid_inputs", "limitations"):
+        values = product.get(key)
+        if not isinstance(values, list) or any(not isinstance(item, str) for item in values):
+            raise invalid_response()
+    value = product.get("et0_mm")
+    method, quality = product.get("method"), product.get("quality_status")
+    completeness = product.get("input_completeness")
+    try:
+        valid_completeness = (
+            type(completeness) in (int, float)
+            and math.isfinite(completeness)
+            and 0 <= completeness <= 1
+        )
+    except OverflowError:
+        valid_completeness = False
+    if not valid_completeness:
+        raise invalid_response()
+    if (
+        method == "fao56_penman_monteith"
+        and quality == "validated"
+        and (completeness != 1 or product["missing_inputs"] or product["invalid_inputs"])
+    ):
+        raise invalid_response()
+    if "et0_mm" not in product:
+        raise invalid_response()
+    if value is None:
+        if method != "insufficient" or quality not in ("insufficient", "invalid"):
+            raise invalid_response()
+    else:
+        try:
+            finite_nonnegative = type(value) in (int, float) and math.isfinite(value) and value >= 0
+        except OverflowError:
+            finite_nonnegative = False
+        if not finite_nonnegative:
+            raise invalid_response()
+        if not (
+            (method == "fao56_penman_monteith" and quality in ("validated", "degraded"))
+            or (method == "hargreaves_fallback" and quality == "degraded")
+        ):
+            raise invalid_response()
+    return product
+
+
+async def get_irrigation_et0_product(
+    *,
+    t_min_c: float,
+    t_max_c: float,
+    solar_rad_mj_m2: float | None,
+    rh_mean_pct: float | None,
+    wind_2m_ms: float | None,
+    day_of_year: int,
+    latitude_deg: float,
+    elevation_m: float,
+    valid_time: str | None = None,
+    tenant_id: str | None = None,
+) -> dict:
+    """ET0 من محرّك الطقس — **مصدر ET0 الوحيد**. تعذّره ⇒ HTTPException (لا محلّيّ).
+
+    نقطة وصل قابلة للـmonkeypatch في الاختبار (تُثبِت أنّ المسار يستهلك المحرّك فعلاً).
+    """
+    return await get_et0_product(
+        t_max_c=t_max_c,
+        t_min_c=t_min_c,
+        solar_rad_mj_m2=solar_rad_mj_m2,
+        rh_mean_pct=rh_mean_pct,
+        wind_2m_ms=wind_2m_ms,
+        lat_deg=latitude_deg,
+        elevation_m=elevation_m,
+        day_of_year=day_of_year,
+        valid_time=valid_time,
+        tenant_id=tenant_id,
+    )
+
+
+def et0_provenance(prod: dict) -> dict:
+    """كتلة نَسَب ET0 للمخرَج — المصدر والعقد (المحرّك مصدر ET0 الوحيد؛ لا إرث محلّيّ)."""
+    return {
+        "et0_mm": prod.get("et0_mm"),
+        "method": prod.get("method"),
+        "quality_status": prod.get("quality_status"),
+        "formula_version": prod.get("formula_version"),
+        "valid_time": prod.get("valid_time"),
+        "weather_snapshot_id": prod.get("weather_snapshot_id"),
+        "unit": prod.get("unit"),
+        "input_completeness": prod.get("input_completeness"),
+        "missing_inputs": list(prod.get("missing_inputs") or []),
+        "invalid_inputs": list(prod.get("invalid_inputs") or []),
+        "limitations": list(prod.get("limitations") or []),
+        "source": "weather-engine",
+    }
 
 
 async def get_et0_series(
@@ -674,7 +798,9 @@ async def field_irrigation_weather_snapshot(
     return {
         "t_min_c": d0.get("temp_min_c"),
         "t_max_c": d0.get("temp_max_c"),
-        "wind_2m_ms": d0.get("wind_max_ms"),
+        # Forecast maximum at 10 m is not the daily mean at 2 m. Preserve
+        # absence until the owner supplies the required statistic/height.
+        "wind_2m_ms": None,
         "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
         "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
         "rain_recent_mm": d0.get("precipitation_mm"),

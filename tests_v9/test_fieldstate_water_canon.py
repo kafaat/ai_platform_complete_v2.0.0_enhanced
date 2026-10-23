@@ -117,3 +117,36 @@ async def test_et0_payload_engine_down_is_none(monkeypatch):
     monkeypatch.setattr(wsc, "get_et0_product", _boom)
     payload = {"daily": {"temperature_2m_max": [34.0], "temperature_2m_min": [18.0]}}
     assert await _et0_from_weather_payload(payload, 15.5, None, 180) is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(_et0_from_weather_payload is None, reason="platform/api deps unavailable")
+@pytest.mark.parametrize("wind_max", [0.0, 3.0, 40.0])
+async def test_raw_wind_max_stays_missing_for_pm_and_engine_fallback_is_used(monkeypatch, wind_max):
+    import api.weather_service_client as wsc
+
+    seen = []
+
+    async def engine(**kwargs):
+        seen.append(kwargs)
+        assert kwargs["wind_2m_ms"] is None
+        return {
+            "et0_mm": 5.75,
+            "method": "hargreaves_fallback",
+            "quality_status": "degraded",
+            "missing_inputs": ["wind_2m_ms"],
+        }
+
+    monkeypatch.setattr(wsc, "get_et0_product", engine)
+    payload = {
+        "daily": {
+            "temperature_2m_max": [34.0],
+            "temperature_2m_min": [18.0],
+            "relative_humidity_2m_mean": [30.0],
+            "shortwave_radiation_sum": [25.0],
+            "wind_speed_10m_max": [wind_max],
+        }
+    }
+    assert await _et0_from_weather_payload(payload, 15.5, 1800, 180, tenant_id="tenant-a") == 5.75
+    assert len(seen) == 1
+    assert seen[0]["tenant_id"] == "tenant-a"

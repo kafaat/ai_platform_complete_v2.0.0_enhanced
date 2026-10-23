@@ -30,7 +30,9 @@ router = APIRouter()
 _ENGINE_DOWN_CODES = (502, 503, 504)
 
 
-async def _engine_et0_from_request(req: WaterBalanceRequest) -> tuple[float, str]:
+async def _engine_et0_from_request(
+    req: WaterBalanceRequest, *, tenant_id: str | None = None
+) -> tuple[float, str]:
     """يجلب ET0 المرجعيّ من منتج محرّك الطقس (المصدر الوحيد) لمدخلات الطلب.
 
     تعذّر المحرّك/نقص ⇒ HTTPException(503) fail-closed (لا نواة ET0 محلّيّة).
@@ -45,6 +47,7 @@ async def _engine_et0_from_request(req: WaterBalanceRequest) -> tuple[float, str
             lat_deg=req.latitude_deg,
             elevation_m=req.elevation_m,
             day_of_year=req.day_of_year,
+            tenant_id=tenant_id,
         )
     except HTTPException as exc:
         if exc.status_code in _ENGINE_DOWN_CODES:
@@ -71,7 +74,7 @@ async def compute_water_balance(
     (``soil_ece``/``water_ecw`` + العمر + الثقة) — يقرّرها ``salinity_policy`` بصدق، ويُعرَض
     القرار في ``salinity_decision``. غياب التحليل ⇒ شكل الردّ كما كان تماماً (سلوك محفوظ).
     """
-    et0_mm, et0_method = await _engine_et0_from_request(req)
+    et0_mm, et0_method = await _engine_et0_from_request(req, tenant_id=user.tenant_id)
     w = WeatherInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
