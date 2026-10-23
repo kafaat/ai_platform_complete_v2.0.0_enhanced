@@ -1,7 +1,0 @@
-{
-  "at": "2026-10-16T16:11:25.373366+00:00",
-  "binary": "/workspace/scratch/881ca3efb91d/native-pg-runtime/pgserver/pginstall/bin/postgres",
-  "version": "PostgreSQL 16.2",
-  "pgserver_launch": "failed: useradd permission",
-  "unprivileged_launch": "OSError: [Errno 22] Invalid argument"
-}

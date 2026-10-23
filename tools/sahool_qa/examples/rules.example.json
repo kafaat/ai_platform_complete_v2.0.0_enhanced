@@ -1,9 +1,0 @@
-{
-  "indicator_patterns": {
-    "water_ec": ["water_ec%", "well_ec%"],
-    "vegetation": ["savi%", "ndvi%"]
-  },
-  "vegetation_threshold": { "SAVI": 0.25, "NDVI": 0.35 },
-  "abstain_option_rate": 0.3,
-  "min_samples_aggregate": 3
-}

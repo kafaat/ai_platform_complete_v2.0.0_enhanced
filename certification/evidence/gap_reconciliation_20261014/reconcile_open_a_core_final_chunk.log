@@ -1,7 +1,0 @@
-...................        [ 33%]
-tests/test_economic_scenarios_wiring.py .................                [ 60%]
-tests/test_yield_intelligence_wiring.py ..............                   [ 82%]
-tests/test_canonical_field_state_wiring.py ...........                   [100%]
-
-- generated xml file: analysis/reconcile_open_a_core.xml -
-============================== 63 passed in 2.53s ==============================

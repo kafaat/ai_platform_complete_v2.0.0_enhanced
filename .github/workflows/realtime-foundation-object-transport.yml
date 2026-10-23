@@ -1,0 +1,39 @@
+name: Realtime foundation Git object transport
+on:
+  push:
+    branches:
+      - chatgpt/transport-realtime-9b3d59d9-20261023
+permissions:
+  contents: write
+jobs:
+  transport:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/chatgpt/transport-realtime-9b3d59d9-20261023'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Verify and transfer the tested Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=9b3d59d95100dfb8cc0faf95cd5da4d5b6039786
+          expected_tree=1776de5bec0c4c11ce4b812fd48ba90d811d0838
+          main_head=88719df2cf491f5407ee01ea8b32c44097feb90d
+          source_anchor=569d01596c2b8d9db3e12e6210103bc5306055df
+          ready_branch=chatgpt/objects-ready-realtime-9b3d59d9-20261023
+          pack_file="$RUNNER_TEMP/realtime-foundation.pack"
+          base64 --decode transport/pack.b64 > "$pack_file"
+          printf '%s  %s\n' 'c5ee903de6080a90f4f7cc9039bf2f6bd822c3319c78a9b2eac2ea749421144c' "$pack_file" | sha256sum -c -
+          git fetch --no-tags --depth=1 origin 569d01596c2b8d9db3e12e6210103bc5306055df 5f730646a112ceb770fb89ce194c259e94921f30 88719df2cf491f5407ee01ea8b32c44097feb90d
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$main_head"
+          git unpack-objects -r < "$pack_file"
+          git cat-file -e "$target^{commit}"
+          test "$(git rev-parse "$target^{tree}")" = "$expected_tree"
+          git merge-base --is-ancestor "$main_head" "$target"
+          git merge-base --is-ancestor "$source_anchor" "$target"
+          test "$(git rev-parse "$target:.github/workflows/realtime-session.yml")" = "$(git hash-object .github/workflows/realtime-session.yml)"
+          git push origin "$target:refs/heads/$ready_branch"
+          printf 'Transferred tested commit %s with tree %s to %s\n' "$target" "$expected_tree" "$ready_branch"
