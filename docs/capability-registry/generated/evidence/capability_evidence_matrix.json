@@ -3206,6 +3206,7 @@
         "tests_v9/test_h2_nats_publishers_flag.py",
         "tests_v9/test_nats_broker_authentication.py",
         "tests_v9/test_nats_least_privilege.py",
+        "tests_v9/test_nats_password_expansion.py",
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_nats_tls_init.py",
         "tests_v9/test_notification_queue_rollout.py",

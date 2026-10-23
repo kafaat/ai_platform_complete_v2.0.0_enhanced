@@ -589,11 +589,8 @@ def _free_port() -> int:
 class _Broker:
     def __init__(self, tmp: Path, override: dict[str, str] | None = None):
         self.tmp = tmp
-        # حرفٌ ثمّ hex — الصيغةُ التي يوصي بها .env.example: قيمةٌ تبدأ برقمٍ قد يُعرِبها الوسيطُ
-        # عدداً (`3e0f…`) فيرفض الإقلاع. المقيسُ في test_a_password_that_looks_like_a_number….
-        self.passwords = {
-            str(u["password"])[1:]: "n" + secrets.token_hex(16) for u in _users().values()
-        }
+        # Exercise numeric-leading values through the production broker wrapper.
+        self.passwords = {str(u["password"])[1:]: secrets.token_hex(16) for u in _users().values()}
         self.passwords.update(override or {})
         self.by_user = {
             name: self.passwords[str(u["password"])[1:]] for name, u in _users().items()
@@ -629,6 +626,8 @@ class _Broker:
         self.log = tmp / "nats.log"
         self.proc = subprocess.Popen(
             [
+                "/bin/sh",
+                str(ROOT / "nats" / "start-nats.sh"),
                 _server_binary(),
                 "-c",
                 str(tmp / "nats.conf"),
@@ -1091,17 +1090,25 @@ async def test_live_queue_v1_provisioning_and_binding_work_under_the_scoped_iden
 
 
 @pytest.mark.integration
-async def test_live_a_password_that_looks_like_a_number_stops_the_broker_loudly(tmp_path):
-    """عطلٌ **سابقٌ لهذا التغيير** قِيس عرضاً: الوسيطُ يُعرِب قيمةَ متغيّر البيئة بمُعرِب الإعداد.
-
-    فكلمةُ مرورٍ hex تبدأ بـ``3e0`` تُقرأ عدداً عشريّاً ويرفض الإقلاع — كان ذلك قائماً مع
-    ``$NATS_PASSWORD`` الواحد أيضاً. الفشلُ **صاخبٌ ومُسمّى** (لا قبولٌ صامت)، وعلاجُه في
-    ``.env.example``: حرفٌ ثمّ hex. وهذا الشاهدُ يُثبِت أنّه ما يزال صاخباً."""
+async def test_live_numeric_looking_password_authenticates(tmp_path, monkeypatch):
     _require_live()
     b = _Broker(tmp_path, override={"NATS_VEGETATION_PASSWORD": "3e0f9c2b7a"})
-    rc = await asyncio.to_thread(b.proc.wait, 10)
-    assert rc != 0, "الوسيطُ أقلع بكلمة مرورٍ أعربها عدداً"
-    assert "NATS_VEGETATION_PASSWORD" in b.log_text() and "could not be parsed" in b.log_text()
+    monkeypatch.setenv("SSL_CERT_DIR", f"{b.ca_dir}:/etc/ssl/certs")
+    try:
+        for _ in range(200):
+            assert b.proc.poll() is None, "broker failed to start"
+            if "Server is ready" in b.log_text():
+                break
+            await asyncio.sleep(0.02)
+        else:
+            pytest.fail("broker readiness timed out")
+        nc, _ = await _connect(
+            b, "sahool-vegetation-analysis", **_inbox("sahool-vegetation-analysis")
+        )
+        await nc.close()
+    finally:
+        b.proc.terminate()
+        await asyncio.to_thread(b.proc.wait, 5)
 
 
 @pytest.mark.integration
