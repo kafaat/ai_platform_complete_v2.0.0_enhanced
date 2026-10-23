@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6196,
+    "files_scanned": 6205,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
-      "governance": 78,
+      "governance": 79,
       "mobile": 57,
-      "other": 2065,
-      "tests": 1996,
+      "other": 2072,
+      "tests": 1997,
       "web": 474
     },
     "unmapped_artifacts": 2333,
@@ -19423,6 +19423,24 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/SOURCE_REVIEW.md",
+          "score": 16,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/stac-manifest.json",
+          "score": 16,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "BACKEND_102_ZERO_PARTIAL_STAC503_VERIFICATION_20260704.md",
           "score": 14,
           "signals": [
@@ -19560,6 +19578,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/stac.py",
+          "score": 14,
+          "signals": [
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_log_contract_review.json",
           "score": 13,
           "signals": [
@@ -19573,6 +19599,15 @@
           "signals": [
             "path:cdse",
             "content:cdse"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/README.md",
+          "score": 13,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
           ]
         },
         {
@@ -19853,6 +19888,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/run.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
           "score": 8,
           "signals": [
@@ -19978,7 +20021,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 89
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -23592,6 +23635,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/raster.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
           "score": 12,
           "signals": [
@@ -23926,14 +23977,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tools/sahool_qa/examples/rules.example.json",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
@@ -23943,8 +23986,8 @@
       "evidence_truncated": {
         "backend": 26,
         "events": 60,
-        "tests": 84,
-        "other_evidence": 1
+        "tests": 85,
+        "other_evidence": 2
       },
       "evidence_counts": {
         "backend": 100,
