@@ -4344,3 +4344,8 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 - المصدر: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`؛ `docker-compose.v9.yml` و`services/realtime-session/README.md`.
 - القرار والسبب: رفض PATH-3 هدفًا مجهولًا للخدمة الجديدة، فأضيف `sahool-realtime-session` تحت profile اختياري `realtime-foundation` فقط. SAHOOL_REALTIME_ENABLED مثبت 0، بلا منافذ مضيف أو أسرار LiveKit، وبحجم موارد محدود وحجم بيانات مخصص ومستخدم غير جذري وجذر للقراءة فقط. deployment_units تعكس هذا الهدف المعلن، ولا تعني نشرًا حيًا. لا تعديل حارس أو تجاوز readiness=503؛ تمكينها يحتاج override مقبولًا مستقلًا بعد إثبات SFU. كتلة NATS في Compose مطابقة لأساس main.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.

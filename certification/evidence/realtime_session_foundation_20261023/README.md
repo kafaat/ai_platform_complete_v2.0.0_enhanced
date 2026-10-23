@@ -1,6 +1,6 @@
 # Realtime session foundation — source validation
 
-Source checkpoint: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`, based on merged
+Source checkpoint: `36cbe0e32f10d7be9ac9c39b092500cb810c7117`, based on merged
 `5f730646a112ceb770fb89ce194c259e94921f30`. This adds a separate, default-disabled
 control plane. It does not enable a call screen or deploy a media service.
 
@@ -32,3 +32,5 @@ Remaining gates include the standalone image/CI workflow, live SFU admission and
 cleanup races, tenant pairs, provider consent and Arabic STT/TTS, isolated browser
 capture/navigation, and network/TURN behavior. No agricultural tool or actuator
 is reachable from this service. No main merge or runtime deployment is claimed.
+
+Integration regression correction: the initial root unit preflight at `19b26a99` reported 3 failures, 10,749 passes and 57 skips. Source `36cbe0e3` fixes image installation and explicit farmer UI debt contracts; 67 targeted regression tests pass. Inventory pins reflect measured additions without raising the Platform route budget. Two temporary UI backlog entries expire 2026-11-22; no call document exists or receives capture permissions. A fresh complete preflight is still required.

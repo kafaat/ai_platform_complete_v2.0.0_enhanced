@@ -4455,7 +4455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee50b1dd7f382863b2a46b11449b23200bda2ea7e880ec574b289e417786a37c"
+          "content": "26a847131f4ee985775b123a0f06c0990c0815f6b979de79ec7ca2297ca00dca"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -16405,7 +16405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4bbbc637e55a10880bc59075306a03d63cfd3dbcfcdb18007790c2459fb2c76f"
+          "content": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254"
         }
       ],
       "name": "services/realtime-session/Dockerfile",
@@ -16415,7 +16415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c69f8f8815c68a6af642dd72b27647f9d91ccfcd88be7d4887a4f39e5d86ce3e"
+          "content": "90659114ff4c81857ff4bfec82d71ef9515e0f7dc252e890e477d2f99d3ddb74"
         }
       ],
       "name": "services/realtime-session/README.md",

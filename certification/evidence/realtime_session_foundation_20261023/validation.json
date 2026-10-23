@@ -1,16 +1,16 @@
 {
-  "source_commit": "51cbd06d69a4fcf559f676ab0c7b6633aeb24c57",
-  "source_tree": "143b5d21f11379be6cf941644a9835f8075d62b4",
+  "source_commit": "36cbe0e32f10d7be9ac9c39b092500cb810c7117",
+  "source_tree": "75cd9eb84c6360b74071d99a524e01ab13a351ea",
   "base_commit": "5f730646a112ceb770fb89ce194c259e94921f30",
   "scope": "Disabled standalone realtime control-plane source foundation, not live SFU/media acceptance",
-  "checked_at": "2026-10-23T20:52:57.007819+00:00",
+  "checked_at": "2026-10-23T21:28:20.121868+00:00",
   "focused_tests": {
     "tests": 135,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
     "execution_source_commit": "b26f3c7978f97b378df7635bb0f604aca3de0191",
-    "reuse_basis": "Runtime Python, test Python, requirements and isolated workflow are byte-identical to the execution source; later changes only classify the component, document it and add the disabled optional Compose target."
+    "reuse_basis": "Realtime runtime/test Python, requirements and isolated workflow remain byte-identical to b26f3c7. Later changes register the optional disabled image target, installation mirror contract, documentation and explicit UI inventory debt. The separate catalog snapshot test is covered by integration_regressions."
   },
   "runtime_audit": {
     "scanner": "pip-audit 2.10.1",
@@ -31,8 +31,8 @@
   "source_digests": {
     ".github/workflows/realtime-session.yml": "7176de008c19fa51d1e7c35a48f51c5cc4370562c025aa1970071d1896d33554",
     "config/service_feature_ui_contracts.json": "28b0954a3b2c9dddef6bc847236a40a5514196802c371a1300f1375264c6cb47",
-    "services/realtime-session/Dockerfile": "4bbbc637e55a10880bc59075306a03d63cfd3dbcfcdb18007790c2459fb2c76f",
-    "services/realtime-session/README.md": "c69f8f8815c68a6af642dd72b27647f9d91ccfcd88be7d4887a4f39e5d86ce3e",
+    "services/realtime-session/Dockerfile": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254",
+    "services/realtime-session/README.md": "90659114ff4c81857ff4bfec82d71ef9515e0f7dc252e890e477d2f99d3ddb74",
     "services/realtime-session/main.py": "1f74dea9d3554cdc5ce8b0e98a2eac041d8978f36a70ca3d117a3001a9606c50",
     "services/realtime-session/realtime_session/__init__.py": "8c41de99d32fc947b33ef388fd4432e3d8e97d717bb6d7ca01024fd6f81e04d1",
     "services/realtime-session/realtime_session/body_limit.py": "958737f29801567f4f35d0c1ed1b7c834f595ceb3981b55df55ed094bd7fea1c",
@@ -51,7 +51,10 @@
     "services/realtime-session/realtime_session/session_runtime.py": "7c19d6bf4a9c82351ddb2875bdfad2dae8d58b668bed838755dbce850fd12e6d",
     "docs/architecture/component_registry.json": "ba7d7b179a5594d87c851cf9510de07a19a8860c3208fe5f77893f6c97f229b6",
     "scripts/ci/env_compose_drift_allowlist.json": "bea2187d647b8a835fec2af7f19229483cb2e91d7f0f433a26fc6c1fded3e1a2",
-    "docker-compose.v9.yml": "6171c83a52a17701b04700d6e5d879f56804a1bff766d202a64ebe970b45fda7"
+    "docker-compose.v9.yml": "6171c83a52a17701b04700d6e5d879f56804a1bff766d202a64ebe970b45fda7",
+    "config/endpoint_ui_coverage.json": "d99c3eea3f165e488485c49632fa0994562699506458ef58698ab8ce80d4e60c",
+    "config/endpoint_ui_coverage_waivers.json": "95a05b8136885cc7e7c4c95d59ca16ca4ed7ec5b2c320d7b4fe6abb6905de4bf",
+    "tests_v9/test_platform_catalog_gate.py": "f14e2961df91175324a917e8977c7435eb35b9524b64482cdcf18d91dc95cbfc"
   },
   "limitations": [
     "Actual self-hosted SFU room.auto_create=false and fresh/refreshed token rejoin-after-delete acceptance remain required. ListRooms cannot verify this setting.",
@@ -64,5 +67,19 @@
     "tests": 32,
     "failures": 0,
     "skipped": 0
+  },
+  "integration_regressions": {
+    "failed_preflight_source": "19b26a99ed3e765d3c689cb099d4889ff918b619",
+    "initial_unit_result": {
+      "passed": 10749,
+      "failed": 3,
+      "skipped": 57,
+      "deselected": 530
+    },
+    "regression_source": "36cbe0e32f10d7be9ac9c39b092500cb810c7117",
+    "targeted_tests": 67,
+    "failures": 0,
+    "scope": "Docker mirror contract, explicit farmer route/UI backlog classification, measured inventory pins and component registry",
+    "full_preflight": "pending rerun; earlier full run interrupted after unit failures"
   }
 }

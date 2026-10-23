@@ -10,8 +10,8 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 184 | 172 |
-| farmer | 219 | 176 |
-| internal | 416 | 137 |
+| farmer | 222 | 177 |
+| internal | 425 | 140 |
 | manager | 55 | 51 |
 
 العقد الملزِم (core): 467 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
@@ -240,6 +240,7 @@
 | `/api/v1/fields/{field_id}/imagery/process-date` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/imagery/refresh` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/imagery/timeline` | farmer | ✅ |
+| `/api/v1/fields/{field_id}/indicator-observations/{view}` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/input-traceability` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/irrigation-recommendation` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation` | farmer | ✅ |
@@ -397,6 +398,8 @@
 | `/api/v1/rbac/permission-matrix` | manager | ✅ |
 | `/api/v1/rbac/preview-role-change` | manager | ✅ |
 | `/api/v1/rbac/who-can` | manager | ✅ |
+| `/api/v1/realtime/sessions` | farmer | — |
+| `/api/v1/realtime/sessions/{session_id}` | farmer | — |
 | `/api/v1/recommendations` | farmer | ✅ |
 | `/api/v1/recommendations/candidates` | farmer | ✅ |
 | `/api/v1/recommendations/capacity-profiles` | farmer | ✅ |
@@ -599,6 +602,7 @@
 | `/quality` | internal | — |
 | `/quota/check` | internal | — |
 | `/rasters/{raster_id}/tilejson.json` | internal | — |
+| `/rasters/{raster_id}/tiles/{z}/{x}/{y}.png` | internal | — |
 | `/retraining/plan` | internal | — |
 | `/runtime-identity` | internal | — |
 | `/runtime/authority-envelope` | internal | — |
@@ -698,11 +702,14 @@
 | `/v1/edges` | internal | — |
 | `/v1/elevation/hillshade/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/erp/provider` | internal | — |
+| `/v1/evaluate` | internal | — |
 | `/v1/evidence/vegetation-snapshots` | internal | — |
+| `/v1/execution-plans/{execution_plan_id}` | internal | — |
 | `/v1/execution-plans/{execution_plan_id}/authorize-dispatch` | internal | — |
 | `/v1/execution-requests` | internal | — |
 | `/v1/execution-requests/recovery` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/claim` | internal | — |
+| `/v1/execution-requests/{execution_request_id}/observation-context` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/receipt` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/remote-sensing-outcome` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/verify-outcome` | internal | — |
@@ -710,12 +717,15 @@
 | `/v1/fields/analytics/geoparquet/export` | internal | — |
 | `/v1/fields/{field_id}/available-dates` | internal | ✅ |
 | `/v1/fields/{field_id}/baseline-comparisons` | internal | ✅ |
+| `/v1/fields/{field_id}/cache-invalidations` | internal | ✅ |
 | `/v1/fields/{field_id}/cdse-thumbnail.png` | internal | ✅ |
 | `/v1/fields/{field_id}/cdse-tilejson` | internal | ✅ |
 | `/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/fields/{field_id}/change` | internal | ✅ |
 | `/v1/fields/{field_id}/contours.geojson` | internal | ✅ |
 | `/v1/fields/{field_id}/geometry/versions` | internal | ✅ |
+| `/v1/fields/{field_id}/imagery-ingestion-requests` | internal | ✅ |
+| `/v1/fields/{field_id}/imagery-ingestion-requests/{request_id}` | internal | ✅ |
 | `/v1/fields/{field_id}/imagery/backfill` | internal | ✅ |
 | `/v1/fields/{field_id}/imagery/backfill/{run_id}` | internal | ✅ |
 | `/v1/fields/{field_id}/imagery/process-date` | internal | ✅ |
@@ -845,7 +855,9 @@
 | `/v1/raw/process` | internal | — |
 | `/v1/recommend` | internal | ✅ |
 | `/v1/recommendation-outcomes` | internal | — |
+| `/v1/registry/cogs` | internal | — |
 | `/v1/replay/verify` | internal | — |
+| `/v1/reports/weekly-field-insights` | internal | — |
 | `/v1/reservation-dispatch-intents` | internal | — |
 | `/v1/sales` | internal | — |
 | `/v1/salinity/calibrate` | internal | — |

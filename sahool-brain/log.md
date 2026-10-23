@@ -9907,3 +9907,8 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - 2026-10-23 — صحح تصنيف سلطة realtime-session إلى `operational_coordination` في `docs/architecture/component_registry.json` مع تفسير حالة SQLite التشغيلية في README؛ القرار السابق system_of_record محفوظ تاريخيًا ومصحح في ledger. لا تعديل حارس أو ملكية جداول المجال.
 
 - 2026-10-23 — هدف Compose اختياري `realtime-foundation` للخدمة عند `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`، بلا منافذ مضيف وبالتفعيل مثبتًا 0 وبلا LiveKit credentials؛ لا تشغيل أو نشر. ملكية Platform/NATS محفوظة. السبب: PATH-3 يلزم كل خدمة قابلة للفحص بهدف بنيوي محلول، دون ادعاء نجاح readiness المعطلة. README و`docker-compose.v9.yml` هما المصدر.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.
