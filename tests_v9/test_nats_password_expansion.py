@@ -96,7 +96,7 @@ def test_real_broker_preserves_password_as_string(tmp_path, password):
         )
         try:
             deadline = time.monotonic() + 5
-            while "Server is ready" not in log.read_text():
+            while "Server is ready" not in log.read_text(encoding="utf-8"):
                 assert proc.poll() is None, "Broker exited before becoming ready"
                 assert time.monotonic() < deadline, "Broker readiness timed out"
                 time.sleep(0.02)
@@ -111,7 +111,7 @@ def test_real_broker_preserves_password_as_string(tmp_path, password):
         finally:
             proc.terminate()
             proc.wait(timeout=5)
-    assert password not in log.read_text(), "Broker logs disclosed a credential"
+    assert password not in log.read_text(encoding="utf-8"), "Broker logs disclosed a credential"
 
 
 @pytest.mark.unit
@@ -142,6 +142,7 @@ def test_bootstrap_rejects_missing_or_url_unsafe_password_without_disclosure(inv
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode != 0
     assert "SERVER_EXECUTED" not in result.stdout
@@ -154,7 +155,7 @@ def test_bootstrap_rejects_missing_or_url_unsafe_password_without_disclosure(inv
 def test_compose_broker_uses_password_bootstrap():
     import yaml
 
-    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     broker = compose["services"]["sahool-nats"]
     assert broker["entrypoint"] == ["/bin/sh", "/etc/nats/start-nats.sh", "nats-server"]
     assert "./nats/start-nats.sh:/etc/nats/start-nats.sh:ro" in broker["volumes"]
