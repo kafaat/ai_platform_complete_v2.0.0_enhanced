@@ -7,7 +7,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY services/realtime-session/requirements.txt /tmp/requirements.txt
-RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt \
+# Official PyPI by default; select a mirror explicitly at build time.
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_TRUSTED_HOST=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt \
     && groupadd --gid 10001 realtime \
     && useradd --uid 10001 --gid realtime --no-create-home realtime \
     && mkdir /data \

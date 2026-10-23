@@ -146,6 +146,17 @@ service environment separately, preserving the existing scanners and audits.
 The repository's dependency-conflict inventory records this divergence; its
 direct-dependency bundle is an inventory, not a globally installable lock.
 
+## Visible call UI backlog
+
+These farmer-facing endpoints have no call-screen consumer yet. The two route
+shapes are explicitly recorded as temporary `backlog-ui` for a human consumer in
+`config/endpoint_ui_coverage_waivers.json`, owned by `realtime-session`, tracked by
+`LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01`, and expiring on 2026-11-22.
+The declared destination is an isolated call document; no existing page or hook
+is counted as UI evidence. The general web microphone/camera policy stays denied.
+This backlog declaration does not enable sessions or authorize recording/provider
+processing. Remove it only after implementing and verifying the real UI.
+
 ## Acceptance still required
 
 The service is registered as `experimental-realtime-control-plane` with

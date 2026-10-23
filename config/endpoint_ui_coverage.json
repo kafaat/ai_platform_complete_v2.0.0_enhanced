@@ -106,6 +106,10 @@
       "audience": "internal"
     },
     {
+      "prefix": "/api/v1/realtime/",
+      "audience": "farmer"
+    },
+    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },
