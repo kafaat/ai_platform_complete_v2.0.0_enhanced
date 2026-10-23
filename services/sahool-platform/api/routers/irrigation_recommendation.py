@@ -47,11 +47,16 @@ from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
 from api.weather_advice import precipitation_incomplete_detail
 from api.weather_service_client import (
+    et0_provenance as _et0_provenance,
+)
+from api.weather_service_client import (
     et0_unavailable_field_response,
     et0_unavailable_http_exception,
     field_irrigation_weather_snapshot,
-    get_et0_product,
     get_weather_forecast,
+)
+from api.weather_service_client import (
+    get_irrigation_et0_product as _engine_et0,
 )
 
 router = APIRouter()
@@ -82,37 +87,6 @@ _LOG = logging.getLogger("sahool.irrigation.et0")
 _ENGINE_DOWN_CODES = (502, 503, 504)
 
 
-async def _engine_et0(
-    *,
-    t_min_c: float,
-    t_max_c: float,
-    solar_rad_mj_m2: float | None,
-    rh_mean_pct: float | None,
-    wind_2m_ms: float | None,
-    day_of_year: int,
-    latitude_deg: float,
-    elevation_m: float,
-    valid_time: str | None = None,
-    tenant_id: str | None = None,
-) -> dict:
-    """ET0 من محرّك الطقس — **مصدر ET0 الوحيد**. تعذّره ⇒ HTTPException (لا محلّيّ).
-
-    نقطة وصل قابلة للـmonkeypatch في الاختبار (تُثبِت أنّ المسار يستهلك المحرّك فعلاً).
-    """
-    return await get_et0_product(
-        t_max_c=t_max_c,
-        t_min_c=t_min_c,
-        solar_rad_mj_m2=solar_rad_mj_m2,
-        rh_mean_pct=rh_mean_pct,
-        wind_2m_ms=wind_2m_ms,
-        lat_deg=latitude_deg,
-        elevation_m=elevation_m,
-        day_of_year=day_of_year,
-        valid_time=valid_time,
-        tenant_id=tenant_id,
-    )
-
-
 async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
     return await field_irrigation_weather_snapshot(
         latitude_deg, longitude_deg, forecast_loader=get_weather_forecast
@@ -126,19 +100,6 @@ async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) ->
     human-in-loop + طابور) يبقى في مسار decision_dispatch. تعذّر الخدمة ⇒ HTTPException.
     """
     return await record_decision(payload, tenant_id=tenant_id)
-
-
-def _et0_provenance(prod: dict) -> dict:
-    """كتلة نَسَب ET0 للمخرَج — المصدر والعقد (المحرّك مصدر ET0 الوحيد؛ لا إرث محلّيّ)."""
-    return {
-        "et0_mm": prod.get("et0_mm"),
-        "method": prod.get("method"),
-        "quality_status": prod.get("quality_status"),
-        "formula_version": prod.get("formula_version"),
-        "valid_time": prod.get("valid_time"),
-        "weather_snapshot_id": prod.get("weather_snapshot_id"),
-        "source": "weather-engine",
-    }
 
 
 @router.post("/api/v1/irrigation-recommendation")
@@ -180,6 +141,7 @@ async def irrigation_recommendation(
             day_of_year=req.day_of_year,
             latitude_deg=req.latitude_deg,
             elevation_m=req.elevation_m,
+            tenant_id=getattr(user, "tenant_id", None),
         )
     except HTTPException as exc:
         if exc.status_code in _ENGINE_DOWN_CODES:
@@ -192,7 +154,7 @@ async def irrigation_recommendation(
     if et0_mm is None:
         # المحرّك رفض مُدخَلاً مستحيلاً (422) أو لم يُعِد ET0 (503) — لا float(None) ⇒ 500.
         raise et0_unavailable_http_exception(et0_prod)
-    return recommend_irrigation(
+    recommendation = recommend_irrigation(
         et0_mm=et0_mm,
         crop=req.crop,
         stage=req.stage,
@@ -215,6 +177,7 @@ async def irrigation_recommendation(
         water_price_per_m3=req.water_price_per_m3,
         yield_value_per_ha=req.yield_value_per_ha,
     )
+    return {**recommendation, "et0": _et0_provenance(et0_prod)}
 
 
 @router.post("/api/v1/fields/{field_id}/irrigation-recommendation")
@@ -561,6 +524,7 @@ async def field_irrigation_recommendation(
             latitude_deg=field_lat,
             elevation_m=_elev_default_m,
             valid_time=wx.get("valid_time"),
+            tenant_id=getattr(user, "tenant_id", None),
         )
     except HTTPException as exc:
         # فشل مُغلَق: تعذّر المحرّك ⇒ لا حساب ET0 محلّيّ بديل (dependency_unavailable).
@@ -621,7 +585,19 @@ async def field_irrigation_recommendation(
     approval_state = "not_submitted"
     decision_id = None
     submit_limitation: str | None = None
-    if req.submit_to_decision and rec["forecast_hold"] and rec["should_irrigate"] is None:
+    if req.submit_to_decision and (
+        et0_prod.get("method") != "fao56_penman_monteith"
+        or et0_prod.get("quality_status") != "validated"
+    ):
+        # Input acceptance is not regional calibration. Keep fallback/degraded ET0
+        # visible as advisory, but do not persist an execution specification or
+        # submit it into the governed decision chain.
+        approval_state = "blocked_et0_advisory_only"
+        submit_limitation = (
+            "et0_advisory_only — لم يُقدَّم: ET0 تقديري أو غير مكتمل الجودة؛ "
+            "قبول مدخلات Penman–Monteith لا يثبت معايرة محلية."
+        )
+    elif req.submit_to_decision and rec["forecast_hold"] and rec["should_irrigate"] is None:
         # حجزُ المطر يمنع التقديم. المرشَّحُ الذي لا قرارَ فيه (`should_irrigate=None`)
         # ليس شيئاً يُعتمَد؛ وتقديمُه كان سيُنتِج سجلَّ موافقةٍ على امتناع.
         approval_state = "blocked_forecast_rain_hold"
@@ -671,6 +647,7 @@ async def field_irrigation_recommendation(
             "evidence_ids": evidence_ids,
             "provenance": {
                 "et0": et0_prod.get("weather_snapshot_id"),
+                "et0_product": _et0_provenance(et0_prod),
                 "weather": wx.get("valid_time"),
                 "taw_source": taw_source,
                 "applied_water_status": applied_status,

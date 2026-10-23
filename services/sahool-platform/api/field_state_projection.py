@@ -236,7 +236,11 @@ async def _et0_from_weather_payload(
             return None
         # اختياريّ لـPenman-Monteith (وإلّا يتدرّج المحرّك إلى Hargreaves — حرارة فقط):
         rh = _first(daily.get("relative_humidity_2m_mean"))
-        wind = _first(daily.get("wind_speed_10m_max"))
+        # The cached daily contract exposes a maximum at 10 m, not a mean at
+        # 2 m. No canonical mean/height conversion is available on this raw
+        # payload path. Keep the PM input missing so the weather engine can
+        # declare its thermal fallback; never rename a gust/maximum as a mean.
+        wind = None
         srad = _first(daily.get("shortwave_radiation_sum"))
         product = await get_et0_product(
             t_max_c=float(tmax),
@@ -263,41 +267,15 @@ def _demand_class(etc_mm: float) -> str:
 
 
 def _weatherday_from_payload(data_json, lat, doy: int):
-    """يبني ``WeatherDay`` (core.engines.fao56) من حمولة الطقس المخزَّنة — **نفس مصدر**
-    ``_et0_from_weather_payload`` (لا صيغة جديدة). يتطلّب tmin/tmax + rh + wind (لازمة لـKe
-    عبر Kc_max)؛ srad غير لازم هنا (ET0 يُمرَّر عبر et0_override فلا يُحسب penman داخليّاً).
+    """لا يُبنى WeatherDay من أقصى رياح 10 m بوصفها متوسط رياح 2 m.
 
-    صدق/fail-safe: نقص أيّ من tmin/tmax/rh/wind ⇒ ``None`` (لا تلفيق) ⇒ تراجع إلى single.
+    عقد الحمولة الخام المخزنة لا يوفر متوسطًا موثقًا عند 2 m أو تحويل ارتفاع
+    قانونيًا. لذا Ke غير قابل للحساب هنا، حتى مع اكتمال الحرارة والرطوبة؛
+    يُعلن المستهلك التراجع إلى single عبر ``dual_inputs_unavailable`` القائم.
+    لا تحويل محلي جديد ولا افتراض رياح صفرية. تبقى نقطة الوصل لتغذيتها لاحقًا
+    بمتوسط يومي موثق من محول قانوني، دون تغيير واجهة ETc-dual.
     """
-    try:
-        from core.engines.fao56 import WeatherDay
-
-        if isinstance(data_json, str):
-            data_json = json.loads(data_json)
-        daily = (data_json or {}).get("daily") or {}
-
-        def _first(seq):
-            return seq[0] if isinstance(seq, list) and seq else None
-
-        tmax = _first(daily.get("temperature_2m_max"))
-        tmin = _first(daily.get("temperature_2m_min"))
-        rh = _first(daily.get("relative_humidity_2m_mean"))
-        wind = _first(daily.get("wind_speed_10m_max"))
-        if tmax is None or tmin is None or rh is None or wind is None:
-            return None  # طقس ناقص لـKe ⇒ تراجع إلى single (صدق)
-        srad = _first(daily.get("shortwave_radiation_sum"))
-        return WeatherDay(
-            temp_max_c=float(tmax),
-            temp_min_c=float(tmin),
-            humidity_pct=float(rh),
-            wind_speed_m_s=float(wind),
-            solar_radiation_mj_m2=float(srad) if srad is not None else 0.0,
-            latitude_deg=float(lat) if lat is not None else 15.5,
-            elevation_m=2000.0,
-            day_of_year=doy,
-        )
-    except Exception:  # noqa: BLE001 — fail-safe: تعذّر ⇒ None
-        return None
+    return None
 
 
 def _apply_canonical_etc_dual(

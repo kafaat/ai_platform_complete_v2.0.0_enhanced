@@ -20,6 +20,7 @@ api/weather_analytics.py — تحليل سجلّ الطقس اليومي إلى 
 from __future__ import annotations
 
 import logging
+import math
 
 from core.thresholds import (
     CLIMATE_HOT_DAY_TMAX_C,
@@ -163,6 +164,28 @@ async def analyze_weather_log(records: list[dict], lat: float = _DEFAULT_LAT_DEG
             lat_deg=lat,
             daily_dates=daily_dates,
         )
+        # Annual products cover the full input log, never a shorter valid subset
+        # or a partial sum that silently treats unknown daily ET0 as zero.
+        daily_et0 = et0_series.get("daily_et0_mm") if isinstance(et0_series, dict) else None
+        if (
+            len(daily_t_min) != n
+            or not isinstance(daily_et0, list)
+            or len(daily_et0) != n
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value < 0
+                for value in daily_et0
+            )
+        ):
+            raise ValueError(
+                "Canonical ET0 series does not contain a valid value for every log day"
+            )
+        total_et0 = sum(daily_et0)
+        annual_et0 = total_et0 / years
+        if not math.isfinite(total_et0) or not math.isfinite(annual_et0):
+            raise ValueError("Canonical ET0 series total or annual total is not finite")
     except Exception as exc:  # noqa: BLE001 — تعذّر المحرّك ⇒ تدهور جزئيّ (fail-closed، لا محلّيّ)
         _log.warning("weather-engine ET0 series unavailable — partial analysis: %s", exc)
         return {
@@ -184,8 +207,6 @@ async def analyze_weather_log(records: list[dict], lat: float = _DEFAULT_LAT_DEG
             ),
         }
 
-    daily_et0 = et0_series.get("daily_et0_mm") or []
-    total_et0 = sum(float(v) for v in daily_et0 if v is not None)
     annual_water_deficit = (total_et0 - total_rain) / years
 
     return {
@@ -195,7 +216,7 @@ async def analyze_weather_log(records: list[dict], lat: float = _DEFAULT_LAT_DEG
         "computed_products": [*_ET0_INDEPENDENT_PRODUCTS, "et0"],
         "unavailable_products": [],
         "computed_et0_total_mm": round(total_et0, 1),
-        "annual_et0_mm": round(total_et0 / years, 1),
+        "annual_et0_mm": round(annual_et0, 1),
         "annual_water_deficit_mm": round(annual_water_deficit, 1),
         "irrigation_dependency_ar": _irrigation_dependency_ar(annual_water_deficit),
         "et0_method": "weather-engine",
