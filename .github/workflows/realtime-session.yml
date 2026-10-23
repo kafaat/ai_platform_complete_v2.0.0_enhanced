@@ -49,6 +49,7 @@ jobs:
           docker run -d --name realtime-session-smoke -p 127.0.0.1:18090:8000 sahool-realtime-session:test
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:18090/healthz >/dev/null; then break; fi
+            echo "Waiting for the disabled image ($attempt/30)"
             sleep 1
           done
           python - <<'PY'
