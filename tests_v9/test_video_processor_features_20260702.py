@@ -192,12 +192,79 @@ def test_build_stream_event_canonical_shape():
     )
     for kind in sorted(se.VALID_KINDS):
         ev = se.build_stream_event(kind, entry, ts="2026-07-02T01:00:00+00:00")
-        assert set(ev) == {"kind", "stream_id", "tenant_id", "source_url", "state", "ts"}
+        assert set(ev) == {"kind", "stream_id", "tenant_id", "source_type", "state", "ts"}
         assert ev["kind"] == kind
         assert ev["stream_id"] == "s1"
         assert ev["tenant_id"] == "tenant_a"
-        assert ev["source_url"] == "rtsp://cam/s1"
+        assert ev["source_type"] == "rtsp"
         assert ev["ts"] == "2026-07-02T01:00:00+00:00"
+
+
+@pytest.mark.parametrize(
+    ("secret_url", "source_type"),
+    [
+        ("rtsp://farmer:VERY_SECRET@192.0.2.1:554/stream?token=QUERY_SECRET", "rtsp"),
+        ("rtsps://farmer:VERY_SECRET@camera/stream", "rtsp"),
+        ("https://camera.example/frame?access_key=QUERY_SECRET", "http"),
+        ("usb:0", "usb"),
+        ("invalid-source", "unknown"),
+    ],
+)
+def test_stream_events_never_expose_source_urls_or_credentials(secret_url, source_type):
+    entry = sr.StreamEntry(
+        stream_id="cam-safe",
+        tenant_id="tenant_a",
+        source_url=secret_url,
+        state="live",
+        created_at="2026-10-20T00:00:00Z",
+    )
+    ev = se.build_stream_event("stream.started", entry, ts="2026-10-20T00:00:00Z")
+    payload = se.event_payload(ev).decode()
+    assert ev["source_type"] == source_type
+    assert "source_url" not in ev
+    assert "source_url" not in payload
+    assert secret_url not in payload
+    for secret in ("VERY_SECRET", "QUERY_SECRET", "192.0.2.1", "camera.example"):
+        assert secret not in payload
+
+
+def test_event_payload_drops_unknown_or_sensitive_keys_even_when_builder_bypassed():
+    unsafe = {
+        "kind": "stream.started",
+        "stream_id": "s1",
+        "tenant_id": "t1",
+        "source_type": "rtsp://user:SECRET@camera/path",
+        "source_url": "rtsp://user:SECRET@camera/path",
+        "authorization": "Bearer SECRET",
+        "state": "live",
+        "ts": "2026-10-20T00:00:00Z",
+    }
+    payload = se.event_payload(unsafe).decode()
+    assert "SECRET" not in payload and "source_url" not in payload
+    assert "authorization" not in payload
+    assert '"source_type": "unknown"' in payload
+
+
+async def test_credentials_are_not_published_to_either_transport():
+    sent = []
+
+    async def fake_publish(subject, payload):
+        sent.append((subject, payload))
+
+    event = se.build_stream_event(
+        "stream.started",
+        {
+            "stream_id": "s1",
+            "tenant_id": "t1",
+            "source_url": "rtsp://operator:PASSWORD@camera/live?token=SECRET",
+        },
+    )
+    result = await se.emit_stream_event(event, nats_publish=fake_publish, mqtt_publish=fake_publish)
+    assert result == {"nats": "ok", "mqtt": "ok"}
+    assert len(sent) == 2
+    for _, payload in sent:
+        assert b"PASSWORD" not in payload and b"SECRET" not in payload
+        assert b"source_url" not in payload
 
 
 def test_build_stream_event_accepts_dict():

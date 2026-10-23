@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6222,
+    "files_scanned": 6226,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
       "governance": 80,
       "mobile": 57,
-      "other": 2086,
-      "tests": 1999,
+      "other": 2089,
+      "tests": 2000,
       "web": 474
     },
-    "unmapped_artifacts": 2333,
+    "unmapped_artifacts": 2334,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -47672,6 +47672,10 @@
     },
     {
       "path": "tests_v9/test_real_findings_closure_20260702.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_permissions_header_contract.py",
       "kind": "tests"
     },
     {

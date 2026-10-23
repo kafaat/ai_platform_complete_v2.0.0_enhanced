@@ -527,7 +527,11 @@ async def preload_local_generation() -> dict[str, str]:
         return {"status": "failed", "reason": type(exc).__name__, "model": cfg.model}
 
 
-def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:
+def _provider_tools(
+    cfg: GenConfig,
+    allowed_capabilities: list[str] | None,
+    allowed_tools: set[str] | None = None,
+) -> list[dict[str, Any]]:
     # Jais Natural Farmer is a grounded-generation provider. Tool calls stay opt-in
     # until model-specific tool-call conformance is proven; no direct actions by default.
     if cfg.provider == "vllm" and (
@@ -536,6 +540,10 @@ def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> l
         return []
     """Provider-native tool schema, filtered by tenant capabilities before the model sees it."""
     defs = agent_tool_schema.tool_definitions(allowed_capabilities)
+    # Do not advertise tools the authoritative tenant envelope cannot execute.
+    # The tool-loop still enforces the same gate against fabricated model calls.
+    if allowed_tools is not None:
+        defs = [d for d in defs if d["name"] in allowed_tools]
     if cfg.wire_format == "openai_chat":
         return [
             {
@@ -856,7 +864,7 @@ async def generate(
     run_spent = 0
     run_budget = tool_loop.DEFAULT_RUN_TOOL_BUDGET
     max_rounds = max(0, min(int(max_tool_rounds or 0), 5))
-    tools = _provider_tools(cfg, allowed_capabilities) if max_rounds > 0 else []
+    tools = _provider_tools(cfg, allowed_capabilities, allowed_tools) if max_rounds > 0 else []
     payload = _build_payload(cfg, question, context_text, max_tokens, tools=tools)
     text = ""
     stop_reason: str | None = None
