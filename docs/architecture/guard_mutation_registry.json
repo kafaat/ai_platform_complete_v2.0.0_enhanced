@@ -2,6 +2,18 @@
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
   "adjudicated_on": "2026-08-02",
   "behavioural": {
+    "scripts/ci/railway_staging_connection_preflight.py": {
+      "$policy": "Stage-1 source verifier: staging identity must reject a production environment before issuing a receipt.",
+      "test": "tests_v9/test_railway_staging_connection_preflight.py",
+      "mutations": [
+        {
+          "expect": "test_rejects_production_environment",
+          "find": "    if environment.get(\"id\") != STAGING_ID:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
+          "replace": "    if False:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
+          "why": "Removing the production-environment rejection must make the named negative test fail, without producing a staging verification receipt."
+        }
+      ]
+    },
     "$scope_ar": "المساران هنا هما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001` — يقيس التفويضُ ما مُنِح لأجله لا أكثر.",
     "$what_was_missing_ar": "أجنحةُ السلوك كانت **قائمةً** للتعويض وللمُصرِّح منذ إغلاق الدَّينين، والناقص أنّها لم تكن مُثبَتةً بالتكذيب: لا أحد زرع العطل وأثبت أنّها تحمرّ. فالجديد هنا تسجيلٌ وزرعٌ لا كتابةُ اختبارات من جديد — عدا الراوتر نفسه، فكان مقيساً بفحصٍ نصّيّ وحده (بإقرار وثيقته)، فأُضيف له جناحٌ سلوكيّ.",
     "$why_ar": "الحرّاس الساكنة تقيس **وقوع** استشارة مفتاح الطوارئ لا **أثرها**. وحدُّ ذلك مكتوبٌ حرفيّاً في `actuation_killswitch_coverage_guard.py` وفي `GATE01-ADJ-2026-08-13-001`: «يقيس وقوع الاستشارة لا أنّ نتيجتها تمنع الإرسال». وبينهما ثلاثة أعطال يمرّ عليها الحارس أخضر — تجاهلُ النتيجة، وضيقُ النطاق، والاستشارةُ بعد النشر. فهذا القسم يزرعها في منطق الإنتاج نفسه ويُلزِم اختبارَ سلوكٍ مُسمّى بالاحمرار. ومفاتيحه **مسارات مصادر** لا أسماء حرّاس.",

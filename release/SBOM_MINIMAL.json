@@ -11735,7 +11735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ee278202f0fb9c93743a26bf9f70c1a2bc4052dde6ac55ab87ff5afd614ff35"
+          "content": "314abf7bafd500f279ea51c37f7a8018cd4df6957842bd68f87b2e583f6bb7e1"
         }
       ],
       "name": "services/auth/requirements.txt",
@@ -16395,7 +16395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c36dee64e10e7a44abe8ad58c1b428c96c6cb18774e67a6664a93080472462cf"
+          "content": "63ae66ace9533a912301b41f310fe734d95f33154f1a24f0022b3fb44354621a"
         }
       ],
       "name": "services/raster-tiler-service/requirements.txt",
@@ -18555,7 +18555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1246f14a2197c45e65c807024b3a3354284820ae08ccda9af7e96af43f20c6d"
+          "content": "20823f55ae4b3be26391732cc225cea96fe2fadf14bda9b733c17298d6c44d1b"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
