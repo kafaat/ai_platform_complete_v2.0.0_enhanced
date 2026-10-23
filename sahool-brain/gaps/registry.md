@@ -7580,3 +7580,19 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** شروط Open-Meteo في `open-meteo/open-meteo-website@53f0bf01` (`src/routes/en/terms/+page.svelte` السطران 34 و70)، ودليل الاستضافة الذاتية في `open-meteo/open-meteo@7afe0fdb` (`docs/getting-started.md` السطر 119)، مقروءان 2026-10-20 لأن open-meteo.com محجوب DNS هنا. وفي الشجرة عند `c9e8c15e`: `services/weather-service/open_meteo.py:10` (المضيف المجاني افتراضياً ولا معامل مفتاح)، و`services/mcp_servers/weather_server.py:33`، و`services/sahool-platform/api/connectors/openmeteo.py:190`، و`shared/wofost/engine.py:150`.
 - **العطل:** الوثائق قالت «مجاني بلا مفتاح» دون قيد غير التجاري، والشروط تعد التطبيقات ذات الاشتراكات أو الإعلانات والمنتجات التجارية استخداماً تجارياً يحتاج اشتراكاً بمفتاح أو نسخة مستضافة ذاتياً. وسجلات الخادم المجاني قد تحوي الإحداثيات حتى 90 يوماً.
 - **شرط الإغلاق:** قرار المالك بأحد الخيارين قبل أي مستأجر مدفوع أو إعلان أو إطلاق تجاري، ثم تنفيذه بشروط القبول المكتوبة في وثيقة القرار. لا تكامل فوترة في الشجرة اليوم (`services/sahool-platform/api/cost_governance.py:16`)، فصفة الاستخدام الحالي حكم المالك لا قياس هنا. الأسعار غير متحقق منها.
+
+## DEP-TITILER-CERTIFI-PYSEC-2026-4320-01 — شهادة الجذور المثبتة تحجب تدقيق صورة TiTiler
+
+- **الحالة:** open — مرشح محلي؛ قبول CI للرأس النهائي وبناء الصورة لم يُقاسا.
+- **المصدر:** `services/raster-tiler-service/requirements.txt:9` يثبت certifi القديم؛ `pip-audit` كشف `PYSEC-2026-4320` والإصلاح `2026.10.19`. المصدر المنشور: `1b2d8530fef69fd2322ee3db5fbd75b51673f9a6`.
+- **العلاج المرشح:** تغيير دبوس certifi فقط وإعادة الحزمة المباشرة المولدة؛ تدقيق الخدمة وقراءة COG محلي ورسم PNG عبر TiTiler الحقيقي على Python 3.12 ناجحة. [الدليل وحدوده](../../certification/evidence/security_dependency_admission_20261023/README.md).
+- **شرط الإغلاق:** قبول CI وبناء الصورة النهائي. قبول checkpoint certifi-only لا يشمل مانع OTel؛ المتابعة أدناه تجمع متطلبات #1256 في المصدر المركب دون ادعاء قبول Security Scan كله. لا Docker محلي أو نشر تشغيلي.
+
+## DEP-OTEL-API-CVE-2026-114603-01 — تبعية التتبع القديمة تحجب Security Scan
+
+- **الحالة:** open — متطلب سابق مرشح؛ CI للرأس الأمني النهائي لم يكتمل.
+- **المصدر:** `services/auth/requirements.txt:16` و`services/sahool-platform/api/requirements.txt:35`؛ `pip-audit` كشف API1.44.0/CVE-2026-114603. متطلبات الإصلاح موجودة أصلًا في PR #1256 ويعاد استخدامها دون تغيير ذلك الطلب؛ source `0d229cb94534dd8e169dce7afee8d00e417d752b`.
+- **العلاج المرشح:** الأسرة 1.45.1/0.66b1؛ مع certifi المصدر المركب `8591fc835b2487d389287b8a0699a893a54aeec5`. [الدليل وحدود كل إيصال](../../certification/evidence/security_dependency_admission_20261023/README.md). لا ادعاء نجاح collector حي أو قبول كل الرأس من جمع اختبارات جزئية.
+- **شرط الإغلاق:** قبول CI للرأس الأمني النهائي؛ لا استثناء pip-audit أو تغيير baseline أو نشر تشغيلي.
+
+2026-10-23 — متابعة DEP-TITILER-CERTIFI-PYSEC-2026-4320-01: جُمعت المتطلبات في مرشح أمني واحد مع OTel الموجود في #1256؛ source `8591fc835b2487d389287b8a0699a893a54aeec5`. الحالة open كما هي؛ لم يُدمج main أو أي PR. إثبات TiTiler يخص ملفه عند `1b2d8530` ولا يُنسب كامل جرد31/32 للرأس المركب.
