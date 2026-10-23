@@ -22,3 +22,9 @@ Historical paired STAC parity failures remain failures. Pixel acceptance, live s
 ## Integration regression fixed
 
 The first default preflight found that the new bounded OTel CVE subprocess decoded captured text with the host locale. The call now declares `encoding="utf-8"`; the locale guard and its baseline remain unchanged. The failing guard output is `encoding-regression-red-output.txt`. The first preflight was interrupted and is not an accepted full run. The locale/CVE regression suite then passed 32 cases; `encoding-regression-green-final-output.txt` preserves the actual final output chunk, not a complete original log. A fresh default preflight validates the frozen corrected tree.
+
+## Final resumed source validation
+
+The EO workflow now uses per-PR concurrency and PR-only cancellation; non-PR runs have unique groups. The targeted concurrency contracts passed 55/55. All default suites then completed on indexed tree `bb3ee85ec7401729fc19e6efb588af6c0d9935ae`, preserved as source checkpoint `e83810912a3ceefb80f815887382b104b377bb1f`: **10615 unit passed / 57 skipped**, **1016 root tests passed / 8 skipped**, **4777 platform tests passed / 0 skipped**.
+
+The preflight prefix completed all static, selected mutation, brain and generated fix/check phases. Its interrupted unit run is not accepted; the three suites were resumed separately on the identical indexed tree, confirmed before and after execution. This is resumed phase evidence, not a claim that an interrupted command returned success. See `validation.json`, `preflight-completed-phases.txt`, `unit-tests.txt`, `tests-tests.txt` and `platform-tests.txt`. Full security-tier and final published-head CI acceptance remain separate. Final evidence/artifact additions do not change the accepted application, test or workflow blobs.
