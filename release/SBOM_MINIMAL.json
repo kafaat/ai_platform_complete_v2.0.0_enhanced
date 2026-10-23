@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7fb1f78f54a538d150c9edd57df2a4be849736f87eaa6839a0aa188faf334126"
+          "content": "53c542e2f84190b5b12e0c42c8bbcff25c0004e48155f118476aa6653ff0ac2d"
         }
       ],
       "name": "docker-compose.v9.yml",
