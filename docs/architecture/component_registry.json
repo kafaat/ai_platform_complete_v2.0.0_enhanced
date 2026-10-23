@@ -229,7 +229,9 @@
     "realtime-session": {
       "authority_kind": "operational_coordination",
       "component_kind": "service",
-      "deployment_units": [],
+      "deployment_units": [
+        "sahool-realtime-session"
+      ],
       "domain": "realtime-control-plane-experimental",
       "source_path": "services/realtime-session"
     },

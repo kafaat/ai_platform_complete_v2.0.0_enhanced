@@ -179,7 +179,7 @@
     },
     "LIVEKIT_API_KEY": {
       "category": "B",
-      "why": "Separate default-disabled realtime-session service; injected only for an explicitly accepted self-hosted SFU. Missing credentials fail startup after SAHOOL_REALTIME_ENABLED=1; no compose deployment or placeholder secret. Source: services/realtime-session/realtime_session/session_runtime.py and README.md."
+      "why": "Separate default-disabled realtime-session service; injected only for an explicitly accepted self-hosted SFU. Missing credentials fail startup after SAHOOL_REALTIME_ENABLED=1; the optional disabled Compose image target supplies no credential. Source: services/realtime-session/realtime_session/session_runtime.py and README.md."
     },
     "LIVEKIT_API_SECRET": {
       "category": "B",
@@ -187,7 +187,7 @@
     },
     "LIVEKIT_URL": {
       "category": "C",
-      "why": "Trusted per-environment self-hosted SFU admin origin for the separate default-disabled realtime-session service. No implicit endpoint; enabled startup fails when absent or invalid. No compose wiring before live admission acceptance. Source: services/realtime-session/realtime_session/session_runtime.py and livekit_adapter.py."
+      "why": "Trusted per-environment self-hosted SFU admin origin for the separate default-disabled realtime-session service. No implicit endpoint; enabled startup fails when absent or invalid. The optional disabled Compose image target supplies no LiveKit endpoint; enabled wiring awaits live admission acceptance. Source: services/realtime-session/realtime_session/session_runtime.py and livekit_adapter.py."
     }
   }
 }

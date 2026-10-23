@@ -121,6 +121,21 @@ The default image remains disabled. Enabling it requires operator-supplied
 runtime secrets and verified Platform/LiveKit endpoints; it is not part of this
 build command. Do not put bearer tokens or LiveKit secrets in URLs or logs.
 
+## Optional Compose image target
+
+`docker-compose.v9.yml` declares `sahool-realtime-session` only under the explicit
+`realtime-foundation` profile, with `SAHOOL_REALTIME_ENABLED` fixed to `0`, no
+published host ports, a non-root read-only root filesystem and a dedicated data
+volume. It has no LiveKit credentials, provider configuration or SFU dependency.
+This supplies an honest static target for the repository runtime inventory.
+Normal profile-free startup does not select it. Selecting the profile alone still
+cannot create sessions: liveness is 200 and readiness remains 503.
+
+A separate operator-reviewed deployment override is required to enable sessions
+after live SFU admission acceptance. The optional image target is not a deployment
+receipt or a successful enabled-readiness probe. Runtime evidence must preserve
+this distinction; do not mark the disabled image ready to satisfy a probe.
+
 ## Dependency isolation
 
 Install and audit this service's pinned requirements in its own environment.
