@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **284**
+- حرّاس تحجب في CI: **285**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
 - إجماليّ الطفرات المُسجَّلة: **462**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **382** على 133 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **386** على 134 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **226** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **227** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -1098,7 +1098,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (226)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (227)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1277,6 +1277,7 @@
 | `route_mount_contract_guard.py` | Guard route-bearing FastAPI services after main.py decomposition. | `structural-lint` |
 | `route_residual_classification_guard.py` | Classify route decorators that remain directly in main.py files. | `classify-main-route-residuals` |
 | `router_reachability_guard.py` | Conservative static FastAPI router reachability inventory and drift guard. | `capability-registry` |
+| `run_nats_compose_acceptance.py` | Isolated SAHOOL NATS Compose acceptance; no production credentials required. | `nats-compose` |
 | `runtime_certification_gate.py` | Fail closed when runtime or production certification exceeds accepted evidence. | `capability-registry` |
 | `runtime_container_deep_contract_guard.py` | Runtime container deep contract guard for non-AI high-risk services. | `guard` |
 | `runtime_contract_gate.py` | Runtime-chain static contract gate. | `structural-lint` |
