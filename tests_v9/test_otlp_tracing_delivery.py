@@ -1,6 +1,7 @@
 """A real instrumented request must reach the configured span exporter."""
 
 import socket
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -15,6 +16,26 @@ from tests_v9.service_module import _GENERIC_ROOTS, load_service_main, purge_gen
 pytestmark = pytest.mark.unit
 
 AUTH_DIR = Path(__file__).resolve().parents[1] / "services" / "auth"
+
+
+@pytest.mark.parametrize("whitespace", [" ", "\t"])
+def test_oversized_tracestate_is_discarded_before_expensive_parsing(whitespace):
+    """CVE-2026-114603: bound parsing work without freezing the pytest worker."""
+    source = """
+import sys
+from opentelemetry.trace import TraceState
+state = TraceState.from_header(['vendor=value' + sys.argv[1] * 200_000 + 'x'])
+assert len(state) == 0
+assert dict(TraceState.from_header(['vendor=value']).items()) == {'vendor': 'value'}
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", source, whitespace],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=3,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_unconfigured_app_does_not_claim_a_provider(monkeypatch):

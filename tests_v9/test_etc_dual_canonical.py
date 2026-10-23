@@ -27,7 +27,8 @@ except Exception:  # noqa: BLE001 — تبعيّات المنصّة غير مت�
 
 _FLAG = "FEATURE_CANONICAL_ETC_DUAL"
 
-# حمولة طقس كاملة (tmin/tmax/rh/wind/srad) — كافية لبناء WeatherDay ولـKe.
+# Cached payload has a 10 m maximum, not the documented 2 m daily mean needed
+# by Ke. Positive dual tests inject an explicit WeatherDay at the adapter seam.
 _PAYLOAD = {
     "daily": {
         "temperature_2m_max": [34.0],
@@ -54,6 +55,23 @@ def _crop_id():
     return resolve_crop_id("قمح")  # → "wheat" (بطاقة موجودة)
 
 
+def _documented_weatherday(monkeypatch):
+    from api import field_state_projection as projection
+    from core.engines.fao56 import WeatherDay
+
+    wd = WeatherDay(
+        temp_max_c=34.0,
+        temp_min_c=18.0,
+        humidity_pct=30.0,
+        wind_speed_m_s=2.0,  # explicit daily mean at 2 m, not the raw 10 m max
+        solar_radiation_mj_m2=25.0,
+        latitude_deg=15.5,
+        elevation_m=2000.0,
+        day_of_year=180,
+    )
+    monkeypatch.setattr(projection, "_weatherday_from_payload", lambda *_: wd)
+
+
 def test_flag_off_keeps_single(monkeypatch):
     """العلم OFF (افتراضيّ) ⇒ single_kc بلا تغيير لـetc_mm (سلوك محفوظ)."""
     monkeypatch.delenv(_FLAG, raising=False)
@@ -67,6 +85,7 @@ def test_flag_off_keeps_single(monkeypatch):
 def test_flag_on_full_inputs_uses_dual(monkeypatch):
     """العلم ON + مدخلات كاملة ⇒ dual_kc؛ etc=dual بنفس ET0 الكنسيّ؛ assumptions مُعلَنة."""
     monkeypatch.setenv(_FLAG, "1")
+    _documented_weatherday(monkeypatch)
     w = _base_water()
     _apply_canonical_etc_dual(w, _crop_id(), 60, 7.5, _PAYLOAD, 15.5, 0.6)
     assert w["etc_source"] == "dual_kc"
@@ -111,7 +130,21 @@ def test_flag_on_no_crop_falls_back_single(monkeypatch):
 def test_flag_on_no_ndvi_still_dual_age_based(monkeypatch):
     """العلم ON + لا NDVI ⇒ dual يتدرّج إلى Kcb من العمر (لا فشل، assumption مُعلَن)."""
     monkeypatch.setenv(_FLAG, "1")
+    _documented_weatherday(monkeypatch)
     w = _base_water()
     _apply_canonical_etc_dual(w, _crop_id(), 60, 7.5, _PAYLOAD, 15.5, None)
     assert w["etc_source"] == "dual_kc"
     assert "etc_dual_mm" in w
+
+
+def test_raw_ten_metre_wind_max_cannot_enable_dual_kc(monkeypatch):
+    from api.field_state_projection import _weatherday_from_payload
+
+    monkeypatch.setenv(_FLAG, "1")
+    assert _weatherday_from_payload(_PAYLOAD, 15.5, 180) is None
+    w = _base_water()
+    _apply_canonical_etc_dual(w, _crop_id(), 60, 7.5, _PAYLOAD, 15.5, 0.6)
+    assert w["etc_source"] == "single_kc"
+    assert w["etc_disabled_reason"] == "dual_inputs_unavailable"
+    assert w["etc_mm"] == 6.0
+    assert "etc_dual_mm" not in w

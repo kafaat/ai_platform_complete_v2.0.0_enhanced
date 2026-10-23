@@ -56,13 +56,18 @@ def test_hargreaves_fallback_is_degraded_not_fao56():
     assert out["method"] == "hargreaves_fallback"
     assert out["quality_status"] == "degraded"
     assert out["et0_mm"] is not None
-    assert set(out["missing_inputs"]) == {"solar_rad_mj_m2", "rh_mean_pct", "wind_2m_ms"}
+    assert set(out["missing_inputs"]) == {
+        "solar_rad_mj_m2",
+        "rh_mean_pct",
+        "wind_2m_ms",
+        "elevation_m",
+    }
     assert any("NOT full FAO-56" in lim for lim in out["limitations"])
     assert out["formula_version"] == "et0/fao56-pm/1.1.0"
 
 
 def test_partial_pm_inputs_still_fallback():
-    # إشعاع ورياح موجودان لكن RH مفقود ⇒ لا PM كامل ⇒ fallback (missing=rh فقط).
+    # الإشعاع والرياح موجودان؛ RH والارتفاع غائبان (مدخلان متاحان من أربعة).
     out = compute_et0(
         t_max_c=30.0,
         t_min_c=18.0,
@@ -72,8 +77,8 @@ def test_partial_pm_inputs_still_fallback():
         day_of_year=100,
     )
     assert out["method"] == "hargreaves_fallback"
-    assert out["missing_inputs"] == ["rh_mean_pct"]
-    assert out["input_completeness"] == round(2 / 3.0, 2)
+    assert out["missing_inputs"] == ["rh_mean_pct", "elevation_m"]
+    assert out["input_completeness"] == 0.5
 
 
 def test_insufficient_when_temperature_missing():

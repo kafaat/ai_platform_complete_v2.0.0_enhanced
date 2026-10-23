@@ -9,26 +9,30 @@ self-contained: يعتمد على pydantic + الأنواع المعياريّة
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import StrictFloat, StrictInt
+
+from shared.weather_input_contract import Et0WeatherInput
 
 
-class WaterBalanceRequest(BaseModel):
+class WaterBalanceRequest(Et0WeatherInput):
     crop: str
     stage: str = "mid"  # initial|development|mid|late
-    t_min_c: float
-    t_max_c: float
+    t_min_c: StrictFloat
+    t_max_c: StrictFloat
     rain_mm: float = 0.0
     ndvi: float | None = None  # إن توفّر ⇒ Kc ديناميكيّ من الغطاء (وإلّا ثابت بالمرحلة)
     forecast_rain_mm: float | None = None  # مطر متوقّع خلال النافذة ⇒ تأجيل (لا خصم كمّيّة)
     forecast_window_days: int = 3
     forecast_confidence: float = 1.0  # احتماليّة التنبّؤ [0,1] — تُضرب في المطر المتوقّع
     forecast_infiltration: float = 0.7  # عامل ترشّح المطر للجذور [0,1]
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
+    # Keep the caller's type boundary: bool/string must not become a numeric
+    # weather observation before the strict weather-service contract sees it.
+    solar_rad_mj_m2: StrictFloat | None = None
+    rh_mean_pct: StrictFloat | None = None
+    wind_2m_ms: StrictFloat | None = None
+    latitude_deg: StrictFloat = 15.5
+    elevation_m: StrictFloat = 2000.0
+    day_of_year: StrictInt = 100
     # ── تحليل الملوحة (اختياريّ) — يُفعّل مسار الملوحة تلقائيّاً عند توفّر تحليل موثوق ──
     # صدق: غيابها ⇒ حساب بلا ملوحة (السلوك القائم تماماً). توفّرها ⇒ يقرّر salinity_policy
     # تلقائيّاً (ECe/ECw حديثة <365 يوم + ثقة ≥0.8، أو ECe>2/ECw>1.5/محصول حسّاس).

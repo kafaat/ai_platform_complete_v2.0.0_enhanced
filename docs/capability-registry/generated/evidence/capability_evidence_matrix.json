@@ -10089,6 +10089,7 @@
         "tests_v9/test_canonical_water.py",
         "tests_v9/test_confidence_failures.py",
         "tests_v9/test_crop_twin.py",
+        "tests_v9/test_et0_http_platform_hop.py",
         "tests_v9/test_etc_dual_canonical.py",
         "tests_v9/test_etc_dual_router.py",
         "tests_v9/test_fao56_dual_kc.py",

@@ -719,8 +719,8 @@ sahool-platform,POST,/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendat
 sahool-platform,POST,/api/v1/irrigation/executions/reconcile,reconcile_irrigation_execution,services/sahool-platform/api/routers/irrigation_mpc.py,583
 sahool-platform,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint,services/sahool-platform/api/routers/irrigation_network.py,55
 sahool-platform,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint,services/sahool-platform/api/routers/irrigation_plan.py,111
-sahool-platform,POST,/api/v1/irrigation-recommendation,irrigation_recommendation,services/sahool-platform/api/routers/irrigation_recommendation.py,145
-sahool-platform,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation,services/sahool-platform/api/routers/irrigation_recommendation.py,221
+sahool-platform,POST,/api/v1/irrigation-recommendation,irrigation_recommendation,services/sahool-platform/api/routers/irrigation_recommendation.py,106
+sahool-platform,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation,services/sahool-platform/api/routers/irrigation_recommendation.py,184
 sahool-platform,POST,/api/v1/agro/kc-timeseries,persist_kc,services/sahool-platform/api/routers/kc_timeseries.py,87
 sahool-platform,GET,/api/v1/agro/kc-timeseries/{field_id},list_kc,services/sahool-platform/api/routers/kc_timeseries.py,140
 sahool-platform,GET,/api/v1/agro/kc-timeseries/{field_id}/compare,compare_kc,services/sahool-platform/api/routers/kc_timeseries.py,156
@@ -875,7 +875,7 @@ sahool-platform,GET,/api/v1/tenant/config,get_tenant_config,services/sahool-plat
 sahool-platform,POST,/api/v1/trials/analyze,analyze_trial,services/sahool-platform/api/routers/trials.py,37
 sahool-platform,GET,/api/v1/varieties/food-grains,food_grain_varieties_endpoint,services/sahool-platform/api/routers/varieties.py,27
 sahool-platform,GET,/api/v1/varieties/food-grains/{variety_id},food_grain_variety_detail_endpoint,services/sahool-platform/api/routers/varieties.py,47
-sahool-platform,POST,/api/v1/water-balance,compute_water_balance,services/sahool-platform/api/routers/water_balance.py,63
+sahool-platform,POST,/api/v1/water-balance,compute_water_balance,services/sahool-platform/api/routers/water_balance.py,66
 sahool-platform,GET,/api/v1/water-harvesting/potential,water_potential_endpoint,services/sahool-platform/api/routers/water_harvesting.py,28
 sahool-platform,GET,/api/v1/water-harvesting/methods,water_methods_endpoint,services/sahool-platform/api/routers/water_harvesting.py,36
 sahool-platform,GET,/api/v1/water-harvesting/method-guide,water_method_guide_endpoint,services/sahool-platform/api/routers/water_harvesting.py,42

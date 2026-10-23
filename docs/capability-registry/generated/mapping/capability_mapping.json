@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6202,
+    "files_scanned": 6226,
     "files_by_kind": {
       "backend": 1237,
       "database": 289,
-      "governance": 79,
+      "governance": 80,
       "mobile": 57,
-      "other": 2068,
-      "tests": 1998,
+      "other": 2089,
+      "tests": 2000,
       "web": 474
     },
-    "unmapped_artifacts": 2335,
+    "unmapped_artifacts": 2334,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -13986,7 +13986,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:62",
+          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:65",
           "score": 28
         },
         {
@@ -14224,18 +14224,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:220",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:183",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:144",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:105",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:79",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:84",
           "score": 28
         },
         {
@@ -19360,6 +19360,16 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_semantic_20261023.json",
+          "score": 20,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/decisions_pending/CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01.md",
           "score": 19,
           "signals": [
@@ -19396,6 +19406,15 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_20261023.json",
+          "score": 17,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
           "score": 16,
           "signals": [
@@ -19419,6 +19438,24 @@
           "signals": [
             "content:cdse",
             "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/SOURCE_REVIEW.md",
+          "score": 16,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/stac-manifest.json",
+          "score": 16,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
             "content:stac"
           ]
         },
@@ -19560,6 +19597,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/stac.py",
+          "score": 14,
+          "signals": [
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_log_contract_review.json",
           "score": 13,
           "signals": [
@@ -19573,6 +19618,15 @@
           "signals": [
             "path:cdse",
             "content:cdse"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/README.md",
+          "score": 13,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
           ]
         },
         {
@@ -19687,6 +19741,14 @@
           "score": 11,
           "signals": [
             "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/evidence/cdse_asset_access_20261023.json",
+          "score": 11,
+          "signals": [
+            "path:cdse",
             "content:sentinel"
           ]
         },
@@ -19853,6 +19915,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/run.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
           "score": 8,
           "signals": [
@@ -19978,7 +20048,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 92
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21718,7 +21788,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -23592,6 +23662,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/raster.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
           "score": 12,
           "signals": [
@@ -23926,14 +24004,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tools/sahool_qa/examples/rules.example.json",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
@@ -23943,8 +24013,8 @@
       "evidence_truncated": {
         "backend": 26,
         "events": 60,
-        "tests": 84,
-        "other_evidence": 1
+        "tests": 85,
+        "other_evidence": 2
       },
       "evidence_counts": {
         "backend": 100,
@@ -24208,7 +24278,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -34611,6 +34681,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/irrigation_models.py",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/irrigation_mpc.py",
           "score": 10,
           "signals": [
@@ -35000,7 +35078,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -35008,7 +35086,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:49",
+          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:50",
           "score": 12
         },
         {
@@ -35537,6 +35615,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_et0_http_platform_hop.py",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "tests_v9/test_mcp_weather_et0_engine_delegation.py",
           "score": 28,
           "signals": [
@@ -36015,6 +36103,36 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/et0_platform_boundary_20261023/README.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/et0_platform_boundary_20261023/verification.json",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -36065,6 +36183,14 @@
         },
         {
           "path": "scripts/ci/weather_engine_formula_guard.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "shared/weather_input_contract.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -36128,6 +36254,14 @@
           ]
         },
         {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/README.md",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/history/REVIEW_RESPONSE_10_11.md",
           "score": 10,
           "signals": [
@@ -36161,6 +36295,14 @@
         },
         {
           "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/source_heads.json",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -36261,15 +36403,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
+        "backend": 61,
         "routes": 48,
         "database": 0,
         "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 65,
+        "tests": 66,
         "governance": 0,
-        "other_evidence": 30
+        "other_evidence": 36
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -42622,10 +42764,6 @@
     },
     {
       "path": "services/sahool-platform/api/irrigation_method.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/irrigation_models.py",
       "kind": "backend"
     },
     {

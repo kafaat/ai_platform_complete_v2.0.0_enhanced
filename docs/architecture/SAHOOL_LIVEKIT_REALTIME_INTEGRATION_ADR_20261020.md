@@ -31,7 +31,7 @@ This is informed by:
 | `services/tts-service/routers/tts.py` | local full-buffer synthesis; Edge streaming | provide bounded PCM-frame adapter, explicit policy, cancellation |
 | `services/video-processor/routers/streams.py` | RTSP/USB processing + ZLMediaKit | keep camera ingest separate from participatory WebRTC |
 | `services/sahool-platform/api/field_cameras.py` | camera as low-weight field observation, rejects unvalidated ML diagnoses | video analysis needs separate governance and evidence |
-| `frontend/nginx.conf` | denies camera/microphone by default | allow only opt-in /realtime page, browser still prompts |
+| `frontend/nginx.conf` | denies camera/microphone by default | remain denied until an isolated realtime document and trusted session exist |
 | `services/tts-service/tts_tenant_policy.py` | v2 external TTS requires explicit grant | reuse contract; require **independent** STT/video consent |
 
 ## LiveKit server mechanics verified in Go
@@ -135,8 +135,15 @@ reconciliation before being advertised as authoritative diagnosis.
 - Workers/voice-model infrastructure scale independently from SFU;
   configure memory/CPU limits, overload responses, bounded retries,
   cancellation and backpressure.
-- Browser `Permissions-Policy` must deny media outside `/realtime` and allow
-  self-origin only for the opted-in route; runtime test actual response headers.
+- Preparatory code keeps `Permissions-Policy` camera/microphone denied on every
+  document, including `/realtime`. That route is not implemented: the current
+  BrowserRouter wildcard navigates to `/` inside the same document. A path-based
+  grant would survive SPA navigation and grant capture to ordinary pages.
+- Enabling media is deferred until an isolated realtime document and authenticated
+  tenant/field session flow exist. A dedicated origin is preferred; a same-origin
+  design must force document reloads on entry and exit, reject ambiguous encoded
+  paths, and prove browser transitions and final headers (including the edge).
+  Browser consent remains required in addition to policy and session checks.
 - Record latency per turn (speech end -> accepted text -> first audio -> end);
   measure ICE success, RTT, jitter, packet loss, reconnect rate, false barge-in,
   STT accuracy on Yemeni dialect and response policy denials. Do not promise
@@ -151,8 +158,10 @@ reconciliation before being advertised as authoritative diagnosis.
    or retrieve any of its evidence. Server-side revoke terminates access.
 3. Privacy: simulated local_only with network egress instrumented must show
    **zero** external STT/LLM/TTS/video calls. TTS contract v2 must be live.
-4. Browser: test denied normal pages versus allowed /realtime; inspect
-   Permissions-Policy on exact final deployed response (including edge).
+4. Browser: preparatory acceptance requires denied capture on every SPA response,
+   including `/realtime`, nested/query variants and encoded traversal paths. Before
+   implementing the feature, separately prove isolated document permissions,
+   navigation entry/exit, session authorization and final edge response headers.
 5. Network: WebRTC direct UDP; ICE/TCP and TURN/TLS fallbacks; reconnection
    on weak mobile networks and asymmetric NAT; no credentials in logs.
 6. UX: Arabic voice input + answer, interruption during TTS and model work,

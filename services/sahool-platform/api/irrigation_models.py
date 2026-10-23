@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictFloat, StrictInt
 
 # منطق نقيّ (v29.5-op-2/3) مُستخرَج إلى وحدة بلا fastapi كي يُختبَر في طبقة الوحدة؛
 # يُعاد تصديره هنا فيبقى api.routers.irrigation يستورده من irrigation_models كما هو.
@@ -18,6 +18,7 @@ from api.irrigation_logic import (  # noqa: F401  (re-export)
     plan_run_ledger_action,
     schedules_overlap,
 )
+from shared.weather_input_contract import Et0WeatherInput
 
 
 class ValveRequest(BaseModel):
@@ -59,11 +60,11 @@ def _parse_time(value: str):
         ) from None
 
 
-class IrrigationRecommendationRequest(BaseModel):
+class IrrigationRecommendationRequest(Et0WeatherInput):
     crop: str | None = None
     stage: str = "mid"  # initial|development|mid|late
-    t_min_c: float
-    t_max_c: float
+    t_min_c: StrictFloat
+    t_max_c: StrictFloat
     # **إلزاميّتان بلا افتراضٍ صفريّ.** عميلٌ يُغفِلهما كان يحصل على توصيةٍ محسوبةٍ على
     # «لا مطر» بلا أن يعلم — وهو الانحياز الذي يُغرِق. الحذفُ الآن ⇒ ٥٠٣ صريحة.
     rain_recent_mm: float | None = None
@@ -71,12 +72,12 @@ class IrrigationRecommendationRequest(BaseModel):
     soil_moisture_pct: float | None = None
     kc_override: float | None = None  # Kc دقيق من الفينولوجيا إن توفّر
     # طقس Penman-Monteith (اختياريّ — يسقط إلى Hargreaves عند الغياب)
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
+    solar_rad_mj_m2: StrictFloat | None = None
+    rh_mean_pct: StrictFloat | None = None
+    wind_2m_ms: StrictFloat | None = None
+    latitude_deg: StrictFloat = 15.5
+    elevation_m: StrictFloat = 2000.0
+    day_of_year: StrictInt = 100
     # ── مدخلات الملوحة (فحص مخبريّ) ──
     soil_ece: float | None = None  # ECe من soil_lab_tests
     soil_ec_age_days: int | None = None  # عُمر الفحص (للموثوقيّة)
@@ -96,17 +97,17 @@ class IrrigationRecommendationRequest(BaseModel):
     yield_value_per_ha: float | None = None  # لـ profit_max
 
 
-class FieldIrrigationRequest(BaseModel):
+class FieldIrrigationRequest(Et0WeatherInput):
     """المسار الأساسيّ: الطقس يُجلَب آليّاً من محرّك الطقس (WS-D.2c). الحرارة اختياريّة
     كتجاوز يدويّ فقط — لا كمسار أساسيّ. الاستنزاف/TAW/التربة تُقرأ آليّاً من حالة الحقل."""
 
     # تجاوز يدويّ اختياريّ (ليس المسار الأساسيّ) — None ⇒ جلب تلقائيّ من المحرّك.
-    t_min_c: float | None = None
-    t_max_c: float | None = None
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    day_of_year: int | None = None
+    t_min_c: StrictFloat | None = None
+    t_max_c: StrictFloat | None = None
+    solar_rad_mj_m2: StrictFloat | None = None
+    rh_mean_pct: StrictFloat | None = None
+    wind_2m_ms: StrictFloat | None = None
+    day_of_year: StrictInt | None = None
     root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
     policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
     water_price_per_m3: float | None = None

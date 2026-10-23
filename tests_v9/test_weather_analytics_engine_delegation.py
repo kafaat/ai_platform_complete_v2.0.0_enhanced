@@ -102,3 +102,80 @@ async def test_engine_down_degrades_et0_only_partial(monkeypatch):
 async def test_empty_records_unsupported(monkeypatch):
     out = await wa.analyze_weather_log([])
     assert out["supported"] is False
+
+
+@pytest.mark.skipif(wa is None, reason="platform deps unavailable")
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"daily_et0_mm": [None, None, None], "accumulated_et0_mm": 0.0},
+        {"daily_et0_mm": [5.0, None, 7.0]},
+        {"daily_et0_mm": [5.0, 6.0]},
+        {"daily_et0_mm": [5.0, 6.0, 7.0, 8.0]},
+        {"daily_et0_mm": [True, 6.0, 7.0]},
+        {"daily_et0_mm": [float("nan"), 6.0, 7.0]},
+        {"daily_et0_mm": [float("inf"), 6.0, 7.0]},
+        {"daily_et0_mm": [-1.0, 6.0, 7.0]},
+        {"daily_et0_mm": ["0", 6.0, 7.0]},
+        {"daily_et0_mm": None},
+        {},
+        None,
+        {"daily_et0_mm": [1e308, 1e308, 1e308]},
+        {"daily_et0_mm": [1e308, 0.0, 0.0]},
+    ],
+)
+async def test_incomplete_or_invalid_et0_never_claims_complete_or_annual_deficit(
+    monkeypatch, payload
+):
+    async def _series(**kwargs):
+        return payload
+
+    monkeypatch.setattr(wa, "get_et0_series", _series)
+    out = await wa.analyze_weather_log(_RECS)
+    assert out["analysis_status"] == "partial"
+    assert out["availability"]["et0"] is False
+    assert out["computed_et0_total_mm"] is None
+    assert out["annual_et0_mm"] is None
+    assert out["annual_water_deficit_mm"] is None
+    assert out["irrigation_dependency_ar"] is None
+    assert set(out["computed_products"]) == {"heat", "frost", "wind", "rain"}
+    assert set(out["unavailable_products"]) == {
+        "et0",
+        "annual_water_deficit",
+        "irrigation_dependence",
+    }
+    assert out["heat_stress_days"] == 2
+    assert out["high_wind_days"] == 1
+    assert out["total_rainfall_mm"] == 1.0
+    assert out["limitations"]
+
+
+@pytest.mark.skipif(wa is None, reason="platform deps unavailable")
+async def test_true_zero_daily_et0_is_complete_and_preserves_known_zero(monkeypatch):
+    async def _series(**kwargs):
+        return {"daily_et0_mm": [0.0, 0, 0.0]}
+
+    monkeypatch.setattr(wa, "get_et0_series", _series)
+    out = await wa.analyze_weather_log(_RECS)
+    assert out["analysis_status"] == "complete"
+    assert out["availability"]["et0"] is True
+    assert out["computed_et0_total_mm"] == 0.0
+    assert out["annual_et0_mm"] == 0.0
+    assert out["annual_water_deficit_mm"] is not None
+
+
+@pytest.mark.skipif(wa is None, reason="platform deps unavailable")
+async def test_skipped_temperature_record_cannot_make_shorter_series_an_annual_total(monkeypatch):
+    records = [*_RECS, {"date": "2026-08-21", "temp_max_c": None, "precipitation_mm": 0}]
+
+    async def _series(**kwargs):
+        assert len(kwargs["daily_t_min"]) == 3
+        return {"daily_et0_mm": [5.0, 6.0, 7.0]}
+
+    monkeypatch.setattr(wa, "get_et0_series", _series)
+    out = await wa.analyze_weather_log(records)
+    assert out["days_analyzed"] == 4
+    assert out["analysis_status"] == "partial"
+    assert out["computed_et0_total_mm"] is None
+    assert out["annual_water_deficit_mm"] is None
+    assert out["heat_stress_days"] == 2

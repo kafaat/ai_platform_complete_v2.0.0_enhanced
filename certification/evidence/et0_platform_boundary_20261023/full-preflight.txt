@@ -1,0 +1,94 @@
+═══ preflight (default) — أساس المقارنة: origin/main ═══
+── ٠) قاعدة المقارنة وحداثة الفرع
+   ✓ base=origin/main merge-base=d23b320a behind=0
+── ٠أ) عقد المتطلّبات (docs/architecture/preflight_required.json)
+   ✓ كلّ ما يُعلِنه العقد موجود
+── ٠ب) الفهرس قبل التوليد
+   ✓ لا ملفّات غير متعقَّبة
+   ⚠ 39 تعديلاً غير مُدرَج — ما يُقاس ليس ما سيُدفَع. نفّذ: git add -A
+── ٠ج) probe_leak
+   ✓
+── ١أ) ruff check .
+   ✓
+── ١ب) ruff format .
+   ✓
+── ٢ب) no_merge_conflict_markers
+   ✓
+── ٢أ) no_manual_backup_files
+   ✓
+── ٢ز) cross_service_path_contract
+   ✓
+── ٢ج) bidi_control_char
+   ✓
+── ٢د) non_ascii_fixture_path
+   ✓
+── ٢ﻫ) json_duplicate_key
+   ✓
+── ٢و) text_encoding_locale
+   ✓
+── ٣أ) claim_base_guard
+   ✓
+── ٣ب) guard_mutation (ساكن)
+   ✓
+── ٣د) ci_invoked_locale_preamble
+   ✓
+── ٣ﻫ) text_anchor_liveness
+   ✓
+── ٣ج) guard_mutation --run --only services/sahool-platform/api/weather_service_client.py
+   ✓
+── ٣ج) guard_mutation --run --only services/weather-service/weather_runtime.py
+   ✓
+── ٤أ) compose_env_contract
+   ✓
+── ٤د) compose_no_default_secrets
+   ✓
+── ٤ﻫ) compose_auth_sink
+   ✓
+── ٤و) generated_write_targets
+   ✓
+── ٤ب) env_compose_drift
+   ✓
+── ٤ج) compose_runtime_target
+   ✓
+── ٤ز) db_writer_ownership
+   ✓
+── ٥أ) arch_test_ci_coverage
+   ✓
+── ٥ب) marker_coverage
+   ✓
+── ٥ج) platform_module_budget
+   ✓
+── ٦أ) brain_deferral
+   ✓
+── ٦د) brain_duplicate_gap_identity
+   ✓
+── ٦و) brain_annotated_supersession
+   ✓
+── ٦ب) brain_state_transition
+   ✓
+── ٦ج) brain_commit_claim
+   ✓
+── ٦ز) pr_finding_gap_id
+   ✓
+── ٦هـ) brain_append_only
+   ✓
+     ملاحظة: ٦ج تقرأ الرسائل **المُلتزَمة**. التزِم ثمّ أعِد هذه الخطوة وحدها.
+── ٧أ) verify_all_generated --fix
+   ✓
+── ٧ب) verify_all_generated --check (إثبات التقارب)
+   ✓
+── ٨أ) pytest -m unit
+   ✓
+── ٨ب) pytest tests/
+   ✓
+── ٨ج) pytest services/sahool-platform/tests (شكل CI)
+   ✓
+── ١١ب) Capability-Impact المقترح لمتن الـPR
+   Capability-Impact: IRR-003,IRR-004,IRR-005,IRR-009,PA-001,SAT-003,SAT-004,SEC-003,SOIL-002,WX-002,WX-003,WX-004,WX-005,WX-006
+   تذكير: البوّابة لا تستمع لـ edited ⇒ تعديل المتن لا يُطلِقها. لكنّها
+   منذ #907 تقرأ المتن حيّاً من الـAPI زمنَ التنفيذ: rerun يلتقط متناً
+   محدَّثاً (وSHAs تبقى من الحدث عمداً — البوّابة تحكم على شيفرة الحدث).
+
+أخضر على ما قِيس — وهي أقلّيّةُ البوّابات (§٣.١٧؛ العددُ الحيّ في GUARD_CATALOGUE).
+اشتقّ عقود نطاقك من مساراتك المُعدَّلة قبل الدفع.
+═══ إخفاقات: 0 · متخطّاة: 0 ═══

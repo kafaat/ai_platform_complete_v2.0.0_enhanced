@@ -926,15 +926,15 @@ async def build_evidence_response(
             except AdvisoryRejected:
                 selection = None
         _policy_for_generation = normalize_policy(TENANT_POLICY.get_policy(tenant_id))
-        # Resolve the provider up-front so the envelope can gate external calls fail-closed:
-        # a missing/invalid envelope or a local_only policy blocks any external provider,
-        # while local generation stays permitted (its data never leaves the tenant boundary).
+        # Resolve the provider up-front so the envelope gates generation fail-closed:
+        # a missing/invalid envelope blocks local and external providers; a valid
+        # local_only envelope permits local generation while blocking external calls.
         _cfg = ai_generation.resolve_generation(req.model)
         _external = _cfg is not None and ai_generation.provider_is_external(_cfg.provider)
         _gen_gate = policy_envelope.gate_generation(_envelope, external=_external)
         policy_envelope_decision = _gen_gate
         if _gen_gate["decision"] == policy_envelope.DECISION_BLOCKED:
-            # Fail-closed: do not call an external provider; stay on the evidence-only answer.
+            # Fail-closed: do not call a generation provider; stay on the evidence-only answer.
             gen = None
             generation_status = "blocked_by_policy"
         else:
