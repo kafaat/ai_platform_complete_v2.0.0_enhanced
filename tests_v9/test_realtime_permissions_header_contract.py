@@ -25,7 +25,7 @@ def test_nginx_media_policy_defaults_to_denial():
     assert match, "Scoped permission map must be present in http context"
     body = match.group(1)
     assert 'default "geolocation=(self), camera=(), microphone=()";' in body
-    assert '~^/realtime(?:/|\?|$) "geolocation=(self), camera=(self), microphone=(self)";' in body
+    assert r'~^/realtime(?:/|\?|$) "geolocation=(self), camera=(self), microphone=(self)";' in body
     assert (
         raw.count("add_header Permissions-Policy $sahool_media_permissions_policy always;")
         == 1
