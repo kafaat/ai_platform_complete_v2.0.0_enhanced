@@ -115,7 +115,6 @@ def test_missing_envelope_blocks_external_provider():
     assert gate["reason"] == PE.REASON_ENVELOPE_MISSING
 
 
-
 def test_missing_envelope_blocks_local_generation_too():
     # Local-only *data residency* is not an authorization to bypass policy.
     for bad in (None, {}, {"policy_mode": "local_only"}):
@@ -164,9 +163,8 @@ def test_model_never_receives_schema_for_tool_forbidden_by_envelope():
     )
     assert out
     assert {item["function"]["name"] for item in out} == {"get_field_state"}
-    assert ai_generation._provider_tools(
-        cfg, ["can_read_field_data"], allowed_tools=set()
-    ) == []
+    assert ai_generation._provider_tools(cfg, ["can_read_field_data"], allowed_tools=set()) == []
+
 
 # ── Consumer: per-mode external-provider gating ─────────────────────────────
 def _env(mode: str, external_allowed: bool) -> dict:

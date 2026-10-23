@@ -200,7 +200,6 @@ def test_build_stream_event_canonical_shape():
         assert ev["ts"] == "2026-07-02T01:00:00+00:00"
 
 
-
 @pytest.mark.parametrize(
     ("secret_url", "source_type"),
     [
@@ -248,12 +247,17 @@ def test_event_payload_drops_unknown_or_sensitive_keys_even_when_builder_bypasse
 
 async def test_credentials_are_not_published_to_either_transport():
     sent = []
+
     async def fake_publish(subject, payload):
         sent.append((subject, payload))
+
     event = se.build_stream_event(
         "stream.started",
-        {"stream_id": "s1", "tenant_id": "t1",
-         "source_url": "rtsp://operator:PASSWORD@camera/live?token=SECRET"},
+        {
+            "stream_id": "s1",
+            "tenant_id": "t1",
+            "source_url": "rtsp://operator:PASSWORD@camera/live?token=SECRET",
+        },
     )
     result = await se.emit_stream_event(event, nats_publish=fake_publish, mqtt_publish=fake_publish)
     assert result == {"nats": "ok", "mqtt": "ok"}
@@ -261,6 +265,7 @@ async def test_credentials_are_not_published_to_either_transport():
     for _, payload in sent:
         assert b"PASSWORD" not in payload and b"SECRET" not in payload
         assert b"source_url" not in payload
+
 
 def test_build_stream_event_accepts_dict():
     ev = se.build_stream_event(
