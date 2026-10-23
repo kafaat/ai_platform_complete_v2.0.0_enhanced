@@ -127,7 +127,7 @@ jobs:
       - name: Recreate final workflow and run canonical generators
         run: |
           set -euo pipefail
-          python -m pip install PyYAML==6.0.3
+          python -m pip install PyYAML==6.0.3 ruff==0.15.8
           python - <<'PY'
           from pathlib import Path
           path=Path(".github/workflows/railway-staging-connection-preflight.yml")
@@ -136,6 +136,8 @@ jobs:
           assert source.count(marker)==1, "temporary block changed"
           path.write_text(source.split(marker,1)[0].rstrip()+"\n",encoding="utf-8")
           PY
+          ruff format scripts/ci/railway_staging_connection_preflight.py tests_v9/test_railway_staging_connection_preflight.py
+          ruff check scripts/ci/railway_staging_connection_preflight.py tests_v9/test_railway_staging_connection_preflight.py
           python scripts/ci/guard_mutation_guard.py --blocking-surface --enforce
           python scripts/ci/guard_catalogue.py
           python scripts/ci/capability_mapping_engine.py --generate
@@ -156,7 +158,8 @@ jobs:
           wf=".github/workflows/railway-staging-connection-preflight.yml"
           allowed_prefixes=("docs/capability-registry/generated/","docs/runbooks/GUARD_CATALOGUE.md","release/")
           changed=subprocess.check_output(["git","diff","--name-only","HEAD"],text=True).splitlines()
-          if wf not in changed or any(p!=wf and not p.startswith(allowed_prefixes) for p in changed):
+          allowed_sources=("scripts/ci/railway_staging_connection_preflight.py","tests_v9/test_railway_staging_connection_preflight.py")
+          if wf not in changed or any(p!=wf and p not in allowed_sources and not p.startswith(allowed_prefixes) for p in changed):
               raise SystemExit("Unexpected generated file outside allowlist: "+str(changed))
           total=0
           for path in changed:

@@ -8,7 +8,7 @@
       "mutations": [
         {
           "expect": "test_rejects_production_environment",
-          "find": "    if environment == PRODUCTION_ID or environment != STAGING_ID:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
+          "find": "    if environment.get(\"id\") != STAGING_ID:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
           "replace": "    if False:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
           "why": "Removing the production-environment rejection must make the named negative test fail, without producing a staging verification receipt."
         }
