@@ -225,6 +225,13 @@
       "domain": "remote-sensing-truth",
       "source_path": "services/raster-tiler-service"
     },
+    "realtime-session": {
+      "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [],
+      "domain": "realtime-control-plane-experimental",
+      "source_path": "services/realtime-session"
+    },
     "remote-sensing-workspace-bff": {
       "authority_kind": "stateless_compute",
       "component_kind": "bff",

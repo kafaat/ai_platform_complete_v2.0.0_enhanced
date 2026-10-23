@@ -176,6 +176,18 @@
     "SAHOOL_ENFORCE_RLS_ROLE": {
       "category": "A",
       "why": "enforcement_active(): الغياب ⇒ يُفرَض (fail-closed افتراضيّاً)، ولا يُعطَّل إلّا بقيمةٍ falsy صريحة؛ shared/db_role_guard.py:34. كان يُضبَط \"1\" في unified/light/odoo-snippet فقط — المنقولة إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17)، وv9 لم يضبطه قطّ فيعتمد الافتراضيّ الآمن نفسه."
+    },
+    "LIVEKIT_API_KEY": {
+      "category": "B",
+      "why": "Separate default-disabled realtime-session service; injected only for an explicitly accepted self-hosted SFU. Missing credentials fail startup after SAHOOL_REALTIME_ENABLED=1; no compose deployment or placeholder secret. Source: services/realtime-session/realtime_session/app.py and README.md."
+    },
+    "LIVEKIT_API_SECRET": {
+      "category": "B",
+      "why": "LiveKit signing/admin credential for the separate default-disabled session service only. Missing secret fails enabled startup; never embedded in compose or the browser. Actual SFU admission acceptance is required before enabling. Source: services/realtime-session/realtime_session/app.py and README.md."
+    },
+    "LIVEKIT_URL": {
+      "category": "C",
+      "why": "Trusted per-environment self-hosted SFU admin origin for the separate default-disabled realtime-session service. No implicit endpoint; enabled startup fails when absent or invalid. No compose wiring before live admission acceptance. Source: services/realtime-session/realtime_session/app.py and livekit_adapter.py."
     }
   }
 }
