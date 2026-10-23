@@ -496,12 +496,14 @@ services:
     - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
+    entrypoint: [/bin/sh, /etc/nats/start-nats.sh, nats-server]
     command:
     - -c
     - /etc/nats/nats.conf
     volumes:
     - nats-js:/data/jetstream
     - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    - ./nats/start-nats.sh:/etc/nats/start-nats.sh:ro
     # الزوجُ الخاصّ بالوسيط وحدَه؛ العملاءُ يُركِّبون ./nats/tls/ca (بلا مفتاح) لا هذا المجلّد.
     - ./nats/tls/server:/etc/nats/tls:ro
     networks:
