@@ -8572,6 +8572,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_railway_staging_connection_preflight.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raster_asset_date_binding.py",
     "kind": "tests"
   },
