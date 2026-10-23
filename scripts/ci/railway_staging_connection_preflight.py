@@ -70,6 +70,7 @@ def validate_status(payload: Any, source_sha: str) -> dict[str, Any]:
         "production_certified": False,
     }
 
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--status-json", type=Path, required=True)
