@@ -1,16 +1,16 @@
 {
-  "source_commit": "36cbe0e32f10d7be9ac9c39b092500cb810c7117",
-  "source_tree": "75cd9eb84c6360b74071d99a524e01ab13a351ea",
+  "source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
+  "source_tree": "149299c8c84ded2a1259b1e20605cabd51f6552c",
   "base_commit": "5f730646a112ceb770fb89ce194c259e94921f30",
   "scope": "Disabled standalone realtime control-plane source foundation, not live SFU/media acceptance",
-  "checked_at": "2026-10-23T21:28:20.121868+00:00",
+  "checked_at": "2026-10-23T22:06:10.999266+00:00",
   "focused_tests": {
     "tests": 135,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "execution_source_commit": "b26f3c7978f97b378df7635bb0f604aca3de0191",
-    "reuse_basis": "Realtime runtime/test Python, requirements and isolated workflow remain byte-identical to b26f3c7. Later changes register the optional disabled image target, installation mirror contract, documentation and explicit UI inventory debt. The separate catalog snapshot test is covered by integration_regressions."
+    "execution_source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
+    "reuse_basis": "135 realtime runtime/SDK tests rerun on this source correction; unchanged runtime, requirements and realtime tests. Workflow change only consumes the existing image-readiness loop variable."
   },
   "runtime_audit": {
     "scanner": "pip-audit 2.10.1",
@@ -29,7 +29,7 @@
   },
   "default_disabled": true,
   "source_digests": {
-    ".github/workflows/realtime-session.yml": "7176de008c19fa51d1e7c35a48f51c5cc4370562c025aa1970071d1896d33554",
+    ".github/workflows/realtime-session.yml": "9e732bed21ff91e6f24b28a4818fce168d2bba46595ca5e7ee97432a0d927206",
     "config/service_feature_ui_contracts.json": "28b0954a3b2c9dddef6bc847236a40a5514196802c371a1300f1375264c6cb47",
     "services/realtime-session/Dockerfile": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254",
     "services/realtime-session/README.md": "90659114ff4c81857ff4bfec82d71ef9515e0f7dc252e890e477d2f99d3ddb74",
@@ -54,13 +54,14 @@
     "docker-compose.v9.yml": "6171c83a52a17701b04700d6e5d879f56804a1bff766d202a64ebe970b45fda7",
     "config/endpoint_ui_coverage.json": "d99c3eea3f165e488485c49632fa0994562699506458ef58698ab8ce80d4e60c",
     "config/endpoint_ui_coverage_waivers.json": "95a05b8136885cc7e7c4c95d59ca16ca4ed7ec5b2c320d7b4fe6abb6905de4bf",
-    "tests_v9/test_platform_catalog_gate.py": "f14e2961df91175324a917e8977c7435eb35b9524b64482cdcf18d91dc95cbfc"
+    "tests_v9/test_platform_catalog_gate.py": "f14e2961df91175324a917e8977c7435eb35b9524b64482cdcf18d91dc95cbfc",
+    ".gitleaks.toml": "ffe2defdf97b0f225ba027b247a41d8d7d19761580b692dc9908552fb409ddbd"
   },
   "limitations": [
     "Actual self-hosted SFU room.auto_create=false and fresh/refreshed token rejoin-after-delete acceptance remain required. ListRooms cannot verify this setting.",
     "SQLite single local volume and one process only; no distributed replicas.",
     "No agent dispatch, Arabic STT, TTS audio adaptation, browser/mobile call UI, media capture enablement, recording or agricultural actuation.",
-    "Dedicated image/isolated SDK workflow authored; Docker is unavailable locally and CI has not run for this candidate.",
+    "Actual isolated image build and real disabled-image HTTP smoke passed in CI on ba6b06a4 (run40030907169, job120678631743); live SFU/media acceptance remains unexecuted.",
     "No merge or runtime deployment of this session service."
   ],
   "component_registry_tests": {
@@ -80,6 +81,32 @@
     "targeted_tests": 67,
     "failures": 0,
     "scope": "Docker mirror contract, explicit farmer route/UI backlog classification, measured inventory pins and component registry",
-    "full_preflight": "pending rerun; earlier full run interrupted after unit failures"
+    "full_preflight": "pending rerun; earlier full run interrupted after unit failures",
+    "default_preflight": {
+      "execution_source_commit": "ba6b06a49e108cf095204486182c16f45c0aa9b6",
+      "result": "PASS",
+      "failed_steps": 0,
+      "skipped_steps": 0,
+      "suites": [
+        "unit",
+        "tests/",
+        "services/sahool-platform/tests"
+      ],
+      "scope": "Complete default-tier run; earlier full-tier attempt remains failed/interrupted."
+    }
+  },
+  "ci_correction_security_tests": {
+    "tests": 30,
+    "failures": 0,
+    "skipped": 0,
+    "source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a"
+  },
+  "ci_security_corrections": {
+    "receipt": "ci-security-corrections.json",
+    "range_findings": 0,
+    "scope_witnesses_passed": 6,
+    "actionlint": "PASS including ShellCheck; SC2034 mutation rejected",
+    "all_workflow_actionlint": "PASS",
+    "workingtree": "Three findings in byte-identical base files; zero in changed files. No repository-wide zero-finding claim."
   }
 }
