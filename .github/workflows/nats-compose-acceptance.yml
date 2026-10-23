@@ -1,0 +1,35 @@
+name: NATS Compose Acceptance
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: nats-compose-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  nats-compose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Accept actual Compose broker on exact source head
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          python3 scripts/ci/run_nats_compose_acceptance.py
+          --repo "$GITHUB_WORKSPACE"
+          --expected-sha "$SOURCE_SHA"
+          --report "$RUNNER_TEMP/nats-compose-evidence"
+      - name: Preserve sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: nats-compose-${{ github.run_id }}
+          path: ${{ runner.temp }}/nats-compose-evidence
+          if-no-files-found: error
+          retention-days: 14
