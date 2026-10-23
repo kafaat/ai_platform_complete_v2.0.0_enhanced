@@ -1,2 +1,0 @@
-$ git grep -n -i -E (INSERT INTO|UPDATE|DELETE FROM) +field_weather_overlay -- *.py
-[exit=1]

@@ -1,9 +1,0 @@
-guard_mutation_guard: 63 حارساً مُواصَفاً (442 طفرة) · 113 ديناً مُعلَناً · 129 مصدراً سلوكيّاً (375 طفرة)
-
-زرعٌ وتشغيل فعليّ:
-  ✓ s5_exec_01_writer_cutover_guard.py[0] تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ. ⇒ test_removing_strict_mode_marker_is_blocked
-  ✓ s5_exec_01_writer_cutover_guard.py[1] A label or arbitrary grant must not retain cutover deferral; only independently validated reviewed U07 bytes qualify. ⇒ test_u07_label_cannot_authorize_other_scope_or_relaxed_bindings
-  ✓ s5_exec_01_writer_cutover_guard.py[2] Matching U07 metadata alone must not substitute for the unchanged GATE evaluator checking actual bytes and expiry. ⇒ test_gate_validator_failure_cannot_be_replaced_by_local_scope_match
-  ✓ s5_exec_01_writer_cutover_guard.py[3] The bounded review-only grant must not hide a separate ISSUED grant that lifts the cutover deferral. ⇒ test_another_issued_grant_still_revokes_deferral_alongside_valid_u07
-
-guard_mutation_guard_ok

@@ -1,8 +1,0 @@
-................................................                         [100%]
-=============================== warnings summary ===============================
-tests_v9/test_cropwise_evidence_quality.py::test_change_grid_requires_spatial_identity_not_only_shape
-  /workspace/scratch/04e8a5aa7867/sahool-cropwise-1227/services/raster-service/raster_api_models.py:122: UserWarning: Field name "schema" in "RawDataProcessResponse" shadows an attribute in parent "BaseModel"
-    class RawDataProcessResponse(BaseModel):
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-48 passed, 1 warning in 2.52s

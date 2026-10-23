@@ -1,3 +1,0 @@
-$ python3 scripts/ci/db_writer_ownership_guard.py --check
-db_writer_ownership_guard_ok baseline=67
-[exit=0]

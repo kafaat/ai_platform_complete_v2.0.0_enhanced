@@ -1,0 +1,39 @@
+name: Realtime foundation Git object transport
+on:
+  push:
+    branches:
+      - chatgpt/transport-realtime-ba6b06a4-20261023
+permissions:
+  contents: write
+jobs:
+  transport:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/chatgpt/transport-realtime-ba6b06a4-20261023'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Verify and transfer the tested Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=ba6b06a49e108cf095204486182c16f45c0aa9b6
+          expected_tree=feeca6f0de47ed97c499a2ce527ddb0e54f377b3
+          main_head=5f730646a112ceb770fb89ce194c259e94921f30
+          source_anchor=569d01596c2b8d9db3e12e6210103bc5306055df
+          ready_branch=chatgpt/objects-ready-realtime-ba6b06a4-20261023
+          pack_file="$RUNNER_TEMP/realtime-foundation.pack"
+          base64 --decode transport/pack.b64 > "$pack_file"
+          printf '%s  %s\n' '01d06b489390b649d9c14156b1570fafe5210c83705fc3b23dd89eaa3d899005' "$pack_file" | sha256sum -c -
+          git fetch --no-tags --depth=1 origin "$main_head" "$source_anchor"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$main_head"
+          git unpack-objects -r < "$pack_file"
+          git cat-file -e "$target^{commit}"
+          test "$(git rev-parse "$target^{tree}")" = "$expected_tree"
+          git merge-base --is-ancestor "$main_head" "$target"
+          git merge-base --is-ancestor "$source_anchor" "$target"
+          test "$(git rev-parse "$target:.github/workflows/realtime-session.yml")" = "$(git hash-object .github/workflows/realtime-session.yml)"
+          git push origin "$target:refs/heads/$ready_branch"
+          printf 'Transferred tested commit %s with tree %s to %s\n' "$target" "$expected_tree" "$ready_branch"
