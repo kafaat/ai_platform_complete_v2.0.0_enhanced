@@ -65,6 +65,14 @@ retryable. Verify this lifecycle, restart recovery and LiveKit outage behavior
 before allowing any real sessions. This conservative lease/quota workflow does
 not itself bound rejoin when the SFU configuration above is absent or incorrect.
 
+## Architecture inventory
+
+The component authority is `operational_coordination`: its persistent SQLite
+records own session admission and cleanup obligations, while tenant, field and
+agricultural truth remain with Platform. It owns no domain-schema tables. This
+explicit category avoids describing the stateful coordinator as stateless or as
+the system of record for agricultural data.
+
 ## Configuration
 
 | Variable | Required meaning |
