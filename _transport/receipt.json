@@ -1,0 +1,17 @@
+{
+  "status": "RECONSTRUCTED_GENERATING",
+  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "pr": 1264,
+  "remote_head": "a04cf90422c2fb79dead7b96f42a3bf3099a873d",
+  "main": "d8f650a77b789738104d5162c10db7548050fd07",
+  "worktree": "/workspace/scratch/28587c6c06ca/pr1264-recovery",
+  "focused_tests": 26,
+  "generation_session": 32127,
+  "source_of_previous_loss": "workspace maintenance; prior bundle not in Library",
+  "transport_plan": "isolated GitHub Actions imports hashed git bundle into candidate branch; PR head updated via connector after readback",
+  "candidate": "6cb09a11bc26b94e402ef86d2e7ed78901063f0c",
+  "tree": "40e0d6c200760d42f12d1c91c3f78f23f2da540c",
+  "bundle_sha256": "32b887289c4375686dc6ff1bf034d21521692a0dadc4660c7017401d7db662f7",
+  "bundle_bytes": 9411,
+  "generated": "PASS 7229 checksums"
+}

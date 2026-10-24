@@ -1,0 +1,31 @@
+name: Import verified PR1264 Git objects
+on:
+  push:
+    branches: [codex/pr1264-object-transport-20261025]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 1
+      - name: Verify and import exact reviewed objects
+        env:
+          EXPECTED_COMMIT: 6cb09a11bc26b94e402ef86d2e7ed78901063f0c
+          EXPECTED_TREE: 40e0d6c200760d42f12d1c91c3f78f23f2da540c
+          EXPECTED_BUNDLE: 32b887289c4375686dc6ff1bf034d21521692a0dadc4660c7017401d7db662f7
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' "$EXPECTED_BUNDLE" _transport/pr1264.bundle | sha256sum -c -
+          git fetch --no-tags origin a04cf90422c2fb79dead7b96f42a3bf3099a873d:refs/remotes/origin/pr1264-base d8f650a77b789738104d5162c10db7548050fd07:refs/remotes/origin/pr1264-main
+          git bundle verify _transport/pr1264.bundle
+          git fetch _transport/pr1264.bundle HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$EXPECTED_COMMIT"
+          test "$(git rev-parse "$EXPECTED_COMMIT^{tree}")" = "$EXPECTED_TREE"
+          test "$(git rev-list --parents -n 1 "$EXPECTED_COMMIT")" = "$EXPECTED_COMMIT a04cf90422c2fb79dead7b96f42a3bf3099a873d d8f650a77b789738104d5162c10db7548050fd07"
+          test -z "$(git ls-remote origin refs/heads/codex/pr1264-imported-20261025)"
+          git push origin "$EXPECTED_COMMIT:refs/heads/codex/pr1264-imported-20261025"
