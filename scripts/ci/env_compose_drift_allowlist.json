@@ -176,6 +176,50 @@
     "SAHOOL_ENFORCE_RLS_ROLE": {
       "category": "A",
       "why": "enforcement_active(): الغياب ⇒ يُفرَض (fail-closed افتراضيّاً)، ولا يُعطَّل إلّا بقيمةٍ falsy صريحة؛ shared/db_role_guard.py:34. كان يُضبَط \"1\" في unified/light/odoo-snippet فقط — المنقولة إلى docs/history/compose/ (COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01، 2026-10-17)، وv9 لم يضبطه قطّ فيعتمد الافتراضيّ الآمن نفسه."
+    },
+    "LIVEKIT_API_KEY": {
+      "category": "B",
+      "why": "Separate default-disabled realtime-session service; injected only for an explicitly accepted self-hosted SFU. Missing credentials fail startup after SAHOOL_REALTIME_ENABLED=1; the optional disabled Compose image target supplies no credential. Source: services/realtime-session/realtime_session/session_runtime.py and README.md."
+    },
+    "LIVEKIT_API_SECRET": {
+      "category": "B",
+      "why": "LiveKit signing/admin credential for the separate default-disabled session service only. Missing secret fails enabled startup; never embedded in compose or the browser. Actual SFU admission acceptance is required before enabling. Source: services/realtime-session/realtime_session/session_runtime.py and README.md."
+    },
+    "LIVEKIT_URL": {
+      "category": "C",
+      "why": "Trusted per-environment self-hosted SFU admin origin for the separate default-disabled realtime-session service. No implicit endpoint; enabled startup fails when absent or invalid. The optional disabled Compose image target supplies no LiveKit endpoint; enabled wiring awaits live admission acceptance. Source: services/realtime-session/realtime_session/session_runtime.py and livekit_adapter.py."
+    },
+    "REALTIME_WORKER_SECRET": {
+      "category": "B",
+      "why": "Dedicated context-authentication credential for opt-in voice. Never included in source or Compose. Bearers remain transient process state, session records are durable. services/realtime-session/realtime_session/voice_jobs.py."
+    },
+    "REALTIME_SESSION_ORIGIN": {
+      "category": "C",
+      "why": "Explicit trusted internal session-service origin; enabled worker rejects absent or non-origin values. services/realtime-agent/realtime_agent/config.py."
+    },
+    "REALTIME_AI_ORIGIN": {
+      "category": "C",
+      "why": "Explicit authenticated frontend BFF origin, fixed agricultural chat path; no cloud model endpoint. Enabled worker rejects absent origin. services/realtime-agent/realtime_agent/providers.py."
+    },
+    "REALTIME_TTS_ORIGIN": {
+      "category": "C",
+      "why": "Explicit authenticated frontend BFF origin for local-only no-store speech; enabled worker rejects absent origin. services/realtime-agent/realtime_agent/providers.py."
+    },
+    "REALTIME_STT_MODEL_PATH": {
+      "category": "C",
+      "why": "Operator-supplied offline model directory. No download fallback; absent model prevents enabled startup. services/realtime-agent/realtime_agent/speech.py."
+    },
+    "REALTIME_STT_MODEL_SHA256": {
+      "category": "C",
+      "why": "Required expected model.bin content hash from accepted model artifact; mismatch prevents enabled startup. services/realtime-agent/realtime_agent/speech.py."
+    },
+    "REALTIME_STT_BUNDLE_SHA256": {
+      "category": "C",
+      "why": "Required offline bundle content identity, including tokenizer/configuration. No implicit acceptance of unverified model files. services/realtime-agent/realtime_agent/speech.py."
+    },
+    "REALTIME_TTS_PROVIDER": {
+      "category": "A",
+      "why": "Defaults to local Piper and accepts local XTTS only. External speech providers are rejected for voice. services/realtime-agent/realtime_agent/config.py."
     }
   }
 }

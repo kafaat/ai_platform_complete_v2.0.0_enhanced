@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 219,
+          "line": 221,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -404,6 +404,14 @@
           "receiver": "router"
         },
         {
+          "function": "health",
+          "line": 170,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/session_runtime.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
           "function": "healthz",
           "line": 39,
           "method": "GET",
@@ -492,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 412,
+          "line": 414,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -627,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 431,
+          "line": 433,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -768,6 +776,14 @@
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
           "receiver": "router"
+        },
+        {
+          "function": "ready",
+          "line": 174,
+          "method": "GET",
+          "module": "services/realtime-session/realtime_session/session_runtime.py",
+          "path": "/readyz",
+          "receiver": "app"
         },
         {
           "function": "readyz",
@@ -1139,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 475,
+          "line": 477,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1170,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 508,
+          "line": 510,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1182,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1110,
-  "route_inventory_sha256": "34d5a5bc805ae9ba67bb5af16f354ab297d22da0075028965e5503dc5987638d",
+  "route_count": 1117,
+  "route_inventory_sha256": "e8025be2c0c541ceca6258ed134aa15d91beba3d45485259c12bb86603010964",
   "runtime_verified": false,
   "schema_version": 1
 }

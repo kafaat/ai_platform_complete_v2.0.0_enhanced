@@ -3272,6 +3272,18 @@
           "why": "If the broker accepts a wrong password, the negative authentication probe must stop acceptance."
         }
       ]
+    },
+    "scripts/ci/run_livekit_acceptance.py": {
+      "$policy": "Real-SFU admission receipts must not substitute the initial JWT for the actual server-refreshed bearer.",
+      "test": "tests/architecture/test_livekit_acceptance.py",
+      "mutations": [
+        {
+          "expect": "test_requires_actual_refreshed_token_and_all_cases",
+          "find": "        if not report.get(\"actual_server_refresh_observed\"):\n            raise RuntimeError(\"actual_server_refresh_missing\")",
+          "replace": "        if False:\n            raise RuntimeError(\"actual_server_refresh_missing\")",
+          "why": "Removing the actual-refresh requirement must fail the named negative report test; its initial complete positive report must continue to pass. This measures receipt completeness, not live SFU execution."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

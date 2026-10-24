@@ -30,7 +30,7 @@ from fastapi.security import (
 )
 from jwt import PyJWTError as JWTError
 from prometheus_client import Counter, Histogram
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, StrictBool, field_validator
 
 from shared.security.access_tokens import decode_access_token
 
@@ -196,6 +196,7 @@ async def get_current_user(
 
 # ── Models ───────────────────────────────────────────────────
 class TTSRequest(BaseModel):
+    no_store: StrictBool = False
     text: str = Field(..., min_length=1, max_length=MAX_TEXT_LEN)
     voice: str = Field(default=DEFAULT_VOICE, description="Voice key from VOICES")
     rate: str = Field(default="+0%", description="Speech rate (e.g. -20%, +10%)")

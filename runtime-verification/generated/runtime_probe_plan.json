@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "a83a137777d276014d53f3e702db3b07214aab2689c1f8ad754634a7f4b054a4",
+  "plan_sha256": "1726eb794fd38697c42275d1a67249b93d0d68bb3d7c28ae59ad2f943c9658c1",
   "schema_version": "1.0",
   "services": [
     {
@@ -672,6 +672,53 @@
       "source_service": "raster-tiler-service"
     },
     {
+      "base_url_env": "REALTIME_AGENT_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "realtime-agent",
+      "source_service": "realtime-agent"
+    },
+    {
+      "base_url_env": "REALTIME_SESSION_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "realtime-session",
+      "source_service": "realtime-session"
+    },
+    {
       "base_url_env": "REMOTE_SENSING_WORKSPACE_BFF_BASE_URL",
       "probes": [
         {
@@ -1090,5 +1137,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "4e636b98bf38b0f30e53494be098f33088f83812fac98dcff9a7358729ef19a2"
+  "source_contract_sha256": "5125e90e7c4c30849f56d965b4d327a09c6e55041c4333cf40c6585d8f90f232"
 }

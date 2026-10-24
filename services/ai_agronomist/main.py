@@ -7,7 +7,7 @@ from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 
 from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
 
@@ -175,6 +175,8 @@ def _approved_resume_envelope(decided: dict[str, Any]) -> dict[str, Any]:
 
 
 class AdvisorQuery(BaseModel):
+    # Voice sessions may explain verified owner facts but never execute tools.
+    voice_read_only: StrictBool = False
     question: str = Field(min_length=1, max_length=4000)
     tenant_id: str | None = None
     field_id: str | None = None

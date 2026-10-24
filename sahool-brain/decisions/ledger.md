@@ -4318,3 +4318,92 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
 السبب: تقييد المسار وحده لا يعزل صلاحية مستند SPA؛ لا يُفتح media قبل بناء حدود الجلسة والمستند.
+
+
+## 2026-10-23 — جلسات realtime منفصلة ومعطلة افتراضيًا
+
+- **القرار/السبب:** مصدر `82d77ab40aa6beec85c65a1d98722db4b6978711` يعيد استخدام هوية المنصة وFIELD_VIEW/RLS دون زيادة مساراتها أو نقل الوسائط عبر FastAPI الزراعية. قاعدة SQLite وحيدة محلية تحفظ الحصص والتعافي في الأساس الأول؛ ليست مخزنًا موزعًا.
+- **حد القبول:** شرط مستقل وصريح لإعداد SFU الفعلي `room.auto_create=false`، لأن LiveKit يجدد JWT ولا يعني حذف الغرفة إبطال الاعتماد. اختبارات الانضمام بعد الحذف بتوكن أصلي ومجدد حاجبة للإطلاق. راجع `services/realtime-session/README.md` والدليل `certification/evidence/realtime_session_foundation_20261023/README.md`.
+
+### 2026-10-23 — ترقيم عقد خدمة الجلسات الجديدة
+
+- المصدر: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ `services/realtime-session/realtime_session/app.py` و`docs/architecture/api_versioning_legacy_baseline.json`.
+- القرار والسبب: اعتماد `/api/v1/realtime/sessions` بدل المسار التصميمي غير المُرقّم؛ الخدمة غير منشورة ولا يوجد عميل يتطلب اسم توافق. يحافظ ذلك على سقف الدين صفر دون استثناء أو رفع ميزانية. اختبارات وفحص HTTP في `certification/evidence/realtime_session_foundation_20261023/`.
+
+### 2026-10-23 — تعريف runtime مستقل وتصنيف متغيرات الجلسات
+
+- المصدر: `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ `services/realtime-session/main.py` و`realtime_session/session_runtime.py` و`docs/architecture/component_registry.json` و`scripts/ci/env_compose_drift_allowlist.json`.
+- السبب والقرار: مالك بناء التطبيق ومساراته هو runtime مستقل، فيتبع main عقد تفويض runtime القائم دون استثناء non-HTTP أو تعديل الحارس. SQLite هو سجل الجلسات المحلي وحده، لذلك authority_kind=system_of_record، وdeployment_units فارغة لأن الخدمة غير موصولة. مفاتيح LiveKit حقن بيئي إلزامي عند التفعيل فقط، بلا قيم سرية في Compose. مصالحة main تحفظ إصلاح NATS.
+
+### 2026-10-23 — تصحيح سلطة الجلسات إلى التنسيق التشغيلي
+
+- المصدر: `docs/architecture/component_registry.json` و`services/realtime-session/README.md`، امتداد مصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`.
+- يصحح هذا القرار وصف system_of_record في المدخل السابق: كتالوج المستودع يقيس ملكية جداول المجال، ولا تملك خدمة الجلسات أيًا منها. تخزين SQLite لديمومة الحصص والتنظيف حالة تشغيلية فعلية، لذلك أضيفت مفردة `operational_coordination` صراحةً بدل وسم الخدمة عديمة الحالة أو توسيع ملكية جداول المنصة. حارس تطابق ملكية الجداول باقٍ بلا تعديل. هوية المستأجر والحقل والحقيقة الزراعية تبقى لدى Platform.
+
+### 2026-10-23 — هدف صورة اختياري لا يفعّل الجلسات
+
+- المصدر: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`؛ `docker-compose.v9.yml` و`services/realtime-session/README.md`.
+- القرار والسبب: رفض PATH-3 هدفًا مجهولًا للخدمة الجديدة، فأضيف `sahool-realtime-session` تحت profile اختياري `realtime-foundation` فقط. SAHOOL_REALTIME_ENABLED مثبت 0، بلا منافذ مضيف أو أسرار LiveKit، وبحجم موارد محدود وحجم بيانات مخصص ومستخدم غير جذري وجذر للقراءة فقط. deployment_units تعكس هذا الهدف المعلن، ولا تعني نشرًا حيًا. لا تعديل حارس أو تجاوز readiness=503؛ تمكينها يحتاج override مقبولًا مستقلًا بعد إثبات SFU. كتلة NATS في Compose مطابقة لأساس main.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.
+
+## 2026-10-24 — تصحيح بوابتي CI للخدمة
+
+2026-10-24 — المصدر `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a` يصحح حلقة انتظار الصورة واستثناءات قيم مصدر محددة. على المرشح السابق ba6b06a4 نجح preflight الافتراضي وصورة Docker وHTTP الفعلي المعطل في CI؛ 135 اختبار خدمة و30 عقد أمان معادة ناجحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/ci-image.json` و`validation.json`. قبول SFU الحي وعزل مستند الاتصال ما زالا مفتوحين؛ لا دمج أو نشر.
+
+## 2026-10-24 — مصالحة قبول NATS الجديد
+
+2026-10-24 — مصالحة #1262 مع main بعد دمج #1261 عند `88719df2cf491f5407ee01ea8b32c44097feb90d`: التزام المصدر `c1ce54808e06c52479454776c0abe3d5442a997c` يحفظ شيفرة قبول NATS وحراسه؛ اقتصرت التعارضات السبعة على مخرجات مولدة تعاد قانونيًا. نجحت175 حالة، منها135 للخدمة. قبول NATS الفعلي يعاد على الرأس النهائي في CI ولا يُورث من main. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. لا دمج للخدمة أو نشر، وقبول SFU مفتوح.
+
+
+## 2026-10-24 — إعادة بناء مرشح الصوت
+
+2026-10-24 — إعادة بناء تكامل الصوت الاختياري فوق أساس #1262 عند `9b3d59d95100dfb8cc0faf95cd5da4d5b6039786` بعد فقدان المرشح المحلي غير المنشور؛ لا تُورث نتائج النسخة المفقودة. الجلسات تربط المستأجر والحقل، والعامل يفرض سياسة صوت محلية بلا أدوات، والويب مستند معزول وFlutter معطل افتراضيًا. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`certification/evidence/realtime_voice_recovery_20261024/README.md`. قبول SFU وFlutter والشبكات والصوت العربي الحي مفتوح؛ لا دمج أو نشر.
+
+
+## 2026-10-24 — إصلاح مراجعة #1263
+
+2026-10-24 — إصلاح مراجعة #1263 فوق رأس `09739386fa885cbced1c9bae599dc886f3102a47` ومصالحة main `5cd4064c9bc3ee45611569a5d88bdf8368776bc1`: عزل callbacks ورفض الاتصال المتأخر بحسب epoch حتى لا تغلق جلسة جديدة، وتوافق web1 في Flutter، وتصحيح bootstrap والاقتباس في قبول SFU. نجحت 19 حالة controller و7 عقود عدة القبول وtypecheck وactionlint محليًا. المصادر: `frontend/src/realtime-call/controller.test.ts` و`mobile/sahool_app/pubspec.yaml` و`.github/workflows/livekit-acceptance.yml`. قبول Flutter وSFU الفعلي على الرأس النهائي ما زال مطلوبًا؛ لا دمج main أو نشر إنتاج.
+
+
+## 2026-10-24 — توافق PMTiles وLiveKit
+
+2026-10-24 — متابعة #1263 عند `c8714330578d33cfbfe9f0d06b0e3bc7494ae1ff`: نجح قبول SFU الفعلي وأمن Actions وعامل الصوت والويب في CI، لكن Flutter كشف MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01. المرشح يحفظ خرائط PMTiles عبر توافق محلي محدود لـpmtiles1.3 مع protobuf6.0.0، وترخيص ومصدر واختبارات أرشيف مستقلة؛ نجح محلل الحزمة على Dart3.10.8 مع protobuf6.0.0 و33 اختبارًا، وحُفظ قفل الحزمة الفعلي. حل تبعيات التطبيق وAPK لم يُثبتا بعد؛ الدليل `certification/evidence/pmtiles_compatibility_20261024/validation.json`. المصدر: `mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md` و`.github/workflows/realtime-mobile.yml`؛ الوظيفة الفاشلة120940846487. لا دمج إلى main أو نشر إنتاج.
+
+
+## 2026-10-24 — قفل تطبيق Flutter الفعلي
+
+2026-10-24 — متابعة #1263 على المصدر `dc478b95131e2aa808ea02139e481751cb562ad9`: نجح حل تبعيات التطبيق وتحليل واختبارات realtime في CI40122522596. اعتمد قفل التطبيق بايتًا ببايت من artifact12571592686 بعد مطابقة SHA256؛ القرار يحفظ نتيجة المحلل الفعلية بدل تحرير إصدارات يدويًا. المصدر: `certification/evidence/pmtiles_compatibility_20261024/application-ci.json` و`mobile/sahool_app/pubspec.lock`. نجح بناء APK أيضًا؛ فشلت الوظيفة فقط لاختلاف القفل القديم. إعادة إثبات القفل على الرأس الجديد مطلوبة؛ فجوة التوافق باقية open.
+
+
+## 2026-10-24 — فحص مهارة الاستئناف صارم: `sha256sum -c SHA256SUMS` بلا `--ignore-missing`
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (`a91bee9e` على الفرع، squash إلى `e28f662a`). القرار: يتحقّق `CLAUDE.md:75` من ملفّات `.claude/skills/work-continuation/` بـ`sha256sum -c SHA256SUMS` صارماً، ويحرسه `tests_v9/test_work_continuation_checksum_strict.py`. هذا يحلّ محلّ السطر المقتبَس في مدخلة 2026-10-19 في hot.md، ولا يغيّر الحزمة التي ثبّتها #1238 (`bf0356f0`).
+
+السبب: علَم `--ignore-missing` يتخطّى الملفّ المُدرَج المحذوف وينجح، فيصير التحقّق أخضر على حزمةٍ ناقصة.
+
+الاعتماد: ضمن دفعة #1251 التي وجّهها المالك بعبارة «قوم بعمل ما يلزم». لا موافقةَ مالكٍ منفصلةٌ لهذا البند مسجَّلة.
+
+## 2026-10-24 — حذف `dependency_inventory.csv` و`dependency_inventory.generated.json` اليتيمين
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (`ef75badf` و`aaa715be` على الفرع، squash إلى `e28f662a`). القرار: يُحذف الملفّان، ويُخرَجان من `release/FILE_CHECKSUMS.sha256` وأعداد الـmanifest، ويُعلَّق السطران 40 و42 في `docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md`. التقارير المؤرَّخة في يوليو تبقى كما هي.
+
+السبب:
+- `9ddde2c26` (2026-07-09) حذف المولِّد والحارسين والـworkflowين، لكنّه عدّل الملفّين بدل حذفهما، فبقيا بلا كاتب ولا قارئ.
+- على `b7d76523`: `git grep` خارج `*.md` و`release/` أعطى صفر مطابقات، ومنها `dependency.inventory` بلا حساسيّة حالة. القرّاء الوحيدون في Markdown والإصدار هم تقارير يوليو وكتيّب التشغيل وسطرا `FILE_CHECKSUMS` 1100–1101.
+
+الاعتماد: نقل المالك توصيةَ الجلسة الأخرى بالحذف، ووجّه الدفعة بعبارة «قوم بعمل ما يلزم».
+
+## 2026-10-24 — OpenRouter: خصوصيّة افتراضيّة ورفض `:free`
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (squash إلى `e28f662a`). القرار: كلّ طلب chat/completions إلى OpenRouter يحمل `provider={"data_collection": "deny", "zdr": True}` (`shared/ai/provider_contract.py:86`). ومعرّفٌ ينتهي بـ`:free` في `AI_MODEL` أو كتالوج `AI_MODELS` يُرفَض في التهيئة رفضاً يسمّي المعرّف (`shared/ai/provider_contract.py:89`، و`services/sahool-platform/api/ai_provider_config.py:56`، و`services/ai_agronomist/ai_generation.py:67`).
+
+السبب: OpenRouter يختار المزوّد الخلفيّ لكلّ طلب، والافتراضيّ `data_collection="allow"`، فقد تصل مطالبات المزارعين إلى مزوّدٍ يخزّنها أو يتدرّب عليها، والمسار المجّانيّ أشدّ خطراً. وإن لم يفِ أيّ مزوّد بالقيدين يعيد OpenRouter خطأً، فتسقط الخدمة إلى الأدلّة بأمان. ما يبقى (F2) في `log.md` (2026-10-24): التحذير المتكرّر، وغياب السبب في `/healthz/ai-provider`.
+
+الاعتماد: ضمن دفعة #1251 التي وجّهها المالك بعبارة «قوم بعمل ما يلزم». لا موافقةَ مالكٍ منفصلةٌ لهذا البند مسجَّلة.
+
+
+2026-10-25 — استعادة إصلاح #1264 فوق main `d8f650a7` بعد إزالة مساحة العمل السابقة: يحتفظ `_require_service_token` بالمقارنة ثابتة الزمن للتوكن الصحيح، ويرفض غير ASCII بـ401، ويعامل الإعداد غير ASCII كغير متاح503. المصدر: `services/guardrails-engine/main.py` و`tests_v9/test_guardrails_service_token_ascii.py`. أعيد التنسيق والتوليد والمصالحة؛ لا تورث نتائج المرشح المحلي المفقود. فجوة GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01 مفتوحة حتى الدمج.

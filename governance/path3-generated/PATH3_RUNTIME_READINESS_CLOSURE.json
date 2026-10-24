@@ -10,12 +10,12 @@
     "target_plan_hash_matches": true
   },
   "closed": true,
-  "closure_sha256": "ffb50cd175c0f3e9955b8aa44f4399ae97ee8a9626adf798abe048e73ddb2827",
+  "closure_sha256": "e267a8cc5551461c4e7a29221a5d7aa784c1e87979e5254e6fbf892d3662c57a",
   "fanout_targets": {
     "mcp_servers": 4
   },
   "missing_services": [],
-  "planned_services": 28,
+  "planned_services": 29,
   "production_certified_services": 0,
   "required_profiles": {
     "erp-bridge": [
@@ -24,11 +24,14 @@
     "model-registry-adapter": [
       "model-lifecycle"
     ],
+    "realtime-session": [
+      "realtime-foundation"
+    ],
     "sam2-inference": [
       "gpu"
     ]
   },
-  "resolved_services": 28,
+  "resolved_services": 29,
   "runtime_verified_services": 0,
   "schema_version": 1,
   "status": "READY_FOR_LIVE_EXECUTION",

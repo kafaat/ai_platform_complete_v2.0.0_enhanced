@@ -1,0 +1,202 @@
+{
+  "scope": "actual installed LiveKit1.1.20 native local AudioSource/LocalAudioTrack/AudioStream; no SFU or network",
+  "trials": [
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": [
+        3.804,
+        13.754
+      ]
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 1.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 5.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 15.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 30.0,
+      "nonzero_observed_after_cancel_ms": []
+    },
+    {
+      "interrupt_delay_ms": 49.0,
+      "nonzero_observed_after_cancel_ms": []
+    }
+  ],
+  "trials_with_tail": 1,
+  "python_capture_source_sha256": "735714eab4e1c064848db68d5d6531f0fe231a9934f893c065c1a5e3e657aaa5"
+}

@@ -20,6 +20,10 @@
     },
     {
       "score_pct": 42.9,
+      "service": "realtime-agent"
+    },
+    {
+      "score_pct": 42.9,
       "service": "weather-signal-engine"
     },
     {
@@ -37,17 +41,13 @@
     {
       "score_pct": 71.4,
       "service": "field-segmentation"
-    },
-    {
-      "score_pct": 71.4,
-      "service": "mcp_servers"
     }
   ],
   "schema_version": "1.0",
-  "services": 31,
-  "with_declared_configuration": 29,
-  "with_health": 27,
+  "services": 33,
+  "with_declared_configuration": 31,
+  "with_health": 28,
   "with_metrics": 17,
-  "with_readiness": 26,
+  "with_readiness": 27,
   "with_tracing": 4
 }

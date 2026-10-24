@@ -157,22 +157,62 @@ def test_cache_key_empty_tenant_normalized(monkeypatch):
 
 
 # ── (ج) Cache-Control = private (مصدريّ، يغطّي مساري HIT/MISS) ────────────────
-def test_cache_control_is_private_not_public():
-    # بعد تفكيك main.py إلى routers/، انتقل مُعالِج /v1/tts/synthesize (مع رؤوس
-    # Cache-Control) إلى routers/tts.py. نمسح main.py + routers/*.py معاً عبر
-    # المساعِد المُجمِّع كي يبقى المسح صحيحاً بلا إضعاف أيّ تأكيد (توسيع نطاق فقط).
-    from tts_route_source import tts_combined_source
+def _cache_control_values(source: str) -> set[str]:
+    """Reject unreviewed or computed cache headers in every conditional branch."""
+    import ast
 
-    src = tts_combined_source(ROOT)
-    assert "Cache-Control" in src
-    assert "public" not in src.split("Cache-Control")[1][:60], (
-        "أصل TTS لكلّ مستأجِر يجب ألّا يكون public"
-    )
-    # كلّ ظهور لـCache-Control يجب أن يكون private
-    for chunk in src.split('"Cache-Control":')[1:]:
-        head = chunk[:40]
-        assert "private" in head, f"Cache-Control غير private: {head!r}"
-        assert "public" not in head, f"Cache-Control لا يزال public: {head!r}"
+    def literals(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            assert node.value in {"private, max-age=86400", "no-store"}
+            return {node.value}
+        if isinstance(node, ast.IfExp):
+            return literals(node.body) | literals(node.orelse)
+        raise AssertionError("Cache-Control must use reviewed literal values")
+
+    values = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Dict):
+            for key, value in zip(node.keys, node.values, strict=True):
+                if isinstance(key, ast.Constant) and str(key.value).lower() == "cache-control":
+                    values.update(literals(value))
+    return values
+
+
+def test_cache_control_is_private_not_public():
+    from pathlib import Path
+
+    service = Path(ROOT) / "services/tts-service"
+    values = set()
+    for path in [service / "main.py", *sorted((service / "routers").glob("*.py"))]:
+        values.update(_cache_control_values(path.read_text(encoding="utf-8")))
+    assert values == {"private, max-age=86400", "no-store"}
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        '"public"',
+        '"private, public"',
+        '"unknown"',
+        "configured",
+        'f"private, {configured}"',
+        '"private, " + configured',
+        '"no-store" if ready else "public"',
+        '"private, max-age=86400" if ready else configured',
+    ],
+)
+def test_cache_control_rejects_public_unknown_or_computed_values(expression):
+    with pytest.raises(AssertionError):
+        _cache_control_values('{"cache-control": ' + expression + "}")
+
+
+def test_cache_control_accepts_safe_literal_and_conditional_values():
+    assert _cache_control_values('{"Cache-Control": "private, max-age=86400"}') == {
+        "private, max-age=86400"
+    }
+    assert _cache_control_values(
+        '{"Cache-Control": "no-store" if ready else "private, max-age=86400"}'
+    ) == {"private, max-age=86400", "no-store"}
 
 
 # ── (د) إشعار الصوت يحفظ هوية المستأجر ولا يتجاوز سياسة TTS بهوية خدمة ──────

@@ -4,9 +4,9 @@
 
 ## Summary
 
-- Services: **31**
-- Services with probeable endpoints: **28**
-- Planned probes: **100**
+- Services: **33**
+- Services with probeable endpoints: **29**
+- Planned probes: **102**
 - Valid live evidence files: **0**
 - Runtime verified services: **0**
 - Production certified services: **0**
@@ -39,6 +39,8 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | rag-retrieval | 3 | not verified |
 | raster-service | 3 | not verified |
 | raster-tiler-service | 1 | not verified |
+| realtime-agent | 0 | not verified |
+| realtime-session | 2 | not verified |
 | remote-sensing-workspace-bff | 2 | not verified |
 | sahool-platform | 11 | not verified |
 | sam2-inference | 3 | not verified |

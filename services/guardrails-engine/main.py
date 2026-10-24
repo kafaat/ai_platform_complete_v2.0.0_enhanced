@@ -425,7 +425,11 @@ def _require_service_token(x_agent_token: str = _Header(None)):
     # L5 FIX: مقارنة بزمن ثابت (كـodoo-bridge) لإغلاق قناة توقيت جانبيّة.
     import hmac as _hmac
 
-    if not x_agent_token or not x_agent_token.isascii() or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN):
+    if (
+        not x_agent_token
+        or not x_agent_token.isascii()
+        or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN)
+    ):
         raise HTTPException(401, "توكن خدمة غير صالح لمسارات الحواجز")
     return True
 

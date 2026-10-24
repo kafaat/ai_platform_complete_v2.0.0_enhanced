@@ -764,6 +764,15 @@ async def build_evidence_response(
     except TrustedTenantError as exc:
         raise HTTPException(403, exc.code) from exc
 
+    voice_read_only = getattr(req, "voice_read_only", False) is True
+    # Establish the zero-tool voice budget before any evidence dependency runs.
+    _envelope_tool_gate: set[str] = set()
+    max_tool_rounds = 0 if voice_read_only else 3
+    if voice_read_only and (
+        not req.field_id or req.tool_calls or req.current_field_state is not None
+    ):
+        raise HTTPException(403, "voice_read_only_request_invalid")
+
     async with httpx.AsyncClient() as client:
         # C3: public clients must not be able to inject ``current_field_state`` and
         # make the AI answer appear grounded in canonical field evidence. A supplied
@@ -794,6 +803,26 @@ async def build_evidence_response(
                     "policy": "field-specific advice fails closed when field context is unavailable",
                 },
             )
+
+        # Check the current owner-fetched policy BEFORE KG/RAG or generation.
+        # Voice's local-only boundary is independent of a tenant's tool grants.
+        if voice_read_only:
+            envelope, refusal = policy_envelope.enforce_request(
+                _extract_ai_context_pack(field_state)
+            )
+            if (
+                refusal is not None
+                or envelope is None
+                or envelope.get("tenant_id") != tenant_id
+                or envelope.get("contract") != "sahool.ai_policy_envelope"
+                or type(envelope.get("contract_version")) is not int
+                or envelope["contract_version"] != 2
+                or envelope.get("version") != "v52"
+                or envelope.get("policy_mode") != "local_only"
+                or envelope.get("external_llm_allowed") is not False
+                or envelope.get("external_tts_allowed") is not False
+            ):
+                raise HTTPException(403, "voice_local_policy_required")
 
         # SEMANTIC-CONVERGENCE-01: resolve reference KG context first, then use it only
         # to expand RAG retrieval. KG remains reference-only and never becomes decision evidence.
@@ -872,7 +901,8 @@ async def build_evidence_response(
     _envelope, _envelope_refusal = policy_envelope.enforce_request(ai_pack)
     # Missing/malformed tenant envelope must never become allowed_tools=None:
     # tool_loop treats None as a backwards-compatible unrestricted envelope gate.
-    _envelope_tool_gate = policy_envelope.enforced_allowed_tools(_envelope)
+    if not voice_read_only:
+        _envelope_tool_gate = policy_envelope.enforced_allowed_tools(_envelope)
     policy_envelope_decision: dict[str, Any] = _envelope_refusal or {
         "decision": policy_envelope.DECISION_ALLOWED,
         "reason": "policy_envelope_valid",
@@ -933,6 +963,8 @@ async def build_evidence_response(
         _external = _cfg is not None and ai_generation.provider_is_external(_cfg.provider)
         _gen_gate = policy_envelope.gate_generation(_envelope, external=_external)
         policy_envelope_decision = _gen_gate
+        if voice_read_only and _external:
+            raise HTTPException(403, "voice_external_generation_forbidden")
         if _gen_gate["decision"] == policy_envelope.DECISION_BLOCKED:
             # Fail-closed: do not call a generation provider; stay on the evidence-only answer.
             gen = None
@@ -955,7 +987,7 @@ async def build_evidence_response(
                 tenant_id=tenant_id,
                 actor="ai_agronomist",
                 timestamp=_utc_timestamp(),
-                max_tool_rounds=3,
+                max_tool_rounds=max_tool_rounds,
                 audit_saver=save_agent_tool_audit,
                 approval_saver=save_pending_approval,
                 allowed_tools=_envelope_tool_gate,

@@ -1,12 +1,13 @@
 """Exercise the actual service-token dependency without DB/service startup."""
+
 import ast
 import hmac
-from pathlib import Path
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-from fastapi import Header, HTTPException
 import pytest
+from fastapi import Header, HTTPException
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,11 @@ SOURCE = ROOT / "services/guardrails-engine/main.py"
 
 def dependency(configured):
     tree = ast.parse(SOURCE.read_text(encoding="utf-8"), filename=str(SOURCE))
-    node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "_require_service_token")
+    node = next(
+        n
+        for n in tree.body
+        if isinstance(n, ast.FunctionDef) and n.name == "_require_service_token"
+    )
     namespace = {"_Header": Header, "HTTPException": HTTPException, "_GR_AGENT_TOKEN": configured}
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(SOURCE), "exec"), namespace)
     return namespace["_require_service_token"]

@@ -270,7 +270,7 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 14,
-    "files_scanned": 1235,
+    "files_scanned": 1256,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

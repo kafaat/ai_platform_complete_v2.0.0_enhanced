@@ -129,7 +129,7 @@ async def synthesize(
     )
 
     # Try cache first
-    if main._redis:
+    if main._redis and not req.no_store:
         try:
             cached = await main._redis.get(cache_key)
             if cached:
@@ -168,7 +168,7 @@ async def synthesize(
         raise HTTPException(500, "Speech synthesis failed") from e
 
     # Cache result
-    if main._redis:
+    if main._redis and not req.no_store:
         try:
             await main._redis.setex(cache_key, main.CACHE_TTL, audio)
         except Exception as e:
@@ -183,9 +183,9 @@ async def synthesize(
         content=audio,
         media_type=chosen.media_type,
         headers={
-            "X-Cache": "MISS",
+            "X-Cache": "BYPASS" if req.no_store else "MISS",
             # private: انظر مسار الـHIT أعلاه — عزل المستأجِر يمنع التخزين العامّ.
-            "Cache-Control": "private, max-age=86400",
+            "Cache-Control": "no-store" if req.no_store else "private, max-age=86400",
         },
     )
 
@@ -228,7 +228,11 @@ async def stream(
             else:
                 main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-        return StreamingResponse(local_stream(), media_type=chosen.media_type)
+        return StreamingResponse(
+            local_stream(),
+            media_type=chosen.media_type,
+            headers={"Cache-Control": "no-store", "X-Cache": "BYPASS"},
+        )
 
     async def audio_stream():
         voice = main.VOICES[req.voice]
@@ -255,4 +259,8 @@ async def stream(
         else:
             main.TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
 
-    return StreamingResponse(audio_stream(), media_type=chosen.media_type)
+    return StreamingResponse(
+        audio_stream(),
+        media_type=chosen.media_type,
+        headers={"Cache-Control": "no-store", "X-Cache": "BYPASS"},
+    )

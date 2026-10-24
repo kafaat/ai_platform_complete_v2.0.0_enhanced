@@ -1380,6 +1380,22 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/realtime-call/controller.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/realtime-call/controller.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/realtime-call/livekit-room.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/realtime-call/main.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/AdminRuntimePage.tsx",
     "kind": "web"
   },
@@ -2176,6 +2192,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
     "kind": "mobile"
   },
@@ -2268,6 +2300,142 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/packages/pmtiles/CHANGELOG.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/README.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/UPSTREAM_PROVENANCE.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/analysis_options.yaml",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/pmtiles.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/archive.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/compression.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/convert.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/directory.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/exceptions.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/header.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/int64.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/io.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/io_http.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/compression.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/int64.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/io_file.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/loading_cache.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/compression.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/int64.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/io_file.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/range.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/types.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/utils.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/lib/src/zxy.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/pubspec.yaml",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/fixtures/NOTICE.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/io_file_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/loading_cache_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/protobuf_compatibility_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/range_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/packages/pmtiles/test/zxy_test.dart",
+    "kind": "tests"
+  },
+  {
     "path": "mobile/sahool_app/pubspec.yaml",
     "kind": "mobile"
   },
@@ -2293,6 +2461,18 @@
   },
   {
     "path": "mobile/sahool_app/test/jwt_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
     "kind": "tests"
   },
   {
@@ -3366,6 +3546,118 @@
   {
     "path": "services/raster-service/worker_heartbeat.py",
     "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/config.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/playback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/providers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/speech.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/turns.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/worker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/tests/conftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_context.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_playback.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_speech.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_turns.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_worker.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-session/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/body_limit.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/contracts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/session_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/voice_jobs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/webhooks.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/tests/test_livekit_adapter.py",
+    "kind": "tests"
   },
   {
     "path": "services/remote-sensing-workspace-bff/main.py",
@@ -6768,6 +7060,18 @@
     "kind": "tests"
   },
   {
+    "path": "tests/acceptance/livekit/README.md",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/acceptance/livekit/image.json",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/acceptance/livekit/live_protocol.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/certification/test_phase21_certification_matrix.py",
     "kind": "tests"
   },
@@ -8645,6 +8949,46 @@
   },
   {
     "path": "tests_v9/test_realtime_permissions_header_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_body_limit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_platform.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_startup.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_tts_no_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_ai.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_ai_provider.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_jobs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_webhooks.py",
     "kind": "tests"
   },
   {

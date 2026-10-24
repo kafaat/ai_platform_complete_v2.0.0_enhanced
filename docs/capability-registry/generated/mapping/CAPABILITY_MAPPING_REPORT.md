@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **51**
-- Files scanned: **6230**
+- Files scanned: **6346**
 - Ambiguous artifacts queued: **471**
-- Unmapped artifacts queued: **2334**
+- Unmapped artifacts queued: **2420**
 
 ## Capability coverage
 
@@ -78,26 +78,26 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 14 | 70 | 0 | 17 | 1 | 0 | 23 | 5 |
-| SEC-001 | security | 13 | 31 | 100 | 56 | 0 | 0 | 75 | 5 |
+| SEC-001 | security | 14 | 31 | 100 | 57 | 0 | 0 | 75 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 8 | 24 | 23 | 5 | 5 | 4 | 18 | 7 |
+| SEC-004 | security | 8 | 24 | 23 | 5 | 7 | 4 | 19 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
-| SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 10 | 4 |
+| SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
 | SOIL-001 | soil | 13 | 97 | 14 | 45 | 1 | 0 | 21 | 6 |
-| SOIL-002 | soil | 13 | 35 | 11 | 8 | 5 | 0 | 12 | 6 |
+| SOIL-002 | soil | 13 | 35 | 11 | 9 | 5 | 0 | 12 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-002 | weather | 20 | 63 | 12 | 65 | 9 | 0 | 31 | 6 |
-| WX-003 | weather | 4 | 6 | 4 | 3 | 0 | 0 | 5 | 5 |
+| WX-003 | weather | 4 | 6 | 4 | 4 | 0 | 0 | 5 | 5 |
 | WX-004 | weather | 61 | 48 | 0 | 94 | 18 | 0 | 66 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 84 | 26 | 33 | 29 | 17 | 0 | 49 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| WX-008 | weather | 2 | 6 | 0 | 3 | 0 | 0 | 2 | 4 |
+| WX-008 | weather | 2 | 6 | 0 | 4 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |
 | WX-010 | weather | 1 | 0 | 0 | 2 | 0 | 0 | 1 | 3 |

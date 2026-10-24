@@ -1,0 +1,35 @@
+00:00 +0: loading test/io_file_test.dart
+00:00 +0: test/io_file_test.dart: FileAt readAt single
+00:00 +1: test/protobuf_compatibility_test.dart: protobuf 6 bounded directory compatibility decodes columns, delta IDs and implicit contiguous offsets
+00:00 +2: test/protobuf_compatibility_test.dart: protobuf 6 bounded directory compatibility decodes columns, delta IDs and implicit contiguous offsets
+00:00 +3: test/zxy_test.dart: ZXY fromTileId
+00:00 +4: test/range_test.dart: IntRange contains
+00:00 +5: test/range_test.dart: IntRange contains
+00:00 +6: test/range_test.dart: IntRange contains
+00:00 +7: test/range_test.dart: IntRange contains
+00:00 +8: test/range_test.dart: IntRange contains
+00:00 +9: test/range_test.dart: IntRange contains
+00:00 +10: test/range_test.dart: IntRange contains
+00:00 +11: test/range_test.dart: IntRange contains
+00:00 +12: test/range_test.dart: IntRange contains
+00:00 +13: test/range_test.dart: IntRange contains
+00:00 +14: test/protobuf_compatibility_test.dart: protobuf 6 bounded directory compatibility rejects a leaf extent outside the supplied header
+00:00 +15: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +16: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +17: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +18: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +19: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +20: test/protobuf_compatibility_test.dart: pinned upstream archives, without a network service preserves upstream rejection of unclustered test_fixture_1.pmtiles
+00:00 +21: test/range_test.dart: IntRange unionAll
+00:00 +22: test/range_test.dart: IntRange unionAll
+00:00 +23: test/range_test.dart: IntRange unionAll
+00:00 +24: test/range_test.dart: IntRange unionAll
+00:00 +25: test/range_test.dart: IntRange unionAll
+00:00 +26: test/range_test.dart: IntRange unionAll
+00:00 +27: test/range_test.dart: IntRange unionAll
+00:00 +28: test/range_test.dart: IntRange unionAll
+00:00 +29: test/range_test.dart: IntRange unionAll
+00:00 +30: test/range_test.dart: IntRange unionAll
+00:00 +31: test/range_test.dart: IntRange unionAll
+00:00 +32: test/loading_cache_test.dart: LoadingCache cache (lots of concurrent different)
+00:00 +33: All tests passed!

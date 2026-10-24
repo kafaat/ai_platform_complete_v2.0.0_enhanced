@@ -1,0 +1,7 @@
+{
+  "repository": "livekit/livekit-server",
+  "version": "1.13.10",
+  "digest": "sha256:89ca9ce0791e18d6e03bf6e2c49ceb27e1c754eae8bd50c989386c1a5963791a",
+  "release_source": "https://github.com/livekit/livekit/releases/tag/v1.13.10",
+  "release_commit": "e5655ac20267fa5005dccaf3f0e3bfc3ea688c07"
+}

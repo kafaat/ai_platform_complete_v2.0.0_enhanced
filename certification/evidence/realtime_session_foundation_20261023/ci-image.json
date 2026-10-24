@@ -1,0 +1,16 @@
+{
+  "execution_source_commit": "ba6b06a49e108cf095204486182c16f45c0aa9b6",
+  "execution_tree": "feeca6f0de47ed97c499a2ce527ddb0e54f377b3",
+  "workflow_run_id": 40030907169,
+  "job_id": 120678631743,
+  "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/40030907169",
+  "result": "success",
+  "steps": [
+    "isolated_runtime_install",
+    "runtime_dependency_audit",
+    "135_service_and_sdk_tests",
+    "Docker_image_build",
+    "real_disabled_image_HTTP_smoke"
+  ],
+  "scope": "Default-disabled container acceptance only. No enabled SFU, media or microphone capture tested."
+}

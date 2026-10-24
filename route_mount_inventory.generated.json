@@ -192,6 +192,30 @@
     "reason": "main.py owns direct route handlers"
   },
   {
+    "path": "services/realtime-agent/main.py",
+    "service": "realtime-agent",
+    "has_fastapi": false,
+    "direct_routes": 0,
+    "router_routes": 0,
+    "delegates_to_router_registry": false,
+    "delegates_to_app_factory": false,
+    "delegates_to_runtime_module": false,
+    "status": "non_http_entrypoint",
+    "reason": "documented worker/bot entrypoint"
+  },
+  {
+    "path": "services/realtime-session/main.py",
+    "service": "realtime-session",
+    "has_fastapi": false,
+    "direct_routes": 0,
+    "router_routes": 0,
+    "delegates_to_router_registry": false,
+    "delegates_to_app_factory": false,
+    "delegates_to_runtime_module": true,
+    "status": "runtime_delegated_routes",
+    "reason": "main.py delegates to a runtime module that owns app construction/routes"
+  },
+  {
     "path": "services/remote-sensing-workspace-bff/main.py",
     "service": "remote-sensing-workspace-bff",
     "has_fastapi": true,

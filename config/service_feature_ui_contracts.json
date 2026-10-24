@@ -806,6 +806,54 @@
       ]
     },
     {
+      "service": "realtime-session",
+      "classification": "experimental-realtime-control-plane",
+      "wiring_disposition": "consumed",
+      "reopen_trigger": "Feature activation remains blocked pending live SFU admission, actual tenant RLS and network acceptance.",
+      "source": [
+        "services/realtime-session/main.py",
+        "services/realtime-session/realtime_session"
+      ],
+      "evidence": [
+        {
+          "kind": "activation-safety-contract",
+          "roots": [
+            "services/realtime-session/realtime_session/session_runtime.py",
+            "tests_v9/test_realtime_session_api.py"
+          ],
+          "patterns": [
+            "SAHOOL_REALTIME_ENABLED",
+            "LIVEKIT_AUTO_CREATE_DISABLED",
+            "test_default_service_remains_disabled_and_does_not_issue_tokens",
+            "test_other_actor_or_tenant_cannot_read_or_close_session"
+          ]
+        },
+        {
+          "kind": "job-contract",
+          "roots": [
+            ".github/workflows/realtime-session.yml",
+            "services/realtime-session/tests/test_livekit_adapter.py"
+          ],
+          "patterns": [
+            "Realtime Session Foundation",
+            "tests_v9/test_realtime_voice_jobs.py",
+            "LiveKitGateway"
+          ]
+        },
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src/realtime-call",
+            "mobile/sahool_app/lib/features/realtime"
+          ],
+          "patterns": [
+            "/api/v1/realtime/sessions",
+            "voice_consent"
+          ]
+        }
+      ]
+    },
+    {
       "service": "scout-ingest-service",
       "classification": "internal-sensitive",
       "source": [
@@ -823,6 +871,27 @@
             "sahool-scout-ingest",
             "/internal/ingest/submissions/odk",
             "scout-ingest-service"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "realtime-agent",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/realtime-agent/main.py",
+        "services/realtime-agent/realtime_agent"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/realtime-agent/realtime_agent"
+          ],
+          "patterns": [
+            "sahool-agronomist",
+            "REALTIME_WORKER_SECRET",
+            "/api/v1/realtime/internal/jobs/"
           ]
         }
       ]
