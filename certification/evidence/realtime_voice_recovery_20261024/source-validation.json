@@ -110,7 +110,7 @@
     },
     {
       "path": "services/realtime-agent/Dockerfile",
-      "sha256": "a3a56047c052cc4a19ff8a1120a58527c7b4199b1ed28d6dc0c6f409c2cf5c98"
+      "sha256": "511883a4ddee5658f95882e06232e330c2b6c4e38e882d7529cf0767636453ef"
     },
     {
       "path": "services/realtime-agent/README.md",
@@ -264,5 +264,6 @@
       "path": "tests_v9/test_realtime_webhooks.py",
       "sha256": "ea578e34af83b1ac759d40a798975d517035a3d028fdc6f808f50a36e04d5f65"
     }
-  ]
+  ],
+  "dockerfile_followup": "Documented the existing optional build-time package mirror override; runtime/build commands unchanged. Container acceptance remains pending CI."
 }

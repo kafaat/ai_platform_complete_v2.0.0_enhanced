@@ -16575,7 +16575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3a56047c052cc4a19ff8a1120a58527c7b4199b1ed28d6dc0c6f409c2cf5c98"
+          "content": "511883a4ddee5658f95882e06232e330c2b6c4e38e882d7529cf0767636453ef"
         }
       ],
       "name": "services/realtime-agent/Dockerfile",
