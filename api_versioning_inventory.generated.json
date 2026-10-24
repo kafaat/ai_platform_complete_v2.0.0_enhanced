@@ -137,7 +137,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 219,
+    "line": 221,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 224,
+    "line": 226,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 232,
+    "line": 234,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 252,
+    "line": 254,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 304,
+    "line": 306,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 350,
+    "line": 352,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 396,
+    "line": 398,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 412,
+    "line": 414,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 431,
+    "line": 433,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 475,
+    "line": 477,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 486,
+    "line": 488,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 497,
+    "line": 499,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 508,
+    "line": 510,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -2855,7 +2855,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 148,
+    "line": 170,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -2864,7 +2864,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 152,
+    "line": 174,
     "method": "GET",
     "path": "/readyz",
     "handler": "ready",
@@ -2873,7 +2873,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 158,
+    "line": 180,
     "method": "POST",
     "path": "/api/v1/realtime/sessions",
     "handler": "create_session",
@@ -2882,7 +2882,16 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 164,
+    "line": 188,
+    "method": "GET",
+    "path": "/api/v1/realtime/internal/jobs/{session_id}",
+    "handler": "voice_context",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 199,
     "method": "GET",
     "path": "/api/v1/realtime/sessions/{session_id}",
     "handler": "get_session",
@@ -2891,10 +2900,19 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 168,
+    "line": 203,
     "method": "DELETE",
     "path": "/api/v1/realtime/sessions/{session_id}",
     "handler": "close_session",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/webhooks.py",
+    "line": 67,
+    "method": "POST",
+    "path": "/api/v1/realtime/hooks/livekit",
+    "handler": "livekit_webhook",
     "classification": "versioned"
   },
   {

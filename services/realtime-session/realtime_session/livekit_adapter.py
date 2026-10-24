@@ -64,6 +64,18 @@ class LiveKitGateway:
         except Exception:
             raise SessionError(503, "livekit_unavailable") from None
 
+    async def dispatch_agent(self, session: Session, nonce: str) -> None:
+        try:
+            await self._client.agent_dispatch.create_dispatch(
+                api.CreateAgentDispatchRequest(
+                    agent_name="sahool-agronomist",
+                    room=session.room_name,
+                    metadata=json.dumps({"session_id": session.session_id, "nonce": nonce}),
+                )
+            )
+        except Exception:
+            raise SessionError(503, "livekit_dispatch_unavailable") from None
+
     def participant_token(self, session: Session, now: int, ttl: int) -> str:
         if (
             isinstance(now, bool)

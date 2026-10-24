@@ -1,0 +1,5 @@
+Analyzing pmtiles...
+
+warning - lib/src/tile.dart:48:23 - The '!' will have no effect because the receiver can't be null. Try removing the '!' operator. - unnecessary_non_null_assertion
+
+1 issue found.

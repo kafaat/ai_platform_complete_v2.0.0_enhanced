@@ -83,6 +83,8 @@ _STEP = re.compile(
 
 # علم إعادة التوليد لكلّ سكربت يملكه. الغياب = فحص فقط (يُبلَّغ، لا يُتخطّى).
 _GENERATE_FLAG = {
+    "route_mount_contract_guard.py": "",
+    "service_dependency_conflict_guard.py": "",
     "generate_service_inventory.py": "--write-registry",
     "capability_mapping_engine.py": "--generate",
     "capability_evidence_maturity_engine.py": "--generate",

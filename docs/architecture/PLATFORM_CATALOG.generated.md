@@ -3,13 +3,13 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `ee7f9295a98be766f1e8c4362b242c0feb40098a80934213a70e7013fb1ba155`
-- components: **36** (backend: 32)
-- route rows: **1132** → unique method/path: **1011**
-- capabilities (derived, uncurated): **837**
+- fingerprint: `dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52`
+- components: **37** (backend: 33)
+- route rows: **1134** → unique method/path: **1013**
+- capabilities (derived, uncurated): **839**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
-- UI waivers pending U4 classification: **55**
+- UI waivers pending U4 classification: **53**
 
 ## Components
 
@@ -38,7 +38,8 @@
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
 | raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 14 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
-| realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | False |
+| realtime-agent | worker | realtime-voice-experimental | sahool-realtime-agent | 0 | True |
+| realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
@@ -55,8 +56,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **876**
-- S2 relations: CALLS=45, CONSUMES=3, EMITS=1, READS=448, ROUTES_TO=72, WRITES=307
+- ARCH-S2 dependency truth: `PASS` — edges **878**
+- S2 relations: CALLS=47, CONSUMES=3, EMITS=1, READS=448, ROUTES_TO=72, WRITES=307
 
 ## Governance gates (U3/U4)
 

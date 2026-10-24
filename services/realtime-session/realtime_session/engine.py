@@ -19,6 +19,7 @@ class SessionService:
         session_ttl: int = 300,
         token_ttl: int = 60,
         clock=time.time,
+        voice_jobs=None,
     ):
         # A conservative drain window, NOT a credential revocation proof: LiveKit
         # refreshes connected participants' JWTs. Actual room.auto_create=false and
@@ -32,13 +33,20 @@ class SessionService:
         self.session_ttl = session_ttl
         self.token_ttl = token_ttl
         self.clock = clock
+        self.voice_jobs = voice_jobs
         # One process/worker only. This serializes in-flight room creation against
         # the cleanup loop; the persistent store independently enforces admission.
         self._operations = asyncio.Lock()
 
-    async def create(self, bearer: str, field_id: str, consent: bool) -> dict:
+    async def create(
+        self, bearer: str, field_id: str, consent: bool, voice_consent: bool = False
+    ) -> dict:
         if consent is not True:
             raise SessionError(403, "consent_required")
+        if type(voice_consent) is not bool:
+            raise SessionError(422, "voice_consent_invalid")
+        if voice_consent and self.voice_jobs is None:
+            raise SessionError(503, "voice_disabled")
         principal = await self.authority.identity(bearer)
         await self.authority.authorize_field(bearer, principal, field_id)
         async with self._operations:
@@ -59,6 +67,11 @@ class SessionService:
                 await asyncio.wait_for(self.gateway.create_room(session), timeout=5)
                 now = int(self.clock())
                 session = await self.store.activate(session_id, now)
+                if voice_consent:
+                    await self.store.mark_voice(session_id)
+                    # Validate current policy before dispatching any audio job.
+                    nonce = await self.voice_jobs.prepare(session, bearer, now)
+                    await asyncio.wait_for(self.gateway.dispatch_agent(session, nonce), timeout=5)
                 token = self.gateway.participant_token(session, now, self.token_ttl)
                 if (
                     not isinstance(token, str)
@@ -77,6 +90,8 @@ class SessionService:
             except (asyncio.CancelledError, Exception) as exc:
                 # A failed RPC can have committed remotely. Retain quota and a
                 # durable cleanup obligation, including on client cancellation.
+                if self.voice_jobs is not None:
+                    self.voice_jobs.revoke(session_id)
                 await asyncio.shield(self.store.closing(session_id))
                 if isinstance(exc, asyncio.CancelledError):
                     raise
@@ -101,6 +116,8 @@ class SessionService:
         # Terminating one's own session remains possible after FIELD_VIEW removal.
         await self._owned(bearer, session_id)
         async with self._operations:
+            if self.voice_jobs is not None:
+                self.voice_jobs.revoke(session_id)
             session = await self.store.closing(session_id)
             if session.status == "CLOSED":
                 return session.public()
@@ -116,6 +133,8 @@ class SessionService:
         async with self._operations:
             now = int(self.clock())
             for candidate in await self.store.cleanup_candidates(now):
+                if self.voice_jobs is not None:
+                    self.voice_jobs.revoke(candidate.session_id)
                 session = await self.store.closing(candidate.session_id)
                 if session.status == "CLOSED":
                     continue

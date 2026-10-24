@@ -45,6 +45,7 @@
     "framer-motion": "^11.1.7",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
+    "livekit-client": "2.23.0",
     "lucide-react": "^0.400.0",
     "maplibre-gl": "^6.11.2",
     "react": "^19.0.0",

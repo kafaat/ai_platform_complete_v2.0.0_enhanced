@@ -106,6 +106,14 @@
       "audience": "internal"
     },
     {
+      "prefix": "/api/v1/realtime/internal/",
+      "audience": "internal"
+    },
+    {
+      "prefix": "/api/v1/realtime/hooks/",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/realtime/",
       "audience": "farmer"
     },
@@ -2871,6 +2879,16 @@
       "endpoint": "/v1/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
+    },
+    {
+      "endpoint": "/api/v1/realtime/sessions",
+      "audience": "farmer",
+      "evidence": "/api/v1/realtime/sessions"
+    },
+    {
+      "endpoint": "/api/v1/realtime/sessions/{session_id}",
+      "audience": "farmer",
+      "evidence": "/api/v1/realtime/sessions"
     }
   ]
 }

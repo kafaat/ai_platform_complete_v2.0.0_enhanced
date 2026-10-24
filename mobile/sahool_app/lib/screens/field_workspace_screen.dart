@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../features/field_forms/data/field_forms_coordinator.dart';
+import '../features/realtime/realtime_screen.dart';
 import '../services/api_service.dart';
 import '../widgets/state_views.dart';
 import '../widgets/workspace/workspace_sections.dart';
@@ -152,6 +153,14 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
       appBar: AppBar(
         backgroundColor: kSurface,
         title: Text(title),
+        actions: [
+          if (nativeRealtimeCallsEnabled && !_loading && _error == null && _fieldId.isNotEmpty)
+            IconButton(icon: const Icon(Icons.mic_none), tooltip: 'استشارة صوتية',
+              onPressed: () { Navigator.of(context).push<void>(MaterialPageRoute(
+                builder: (_) => RealtimeScreen(fieldId: _fieldId),
+              )); },
+            ),
+        ],
         bottom: TabBar(
           controller: _tabs,
           isScrollable: true,

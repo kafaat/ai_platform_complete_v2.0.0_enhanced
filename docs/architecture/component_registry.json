@@ -351,6 +351,15 @@
       ],
       "domain": "weather-truth",
       "source_path": "services/weather-signal-engine"
+    },
+    "realtime-agent": {
+      "authority_kind": "stateless_compute",
+      "component_kind": "worker",
+      "deployment_units": [
+        "sahool-realtime-agent"
+      ],
+      "domain": "realtime-voice-experimental",
+      "source_path": "services/realtime-agent"
     }
   },
   "infrastructure_units": [

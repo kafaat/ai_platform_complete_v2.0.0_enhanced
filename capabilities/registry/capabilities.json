@@ -1910,7 +1910,9 @@
         "GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157"
       ],
       "ui_consumers": [],
-      "mobile_consumers": [],
+      "mobile_consumers": [
+        "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart"
+      ],
       "tests": [
         "services/raster-service/test_available_dates_provider_datetime.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
@@ -1970,7 +1972,7 @@
           "path": "migrations/v236_raster_follow_up_requests.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3487,7 +3489,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1096",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:396"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4424,7 +4426,7 @@
         "POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630",
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520",
-        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:252",
+        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:254",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:740",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2202",

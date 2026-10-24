@@ -808,8 +808,8 @@
     {
       "service": "realtime-session",
       "classification": "experimental-realtime-control-plane",
-      "wiring_disposition": "intentional-unconsumed",
-      "reopen_trigger": "Actual self-hosted SFU fresh-token and server-refreshed-token join-after-delete acceptance, tenant-pair isolation acceptance, and browser media-permission isolation acceptance before any UI consumption or feature enablement",
+      "wiring_disposition": "consumed",
+      "reopen_trigger": "Feature activation remains blocked pending live SFU admission, actual tenant RLS and network acceptance.",
       "source": [
         "services/realtime-session/main.py",
         "services/realtime-session/realtime_session"
@@ -836,8 +836,19 @@
           ],
           "patterns": [
             "Realtime Session Foundation",
-            "tests_v9/test_realtime_session_*.py services/realtime-session/tests/",
+            "tests_v9/test_realtime_voice_jobs.py",
             "LiveKitGateway"
+          ]
+        },
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src/realtime-call",
+            "mobile/sahool_app/lib/features/realtime"
+          ],
+          "patterns": [
+            "/api/v1/realtime/sessions",
+            "voice_consent"
           ]
         }
       ]
@@ -860,6 +871,27 @@
             "sahool-scout-ingest",
             "/internal/ingest/submissions/odk",
             "scout-ingest-service"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "realtime-agent",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/realtime-agent/main.py",
+        "services/realtime-agent/realtime_agent"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/realtime-agent/realtime_agent"
+          ],
+          "patterns": [
+            "sahool-agronomist",
+            "REALTIME_WORKER_SECRET",
+            "/api/v1/realtime/internal/jobs/"
           ]
         }
       ]

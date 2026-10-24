@@ -314,6 +314,16 @@
       "orphan": false
     },
     {
+      "id": "realtime-agent",
+      "paths": [
+        "services/realtime-agent"
+      ],
+      "kind": "service",
+      "incoming": 0,
+      "outgoing": 0,
+      "orphan": true
+    },
+    {
       "id": "realtime-session",
       "paths": [
         "services/realtime-session"
@@ -2064,12 +2074,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 110,
+    "nodes": 111,
     "edges": 186,
-    "orphans": 8,
+    "orphans": 9,
     "cycles": 0,
     "code_edges": 53,
     "compose_edges": 133
   },
-  "content_sha256": "01096d9ce59f959ba91984b43200111c902c9f6ae5ad941f0dd7b2ee0c327dce"
+  "content_sha256": "f1a43e05a730a28614ab2c431ae0768f1513a3e1b603885933cd24d0074361a9"
 }

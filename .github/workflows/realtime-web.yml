@@ -1,0 +1,68 @@
+name: Realtime Web Call
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/realtime-web.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/realtime-web.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  isolated-document:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install exact packages without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Test isolated call UI and track lifecycle
+        run: npm test -- src/realtime-call/
+      - name: Typecheck frontend
+        run: npm run typecheck
+      - name: Build isolated entry with explicit feature opt-in
+        env:
+          VITE_REALTIME_CALL_ENABLED: 'true'
+        run: npm run build
+      - name: Install bounded browser and Nginx build prerequisites
+        run: |
+          bash ../scripts/ci/resilient_playwright_install.sh chromium
+          bash ../scripts/ci/resilient_apt_install.sh build-essential libpcre2-dev libssl-dev zlib1g-dev
+      - name: Build checksum-verified official Nginx
+        run: |
+          set -euo pipefail
+          curl --fail --location --max-time 90 https://nginx.org/download/nginx-1.28.0.tar.gz -o "$RUNNER_TEMP/nginx.tar.gz"
+          printf '%s  %s\n' c6b5c6b086c0df9d3ca3ff5e084c1d0ef909e6038279c71c1c3e985f576ff76a "$RUNNER_TEMP/nginx.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/nginx.tar.gz" -C "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP/nginx-1.28.0"
+          ./configure --prefix="$RUNNER_TEMP/nginx" --with-http_auth_request_module --with-http_ssl_module
+          make -j2
+          make install
+      - name: Exercise actual headers and browser media device
+        env:
+          NGINX_BINARY: ${{ runner.temp }}/nginx/sbin/nginx
+          REALTIME_BROWSER_RECEIPT: ${{ runner.temp }}/realtime-browser-receipt.json
+        run: node scripts/realtime-browser-acceptance.mjs
+      - name: Upload browser isolation receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: realtime-browser-isolation
+          path: ${{ runner.temp }}/realtime-browser-receipt.json
+          if-no-files-found: error

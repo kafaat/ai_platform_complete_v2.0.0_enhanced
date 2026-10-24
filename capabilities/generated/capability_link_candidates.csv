@@ -86,7 +86,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520,2,applied
-DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:252,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:254,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:740,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2202,3,applied
@@ -1380,7 +1380,7 @@ PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export 
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1096,2,applied
-PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:396,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
@@ -1688,6 +1688,7 @@ SAT-009,api,POST /v1/terrain/slope @ services/raster-service/routers/analysis.py
 SAT-009,api,POST /v1/upload/drone @ services/raster-service/routers/storage.py:43,3,applied
 SAT-009,api,POST /v1/upload/raster @ services/raster-service/routers/storage.py:26,3,applied
 SAT-009,api,POST /v1/zones/classify @ services/raster-service/routers/analysis.py:30,3,applied
+SAT-009,mobile,mobile/sahool_app/packages/pmtiles/lib/src/tile.dart,2,applied
 SAT-009,service,services/raster-service/main.py,10,applied
 SAT-009,test,services/raster-service/test_available_dates_provider_datetime.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied

@@ -122,7 +122,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 219,
+    "line": 221,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -130,7 +130,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 224,
+    "line": 226,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "function": "ai_provider_snapshot"
@@ -138,7 +138,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 232,
+    "line": 234,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "function": "list_pending_approvals"
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 252,
+    "line": 254,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "function": "approve_tool_request"
@@ -154,7 +154,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 304,
+    "line": 306,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "function": "deny_tool_request"
@@ -162,7 +162,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 350,
+    "line": 352,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "function": "resume_approved_tool"
@@ -170,7 +170,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 396,
+    "line": 398,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "function": "prescription_export_preview"
@@ -178,7 +178,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 412,
+    "line": 414,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -186,7 +186,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 431,
+    "line": 433,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -194,7 +194,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 475,
+    "line": 477,
     "method": "POST",
     "path": "/v1/query",
     "function": "query"
@@ -202,7 +202,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 486,
+    "line": 488,
     "method": "POST",
     "path": "/v1/chat",
     "function": "chat"
@@ -210,7 +210,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 497,
+    "line": 499,
     "method": "POST",
     "path": "/v1/explain",
     "function": "explain"
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 508,
+    "line": 510,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -2546,7 +2546,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 148,
+    "line": 170,
     "method": "GET",
     "path": "/healthz",
     "function": "health"
@@ -2554,7 +2554,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 152,
+    "line": 174,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -2562,7 +2562,7 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 158,
+    "line": 180,
     "method": "POST",
     "path": "/api/v1/realtime/sessions",
     "function": "create_session"
@@ -2570,7 +2570,15 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 164,
+    "line": 188,
+    "method": "GET",
+    "path": "/api/v1/realtime/internal/jobs/{session_id}",
+    "function": "voice_context"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 199,
     "method": "GET",
     "path": "/api/v1/realtime/sessions/{session_id}",
     "function": "get_session"
@@ -2578,10 +2586,18 @@
   {
     "service": "realtime-session",
     "file": "services/realtime-session/realtime_session/session_runtime.py",
-    "line": 168,
+    "line": 203,
     "method": "DELETE",
     "path": "/api/v1/realtime/sessions/{session_id}",
     "function": "close_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/webhooks.py",
+    "line": 67,
+    "method": "POST",
+    "path": "/api/v1/realtime/hooks/livekit",
+    "function": "livekit_webhook"
   },
   {
     "service": "remote-sensing-workspace-bff",

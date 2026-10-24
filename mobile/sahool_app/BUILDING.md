@@ -1,9 +1,9 @@
 # Build the mobile app
 
-Use Flutter **3.27.4 / Dart 3.6.2**, Java 17, and the committed `pubspec.lock`.
-Android uses Gradle 8.7 / Android Gradle Plugin 8.6.1 and minSdk 23. iOS requires
+Use Flutter **3.38.9 / Dart 3.10**, Java 17, and the committed `pubspec.lock`.
+Android uses Gradle 8.13 / Android Gradle Plugin 8.12.1 and minSdk 23. iOS requires
 macOS, Xcode, CocoaPods, and iOS 13 or later. Android and iOS projects are generated
-from the official Flutter 3.27.4 templates and adapted for the actual plugins.
+from the official Flutter templates and adapted for the actual plugins.
 
 ```bash
 flutter pub get --enforce-lockfile
@@ -45,3 +45,22 @@ The September 13 local validation includes Flutter analysis and all 80 Flutter
 tests. Android SDK/Xcode builds, a signed install, background notification delivery
 and a real FCM/APNs receipt on a handset still require their respective runners
 and provisioned accounts; source analysis does not certify them.
+
+## Optional audio consultation
+
+The field workspace call entry is disabled by default. Native Android/iOS
+builds opt in with `--dart-define=SAHOOL_REALTIME_CALL_ENABLED=true`; server voice
+admission must also be explicitly enabled. Calls use the current authenticated
+field context and require separate audit/voice consent and a microphone action.
+Leaving the page or foreground ends the session. Reconnection never re-enables
+capture. Video and data messages are not used.
+
+The pinned LiveKit SDK requires Flutter 3.38/Dart 3.10, connectivity_plus7 and
+device_info_plus12; intl0.20.2 matches Flutter localization constraints. Kotlin2.2,
+AGP8.12.1 and Gradle8.13 satisfy the Android plugin toolchain floor. The Gradle
+all-distribution SHA was retrieved from the official distribution checksum URL.
+
+The committed pre-feature pubspec.lock must be replaced only with the actual
+Flutter3.38.9 CI solver output; no lock entries have been invented. Until the
+solver, analysis, tests and debug APK build pass, this change is a source candidate.
+Actual handset microphone/reconnect and TURN/weak-network acceptance remain open.

@@ -1,0 +1,33 @@
+{
+  "source_head": "69381d2d369e8099c8624d750d20ef5a31735400",
+  "scope": "Complete frozen file-affinity shards; not continuous preflight",
+  "plan_sha256": "494f486a9efb79dca93909119796a3a13e836ba8edb16f76630115951c0a3d10",
+  "suites": {
+    "architecture": {
+      "PASS_units": 6,
+      "errors": 0,
+      "executed": 1028,
+      "failures": 0,
+      "skipped": 8,
+      "tests": 1036
+    },
+    "unit": {
+      "PASS_units": 28,
+      "errors": 0,
+      "executed": 10866,
+      "failures": 1,
+      "skipped": 57,
+      "tests": 10923,
+      "FAIL_units": 1
+    },
+    "platform": {
+      "PASS_units": 9,
+      "errors": 0,
+      "executed": 4777,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 4777
+    }
+  },
+  "only_failure": "unit-17 prohibition inventory101 exceeds100; explanation-only correction prepared, no weakening"
+}

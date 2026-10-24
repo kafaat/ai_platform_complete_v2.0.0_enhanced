@@ -10,11 +10,11 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 184 | 172 |
-| farmer | 222 | 177 |
-| internal | 425 | 140 |
+| farmer | 222 | 179 |
+| internal | 427 | 140 |
 | manager | 55 | 51 |
 
-العقد الملزِم (core): 467 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 469 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -398,8 +398,10 @@
 | `/api/v1/rbac/permission-matrix` | manager | ✅ |
 | `/api/v1/rbac/preview-role-change` | manager | ✅ |
 | `/api/v1/rbac/who-can` | manager | ✅ |
-| `/api/v1/realtime/sessions` | farmer | — |
-| `/api/v1/realtime/sessions/{session_id}` | farmer | — |
+| `/api/v1/realtime/hooks/livekit` | internal | — |
+| `/api/v1/realtime/internal/jobs/{session_id}` | internal | — |
+| `/api/v1/realtime/sessions` | farmer | ✅ |
+| `/api/v1/realtime/sessions/{session_id}` | farmer | ✅ |
 | `/api/v1/recommendations` | farmer | ✅ |
 | `/api/v1/recommendations/candidates` | farmer | ✅ |
 | `/api/v1/recommendations/capacity-profiles` | farmer | ✅ |

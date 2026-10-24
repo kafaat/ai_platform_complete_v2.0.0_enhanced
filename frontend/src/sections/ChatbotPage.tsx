@@ -551,6 +551,9 @@ export function ChatbotPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {import.meta.env.VITE_REALTIME_CALL_ENABLED === 'true' && (
+            <button type="button" onClick={() => window.location.assign('/realtime-call/')} className="text-sm px-3 py-2 text-emerald-700">مكالمة صوتية</button>
+          )}
           {/* منتقي نموذج الذكاء — يظهر فقط حين يوفّر الكتالوج خيارين فأكثر */}
           {aiModels.length > 1 && (
             <div className="relative flex items-center" title="نموذج الذكاء لتحليل الحقول">

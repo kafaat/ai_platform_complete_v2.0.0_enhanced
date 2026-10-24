@@ -1,5 +1,5 @@
 {
-  "edge_count": 876,
+  "edge_count": 878,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -102,6 +102,16 @@
       "to_kind": "component"
     },
     {
+      "evidence": "frontend/src/realtime-call/api.ts:35",
+      "from": "frontend",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/api/v1/realtime/sessions",
+      "to": "realtime-session",
+      "to_kind": "component"
+    },
+    {
       "evidence": "frontend/src/components/AddFieldWithMap.tsx:441",
       "from": "frontend",
       "from_kind": "component",
@@ -199,6 +209,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "weather-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "mobile/sahool_app/lib/features/realtime/realtime_api.dart:14",
+      "from": "mobile",
+      "from_kind": "component",
+      "protocol": "ui",
+      "relation": "CALLS",
+      "resource": "/api/v1/realtime/sessions",
+      "to": "realtime-session",
       "to_kind": "component"
     },
     {
@@ -8777,7 +8797,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 45,
+    "CALLS": 47,
     "CONSUMES": 3,
     "EMITS": 1,
     "READS": 448,

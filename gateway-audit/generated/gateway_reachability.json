@@ -3,7 +3,7 @@
   "scope": "nginx-static-gateway-reachability",
   "runtime_verified": false,
   "production_certified": false,
-  "compose_name_count": 137,
+  "compose_name_count": 138,
   "config_count": 4,
   "upstream_count": 51,
   "proxied_location_count": 72,
@@ -1430,5 +1430,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "3a779876d0ccfe8259682a183bf8a31cb8afa02aae7e877d7f89e08b401440b3"
+  "content_sha256": "f698ebe91a639955fb8f3609708e88d4c3c9d310edfc56ccd77bc47088162cf1"
 }

@@ -160,6 +160,13 @@
       "impact": "merge",
       "$impact_ar": "Runs for pull requests and main pushes; this gates merge acceptance of NATS Compose integration rather than production deployment or full-stack certification.",
       "$scope_limit_ar": "Isolated NATS Compose slice using pinned source image, source config and startup wrapper, TLS, raw-password acceptance and wrong/quoted rejection. Does not certify all SAHOOL services or production readiness."
+    },
+    "scripts/ci/run_livekit_acceptance.py::livekit-acceptance.yml::live-sfu": {
+      "counterexample": "Specific admission-security obligation: self-hosted LiveKit refreshes credentials beyond the initial participant JWT lease. A deletion/rejoin receipt without an actual server refresh cannot prove refreshed-bearer admission safety. Official version1.13.10 and digest are pinned in tests/acceptance/livekit/image.json; source implementation requires observed SignalResponse.refresh_token. Live Docker proof is pending CI, not inferred from this declaration.",
+      "mutation": "test_requires_actual_refreshed_token_and_all_cases",
+      "positive_witness": "tests/architecture/test_livekit_acceptance.py::test_requires_actual_refreshed_token_and_all_cases first accepts a complete report with all required case results and actual_server_refresh_observed=True, then rejects a missing refresh and a missing case.",
+      "impact": "merge",
+      "$scope_limit_ar": "Isolated self-hosted SFU admission at PR time, with synthetic RS256 Platform authority. No certification of deployed RLS, Arabic inference quality, TURN, mobile networks or production readiness."
     }
   }
 }

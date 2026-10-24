@@ -7627,3 +7627,34 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** SFU مثبت المصدر والإعداد، وانضمام ناجح قبل الحذف ثم رفض توكن أصلي ومجدد بعده، مع سباق إنشاء/تنظيف وتعافٍ وحصص مثبتة؛ مستأجران معزولان. لا يثبت ListRooms الإعداد، ولا تكفي اختبارات SDK المستبدلة عند حد RPC.
 
 - تحديث مصدر LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 (2026-10-23): التطبيق الحالي `services/realtime-session/realtime_session/session_runtime.py` عند `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ المرجع الأصلي `82d77ab4` تاريخي محفوظ. الحالة تبقى open؛ اختبارات SFU الأصلية/المجددة بعد حذف الغرفة غير منفذة.
+
+
+- تحديث مرشح LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 (2026-10-24): مستند `/realtime-call/` مستقل مع أذونات مقيدة ورفض المسارات البديلة؛ الاختبارات وإثبات edge الحي مطلوبان قبل الإغلاق. الحالة تبقى open. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md`.
+- تحديث مرشح LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 (2026-10-24): أضيفت عدة قبول SFU مثبت المصدر، وملاحظة refresh فعلية ومقارنة auto_create؛ تشغيل Docker في CI مطلوب. الحالة تبقى open. المصدر: `tests/acceptance/livekit/README.md`.
+
+## LIVEKIT-ARABIC-PROVIDER-AND-NETWORK-ACCEPTANCE-01
+
+- **الحالة:** open — تنفيذ محلي اختياري ليس قبول نماذج أو شبكة حية.
+- **المصدر:** `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`services/realtime-agent/realtime_agent/speech.py`.
+- **شرط الإغلاق:** نماذج عربية معلومة المصدر والبصمة مع تقييم كلام حقلي وضجيج ومقاطعة، صلاحيات مستأجرين من Platform حقيقي، قبول الاحتفاظ، وتجارب TURN وإعادة اتصال وأجهزة فعلية. لا تكفي اختبارات SDK أو مزود بديل.
+
+
+## REALTIME-STALE-ROOM-CALLBACK-CLOSES-NEW-SESSION-01
+
+- **الحالة:** fixed محليًا؛ قبول CI للرأس النهائي مطلوب.
+- **المصدر:** #1263؛ `frontend/src/realtime-call/controller.ts` و`frontend/src/realtime-call/controller.test.ts`.
+- **الإصلاح:** تحقق epoch وهوية الغرفة قبل تأثير callbacks القديمة، وعدم إنهاء جلسة جديدة عند رفض connect سابق أو اكتمال leave قديم. حالتا انحدار ضمن 19 اختبار controller ناجحًا.
+- **حدود القبول:** ليست تجربة SFU أو جهاز حقيقي؛ فجوات قبول الصوت والشبكة أعلاه تبقى open.
+
+
+## MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01
+
+- **الحالة:** open — اختبارات حزمة Dart ناجحة؛ قبول تطبيق Flutter وAPK عبر CI مطلوب.
+- **المصدر:** #1263 عند `c8714330`؛ `mobile/sahool_app/pubspec.yaml` و`mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md`.
+- **العطل:** pmtiles1.x يتطلب protobuf3 بينما livekit_client2.13.1 يتطلب protobuf6؛ محلل التبعيات يتوقف قبل التحليل والبناء.
+- **المرشح:** نسخة توافق محلية لحزمة pmtiles1.3 مثبتة المصدر والترخيص، مع protobuf6.0.0 وحدود القراءة السابقة؛ لا حذف لدعم الخرائط دون اتصال ولا فرض protobuf عالميًا.
+- **شرط الإغلاق:** اختبارات أرشيف وvarint فعلية، حل تبعيات التطبيق وحفظ القفل الناتج، ثم تحليل واختبارات Flutter وبناء APK ناجح على الرأس المصحح.
+
+- **الدليل المحلي:** `certification/evidence/pmtiles_compatibility_20261024/validation.json`: 33 اختبارًا ناجحًا على Dart3.10.8، وقفل حزمة حقيقي؛ هذا لا يثبت حل تبعيات التطبيق أو APK.
+
+- **تقدم CI على dc478b95:** حل تبعيات التطبيق وتحليل واختبارات realtime ناجحة؛ قفل التطبيق مستخرج فعليًا ومثبت البصمة في `certification/evidence/pmtiles_compatibility_20261024/application-ci.json`. نجح APK أيضًا في الوظيفة120956961334، وتبقى إعادة إثبات القفل على الرأس الجديد مطلوبة.
