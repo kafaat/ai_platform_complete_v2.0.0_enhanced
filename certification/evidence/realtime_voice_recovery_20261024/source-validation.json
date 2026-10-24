@@ -242,7 +242,7 @@
     },
     {
       "path": "tests_v9/test_realtime_permissions_header_contract.py",
-      "sha256": "e9a66564b77ea6b6fbbc2b3713bd256ed80a497fdc991a6bdccb7a3915af74e8"
+      "sha256": "881aacc4e8f259c6535969acacb5605bbbeb11eba854378dd67f984acd3ac7b7"
     },
     {
       "path": "tests_v9/test_realtime_tts_no_store.py",
@@ -265,5 +265,6 @@
       "sha256": "ea578e34af83b1ac759d40a798975d517035a3d028fdc6f808f50a36e04d5f65"
     }
   ],
-  "dockerfile_followup": "Documented the existing optional build-time package mirror override; runtime/build commands unchanged. Container acceptance remains pending CI."
+  "dockerfile_followup": "Documented the existing optional build-time package mirror override; runtime/build commands unchanged. Container acceptance remains pending CI.",
+  "followup_scope": "Explicit reasons added to unchanged media prohibitions; no assertion or cap removed. Flutter CardThemeData constructor matches pinned3.38.9 type; actual compiler/build remain pending CI."
 }

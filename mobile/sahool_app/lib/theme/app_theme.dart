@@ -86,7 +86,7 @@ abstract final class AppTheme {
           borderSide: const BorderSide(color: SahoolPalette.green, width: 1.6),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: SahoolPalette.card,
         elevation: 0,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -179,7 +179,7 @@ abstract final class AppTheme {
           borderSide: const BorderSide(color: primary, width: 1.6),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
         margin: const EdgeInsets.symmetric(vertical: 8),

@@ -27,8 +27,10 @@ def test_nginx_media_policy_grants_microphone_only_to_isolated_document():
     denied = 'add_header Permissions-Policy "geolocation=(self), camera=(), microphone=()" always;'
     assert raw.count(denied) == 2
     assert denied in _block(raw, "location = /index.html {")
-    assert "camera=(self)" not in raw
-    assert "$sahool_media_permissions_policy" not in raw
+    assert "camera=(self)" not in raw, "Voice-only consent does not authorize camera capture"
+    assert "$sahool_media_permissions_policy" not in raw, (
+        "A shared raw-URI grant survives SPA fallback and would grant capture to ordinary pages"
+    )
     policy = _block(raw, "map $request_uri $realtime_call_permissions {")
     assert [line.strip() for line in policy.splitlines() if line.strip()] == [
         'default "geolocation=(), camera=(), microphone=()";',
