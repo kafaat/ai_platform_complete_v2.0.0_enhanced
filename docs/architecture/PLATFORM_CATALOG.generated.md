@@ -3,13 +3,13 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `14aef146203267e9e5897c8317a770fad4c357aea622233757359822d3ff9c44`
-- components: **35** (backend: 31)
-- route rows: **1127** → unique method/path: **1008**
-- capabilities (derived, uncurated): **835**
+- fingerprint: `ee7f9295a98be766f1e8c4362b242c0feb40098a80934213a70e7013fb1ba155`
+- components: **36** (backend: 32)
+- route rows: **1132** → unique method/path: **1011**
+- capabilities (derived, uncurated): **837**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
-- UI waivers pending U4 classification: **53**
+- UI waivers pending U4 classification: **55**
 
 ## Components
 
@@ -38,6 +38,7 @@
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
 | raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 14 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
+| realtime-session | service | realtime-control-plane-experimental | sahool-realtime-session | 0 | False |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |

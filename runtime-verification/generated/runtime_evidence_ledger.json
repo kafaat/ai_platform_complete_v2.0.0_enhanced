@@ -1,7 +1,7 @@
 {
   "fail_closed": true,
-  "ledger_sha256": "dac11a9272dcc276c2f3d374cd3130a08808039de1591c9a20985a2d0bddb21c",
-  "plan_sha256": "a83a137777d276014d53f3e702db3b07214aab2689c1f8ad754634a7f4b054a4",
+  "ledger_sha256": "3fd083dbe817b939c78911c70fa3fa6ea487497a20b04c88ed55f8daa6d9cf4c",
+  "plan_sha256": "b8bfe08d7c9364a9be7c74d88ea4b1785890c15a54dc0bd324e255493891e3dd",
   "schema_version": "2.0",
   "services": [
     {
@@ -202,6 +202,16 @@
       "production_certified": false,
       "runtime_verified": false,
       "service": "raster-tiler-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 2,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "realtime-session",
       "valid_evidence_count": 0
     },
     {

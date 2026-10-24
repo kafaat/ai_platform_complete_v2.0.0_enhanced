@@ -1,0 +1,108 @@
+{
+  "head": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a",
+  "base": "5f730646a112ceb770fb89ce194c259e94921f30",
+  "gitleaks_version": "8.30.1",
+  "actionlint_version": "1.7.12",
+  "shellcheck_version": "0.11.0",
+  "first_parent": {
+    "exit_code": 0,
+    "findings": 0,
+    "commits_scanned": 13
+  },
+  "all_parent_merge_diffs": {
+    "exit_code": 0,
+    "findings": 0,
+    "commits_scanned": 13
+  },
+  "workingtree": {
+    "exit_code": 1,
+    "findings": [
+      {
+        "file": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
+        "line": 119,
+        "rule": "generic-api-key",
+        "byte_identical_to_base": true
+      },
+      {
+        "file": "services/raster-service/wapor_worldcereal.py",
+        "line": 70,
+        "rule": "generic-api-key",
+        "byte_identical_to_base": true
+      },
+      {
+        "file": "services/sahool-platform/api/routers/weather.py",
+        "line": 2133,
+        "rule": "generic-api-key",
+        "byte_identical_to_base": true
+      }
+    ],
+    "new_or_modified_file_findings": 0
+  },
+  "gitleaks_witnesses": {
+    "config_sha256": "ffe2defdf97b0f225ba027b247a41d8d7d19761580b692dc9908552fb409ddbd",
+    "cases": [
+      {
+        "case": "exact-validation-positive",
+        "exit_code": 0,
+        "findings": 0,
+        "expected": 0,
+        "passed": true
+      },
+      {
+        "case": "same-validation-secret-negative",
+        "exit_code": 1,
+        "findings": 1,
+        "expected": 1,
+        "passed": true
+      },
+      {
+        "case": "other-path-same-digest-negative",
+        "exit_code": 1,
+        "findings": 1,
+        "expected": 1,
+        "passed": true
+      },
+      {
+        "case": "exact-log-positive",
+        "exit_code": 0,
+        "findings": 0,
+        "expected": 0,
+        "passed": true
+      },
+      {
+        "case": "same-log-other-value-negative",
+        "exit_code": 1,
+        "findings": 1,
+        "expected": 1,
+        "passed": true
+      },
+      {
+        "case": "other-path-same-commit-negative",
+        "exit_code": 1,
+        "findings": 1,
+        "expected": 1,
+        "passed": true
+      }
+    ]
+  },
+  "actionlint_witnesses": {
+    "positive": {
+      "exit_code": 0,
+      "log": "actionlint-realtime.log"
+    },
+    "negative": {
+      "exit_code": 1,
+      "diagnostic": "SC2034",
+      "log": "actionlint-mutant.log"
+    },
+    "shellcheck": "0.11.0",
+    "actionlint": "1.7.12"
+  },
+  "config_sha256": "ffe2defdf97b0f225ba027b247a41d8d7d19761580b692dc9908552fb409ddbd",
+  "workflow_sha256": "9e732bed21ff91e6f24b28a4818fce168d2bba46595ca5e7ee97432a0d927206",
+  "redacted": true,
+  "all_workflow_actionlint": {
+    "exit_code": 0,
+    "includes_shellcheck": true
+  }
+}

@@ -240,6 +240,18 @@
     "risk": "high-zero-test-routes"
   },
   {
+    "service": "realtime-session",
+    "domain": "Unclassified / Support",
+    "python_files": 10,
+    "python_loc": 987,
+    "tests": 1,
+    "routes": 5,
+    "main": "services/realtime-session/main.py",
+    "dockerfile": "services/realtime-session/Dockerfile",
+    "requirements": "services/realtime-session/requirements.txt",
+    "risk": "normal"
+  },
+  {
     "service": "remote-sensing-workspace-bff",
     "domain": "Unclassified / Support",
     "python_files": 2,

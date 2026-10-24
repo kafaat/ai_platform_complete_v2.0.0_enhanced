@@ -316,6 +316,11 @@ raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/v1/
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/v1/imagery/timeseries/parallel,imagery_timeseries_parallel,versioned
 raster-tiler-service,services/raster-tiler-service/main.py,11,GET,/runtime-identity,runtime_identity,infra
 raster-tiler-service,services/raster-tiler-service/main.py,16,GET,/metrics,metrics,infra
+realtime-session,services/realtime-session/realtime_session/session_runtime.py,148,GET,/healthz,health,infra
+realtime-session,services/realtime-session/realtime_session/session_runtime.py,152,GET,/readyz,ready,infra
+realtime-session,services/realtime-session/realtime_session/session_runtime.py,158,POST,/api/v1/realtime/sessions,create_session,versioned
+realtime-session,services/realtime-session/realtime_session/session_runtime.py,164,GET,/api/v1/realtime/sessions/{session_id},get_session,versioned
+realtime-session,services/realtime-session/realtime_session/session_runtime.py,168,DELETE,/api/v1/realtime/sessions/{session_id},close_session,versioned
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GET,/healthz,healthz,infra
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz,infra
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,versioned

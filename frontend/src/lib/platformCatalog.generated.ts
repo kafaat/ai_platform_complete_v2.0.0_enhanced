@@ -14,24 +14,24 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '14aef146203267e9e5897c8317a770fad4c357aea622233757359822d3ff9c44';
+export const PLATFORM_CATALOG_FINGERPRINT = 'ee7f9295a98be766f1e8c4362b242c0feb40098a80934213a70e7013fb1ba155';
 
 export const PLATFORM_CATALOG_COUNTS = {
-  "backend_components": 31,
-  "capabilities": 835,
+  "backend_components": 32,
+  "capabilities": 837,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 96,
   "capabilities_idempotent": 62,
   "capabilities_season_scoped": 10,
-  "capabilities_tenant_scoped": 478,
-  "components": 35,
+  "capabilities_tenant_scoped": 480,
+  "components": 36,
   "cross_service_duplicate_method_paths": 12,
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1127,
-  "ui_waivers": 53,
-  "unique_method_path": 1008
+  "route_rows": 1132,
+  "ui_waivers": 55,
+  "unique_method_path": 1011
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -241,6 +241,15 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "type": "service",
     "wired": true,
     "wiringDisposition": "consumed"
+  },
+  {
+    "capabilityCount": 2,
+    "domain": "realtime-control-plane-experimental",
+    "id": "realtime-session",
+    "tested": true,
+    "type": "service",
+    "wired": false,
+    "wiringDisposition": "intentional-unconsumed"
   },
   {
     "capabilityCount": 1,

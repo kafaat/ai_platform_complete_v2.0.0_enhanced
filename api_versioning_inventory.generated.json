@@ -2853,6 +2853,51 @@
     "classification": "infra"
   },
   {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 148,
+    "method": "GET",
+    "path": "/healthz",
+    "handler": "health",
+    "classification": "infra"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 152,
+    "method": "GET",
+    "path": "/readyz",
+    "handler": "ready",
+    "classification": "infra"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 158,
+    "method": "POST",
+    "path": "/api/v1/realtime/sessions",
+    "handler": "create_session",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 164,
+    "method": "GET",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "handler": "get_session",
+    "classification": "versioned"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 168,
+    "method": "DELETE",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "handler": "close_session",
+    "classification": "versioned"
+  },
+  {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
     "line": 39,

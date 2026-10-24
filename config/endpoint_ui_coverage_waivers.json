@@ -667,6 +667,47 @@
       "temporary": true
     },
     {
+      "endpoint": "/api/v1/realtime/sessions",
+      "audience": "farmer",
+      "methods": [
+        "post@services/realtime-session/realtime_session/session_runtime.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "إنشاء جلسة اتصال للمزارع بعد التحقق من الهوية وملكية الحقل والموافقة؛ خدمة الجلسات الخلفية موجودة، لكن شاشة الاتصال المعزولة وتكامل الواجهة لم يُنفذا بعد. إعفاء مؤقت لدَين الواجهة المتعقب، ولا يُثبت وجود شاشة أو جاهزية تشغيلية.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "planned: شاشة اتصال معزولة مخططة؛ غير منفذة بعد",
+      "criticality": "decision-support",
+      "importance": 70,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human",
+      "owner": "realtime-session",
+      "tracking": "LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01",
+      "expiry": "2026-11-22",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/realtime/sessions/{session_id}",
+      "audience": "farmer",
+      "methods": [
+        "get@services/realtime-session/realtime_session/session_runtime.py",
+        "delete@services/realtime-session/realtime_session/session_runtime.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "قراءة حالة جلسة المزارع وإغلاقها ضمن حدود المستأجر وصاحب الجلسة؛ شاشة الاتصال المعزولة لعرض الحالة وإنهاء الاتصال ما زالت مخططة ولم تُنفذ. إعفاء مؤقت لدَين الواجهة المتعقب، ولا يُثبت وجود شاشة أو جاهزية تشغيلية.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "planned: شاشة اتصال معزولة مخططة؛ غير منفذة بعد",
+      "criticality": "decision-support",
+      "importance": 70,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human",
+      "owner": "realtime-session",
+      "tracking": "LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01",
+      "expiry": "2026-11-22",
+      "temporary": true
+    },
+    {
       "endpoint": "/api/v1/weather/alerts/notify",
       "audience": "farmer",
       "methods": [

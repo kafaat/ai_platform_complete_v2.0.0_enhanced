@@ -92,3 +92,20 @@ condition = "AND"
 regexTarget = "secret"
 paths = ['''^certification/evidence/cropwise_quality_20261018/source-sha256\.json$''']
 regexes = ['''^8e66134b5ce95bcecedf0a6aa08f380505371bda8483c53de4db26fd08594be7$''']
+
+[[rules.allowlists]]
+description = "Recomputed historical realtime API test file SHA-256 digests, not credentials"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^certification/evidence/realtime_session_foundation_20261023/validation\.json$''']
+regexes = [
+  '''^2a77f210a02e0594421e14b627814705e6419db73b843ea3d07435bf21ef74ad$''',
+  '''^95acefbad81468dc725dac42432ddf83a948459827d6afb2867f79916e200cf0$''',
+]
+
+[[rules.allowlists]]
+description = "Published realtime API versioning source Git commit ID, not an API key"
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^sahool-brain/log\.md$''']
+regexes = ['''^2eebce88ac1a2d2751fb553904d7f0870409702f$''']

@@ -1,7 +1,7 @@
 {
  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. 'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». 'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً.",
  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "measured_on": "7ac49ee444ba3d8562382d931aba483eac001e8b",
+ "measured_on": "b792803c05a3ae2933af5e4bc815fdfcdd69c392",
  "category_vocabulary": [
   "owner-name-not-in-tree",
   "tooling-writer",
@@ -16,11 +16,11 @@
    "tooling-writer": 5
   },
   "multiple_non_owner_writers": 0,
-  "excluded_write_sites": 13,
+  "excluded_write_sites": 14,
   "excluded_by_contract_state": {
    "not_authorised": 2,
    "authorised": 9,
-   "outside_contract": 2
+   "outside_contract": 3
   }
  },
  "rows": {
@@ -2427,6 +2427,19 @@
     "postgres_driver_imports": []
    },
    "contract_state": "authorised"
+  },
+  "realtime_sessions::realtime-session": {
+   "files": [
+    "services/realtime-session/realtime_session/store.py"
+   ],
+   "reason": "sqlite_only_backend",
+   "evidence": {
+    "driver_imports": [
+     "sqlite3"
+    ],
+    "postgres_driver_imports": []
+   },
+   "contract_state": "outside_contract"
   },
   "signal_anomalies::vegetation-analysis-service": {
    "files": [

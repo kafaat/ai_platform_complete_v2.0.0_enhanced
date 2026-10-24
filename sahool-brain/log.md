@@ -9892,3 +9892,31 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 2026-10-23 — تجميع #1256/#1257/#1258 داخل #1257 على main@ccf19539: مصدر e83810912a3ceefb80f815887382b104b377bb1f يحفظ الرؤوس الأربعة. إصلاح concurrency لا يلغي إلا تشغيلات الطلب نفسه؛ 55 اختبارًا مستهدفًا ناجحًا. استؤنفت الأجنحة على الشجرة نفسها: 10615 وحدة (57 تخطيًا)، 1016 tests (8 تخطيات)، 4777 منصة (بلا تخطٍ)، دون إخفاقات. التشغيل المنقطع ليس نجاحًا شاملاً منفردًا؛ قبول CI النهائي مستقل. المصدر: certification/evidence/pr_consolidation_1256_1257_1258_20261023/validation.json. لا دمج main أو نشر إنتاج.
 
 2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
+
+
+## 2026-10-23 — أساس خدمة جلسات LiveKit المعطلة افتراضيًا
+
+- مصدر مرشح `82d77ab40aa6beec85c65a1d98722db4b6978711` على main `569d0159`، بستة أدوار متوازية؛ هوية/FIELD_VIEW من المنصة، SQLite محلية وحصص ذرية، رموز SDK محدودة بالميكروفون والغرفة، وتنظيف مؤجل دون ادعاء إبطال فوري.
+- 135 اختبارًا مستهدفًا و38 تبعية تشغيل مدققة دون ثغرات معروفة؛ المصدر والحدود: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فحص HTTP لمصدر العملية لا يثبت الصورة أو SFU.
+- يبقى LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 مفتوحًا؛ وتجربة STT/الوكيل/الواجهة والتسجيل خارج الرقعة. لا دمج أو نشر لخدمة الجلسات.
+
+- 2026-10-23 — تصحيح عقد خدمة الجلسات إلى `/api/v1/realtime/sessions` دون استثناء API: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ 135 اختبارًا وفحص HTTP للمسار الجديد/غياب القديم، الأدلة في `certification/evidence/realtime_session_foundation_20261023/`. المصالحة والحوكمة وCI لم تكتمل بعد؛ لا نشر.
+
+- 2026-10-23 — مصالحة main `5f730646` في أساس الجلسات وحفظ ملفات إصلاح NATS حرفيًا؛ المصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`. تعريف runtime فعلي وتصنيف مكون/بيئة؛ 135 اختبارًا وفحص HTTP بعد المصالحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. التوليد وpreflight/CI غير مكتملة؛ لا نشر.
+
+- 2026-10-23 — صحح تصنيف سلطة realtime-session إلى `operational_coordination` في `docs/architecture/component_registry.json` مع تفسير حالة SQLite التشغيلية في README؛ القرار السابق system_of_record محفوظ تاريخيًا ومصحح في ledger. لا تعديل حارس أو ملكية جداول المجال.
+
+- 2026-10-23 — هدف Compose اختياري `realtime-foundation` للخدمة عند `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`، بلا منافذ مضيف وبالتفعيل مثبتًا 0 وبلا LiveKit credentials؛ لا تشغيل أو نشر. ملكية Platform/NATS محفوظة. السبب: PATH-3 يلزم كل خدمة قابلة للفحص بهدف بنيوي محلول، دون ادعاء نجاح readiness المعطلة. README و`docker-compose.v9.yml` هما المصدر.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.
+
+## 2026-10-24 — تصحيح بوابتي CI للخدمة
+
+2026-10-24 — المصدر `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a` يصحح حلقة انتظار الصورة واستثناءات قيم مصدر محددة. على المرشح السابق ba6b06a4 نجح preflight الافتراضي وصورة Docker وHTTP الفعلي المعطل في CI؛ 135 اختبار خدمة و30 عقد أمان معادة ناجحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/ci-image.json` و`validation.json`. قبول SFU الحي وعزل مستند الاتصال ما زالا مفتوحين؛ لا دمج أو نشر.
+
+## 2026-10-24 — مصالحة قبول NATS الجديد
+
+2026-10-24 — مصالحة #1262 مع main بعد دمج #1261 عند `88719df2cf491f5407ee01ea8b32c44097feb90d`: التزام المصدر `c1ce54808e06c52479454776c0abe3d5442a997c` يحفظ شيفرة قبول NATS وحراسه؛ اقتصرت التعارضات السبعة على مخرجات مولدة تعاد قانونيًا. نجحت175 حالة، منها135 للخدمة. قبول NATS الفعلي يعاد على الرأس النهائي في CI ولا يُورث من main. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. لا دمج للخدمة أو نشر، وقبول SFU مفتوح.

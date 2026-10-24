@@ -806,6 +806,43 @@
       ]
     },
     {
+      "service": "realtime-session",
+      "classification": "experimental-realtime-control-plane",
+      "wiring_disposition": "intentional-unconsumed",
+      "reopen_trigger": "Actual self-hosted SFU fresh-token and server-refreshed-token join-after-delete acceptance, tenant-pair isolation acceptance, and browser media-permission isolation acceptance before any UI consumption or feature enablement",
+      "source": [
+        "services/realtime-session/main.py",
+        "services/realtime-session/realtime_session"
+      ],
+      "evidence": [
+        {
+          "kind": "activation-safety-contract",
+          "roots": [
+            "services/realtime-session/realtime_session/session_runtime.py",
+            "tests_v9/test_realtime_session_api.py"
+          ],
+          "patterns": [
+            "SAHOOL_REALTIME_ENABLED",
+            "LIVEKIT_AUTO_CREATE_DISABLED",
+            "test_default_service_remains_disabled_and_does_not_issue_tokens",
+            "test_other_actor_or_tenant_cannot_read_or_close_session"
+          ]
+        },
+        {
+          "kind": "job-contract",
+          "roots": [
+            ".github/workflows/realtime-session.yml",
+            "services/realtime-session/tests/test_livekit_adapter.py"
+          ],
+          "patterns": [
+            "Realtime Session Foundation",
+            "tests_v9/test_realtime_session_*.py services/realtime-session/tests/",
+            "LiveKitGateway"
+          ]
+        }
+      ]
+    },
+    {
       "service": "scout-ingest-service",
       "classification": "internal-sensitive",
       "source": [

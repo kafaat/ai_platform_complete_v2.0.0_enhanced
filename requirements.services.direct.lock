@@ -256,6 +256,14 @@ watchfiles==1.2.0
 websockets==17.1
 prometheus-client==0.20.0
 
+# --- services/realtime-session/requirements.txt ---
+fastapi==0.136.3
+uvicorn[standard]==0.30.6
+pydantic==2.13.4
+httpx==0.28.1
+PyJWT[crypto]==2.15.1
+livekit-api==1.2.2
+
 # --- services/remote-sensing-workspace-bff/requirements.txt ---
 fastapi>=0.116,<1
 uvicorn[standard]>=0.35,<1

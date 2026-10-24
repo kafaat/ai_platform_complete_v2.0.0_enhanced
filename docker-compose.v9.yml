@@ -3264,6 +3264,37 @@ services:
     read_only: true
     logging: *id001
     networks: [sahool-internal]
+  # Experimental source/image target only; opt-in profile, feature stays disabled.
+  # Enabling sessions requires a separate accepted deployment override and SFU proof.
+  sahool-realtime-session:
+    profiles: [realtime-foundation]
+    build:
+      context: .
+      dockerfile: services/realtime-session/Dockerfile
+    environment:
+      SAHOOL_REALTIME_ENABLED: '0'
+      REALTIME_SQLITE_PATH: /data/realtime.sqlite3
+    expose: ['8000']
+    volumes:
+    - realtime-session-data:/data
+    tmpfs:
+    - /tmp:size=16m,mode=1777
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    restart: 'no'
+    read_only: true
+    user: '10001:10001'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *id001
+    networks: [sahool-internal]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).close()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 networks:
   sahool-public:
     driver: bridge
@@ -3272,6 +3303,7 @@ networks:
     internal: false
 
 volumes:
+  realtime-session-data: null
   postgres-data: null
   postgres-tls: null
   raster-data: null

@@ -3368,6 +3368,46 @@
     "kind": "backend"
   },
   {
+    "path": "services/realtime-session/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/body_limit.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/contracts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/session_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/tests/test_livekit_adapter.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/remote-sensing-workspace-bff/main.py",
     "kind": "backend"
   },
@@ -8645,6 +8685,26 @@
   },
   {
     "path": "tests_v9/test_realtime_permissions_header_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_body_limit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_platform.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_startup.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_session_store.py",
     "kind": "tests"
   },
   {

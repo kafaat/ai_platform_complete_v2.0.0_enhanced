@@ -1,0 +1,14 @@
+{
+  "scope": "Real HTTP source-process smoke; not Docker image acceptance or live SFU/media",
+  "disabled_by_default": true,
+  "source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+  "session_endpoint": "/api/v1/realtime/sessions",
+  "results": {
+    "healthz": 200,
+    "readyz": 503,
+    "unauthenticated_create": 401,
+    "disabled_create": 503,
+    "chunked_oversize": 413,
+    "unversioned_contract_absent": 404
+  }
+}

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6230,
+    "files_scanned": 6254,
     "files_by_kind": {
-      "backend": 1237,
+      "backend": 1247,
       "database": 289,
-      "governance": 81,
+      "governance": 82,
       "mobile": 57,
-      "other": 2090,
-      "tests": 2002,
+      "other": 2097,
+      "tests": 2008,
       "web": 474
     },
-    "unmapped_artifacts": 2334,
+    "unmapped_artifacts": 2349,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -9803,6 +9803,13 @@
           ]
         },
         {
+          "path": "certification/evidence/realtime_session_foundation_20261023/dependency-inventory.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
           "path": "docs/architecture/startup_db_connect_inventory.json",
           "score": 8,
           "signals": [
@@ -9830,7 +9837,7 @@
         "mobile": 1,
         "tests": 10,
         "governance": 4,
-        "other_evidence": 35
+        "other_evidence": 36
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -26410,6 +26417,14 @@
           ]
         },
         {
+          "path": "services/realtime-session/realtime_session/platform.py",
+          "score": 8,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "services/sahool-platform/docs/DATA_GOVERNANCE.md",
           "score": 8,
           "signals": [
@@ -27290,6 +27305,10 @@
         },
         {
           "value": "irrigation.schedule @ docs/history/EXTERNAL_DOCS_REVIEW.md:133",
+          "score": 8
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:121",
           "score": 8
         }
       ],
@@ -28664,10 +28683,10 @@
         "database": 802
       },
       "evidence_counts": {
-        "backend": 13,
+        "backend": 14,
         "routes": 31,
         "database": 100,
-        "events": 56,
+        "events": 57,
         "web": 0,
         "mobile": 0,
         "tests": 75,
@@ -42432,6 +42451,46 @@
       "kind": "backend"
     },
     {
+      "path": "services/realtime-session/README.md",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/main.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/__init__.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/body_limit.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/contracts.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/engine.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/session_runtime.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/store.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/tests/test_livekit_adapter.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/remote-sensing-workspace-bff/main.py",
       "kind": "backend"
     },
@@ -47709,6 +47768,26 @@
     },
     {
       "path": "tests_v9/test_realtime_permissions_header_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_api.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_body_limit.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_platform.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_startup.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_store.py",
       "kind": "tests"
     },
     {

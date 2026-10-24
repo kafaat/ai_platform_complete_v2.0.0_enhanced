@@ -4318,3 +4318,42 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
 السبب: تقييد المسار وحده لا يعزل صلاحية مستند SPA؛ لا يُفتح media قبل بناء حدود الجلسة والمستند.
+
+
+## 2026-10-23 — جلسات realtime منفصلة ومعطلة افتراضيًا
+
+- **القرار/السبب:** مصدر `82d77ab40aa6beec85c65a1d98722db4b6978711` يعيد استخدام هوية المنصة وFIELD_VIEW/RLS دون زيادة مساراتها أو نقل الوسائط عبر FastAPI الزراعية. قاعدة SQLite وحيدة محلية تحفظ الحصص والتعافي في الأساس الأول؛ ليست مخزنًا موزعًا.
+- **حد القبول:** شرط مستقل وصريح لإعداد SFU الفعلي `room.auto_create=false`، لأن LiveKit يجدد JWT ولا يعني حذف الغرفة إبطال الاعتماد. اختبارات الانضمام بعد الحذف بتوكن أصلي ومجدد حاجبة للإطلاق. راجع `services/realtime-session/README.md` والدليل `certification/evidence/realtime_session_foundation_20261023/README.md`.
+
+### 2026-10-23 — ترقيم عقد خدمة الجلسات الجديدة
+
+- المصدر: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ `services/realtime-session/realtime_session/app.py` و`docs/architecture/api_versioning_legacy_baseline.json`.
+- القرار والسبب: اعتماد `/api/v1/realtime/sessions` بدل المسار التصميمي غير المُرقّم؛ الخدمة غير منشورة ولا يوجد عميل يتطلب اسم توافق. يحافظ ذلك على سقف الدين صفر دون استثناء أو رفع ميزانية. اختبارات وفحص HTTP في `certification/evidence/realtime_session_foundation_20261023/`.
+
+### 2026-10-23 — تعريف runtime مستقل وتصنيف متغيرات الجلسات
+
+- المصدر: `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ `services/realtime-session/main.py` و`realtime_session/session_runtime.py` و`docs/architecture/component_registry.json` و`scripts/ci/env_compose_drift_allowlist.json`.
+- السبب والقرار: مالك بناء التطبيق ومساراته هو runtime مستقل، فيتبع main عقد تفويض runtime القائم دون استثناء non-HTTP أو تعديل الحارس. SQLite هو سجل الجلسات المحلي وحده، لذلك authority_kind=system_of_record، وdeployment_units فارغة لأن الخدمة غير موصولة. مفاتيح LiveKit حقن بيئي إلزامي عند التفعيل فقط، بلا قيم سرية في Compose. مصالحة main تحفظ إصلاح NATS.
+
+### 2026-10-23 — تصحيح سلطة الجلسات إلى التنسيق التشغيلي
+
+- المصدر: `docs/architecture/component_registry.json` و`services/realtime-session/README.md`، امتداد مصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`.
+- يصحح هذا القرار وصف system_of_record في المدخل السابق: كتالوج المستودع يقيس ملكية جداول المجال، ولا تملك خدمة الجلسات أيًا منها. تخزين SQLite لديمومة الحصص والتنظيف حالة تشغيلية فعلية، لذلك أضيفت مفردة `operational_coordination` صراحةً بدل وسم الخدمة عديمة الحالة أو توسيع ملكية جداول المنصة. حارس تطابق ملكية الجداول باقٍ بلا تعديل. هوية المستأجر والحقل والحقيقة الزراعية تبقى لدى Platform.
+
+### 2026-10-23 — هدف صورة اختياري لا يفعّل الجلسات
+
+- المصدر: `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`؛ `docker-compose.v9.yml` و`services/realtime-session/README.md`.
+- القرار والسبب: رفض PATH-3 هدفًا مجهولًا للخدمة الجديدة، فأضيف `sahool-realtime-session` تحت profile اختياري `realtime-foundation` فقط. SAHOOL_REALTIME_ENABLED مثبت 0، بلا منافذ مضيف أو أسرار LiveKit، وبحجم موارد محدود وحجم بيانات مخصص ومستخدم غير جذري وجذر للقراءة فقط. deployment_units تعكس هذا الهدف المعلن، ولا تعني نشرًا حيًا. لا تعديل حارس أو تجاوز readiness=503؛ تمكينها يحتاج override مقبولًا مستقلًا بعد إثبات SFU. كتلة NATS في Compose مطابقة لأساس main.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.
+
+## 2026-10-24 — تصحيح بوابتي CI للخدمة
+
+2026-10-24 — المصدر `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a` يصحح حلقة انتظار الصورة واستثناءات قيم مصدر محددة. على المرشح السابق ba6b06a4 نجح preflight الافتراضي وصورة Docker وHTTP الفعلي المعطل في CI؛ 135 اختبار خدمة و30 عقد أمان معادة ناجحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/ci-image.json` و`validation.json`. قبول SFU الحي وعزل مستند الاتصال ما زالا مفتوحين؛ لا دمج أو نشر.
+
+## 2026-10-24 — مصالحة قبول NATS الجديد
+
+2026-10-24 — مصالحة #1262 مع main بعد دمج #1261 عند `88719df2cf491f5407ee01ea8b32c44097feb90d`: التزام المصدر `c1ce54808e06c52479454776c0abe3d5442a997c` يحفظ شيفرة قبول NATS وحراسه؛ اقتصرت التعارضات السبعة على مخرجات مولدة تعاد قانونيًا. نجحت175 حالة، منها135 للخدمة. قبول NATS الفعلي يعاد على الرأس النهائي في CI ولا يُورث من main. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. لا دمج للخدمة أو نشر، وقبول SFU مفتوح.
