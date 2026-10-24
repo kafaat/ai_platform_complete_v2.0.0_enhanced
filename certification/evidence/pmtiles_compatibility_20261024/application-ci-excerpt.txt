@@ -1,0 +1,6 @@
+2026-10-24T18:51:32.7982517Z 🎉 33 tests passed.
+2026-10-24T18:52:03.2471550Z No issues found! (ran in 15.9s)
+2026-10-24T18:52:16.8738318Z 🎉 30 tests passed.
+2026-10-24T18:52:17.1269230Z ##[group]Run flutter build apk --debug
+2026-10-24T18:58:48.9765435Z ✓ Built build/app/outputs/flutter-apk/app-debug.apk
+2026-10-24T18:58:48.9997645Z ##[group]Run git diff --exit-code -- pubspec.lock

@@ -4372,3 +4372,8 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ## 2026-10-24 — توافق PMTiles وLiveKit
 
 2026-10-24 — متابعة #1263 عند `c8714330578d33cfbfe9f0d06b0e3bc7494ae1ff`: نجح قبول SFU الفعلي وأمن Actions وعامل الصوت والويب في CI، لكن Flutter كشف MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01. المرشح يحفظ خرائط PMTiles عبر توافق محلي محدود لـpmtiles1.3 مع protobuf6.0.0، وترخيص ومصدر واختبارات أرشيف مستقلة؛ نجح محلل الحزمة على Dart3.10.8 مع protobuf6.0.0 و33 اختبارًا، وحُفظ قفل الحزمة الفعلي. حل تبعيات التطبيق وAPK لم يُثبتا بعد؛ الدليل `certification/evidence/pmtiles_compatibility_20261024/validation.json`. المصدر: `mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md` و`.github/workflows/realtime-mobile.yml`؛ الوظيفة الفاشلة120940846487. لا دمج إلى main أو نشر إنتاج.
+
+
+## 2026-10-24 — قفل تطبيق Flutter الفعلي
+
+2026-10-24 — متابعة #1263 على المصدر `dc478b95131e2aa808ea02139e481751cb562ad9`: نجح حل تبعيات التطبيق وتحليل واختبارات realtime في CI40122522596. اعتمد قفل التطبيق بايتًا ببايت من artifact12571592686 بعد مطابقة SHA256؛ القرار يحفظ نتيجة المحلل الفعلية بدل تحرير إصدارات يدويًا. المصدر: `certification/evidence/pmtiles_compatibility_20261024/application-ci.json` و`mobile/sahool_app/pubspec.lock`. نجح بناء APK أيضًا؛ فشلت الوظيفة فقط لاختلاف القفل القديم. إعادة إثبات القفل على الرأس الجديد مطلوبة؛ فجوة التوافق باقية open.

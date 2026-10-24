@@ -21,3 +21,5 @@ bytes. Raster reads compare the full original PNG bytes.
 This is package verification only. Native app dependency resolution, committed
 application lock, Flutter analysis/tests, APK and physical-device acceptance
 remain separate. No production deployment or main merge is asserted.
+
+Application follow-up: `application-ci.json` records successful resolution and realtime analysis/tests on dc478b95, plus the exact CI artifact and application lock hashes. The application lock is copied byte-for-byte from that artifact. APK compilation also passed (see `application-ci-excerpt.txt`). The job failed only on the old committed lock diff; lock reproducibility on the next commit remains pending.

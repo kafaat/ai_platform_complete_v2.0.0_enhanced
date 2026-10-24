@@ -7656,3 +7656,5 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** اختبارات أرشيف وvarint فعلية، حل تبعيات التطبيق وحفظ القفل الناتج، ثم تحليل واختبارات Flutter وبناء APK ناجح على الرأس المصحح.
 
 - **الدليل المحلي:** `certification/evidence/pmtiles_compatibility_20261024/validation.json`: 33 اختبارًا ناجحًا على Dart3.10.8، وقفل حزمة حقيقي؛ هذا لا يثبت حل تبعيات التطبيق أو APK.
+
+- **تقدم CI على dc478b95:** حل تبعيات التطبيق وتحليل واختبارات realtime ناجحة؛ قفل التطبيق مستخرج فعليًا ومثبت البصمة في `certification/evidence/pmtiles_compatibility_20261024/application-ci.json`. نجح APK أيضًا في الوظيفة120956961334، وتبقى إعادة إثبات القفل على الرأس الجديد مطلوبة.
