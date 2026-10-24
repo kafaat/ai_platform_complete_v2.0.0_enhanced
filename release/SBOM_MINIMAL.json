@@ -10695,6 +10695,436 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "56eea70182097ff5ce7d0c3d838876e8f587278f647d97d3b6fcbd5f118ffc41"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/CHANGELOG.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ca918a2c94bd7be4a27f794986b8907f72a455ea0854428fbd63a295c7e407a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/LICENSE",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdfa4708f9765570b9b4e3cd52662ca42efa12aa221c630eca3105a9788a5e45"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b90c40392ca045621e0ad4ae501fadbd5ed0e616b2509abd2ffa6288b7b1d70d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3fb5b3aaa8d9dad625c76a7bb9bb44396b9d8bbeaf13c67ec1edb872bc01003"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/UPSTREAM_PROVENANCE.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69d5fc7c4dc082613882215d52d18b02b1688b833d674ce9b281f45821626b7d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/analysis_options.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abe0e07d9cd5ba18aa78424a50444b48602c319d7830f425fafa55b364e6e822"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/pmtiles.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ed3cc096cd2d74be260f26cc89906751eb660197e58c72e9954da94c32196fd"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/archive.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86bd540547ee781d79f4a1295f6f71c22b8349e11e7826d6eb354a606b68717e"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a76eecde96a2303aeb2580c185319f10218d428dc688f0bfa776a4b97c2f06ec"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/convert.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c39b3609da5f9140bdf19fc300462d16c26afa6b491f4285a1d944aad7a38bf1"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/directory.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c76395d977728d09209dd80f48699ecc5632f19024410c8ccf478a2e1d124bbe"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/exceptions.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "109924110d1dd4c24ede3bd1756d00f11e531ec7b8a8a71456c6df5012bbb3be"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/header.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5663b13350b25b2f3afbf2d9303b432e9161897db8670f8ce723385529b16565"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63ae9a3745dc54a975aeba1707234192f226795d8ffee2cee5d5a4bc0849a455"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/io.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b51bdf267c90d5bdad48e3fb79cfbdc80d4009e98a9b3890e2d7ca2136a63a26"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/io_http.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a22984adb0f1eb32477aae5ae7f3932d8ef7a828fd524d57d659b4fe514126c"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5df09ddf6add802fd0844f1784922c0d39dbc583164196416a63811d471dccaa"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a6a7e20d60779f3cc13f0bbcc579392a53220fa5097d9d24cfc40aec4658be8d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/io_file.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2daeef56e43784444a19e3879e6d38b90d75716428b95f663dae1cf8a50f0960"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/loading_cache.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6594a6b87e24d14d122d51f5981a93ba84ede5b6c45afe498c478641db0ee7db"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f00a10c2855d8b0db502fb10397e49b053f0acd2a9033accfb905e2525b8bbc"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69f40a00070bdc35f55f0a37c94a48031837ce91b40ba8652a5f5e31c014d0ff"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/io_file.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d08fec665284430a185e7db3fd491a0e785c0319c5efb59c14e01ccb9ec9b16"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/range.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "92ef4685088d3fbadcbbd2c598dc58ea4094c935d5bbe5bc3277cb8668c9b6df"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc6207f92b27beaa5e103ecb6c7d7f7d3864c5d4e86da40a605e76e2cdb62815"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/types.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09864ef22378ec509bed26f548c6d755e8385ea040fd6b15ef7576588118d77c"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/utils.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2fcf11b600e2833a969052ab87185bdcef9ede9291149cc792f74512ef829702"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/zxy.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4cf8e44cfd7e5a3e75cb91ff02d405207064ec48e18af1e6230d4e922bc5e74a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/pubspec.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "321e8560a077dad90cca802416bfc137e9870092544c94d74e7bed64bd25cb00"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/pubspec.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c97e044e425dc90efcf402d4e05251a55f9abdd83a30589cc905ed670e1ab15"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/NOTICE.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0371c38f338835f7fc13ed71176f3d92144e22c8b736a31cced57adbbeb647b3"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/PROTOMAPS_LICENSE",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dabac1813c60cc777b4215b030c4815b72ab0c8a5f95a0b9e4ef9fc2a778399e"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/invalid.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8326be59a1171c7788411312bce93057d15e9b4e87d4b181c677592c71c3a3ec"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/invalid_v4.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08d25d79589d91013b177e04e107d3dc35543f1e804f5bcbc5b508e463d3d1fa"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/stamen_toner_z0_0_0.png",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b96efe3ea10b98632c0c0dc229d000b604ebdad6b2f1321ea11d9de931df1ce5"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/stamen_toner_z3.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3f65093582c81625cdfab11b3d1a27c2fb6aadcf8bd9802b2ad694d4d7cdca5"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/test_fixture_1.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ee80a53000bfb15a5d54162bc3161094239e775fef180fffb2d3ff607e46c1a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/test_fixture_2.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34b90a5426f87e82ab41404c9bf1aac4c86960f910529e0e282ef2d2f2d415ad"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/io_file_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "efc2382ce4071aaa1f9dd97c8455dff59c3746241f2797163de8e01245d62f5b"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/loading_cache_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e92f7e13d2517c8e3a7063888f0a87ab23b39383ee46c2f590a1c7a2835f7ff4"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/protobuf_compatibility_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f7e795350fff011c691ce893336e8369d07c2911922e7694bfbedb14fddce13"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/range_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d72cf5643fc8d4674394e6a764c29a8caa38f671812b2794d41daaf21cbdd37"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/zxy_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "930250e931827729945c0a11bcdd4c72cbb2cf029ee4d76a083d0423fb63a39c"
         }
       ],
@@ -10705,7 +11135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d05bfe8b2b3f0a1f1a4b721882244b65199234c3cb3e8de732baa8d05fc0d72"
+          "content": "3e017ad6037194f92af1e31d3f382b3b6f00df02c906901a4e04f48ec5aff282"
         }
       ],
       "name": "mobile/sahool_app/pubspec.yaml",

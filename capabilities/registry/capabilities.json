@@ -1910,7 +1910,9 @@
         "GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157"
       ],
       "ui_consumers": [],
-      "mobile_consumers": [],
+      "mobile_consumers": [
+        "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart"
+      ],
       "tests": [
         "services/raster-service/test_available_dates_provider_datetime.py",
         "services/raster-service/test_backfill_incremental_retry_guard.py",
@@ -1970,7 +1972,7 @@
           "path": "migrations/v236_raster_follow_up_requests.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

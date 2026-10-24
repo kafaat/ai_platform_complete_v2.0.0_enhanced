@@ -2227,6 +2227,11 @@ jobs:
       # ولا test في CI). تحجب على الأخطاء الحقيقيّة (errors) وفشل الاختبارات فقط؛
       # infos/warnings الأسلوبيّة لا تحجب (--no-fatal-*) كي لا يُعطَّل الدمج على لينت
       # أسلوبيّ. هذا يجعل كلّ عمل Flutter لاحق مفحوصاً قبل الدمج.
+      - name: Verify PMTiles protobuf compatibility
+        working-directory: mobile/sahool_app/packages/pmtiles
+        run: |
+          dart pub get --enforce-lockfile
+          dart test
       - run: flutter pub get
         working-directory: mobile/sahool_app
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings

@@ -1,0 +1,234 @@
+{
+  "upstream": {
+    "package": "pmtiles",
+    "version": "1.3.0",
+    "archive_url": "https://pub.dev/api/archives/pmtiles-1.3.0.tar.gz",
+    "archive_sha256": "7e3135c64ec3647e1dd8929fd3c371c8e1c6809b24f1d910d3198a7f41e2068c",
+    "repository": "https://github.com/bramp/pmtiles-dart",
+    "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+    "license": "BSD-2-Clause"
+  },
+  "fork": {
+    "version": "1.3.0+sahool.1",
+    "protobuf": "6.0.0",
+    "protobuf_archive_sha256": "75ec242d22e950bdcc79ee38dd520ce4ee0bc491d7fadc4ea47694604d22bf06",
+    "patches": [
+      "pubspec.yaml: version1.3.0+sahool.1, publish_to none, Dart^3.7.0, exact protobuf6.0.0",
+      "lib/src/directory.dart: preserve64MiB sizeLimit and recursionLimit64 explicitly"
+    ],
+    "runtime_validation": "Dart 3.10.8: resolver and 33 tests PASS; analysis: no errors, one upstream warning; Flutter app and APK PENDING_CI",
+    "dart_sdk": "^3.7.0"
+  },
+  "upstream_files": {
+    "LICENSE": {
+      "upstream_sha256": "6ca918a2c94bd7be4a27f794986b8907f72a455ea0854428fbd63a295c7e407a",
+      "local_sha256": "6ca918a2c94bd7be4a27f794986b8907f72a455ea0854428fbd63a295c7e407a",
+      "modified": false
+    },
+    "test/loading_cache_test.dart": {
+      "upstream_sha256": "efc2382ce4071aaa1f9dd97c8455dff59c3746241f2797163de8e01245d62f5b",
+      "local_sha256": "efc2382ce4071aaa1f9dd97c8455dff59c3746241f2797163de8e01245d62f5b",
+      "modified": false
+    },
+    "test/range_test.dart": {
+      "upstream_sha256": "1f7e795350fff011c691ce893336e8369d07c2911922e7694bfbedb14fddce13",
+      "local_sha256": "1f7e795350fff011c691ce893336e8369d07c2911922e7694bfbedb14fddce13",
+      "modified": false
+    },
+    "test/io_file_test.dart": {
+      "upstream_sha256": "34b90a5426f87e82ab41404c9bf1aac4c86960f910529e0e282ef2d2f2d415ad",
+      "local_sha256": "34b90a5426f87e82ab41404c9bf1aac4c86960f910529e0e282ef2d2f2d415ad",
+      "modified": false
+    },
+    "test/zxy_test.dart": {
+      "upstream_sha256": "2d72cf5643fc8d4674394e6a764c29a8caa38f671812b2794d41daaf21cbdd37",
+      "local_sha256": "2d72cf5643fc8d4674394e6a764c29a8caa38f671812b2794d41daaf21cbdd37",
+      "modified": false
+    },
+    "lib/src/io_http.dart": {
+      "upstream_sha256": "b51bdf267c90d5bdad48e3fb79cfbdc80d4009e98a9b3890e2d7ca2136a63a26",
+      "local_sha256": "b51bdf267c90d5bdad48e3fb79cfbdc80d4009e98a9b3890e2d7ca2136a63a26",
+      "modified": false
+    },
+    "lib/src/tile.dart": {
+      "upstream_sha256": "92ef4685088d3fbadcbbd2c598dc58ea4094c935d5bbe5bc3277cb8668c9b6df",
+      "local_sha256": "92ef4685088d3fbadcbbd2c598dc58ea4094c935d5bbe5bc3277cb8668c9b6df",
+      "modified": false
+    },
+    "lib/src/header.dart": {
+      "upstream_sha256": "109924110d1dd4c24ede3bd1756d00f11e531ec7b8a8a71456c6df5012bbb3be",
+      "local_sha256": "109924110d1dd4c24ede3bd1756d00f11e531ec7b8a8a71456c6df5012bbb3be",
+      "modified": false
+    },
+    "lib/src/exceptions.dart": {
+      "upstream_sha256": "c76395d977728d09209dd80f48699ecc5632f19024410c8ccf478a2e1d124bbe",
+      "local_sha256": "c76395d977728d09209dd80f48699ecc5632f19024410c8ccf478a2e1d124bbe",
+      "modified": false
+    },
+    "lib/src/native/io_file.dart": {
+      "upstream_sha256": "69f40a00070bdc35f55f0a37c94a48031837ce91b40ba8652a5f5e31c014d0ff",
+      "local_sha256": "69f40a00070bdc35f55f0a37c94a48031837ce91b40ba8652a5f5e31c014d0ff",
+      "modified": false
+    },
+    "lib/src/native/compression.dart": {
+      "upstream_sha256": "6594a6b87e24d14d122d51f5981a93ba84ede5b6c45afe498c478641db0ee7db",
+      "local_sha256": "6594a6b87e24d14d122d51f5981a93ba84ede5b6c45afe498c478641db0ee7db",
+      "modified": false
+    },
+    "lib/src/native/int64.dart": {
+      "upstream_sha256": "4f00a10c2855d8b0db502fb10397e49b053f0acd2a9033accfb905e2525b8bbc",
+      "local_sha256": "4f00a10c2855d8b0db502fb10397e49b053f0acd2a9033accfb905e2525b8bbc",
+      "modified": false
+    },
+    "lib/src/io.dart": {
+      "upstream_sha256": "63ae9a3745dc54a975aeba1707234192f226795d8ffee2cee5d5a4bc0849a455",
+      "local_sha256": "63ae9a3745dc54a975aeba1707234192f226795d8ffee2cee5d5a4bc0849a455",
+      "modified": false
+    },
+    "lib/src/compression.dart": {
+      "upstream_sha256": "86bd540547ee781d79f4a1295f6f71c22b8349e11e7826d6eb354a606b68717e",
+      "local_sha256": "86bd540547ee781d79f4a1295f6f71c22b8349e11e7826d6eb354a606b68717e",
+      "modified": false
+    },
+    "lib/src/directory.dart": {
+      "upstream_sha256": "1b6d7503790af16e67b77490488cfcbb96da549ffe2d8918215a3a0084031662",
+      "local_sha256": "c39b3609da5f9140bdf19fc300462d16c26afa6b491f4285a1d944aad7a38bf1",
+      "modified": true
+    },
+    "lib/src/int64.dart": {
+      "upstream_sha256": "5663b13350b25b2f3afbf2d9303b432e9161897db8670f8ce723385529b16565",
+      "local_sha256": "5663b13350b25b2f3afbf2d9303b432e9161897db8670f8ce723385529b16565",
+      "modified": false
+    },
+    "lib/src/archive.dart": {
+      "upstream_sha256": "5ed3cc096cd2d74be260f26cc89906751eb660197e58c72e9954da94c32196fd",
+      "local_sha256": "5ed3cc096cd2d74be260f26cc89906751eb660197e58c72e9954da94c32196fd",
+      "modified": false
+    },
+    "lib/src/range.dart": {
+      "upstream_sha256": "8d08fec665284430a185e7db3fd491a0e785c0319c5efb59c14e01ccb9ec9b16",
+      "local_sha256": "8d08fec665284430a185e7db3fd491a0e785c0319c5efb59c14e01ccb9ec9b16",
+      "modified": false
+    },
+    "lib/src/types.dart": {
+      "upstream_sha256": "fc6207f92b27beaa5e103ecb6c7d7f7d3864c5d4e86da40a605e76e2cdb62815",
+      "local_sha256": "fc6207f92b27beaa5e103ecb6c7d7f7d3864c5d4e86da40a605e76e2cdb62815",
+      "modified": false
+    },
+    "lib/src/js/io_file.dart": {
+      "upstream_sha256": "a6a7e20d60779f3cc13f0bbcc579392a53220fa5097d9d24cfc40aec4658be8d",
+      "local_sha256": "a6a7e20d60779f3cc13f0bbcc579392a53220fa5097d9d24cfc40aec4658be8d",
+      "modified": false
+    },
+    "lib/src/js/compression.dart": {
+      "upstream_sha256": "7a22984adb0f1eb32477aae5ae7f3932d8ef7a828fd524d57d659b4fe514126c",
+      "local_sha256": "7a22984adb0f1eb32477aae5ae7f3932d8ef7a828fd524d57d659b4fe514126c",
+      "modified": false
+    },
+    "lib/src/js/int64.dart": {
+      "upstream_sha256": "5df09ddf6add802fd0844f1784922c0d39dbc583164196416a63811d471dccaa",
+      "local_sha256": "5df09ddf6add802fd0844f1784922c0d39dbc583164196416a63811d471dccaa",
+      "modified": false
+    },
+    "lib/src/zxy.dart": {
+      "upstream_sha256": "2fcf11b600e2833a969052ab87185bdcef9ede9291149cc792f74512ef829702",
+      "local_sha256": "2fcf11b600e2833a969052ab87185bdcef9ede9291149cc792f74512ef829702",
+      "modified": false
+    },
+    "lib/src/convert.dart": {
+      "upstream_sha256": "a76eecde96a2303aeb2580c185319f10218d428dc688f0bfa776a4b97c2f06ec",
+      "local_sha256": "a76eecde96a2303aeb2580c185319f10218d428dc688f0bfa776a4b97c2f06ec",
+      "modified": false
+    },
+    "lib/src/utils.dart": {
+      "upstream_sha256": "09864ef22378ec509bed26f548c6d755e8385ea040fd6b15ef7576588118d77c",
+      "local_sha256": "09864ef22378ec509bed26f548c6d755e8385ea040fd6b15ef7576588118d77c",
+      "modified": false
+    },
+    "lib/src/loading_cache.dart": {
+      "upstream_sha256": "2daeef56e43784444a19e3879e6d38b90d75716428b95f663dae1cf8a50f0960",
+      "local_sha256": "2daeef56e43784444a19e3879e6d38b90d75716428b95f663dae1cf8a50f0960",
+      "modified": false
+    },
+    "lib/pmtiles.dart": {
+      "upstream_sha256": "abe0e07d9cd5ba18aa78424a50444b48602c319d7830f425fafa55b364e6e822",
+      "local_sha256": "abe0e07d9cd5ba18aa78424a50444b48602c319d7830f425fafa55b364e6e822",
+      "modified": false
+    },
+    "pubspec.yaml": {
+      "upstream_sha256": "9375495db52a7b9950a6c84470cddfddcaba4bed2f15908d5a192285afa8092c",
+      "local_sha256": "321e8560a077dad90cca802416bfc137e9870092544c94d74e7bed64bd25cb00",
+      "modified": true
+    },
+    "CHANGELOG.md": {
+      "upstream_sha256": "56eea70182097ff5ce7d0c3d838876e8f587278f647d97d3b6fcbd5f118ffc41",
+      "local_sha256": "56eea70182097ff5ce7d0c3d838876e8f587278f647d97d3b6fcbd5f118ffc41",
+      "modified": false
+    },
+    "README.md": {
+      "upstream_sha256": "fdfa4708f9765570b9b4e3cd52662ca42efa12aa221c630eca3105a9788a5e45",
+      "local_sha256": "fdfa4708f9765570b9b4e3cd52662ca42efa12aa221c630eca3105a9788a5e45",
+      "modified": false
+    }
+  },
+  "fixtures": {
+    "invalid.pmtiles": {
+      "bytes": 148,
+      "sha256": "dabac1813c60cc777b4215b030c4815b72ab0c8a5f95a0b9e4ef9fc2a778399e",
+      "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+      "source_path": "packages/pmtiles_tests/samples/invalid.pmtiles",
+      "source_url": "https://raw.githubusercontent.com/bramp/pmtiles-dart/3797df6e9f49e20a6fda252f564aff393bd4bb7b/packages/pmtiles_tests/samples/invalid.pmtiles",
+      "git_blob_sha1": "f2b720ba30467791cee619c542fdcd4e32ce97f0",
+      "license": "Upstream Protomaps fixture; source and notices in test/fixtures/NOTICE.md"
+    },
+    "invalid_v4.pmtiles": {
+      "bytes": 468,
+      "sha256": "8326be59a1171c7788411312bce93057d15e9b4e87d4b181c677592c71c3a3ec",
+      "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+      "source_path": "packages/pmtiles_tests/samples/invalid_v4.pmtiles",
+      "source_url": "https://raw.githubusercontent.com/bramp/pmtiles-dart/3797df6e9f49e20a6fda252f564aff393bd4bb7b/packages/pmtiles_tests/samples/invalid_v4.pmtiles",
+      "git_blob_sha1": "1871cb2759b535b65a3581974b061ac05c58ab58",
+      "license": "Upstream Protomaps fixture; source and notices in test/fixtures/NOTICE.md"
+    },
+    "stamen_toner_z0_0_0.png": {
+      "bytes": 18404,
+      "sha256": "08d25d79589d91013b177e04e107d3dc35543f1e804f5bcbc5b508e463d3d1fa",
+      "derived_from": "stamen_toner_z3.pmtiles",
+      "derivation": "Unmodified z0/x0/y0 PNG bytes extracted with independent Python header/directory reader",
+      "license": "CC-BY-3.0; underlying map data ODbL (see NOTICE.md)"
+    },
+    "stamen_toner_z3.pmtiles": {
+      "bytes": 716052,
+      "sha256": "b96efe3ea10b98632c0c0dc229d000b604ebdad6b2f1321ea11d9de931df1ce5",
+      "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+      "source_path": "packages/pmtiles_tests/samples/stamen_toner(raster)CC-BY+ODbL_z3.pmtiles",
+      "source_url": "https://raw.githubusercontent.com/bramp/pmtiles-dart/3797df6e9f49e20a6fda252f564aff393bd4bb7b/packages/pmtiles_tests/samples/stamen_toner%28raster%29CC-BY%2BODbL_z3.pmtiles",
+      "git_blob_sha1": "8d170ca89ecf3197d14366db63679f198a198101",
+      "license": "CC-BY-3.0; underlying map data ODbL (see NOTICE.md)"
+    },
+    "test_fixture_1.pmtiles": {
+      "bytes": 468,
+      "sha256": "f3f65093582c81625cdfab11b3d1a27c2fb6aadcf8bd9802b2ad694d4d7cdca5",
+      "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+      "source_path": "packages/pmtiles_tests/samples/test_fixture_1.pmtiles",
+      "source_url": "https://raw.githubusercontent.com/bramp/pmtiles-dart/3797df6e9f49e20a6fda252f564aff393bd4bb7b/packages/pmtiles_tests/samples/test_fixture_1.pmtiles",
+      "git_blob_sha1": "c86db1f27bba6d3818bb5da5ac6b78e8f6e3303a",
+      "license": "Upstream Protomaps fixture; source and notices in test/fixtures/NOTICE.md"
+    },
+    "test_fixture_2.pmtiles": {
+      "bytes": 466,
+      "sha256": "7ee80a53000bfb15a5d54162bc3161094239e775fef180fffb2d3ff607e46c1a",
+      "source_commit": "3797df6e9f49e20a6fda252f564aff393bd4bb7b",
+      "source_path": "packages/pmtiles_tests/samples/test_fixture_2.pmtiles",
+      "source_url": "https://raw.githubusercontent.com/bramp/pmtiles-dart/3797df6e9f49e20a6fda252f564aff393bd4bb7b/packages/pmtiles_tests/samples/test_fixture_2.pmtiles",
+      "git_blob_sha1": "cb19dd5f1163c9bb4597e764598b9c4086720727",
+      "license": "Upstream Protomaps fixture; source and notices in test/fixtures/NOTICE.md"
+    }
+  },
+  "third_party_notice": {
+    "path": "test/fixtures/PROTOMAPS_LICENSE",
+    "source_url": "https://github.com/protomaps/PMTiles/blob/main/LICENSE",
+    "git_blob_sha1": "ec3d69a55220793cb4b2074ebe202df25f9cb417",
+    "local_sha256": "0371c38f338835f7fc13ed71176f3d92144e22c8b736a31cced57adbbeb647b3"
+  }
+}

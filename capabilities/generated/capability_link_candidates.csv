@@ -1688,6 +1688,7 @@ SAT-009,api,POST /v1/terrain/slope @ services/raster-service/routers/analysis.py
 SAT-009,api,POST /v1/upload/drone @ services/raster-service/routers/storage.py:43,3,applied
 SAT-009,api,POST /v1/upload/raster @ services/raster-service/routers/storage.py:26,3,applied
 SAT-009,api,POST /v1/zones/classify @ services/raster-service/routers/analysis.py:30,3,applied
+SAT-009,mobile,mobile/sahool_app/packages/pmtiles/lib/src/tile.dart,2,applied
 SAT-009,service,services/raster-service/main.py,10,applied
 SAT-009,test,services/raster-service/test_available_dates_provider_datetime.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied

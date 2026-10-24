@@ -9934,3 +9934,8 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 2026-10-24 — مراجعة سلامة الدمج في #1263 كشفت إعادة إعفاءَي واجهة حُذفا عند ربط عملاء الاتصال؛ أعيد `config/endpoint_ui_coverage_waivers.json` إلى محتوى الرأس `09739386` وأعيد التوليد، مع إبقاء سقف 53 في `tests_v9/test_platform_catalog_gate.py`. شجرتا main `5cd4064c` وأساس PR `9b3d59d9` متطابقتان. توقفت تشغيلة preflight على المرشح السابق بعد اكتشاف الانحدار؛ لا تُحسب نجاحًا كاملاً.
 
 2026-10-24 — امتداد إصلاح أدوات الاختبار في #1263: ثُبّت pytest9.1.1 وpytest-asyncio1.4.0 في `.github/workflows/realtime-agent.yml` بدل الزوج السابق، لأن تدقيق متطلبات تشغيل العامل لا يشمل أدوات الاختبار. هذا هو الزوج الذي نُفذت به اختبارات العامل الـ70 الناجحة؛ لا تغيير لصورة تشغيله أو ادعاء تدقيق أدواته ضمن تدقيق متطلبات التشغيل.
+
+
+## 2026-10-24 — توافق PMTiles وLiveKit
+
+2026-10-24 — متابعة #1263 عند `c8714330578d33cfbfe9f0d06b0e3bc7494ae1ff`: نجح قبول SFU الفعلي وأمن Actions وعامل الصوت والويب في CI، لكن Flutter كشف MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01. المرشح يحفظ خرائط PMTiles عبر توافق محلي محدود لـpmtiles1.3 مع protobuf6.0.0، وترخيص ومصدر واختبارات أرشيف مستقلة؛ نجح محلل الحزمة على Dart3.10.8 مع protobuf6.0.0 و33 اختبارًا، وحُفظ قفل الحزمة الفعلي. حل تبعيات التطبيق وAPK لم يُثبتا بعد؛ الدليل `certification/evidence/pmtiles_compatibility_20261024/validation.json`. المصدر: `mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md` و`.github/workflows/realtime-mobile.yml`؛ الوظيفة الفاشلة120940846487. لا دمج إلى main أو نشر إنتاج.

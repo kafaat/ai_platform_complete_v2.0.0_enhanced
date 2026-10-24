@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6308,
+    "files_scanned": 6344,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
-      "mobile": 61,
-      "other": 2107,
-      "tests": 2027,
+      "mobile": 90,
+      "other": 2109,
+      "tests": 2032,
       "web": 479
     },
-    "unmapped_artifacts": 2386,
+    "unmapped_artifacts": 2420,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -41417,6 +41417,142 @@
     {
       "path": "mobile/sahool_app/lib/widgets/water_usage_card.dart",
       "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/CHANGELOG.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/README.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/UPSTREAM_PROVENANCE.json",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/analysis_options.yaml",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/pmtiles.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/archive.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/convert.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/directory.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/exceptions.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/header.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/io.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/io_http.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/io_file.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/loading_cache.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/io_file.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/range.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/types.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/utils.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/zxy.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/pubspec.yaml",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/fixtures/NOTICE.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/io_file_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/loading_cache_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/protobuf_compatibility_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/range_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/zxy_test.dart",
+      "kind": "tests"
     },
     {
       "path": "mobile/sahool_app/pubspec.yaml",

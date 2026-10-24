@@ -85,7 +85,10 @@ dependencies:
   mobile_scanner: ^5.1.1
 
 dependency_overrides:
-  # Resolve conflicts if any
+  # Scoped compatibility fork: retain offline PMTiles on Dart 3.10 while
+  # LiveKit uses protobuf 6. See packages/pmtiles/SAHOOL_COMPATIBILITY.md.
+  pmtiles:
+    path: packages/pmtiles
 
 flutter:
   uses-material-design: true

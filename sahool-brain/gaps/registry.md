@@ -7645,3 +7645,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** #1263؛ `frontend/src/realtime-call/controller.ts` و`frontend/src/realtime-call/controller.test.ts`.
 - **الإصلاح:** تحقق epoch وهوية الغرفة قبل تأثير callbacks القديمة، وعدم إنهاء جلسة جديدة عند رفض connect سابق أو اكتمال leave قديم. حالتا انحدار ضمن 19 اختبار controller ناجحًا.
 - **حدود القبول:** ليست تجربة SFU أو جهاز حقيقي؛ فجوات قبول الصوت والشبكة أعلاه تبقى open.
+
+
+## MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01
+
+- **الحالة:** open — اختبارات حزمة Dart ناجحة؛ قبول تطبيق Flutter وAPK عبر CI مطلوب.
+- **المصدر:** #1263 عند `c8714330`؛ `mobile/sahool_app/pubspec.yaml` و`mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md`.
+- **العطل:** pmtiles1.x يتطلب protobuf3 بينما livekit_client2.13.1 يتطلب protobuf6؛ محلل التبعيات يتوقف قبل التحليل والبناء.
+- **المرشح:** نسخة توافق محلية لحزمة pmtiles1.3 مثبتة المصدر والترخيص، مع protobuf6.0.0 وحدود القراءة السابقة؛ لا حذف لدعم الخرائط دون اتصال ولا فرض protobuf عالميًا.
+- **شرط الإغلاق:** اختبارات أرشيف وvarint فعلية، حل تبعيات التطبيق وحفظ القفل الناتج، ثم تحليل واختبارات Flutter وبناء APK ناجح على الرأس المصحح.
+
+- **الدليل المحلي:** `certification/evidence/pmtiles_compatibility_20261024/validation.json`: 33 اختبارًا ناجحًا على Dart3.10.8، وقفل حزمة حقيقي؛ هذا لا يثبت حل تبعيات التطبيق أو APK.

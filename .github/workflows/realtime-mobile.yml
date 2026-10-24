@@ -30,6 +30,11 @@ jobs:
           flutter-version: '3.38.9'
           channel: stable
           cache: true
+      - name: Verify PMTiles protobuf compatibility
+        working-directory: mobile/sahool_app/packages/pmtiles
+        run: |
+          dart pub get --enforce-lockfile
+          dart test
       - name: Resolve actual native dependencies
         id: resolve
         run: flutter pub get
