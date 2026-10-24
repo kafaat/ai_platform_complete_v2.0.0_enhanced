@@ -26,7 +26,7 @@ from fastapi import Header as _Header
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from human_in_loop import APPROVER_ROLES, HumanApprovalWorkflow, WorkflowUnavailable
+from human_in_loop import APPROVER_ROLES, HumanApprovalWorkflow, WorkflowUnavailable, close_pool
 from pydantic import BaseModel, Field, field_validator, model_validator
 from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
@@ -346,7 +346,10 @@ async def lifespan(app):
     from shared.db_role_guard import assert_dsn_role_rls_safe
 
     await assert_dsn_role_rls_safe(os.getenv("DATABASE_URL", ""), service="guardrails-engine")
-    yield
+    try:
+        yield
+    finally:
+        await close_pool()
 
 
 app = FastAPI(
