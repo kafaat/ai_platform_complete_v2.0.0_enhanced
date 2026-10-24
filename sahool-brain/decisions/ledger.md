@@ -4362,3 +4362,8 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ## 2026-10-24 — إعادة بناء مرشح الصوت
 
 2026-10-24 — إعادة بناء تكامل الصوت الاختياري فوق أساس #1262 عند `9b3d59d95100dfb8cc0faf95cd5da4d5b6039786` بعد فقدان المرشح المحلي غير المنشور؛ لا تُورث نتائج النسخة المفقودة. الجلسات تربط المستأجر والحقل، والعامل يفرض سياسة صوت محلية بلا أدوات، والويب مستند معزول وFlutter معطل افتراضيًا. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`certification/evidence/realtime_voice_recovery_20261024/README.md`. قبول SFU وFlutter والشبكات والصوت العربي الحي مفتوح؛ لا دمج أو نشر.
+
+
+## 2026-10-24 — إصلاح مراجعة #1263
+
+2026-10-24 — إصلاح مراجعة #1263 فوق رأس `09739386fa885cbced1c9bae599dc886f3102a47` ومصالحة main `5cd4064c9bc3ee45611569a5d88bdf8368776bc1`: عزل callbacks ورفض الاتصال المتأخر بحسب epoch حتى لا تغلق جلسة جديدة، وتوافق web1 في Flutter، وتصحيح bootstrap والاقتباس في قبول SFU. نجحت 19 حالة controller و7 عقود عدة القبول وtypecheck وactionlint محليًا. المصادر: `frontend/src/realtime-call/controller.test.ts` و`mobile/sahool_app/pubspec.yaml` و`.github/workflows/livekit-acceptance.yml`. قبول Flutter وSFU الفعلي على الرأس النهائي ما زال مطلوبًا؛ لا دمج main أو نشر إنتاج.

@@ -7637,3 +7637,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open — تنفيذ محلي اختياري ليس قبول نماذج أو شبكة حية.
 - **المصدر:** `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`services/realtime-agent/realtime_agent/speech.py`.
 - **شرط الإغلاق:** نماذج عربية معلومة المصدر والبصمة مع تقييم كلام حقلي وضجيج ومقاطعة، صلاحيات مستأجرين من Platform حقيقي، قبول الاحتفاظ، وتجارب TURN وإعادة اتصال وأجهزة فعلية. لا تكفي اختبارات SDK أو مزود بديل.
+
+
+## REALTIME-STALE-ROOM-CALLBACK-CLOSES-NEW-SESSION-01
+
+- **الحالة:** fixed محليًا؛ قبول CI للرأس النهائي مطلوب.
+- **المصدر:** #1263؛ `frontend/src/realtime-call/controller.ts` و`frontend/src/realtime-call/controller.test.ts`.
+- **الإصلاح:** تحقق epoch وهوية الغرفة قبل تأثير callbacks القديمة، وعدم إنهاء جلسة جديدة عند رفض connect سابق أو اكتمال leave قديم. حالتا انحدار ضمن 19 اختبار controller ناجحًا.
+- **حدود القبول:** ليست تجربة SFU أو جهاز حقيقي؛ فجوات قبول الصوت والشبكة أعلاه تبقى open.

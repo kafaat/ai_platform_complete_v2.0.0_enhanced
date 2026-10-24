@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install isolated runtime and test tools
-        run: python -m pip install -r services/realtime-agent/requirements.txt pytest==8.4.2 pytest-asyncio==1.2.0 pip-audit==2.10.1
+        run: python -m pip install -r services/realtime-agent/requirements.txt pytest==9.1.1 pytest-asyncio==1.4.0 pip-audit==2.10.1
       - name: Audit full worker dependency set
         run: python -m pip_audit -r services/realtime-agent/requirements.txt
       - name: Test actual SDK boundaries and publication refusal

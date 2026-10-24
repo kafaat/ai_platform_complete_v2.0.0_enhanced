@@ -30,9 +30,13 @@ jobs:
       - name: Install isolated runtime and scanner
         run: |
           python -m venv "$RUNNER_TEMP/acceptance-runtime"
-          "$RUNNER_TEMP/acceptance-runtime/bin/pip" install -r tests/acceptance/livekit/requirements.txt pytest==8.4.2
+          # The installed-path audit includes bootstrap/test tools. Do not keep
+          # the runner's vulnerable seed pip or the previous pytest8 pin.
+          "$RUNNER_TEMP/acceptance-runtime/bin/python" -m pip install --upgrade pip==26.2.2
+          "$RUNNER_TEMP/acceptance-runtime/bin/python" -m pip install -r tests/acceptance/livekit/requirements.txt pytest==9.1.1
           python -m venv "$RUNNER_TEMP/acceptance-audit"
-          "$RUNNER_TEMP/acceptance-audit/bin/pip" install pip-audit==2.10.1
+          "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip install --upgrade pip==26.2.2
+          "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip install pip-audit==2.10.1
       - name: Audit complete installed acceptance runtime
         run: |
           mkdir -p "$RUNNER_TEMP/livekit-acceptance"
@@ -40,12 +44,16 @@ jobs:
           "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip_audit --path "$SITE" --format json --output "$RUNNER_TEMP/livekit-acceptance/runtime-audit.json"
           "$RUNNER_TEMP/acceptance-runtime/bin/pip" freeze > "$RUNNER_TEMP/livekit-acceptance/runtime-versions.txt"
       - name: Verify harness safety
-        run: "$RUNNER_TEMP/acceptance-runtime/bin/python -m pytest -q -o addopts='' tests/architecture/test_livekit_acceptance.py"
+        run: |
+          export PATH="$RUNNER_TEMP/acceptance-runtime/bin:$PATH"
+          python -m pytest -q -o addopts='' tests/architecture/test_livekit_acceptance.py
       - name: Exercise actual pinned SFU and auto_create mutation
         env:
           PYTHONDONTWRITEBYTECODE: '1'
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: "$RUNNER_TEMP/acceptance-runtime/bin/python scripts/ci/run_livekit_acceptance.py --expected-head \"$EXPECTED_HEAD\" --output \"$RUNNER_TEMP/livekit-acceptance\""
+        run: |
+          export PATH="$RUNNER_TEMP/acceptance-runtime/bin:$PATH"
+          python scripts/ci/run_livekit_acceptance.py --expected-head "$EXPECTED_HEAD" --output "$RUNNER_TEMP/livekit-acceptance"
       - name: Upload sanitized receipts
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

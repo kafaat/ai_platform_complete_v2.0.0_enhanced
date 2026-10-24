@@ -9925,3 +9925,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ## 2026-10-24 — إعادة بناء مرشح الصوت
 
 2026-10-24 — إعادة بناء تكامل الصوت الاختياري فوق أساس #1262 عند `9b3d59d95100dfb8cc0faf95cd5da4d5b6039786` بعد فقدان المرشح المحلي غير المنشور؛ لا تُورث نتائج النسخة المفقودة. الجلسات تربط المستأجر والحقل، والعامل يفرض سياسة صوت محلية بلا أدوات، والويب مستند معزول وFlutter معطل افتراضيًا. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`certification/evidence/realtime_voice_recovery_20261024/README.md`. قبول SFU وFlutter والشبكات والصوت العربي الحي مفتوح؛ لا دمج أو نشر.
+
+
+## 2026-10-24 — إصلاح مراجعة #1263
+
+2026-10-24 — إصلاح مراجعة #1263 فوق رأس `09739386fa885cbced1c9bae599dc886f3102a47` ومصالحة main `5cd4064c9bc3ee45611569a5d88bdf8368776bc1`: عزل callbacks ورفض الاتصال المتأخر بحسب epoch حتى لا تغلق جلسة جديدة، وتوافق web1 في Flutter، وتصحيح bootstrap والاقتباس في قبول SFU. نجحت 19 حالة controller و7 عقود عدة القبول وtypecheck وactionlint محليًا. المصادر: `frontend/src/realtime-call/controller.test.ts` و`mobile/sahool_app/pubspec.yaml` و`.github/workflows/livekit-acceptance.yml`. قبول Flutter وSFU الفعلي على الرأس النهائي ما زال مطلوبًا؛ لا دمج main أو نشر إنتاج.
+
+2026-10-24 — مراجعة سلامة الدمج في #1263 كشفت إعادة إعفاءَي واجهة حُذفا عند ربط عملاء الاتصال؛ أعيد `config/endpoint_ui_coverage_waivers.json` إلى محتوى الرأس `09739386` وأعيد التوليد، مع إبقاء سقف 53 في `tests_v9/test_platform_catalog_gate.py`. شجرتا main `5cd4064c` وأساس PR `9b3d59d9` متطابقتان. توقفت تشغيلة preflight على المرشح السابق بعد اكتشاف الانحدار؛ لا تُحسب نجاحًا كاملاً.
+
+2026-10-24 — امتداد إصلاح أدوات الاختبار في #1263: ثُبّت pytest9.1.1 وpytest-asyncio1.4.0 في `.github/workflows/realtime-agent.yml` بدل الزوج السابق، لأن تدقيق متطلبات تشغيل العامل لا يشمل أدوات الاختبار. هذا هو الزوج الذي نُفذت به اختبارات العامل الـ70 الناجحة؛ لا تغيير لصورة تشغيله أو ادعاء تدقيق أدواته ضمن تدقيق متطلبات التشغيل.

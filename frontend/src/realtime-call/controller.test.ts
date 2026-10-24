@@ -13,6 +13,33 @@ function fixture() {
   return { api, track, room, media, controller, session, changed, disconnected: () => disconnected(), reconnecting: () => reconnecting() };
 }
 describe('capture ownership and session lifecycle', () => {
+  it('ignores disconnect and reconnect callbacks from an ended room after joining another', async () => {
+    const f = fixture(); const oldDisconnect = pending<void>();
+    const nextRoom = { ...f.room, disconnect: vi.fn(), onDisconnected: vi.fn(), onReconnecting: vi.fn() };
+    f.media.room.mockReturnValueOnce(f.room).mockReturnValue(nextRoom);
+    f.api.create.mockResolvedValueOnce(f.session).mockResolvedValue({ ...f.session, session_id: 'next-session' });
+    await f.controller.join('field'); vi.mocked(f.room.disconnect).mockReturnValue(oldDisconnect.promise);
+    const leaving = f.controller.leave(); await f.controller.join('field'); await f.controller.enableMicrophone();
+    f.changed.mockClear(); f.track.stop.mockClear();
+    f.reconnecting(); f.disconnected(); await Promise.resolve();
+    expect(f.track.stop).not.toHaveBeenCalled(); expect(nextRoom.disconnect).not.toHaveBeenCalled();
+    expect(f.api.close).not.toHaveBeenCalledWith('next-session', false);
+    oldDisconnect.resolve(); await leaving;
+    expect(f.changed).not.toHaveBeenCalledWith('انتهت الجلسة');
+    await f.controller.leave(); expect(nextRoom.disconnect).toHaveBeenCalled();
+  });
+  it('does not close a newer session when an old connection rejects late', async () => {
+    const f = fixture(); const connection = pending<void>();
+    const nextRoom = { ...f.room, connect: vi.fn(async () => {}), disconnect: vi.fn(), onDisconnected: vi.fn(), onReconnecting: vi.fn() };
+    f.media.room.mockReturnValueOnce(f.room).mockReturnValue(nextRoom);
+    f.api.create.mockResolvedValueOnce(f.session).mockResolvedValue({ ...f.session, session_id: 'next-session' });
+    vi.mocked(f.room.connect).mockReturnValue(connection.promise);
+    const joining = f.controller.join('field'); const rejected = expect(joining).rejects.toThrow('old failure');
+    await Promise.resolve(); await f.controller.leave(); await f.controller.join('field');
+    connection.reject(new Error('old failure')); await rejected;
+    expect(nextRoom.disconnect).not.toHaveBeenCalled(); expect(f.api.close).not.toHaveBeenCalledWith('next-session', false);
+    await f.controller.leave();
+  });
   it('joins muted and requests capture only on a second explicit action', async () => { const f = fixture(); await f.controller.join('field'); expect(f.media.microphone).not.toHaveBeenCalled(); await f.controller.enableMicrophone(); expect(f.room.publish).toHaveBeenCalledWith(f.track); await f.controller.leave(); });
   it('stops capture synchronously before a pending server close', async () => { const f = fixture(); await f.controller.join('field'); await f.controller.enableMicrophone(); const close = pending<void>(); f.api.close.mockReturnValue(close.promise); const leaving = f.controller.leave(); expect(f.track.stop).toHaveBeenCalled(); close.resolve(); await leaving; });
   it('stops late permission grants after leaving', async () => { const f = fixture(); await f.controller.join('field'); const grant = pending<AudioTrack>(); f.media.microphone.mockReturnValue(grant.promise); const capture = f.controller.enableMicrophone(); await f.controller.leave(); grant.resolve(f.track); await capture; expect(f.track.stop).toHaveBeenCalled(); expect(f.room.publish).not.toHaveBeenCalled(); });

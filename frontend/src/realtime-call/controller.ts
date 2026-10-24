@@ -27,16 +27,16 @@ export class CallController {
     this.session = session;
     try {
       validateSession(session, field);
-      this.timer = setTimeout(() => { void this.leave(); }, Math.max(0, session.expires_at * 1000 - Date.now()));
+      this.timer = setTimeout(() => { if (epoch === this.epoch) void this.leave(); }, Math.max(0, session.expires_at * 1000 - Date.now()));
       const room = this.media.room(); this.room = room;
-      room.onDisconnected(() => { void this.leave(); });
-      room.onReconnecting(() => { this.mute(); this.changed('إعادة الاتصال — الميكروفون مغلق'); });
+      room.onDisconnected(() => { if (epoch === this.epoch && room === this.room) void this.leave(); });
+      room.onReconnecting(() => { if (epoch === this.epoch && room === this.room) { this.mute(); this.changed('إعادة الاتصال — الميكروفون مغلق'); } });
       await room.connect(session.url, session.participant_token);
       if (epoch !== this.epoch) { await room.disconnect(); return false; }
       if (Date.now() >= session.expires_at * 1000) { await this.leave(); return false; }
       this.changed('متصل — الميكروفون مغلق');
       return true;
-    } catch (error) { await this.leave(); throw error; }
+    } catch (error) { if (epoch === this.epoch) await this.leave(); throw error; }
   }
   async enableMicrophone(): Promise<void> {
     if (!this.room || !this.session || Date.now() >= this.session.expires_at * 1000) throw new Error('الجلسة غير متاحة');
@@ -56,12 +56,12 @@ export class CallController {
   }
   mute(): void { this.captureEpoch++; this.track?.stop(); this.track = undefined; }
   async leave(keepalive = false): Promise<void> {
-    ++this.epoch; ++this.captureEpoch; clearTimeout(this.timer); this.timer = undefined;
+    const epoch = ++this.epoch; ++this.captureEpoch; clearTimeout(this.timer); this.timer = undefined;
     this.track?.stop(); this.track = undefined;
     const room = this.room; const session = this.session;
     this.room = undefined; this.session = undefined;
     // Do not await network work before stopping physical capture.
     const closing = session ? this.api.close(session.session_id, keepalive).catch(() => {}) : Promise.resolve();
-    try { await room?.disconnect(); } finally { await closing; this.changed('انتهت الجلسة'); }
+    try { await room?.disconnect(); } finally { await closing; if (epoch === this.epoch) this.changed('انتهت الجلسة'); }
   }
 }
