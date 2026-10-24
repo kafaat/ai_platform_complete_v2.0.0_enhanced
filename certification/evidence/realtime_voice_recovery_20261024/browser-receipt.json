@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "nginx": "production configuration with only listener/root adapted",
+  "browser": "153.0.8010.0",
+  "groups": [
+    "ordinary_document_denies_capture",
+    "canonical_document_has_scoped_headers",
+    "alternate_raw_paths_rejected",
+    "worker_context_not_public",
+    "browser_denies_microphone_on_spa",
+    "browser_allows_only_microphone_on_canonical_document",
+    "browser_blocks_embedded_call_document",
+    "actual_ui_sdk_capture_requires_second_click_and_ends_on_navigation_with_fake_room"
+  ],
+  "group_count": 8,
+  "capture_transport": "synthetic room adapter; actual CallApp/controller and LiveKit microphone track",
+  "real_sfu_acceptance": false
+}

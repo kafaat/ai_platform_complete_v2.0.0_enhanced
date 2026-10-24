@@ -3,8 +3,8 @@
 Standalone FastAPI control service for tenant- and field-bound LiveKit sessions.
 The feature is **disabled by default** (`SAHOOL_REALTIME_ENABLED=0`). Adding this
 directory does not enable a frontend route, deploy an SFU, or establish runtime
-acceptance. This foundation does not provide STT, an AI worker, a call UI,
-recording, or webhooks.
+acceptance. Voice is separately opt-in; this service controls sessions and dispatch, while
+STT, AI processing and TTS run in the isolated worker. No recording is enabled.
 
 ## Trust boundary
 
@@ -32,8 +32,8 @@ or infer consent for STT, video analysis, recording, or retention from the
 | `GET /api/v1/realtime/sessions/{id}` | Tenant- and actor-authorized session read. |
 | `DELETE /api/v1/realtime/sessions/{id}` | Authorized closure request; returns `202` with state `CLOSING`. |
 
-Session leases govern this service's lifecycle; no webhook receiver is implemented
-here. Deleting a self-hosted LiveKit room does not revoke an issued participant
+Session leases govern this service's lifecycle. Signed webhook receipts are hints
+and cannot alter authorization, quotas or session lifecycle. Deleting a self-hosted LiveKit room does not revoke an issued participant
 JWT. LiveKit proactively refreshes participant tokens with at least a ten-minute
 validity window, so neither the initial 60-second token TTL nor the 300-second
 application lease is a revocation horizon. JWT expiration alone also does not
@@ -184,3 +184,38 @@ existing Railway build plans cover a fixed list and do not automatically prove
 the new image. Run tests against self-hosted LiveKit and a staging Platform,
 then inspect actual network behavior. Source tests and CI do not establish
 STT/agent/media readiness, zero provider egress, or production acceptance.
+
+
+## Explicit voice sessions
+
+Voice remains disabled unless `SAHOOL_REALTIME_VOICE_ENABLED=1` is explicitly set
+in the already enabled, self-hosted session service. Set a dedicated
+`REALTIME_WORKER_SECRET` containing 32–256 printable ASCII characters; it is not a
+LiveKit signing key and must only reach the session service and its worker.
+Creation accepts a separate strict boolean `voice_consent` (default `false`). A
+true value while voice is disabled fails before allocating a room. Consent must
+disclose speech transcription and the existing agricultural AI audit retention;
+media transport consent alone does not authorize those operations.
+
+The fixed `sahool-agronomist` worker receives only `{session_id, nonce}` in LiveKit
+dispatch metadata. It obtains context through the private
+`GET /api/v1/realtime/internal/jobs/{session_id}` endpoint using
+`X-Realtime-Worker-Token` and `X-Realtime-Job-Nonce`. Public proxies must deny this
+internal prefix. The response is `no-store` and contains the server-owned room,
+assigned participant, tenant, actor, field, lease, current policy and original user
+bearer. The worker must stop on context failure and independently enforce lease
+expiry. No bearer or nonce is persisted or returned by public status endpoints.
+
+Every context read rechecks canonical Platform identity, the current v2 policy
+and FIELD_VIEW/RLS. This first voice implementation accepts only `local_only`
+policies explicitly denying external LLM and external TTS. A close, cancellation,
+failed dispatch, failed authorization or lease expiry revokes transient context.
+SQLite keeps only voice session IDs as restart cleanup intent: startup moves
+those former sessions to CLOSING before admission, rather than recovering a
+credential. An uncertain RPC keeps the existing durable quota/cleanup obligation.
+
+`POST /api/v1/realtime/hooks/livekit` verifies the official SDK signature and
+raw-body digest, caps the body at 4096 bytes and atomically deduplicates event ID
+and digest. Receipt storage omits the raw body and participant metadata; unknown
+rooms are acknowledged. This does not guarantee webhook delivery or replace
+cleanup/reconciliation.

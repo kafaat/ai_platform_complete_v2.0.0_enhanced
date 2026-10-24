@@ -2220,7 +2220,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: "3.27.4"  # Dart 3.6.2 — تتطلّبه flutter_map_mbtiles ^1.0.4 (≥3.6.0)
+          flutter-version: "3.38.9"  # Dart >=3.10 required by the pinned realtime SDK
           channel: stable
           cache: true
       # بوّابة فحص الموبايل: كانت غائبة تماماً (Dart يُشحَن بلا أيّ فحص — لا analyze

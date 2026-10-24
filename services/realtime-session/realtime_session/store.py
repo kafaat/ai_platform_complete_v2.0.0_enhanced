@@ -80,6 +80,10 @@ class SessionStore:
                 "CHECK(expires_at > created_at))"
             )
             conn.execute(
+                "CREATE TABLE IF NOT EXISTS realtime_voice_sessions "
+                "(session_id TEXT PRIMARY KEY REFERENCES realtime_sessions(session_id))"
+            )
+            conn.execute(
                 "CREATE INDEX IF NOT EXISTS realtime_sessions_tenant_actor_status "
                 "ON realtime_sessions (tenant_id, user_id, status)"
             )
@@ -87,6 +91,31 @@ class SessionStore:
                 "CREATE INDEX IF NOT EXISTS realtime_sessions_cleanup "
                 "ON realtime_sessions (status, expires_at, created_at)"
             )
+
+    def _mark_voice(self, session_id: str) -> None:
+        with self._connection(write=True) as conn:
+            session = self._required(conn, session_id)
+            if session.status != "ACTIVE":
+                raise SessionError(409, "invalid_session_state")
+            conn.execute(
+                "INSERT OR IGNORE INTO realtime_voice_sessions (session_id) VALUES (?)",
+                (session_id,),
+            )
+
+    async def mark_voice(self, session_id: str) -> None:
+        await asyncio.to_thread(self._mark_voice, session_id)
+
+    def _recover_voice(self) -> None:
+        with self._connection(write=True) as conn:
+            conn.execute(
+                "UPDATE realtime_sessions SET status = 'CLOSING' "
+                "WHERE status IN ('PENDING','ACTIVE') AND session_id IN "
+                "(SELECT session_id FROM realtime_voice_sessions)"
+            )
+
+    async def recover_voice(self) -> None:
+        """Startup loses voice credentials and must terminate their old rooms."""
+        await asyncio.to_thread(self._recover_voice)
 
     async def initialize(self) -> None:
         await asyncio.to_thread(self._initialize)

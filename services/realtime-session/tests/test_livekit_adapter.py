@@ -187,3 +187,18 @@ async def test_readiness_query_is_narrow_and_returns_no_room_data(gateway):
 async def test_invalid_admin_url_is_rejected_before_creating_client(url):
     with pytest.raises(ValueError, match="Invalid LiveKit backend configuration"):
         LiveKitGateway(url, KEY, SECRET)
+
+
+async def test_dispatch_uses_actual_sdk_request_and_opaque_scoped_metadata(gateway):
+    session = _session()
+    request_call = AsyncMock()
+    gateway._client.agent_dispatch.create_dispatch = request_call
+    nonce = "1" * 32
+    await gateway.dispatch_agent(session, nonce)
+    request = request_call.call_args.args[0]
+    assert isinstance(request, api.CreateAgentDispatchRequest)
+    assert request.agent_name == "sahool-agronomist"
+    assert request.room == session.room_name
+    assert json.loads(request.metadata) == {"session_id": session.session_id, "nonce": nonce}
+    for private in (session.tenant_id, session.user_id, session.field_id, SECRET):
+        assert private not in request.metadata

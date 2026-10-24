@@ -1,4 +1,4 @@
-"""Disabled-by-default, single-node session service; no media or agent dispatch."""
+"""Opt-in single-node control plane with a separate explicit voice consent gate."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -25,6 +25,7 @@ class CreateSession(BaseModel):
     model_config = ConfigDict(extra="forbid")
     field_id: str = Field(min_length=1, max_length=128)
     consent: StrictBool
+    voice_consent: StrictBool = False
 
 
 def create_app(service: SessionService | None = None) -> FastAPI:
@@ -65,12 +66,15 @@ def create_app(service: SessionService | None = None) -> FastAPI:
         client = None
         gateway = None
         worker = None
+        voice_jobs = None
         try:
             import httpx
+            from livekit import api
 
             from .livekit_adapter import LiveKitGateway
             from .platform import PlatformAuthority
             from .store import SessionStore
+            from .webhooks import WebhookReceiptStore
 
             client = httpx.AsyncClient(timeout=3, follow_redirects=False, trust_env=False)
             authority = PlatformAuthority(os.environ["PLATFORM_API_URL"], client)
@@ -81,7 +85,21 @@ def create_app(service: SessionService | None = None) -> FastAPI:
             )
             store = SessionStore(str(db_path))
             await store.initialize()
-            app.state.service = SessionService(authority, store, gateway, wss_url)
+            await store.recover_voice()
+            app.state.webhook_receipts = WebhookReceiptStore(str(db_path))
+            await app.state.webhook_receipts.initialize()
+            app.state.webhook_receiver = api.WebhookReceiver(
+                api.TokenVerifier(os.environ["LIVEKIT_API_KEY"], os.environ["LIVEKIT_API_SECRET"])
+            )
+            if os.getenv("SAHOOL_REALTIME_VOICE_ENABLED", "0") == "1":
+                from .voice_jobs import VoiceJobBroker
+
+                voice_jobs = VoiceJobBroker(
+                    authority, store, os.getenv("REALTIME_WORKER_SECRET", "")
+                )
+            app.state.service = SessionService(
+                authority, store, gateway, wss_url, voice_jobs=voice_jobs
+            )
 
             async def sweep():
                 while True:
@@ -99,6 +117,8 @@ def create_app(service: SessionService | None = None) -> FastAPI:
                 worker.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await worker
+            if voice_jobs is not None:
+                voice_jobs.close()
             if gateway is not None:
                 with contextlib.suppress(Exception):
                     await gateway.close()
@@ -106,6 +126,8 @@ def create_app(service: SessionService | None = None) -> FastAPI:
                 with contextlib.suppress(Exception):
                     await client.aclose()
             app.state.service = None
+            app.state.webhook_receiver = None
+            app.state.webhook_receipts = None
             fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
             lock.close()
 
@@ -158,7 +180,20 @@ def create_app(service: SessionService | None = None) -> FastAPI:
     async def create_session(body: CreateSession, token: str = Depends(bearer)):
         if app.state.service is not None and not app.state.cleanup_healthy:
             raise SessionError(503, "session_cleanup_unavailable")
-        return await current().create(token, body.field_id, body.consent)
+        return await current().create(
+            token, body.field_id, body.consent, voice_consent=body.voice_consent
+        )
+
+    @app.get("/api/v1/realtime/internal/jobs/{session_id}")
+    async def voice_context(
+        session_id: str,
+        worker_token: str = Header(default="", alias="X-Realtime-Worker-Token"),
+        nonce: str = Header(default="", alias="X-Realtime-Job-Nonce"),
+    ):
+        instance = current()
+        if instance.voice_jobs is None:
+            raise SessionError(503, "voice_disabled")
+        return await instance.voice_jobs.context(session_id, worker_token, nonce)
 
     @app.get("/api/v1/realtime/sessions/{session_id}")
     async def get_session(session_id: str, token: str = Depends(bearer)):
@@ -168,6 +203,9 @@ def create_app(service: SessionService | None = None) -> FastAPI:
     async def close_session(session_id: str, token: str = Depends(bearer)):
         return await current().close(token, session_id)
 
+    from .webhooks import register_webhook_route
+
+    register_webhook_route(app)
     app.add_middleware(BodyLimitMiddleware)
     return app
 

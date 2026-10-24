@@ -8,6 +8,7 @@ header, local token decode, policy cache, or fallback authority is used here.
 from __future__ import annotations
 
 import asyncio
+import copy
 import ipaddress
 import json
 from urllib.parse import quote, urlsplit
@@ -105,7 +106,7 @@ class PlatformAuthority:
         except (ValueError, UnicodeError):
             raise SessionError(503, "platform_response_invalid") from None
 
-    async def identity(self, bearer: str) -> Principal:
+    async def verified_identity(self, bearer: str) -> tuple[Principal, dict]:
         """Require the platform's verified identity and matching v2 policy envelope."""
         payload = await self._get("/api/v1/me", bearer)
         tenant_id = payload.get("tenant_id")
@@ -125,7 +126,11 @@ class PlatformAuthority:
             or not all(_identifier(name) for name in envelope["allowed_tools"])
         ):
             raise SessionError(403, "trusted_policy_required")
-        return Principal(tenant_id=tenant_id, user_id=user_id)
+        return Principal(tenant_id=tenant_id, user_id=user_id), copy.deepcopy(envelope)
+
+    async def identity(self, bearer: str) -> Principal:
+        principal, _policy = await self.verified_identity(bearer)
+        return principal
 
     async def authorize_field(self, bearer: str, principal: Principal, field_id: str) -> None:
         """Reuse FIELD_VIEW and tenant RLS via the existing field-detail route.

@@ -3,6 +3,7 @@
 // تعريف متغيّرات البيئة المستخدمة في التطبيق (Vite import.meta.env)
 // يمنع فشل `tsc && vite build` على خاصّيّة env غير المعرّفة.
 interface ImportMetaEnv {
+  readonly VITE_REALTIME_CALL_ENABLED: string;
   // وضع التوجيه: 'gateway' (افتراضيّ، مسارات نسبيّة عبر nginx :80/وكيل vite) أو 'dev'.
   readonly VITE_API_MODE: string;
   // قواعد العملاء (يَسبق الصريحُ الافتراضَ؛ '' فارغة مقصودة لـkong/auth).

@@ -53,6 +53,7 @@ export default defineConfig({
     // heavy GIS routes are lazy; application/vendor chunks should stay below 1 MiB.
     chunkSizeWarningLimit: 1050,
     rollupOptions: {
+      input: { main: path.resolve(__dirname, "index.html"), realtime: path.resolve(__dirname, "realtime-call/index.html") },
       output: {
         // Stable framework/domain boundaries improve caching and keep the entry
         // chunk from absorbing libraries used by many lazy screens.

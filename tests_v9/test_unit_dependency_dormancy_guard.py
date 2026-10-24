@@ -46,6 +46,11 @@ SUITE = ROOT / "tests_v9"
 # `tests_v9/` (`unit-tests` و`integration-tests` و`live-pg`، وثلاثتها تُثبّت
 # `tests_v9/requirements-test.txt` وحدها).
 DECLARED_DORMANT: dict[str, str] = {
+    "livekit.api": (
+        "Isolated SDK requires PyJWT2.15.1 while general unit layer pins2.15.0; "
+        "test_realtime_webhooks.py runs with mandatory SDK import in "
+        ".github/workflows/realtime-session.yml isolated-service."
+    ),
     "sklearn": "scikit-learn ~٣٠ ميغابايت لحالةٍ واحدة (`zones_kmeans`) — مُعلَنة في requirements_real",
     "pyarrow": "عجلةٌ ثقيلة لحالة parquet واحدة في `test_farm_memory`",
     "aiomqtt": "عميلُ وسيطٍ يستورده مدخل actuator/video عند التحميل — مُعلَن في requirements الخدمتين",

@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>إجراء استشارة صوتية للحقل بعد موافقتك الصريحة.</string>
     <key>NSCameraUsageDescription</key>
     <string>التقاط صور الحقول والآفات ومسح رموز الأجهزة.</string>
     <key>NSPhotoLibraryUsageDescription</key>

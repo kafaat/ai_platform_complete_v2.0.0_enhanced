@@ -7627,3 +7627,13 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **شرط الإغلاق:** SFU مثبت المصدر والإعداد، وانضمام ناجح قبل الحذف ثم رفض توكن أصلي ومجدد بعده، مع سباق إنشاء/تنظيف وتعافٍ وحصص مثبتة؛ مستأجران معزولان. لا يثبت ListRooms الإعداد، ولا تكفي اختبارات SDK المستبدلة عند حد RPC.
 
 - تحديث مصدر LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 (2026-10-23): التطبيق الحالي `services/realtime-session/realtime_session/session_runtime.py` عند `b26f3c7978f97b378df7635bb0f604aca3de0191`؛ المرجع الأصلي `82d77ab4` تاريخي محفوظ. الحالة تبقى open؛ اختبارات SFU الأصلية/المجددة بعد حذف الغرفة غير منفذة.
+
+
+- تحديث مرشح LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 (2026-10-24): مستند `/realtime-call/` مستقل مع أذونات مقيدة ورفض المسارات البديلة؛ الاختبارات وإثبات edge الحي مطلوبان قبل الإغلاق. الحالة تبقى open. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md`.
+- تحديث مرشح LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 (2026-10-24): أضيفت عدة قبول SFU مثبت المصدر، وملاحظة refresh فعلية ومقارنة auto_create؛ تشغيل Docker في CI مطلوب. الحالة تبقى open. المصدر: `tests/acceptance/livekit/README.md`.
+
+## LIVEKIT-ARABIC-PROVIDER-AND-NETWORK-ACCEPTANCE-01
+
+- **الحالة:** open — تنفيذ محلي اختياري ليس قبول نماذج أو شبكة حية.
+- **المصدر:** `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`services/realtime-agent/realtime_agent/speech.py`.
+- **شرط الإغلاق:** نماذج عربية معلومة المصدر والبصمة مع تقييم كلام حقلي وضجيج ومقاطعة، صلاحيات مستأجرين من Platform حقيقي، قبول الاحتفاظ، وتجارب TURN وإعادة اتصال وأجهزة فعلية. لا تكفي اختبارات SDK أو مزود بديل.

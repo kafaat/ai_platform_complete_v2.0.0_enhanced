@@ -1,0 +1,268 @@
+{
+  "recorded_at": "2026-10-24T07:58:28.534382+00:00",
+  "base": "9b3d59d95100dfb8cc0faf95cd5da4d5b6039786",
+  "scope": "NEW_SOURCE_FOCUSED_VERIFICATION; no inherited acceptance from unavailable local candidate68f8fdb6",
+  "results": {
+    "session_sdk_broker_webhook": {
+      "passed": 187,
+      "skipped": 0
+    },
+    "worker": {
+      "passed": 70,
+      "skipped": 0,
+      "actual_native_sdk_and_codecs": true,
+      "provider_and_stt_boundaries": "injected fixtures"
+    },
+    "ai_publication_and_tts": {
+      "passed": 65,
+      "skipped": 0
+    },
+    "web_unit": {
+      "passed": 40
+    },
+    "real_nginx_chromium_groups": 8,
+    "web_transport": "synthetic room only for microphone lifecycle, no actual SFU claim",
+    "previous_failure_contracts": {
+      "passed": 73
+    },
+    "flutter": "syntax/grammar and direct package audit only; solver/analyzer/tests/APK pending actual CI"
+  },
+  "source_sha256": [
+    {
+      "path": "frontend/nginx.conf",
+      "sha256": "ffafe0a65a9830fe45024cfecd92c633e1d9dbe506753b5333795c88ec95b4a9"
+    },
+    {
+      "path": "frontend/scripts/realtime-browser-acceptance.mjs",
+      "sha256": "03692265caaae6c74168ef9ca45ca551e28c525bfd84037c15be2b4ced6d80f8"
+    },
+    {
+      "path": "frontend/src/realtime-call/CallApp.tsx",
+      "sha256": "0d4976c29b577d01737076a9a045bf762b6673f00330116bc960cdf130357dc4"
+    },
+    {
+      "path": "frontend/src/realtime-call/api.test.ts",
+      "sha256": "25b455a5ca8ac0c01323cb7518d97f8182d17625fb904fbae6d1c6acc92cdc1e"
+    },
+    {
+      "path": "frontend/src/realtime-call/api.ts",
+      "sha256": "e5361fd0e2f2a14cfbddefddf3aec88156422c4f563b8a94234a4bf2befdd65f"
+    },
+    {
+      "path": "frontend/src/realtime-call/call.css",
+      "sha256": "6ff146a52c648710074329104238c8273ee070925cc28fa156dfd49adbb241a5"
+    },
+    {
+      "path": "frontend/src/realtime-call/controller.test.ts",
+      "sha256": "c68169878efda7f7f439ce3dd070bef20dd24a49ab7f68c98786d33e8b5383a3"
+    },
+    {
+      "path": "frontend/src/realtime-call/controller.ts",
+      "sha256": "5b2c747fa790cf740fa7f4a6a38d8ab90c1c698d26e939de731eae4a954555ea"
+    },
+    {
+      "path": "frontend/src/realtime-call/livekit-room.ts",
+      "sha256": "ad9dcf6c40560948c724f725c2f13f8eeccfaf49fd3deb11c00276364271d8d9"
+    },
+    {
+      "path": "frontend/src/realtime-call/main.tsx",
+      "sha256": "7956bed5dc0e741027cca05431a214197f4444e8cf6f638b4062129fa1d67a71"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+      "sha256": "62e417ce6ade6af64a23578c63a480636d56c3c98e5d502e30573881a6fdae7f"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+      "sha256": "f8dde1732e0422105a8ac515318c7105dacdd84a0cf5798aa3e9c033a4c981dc"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+      "sha256": "8ce0f3138b5d36d938380662f534b9fa5925fbbeed918df49873aef2c739a7e3"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+      "sha256": "a3f60c754c7016d7304fc70184cf47eefb1ebd4ce7ffb14d9cd7dea1705ace44"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+      "sha256": "16293e714e7b5b0d1d52266dd9acf09708c02dc3c0a94268eb1ba7cec613a409"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+      "sha256": "8e601ad2ea8d37d07c869c3b4058a5e063b8ce49744eb5473bd2fd72a0c19d3a"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
+      "sha256": "a21c1de5bd642bffe5fe9d91f3b6bb66c68cd1d8aeb8ceafa6b952ae18cb534a"
+    },
+    {
+      "path": "scripts/ci/run_livekit_acceptance.py",
+      "sha256": "0689bc38ba52943e6eb564f7921497e68c43a7cb6b98b42fc224235aa6f35002"
+    },
+    {
+      "path": "services/ai_agronomist/ai_evidence_runtime.py",
+      "sha256": "06437ec3e48a08ef72aecec2ace9cd0e256031b95405c7620704b658382e3a4e"
+    },
+    {
+      "path": "services/ai_agronomist/main.py",
+      "sha256": "9242c74c16c7d3a900e0b1c53a82b75ec1666b0c30a26c38bf11294cbe08fcf2"
+    },
+    {
+      "path": "services/realtime-agent/Dockerfile",
+      "sha256": "a3a56047c052cc4a19ff8a1120a58527c7b4199b1ed28d6dc0c6f409c2cf5c98"
+    },
+    {
+      "path": "services/realtime-agent/README.md",
+      "sha256": "2edfd041eafd8b341077b7b70e451604afc35979b2b0181c002ee354f482a97c"
+    },
+    {
+      "path": "services/realtime-agent/main.py",
+      "sha256": "8f03fc47424d05c70bdf7df41e3ce728b5fed1c733972e189f735ecc26d3032e"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/__init__.py",
+      "sha256": "873c7342bfa28e5e48a43703bbd87368a51c6c25774635682c7f35219a470d02"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/config.py",
+      "sha256": "9df8b77c7c5af040cbf4c85673637f69a32d874ec0ac44129aa7327b7301633d"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/context.py",
+      "sha256": "4e48f8f45b94a22cd73f7f19c110866162c1826cafb1d61ec35b75a0921455e4"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/playback.py",
+      "sha256": "6dbce8e65ae6a145304d1190f5bb6004e6cd673df6b81bf3a82a4d94aa0b6fe9"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/providers.py",
+      "sha256": "fe6f2f809fa0294de646420c135eb2b2866f67ae5ff48c63c24602ab74a2b822"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/speech.py",
+      "sha256": "0e15b0e9cb55a6a51449ad59353cd85bec5c690a997e0b106eb9950fa2d86307"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/turns.py",
+      "sha256": "bd5f8d4a63dff762fe2cddb45054280ded6197ebfa092cc81a671d4e607255e4"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/worker.py",
+      "sha256": "c819492e79626f45b54afae945927e832e3c7d25c5f6d5e7fa6a020d6c669055"
+    },
+    {
+      "path": "services/realtime-agent/requirements.txt",
+      "sha256": "be50bed9ec069b827f708f98c8c5c72d4c77cbdbd02bd1fc82316b4f90088041"
+    },
+    {
+      "path": "services/realtime-agent/tests/conftest.py",
+      "sha256": "8659c4f6af34a32f61ecc29774fd873cf628e7e0828ce9ff04773418357a6cc6"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_context.py",
+      "sha256": "284d4e3f1b2df186105fded26b52f889ebdcdf6cb827743fc23f07c3665b002e"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_playback.py",
+      "sha256": "22236d13e9706cda62f62b64d5f3116d42c2b682985d134b9af184ce578350a6"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_speech.py",
+      "sha256": "734799d1a1b16475f9a96d7cbab4368bf98361978adcf273441c5ac4ec9c8161"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_turns.py",
+      "sha256": "6cd62c1eee10138d7599606520058980103a6c0c00fb7b9a80a8763310e8c9b7"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_worker.py",
+      "sha256": "e1f5ad56eac4aec9f19b70747e27c738d71e5d565f1ced174994b60f83209129"
+    },
+    {
+      "path": "services/realtime-session/README.md",
+      "sha256": "e38ff95f42a9382c46139106c652b21510231a5471593cd601385bfd6b4a64c8"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/engine.py",
+      "sha256": "8d9bf5e4d65adb36d7cc7aa190bfa5007ac2d10ff869fda1e9c8a26f78bcc128"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+      "sha256": "7a77ddf91a5fcc8efebc9f007aaed0201a7f61c6ffeca97024b60eec8b13b887"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/platform.py",
+      "sha256": "fb581a5b97e32279203589da9f71a76a0971b7e9dd799ad39d7d24c524e5c607"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/session_runtime.py",
+      "sha256": "33b3d256b5f566baed10db2b4f84366adb3a0461c688592f74f968f3665b1315"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/store.py",
+      "sha256": "2f66c0c08fb6fdb38643f824cbabda0f75ea65f9655af5e75a32517c030e22b3"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/voice_jobs.py",
+      "sha256": "0c1fa9107080a7db7346d32fb6f1b9b086c93b0846b650ba68c1eb29b40b94b0"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/webhooks.py",
+      "sha256": "8b657677d47a20a43659c97994755155d0ff2b465916baa80c190587d640c2a6"
+    },
+    {
+      "path": "services/realtime-session/tests/test_livekit_adapter.py",
+      "sha256": "a4323b7ba5249458fff296afc9d099321400e1ae37e7e7982b29a63b53c1b4ee"
+    },
+    {
+      "path": "services/tts-service/main.py",
+      "sha256": "633bfacac685c38a8a02520fd1447df625c7612f6eaca02f3fd9b44dd092a9ee"
+    },
+    {
+      "path": "services/tts-service/routers/tts.py",
+      "sha256": "3a03662c6e3d93972df56fbedc2e6576cf8329167f1d1556d2859380e90924eb"
+    },
+    {
+      "path": "tests/acceptance/livekit/README.md",
+      "sha256": "d6234f8a5bb05947f5b7f300b29de38215e5030b1e3f877b04c727bdd8114f89"
+    },
+    {
+      "path": "tests/acceptance/livekit/image.json",
+      "sha256": "df0f7c553f1aa0087b9a968f0003b2bef009737f486e5400612e3af96d792e5d"
+    },
+    {
+      "path": "tests/acceptance/livekit/live_protocol.py",
+      "sha256": "338c54cde69c77c5f409af476a049e198a003d651c90b6e1972bb341cfe5278b"
+    },
+    {
+      "path": "tests/acceptance/livekit/requirements.txt",
+      "sha256": "d69231af513df7e34dce04684fb13a52fc3505402b7be79e81d4580e57b22409"
+    },
+    {
+      "path": "tests_v9/test_realtime_permissions_header_contract.py",
+      "sha256": "e9a66564b77ea6b6fbbc2b3713bd256ed80a497fdc991a6bdccb7a3915af74e8"
+    },
+    {
+      "path": "tests_v9/test_realtime_tts_no_store.py",
+      "sha256": "f3790c925d2640c65b5371ca6ce81d664d2e23c4fe82b442ecfcef59575d62c7"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai.py",
+      "sha256": "9c323623f5c78fd7ebb6d52b9b2f193054ead54bbae234fdeedb221d4db8223e"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai_provider.py",
+      "sha256": "60711335203759b1f317434dc682683f745e5f875b7fccb69e861c92fe3b39e8"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_jobs.py",
+      "sha256": "fbc80d5b75caa5fb6a978ad5ffb0ac70b13cf164215b4a5aabb931aa27dafb94"
+    },
+    {
+      "path": "tests_v9/test_realtime_webhooks.py",
+      "sha256": "ea578e34af83b1ac759d40a798975d517035a3d028fdc6f808f50a36e04d5f65"
+    }
+  ]
+}
