@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 219,
+          "line": 221,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -405,7 +405,7 @@
         },
         {
           "function": "health",
-          "line": 148,
+          "line": 170,
           "method": "GET",
           "module": "services/realtime-session/realtime_session/session_runtime.py",
           "path": "/healthz",
@@ -500,7 +500,7 @@
         },
         {
           "function": "metrics",
-          "line": 412,
+          "line": 414,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 431,
+          "line": 433,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -779,7 +779,7 @@
         },
         {
           "function": "ready",
-          "line": 152,
+          "line": 174,
           "method": "GET",
           "module": "services/realtime-session/realtime_session/session_runtime.py",
           "path": "/readyz",
@@ -1155,7 +1155,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 475,
+          "line": 477,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1186,7 +1186,7 @@
         },
         {
           "function": "recommend",
-          "line": 508,
+          "line": 510,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1198,8 +1198,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1115,
-  "route_inventory_sha256": "282f65ea1ccbe7c770e8fa35558be94ca71213ac4501a85085dc5729350a0dc0",
+  "route_count": 1117,
+  "route_inventory_sha256": "e8025be2c0c541ceca6258ed134aa15d91beba3d45485259c12bb86603010964",
   "runtime_verified": false,
   "schema_version": 1
 }

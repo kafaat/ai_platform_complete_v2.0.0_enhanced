@@ -1380,6 +1380,22 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/realtime-call/controller.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/realtime-call/controller.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/realtime-call/livekit-room.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/realtime-call/main.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/sections/AdminRuntimePage.tsx",
     "kind": "web"
   },
@@ -2176,6 +2192,22 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
     "kind": "mobile"
   },
@@ -2293,6 +2325,18 @@
   },
   {
     "path": "mobile/sahool_app/test/jwt_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
     "kind": "tests"
   },
   {
@@ -3368,6 +3412,70 @@
     "kind": "backend"
   },
   {
+    "path": "services/realtime-agent/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/config.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/playback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/providers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/speech.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/turns.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/realtime_agent/worker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-agent/tests/conftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_context.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_playback.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_speech.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_turns.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_worker.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/realtime-session/README.md",
     "kind": "backend"
   },
@@ -3401,6 +3509,14 @@
   },
   {
     "path": "services/realtime-session/realtime_session/store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/voice_jobs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/realtime-session/realtime_session/webhooks.py",
     "kind": "backend"
   },
   {
@@ -6808,6 +6924,18 @@
     "kind": "tests"
   },
   {
+    "path": "tests/acceptance/livekit/README.md",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/acceptance/livekit/image.json",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/acceptance/livekit/live_protocol.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/certification/test_phase21_certification_matrix.py",
     "kind": "tests"
   },
@@ -8705,6 +8833,26 @@
   },
   {
     "path": "tests_v9/test_realtime_session_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_tts_no_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_ai.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_ai_provider.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_voice_jobs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_realtime_webhooks.py",
     "kind": "tests"
   },
   {

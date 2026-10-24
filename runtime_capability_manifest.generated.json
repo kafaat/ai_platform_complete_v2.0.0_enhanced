@@ -323,7 +323,21 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 2,
+      "capability_count": 0,
+      "component_id": "realtime-agent",
+      "domain": "realtime-voice-experimental",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "worker",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 4,
       "component_id": "realtime-session",
       "domain": "realtime-control-plane-experimental",
       "status": {
@@ -331,10 +345,10 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service",
-      "wiring_disposition": "intentional-unconsumed"
+      "wiring_disposition": "consumed"
     },
     {
       "capability_count": 1,
@@ -505,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "ee7f9295a98be766f1e8c4362b242c0feb40098a80934213a70e7013fb1ba155",
+  "fingerprint": "dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

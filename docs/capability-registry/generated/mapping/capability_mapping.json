@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6254,
+    "files_scanned": 6307,
     "files_by_kind": {
-      "backend": 1247,
+      "backend": 1259,
       "database": 289,
-      "governance": 82,
-      "mobile": 57,
-      "other": 2097,
-      "tests": 2008,
-      "web": 474
+      "governance": 86,
+      "mobile": 61,
+      "other": 2106,
+      "tests": 2027,
+      "web": 479
     },
-    "unmapped_artifacts": 2349,
+    "unmapped_artifacts": 2386,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -14050,11 +14050,11 @@
       ],
       "events": [
         {
-          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:94",
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:96",
           "score": 20
         },
         {
-          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:93",
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:95",
           "score": 20
         },
         {
@@ -24052,7 +24052,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 26,
-        "events": 60,
+        "events": 61,
         "tests": 85,
         "other_evidence": 2
       },
@@ -27308,7 +27308,7 @@
           "score": 8
         },
         {
-          "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:121",
+          "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:122",
           "score": 8
         }
       ],
@@ -29226,6 +29226,22 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "frontend/src/realtime-call/CallApp.tsx",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "path": "frontend/src/realtime-call/api.ts",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "mobile": [
@@ -29361,6 +29377,14 @@
             "content:MFA",
             "content:mfa",
             "content:recovery code"
+          ]
+        },
+        {
+          "path": "frontend/src/realtime-call/api.test.ts",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         },
         {
@@ -29656,9 +29680,9 @@
         "routes": 24,
         "database": 23,
         "events": 5,
-        "web": 5,
+        "web": 7,
         "mobile": 4,
-        "tests": 18,
+        "tests": 19,
         "governance": 0,
         "other_evidence": 24
       },
@@ -31953,6 +31977,10 @@
           "score": 15
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 15
+        },
+        {
           "value": "soil_render.py @ tests_v9/test_soil_layer_v31_7.py:19",
           "score": 15
         },
@@ -32328,7 +32356,7 @@
         "backend": 13,
         "routes": 35,
         "database": 11,
-        "events": 8,
+        "events": 9,
         "web": 5,
         "mobile": 0,
         "tests": 12,
@@ -34283,6 +34311,10 @@
           "score": 12
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
+        {
           "value": "sahool.field_bootstrap.v1 @ shared/field_bootstrap.py:22",
           "score": 10
         }
@@ -34376,7 +34408,7 @@
         "backend": 4,
         "routes": 6,
         "database": 4,
-        "events": 3,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 5,
@@ -38750,6 +38782,10 @@
           "score": 12
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
+        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         }
@@ -38803,7 +38839,7 @@
         "backend": 2,
         "routes": 6,
         "database": 0,
-        "events": 3,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 2,
@@ -40463,6 +40499,22 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/realtime-call/controller.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/realtime-call/controller.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/realtime-call/livekit-room.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/realtime-call/main.tsx",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/sections/AdminRuntimePage.tsx",
       "kind": "web"
     },
@@ -41259,6 +41311,22 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
       "kind": "mobile"
     },
@@ -41376,6 +41444,18 @@
     },
     {
       "path": "mobile/sahool_app/test/jwt_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
       "kind": "tests"
     },
     {
@@ -42451,6 +42531,70 @@
       "kind": "backend"
     },
     {
+      "path": "services/realtime-agent/README.md",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/main.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/__init__.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/config.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/context.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/playback.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/providers.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/speech.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/turns.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/worker.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/tests/conftest.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_context.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_playback.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_speech.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_turns.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_worker.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/realtime-session/README.md",
       "kind": "backend"
     },
@@ -42484,6 +42628,14 @@
     },
     {
       "path": "services/realtime-session/realtime_session/store.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/voice_jobs.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/webhooks.py",
       "kind": "backend"
     },
     {
@@ -45891,6 +46043,18 @@
       "kind": "tests"
     },
     {
+      "path": "tests/acceptance/livekit/README.md",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/acceptance/livekit/image.json",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/acceptance/livekit/live_protocol.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/certification/test_phase21_certification_matrix.py",
       "kind": "tests"
     },
@@ -47788,6 +47952,26 @@
     },
     {
       "path": "tests_v9/test_realtime_session_store.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_tts_no_store.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai_provider.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_jobs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_webhooks.py",
       "kind": "tests"
     },
     {

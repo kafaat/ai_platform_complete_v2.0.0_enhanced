@@ -3698,6 +3698,40 @@
     },
     {
       "approval_required": false,
+      "capability_id": "realtime-session.realtime.hooks.livekit",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/realtime/hooks/livekit"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "realtime-session.realtime.internal.jobs",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/realtime/internal/jobs/{session_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "realtime-session",
+      "producer": "realtime-session",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "realtime-session.realtime.sessions",
       "consumers": [],
       "curated": false,
@@ -16687,6 +16721,57 @@
     },
     {
       "aliases": [
+        "sahool-realtime-agent"
+      ],
+      "authority_kind": "stateless_compute",
+      "canonical_name": "realtime-agent",
+      "component_id": "realtime-agent",
+      "component_kind": "worker",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
+      "consumes": {
+        "services": []
+      },
+      "deployment_units": [
+        "sahool-realtime-agent"
+      ],
+      "domain": "realtime-voice-experimental",
+      "owns": {
+        "tables": []
+      },
+      "runtime": {
+        "compose_reachable": false,
+        "compose_services": [
+          "sahool-realtime-agent"
+        ],
+        "healthcheck": null,
+        "mount_status": "non_http_entrypoint",
+        "published_ports": []
+      },
+      "source_path": "services/realtime-agent",
+      "sources": {
+        "db_ownership": false,
+        "service_inventory": "realtime-agent",
+        "ui_contract": "internal-sensitive"
+      },
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "worker"
+    },
+    {
+      "aliases": [
         "sahool-realtime-session"
       ],
       "authority_kind": "operational_coordination",
@@ -16697,11 +16782,12 @@
         "declared": true,
         "evidence_kinds": [
           "activation-safety-contract",
-          "job-contract"
+          "job-contract",
+          "ui"
         ],
         "evidence_valid": true,
-        "reopen_trigger": "Actual self-hosted SFU fresh-token and server-refreshed-token join-after-delete acceptance, tenant-pair isolation acceptance, and browser media-permission isolation acceptance before any UI consumption or feature enablement",
-        "wiring_disposition": "intentional-unconsumed"
+        "reopen_trigger": "Feature activation remains blocked pending live SFU admission, actual tenant RLS and network acceptance.",
+        "wiring_disposition": "consumed"
       },
       "consumes": {
         "services": []
@@ -16733,7 +16819,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -17673,21 +17759,21 @@
     }
   ],
   "counts": {
-    "backend_components": 32,
-    "capabilities": 837,
+    "backend_components": 33,
+    "capabilities": 839,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 96,
     "capabilities_idempotent": 62,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 480,
-    "components": 36,
+    "capabilities_tenant_scoped": 482,
+    "components": 37,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1132,
-    "ui_waivers": 55,
-    "unique_method_path": 1011
+    "route_rows": 1134,
+    "ui_waivers": 53,
+    "unique_method_path": 1013
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17949,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "ee7f9295a98be766f1e8c4362b242c0feb40098a80934213a70e7013fb1ba155",
+  "fingerprint": "dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17999,11 +18085,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 876,
+      "edge_count": 878,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 45,
+        "CALLS": 47,
         "CONSUMES": 3,
         "EMITS": 1,
         "READS": 448,
@@ -18296,116 +18382,102 @@
       "waiver_id": "ui-waiver-039"
     },
     {
-      "endpoint": "/api/v1/realtime/sessions",
-      "expires_on": "2026-11-22",
-      "owner": "realtime-session",
-      "tracking": "LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01",
-      "waiver_id": "ui-waiver-040"
-    },
-    {
-      "endpoint": "/api/v1/realtime/sessions/{session_id}",
-      "expires_on": "2026-11-22",
-      "owner": "realtime-session",
-      "tracking": "LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01",
-      "waiver_id": "ui-waiver-041"
-    },
-    {
       "endpoint": "/api/v1/weather/alerts/notify",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-042"
+      "waiver_id": "ui-waiver-040"
     },
     {
       "endpoint": "/api/v1/weather/env-doctor",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-043"
+      "waiver_id": "ui-waiver-041"
     },
     {
       "endpoint": "/api/v1/weather/observability",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-044"
+      "waiver_id": "ui-waiver-042"
     },
     {
       "endpoint": "/api/v1/weather/rate-limit/backend",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-045"
+      "waiver_id": "ui-waiver-043"
     },
     {
       "endpoint": "/api/v1/weather/runtime-contract",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-046"
+      "waiver_id": "ui-waiver-044"
     },
     {
       "endpoint": "/api/v1/weather/runtime-smoke-plan",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-047"
+      "waiver_id": "ui-waiver-045"
     },
     {
       "endpoint": "/api/v1/weather/self-test",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-048"
+      "waiver_id": "ui-waiver-046"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/backend",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-049"
+      "waiver_id": "ui-waiver-047"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/prune",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-050"
+      "waiver_id": "ui-waiver-048"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/stats",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-051"
+      "waiver_id": "ui-waiver-049"
     },
     {
       "endpoint": "/api/v1/weather/wind-source-selftest",
       "expires_on": "2026-12-31",
       "owner": "sahool-platform",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-052"
+      "waiver_id": "ui-waiver-050"
     },
     {
       "endpoint": "/v1/auth/edge-sign",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-053"
+      "waiver_id": "ui-waiver-051"
     },
     {
       "endpoint": "/v1/auth/me",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
-      "waiver_id": "ui-waiver-054"
+      "waiver_id": "ui-waiver-052"
     },
     {
       "endpoint": "/api/v1/scenario/economics",
       "expires_on": "2026-11-27",
       "owner": "sahool-platform",
       "tracking": "ECON-SCENARIO-UI-01",
-      "waiver_id": "ui-waiver-055"
+      "waiver_id": "ui-waiver-053"
     }
   ]
 }

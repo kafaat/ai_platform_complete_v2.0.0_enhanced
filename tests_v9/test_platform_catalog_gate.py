@@ -1,6 +1,6 @@
 """بوّابة الكتالوج الموحّد (U0+U1+U2) — تثبيت الجرد، الأسماء القانونيّة، والحتميّة.
 
-U0: تثبيت الجرد الحاليّ — 32 مكوّن backend و1011 تركيبة Method/Path فريدة، بلا drift.
+U0: تثبيت الجرد الحاليّ — 33 مكوّن backend و1013 تركيبة Method/Path فريدة، بلا drift.
 U1: كلّ مكوّن له اسم قانونيّ واحد؛ erp-bridge قانونيّ وodoo-bridge اسم مستعار؛
     compose/DNS تُربط بالقانونيّ ولا تُعامل كمكوّنات مستقلّة.
 U2: المُصرِّف حتميّ — إعادة التوليد تنتج نفس البصمة بايتاً-ببايت (--check).
@@ -42,7 +42,8 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 #   من الشجرة كلّها لا مكوّنٌ سقط من الجرد؛ ومستهلَكوه المثبتون 29 → 28 بالسبب نفسه.
 # 2026-10-23: 31 → 32 بإضافة realtime-session إلى الجرد من مصدره؛ المكوّن مستقلّ،
 #   لا زيادة في عدد backend المستهلَك المثبت (28)، ولا رفع لميزانية Platform البالغة 629.
-PINNED_BACKEND_COMPONENTS = 32
+# 2026-10-24: native realtime-agent adds one backend component, no HTTP routes.
+PINNED_BACKEND_COMPONENTS = 33
 # 2026-09-29: +1 GET /api/v1/fields/{field_id}/indicator-observations/{view} (M4) — واجهةُ
 #   قراءةٍ مُصادَقة تُظهِر ملاحظات المؤشّرات لحقلٍ عبر المنصّة؛ قدرةٌ واحدةٌ جديدة
 #   (sahool-platform.fields.field_id.indicator-observations، field+tenant-scoped) مع إعفاء
@@ -58,7 +59,8 @@ PINNED_BACKEND_COMPONENTS = 32
 # Authenticated response-only snapshot; no platform-domain route added.
 # 2026-10-23: 1008 → 1011 من ثلاثة مسارات أعمال جديدة في realtime-session؛
 #   health/ready يشتركان في نصوص قائمة فلا يزيدان الجرد الفريد. قياس المصدر لا رفع سقف 629.
-PINNED_UNIQUE_METHOD_PATH = 1011  # +1 (2026-10-06): decision-service execution-plan state (انظر أعلاه). +1 (2026-09-29): M4 indicator-observations (انظر أعلاه). +2 (2026-09-21): D1 raster owner write commands (انظر أعلاه). +1 (2026-09-16): POST /v1/evaluate في guardrails-engine — مسارُ تقييمٍ بلا كتابة (B6) يُرجِع دائماً allowed=false. جردٌ مقيس لا رفعُ سقف: ميزانيّةُ مسارات المنصّة لم تُمَسّ (628/629، الهامش 1) لأنّ المسار في خدمةٍ أخرى. #3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice; +6: Option B (2026-07-30) -- generate_service_inventory.py's own APIRouter(prefix=...) blind spot finally fixed (matching PR #717's sibling fix), composing all 99 routes across the six sahool-platform prefixed files to their real served paths. Bare /plan now genuinely vanishes (sahool-platform's phase9 route composes to /v1/phase9/autonomy/plan, closing the previously-tracked phantom -- net 0, one new text replaces one vanishing text); +2 from GET /stac and GET /stac/collections splitting away from raster-service's real routes of the same bare text into sahool-platform's own composed /api/v1/gis/cloud-native/stac[/collections] (raster's unique entry survives unchanged, sahool's composed path is new); +4 from bare texts that were shared *within* the six prefixed files themselves before composition -- POST /cycle (phase9, phase10, phase11, phase12/ecosystem: 4 rows collapsed into 1 unique bare text pre-fix, now 4 distinct prefixed texts, +3) and POST /models/register (phase9, phase10: 2 rows collapsed into 1 pre-fix, now 2 distinct texts, +1)
+# 2026-10-24: + internal worker context and signed webhook routes in session service.
+PINNED_UNIQUE_METHOD_PATH = 1013  # +1 (2026-10-06): decision-service execution-plan state (انظر أعلاه). +1 (2026-09-29): M4 indicator-observations (انظر أعلاه). +2 (2026-09-21): D1 raster owner write commands (انظر أعلاه). +1 (2026-09-16): POST /v1/evaluate في guardrails-engine — مسارُ تقييمٍ بلا كتابة (B6) يُرجِع دائماً allowed=false. جردٌ مقيس لا رفعُ سقف: ميزانيّةُ مسارات المنصّة لم تُمَسّ (628/629، الهامش 1) لأنّ المسار في خدمةٍ أخرى. #3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice; +6: Option B (2026-07-30) -- generate_service_inventory.py's own APIRouter(prefix=...) blind spot finally fixed (matching PR #717's sibling fix), composing all 99 routes across the six sahool-platform prefixed files to their real served paths. Bare /plan now genuinely vanishes (sahool-platform's phase9 route composes to /v1/phase9/autonomy/plan, closing the previously-tracked phantom -- net 0, one new text replaces one vanishing text); +2 from GET /stac and GET /stac/collections splitting away from raster-service's real routes of the same bare text into sahool-platform's own composed /api/v1/gis/cloud-native/stac[/collections] (raster's unique entry survives unchanged, sahool's composed path is new); +4 from bare texts that were shared *within* the six prefixed files themselves before composition -- POST /cycle (phase9, phase10, phase11, phase12/ecosystem: 4 rows collapsed into 1 unique bare text pre-fix, now 4 distinct prefixed texts, +3) and POST /models/register (phase9, phase10: 2 rows collapsed into 1 pre-fix, now 2 distinct texts, +1)
 
 
 def _catalog() -> dict:
@@ -141,7 +143,9 @@ def test_u3_wired_is_evidence_driven() -> None:
         for c in comps.values()
         if c["status"]["wired"] is True and c["consumer_contract"]["declared"]
     ]
-    assert len(backend_wired) == 28, sorted(backend_wired)  # 29 → 28 (2026-10-17، انظر U0)
+    assert len(backend_wired) == 30, sorted(
+        backend_wired
+    )  # + session UI and native worker consumers
     # كلّ مكوّن backend مصرَّح عقده وأدلّته صالحة (fail-closed مرّت)
     for c in comps.values():
         if c["consumer_contract"]["declared"]:
@@ -206,7 +210,8 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
-    2026-10-23: العدد 55 (كان 53): إعفاءا `backlog-ui` مؤقّتان لخدمة realtime-session
+    2026-10-24: العدد 53؛ واجهتا الاتصال تربطان الجلسات فعليًا فحُذف الإعفاءان المؤقتان.
+    تاريخيًا 2026-10-23: العدد 55 (كان 53): إعفاءا `backlog-ui` مؤقّتان لخدمة realtime-session
     التي لا واجهة لها بعد؛ كلاهما مُعلَن بتتبّع وانتهاء 2026-11-22، لا إخفاء لدين UI.
     وقبله 53 (كان 52): إعفاء `backlog-ui` لـ`GET /api/v1/fields/{field_id}/indicator-observations/{view}`
     (M4، مراجعة v25) — العقدُ كُشِف خادميّاً ولوحةُ المؤشّرات لم تُربَط به بعد.
@@ -216,7 +221,7 @@ def test_u4_ui_waivers_governed() -> None:
     (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 55
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 53
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 

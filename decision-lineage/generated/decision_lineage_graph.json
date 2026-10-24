@@ -688,7 +688,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 529,
+      "evidence_count": 530,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -705,6 +705,7 @@
         "qdrant-seed",
         "rag-retrieval",
         "raster-service",
+        "realtime-agent",
         "realtime-session",
         "remote-sensing-workspace-bff",
         "sahool-platform",
@@ -845,6 +846,7 @@
         "services/raster-service/stac_search.py",
         "services/raster-service/terrain_source_registry.py",
         "services/raster-service/test_cdse_native_product.py",
+        "services/realtime-agent/realtime_agent/providers.py",
         "services/realtime-session/realtime_session/engine.py",
         "services/realtime-session/realtime_session/store.py",
         "services/remote-sensing-workspace-bff/main.py",
@@ -1458,7 +1460,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 286,
+      "evidence_count": 287,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1469,6 +1471,7 @@
         "qdrant-seed",
         "rag-retrieval",
         "raster-service",
+        "realtime-agent",
         "sahool-platform",
         "scout-ingest-service",
         "shared",
@@ -1577,6 +1580,7 @@
         "services/raster-service/test_raster_crs_window.py",
         "services/raster-service/test_router_query_direct_call.py",
         "services/raster-service/test_tiles.py",
+        "services/realtime-agent/realtime_agent/providers.py",
         "services/sahool-platform/api/agronomic_consistency.py",
         "services/sahool-platform/api/agronomic_state_consumers.py",
         "services/sahool-platform/api/api_models.py",
@@ -1834,7 +1838,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 156,
+      "evidence_count": 162,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1850,6 +1854,7 @@
         "odoo-bridge",
         "rag-retrieval",
         "raster-service",
+        "realtime-agent",
         "realtime-session",
         "remote-sensing-workspace-bff",
         "sahool-platform",
@@ -1925,8 +1930,14 @@
         "services/raster-service/routers/follow_up.py",
         "services/raster-service/test_cdse_durable_diagnostics.py",
         "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
+        "services/realtime-agent/realtime_agent/context.py",
+        "services/realtime-agent/realtime_agent/providers.py",
+        "services/realtime-agent/realtime_agent/turns.py",
+        "services/realtime-agent/tests/test_context.py",
         "services/realtime-session/realtime_session/platform.py",
         "services/realtime-session/realtime_session/session_runtime.py",
+        "services/realtime-session/realtime_session/voice_jobs.py",
+        "services/realtime-session/realtime_session/webhooks.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/ai_provider_config.py",
@@ -2664,7 +2675,7 @@
         "services/sahool-platform/api/routers/field_ai_context.py"
       ],
       "source_evidence_count": 644,
-      "target_evidence_count": 529,
+      "target_evidence_count": 530,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2775,7 +2786,7 @@
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
       ],
-      "source_evidence_count": 529,
+      "source_evidence_count": 530,
       "target_evidence_count": 185,
       "static_supported": true,
       "runtime_verified": false
@@ -2858,7 +2869,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 185,
-      "target_evidence_count": 286,
+      "target_evidence_count": 287,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2898,7 +2909,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 286,
+      "source_evidence_count": 287,
       "target_evidence_count": 43,
       "static_supported": true,
       "runtime_verified": false
@@ -2942,7 +2953,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 43,
-      "target_evidence_count": 156,
+      "target_evidence_count": 162,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2976,7 +2987,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 156,
+      "source_evidence_count": 162,
       "target_evidence_count": 37,
       "static_supported": true,
       "runtime_verified": false
@@ -3081,5 +3092,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "44c7f40f22217189c2d9cf225ca8504e896f15cd9737333e148173be1ee3f735"
+  "content_sha256": "767254c118ee13af78f00140fbaf3ebfc1171af39709110a6454a9bade8178f3"
 }
