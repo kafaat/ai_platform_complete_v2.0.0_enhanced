@@ -10605,7 +10605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f01249b155389324aac142b4a887b8ff4a5a2e4d5e9fc6c4d8e496787b2b0aff"
+          "content": "5d92c914cbb092fab31499a2ee7fc4ce29464ac9bfa0daf5cf9b6857b0746acb"
         }
       ],
       "name": "mobile/sahool_app/lib/theme/app_theme.dart",
