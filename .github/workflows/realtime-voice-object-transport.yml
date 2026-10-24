@@ -1,0 +1,45 @@
+name: Realtime voice exact Git object transport
+on:
+  push:
+    branches: [chatgpt/transport-voice-09739386-20261024]
+permissions:
+  contents: write
+jobs:
+  transport:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/chatgpt/transport-voice-09739386-20261024'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Verify exact source objects and workflow definitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=09739386fa885cbced1c9bae599dc886f3102a47
+          expected_tree=e261f1e75e314da7b2a51e5dffe2f4cb20ecc896
+          main_head=88719df2cf491f5407ee01ea8b32c44097feb90d
+          source_base=9b3d59d95100dfb8cc0faf95cd5da4d5b6039786
+          ready_branch=chatgpt/objects-ready-voice-09739386-20261024
+          base_pack="$RUNNER_TEMP/voice-base.pack"
+          delta_pack="$RUNNER_TEMP/voice-delta.pack"
+          base64 --decode transport/base.pack.b64 > "$base_pack"
+          base64 --decode transport/delta.pack.b64 > "$delta_pack"
+          printf '%s  %s\n' '27b54f8c9b47c35fbb50d689b495c9a5eb6da0ef00600c5f6999c4fa167c4bcc' "$base_pack" | sha256sum -c -
+          printf '%s  %s\n' '9239aa680ecd90596395ea48c62c7816980b34868feb6315290262e1bf4555fe' "$delta_pack" | sha256sum -c -
+          git fetch --no-tags --depth=1 origin 9b3d59d95100dfb8cc0faf95cd5da4d5b6039786 88719df2cf491f5407ee01ea8b32c44097feb90d
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$main_head"
+          git unpack-objects -r < "$base_pack"
+          test "$(git rev-parse d26dec1b3554538e828219068041881e76ab9e6f^{tree})" = "b390d7d482a5f5bb4725e45e93706df59c9bdca2"
+          git index-pack --fix-thin --stdin < "$delta_pack"
+          test "$(git rev-parse "$target^{tree}")" = "$expected_tree"
+          git merge-base --is-ancestor "$source_base" "$target"
+          test "$(git rev-parse "$target:.github/workflows/ci.yml")" = "$(git hash-object .github/workflows/ci.yml)"
+          test "$(git rev-parse "$target:.github/workflows/livekit-acceptance.yml")" = "$(git hash-object .github/workflows/livekit-acceptance.yml)"
+          test "$(git rev-parse "$target:.github/workflows/realtime-agent.yml")" = "$(git hash-object .github/workflows/realtime-agent.yml)"
+          test "$(git rev-parse "$target:.github/workflows/realtime-mobile.yml")" = "$(git hash-object .github/workflows/realtime-mobile.yml)"
+          test "$(git rev-parse "$target:.github/workflows/realtime-session.yml")" = "$(git hash-object .github/workflows/realtime-session.yml)"
+          test "$(git rev-parse "$target:.github/workflows/realtime-web.yml")" = "$(git hash-object .github/workflows/realtime-web.yml)"
+          git push origin "$target:refs/heads/$ready_branch"

@@ -1,0 +1,49 @@
+name: Realtime Voice Worker
+on:
+  pull_request:
+    paths:
+      - 'services/realtime-agent/**'
+      - 'services/ai_agronomist/**'
+      - '.github/workflows/realtime-agent.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/realtime-agent/**'
+      - 'services/ai_agronomist/**'
+      - '.github/workflows/realtime-agent.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  isolated-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install isolated runtime and test tools
+        run: python -m pip install -r services/realtime-agent/requirements.txt pytest==8.4.2 pytest-asyncio==1.2.0 pip-audit==2.10.1
+      - name: Audit full worker dependency set
+        run: python -m pip_audit -r services/realtime-agent/requirements.txt
+      - name: Test actual SDK boundaries and publication refusal
+        run: python -m pytest -q -o addopts='' services/realtime-agent/tests/ --junitxml=realtime-agent-results.xml
+      - name: Build isolated worker
+        run: docker build -f services/realtime-agent/Dockerfile -t sahool-realtime-agent:test .
+      - name: Disabled image must exit without network or models
+        run: docker run --rm --network none sahool-realtime-agent:test
+      - name: Import native speech and SDK runtimes without network or models
+        run: |
+          docker run --rm --network none sahool-realtime-agent:test python -c '
+          from livekit import rtc
+          from livekit.agents import AgentServer
+          import av, ctranslate2, faster_whisper, onnxruntime
+          assert rtc.AudioFrame and AgentServer and faster_whisper.WhisperModel and av.__version__
+          assert "int8" in ctranslate2.get_supported_compute_types("cpu")
+          assert "CPUExecutionProvider" in onnxruntime.get_available_providers()
+          '
