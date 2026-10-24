@@ -4377,3 +4377,30 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 ## 2026-10-24 — قفل تطبيق Flutter الفعلي
 
 2026-10-24 — متابعة #1263 على المصدر `dc478b95131e2aa808ea02139e481751cb562ad9`: نجح حل تبعيات التطبيق وتحليل واختبارات realtime في CI40122522596. اعتمد قفل التطبيق بايتًا ببايت من artifact12571592686 بعد مطابقة SHA256؛ القرار يحفظ نتيجة المحلل الفعلية بدل تحرير إصدارات يدويًا. المصدر: `certification/evidence/pmtiles_compatibility_20261024/application-ci.json` و`mobile/sahool_app/pubspec.lock`. نجح بناء APK أيضًا؛ فشلت الوظيفة فقط لاختلاف القفل القديم. إعادة إثبات القفل على الرأس الجديد مطلوبة؛ فجوة التوافق باقية open.
+
+
+## 2026-10-24 — فحص مهارة الاستئناف صارم: `sha256sum -c SHA256SUMS` بلا `--ignore-missing`
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (`a91bee9e` على الفرع، squash إلى `e28f662a`). القرار: يتحقّق `CLAUDE.md:75` من ملفّات `.claude/skills/work-continuation/` بـ`sha256sum -c SHA256SUMS` صارماً، ويحرسه `tests_v9/test_work_continuation_checksum_strict.py`. هذا يحلّ محلّ السطر المقتبَس في مدخلة 2026-10-19 في hot.md، ولا يغيّر الحزمة التي ثبّتها #1238 (`bf0356f0`).
+
+السبب: علَم `--ignore-missing` يتخطّى الملفّ المُدرَج المحذوف وينجح، فيصير التحقّق أخضر على حزمةٍ ناقصة.
+
+الاعتماد: ضمن دفعة #1251 التي وجّهها المالك بعبارة «قوم بعمل ما يلزم». لا موافقةَ مالكٍ منفصلةٌ لهذا البند مسجَّلة.
+
+## 2026-10-24 — حذف `dependency_inventory.csv` و`dependency_inventory.generated.json` اليتيمين
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (`ef75badf` و`aaa715be` على الفرع، squash إلى `e28f662a`). القرار: يُحذف الملفّان، ويُخرَجان من `release/FILE_CHECKSUMS.sha256` وأعداد الـmanifest، ويُعلَّق السطران 40 و42 في `docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md`. التقارير المؤرَّخة في يوليو تبقى كما هي.
+
+السبب:
+- `9ddde2c26` (2026-07-09) حذف المولِّد والحارسين والـworkflowين، لكنّه عدّل الملفّين بدل حذفهما، فبقيا بلا كاتب ولا قارئ.
+- على `b7d76523`: `git grep` خارج `*.md` و`release/` أعطى صفر مطابقات، ومنها `dependency.inventory` بلا حساسيّة حالة. القرّاء الوحيدون في Markdown والإصدار هم تقارير يوليو وكتيّب التشغيل وسطرا `FILE_CHECKSUMS` 1100–1101.
+
+الاعتماد: نقل المالك توصيةَ الجلسة الأخرى بالحذف، ووجّه الدفعة بعبارة «قوم بعمل ما يلزم».
+
+## 2026-10-24 — OpenRouter: خصوصيّة افتراضيّة ورفض `:free`
+
+الأساس main@`0ace91c8`؛ نُفّذ في #1251 (squash إلى `e28f662a`). القرار: كلّ طلب chat/completions إلى OpenRouter يحمل `provider={"data_collection": "deny", "zdr": True}` (`shared/ai/provider_contract.py:86`). ومعرّفٌ ينتهي بـ`:free` في `AI_MODEL` أو كتالوج `AI_MODELS` يُرفَض في التهيئة رفضاً يسمّي المعرّف (`shared/ai/provider_contract.py:89`، و`services/sahool-platform/api/ai_provider_config.py:56`، و`services/ai_agronomist/ai_generation.py:67`).
+
+السبب: OpenRouter يختار المزوّد الخلفيّ لكلّ طلب، والافتراضيّ `data_collection="allow"`، فقد تصل مطالبات المزارعين إلى مزوّدٍ يخزّنها أو يتدرّب عليها، والمسار المجّانيّ أشدّ خطراً. وإن لم يفِ أيّ مزوّد بالقيدين يعيد OpenRouter خطأً، فتسقط الخدمة إلى الأدلّة بأمان. ما يبقى (F2) في `log.md` (2026-10-24): التحذير المتكرّر، وغياب السبب في `/healthz/ai-provider`.
+
+الاعتماد: ضمن دفعة #1251 التي وجّهها المالك بعبارة «قوم بعمل ما يلزم». لا موافقةَ مالكٍ منفصلةٌ لهذا البند مسجَّلة.
