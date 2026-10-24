@@ -26,6 +26,64 @@ main = importlib.import_module("main")
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "t_max_c",
+        "t_min_c",
+        "solar_rad_mj_m2",
+        "rh_mean_pct",
+        "wind_2m_ms",
+        "t_mean_c",
+        "lat_deg",
+        "elevation_m",
+        "day_of_year",
+    ],
+)
+@pytest.mark.parametrize("value", [True, "0"])
+def test_et0_http_rejects_coercible_values_before_the_engine(field, value):
+    # Pydantic must not turn True into 1.0 before the engine can reject it.
+    response = TestClient(main.app).post("/v1/weather/agro/et0", json={field: value})
+    assert response.status_code == 422
+    assert any(error["loc"][-1] == field for error in response.json()["detail"])
+
+
+@pytest.mark.parametrize("value", ["NaN", "Infinity", "-Infinity"])
+def test_et0_http_rejects_nonfinite_json_numbers(value):
+    response = TestClient(main.app).post(
+        "/v1/weather/agro/et0",
+        content='{"t_max_c": ' + value + "}",
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "daily_t_min",
+        "daily_t_max",
+        "daily_solar_rad_mj_m2",
+        "daily_rh_mean_pct",
+        "daily_wind_2m_ms",
+    ],
+)
+@pytest.mark.parametrize("value", [True, "0"])
+def test_et0_series_http_rejects_coercible_samples(field, value):
+    response = TestClient(main.app).post("/v1/weather/agro/et0/series", json={field: [value]})
+    assert response.status_code == 422
+
+
+def test_et0_http_accepts_integer_zero_without_coercing_unknowns():
+    response = TestClient(main.app).post(
+        "/v1/weather/agro/et0",
+        json={"t_max_c": 0, "t_min_c": 0, "lat_deg": 15, "day_of_year": 100},
+    )
+    assert response.status_code == 200
+    assert response.json()["et0_mm"] == 0.0
+    assert response.json()["quality_status"] == "degraded"
+
+
 def test_snapshot_id_deterministic_and_scheme():
     a = weather_snapshot_id({"t_max_c": 30.0, "t_min_c": 18.0, "lat_deg": 15.5})
     b = weather_snapshot_id({"lat_deg": 15.5, "t_min_c": 18.0, "t_max_c": 30.0})

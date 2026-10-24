@@ -333,6 +333,7 @@ jobs:
             tests/architecture/test_gap_registry_measure.py \
             tests/architecture/test_notification_rollout_postgres_image.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
+            tests/architecture/test_nats_compose_acceptance.py \
             tests/architecture/test_unenforced_report_list_tests.py \
             tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py \
             tests/architecture/test_router_size_ratchet.py \

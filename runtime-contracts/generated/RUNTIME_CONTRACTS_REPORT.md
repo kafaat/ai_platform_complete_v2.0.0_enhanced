@@ -4,12 +4,12 @@
 
 ## Summary
 
-- Services: **31**
-- Health contract: **27**
-- Readiness contract: **26**
+- Services: **33**
+- Health contract: **28**
+- Readiness contract: **27**
 - Metrics endpoint or instrumentation: **17**
 - Tracing instrumentation: **4**
-- Declared configuration/secrets: **29**
+- Declared configuration/secrets: **31**
 - Complete static contracts: **2**
 - Live runtime verified: **0**
 
@@ -37,6 +37,8 @@
 | rag-retrieval | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | raster-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | raster-tiler-service | 42.9% | — | — | ✓ | — | — |
+| realtime-agent | 42.9% | — | — | — | — | ✓ |
+| realtime-session | 71.4% | ✓ | ✓ | — | — | ✓ |
 | remote-sensing-workspace-bff | 71.4% | ✓ | ✓ | — | — | ✓ |
 | sahool-platform | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | sam2-inference | 71.4% | ✓ | ✓ | — | — | ✓ |

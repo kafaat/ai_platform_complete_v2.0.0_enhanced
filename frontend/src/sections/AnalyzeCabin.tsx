@@ -27,6 +27,7 @@ import {
   FieldCabin, severityTone,
 } from '../components/ds';
 import type { Tone } from '../components/ds';
+import { OpenMeteoAttribution } from '../components/OpenMeteoAttribution';
 
 // نقطة الرسم الموحّدة: تاريخ (للمحور) + قيمة المؤشّر [0..1 عادةً].
 interface ChartPoint { date: string; value: number }
@@ -247,6 +248,8 @@ export default function AnalyzeCabin() {
                 { label: 'مطر ٣ أيّام', value: Number.isFinite(disease.rain_mm_3d) ? disease.rain_mm_3d : '—', unit: 'مم' },
               ]}
             />
+            {/* الحرارة والرطوبة ومطر ٣ أيّام من طقس Open-Meteo (CC BY 4.0): النسبة بجوارها. */}
+            <OpenMeteoAttribution className="mt-1" />
             {Array.isArray(disease.diseases_ar) && disease.diseases_ar.length > 0 && (
               <div style={{ marginTop: 8 }}>
                 {disease.diseases_ar.map((d, i) => (

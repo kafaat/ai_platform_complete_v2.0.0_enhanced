@@ -228,6 +228,41 @@ class RuntimeContract(unittest.TestCase):
             original_pid = self.process.pid
             self.assertEqual(self.request("/")[2], b"frontend fixture shell")
             self.assertEqual(self.request("/fields/example")[2], b"frontend fixture shell")
+            # Inspect real shell responses after try_files internally redirects
+            # to /index.html. Text-only config checks miss add_header inheritance.
+            for path, allow_media in (
+                ("/", False),
+                ("/index.html", False),
+                ("/chat", False),
+                ("/realtime-unsafe", False),
+                ("/realtime/%2e%2e%2fchat", False),
+                ("/realtime", False),
+                ("/realtime?session=123", False),
+                ("/realtime/field?session=123", False),
+            ):
+                with self.subTest(document_headers=path):
+                    status, document_headers, body = self.request(path)
+                    self.assertEqual((status, body), (200, b"frontend fixture shell"))
+                    document_headers = {
+                        key.lower(): value for key, value in document_headers.items()
+                    }
+                    grant = "(self)" if allow_media else "()"
+                    self.assertEqual(
+                        document_headers.get("permissions-policy"),
+                        f"geolocation=(self), camera={grant}, microphone={grant}",
+                    )
+                    self.assertEqual(document_headers.get("x-content-type-options"), "nosniff")
+                    self.assertEqual(document_headers.get("x-frame-options"), "SAMEORIGIN")
+                    self.assertEqual(
+                        document_headers.get("cross-origin-opener-policy"), "same-origin"
+                    )
+                    self.assertEqual(
+                        document_headers.get("cross-origin-resource-policy"), "same-origin"
+                    )
+                    self.assertEqual(
+                        document_headers.get("referrer-policy"), "strict-origin-when-cross-origin"
+                    )
+                    self.assertIn("no-store", document_headers.get("cache-control", ""))
             for path in ("/runtime-identity", "/api/agent/health", "/auth/login"):
                 with self.subTest(missing_backend=path):
                     self.assertEqual(self.request(path)[0], 502)

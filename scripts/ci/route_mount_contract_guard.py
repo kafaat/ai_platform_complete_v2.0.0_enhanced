@@ -19,6 +19,7 @@ OUT_JSON = ROOT / "route_mount_inventory.generated.json"
 OUT_CSV = ROOT / "route_mount_inventory.csv"
 
 NON_HTTP_ENTRYPOINT_ALLOWLIST = {
+    "services/realtime-agent/main.py",  # native LiveKit AgentServer job worker
     "services/weather-signal-engine/src/main.py",
     "bots/telegram/main.py",  # aiogram router, not FastAPI
 }
@@ -213,10 +214,12 @@ def write(
         writer.writerows(rows)
 
 
-def main() -> int:
-    import sys
+def main(argv: list[str] | None = None) -> int:
+    import argparse
 
-    check = "--check" in sys.argv
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Compare without writing inventories")
+    check = parser.parse_args(argv).check
     rows = collect()
     bad = [
         r

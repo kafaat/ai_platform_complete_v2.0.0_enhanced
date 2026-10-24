@@ -126,7 +126,20 @@ def test_rejected_secondary_input_is_not_used_and_forbids_validated(field, value
     assert field in out["invalid_inputs"]
     assert out["et0_mm"] == absent["et0_mm"], "القيمة المرفوضة لم تدخل الحساب"
     assert out["quality_status"] == "degraded", "لا validated من مُدخَل مستحيل"
-    assert absent["quality_status"] == "validated"
+    assert absent["quality_status"] == ("degraded" if field == "elevation_m" else "validated")
+
+
+def test_unknown_elevation_is_declared_and_degraded_but_true_zero_is_complete():
+    absent = compute_et0(**{**_PM_FULL, "elevation_m": None})
+    sea_level = compute_et0(**{**_PM_FULL, "elevation_m": 0.0})
+    assert absent["et0_mm"] == sea_level["et0_mm"]
+    assert absent["method"] == sea_level["method"] == "fao56_penman_monteith"
+    assert absent["quality_status"] == "degraded"
+    assert absent["missing_inputs"] == ["elevation_m"]
+    assert absent["input_completeness"] == 0.75
+    assert sea_level["quality_status"] == "validated"
+    assert sea_level["missing_inputs"] == []
+    assert sea_level["input_completeness"] == 1.0
 
 
 # ── ضوابط سلبيّة: قيم واقعيّة عند الحدود الجديدة تبقى مقبولة ──

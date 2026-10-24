@@ -52,6 +52,72 @@ def test_series_insufficient_without_geography():
     assert out["days_computed"] == 0
 
 
+@pytest.mark.parametrize(
+    "tmins,tmaxs,dates,missing",
+    [
+        ([18.0], [30.0, 31.0], None, [1]),
+        ([18.0, 19.0], [30.0], None, [1]),
+        ([18.0], [30.0], ["2026-04-10", "2026-04-11"], [1]),
+        ([18.0, None], [30.0, 31.0], None, [1]),
+    ],
+)
+def test_partial_series_retains_every_expected_day(tmins, tmaxs, dates, missing):
+    out = et0_series_product(
+        daily_t_min=tmins,
+        daily_t_max=tmaxs,
+        daily_dates=dates,
+        lat_deg=15.5,
+        day_of_year_start=100,
+    )
+    assert out["days"] == 2
+    assert len(out["daily_et0_mm"]) == 2
+    assert out["daily_et0_mm"][1] is None
+    assert out["accumulated_et0_mm"] is None
+    assert out["computed_et0_total_mm"] == out["daily_et0_mm"][0]
+    assert out["coverage_status"] == "partial"
+    assert out["missing_day_indices"] == missing
+    assert out["daily_diagnostics"][1]["missing_inputs"]
+
+
+@pytest.mark.parametrize("tmins,tmaxs", [([], []), ([None], [None])])
+def test_unavailable_series_has_unknown_totals_not_zero(tmins, tmaxs):
+    out = et0_series_product(
+        daily_t_min=tmins,
+        daily_t_max=tmaxs,
+        lat_deg=15.5,
+        day_of_year_start=100,
+    )
+    assert out["accumulated_et0_mm"] is None
+    assert out["computed_et0_total_mm"] is None
+    assert out["coverage_status"] == "unavailable"
+    assert out["missing_day_indices"] == list(range(len(tmins)))
+
+
+def test_complete_true_zero_series_preserves_zero_totals():
+    out = et0_series_product(
+        daily_t_min=[0.0],
+        daily_t_max=[0.0],
+        lat_deg=15.5,
+        day_of_year_start=100,
+    )
+    assert out["daily_et0_mm"] == [0.0]
+    assert out["accumulated_et0_mm"] == 0.0
+    assert out["computed_et0_total_mm"] == 0.0
+    assert out["coverage_status"] == "complete"
+    assert out["missing_day_indices"] == []
+
+
+def test_daily_diagnostics_preserve_rejected_inputs():
+    out = et0_series_product(
+        daily_t_min=[18.0],
+        daily_t_max=[100.0],
+        lat_deg=15.5,
+        day_of_year_start=100,
+    )
+    assert out["daily_diagnostics"][0]["invalid_inputs"] == ["t_max_c"]
+    assert out["daily_diagnostics"][0]["quality_status"] == "invalid"
+
+
 def test_route_et0_series_contract():
     os.environ.setdefault("SAHOOL_AGENT_TOKEN", "")
     client = TestClient(main.app)

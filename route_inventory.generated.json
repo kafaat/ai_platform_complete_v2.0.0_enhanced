@@ -122,7 +122,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 219,
+    "line": 221,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -130,7 +130,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 224,
+    "line": 226,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "function": "ai_provider_snapshot"
@@ -138,7 +138,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 232,
+    "line": 234,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "function": "list_pending_approvals"
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 252,
+    "line": 254,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "function": "approve_tool_request"
@@ -154,7 +154,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 304,
+    "line": 306,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "function": "deny_tool_request"
@@ -162,7 +162,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 350,
+    "line": 352,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "function": "resume_approved_tool"
@@ -170,7 +170,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 396,
+    "line": 398,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "function": "prescription_export_preview"
@@ -178,7 +178,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 412,
+    "line": 414,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -186,7 +186,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 431,
+    "line": 433,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -194,7 +194,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 475,
+    "line": 477,
     "method": "POST",
     "path": "/v1/query",
     "function": "query"
@@ -202,7 +202,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 486,
+    "line": 488,
     "method": "POST",
     "path": "/v1/chat",
     "function": "chat"
@@ -210,7 +210,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 497,
+    "line": 499,
     "method": "POST",
     "path": "/v1/explain",
     "function": "explain"
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 508,
+    "line": 510,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -1634,7 +1634,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 92,
+    "line": 102,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "function": "list_tools"
@@ -1642,7 +1642,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 164,
+    "line": 174,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "function": "call_tool"
@@ -1650,7 +1650,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 368,
+    "line": 378,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1658,7 +1658,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 368,
+    "line": 378,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1666,7 +1666,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 373,
+    "line": 383,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -2542,6 +2542,62 @@
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 170,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "health"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 174,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "ready"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 180,
+    "method": "POST",
+    "path": "/api/v1/realtime/sessions",
+    "function": "create_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 188,
+    "method": "GET",
+    "path": "/api/v1/realtime/internal/jobs/{session_id}",
+    "function": "voice_context"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 199,
+    "method": "GET",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "function": "get_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/session_runtime.py",
+    "line": 203,
+    "method": "DELETE",
+    "path": "/api/v1/realtime/sessions/{session_id}",
+    "function": "close_session"
+  },
+  {
+    "service": "realtime-session",
+    "file": "services/realtime-session/realtime_session/webhooks.py",
+    "line": 67,
+    "method": "POST",
+    "path": "/api/v1/realtime/hooks/livekit",
+    "function": "livekit_webhook"
   },
   {
     "service": "remote-sensing-workspace-bff",
@@ -6010,7 +6066,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 145,
+    "line": 106,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "function": "irrigation_recommendation"
@@ -6018,7 +6074,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 221,
+    "line": 184,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "function": "field_irrigation_recommendation"
@@ -7258,7 +7314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_balance.py",
-    "line": 63,
+    "line": 66,
     "method": "POST",
     "path": "/api/v1/water-balance",
     "function": "compute_water_balance"
@@ -8730,7 +8786,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 92,
+    "line": 95,
     "method": "DELETE",
     "path": "/v1/streams/{stream_id}",
     "function": "stop_stream"
@@ -8738,7 +8794,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 113,
+    "line": 116,
     "method": "GET",
     "path": "/v1/streams/{stream_id}",
     "function": "get_stream"
@@ -8746,7 +8802,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 136,
+    "line": 139,
     "method": "GET",
     "path": "/v1/streams",
     "function": "list_streams"
@@ -8754,7 +8810,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 162,
+    "line": 165,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot"
@@ -8762,7 +8818,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 180,
+    "line": 183,
     "method": "GET",
     "path": "/v1/streams/{stream_id}/snapshot",
     "function": "snapshot_zlm"
@@ -8770,7 +8826,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 203,
+    "line": 206,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/start",
     "function": "record_start"
@@ -8778,7 +8834,7 @@
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 223,
+    "line": 226,
     "method": "POST",
     "path": "/v1/streams/{stream_id}/record/stop",
     "function": "record_stop"

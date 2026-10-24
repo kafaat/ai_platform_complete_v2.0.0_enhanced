@@ -1,0 +1,63 @@
+name: LiveKit real SFU acceptance
+on:
+  pull_request:
+    paths:
+      - 'services/realtime-session/**'
+      - 'scripts/ci/run_livekit_acceptance.py'
+      - 'tests/acceptance/livekit/**'
+      - 'tests/architecture/test_livekit_acceptance.py'
+      - '.github/workflows/livekit-acceptance.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  live-sfu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install isolated runtime and scanner
+        run: |
+          python -m venv "$RUNNER_TEMP/acceptance-runtime"
+          # The installed-path audit includes bootstrap/test tools. Do not keep
+          # the runner's vulnerable seed pip or the previous pytest8 pin.
+          "$RUNNER_TEMP/acceptance-runtime/bin/python" -m pip install --upgrade pip==26.2.2
+          "$RUNNER_TEMP/acceptance-runtime/bin/python" -m pip install -r tests/acceptance/livekit/requirements.txt pytest==9.1.1
+          python -m venv "$RUNNER_TEMP/acceptance-audit"
+          "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip install --upgrade pip==26.2.2
+          "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip install pip-audit==2.10.1
+      - name: Audit complete installed acceptance runtime
+        run: |
+          mkdir -p "$RUNNER_TEMP/livekit-acceptance"
+          SITE=$("$RUNNER_TEMP/acceptance-runtime/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+          "$RUNNER_TEMP/acceptance-audit/bin/python" -m pip_audit --path "$SITE" --format json --output "$RUNNER_TEMP/livekit-acceptance/runtime-audit.json"
+          "$RUNNER_TEMP/acceptance-runtime/bin/pip" freeze > "$RUNNER_TEMP/livekit-acceptance/runtime-versions.txt"
+      - name: Verify harness safety
+        run: |
+          export PATH="$RUNNER_TEMP/acceptance-runtime/bin:$PATH"
+          python -m pytest -q -o addopts='' tests/architecture/test_livekit_acceptance.py
+      - name: Exercise actual pinned SFU and auto_create mutation
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          export PATH="$RUNNER_TEMP/acceptance-runtime/bin:$PATH"
+          python scripts/ci/run_livekit_acceptance.py --expected-head "$EXPECTED_HEAD" --output "$RUNNER_TEMP/livekit-acceptance"
+      - name: Upload sanitized receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: livekit-sfu-acceptance
+          path: ${{ runner.temp }}/livekit-acceptance/
+          if-no-files-found: error

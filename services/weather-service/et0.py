@@ -6,7 +6,8 @@
 → ميل SVP → FAO-56 Penman-Monteith → سياسة احتياط صريحة.
 
 طريقتان، عقد جودة صريح لا يخلط بينهما:
-  • ``fao56_penman_monteith`` (المرجع، ``validated``) — يتطلّب إشعاعاً + RH + رياحاً.
+  • ``fao56_penman_monteith`` (المرجع) — يتطلّب إشعاعاً + RH + رياحاً؛ غياب الارتفاع
+    يسمح بالحساب الاستشاري بفرضية سطح البحر لكنه ``degraded`` وليس ``validated``.
   • ``hargreaves_fallback`` (``degraded``) — عند نقص مدخلات PM؛ **لا يُقدَّم كـFAO-56**.
   • ``insufficient`` — لا حرارة/جغرافيا كافية (``et0_mm=None``، مفقود ≠ افتراض).
   • ``invalid`` — مُدخَل أساسيّ مستحيل فيزيائيّاً (``et0_mm=None``، مكسور ≠ مفقود).
@@ -253,6 +254,7 @@ def compute_et0(
         )
         elev = None
     elev_v = elev if elev is not None else 0.0
+    elevation_limitations = [] if elev is not None else ["elevation defaulted to 0 m (sea level)"]
 
     # مُدخَلات PM: المكسور منها يُعامَل كغائب عن المسار المرجعيّ (لا يُقصّ إلى قيمة).
     if rh is not None and not (-_RH_SENSOR_TOLERANCE_PCT <= rh <= 100.0 + _RH_SENSOR_TOLERANCE_PCT):
@@ -285,6 +287,12 @@ def compute_et0(
         for n, v in (("solar_rad_mj_m2", solar), ("rh_mean_pct", rh), ("wind_2m_ms", wind))
         if v is None
     ]
+    # Completeness is an input-availability fraction, not accuracy/confidence:
+    # the four PM-specific inputs are radiation, RH, wind and elevation. Core
+    # temperature/geography eligibility is checked above. Rejected inputs count
+    # as unavailable but stay solely in invalid_inputs, never also missing_inputs.
+    unavailable_pm = [*pm_missing, *(["elevation_m"] if elev is None else [])]
+    completeness = round((4 - len(unavailable_pm)) / 4.0, 2)
 
     if not pm_missing:
         et0 = penman_monteith_et0_mm(
@@ -298,16 +306,15 @@ def compute_et0(
             elevation_m=elev_v,
             doy=doy,
         )
-        limitations = [] if elev is not None else ["elevation defaulted to 0 m (sea level)"]
         return {
             **base,
             "et0_mm": round(et0, 3),
             "method": "fao56_penman_monteith",
-            "input_completeness": 1.0,
-            "quality_status": "degraded" if invalid else "validated",
-            "missing_inputs": [],
+            "input_completeness": completeness,
+            "quality_status": "degraded" if invalid or elev is None else "validated",
+            "missing_inputs": [n for n in unavailable_pm if n not in invalid],
             "invalid_inputs": invalid,
-            "limitations": [*limitations, *reasons],
+            "limitations": [*elevation_limitations, *reasons],
         }
 
     # احتياط Hargreaves — صريح، degraded، لا يُقدَّم كـFAO-56.
@@ -318,9 +325,9 @@ def compute_et0(
         **base,
         "et0_mm": round(et0, 3),
         "method": "hargreaves_fallback",
-        "input_completeness": round((3 - len(pm_missing)) / 3.0, 2),
+        "input_completeness": completeness,
         "quality_status": "degraded",
-        "missing_inputs": [n for n in pm_missing if n not in invalid],
+        "missing_inputs": [n for n in unavailable_pm if n not in invalid],
         "invalid_inputs": invalid,
         "limitations": [
             f"Penman-Monteith inputs {label} ("
@@ -364,16 +371,22 @@ def et0_series_product(
     المدخلات وإلّا Hargreaves degraded). **مصدر day-of-year (بالأولويّة):** ``daily_dates``
     (تاريخ ISO لكلّ يوم ⇒ المحرّك يحسب DOY الحقيقيّ — يمنع الانجراف الفلكيّ في السجلّات
     المتفرّقة/متعدّدة السنوات) وإلّا ``day_of_year_start`` متزايداً تسلسليّاً. نقيّ حتميّ.
-    يعيد ``daily_et0_mm`` (قد يحوي None ليوم ناقص) + ``methods`` + ``accumulated_et0_mm`` +
-    عقد الخدمة (formula_version/valid_period).
+    يعيد ``daily_et0_mm`` (قد يحوي None ليوم ناقص) + ``methods`` + تشخيص كل يوم.
+    ``accumulated_et0_mm`` مجموع الفترة المكتملة فقط؛ النقص/الفراغ ⇒ None، بينما
+    ``computed_et0_total_mm`` مجموع الأيام المحسوبة المعلن جزئيّاً (أو None إن لا يوم).
+    ``coverage_status`` و``missing_day_indices`` يصرّحان بتغطية الفترة دون افتراض صفر.
     """
-    n = min(len(daily_t_min), len(daily_t_max))
+    # Retain every declared day: an absent temperature is unknown, not a day to
+    # silently drop from the period or its coverage denominator.
+    n = max(len(daily_t_min), len(daily_t_max), len(daily_dates or []))
     solar = daily_solar_rad_mj_m2 or []
     rh = daily_rh_mean_pct or []
     wind = daily_wind_2m_ms or []
     dates = daily_dates or []
     daily_et0: list[float | None] = []
     methods: list[str] = []
+    daily_diagnostics: list[dict] = []
+    missing_day_indices: list[int] = []
     total = 0.0
     counted = 0
     for i in range(n):
@@ -384,8 +397,8 @@ def et0_series_product(
             start = _valid_doy(day_of_year_start)
             doy = ((start - 1 + i) % 365 + 1) if start is not None else None
         res = compute_et0(
-            t_max_c=daily_t_max[i],
-            t_min_c=daily_t_min[i],
+            t_max_c=daily_t_max[i] if i < len(daily_t_max) else None,
+            t_min_c=daily_t_min[i] if i < len(daily_t_min) else None,
             solar_rad_mj_m2=solar[i] if i < len(solar) else None,
             rh_mean_pct=rh[i] if i < len(rh) else None,
             wind_2m_ms=wind[i] if i < len(wind) else None,
@@ -396,16 +409,32 @@ def et0_series_product(
         val = res.get("et0_mm")
         daily_et0.append(val)
         methods.append(res.get("method"))
+        daily_diagnostics.append(
+            {
+                "quality_status": res["quality_status"],
+                "input_completeness": res["input_completeness"],
+                "missing_inputs": res["missing_inputs"],
+                "invalid_inputs": res["invalid_inputs"],
+                "limitations": res["limitations"],
+            }
+        )
         if val is not None:
             total += val
             counted += 1
+        else:
+            missing_day_indices.append(i)
+    complete = n > 0 and counted == n
     return {
         "product": "et0_series",
         "formula_version": FORMULA_VERSION,
         "unit": "mm/day",
         "daily_et0_mm": daily_et0,
         "methods": methods,
-        "accumulated_et0_mm": round(total, 3),
+        "accumulated_et0_mm": round(total, 3) if complete else None,
+        "computed_et0_total_mm": round(total, 3) if counted else None,
+        "coverage_status": "complete" if complete else "partial" if counted else "unavailable",
+        "missing_day_indices": missing_day_indices,
+        "daily_diagnostics": daily_diagnostics,
         "days": n,
         "days_computed": counted,
         "valid_period": valid_period,

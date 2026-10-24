@@ -143,6 +143,8 @@ def check_runtime_contract_with_testclient() -> None:
     except Exception as exc:  # pragma: no cover
         fail(f"fastapi TestClient unavailable; install weather-service requirements: {exc}")
 
+    # Match the container layout: the weather service imports the shared package.
+    sys.path.insert(0, str(ROOT))
     sys.path.insert(0, str(WEATHER))
     spec = importlib.util.spec_from_file_location(
         "sahool_weather_service_main", WEATHER / "main.py"

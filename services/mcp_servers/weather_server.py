@@ -32,6 +32,16 @@ CACHE_TTL = 300
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1"
 
+# التاريخ (ERA5) على مضيفٍ مستقلّ: خادم Open-Meteo يقصر /v1/archive على مضيف
+# archive-api، فالنداء نفسه على api.open-meteo.com يعود 404. المتغيّر والافتراضيّ
+# هما نفسهما في محرّك الطقس (services/weather-service/open_meteo.py: ARCHIVE_URL).
+_DEFAULT_OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+
+
+def _open_meteo_archive_url() -> str:
+    return os.getenv("OPEN_METEO_ARCHIVE_URL", _DEFAULT_OPEN_METEO_ARCHIVE_URL).rstrip("/")
+
+
 # محرّك الطقس الكنسيّ (services/weather-service) — مصدر ET0 المرجعيّ الوحيد.
 _DEFAULT_WEATHER_SERVICE_URL = "http://sahool-weather-service:8000"
 
@@ -334,7 +344,7 @@ async def _execute(name: str, args: dict) -> dict:
         }
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await retry_request(
-                client.get, f"{OPEN_METEO_URL}/archive", params=params, timeout=30.0
+                client.get, _open_meteo_archive_url(), params=params, timeout=30.0
             )
             resp.raise_for_status()
             data = resp.json()

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Annotated, Literal
 
 from cache import get as cache_get
 from cache import set as cache_set
@@ -50,6 +50,8 @@ from tiles import (
     unit_for_layer,
     validate_time_model,
 )
+
+from shared.weather_input_contract import Et0Number, Et0WeatherInput
 
 
 def _facade_attr(name: str):
@@ -726,22 +728,22 @@ async def chill_accumulation(
     }
 
 
-class Et0ProductRequest(BaseModel):
+class Et0ProductRequest(Et0WeatherInput):
     """مدخلات ET0 المرجعيّ — المحرّك يملك تنفيذ الصيغة (FAO-56).
 
     اللقطة (الطقس) يُوفّرها المُستهلِك في هذه المرحلة (C.1b)؛ جلبها داخل المحرّك من
     lat/lon/valid_time لاحق (WS-D.2c). مفقود ≠ افتراض — النقص يُخفِّض الطريقة/الجودة.
     """
 
-    t_max_c: float | None = None
-    t_min_c: float | None = None
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    t_mean_c: float | None = None
-    lat_deg: float | None = None
-    elevation_m: float | None = None
-    day_of_year: int | None = None
+    t_max_c: Et0Number | None = None
+    t_min_c: Et0Number | None = None
+    solar_rad_mj_m2: Et0Number | None = None
+    rh_mean_pct: Et0Number | None = None
+    wind_2m_ms: Et0Number | None = None
+    t_mean_c: Et0Number | None = None
+    lat_deg: Et0Number | None = None
+    elevation_m: Et0Number | None = None
+    day_of_year: Annotated[int, Field(strict=True)] | None = None
     valid_time: str | None = None  # وقت صلاحيّة اللقطة (ISO) كما يُصرّح به المُستهلِك
     weather_snapshot_id: str | None = None  # هويّة اللقطة إن كانت للمُستهلِك مسبقاً
 
@@ -807,17 +809,17 @@ async def agro_vpd(req: VpdProductRequest = Body(...)):
     return vpd_view(state)
 
 
-class Et0SeriesRequest(BaseModel):
+class Et0SeriesRequest(Et0WeatherInput):
     """سلسلة ET0 يوميّة — للمحاكاة/الموسم (تفويض ET0 عن النواة المحلّيّة، WS-C.1b)."""
 
-    daily_t_min: list[float | None] = []
-    daily_t_max: list[float | None] = []
-    lat_deg: float | None = None
-    elevation_m: float | None = None
-    daily_solar_rad_mj_m2: list[float | None] | None = None
-    daily_rh_mean_pct: list[float | None] | None = None
-    daily_wind_2m_ms: list[float | None] | None = None
-    day_of_year_start: int | None = None
+    daily_t_min: list[Et0Number | None] = []
+    daily_t_max: list[Et0Number | None] = []
+    lat_deg: Et0Number | None = None
+    elevation_m: Et0Number | None = None
+    daily_solar_rad_mj_m2: list[Et0Number | None] | None = None
+    daily_rh_mean_pct: list[Et0Number | None] | None = None
+    daily_wind_2m_ms: list[Et0Number | None] | None = None
+    day_of_year_start: Annotated[int, Field(strict=True)] | None = None
     # تواريخ ISO لكلّ يوم (اختياريّ، بالأولويّة على day_of_year_start) — يمنع الانجراف
     # الفلكيّ في السجلّات المتفرّقة/متعدّدة السنوات (المحرّك يملك date→DOY).
     daily_dates: list[str | None] | None = None

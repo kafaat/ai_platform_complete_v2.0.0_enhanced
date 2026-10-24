@@ -15,6 +15,8 @@ services/odoo-bridge/main.py,odoo-bridge,True,0,11,True,False,True,delegated_rou
 services/rag-retrieval/main.py,rag-retrieval,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/raster-service/main.py,raster-service,False,1,85,False,True,True,direct_routes,main.py owns direct route handlers
 services/raster-tiler-service/main.py,raster-tiler-service,False,2,0,False,False,False,direct_routes,main.py owns direct route handlers
+services/realtime-agent/main.py,realtime-agent,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
+services/realtime-session/main.py,realtime-session,False,0,0,False,False,True,runtime_delegated_routes,main.py delegates to a runtime module that owns app construction/routes
 services/remote-sensing-workspace-bff/main.py,remote-sensing-workspace-bff,True,3,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/sam2-inference/main.py,sam2-inference,True,4,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/scout-ingest-service/main.py,scout-ingest-service,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers

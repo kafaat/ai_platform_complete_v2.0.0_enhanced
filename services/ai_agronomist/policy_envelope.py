@@ -118,17 +118,17 @@ def gate_generation(envelope: dict[str, Any] | None, *, external: bool) -> dict[
     leave); external providers are gated by ``policy_mode`` + ``external_llm_allowed``.
     ``redacted_external`` ⇒ allowed with ``requires_redaction=True``.
     """
+    # Missing/malformed envelopes cannot authorize *any* generation, including local.
+    # A local provider needs no external-data grant, but still needs a trusted policy.
+    ok, reason = validate_envelope(envelope)
+    if not ok:
+        return refusal(reason or REASON_ENVELOPE_MISSING, envelope, requires_redaction=False)
+
+    assert envelope is not None  # validated above
     if not external:
         return _decision(
             DECISION_ALLOWED, REASON_LOCAL_PROVIDER, envelope, requires_redaction=False
         )
-
-    ok, reason = validate_envelope(envelope)
-    if not ok:
-        # Fail-closed: an external provider requires a valid, platform-authored envelope.
-        return refusal(reason or REASON_ENVELOPE_MISSING, envelope, requires_redaction=False)
-
-    assert envelope is not None  # validated above
     mode = envelope.get("policy_mode")
     if mode == POLICY_MODE_LOCAL_ONLY:
         return refusal(REASON_LOCAL_ONLY_BLOCKS_EXTERNAL, envelope, requires_redaction=False)
@@ -158,6 +158,16 @@ def allowed_tools_set(envelope: dict[str, Any] | None) -> set[str] | None:
     if not isinstance(tools, list):
         return None
     return {str(t) for t in tools}
+
+
+def enforced_allowed_tools(envelope: dict[str, Any] | None) -> set[str]:
+    """Runtime boundary: absence of a trustworthy policy grants ZERO tools.
+
+    The low-level tool loop retains its backwards-compatible `None` semantics
+    for explicitly legacy callers. Tenant-facing request handlers must use this
+    adapter so an absent envelope is never interpreted as unrestricted access.
+    """
+    return allowed_tools_set(envelope) or set()
 
 
 def tool_allowed(envelope: dict[str, Any] | None, tool_name: str) -> bool:

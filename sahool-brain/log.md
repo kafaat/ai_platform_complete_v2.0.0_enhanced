@@ -9870,6 +9870,105 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 2026-10-20 — #1249: بطلب المالك مزامنة فرع Gitleaks مع main@b7d765236 (#1248)، مع حفظ مداخل hot.md وlog.md للطرفين. لا اختلاف في شيفرة التصحيح أو الاختبارات أو الأدلة عن 61f7ce276 (32 workflow ناجحة، 66 فحصاً ناجحاً وتخطيان). الفجوة تبقى open إلى قبول الرأس الجديد؛ لم يُنفَّذ دمج في main ولا نشر.
 
+
+### مصالحة مراجع الإغلاق — 2026-10-20
+
+2026-10-20 — مصالحة مراجع الإغلاق على أساس `b7d765236` (#1248): أُعيد قياس 64 سجلاً غير مصالح بتاريخ Git الكامل؛ أُضيف ربط canonical مثبت إلى 59، وبقيت 5 بعوائق موثقة. الحالات ثابتة: 95 open / 469 fixed / 3 verified؛ هذا تصحيح إسناد لا إصلاح 59 عطلًا ولا قبول تشغيل. المصدر: `certification/evidence/gap_provenance_20261020/README.md` و`audit.json`. مراجع الإصلاح والنص التاريخي محفوظة؛ لا تغيير تطبيق أو إنتاج أو تجاوز للتجميد.
+
+2026-10-20 — مزامنة #1250 مع main@99cacf9a بعد دمج #1249 بطلب المالك: حُفظت تغييرات فحص الأسرار بايتًا ببايت، ومداخل الدماغ للطرفين، وإضافات canonical التسع والخمسون. عدد 95 open في دراسة المصالحة يخص أساسها b7d765236، ولا يعاد وصفه كجرد للرأس الجديد. تعارضات المصنوعات المولدة تُحل بإعادة التوليد؛ قبول CI السابق على b388f86 لا يشهد للرأس الجديد. لا تغيير تشغيل أو نشر.
+
+2026-10-20 — مزامنة ثانية لـ#1250: تحرك main إلى e28f662a بدمج #1251 أثناء اكتمال CI على e106f426 (65 ناجحة وتخطيان). لم يُنفَّذ الدمج على الأساس المتغير؛ حُفظت جميع تغييرات #1251 ومراجع canonical التسعة والخمسون. النجاح السابق موثق لرأسه فقط، وقبول النسخة المركبة الجديدة مستقل. لا إصلاح تشغيلي إضافي ولا نشر من هذه المتابعة.
+
+
+2026-10-23 — ET₀ platform boundary على أساس d23b320a، إصلاح الشيفرة الأول 235a9729: إعادة استخدام مالك الحساب weather-service، حفظ null والتغطية اليومية، تحقق غلاف ET₀، حجب تقديم المتدهور، وعدم تسمية أقصى رياح 10م متوسطاً عند2م. شاهد HTTP حقيقي داخل العملية وتمرير المستأجر؛ لا DB أو نشر. تفاصيل الاختبارات والحدود: `docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md`.
+
+2026-10-23 — متابعة ET₀ على `235a972938f9f634e228dcd0627f088ca8a3d906`: عقد تحقق مشترك فعلي للخدمتين، وإخراج HTTP/provenance من الراوتر؛ 926 قبولاً ناجحاً مع تخطّي Redis واحد، و24 فحص بنية ناجحاً. لم تُرفع ميزانيات أو baselines. المصدر: `certification/evidence/et0_platform_boundary_20261023/README.md`. إعادة الفحص الشامل للرأس النهائي مستقلة.
+
+2026-10-23 — اكتمل preflight الافتراضي محليًا على 43806ca05bced39a5159d3e21cfaaecb50387205 بلا إخفاق أو بوابة متخطاة؛ مصدر الشيفرة المنشور المكافئ 235a972938f9f634e228dcd0627f088ca8a3d906. المصدر: `certification/evidence/et0_platform_boundary_20261023/full-preflight.txt`. لا قبول إنتاج أو معايرة محلية.
+2026-10-23 — DEP-TITILER-CERTIFI-PYSEC-2026-4320-01: فرع `codex/security-certifi-pysec-2026-4320` على `d23b320ae6c437273a8c8a6a1ba9fc5f111b1e1c` يغير certifi فقط والحزمة المباشرة. source checkpoint `1b2d8530fef69fd2322ee3db5fbd75b51673f9a6`؛ OTel له PR #1256 قائم، فلا يكرر الفرع علاجه. الفجوة open إلى CI؛ `certification/evidence/security_dependency_admission_20261023/README.md`. لا دمج أو نشر.
+
+2026-10-23 — تجميع DEP-OTEL-API-CVE-2026-114603-01 مع DEP-TITILER-CERTIFI-PYSEC-2026-4320-01 كمتطلب سابق مستقل علىmain `d23b320ae6c437273a8c8a6a1ba9fc5f111b1e1c`؛ source `8591fc835b2487d389287b8a0699a893a54aeec5`. أعيدت متطلبات OTel من #1256 حرفيًا مع certifi الجديد، بلا تعديل #1256 أو main. الأدلة السابقة تحفظ حدود مصدرها؛ CI النهائي مطلوب. `certification/evidence/security_dependency_admission_20261023/README.md`.
+
+2026-10-23 — تجميع #1256/#1257/#1258 داخل #1257 على main@ccf19539: مصدر e83810912a3ceefb80f815887382b104b377bb1f يحفظ الرؤوس الأربعة. إصلاح concurrency لا يلغي إلا تشغيلات الطلب نفسه؛ 55 اختبارًا مستهدفًا ناجحًا. استؤنفت الأجنحة على الشجرة نفسها: 10615 وحدة (57 تخطيًا)، 1016 tests (8 تخطيات)، 4777 منصة (بلا تخطٍ)، دون إخفاقات. التشغيل المنقطع ليس نجاحًا شاملاً منفردًا؛ قبول CI النهائي مستقل. المصدر: certification/evidence/pr_consolidation_1256_1257_1258_20261023/validation.json. لا دمج main أو نشر إنتاج.
+
+2026-10-23 — مراجعة PR #1252 على المصدر `95df92a2b591b383702388284adc70e7b3baf50f` ودمج main `617f03664073b7d22db8d43f53e9af848f6dc999` في worktree مستقل دون تعارض مصدر؛ المخرجات المتعارضة يعيدها مولدو المستودع. ظهرت FRONTEND-SPA-CACHE-HEADERS-DROP-SECURITY-01 بفحص nginx فعلي: cache headers على index.html تسقط وراثة security headers. إصلاح مرشح مع اختبار ردود HTTP؛ تبقى open إلى CI/الدمج. LIVEKIT-REALTIME-DOCUMENT-ISOLATION-PENDING-01 open؛ media تبقى denied لأن /realtime غير منفذ وfallback يعود للواجهة العامة في المستند نفسه. الدليل وحدود الاختبارات ونقطة الاستئناف: `certification/evidence/livekit_readiness_20261023/README.md`. لا نشر أو قبول LiveKit حي.
+
+
+## 2026-10-23 — أساس خدمة جلسات LiveKit المعطلة افتراضيًا
+
+- مصدر مرشح `82d77ab40aa6beec85c65a1d98722db4b6978711` على main `569d0159`، بستة أدوار متوازية؛ هوية/FIELD_VIEW من المنصة، SQLite محلية وحصص ذرية، رموز SDK محدودة بالميكروفون والغرفة، وتنظيف مؤجل دون ادعاء إبطال فوري.
+- 135 اختبارًا مستهدفًا و38 تبعية تشغيل مدققة دون ثغرات معروفة؛ المصدر والحدود: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فحص HTTP لمصدر العملية لا يثبت الصورة أو SFU.
+- يبقى LIVEKIT-SESSION-SFU-ADMISSION-ACCEPTANCE-01 مفتوحًا؛ وتجربة STT/الوكيل/الواجهة والتسجيل خارج الرقعة. لا دمج أو نشر لخدمة الجلسات.
+
+- 2026-10-23 — تصحيح عقد خدمة الجلسات إلى `/api/v1/realtime/sessions` دون استثناء API: `2eebce88ac1a2d2751fb553904d7f0870409702f`؛ 135 اختبارًا وفحص HTTP للمسار الجديد/غياب القديم، الأدلة في `certification/evidence/realtime_session_foundation_20261023/`. المصالحة والحوكمة وCI لم تكتمل بعد؛ لا نشر.
+
+- 2026-10-23 — مصالحة main `5f730646` في أساس الجلسات وحفظ ملفات إصلاح NATS حرفيًا؛ المصدر `b26f3c7978f97b378df7635bb0f604aca3de0191`. تعريف runtime فعلي وتصنيف مكون/بيئة؛ 135 اختبارًا وفحص HTTP بعد المصالحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. التوليد وpreflight/CI غير مكتملة؛ لا نشر.
+
+- 2026-10-23 — صحح تصنيف سلطة realtime-session إلى `operational_coordination` في `docs/architecture/component_registry.json` مع تفسير حالة SQLite التشغيلية في README؛ القرار السابق system_of_record محفوظ تاريخيًا ومصحح في ledger. لا تعديل حارس أو ملكية جداول المجال.
+
+- 2026-10-23 — هدف Compose اختياري `realtime-foundation` للخدمة عند `51cbd06d69a4fcf559f676ab0c7b6633aeb24c57`، بلا منافذ مضيف وبالتفعيل مثبتًا 0 وبلا LiveKit credentials؛ لا تشغيل أو نشر. ملكية Platform/NATS محفوظة. السبب: PATH-3 يلزم كل خدمة قابلة للفحص بهدف بنيوي محلول، دون ادعاء نجاح readiness المعطلة. README و`docker-compose.v9.yml` هما المصدر.
+
+
+## 2026-10-23 — عقود دمج أساس الجلسات
+
+2026-10-23 — المصدر `36cbe0e32f10d7be9ac9c39b092500cb810c7117` يصلح إخفاقات دمج الأساس: عقد مرآة pip في Docker، وتصنيف مسارات المزارع مع دين واجهة صريح حتى 2026-11-22، وتثبيت الجرد المقاس 32/1011/55. سقف المنصة 629 وwired backend 28 بلا تغيير. 67 اختبارًا مستهدفًا ناجحًا؛ preflight السابق أخفق في 3 حالات ثم أوقف، والإعادة قيد التنفيذ. المصدر: `certification/evidence/realtime_session_foundation_20261023/validation.json`. فجوتا قبول SFU وعزل مستند الاتصال مفتوحتان؛ لا نشر أو دمج.
+
+## 2026-10-24 — تصحيح بوابتي CI للخدمة
+
+2026-10-24 — المصدر `0fbcd3b68de1a51f205decfb644bbf6965dcdd9a` يصحح حلقة انتظار الصورة واستثناءات قيم مصدر محددة. على المرشح السابق ba6b06a4 نجح preflight الافتراضي وصورة Docker وHTTP الفعلي المعطل في CI؛ 135 اختبار خدمة و30 عقد أمان معادة ناجحة. المرجع: `certification/evidence/realtime_session_foundation_20261023/ci-image.json` و`validation.json`. قبول SFU الحي وعزل مستند الاتصال ما زالا مفتوحين؛ لا دمج أو نشر.
+
+## 2026-10-24 — مصالحة قبول NATS الجديد
+
+2026-10-24 — مصالحة #1262 مع main بعد دمج #1261 عند `88719df2cf491f5407ee01ea8b32c44097feb90d`: التزام المصدر `c1ce54808e06c52479454776c0abe3d5442a997c` يحفظ شيفرة قبول NATS وحراسه؛ اقتصرت التعارضات السبعة على مخرجات مولدة تعاد قانونيًا. نجحت175 حالة، منها135 للخدمة. قبول NATS الفعلي يعاد على الرأس النهائي في CI ولا يُورث من main. المرجع: `certification/evidence/realtime_session_foundation_20261023/validation.json`. لا دمج للخدمة أو نشر، وقبول SFU مفتوح.
+
+
+## 2026-10-24 — إعادة بناء مرشح الصوت
+
+2026-10-24 — إعادة بناء تكامل الصوت الاختياري فوق أساس #1262 عند `9b3d59d95100dfb8cc0faf95cd5da4d5b6039786` بعد فقدان المرشح المحلي غير المنشور؛ لا تُورث نتائج النسخة المفقودة. الجلسات تربط المستأجر والحقل، والعامل يفرض سياسة صوت محلية بلا أدوات، والويب مستند معزول وFlutter معطل افتراضيًا. المصدر: `docs/architecture/LIVEKIT_VOICE_IMPLEMENTATION_20261024.md` و`certification/evidence/realtime_voice_recovery_20261024/README.md`. قبول SFU وFlutter والشبكات والصوت العربي الحي مفتوح؛ لا دمج أو نشر.
+
+
+## 2026-10-24 — إصلاح مراجعة #1263
+
+2026-10-24 — إصلاح مراجعة #1263 فوق رأس `09739386fa885cbced1c9bae599dc886f3102a47` ومصالحة main `5cd4064c9bc3ee45611569a5d88bdf8368776bc1`: عزل callbacks ورفض الاتصال المتأخر بحسب epoch حتى لا تغلق جلسة جديدة، وتوافق web1 في Flutter، وتصحيح bootstrap والاقتباس في قبول SFU. نجحت 19 حالة controller و7 عقود عدة القبول وtypecheck وactionlint محليًا. المصادر: `frontend/src/realtime-call/controller.test.ts` و`mobile/sahool_app/pubspec.yaml` و`.github/workflows/livekit-acceptance.yml`. قبول Flutter وSFU الفعلي على الرأس النهائي ما زال مطلوبًا؛ لا دمج main أو نشر إنتاج.
+
+2026-10-24 — مراجعة سلامة الدمج في #1263 كشفت إعادة إعفاءَي واجهة حُذفا عند ربط عملاء الاتصال؛ أعيد `config/endpoint_ui_coverage_waivers.json` إلى محتوى الرأس `09739386` وأعيد التوليد، مع إبقاء سقف 53 في `tests_v9/test_platform_catalog_gate.py`. شجرتا main `5cd4064c` وأساس PR `9b3d59d9` متطابقتان. توقفت تشغيلة preflight على المرشح السابق بعد اكتشاف الانحدار؛ لا تُحسب نجاحًا كاملاً.
+
+2026-10-24 — امتداد إصلاح أدوات الاختبار في #1263: ثُبّت pytest9.1.1 وpytest-asyncio1.4.0 في `.github/workflows/realtime-agent.yml` بدل الزوج السابق، لأن تدقيق متطلبات تشغيل العامل لا يشمل أدوات الاختبار. هذا هو الزوج الذي نُفذت به اختبارات العامل الـ70 الناجحة؛ لا تغيير لصورة تشغيله أو ادعاء تدقيق أدواته ضمن تدقيق متطلبات التشغيل.
+
+
+## 2026-10-24 — توافق PMTiles وLiveKit
+
+2026-10-24 — متابعة #1263 عند `c8714330578d33cfbfe9f0d06b0e3bc7494ae1ff`: نجح قبول SFU الفعلي وأمن Actions وعامل الصوت والويب في CI، لكن Flutter كشف MOBILE-PMTILES-LIVEKIT-PROTOBUF-CONFLICT-01. المرشح يحفظ خرائط PMTiles عبر توافق محلي محدود لـpmtiles1.3 مع protobuf6.0.0، وترخيص ومصدر واختبارات أرشيف مستقلة؛ نجح محلل الحزمة على Dart3.10.8 مع protobuf6.0.0 و33 اختبارًا، وحُفظ قفل الحزمة الفعلي. حل تبعيات التطبيق وAPK لم يُثبتا بعد؛ الدليل `certification/evidence/pmtiles_compatibility_20261024/validation.json`. المصدر: `mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md` و`.github/workflows/realtime-mobile.yml`؛ الوظيفة الفاشلة120940846487. لا دمج إلى main أو نشر إنتاج.
+
+
+## 2026-10-24 — قفل تطبيق Flutter الفعلي
+
+2026-10-24 — متابعة #1263 على المصدر `dc478b95131e2aa808ea02139e481751cb562ad9`: نجح حل تبعيات التطبيق وتحليل واختبارات realtime في CI40122522596. اعتمد قفل التطبيق بايتًا ببايت من artifact12571592686 بعد مطابقة SHA256؛ القرار يحفظ نتيجة المحلل الفعلية بدل تحرير إصدارات يدويًا. المصدر: `certification/evidence/pmtiles_compatibility_20261024/application-ci.json` و`mobile/sahool_app/pubspec.lock`. نجح بناء APK أيضًا؛ فشلت الوظيفة فقط لاختلاف القفل القديم. إعادة إثبات القفل على الرأس الجديد مطلوبة؛ فجوة التوافق باقية open.
+
+
+## 2026-10-24 — تسجيل دمج #1248 و#1251 ومتابعاتهما
+
+- **الدمجان:** #1248 دُمج `b7d7652362768320e5a9dfa96b7d7303a4bae6f8`. و#1251 دُمج `e28f662a74b5a8f1e4f002ef9a8a171f585acc85`، وهو squash لرأس الـPR `d171d284`؛ شجرةُ الرأس `b52ac663` تساوي شجرةَ الدمج (مقيسٌ بـ`git rev-parse`). على `d171d284` جرت 83 جولةَ فحص في CI ولم تفشل أيّ منها. التزامات الفرع (`a91bee9e` · `ef75badf` · `aaa715be` · `d171d284`) ليست أسلافاً لـ`main` بعد الـsquash؛ الحقائق أدناه مقيسةٌ على `main` نفسه حين ذُكر ذلك.
+- **حذف الجردين اليتيمين يُكمِل `9ddde2c26` (2026-07-09):** ذلك الالتزام حذف `scripts/ci/dependency_inventory_guard.py` و`scripts/ci/test_requirements_inventory_guard.py` والـworkflowين `dependency-inventory-drift.yml` و`test-dependency-inventory.yml`، لكنّه عدّل `dependency_inventory.csv` و`dependency_inventory.generated.json` بدل حذفهما (`git show --name-status 9ddde2c26`: M للملفّين وD للباقي). #1251 حذفهما (`ef75badf` على الفرع)، وأخرجهما من `release/FILE_CHECKSUMS.sha256` (السطران 1100–1101 عند `18239b41` و`b7d76523`؛ صفر مطابقات عند `e28f662a`) ومن أعداد الـmanifest (`aaa715be`). وفي `docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md` السطران اللذان كانا يشغّلان الحارسين المحذوفين هما **40 و42** لا 40 و41؛ السطر 41 هو `service_dependency_conflict_guard.py` الموجود. السطران الآن معلَّقان بملاحظة 2026-10-20. التقارير المؤرَّخة في يوليو لم تُمَسّ.
+- **فحص المهارة الصارم:** `CLAUDE.md` يقول الآن `sha256sum -c SHA256SUMS` صارماً (`a91bee9e` على الفرع، و`CLAUDE.md:75` على `main`)، ويحرسه `tests_v9/test_work_continuation_checksum_strict.py`. هذا يحلّ محلّ `sha256sum -c --ignore-missing SHA256SUMS` المقتبَس في مدخلة hot.md بتاريخ 2026-10-19 («قسم الاستئناف في `CLAUDE.md` يحمل عبارتَي المالك وسطر التحقّق»). تلك المدخلة تبقى نصّاً تاريخيّاً بلا تعديل، والمدخلة الجديدة في أعلى hot.md تُعلن الإحلال.
+- **خمس طفرات تنتظر التسجيل:** كان السقف عند `e28f662a` 843 = 830 + 27 // 2؛ ثمّ أعاد #1254 (`ccf19539`) قياس المرساة إلى 843 والعلامة 869، فحدّ نصف الهامش 856 (`tests_v9/test_mutation_sweep_headroom.py:258-267`)، والسجلّ على `0ace91c8` يعلن 849، فتتّسع الخمس (854 ≤ 856) وتُسجَّل في فرعٍ لاحق. كلّ نصّ بحثٍ يقع مرّةً واحدة في الملفّ على `main` الحاليّ، والملفّان بلا تغيير منذ `e28f662a`:
+  - (أ) `scripts/ci/brain_append_only_guard.py`: حذف `"GIT_NO_REPLACE_OBJECTS": "1", ` ⇒ يُنتظر `test_a_replace_ref_cannot_hide_a_shrink`. زُرعت صيغةٌ أخرى (`env = dict(os.environ)`) على فرع البند 1 وقُتلت؛ الصيغة الموحَّدة هذه لم تُزرَع.
+  - (ب) الملفّ نفسه: `, "GIT_GRAFT_FILE": _NO_GRAFT_FILE}` ⇒ `}` ⇒ `test_a_graft_cannot_turn_a_shrinking_commit_into_a_root`. زُرعت على فرع البند 8 واحمرّت الحالتان.
+  - (ج) `scripts/ci/preflight.sh`: سطر `STEP_LOG="$(mktemp …)"` ⇒ مسار ثابت `/tmp/preflight_step.log` ⇒ `test_concurrent_runs_each_print_only_their_own_step_log`.
+  - (د) الملفّ نفسه: حذف `trap 'rm -f -- "$STEP_LOG"' EXIT` ⇒ `test_a_killed_run_removes_its_step_log_and_still_dies_by_the_signal`.
+  - (هـ) السطر نفسه ⇒ `trap 'rm -f -- "$STEP_LOG"; exit 0' EXIT` ⇒ `test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log`.
+  - سجلّ البند 6 يذكر (ج)–(هـ) مزروعةً ومقتولةً بهذه الاختبارات. نصّ (هـ) من ذلك السجلّ؛ نصّا (ج) و(د) أُعيدت كتابتهما من الوصف ولم يُزرعا على هذه الشجرة.
+- **بقيّة grafts/shallow:** ملفّ `<git-dir>/shallow` مكتوبٌ يدويّاً يسمّي الالتزامَ المُقلِّص يعطي pairs=0 ولا نتيجة؛ وبدونه pairs=1 و`JOURNAL_SHRANK`. مقيسٌ على git 2.43.0 بحارس الفرع في مستودعٍ مؤقّت. مفتوحٌ تصميماً لأنّ `no-report-only-change.yml` يستنسخ بـ`fetch-depth: 0` (السطران 18 و99). الالتزامات بلا والد بلا قاعدة إغلاقٍ آمن، وتزوير commit-graph غير مختبَر.
+- **ثغرة ربط WX-003:** البند 2 يغيّر تاريخ الطقس (WX-003)، والأثر المشتقّ كان WX-002,WX-004. في `capabilities/registry/capabilities.json` يحمل WX-003 `tests=[]` وخدمته الوحيدة `services/weather-service/main.py`، فلا يرتبط به `services/mcp_servers/weather_server.py` ولا `tests_v9/test_mcp_weather_archive_host.py`. لم تُسجَّل فجوةً بمعرّف؛ مذكورةٌ هنا فقط.
+- **قرار المالك لخريطة F2 مفتوح ولم يُنفَّذ منه شيء:** القيم الثابتة للطقس في الشاشة الكبيرة تحت نسبة Open-Meteo، ونصٌّ خارج `/weather` يقتبس قيم Open-Meteo (التوصيات والتنبيهات المخزَّنة)، وشروط مفتاح CARTO وعلامته المائيّة.
+- **OpenRouter F2 كما سُجِّل في البند:** تحذير `:free` يتكرّر في كلّ استدعاء لـ`resolve_generation()`، و`/healthz/ai-provider` يعرض available=false بلا سبب.
+- **أرضيّة langchain-core لم تلزم:** `langchain-community==0.4.2` (`services/local-ai-rag/requirements.txt:8`) يتطلّب أصلاً `langchain-core>=1.4.0`، وpip-audit نظيف.
+- **حدٌّ مقيس جديد (DN8-R1):** على bash 5.2.21 بمقدّمة preflight المشحونة، خطوةٌ تلتقط SIGINT وتخرج طبيعيّاً (exit 2 كما يفعل pytest) تُعدّ خطوةً فاشلة ويتابع preflight؛ ومصيدة EXIT تحذف السجلّ مع ذلك. SIGHUP غير مقيس.
+- **OPEN-METEO-COMMERCIAL-TERMS-01** له قسمٌ في `gaps/registry.md` بحالة open منذ #1251 (البند 5)، ووثيقة القرار `docs/architecture/decisions_pending/OPEN-METEO-COMMERCIAL-TERMS-01.md`. لا تغيير حالة هنا.
+- **درس «قديمٌ بعد الدمج»:** مذكّرة المتابعة كُتبت 2026-10-20 وقالت إنّ SHA دمج #1251 «لم يُسجَّل بعد» وإنّ مدخلة 2026-10-19 هي «السطر 4» في hot.md. بعد دمج #1252–#1263 صار `main` عند `0ace91c8` والمدخلة في السطر 40. أُعيد قياس كلّ SHA ورقم سطر هنا بـgit على `0ace91c8` قبل الكتابة؛ ملاحظةٌ مكتوبة قبل الدمج تُقرأ مصدراً لا حالة.
+- **لا تغيير في `gaps/registry.md`:** لا حالة تتغيّر ولا معرّف جديد. قواعده تشترط التسجيل لتأجيلٍ في hot.md أو لملاحظة مراجعة بوسم خطورة، وهذه المدخلة لا تحمل أيّاً منهما.
+- **حدود:** هذا الـPR دماغ فقط. التنفيذ DEV من منفّذ Claude بلا استقلال، ولا دفع.
+
 ### 2026-10-20 — حساب قراءة فقط لـTiTiler القديم (بلا نشر)
 
 بتكليف المالك، الفرع `claude/titiler-readonly-key-20261020` من `main` عند `b7d765236` (بعد دمج #1248). يعالج `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`: كان `sahool-titiler` يأخذ `S3_ACCESS_KEY` المشترك، وقالبُه مفتاحُ إدارة MinIO.

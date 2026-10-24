@@ -91,7 +91,7 @@
       "dynamic_expr": "subject",
       "file": "services/video-processor/stream_events.py",
       "kind": "producer",
-      "line": 132,
+      "line": 160,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -103,7 +103,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/stream_events.py",
       "kind": "producer",
-      "line": 157,
+      "line": 185,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -270,7 +270,7 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 14,
-    "files_scanned": 1234,
+    "files_scanned": 1256,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

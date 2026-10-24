@@ -51,6 +51,7 @@ import {
   type WaterSampleFormText,
 } from '../../lib/waterFieldOps';
 import { T } from '../ds';
+import { OpenMeteoAttribution } from '../OpenMeteoAttribution';
 
 interface Props {
   /** معرّف الحقل النشط — يُربَط به تسجيل النتيجة (outcome/record) إن وُجد. */
@@ -525,15 +526,19 @@ export default function WaterFieldOpsCard({ fieldId, cropLabel, enabled = true }
             ) : alertsQ.data?.disabled ? (
               <DisabledNote />
             ) : alerts.length > 0 ? (
-              alerts.map((a) => (
-                <div key={`${a.type}-${a.window}`} className="text-[11px]" style={{ color: T.muted }}>
-                  <span className="px-2 py-0.5 rounded-full font-bold" style={{ border: `1px solid ${T.line}`, color: alertSeverityColor(a.severity) }}>
-                    {a.title_ar ?? a.type ?? '—'}
-                  </span>
-                  {a.detail_ar && <span className="ms-1">{a.detail_ar}</span>}
-                  {a.window && <span className="ms-1 text-[10px]" style={{ color: T.faint }}>({a.window})</span>}
-                </div>
-              ))
+              <>
+                {alerts.map((a) => (
+                  <div key={`${a.type}-${a.window}`} className="text-[11px]" style={{ color: T.muted }}>
+                    <span className="px-2 py-0.5 rounded-full font-bold" style={{ border: `1px solid ${T.line}`, color: alertSeverityColor(a.severity) }}>
+                      {a.title_ar ?? a.type ?? '—'}
+                    </span>
+                    {a.detail_ar && <span className="ms-1">{a.detail_ar}</span>}
+                    {a.window && <span className="ms-1 text-[10px]" style={{ color: T.faint }}>({a.window})</span>}
+                  </div>
+                ))}
+                {/* نصّ التنبيه يحمل سرعة الريح والحرارة من طقس Open-Meteo (CC BY 4.0). */}
+                <OpenMeteoAttribution />
+              </>
             ) : alertsQ.data ? (
               <div className="text-[11px]" style={{ color: T.muted }}>لا تنبيهات مشتقّة لهذه الإحداثيّات الآن (حكم الخادم).</div>
             ) : null}

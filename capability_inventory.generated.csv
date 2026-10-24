@@ -224,6 +224,10 @@ raster-service.upload.drone,command,raster-service,POST /v1/upload/drone,fronten
 raster-service.upload.raster,command,raster-service,POST /v1/upload/raster,frontend,route,False
 raster-service.zones.classify,command,raster-service,POST /v1/zones/classify,frontend,route,False
 raster-tiler-service.runtime-identity,query,raster-tiler-service,GET /runtime-identity,,route,False
+realtime-session.realtime.hooks.livekit,command,realtime-session,POST /api/v1/realtime/hooks/livekit,,route,False
+realtime-session.realtime.internal.jobs,query,realtime-session,GET /api/v1/realtime/internal/jobs/{session_id},,route,False
+realtime-session.realtime.sessions,command,realtime-session,POST /api/v1/realtime/sessions,,route,False
+realtime-session.realtime.sessions.session_id,mixed,realtime-session,DELETE /api/v1/realtime/sessions/{session_id}|GET /api/v1/realtime/sessions/{session_id},,route,False
 remote-sensing-workspace-bff.fields.field_id.remote-sensing-workspace,query,remote-sensing-workspace-bff,GET /v1/fields/{field_id}/remote-sensing-workspace,,route,False
 sahool-platform OutboxWorker.event.9fe71469,event,sahool-platform OutboxWorker,NATS sahool.events.>,notification-agent (notif_domain_events),event,False
 sahool-platform.admin.break-glass,command,sahool-platform,POST /api/v1/admin/break-glass,frontend,route,False

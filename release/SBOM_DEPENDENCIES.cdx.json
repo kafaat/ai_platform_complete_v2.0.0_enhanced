@@ -15,6 +15,19 @@
       "version": "1.33.1-dev57.0"
     },
     {
+      "bom-ref": "urn:uuid:7462256f747b9af48712fa50409ef091",
+      "name": "@eslint/js",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@eslint/js@9.39.1",
+      "type": "library",
+      "version": "9.39.1"
+    },
+    {
       "bom-ref": "urn:uuid:ba11b8d7c7b7a28b38a8f2f21a9990dc",
       "name": "@geoman-io/leaflet-geoman-free",
       "properties": [
@@ -52,6 +65,19 @@
       "purl": "pkg:npm/@react-leaflet/core@3.0.0",
       "type": "library",
       "version": "3.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:d712f46ac218b8614c77e1424626db61",
+      "name": "@tailwindcss/postcss",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@tailwindcss/postcss@4.3.3",
+      "type": "library",
+      "version": "4.3.3"
     },
     {
       "bom-ref": "urn:uuid:24a40e7a665ae77246e3edf486e56536",
@@ -314,7 +340,7 @@
       "version": "10.4.19"
     },
     {
-      "bom-ref": "urn:uuid:039c1b8193500e3e95eaa0e90f5a5a4d",
+      "bom-ref": "urn:uuid:0f30bceefacc1cb9f7dd2c925c3abb50",
       "name": "axios",
       "properties": [
         {
@@ -322,9 +348,9 @@
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/axios@1.18.0",
+      "purl": "pkg:npm/axios@1.20.0",
       "type": "library",
-      "version": "1.18.0"
+      "version": "1.20.0"
     },
     {
       "bom-ref": "urn:uuid:50bd0ed4e295af23e53a3cf166643edc",
@@ -338,6 +364,32 @@
       "purl": "pkg:npm/cmdk@1.1.1",
       "type": "library",
       "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:557353a75ea4d6b28fbc8c9f92a18264",
+      "name": "eslint",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/eslint@9.39.1",
+      "type": "library",
+      "version": "9.39.1"
+    },
+    {
+      "bom-ref": "urn:uuid:6d0f53392a17148aa1a1cc8f718fc45e",
+      "name": "eslint-plugin-react-hooks",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/eslint-plugin-react-hooks@7.0.0",
+      "type": "library",
+      "version": "7.0.0"
     },
     {
       "bom-ref": "urn:uuid:b84d7e1150e235ee2415140d4883f5c1",
@@ -405,7 +457,7 @@
       "version": "0.400.0"
     },
     {
-      "bom-ref": "urn:uuid:f0335bcbb70ffd0fcdf79583ea061da8",
+      "bom-ref": "urn:uuid:460fe073b3394607c105ae7586e90fc6",
       "name": "maplibre-gl",
       "properties": [
         {
@@ -413,9 +465,9 @@
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/maplibre-gl@5.24.0",
+      "purl": "pkg:npm/maplibre-gl@6.11.2",
       "type": "library",
-      "version": "5.24.0"
+      "version": "6.11.2"
     },
     {
       "bom-ref": "urn:uuid:2cb17afbaebc48cf19e247a3986c82d9",
@@ -535,7 +587,7 @@
       "version": "6.2.0"
     },
     {
-      "bom-ref": "urn:uuid:102d1c17c647e8f9795554d8f7dfa07e",
+      "bom-ref": "urn:uuid:db4be8d76c04d9512a5a2d1598bb114e",
       "name": "tailwindcss",
       "properties": [
         {
@@ -543,9 +595,9 @@
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/tailwindcss@3.4.3",
+      "purl": "pkg:npm/tailwindcss@4.3.3",
       "type": "library",
-      "version": "3.4.3"
+      "version": "4.3.3"
     },
     {
       "bom-ref": "urn:uuid:eee41e0f9ca70143767e8a6b4f4f3979",
@@ -587,6 +639,19 @@
       "version": "5.4.5"
     },
     {
+      "bom-ref": "urn:uuid:339108909bf2956b58b21be025da602b",
+      "name": "typescript-eslint",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/typescript-eslint@8.46.0",
+      "type": "library",
+      "version": "8.46.0"
+    },
+    {
       "bom-ref": "urn:uuid:4607b3de152ae67b08bb9ea52d14604e",
       "name": "vite",
       "properties": [
@@ -600,7 +665,7 @@
       "version": "8.0.16"
     },
     {
-      "bom-ref": "urn:uuid:602553c34b424a22968d9b27b97f0025",
+      "bom-ref": "urn:uuid:227520c8af697ce4d4fa7878e7f93f25",
       "name": "vitest",
       "properties": [
         {
@@ -608,9 +673,9 @@
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/vitest@4.1.9",
+      "purl": "pkg:npm/vitest@5.0.2",
       "type": "library",
-      "version": "4.1.9"
+      "version": "5.0.2"
     },
     {
       "bom-ref": "urn:uuid:b7808827cbd779d6bed26d77395db77c",
@@ -626,17 +691,73 @@
       "version": "5.0.0"
     },
     {
-      "bom-ref": "urn:uuid:7272696b21f2f31c523e4bc626ca7502",
+      "bom-ref": "urn:uuid:94a9741c4f9b6e3c389953848ec463b8",
+      "name": "affine",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/affine@3.0.1",
+      "type": "library",
+      "version": "3.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:fb8ca5451c88ebc2ed035039044e850d",
       "name": "aiogram",
       "properties": [
         {
           "name": "sahool:source-manifest",
           "value": "bots/telegram/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
-      "purl": "pkg:pypi/aiogram@3.28.2",
+      "purl": "pkg:pypi/aiogram@3.31.0",
       "type": "library",
-      "version": "3.28.2"
+      "version": "3.31.0"
+    },
+    {
+      "bom-ref": "urn:uuid:18ef35a04cd991de5c8098cdefc1f2a2",
+      "name": "annotated-doc",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/annotated-doc@0.0.5",
+      "type": "library",
+      "version": "0.0.5"
+    },
+    {
+      "bom-ref": "urn:uuid:595ace0351558f9e4ed2429b73236556",
+      "name": "annotated-types",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/annotated-types@0.8.0",
+      "type": "library",
+      "version": "0.8.0"
+    },
+    {
+      "bom-ref": "urn:uuid:97707a85f898ecb683cc1652e0783874",
+      "name": "anyio",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/anyio@4.15.1",
+      "type": "library",
+      "version": "4.15.1"
     },
     {
       "bom-ref": "urn:uuid:2d4c15791e423f866c4a71811ee67c3e",
@@ -660,30 +781,193 @@
       "version": "0.30.0"
     },
     {
+      "bom-ref": "urn:uuid:2c6a2c571768674b63a48375a926a6cd",
+      "name": "attrs",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-gate.txt"
+        }
+      ],
+      "purl": "pkg:pypi/attrs@26.1.0",
+      "type": "library",
+      "version": "26.1.0"
+    },
+    {
+      "bom-ref": "urn:uuid:44dcdcd07ce45e64679f3350c4db3319",
+      "name": "cachetools",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cachetools@7.1.8",
+      "type": "library",
+      "version": "7.1.8"
+    },
+    {
+      "bom-ref": "urn:uuid:86572475b684eabe3c3a12ece05547aa",
+      "name": "certifi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/certifi@2026.10.19",
+      "type": "library",
+      "version": "2026.10.19"
+    },
+    {
+      "bom-ref": "urn:uuid:e1fd533c518c0f187d82d94388b48e33",
+      "name": "cffi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-asr-pocketsphinx.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cffi@2.1.1",
+      "type": "library",
+      "version": "2.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f5220f6d3fcaf10e1c8fcc00566789f6",
+      "name": "click",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/click@8.5.0",
+      "type": "library",
+      "version": "8.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:f6f7fc06c30d7c6ac0ad80b4ac6e84a5",
+      "name": "click-plugins",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/click-plugins@1.1.1.2",
+      "type": "library",
+      "version": "1.1.1.2"
+    },
+    {
+      "bom-ref": "urn:uuid:10c9c7b2296a70f64d7455d0962c5040",
+      "name": "cligj",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cligj@0.7.2",
+      "type": "library",
+      "version": "0.7.2"
+    },
+    {
+      "bom-ref": "urn:uuid:f4707103e14f92b791fb49cd1e720f2f",
+      "name": "cogeo-mosaic",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cogeo-mosaic@8.2.0",
+      "type": "library",
+      "version": "8.2.0"
+    },
+    {
+      "bom-ref": "urn:uuid:bfd12f6cf52ff1af1bb7ed2f59ce28f2",
+      "name": "color-operations",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/color-operations@0.4.0",
+      "type": "library",
+      "version": "0.4.0"
+    },
+    {
+      "bom-ref": "urn:uuid:071e82e15e65968ac70150ee024a937a",
+      "name": "cramjam",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cramjam@2.9.1",
+      "type": "library",
+      "version": "2.9.1"
+    },
+    {
+      "bom-ref": "urn:uuid:dfd288170b3710b78576c59a37673117",
+      "name": "crossplane",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
+        }
+      ],
+      "purl": "pkg:pypi/crossplane@0.5.8",
+      "type": "library",
+      "version": "0.5.8"
+    },
+    {
+      "bom-ref": "urn:uuid:32f27a32905234333a9fada0d60d8aa3",
+      "name": "cryptography",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/actuator-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/guardrails-engine/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/vegetation-analysis-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cryptography@50.0.1",
+      "type": "library",
+      "version": "50.0.1"
+    },
+    {
       "bom-ref": "urn:uuid:c8feca19ac4b28af207f45ca6a8c2573",
       "name": "defusedxml",
       "properties": [
         {
           "name": "sahool:source-manifest",
           "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
       "purl": "pkg:pypi/defusedxml@0.7.1",
       "type": "library",
       "version": "0.7.1"
-    },
-    {
-      "bom-ref": "urn:uuid:b527541ec73169ae5dcb7838c8b8e612",
-      "name": "fastapi",
-      "properties": [
-        {
-          "name": "sahool:source-manifest",
-          "value": "services/decision-service/requirements.txt"
-        }
-      ],
-      "purl": "pkg:pypi/fastapi@0.115.6",
-      "type": "library",
-      "version": "0.115.6"
     },
     {
       "bom-ref": "urn:uuid:55b62796adf8b6c259cee82bb079a9ad",
@@ -716,6 +1000,10 @@
         {
           "name": "sahool:source-manifest",
           "value": "services/auth/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
         },
         {
           "name": "sahool:source-manifest",
@@ -796,11 +1084,80 @@
         {
           "name": "sahool:source-manifest",
           "value": "services/weather-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
       "purl": "pkg:pypi/fastapi@0.136.3",
       "type": "library",
       "version": "0.136.3"
+    },
+    {
+      "bom-ref": "urn:uuid:852a08dcdfbbd541c90404ee3585b950",
+      "name": "fastapi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/fastapi@0.141.1",
+      "type": "library",
+      "version": "0.141.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f59613a1d91b65521623bc7546b0cb8c",
+      "name": "geojson-pydantic",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/geojson-pydantic@2.1.2",
+      "type": "library",
+      "version": "2.1.2"
+    },
+    {
+      "bom-ref": "urn:uuid:4889595af7c9e59d575d190327b5e697",
+      "name": "h11",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/h11@0.16.0",
+      "type": "library",
+      "version": "0.16.0"
+    },
+    {
+      "bom-ref": "urn:uuid:f50fe390e43cd7d97449c5aab6fd6b4e",
+      "name": "httpcore",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httpcore@1.0.9",
+      "type": "library",
+      "version": "1.0.9"
+    },
+    {
+      "bom-ref": "urn:uuid:bfd5a1735a40a2eccf889a21ef5faaef",
+      "name": "httptools",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httptools@0.8.0",
+      "type": "library",
+      "version": "0.8.0"
     },
     {
       "bom-ref": "urn:uuid:b2a00f6e0afd968ae087319fcbc546dc",
@@ -837,12 +1194,68 @@
         },
         {
           "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
           "value": "services/weather-service/requirements.txt"
         }
       ],
       "purl": "pkg:pypi/httpx@0.28.1",
       "type": "library",
       "version": "0.28.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f038b66aac9853915215b051e13282e1",
+      "name": "idna",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/idna@3.19",
+      "type": "library",
+      "version": "3.19"
+    },
+    {
+      "bom-ref": "urn:uuid:18118c75870809aad3afef6a7e6b2d08",
+      "name": "jinja2",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/jinja2@3.1.6",
+      "type": "library",
+      "version": "3.1.6"
+    },
+    {
+      "bom-ref": "urn:uuid:7372e62ed389436a2270840d77bd4328",
+      "name": "jsonschema",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-gate.txt"
+        }
+      ],
+      "purl": "pkg:pypi/jsonschema@4.26.0",
+      "type": "library",
+      "version": "4.26.0"
+    },
+    {
+      "bom-ref": "urn:uuid:05f6d555ebc05cd5c7dedd61a9f11c05",
+      "name": "jsonschema-specifications",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-gate.txt"
+        }
+      ],
+      "purl": "pkg:pypi/jsonschema-specifications@2025.9.1",
+      "type": "library",
+      "version": "2025.9.1"
     },
     {
       "bom-ref": "urn:uuid:2b3f6fefae6576f6a17a9f8ae2d65cc3",
@@ -897,6 +1310,32 @@
       "version": "1.1.2"
     },
     {
+      "bom-ref": "urn:uuid:1437454b377f67fd3401dc578ac7eaf1",
+      "name": "markupsafe",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/markupsafe@3.0.3",
+      "type": "library",
+      "version": "3.0.3"
+    },
+    {
+      "bom-ref": "urn:uuid:8b6dc65d1248071d6ce7f986761b124c",
+      "name": "morecantile",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/morecantile@6.2.0",
+      "type": "library",
+      "version": "6.2.0"
+    },
+    {
       "bom-ref": "urn:uuid:3d64902801d78209d1f19711678f4cb7",
       "name": "nats-py",
       "properties": [
@@ -908,6 +1347,32 @@
       "purl": "pkg:pypi/nats-py@2.10.0",
       "type": "library",
       "version": "2.10.0"
+    },
+    {
+      "bom-ref": "urn:uuid:34a3645718e6b9507f1a0293b23f2c9e",
+      "name": "nats-py",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "agents/notification/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/nats-py@2.16.0",
+      "type": "library",
+      "version": "2.16.0"
+    },
+    {
+      "bom-ref": "urn:uuid:82fc9d01e21d588f7bed670eadca8d71",
+      "name": "numexpr",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/numexpr@2.14.2",
+      "type": "library",
+      "version": "2.14.2"
     },
     {
       "bom-ref": "urn:uuid:4a33a10e59a6d37c6ea1f42ed0996199",
@@ -927,12 +1392,155 @@
       "version": "1.26.4"
     },
     {
+      "bom-ref": "urn:uuid:df9b84e9bc8de1114a165f333d6396a4",
+      "name": "numpy",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/eo_acceptance/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/sahool_qa/requirements-test.txt"
+        }
+      ],
+      "purl": "pkg:pypi/numpy@2.3.5",
+      "type": "library",
+      "version": "2.3.5"
+    },
+    {
+      "bom-ref": "urn:uuid:35fc271f194924cd45153b75e297a380",
+      "name": "numpy",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/numpy@2.5.3",
+      "type": "library",
+      "version": "2.5.3"
+    },
+    {
+      "bom-ref": "urn:uuid:00f04552e5c0485d79599fd47413d0bc",
+      "name": "opentelemetry-exporter-otlp-proto-http",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "agents/notification/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/auth/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
+        }
+      ],
+      "purl": "pkg:pypi/opentelemetry-exporter-otlp-proto-http@1.45.1",
+      "type": "library",
+      "version": "1.45.1"
+    },
+    {
+      "bom-ref": "urn:uuid:afb0801de3ed6c33c7d6a83f310ce33a",
+      "name": "opentelemetry-instrumentation-fastapi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "agents/notification/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/auth/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
+        }
+      ],
+      "purl": "pkg:pypi/opentelemetry-instrumentation-fastapi@0.66b1",
+      "type": "library",
+      "version": "0.66b1"
+    },
+    {
+      "bom-ref": "urn:uuid:789f85209bb587dd7e3372b9df5df616",
+      "name": "opentelemetry-sdk",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "agents/notification/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/auth/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
+        }
+      ],
+      "purl": "pkg:pypi/opentelemetry-sdk@1.45.1",
+      "type": "library",
+      "version": "1.45.1"
+    },
+    {
+      "bom-ref": "urn:uuid:afe1b7da82665a86281604bac4f3a897",
+      "name": "pcse",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/agriai-engine/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pcse@6.0.13",
+      "type": "library",
+      "version": "6.0.13"
+    },
+    {
+      "bom-ref": "urn:uuid:c0e9bfaa8c36079d8a5e21279cd2d023",
+      "name": "pocketsphinx",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-asr-pocketsphinx.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pocketsphinx@5.1.1",
+      "type": "library",
+      "version": "5.1.1"
+    },
+    {
       "bom-ref": "urn:uuid:7c783f2c720336ecebab80693c4f983c",
       "name": "prometheus-client",
       "properties": [
         {
           "name": "sahool:source-manifest",
+          "value": "services/indicators-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
           "value": "services/soil-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/weather-service/requirements.txt"
         }
       ],
       "purl": "pkg:pypi/prometheus-client@0.20.0",
@@ -940,17 +1548,17 @@
       "version": "0.20.0"
     },
     {
-      "bom-ref": "urn:uuid:ae676b52337df8c5d440d548f93739cc",
-      "name": "pydantic",
+      "bom-ref": "urn:uuid:457adf3caa7f7fea95e00c526bd26fba",
+      "name": "pycparser",
       "properties": [
         {
           "name": "sahool:source-manifest",
-          "value": "services/decision-service/requirements.txt"
+          "value": "tools/tts_bakeoff/requirements-asr-pocketsphinx.txt"
         }
       ],
-      "purl": "pkg:pypi/pydantic@2.10.4",
+      "purl": "pkg:pypi/pycparser@3.0",
       "type": "library",
-      "version": "2.10.4"
+      "version": "3.0"
     },
     {
       "bom-ref": "urn:uuid:ac8bc4e7a1fbf2fb1f292951cc797ac6",
@@ -979,6 +1587,10 @@
         {
           "name": "sahool:source-manifest",
           "value": "services/ai_agronomist/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
         },
         {
           "name": "sahool:source-manifest",
@@ -1058,17 +1670,43 @@
       "version": "2.13.4"
     },
     {
-      "bom-ref": "urn:uuid:a906c10b633c365faefb8306b67e929d",
-      "name": "pyjwt",
+      "bom-ref": "urn:uuid:c25b2bc5f8dbc3c673d370411d4fabcc",
+      "name": "pydantic",
       "properties": [
         {
           "name": "sahool:source-manifest",
-          "value": "services/sahool-platform/api/requirements.txt"
+          "value": "services/raster-tiler-service/requirements.txt"
         }
       ],
-      "purl": "pkg:pypi/pyjwt@2.13.0",
+      "purl": "pkg:pypi/pydantic@2.13.5",
       "type": "library",
-      "version": "2.13.0"
+      "version": "2.13.5"
+    },
+    {
+      "bom-ref": "urn:uuid:f07395ce36f9ad10e8dce4ba59ac11c8",
+      "name": "pydantic-core",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic-core@2.46.5",
+      "type": "library",
+      "version": "2.46.5"
+    },
+    {
+      "bom-ref": "urn:uuid:d85df5753664d41636057e66dfd0b57e",
+      "name": "pydantic-settings",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic-settings@2.15.0",
+      "type": "library",
+      "version": "2.15.0"
     },
     {
       "bom-ref": "urn:uuid:68595d37b60b42e622ef9a0a0b33faf8",
@@ -1084,17 +1722,411 @@
       "version": "2.9.0"
     },
     {
+      "bom-ref": "urn:uuid:c0155acde6dd1592328f084ad317d678",
+      "name": "pyparsing",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyparsing@3.3.2",
+      "type": "library",
+      "version": "3.3.2"
+    },
+    {
+      "bom-ref": "urn:uuid:a0946eaf4804653133956f4767d9e86a",
+      "name": "pyproj",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyproj@3.8.0",
+      "type": "library",
+      "version": "3.8.0"
+    },
+    {
       "bom-ref": "urn:uuid:313436370543ccade86392b2cb07fa80",
       "name": "pyshp",
       "properties": [
         {
           "name": "sahool:source-manifest",
           "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
       "purl": "pkg:pypi/pyshp@2.3.1",
       "type": "library",
       "version": "2.3.1"
+    },
+    {
+      "bom-ref": "urn:uuid:91182517330f9717fed7019cd037af4e",
+      "name": "pystac",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac@1.15.2",
+      "type": "library",
+      "version": "1.15.2"
+    },
+    {
+      "bom-ref": "urn:uuid:35a8bb12c0b475f5a8b81b7e278c4757",
+      "name": "pystac-core",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-core@1.15.2",
+      "type": "library",
+      "version": "1.15.2"
+    },
+    {
+      "bom-ref": "urn:uuid:d3f90aa7cdb2cc25ea4359808cfbd089",
+      "name": "pystac-ext-classification",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-classification@2.0.1",
+      "type": "library",
+      "version": "2.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:36321bc6dd11f3d9f7994b7970dec15a",
+      "name": "pystac-ext-datacube",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-datacube@2.2.1",
+      "type": "library",
+      "version": "2.2.1"
+    },
+    {
+      "bom-ref": "urn:uuid:4277c77fb1b5e2f74d6ba2491916eadc",
+      "name": "pystac-ext-eo",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-eo@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:c9a3b70a43df40396c18f85b5e2da176",
+      "name": "pystac-ext-file",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-file@2.1.1",
+      "type": "library",
+      "version": "2.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:560b53b37766cb70fe8bbf5e5db57fdb",
+      "name": "pystac-ext-grid",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-grid@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f4ccab7edd46505d8312cc45fefa3a0f",
+      "name": "pystac-ext-item-assets",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-item-assets@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:53c846ae7799bee663fab1d3db8c6f93",
+      "name": "pystac-ext-label",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-label@1.0.2",
+      "type": "library",
+      "version": "1.0.2"
+    },
+    {
+      "bom-ref": "urn:uuid:777d0537fd0c643d054a047509c1b4ae",
+      "name": "pystac-ext-mgrs",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-mgrs@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:e2aed5d896b196181fc9a04f0a602fbe",
+      "name": "pystac-ext-mlm",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-mlm@1.4.1",
+      "type": "library",
+      "version": "1.4.1"
+    },
+    {
+      "bom-ref": "urn:uuid:84a84a81261a4dff5f4d4deeb11658ae",
+      "name": "pystac-ext-pointcloud",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-pointcloud@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:94c6dd4a9671033403efb4eb20e56fac",
+      "name": "pystac-ext-projection",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-projection@2.0.1",
+      "type": "library",
+      "version": "2.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f7344747d476be53a2c0c9f383e7bc77",
+      "name": "pystac-ext-raster",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-raster@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:4f9286c588f5e23b088296787aedd517",
+      "name": "pystac-ext-render",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-render@2.0.0",
+      "type": "library",
+      "version": "2.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:3703faca55d058b49457fb4b07d5fc74",
+      "name": "pystac-ext-sar",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-sar@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:72ab79228a384bb513058d9f33cf3822",
+      "name": "pystac-ext-sat",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-sat@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:78a2943f17256b720c4aea289dd93393",
+      "name": "pystac-ext-scientific",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-scientific@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:66c0451f819fc2027eb5577ffcf46f43",
+      "name": "pystac-ext-storage",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-storage@2.0.1",
+      "type": "library",
+      "version": "2.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:86d9c39063c1448d68db8e0fecd38628",
+      "name": "pystac-ext-table",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-table@1.2.1",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "urn:uuid:3aba78d76f573c03c6369b2638d4514e",
+      "name": "pystac-ext-timestamps",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-timestamps@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:8f5d8d62066985bbcad64ad4fc721326",
+      "name": "pystac-ext-version",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-version@1.2.1",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "urn:uuid:563d17111eaf306fb1d580e351ff97c4",
+      "name": "pystac-ext-view",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-view@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:e3ef88211c99218cf4223d57d48cea1c",
+      "name": "pystac-ext-xarray-assets",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pystac-ext-xarray-assets@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:8b5f06555a58a69f2fb902cc1811ee0a",
+      "name": "pytest",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/eo_acceptance/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pytest@9.1.1",
+      "type": "library",
+      "version": "9.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:7bc6afbc47dbab14f1a8264f80d8678e",
+      "name": "pytest-asyncio",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/eo_acceptance/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pytest-asyncio@1.4.0",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "bom-ref": "urn:uuid:375aaea016baedad0b546ce1e96817bc",
+      "name": "python-dateutil",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-dateutil@2.9.0.post0",
+      "type": "library",
+      "version": "2.9.0.post0"
+    },
+    {
+      "bom-ref": "urn:uuid:427e21a01687248e3d53cb94fff5b58f",
+      "name": "python-dotenv",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-dotenv@1.2.3",
+      "type": "library",
+      "version": "1.2.3"
     },
     {
       "bom-ref": "urn:uuid:f5b3b4f7cc9418b1803a1d458301b5b3",
@@ -1115,12 +2147,29 @@
       "properties": [
         {
           "name": "sahool:source-manifest",
+          "value": "services/raster-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
           "value": "services/sahool-platform/api/requirements.txt"
         }
       ],
       "purl": "pkg:pypi/pyyaml@6.0.2",
       "type": "library",
       "version": "6.0.2"
+    },
+    {
+      "bom-ref": "urn:uuid:bbd2fd72b40dc96075f5b7126fa2b28a",
+      "name": "pyyaml",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyyaml@6.0.3",
+      "type": "library",
+      "version": "6.0.3"
     },
     {
       "bom-ref": "urn:uuid:dcd3629e9eced3d91ea443b0f272ecb3",
@@ -1134,6 +2183,32 @@
       "purl": "pkg:pypi/rasterio@1.3.10",
       "type": "library",
       "version": "1.3.10"
+    },
+    {
+      "bom-ref": "urn:uuid:800ec9cf29af9310220ca592594d4211",
+      "name": "rasterio",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rasterio@1.5.1",
+      "type": "library",
+      "version": "1.5.1"
+    },
+    {
+      "bom-ref": "urn:uuid:b57edc5ed2d0a82ea95e0090df2318d4",
+      "name": "rasterio",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/eo_acceptance/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rasterio@1.5.2",
+      "type": "library",
+      "version": "1.5.2"
     },
     {
       "bom-ref": "urn:uuid:6c3d0836a01900653ef60f811832b0fb",
@@ -1154,6 +2229,14 @@
       "properties": [
         {
           "name": "sahool:source-manifest",
+          "value": "services/ai_agronomist/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
           "value": "services/sahool-platform/api/requirements.txt"
         },
         {
@@ -1166,12 +2249,94 @@
       "version": "5.3.1"
     },
     {
+      "bom-ref": "urn:uuid:6941d6dc95c8096aba717d0e14260536",
+      "name": "referencing",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-gate.txt"
+        }
+      ],
+      "purl": "pkg:pypi/referencing@0.37.0",
+      "type": "library",
+      "version": "0.37.0"
+    },
+    {
+      "bom-ref": "urn:uuid:ab4592a5780dd4ba75157934fa4d60b2",
+      "name": "rio-cogeo",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rio-cogeo@5.4.2",
+      "type": "library",
+      "version": "5.4.2"
+    },
+    {
+      "bom-ref": "urn:uuid:aca0bc57888d9f1dbadb8a6a8f553173",
+      "name": "rio-stac",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rio-stac@0.8.1",
+      "type": "library",
+      "version": "0.8.1"
+    },
+    {
+      "bom-ref": "urn:uuid:0451ebcee5b5d446e4e99261601d8e7d",
+      "name": "rio-tiler",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rio-tiler@7.9.6",
+      "type": "library",
+      "version": "7.9.6"
+    },
+    {
+      "bom-ref": "urn:uuid:5b8f6b80ddaac8f3fa61117e5317f94b",
+      "name": "rpds-py",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-gate.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rpds-py@2026.9.1",
+      "type": "library",
+      "version": "2026.9.1"
+    },
+    {
+      "bom-ref": "urn:uuid:160e03dbedab61d2a64e70f30ed04917",
+      "name": "scikit-learn",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/scikit-learn@1.5.2",
+      "type": "library",
+      "version": "1.5.2"
+    },
+    {
       "bom-ref": "urn:uuid:9d5dde75b66fda8044bbda6d18652a52",
       "name": "scipy",
       "properties": [
         {
           "name": "sahool:source-manifest",
           "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
       "purl": "pkg:pypi/scipy@1.13.1",
@@ -1184,12 +2349,189 @@
       "properties": [
         {
           "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
           "value": "services/sam2-inference/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "tests_v9/requirements-test.txt"
         }
       ],
       "purl": "pkg:pypi/shapely@2.0.6",
       "type": "library",
       "version": "2.0.6"
+    },
+    {
+      "bom-ref": "urn:uuid:95b503f0d7720fb380704c85dec26c34",
+      "name": "shapely",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/shapely@2.1.2",
+      "type": "library",
+      "version": "2.1.2"
+    },
+    {
+      "bom-ref": "urn:uuid:142a65dda4f425bef163fe1addd58c40",
+      "name": "simplejson",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/simplejson@4.1.2",
+      "type": "library",
+      "version": "4.1.2"
+    },
+    {
+      "bom-ref": "urn:uuid:580731feeca8ac83dbb459381e142e9f",
+      "name": "six",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/six@1.17.0",
+      "type": "library",
+      "version": "1.17.0"
+    },
+    {
+      "bom-ref": "urn:uuid:0c52eb205ebc041f9190605224be8c8a",
+      "name": "sounddevice",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "tools/tts_bakeoff/requirements-asr-pocketsphinx.txt"
+        }
+      ],
+      "purl": "pkg:pypi/sounddevice@0.5.6",
+      "type": "library",
+      "version": "0.5.6"
+    },
+    {
+      "bom-ref": "urn:uuid:5b039457e84ab30ad355e9355323646c",
+      "name": "starlette",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/starlette@1.6.0",
+      "type": "library",
+      "version": "1.6.0"
+    },
+    {
+      "bom-ref": "urn:uuid:ccaee51dc6318b855e10417cdb7d0956",
+      "name": "starlette-cramjam",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/starlette-cramjam@0.4.0",
+      "type": "library",
+      "version": "0.4.0"
+    },
+    {
+      "bom-ref": "urn:uuid:a4a3109509c70b685dcef3617396831d",
+      "name": "supermorecado",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/supermorecado@0.2.0",
+      "type": "library",
+      "version": "0.2.0"
+    },
+    {
+      "bom-ref": "urn:uuid:582a010b6a4f57a6ef5cbe972f8f2976",
+      "name": "titiler-application",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/titiler-application@0.22.4",
+      "type": "library",
+      "version": "0.22.4"
+    },
+    {
+      "bom-ref": "urn:uuid:0c8bb1253571164740df7124f48fa28e",
+      "name": "titiler-core",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/titiler-core@0.22.4",
+      "type": "library",
+      "version": "0.22.4"
+    },
+    {
+      "bom-ref": "urn:uuid:ad12a65e0c85ce1b7f0fe7ce3404593e",
+      "name": "titiler-extensions",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/titiler-extensions@0.22.4",
+      "type": "library",
+      "version": "0.22.4"
+    },
+    {
+      "bom-ref": "urn:uuid:129d640576dc581df5a93192f1781e8a",
+      "name": "titiler-mosaic",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/titiler-mosaic@0.22.4",
+      "type": "library",
+      "version": "0.22.4"
+    },
+    {
+      "bom-ref": "urn:uuid:634ba5c2834b6149339c171aaca4e527",
+      "name": "typing-extensions",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/typing-extensions@4.16.0",
+      "type": "library",
+      "version": "4.16.0"
+    },
+    {
+      "bom-ref": "urn:uuid:f32d246dc3d9d1c6c217f019b4959cc2",
+      "name": "typing-inspection",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/typing-inspection@0.4.4",
+      "type": "library",
+      "version": "0.4.4"
     },
     {
       "bom-ref": "urn:uuid:98119c57c133d4a595662065f1b249e7",
@@ -1203,6 +2545,58 @@
       "purl": "pkg:pypi/uvicorn@0.34.0",
       "type": "library",
       "version": "0.34.0"
+    },
+    {
+      "bom-ref": "urn:uuid:1f9f6ecfe9493bb6722f4b6e78bd0e03",
+      "name": "uvicorn",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/uvicorn@0.52.4",
+      "type": "library",
+      "version": "0.52.4"
+    },
+    {
+      "bom-ref": "urn:uuid:4129208c34d58538899310724e85881d",
+      "name": "uvloop",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/uvloop@0.22.1",
+      "type": "library",
+      "version": "0.22.1"
+    },
+    {
+      "bom-ref": "urn:uuid:dd74d9fb48891664820f92fdf57d59c8",
+      "name": "watchfiles",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/watchfiles@1.2.0",
+      "type": "library",
+      "version": "1.2.0"
+    },
+    {
+      "bom-ref": "urn:uuid:b9fd09f22cdeb23aed76bcf2445613d8",
+      "name": "websockets",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-tiler-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/websockets@17.1",
+      "type": "library",
+      "version": "17.1"
     }
   ],
   "metadata": {

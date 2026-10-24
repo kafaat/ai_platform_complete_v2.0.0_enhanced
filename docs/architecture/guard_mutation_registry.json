@@ -2,6 +2,18 @@
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
   "adjudicated_on": "2026-08-02",
   "behavioural": {
+    "scripts/ci/railway_staging_connection_preflight.py": {
+      "$policy": "Stage-1 source verifier: staging identity must reject a production environment before issuing a receipt.",
+      "test": "tests_v9/test_railway_staging_connection_preflight.py",
+      "mutations": [
+        {
+          "expect": "test_rejects_production_environment",
+          "find": "    if environment.get(\"id\") != STAGING_ID:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
+          "replace": "    if False:\n        raise PreflightError(\"ENVIRONMENT_ID_MISMATCH\")",
+          "why": "Removing the production-environment rejection must make the named negative test fail, without producing a staging verification receipt."
+        }
+      ]
+    },
     "$scope_ar": "المساران هنا هما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001` — يقيس التفويضُ ما مُنِح لأجله لا أكثر.",
     "$what_was_missing_ar": "أجنحةُ السلوك كانت **قائمةً** للتعويض وللمُصرِّح منذ إغلاق الدَّينين، والناقص أنّها لم تكن مُثبَتةً بالتكذيب: لا أحد زرع العطل وأثبت أنّها تحمرّ. فالجديد هنا تسجيلٌ وزرعٌ لا كتابةُ اختبارات من جديد — عدا الراوتر نفسه، فكان مقيساً بفحصٍ نصّيّ وحده (بإقرار وثيقته)، فأُضيف له جناحٌ سلوكيّ.",
     "$why_ar": "الحرّاس الساكنة تقيس **وقوع** استشارة مفتاح الطوارئ لا **أثرها**. وحدُّ ذلك مكتوبٌ حرفيّاً في `actuation_killswitch_coverage_guard.py` وفي `GATE01-ADJ-2026-08-13-001`: «يقيس وقوع الاستشارة لا أنّ نتيجتها تمنع الإرسال». وبينهما ثلاثة أعطال يمرّ عليها الحارس أخضر — تجاهلُ النتيجة، وضيقُ النطاق، والاستشارةُ بعد النشر. فهذا القسم يزرعها في منطق الإنتاج نفسه ويُلزِم اختبارَ سلوكٍ مُسمّى بالاحمرار. ومفاتيحه **مسارات مصادر** لا أسماء حرّاس.",
@@ -1293,6 +1305,27 @@
           "replace": "",
           "test": "tests_v9/test_local_preflight_contract.py",
           "why": "بوّابةٌ تسقط ولا يُسجَّل اسمُها ⇒ الذيلُ يعود عدداً بلا أسماء، فقارئُ الذيل يرى «إخفاقٌ واحد» والخلاصةُ تقول اثنين (LESSON-READ-SUMMARY-NOT-TAIL-01)"
+        },
+        {
+          "expect": "test_concurrent_runs_each_print_only_their_own_step_log",
+          "find": "  STEP_LOG=\"$(mktemp \"${TMPDIR:-/tmp}/preflight_step.XXXXXX\")\" || {\n",
+          "replace": "  STEP_LOG=/tmp/preflight_step.log; : > \"$STEP_LOG\" || {\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "عودةُ سجلّ الخطوة إلى مسارٍ ثابتٍ مشترك (`/tmp/preflight_step.log`) ⇒ تشغيلاتٌ متزامنة تكتب الملفَّ نفسه، فتطبع تشغيلةٌ ذيلَ غيرها ويُشخَّص إخفاقُها بسجلٍّ ليس لها. الاختبارُ يُشغّل عشرين تشغيلةً بحاجزٍ تكتب كلٌّ علامتَها قبل أن تسقط كلُّها، ثمّ يقارن ذيلَ كلٍّ بعلامتها."
+        },
+        {
+          "expect": "test_a_killed_run_removes_its_step_log_and_still_dies_by_the_signal",
+          "find": "  trap 'rm -f -- \"$STEP_LOG\"' EXIT\n",
+          "replace": "",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "حذفُ فخّ EXIT ⇒ تشغيلةٌ تُقتَل بـSIGINT أو SIGTERM وسط خطوةٍ تترك سجلَّ خطوتها في `$TMPDIR`، وتتراكم الملفّاتُ مع كلّ مقاطعة. الاختبارُ يقتل التشغيلةَ وسط خطوةٍ نائمة ويعدّ ملفّات `preflight_step` بعدها."
+        },
+        {
+          "expect": "test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log",
+          "find": "  trap 'rm -f -- \"$STEP_LOG\"' EXIT\n",
+          "replace": "  trap 'rm -f -- \"$STEP_LOG\"; exit 0' EXIT\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "فخُّ EXIT ينتهي بـ`exit 0` ⇒ يبتلع رمزَ الخروج، فتخرج تشغيلةٌ ساقطة بصفر ويُقرأ إخفاقُها نجاحاً في كلّ مستدعٍ يقرأ الرمز. الاختبارُ يُشغّل السكربتَ الحقيقيّ كاملاً في شجرةٍ فارغة ويتوقّع رمزَ الخروج 1."
         }
       ]
     },
@@ -3230,6 +3263,48 @@
         }
       ],
       "test": "tests_v9/test_vegetation_smoke_contract.py"
+    },
+    "scripts/ci/run_nats_compose_acceptance.py": {
+      "$policy": "NATS Compose acceptance must reject restarts, unhealthy state, wrong source identity, and acceptance of a wrong client password before publishing a scoped PASS receipt. Tests replace Docker transport, not the acceptance policy; the actual Compose job supplies live proof.",
+      "test": "tests_v9/test_nats_compose_policy.py",
+      "mutations": [
+        {
+          "expect": "test_restarted_broker_cannot_publish_pass",
+          "find": "        assert restarts == 0, \"Broker restarted\"",
+          "replace": "        assert True, \"Broker restarted\"",
+          "why": "A broker restart must never be converted into a successful Compose acceptance receipt."
+        },
+        {
+          "expect": "test_wrong_source_sha_cannot_publish_pass",
+          "find": "        assert actual == args.expected_sha, \"Source HEAD differs from requested SHA\"",
+          "replace": "        assert True, \"Source HEAD differs from requested SHA\"",
+          "why": "A test of a different source SHA cannot certify the requested commit."
+        },
+        {
+          "expect": "test_unhealthy_broker_cannot_publish_pass",
+          "find": "        assert state[\"Status\"] == \"running\" and state[\"Health\"][\"Status\"] == \"healthy\"",
+          "replace": "        assert True",
+          "why": "An unhealthy running broker must fail, not publish a fabricated healthy receipt."
+        },
+        {
+          "expect": "test_wrong_password_acceptance_cannot_publish_pass",
+          "find": "        assert not authenticate(port, ca, \"knownWrongDisposableCredential\")",
+          "replace": "        assert True",
+          "why": "If the broker accepts a wrong password, the negative authentication probe must stop acceptance."
+        }
+      ]
+    },
+    "scripts/ci/run_livekit_acceptance.py": {
+      "$policy": "Real-SFU admission receipts must not substitute the initial JWT for the actual server-refreshed bearer.",
+      "test": "tests/architecture/test_livekit_acceptance.py",
+      "mutations": [
+        {
+          "expect": "test_requires_actual_refreshed_token_and_all_cases",
+          "find": "        if not report.get(\"actual_server_refresh_observed\"):\n            raise RuntimeError(\"actual_server_refresh_missing\")",
+          "replace": "        if False:\n            raise RuntimeError(\"actual_server_refresh_missing\")",
+          "why": "Removing the actual-refresh requirement must fail the named negative report test; its initial complete positive report must continue to pass. This measures receipt completeness, not live SFU execution."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -3514,6 +3589,18 @@
           "find": "    return [line for line in grown.elements() if line in archived]\n",
           "replace": "    return []\n",
           "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ."
+        },
+        {
+          "expect": "test_a_replace_ref_cannot_hide_a_shrink",
+          "find": "\"GIT_NO_REPLACE_OBJECTS\": \"1\", ",
+          "replace": "",
+          "why": "إسقاطُ `GIT_NO_REPLACE_OBJECTS` من بيئة `_git` ⇒ مرجعٌ في `refs/replace/` يُبدِّل كائنَ الالتزام أو الكتلة، فيُقرأ التزامٌ حذف نصّاً من السجلّ التزاماً أنماه ويمرّ الزوج. CI لا تجلب مراجعَ الاستبدال، لكنّ preflight محلّيّاً أو مرآةً قد تحملها. الاختبارُ يبني المرجعَ حيّاً في مستودعٍ مؤقّت (حالتا commit وblob) ويحذف المتغيّرَ من بيئة المستدعي، بلا skipif ولا تاريخ."
+        },
+        {
+          "expect": "test_a_graft_cannot_turn_a_shrinking_commit_into_a_root",
+          "find": ", \"GIT_GRAFT_FILE\": _NO_GRAFT_FILE}",
+          "replace": "}",
+          "why": "إسقاطُ `GIT_GRAFT_FILE` من بيئة `_git` ⇒ سطرُ graft بلا والدٍ يجعل الالتزامَ المُقلِّص جذراً، فلا زوجَ يُقارَن (pairs=0) ولا يُبلَّغ `JOURNAL_SHRANK`. يُقاس بحالتين: `info/grafts` داخل المستودع، وملفٌّ تُسمّيه بيئةُ المستدعي. كائناتٌ مركّبة بلا skipif ولا تاريخ."
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"

@@ -60,6 +60,12 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
     "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
+# تفضيلات توجيه OpenRouter للخصوصيّة ولاحقة النماذج المرفوضة — مرآة
+# ``shared/ai/provider_contract.OPENROUTER_PROVIDER_PREFERENCES`` و
+# ``OPENROUTER_REFUSED_MODEL_SUFFIX`` (يفرض التطابقَ الحارس؛ المصدر الأوّليّ مذكور هناك).
+_OPENROUTER_PROVIDER_PREFERENCES: dict[str, Any] = {"data_collection": "deny", "zdr": True}
+_OPENROUTER_REFUSED_MODEL_SUFFIX = ":free"
+
 # نظام تأريض صارم: يُجيب من الأدلّة المُمرَّرة فقط، لا قرارات تنفيذيّة، لا تلفيق.
 _GROUNDED_SYSTEM_AR = (
     "أنت مستشار زراعيّ لمنصّة «سهول». أجب حصراً اعتماداً على «الأدلّة» المُعطاة "
@@ -215,6 +221,37 @@ def _resolve_model(provider: str, shared_model: str, requested: str | None) -> s
     return catalog[0]["id"] if catalog else ""
 
 
+def openrouter_config_error() -> str:
+    """سبب رفض تهيئة OpenRouter، أو ``""`` إن كانت مقبولة.
+
+    معرّف ينتهي بـ``:free`` في ``AI_MODEL`` أو كتالوج ``AI_MODELS`` يُرفَض **قبل** أيّ
+    طلب، فيُعطَّل المزوّد كلّه (fail-closed) بدل الاختيار الصامت لنموذج آخر — فيرى
+    المشغّل المعرّف المرفوض بالاسم ويُصلِح ``.env``. يخصّ OpenRouter وحده: وسم Ollama
+    محلّيّ بالاسم نفسه لا يغادر حدّ المستأجِر."""
+    if _normalize_provider(os.getenv("AI_PROVIDER")) != "openrouter":
+        return ""
+    configured = [(os.getenv("AI_MODEL") or "").strip()]
+    configured += [m["id"] for m in public_model_catalog("openrouter")]
+    refused = sorted(
+        {mid for mid in configured if mid.lower().endswith(_OPENROUTER_REFUSED_MODEL_SUFFIX)}
+    )
+    if not refused:
+        return ""
+    return (
+        f"نماذج OpenRouter المنتهية بـ'{_OPENROUTER_REFUSED_MODEL_SUFFIX}' مرفوضة: "
+        f"{', '.join(refused)}. أزِلها من AI_MODEL/AI_MODELS؛ مطالبات المزارعين لا تُرسَل "
+        "إلى المسارات المجّانيّة."
+    )
+
+
+def _provider_request_fields(cfg: GenConfig) -> dict[str, Any]:
+    """حقول جسم الطلب الخاصّة بالمزوّد. OpenRouter: ``provider`` بتفضيلات الخصوصيّة
+    (``data_collection=deny`` و``zdr=true``) — نسخة جديدة في كلّ حمولة."""
+    if cfg.provider == "openrouter":
+        return {"provider": dict(_OPENROUTER_PROVIDER_PREFERENCES)}
+    return {}
+
+
 @dataclass(frozen=True)
 class GenConfig:
     provider: str
@@ -269,6 +306,10 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
         api_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
         model = _resolve_model("openrouter", shared_model, requested_model)
         if not api_key or not model:
+            return None
+        refusal = openrouter_config_error()
+        if refusal:
+            logger.warning("تهيئة OpenRouter مرفوضة: %s", refusal)
             return None
         base = (os.getenv("OPENROUTER_BASE_URL") or DEFAULT_OPENROUTER_BASE_URL).strip()
         headers = {"content-type": "application/json", "authorization": f"Bearer {api_key}"}
@@ -486,7 +527,11 @@ async def preload_local_generation() -> dict[str, str]:
         return {"status": "failed", "reason": type(exc).__name__, "model": cfg.model}
 
 
-def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:
+def _provider_tools(
+    cfg: GenConfig,
+    allowed_capabilities: list[str] | None,
+    allowed_tools: set[str] | None = None,
+) -> list[dict[str, Any]]:
     # Jais Natural Farmer is a grounded-generation provider. Tool calls stay opt-in
     # until model-specific tool-call conformance is proven; no direct actions by default.
     if cfg.provider == "vllm" and (
@@ -495,6 +540,10 @@ def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> l
         return []
     """Provider-native tool schema, filtered by tenant capabilities before the model sees it."""
     defs = agent_tool_schema.tool_definitions(allowed_capabilities)
+    # Do not advertise tools the authoritative tenant envelope cannot execute.
+    # The tool-loop still enforces the same gate against fabricated model calls.
+    if allowed_tools is not None:
+        defs = [d for d in defs if d["name"] in allowed_tools]
     if cfg.wire_format == "openai_chat":
         return [
             {
@@ -568,6 +617,7 @@ def _build_payload(
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
+        payload.update(_provider_request_fields(cfg))
         return payload
     payload = {
         "model": cfg.model,
@@ -577,6 +627,7 @@ def _build_payload(
     }
     if tools:
         payload["tools"] = tools
+    payload.update(_provider_request_fields(cfg))
     return payload
 
 
@@ -647,6 +698,7 @@ def _build_native_tool_result_payload(
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
+        payload.update(_provider_request_fields(cfg))
         return payload
 
     assistant_content = [
@@ -681,6 +733,7 @@ def _build_native_tool_result_payload(
     }
     if tools:
         payload["tools"] = tools
+    payload.update(_provider_request_fields(cfg))
     return payload
 
 
@@ -811,7 +864,7 @@ async def generate(
     run_spent = 0
     run_budget = tool_loop.DEFAULT_RUN_TOOL_BUDGET
     max_rounds = max(0, min(int(max_tool_rounds or 0), 5))
-    tools = _provider_tools(cfg, allowed_capabilities) if max_rounds > 0 else []
+    tools = _provider_tools(cfg, allowed_capabilities, allowed_tools) if max_rounds > 0 else []
     payload = _build_payload(cfg, question, context_text, max_tokens, tools=tools)
     text = ""
     stop_reason: str | None = None

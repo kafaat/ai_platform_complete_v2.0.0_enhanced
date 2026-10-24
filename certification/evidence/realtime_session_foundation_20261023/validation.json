@@ -1,0 +1,137 @@
+{
+  "source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+  "source_tree": "937521686635c9e0db90b6abc6a9c32a24b7f9e5",
+  "base_commit": "88719df2cf491f5407ee01ea8b32c44097feb90d",
+  "scope": "Disabled standalone realtime control-plane source foundation, not live SFU/media acceptance",
+  "checked_at": "2026-10-23T22:30:22.414837+00:00",
+  "focused_tests": {
+    "tests": 135,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "execution_source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+    "reuse_basis": "135 realtime runtime/SDK tests rerun after merging main88719df2; included in the175-test post-sync batch. Runtime and requirements remain unchanged."
+  },
+  "runtime_audit": {
+    "scanner": "pip-audit 2.10.1",
+    "distributions": 38,
+    "known_vulnerabilities": 0,
+    "scope": "Complete isolated installed runtime, not a combined resolver for other service images"
+  },
+  "source_http_smoke": {
+    "healthz": 200,
+    "readyz_disabled": 503,
+    "unauthenticated_create": 401,
+    "authenticated_create_disabled": 503,
+    "oversized_chunked": 413,
+    "limitation": "Real source-process HTTP, not Docker image acceptance",
+    "unversioned_contract_absent": 404
+  },
+  "default_disabled": true,
+  "source_digests": {
+    ".github/workflows/realtime-session.yml": "9e732bed21ff91e6f24b28a4818fce168d2bba46595ca5e7ee97432a0d927206",
+    "config/service_feature_ui_contracts.json": "28b0954a3b2c9dddef6bc847236a40a5514196802c371a1300f1375264c6cb47",
+    "services/realtime-session/Dockerfile": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254",
+    "services/realtime-session/README.md": "90659114ff4c81857ff4bfec82d71ef9515e0f7dc252e890e477d2f99d3ddb74",
+    "services/realtime-session/main.py": "1f74dea9d3554cdc5ce8b0e98a2eac041d8978f36a70ca3d117a3001a9606c50",
+    "services/realtime-session/realtime_session/__init__.py": "8c41de99d32fc947b33ef388fd4432e3d8e97d717bb6d7ca01024fd6f81e04d1",
+    "services/realtime-session/realtime_session/body_limit.py": "958737f29801567f4f35d0c1ed1b7c834f595ceb3981b55df55ed094bd7fea1c",
+    "services/realtime-session/realtime_session/contracts.py": "c53944ee95aa27ed3a165a9d31ca20df75d98e66e9fe32dacb6177704f1e355b",
+    "services/realtime-session/realtime_session/engine.py": "68a5b4b5c95387a77e178e41dcda75459c39263433e8469362c8f62a17128c18",
+    "services/realtime-session/realtime_session/livekit_adapter.py": "efd2efabb9223d882309768450a4cbcd6ec3156933b09dd6cf946fdbbb3220c4",
+    "services/realtime-session/realtime_session/platform.py": "796fb9e1950c10556de735f5b18abf03e0e9b5a940d771f1137b6e767c9d8b31",
+    "services/realtime-session/realtime_session/store.py": "0106b0f64f8dee97165f594cb206bf97f90e203cee0eeb5fedd6c7233bab325c",
+    "services/realtime-session/requirements.txt": "8c8e1fe87ad8ee59bda75b2e2a786cdc11af92361ba3c806cfbd49ecba41a4d8",
+    "services/realtime-session/tests/test_livekit_adapter.py": "d4cb4bf2e6a1c8677927b82db2142114e9183bce1ea20fce8aaa092094a1c364",
+    "tests_v9/test_realtime_session_api.py": "95acefbad81468dc725dac42432ddf83a948459827d6afb2867f79916e200cf0",
+    "tests_v9/test_realtime_session_body_limit.py": "a8b6e1e580b7044b1e81e03095512f069de418124d19844ce487e10aafc4b6a7",
+    "tests_v9/test_realtime_session_platform.py": "000577af3489e209441c24ea7e29b1df16775fae89e7e9bfdfc12281729ceaaf",
+    "tests_v9/test_realtime_session_startup.py": "833509bce86683bbf59b0f6a53b9977f15a15948df65bae632d7819cf3f37e53",
+    "tests_v9/test_realtime_session_store.py": "97f6ee419cd3b9060ce1d2267cde31032be3ce6d234667185df6b17e7738a09f",
+    "services/realtime-session/realtime_session/session_runtime.py": "7c19d6bf4a9c82351ddb2875bdfad2dae8d58b668bed838755dbce850fd12e6d",
+    "docs/architecture/component_registry.json": "ba7d7b179a5594d87c851cf9510de07a19a8860c3208fe5f77893f6c97f229b6",
+    "scripts/ci/env_compose_drift_allowlist.json": "bea2187d647b8a835fec2af7f19229483cb2e91d7f0f433a26fc6c1fded3e1a2",
+    "docker-compose.v9.yml": "6171c83a52a17701b04700d6e5d879f56804a1bff766d202a64ebe970b45fda7",
+    "config/endpoint_ui_coverage.json": "d99c3eea3f165e488485c49632fa0994562699506458ef58698ab8ce80d4e60c",
+    "config/endpoint_ui_coverage_waivers.json": "95a05b8136885cc7e7c4c95d59ca16ca4ed7ec5b2c320d7b4fe6abb6905de4bf",
+    "tests_v9/test_platform_catalog_gate.py": "f14e2961df91175324a917e8977c7435eb35b9524b64482cdcf18d91dc95cbfc",
+    ".gitleaks.toml": "ffe2defdf97b0f225ba027b247a41d8d7d19761580b692dc9908552fb409ddbd"
+  },
+  "limitations": [
+    "Actual self-hosted SFU room.auto_create=false and fresh/refreshed token rejoin-after-delete acceptance remain required. ListRooms cannot verify this setting.",
+    "SQLite single local volume and one process only; no distributed replicas.",
+    "No agent dispatch, Arabic STT, TTS audio adaptation, browser/mobile call UI, media capture enablement, recording or agricultural actuation.",
+    "Actual isolated image build and real disabled-image HTTP smoke passed in CI on ba6b06a4 (run40030907169, job120678631743); live SFU/media acceptance remains unexecuted.",
+    "No merge or runtime deployment of this session service."
+  ],
+  "component_registry_tests": {
+    "tests": 32,
+    "failures": 0,
+    "skipped": 0
+  },
+  "integration_regressions": {
+    "failed_preflight_source": "19b26a99ed3e765d3c689cb099d4889ff918b619",
+    "initial_unit_result": {
+      "passed": 10749,
+      "failed": 3,
+      "skipped": 57,
+      "deselected": 530
+    },
+    "regression_source": "36cbe0e32f10d7be9ac9c39b092500cb810c7117",
+    "targeted_tests": 67,
+    "failures": 0,
+    "scope": "Docker mirror contract, explicit farmer route/UI backlog classification, measured inventory pins and component registry",
+    "full_preflight": "pending rerun; earlier full run interrupted after unit failures",
+    "default_preflight": {
+      "execution_source_commit": "ba6b06a49e108cf095204486182c16f45c0aa9b6",
+      "result": "PASS",
+      "failed_steps": 0,
+      "skipped_steps": 0,
+      "suites": [
+        "unit",
+        "tests/",
+        "services/sahool-platform/tests"
+      ],
+      "scope": "Complete default-tier run; earlier full-tier attempt remains failed/interrupted."
+    }
+  },
+  "ci_correction_security_tests": {
+    "tests": 30,
+    "failures": 0,
+    "skipped": 0,
+    "source_commit": "0fbcd3b68de1a51f205decfb644bbf6965dcdd9a"
+  },
+  "ci_security_corrections": {
+    "receipt": "ci-security-corrections.json",
+    "range_findings": 0,
+    "scope_witnesses_passed": 6,
+    "actionlint": "PASS including ShellCheck; SC2034 mutation rejected",
+    "all_workflow_actionlint": "PASS",
+    "workingtree": "Three findings in byte-identical base files; zero in changed files. No repository-wide zero-finding claim."
+  },
+  "post_main_sync_tests": {
+    "execution_source_commit": "c1ce54808e06c52479454776c0abe3d5442a997c",
+    "main_commit": "88719df2cf491f5407ee01ea8b32c44097feb90d",
+    "tests": 175,
+    "failures": 0,
+    "skipped": 0,
+    "scope": [
+      "realtime service and SDK",
+      "NATS Compose acceptance and policy contracts",
+      "Gitleaks scope and workflow security contracts"
+    ],
+    "main_source_paths_verified_identical": [
+      ".github/workflows/capability-governance.yml",
+      ".github/workflows/nats-compose-acceptance.yml",
+      "scripts/ci/run_nats_compose_acceptance.py",
+      "tests/architecture/test_nats_compose_acceptance.py",
+      "tests_v9/test_nats_compose_policy.py",
+      "docs/architecture/guard_mutation_registry.json",
+      "docs/architecture/blocking_surface_additions.json",
+      "capabilities/registry/capabilities.json",
+      "nats/start-nats.sh",
+      "nats/nats.conf"
+    ],
+    "actual_nats_compose": "Pending CI on the final synchronized head; previous main acceptance is not inherited."
+  }
+}

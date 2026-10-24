@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **283**
+- حرّاس تحجب في CI: **286**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **58**
-- إجماليّ الطفرات المُسجَّلة: **462**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **381** على 132 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **464**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **390** على 135 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **225** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **228** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -115,6 +115,8 @@
 - BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: غيابُ الميزانيّة عند الرأس يصير ملاحظةً ⇒ حذفُ الملفّ يُسقِط السقفَ والراتشِت معاً بالتزامٍ أخضر — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنفُ الفجوة داخل علاجها. — يُسقِط `test_a_missing_or_unreadable_budget_fails_closed`
 - BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01: السماحُ للفاصل بأن يُرسي المحاذاة ⇒ يُطابَق السطرُ الفارغ بين سطرين مُبقَيَين مع فارغٍ داخل قطع، فيُقرأ سطرٌ مُبقىً محذوفاً ويُرفض نقلٌ بلا فقد — وهو ما وقع فعلاً على الأرشفة الأولى قبل الإصلاح. — يُسقِط `test_a_line_kept_between_two_cuts_is_aligned_to_itself_not_to_a_blank`
 - BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ. — يُسقِط `test_a_real_union_merge_that_brings_archived_text_back_blocks`
+- إسقاطُ `GIT_NO_REPLACE_OBJECTS` من بيئة `_git` ⇒ مرجعٌ في `refs/replace/` يُبدِّل كائنَ الالتزام أو الكتلة، فيُقرأ التزامٌ حذف نصّاً من السجلّ التزاماً أنماه ويمرّ الزوج. CI لا تجلب مراجعَ الاستبدال، لكنّ preflight محلّيّاً أو مرآةً قد تحملها. الاختبارُ يبني المرجعَ حيّاً في مستودعٍ مؤقّت (حالتا commit وblob) ويحذف المتغيّرَ من بيئة المستدعي، بلا skipif ولا تاريخ. — يُسقِط `test_a_replace_ref_cannot_hide_a_shrink`
+- إسقاطُ `GIT_GRAFT_FILE` من بيئة `_git` ⇒ سطرُ graft بلا والدٍ يجعل الالتزامَ المُقلِّص جذراً، فلا زوجَ يُقارَن (pairs=0) ولا يُبلَّغ `JOURNAL_SHRANK`. يُقاس بحالتين: `info/grafts` داخل المستودع، وملفٌّ تُسمّيه بيئةُ المستدعي. كائناتٌ مركّبة بلا skipif ولا تاريخ. — يُسقِط `test_a_graft_cannot_turn_a_shrinking_commit_into_a_root`
 
 ### `brain_commit_claim_guard.py`
 
@@ -1098,7 +1100,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (225)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (228)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1260,6 +1262,7 @@
 | `production_truth_readiness_gate.py` | Production truth/readiness gate: no synthetic serving paths; honest readiness. | `structural-lint` · `contract` |
 | `provenance_receipt.py` | Create/validate the external provenance receipt required by the read-only bridge. | `verify-and-evaluate` |
 | `railway_dockerfile_pr_build_plan.py` | أيُّ ملفّات Dockerfile التي يبنيها Railway يمسّها هذا الـPR؟ — DOCKER-BUILD-VERIFIED-ONLY-ON-… | `plan` |
+| `railway_staging_connection_preflight.py` | Fail-closed Railway staging status verification. Never emit raw CLI data. | `staging-connection` |
 | `raster_import_graph_gate.py` | Static import-graph gate for services/raster-service. | `structural-lint` |
 | `raster_main_decomposition_gate.py` | Raster-service main.py decomposition contract gate. | `structural-lint` |
 | `raster_pixel_qa_indicator_guard.py` | Guard: raster indicators must carry raw pixel QA/provenance. | `guard` |
@@ -1276,6 +1279,8 @@
 | `route_mount_contract_guard.py` | Guard route-bearing FastAPI services after main.py decomposition. | `structural-lint` |
 | `route_residual_classification_guard.py` | Classify route decorators that remain directly in main.py files. | `classify-main-route-residuals` |
 | `router_reachability_guard.py` | Conservative static FastAPI router reachability inventory and drift guard. | `capability-registry` |
+| `run_livekit_acceptance.py` | Run actual pinned self-hosted SFU admission; publish only sanitized receipts. | `live-sfu` |
+| `run_nats_compose_acceptance.py` | Isolated SAHOOL NATS Compose acceptance; no production credentials required. | `nats-compose` |
 | `runtime_certification_gate.py` | Fail closed when runtime or production certification exceeds accepted evidence. | `capability-registry` |
 | `runtime_container_deep_contract_guard.py` | Runtime container deep contract guard for non-AI high-risk services. | `guard` |
 | `runtime_contract_gate.py` | Runtime-chain static contract gate. | `structural-lint` |

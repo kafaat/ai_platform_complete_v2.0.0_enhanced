@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 633
   },
-  "inventory_sha256": "f21990d162848bf40e049d85b2ea16b2310ad6392499c1bc6c5a5782429fa936",
+  "inventory_sha256": "b568bd3ecc48fc2ead0345d236bd5319a2e0695bdefa343b6dccc1e55bf11178",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "af64e99d18446c3bdad75aa4a914e402f24f4e18003c5c933fc3e5dc1138d5bf"
+    "policy_sha256": "a87d41a3eaa26011ae2f6d9ea30d2e4d4d13596b3cc9296aecb24319fbe1a490"
   },
   "routes": [
     {
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_recommendation",
-      "line": 220,
+      "line": 183,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_recommendation",
-      "line": 144,
+      "line": 105,
       "method": "POST",
       "path": "/api/v1/irrigation-recommendation",
       "source": "api/routers/irrigation_recommendation.py"
@@ -4370,7 +4370,7 @@
     {
       "classification": "domain",
       "function": "compute_water_balance",
-      "line": 62,
+      "line": 65,
       "method": "POST",
       "path": "/api/v1/water-balance",
       "source": "api/routers/water_balance.py"

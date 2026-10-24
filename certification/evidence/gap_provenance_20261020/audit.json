@@ -1,0 +1,2536 @@
+{
+  "schema_version": 1,
+  "measured_at": "2026-10-20",
+  "base_sha": "b7d7652362768320e5a9dfa96b7d7303a4bae6f8",
+  "scope": "Historical source-to-merge provenance only; no repair rerun, deployment acceptance, or state promotion.",
+  "records_before": 64,
+  "reconciled": 59,
+  "unresolved": 5,
+  "records": [
+    {
+      "id": "FRONTEND-REFERENCE-PANELS-HIDE-OR-FAKE-STATE-ON-PAUSE-AND-REFETCH-ERROR-01",
+      "line": 13,
+      "repair_shas": [
+        "0dd27f20"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1170,
+          "sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa"
+        }
+      ]
+    },
+    {
+      "id": "FRONTEND-REFERENCE-LISTS-CALL-MAP-ON-AN-ENVELOPE-01",
+      "line": 14,
+      "repair_shas": [
+        "ea01ff71"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1170,
+          "sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa"
+        }
+      ]
+    },
+    {
+      "id": "MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01",
+      "line": 16,
+      "repair_shas": [
+        "0646cce4",
+        "0646cce4"
+      ],
+      "cited_pr_merges": {
+        "1139": "172cb4505b66dd57e418e35819670fbf84a072a9"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1169,
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f"
+        }
+      ]
+    },
+    {
+      "id": "MINIO-MIRROR-PROVENANCE-UNVERIFIED-01",
+      "line": 18,
+      "repair_shas": [
+        "80b766a3"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1169,
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f"
+        }
+      ]
+    },
+    {
+      "id": "WELL-BLEND-WATER-QUALITY-NOT-COMPUTED-01",
+      "line": 30,
+      "repair_shas": [
+        "ed78cf5c"
+      ],
+      "cited_pr_merges": {
+        "1198": "239c01a47442df13d9cbb492017afae103b98dc8"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "ELEMENT84-VRT-REFLECTANCE-SCALE-NOT-APPLIED-01",
+      "line": 32,
+      "repair_shas": [
+        "dc17ed1a2fe720ff6c468d4878a02cfa912d6b7e"
+      ],
+      "cited_pr_merges": {},
+      "classification": "unresolved",
+      "method": "At least one historical local revision has no verified canonical mapping; no registry link added.",
+      "canonical_merges": []
+    },
+    {
+      "id": "RASTER-SHARED-CACHE-KEY-OMITS-TRANSFORM-01",
+      "line": 36,
+      "repair_shas": [
+        "6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70",
+        "be77d6e8f092ea0211ba3664c00438476658829b",
+        "3e6a611943c6315c4601fc897977538728a61bf9",
+        "b678ff7356d4b8b4197aaff41014ffcd1f984605"
+      ],
+      "cited_pr_merges": {
+        "1185": "a02c341be05c34c8205245527c71dddcee836a1d"
+      },
+      "classification": "reconciled",
+      "method": "The local integration revision b678ff73 is not available from GitHub. The published repair commits associate with PR 1185, and all six source/test bytes declared by actual_pr_provenance.json match the canonical merge. The opening tree identifier is not a commit. See cache_merge_byte_proof; no claim that the unavailable local revision is an ancestor.",
+      "canonical_merges": [
+        {
+          "pr": 1185,
+          "sha": "a02c341be05c34c8205245527c71dddcee836a1d"
+        }
+      ]
+    },
+    {
+      "id": "VEGETATION-ANALYZE-GATE-UNREACHABLE-FOR-CDSE-PRODUCTS-01",
+      "line": 56,
+      "repair_shas": [
+        "cc333fb945a9dfe6f4fa9b3407338546510a4160"
+      ],
+      "cited_pr_merges": {},
+      "classification": "unresolved",
+      "method": "At least one historical local revision has no verified canonical mapping; no registry link added.",
+      "canonical_merges": []
+    },
+    {
+      "id": "TITILER-LEGACY-S3-BYPASSES-ENDPOINT-POLICY-01",
+      "line": 69,
+      "repair_shas": [
+        "ea0867053",
+        "b670059c6",
+        "23e8ef265",
+        "8b209593"
+      ],
+      "cited_pr_merges": {
+        "1244": "18239b410e220e4a53872a5d8aa7ffbef8c34803"
+      },
+      "classification": "reconciled",
+      "method": "23e8ef265 is the temporary PR test merge, whose tree equals b670059c6; 8b209593 is that tree, not a repair commit. Both tree objects were read from the GitHub commit API.",
+      "canonical_merges": [
+        {
+          "pr": 1244,
+          "sha": "18239b410e220e4a53872a5d8aa7ffbef8c34803"
+        }
+      ]
+    },
+    {
+      "id": "FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01",
+      "line": 94,
+      "repair_shas": [
+        "1f6ad553f"
+      ],
+      "cited_pr_merges": {
+        "954": "990004872acf66bd6c8324b49dd12ae262edcdbe"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "MIGRATOR-VALIDATES-INGEST-SECRET-AFTER-WRITES-01",
+      "line": 125,
+      "repair_shas": [
+        "8807d5cc"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1170,
+          "sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa"
+        }
+      ]
+    },
+    {
+      "id": "H4",
+      "line": 142,
+      "repair_shas": [
+        "f25b7d5f",
+        "8b247263",
+        "8b247263"
+      ],
+      "cited_pr_merges": {
+        "457": "89d848e385e85b2c15ece8718272f7c69e2c0782"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1218,
+          "sha": "503d7d7cf28a9d2af84fa87c47ee46014ce16e57"
+        }
+      ]
+    },
+    {
+      "id": "CI-DOCKER-IMAGE-PULLS-BLOCK-LIVE-TESTS-01",
+      "line": 159,
+      "repair_shas": [
+        "ba8f646c",
+        "32b9065e"
+      ],
+      "cited_pr_merges": {
+        "1193": "e924bba2dd8d22354cba0de480cc7936eea2825c"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1157,
+          "sha": "7310de85688b356612f80ad3c0d6fd98b5d1fff1"
+        }
+      ]
+    },
+    {
+      "id": "C-LOCALE-GUARD-SWEEPS-A-NAMING-CONVENTION-NOT-A-CLASS-01",
+      "line": 231,
+      "repair_shas": [
+        "4b105001e"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "OUTBOX-BATCH-HOLDS-A-POOLED-CONNECTION-ACROSS-THE-NETWORK-01",
+      "line": 264,
+      "repair_shas": [
+        "bf6fd06e3"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "OUTBOX-LEASE-IS-GRANTED-TO-A-WHOLE-BATCH-BUT-SPENT-SERIALLY-01",
+      "line": 265,
+      "repair_shas": [
+        "bf6fd06e3"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "WEATHER-FORECAST-TOPIC-HAS-NO-PUBLISHER-01",
+      "line": 274,
+      "repair_shas": [
+        "7f681edc4"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "POSTGRES-V9-HAS-NO-TLS-SO-EVERY-CLIENT-IS-PLAINTEXT-01",
+      "line": 277,
+      "repair_shas": [
+        "cd9ad2a3e"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
+      "line": 5900,
+      "repair_shas": [
+        "d2faac8e4",
+        "96f6a034"
+      ],
+      "cited_pr_merges": {
+        "990": "7407eae2ba006a4c4c07018988a0f680e176abea"
+      },
+      "classification": "unresolved",
+      "method": "At least one historical local revision has no verified canonical mapping; no registry link added.",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "CORRELATION-ID-ABSENT-FROM-THE-THREE-TABLES-THAT-CARRY-THE-DECISION-CHAIN-01",
+      "line": 5902,
+      "repair_shas": [
+        "cf76293d"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1201,
+          "sha": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7"
+        }
+      ]
+    },
+    {
+      "id": "FRONTEND-READYZ-IMPERSONATES-PLATFORM-READINESS-01",
+      "line": 5926,
+      "repair_shas": [
+        "78e981da"
+      ],
+      "cited_pr_merges": {
+        "1198": "239c01a47442df13d9cbb492017afae103b98dc8"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "RAILWAY-GATEWAY-HAS-NO-RATE-LIMIT-01",
+      "line": 5929,
+      "repair_shas": [
+        "f31013afa"
+      ],
+      "cited_pr_merges": {
+        "1198": "239c01a47442df13d9cbb492017afae103b98dc8"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "VEGETATION-POST-EXECUTION-BRIDGE-CALLS-AN-UNDECLARED-RASTER-ROUTE-01",
+      "line": 5933,
+      "repair_shas": [
+        "fc1f5ec3"
+      ],
+      "cited_pr_merges": {
+        "1211": "ac1e48df48eb1553f33180bef5cccf88e5948811"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1211,
+          "sha": "ac1e48df48eb1553f33180bef5cccf88e5948811"
+        }
+      ]
+    },
+    {
+      "id": "NATS-LIVE-TEST-READS-STREAM-COUNT-BEFORE-STORAGE-01",
+      "line": 5935,
+      "repair_shas": [
+        "124f9dc05"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1208,
+          "sha": "f3936a771a14ec5677d60a03ad8a9f5a902cde0a"
+        }
+      ]
+    },
+    {
+      "id": "PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01",
+      "line": 5936,
+      "repair_shas": [
+        "4bddf8b7b"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1214,
+          "sha": "49fd00aac40e7ff7c9a3003ca6e7c316be9fbf75"
+        }
+      ]
+    },
+    {
+      "id": "REDIS-SHARED-PASSWORD-NO-ACL-01",
+      "line": 5942,
+      "repair_shas": [
+        "3b5f9e6a4",
+        "9098e585c",
+        "458f08812"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1210,
+          "sha": "45dfdc53752a2e6eb6ba2d2726567c2af3c4158c"
+        }
+      ]
+    },
+    {
+      "id": "JWT-REVOCATION-WRITTEN-AND-READ-ON-DIFFERENT-REDIS-SERVERS-01",
+      "line": 5943,
+      "repair_shas": [
+        "9e0328499"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1212,
+          "sha": "44afa75e05166843817a539498a8d5b68edc81e1"
+        }
+      ]
+    },
+    {
+      "id": "PLATFORM-IGNORES-AUTH-REVOKE-ALL-SESSIONS-FLOOR-01",
+      "line": 5944,
+      "repair_shas": [
+        "94562557a"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1213,
+          "sha": "1765d73a036499318beeb6d267fdaf803e4b0a40"
+        }
+      ]
+    },
+    {
+      "id": "RASTER-CACHE-INVALIDATION-WORKER-HAS-NO-REDIS-URL-01",
+      "line": 5946,
+      "repair_shas": [
+        "c2da227a1b40169a650b24035ad476aebe5a1bc2"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1228,
+          "sha": "a97cba6f97e1c10745c64c35dcfa67c2106749a1"
+        }
+      ]
+    },
+    {
+      "id": "OLLAMA-UNIFIED-PINNED-0-3-0-01",
+      "line": 5947,
+      "repair_shas": [
+        "3c6ecd59"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1190,
+          "sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df"
+        }
+      ]
+    },
+    {
+      "id": "MERGE-RESOLVER-INSERTS-BLANK-LINE-INSIDE-REGISTRY-TABLE-01",
+      "line": 5959,
+      "repair_shas": [
+        "959e9730a5770e3728a3ce504522615820cb7991"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1180,
+          "sha": "421a0e7afcecf1de967bf4a26ea9d64788baf1e1"
+        }
+      ]
+    },
+    {
+      "id": "UNION-DUPLICATE-GUARD-RUNS-IN-A-NON-REQUIRED-CHECK-01",
+      "line": 5960,
+      "repair_shas": [
+        "62b81409",
+        "1b14550acb28cf93a7cc606dd0d250e0d4657e7a",
+        "cf43f555008c08518371382ff46ba14251b210a7",
+        "62b81409"
+      ],
+      "cited_pr_merges": {
+        "1186": "698a1c53744f1096118688c1dfc1b5f42c269c2a"
+      },
+      "classification": "reconciled",
+      "method": "The existing record explicitly supersedes unverifiable 62b81409 with published 1b14550a and cf43f555; both associate with merged PR 1186. Original reference retained.",
+      "canonical_merges": [
+        {
+          "pr": 1186,
+          "sha": "698a1c53744f1096118688c1dfc1b5f42c269c2a"
+        }
+      ]
+    },
+    {
+      "id": "UNION-MERGE-DUPLICATES-EDITED-LOG-AND-LEDGER-ENTRIES-SILENTLY-01",
+      "line": 5961,
+      "repair_shas": [
+        "5e7faae1d"
+      ],
+      "cited_pr_merges": {
+        "953": "ff4ab11fbf6a6ec847cc6b01a69f20f3211d9121",
+        "1015": "bb505a4dc51a9cd62f06c6b8e3e8c6114fe253ec",
+        "1017": "95c5cc525c0352d04d0c657d01ce50620ff826eb",
+        "1186": "698a1c53744f1096118688c1dfc1b5f42c269c2a"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "LIVE-RAG-CERTIFICATION-ASSERTS-AN-UNREACHABLE-RESPONSE-01",
+      "line": 5962,
+      "repair_shas": [
+        "959e9730a5770e3728a3ce504522615820cb7991"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1180,
+          "sha": "421a0e7afcecf1de967bf4a26ea9d64788baf1e1"
+        }
+      ]
+    },
+    {
+      "id": "FAKE-CONNECTION-RATCHET-COUNTS-A-NAMING-CONVENTION-NOT-A-CLASS-01",
+      "line": 5963,
+      "repair_shas": [
+        "4b105001e"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "CDSE-CATALOG-OUTAGE-READ-AS-NO-SCENES-01",
+      "line": 5971,
+      "repair_shas": [
+        "6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70",
+        "be77d6e8f092ea0211ba3664c00438476658829b",
+        "3e6a611943c6315c4601fc897977538728a61bf9",
+        "b678ff7356d4b8b4197aaff41014ffcd1f984605"
+      ],
+      "cited_pr_merges": {
+        "1185": "a02c341be05c34c8205245527c71dddcee836a1d"
+      },
+      "classification": "reconciled",
+      "method": "The local integration revision b678ff73 is not available from GitHub. The published repair commits associate with PR 1185, and all six source/test bytes declared by actual_pr_provenance.json match the canonical merge. The opening tree identifier is not a commit. See cache_merge_byte_proof; no claim that the unavailable local revision is an ancestor.",
+      "canonical_merges": [
+        {
+          "pr": 1185,
+          "sha": "a02c341be05c34c8205245527c71dddcee836a1d"
+        }
+      ]
+    },
+    {
+      "id": "PLATFORM-IMAGE-CANNOT-VERIFY-RS256-TOKENS-01",
+      "line": 5972,
+      "repair_shas": [
+        "c1690182",
+        "df16cc05",
+        "df16cc05c4b666397956bd8c721949045e59b680",
+        "df16cc05"
+      ],
+      "cited_pr_merges": {
+        "1091": "2a8903ab17ad474624c889ab0e2e815af8e23246"
+      },
+      "classification": "reconciled",
+      "method": "The existing canonical paragraph names actual source repairs 71e46c22 and ae6ef55c; both independently associate with merged PR 1170. df16cc05 is a separate deployment-branch revision; c1690182 is a deployment identifier. These deployment references are retained without claiming they are main ancestors.",
+      "canonical_merges": [
+        {
+          "pr": 1170,
+          "sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa"
+        }
+      ]
+    },
+    {
+      "id": "COMPOSE-ALTERNATES-UNGUARDED-AND-NAME-INCOMPATIBLE-01",
+      "line": 6264,
+      "repair_shas": [
+        "9514d4b60"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "REPORT3-RAG-01-01",
+      "line": 6456,
+      "repair_shas": [
+        "dae8a5a5692e8de17b80a49eb8dfd3e2b56221ec"
+      ],
+      "cited_pr_merges": {},
+      "classification": "unresolved",
+      "method": "At least one historical local revision has no verified canonical mapping; no registry link added.",
+      "canonical_merges": []
+    },
+    {
+      "id": "REPORT3-RAG-07-01",
+      "line": 6462,
+      "repair_shas": [
+        "e99aa9a3e813fe67b687f6e8dae3843fdd05d2d8"
+      ],
+      "cited_pr_merges": {},
+      "classification": "unresolved",
+      "method": "At least one historical local revision has no verified canonical mapping; no registry link added.",
+      "canonical_merges": []
+    },
+    {
+      "id": "REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01",
+      "line": 6497,
+      "repair_shas": [
+        "a71262bd7"
+      ],
+      "cited_pr_merges": {
+        "1004": "e4c2479e73b3bc07fe22f06d760777823736e40e"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1208,
+          "sha": "f3936a771a14ec5677d60a03ad8a9f5a902cde0a"
+        }
+      ]
+    },
+    {
+      "id": "TTS-BAKEOFF-PERF-COMPARABLE-WITHOUT-FS-BOUNDARY-01",
+      "line": 6917,
+      "repair_shas": [
+        "10a754772",
+        "42769f5f5",
+        "da9202533f3be8ab39ce1a309ef0ccf241f0cea9"
+      ],
+      "cited_pr_merges": {
+        "1133": "9801d07620e25226d2f8306afae3eb6e635e5c2a"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1133,
+          "sha": "9801d07620e25226d2f8306afae3eb6e635e5c2a"
+        },
+        {
+          "pr": 1205,
+          "sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56"
+        }
+      ]
+    },
+    {
+      "id": "REPORT-ONLY-GUARD-BLIND-TO-TOOLS-TREE-01",
+      "line": 6934,
+      "repair_shas": [
+        "62b81409",
+        "1b14550acb28cf93a7cc606dd0d250e0d4657e7a",
+        "cf43f555008c08518371382ff46ba14251b210a7",
+        "62b81409"
+      ],
+      "cited_pr_merges": {
+        "1133": "9801d07620e25226d2f8306afae3eb6e635e5c2a",
+        "1186": "698a1c53744f1096118688c1dfc1b5f42c269c2a"
+      },
+      "classification": "reconciled",
+      "method": "The existing record explicitly supersedes unverifiable 62b81409 with published 1b14550a and cf43f555; both associate with merged PR 1186. Original reference retained.",
+      "canonical_merges": [
+        {
+          "pr": 1186,
+          "sha": "698a1c53744f1096118688c1dfc1b5f42c269c2a"
+        }
+      ]
+    },
+    {
+      "id": "BRAIN-TABLE-VERIFIED-TRANSITION-BYPASSES-GUARD-01",
+      "line": 7044,
+      "repair_shas": [
+        "88cbfefd"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1169,
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f"
+        }
+      ]
+    },
+    {
+      "id": "DEP-PYTHON-JOSE-HMAC-PUBKEY-CONFUSION-01",
+      "line": 7060,
+      "repair_shas": [
+        "2a85159f1"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1198,
+          "sha": "239c01a47442df13d9cbb492017afae103b98dc8"
+        }
+      ]
+    },
+    {
+      "id": "BRAIN-TABLE-STATE-CONFLICTS-NOT-MEASURED-01",
+      "line": 7088,
+      "repair_shas": [
+        "aca40945"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1169,
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f"
+        }
+      ]
+    },
+    {
+      "id": "PLANNED-REDUCTION-NAMED-WATER-SAVED-IN-CROSS-DOMAIN-01",
+      "line": 7095,
+      "repair_shas": [
+        "3ac135095"
+      ],
+      "cited_pr_merges": {
+        "1142": "90138460962c97a7c07ca1e79b16ce8ce0e6207b"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1190,
+          "sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df"
+        }
+      ]
+    },
+    {
+      "id": "MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01",
+      "line": 7102,
+      "repair_shas": [
+        "a1730e2cb"
+      ],
+      "cited_pr_merges": {
+        "1142": "90138460962c97a7c07ca1e79b16ce8ce0e6207b"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1190,
+          "sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df"
+        }
+      ]
+    },
+    {
+      "id": "SAM2-REF-FLOATS-ON-MAIN-AND-WEIGHTS-UNVERIFIED-01",
+      "line": 7329,
+      "repair_shas": [
+        "4d0799f32c714a87c7840f35232da42d18cbc2b1",
+        "3d8e41d0f5506170e1df8301c416a66c4087d4fd",
+        "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+      ],
+      "cited_pr_merges": {
+        "1169": "3a8689f6b13b158405ab000baec12284ea29541f"
+      },
+      "classification": "reconciled",
+      "method": "2b90b9f5 is the upstream SAM2_REF pin, not a commit in this repository. Repository repair commits associate with PRs 1169 and 1209.",
+      "canonical_merges": [
+        {
+          "pr": 1169,
+          "sha": "3a8689f6b13b158405ab000baec12284ea29541f"
+        },
+        {
+          "pr": 1209,
+          "sha": "7f2d7fa0f8d4fb975337316475c019e769cd4447"
+        }
+      ]
+    },
+    {
+      "id": "REFERENCE-CROPS-PARSER-HIDES-NON-STRING-RATING-01",
+      "line": 7413,
+      "repair_shas": [
+        "c08f8039",
+        "819b3251",
+        "bc2489ed",
+        "e53d3783"
+      ],
+      "cited_pr_merges": {
+        "1177": "b62c05334bfc6f783c459386ce0098a9648f4e0f"
+      },
+      "classification": "reconciled",
+      "method": "bc2489ed and e53d3783 are historical Railway deployment identifiers, explicitly labelled in the record. No new deployment verification is claimed.",
+      "canonical_merges": [
+        {
+          "pr": 1177,
+          "sha": "b62c05334bfc6f783c459386ce0098a9648f4e0f"
+        }
+      ]
+    },
+    {
+      "id": "TENANT-AI-POLICY-OUTAGE-INDISTINGUISHABLE-FROM-NO-POLICY-01",
+      "line": 7421,
+      "repair_shas": [
+        "c08f8039",
+        "819b3251"
+      ],
+      "cited_pr_merges": {
+        "1177": "b62c05334bfc6f783c459386ce0098a9648f4e0f"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1177,
+          "sha": "b62c05334bfc6f783c459386ce0098a9648f4e0f"
+        }
+      ]
+    },
+    {
+      "id": "TTS-VOICE-SUCCESS-WITHOUT-PROVIDER-RECEIPT-01",
+      "line": 7428,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "TTS-CRITICAL-NUMBERS-HAVE-NO-STRUCTURED-SPEECH-01",
+      "line": 7435,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "TTS-POLICY-FETCH-EXPOSES-BEARER-VIA-PROXY-OR-REDIRECT-01",
+      "line": 7442,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "VOICE-AUDIO-DOWNLOAD-UNBOUNDED-IN-TELEGRAM-CONSUMERS-01",
+      "line": 7450,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "TTS-STREAM-COUNTED-OK-BEFORE-COMPLETION-01",
+      "line": 7458,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "SPEAK-BUTTON-FAILURE-STATE-SURVIVES-A-NEW-RECOMMENDATION-01",
+      "line": 7466,
+      "repair_shas": [
+        "b5831542"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "TTS-PIPER-PROVIDER-CALLS-THE-PRE-1.3-API-01",
+      "line": 7474,
+      "repair_shas": [
+        "4a428008",
+        "e5407e39"
+      ],
+      "cited_pr_merges": {
+        "1176": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+      },
+      "classification": "reconciled",
+      "method": "e5407e39 is a historical Railway deployment identifier, explicitly labelled in the record. The repair commit associates with PR 1176.",
+      "canonical_merges": [
+        {
+          "pr": 1176,
+          "sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1"
+        }
+      ]
+    },
+    {
+      "id": "GAP-REGISTRY-STATE-COUNTS-OMIT-SECTION-ONLY-GAPS-01",
+      "line": 7481,
+      "repair_shas": [
+        "714ebc35"
+      ],
+      "cited_pr_merges": {
+        "1175": "cacb643bae9623828d35fa30d5e5f1110574e8a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1175,
+          "sha": "cacb643bae9623828d35fa30d5e5f1110574e8a1"
+        }
+      ]
+    },
+    {
+      "id": "COMPOSE-SECRET-GUARD-SKIPS-NESTED-DEFAULT-LITERALS-01",
+      "line": 7489,
+      "repair_shas": [
+        "2a1b0383",
+        "3f300e62"
+      ],
+      "cited_pr_merges": {
+        "1175": "cacb643bae9623828d35fa30d5e5f1110574e8a1"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1175,
+          "sha": "cacb643bae9623828d35fa30d5e5f1110574e8a1"
+        }
+      ]
+    },
+    {
+      "id": "CAPABILITY-LINKER-ATTRIBUTES-VOICE-RECEIPT-TO-DEC-006-01",
+      "line": 7498,
+      "repair_shas": [
+        "8461c197",
+        "ff12e038"
+      ],
+      "cited_pr_merges": {
+        "1178": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1178,
+          "sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b"
+        }
+      ]
+    },
+    {
+      "id": "VEGETATION-IMAGE-BUILDS-WITHOUT-WEEKLY-INSIGHTS-01",
+      "line": 7537,
+      "repair_shas": [
+        "284f53e6",
+        "b21257edc",
+        "b21257edc",
+        "7e22487b",
+        "0d717e01be48",
+        "67b671ed",
+        "e64aa55a8497",
+        "c4fba1bb"
+      ],
+      "cited_pr_merges": {
+        "1230": "ee690901097cd80a2d69045f39daed1eb6388305"
+      },
+      "classification": "reconciled",
+      "method": "284f53e6 is the tree shared by tested b21257edc and merged ee6909010, verified from GitHub and local Git. Remaining unmatched tokens are Railway deployment UUID fragments. No new runtime verification.",
+      "canonical_merges": [
+        {
+          "pr": 1230,
+          "sha": "ee690901097cd80a2d69045f39daed1eb6388305"
+        }
+      ]
+    },
+    {
+      "id": "VEGETATION-SQLITE-WAL-STARTUP-RACE-01",
+      "line": 7545,
+      "repair_shas": [
+        "b21257edc"
+      ],
+      "cited_pr_merges": {
+        "1230": "ee690901097cd80a2d69045f39daed1eb6388305"
+      },
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1230,
+          "sha": "ee690901097cd80a2d69045f39daed1eb6388305"
+        }
+      ]
+    },
+    {
+      "id": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01",
+      "line": 7568,
+      "repair_shas": [
+        "20e8863e",
+        "8fbcbf19"
+      ],
+      "cited_pr_merges": {},
+      "classification": "reconciled",
+      "method": "commit-to-PR association and reachable canonical merge",
+      "canonical_merges": [
+        {
+          "pr": 1246,
+          "sha": "e2dbe6515cb5c3a2917d23f303f0784f8bdbeb1b"
+        }
+      ]
+    }
+  ],
+  "commit_pr_queries": {
+    "0646cce4": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/0646cce4/pulls",
+      "prs": [
+        {
+          "number": 1169,
+          "title": "تكامل A (لا نشر): #1161 · #1162 · #1166 · #1167 · v25b sam2/tiler/erp — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-12T20:32:08Z",
+          "merge_commit_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "head_sha": "d6c53f6f2793f10dfe94ba574a04ff9a92108d51",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "0d717e01be48": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/0d717e01be48/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "0dd27f20": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/0dd27f20/pulls",
+      "prs": [
+        {
+          "number": 1170,
+          "title": "تكامل B (ينشر عند الدمج): #1163 · #1130 · #1128 · #1165 · محتوى #1122 — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-13T14:58:53Z",
+          "merge_commit_sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+          "head_sha": "f82a759ca7aba7259d811ccf48f87f27b56e897b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "10a754772": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/10a754772/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "124f9dc05": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/124f9dc05/pulls",
+      "prs": [
+        {
+          "number": 1208,
+          "title": "Wave 5 (Claude): learning split by source, review findings guard, Python edge evidence, re-measurement, NATS test fix",
+          "state": "closed",
+          "merged_at": "2026-10-17T21:19:08Z",
+          "merge_commit_sha": "f3936a771a14ec5677d60a03ad8a9f5a902cde0a",
+          "head_sha": "c2c492a31de144d216c5010feca033a536106d32",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "1b14550acb28cf93a7cc606dd0d250e0d4657e7a": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/1b14550acb28cf93a7cc606dd0d250e0d4657e7a/pulls",
+      "prs": [
+        {
+          "number": 1186,
+          "title": "Wave 2 governance: two blind guards fixed, three stale rows reconciled",
+          "state": "closed",
+          "merged_at": "2026-10-14T23:36:18Z",
+          "merge_commit_sha": "698a1c53744f1096118688c1dfc1b5f42c269c2a",
+          "head_sha": "cf43f555008c08518371382ff46ba14251b210a7",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "1f6ad553f": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/1f6ad553f/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "20e8863e": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/20e8863e/pulls",
+      "prs": [
+        {
+          "number": 1246,
+          "title": "brain: hot.md may shrink only by verbatim archival, under a byte budget that never rises",
+          "state": "closed",
+          "merged_at": "2026-10-19T23:24:32Z",
+          "merge_commit_sha": "e2dbe6515cb5c3a2917d23f303f0784f8bdbeb1b",
+          "head_sha": "26a9fd09966f67b1e16368052f3382d98c3a394a",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "23e8ef265": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/23e8ef265/pulls",
+      "prs": []
+    },
+    "284f53e6": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/284f53e6/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "2a1b0383": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/2a1b0383/pulls",
+      "prs": [
+        {
+          "number": 1175,
+          "title": "قياسُ السجلّ بالمعرّف + حارسُ الأسرار يقرأ الافتراضيَّ المتداخل (بلا نشر)",
+          "state": "closed",
+          "merged_at": "2026-10-13T18:51:12Z",
+          "merge_commit_sha": "cacb643bae9623828d35fa30d5e5f1110574e8a1",
+          "head_sha": "e6e82bb4910ac3b6ecb5f952ffd607292dd38892",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "2a85159f1": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/2a85159f1/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "2b90b9f5ceec907a1c18123530e92e794ad901a4": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/2b90b9f5ceec907a1c18123530e92e794ad901a4/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "32b9065e": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/32b9065e/pulls",
+      "prs": [
+        {
+          "number": 1157,
+          "title": "ci(brain): ربطُ provenance من مقاطع canonical وحدها — إغلاقُ GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01 (مكدَّس فوق #1155)",
+          "state": "closed",
+          "merged_at": "2026-10-10T11:45:32Z",
+          "merge_commit_sha": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+          "head_sha": "996d8f3714bec43845a285369036e28bf06e41ab",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "3ac135095": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3ac135095/pulls",
+      "prs": [
+        {
+          "number": 1190,
+          "title": "Wave 2 truthfulness: planned reduction, mobile not-measured water card, Ollama pin",
+          "state": "closed",
+          "merged_at": "2026-10-15T08:17:09Z",
+          "merge_commit_sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df",
+          "head_sha": "a1c79971b931e79e15ed80f1184358b6f1ab2a3b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "3b5f9e6a4": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3b5f9e6a4/pulls",
+      "prs": [
+        {
+          "number": 1210,
+          "title": "Redis ACL: one user per service, default user off (compose v9)",
+          "state": "closed",
+          "merged_at": "2026-10-17T22:56:22Z",
+          "merge_commit_sha": "45dfdc53752a2e6eb6ba2d2726567c2af3c4158c",
+          "head_sha": "41d8a2c54be1e24f485edc65005b57f7a58aa9bc",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "3c6ecd59": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3c6ecd59/pulls",
+      "prs": [
+        {
+          "number": 1190,
+          "title": "Wave 2 truthfulness: planned reduction, mobile not-measured water card, Ollama pin",
+          "state": "closed",
+          "merged_at": "2026-10-15T08:17:09Z",
+          "merge_commit_sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df",
+          "head_sha": "a1c79971b931e79e15ed80f1184358b6f1ab2a3b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "3d8e41d0f5506170e1df8301c416a66c4087d4fd": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3d8e41d0f5506170e1df8301c416a66c4087d4fd/pulls",
+      "prs": [
+        {
+          "number": 1169,
+          "title": "تكامل A (لا نشر): #1161 · #1162 · #1166 · #1167 · v25b sam2/tiler/erp — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-12T20:32:08Z",
+          "merge_commit_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "head_sha": "d6c53f6f2793f10dfe94ba574a04ff9a92108d51",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "3e6a611943c6315c4601fc897977538728a61bf9": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3e6a611943c6315c4601fc897977538728a61bf9/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "3f300e62": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/3f300e62/pulls",
+      "prs": [
+        {
+          "number": 1175,
+          "title": "قياسُ السجلّ بالمعرّف + حارسُ الأسرار يقرأ الافتراضيَّ المتداخل (بلا نشر)",
+          "state": "closed",
+          "merged_at": "2026-10-13T18:51:12Z",
+          "merge_commit_sha": "cacb643bae9623828d35fa30d5e5f1110574e8a1",
+          "head_sha": "e6e82bb4910ac3b6ecb5f952ffd607292dd38892",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "42769f5f5": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/42769f5f5/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "458f08812": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/458f08812/pulls",
+      "prs": [
+        {
+          "number": 1210,
+          "title": "Redis ACL: one user per service, default user off (compose v9)",
+          "state": "closed",
+          "merged_at": "2026-10-17T22:56:22Z",
+          "merge_commit_sha": "45dfdc53752a2e6eb6ba2d2726567c2af3c4158c",
+          "head_sha": "41d8a2c54be1e24f485edc65005b57f7a58aa9bc",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "4a428008": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/4a428008/pulls",
+      "prs": [
+        {
+          "number": 1176,
+          "title": "fix: unify tenant voice safeguards and verified irrigation comparison",
+          "state": "closed",
+          "merged_at": "2026-10-13T20:57:03Z",
+          "merge_commit_sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1",
+          "head_sha": "b5831542cbd6b73b9777618a1113213b3e4c14b4",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "4b105001e": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/4b105001e/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "4bddf8b7b": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/4bddf8b7b/pulls",
+      "prs": [
+        {
+          "number": 1214,
+          "title": "CI: fetch the live PR body in its own !cancelled() step",
+          "state": "closed",
+          "merged_at": "2026-10-18T11:49:29Z",
+          "merge_commit_sha": "49fd00aac40e7ff7c9a3003ca6e7c316be9fbf75",
+          "head_sha": "c2fd5b29559fa27eb5b52985f448ba89e19afafe",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "4d0799f32c714a87c7840f35232da42d18cbc2b1": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/4d0799f32c714a87c7840f35232da42d18cbc2b1/pulls",
+      "prs": [
+        {
+          "number": 1209,
+          "title": "fix(sam2): enforce checkpoint digest during provisioning",
+          "state": "closed",
+          "merged_at": "2026-10-17T21:57:27Z",
+          "merge_commit_sha": "7f2d7fa0f8d4fb975337316475c019e769cd4447",
+          "head_sha": "7284f58d018e7d6d89c17a56c5fd5663cc4e4681",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "5e7faae1d": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/5e7faae1d/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "62b81409": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/62b81409/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "67b671ed": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/67b671ed/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/6f45d97a8174fd8cc9dd50402ebba3b55f0e9d70/pulls",
+      "prs": [
+        {
+          "number": 1185,
+          "title": "fix(raster): bind cache context and distinguish CDSE catalog failures",
+          "state": "closed",
+          "merged_at": "2026-10-15T00:56:02Z",
+          "merge_commit_sha": "a02c341be05c34c8205245527c71dddcee836a1d",
+          "head_sha": "b90ab13cc159377d77ede3105b8e8444f508128e",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "714ebc35": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/714ebc35/pulls",
+      "prs": [
+        {
+          "number": 1175,
+          "title": "قياسُ السجلّ بالمعرّف + حارسُ الأسرار يقرأ الافتراضيَّ المتداخل (بلا نشر)",
+          "state": "closed",
+          "merged_at": "2026-10-13T18:51:12Z",
+          "merge_commit_sha": "cacb643bae9623828d35fa30d5e5f1110574e8a1",
+          "head_sha": "e6e82bb4910ac3b6ecb5f952ffd607292dd38892",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "78e981da": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/78e981da/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "7e22487b": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/7e22487b/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "7f681edc4": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/7f681edc4/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "80b766a3": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/80b766a3/pulls",
+      "prs": [
+        {
+          "number": 1169,
+          "title": "تكامل A (لا نشر): #1161 · #1162 · #1166 · #1167 · v25b sam2/tiler/erp — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-12T20:32:08Z",
+          "merge_commit_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "head_sha": "d6c53f6f2793f10dfe94ba574a04ff9a92108d51",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "819b3251": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/819b3251/pulls",
+      "prs": [
+        {
+          "number": 1177,
+          "title": "مراجعة #1170: محلّل المحاصيل يرفض تقييماً غير نصّيّ + تسجيل عطل سياسة المستأجر (مسوّدة، ينشر الواجهة)",
+          "state": "closed",
+          "merged_at": "2026-10-13T22:45:09Z",
+          "merge_commit_sha": "b62c05334bfc6f783c459386ce0098a9648f4e0f",
+          "head_sha": "819b32515e02f42d308247f6938b27749911c07a",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "8461c197": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/8461c197/pulls",
+      "prs": [
+        {
+          "number": 1178,
+          "title": "رابطُ القدرات: DEC-006 لإيصال طلب التنفيذ وحده، لا لإيصال مزوّد الصوت",
+          "state": "closed",
+          "merged_at": "2026-10-13T23:42:26Z",
+          "merge_commit_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+          "head_sha": "ff12e0389dafc0dfe7e1d55f5eab671e68d580d3",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "8807d5cc": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/8807d5cc/pulls",
+      "prs": [
+        {
+          "number": 1170,
+          "title": "تكامل B (ينشر عند الدمج): #1163 · #1130 · #1128 · #1165 · محتوى #1122 — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-13T14:58:53Z",
+          "merge_commit_sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+          "head_sha": "f82a759ca7aba7259d811ccf48f87f27b56e897b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "88cbfefd": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/88cbfefd/pulls",
+      "prs": [
+        {
+          "number": 1169,
+          "title": "تكامل A (لا نشر): #1161 · #1162 · #1166 · #1167 · v25b sam2/tiler/erp — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-12T20:32:08Z",
+          "merge_commit_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "head_sha": "d6c53f6f2793f10dfe94ba574a04ff9a92108d51",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "8b209593": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/8b209593/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "8b247263": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/8b247263/pulls",
+      "prs": [
+        {
+          "number": 1218,
+          "title": "ET0: reject physically impossible inputs, 422 with invalid_inputs, FAO-56 Ex.18 and WOFOST golden tests",
+          "state": "closed",
+          "merged_at": "2026-10-18T05:52:04Z",
+          "merge_commit_sha": "503d7d7cf28a9d2af84fa87c47ee46014ce16e57",
+          "head_sha": "b3b1ba5b32fc52c7cc84b3ad1f0e13160437f5b1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "8fbcbf19": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/8fbcbf19/pulls",
+      "prs": [
+        {
+          "number": 1246,
+          "title": "brain: hot.md may shrink only by verbatim archival, under a byte budget that never rises",
+          "state": "closed",
+          "merged_at": "2026-10-19T23:24:32Z",
+          "merge_commit_sha": "e2dbe6515cb5c3a2917d23f303f0784f8bdbeb1b",
+          "head_sha": "26a9fd09966f67b1e16368052f3382d98c3a394a",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "9098e585c": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/9098e585c/pulls",
+      "prs": [
+        {
+          "number": 1210,
+          "title": "Redis ACL: one user per service, default user off (compose v9)",
+          "state": "closed",
+          "merged_at": "2026-10-17T22:56:22Z",
+          "merge_commit_sha": "45dfdc53752a2e6eb6ba2d2726567c2af3c4158c",
+          "head_sha": "41d8a2c54be1e24f485edc65005b57f7a58aa9bc",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "94562557a": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/94562557a/pulls",
+      "prs": [
+        {
+          "number": 1213,
+          "title": "Platform honours auth's revoke-all-sessions floor (compose v9)",
+          "state": "closed",
+          "merged_at": "2026-10-18T12:22:40Z",
+          "merge_commit_sha": "1765d73a036499318beeb6d267fdaf803e4b0a40",
+          "head_sha": "34edaefb216178d08b22624752abb7d139ddf7c6",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "9514d4b60": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/9514d4b60/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "959e9730a5770e3728a3ce504522615820cb7991": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/959e9730a5770e3728a3ce504522615820cb7991/pulls",
+      "prs": [
+        {
+          "number": 1180,
+          "title": "docs(brain): wave-0 reconciliation (#1179) + DEC-006 row cites its main merge",
+          "state": "closed",
+          "merged_at": "2026-10-14T09:16:26Z",
+          "merge_commit_sha": "421a0e7afcecf1de967bf4a26ea9d64788baf1e1",
+          "head_sha": "fcaaabe6668045f03d88eb77850ee8559512b477",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "96f6a034": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/96f6a034/pulls",
+      "prs": []
+    },
+    "9e0328499": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/9e0328499/pulls",
+      "prs": [
+        {
+          "number": 1212,
+          "title": "JWT revocation: platform reads the denylist on auth's Redis server (compose v9)",
+          "state": "closed",
+          "merged_at": "2026-10-18T00:04:07Z",
+          "merge_commit_sha": "44afa75e05166843817a539498a8d5b68edc81e1",
+          "head_sha": "f59cc6070fb88e06eaa05261eedb79f893dbf93c",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "a1730e2cb": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/a1730e2cb/pulls",
+      "prs": [
+        {
+          "number": 1190,
+          "title": "Wave 2 truthfulness: planned reduction, mobile not-measured water card, Ollama pin",
+          "state": "closed",
+          "merged_at": "2026-10-15T08:17:09Z",
+          "merge_commit_sha": "f558b404a5bf9f320807b8b7751f26aaf46fa9df",
+          "head_sha": "a1c79971b931e79e15ed80f1184358b6f1ab2a3b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "a71262bd7": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/a71262bd7/pulls",
+      "prs": [
+        {
+          "number": 1208,
+          "title": "Wave 5 (Claude): learning split by source, review findings guard, Python edge evidence, re-measurement, NATS test fix",
+          "state": "closed",
+          "merged_at": "2026-10-17T21:19:08Z",
+          "merge_commit_sha": "f3936a771a14ec5677d60a03ad8a9f5a902cde0a",
+          "head_sha": "c2c492a31de144d216c5010feca033a536106d32",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "aca40945": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/aca40945/pulls",
+      "prs": [
+        {
+          "number": 1169,
+          "title": "تكامل A (لا نشر): #1161 · #1162 · #1166 · #1167 · v25b sam2/tiler/erp — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-12T20:32:08Z",
+          "merge_commit_sha": "3a8689f6b13b158405ab000baec12284ea29541f",
+          "head_sha": "d6c53f6f2793f10dfe94ba574a04ff9a92108d51",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "b21257edc": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/b21257edc/pulls",
+      "prs": [
+        {
+          "number": 1230,
+          "title": "Accept Vegetation image startup and extend live DLQ/pool recovery proofs",
+          "state": "closed",
+          "merged_at": "2026-10-18T22:07:04Z",
+          "merge_commit_sha": "ee690901097cd80a2d69045f39daed1eb6388305",
+          "head_sha": "b21257edcc42c79d5dc03fa678facd8e2a603fcd",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "b5831542": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/b5831542/pulls",
+      "prs": [
+        {
+          "number": 1176,
+          "title": "fix: unify tenant voice safeguards and verified irrigation comparison",
+          "state": "closed",
+          "merged_at": "2026-10-13T20:57:03Z",
+          "merge_commit_sha": "a0c5c920ac5fd41e4c37935d88ad172518be80a1",
+          "head_sha": "b5831542cbd6b73b9777618a1113213b3e4c14b4",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "b670059c6": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/b670059c6/pulls",
+      "prs": [
+        {
+          "number": 1244,
+          "title": "S3 endpoint policy: never downgrade to plaintext HTTP (boto3 + GDAL)",
+          "state": "closed",
+          "merged_at": "2026-10-20T12:59:54Z",
+          "merge_commit_sha": "18239b410e220e4a53872a5d8aa7ffbef8c34803",
+          "head_sha": "e93f3e80a72695d586be91c57cfdf67a667b9cfd",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "b678ff7356d4b8b4197aaff41014ffcd1f984605": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/b678ff7356d4b8b4197aaff41014ffcd1f984605/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "ba8f646c": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/ba8f646c/pulls",
+      "prs": [
+        {
+          "number": 1157,
+          "title": "ci(brain): ربطُ provenance من مقاطع canonical وحدها — إغلاقُ GAP-REGISTRY-MEASURE-REACHABLE-SHA-IN-STATUS-PROSE-MASKS-UNRECONCILED-FIXED-01 (مكدَّس فوق #1155)",
+          "state": "closed",
+          "merged_at": "2026-10-10T11:45:32Z",
+          "merge_commit_sha": "7310de85688b356612f80ad3c0d6fd98b5d1fff1",
+          "head_sha": "996d8f3714bec43845a285369036e28bf06e41ab",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "bc2489ed": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/bc2489ed/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "be77d6e8f092ea0211ba3664c00438476658829b": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/be77d6e8f092ea0211ba3664c00438476658829b/pulls",
+      "prs": [
+        {
+          "number": 1185,
+          "title": "fix(raster): bind cache context and distinguish CDSE catalog failures",
+          "state": "closed",
+          "merged_at": "2026-10-15T00:56:02Z",
+          "merge_commit_sha": "a02c341be05c34c8205245527c71dddcee836a1d",
+          "head_sha": "b90ab13cc159377d77ede3105b8e8444f508128e",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "bf6fd06e3": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/bf6fd06e3/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "c08f8039": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/c08f8039/pulls",
+      "prs": [
+        {
+          "number": 1177,
+          "title": "مراجعة #1170: محلّل المحاصيل يرفض تقييماً غير نصّيّ + تسجيل عطل سياسة المستأجر (مسوّدة، ينشر الواجهة)",
+          "state": "closed",
+          "merged_at": "2026-10-13T22:45:09Z",
+          "merge_commit_sha": "b62c05334bfc6f783c459386ce0098a9648f4e0f",
+          "head_sha": "819b32515e02f42d308247f6938b27749911c07a",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "c1690182": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/c1690182/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "c2da227a1b40169a650b24035ad476aebe5a1bc2": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/c2da227a1b40169a650b24035ad476aebe5a1bc2/pulls",
+      "prs": [
+        {
+          "number": 1228,
+          "title": "Measured Cropwise insights and CDSE diagnostic corrections",
+          "state": "closed",
+          "merged_at": "2026-10-18T19:08:17Z",
+          "merge_commit_sha": "a97cba6f97e1c10745c64c35dcfa67c2106749a1",
+          "head_sha": "d1847b3500f278c32bb6011e6cca52957dcf615b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "c4fba1bb": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/c4fba1bb/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "cc333fb945a9dfe6f4fa9b3407338546510a4160": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/cc333fb945a9dfe6f4fa9b3407338546510a4160/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "cd9ad2a3e": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/cd9ad2a3e/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "cf43f555008c08518371382ff46ba14251b210a7": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/cf43f555008c08518371382ff46ba14251b210a7/pulls",
+      "prs": [
+        {
+          "number": 1186,
+          "title": "Wave 2 governance: two blind guards fixed, three stale rows reconciled",
+          "state": "closed",
+          "merged_at": "2026-10-14T23:36:18Z",
+          "merge_commit_sha": "698a1c53744f1096118688c1dfc1b5f42c269c2a",
+          "head_sha": "cf43f555008c08518371382ff46ba14251b210a7",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "cf76293d": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/cf76293d/pulls",
+      "prs": [
+        {
+          "number": 1201,
+          "title": "fix: consolidate remaining SAHOOL gap repairs and measured acceptance evidence",
+          "state": "closed",
+          "merged_at": "2026-10-16T23:03:04Z",
+          "merge_commit_sha": "2ca779c6e3341467ef4f79a98f30e7a18632f3b7",
+          "head_sha": "cf76293da96036d476bd9fca4dae04a2a8f1ecbf",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "d2faac8e4": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/d2faac8e4/pulls",
+      "prs": [
+        {
+          "number": 1205,
+          "title": "Wave 4 (Claude): 15 gaps — 9 fixed, 6 partial (outbox, NATS/Postgres TLS v9, compose roster, TAW/Kc single source, startup retry, three class guards, auth client IP)",
+          "state": "closed",
+          "merged_at": "2026-10-17T18:01:17Z",
+          "merge_commit_sha": "f3fd099e98d87b0762a87509df11a9efbfe71f56",
+          "head_sha": "8eee151ab461c49552690588c082eddec8e6961f",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "da9202533f3be8ab39ce1a309ef0ccf241f0cea9": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/da9202533f3be8ab39ce1a309ef0ccf241f0cea9/pulls",
+      "prs": [
+        {
+          "number": 1133,
+          "title": "tools/tts_bakeoff v14: حياةُ العمليّة بهويّتها وفي فضاء PID المختبِر (مسوّدة — العزلُ محجوب)",
+          "state": "closed",
+          "merged_at": "2026-10-06T03:03:21Z",
+          "merge_commit_sha": "9801d07620e25226d2f8306afae3eb6e635e5c2a",
+          "head_sha": "af19b7fab7ef894715dedf58c5b12349c766cbb3",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "dae8a5a5692e8de17b80a49eb8dfd3e2b56221ec": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/dae8a5a5692e8de17b80a49eb8dfd3e2b56221ec/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "dc17ed1a2fe720ff6c468d4878a02cfa912d6b7e": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/dc17ed1a2fe720ff6c468d4878a02cfa912d6b7e/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "df16cc05": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/df16cc05/pulls",
+      "prs": []
+    },
+    "df16cc05c4b666397956bd8c721949045e59b680": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/df16cc05c4b666397956bd8c721949045e59b680/pulls",
+      "prs": []
+    },
+    "e53d3783": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/e53d3783/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "e5407e39": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/e5407e39/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "e64aa55a8497": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/e64aa55a8497/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "e99aa9a3e813fe67b687f6e8dae3843fdd05d2d8": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/e99aa9a3e813fe67b687f6e8dae3843fdd05d2d8/pulls",
+      "prs": [],
+      "result": "GitHub returned no commit for this identifier (422)"
+    },
+    "ea01ff71": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/ea01ff71/pulls",
+      "prs": [
+        {
+          "number": 1170,
+          "title": "تكامل B (ينشر عند الدمج): #1163 · #1130 · #1128 · #1165 · محتوى #1122 — مسوّدة، لا تُدمج إلّا بقرار المالك",
+          "state": "closed",
+          "merged_at": "2026-10-13T14:58:53Z",
+          "merge_commit_sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+          "head_sha": "f82a759ca7aba7259d811ccf48f87f27b56e897b",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "ea0867053": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/ea0867053/pulls",
+      "prs": [
+        {
+          "number": 1244,
+          "title": "S3 endpoint policy: never downgrade to plaintext HTTP (boto3 + GDAL)",
+          "state": "closed",
+          "merged_at": "2026-10-20T12:59:54Z",
+          "merge_commit_sha": "18239b410e220e4a53872a5d8aa7ffbef8c34803",
+          "head_sha": "e93f3e80a72695d586be91c57cfdf67a667b9cfd",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "ed78cf5c": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/ed78cf5c/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "f25b7d5f": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/f25b7d5f/pulls",
+      "prs": [
+        {
+          "number": 1218,
+          "title": "ET0: reject physically impossible inputs, 422 with invalid_inputs, FAO-56 Ex.18 and WOFOST golden tests",
+          "state": "closed",
+          "merged_at": "2026-10-18T05:52:04Z",
+          "merge_commit_sha": "503d7d7cf28a9d2af84fa87c47ee46014ce16e57",
+          "head_sha": "b3b1ba5b32fc52c7cc84b3ad1f0e13160437f5b1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "f31013afa": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/f31013afa/pulls",
+      "prs": [
+        {
+          "number": 1198,
+          "title": "Wave 3: python-jose → PyJWT, gateway rate limit, frontend readyz, well-blend quality, two P0 guards",
+          "state": "closed",
+          "merged_at": "2026-10-15T17:19:46Z",
+          "merge_commit_sha": "239c01a47442df13d9cbb492017afae103b98dc8",
+          "head_sha": "1f32be3169796b18859a80d22efcb564a75103d1",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "fc1f5ec3": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/fc1f5ec3/pulls",
+      "prs": [
+        {
+          "number": 1211,
+          "title": "fix(raster): durable receipt-anchored imagery follow-up",
+          "state": "closed",
+          "merged_at": "2026-10-18T10:17:30Z",
+          "merge_commit_sha": "ac1e48df48eb1553f33180bef5cccf88e5948811",
+          "head_sha": "8aa6d883ea19f19766c860dd18824d8242ec71e4",
+          "base_ref": "main"
+        }
+      ]
+    },
+    "ff12e038": {
+      "url": "https://api.github.com/repos/kafaat/ai_platform_complete_v2.0.0_enhanced/commits/ff12e038/pulls",
+      "prs": [
+        {
+          "number": 1178,
+          "title": "رابطُ القدرات: DEC-006 لإيصال طلب التنفيذ وحده، لا لإيصال مزوّد الصوت",
+          "state": "closed",
+          "merged_at": "2026-10-13T23:42:26Z",
+          "merge_commit_sha": "53652e02b3c80fa5747a0ad0e7c6f7ed9c408d4b",
+          "head_sha": "ff12e0389dafc0dfe7e1d55f5eab671e68d580d3",
+          "base_ref": "main"
+        }
+      ]
+    }
+  },
+  "extra_proof": {
+    "objects": [
+      {
+        "sha": "23e8ef265",
+        "full": "23e8ef265fe6a12f3778040061866b1272f4c19e",
+        "tree": "8b209593c1596bf3583ec546e4d5984cf542f0b6",
+        "subject": "Merge b670059c6bad8f4215ff5b814370589d240d1389 into c9e8c15e03a60a6644b02bb453e54de9cc31f212"
+      },
+      {
+        "sha": "b670059c6",
+        "full": "b670059c6bad8f4215ff5b814370589d240d1389",
+        "tree": "8b209593c1596bf3583ec546e4d5984cf542f0b6",
+        "subject": "Regenerate artifacts"
+      },
+      {
+        "sha": "b21257edc",
+        "full": "b21257edcc42c79d5dc03fa678facd8e2a603fcd",
+        "tree": "284f53e64329924276e923d0be0e02167c46fc32",
+        "subject": "test(ci): remeasure mutation sweep headroom from merged CI evidence"
+      }
+    ],
+    "extra_commit_links": [
+      {
+        "sha": "71e46c22",
+        "prs": [
+          {
+            "number": 1170,
+            "merge_commit_sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+            "merged_at": "2026-10-13T14:58:53Z"
+          }
+        ]
+      },
+      {
+        "sha": "ae6ef55c",
+        "prs": [
+          {
+            "number": 1170,
+            "merge_commit_sha": "18b64ed0f0ef11be90341cb3c304a194db63bfaa",
+            "merged_at": "2026-10-13T14:58:53Z"
+          }
+        ]
+      }
+    ]
+  },
+  "cache_merge_byte_proof": [
+    {
+      "path": "services/raster-service/cdse_client.py",
+      "expected": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+      "actual": "7018eb4e7e97ca8cdae95388b3cec231c6f5a1e652ee3f33933438ba1c2bc90e",
+      "match": true
+    },
+    {
+      "path": "services/raster-service/stac_search.py",
+      "expected": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+      "actual": "9b9ed5769098f37de9e5ff89043518f05ac09cfdc1eb27b721bb4403a855077c",
+      "match": true
+    },
+    {
+      "path": "services/raster-service/raster_pixel_processing.py",
+      "expected": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+      "actual": "3b0b77cee04c726284f3e309fb05898938ada08de06889bbff50cbe40e9675e6",
+      "match": true
+    },
+    {
+      "path": "services/raster-service/test_element84_vrt_defect_witnesses.py",
+      "expected": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+      "actual": "92d07a52091377aac80f7eb6e47ed525416c51dc008601fabc07fb075d26b318",
+      "match": true
+    },
+    {
+      "path": "tests_v9/test_cdse_catalog_hardening_20260626.py",
+      "expected": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+      "actual": "8d244750e4cd0ea3ef876597c413fd92ffbfc9917a57938c5a82264fac7af019",
+      "match": true
+    },
+    {
+      "path": "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
+      "expected": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86",
+      "actual": "18e93fc7a97520edad89cef3312187595d515e81f913a79817620e353c984e86",
+      "match": true
+    }
+  ],
+  "unresolved_local_repair_byte_comparison": [
+    {
+      "receipt": "certification/evidence/chatgpt_closure_nine_20261016/radiometry/report.json",
+      "key": "files_sha256",
+      "files": [
+        {
+          "path": "services/raster-service/stac_c1_processing.py",
+          "expected": "f0d460bc1e5a263330fde013ed342ee865ed7b1aff4e03a985047380917bff68",
+          "actual": "f0d460bc1e5a263330fde013ed342ee865ed7b1aff4e03a985047380917bff68",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/test_stac_c1_processing.py",
+          "expected": "e229ba24fdfbc2cee1b364002b7ce36d5d11fdea344fd38dba6210c1b8e33c90",
+          "actual": "e229ba24fdfbc2cee1b364002b7ce36d5d11fdea344fd38dba6210c1b8e33c90",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/stac_vrt.py",
+          "expected": "71f76ddbc1e73cc38444daa38a6b84d573401df2de22d760cbb8a60750b7197d",
+          "actual": "71f76ddbc1e73cc38444daa38a6b84d573401df2de22d760cbb8a60750b7197d",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/stac_search.py",
+          "expected": "ebc6961639b30ef115df446a6d122c320a4294e9d7aff2a7e7321d5f194160fc",
+          "actual": "ebc6961639b30ef115df446a6d122c320a4294e9d7aff2a7e7321d5f194160fc",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/raster_settings.py",
+          "expected": "f70f6719f5f8f19caba24aca42ffa6dd46b795e7b96960145adbcd5ee30b8f7d",
+          "actual": "f70f6719f5f8f19caba24aca42ffa6dd46b795e7b96960145adbcd5ee30b8f7d",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/backfill_scan_worker.py",
+          "expected": "115e1969a3fa0227706b6ab74816d81952ede3b531e50010a013f2e085bbed42",
+          "actual": "2601a5038ea87246ad6c8f63102816c6733616802de18170f05a7eae6954aa74",
+          "match": false
+        },
+        {
+          "path": "services/raster-service/routers/fields.py",
+          "expected": "bcd3066e74bce8e8c820d88f15cbe172854a23f7952c228382f33e3a80d3e434",
+          "actual": "5a2220026fb75087aac7ae54531a8e8821b562fac93694f670b3506538c19bd9",
+          "match": false
+        }
+      ]
+    },
+    {
+      "receipt": "certification/evidence/chatgpt_closure_nine_20261016/integration/imagery-final-review.json",
+      "key": "source_sha256",
+      "files": [
+        {
+          "path": "services/raster-service/backfill_scan_worker.py",
+          "expected": "cfeee3db8434b8af2df728c4e5a60f5d62a7d86e92ded29b8211eb0f9e4aebff",
+          "actual": "2601a5038ea87246ad6c8f63102816c6733616802de18170f05a7eae6954aa74",
+          "match": false
+        },
+        {
+          "path": "services/raster-service/cdse_client.py",
+          "expected": "99e59460bf00d9649db05a5a50185df51e01e7baee4dcce9266fa0c95fcfead1",
+          "actual": "99e59460bf00d9649db05a5a50185df51e01e7baee4dcce9266fa0c95fcfead1",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/cdse_native_product.py",
+          "expected": "9295d706a90429f60bd2ed75e9a369dec030153973dc109e9a898e84d1d39add",
+          "actual": "20cf9b7d3c8eff1d2a4024b2eab4ee92c49c3550c6722290634d33db5cde1b82",
+          "match": false
+        },
+        {
+          "path": "services/raster-service/raster_asset_persistence.py",
+          "expected": "76bd25b69be6d672ad9cc56fcba2257b24fe33e9d37832d077a56768eff3e4ef",
+          "actual": "76bd25b69be6d672ad9cc56fcba2257b24fe33e9d37832d077a56768eff3e4ef",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/raster_pixel_processing.py",
+          "expected": "1aa2a995f7f28d73840122fd44f9fddd2da22c96ea78c74e2aca6caa421ecc97",
+          "actual": "1aa2a995f7f28d73840122fd44f9fddd2da22c96ea78c74e2aca6caa421ecc97",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/test_backfill_processing_version_preflight.py",
+          "expected": "b4cc96433a92010184209f74ef5d81464febde19dfa9e4ca02fd58dfef492094",
+          "actual": "b4cc96433a92010184209f74ef5d81464febde19dfa9e4ca02fd58dfef492094",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/test_cdse_native_product.py",
+          "expected": "08d5c8b862d5b19adf82ef54fa78c90c214c8946ec4310327ce1cc2f9ebf3691",
+          "actual": "08d5c8b862d5b19adf82ef54fa78c90c214c8946ec4310327ce1cc2f9ebf3691",
+          "match": true
+        },
+        {
+          "path": "services/raster-service/test_raster_durable_identity.py",
+          "expected": "fac60428b5523f772f9755c5bcc9f8d31b9bc2e497c0b3c13cda314fa417902f",
+          "actual": "fac60428b5523f772f9755c5bcc9f8d31b9bc2e497c0b3c13cda314fa417902f",
+          "match": true
+        },
+        {
+          "path": "tests_v9/test_vegetation_raster_ndvi.py",
+          "expected": "331a646e19b6becd54bf76052f0858cf427c104a2b53d9cb2fcc805c10eb8112",
+          "actual": "331a646e19b6becd54bf76052f0858cf427c104a2b53d9cb2fcc805c10eb8112",
+          "match": true
+        }
+      ]
+    },
+    {
+      "receipt": "certification/evidence/chatgpt_closure_nine_20261016/integration/rag-profile-review.json",
+      "key": "file_sha256",
+      "files": [
+        {
+          "path": ".env.example",
+          "expected": "0b8b3df2d2374030e31ada78e33f6df373032812f093f79d233aba7aa0c1dbae",
+          "actual": "0b8b3df2d2374030e31ada78e33f6df373032812f093f79d233aba7aa0c1dbae",
+          "match": true
+        },
+        {
+          "path": "services/qdrant-seed/reindex.py",
+          "expected": "8edd4f7485e101d19da43c82fe50bf8c3df69ec4d03585c7d5f71242dbb4f40a",
+          "actual": "b2533e9e8a3c82923291a0ee7d3e75719952a9aeaab04b9e39271e762bead751",
+          "match": false
+        },
+        {
+          "path": "services/rag-retrieval/main.py",
+          "expected": "eca7f8ed4f6520f76e0cc4703d6bb920d6512ed81a51dcac9474dfb024c1fb9c",
+          "actual": "2fea3738ea08c355b7660799efd07eda22c060f24cd86401caff45ed4d2bb80b",
+          "match": false
+        },
+        {
+          "path": "services/rag-retrieval/Dockerfile",
+          "expected": "1a4bf9c33f2dd621ea1db46593bf25525c78bbfae2148c7df08f3a474490cd93",
+          "actual": "e944734be0aab4f7e355bc1d2773b724bb1d5bfc16bc61b53bdf220f111309bf",
+          "match": false
+        },
+        {
+          "path": "services/rag-retrieval/runtime_transport.py",
+          "expected": "93a274a12f3c1ee3cc014877b4c5fa11c777938225ee1daff0736830330d46a7",
+          "actual": "f425ad134ee44fce6e8f6b4420b6382f3a379a05290569ffc6a7f45d9efcaae7",
+          "match": false
+        },
+        {
+          "path": "services/sahool-platform/core/rag/production_qdrant.py",
+          "expected": "14909581f3ba083ab061be2e3d6903035b013507135ed06069afbf371b95a28c",
+          "actual": "5742d2d86fb1809991abae5f103b033d17cad2163e0056f542c69ef58fb0f371",
+          "match": false
+        },
+        {
+          "path": "services/sahool-platform/core/rag/reindex_manifest.py",
+          "expected": "d2d0afc2e61acb99d10ff67798c590c96df63e81848c732f7c80242df6a50a83",
+          "actual": null,
+          "match": false
+        },
+        {
+          "path": "services/sahool-platform/core/rag/retrieval_profile.py",
+          "expected": "05d36a0f19625360b3814e44aff3905afca1c0a07810c79c2fab1d3796c31434",
+          "actual": null,
+          "match": false
+        },
+        {
+          "path": "tests_v9/test_rag_versioned_nomic_profile.py",
+          "expected": "05fc81a6a03e7466f5f34680930c49876ab6b86e1b079ee900cee6fc6742be05",
+          "actual": "48a89d3314b2fe18d79416acfd825142a45f044750e42daee58238362eb8545d",
+          "match": false
+        },
+        {
+          "path": "tests_v9/test_rag_reindex_transport.py",
+          "expected": "5f64b2554b3d670fd461c5991429ef536fd1d1417c6994cac098289b85d006ee",
+          "actual": "5f64b2554b3d670fd461c5991429ef536fd1d1417c6994cac098289b85d006ee",
+          "match": true
+        },
+        {
+          "path": "docs/runbooks/RAG_VERSIONED_REINDEX.md",
+          "expected": "77282ae4c4ea80242069cd7bcda3f1fe50d5c928c2a648457f3de7ccebd791df",
+          "actual": "d59de2b85bdf6fd11c18643198f0768398644e3e1b397f1dbd4ca18d015ffe7e",
+          "match": false
+        }
+      ]
+    }
+  ],
+  "unresolved_nats_blob_comparison": [
+    {
+      "sha": "96f6a034c2ab84341d6088a51eef87ccb8338d73",
+      "files": [
+        {
+          "path": ".env.example",
+          "blob": "14cfb2a4470da9888af84133eca34ba8c8b82b8f"
+        },
+        {
+          "path": ".github/workflows/notification-rollout.yml",
+          "blob": "fc20022d88a2260bd5e351e77d329a838081c301"
+        },
+        {
+          "path": ".gitignore",
+          "blob": "467f469232ada4e1ffebafc9a6c5b7ed12fc9f70"
+        },
+        {
+          "path": "docker-compose.v9.yml",
+          "blob": "6b2dc697b4256c983180b38cc36aa8b59df9801d"
+        },
+        {
+          "path": "docs/architecture/component_registry.json",
+          "blob": "e278b3610f538ccde6a7c257cdb2cae9be278354"
+        },
+        {
+          "path": "docs/architecture/guard_mutation_registry.json",
+          "blob": "458742d27919b4257350b1ff67a147e1b26087a1"
+        },
+        {
+          "path": "docs/architecture/nats_subject_ownership_contract.json",
+          "blob": "a304a398a8e0742cf1d5eaaef8862da3d16efb0b"
+        },
+        {
+          "path": "nats/nats.conf",
+          "blob": "4062833776ccdfa900efa69d8498a4292adefed0"
+        },
+        {
+          "path": "scripts/nats/ensure_nats_tls.sh",
+          "blob": "d01868cc6fd1049ec986c26fdbf728fe30440992"
+        },
+        {
+          "path": "services/sahool-platform/api/main.py",
+          "blob": "348d43089279073f688fa534767e2fb0e3f64ae5"
+        },
+        {
+          "path": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "blob": "56dae0a2caac523f2bda055774c2d80e01ff6e05"
+        },
+        {
+          "path": "services/vegetation-analysis-service/vegetation_runtime.py",
+          "blob": "af49a0650edf6bcb0aecfe75c5b39193c43d4753"
+        },
+        {
+          "path": "services/weather-polygon-worker/src/main.py",
+          "blob": "cb7271bd3e78183d64cb1d27f4faac20868861b0"
+        },
+        {
+          "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
+          "blob": "63f447ef522c98d7447053f30566652da06fc5c0"
+        },
+        {
+          "path": "tests_v9/test_env_compose_default_override_guard.py",
+          "blob": "aa753a67e6d26d23c2025096930160fa86fef78c"
+        },
+        {
+          "path": "tests_v9/test_nats_broker_authentication.py",
+          "blob": "419428a82273ec6b845cd3bdee90211e904f633f"
+        },
+        {
+          "path": "tests_v9/test_nats_least_privilege.py",
+          "blob": "7c0a43c7b39807ac00e2ae8a5c5a98a0e6f7810d"
+        },
+        {
+          "path": "tests_v9/test_nats_subject_ownership_contract.py",
+          "blob": "971de804d0111cdd60f62d30da3566f900a96607"
+        },
+        {
+          "path": "tests_v9/test_nats_tls_init.py",
+          "blob": "fc281adcfcd9837f0969955170b845925ab3875f"
+        }
+      ]
+    },
+    {
+      "sha": "d2faac8e4ab68a0ccb9661dd92d2a5cc74fc9c70",
+      "files": [
+        {
+          "path": ".env.example",
+          "blob": "5c29b0a7656b146b4693da830f21f00cfde68909"
+        },
+        {
+          "path": ".github/workflows/notification-rollout.yml",
+          "blob": "d8fbd1597e382253abdc8e3765b0218a4d70fdd6"
+        },
+        {
+          "path": ".gitignore",
+          "blob": "467f469232ada4e1ffebafc9a6c5b7ed12fc9f70"
+        },
+        {
+          "path": "docker-compose.v9.yml",
+          "blob": "0aafc499bfb09f217bb66b86e347d4ea9cad8c74"
+        },
+        {
+          "path": "docs/architecture/component_registry.json",
+          "blob": "e278b3610f538ccde6a7c257cdb2cae9be278354"
+        },
+        {
+          "path": "docs/architecture/guard_mutation_registry.json",
+          "blob": "4935a2cac61a692f01b489fb03636f665fc060cb"
+        },
+        {
+          "path": "docs/architecture/nats_subject_ownership_contract.json",
+          "blob": "0e1d1acf383242a3ec1808d8ea21fcd6526a1819"
+        },
+        {
+          "path": "nats/nats.conf",
+          "blob": "a9300a856fa4e992389f75e0c96c34ec223ac4b7"
+        },
+        {
+          "path": "scripts/tls/ensure_service_tls.sh",
+          "blob": "2ac8df9f5205748c8dc55d9b350b5b9e4daace37"
+        },
+        {
+          "path": "services/sahool-platform/api/main.py",
+          "blob": "16ed6ae38216564e15fd8d4809f43205b3470eb5"
+        },
+        {
+          "path": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "blob": "9c888e8bfc01f1f799d7c8aef688157bba710b87"
+        },
+        {
+          "path": "services/vegetation-analysis-service/vegetation_runtime.py",
+          "blob": "9cc4108a48591804a997a78e769923041cf9f5fb"
+        },
+        {
+          "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
+          "blob": "75abea299e0dd10df8ab8dbe436b300de8d3cbd4"
+        },
+        {
+          "path": "tests_v9/test_env_compose_default_override_guard.py",
+          "blob": "5a15988a3d0d8d0a8d65c1aeed2b9c993c04e087"
+        },
+        {
+          "path": "tests_v9/test_nats_broker_authentication.py",
+          "blob": "4a43c2942f25ab34eedeb2e6a044a5e95e12d442"
+        },
+        {
+          "path": "tests_v9/test_nats_least_privilege.py",
+          "blob": "159c4e6b5f4be26371bde9ef1a7d7f96f752224e"
+        },
+        {
+          "path": "tests_v9/test_nats_subject_ownership_contract.py",
+          "blob": "971de804d0111cdd60f62d30da3566f900a96607"
+        },
+        {
+          "path": "tests_v9/test_nats_tls_init.py",
+          "blob": "3d5e766633a1c9773e291c551f91558db09cc996"
+        },
+        {
+          "path": "tests_v9/test_service_tls_init.py",
+          "blob": "666133c1eef54fedcae0cacf223381ba72334725"
+        }
+      ]
+    }
+  ]
+}

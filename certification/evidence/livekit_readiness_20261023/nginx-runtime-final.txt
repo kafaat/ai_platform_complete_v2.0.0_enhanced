@@ -1,0 +1,6 @@
+test_cold_start_routing_auth_and_dns_recovery (__main__.RuntimeContract.test_cold_start_routing_auth_and_dns_recovery) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 33.458s
+
+OK

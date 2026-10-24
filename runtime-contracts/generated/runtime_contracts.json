@@ -1166,6 +1166,7 @@
         "JWT_PUBLIC_KEY",
         "MCP_SERVICE",
         "ODOO_BRIDGE_URL",
+        "OPEN_METEO_ARCHIVE_URL",
         "RASTER_SERVICE_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_API_URL",
@@ -1704,6 +1705,136 @@
           "configuration_declared": true,
           "dockerfile": true,
           "entrypoint": true,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 3,
+        "score_pct": 42.9,
+        "total": 7
+      },
+      "configuration": [
+        "LIVEKIT_URL",
+        "REALTIME_AI_ORIGIN",
+        "REALTIME_SESSION_ORIGIN",
+        "REALTIME_STT_BUNDLE_SHA256",
+        "REALTIME_STT_MODEL_PATH",
+        "REALTIME_STT_MODEL_SHA256",
+        "REALTIME_TTS_ORIGIN",
+        "REALTIME_TTS_PROVIDER",
+        "SAHOOL_REALTIME_VOICE_ENABLED"
+      ],
+      "container": {
+        "dockerfile": "services/realtime-agent/Dockerfile",
+        "requirements": "services/realtime-agent/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "services/realtime-agent/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/realtime-agent/main.py",
+          "services/realtime-agent/realtime_agent/config.py"
+        ],
+        "metrics": [],
+        "routes": [],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET",
+        "REALTIME_WORKER_SECRET"
+      ],
+      "service": "realtime-agent",
+      "source_service": "realtime-agent",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "LIVEKIT_AUTO_CREATE_DISABLED",
+        "LIVEKIT_URL",
+        "LIVEKIT_WS_URL",
+        "PLATFORM_API_URL",
+        "REALTIME_SQLITE_PATH",
+        "SAHOOL_REALTIME_ENABLED",
+        "SAHOOL_REALTIME_MEDIA_TRUST",
+        "SAHOOL_REALTIME_VOICE_ENABLED"
+      ],
+      "container": {
+        "dockerfile": "services/realtime-session/Dockerfile",
+        "requirements": "services/realtime-session/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/realtime-session/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/realtime-session/realtime_session/session_runtime.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/realtime-session/realtime_session/platform.py",
+          "services/realtime-session/realtime_session/session_runtime.py",
+          "services/realtime-session/realtime_session/webhooks.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET",
+        "REALTIME_WORKER_SECRET"
+      ],
+      "service": "realtime-session",
+      "source_service": "realtime-session",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
           "health": true,
           "metrics_endpoint_or_instrumentation": false,
           "readiness": true,
@@ -2193,6 +2324,7 @@
           "services/sahool-platform/api/weather_service_client.py",
           "services/sahool-platform/smoke_e2e_test.py",
           "services/sahool-platform/tests/test_break_glass.py",
+          "services/sahool-platform/tests/test_chat_proxy.py",
           "services/sahool-platform/tests/test_correlation_middleware.py",
           "services/sahool-platform/tests/test_crop_stress_facades_guard.py",
           "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",

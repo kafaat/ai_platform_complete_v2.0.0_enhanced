@@ -79,12 +79,15 @@ async def create_stream(
         state="pending",
         last_event="stream.started",
     )
-    await emit_stream_event(build_stream_event("stream.started", entry, ts=entry.created_at))
+    started = build_stream_event("stream.started", entry, ts=entry.created_at)
+    await emit_stream_event(started)
 
+    # The capture URL stays private to StreamState/registry. Never echo RTSP
+    # userinfo or URI query credentials in the HTTP response or event transport.
     return {
         "stream_id": req.stream_id,
         "status": "starting",
-        "source": source,
+        "source_type": started["source_type"],
     }
 
 

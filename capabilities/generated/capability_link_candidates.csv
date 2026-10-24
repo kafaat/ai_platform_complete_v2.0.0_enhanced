@@ -86,7 +86,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:630,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:681,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:520,2,applied
-DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:252,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:254,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:740,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2202,3,applied
@@ -548,7 +548,7 @@ FM-003,api,POST /api/v1/fields/{field_id}/growth-narrative @ services/sahool-pla
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:927,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:668,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:724,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:221,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:184,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35,4,applied
@@ -1081,6 +1081,7 @@ GIS-002,test,services/sahool-platform/tests/test_yield_map_ingestion.py,3,applie
 GIS-002,test,tests_v9/test_a6_print_map.py,3,applied
 GIS-002,test,tests_v9/test_evidence_map_shape.py,3,applied
 GIS-002,test,tests_v9/test_layer_evict_v30_9.py,3,applied
+GIS-002,test,tests_v9/test_map_and_weather_data_credit.py,3,applied
 GIS-002,test,tests_v9/test_service_map_image_pin_parity.py,3,applied
 GIS-002,test,tests_v9/test_soil_layer_v31_7.py,3,applied
 GIS-002,test,tests_v9/test_terrain_layers_v31_6.py,3,applied
@@ -1114,10 +1115,13 @@ GIS-004,test,tests_v9/test_spatial_e2e_smoke.py,3,applied
 INT-001,api,GET /v1/ecosystem/sdk/manifest @ services/sahool-platform/api/phase12_marketplace_ecosystem.py:185,3,applied
 INT-001,service,services/sahool-platform/api/main.py,10,applied
 INT-002,service,services/sahool-platform/api/main.py,10,applied
+INT-002,test,tests/architecture/test_nats_compose_acceptance.py,3,applied
 INT-002,test,tests_v9/test_event_bus_invariants.py,5,applied
 INT-002,test,tests_v9/test_h2_nats_publishers_flag.py,3,applied
 INT-002,test,tests_v9/test_nats_broker_authentication.py,3,applied
+INT-002,test,tests_v9/test_nats_compose_policy.py,3,applied
 INT-002,test,tests_v9/test_nats_least_privilege.py,3,applied
+INT-002,test,tests_v9/test_nats_password_expansion.py,3,applied
 INT-002,test,tests_v9/test_nats_publisher_coverage.py,3,applied
 INT-002,test,tests_v9/test_nats_tls_init.py,3,applied
 INT-002,test,tests_v9/test_outbox_requires_jetstream_ack.py,3,applied
@@ -1140,7 +1144,7 @@ IRR-002,test,services/sahool-platform/tests/test_irrigation_blend_water_quality.
 IRR-003,service,services/sahool-platform/api/main.py,10,applied
 IRR-003,test,services/decision-service/tests/test_manual_irrigation_source_binding.py,3,applied
 IRR-003,test,tests_v9/test_h51_field_source_binding_pg.py,3,applied
-IRR-004,api,POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:63,5,applied
+IRR-004,api,POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:66,5,applied
 IRR-004,service,services/sahool-platform/api/main.py,10,applied
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_trigger.py,3,applied
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py,3,applied
@@ -1149,10 +1153,10 @@ IRR-004,test,tests_v9/test_h5_water_balance_auto.py,5,applied
 IRR-005,api,GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:388,3,applied
 IRR-005,api,GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:648,3,applied
 IRR-005,api,GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593,3,applied
-IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:221,7,applied
+IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:184,7,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:542,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:329,3,applied
-IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:145,7,applied
+IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:106,7,applied
 IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:526,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922,3,applied
 IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,3,applied
@@ -1376,7 +1380,7 @@ PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export 
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:745,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1096,2,applied
-PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:396,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
@@ -1684,6 +1688,7 @@ SAT-009,api,POST /v1/terrain/slope @ services/raster-service/routers/analysis.py
 SAT-009,api,POST /v1/upload/drone @ services/raster-service/routers/storage.py:43,3,applied
 SAT-009,api,POST /v1/upload/raster @ services/raster-service/routers/storage.py:26,3,applied
 SAT-009,api,POST /v1/zones/classify @ services/raster-service/routers/analysis.py:30,3,applied
+SAT-009,mobile,mobile/sahool_app/packages/pmtiles/lib/src/tile.dart,2,applied
 SAT-009,service,services/raster-service/main.py,10,applied
 SAT-009,test,services/raster-service/test_available_dates_provider_datetime.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied
@@ -1970,6 +1975,7 @@ WX-004,test,services/weather-service/tests/test_et0.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_agro_product.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_reference_and_input_validity.py,3,applied
 WX-004,test,services/weather-service/tests/test_et0_series.py,3,applied
+WX-004,test,tests_v9/test_et0_http_platform_hop.py,3,applied
 WX-004,test,tests_v9/test_mcp_weather_et0_engine_delegation.py,3,applied
 WX-005,api,POST /v1/weather/agro/vpd @ services/weather-service/main.py:43,3,applied
 WX-005,service,services/weather-service/main.py,10,applied

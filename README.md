@@ -16,7 +16,12 @@
 
 ## مصادر البيانات
 
-### ① Open-Meteo (مجاني — بلا API key)
+### ① Open-Meteo (الواجهة المجانية لغير التجاري فقط)
+
+الواجهة المجانية بلا مفتاح مقصورة بشروط Open-Meteo على الاستخدام غير التجاري؛ الاستخدام التجاري
+يحتاج اشتراكاً بمفتاح أو نسخة مستضافة ذاتياً. القرار معلق لدى المالك:
+[`docs/architecture/decisions_pending/OPEN-METEO-COMMERCIAL-TERMS-01.md`](docs/architecture/decisions_pending/OPEN-METEO-COMMERCIAL-TERMS-01.md).
+
 ```
 https://archive-api.open-meteo.com/v1/archive
 المتغيرات: tmax, tmin, rain, radiation, ET0_FAO

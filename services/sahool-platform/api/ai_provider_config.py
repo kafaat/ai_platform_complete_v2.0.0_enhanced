@@ -49,6 +49,12 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
     "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
+# تفضيلات توجيه OpenRouter للخصوصيّة ولاحقة النماذج المرفوضة — مرآة
+# ``shared/ai/provider_contract.OPENROUTER_PROVIDER_PREFERENCES`` و
+# ``OPENROUTER_REFUSED_MODEL_SUFFIX`` (يفرض التطابقَ الحارس؛ المصدر الأوّليّ مذكور هناك).
+_OPENROUTER_PROVIDER_PREFERENCES: dict[str, object] = {"data_collection": "deny", "zdr": True}
+_OPENROUTER_REFUSED_MODEL_SUFFIX = ":free"
+
 
 def _normalize_provider(raw: str | None) -> str:
     """يطبّع اسم المزوّد: ollama/local ⇒ local · claude/anthropic ⇒ anthropic ·
@@ -126,6 +132,15 @@ class AIProviderConfig:
     reason_ar: str = ""
     wire_format: str = "messages"  # 'messages' (Anthropic) | 'openai_chat' (Ollama/vLLM/OpenRouter)
     models: list[dict[str, str]] = field(default_factory=list)
+
+    @property
+    def request_extras(self) -> dict[str, object]:
+        """حقول جسم الطلب الخاصّة بالمزوّد، تُدمَج خادميّاً فوق الحمولة (تغلب ما ترسله
+        الواجهة). OpenRouter: ``provider`` بـ``data_collection=deny`` و``zdr=true``؛
+        غيره: لا شيء. نسخة جديدة في كلّ قراءة."""
+        if self.provider == "openrouter":
+            return {"provider": dict(_OPENROUTER_PROVIDER_PREFERENCES)}
+        return {}
 
     @property
     def messages_endpoint(self) -> str:
@@ -239,8 +254,21 @@ def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
             missing.append("OPENROUTER_API_KEY")
         if not model:
             missing.append("AI_MODEL (أو كتالوج AI_MODELS)")
-        available = not missing
-        reason = "" if available else f"المزوّد openrouter يحتاج: {', '.join(missing)}."
+        reasons = [f"المزوّد openrouter يحتاج: {', '.join(missing)}."] if missing else []
+        # معرّف ``:free`` في AI_MODEL أو الكتالوج ⇒ رفض التهيئة كلّها بسبب يسمّيه
+        # (fail-closed)، لا اختيار صامت لنموذج آخر.
+        configured = [shared_model] + [m["id"] for m in catalog]
+        refused = sorted(
+            {mid for mid in configured if mid.lower().endswith(_OPENROUTER_REFUSED_MODEL_SUFFIX)}
+        )
+        if refused:
+            reasons.append(
+                f"نماذج OpenRouter المنتهية بـ'{_OPENROUTER_REFUSED_MODEL_SUFFIX}' مرفوضة: "
+                f"{', '.join(refused)}. أزِلها من AI_MODEL/AI_MODELS؛ مطالبات المزارعين "
+                "لا تُرسَل إلى المسارات المجّانيّة."
+            )
+        available = not reasons
+        reason = " ".join(reasons)
         return AIProviderConfig(
             provider="openrouter",
             base_url=base_url,

@@ -74,4 +74,4 @@ jobs:
         env:
           NATS_LEAST_PRIVILEGE_LIVE_REQUIRED: "1"
           NATS_SERVER_BIN: ${{ runner.temp }}/nats-server-v2.15.0-linux-amd64/nats-server
-        run: pytest -v -rs tests_v9/test_nats_least_privilege.py
+        run: pytest -v -rs tests_v9/test_nats_least_privilege.py tests_v9/test_nats_password_expansion.py

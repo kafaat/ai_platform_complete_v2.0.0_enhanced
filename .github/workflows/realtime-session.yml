@@ -1,0 +1,78 @@
+name: Realtime Session Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'services/realtime-session/**'
+      - 'tests_v9/test_realtime_*.py'
+      - '.github/workflows/realtime-session.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/realtime-session/**'
+      - 'tests_v9/test_realtime_*.py'
+      - '.github/workflows/realtime-session.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pr-{1}', github.workflow, github.event.pull_request.number) || format('{0}-{1}-{2}', github.workflow, github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  isolated-service:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      # Isolated deployment: its SDK requires PyJWT 2.15.1 while existing services
+      # retain 2.15.0. Never resolve these independent containers as one environment.
+      - name: Install the isolated runtime and test tools
+        run: python -m pip install -r services/realtime-session/requirements.txt 'pytest>=8.2' 'pytest-asyncio>=0.23' pip-audit==2.10.1
+      - name: Audit the isolated runtime
+        run: python -m pip_audit -r services/realtime-session/requirements.txt
+      - name: Require SDK before collecting webhook tests
+        run: python -c 'from livekit import api; assert api.WebhookReceiver'
+      - name: Test authorization, leases and actual SDK grants
+        run: python -m pytest -q -o addopts='' tests_v9/test_realtime_session_*.py tests_v9/test_realtime_voice_jobs.py tests_v9/test_realtime_webhooks.py services/realtime-session/tests/ --junitxml=realtime-session-results.xml
+      - name: Build the service image
+        run: docker build -f services/realtime-session/Dockerfile -t sahool-realtime-session:test .
+      - name: Verify the disabled image with real HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f realtime-session-smoke >/dev/null 2>&1 || true' EXIT
+          docker run -d --name realtime-session-smoke -p 127.0.0.1:18090:8000 sahool-realtime-session:test
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18090/healthz >/dev/null; then break; fi
+            echo "Waiting for the disabled image ($attempt/30)"
+            sleep 1
+          done
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+          with urllib.request.urlopen('http://127.0.0.1:18090/healthz', timeout=3) as response:
+              assert response.status == 200
+          try:
+              urllib.request.urlopen('http://127.0.0.1:18090/readyz', timeout=3)
+          except urllib.error.HTTPError as error:
+              assert error.code == 503
+              assert json.loads(error.read()) == {'ready': False}
+          else:
+              raise AssertionError('disabled image must not report ready')
+          request = urllib.request.Request('http://127.0.0.1:18090/api/v1/realtime/sessions', data=b'{"field_id":"synthetic","consent":true}', headers={'Content-Type':'application/json'})
+          try:
+              urllib.request.urlopen(request, timeout=3)
+          except urllib.error.HTTPError as error:
+              assert error.code == 401
+              assert error.headers['Cache-Control'] == 'no-store'
+          else:
+              raise AssertionError('unauthenticated image request was accepted')
+          PY

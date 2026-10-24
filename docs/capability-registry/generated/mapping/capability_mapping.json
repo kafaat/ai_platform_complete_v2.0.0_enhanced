@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6190,
+    "files_scanned": 6345,
     "files_by_kind": {
-      "backend": 1237,
+      "backend": 1259,
       "database": 289,
-      "governance": 78,
-      "mobile": 57,
-      "other": 2063,
-      "tests": 1994,
-      "web": 472
+      "governance": 86,
+      "mobile": 90,
+      "other": 2110,
+      "tests": 2032,
+      "web": 479
     },
-    "unmapped_artifacts": 2330,
+    "unmapped_artifacts": 2420,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -1988,6 +1988,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/gap_provenance_20261020/audit.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/decision_lineage_graph.py",
           "score": 8,
           "signals": [
@@ -2009,7 +2016,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 4,
       "mapped": true
@@ -9796,6 +9803,13 @@
           ]
         },
         {
+          "path": "certification/evidence/realtime_session_foundation_20261023/dependency-inventory.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
           "path": "docs/architecture/startup_db_connect_inventory.json",
           "score": 8,
           "signals": [
@@ -9823,7 +9837,7 @@
         "mobile": 1,
         "tests": 10,
         "governance": 4,
-        "other_evidence": 35
+        "other_evidence": 36
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -12439,11 +12453,11 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1020",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1019",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1057",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:1056",
           "score": 20
         },
         {
@@ -12455,27 +12469,27 @@
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:837",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:836",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:873",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:872",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:932",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:931",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:980",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:979",
           "score": 20
         },
         {
-          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:991",
+          "value": "sahool.> @ tests_v9/test_nats_least_privilege.py:990",
           "score": 20
         },
         {
-          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1027",
+          "value": "sahool.actuator.dispatch.requested @ tests_v9/test_nats_least_privilege.py:1026",
           "score": 20
         },
         {
@@ -12483,7 +12497,7 @@
           "score": 20
         },
         {
-          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:796",
+          "value": "sahool.anything @ tests_v9/test_nats_least_privilege.py:795",
           "score": 20
         },
         {
@@ -12499,7 +12513,11 @@
           "score": 20
         },
         {
-          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:837",
+          "value": "sahool.events.> @ tests_v9/test_nats_least_privilege.py:836",
+          "score": 20
+        },
+        {
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1028",
           "score": 20
         },
         {
@@ -12507,23 +12525,19 @@
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:1030",
+          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:794",
           "score": 20
         },
         {
-          "value": "sahool.events.forged @ tests_v9/test_nats_least_privilege.py:795",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:895",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:896",
+          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:898",
           "score": 20
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ tests_v9/test_nats_least_privilege.py:899",
-          "score": 20
-        },
-        {
-          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1081",
+          "value": "sahool.events.task.assigned @ tests_v9/test_nats_least_privilege.py:1080",
           "score": 20
         },
         {
@@ -12539,7 +12553,7 @@
           "score": 20
         },
         {
-          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:903",
+          "value": "sahool.notification.dead_letter @ tests_v9/test_nats_least_privilege.py:902",
           "score": 20
         },
         {
@@ -12551,7 +12565,7 @@
           "score": 20
         },
         {
-          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:912",
+          "value": "sahool.tenant.t1.satellite.f1.computed @ tests_v9/test_nats_least_privilege.py:911",
           "score": 20
         },
         {
@@ -12872,6 +12886,22 @@
           ]
         },
         {
+          "path": "tests_v9/test_nats_compose_policy.py",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_nats_password_expansion.py",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
           "path": "tests_v9/test_nats_publisher_coverage.py",
           "score": 14,
           "signals": [
@@ -12962,6 +12992,14 @@
       ],
       "governance": [
         {
+          "path": ".github/workflows/nats-compose-acceptance.yml",
+          "score": 14,
+          "signals": [
+            "path:nats",
+            "content:nats"
+          ]
+        },
+        {
           "path": ".github/workflows/notification-rollout.yml",
           "score": 9,
           "signals": [
@@ -13004,6 +13042,15 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        },
+        {
+          "path": "scripts/ci/run_nats_compose_acceptance.py",
+          "score": 19,
+          "signals": [
+            "content:jetstream",
+            "path:nats",
+            "content:nats"
           ]
         },
         {
@@ -13236,9 +13283,9 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 16,
-        "governance": 1,
-        "other_evidence": 30
+        "tests": 18,
+        "governance": 2,
+        "other_evidence": 31
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -13979,7 +14026,7 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:62",
+          "value": "/api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:65",
           "score": 28
         },
         {
@@ -14003,11 +14050,11 @@
       ],
       "events": [
         {
-          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:94",
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:96",
           "score": 20
         },
         {
-          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:93",
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:95",
           "score": 20
         },
         {
@@ -14217,18 +14264,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:220",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:183",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:144",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:105",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:79",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:84",
           "score": 28
         },
         {
@@ -19353,6 +19400,16 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_semantic_20261023.json",
+          "score": 20,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/decisions_pending/CDSE-EMPTY-SCENE-HAS-NO-ATTRIBUTABLE-CAUSE-01.md",
           "score": 19,
           "signals": [
@@ -19389,6 +19446,15 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/evidence/stac_equivalence_20261023.json",
+          "score": 17,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "path:stac"
+          ]
+        },
+        {
           "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
           "score": 16,
           "signals": [
@@ -19412,6 +19478,24 @@
           "signals": [
             "content:cdse",
             "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/SOURCE_REVIEW.md",
+          "score": 16,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/stac-manifest.json",
+          "score": 16,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
             "content:stac"
           ]
         },
@@ -19553,6 +19637,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/stac.py",
+          "score": 14,
+          "signals": [
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "certification/evidence/cdse_diagnostics_20261014/verify_b_cdse_log_contract_review.json",
           "score": 13,
           "signals": [
@@ -19566,6 +19658,15 @@
           "signals": [
             "path:cdse",
             "content:cdse"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/README.md",
+          "score": 13,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
           ]
         },
         {
@@ -19680,6 +19781,14 @@
           "score": 11,
           "signals": [
             "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
+          "path": "tools/eo_acceptance/evidence/cdse_asset_access_20261023.json",
+          "score": 11,
+          "signals": [
+            "path:cdse",
             "content:sentinel"
           ]
         },
@@ -19846,6 +19955,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/run.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
           "score": 8,
           "signals": [
@@ -19971,7 +20088,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 92
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -21711,7 +21828,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -23585,6 +23702,14 @@
           ]
         },
         {
+          "path": "tools/eo_acceptance/raster.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tools/tts_bakeoff/results/text-004/text_comparison.json",
           "score": 12,
           "signals": [
@@ -23919,14 +24044,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tools/sahool_qa/examples/rules.example.json",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
@@ -23935,9 +24052,9 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 26,
-        "events": 60,
-        "tests": 84,
-        "other_evidence": 1
+        "events": 61,
+        "tests": 85,
+        "other_evidence": 2
       },
       "evidence_counts": {
         "backend": 100,
@@ -24201,7 +24318,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -26300,6 +26417,14 @@
           ]
         },
         {
+          "path": "services/realtime-session/realtime_session/platform.py",
+          "score": 8,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "services/sahool-platform/docs/DATA_GOVERNANCE.md",
           "score": 8,
           "signals": [
@@ -27180,6 +27305,10 @@
         },
         {
           "value": "irrigation.schedule @ docs/history/EXTERNAL_DOCS_REVIEW.md:133",
+          "score": 8
+        },
+        {
+          "value": "sahool.ai_policy_envelope @ services/realtime-session/realtime_session/platform.py:122",
           "score": 8
         }
       ],
@@ -28554,10 +28683,10 @@
         "database": 802
       },
       "evidence_counts": {
-        "backend": 13,
+        "backend": 14,
         "routes": 31,
         "database": 100,
-        "events": 56,
+        "events": 57,
         "web": 0,
         "mobile": 0,
         "tests": 75,
@@ -29097,6 +29226,22 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "frontend/src/realtime-call/CallApp.tsx",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "path": "frontend/src/realtime-call/api.ts",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "mobile": [
@@ -29232,6 +29377,14 @@
             "content:MFA",
             "content:mfa",
             "content:recovery code"
+          ]
+        },
+        {
+          "path": "frontend/src/realtime-call/api.test.ts",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         },
         {
@@ -29527,9 +29680,9 @@
         "routes": 24,
         "database": 23,
         "events": 5,
-        "web": 5,
+        "web": 7,
         "mobile": 4,
-        "tests": 18,
+        "tests": 19,
         "governance": 0,
         "other_evidence": 24
       },
@@ -31824,6 +31977,10 @@
           "score": 15
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 15
+        },
+        {
           "value": "soil_render.py @ tests_v9/test_soil_layer_v31_7.py:19",
           "score": 15
         },
@@ -32199,7 +32356,7 @@
         "backend": 13,
         "routes": 35,
         "database": 11,
-        "events": 8,
+        "events": 9,
         "web": 5,
         "mobile": 0,
         "tests": 12,
@@ -33037,23 +33194,23 @@
           "score": 14
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:367",
+          "value": "/health @ services/mcp_servers/weather_server.py:377",
           "score": 14
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:376",
           "score": 14
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:382",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 14
         },
         {
@@ -33435,6 +33592,10 @@
           "score": 12
         },
         {
+          "value": "weather_server.py @ tests_v9/test_mcp_weather_archive_host.py:33",
+          "score": 12
+        },
+        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         },
@@ -33658,6 +33819,15 @@
           "signals": [
             "path:forecast",
             "content:forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_mcp_weather_archive_host.py",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         },
         {
@@ -34032,10 +34202,10 @@
         "backend": 20,
         "routes": 63,
         "database": 12,
-        "events": 64,
+        "events": 65,
         "web": 9,
         "mobile": 0,
-        "tests": 30,
+        "tests": 31,
         "governance": 0,
         "other_evidence": 23
       },
@@ -34141,6 +34311,10 @@
           "score": 12
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
+        {
           "value": "sahool.field_bootstrap.v1 @ shared/field_bootstrap.py:22",
           "score": 10
         }
@@ -34234,7 +34408,7 @@
         "backend": 4,
         "routes": 6,
         "database": 4,
-        "events": 3,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 5,
@@ -34591,6 +34765,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/irrigation_models.py",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/irrigation_mpc.py",
           "score": 10,
           "signals": [
@@ -34825,7 +35007,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:367",
+          "value": "/health @ services/mcp_servers/weather_server.py:377",
           "score": 12
         },
         {
@@ -34833,7 +35015,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:376",
           "score": 12
         },
         {
@@ -34841,7 +35023,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:382",
           "score": 12
         },
         {
@@ -34861,11 +35043,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:101",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:164",
           "score": 12
         },
         {
@@ -34980,7 +35162,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:354",
           "score": 12
         },
         {
@@ -34988,7 +35170,7 @@
           "score": 12
         },
         {
-          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:49",
+          "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:50",
           "score": 12
         },
         {
@@ -35366,6 +35548,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
           "score": 12,
           "signals": [
@@ -35423,14 +35613,6 @@
         },
         {
           "path": "frontend/src/sections/FieldAppPreview.tsx",
-          "score": 10,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
           "score": 10,
           "signals": [
             "content:ET0",
@@ -35508,6 +35690,16 @@
         },
         {
           "path": "services/weather-service/tests/test_et0_series.py",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "tests_v9/test_et0_http_platform_hop.py",
           "score": 28,
           "signals": [
             "path:ET0",
@@ -35995,6 +36187,36 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/et0_platform_boundary_20261023/README.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/et0_platform_boundary_20261023/verification.json",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "docs/audits/ET0_PLATFORM_BOUNDARY_20261023.md",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -36045,6 +36267,14 @@
         },
         {
           "path": "scripts/ci/weather_engine_formula_guard.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "shared/weather_input_contract.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -36108,6 +36338,14 @@
           ]
         },
         {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/README.md",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/history/REVIEW_RESPONSE_10_11.md",
           "score": 10,
           "signals": [
@@ -36141,6 +36379,14 @@
         },
         {
           "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "certification/evidence/pr_consolidation_1256_1257_1258_20261023/source_heads.json",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -36241,15 +36487,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
+        "backend": 61,
         "routes": 48,
         "database": 0,
         "events": 94,
         "web": 18,
         "mobile": 0,
-        "tests": 65,
+        "tests": 66,
         "governance": 0,
-        "other_evidence": 30
+        "other_evidence": 36
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -38536,6 +38782,10 @@
           "score": 12
         },
         {
+          "value": "sahool.ai_policy_envelope @ services/ai_agronomist/ai_evidence_runtime.py:817",
+          "score": 12
+        },
+        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         }
@@ -38589,7 +38839,7 @@
         "backend": 2,
         "routes": 6,
         "database": 0,
-        "events": 3,
+        "events": 4,
         "web": 0,
         "mobile": 0,
         "tests": 2,
@@ -39002,6 +39252,10 @@
     },
     {
       "path": "frontend/src/components/KPICard.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/OpenMeteoAttribution.tsx",
       "kind": "web"
     },
     {
@@ -40089,6 +40343,10 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/src/lib/openMeteoAttribution.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/lib/paginated.test.ts",
       "kind": "tests"
     },
@@ -40238,6 +40496,22 @@
     },
     {
       "path": "frontend/src/pages/SignupPage.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/realtime-call/controller.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/realtime-call/controller.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/realtime-call/livekit-room.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/realtime-call/main.tsx",
       "kind": "web"
     },
     {
@@ -41037,6 +41311,22 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
       "kind": "mobile"
     },
@@ -41129,6 +41419,142 @@
       "kind": "mobile"
     },
     {
+      "path": "mobile/sahool_app/packages/pmtiles/CHANGELOG.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/README.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/UPSTREAM_PROVENANCE.json",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/analysis_options.yaml",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/pmtiles.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/archive.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/convert.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/directory.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/exceptions.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/header.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/io.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/io_http.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/js/io_file.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/loading_cache.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/compression.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/int64.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/native/io_file.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/range.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/types.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/utils.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/lib/src/zxy.dart",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/pubspec.yaml",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/fixtures/NOTICE.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/io_file_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/loading_cache_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/protobuf_compatibility_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/range_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/packages/pmtiles/test/zxy_test.dart",
+      "kind": "tests"
+    },
+    {
       "path": "mobile/sahool_app/pubspec.yaml",
       "kind": "mobile"
     },
@@ -41154,6 +41580,18 @@
     },
     {
       "path": "mobile/sahool_app/test/jwt_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
       "kind": "tests"
     },
     {
@@ -42229,6 +42667,118 @@
       "kind": "backend"
     },
     {
+      "path": "services/realtime-agent/README.md",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/main.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/__init__.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/config.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/context.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/playback.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/providers.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/speech.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/turns.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/realtime_agent/worker.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-agent/tests/conftest.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_context.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_playback.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_speech.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_turns.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-agent/tests/test_worker.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/realtime-session/README.md",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/main.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/__init__.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/body_limit.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/contracts.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/engine.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/livekit_adapter.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/session_runtime.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/store.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/voice_jobs.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/realtime_session/webhooks.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/realtime-session/tests/test_livekit_adapter.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/remote-sensing-workspace-bff/main.py",
       "kind": "backend"
     },
@@ -42594,10 +43144,6 @@
     },
     {
       "path": "services/sahool-platform/api/irrigation_method.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/irrigation_models.py",
       "kind": "backend"
     },
     {
@@ -45633,6 +46179,18 @@
       "kind": "tests"
     },
     {
+      "path": "tests/acceptance/livekit/README.md",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/acceptance/livekit/image.json",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/acceptance/livekit/live_protocol.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/certification/test_phase21_certification_matrix.py",
       "kind": "tests"
     },
@@ -46997,6 +47555,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_map_and_weather_data_credit.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mapbox_basemap_contract_20260703.py",
       "kind": "tests"
     },
@@ -47429,6 +47991,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_railway_staging_connection_preflight.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_raster_asset_date_binding.py",
       "kind": "tests"
     },
@@ -47498,6 +48064,50 @@
     },
     {
       "path": "tests_v9/test_real_findings_closure_20260702.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_permissions_header_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_api.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_body_limit.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_platform.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_startup.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_session_store.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_tts_no_store.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_ai_provider.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_voice_jobs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_realtime_webhooks.py",
       "kind": "tests"
     },
     {
@@ -47905,10 +48515,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_titiler_readonly_s3_account.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_tls_policy.py",
       "kind": "tests"
     },
@@ -48106,6 +48712,10 @@
     },
     {
       "path": "tests_v9/test_wofost_unknown_fallback.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_work_continuation_checksum_strict.py",
       "kind": "tests"
     },
     {

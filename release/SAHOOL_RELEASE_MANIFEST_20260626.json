@@ -2,15 +2,15 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 678,
+      "frontend": 690,
       "grafana": 5,
       "migrations": 244,
-      "mobile": 139,
+      "mobile": 189,
       "prometheus": 2,
-      "scripts": 475,
-      "services": 2085,
-      "shared": 172,
-      "tests": 149
+      "scripts": 478,
+      "services": 2118,
+      "shared": 173,
+      "tests": 155
     }
   },
   "deployment_gates": [
@@ -35,7 +35,7 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 7026,
+  "file_count": 7228,
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 82687158
+  "total_size_bytes": 85104393
 }

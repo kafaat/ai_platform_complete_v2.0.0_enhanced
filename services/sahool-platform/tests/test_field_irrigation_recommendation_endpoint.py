@@ -93,9 +93,23 @@ def _fake_et0_product(**over):
         "unit": "mm/day",
         "valid_time": None,
         "weather_snapshot_id": "wsnap/sha1/1:deadbeefcafef00d",
+        "input_completeness": 0.33,
+        "missing_inputs": ["rh_mean_pct", "solar_rad_mj_m2"],
+        "invalid_inputs": [],
+        "limitations": ["Hargreaves fallback; not locally calibrated"],
     }
     base.update(over)
     return base
+
+
+def _pm_et0_product():
+    return _fake_et0_product(
+        method="fao56_penman_monteith",
+        quality_status="validated",
+        input_completeness=1.0,
+        missing_inputs=[],
+        limitations=[],
+    )
 
 
 def _patch(monkeypatch, conn, *, engine=None, engine_raises=None, stage="mid"):
@@ -161,6 +175,10 @@ async def test_et0_provenance_from_weather_engine(monkeypatch):
     assert et0["method"] == "hargreaves_fallback"
     assert et0["formula_version"] == "et0/fao56-pm/1.0.0"
     assert et0["weather_snapshot_id"] == "wsnap/sha1/1:deadbeefcafef00d"
+    assert et0["quality_status"] == "degraded"
+    assert et0["missing_inputs"] == ["rh_mean_pct", "solar_rad_mj_m2"]
+    assert et0["invalid_inputs"] == []
+    assert et0["limitations"] == ["Hargreaves fallback; not locally calibrated"]
     # نَسَب المحرّك في أدلّة القرار.
     assert any(e.startswith("weather-engine-et0:") for e in out["evidence_ids"])
     # WS-C.1b Zero-Legacy: لا مقارنة ظلّيّة إرثيّة بعد الآن (المحرّك مصدر ET0 الوحيد).
@@ -308,7 +326,7 @@ async def test_default_is_not_submitted(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_submit_to_decision_is_pending_approval(monkeypatch):
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
 
     async def _submit(payload, _tenant):
         # **عقدُ المُسجِّل هو المقيس** — لا شكلٌ يخصّ هذا المسار. كان يُرسَل
@@ -335,7 +353,7 @@ async def test_submit_to_decision_is_pending_approval(monkeypatch):
             "t_max_c": 33.0,
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
-            "rh_mean_pct": None,
+            "rh_mean_pct": 50.0,
             # المطرُ جزءٌ من اللقطة: بدونه يرفض المسارُ التوصيةَ بدل أن يحسبها على صفر.
             "rain_recent_mm": 0.0,
             "forecast_rain_mm": 3.0,
@@ -354,7 +372,7 @@ async def test_submit_to_decision_is_pending_approval(monkeypatch):
 async def test_submit_decision_service_down_is_flagged(monkeypatch):
     from fastapi import HTTPException
 
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
 
     async def _down(_payload, _tenant):
         raise HTTPException(status_code=502, detail="decision-service down")
@@ -365,7 +383,7 @@ async def test_submit_decision_service_down_is_flagged(monkeypatch):
             "t_max_c": 33.0,
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
-            "rh_mean_pct": None,
+            "rh_mean_pct": 50.0,
             # المطرُ جزءٌ من اللقطة: بدونه يرفض المسارُ التوصيةَ بدل أن يحسبها على صفر.
             "rain_recent_mm": 0.0,
             "forecast_rain_mm": 3.0,
@@ -511,7 +529,7 @@ def _snap_forecast(rain_forecast: float):
             "t_max_c": 33.0,
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
-            "rh_mean_pct": None,
+            "rh_mean_pct": 50.0,
             "rain_recent_mm": 0.0,
             "forecast_rain_mm": rain_forecast,
             "day_of_year": 191,
@@ -569,7 +587,7 @@ async def test_without_the_hold_the_release_decision_still_fires(monkeypatch):
 @pytest.mark.asyncio
 async def test_the_hold_blocks_submission_to_decision_service(monkeypatch):
     """لا يُقدَّم مرشَّحٌ لا قرارَ فيه — وإلّا كان سجلَّ موافقةٍ على امتناع."""
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
     monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_forecast(25.0))
 
     called = False
@@ -595,7 +613,7 @@ async def test_submission_without_proof_of_persistence_is_not_pending_approval(m
     نقطةُ التسجيل لا تُعيد `status`، فاستنتاجُه محلّيّاً من غياب استثناء كان يُعلِن
     نجاحاً لم يُثبَت — ويصير للمزارع «قُدِّم للموافقة» وقد لا يكون شيءٌ قد حُفِظ.
     """
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
     monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_forecast(0.0))
 
     async def _submit(_payload, _tenant):
@@ -617,7 +635,7 @@ async def _snap_dry(_lat, _lon):
         "t_max_c": 33.0,
         "wind_2m_ms": 2.0,
         "solar_rad_mj_m2": 22.0,
-        "rh_mean_pct": None,
+        "rh_mean_pct": 50.0,
         "rain_recent_mm": 0.0,
         "forecast_rain_mm": 0.0,
         "day_of_year": 191,
@@ -637,7 +655,7 @@ async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_i
     import hashlib
     import json
 
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
     seen: list[dict] = []
 
     async def _submit(payload, _tenant):
@@ -663,6 +681,8 @@ async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_i
     assert value["content_digest"] == digest
     assert value["candidate_lineage_id"] == "irr_" + digest[:16]
     assert value["recommendation"]["should_irrigate"] is True
+    assert value["provenance"]["et0_product"] == out1["et0"]
+    assert value["calibrated"] is False  # accepted PM inputs are not field calibration
     assert seen[0]["season_id"] == value["season_id"]  # AC-6 identity at the top level
     # Same content ⇒ same decision id ⇒ a resubmit is a replay, not a second candidate.
     assert seen[0]["decision_id"] == seen[1]["decision_id"] == out1["decision_id"]
@@ -670,8 +690,74 @@ async def test_submitted_candidate_carries_content_lineage_and_a_deterministic_i
 
 
 @pytest.mark.asyncio
+async def test_zero_fallback_et0_is_preserved_as_advisory(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_fake_et0_product(et0_mm=0.0))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "recommendation_ready"
+    assert out["et0"]["et0_mm"] == 0.0
+    assert out["et0"]["method"] == "hargreaves_fallback"
+    assert out["approval_state"] == "not_submitted"
+    assert out["calibrated"] is False
+
+
+@pytest.mark.parametrize(
+    "method,quality",
+    [
+        ("hargreaves_fallback", "degraded"),
+        ("hargreaves_fallback", "validated"),
+        ("fao56_penman_monteith", "degraded"),
+        ("fao56_penman_monteith", None),
+    ],
+)
+@pytest.mark.asyncio
+async def test_degraded_et0_blocks_decision_submission_without_writes(monkeypatch, method, quality):
+    product = _fake_et0_product(
+        method=method, quality_status=quality, invalid_inputs=["rh_mean_pct"]
+    )
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=product)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap_dry)
+
+    async def forbidden(*_args, **_kwargs):
+        raise AssertionError("advisory-only ET0 must not persist or submit")
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", forbidden)
+    monkeypatch.setattr(mod, "persist_manual_specification", forbidden)
+    monkeypatch.setattr(mod, "build_manual_source", forbidden)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    out = await field_irrigation_recommendation("fld_1", req, user=_TenantUser())
+    assert out["status"] == "recommendation_ready"
+    assert out["recommendation"]["should_irrigate"] is True
+    assert out["approval_state"] == "blocked_et0_advisory_only"
+    assert out["decision_id"] is None
+    assert out["et0"]["invalid_inputs"] == ["rh_mean_pct"]
+    assert any("et0_advisory_only" in limit for limit in out["limitations"])
+
+
+@pytest.mark.asyncio
+async def test_both_irrigation_endpoints_pass_authenticated_tenant_to_et0(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    seen = []
+
+    async def engine(**kwargs):
+        seen.append(kwargs)
+        return _pm_et0_product()
+
+    monkeypatch.setattr(mod, "_engine_et0", engine)
+    await field_irrigation_recommendation("fld_1", _REQ, user=_TenantUser())
+    request = mod.IrrigationRecommendationRequest(
+        t_min_c=18.0, t_max_c=34.0, rain_recent_mm=0.0, forecast_rain_mm=0.0
+    )
+    generic = await mod.irrigation_recommendation(request, user=_TenantUser())
+    assert len(seen) == 2
+    assert all(kwargs["tenant_id"] == "tenant-irr" for kwargs in seen)
+    assert generic["et0"]["method"] == "fao56_penman_monteith"
+    assert generic["et0"]["missing_inputs"] == []
+    assert generic["calibrated"] is False
+
+
+@pytest.mark.asyncio
 async def test_a_candidate_that_does_not_recommend_irrigation_is_not_submitted(monkeypatch):
-    _patch(monkeypatch, _FakeConn(depletion_mm=5.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=5.0), engine=_pm_et0_product())
     called = []
 
     async def _submit(payload, _tenant):
@@ -689,7 +775,7 @@ async def test_a_candidate_that_does_not_recommend_irrigation_is_not_submitted(m
 
 @pytest.mark.asyncio
 async def test_a_candidate_requiring_expert_review_is_not_submitted(monkeypatch):
-    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0), engine=_pm_et0_product())
     real = mod.recommend_irrigation
 
     def _expert(**kw):

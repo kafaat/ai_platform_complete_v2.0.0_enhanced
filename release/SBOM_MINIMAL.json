@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20b732516ca4f24a103e754735b7dbb11240ad6e256805609c0afaca7e585c39"
+          "content": "034220a957db8403e3404c85e15743ad8dd8ad121547eeddcec896c86085f7ae"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -165,7 +165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f31ee32b8d6e10e96b36712c102af0f6930bf79967c9d298f808457005e3ebe"
+          "content": "b13ab92e7cdae39bcf239be50dd4526525e1324d7ec6bdebb22937689df99241"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -185,7 +185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a599fe8fc2c3f8ab602ce50b8944b7ebb9291523588ed113c7bd27de39fea86"
+          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
         }
       ],
       "name": "frontend/big-screen/index.html",
@@ -195,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a599fe8fc2c3f8ab602ce50b8944b7ebb9291523588ed113c7bd27de39fea86"
+          "content": "1fd890faf5abefe68152de6ef18de72e9e5a64cede8cf058d32eb74217a0201a"
         }
       ],
       "name": "frontend/big-screen/keep_bigscreen/index.html",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
+          "content": "0afe078aaf6ef9b8f89a69096b6e8753a592acb7b548ae792097c66220fd37ed"
         }
       ],
       "name": "frontend/gis-overlay/index.html",
@@ -355,7 +355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
+          "content": "0afe078aaf6ef9b8f89a69096b6e8753a592acb7b548ae792097c66220fd37ed"
         }
       ],
       "name": "frontend/gis-overlay/keep_gisoverlay/index.html",
@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97a9f959722836aba726acb012da153a4a6288c6e910efea83c91e2277ac95bd"
+          "content": "ffafe0a65a9830fe45024cfecd92c633e1d9dbe506753b5333795c88ec95b4a9"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8082a6ab4bba53f739000363fbeb97cd21d688834dfee070c565d1c68ac4f2e"
+          "content": "155287e74be792b4341aab8010967d6e2f6822532ca1c733253824b0a438c672"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e47393004b7576a2b82dd0a0aaf0a2d3c682e06790939167a1e7bb76f478aee"
+          "content": "9f43735f85e4bd05f868350c1aa4e27eb5a165e311d235ecf97ce9a18ec92646"
         }
       ],
       "name": "frontend/package.json",
@@ -435,6 +435,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3c7e95b4b1b8ca97285bbf850b2378734adca7c1537e1540de704f626c152467"
+        }
+      ],
+      "name": "frontend/realtime-call/index.html",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b3c00af7878f6f1b8bb31e68ee642b41f3f75bf2bc1d9dce5e1a35a36b5e8819"
         }
       ],
@@ -459,6 +469,16 @@
         }
       ],
       "name": "frontend/scripts/playwright-smoke-smart.mjs",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03692265caaae6c74168ef9ca45ca551e28c525bfd84037c15be2b4ced6d80f8"
+        }
+      ],
+      "name": "frontend/scripts/realtime-browser-acceptance.mjs",
       "type": "file"
     },
     {
@@ -605,7 +625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2aaa46fc144ab74e90f0b10f979a4264f83c643826e9bc703655e8aff9b9eca1"
+          "content": "1be43587405f57f1a481ac39784eb25261155ee3fb88a7f83e4b11363b259b5f"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -639,6 +659,16 @@
         }
       ],
       "name": "frontend/src/components/NDVIGauge.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7d2026d4dc878a452d173422dcf6292ac1ef60676f606829ad648230203a231"
+        }
+      ],
+      "name": "frontend/src/components/OpenMeteoAttribution.tsx",
       "type": "file"
     },
     {
@@ -1225,7 +1255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25d77230e96df11d6f3b4ce54350db99eb1e463b3d8500db4a3cfc2373959dae"
+          "content": "a2d6415c86e0379a417ce3fc2f8b11a5c293424472d8aa4c6485d46b202ab342"
         }
       ],
       "name": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
@@ -1295,7 +1325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc6447352ca9b05c87c320767e6885297814594e097ab0e915a20b71c61b5fb8"
+          "content": "c0b44851a67d868c6828845ebba5902dbcbec08c2e5180fac0755a1c3f7910c6"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
@@ -1545,7 +1575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d89e84f5b82e0d5af402e44afb14beadfcbf386588dc2b1c94daf1016301436"
+          "content": "961522850ec5ddd93598ceaaf7a9a5d814cda69eb2c00309e263952d9e22cec5"
         }
       ],
       "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
@@ -1775,7 +1805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0cc28f8785ac48895f6dda2d3e93d32f44173b4fd89af9cb313d7af49b9f6f7"
+          "content": "76492d17be038cb6cadd5e580ce48626cbb79c5001458233c21a14676a9d6395"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2455,7 +2485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0534792ead0f0515cf21d157c00b20033ead5896fc69de41967c4262162fd46d"
+          "content": "03477c2f900501dfe878724ed75a03c09aad5fe5f2ec7f7bb587d98379e79c31"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -4265,7 +4295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6e092802f0b4348d1c9126f73ccd1905dda4dff3192fe5576079687880f86a7"
+          "content": "2cdc0eae49d813193d1ce9c1293bff81e96f2b1254c016f1b29c1af82cd0ba8b"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -4375,6 +4405,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bdc41ceb0f654e693ddf648ba99bedbd6220f81f2f4fe60dbb63c3fbb7a9dadd"
+        }
+      ],
+      "name": "frontend/src/lib/openMeteoAttribution.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "478f44aa594c434a34ff0f8e23e4c8e97e4cfea63f4a23dd99eeecc281f92352"
         }
       ],
@@ -4435,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cef84fbc69e065e085d52224fa40c348f82a70305b399d9ca68b70b1da3ea94"
+          "content": "5ae121c9ad753f721d249cb9b767d209d454fff60d8fd5eb8a5836d62728dd92"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -4885,6 +4925,86 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0d4976c29b577d01737076a9a045bf762b6673f00330116bc960cdf130357dc4"
+        }
+      ],
+      "name": "frontend/src/realtime-call/CallApp.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "25b455a5ca8ac0c01323cb7518d97f8182d17625fb904fbae6d1c6acc92cdc1e"
+        }
+      ],
+      "name": "frontend/src/realtime-call/api.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5361fd0e2f2a14cfbddefddf3aec88156422c4f563b8a94234a4bf2befdd65f"
+        }
+      ],
+      "name": "frontend/src/realtime-call/api.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ff146a52c648710074329104238c8273ee070925cc28fa156dfd49adbb241a5"
+        }
+      ],
+      "name": "frontend/src/realtime-call/call.css",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "62df2698011ea2bc81eb7f49cd52398eed4deaaa86314aa2498949d118e8bc40"
+        }
+      ],
+      "name": "frontend/src/realtime-call/controller.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b5045ccf13f117dfaa216a5708bd64db4bc99f5de2dccb9aa9da4b7267a8286"
+        }
+      ],
+      "name": "frontend/src/realtime-call/controller.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad9dcf6c40560948c724f725c2f13f8eeccfaf49fd3deb11c00276364271d8d9"
+        }
+      ],
+      "name": "frontend/src/realtime-call/livekit-room.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7956bed5dc0e741027cca05431a214197f4444e8cf6f638b4062129fa1d67a71"
+        }
+      ],
+      "name": "frontend/src/realtime-call/main.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5ec611d73b7b87155112122149fb5f524a20cc5dbec1667fcabd93521aaaab49"
         }
       ],
@@ -4945,7 +5065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dd83773e441f077a2bf80313cde827b6a383e47045eb3189f98ad142ae98db7"
+          "content": "2e4a862041081e024690d8741c5c60e589537c5c5b05fa940b6c599f925b48bb"
         }
       ],
       "name": "frontend/src/sections/AnalyzeCabin.tsx",
@@ -5055,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41f018df1f0358ddfc4dd823a2cbf6019a4ae2ad1d4aeec70e5aba7fef71a4f7"
+          "content": "070a2f3d7ed6d2cf4242d77ac578de6630de8e82fe3e37b773daf74523b6a26e"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5085,7 +5205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02502087d62b7f2b9b034c81b14732de4937df94a522aefd62308993a7f93df8"
+          "content": "36da5aad49b0081aaf674617b997bfb01cfdac820a01efc8a0636b67abe2cbfd"
         }
       ],
       "name": "frontend/src/sections/DashboardPage.tsx",
@@ -5255,7 +5375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "971c56d2e07d8de1390907c941c371bbd5460875ec458fb95ec349f87de4bc4a"
+          "content": "f6380357dfb136579a90335f195161e96037a0ce61b8f81ff550e183f32c77f3"
         }
       ],
       "name": "frontend/src/sections/FarmAdvisoryReport.tsx",
@@ -5285,7 +5405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1744474449b67a461ea948385ed32cd573b33a4042fe6fc000414fc453346db5"
+          "content": "404e75e794fe14bae5f3513acb2bb9de6c33a257d5e2d0a68c1d2a551141f1f7"
         }
       ],
       "name": "frontend/src/sections/FieldAppPreview.tsx",
@@ -5385,7 +5505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09a582919d12540bfbadf0bbc5926d9802aac52f5d1e55056043f82d94524db2"
+          "content": "ac7f56358fc602fe8d29077aa2df847e22de621d2b69bff32e0893a2648fa2b0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
@@ -5505,7 +5625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ade37cbd0f0fc0acacba9f931ffd84baba6475f88a7b90db5a6ddb019192219"
+          "content": "40942c157513059893135c57501b596a28d7adebe66bec55e11c9f018a3fb6e0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
@@ -5935,7 +6055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb97c8ce58cd2a227f5c83b2f00007f61751feda47af4113d764557f695aa042"
+          "content": "efeaeea6739ab11c28a600e624801aed069b13d66356e2ebea6f5a5938297e37"
         }
       ],
       "name": "frontend/src/sections/OperationCenterWallPage.tsx",
@@ -5945,7 +6065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96ccaf02472ab132471843cae0e6e8a7bfa63760c127f3bb4abf75a1756ca9b7"
+          "content": "4185b963e4376b13de6146b16b39dce2fee28a6b57a1a9bf8e59e0b0542da59d"
         }
       ],
       "name": "frontend/src/sections/OperationCommand.tsx",
@@ -6025,7 +6145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f3f940b5382bc6f0ea942abf4bed8ba780b45a872fbd46e9e9bb30681047c13"
+          "content": "d811acd723f813cc6c3eea563a7b8c6a3b5659f72ecc9f51d65014a6dcc99e40"
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
@@ -6295,7 +6415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69ce8a7526131b4a3d172606a67393655773a34cbeb0a365cf8cf89eba0e60fc"
+          "content": "bcd7f80429a435f2716be0e3de655a19b5fac1f2fcd839057f0de8b4636c0d50"
         }
       ],
       "name": "frontend/src/sections/WeatherAdvicePage.tsx",
@@ -6835,7 +6955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71f9d8fdf589291e24529de5d04e0d6668c7f83b248ff7781a1f48ff66fb36cf"
+          "content": "fd6f6715e26649d59b83b05909622e61499391be774c3ca5e05dd37f3a5611ee"
         }
       ],
       "name": "frontend/src/vite-env.d.ts",
@@ -6845,7 +6965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5289b8eb58df9f248f65a355615e67e1bfa68d61c09d141d603208dfb32fde08"
+          "content": "d502a1003bcbaaa3eab6abd8af2f2a98b36b977b812e2c6f75be1f004687e86b"
         }
       ],
       "name": "frontend/tests/test_nginx_runtime.py",
@@ -6875,7 +6995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "851525a7d9bcaeaee909fff6db5ac1e013a44033ede389379bcd1e68891e2658"
+          "content": "fc67e58a295716c86a7753e56dfe5f1b0c7a8c82b2ea644cc73c766b8eb3a892"
         }
       ],
       "name": "frontend/vite.config.ts",
@@ -9355,7 +9475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "351ae1696936235a94fda7b4658c9cd1cc43b6c7f58e38c2c44c9576c244ef85"
+          "content": "6e1ddc2ceb5fe65d80572c050e299e203e84b44a7529a2b9eb3892b2512afa1d"
         }
       ],
       "name": "mobile/sahool_app/BUILDING.md",
@@ -9395,7 +9515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "506c9cca3c26481b02c3eb9367a209fc0b3f19063c157f293996ce8670e261be"
+          "content": "8565622aaf0e2231e2ffafaf9068b42f338d2d4791ce879d6dd6fb0ab75b744a"
         }
       ],
       "name": "mobile/sahool_app/android/app/src/main/AndroidManifest.xml",
@@ -9535,7 +9655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75efe174be1c322ffb28c9af5ad3fdd3e0d5d73a97210192094312064380b320"
+          "content": "dbf05f04b7f096cd5dba7cd510e7ecd2bd03d248264426fb852be0baa30e0ce5"
         }
       ],
       "name": "mobile/sahool_app/android/gradle/wrapper/gradle-wrapper.properties",
@@ -9575,7 +9695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "847933560ca62c569b0c108b1819fee40619a35573be7827ad1a1847daa5182c"
+          "content": "bdba03824d06c0651682b08e5d1df40af45ff1fb53857323365077f005638825"
         }
       ],
       "name": "mobile/sahool_app/android/settings.gradle",
@@ -9665,7 +9785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d78c008c72e2df1e742655c532c4716af6e79e27521b938b697064794e18eac6"
+          "content": "b77b49ba0096ed4a15c1aa9b1928c02f05515d564e33b1f3750e42a46f7bdb48"
         }
       ],
       "name": "mobile/sahool_app/ios/Podfile",
@@ -9915,7 +10035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2174cc2c1b81b01877c7e78db19841853234c33974164fb0a8a7196e0a786b92"
+          "content": "fdadfc57faa903de20ab238cb7d28eded8f72a810c0e7bbeee4bc9b1b1d3d8a9"
         }
       ],
       "name": "mobile/sahool_app/ios/Runner/Info.plist",
@@ -10155,6 +10275,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "62e417ce6ade6af64a23578c63a480636d56c3c98e5d502e30573881a6fdae7f"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/realtime/livekit_transport.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f8dde1732e0422105a8ac515318c7105dacdd84a0cf5798aa3e9c033a4c981dc"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/realtime/realtime_api.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ce0f3138b5d36d938380662f534b9fa5925fbbeed918df49873aef2c739a7e3"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/realtime/realtime_controller.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a3f60c754c7016d7304fc70184cf47eefb1ebd4ce7ffb14d9cd7dea1705ace44"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7bb7bb44431ae2eb874894794eec3d277c6dbdc345017dcca091de356299b599"
         }
       ],
@@ -10265,7 +10425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d144c969af391909993e7424d16811c94db09a68ad6df01678d378b616932cff"
+          "content": "1740eb1d5523ea777232555451d7ebfeff3b1deab34ac30f909972372ee4520c"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/field_workspace_screen.dart",
@@ -10445,7 +10605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f01249b155389324aac142b4a887b8ff4a5a2e4d5e9fc6c4d8e496787b2b0aff"
+          "content": "5d92c914cbb092fab31499a2ee7fc4ce29464ac9bfa0daf5cf9b6857b0746acb"
         }
       ],
       "name": "mobile/sahool_app/lib/theme/app_theme.dart",
@@ -10535,7 +10695,437 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930250e931827729945c0a11bcdd4c72cbb2cf029ee4d76a083d0423fb63a39c"
+          "content": "56eea70182097ff5ce7d0c3d838876e8f587278f647d97d3b6fcbd5f118ffc41"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/CHANGELOG.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ca918a2c94bd7be4a27f794986b8907f72a455ea0854428fbd63a295c7e407a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/LICENSE",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdfa4708f9765570b9b4e3cd52662ca42efa12aa221c630eca3105a9788a5e45"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b90c40392ca045621e0ad4ae501fadbd5ed0e616b2509abd2ffa6288b7b1d70d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/SAHOOL_COMPATIBILITY.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3fb5b3aaa8d9dad625c76a7bb9bb44396b9d8bbeaf13c67ec1edb872bc01003"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/UPSTREAM_PROVENANCE.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69d5fc7c4dc082613882215d52d18b02b1688b833d674ce9b281f45821626b7d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/analysis_options.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abe0e07d9cd5ba18aa78424a50444b48602c319d7830f425fafa55b364e6e822"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/pmtiles.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ed3cc096cd2d74be260f26cc89906751eb660197e58c72e9954da94c32196fd"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/archive.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86bd540547ee781d79f4a1295f6f71c22b8349e11e7826d6eb354a606b68717e"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a76eecde96a2303aeb2580c185319f10218d428dc688f0bfa776a4b97c2f06ec"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/convert.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c39b3609da5f9140bdf19fc300462d16c26afa6b491f4285a1d944aad7a38bf1"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/directory.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c76395d977728d09209dd80f48699ecc5632f19024410c8ccf478a2e1d124bbe"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/exceptions.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "109924110d1dd4c24ede3bd1756d00f11e531ec7b8a8a71456c6df5012bbb3be"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/header.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5663b13350b25b2f3afbf2d9303b432e9161897db8670f8ce723385529b16565"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63ae9a3745dc54a975aeba1707234192f226795d8ffee2cee5d5a4bc0849a455"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/io.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b51bdf267c90d5bdad48e3fb79cfbdc80d4009e98a9b3890e2d7ca2136a63a26"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/io_http.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a22984adb0f1eb32477aae5ae7f3932d8ef7a828fd524d57d659b4fe514126c"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5df09ddf6add802fd0844f1784922c0d39dbc583164196416a63811d471dccaa"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a6a7e20d60779f3cc13f0bbcc579392a53220fa5097d9d24cfc40aec4658be8d"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/js/io_file.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2daeef56e43784444a19e3879e6d38b90d75716428b95f663dae1cf8a50f0960"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/loading_cache.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6594a6b87e24d14d122d51f5981a93ba84ede5b6c45afe498c478641db0ee7db"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/compression.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f00a10c2855d8b0db502fb10397e49b053f0acd2a9033accfb905e2525b8bbc"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/int64.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69f40a00070bdc35f55f0a37c94a48031837ce91b40ba8652a5f5e31c014d0ff"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/native/io_file.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d08fec665284430a185e7db3fd491a0e785c0319c5efb59c14e01ccb9ec9b16"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/range.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "92ef4685088d3fbadcbbd2c598dc58ea4094c935d5bbe5bc3277cb8668c9b6df"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/tile.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc6207f92b27beaa5e103ecb6c7d7f7d3864c5d4e86da40a605e76e2cdb62815"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/types.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09864ef22378ec509bed26f548c6d755e8385ea040fd6b15ef7576588118d77c"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/utils.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2fcf11b600e2833a969052ab87185bdcef9ede9291149cc792f74512ef829702"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/lib/src/zxy.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4cf8e44cfd7e5a3e75cb91ff02d405207064ec48e18af1e6230d4e922bc5e74a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/pubspec.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "321e8560a077dad90cca802416bfc137e9870092544c94d74e7bed64bd25cb00"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/pubspec.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c97e044e425dc90efcf402d4e05251a55f9abdd83a30589cc905ed670e1ab15"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/NOTICE.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0371c38f338835f7fc13ed71176f3d92144e22c8b736a31cced57adbbeb647b3"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/PROTOMAPS_LICENSE",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dabac1813c60cc777b4215b030c4815b72ab0c8a5f95a0b9e4ef9fc2a778399e"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/invalid.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8326be59a1171c7788411312bce93057d15e9b4e87d4b181c677592c71c3a3ec"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/invalid_v4.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08d25d79589d91013b177e04e107d3dc35543f1e804f5bcbc5b508e463d3d1fa"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/stamen_toner_z0_0_0.png",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b96efe3ea10b98632c0c0dc229d000b604ebdad6b2f1321ea11d9de931df1ce5"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/stamen_toner_z3.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3f65093582c81625cdfab11b3d1a27c2fb6aadcf8bd9802b2ad694d4d7cdca5"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/test_fixture_1.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ee80a53000bfb15a5d54162bc3161094239e775fef180fffb2d3ff607e46c1a"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/fixtures/test_fixture_2.pmtiles",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34b90a5426f87e82ab41404c9bf1aac4c86960f910529e0e282ef2d2f2d415ad"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/io_file_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "efc2382ce4071aaa1f9dd97c8455dff59c3746241f2797163de8e01245d62f5b"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/loading_cache_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e92f7e13d2517c8e3a7063888f0a87ab23b39383ee46c2f590a1c7a2835f7ff4"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/protobuf_compatibility_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f7e795350fff011c691ce893336e8369d07c2911922e7694bfbedb14fddce13"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/range_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d72cf5643fc8d4674394e6a764c29a8caa38f671812b2794d41daaf21cbdd37"
+        }
+      ],
+      "name": "mobile/sahool_app/packages/pmtiles/test/zxy_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3d7d77f4541ccebc7e7f81845acec646b738bdcc0b83f56140cb6372362ae0e2"
         }
       ],
       "name": "mobile/sahool_app/pubspec.lock",
@@ -10545,7 +11135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6945b8f442598118d0e45a377ab18560d7dbb81021c4e38884f60ea6459029b4"
+          "content": "3e017ad6037194f92af1e31d3f382b3b6f00df02c906901a4e04f48ec5aff282"
         }
       ],
       "name": "mobile/sahool_app/pubspec.yaml",
@@ -10699,6 +11289,36 @@
         }
       ],
       "name": "mobile/sahool_app/test/jwt_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16293e714e7b5b0d1d52266dd9acf09708c02dc3c0a94268eb1ba7cec613a409"
+        }
+      ],
+      "name": "mobile/sahool_app/test/realtime/realtime_api_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e601ad2ea8d37d07c869c3b4058a5e063b8ce49744eb5473bd2fd72a0c19d3a"
+        }
+      ],
+      "name": "mobile/sahool_app/test/realtime/realtime_controller_test.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a21c1de5bd642bffe5fe9d91f3b6bb66c68cd1d8aeb8ceafa6b952ae18cb534a"
+        }
+      ],
+      "name": "mobile/sahool_app/test/realtime/realtime_feature_test.dart",
       "type": "file"
     },
     {
@@ -11195,7 +11815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5930cf9352a32d77cce45557d969999e64afc06b2b13716cd3f810866b81215c"
+          "content": "06437ec3e48a08ef72aecec2ace9cd0e256031b95405c7620704b658382e3a4e"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -11205,7 +11825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac46175c6b5a8cc699deb8e4103bc4aab7e4f9185f06d39567bb1ee9cb4263bb"
+          "content": "f336c44780afbe8d0f71cc35dfe6944a87b18f25bffc389e41e71022ca1e6e3f"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -11365,7 +11985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bcc7ec42914fa8ad5e022ce989e09f5507316b9970aa2a099f3bf971a5d77fb"
+          "content": "9242c74c16c7d3a900e0b1c53a82b75ec1666b0c30a26c38bf11294cbe08fcf2"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -11415,7 +12035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "065f181eace900b4541dd18fe46c2249b1bf0a5d8b7d7b6cacf7b135abd9f65d"
+          "content": "d9bbac5e7eac7214523c871ceb85c379136c9fc296bdf21aba9abd1801529cb7"
         }
       ],
       "name": "services/ai_agronomist/policy_envelope.py",
@@ -11715,7 +12335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ee278202f0fb9c93743a26bf9f70c1a2bc4052dde6ac55ab87ff5afd614ff35"
+          "content": "314abf7bafd500f279ea51c37f7a8018cd4df6957842bd68f87b2e583f6bb7e1"
         }
       ],
       "name": "services/auth/requirements.txt",
@@ -14115,7 +14735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "867b5f7a89728459586afaddcf8b7829576df6d52850a9ad78c8e546fdf9bbb2"
+          "content": "262edcc036bb868cfe4936dd630e10f10699b7e9b2ad72d20768b1010f1e7ca4"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -16375,10 +16995,340 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c36dee64e10e7a44abe8ad58c1b428c96c6cb18774e67a6664a93080472462cf"
+          "content": "63ae66ace9533a912301b41f310fe734d95f33154f1a24f0022b3fb44354621a"
         }
       ],
       "name": "services/raster-tiler-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "511883a4ddee5658f95882e06232e330c2b6c4e38e882d7529cf0767636453ef"
+        }
+      ],
+      "name": "services/realtime-agent/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2edfd041eafd8b341077b7b70e451604afc35979b2b0181c002ee354f482a97c"
+        }
+      ],
+      "name": "services/realtime-agent/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f03fc47424d05c70bdf7df41e3ce728b5fed1c733972e189f735ecc26d3032e"
+        }
+      ],
+      "name": "services/realtime-agent/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "873c7342bfa28e5e48a43703bbd87368a51c6c25774635682c7f35219a470d02"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9df8b77c7c5af040cbf4c85673637f69a32d874ec0ac44129aa7327b7301633d"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/config.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e48f8f45b94a22cd73f7f19c110866162c1826cafb1d61ec35b75a0921455e4"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6dbce8e65ae6a145304d1190f5bb6004e6cd673df6b81bf3a82a4d94aa0b6fe9"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/playback.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe6f2f809fa0294de646420c135eb2b2866f67ae5ff48c63c24602ab74a2b822"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0e15b0e9cb55a6a51449ad59353cd85bec5c690a997e0b106eb9950fa2d86307"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/speech.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd5f8d4a63dff762fe2cddb45054280ded6197ebfa092cc81a671d4e607255e4"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/turns.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c819492e79626f45b54afae945927e832e3c7d25c5f6d5e7fa6a020d6c669055"
+        }
+      ],
+      "name": "services/realtime-agent/realtime_agent/worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be50bed9ec069b827f708f98c8c5c72d4c77cbdbd02bd1fc82316b4f90088041"
+        }
+      ],
+      "name": "services/realtime-agent/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8659c4f6af34a32f61ecc29774fd873cf628e7e0828ce9ff04773418357a6cc6"
+        }
+      ],
+      "name": "services/realtime-agent/tests/conftest.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "284d4e3f1b2df186105fded26b52f889ebdcdf6cb827743fc23f07c3665b002e"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22236d13e9706cda62f62b64d5f3116d42c2b682985d134b9af184ce578350a6"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_playback.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "734799d1a1b16475f9a96d7cbab4368bf98361978adcf273441c5ac4ec9c8161"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_speech.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6cd62c1eee10138d7599606520058980103a6c0c00fb7b9a80a8763310e8c9b7"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_turns.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1f5ad56eac4aec9f19b70747e27c738d71e5d565f1ced174994b60f83209129"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9167242e3b54cf901763aab90e3f0c9dbb4c05c8362801e66b4c2b31f3f7f254"
+        }
+      ],
+      "name": "services/realtime-session/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e38ff95f42a9382c46139106c652b21510231a5471593cd601385bfd6b4a64c8"
+        }
+      ],
+      "name": "services/realtime-session/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f74dea9d3554cdc5ce8b0e98a2eac041d8978f36a70ca3d117a3001a9606c50"
+        }
+      ],
+      "name": "services/realtime-session/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c41de99d32fc947b33ef388fd4432e3d8e97d717bb6d7ca01024fd6f81e04d1"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "958737f29801567f4f35d0c1ed1b7c834f595ceb3981b55df55ed094bd7fea1c"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/body_limit.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c53944ee95aa27ed3a165a9d31ca20df75d98e66e9fe32dacb6177704f1e355b"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d9bf5e4d65adb36d7cc7aa190bfa5007ac2d10ff869fda1e9c8a26f78bcc128"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a77ddf91a5fcc8efebc9f007aaed0201a7f61c6ffeca97024b60eec8b13b887"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/livekit_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb581a5b97e32279203589da9f71a76a0971b7e9dd799ad39d7d24c524e5c607"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/platform.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "33b3d256b5f566baed10db2b4f84366adb3a0461c688592f74f968f3665b1315"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/session_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f66c0c08fb6fdb38643f824cbabda0f75ea65f9655af5e75a32517c030e22b3"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c1fa9107080a7db7346d32fb6f1b9b086c93b0846b650ba68c1eb29b40b94b0"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/voice_jobs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b657677d47a20a43659c97994755155d0ff2b465916baa80c190587d640c2a6"
+        }
+      ],
+      "name": "services/realtime-session/realtime_session/webhooks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c8e1fe87ad8ee59bda75b2e2a786cdc11af92361ba3c806cfbd49ecba41a4d8"
+        }
+      ],
+      "name": "services/realtime-session/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4323b7ba5249458fff296afc9d099321400e1ae37e7e7982b29a63b53c1b4ee"
+        }
+      ],
+      "name": "services/realtime-session/tests/test_livekit_adapter.py",
       "type": "file"
     },
     {
@@ -16535,7 +17485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fcd4642f632e7b1b6e4600f993564b626ed984e945f409ef7ff71452814e6f8b"
+          "content": "bd1d13209a13fff920af381a5ce7196f2a4782e1a177f2a86c3580c348042e3d"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -16835,7 +17785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0d8845a758a533a975a84968b50321ffa73c9a5c051e83a486cfde9123bd03b"
+          "content": "1637424759f5f668283f0d52faacfa8c3c217180a4d6237ae5379c6eae9c8a13"
         }
       ],
       "name": "services/sahool-platform/api/chat_proxy_reference.py",
@@ -17575,7 +18525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8471716058eb05d8469bcc2fa9aa91d760ac73c16962ae291efdfaf99dc8aff"
+          "content": "c80b5dc3750ddbabc4323d1f79eeebf0acd10897d0713ecb11bfa4689e7f53f8"
         }
       ],
       "name": "services/sahool-platform/api/field_state_projection.py",
@@ -18025,7 +18975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78397fab9d94481603069f10bcc52a44a1c267f4f1db06ca06a02d4f92fd4b80"
+          "content": "66c8a924ad0bab3617788896a44eb138a86464f642debe4102e8470764dcd072"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_models.py",
@@ -18535,7 +19485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1246f14a2197c45e65c807024b3a3354284820ae08ccda9af7e96af43f20c6d"
+          "content": "20823f55ae4b3be26391732cc225cea96fe2fadf14bda9b733c17298d6c44d1b"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -19205,7 +20155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ed60a0a5de47dd0382a4e764053df142c5bac37e1239b567a247cb310c5121e"
+          "content": "5ba6040759fdfb1d88f2f18f11b09bf223cf79a6d81b268e577c781732ee9c09"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -19505,7 +20455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d87d54acb90cdc6449182e16a11fdf97578542297f3cf7c4eb87b9a0a977ceb"
+          "content": "4e23b7a54c54bafb3c53c79c3dcdee15e51241a8f54214507cbc8c433c17da67"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -20135,7 +21085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b1c42c7d5f85f2a2b533c78a8a1241b76b2ca9d57a17642d67309db5965432c"
+          "content": "11f542cfa56b156a597360891ecffa2bfdf5f054705a9f185f1d4bb46e8b800d"
         }
       ],
       "name": "services/sahool-platform/api/routers/water_balance.py",
@@ -20595,7 +21545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "977f150a3ed359f738afa5d0c2053abc858c4fc02085c4ece2117d17758da89c"
+          "content": "1589c6338760b6c426733071c5bde04a3fb761668c6f6218327390cacfe7771a"
         }
       ],
       "name": "services/sahool-platform/api/water_balance_models.py",
@@ -20705,7 +21655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7df90b031c25af00dc41e0277f8a002c9f6d62efd7b09bc0ea7f6f5d5afdf50c"
+          "content": "1f2cecdef3cda08efdbc5f8de42018afa21cdb7e7a3bef84425d6251583b911c"
         }
       ],
       "name": "services/sahool-platform/api/weather_analytics.py",
@@ -20725,7 +21675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bb2d1cfdeaab5747b71015844ee8c6aa2bcbc96d15f241439e00d94bd089fa3"
+          "content": "d3b2081542d5bb502126ce761d6e270bbcd5bbee2d9e05ad83c0b127470db280"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -24805,7 +25755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b49e02ef73cc6db8a6c4ebe79ad8bc2a14f1382f208de3637f45a535356b8ec5"
+          "content": "dee5b50bb2f0b3de81a1947eb6027b6a2a0ce621c48f9ce4c278021ae5a17d1d"
         }
       ],
       "name": "services/sahool-platform/tests/test_ai_provider_config.py",
@@ -25105,7 +26055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f3b67478ecf66ccc896ee8b873b3393754f4995d46c9fa5abd70eba38a893ac"
+          "content": "74a24e8da22b59722ea8fe0da3abcec6aea1f95d6d1f5b77568d62a9c7009806"
         }
       ],
       "name": "services/sahool-platform/tests/test_chat_proxy.py",
@@ -26385,7 +27335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3590d6dab160929f6391407e2a8149cc9e3bbf80cc93e28b4b845e2432e7b033"
+          "content": "a6601440cb0b2459c70e4871ca05e852a93fdf034fd30a71971bd7c7abca2201"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -27235,7 +28185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "799d98b5a688a8eecf1bbeab8733c2cb888032e27a8e3e9fa9e8c8697b426dee"
+          "content": "22fb5b92cdf7f0b5f4a5cfef0af859185f14800f3f22780434e81652a2ae0661"
         }
       ],
       "name": "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py",
@@ -29125,7 +30075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "898d4b488fffb5e5c6327f7e81bdd299aa44876fa9ba01e0b6789487bbfd9544"
+          "content": "a0725679d02031e0e4be4aded65a6cadb4fe91b29ce6eb39bd9c328d7949a0fd"
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_et0_client.py",
@@ -30345,7 +31295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ac230fdda5e37d293f32260bdc7a0bfb4e2889946c3c7d57b7cf63d907268c5"
+          "content": "633bfacac685c38a8a02520fd1447df625c7612f6eaca02f3fd9b44dd092a9ee"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -30405,7 +31355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cf53f8681c98bd6c245cf5e8f717b0d1bcafd19a367b186af43ab2d12cb6cb0"
+          "content": "3a03662c6e3d93972df56fbedc2e6576cf8329167f1d1556d2859380e90924eb"
         }
       ],
       "name": "services/tts-service/routers/tts.py",
@@ -30965,7 +31915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6b3e63e9b1fd43522c943301c2a1cbeaec43522eb4daff2f3c5ef17ba9b7f2f"
+          "content": "4de66ea776e500fda05327a4a12ef856c2f899a75b3675d34a294866f9a260d7"
         }
       ],
       "name": "services/video-processor/routers/streams.py",
@@ -30975,7 +31925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50648a190b1cfe5f447334f7373d8bdfc1ca6f68c93ba1d918edc5aed639959d"
+          "content": "d519e3c019158a18a1db41c6c21868d635add7b1030587a7faffa0aa9d628e52"
         }
       ],
       "name": "services/video-processor/stream_events.py",
@@ -31075,7 +32025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43be869a07a014e16601625c2b6ee8a06e348ac05a946e36f0b0ee96e0be1494"
+          "content": "23e89b6c90477bb42a0ef422b26342427f87639f43d802baf71c2b5f666e0d79"
         }
       ],
       "name": "services/weather-service/et0.py",
@@ -31255,7 +32205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03e67fff1929eeb7e64952614ec01450bf5dd18acfbab5618ac9a8a0cc182dc1"
+          "content": "07317574155e3cf9b6f095c99d2dc454df7d507400a077bb182004ab274759a4"
         }
       ],
       "name": "services/weather-service/tests/test_et0.py",
@@ -31265,7 +32215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cc9bbd8e8479f870ed843f97ecde6823b6fed8b5bdc8162592777bb09b73899"
+          "content": "6be363cbaaaa09949744960789e220120cc063bb948431524c78cbec3b720e6d"
         }
       ],
       "name": "services/weather-service/tests/test_et0_agro_product.py",
@@ -31275,7 +32225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a71aca4988a666f1e81660bb551f3564f1024d4bfc9663d114412e77c7294ad6"
+          "content": "78ee8b4ca8807bf4b3a98cbdfea2023825fe81e62ad3226bc5d24e9ab097ff15"
         }
       ],
       "name": "services/weather-service/tests/test_et0_reference_and_input_validity.py",
@@ -31285,7 +32235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74a2007c32e7fcaff3aa5d61391c6b7fd73e62735ef4290476588516bf24feda"
+          "content": "34932351fe4d5de60f6bc6494351060065bd1174dc3bfb9c20f9f103f456864c"
         }
       ],
       "name": "services/weather-service/tests/test_et0_series.py",
@@ -31525,7 +32475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cd2e47adbea76b85329a8f6f96d6a2de381e0b10654f2be0fa51982d892ffe8"
+          "content": "5cb156fdddda486a218f371eee1775bd86cf34a295472ca91dd94f06653fad75"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",
@@ -31635,7 +32585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbec173099ae5183d404f60df60b92c73c3fff4bc718f6350c47d9eb53dff792"
+          "content": "afc0ae6df332c4de39863073709587ab0e787f7a5f04fa7ca2c6cb0cf19a98f7"
         }
       ],
       "name": "shared/ai/provider_contract.py",
@@ -33275,6 +34225,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2266d30d193706773a17e09dda384307f0346abe06f753d7a699b8514e0732f2"
+        }
+      ],
+      "name": "shared/weather_input_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9c8508bb3055b017ecbf29da86c5c544f7d28d4a304bba867974a706febef8b3"
         }
       ],
@@ -33285,7 +34245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82b6f17636ee9397e942c107e4ac5e534acedb91a6b5972428fdee065ec855c7"
+          "content": "a15b694f13685ef3471fb24c67c774e7706aaadc6a26cab2ef736eeed0fab0bf"
         }
       ],
       "name": "shared/wofost/engine.py",
