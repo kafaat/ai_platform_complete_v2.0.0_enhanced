@@ -1305,6 +1305,27 @@
           "replace": "",
           "test": "tests_v9/test_local_preflight_contract.py",
           "why": "بوّابةٌ تسقط ولا يُسجَّل اسمُها ⇒ الذيلُ يعود عدداً بلا أسماء، فقارئُ الذيل يرى «إخفاقٌ واحد» والخلاصةُ تقول اثنين (LESSON-READ-SUMMARY-NOT-TAIL-01)"
+        },
+        {
+          "expect": "test_concurrent_runs_each_print_only_their_own_step_log",
+          "find": "  STEP_LOG=\"$(mktemp \"${TMPDIR:-/tmp}/preflight_step.XXXXXX\")\" || {\n",
+          "replace": "  STEP_LOG=/tmp/preflight_step.log; : > \"$STEP_LOG\" || {\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "عودةُ سجلّ الخطوة إلى مسارٍ ثابتٍ مشترك (`/tmp/preflight_step.log`) ⇒ تشغيلاتٌ متزامنة تكتب الملفَّ نفسه، فتطبع تشغيلةٌ ذيلَ غيرها ويُشخَّص إخفاقُها بسجلٍّ ليس لها. الاختبارُ يُشغّل عشرين تشغيلةً بحاجزٍ تكتب كلٌّ علامتَها قبل أن تسقط كلُّها، ثمّ يقارن ذيلَ كلٍّ بعلامتها."
+        },
+        {
+          "expect": "test_a_killed_run_removes_its_step_log_and_still_dies_by_the_signal",
+          "find": "  trap 'rm -f -- \"$STEP_LOG\"' EXIT\n",
+          "replace": "",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "حذفُ فخّ EXIT ⇒ تشغيلةٌ تُقتَل بـSIGINT أو SIGTERM وسط خطوةٍ تترك سجلَّ خطوتها في `$TMPDIR`، وتتراكم الملفّاتُ مع كلّ مقاطعة. الاختبارُ يقتل التشغيلةَ وسط خطوةٍ نائمة ويعدّ ملفّات `preflight_step` بعدها."
+        },
+        {
+          "expect": "test_a_failing_run_keeps_its_exit_code_and_leaves_no_step_log",
+          "find": "  trap 'rm -f -- \"$STEP_LOG\"' EXIT\n",
+          "replace": "  trap 'rm -f -- \"$STEP_LOG\"; exit 0' EXIT\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "why": "فخُّ EXIT ينتهي بـ`exit 0` ⇒ يبتلع رمزَ الخروج، فتخرج تشغيلةٌ ساقطة بصفر ويُقرأ إخفاقُها نجاحاً في كلّ مستدعٍ يقرأ الرمز. الاختبارُ يُشغّل السكربتَ الحقيقيّ كاملاً في شجرةٍ فارغة ويتوقّع رمزَ الخروج 1."
         }
       ]
     },
@@ -3568,6 +3589,18 @@
           "find": "    return [line for line in grown.elements() if line in archived]\n",
           "replace": "    return []\n",
           "why": "BRAIN-HOT-MD-UNBOUNDED-NO-ARCHIVE-PATH-01 (مراجعة 2026-10-19): إسقاطُ قاعدة العودة ⇒ دمجُ `merge=union` لفرعٍ أقدم من الأرشفة يُعيد النصَّ المؤرشَف بلا تعارض (مقيسٌ على الملفّات الحقيقيّة: 150,007 و383,028 بايتاً)، والزوجُ مقابل main ينمو فحسب ومقابل الفرع يُقرأ أرشفةً. الاختبارُ يُشغّل `git merge` حقيقيّاً بخاصّيّة `.gitattributes` نفسها، بلا skipif ولا تاريخ."
+        },
+        {
+          "expect": "test_a_replace_ref_cannot_hide_a_shrink",
+          "find": "\"GIT_NO_REPLACE_OBJECTS\": \"1\", ",
+          "replace": "",
+          "why": "إسقاطُ `GIT_NO_REPLACE_OBJECTS` من بيئة `_git` ⇒ مرجعٌ في `refs/replace/` يُبدِّل كائنَ الالتزام أو الكتلة، فيُقرأ التزامٌ حذف نصّاً من السجلّ التزاماً أنماه ويمرّ الزوج. CI لا تجلب مراجعَ الاستبدال، لكنّ preflight محلّيّاً أو مرآةً قد تحملها. الاختبارُ يبني المرجعَ حيّاً في مستودعٍ مؤقّت (حالتا commit وblob) ويحذف المتغيّرَ من بيئة المستدعي، بلا skipif ولا تاريخ."
+        },
+        {
+          "expect": "test_a_graft_cannot_turn_a_shrinking_commit_into_a_root",
+          "find": ", \"GIT_GRAFT_FILE\": _NO_GRAFT_FILE}",
+          "replace": "}",
+          "why": "إسقاطُ `GIT_GRAFT_FILE` من بيئة `_git` ⇒ سطرُ graft بلا والدٍ يجعل الالتزامَ المُقلِّص جذراً، فلا زوجَ يُقارَن (pairs=0) ولا يُبلَّغ `JOURNAL_SHRANK`. يُقاس بحالتين: `info/grafts` داخل المستودع، وملفٌّ تُسمّيه بيئةُ المستدعي. كائناتٌ مركّبة بلا skipif ولا تاريخ."
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
