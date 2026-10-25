@@ -8588,10 +8588,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_notification_delivery_reliability.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_notification_subjects_prefix.py",
     "kind": "tests"
   },
