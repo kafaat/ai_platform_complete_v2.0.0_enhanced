@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../features/field_forms/data/field_forms_coordinator.dart';
+import '../features/field_forms/presentation/field_forms_list_screen.dart';
 import '../features/realtime/realtime_screen.dart';
 import '../services/api_service.dart';
 import '../widgets/state_views.dart';
@@ -154,6 +155,9 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
         backgroundColor: kSurface,
         title: Text(title),
         actions: [
+          // النماذج الميدانيّة المنزَّلة لهذا الحقل (offline-first).
+          if (!_loading && _error == null && _fieldId.isNotEmpty)
+            FieldFormsEntryButton(fieldId: _fieldId),
           if (nativeRealtimeCallsEnabled && !_loading && _error == null && _fieldId.isNotEmpty)
             IconButton(icon: const Icon(Icons.mic_none), tooltip: 'استشارة صوتية',
               onPressed: () { Navigator.of(context).push<void>(MaterialPageRoute(
