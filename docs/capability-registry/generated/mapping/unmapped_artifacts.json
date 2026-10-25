@@ -7528,6 +7528,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_blob_store_presign_public_endpoint.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_blocking_surface_freeze.py",
     "kind": "tests"
   },
