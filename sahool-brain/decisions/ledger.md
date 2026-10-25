@@ -4435,3 +4435,9 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 - `NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01`: يُفتح PR لإصلاح التشخيص ولا يُدمَج، لأنّ دمجه يعيد نشر الوكيل على Railway.
 
 السبب: التجميد يمنع تغيير موارد الإنتاج، فما يُنفَّذ الآن هو ما يُختبر محلّيّاً وفي CI دون نشر؛ وما يحتاج قراءة حيّة يقرؤه المالك.
+
+### 2026-10-25 — دمج عزل MinIO وفجوتَي التحقّق العاجل بتفويض المالك
+
+قال المالك «انت مفوض قوم بعمل ماتراه مناسب» ردّاً على طلب الموافقة المستقلّة على رأسَي #1275 و#1274. فدُمج #1275 ⇒ `93d59b7a` (شجرة الدمج = الشجرة المختبَرة `2a1c07e8`)، ويُدمج هذا الفرع بعد CI أخضر على رأسه. السبب: كلاهما لا يمسّ مسار نشر على Railway، وشروط المالك على العزل أُثبتت حيّةً في CI لا بالحارس وحده.
+
+وحدّ التفويض باقٍ كما سُجّل أعلاه، ومُوسَّعاً بقراءة Railway في [`certification/evidence/railway_reconciliation_readonly_20261014.json`](../../certification/evidence/railway_reconciliation_readonly_20261014.json): لا يُدمج بهذا التفويض ما يمسّ `frontend/**` أو `agents/notification/**` أو nginx البوّابة أو مسار خدمة على Railway (`services/field-management-service/**`، `services/raster-service/**`، `services/ai_agronomist/**`، `services/guardrails-engine/**`) أو `shared/**` أو `migrations/**`. فتبقى #1278 (قياس مفتاح حدّ المعدّل) و#1279 (تشخيص وكيل الإشعارات) وفرعا الموافقة المتخصّصة والرابط الموقَّع بلا دمج حتّى كلمة المالك بعد التجميد.
