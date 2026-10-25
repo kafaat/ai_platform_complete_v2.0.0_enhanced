@@ -8500,6 +8500,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_minio_network_isolation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
     "kind": "tests"
   },
