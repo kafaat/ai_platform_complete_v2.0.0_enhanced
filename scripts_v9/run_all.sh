@@ -78,6 +78,20 @@ EOF
 }
 
 # ─── Health Check ──────────────────────────────────────────
+# One probe per service port. MinIO serves neither /healthz nor /readyz; its
+# unauthenticated liveness endpoint is /minio/health/live (same path the S3
+# acceptance lane gates on: scripts/ci/run_s3_minio_gdal_live.sh).
+probe_service() {
+    local port="$1"
+    case "$port" in
+        5432) pg_isready -h localhost -p 5432 >/dev/null 2>&1 ;;
+        6379) redis-cli -h localhost -p 6379 ping >/dev/null 2>&1 ;;
+        9000) curl -sf "http://localhost:9000/minio/health/live" >/dev/null 2>&1 ;;
+        *)    curl -sf "http://localhost:${port}/healthz" >/dev/null 2>&1 ||
+              curl -sf "http://localhost:${port}/readyz" >/dev/null 2>&1 ;;
+    esac
+}
+
 health_check() {
     log_info "Running health checks..."
     local services=(
@@ -98,15 +112,17 @@ health_check() {
 
     local passed=0
     local failed=0
+    # Counters use $((x + 1)), not ((x++)): ((x++)) exits 1 when x is 0, which
+    # aborts `./run_all.sh health` under `set -e` after the first service.
 
     for svc in "${services[@]}"; do
         IFS=':' read -r name port <<< "$svc"
-        if curl -sf "http://localhost:${port}/healthz" >/dev/null 2>&1 ||            curl -sf "http://localhost:${port}/readyz" >/dev/null 2>&1 ||            ( [[ "$port" == "5432" ]] && pg_isready -h localhost -p 5432 >/dev/null 2>&1 ) ||            ( [[ "$port" == "6379" ]] && redis-cli -h localhost -p 6379 ping >/dev/null 2>&1 ); then
+        if probe_service "$port"; then
             log_ok "  ✓ $name (port $port)"
-            ((passed++))
+            passed=$((passed + 1))
         else
             log_err "  ✗ $name (port $port) -- NOT READY"
-            ((failed++))
+            failed=$((failed + 1))
         fi
     done
 

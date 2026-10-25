@@ -1273,6 +1273,36 @@
     ]
   },
   {
+    "path": "docs/WEB_MOBILE_PARITY.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 10,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
     "kind": "other",
     "candidates": [

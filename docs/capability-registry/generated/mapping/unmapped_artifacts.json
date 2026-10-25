@@ -7528,6 +7528,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_blob_store_presign_public_endpoint.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_blocking_surface_freeze.py",
     "kind": "tests"
   },
@@ -8140,6 +8144,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gateway_real_ip_access_log.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_tls_init.py",
     "kind": "tests"
   },
@@ -8508,7 +8516,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_minio_network_isolation.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mobile_release_build_requires_endpoint_defines.py",
     "kind": "tests"
   },
   {
@@ -8577,10 +8593,6 @@
   },
   {
     "path": "tests_v9/test_notification_channel_selection.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_notification_delivery_reliability.py",
     "kind": "tests"
   },
   {
@@ -8940,6 +8952,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rate_limit_real_ip_probe.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raw_data_processing_contract_guard.py",
     "kind": "tests"
   },
@@ -9097,6 +9113,10 @@
   },
   {
     "path": "tests_v9/test_route_residual_classification_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_run_all_minio_health_probe.py",
     "kind": "tests"
   },
   {

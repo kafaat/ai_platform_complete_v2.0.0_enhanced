@@ -67,8 +67,8 @@ medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,revi
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,43,0,review_before_delete,False
 medium,gis-workflow-service,function,assemble_print_map_svg,services/gis-workflow-service/svg_print_map.py,82,0,review_before_delete,False
-medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,364,0,review_before_delete,False
-medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,371,0,review_before_delete,False
+medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,370,0,review_before_delete,False
+medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,377,0,review_before_delete,False
 medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py,150,0,review_before_delete,False
 medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,196,0,review_before_delete,False
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False

@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 127,
+      "line": 123,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 72,
@@ -226,7 +226,7 @@
     },
     {
       "kind": "app",
-      "line": 355,
+      "line": 361,
       "module": "services.guardrails-engine.main",
       "node_id": "services.guardrails-engine.main:app",
       "route_count": 0,
@@ -532,7 +532,7 @@
     },
     {
       "kind": "app",
-      "line": 197,
+      "line": 196,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2278,7 +2278,7 @@
     },
     {
       "kind": "app",
-      "line": 135,
+      "line": 130,
       "module": "services.vegetation-analysis-service.main",
       "node_id": "services.vegetation-analysis-service.main:app",
       "route_count": 0,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "c1f98c5475bfa788438f7ebe505500787f9cf9971b564e23c244505411770fb9",
+  "inventory_sha256": "d967a065e66c67d426ffa199acd867b20ecd2f9277dcbf70fbb446a5217b4d4c",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {

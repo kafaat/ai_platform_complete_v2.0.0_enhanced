@@ -31,6 +31,38 @@ EXPERT_ROLES = {
 APPROVER_ROLES = frozenset(role for roles in EXPERT_ROLES.values() for role in roles) | {
     "regional_manager"
 }
+# Auth issues only owner/admin/expert/farmer/viewer (services/auth/main.py:441) and
+# writes the role into the token as-is (services/auth/main.py:608); none of the
+# specialist names above is ever issued. The platform already treats the issued
+# "expert" as AGRONOMIST (services/sahool-platform/api/main.py:1109). Map the issued
+# role onto that existing specialist authority; this adds no tier and no new grant.
+# PROPOSAL for ROLE-DICTIONARY-DOES-NOT-CARRY-SPECIALIST-AUTHORITY-01, option (b).
+ISSUED_ROLE_AUTHORITY = {"expert": "agronomist"}
+
+
+def approver_authority(role: Any) -> str:
+    """Return the specialist authority an issued token role carries ("" if none)."""
+    if not isinstance(role, str):
+        return ""
+    return ISSUED_ROLE_AUTHORITY.get(role, role)
+
+
+def _same_identity(requester_user_id: Any, approver_id: Any) -> bool:
+    """True when the approver is the user who submitted the workflow.
+
+    The requester is ``approval_workflows.user_id`` (users.id, an INTEGER written by
+    ``create``); the approver is the verified token ``sub`` (``str(users.id)``,
+    services/auth/main.py:606). An unrecorded requester cannot be compared.
+    """
+    if requester_user_id is None or isinstance(requester_user_id, bool):
+        return False
+    approver = str(approver_id).strip()
+    if approver.isascii() and approver.isdecimal():
+        try:
+            return int(approver) == int(requester_user_id)
+        except (TypeError, ValueError):
+            return False
+    return approver == str(requester_user_id)
 
 
 class WorkflowUnavailable(RuntimeError):
@@ -113,7 +145,8 @@ async def _pending_error(conn, row) -> dict | None:
 
 def _role_error(row, expert_role: str) -> dict | None:
     required = row["required_roles"] or []
-    if expert_role != "admin" and expert_role not in required:
+    authority = approver_authority(expert_role)
+    if authority != "admin" and authority not in required:
         return {
             "error": "Expert role not authorized",
             "authorized_roles": required,
@@ -186,6 +219,14 @@ class HumanApprovalWorkflow:
             error = _role_error(row, expert_role)
             if error:
                 return error
+            # Separation of duties: whoever submitted the action cannot approve it,
+            # whatever their role (admin included). Rejecting one's own request
+            # stays allowed; it can only keep an action from running.
+            if _same_identity(row["user_id"], expert_id):
+                return {
+                    "error": "Requester cannot approve their own request",
+                    "status": "unauthorized",
+                }
             if modifications:
                 return {
                     "status": "requires_revalidation",

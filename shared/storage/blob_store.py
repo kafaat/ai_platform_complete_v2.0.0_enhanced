@@ -33,10 +33,12 @@ per-slice env and no cross-service key smuggling: it is one shared store, by des
 from __future__ import annotations
 
 import importlib.util
+import ipaddress
 import logging
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 def _load_endpoint_policy():
@@ -79,6 +81,12 @@ S3_ENDPOINT = os.getenv("S3_ENDPOINT", "")
 S3_USE_SSL = os.getenv("S3_USE_SSL")
 S3_ALLOW_PLAINTEXT_INTERNAL = os.getenv("S3_ALLOW_PLAINTEXT_INTERNAL", "false")
 S3_ALLOW_PLAINTEXT_LOOPBACK = os.getenv("S3_ALLOW_PLAINTEXT_LOOPBACK", "false")
+# SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01: the host a *client* (a
+# browser) uses to reach the store. SigV4 presigned URLs sign the Host header
+# (X-Amz-SignedHeaders=host), so the URL must be signed for this host from the start —
+# rewriting the host of a URL signed for S3_ENDPOINT invalidates its signature. Optional;
+# when empty, presign signs for S3_ENDPOINT and refuses if that host is internal-only.
+S3_PUBLIC_ENDPOINT = os.getenv("S3_PUBLIC_ENDPOINT", "")
 # Explicit degradation gate (mirrors object_store): when S3 is configured but a real
 # upload can't happen (missing keys / put failure), fail-closed by default; only degrade
 # to file:// with a HIGH warning when S3_ALLOW_FILE_FALLBACK=1 (dev). Never a silent drop.
@@ -105,6 +113,83 @@ def _s3_endpoint_decision():
         return decision
     except EndpointPolicyError as exc:
         raise BlobStoreError(f"unsafe S3 endpoint configuration: {exc}") from exc
+
+
+# Suffixes that only resolve inside a private network (Railway private networking,
+# Kubernetes service DNS). Exact suffix matches, never substrings such as "minio".
+_INTERNAL_ONLY_SUFFIXES = (".internal", ".svc", ".cluster.local")
+
+
+def _browser_unreachable_host(host: str) -> bool:
+    """True when ``host`` is a name only a private network resolves (no client can use it).
+
+    - a single-label name (``sahool-minio``: a Compose/Docker service name) — except the
+      literal ``localhost``;
+    - an explicitly trusted in-cluster service identity (``TRUSTED_S3_SERVICE_HOSTS``);
+    - a private-network suffix (``*.railway.internal``, ``*.svc``, ``*.cluster.local``).
+
+    Loopback (``localhost`` / ``127.0.0.0/8`` / ``::1``) is deliberately *allowed*: the
+    service can only reach a loopback store when it runs on the developer's host, which
+    is the same machine as the browser, so the signed URL is usable there. Loopback HTTP
+    already needs the explicit dev opt-in ``S3_ALLOW_PLAINTEXT_LOOPBACK``. IP literals are
+    not classified (no RFC1918 inference, same rule as the endpoint policy).
+    """
+    h = host.lower().rstrip(".")
+    if h == "localhost":
+        return False
+    try:
+        ipaddress.ip_address(h)
+        return False
+    except ValueError:
+        pass
+    if h in _endpoint_policy.TRUSTED_S3_SERVICE_HOSTS:
+        return True
+    if "." not in h:
+        return True
+    return h.endswith(_INTERNAL_ONLY_SUFFIXES)
+
+
+def _public_endpoint_decision():
+    """Validate ``S3_PUBLIC_ENDPOINT`` with the same policy as ``S3_ENDPOINT``; None if unset.
+
+    Same resolver (no userinfo/path/query, bare host ⇒ HTTPS, explicit scheme kept, HTTP
+    only for loopback under ``S3_ALLOW_PLAINTEXT_LOOPBACK``; external HTTP forbidden) and
+    the same path-style rule. ``S3_USE_SSL`` is *not* applied: it describes the internal
+    hop, and an internal ``http://sahool-minio:9000`` behind a public ``https://`` origin
+    is the normal shape. Plaintext-internal is never honoured here, and an internal-only
+    host is rejected outright — a public endpoint nobody can resolve is a misconfiguration.
+    """
+    if not S3_PUBLIC_ENDPOINT.strip():
+        return None
+    try:
+        decision = resolve_configured_s3_endpoint(
+            S3_PUBLIC_ENDPOINT,
+            None,
+            False,
+            S3_ALLOW_PLAINTEXT_LOOPBACK,
+        )
+        require_path_style_service_root(decision, S3_BUCKET)
+    except EndpointPolicyError as exc:
+        raise BlobStoreError(f"unsafe S3_PUBLIC_ENDPOINT configuration: {exc}") from exc
+    if _browser_unreachable_host(decision.host):
+        raise BlobStoreError(
+            "S3_PUBLIC_ENDPOINT names an internal-only host; it must be a name clients resolve"
+        )
+    return decision
+
+
+def _presign_signing_decision():
+    """The endpoint a presigned URL is signed for — fail-closed when no client can use it."""
+    public = _public_endpoint_decision()
+    if public is not None:
+        return public
+    internal = _s3_endpoint_decision()
+    if _browser_unreachable_host(internal.host):
+        raise BlobStoreError(
+            f"presign refused: S3_ENDPOINT host {internal.host!r} is internal-only and "
+            "S3_PUBLIC_ENDPOINT is unset (a URL signed for it is unusable by clients)"
+        )
+    return internal
 
 
 def _use_ssl() -> bool:
@@ -150,7 +235,7 @@ def _local_path_for(key: str) -> str:
     return os.path.join(LOCAL_DIR, key)
 
 
-def _s3_client():
+def _s3_client(endpoint_url: str | None = None):
     # Config validation first (independent of boto3): a mis-provisioned store must not
     # pretend to work — missing creds fail-closed regardless of whether boto3 is present.
     access_key = os.getenv("S3_ACCESS_KEY")
@@ -166,7 +251,7 @@ def _s3_client():
         raise BlobStoreError("S3 configured but boto3 is not installed") from exc
     return boto3.client(
         "s3",
-        endpoint_url=_endpoint_url(),
+        endpoint_url=endpoint_url or _endpoint_url(),
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         # Path-style, as raster's object_store: a MinIO endpoint has no per-bucket DNS.
@@ -248,6 +333,13 @@ def presigned_get_url(ref: str, ttl_s: int) -> str:
     ①: the ≤300s contract TTL is enforced *inside* this function (deep defence) so the
     unit guard stays honest even if a future caller passes 3600 — cheaper than chasing
     every call site.
+
+    SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01: the URL is signed
+    for the host the client will send (``S3_PUBLIC_ENDPOINT`` when set). Without it, a
+    signing host that is internal-only (``sahool-minio``) is refused with
+    :class:`BlobStoreError` rather than returning a URL no client can resolve. A reverse
+    proxy in front of the store must forward the public Host unchanged, or the store
+    rejects the signature.
     """
     if ttl_s <= 0 or ttl_s > 300:
         raise BlobStoreError(f"presign TTL out of contract: {ttl_s}s (max 300s)")
@@ -255,15 +347,20 @@ def presigned_get_url(ref: str, ttl_s: int) -> str:
         if not s3_enabled():
             raise BlobStoreError("cannot presign an s3:// ref while S3 is disabled")
         bucket, _, obj_key = ref[len("s3://") :].partition("/")
-        client = _s3_client()
+        signing = _presign_signing_decision()  # before any client: config fails first
+        client = _s3_client(signing.endpoint_url)
         try:
-            return client.generate_presigned_url(
+            url = client.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": bucket, "Key": obj_key},
                 ExpiresIn=int(ttl_s),
             )
         except Exception as exc:  # noqa: BLE001
             raise BlobStoreError(f"presign failed for {ref}: {exc}") from exc
+        # The signature covers the host; a URL for any other host is unusable — refuse it.
+        if (urlsplit(url).hostname or "").lower() != signing.host:
+            raise BlobStoreError("presign produced a URL for a host other than the signing host")
+        return url
     if ref.startswith("file://"):
         return ref  # dev-only; not a network-shareable URL
     raise BlobStoreError(f"unsupported logbook ref scheme: {ref!r}")
