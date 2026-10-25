@@ -75,8 +75,11 @@ BUILD_TARGETS = frozenset(
     }
 )
 
-# `flutter` optionally followed by global flags, then `build`.
-_BUILD_RE = re.compile(r"(?<![\w./-])flutter(?:\s+--?[\w-]+(?:=\S+)?)*\s+build\b")
+# `flutter`, bare or path-qualified (`/opt/flutter/bin/flutter`, `$FLUTTER_ROOT/bin/flutter`,
+# `${{ env.FLUTTER_HOME }}/bin/flutter`), optionally followed by global flags, then `build`.
+_BUILD_RE = re.compile(
+    r"(?<![\w.-])(?:[^\s'\"]*/)?flutter(?:\.bat)?(?:\s+--?[\w-]+(?:=\S+)?)*\s+build\b"
+)
 _GHA_EXPR_RE = re.compile(r"\$\{\{.*?\}\}")
 _STOP_TOKENS = frozenset({";", "&&", "||", "|", "&", ";;"})
 _BINARY_SUFFIXES = frozenset(
@@ -456,8 +459,15 @@ def test_falsification_release_build_without_defines_is_flagged():
             "flutter build apk --dart-define=API_URL=https://api.sahool.ye --dart-define=WS_URL=wss://h.example",
             1,
         ),
+        # a path-qualified SDK binary is the same build (self-hosted / container CI)
+        ("/opt/flutter/bin/flutter build appbundle", 2),
+        ("$FLUTTER_ROOT/bin/flutter build apk --release", 2),
+        ("./flutter/bin/flutter build apk --release", 2),
+        ("${{ env.FLUTTER_HOME }}/bin/flutter build ipa", 2),
+        ("flutter.bat build apk --release", 2),
         # compliant
         ("flutter build apk --debug --no-pub", 0),
+        ("$FLUTTER_ROOT/bin/flutter build apk --debug", 0),
         (
             "flutter build apk --release --dart-define=API_URL=https://h.example --dart-define=WS_URL=wss://h.example",
             0,
