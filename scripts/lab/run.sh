@@ -19,9 +19,9 @@ mkdir -p "$out"
 
 export TEST_DATABASE_URL="postgresql://$LAB_PG_USER:$LAB_PG_PASSWORD@127.0.0.1:$LAB_PG_PORT/$LAB_PG_DB"
 export TEST_REDIS_URL="redis://127.0.0.1:$LAB_REDIS_PORT/0"
-# The same certification switches as the CI Integration Tests job: a missing
-# database is a failure for these suites, not a skip.
-export JWT_SECRET=test_secret_min_32_chars_for_sahool_v9
+# JWT_SECRET is left to tests_v9/conftest.py, which defaults it to the same test value
+# the CI job exports. The same certification switches as the CI Integration Tests
+# job: a missing database is a failure for these suites, not a skip.
 export CLAIM_LEASE_CERTIFICATION_REQUIRED=1 HIL_CERTIFICATION_REQUIRED=1
 export RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED=1 MIGRATOR_CERTIFICATION_REQUIRED=1
 
