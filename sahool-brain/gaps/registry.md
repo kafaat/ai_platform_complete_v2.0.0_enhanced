@@ -7659,6 +7659,14 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 
 - **تقدم CI على dc478b95:** حل تبعيات التطبيق وتحليل واختبارات realtime ناجحة؛ قفل التطبيق مستخرج فعليًا ومثبت البصمة في `certification/evidence/pmtiles_compatibility_20261024/application-ci.json`. نجح APK أيضًا في الوظيفة120956961334، وتبقى إعادة إثبات القفل على الرأس الجديد مطلوبة.
 
+
+## GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01
+
+- **الحالة:** open — إصلاح #1264 مرشح، ينتظر CI والدمج.
+- **المصدر:** #1264؛ `services/guardrails-engine/main.py`؛ `tests_v9/test_guardrails_service_token_ascii.py`.
+- **العطل:** hmac.compare_digest يرفض النص غير ASCII باستثناء TypeError فيعيد500 بدل رفض التوكن.
+- **شرط الإغلاق:** نجاح اختبارات الرفض401 والإعداد غير المتاح503 والمقارنة ثابتة الزمن، ثم إدراج الإصلاح في main.
+
 ## DEP-FRONTEND-NPM-HIGH-ADVISORIES-20261025-01 — قفل الواجهة يحمل ثلاث استشارات عالية
 
 - **الحالة:** open — الإصلاح على الفرع `claude/frontend-npm-advisories-20261025`؛ يُغلق بدمجه، ودمجُه يطلق نشر الواجهة على Railway فينتظر قرار المالك.

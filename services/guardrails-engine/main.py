@@ -420,12 +420,16 @@ def _require_service_token(x_agent_token: str = _Header(None)):
     و`/v1/evaluate`، وكانت تقول «/v1/validate» في الحالتين — فمن يصطدم بـ401 على
     التقييم يطارد مساراً لم يستدعه. والرسالةُ الخاطئة في نداء الطوارئ أسوأ من المقتضبة.
     """
-    if not _GR_AGENT_TOKEN:
+    if not _GR_AGENT_TOKEN or not _GR_AGENT_TOKEN.isascii():
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — مسارات الحواجز معطّلة بأمان")
     # L5 FIX: مقارنة بزمن ثابت (كـodoo-bridge) لإغلاق قناة توقيت جانبيّة.
     import hmac as _hmac
 
-    if not x_agent_token or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN):
+    if (
+        not x_agent_token
+        or not x_agent_token.isascii()
+        or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN)
+    ):
         raise HTTPException(401, "توكن خدمة غير صالح لمسارات الحواجز")
     return True
 

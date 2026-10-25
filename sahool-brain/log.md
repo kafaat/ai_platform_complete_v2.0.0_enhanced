@@ -9969,6 +9969,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **لا تغيير في `gaps/registry.md`:** لا حالة تتغيّر ولا معرّف جديد. قواعده تشترط التسجيل لتأجيلٍ في hot.md أو لملاحظة مراجعة بوسم خطورة، وهذه المدخلة لا تحمل أيّاً منهما.
 - **حدود:** هذا الـPR دماغ فقط. التنفيذ DEV من منفّذ Claude بلا استقلال، ولا دفع.
 
+
+2026-10-25 — استعادة إصلاح #1264 فوق main `d8f650a7` بعد إزالة مساحة العمل السابقة: يحتفظ `_require_service_token` بالمقارنة ثابتة الزمن للتوكن الصحيح، ويرفض غير ASCII بـ401، ويعامل الإعداد غير ASCII كغير متاح503. المصدر: `services/guardrails-engine/main.py` و`tests_v9/test_guardrails_service_token_ascii.py`. أعيد التنسيق والتوليد والمصالحة؛ لا تورث نتائج المرشح المحلي المفقود. فجوة GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01 مفتوحة حتى الدمج.
+
 ### 2026-10-25 — استشارات npm العالية في قفل الواجهة
 
 `npm audit --package-lock-only` على قفل الواجهة في `main@3e08bda5a` كشف ثلاث استشارات عالية لم يسجّلها السجلّ، منها `follow-redirects` الإنتاجيّ. سُجّلت `DEP-FRONTEND-NPM-HIGH-ADVISORIES-20261025-01`، والإصلاح على الفرع `claude/frontend-npm-advisories-20261025`: `npm ci` والأنواع وlint (٠ أخطاء، ٣٨ تحذيراً كما في main) وvitest و`vite build` ناجحة محلّيّاً. يحلّ محلّ #1253.
