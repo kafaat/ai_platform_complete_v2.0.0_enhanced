@@ -4,8 +4,8 @@
  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
  "owner": "kafaat",
  "main": {
-  "head": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
-  "tree": "de2c2ab2f2faae7d6ca8aaf893446b6328609b7f"
+  "head": "41a8c305fa55bc2d14207708dd28e07cef91723d",
+  "tree": "b633d6027029ac54eb274cde31d587afb3595b67"
  },
  "done_verified": [
   {
@@ -188,5 +188,6 @@
    "sequential runner gives resume, not speed; xdist collection mismatch in SAHOOL blocks parallel speedup",
    "pytest JUnit reports xfail as skipped; per-unit max_skipped must come from a measured baseline"
   ]
- }
+ },
+ "main_note_20261025": "Updated by hand on Windows without bin/ws.py; head is the #1282 squash (short SHA as recorded in HANDOFF.md). Entries under done_verified/in_progress below date from 2026-10-19 and were not re-verified."
 }
