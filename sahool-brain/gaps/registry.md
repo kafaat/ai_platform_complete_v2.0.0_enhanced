@@ -7658,3 +7658,10 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الدليل المحلي:** `certification/evidence/pmtiles_compatibility_20261024/validation.json`: 33 اختبارًا ناجحًا على Dart3.10.8، وقفل حزمة حقيقي؛ هذا لا يثبت حل تبعيات التطبيق أو APK.
 
 - **تقدم CI على dc478b95:** حل تبعيات التطبيق وتحليل واختبارات realtime ناجحة؛ قفل التطبيق مستخرج فعليًا ومثبت البصمة في `certification/evidence/pmtiles_compatibility_20261024/application-ci.json`. نجح APK أيضًا في الوظيفة120956961334، وتبقى إعادة إثبات القفل على الرأس الجديد مطلوبة.
+
+## DEP-FRONTEND-NPM-HIGH-ADVISORIES-20261025-01 — قفل الواجهة يحمل ثلاث استشارات عالية
+
+- **الحالة:** open — الإصلاح على الفرع `claude/frontend-npm-advisories-20261025`؛ يُغلق بدمجه، ودمجُه يطلق نشر الواجهة على Railway فينتظر قرار المالك.
+- **المصدر:** `npm audit --package-lock-only` على `frontend/package-lock.json` في `main@3e08bda5a`: ٣ عالية و٢ متوسّطة. `follow-redirects` 1.16.0 (إنتاجيّ عبر axios؛ GHSA-q3jh-wrc6-jgq8 وGHSA-8r9p-f939-6h3c، الإصلاح 1.16.1)، `vite` 8.0.16 (تطوير؛ GHSA-587h-7wmj-h5pm وأربع أخرى حتّى 8.1.5)، `zod` 4.4.3 (تطوير عبر ESLint؛ GHSA-mrhx-c7xc-m3w5، الإصلاح 4.6.6)، و`vitest` 5.0.2 (متوسّطة). لا يحجبها CI لأنّ بوّابة `pip-audit` لبايثون وحده.
+- **العلاج:** القفل ومدى `vite` و`vitest` في `frontend/package.json` فقط: الإنتاجيّ الوحيد `follow-redirects` 1.16.0 ⇒ 1.16.1؛ والباقي أدوات بناء واختبار (vite 8.3.5، rolldown 1.2.15، vitest 5.0.5، zod 4.6.7). بعده `npm audit` صفر. يحلّ محلّ #1253 (vite وحده).
+- **شرط الإغلاق:** دمج الفرع بعد CI أخضر على رأسه، مع `npm ci` والتحقّق من الأنواع وlint وvitest و`vite build` ناجحة.
