@@ -12,9 +12,15 @@ Do not trust chat memory, tool task IDs or old PIDs as evidence that something i
 5. After every step that has an effect, run `bin/ws.py set …` or `bin/ws.py event …`. Record results with `bin/ws.py checksum <file>`. After each milestone, run `bin/backup.sh`, which fast-forwards `claude/backup-work-state-20261019` and verifies the remote ref.
 
 ## Where things stand (verify, do not assume)
-- main = `accbfa7f8` (#1235), tree `76eb284d`.
-- #1237 is open. Its head is `8bbef1f00` (main merged in to clear gate01). It waits for CI, then for an **explicit owner merge approval on that head**.
-- Waiting on owner decisions:
+- main = `41a8c305f` (#1282, brain post-merge record). Verified 2026-10-25 via `git fetch` + `gh`: merge tree `b633d602` == tested head `1dc57b2ac` tree; CI 66 pass, 2 skipped, 0 failed.
+- #1281 (unified gap slices) merged ⇒ `ad25eba0b`; merge tree `d5722012` == tested head `f95bdda65` tree (CI 83 pass + 1 skipped). It touched Railway deploy paths (gateway, notification agent, guardrails-engine, shared/**) by explicit owner order (option ب for ROLE-DICTIONARY); post-deploy verification is read-only and awaits Railway MCP re-authorization.
+- The six gap rows touched by #1281 carry their «merged ⇒ SHA» line and all stay **open**; #1278/#1279/#1280 are superseded by #1281.
+- Open on the owner: `Select-String -Path .env -Pattern '^MINIO_(MC_)?IMAGE='` output, to decide whether the stale MinIO image value comes from `.env` or the shell session (MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01).
+- Local workspace note (Windows, v26): local `main` carries 13 old unpushed merge commits and lags origin; left untouched.
+- Everything below this entry dates from 2026-10-19 and was NOT re-verified today; treat it as RECORDED_UNVERIFIED history, not current state.
+- Old 2026-10-19 entry: main = `accbfa7f8` (#1235), tree `76eb284d`.
+- Old 2026-10-19 entry: #1237 was open at head `8bbef1f00`; current state unknown, re-read GitHub before acting.
+- Old 2026-10-19 owner-decision list (not re-verified):
   - deleting the two `codex/*-blob-transfer-20261019` branches;
   - a PR adding the research-correction notes;
   - a read-only Railway check for `accbfa7f8`.
