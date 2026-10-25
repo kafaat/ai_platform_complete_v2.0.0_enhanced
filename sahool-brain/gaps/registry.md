@@ -7690,3 +7690,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المقيس (2026-10-25):** `getent hosts api.sahool.ye` ⇒ لا جواب، و`sahool.ye` كذلك، بينما `github.com` يُحلّ من البيئة نفسها. الافتراضيّ نفسه في [`frontend/big-screen/index.html:397`](../../frontend/big-screen/index.html) و[`frontend/gis-overlay/index.html:308`](../../frontend/gis-overlay/index.html).
 - **حدود القياس:** لا يُرى من المستودع أيّ بناءٍ خارجه؛ إن وُجدت نسخةٌ موزَّعة فالحكم عليها بإعدادها المبنيّ فعلاً، والمرجع فيه المالك.
 - **شرط الإغلاق:** عنوانٌ افتراضيّ يُحلّ ويخدم `/api/v1` (أو بناءٌ يرفض الافتراضيّ ويشترط `API_URL` صريحاً)، مع فحصٍ في مسار بناء الإصدار يفشل حين لا يُحلّ المضيف المدمج.
+
+## MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 — شاشة نماذج الحقل في الهاتف بلا مدخل
+
+- **الحالة:** open (2026-10-25) — وُجدت أثناء إعادة قياس [`docs/WEB_MOBILE_PARITY.md`](../../docs/WEB_MOBILE_PARITY.md).
+- **المصدر:** `FieldFormScreen` معرَّفة في [`mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart:243`](../../mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart) ولا يبنيها أيّ ملفّ آخر تحت `mobile/sahool_app/lib/` (بحث `FieldFormScreen` لا يجد غير تعريفها)؛ فالشاشة مبنيّة ومختبَرة ولا يصل إليها المستخدم.
+- **شرط الإغلاق:** مدخلٌ من مساحة عمل الحقل أو قائمة «المزيد» يفتح الشاشة، مع اختبارٍ يثبت أنّ التنقّل يبلغها؛ أو قرارٌ مكتوب بإزالتها.
+
+## WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 — ثوابت مسارات ويب بلا معالِج خادم
+
+- **الحالة:** open (2026-10-25) — وُجدت أثناء إعادة قياس [`docs/WEB_MOBILE_PARITY.md`](../../docs/WEB_MOBILE_PARITY.md).
+- **المصدر:** سبعة ثوابت `phase8` في [`frontend/src/lib/globalScaleRuntime.ts:19-27`](../../frontend/src/lib/globalScaleRuntime.ts) لا يستوردها غير ملفّ اختبارها؛ وستّة في [`frontend/src/lib/enterpriseGisPhase7.ts:41-52`](../../frontend/src/lib/enterpriseGisPhase7.ts) (`collaboration/sessions` وأحداثها، `raster/distributed/plan` و`jobs`، `digital-twin/scenarios/simulate`، `readiness/planet-scale`) والمستعمَل من الكائن `collaborationSocket` وحده. ولا مُزخرِف خادم لأيٍّ منها. وقالت المراجعة المستقلّة إنّ العدد 14 لا 13: `/api/v1/recommendations/autonomous` يطابق ظاهريّاً `GET /api/v1/recommendations/{rec_id}` فيُقرأ `autonomous` معرّفاً، ولا مسار يخدمه فعلاً.
+- **الأثر:** لا شاشة تستدعيها اليوم، فلا عطل مرئيّ؛ لكنّها تُوهم بقدرةٍ غير موجودة لمن يبني عليها.
+- **شرط الإغلاق:** بناء المسارات بمعالِجاتها واختبارات عقدها، أو حذف الثوابت، مع حارسٍ يرفض ثابت `/api/v1` في الواجهة بلا معالِج مطابق بالطريقة والمسار.

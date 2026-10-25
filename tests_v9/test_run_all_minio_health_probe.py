@@ -92,3 +92,14 @@ def test_health_reports_every_service_when_all_are_up(tmp_path: Path) -> None:
     assert f"{SERVICE_COUNT} passed, 0 failed" in out, out
     assert "All systems operational!" in out, out
     assert proc.returncode == 0, out
+
+
+def test_powershell_twin_probes_minio_on_its_liveness_path() -> None:
+    """scripts_v9/run_all.ps1 carries the same health table; it must not probe MinIO on /healthz."""
+    text = (ROOT / "scripts_v9" / "run_all.ps1").read_text(encoding="utf-8-sig")
+    assert (
+        "$paths = if ($svc.Port -eq 9000) { @('/minio/health/live') } else { @('/healthz', '/readyz') }"
+        in text
+    )
+    assert "foreach ($path in $paths)" in text
+    assert "foreach ($path in @('/healthz', '/readyz'))" not in text
