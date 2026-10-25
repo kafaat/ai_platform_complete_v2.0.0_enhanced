@@ -8216,6 +8216,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guardrails_pool_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_harvest_traceability_v65.py",
     "kind": "tests"
   },
@@ -8501,6 +8505,10 @@
   },
   {
     "path": "tests_v9/test_minio_image_source.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_minio_network_isolation.py",
     "kind": "tests"
   },
   {
