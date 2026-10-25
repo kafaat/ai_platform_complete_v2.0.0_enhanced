@@ -4,9 +4,9 @@
 
 ## Summary
 
-- Python files parsed: **2003**
+- Python files parsed: **2004**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **88804**
+- Static function-call edges: **88805**
 - Dead-code candidates: **650**
 - Duplicate function groups: **57**
 - Automatic deletions: **0**

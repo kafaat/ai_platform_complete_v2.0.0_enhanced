@@ -19155,7 +19155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9d86cdbaa049cde8c816f438157fa2953bd75bd9070c102e2bd7e0e031e43f3"
+          "content": "151f315fd9782932b81d8b64f6512f7d2358e7d4c78d7a74d8355a641932aebf"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -33879,6 +33879,16 @@
         }
       ],
       "name": "shared/notification_consumers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9552ac49983d2e03d4dc0b872cad3ff85b2bbffc3658231e50eba86dbdf62c89"
+        }
+      ],
+      "name": "shared/pool_shutdown.py",
       "type": "file"
     },
     {
