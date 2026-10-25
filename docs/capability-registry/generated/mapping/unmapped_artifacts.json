@@ -8140,6 +8140,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gateway_real_ip_access_log.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_tls_init.py",
     "kind": "tests"
   },
@@ -8933,6 +8937,10 @@
   },
   {
     "path": "tests_v9/test_rate_limit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rate_limit_real_ip_probe.py",
     "kind": "tests"
   },
   {
