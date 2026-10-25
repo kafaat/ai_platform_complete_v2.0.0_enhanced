@@ -944,6 +944,10 @@ jobs:
           --cov-fail-under=43
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
         with: {files: coverage.xml}
+      # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so
+      # `-m unit` never collects them; TiTiler is stubbed, deps come from requirements-test.
+      - name: raster-tiler-service wrapper route contracts
+        run: pytest -v -p no:cacheprovider services/raster-tiler-service/tests
       # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل
       # صراحةً بالمسار. لم تعد تحتاج تثبيتاً معزولاً: fastapi صارت في البيئة
       # المشتركة مثبَّتة على إصدار الإنتاج (UNIT-TEST-DORMANCY-01).
