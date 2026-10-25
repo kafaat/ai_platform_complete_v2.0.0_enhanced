@@ -302,15 +302,15 @@
       "mobile": [],
       "tests": [
         {
-          "path": "tests_v9/test_b6m4_structured_advisory.py",
-          "score": 10,
+          "path": "tests_v9/test_guardrails_contract.py",
+          "score": 11,
           "signals": [
             "content:Human approval",
             "content:approval workflow"
           ]
         },
         {
-          "path": "tests_v9/test_guardrails_contract.py",
+          "path": "tests_v9/test_b6m4_structured_advisory.py",
           "score": 10,
           "signals": [
             "content:Human approval",
