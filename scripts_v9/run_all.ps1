@@ -107,7 +107,10 @@ function Health-Check {
     $passed = 0; $failed = 0
     foreach ($svc in $services) {
         $ok = $false
-        foreach ($path in @('/healthz', '/readyz')) {
+        # MinIO serves neither /healthz nor /readyz; its liveness path is /minio/health/live
+        # (same probe as scripts_v9/run_all.sh and the S3 acceptance lane).
+        $paths = if ($svc.Port -eq 9000) { @('/minio/health/live') } else { @('/healthz', '/readyz') }
+        foreach ($path in $paths) {
             try {
                 Invoke-WebRequest -Uri "http://localhost:$($svc.Port)$path" -UseBasicParsing -TimeoutSec 3 | Out-Null
                 $ok = $true; break

@@ -226,7 +226,7 @@
     },
     {
       "kind": "app",
-      "line": 355,
+      "line": 361,
       "module": "services.guardrails-engine.main",
       "node_id": "services.guardrails-engine.main:app",
       "route_count": 0,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8cc4d925c18d767890339bed09c6c0a973d1ce057bccb20c67652a9eb59cac6f",
+  "inventory_sha256": "d967a065e66c67d426ffa199acd867b20ecd2f9277dcbf70fbb446a5217b4d4c",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
