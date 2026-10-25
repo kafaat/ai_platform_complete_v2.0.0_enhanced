@@ -4424,3 +4424,14 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 وقرار الجلسة ضمن التجميد: لا يُدمَج بهذا التفويض ما يطلق نشراً على Railway — تغييرات `frontend/**` (تحديث تبعيّات npm) و`agents/notification/**` — لأنّ الإنتاج يُنشَر من main بلا بوّابة CI (`PRODUCTION-DEPLOYS-FROM-MAIN-WITHOUT-CI-GATE-01`) والمالك منع تغيير موارد الإنتاج (2026-10-20). يُفتح لها PR ويُعرض قرار دمجها على المالك صراحةً.
 
 السبب: التفويض العامّ لا يُسقط قيد التجميد؛ والنشر أثرٌ خارجيّ لا يُعاد بإلغاء الدمج.
+
+### 2026-10-25 — قرارات المالك على أربع مذكّرات قرار
+
+المذكّرات في [`reports/owner_decisions_20261025.md`](../reports/owner_decisions_20261025.md) (ثلاثون، أعدّها خمسة عشر وكيلاً للقراءة فقط). القرارات (للمالك):
+
+- `MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01`: تقوية العزل الآن بشبكة مخصّصة `internal: true` لـMinIO وعملائه، بعد مراجعة كلّ الشبكات والمنافذ المنشورة، مع اختبار منع الوصول غير المصرّح به واستمرار الرفع والتنزيل ومسار صور الأقمار. الفجوة تبقى مفتوحة. لا اختيار لمخزن بديل قبل مقارنة توافق S3 ونسخ واستعادة فعليّة. ادّعاء انقطاع الإصلاحات يُتحقَّق منه قبل الاعتماد عليه.
+- `PRODUCTION-ENVIRONMENT-ALL-DEPLOYMENTS-REMOVED-SINCE-20261005-01` و`RAILWAY-DEPLOYMENT-STOPPED-BY-EXTERNAL-SIGTERM-AFTER-SUCCESS-01`: يقرأ المالك صفحات Usage وBilling والبريد في Railway حول 10-05 و10-12. ويُجهَّز تمرين استعادة على نسخة مؤقّتة: [`docs/runbooks/RAILWAY_POSTGRES_RESTORE_DRILL.md`](../../docs/runbooks/RAILWAY_POSTGRES_RESTORE_DRILL.md) (تصدير للقراءة فقط، واستعادة في حاوية محلّيّة، بلا هجرة ولا مساس بالإنتاج).
+- `RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01`: يُجهَّز فرع القياس (تسجيل `$http_x_real_ip` ومسبار التزوير) ولا يُدمَج الآن، لأنّ دمجه ينشر البوّابة إلى الإنتاج.
+- `NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01`: يُفتح PR لإصلاح التشخيص ولا يُدمَج، لأنّ دمجه يعيد نشر الوكيل على Railway.
+
+السبب: التجميد يمنع تغيير موارد الإنتاج، فما يُنفَّذ الآن هو ما يُختبر محلّيّاً وفي CI دون نشر؛ وما يحتاج قراءة حيّة يقرؤه المالك.
