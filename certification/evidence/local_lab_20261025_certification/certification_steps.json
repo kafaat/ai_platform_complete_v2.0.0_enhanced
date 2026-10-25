@@ -1,0 +1,184 @@
+{
+  "source": ".github/workflows/ci.yml jobs.integration-tests: steps after 'pytest -v -m integration --tb=short', read at run time",
+  "steps": [
+    {
+      "index": 1,
+      "ci_step": "Create restricted application role for RLS certification",
+      "env_keys": [
+        "PGPASSWORD"
+      ],
+      "certification_switches": {},
+      "ci_pytest_calls": [],
+      "pytest_suites": [],
+      "rc": 0,
+      "seconds": 0.2,
+      "log": "cert01_create_restricted_application_role_for_rls_certi.step.log"
+    },
+    {
+      "index": 2,
+      "ci_step": "IRR-F01 fresh-schema certification (Gate A + Gate B1)",
+      "env_keys": [
+        "IRR_F01_CERTIFICATION_REQUIRED",
+        "TEST_DATABASE_ADMIN_URL",
+        "TEST_DATABASE_URL"
+      ],
+      "certification_switches": {
+        "IRR_F01_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert02_1_test_irr_f01_reservation_live_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 4.8,
+      "log": "cert02_irr_f01_fresh_schema_certification_gate_a_gate_b.step.log"
+    },
+    {
+      "index": 3,
+      "ci_step": "IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)",
+      "env_keys": [
+        "ADMIN_PASS",
+        "ADMIN_USER",
+        "APP_PASS",
+        "APP_ROLE",
+        "IRR_F01_CERTIFICATION_REQUIRED",
+        "PGHOST",
+        "PGPORT",
+        "U1_DB"
+      ],
+      "certification_switches": {
+        "IRR_F01_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py",
+        "pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert03_1_test_irr_f01_upgrade_gate_u1_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py"
+        },
+        {
+          "suite": "cert03_2_test_irr_f01_reservation_live_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 22.5,
+      "log": "cert03_irr_f01_upgrade_certification_gate_u1_v194_v195.step.log"
+    },
+    {
+      "index": 4,
+      "ci_step": "H5.1 field↔source binding certification (real-PG, restricted role)",
+      "env_keys": [
+        "H51_CERTIFICATION_REQUIRED",
+        "TEST_DATABASE_ADMIN_URL",
+        "TEST_DATABASE_URL"
+      ],
+      "certification_switches": {
+        "H51_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert04_1_test_h51_field_source_binding_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 1.2,
+      "log": "cert04_h5_1_field_source_binding_certification_real_pg.step.log"
+    },
+    {
+      "index": 5,
+      "ci_step": "RLS tenant isolation certification (real-PG, restricted role)",
+      "env_keys": [
+        "RLS_ISOLATION_CERTIFICATION_REQUIRED",
+        "TEST_DATABASE_ADMIN_URL",
+        "TEST_DATABASE_URL"
+      ],
+      "certification_switches": {
+        "RLS_ISOLATION_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_rls_tenant_isolation_live_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert05_1_test_rls_tenant_isolation_live_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_rls_tenant_isolation_live_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 3.0,
+      "log": "cert05_rls_tenant_isolation_certification_real_pg_restr.step.log"
+    },
+    {
+      "index": 6,
+      "ci_step": "Imagery automation RLS certification (migrated policy, restricted role)",
+      "env_keys": [
+        "IMAGERY_RLS_CERTIFICATION_REQUIRED",
+        "TEST_DATABASE_ADMIN_URL",
+        "TEST_DATABASE_URL"
+      ],
+      "certification_switches": {
+        "IMAGERY_RLS_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert06_1_test_imagery_automation_rls_live_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 1.4,
+      "log": "cert06_imagery_automation_rls_certification_migrated_po.step.log"
+    },
+    {
+      "index": 7,
+      "ci_step": "D1 raster invalidation queue RLS certification (migrated v96 policy, restricted role)",
+      "env_keys": [
+        "RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED",
+        "TEST_DATABASE_ADMIN_URL",
+        "TEST_DATABASE_URL"
+      ],
+      "certification_switches": {
+        "RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED": "1"
+      },
+      "ci_pytest_calls": [
+        "pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py"
+      ],
+      "pytest_suites": [
+        {
+          "suite": "cert07_1_test_d1_raster_queue_rls_live_pg",
+          "command": "pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py"
+        }
+      ],
+      "rc": 0,
+      "seconds": 1.2,
+      "log": "cert07_d1_raster_invalidation_queue_rls_certification_m.step.log"
+    }
+  ],
+  "restricted_roles": [
+    {
+      "role": "sahool_app_test",
+      "exists": true,
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolinherit": false,
+      "rolcanlogin": true,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

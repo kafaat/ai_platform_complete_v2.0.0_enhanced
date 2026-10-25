@@ -1,0 +1,2 @@
+integration rc=0 seconds=104
+otel_pinned rc=0 seconds=3
