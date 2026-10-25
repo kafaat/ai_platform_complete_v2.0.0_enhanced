@@ -26,7 +26,13 @@ from fastapi import Header as _Header
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from human_in_loop import APPROVER_ROLES, HumanApprovalWorkflow, WorkflowUnavailable, close_pool
+from human_in_loop import (
+    APPROVER_ROLES,
+    HumanApprovalWorkflow,
+    WorkflowUnavailable,
+    approver_authority,
+    close_pool,
+)
 from pydantic import BaseModel, Field, field_validator, model_validator
 from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
@@ -457,7 +463,8 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     # Authenticated specialist roles must match the workflow role at mutation time.
-    if payload.get("role") not in APPROVER_ROLES:
+    # The issued role is mapped to the specialist authority it carries (expert→agronomist).
+    if approver_authority(payload.get("role")) not in APPROVER_ROLES:
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
