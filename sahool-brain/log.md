@@ -10003,3 +10003,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-25 — فجوتان من تحقّقَين عاجلين طلبهما المالك
 
 سُجّلت SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01 (مضيف `sahool-minio:9000` داخل توقيع SigV4، مقيسٌ دون اتّصال؛ لا مستهلك في الواجهة اليوم) وMOBILE-DEFAULT-API-HOST-HAS-NO-DNS-01 (`api.sahool.ye` افتراضيّ التطبيق لا يُحلّ؛ لا إصدار منشور)، كلتاهما open بمصادرها في [`gaps/registry.md`](gaps/registry.md). وصُحّحت قاعدة «ما يُطلق نشراً من main»: ليست `frontend/**` و`agents/notification/**` وnginx البوّابة وحدها؛ قراءة Railway في [`certification/evidence/railway_reconciliation_readonly_20261014.json`](../certification/evidence/railway_reconciliation_readonly_20261014.json) تضيف `services/field-management-service/**` و`services/raster-service/**` و`services/ai_agronomist/**` و`shared/**` و`migrations/**`، وأنماطُ المنصّة غير مقيسة فيها؛ فكلّ دمجٍ يمسّ مسار خدمة أو `shared/**` أو `migrations/**` يُعدّ ناشراً حتّى تثبت قراءةٌ حيّة خلافه.
+
+### 2026-10-25 — دمج عزل MinIO (#1275)
+
+دُمج #1275 ⇒ `93d59b7a` بتفويض المالك، وشجرة الدمج `2a1c07e8` = شجرة الرأس المختبَر `8764aae2`. أثبت CI شروط المالك الثلاثة حيّةً (منع الوصول غير المصرّح، الرفع والتنزيل، مسار صور الأقمار)، وبقيت فجوة صيانة MinIO open في [`gaps/registry.md`](gaps/registry.md)، والقرار في [`decisions/ledger.md`](decisions/ledger.md).
