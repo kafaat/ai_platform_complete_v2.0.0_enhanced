@@ -41,6 +41,25 @@ Endpoint configuration uses the existing `API_URL`, `WS_URL` and `SAHOOL_ENV`
 Dart defines; production requires HTTPS/WSS. Local HTTP is only appropriate for
 an explicit development build and a corresponding debug network configuration.
 
+The compiled-in defaults (`lib/config/app_config.dart`) are
+`https://api.sahool.ye` and `wss://api.sahool.ye` with `SAHOOL_ENV=prod`. That
+host does not resolve, so a binary built without overrides cannot reach any
+backend and nothing fails at build time. Every non-debug build (release or
+profile `apk`, `appbundle`, `ipa`, `web`) must pass both endpoints explicitly:
+
+```bash
+flutter build appbundle --release --no-pub \
+  --dart-define=API_URL=https://<operator-api-host> \
+  --dart-define=WS_URL=wss://<operator-api-host>
+```
+
+A git-tracked `--dart-define-from-file` that sets both keys is equivalent.
+`tests_v9/test_mobile_release_build_requires_endpoint_defines.py` scans the
+workflows, the scripts under `mobile/` and `scripts/`, and this file, and fails
+on any non-debug `flutter build` that omits either define or passes the
+unresolvable default. Debug builds are exempt. The defaults themselves are an
+owner product decision and are not changed here.
+
 The September 13 local validation includes Flutter analysis and all 80 Flutter
 tests. Android SDK/Xcode builds, a signed install, background notification delivery
 and a real FCM/APNs receipt on a handset still require their respective runners
