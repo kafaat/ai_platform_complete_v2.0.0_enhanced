@@ -5424,6 +5424,7 @@
       "tests": [
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "services/decision-service/tests/test_service_token_guard.py",
+        "tests_v9/test_guardrails_service_token_ascii.py",
         "tests_v9/test_raster_service_token_binding.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"
@@ -5444,7 +5445,7 @@
           "path": "services/sahool-platform/api/service_token_auth.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
