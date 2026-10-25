@@ -25,7 +25,7 @@
       "tests": 2036,
       "web": 479
     },
-    "unmapped_artifacts": 2423,
+    "unmapped_artifacts": 2422,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -12365,27 +12365,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:823",
+          "value": "/health @ agents/notification/agent.py:840",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:824",
+          "value": "/healthz @ agents/notification/agent.py:841",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:874",
+          "value": "/metrics @ agents/notification/agent.py:891",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:887",
+          "value": "/notification/test @ agents/notification/agent.py:904",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:809",
+          "value": "/notifications/test @ agents/notification/agent.py:826",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:829",
+          "value": "/readyz @ agents/notification/agent.py:846",
           "score": 12
         },
         {
@@ -12753,7 +12753,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:600",
+          "value": "sahool.> @ agents/notification/agent.py:617",
           "score": 12
         },
         {
@@ -12938,6 +12938,14 @@
           "score": 12,
           "signals": [
             "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_notification_delivery_reliability.py",
+          "score": 11,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -13274,7 +13282,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 24
+        "events": 30
       },
       "evidence_counts": {
         "backend": 6,
@@ -13283,7 +13291,7 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 18,
+        "tests": 19,
         "governance": 2,
         "other_evidence": 31
       },
@@ -47713,10 +47721,6 @@
     },
     {
       "path": "tests_v9/test_notification_channel_selection.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_notification_delivery_reliability.py",
       "kind": "tests"
     },
     {
