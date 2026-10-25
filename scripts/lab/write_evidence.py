@@ -29,7 +29,7 @@ KEY_PACKAGES = (
 
 
 def _run(*cmd: str) -> str:
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", check=False)
     return result.stdout.strip() if result.returncode == 0 else ""
 
 
