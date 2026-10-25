@@ -674,3 +674,142 @@ def test_approval_http_sandbox_is_scoped_and_has_no_external_io(
         assert row["status"] == ("expired" if case == "expired_workflow" else "pending")
     assert not storage.settings
     assert list(storage.rows) == [wid]
+
+
+class _FakeApprovalPool:
+    def __init__(self, close_hangs=False):
+        self.close_hangs = close_hangs
+        self.closed = False
+        self.terminated = False
+
+    async def close(self):
+        if self.close_hangs:
+            await asyncio.Event().wait()
+        self.closed = True
+
+    def terminate(self):
+        self.terminated = True
+
+
+@pytest.fixture
+def cold_hil(gr_mod, monkeypatch):
+    mod = sys.modules[gr_mod.HumanApprovalWorkflow.__module__]
+    created = []
+
+    async def create_pool(*args, **kwargs):
+        await asyncio.sleep(0)  # force cold callers to interleave inside creation
+        created.append(_FakeApprovalPool(close_hangs=mod.DATABASE_URL.endswith("hang")))
+        return created[-1]
+
+    monkeypatch.setattr(mod, "_pool", None)
+    monkeypatch.setattr(mod, "_pool_lock", asyncio.Lock(), raising=False)
+    monkeypatch.setattr(mod, "DATABASE_URL", "postgresql://approval@db/approvals")
+    monkeypatch.setattr(mod.asyncpg, "create_pool", create_pool)
+    import shared.db_role_guard as role_guard
+
+    monkeypatch.setattr(role_guard, "assert_dsn_role_rls_safe", AsyncMock())
+    return mod, created
+
+
+def test_hil_concurrent_cold_get_pool_creates_exactly_one_pool(cold_hil):
+    mod, created = cold_hil
+
+    async def scenario():
+        return await asyncio.gather(*(mod._get_pool() for _ in range(6)))
+
+    pools = asyncio.run(scenario())
+    assert len(created) == 1
+    assert all(pool is created[0] for pool in pools)
+
+
+def test_lifespan_shutdown_closes_pool_and_restart_creates_fresh_one(gr_mod, cold_hil):
+    mod, created = cold_hil
+
+    async def run_once():
+        async with gr_mod.lifespan(gr_mod.app):
+            await asyncio.gather(mod._get_pool(), mod._get_pool())
+
+    asyncio.run(run_once())
+    assert len(created) == 1 and created[0].closed and not created[0].terminated
+    assert mod._pool is None
+    asyncio.run(run_once())
+    assert len(created) == 2 and created[1] is not created[0] and created[1].closed
+
+
+def test_close_pool_during_cold_creation_closes_the_new_pool(cold_hil, monkeypatch):
+    mod, created = cold_hil
+    release = asyncio.Event()
+
+    async def create_pool(*args, **kwargs):
+        await release.wait()
+        created.append(_FakeApprovalPool(close_hangs=False))
+        return created[-1]
+
+    monkeypatch.setattr(mod.asyncpg, "create_pool", create_pool)
+
+    async def scenario():
+        getter = asyncio.create_task(mod._get_pool())
+        await asyncio.sleep(0)  # the getter now holds the lock inside create_pool
+        closer = asyncio.create_task(mod.close_pool())
+        await asyncio.sleep(0)
+        release.set()
+        await asyncio.gather(getter, closer)
+
+    asyncio.run(asyncio.wait_for(scenario(), timeout=5))
+    assert len(created) == 1 and created[0].closed
+    assert mod._pool is None
+
+
+def test_lifespan_close_timeout_falls_back_to_terminate(gr_mod, cold_hil, monkeypatch):
+    mod, created = cold_hil
+    monkeypatch.setattr(mod, "DATABASE_URL", "postgresql://approval@db/hang")
+    monkeypatch.setattr(mod, "_POOL_CLOSE_TIMEOUT_SECONDS", 0.01, raising=False)
+
+    async def scenario():
+        async with gr_mod.lifespan(gr_mod.app):
+            await mod._get_pool()
+
+    asyncio.run(asyncio.wait_for(scenario(), timeout=5))
+    assert len(created) == 1 and created[0].terminated and not created[0].closed
+    assert mod._pool is None
+
+
+@pytest.mark.parametrize("database_url", ["", "postgresql://approval@db/approvals"])
+def test_hil_injected_pool_is_returned_unchanged(gr_mod, monkeypatch, database_url):
+    mod = sys.modules[gr_mod.HumanApprovalWorkflow.__module__]
+    injected = Store()
+    monkeypatch.setattr(mod, "_pool", injected)
+    monkeypatch.setattr(mod, "DATABASE_URL", database_url)
+    monkeypatch.setattr(mod.asyncpg, "create_pool", AsyncMock(side_effect=AssertionError))
+    assert asyncio.run(mod._get_pool()) is injected
+
+
+def test_close_pool_cancelled_terminates_and_propagates(gr_mod, cold_hil, monkeypatch):
+    mod, created = cold_hil
+    monkeypatch.setattr(mod, "DATABASE_URL", "postgresql://approval@db/hang")
+
+    async def scenario():
+        await mod._get_pool()
+        closing = asyncio.create_task(mod.close_pool())
+        await asyncio.sleep(0.01)
+        closing.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await closing
+
+    asyncio.run(asyncio.wait_for(scenario(), timeout=5))
+    assert len(created) == 1 and created[0].terminated and not created[0].closed
+    assert mod._pool is None
+
+
+def test_lifespan_closes_pool_when_app_errors(gr_mod, cold_hil):
+    mod, created = cold_hil
+
+    async def scenario():
+        async with gr_mod.lifespan(gr_mod.app):
+            await mod._get_pool()
+            raise RuntimeError("app failure")
+
+    with pytest.raises(RuntimeError, match="app failure"):
+        asyncio.run(scenario())
+    assert len(created) == 1 and created[0].closed
+    assert mod._pool is None

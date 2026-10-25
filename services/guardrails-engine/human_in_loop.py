@@ -5,6 +5,7 @@ Notification delivery has no configured consumer. Persisted workflows are querya
 but neither creation nor escalation claims an expert has been notified.
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -18,6 +19,9 @@ import asyncpg
 logger = logging.getLogger(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 _pool: asyncpg.Pool | None = None
+# One owner for the pool: concurrent cold callers (/readyz included) share one creation.
+_pool_lock = asyncio.Lock()
+_POOL_CLOSE_TIMEOUT_SECONDS = 5.0
 EXPERT_ROLES = {
     "chemical": ["agronomist", "pesticide_expert"],
     "environmental": ["agronomist", "water_specialist"],
@@ -36,10 +40,30 @@ class WorkflowUnavailable(RuntimeError):
 async def _get_pool() -> asyncpg.Pool:
     global _pool
     if _pool is None and DATABASE_URL:
-        _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=3)
+        async with _pool_lock:
+            if _pool is None:
+                _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=3)
     if _pool is None:
         raise WorkflowUnavailable("Approval database is not configured")
     return _pool
+
+
+async def close_pool() -> None:
+    """Close the pool at shutdown within a bound; a restart then creates a fresh one."""
+    global _pool, _pool_lock
+    async with _pool_lock:  # wait out an in-flight creation so its pool is closed here, not leaked
+        pool, _pool = _pool, None
+    _pool_lock = asyncio.Lock()
+    if pool is None:
+        return
+    try:
+        await asyncio.wait_for(pool.close(), timeout=_POOL_CLOSE_TIMEOUT_SECONDS)
+    except asyncio.CancelledError:
+        pool.terminate()
+        raise
+    except Exception as exc:  # timeout or close failure: never leave backends open
+        logger.warning("Approval pool close failed (%s); terminating", type(exc).__name__)
+        pool.terminate()
 
 
 @asynccontextmanager
