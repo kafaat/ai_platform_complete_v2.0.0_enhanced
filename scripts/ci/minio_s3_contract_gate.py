@@ -7,6 +7,12 @@ The local incident this gate prevents:
 - Network/health passed, but any backend using .env S3 credentials would fail auth.
 
 This static gate keeps the credential source-of-truth explicit and aligned.
+
+It also holds MinIO's network isolation (MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01,
+owner decision 2026-10-25): MinIO was on sahool-internal (internal: false) with every service of
+the stack, so any of them could reach an unpatched S3 API. Now the storage network is internal,
+sahool-minio joins only it and its loopback-publish network, only the listed S3 clients join the
+storage network, and every MinIO port is published on 127.0.0.1 alone.
 """
 
 from __future__ import annotations
@@ -15,6 +21,8 @@ import json
 import re
 import sys
 from pathlib import Path
+
+import yaml
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
@@ -179,6 +187,200 @@ def load_env(path: Path) -> dict[str, str]:
     return values
 
 
+# MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01 (owner decision 2026-10-25): isolation is a
+# bounded step under the freeze. It reduces who can reach MinIO; it does not patch MinIO, so the
+# gap stays open. `internal: true` alone proves nothing (owner condition 2): every membership and
+# every published port is checked here, in every docker-compose*.yml, overlays included.
+MINIO_SERVICE = "sahool-minio"
+STORAGE_NETWORK = "sahool-object-storage"
+# Docker publishes no port for a container whose only networks are internal (measured on Engine
+# 29.8.2), so the 127.0.0.1 ports need one non-internal network that sahool-minio alone joins.
+LOOPBACK_NETWORK = "sahool-object-storage-loopback"
+MINIO_NETWORKS = frozenset({STORAGE_NETWORK, LOOPBACK_NETWORK})
+# Exactly the services that call S3 (measured from their code and Compose wiring, 2026-10-25).
+# Adding one is a reviewed change to this set, not a line in Compose.
+STORAGE_CLIENTS = frozenset(
+    {
+        "sahool-minio-init",  # scripts/minio/provision.sh: buckets, policies, per-service users
+        "sahool-scout-ingest",  # shared/storage/blob_store.py: season-logbook objects
+        "sahool-raster-service",  # services/raster-service/object_store.py: COG write/read
+        "sahool-raster-backfill-scan-worker",  # backfill_scan_worker imports object_store
+        "sahool-titiler",  # legacy TiTiler: /vsis3/ COG reads through gdal_s3_env_gate
+    }
+)
+# Compose hands this service the raster S3 variables, but its code never opens S3:
+# cache_invalidation_worker imports only tile_cache_maint and worker_heartbeat (local tile cache).
+# It is named here so a new sahool-minio endpoint in Compose cannot appear unclassified.
+S3_ENV_WITHOUT_STORAGE_ACCESS = frozenset({"sahool-raster-cache-invalidation-worker"})
+LOOPBACK_HOST = "127.0.0.1"
+
+
+def _service_networks(spec: dict) -> set[str]:
+    """Network keys a service joins; no ``networks:`` means Compose's ``default`` network."""
+    nets = spec.get("networks")
+    if nets is None:
+        return {"default"}
+    if isinstance(nets, dict):
+        return {str(k) for k in nets}
+    return {str(n) for n in nets}
+
+
+def _shared_namespace(spec: dict) -> str | None:
+    """The service or container whose network namespace ``network_mode`` borrows, if any.
+    ``service:X`` / ``container:X`` inherit every network X joins, so they count as joining them."""
+    mode = str(spec.get("network_mode") or "")
+    for prefix in ("service:", "container:"):
+        if mode.startswith(prefix):
+            return mode[len(prefix) :].strip()
+    return None
+
+
+def _network_aliases(networks: dict, target: str) -> set[str]:
+    """Keys in one file that name ``target``: the key itself, or an external/declared ``name``
+    ending in it (a companion file joining ``<project>_sahool-object-storage``)."""
+    keys = {target}
+    for key, decl in (networks or {}).items():
+        name = str((decl or {}).get("name") or "") if isinstance(decl, dict) else ""
+        if name == target or name.endswith((f"_{target}", f"-{target}")):
+            keys.add(str(key))
+    return keys
+
+
+def _binds_loopback_only(port: object) -> bool:
+    """A ``ports:`` entry bound to 127.0.0.1 — long form ``host_ip``, or short form
+    ``127.0.0.1:HOST:CONTAINER``. A bare ``9000``, ``9000:9000``, ``0.0.0.0:…``, ``[::]:…`` or an
+    interpolated address (``${BIND}:…``) binds every interface or an unknown one: refused."""
+    if isinstance(port, dict):
+        return str(port.get("host_ip") or "") == LOOPBACK_HOST
+    text = str(port).strip().strip("'\"")
+    return text.startswith(f"{LOOPBACK_HOST}:") and text.count(":") >= 2
+
+
+def _is_minio_service(spec: dict) -> bool:
+    ref = image_ref(f"image: {spec.get('image', '')}") or ""
+    return is_minio_image(ref) or "MINIO_IMAGE" in str(spec.get("image", ""))
+
+
+def storage_network_errors(doc: object, filename: str, *, base: bool) -> list[str]:
+    """Isolation rules for one parsed compose file. ``base`` is docker-compose.v9.yml, which must
+    declare the networks and wire every client; overlays may only stay inside the same rules."""
+    if not isinstance(doc, dict):
+        return []
+    services = doc.get("services") or {}
+    networks = doc.get("networks") or {}
+    errors: list[str] = []
+
+    for key in (STORAGE_NETWORK, LOOPBACK_NETWORK):
+        decl = networks.get(key)
+        if decl is None:
+            if base:
+                errors.append(f"{filename}: network {key} is not declared")
+            continue
+        decl = decl or {}
+        if decl.get("external"):
+            errors.append(f"{filename}: network {key} must be declared here, not external")
+        if key == STORAGE_NETWORK and decl.get("internal") is not True:
+            errors.append(
+                f"{filename}: network {STORAGE_NETWORK} must be internal: true "
+                f"(got {decl.get('internal')!r})"
+            )
+        if key == LOOPBACK_NETWORK and decl.get("internal") is True:
+            errors.append(
+                f"{filename}: network {LOOPBACK_NETWORK} is internal: Docker would publish no "
+                "port for sahool-minio and the 127.0.0.1 API/console would vanish"
+            )
+
+    storage_keys = _network_aliases(networks, STORAGE_NETWORK)
+    loopback_keys = _network_aliases(networks, LOOPBACK_NETWORK)
+    # Services whose namespace reaches MinIO: MinIO itself, every allowed client (an overlay may
+    # borrow one declared only in the base file), and whatever joins the storage network here.
+    storage_members = {MINIO_SERVICE, *STORAGE_CLIENTS} | {
+        name
+        for name, spec in services.items()
+        if isinstance(spec, dict) and "networks" in spec and _service_networks(spec) & storage_keys
+    }
+    for name, spec in services.items():
+        spec = spec or {}
+        if not isinstance(spec, dict):
+            continue
+        joined = _service_networks(spec)
+        if name == MINIO_SERVICE:
+            if "network_mode" in spec:
+                errors.append(
+                    f"{filename}: {MINIO_SERVICE} sets network_mode={spec['network_mode']!r}; "
+                    f"it may only join {sorted(MINIO_NETWORKS)}"
+                )
+            if not base and "networks" not in spec:
+                # An overlay that leaves `networks` out keeps the base file's membership.
+                joined = set(MINIO_NETWORKS)
+            extra = joined - MINIO_NETWORKS
+            if extra:
+                errors.append(
+                    f"{filename}: {MINIO_SERVICE} joins {sorted(extra)}; it may only join "
+                    f"{sorted(MINIO_NETWORKS)} (MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01)"
+                )
+            if base and STORAGE_NETWORK not in joined:
+                errors.append(f"{filename}: {MINIO_SERVICE} is not on {STORAGE_NETWORK}")
+            continue
+        borrowed = _shared_namespace(spec)
+        if borrowed == MINIO_SERVICE:
+            errors.append(
+                f"{filename}: {name} sets network_mode={spec['network_mode']!r}; sharing "
+                f"{MINIO_SERVICE}'s namespace reaches it with no network boundary at all"
+            )
+        elif borrowed in storage_members and name not in STORAGE_CLIENTS:
+            errors.append(
+                f"{filename}: {name} sets network_mode={spec['network_mode']!r} and so joins "
+                f"{STORAGE_NETWORK} through {borrowed}, but is not an allowed S3 client "
+                f"{sorted(STORAGE_CLIENTS)}"
+            )
+        if str(spec.get("network_mode") or "") == "host":
+            errors.append(
+                f"{filename}: {name} sets network_mode='host'; the host namespace reaches "
+                f"{MINIO_SERVICE} on {LOOPBACK_HOST}:9000 around the internal storage network"
+            )
+        if joined & storage_keys and name not in STORAGE_CLIENTS:
+            errors.append(
+                f"{filename}: {name} joins {STORAGE_NETWORK} but is not an allowed S3 client "
+                f"{sorted(STORAGE_CLIENTS)}"
+            )
+        if joined & loopback_keys:
+            errors.append(
+                f"{filename}: {name} joins {LOOPBACK_NETWORK}; only {MINIO_SERVICE} may — it would "
+                "reach MinIO around the internal storage network"
+            )
+        if base and name in STORAGE_CLIENTS and STORAGE_NETWORK not in joined:
+            errors.append(
+                f"{filename}: S3 client {name} is not on {STORAGE_NETWORK}; it cannot reach MinIO"
+            )
+        env = spec.get("environment") or {}
+        values = env.values() if isinstance(env, dict) else env
+        if (
+            base
+            and any(MINIO_SERVICE + ":" in str(v) for v in values)
+            and name not in STORAGE_CLIENTS
+            and name not in S3_ENV_WITHOUT_STORAGE_ACCESS
+        ):
+            errors.append(
+                f"{filename}: {name} points at {MINIO_SERVICE} but is neither an allowed S3 "
+                f"client nor listed in S3_ENV_WITHOUT_STORAGE_ACCESS"
+            )
+
+    for name, spec in services.items():
+        spec = spec or {}
+        if not isinstance(spec, dict):
+            continue
+        if not (name == MINIO_SERVICE or _is_minio_service(spec)):
+            continue
+        for port in spec.get("ports") or []:
+            if not _binds_loopback_only(port):
+                errors.append(
+                    f"{filename}: {name} publishes {port!r} beyond {LOOPBACK_HOST}; MinIO ports "
+                    f"may be published on {LOOPBACK_HOST} only"
+                )
+    return errors
+
+
 def main() -> int:
     if not COMPOSE.exists():
         fail("docker-compose.v9.yml is missing")
@@ -339,6 +541,15 @@ def main() -> int:
                     f"{cf.name}: MinIO healthcheck uses {client.group(0)}, which the pinned image "
                     "does not ship — use `mc ready local`"
                 )
+
+    # MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01: network isolation, in every compose
+    # file (an overlay merged with -f can add networks or ports to sahool-minio).
+    isolation: list[str] = []
+    for cf in sorted(ROOT.glob("docker-compose*.yml")):
+        doc = yaml.safe_load(cf.read_text(encoding="utf-8"))
+        isolation += storage_network_errors(doc, cf.name, base=cf == COMPOSE)
+    if isolation:
+        fail("MinIO network isolation broken:\n  " + "\n  ".join(isolation))
 
     # TiTiler should be able to inspect local file COGs in dev and S3 COGs in prod.
     if "sahool-titiler:" in compose:
