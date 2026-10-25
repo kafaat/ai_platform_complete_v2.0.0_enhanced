@@ -256,12 +256,12 @@ for ip in sys.argv[1:]:
         sock.close()
 '
 # shellcheck disable=SC2086 # one argument per MinIO address
-isolated="$(docker run --rm --pull never --network "$INTERNAL_NET" --entrypoint python "$raster_image" -c "$isolation_probe" $minio_ips 2>&1)" ||
+isolated="$(docker run --rm --pull never --network "$INTERNAL_NET" --entrypoint "" "$raster_image" python -c "$isolation_probe" $minio_ips 2>&1)" ||
   fail 'S3_SLICE_STORAGE_NETWORK_PROBE_FAILED: probe container on sahool-internal did not run' "$isolated"
 printf '%s\n' "$isolated" >>"$EVIDENCE"
 [[ "$(grep -c '^ISOLATION .* REFUSED' <<<"$isolated")" == 3 ]] && ! grep -q ' OPEN$' <<<"$isolated" ||
   fail 'S3_SLICE_STORAGE_NETWORK_NOT_ISOLATED: a container on sahool-internal reached sahool-minio' "$isolated"
-control="$(docker run --rm --pull never --network "$STORAGE_NET" --entrypoint python "$raster_image" -c "$isolation_probe" "$minio_storage_ip" 2>&1)" ||
+control="$(docker run --rm --pull never --network "$STORAGE_NET" --entrypoint "" "$raster_image" python -c "$isolation_probe" "$minio_storage_ip" 2>&1)" ||
   fail 'S3_SLICE_STORAGE_NETWORK_CONTROL_FAILED: probe container on the storage network did not run' "$control"
 printf '%s\n' "$control" >>"$EVIDENCE"
 [[ "$control" == "ISOLATION resolve OPEN
