@@ -225,6 +225,56 @@ async def test_failed_subscriptions_not_ready_and_can_recover(agent, monkeypatch
     assert all(call.kwargs["manual_ack"] is True for call in js.subscribe.call_args_list)
 
 
+def _rejecting_js(exc):
+    return SimpleNamespace(
+        stream_info=AsyncMock(), subscribe=AsyncMock(side_effect=exc), consumer_info=AsyncMock()
+    )
+
+
+@pytest.mark.asyncio
+async def test_subscription_failure_logs_nats_rejection_reason(agent, monkeypatch, caplog):
+    # nats-py يرفع ‎nats.js.errors.Error‎ واسمُ نوعه «Error» وحده؛ السببُ في ‎description‎.
+    # طباعةُ الاسم وحده أخفت «consumer is already bound» خلف النشر المتداوِل.
+    from nats.js.errors import Error as JetStreamError
+
+    rejection = JetStreamError("consumer is already bound to a subscription")
+    monkeypatch.setattr(agent, "_js", _rejecting_js(rejection))
+    with caplog.at_level("WARNING", logger="notification-agent"):
+        await agent._ensure_subscriptions()
+    records = [
+        r.getMessage() for r in caplog.records if "Subscription unavailable" in r.getMessage()
+    ]
+    assert len(records) == len(agent.SUBSCRIPTIONS)
+    assert all("consumer is already bound" in record for record in records)
+
+
+@pytest.mark.asyncio
+async def test_subscription_failure_logs_api_error_codes(agent, monkeypatch, caplog):
+    from nats.js.errors import BadRequestError
+
+    rejection = BadRequestError(code=400, err_code=10148, description="multi\nline " + "x" * 500)
+    monkeypatch.setattr(agent, "_js", _rejecting_js(rejection))
+    with caplog.at_level("WARNING", logger="notification-agent"):
+        await agent._ensure_subscriptions()
+    record = next(
+        r.getMessage() for r in caplog.records if "Subscription unavailable" in r.getMessage()
+    )
+    assert "BadRequestError" in record and "code=400" in record and "err_code=10148" in record
+    assert "\n" not in record and "x" * 201 not in record
+
+
+@pytest.mark.asyncio
+async def test_subscription_failure_keeps_non_nats_messages_redacted(agent, monkeypatch, caplog):
+    monkeypatch.setattr(agent, "_js", _rejecting_js(RuntimeError("secret-ish")))
+    with caplog.at_level("WARNING", logger="notification-agent"):
+        await agent._ensure_subscriptions()
+    records = [
+        r.getMessage() for r in caplog.records if "Subscription unavailable" in r.getMessage()
+    ]
+    assert records and all("RuntimeError" in record for record in records)
+    assert not any("secret-ish" in record for record in records)
+
+
 @pytest.mark.asyncio
 async def test_preferences_query_binds_tenant_and_user(agent, monkeypatch):
     conn = Connection()
