@@ -1,193 +1,193 @@
 {
- "schema": "work-state/v1",
- "work_id": "sahool-pr-stewardship-20261019",
- "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
- "owner": "kafaat",
- "main": {
-  "head": "41a8c305fa55bc2d14207708dd28e07cef91723d",
-  "tree": "b633d6027029ac54eb274cde31d587afb3595b67"
- },
- "done_verified": [
-  {
-   "id": "PR-1234",
-   "status": "DONE_VERIFIED",
-   "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
-   "evidence": "merge tree bb59906f == tested 71337af24; Railway all deployments SKIPPED for 2268b4424 (read-only list-deployments)"
+  "schema": "work-state/v1",
+  "work_id": "sahool-pr-stewardship-20261019",
+  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "owner": "kafaat",
+  "main": {
+    "head": "2c76375631e22bb4c0f8846eb0dd03a578c037d8",
+    "tree": "aa422ad668c36f5cd196af20d7035c995bac123e"
   },
-  {
-   "id": "PR-1236",
-   "status": "CLOSED_SUPERSEDED",
-   "head": "94b5dabf1af74b72b193ed8f3a8931871b9be032",
-   "evidence": "seal blob 85ef2ae5536ec69427e219c7484082c377cbd431 identical on main; comment #issuecomment-6264938333; branch kept"
-  },
-  {
-   "id": "PR-1235",
-   "status": "DONE_VERIFIED",
-   "merge_sha": "accbfa7f8e8644d245a43959216eb8eadfc6bb4e",
-   "tested_head": "aece4ea576d2ea5838e4a416c90b40375a7d7c75",
-   "tree": "76eb284d8ae2b05b4d5ca7dc4fdbcec92b4cc1d8",
-   "evidence": "85 checks on aece4ea57: 83 success, 2 skipped, 0 failed; squash tree == tested tree; standard preflight 0/0 on 735645630 (logs/preflight-standard-1235-735645630.log)"
-  },
-  {
-   "id": "GATE01-ADJ-2026-10-18-002",
-   "status": "DONE_VERIFIED",
-   "evidence": "CONSUMED on main via #1235; gate01_frozen_path_guard_ok"
-  },
-  {
-   "id": "PR-1238",
-   "status": "DONE_VERIFIED",
-   "merge_sha": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
-   "tested_head": "e2a3a826f09f0da7e5b44007e435b4a590d129a0",
-   "ci": "66: 64 success, 2 skipped, 0 failed",
-   "skill": "UWRP Portable v3.1 SKILL.md a51e98d7"
-  }
- ],
- "in_progress": [
-  {
-   "id": "PR-1239",
-   "status": "WAITING_CI",
-   "branch": "claude/adaptive-test-accelerator-20261019",
-   "head": "ced3355a6",
-   "local_preflight": "0/0",
-   "next": "CI green -> merge pinned (delegation) -> verify tree"
-  },
-  {
-   "id": "xdist-fix",
-   "status": "MEASURING_STABILITY",
-   "branch": "claude/xdist-deterministic-collection-20261019",
-   "commits": [
-    "9abad3fda (soil-lab set order)"
-   ],
-   "uncommitted": "test_service_token_constant_time._load purges foreign routers (repro: fails before, passes after)",
-   "measured": {
-    "-n4 first run": "5m19s; 3 failed (2 probe-writer races, 1 routers sys.modules pollution); 10037 passed; 35 skipped",
-    "serial baseline": "21m12s, 10014 passed 35 skipped (older tree)"
-   },
-   "probe_writers": [
-    "tests_v9/test_probe_leak_guard.py",
-    "tests_v9/test_api_versioning_policy_guard.py"
-   ],
-   "next": "2 stability runs -n4 excluding writers; then design: writers serial, rest parallel; CI change"
-  }
- ],
- "awaiting_owner": [
-  {
-   "id": "delete-transfer-branches",
-   "what": "codex/audit-blob-transfer-20261019 (cdaba457) and codex/cog-blob-transfer-20261019 (486dba77): each has a job with contents: write triggered on push to itself; purpose served",
-   "recommendation": "delete both",
-   "do_not": "delete without explicit approval"
-  },
-  {
-   "id": "research-notes-pr",
-   "what": "small brain PR annotating gap rows with research corrections D14 (RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01), D11 (MINIO-*), D05 (COG gaps); no status changes",
-   "external_claims_verified": false
-  },
-  {
-   "id": "railway-check-accbfa7f8",
-   "what": "read-only list-deployments for accbfa7f8 not yet done"
-  }
- ],
- "findings": [
-  "pytest -m unit -n auto fails at collection: 'Different tests were collected between gw1 and gw0' — xdist needs deterministic collection first",
-  "scripts/ci/preflight.sh lock is per-worktree ($(git rev-parse --git-dir)/preflight.lock) — concurrent preflights in different worktrees are not blocked; use .work-state/bin/run_locked.sh (lock in git common dir)",
-  "serial C-locale unit: 10014 passed, 35 skipped in 21m12s (logs/unit-Clocale-seal002-94b5dabf1.log)"
- ],
- "constraints": [
-  "every real merge needs separate explicit owner approval on the final head; never merge before current-head CI is green",
-  "no force-push on shared branches; pushes to claude/* (+ approved exceptions)",
-  "incident freeze: no migrator rerun, no migrations rollback, no SAHOOL_MIGRATE_APPLY=1, no Railway Agent config changes, no deleting deployments/volumes/backups; Railway read-only",
-  "never use credentials pasted in chat; never list-variables",
-  "brain: log/ledger append-only, hot prepend-only, registry never shrinks; U+200F counts registry 72 / log 42 / ledger 1 / hot 10",
-  "never run two preflights concurrently"
- ],
- "worktrees": {
-  "/home/user/wt1235": "fix/1237-sync @ 8bbef1f00 (pushed)"
- },
- "backup": {
-  "status": "DONE_VERIFIED",
-  "branch": "claude/backup-work-state-20261019",
-  "commit": "4f35c72f1db7a7e7884806fa9a33ddb6e9b48cf5",
-  "tree": "5a388943d52d8def16e6951a91170ed5c38b068e",
-  "contents": [
-   "state.json",
-   "HANDOFF.md"
+  "done_verified": [
+    {
+      "id": "PR-1234",
+      "status": "DONE_VERIFIED",
+      "merge_sha": "2268b4424ba2a64699930883c053a2deb441f74a",
+      "evidence": "merge tree bb59906f == tested 71337af24; Railway all deployments SKIPPED for 2268b4424 (read-only list-deployments)"
+    },
+    {
+      "id": "PR-1236",
+      "status": "CLOSED_SUPERSEDED",
+      "head": "94b5dabf1af74b72b193ed8f3a8931871b9be032",
+      "evidence": "seal blob 85ef2ae5536ec69427e219c7484082c377cbd431 identical on main; comment #issuecomment-6264938333; branch kept"
+    },
+    {
+      "id": "PR-1235",
+      "status": "DONE_VERIFIED",
+      "merge_sha": "accbfa7f8e8644d245a43959216eb8eadfc6bb4e",
+      "tested_head": "aece4ea576d2ea5838e4a416c90b40375a7d7c75",
+      "tree": "76eb284d8ae2b05b4d5ca7dc4fdbcec92b4cc1d8",
+      "evidence": "85 checks on aece4ea57: 83 success, 2 skipped, 0 failed; squash tree == tested tree; standard preflight 0/0 on 735645630 (logs/preflight-standard-1235-735645630.log)"
+    },
+    {
+      "id": "GATE01-ADJ-2026-10-18-002",
+      "status": "DONE_VERIFIED",
+      "evidence": "CONSUMED on main via #1235; gate01_frozen_path_guard_ok"
+    },
+    {
+      "id": "PR-1238",
+      "status": "DONE_VERIFIED",
+      "merge_sha": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
+      "tested_head": "e2a3a826f09f0da7e5b44007e435b4a590d129a0",
+      "ci": "66: 64 success, 2 skipped, 0 failed",
+      "skill": "UWRP Portable v3.1 SKILL.md a51e98d7"
+    }
   ],
-  "verified": "remote ref == pushed commit"
- },
- "updated": "2026-10-19T14:00:18Z",
- "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
- "protocol": {
-  "version": "v2",
-  "aligned": [
-   "state outside repo tree (moved from repo/.work-state)",
-   "backup = state.json + HANDOFF.md only",
-   "shard validity key = head+tree+env+command_digest; base_head/merge_base recorded",
-   "disk budget check before each shard (min 1024 MB)"
+  "in_progress": [
+    {
+      "id": "PR-1239",
+      "status": "WAITING_CI",
+      "branch": "claude/adaptive-test-accelerator-20261019",
+      "head": "ced3355a6",
+      "local_preflight": "0/0",
+      "next": "CI green -> merge pinned (delegation) -> verify tree"
+    },
+    {
+      "id": "xdist-fix",
+      "status": "MEASURING_STABILITY",
+      "branch": "claude/xdist-deterministic-collection-20261019",
+      "commits": [
+        "9abad3fda (soil-lab set order)"
+      ],
+      "uncommitted": "test_service_token_constant_time._load purges foreign routers (repro: fails before, passes after)",
+      "measured": {
+        "-n4 first run": "5m19s; 3 failed (2 probe-writer races, 1 routers sys.modules pollution); 10037 passed; 35 skipped",
+        "serial baseline": "21m12s, 10014 passed 35 skipped (older tree)"
+      },
+      "probe_writers": [
+        "tests_v9/test_probe_leak_guard.py",
+        "tests_v9/test_api_versioning_policy_guard.py"
+      ],
+      "next": "2 stability runs -n4 excluding writers; then design: writers serial, rest parallel; CI change"
+    }
   ],
-  "state_trust": "RECORDED_UNVERIFIED until re-checked"
- },
- "railway": {
-  "accbfa7f8": {
-   "checked": "read-only list-deployments",
-   "production": {
-    "SUCCESS": 9,
-    "SKIPPED": 2,
-    "FAILED": 0,
-    "migrate-main_5659ab3d": "SKIPPED (04eb8471)"
-   },
-   "staging": {
-    "SUCCESS": 11,
-    "SKIPPED": 2,
-    "FAILED": 0,
-    "migrate-main_5659ab3d": "SKIPPED (3acb792d)"
-   },
-   "note": "auto-deploy on merge; runtime COG acceptance (tenant probes) NOT measured"
-  }
- },
- "awaiting_owner_note": {
-  "transfer_branches": {
-   "status": "BLOCKED_BY_PERMISSION",
-   "detail": "git push --delete denied by auto-mode classifier [Git Destructive]; not retried. Owner can delete in GitHub UI or allow the command.",
-   "shas": {
-    "codex/audit-blob-transfer-20261019": "cdaba457eac3fc1ac1d2e763a871a3679bbb43c3",
-    "codex/cog-blob-transfer-20261019": "486dba7739987509ee64f7ebc155a7483a020f1f"
-   },
-   "local_bundle": "checkpoints/transfer-branches/transfer-branches.bundle"
-  }
- },
- "pr1237": {
-  "status": "DONE_VERIFIED",
-  "merge_sha": "e02baf4fdfb05198f231f8723aaf61d86f2acca2",
-  "tested_head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
-  "ci": "66: 64 success, 2 skipped, 0 failed",
-  "authorization": "owner: قوم بعمل ماهو صحيح و مناسب فأنت مفوض"
- },
- "ata_v1_1_trial": {
-  "package": {
-   "zip_sha256": "d598d94e4815fdf7fc9aebe073235f65eeabfc16a7e84bfd0abed5c4b0b2b130",
-   "skill_sha256": "2f09209d061a9a609becc5b350ba7e16769064d34d8e973f876b0b8876792a33",
-   "sums": "23/23 OK",
-   "tests": "47 OK (4.6s)",
-   "agentskills_validate": "valid"
-  },
-  "trial": {
-   "source_head": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
-   "tree": "de2c2ab2f2faae7d6ca8aaf893446b6328609b7f",
-   "inventory": "10074 unit tests / 890 files",
-   "plan_sha256": "4ba1684fe4b314baf5141bf64c30f79a6ae35132a51bf3129ab43e30e5138d11",
-   "units": {
-    "unit-00": "PASS 282/282 39.4s",
-    "unit-01": "PASS 284/284 114.3s"
-   },
-   "resume": "second run SKIP both in 0.19s; status PASS_VERIFIED x2",
-   "scope": "SHARDED_VERIFICATION of 566/10074 tests only; not a preflight"
-  },
+  "awaiting_owner": [
+    {
+      "id": "delete-transfer-branches",
+      "what": "codex/audit-blob-transfer-20261019 (cdaba457) and codex/cog-blob-transfer-20261019 (486dba77): each has a job with contents: write triggered on push to itself; purpose served",
+      "recommendation": "delete both",
+      "do_not": "delete without explicit approval"
+    },
+    {
+      "id": "research-notes-pr",
+      "what": "small brain PR annotating gap rows with research corrections D14 (RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01), D11 (MINIO-*), D05 (COG gaps); no status changes",
+      "external_claims_verified": false
+    },
+    {
+      "id": "railway-check-accbfa7f8",
+      "what": "read-only list-deployments for accbfa7f8 not yet done"
+    }
+  ],
   "findings": [
-   "--resume-interrupted does not check liveness when inflight host differs (proceeds)",
-   "EXTERNAL_MUTATORS is a denylist (python -c bypasses); plan-SHA approval is the real control",
-   "sequential runner gives resume, not speed; xdist collection mismatch in SAHOOL blocks parallel speedup",
-   "pytest JUnit reports xfail as skipped; per-unit max_skipped must come from a measured baseline"
-  ]
- },
- "main_note_20261025": "Updated by hand on Windows without bin/ws.py; head is the #1282 squash (short SHA as recorded in HANDOFF.md). Entries under done_verified/in_progress below date from 2026-10-19 and were not re-verified."
+    "pytest -m unit -n auto fails at collection: 'Different tests were collected between gw1 and gw0' — xdist needs deterministic collection first",
+    "scripts/ci/preflight.sh lock is per-worktree ($(git rev-parse --git-dir)/preflight.lock) — concurrent preflights in different worktrees are not blocked; use .work-state/bin/run_locked.sh (lock in git common dir)",
+    "serial C-locale unit: 10014 passed, 35 skipped in 21m12s (logs/unit-Clocale-seal002-94b5dabf1.log)"
+  ],
+  "constraints": [
+    "every real merge needs separate explicit owner approval on the final head; never merge before current-head CI is green",
+    "no force-push on shared branches; pushes to claude/* (+ approved exceptions)",
+    "incident freeze: no migrator rerun, no migrations rollback, no SAHOOL_MIGRATE_APPLY=1, no Railway Agent config changes, no deleting deployments/volumes/backups; Railway read-only",
+    "never use credentials pasted in chat; never list-variables",
+    "brain: log/ledger append-only, hot prepend-only, registry never shrinks; U+200F counts registry 72 / log 42 / ledger 1 / hot 10",
+    "never run two preflights concurrently"
+  ],
+  "worktrees": {
+    "/home/user/wt1235": "fix/1237-sync @ 8bbef1f00 (pushed)"
+  },
+  "backup": {
+    "status": "DONE_VERIFIED",
+    "branch": "claude/backup-work-state-20261019",
+    "commit": "4f35c72f1db7a7e7884806fa9a33ddb6e9b48cf5",
+    "tree": "5a388943d52d8def16e6951a91170ed5c38b068e",
+    "contents": [
+      "state.json",
+      "HANDOFF.md"
+    ],
+    "verified": "remote ref == pushed commit"
+  },
+  "updated": "2026-10-19T14:00:18Z",
+  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
+  "protocol": {
+    "version": "v2",
+    "aligned": [
+      "state outside repo tree (moved from repo/.work-state)",
+      "backup = state.json + HANDOFF.md only",
+      "shard validity key = head+tree+env+command_digest; base_head/merge_base recorded",
+      "disk budget check before each shard (min 1024 MB)"
+    ],
+    "state_trust": "RECORDED_UNVERIFIED until re-checked"
+  },
+  "railway": {
+    "accbfa7f8": {
+      "checked": "read-only list-deployments",
+      "production": {
+        "SUCCESS": 9,
+        "SKIPPED": 2,
+        "FAILED": 0,
+        "migrate-main_5659ab3d": "SKIPPED (04eb8471)"
+      },
+      "staging": {
+        "SUCCESS": 11,
+        "SKIPPED": 2,
+        "FAILED": 0,
+        "migrate-main_5659ab3d": "SKIPPED (3acb792d)"
+      },
+      "note": "auto-deploy on merge; runtime COG acceptance (tenant probes) NOT measured"
+    }
+  },
+  "awaiting_owner_note": {
+    "transfer_branches": {
+      "status": "BLOCKED_BY_PERMISSION",
+      "detail": "git push --delete denied by auto-mode classifier [Git Destructive]; not retried. Owner can delete in GitHub UI or allow the command.",
+      "shas": {
+        "codex/audit-blob-transfer-20261019": "cdaba457eac3fc1ac1d2e763a871a3679bbb43c3",
+        "codex/cog-blob-transfer-20261019": "486dba7739987509ee64f7ebc155a7483a020f1f"
+      },
+      "local_bundle": "checkpoints/transfer-branches/transfer-branches.bundle"
+    }
+  },
+  "pr1237": {
+    "status": "DONE_VERIFIED",
+    "merge_sha": "e02baf4fdfb05198f231f8723aaf61d86f2acca2",
+    "tested_head": "8bbef1f0062110bc908f431f4f9fcc8bfee0b493",
+    "ci": "66: 64 success, 2 skipped, 0 failed",
+    "authorization": "owner: قوم بعمل ماهو صحيح و مناسب فأنت مفوض"
+  },
+  "ata_v1_1_trial": {
+    "package": {
+      "zip_sha256": "d598d94e4815fdf7fc9aebe073235f65eeabfc16a7e84bfd0abed5c4b0b2b130",
+      "skill_sha256": "2f09209d061a9a609becc5b350ba7e16769064d34d8e973f876b0b8876792a33",
+      "sums": "23/23 OK",
+      "tests": "47 OK (4.6s)",
+      "agentskills_validate": "valid"
+    },
+    "trial": {
+      "source_head": "bf0356f01a908a407f6c6ebf63967bb64eb82fd8",
+      "tree": "de2c2ab2f2faae7d6ca8aaf893446b6328609b7f",
+      "inventory": "10074 unit tests / 890 files",
+      "plan_sha256": "4ba1684fe4b314baf5141bf64c30f79a6ae35132a51bf3129ab43e30e5138d11",
+      "units": {
+        "unit-00": "PASS 282/282 39.4s",
+        "unit-01": "PASS 284/284 114.3s"
+      },
+      "resume": "second run SKIP both in 0.19s; status PASS_VERIFIED x2",
+      "scope": "SHARDED_VERIFICATION of 566/10074 tests only; not a preflight"
+    },
+    "findings": [
+      "--resume-interrupted does not check liveness when inflight host differs (proceeds)",
+      "EXTERNAL_MUTATORS is a denylist (python -c bypasses); plan-SHA approval is the real control",
+      "sequential runner gives resume, not speed; xdist collection mismatch in SAHOOL blocks parallel speedup",
+      "pytest JUnit reports xfail as skipped; per-unit max_skipped must come from a measured baseline"
+    ]
+  },
+  "main_note_20261025": "Updated by hand on Windows without bin/ws.py; head is the #1282 squash (short SHA as recorded in HANDOFF.md). Entries under done_verified/in_progress below date from 2026-10-19 and were not re-verified."
 }
