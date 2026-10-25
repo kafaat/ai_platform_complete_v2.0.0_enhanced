@@ -10025,3 +10025,13 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 سطرُ الدمج الذي أضافه #1282 إلى صفّ MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 يقول إنّ فحص الصحّة في `scripts_v9/run_all` صار `mc ready local` في الشلّين. **وهذا غير صحيح:** `run_all` يفحص MinIO بطلب HTTP على `/minio/health/live` ([`scripts_v9/run_all.sh:89`](../scripts_v9/run_all.sh)، [`scripts_v9/run_all.ps1:112`](../scripts_v9/run_all.ps1))، وهو ما أدخله #1281. أمّا `mc ready local` ففحصُ صحّة الحاوية في Compose ([`docker-compose.v9.yml:550`](../docker-compose.v9.yml))، وهو قائم منذ #1139.
 
 الصفّ نفسه لم يُصحَّح هنا: تحريرُه من ملفّات الدماغ وحدها يرفضه `brain_state_transition_guard`، لأنّ الصفّ يحمل سجلّ دمجٍ قانونيّاً. فالتصحيحُ المرجعيّ هذا المدخل، ويُنقل إلى الصفّ مع أوّل تغييرٍ يمسّ كوداً أو دليلاً لهذه الفجوة.
+
+### 2026-10-25 — مصدر قيمة MinIO القديمة على جهاز المالك: لا `.env` ولا متغيّر الجلسة اليوم
+
+قاس المالك على جهازه في `v26` (أبلغ به في الجلسة 2026-10-25، بالمعادل لـ`Select-String -Path .env -Pattern '^MINIO_(MC_)?IMAGE='`):
+- `.env` يحمل `MINIO_IMAGE` و`MINIO_MC_IMAGE` بقيم المرآة الجديدة (`coollabsio/…`)، لا القيم المحذوفة.
+- متغيّرات الجلسة: لا شيء يبدأ بـ`MINIO_`.
+
+فالمصدران المشتبه بهما في MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 لا يحملان القيمة القديمة في الحالة الحاليّة. يبقى تفسيران غير مقيسين: أنّ `.env` صُحّح بعد ظهور الخطأ، أو أنّ `docker compose up` الذي فشل شُغّل من نسخةٍ أو مجلّدٍ غير `v26`. **الخطوة الحاسمة:** `docker compose -f docker-compose.v9.yml pull sahool-minio sahool-minio-init` من `v26` نفسه؛ نجاحها يثبت أنّ الفخّ لا يتكرّر على هذا الجهاز. ويُنقل ذلك إلى صفّ الفجوة مع أوّل تغييرٍ يمسّ كوداً أو دليلاً لها، لأنّ تحرير الصفّ من ملفّات الدماغ وحدها يرفضه `brain_state_transition_guard`.
+
+وعلى جهاز المالك أيضاً: `main` المحليّ دُمج فيه `origin/main` (لا إعادة تأسيس)، فبقيت 13 commit محليّة تحمل أدلّة تدقيق غير موجودة على `origin`. لا أثر لذلك على المستودع.
