@@ -167,8 +167,12 @@ grep -q '^RASTER_COG s3://sahool-rasters/fields/s3-slice/ndvi.tif 0 499 16384$' 
 echo 'raster-service wrote s3://sahool-rasters/fields/s3-slice/ndvi.tif and GDAL read it back pixel-exact'
 
 # 4) scout-ingest's own image and env: season-logbook object written, found, fetched.
-scout_out="$(dc run --rm -T --no-deps sahool-scout-ingest python - <<'PY' 2>&1
-import urllib.request
+# The presigned GET is signed for S3_PUBLIC_ENDPOINT (here the published 127.0.0.1:9000) and
+# fetched from the host, outside the Compose network, as a browser would. Without the public
+# endpoint, signing for the internal-only `sahool-minio` must be refused (SigV4 binds the host,
+# so such a URL is unusable outside the network: SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01).
+scout_out="$(dc run --rm -T --no-deps -e S3_PUBLIC_ENDPOINT=http://127.0.0.1:9000 -e S3_ALLOW_PLAINTEXT_LOOPBACK=true sahool-scout-ingest python - <<'PY' 2>&1
+import hashlib
 
 from shared.security.season_logbook import derive_logbook_key
 from shared.storage import blob_store
@@ -178,14 +182,43 @@ key = derive_logbook_key("tenant-slice", "00000000-0000-4000-8000-000000000001",
 ref = blob_store.upload_bytes(key, data, "image/jpeg")
 assert ref.endswith(key) and "sahool-scout-ingest/sahool-scout-ingest" not in ref, ref
 assert blob_store.object_exists(ref)
-with urllib.request.urlopen(blob_store.presigned_get_url(ref, 60), timeout=10) as resp:
-    assert resp.read() == data
+public = blob_store.S3_PUBLIC_ENDPOINT
+blob_store.S3_PUBLIC_ENDPOINT = ""
+try:
+    blob_store.presigned_get_url(ref, 60)
+except blob_store.BlobStoreError as exc:
+    assert "internal-only" in str(exc), exc
+    print("SCOUT_PRESIGN_INTERNAL REFUSED")
+else:
+    raise SystemExit("presign signed for the internal-only S3_ENDPOINT host")
+blob_store.S3_PUBLIC_ENDPOINT = public
+url = blob_store.presigned_get_url(ref, 60)
+assert url.startswith("http://127.0.0.1:9000/"), url.split("?")[0]
+print("SCOUT_PRESIGN_URL", url)
+print("SCOUT_SHA256", hashlib.sha256(data).hexdigest())
 print("SCOUT_LOGBOOK", key)
 PY
 )" || fail 'S3_SLICE_SCOUT_LOGBOOK_FAILED' "$scout_out"
-printf '%s\n' "$scout_out" >>"$EVIDENCE"
+presign_url="$(sed -n 's/^SCOUT_PRESIGN_URL //p' <<<"$scout_out")"
+scout_sha="$(sed -n 's/^SCOUT_SHA256 //p' <<<"$scout_out")"
+grep -v '^SCOUT_PRESIGN_URL ' <<<"$scout_out" >>"$EVIDENCE"
 grep -q '^SCOUT_LOGBOOK season-logbooks/tenant-slice/' <<<"$scout_out" || fail 'S3_SLICE_SCOUT_LOGBOOK_MISMATCH' "$scout_out"
-echo 'scout-ingest blob_store wrote, found and fetched a season-logbooks/ object'
+grep -q '^SCOUT_PRESIGN_INTERNAL REFUSED$' <<<"$scout_out" ||
+  fail 'S3_SLICE_PRESIGN_INTERNAL_NOT_REFUSED' "$(grep -v '^SCOUT_PRESIGN_URL ' <<<"$scout_out")"
+host_fetch="$(SLICE_PRESIGN_URL="$presign_url" python3 - <<'PY' 2>&1
+import hashlib
+import os
+import urllib.request
+
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+with opener.open(os.environ["SLICE_PRESIGN_URL"], timeout=10) as resp:
+    print("HOST_FETCH", resp.status, hashlib.sha256(resp.read()).hexdigest())
+PY
+)" || fail 'S3_SLICE_PRESIGN_HOST_FETCH_FAILED: the URL signed for 127.0.0.1:9000 did not open from the host' "$host_fetch"
+printf '%s\n' "$host_fetch" >>"$EVIDENCE"
+[[ "$host_fetch" == "HOST_FETCH 200 $scout_sha" ]] ||
+  fail 'S3_SLICE_PRESIGN_HOST_FETCH_MISMATCH' "$host_fetch"
+echo 'scout-ingest blob_store wrote and found a season-logbooks/ object; presign refused for the internal host, and the URL signed for 127.0.0.1:9000 opened from the host with the same bytes'
 
 # 5) Per-service scoping from minio-init: the raster key cannot write the scout bucket.
 scope_out="$(dc exec -T sahool-raster-service python - <<'PY' 2>&1
@@ -476,7 +509,7 @@ json.dump(
         "results": {
             "break_without_opt_in": "plaintext_internal_requires_opt_in at startup",
             "raster_cog": "s3://sahool-rasters/fields/s3-slice/ndvi.tif written and read pixel-exact",
-            "scout_logbook_object": "season-logbooks/ written, found, fetched by presigned URL",
+            "scout_logbook_object": "season-logbooks/ written and found; presign refused for internal-only sahool-minio; URL signed for S3_PUBLIC_ENDPOINT 127.0.0.1:9000 fetched from the host, bytes identical",
             "service_scoping": "raster key AccessDenied on scout bucket",
             "storage_network_isolation": "sahool-minio only on sahool-object-storage (internal) "
             "and sahool-object-storage-loopback; from sahool-internal: name unresolved, every "
