@@ -400,6 +400,23 @@ def _evidence(tmp_path: Path, monkeypatch, *, tests=30, skipped=0, role=None, dr
     return {"code": code, "doc": json.loads(out.read_text(encoding="utf-8"))}
 
 
+_RUN_IDENTIFIERS = ("checkout_sha", "checkout_tree", "github_sha", "github_run_id")
+
+
+def _leak_surface(doc: dict) -> str:
+    """The evidence as text, with the run identifiers of its binding blanked.
+
+    The commit, tree and run identifiers are hex or decimal digests of the run itself,
+    not connection values: a tree id that happens to contain «5435» is no port leak.
+    Every other field, the binding's $comment included, stays in the text.
+    """
+    doc = json.loads(json.dumps(doc))
+    for key in _RUN_IDENTIFIERS:
+        if key in doc.get("binding", {}):
+            doc["binding"][key] = "<run-identifier>"
+    return json.dumps(doc, ensure_ascii=False)
+
+
 def test_the_evidence_is_written_on_failure_not_only_on_success(tmp_path, monkeypatch):
     """**الشرط الذي يقلب معنى الكلمة إن سقط.**
 
@@ -464,9 +481,33 @@ def test_the_evidence_carries_no_connection_variable(tmp_path, monkeypatch):
     """ما يُرفَع مصنوعةً يُقرأ لاحقاً — فلا يحمل بيانات اعتماد ولا عنوان خادم."""
     monkeypatch.setenv("PGPASSWORD", "test_password")
     monkeypatch.setenv("PGHOST", "localhost")
-    raw = json.dumps(_evidence(tmp_path, monkeypatch)["doc"], ensure_ascii=False)
+    raw = _leak_surface(_evidence(tmp_path, monkeypatch)["doc"])
     for secret in ("test_password", "PGPASSWORD", "localhost", "5435"):
         assert secret not in raw, f"تسرّب «{secret}» إلى الدليل المرفوع"
+
+
+def test_the_leak_surface_ignores_run_identifiers_but_not_other_fields():
+    """A tree id containing a port-like run of digits is not a leak; the same digits elsewhere are.
+
+    Measured in CI run 40145387856: tree c65f5961857b790dbd9e5435aef3faae52494400 made
+    `test_the_evidence_carries_no_connection_variable` fail on «5435» with no leak at all.
+    """
+    doc = {
+        "binding": {
+            "$comment": "clean",
+            "checkout_sha": "b28bb42a34f983efdd183cefc45549b52b765d12",
+            "checkout_tree": "c65f5961857b790dbd9e5435aef3faae52494400",
+            "github_sha": "5435" * 10,
+            "github_run_id": "40154359",
+        },
+        "problems": [],
+    }
+    assert "5435" not in _leak_surface(doc)
+    doc["problems"] = ["could not connect to db:5435"]
+    assert "5435" in _leak_surface(doc)
+    doc["problems"] = []
+    doc["binding"]["$comment"] = "port 5435"
+    assert "5435" in _leak_surface(doc)
 
 
 def test_a_fail_closed_environment_error_still_leaves_evidence(tmp_path, monkeypatch):
@@ -605,8 +646,9 @@ def test_a_psql_diagnostic_never_reaches_the_uploaded_evidence(tmp_path, monkeyp
         MOD.main(["--junit", str(_junit(tmp_path, tests=30)), "--evidence", str(out)])
 
     raw = out.read_text(encoding="utf-8")
+    surface = _leak_surface(json.loads(raw))
     for secret in ("db.internal", "10.0.0.7", "5435", "sahool_user", "SUPER_SECRET_PW", "psql:"):
-        assert secret not in raw, f"تسرّب «{secret}» إلى المصنوعة المرفوعة"
+        assert secret not in surface, f"تسرّب «{secret}» إلى المصنوعة المرفوعة"
 
     doc = json.loads(raw)
     assert doc["verdict"] == "FAIL"

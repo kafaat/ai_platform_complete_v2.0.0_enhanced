@@ -226,7 +226,7 @@
     },
     {
       "kind": "app",
-      "line": 352,
+      "line": 355,
       "module": "services.guardrails-engine.main",
       "node_id": "services.guardrails-engine.main:app",
       "route_count": 0,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 603,
+      "line": 598,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "b3d5e3b8b704f9cf33a3f7940a2dfd45e7d9953c98bb5704e98d84408af6e90a",
+  "inventory_sha256": "b9af7c09ef8d7c3c0b497523705eaf3d80a431d5662a51c99f3b6910772484c0",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
