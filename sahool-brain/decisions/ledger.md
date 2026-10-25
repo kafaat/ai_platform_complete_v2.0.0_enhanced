@@ -4405,6 +4405,9 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 
 الاعتماد: ضمن دفعة #1251 التي وجّهها المالك بعبارة «قوم بعمل ما يلزم». لا موافقةَ مالكٍ منفصلةٌ لهذا البند مسجَّلة.
 
+
+2026-10-25 — استعادة إصلاح #1264 فوق main `d8f650a7` بعد إزالة مساحة العمل السابقة: يحتفظ `_require_service_token` بالمقارنة ثابتة الزمن للتوكن الصحيح، ويرفض غير ASCII بـ401، ويعامل الإعداد غير ASCII كغير متاح503. المصدر: `services/guardrails-engine/main.py` و`tests_v9/test_guardrails_service_token_ascii.py`. أعيد التنسيق والتوليد والمصالحة؛ لا تورث نتائج المرشح المحلي المفقود. فجوة GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01 مفتوحة حتى الدمج.
+
 ### 2026-10-20 — TiTiler القديم يفقد قراءة S3 ما لم يُضبط حسابه
 
 الفرع `claude/titiler-readonly-key-20261020`، بتكليف المالك (إصلاح الصلاحيات دون نشر). القرار: يأخذ `sahool-titiler` مفاتيحه من `TITILER_S3_ACCESS_KEY` و`TITILER_S3_SECRET_KEY` وحدهما، والحساب اختياريّ (`${…:-}`) وفارغٌ في القالب. فتثبيتُ `legacy-tiler` القائم الذي يقرأ COG من S3 يحتاج ضبط الحساب، وإلّا قرأ الملفّات المحلّيّة فقط.

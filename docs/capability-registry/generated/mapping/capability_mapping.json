@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6347,
+    "files_scanned": 6346,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
-      "other": 2111,
+      "other": 2110,
       "tests": 2033,
       "web": 479
     },
-    "unmapped_artifacts": 2421,
+    "unmapped_artifacts": 2420,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -29847,6 +29847,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_guardrails_service_token_ascii.py",
+          "score": 13,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
           "score": 11,
           "signals": [
@@ -29933,7 +29941,7 @@
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 10,
+        "tests": 11,
         "governance": 0,
         "other_evidence": 2
       },
@@ -48512,10 +48520,6 @@
     },
     {
       "path": "tests_v9/test_titiler_parity_harness.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_titiler_readonly_s3_account.py",
       "kind": "tests"
     },
     {

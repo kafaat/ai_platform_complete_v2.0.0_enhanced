@@ -9969,6 +9969,9 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **لا تغيير في `gaps/registry.md`:** لا حالة تتغيّر ولا معرّف جديد. قواعده تشترط التسجيل لتأجيلٍ في hot.md أو لملاحظة مراجعة بوسم خطورة، وهذه المدخلة لا تحمل أيّاً منهما.
 - **حدود:** هذا الـPR دماغ فقط. التنفيذ DEV من منفّذ Claude بلا استقلال، ولا دفع.
 
+
+2026-10-25 — استعادة إصلاح #1264 فوق main `d8f650a7` بعد إزالة مساحة العمل السابقة: يحتفظ `_require_service_token` بالمقارنة ثابتة الزمن للتوكن الصحيح، ويرفض غير ASCII بـ401، ويعامل الإعداد غير ASCII كغير متاح503. المصدر: `services/guardrails-engine/main.py` و`tests_v9/test_guardrails_service_token_ascii.py`. أعيد التنسيق والتوليد والمصالحة؛ لا تورث نتائج المرشح المحلي المفقود. فجوة GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01 مفتوحة حتى الدمج.
+
 ### 2026-10-20 — حساب قراءة فقط لـTiTiler القديم (بلا نشر)
 
 بتكليف المالك، الفرع `claude/titiler-readonly-key-20261020` من `main` عند `b7d765236` (بعد دمج #1248). يعالج `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`: كان `sahool-titiler` يأخذ `S3_ACCESS_KEY` المشترك، وقالبُه مفتاحُ إدارة MinIO.

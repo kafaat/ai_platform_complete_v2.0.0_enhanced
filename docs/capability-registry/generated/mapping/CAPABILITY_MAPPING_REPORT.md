@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **51**
-- Files scanned: **6347**
+- Files scanned: **6346**
 - Ambiguous artifacts queued: **471**
-- Unmapped artifacts queued: **2421**
+- Unmapped artifacts queued: **2420**
 
 ## Capability coverage
 
@@ -83,7 +83,7 @@
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 8 | 24 | 23 | 5 | 7 | 4 | 19 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
-| SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 10 | 4 |
+| SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 11 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
 | SOIL-001 | soil | 13 | 97 | 14 | 45 | 1 | 0 | 21 | 6 |

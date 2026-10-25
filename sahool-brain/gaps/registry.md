@@ -7658,3 +7658,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الدليل المحلي:** `certification/evidence/pmtiles_compatibility_20261024/validation.json`: 33 اختبارًا ناجحًا على Dart3.10.8، وقفل حزمة حقيقي؛ هذا لا يثبت حل تبعيات التطبيق أو APK.
 
 - **تقدم CI على dc478b95:** حل تبعيات التطبيق وتحليل واختبارات realtime ناجحة؛ قفل التطبيق مستخرج فعليًا ومثبت البصمة في `certification/evidence/pmtiles_compatibility_20261024/application-ci.json`. نجح APK أيضًا في الوظيفة120956961334، وتبقى إعادة إثبات القفل على الرأس الجديد مطلوبة.
+
+
+## GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01
+
+- **الحالة:** open — إصلاح #1264 مرشح، ينتظر CI والدمج.
+- **المصدر:** #1264؛ `services/guardrails-engine/main.py`؛ `tests_v9/test_guardrails_service_token_ascii.py`.
+- **العطل:** hmac.compare_digest يرفض النص غير ASCII باستثناء TypeError فيعيد500 بدل رفض التوكن.
+- **شرط الإغلاق:** نجاح اختبارات الرفض401 والإعداد غير المتاح503 والمقارنة ثابتة الزمن، ثم إدراج الإصلاح في main.
