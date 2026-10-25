@@ -48,7 +48,7 @@ def _route_path(decorator: ast.expr) -> str | None:
     return path if isinstance(path, str) else None
 
 
-def _is_in_virtualenv(path: PurePath, root: PurePath = ROOT) -> bool:
+def _is_in_virtualenv(path: PurePath, root: PurePath | None = None) -> bool:
     """Is ``path`` inside a ``.venv`` directory below ``root``?
 
     Decided on path components, not ``"/.venv/" in str(path)`` — that substring
@@ -56,7 +56,8 @@ def _is_in_virtualenv(path: PurePath, root: PurePath = ROOT) -> bool:
     Windows and skipped on Linux. Only directories below ``root`` count, so a
     checkout nested inside some ancestor ``.venv`` is not skipped wholesale.
     """
-    return ".venv" in path.relative_to(root).parts[:-1]
+    # ``ROOT`` is read at call time, not definition time, so tests can repoint it.
+    return ".venv" in path.relative_to(ROOT if root is None else root).parts[:-1]
 
 
 def _function_source(path: Path, node: ast.AST) -> str:

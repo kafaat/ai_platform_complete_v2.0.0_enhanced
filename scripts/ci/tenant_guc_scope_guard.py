@@ -127,6 +127,24 @@ def _set_config_callsites(tree: ast.AST) -> list[tuple[int, str, str]]:
     return out
 
 
+_SKIP_DIRS = frozenset({"node_modules", ".git"})
+# ملفّات الاختبار تصف العيب أو تحاكيه — ليست مسار إنتاج.
+_TEST_DIRS = frozenset({"tests", "tests_v9"})
+
+
+def _is_excluded(path: pathlib.PurePath, root: pathlib.PurePath | None = None) -> bool:
+    """أيُستبعَد الملفّ من المسح؟ — بمكوّنات المسار لا بـ``"/tests/" in str(p)``.
+
+    السلسلةُ الفرعيّة بفاصل POSIX لا تطابق مسار Windows (شرطات معكوسة)، فكان الحارس
+    يمسح الاختبارات و``node_modules`` على Windows ويتخطّاها على Linux: شجرةٌ واحدة
+    بجوابين. والمُستشارُ أدلّةُ ما **تحت الجذر** وحدها (``relative_to``، بلا اسم الملفّ)،
+    فلا يُستبعَد كلُّ شيء لمجرّد أنّ النسخة تقع تحت دليلٍ اسمه ``tests``.
+    """
+    # ``ROOT`` يُقرأ عند النداء لا عند التعريف، فيبقى قابلاً للاستبدال في الاختبارات.
+    dirs = set(path.relative_to(ROOT if root is None else root).parts[:-1])
+    return bool(dirs & _SKIP_DIRS) or path.name.startswith("test_") or bool(dirs & _TEST_DIRS)
+
+
 def _iter_source_files() -> list[pathlib.Path]:
     out: list[pathlib.Path] = []
     for d in _SCAN_DIRS:
@@ -134,11 +152,7 @@ def _iter_source_files() -> list[pathlib.Path]:
         if not base.is_dir():
             continue
         for p in base.rglob("*.py"):
-            s = str(p)
-            if "/node_modules/" in s or "/.git/" in s:
-                continue
-            # ملفّات الاختبار تصف العيب أو تحاكيه — ليست مسار إنتاج.
-            if p.name.startswith("test_") or "/tests/" in s or "/tests_v9/" in s:
+            if _is_excluded(p):
                 continue
             out.append(p)
     return sorted(out)

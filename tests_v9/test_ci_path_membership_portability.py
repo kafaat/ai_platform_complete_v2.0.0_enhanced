@@ -1,10 +1,11 @@
 """Path membership in CI scripts must not depend on the OS path separator.
 
-Two scripts asked "is this file under a ``tests/`` (or ``.venv/``) directory?" with a
-POSIX substring on ``str(path)``:
+Three scripts asked "is this file under a ``tests/`` (or ``.venv/``, ``node_modules/``)
+directory?" with a POSIX substring on ``str(path)``:
 
 - ``generate_service_inventory.py``: ``"/tests/" in str(p)``
 - ``health_readiness_schema_guard.py``: ``"/.venv/" in str(path)``
+- ``tenant_guc_scope_guard.py``: ``"/tests/"``, ``"/tests_v9/"``, ``"/node_modules/"``, ``"/.git/"``
 
 On Windows ``str(path)`` uses backslashes, so neither substring ever matched there:
 the same tree produced different answers locally and in Linux CI (measured by the
@@ -51,6 +52,11 @@ def inventory():
 @pytest.fixture(scope="module")
 def health():
     return _load("health_readiness_schema_guard")
+
+
+@pytest.fixture(scope="module")
+def tenant_guc():
+    return _load("tenant_guc_scope_guard")
 
 
 def _repo(flavour):
@@ -145,3 +151,45 @@ def test_health_guard_ignores_a_venv_above_the_repo_root(health):
     main = root / "services" / "auth" / "main.py"
     assert _old_venv_predicate(main) is True
     assert health._is_in_virtualenv(main, root) is False
+
+
+def _old_tenant_guc_excluded(path: PurePath) -> bool:
+    """The tenant GUC guard's exclusion as it was before the fix, kept verbatim."""
+    s = str(path)
+    if "/node_modules/" in s or "/.git/" in s:
+        return True
+    return path.name.startswith("test_") or "/tests/" in s or "/tests_v9/" in s
+
+
+# (path relative to the repo root, expected "excluded from the scan")
+TENANT_GUC_CASES = [
+    (("services", "auth", "tests", "conftest.py"), True),
+    (("tests_v9", "helpers.py"), True),
+    (("services", "auth", "test_login.py"), True),
+    (("frontend", "node_modules", "pkg", "x.py"), True),
+    ((".git", "hooks", "x.py"), True),
+    (("services", "auth", "db.py"), False),
+    (("services", "testsuite", "db.py"), False),
+]
+
+
+@pytest.mark.parametrize("flavour", FLAVOURS, ids=lambda f: f.__name__)
+@pytest.mark.parametrize(("parts", "expected"), TENANT_GUC_CASES)
+def test_tenant_guc_guard_excludes_by_component(tenant_guc, flavour, parts, expected):
+    root = _repo(flavour)
+    assert tenant_guc._is_excluded(root.joinpath(*parts), root) is expected
+
+
+def test_old_tenant_guc_exclusion_disagrees_across_flavours():
+    """Falsification: the pre-fix exclusion skipped tests/ only on POSIX."""
+    posix = PurePosixPath(POSIX_REPO, "services", "auth", "tests", "conftest.py")
+    windows = PureWindowsPath(WINDOWS_REPO, "services", "auth", "tests", "conftest.py")
+    assert _old_tenant_guc_excluded(posix) is True
+    assert _old_tenant_guc_excluded(windows) is False
+
+
+def test_tenant_guc_guard_ignores_a_tests_directory_above_the_root(tenant_guc):
+    root = PurePosixPath("/srv/tests/repo")
+    source = root / "services" / "auth" / "db.py"
+    assert _old_tenant_guc_excluded(source) is True
+    assert tenant_guc._is_excluded(source, root) is False
