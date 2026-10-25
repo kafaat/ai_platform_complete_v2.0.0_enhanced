@@ -15,7 +15,7 @@ import csv
 import json
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 
 ROOT = Path(__file__).resolve().parents[2]
 GENERATED_JSON = ROOT / "health_readiness_inventory.generated.json"
@@ -48,6 +48,17 @@ def _route_path(decorator: ast.expr) -> str | None:
     return path if isinstance(path, str) else None
 
 
+def _is_in_virtualenv(path: PurePath, root: PurePath = ROOT) -> bool:
+    """Is ``path`` inside a ``.venv`` directory below ``root``?
+
+    Decided on path components, not ``"/.venv/" in str(path)`` — that substring
+    never matches a Windows path (backslashes), so a local ``.venv`` was scanned on
+    Windows and skipped on Linux. Only directories below ``root`` count, so a
+    checkout nested inside some ancestor ``.venv`` is not skipped wholesale.
+    """
+    return ".venv" in path.relative_to(root).parts[:-1]
+
+
 def _function_source(path: Path, node: ast.AST) -> str:
     lines = path.read_text(encoding="utf-8").splitlines()
     start = getattr(node, "lineno", 1) - 1
@@ -61,7 +72,7 @@ def collect() -> list[EndpointRecord]:
     for pattern in ENTRYPOINT_GLOBS:
         files.extend(ROOT.glob(pattern))
     for path in sorted(set(files)):
-        if "/.venv/" in str(path):
+        if _is_in_virtualenv(path):
             continue
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
