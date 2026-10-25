@@ -21,11 +21,11 @@
       "database": 289,
       "governance": 86,
       "mobile": 90,
-      "other": 2114,
-      "tests": 2037,
+      "other": 2115,
+      "tests": 2036,
       "web": 479
     },
-    "unmapped_artifacts": 2424,
+    "unmapped_artifacts": 2423,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -28089,6 +28089,15 @@
           ]
         },
         {
+          "path": "certification/evidence/local_lab_20261025/lab_evidence.json",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/specs/SCOUT-INGEST-01_B1.2b_ingress_odk_spec.md",
           "score": 15,
           "signals": [
@@ -28691,7 +28700,7 @@
         "mobile": 0,
         "tests": 75,
         "governance": 0,
-        "other_evidence": 83
+        "other_evidence": 84
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47267,10 +47276,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_gateway_real_ip_access_log.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_gateway_tls_init.py",
       "kind": "tests"
     },
@@ -47344,6 +47349,10 @@
     },
     {
       "path": "tests_v9/test_guardrails_crypto_dependency.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrails_pool_live_pg.py",
       "kind": "tests"
     },
     {
@@ -48056,10 +48065,6 @@
     },
     {
       "path": "tests_v9/test_rate_limit.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_rate_limit_real_ip_probe.py",
       "kind": "tests"
     },
     {
