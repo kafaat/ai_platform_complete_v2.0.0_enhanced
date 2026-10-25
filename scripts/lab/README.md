@@ -22,6 +22,7 @@ container: copy the evidence directory out before the container ends.
 | Redis | `library/redis@sha256:858f009f…` | same digest |
 | PostgreSQL | `postgis/postgis@sha256:6f4773bf…` (15-3.6: PostgreSQL 15.19, PostGIS 3.6.4, Debian 13) | `postgres@sha256:d4a8e1f8…` (15.19, Debian 12) plus `postgresql-15-postgis-3` from apt |
 | Ports, database, user | 5433 / 6380, `sahool_test` | same |
+| `psql`, `pg_isready` on the host | the host's own client (PostgreSQL 16 here) | `scripts/ci/provision_pg_client.sh` shims that run the container's client |
 | Python deps | fresh venv from `tests_v9/requirements-test.txt` (+ `constraints-ci-tools.txt`) | same files |
 | Certification switches | `HIL_`, `CLAIM_LEASE_`, `RECONCILIATION_RESUMPTION_`, `MIGRATOR_CERTIFICATION_REQUIRED=1` | same |
 | Restricted-role certification steps | read from `ci.yml` at run time and run as written | the steps listed below |
