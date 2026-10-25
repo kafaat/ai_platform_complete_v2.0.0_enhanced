@@ -233,7 +233,7 @@ def _rejecting_js(exc):
 
 @pytest.mark.asyncio
 async def test_subscription_failure_logs_nats_rejection_reason(agent, monkeypatch, caplog):
-    # nats-py يرفع ‎nats.js.errors.Error‎ واسمُ نوعه «Error» وحده؛ السببُ في ‎description‎.
+    # nats-py يرفع nats.js.errors.Error واسمُ نوعه «Error» وحده؛ السببُ في description.
     # طباعةُ الاسم وحده أخفت «consumer is already bound» خلف النشر المتداوِل.
     from nats.js.errors import Error as JetStreamError
 
