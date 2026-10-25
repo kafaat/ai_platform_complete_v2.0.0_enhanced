@@ -166,7 +166,12 @@ def _gate_on_probe_tree(tmp_path, capsys, services_yaml):
 
     داخل العمليّة لا عبر subprocess (الشجرةُ الحقيقيّة يغطّيها ``test_the_contract_gate_passes_on_the_tree``):
     ``fail()`` يرفع ``SystemExit(1)`` ويطبع السبب، و``main()`` يُرجع 0 عند المرور."""
-    for rel in ("scripts/minio/provision.sh", "docker-compose.v9.yml", ".env.example"):
+    for rel in (
+        "scripts/minio/provision.sh",
+        "docker-compose.v9.yml",
+        ".env.example",
+        "deploy/minio/policies/legacy-titiler.json",
+    ):
         dst = tmp_path / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_bytes((ROOT / rel).read_bytes())

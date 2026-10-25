@@ -7,7 +7,8 @@
 # Proves on the checked-out SHA: the deliberate compatibility break (refusal at startup
 # without S3_ALLOW_PLAINTEXT_INTERNAL), recovery with it, a COG written and read back by
 # raster-service, a season-logbook object written / found / fetched by scout-ingest's
-# blob_store, the legacy TiTiler reading that COG through the gate, external plaintext
+# blob_store, the legacy TiTiler reading that COG through the gate with its own read-only
+# account (write and scout bucket denied; no account ⇒ no S3 read), external plaintext
 # refused, per-service bucket scoping, no secret in any output.
 #
 # Not covered (blocked by the freeze, reported not bypassed): the logbook HTTP endpoint
@@ -51,10 +52,10 @@ values.update(
     MINIO_ROOT_USER="sahool-slice-root",
     RASTER_S3_ACCESS_KEY="sahool-slice-raster",
     SCOUT_INGEST_S3_ACCESS_KEY="sahool-slice-scout",
+    # The legacy TiTiler's optional read-only account (TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01).
+    TITILER_S3_ACCESS_KEY="sahool-slice-titiler",
+    TITILER_S3_SECRET_KEY=secrets.token_hex(16),
 )
-# The legacy TiTiler reads the shared S3_ACCESS_KEY; give it the raster service account.
-values["S3_ACCESS_KEY"] = values["RASTER_S3_ACCESS_KEY"]
-values["S3_SECRET_KEY"] = values["RASTER_S3_SECRET_KEY"]
 with open(out, "w", encoding="utf-8") as fh:
     for name, value in sorted(values.items()):
         fh.write(f"{name}={value}\n")
@@ -101,7 +102,9 @@ echo "compose config valid for the slice at ${TESTED_SHA}"
 # 1) Storage exactly as production Compose provisions it.
 dc up -d --wait --wait-timeout 120 sahool-minio
 dc run --rm --no-deps sahool-minio-init >>"$EVIDENCE" 2>&1 || fail 'S3_SLICE_PROVISION_FAILED: sahool-minio-init did not finish' "$(cat "$EVIDENCE")"
-echo 'minio-init provisioned buckets and per-service users'
+grep -qx 'legacy TiTiler: read-only account on sahool-rasters' "$EVIDENCE" ||
+  fail 'S3_SLICE_TITILER_ACCOUNT_NOT_PROVISIONED' "$(cat "$EVIDENCE")"
+echo 'minio-init provisioned buckets and per-service users, including the read-only TiTiler account'
 
 dc build -q sahool-raster-service sahool-scout-ingest >>"$EVIDENCE" 2>&1 || fail 'S3_SLICE_BUILD_FAILED' "$(tail -40 "$EVIDENCE")"
 
@@ -213,7 +216,87 @@ titiler_out="$(dc --profile legacy-tiler exec -T sahool-titiler python -c "impor
 printf '%s\n' "$titiler_out" >>"$EVIDENCE"
 grep -q '^TITILER_INFO 128 128 uint16$' <<<"$titiler_out" || fail 'S3_SLICE_TITILER_MISMATCH' "$titiler_out"
 dc --profile legacy-tiler rm -sf sahool-titiler >/dev/null
-echo 'legacy TiTiler read the COG over /vsis3/ through the gate'
+echo 'legacy TiTiler read the COG over /vsis3/ through the gate with its read-only account'
+
+# 6b) The TiTiler account itself, outside TiTiler: read allowed, every write and the scout bucket
+# denied. The key pair reaches the container by name only (-e NAME), never on a command line.
+SLICE_TITILER_ACCESS_KEY="$(sed -n 's/^TITILER_S3_ACCESS_KEY=//p' "$ENV_FILE")"
+SLICE_TITILER_SECRET_KEY="$(sed -n 's/^TITILER_S3_SECRET_KEY=//p' "$ENV_FILE")"
+export SLICE_TITILER_ACCESS_KEY SLICE_TITILER_SECRET_KEY
+titiler_scope="$(dc run --rm -T --no-deps -e SLICE_TITILER_ACCESS_KEY -e SLICE_TITILER_SECRET_KEY sahool-raster-service python - <<'PY' 2>&1
+import os
+
+import boto3
+from botocore.client import Config
+from botocore.exceptions import ClientError
+
+client = boto3.client(
+    "s3", endpoint_url="http://sahool-minio:9000",
+    aws_access_key_id=os.environ["SLICE_TITILER_ACCESS_KEY"],
+    aws_secret_access_key=os.environ["SLICE_TITILER_SECRET_KEY"],
+    region_name="us-east-1", config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+)
+COG = "fields/s3-slice/ndvi.tif"
+
+
+def attempt(label, call):
+    try:
+        call()
+    except ClientError as exc:
+        print("TITILER_KEY", label, "DENIED", exc.response["Error"]["Code"])
+    else:
+        print("TITILER_KEY", label, "ALLOWED")
+
+
+attempt("list_rasters", lambda: client.list_objects_v2(Bucket="sahool-rasters", Prefix="fields/"))
+attempt("get_rasters", lambda: client.get_object(Bucket="sahool-rasters", Key=COG)["Body"].read())
+attempt("put_rasters", lambda: client.put_object(Bucket="sahool-rasters", Key="fields/x/w.tif", Body=b"x"))
+attempt("overwrite_cog", lambda: client.put_object(Bucket="sahool-rasters", Key=COG, Body=b"x"))
+attempt("delete_cog", lambda: client.delete_object(Bucket="sahool-rasters", Key=COG))
+attempt("list_scout", lambda: client.list_objects_v2(Bucket="sahool-scout-ingest"))
+attempt("put_scout", lambda: client.put_object(Bucket="sahool-scout-ingest", Key="season-logbooks/x/y/z.jpg", Body=b"x"))
+attempt("create_bucket", lambda: client.create_bucket(Bucket="sahool-slice-titiler-probe"))
+PY
+)" || true
+unset SLICE_TITILER_ACCESS_KEY SLICE_TITILER_SECRET_KEY
+printf '%s\n' "$titiler_scope" >>"$EVIDENCE"
+expected_scope='TITILER_KEY list_rasters ALLOWED
+TITILER_KEY get_rasters ALLOWED
+TITILER_KEY put_rasters DENIED AccessDenied
+TITILER_KEY overwrite_cog DENIED AccessDenied
+TITILER_KEY delete_cog DENIED AccessDenied
+TITILER_KEY list_scout DENIED AccessDenied
+TITILER_KEY put_scout DENIED AccessDenied
+TITILER_KEY create_bucket DENIED AccessDenied'
+[[ "$(grep '^TITILER_KEY ' <<<"$titiler_scope")" == "$expected_scope" ]] ||
+  fail 'S3_SLICE_TITILER_KEY_NOT_READ_ONLY' "$titiler_scope"
+echo 'TiTiler account: list and get on sahool-rasters allowed; put, overwrite, delete, scout bucket and bucket creation AccessDenied'
+
+# 6c) Without the account (both halves empty, the template default) TiTiler gets no S3 read.
+set_env TITILER_S3_ACCESS_KEY ""
+set_env TITILER_S3_SECRET_KEY ""
+dc --profile legacy-tiler up -d --no-deps --wait --wait-timeout 120 sahool-titiler >>"$EVIDENCE" 2>&1 ||
+  fail 'S3_SLICE_TITILER_NOT_HEALTHY' "$(dc --profile legacy-tiler logs --no-color sahool-titiler 2>&1 | tail -30)"
+no_account="$(dc --profile legacy-tiler exec -T sahool-titiler python - <<'PY' 2>&1
+import os
+import urllib.error
+import urllib.request
+
+assert not os.environ.get("AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_SECRET_ACCESS_KEY")
+url = "http://localhost:8000/cog/info?url=s3://sahool-rasters/fields/s3-slice/ndvi.tif"
+try:
+    urllib.request.urlopen(url, timeout=60)
+except urllib.error.HTTPError as exc:
+    print("TITILER_NO_ACCOUNT", "REFUSED", exc.code)
+else:
+    print("TITILER_NO_ACCOUNT", "READ")
+PY
+)" || fail 'S3_SLICE_TITILER_NO_ACCOUNT_PROBE_FAILED' "$no_account"
+printf '%s\n' "$no_account" >>"$EVIDENCE"
+grep -Eq '^TITILER_NO_ACCOUNT REFUSED [45][0-9][0-9]$' <<<"$no_account" ||
+  fail 'S3_SLICE_TITILER_READ_WITHOUT_ACCOUNT' "$no_account"
+dc --profile legacy-tiler rm -sf sahool-titiler >/dev/null
+echo "legacy TiTiler without an account: no S3 read ($(cut -d' ' -f2- <<<"$no_account"))"
 
 set +e
 titiler_refusal="$(dc --profile legacy-tiler run --rm -T --no-deps -e S3_ALLOW_PLAINTEXT_INTERNAL=false sahool-titiler 2>&1)"
@@ -277,6 +360,8 @@ json.dump(
             "scout_logbook_object": "season-logbooks/ written, found, fetched by presigned URL",
             "service_scoping": "raster key AccessDenied on scout bucket",
             "legacy_titiler": "cog/info 128x128 uint16; without opt-in exit 78",
+            "legacy_titiler_account": "read-only on sahool-rasters: list/get allowed; put, "
+            "overwrite, delete, scout bucket, bucket creation AccessDenied; no account => no S3 read",
             "external_plaintext": "refused by scout-ingest and raster-service, input not echoed",
             "secrets_in_output": "none",
         },
