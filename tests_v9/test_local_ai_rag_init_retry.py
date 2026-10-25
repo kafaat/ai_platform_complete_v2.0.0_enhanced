@@ -467,6 +467,7 @@ def test_init_vectorstore_names_a_missing_or_unreachable_collection(
         "QDRANT_URL": "http://sahool-qdrant:6333",
         "QDRANT_API_KEY": None,
         "COLLECTION_NAME": "sahool_agri_kb",
+        "RAG_REINDEX_PROFILE_MANIFEST": None,
         "init_retry": retry,
         "logger": None,
     }
@@ -474,3 +475,92 @@ def test_init_vectorstore_names_a_missing_or_unreachable_collection(
     with pytest.raises(retry.InitNotReady) as info:
         init_vectorstore()
     assert info.value.reason == reason
+
+
+# ── REPORT3-RAG-06-01: عقدُ الترميز على قارئ local-ai-rag المستقلّ ─────────────────────────
+# المسترجِعُ القانونيّ يرفض مُرمِّزاً قديماً أمام مجموعة ``sahool_rag_reindex_*`` (production_qdrant)
+# ويسبق الاستعلامَ بـ``search_query: ``؛ هذا القارئُ يُضمِّن النصَّ الخامَ بـOllamaEmbeddings فلا يستطيع
+# الوفاءَ بذلك العقد — فيجب أن يرفض مغلقاً بسببٍ مُسمّى بدل أن يقارن متّجهاتٍ غيرَ متكافئة بصمت.
+PRODUCTION_QDRANT = ROOT / "services" / "sahool-platform" / "core" / "rag" / "production_qdrant.py"
+
+
+@pytest.mark.parametrize(
+    "collection, manifest",
+    [
+        ("sahool_rag_reindex_v1", None),
+        ("sahool_rag_reindex_nomic_768", ""),
+        ("sahool_agri_kb", "/etc/sahool/rag_profile.json"),
+    ],
+)
+def test_encoding_guard_refuses_a_contract_this_reader_cannot_honour(retry, collection, manifest):
+    with pytest.raises(retry.InitNotReady) as info:
+        retry.assert_legacy_encoder_collection(collection, manifest)
+    assert info.value.reason == "encoding_profile_unsupported"
+    assert collection in info.value.detail
+
+
+@pytest.mark.parametrize("manifest", [None, "", "   "])
+def test_encoding_guard_admits_a_legacy_collection_without_a_profile(retry, manifest):
+    assert retry.assert_legacy_encoder_collection("sahool_agri_kb", manifest) is None
+
+
+def test_encoding_guard_prefix_matches_the_canonical_retriever(retry):
+    """البادئةُ نفسُها التي يرفض عندها المسترجِعُ القانونيّ المُرمِّزَ القديم — لا نسخةٌ تنجرف."""
+    assert retry.REINDEX_COLLECTION_PREFIX == "sahool_rag_reindex_"
+    assert f'"{retry.REINDEX_COLLECTION_PREFIX}"' in PRODUCTION_QDRANT.read_text(encoding="utf-8")
+
+
+def test_init_vectorstore_calls_the_encoding_guard_before_building_embeddings():
+    import ast
+
+    src = MAIN.read_text(encoding="utf-8")
+    fn = next(
+        n
+        for n in ast.parse(src).body
+        if isinstance(n, ast.FunctionDef) and n.name == "init_vectorstore"
+    )
+    first_call: dict[str, int] = {}
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+            first_call[name] = min(node.lineno, first_call.get(name, node.lineno))
+    assert "assert_legacy_encoder_collection" in first_call, "القارئُ المستقلّ يخدم بلا عقد ترميز"
+    assert first_call["assert_legacy_encoder_collection"] < first_call["OllamaEmbeddings"]
+    readyz_doc = src.split("async def readyz(", 1)[1].split('"""', 2)[1]
+    assert "encoding_profile_unsupported" in readyz_doc
+
+
+def test_init_vectorstore_refuses_a_reindex_collection_before_any_io(retry, monkeypatch):
+    """سلوكيّاً على الدالّة الحقيقيّة: لا مُضمِّنٌ يُبنى ولا Qdrant يُسأل حين يُرفَض العقد."""
+    import types
+
+    touched: list[str] = []
+
+    def _qdrant(**_kw):
+        touched.append("qdrant")
+        raise AssertionError("Qdrant contacted before the encoding contract was checked")
+
+    def _embeddings(**_kw):
+        touched.append("embeddings")
+        raise AssertionError("OllamaEmbeddings built before the encoding contract was checked")
+
+    monkeypatch.setitem(sys.modules, "qdrant_client", types.SimpleNamespace(QdrantClient=_qdrant))
+    namespace = {
+        "_vectorstore": None,
+        "OllamaEmbeddings": _embeddings,
+        "QdrantVectorStore": None,
+        "EMBED_MODEL": "nomic-embed-text",
+        "OLLAMA_BASE_URL": "http://sahool-ollama:11434",
+        "QDRANT_URL": "http://sahool-qdrant:6333",
+        "QDRANT_API_KEY": None,
+        "COLLECTION_NAME": "sahool_rag_reindex_v1",
+        "RAG_REINDEX_PROFILE_MANIFEST": None,
+        "init_retry": retry,
+        "logger": None,
+    }
+    init_vectorstore = _exec_main_functions({"init_vectorstore"}, namespace)["init_vectorstore"]
+    with pytest.raises(retry.InitNotReady) as info:
+        init_vectorstore()
+    assert info.value.reason == "encoding_profile_unsupported"
+    assert touched == []

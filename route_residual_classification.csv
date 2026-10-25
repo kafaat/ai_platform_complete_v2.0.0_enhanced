@@ -131,11 +131,11 @@ knowledge-graph,services/knowledge-graph/main.py,152,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,160,POST,/v1/edges,upsert_edge,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,169,GET,/v1/edges,edges,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,183,POST,/graphql,graphql,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,636,POST,/v1/query,query_endpoint,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,646,POST,/v1/ingest,ingest_endpoint,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,701,GET,/healthz,healthz,health
-local-ai-rag,services/local-ai-rag/main.py,719,GET,/health,legacy_health,health
-local-ai-rag,services/local-ai-rag/main.py,724,GET,/readyz,readyz,readiness
+local-ai-rag,services/local-ai-rag/main.py,641,POST,/v1/query,query_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,651,POST,/v1/ingest,ingest_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,706,GET,/healthz,healthz,health
+local-ai-rag,services/local-ai-rag/main.py,724,GET,/health,legacy_health,health
+local-ai-rag,services/local-ai-rag/main.py,729,GET,/readyz,readyz,readiness
 rag-retrieval,services/rag-retrieval/main.py,195,GET,/healthz,healthz,health
 rag-retrieval,services/rag-retrieval/main.py,200,GET,/metrics,metrics,metrics
 rag-retrieval,services/rag-retrieval/main.py,213,GET,/readyz,readyz,readiness
