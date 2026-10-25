@@ -956,6 +956,14 @@ jobs:
             tests_v9/test_field_forms_sync_binding_p02.py \
             tests_v9/test_field_forms_device_rotation_grace.py \
             tests_v9/test_erp_bridge_fail_closed.py
+      # عقد HTTP لـsam2-inference (`/v1/predict` · `/healthz` · `/health` · `/readyz` + خطّاف
+      # الإقلاع). الاختبارات داخل الخدمة لأنّ `generate_service_inventory` لا يعدّ غيرها، و
+      # `testpaths = tests_v9` يجعل `-m unit` أعمى عنها — فتُشغَّل هنا بالمسار، وإلّا كانت
+      # زينةً تُسقِط علامة `high-zero-test-routes` ولا يُنفِّذها شيء (صنف
+      # RASTER-SERVICE-TESTS-UNWIRED-TO-CI-01). torch/sam2 (CUDA) يُستبدَلان داخل الاختبار؛
+      # fastapi · numpy · rasterio · shapely من `tests_v9/requirements-test.txt` أعلاه ⇒ لا تخطّي.
+      - name: SAM2 inference HTTP contract (in-service tests, explicit path)
+        run: pytest -v -p no:cacheprovider services/sam2-inference/tests
 
   repository-tests:
     name: Repository Tests (tests/)
