@@ -47,6 +47,35 @@ def reason_of(exc: BaseException) -> str:
     return exc.reason if isinstance(exc, InitNotReady) else "unclassified"
 
 
+#: بادئةُ مجموعات إعادة الفهرسة المُصدَّرة؛ المسترجِعُ القانونيّ يرفض عندها المُرمِّزَ القديم بلا
+#: manifest (``services/sahool-platform/core/rag/production_qdrant.py`` ``HybridQdrantRetriever``).
+REINDEX_COLLECTION_PREFIX = "sahool_rag_reindex_"
+
+
+def assert_legacy_encoder_collection(
+    collection_name: str, profile_manifest_env: str | None
+) -> None:
+    """يفشل مغلقاً حين يُطلَب من هذا القارئ عقدُ ترميزٍ لا يستطيع الوفاءَ به (REPORT3-RAG-06-01).
+
+    ``init_vectorstore`` يُضمِّن **النصَّ الخام** بـ``OllamaEmbeddings`` بلا ``search_query: `` ولا
+    تحقّقٍ من الـprofile؛ أمام مجموعةٍ ``sahool_rag_reindex_*`` (متّجهاتُها ``search_document:``) أو
+    ``RAG_REINDEX_PROFILE_MANIFEST`` مضبوط كان سيقارن متّجهاتٍ غيرَ متكافئة **بصمت**. القارئُ القديم
+    يخدم المجموعةَ القديمة وحدَها؛ ما سواها ``encoding_profile_unsupported`` يقرؤه ``/readyz``.
+    """
+    if str(collection_name).startswith(REINDEX_COLLECTION_PREFIX):
+        raise InitNotReady(
+            "encoding_profile_unsupported",
+            f"collection {collection_name!r} is a versioned reindex collection; the legacy "
+            "OllamaEmbeddings reader cannot honour its encoding profile",
+        )
+    if profile_manifest_env is not None and str(profile_manifest_env).strip():
+        raise InitNotReady(
+            "encoding_profile_unsupported",
+            f"RAG_REINDEX_PROFILE_MANIFEST is set for collection {collection_name!r}; the legacy "
+            "OllamaEmbeddings reader does not apply serving profiles",
+        )
+
+
 def new_state() -> dict[str, Any]:
     return {
         "status": "pending",

@@ -147,7 +147,7 @@
     "service": "local-ai-rag",
     "domain": "Knowledge Retrieval",
     "python_files": 3,
-    "python_loc": 795,
+    "python_loc": 820,
     "tests": 1,
     "routes": 5,
     "main": "services/local-ai-rag/main.py",
