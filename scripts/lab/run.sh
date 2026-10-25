@@ -41,6 +41,16 @@ for entry in "${suites[@]}"; do
   [ "$rc" -eq 0 ] || status=1
 done
 
+# The restricted-role certification steps of the same CI job, read from ci.yml at run
+# time and executed as CI writes them (scripts/lab/run_certification.py). Each pytest
+# call is its own suite; the role flags of the restricted role go into the evidence.
+echo "certification steps (from .github/workflows/ci.yml)" | tee -a "$out/suites.txt"
+LAB_PG_PORT="$LAB_PG_PORT" LAB_PG_USER="$LAB_PG_USER" LAB_PG_DB="$LAB_PG_DB" \
+  LAB_PG_PASSWORD="$LAB_PG_PASSWORD" \
+  "$venv/bin/python" scripts/lab/run_certification.py "$out" "$venv/bin/python" \
+  2>&1 | tee -a "$out/suites.txt"
+[ "${PIPESTATUS[0]}" -eq 0 ] || status=1
+
 "$venv/bin/python" -m pip freeze --all >"$out/pip_freeze.txt" 2>/dev/null
 "$venv/bin/python" scripts/lab/write_evidence.py "$out" || status=1
 echo "evidence: $out/lab_evidence.json"

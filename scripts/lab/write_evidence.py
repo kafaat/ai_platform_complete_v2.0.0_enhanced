@@ -3,6 +3,8 @@
 The evidence binds what was measured: commit and tree (and whether the worktree was
 dirty), the image digests and versions the containers actually ran, the dependency
 versions of the test venv, and per-suite JUnit counts, durations and skipped tests.
+The restricted-role certification steps (run_certification.py) add their CI step
+names, switches, exit codes and the measured flags of the restricted role.
 It is DEV evidence with independence none; it is not a CI or production result.
 
 Usage: python scripts/lab/write_evidence.py <evidence dir>
@@ -99,6 +101,8 @@ def main(out_dir: str) -> int:
         )
         for junit in sorted(out.glob("*.junit.xml"))
     }
+    cert_file = out / "certification_steps.json"
+    cert = json.loads(cert_file.read_text(encoding="utf-8")) if cert_file.is_file() else None
     doc = {
         "$comment": (
             "DEV evidence from scripts/lab/run.sh; independence none. It measures this "
@@ -140,8 +144,12 @@ def main(out_dir: str) -> int:
             "pip_freeze_sha256": hashlib.sha256("\n".join(freeze).encode()).hexdigest(),
         },
         "suites": suites,
+        "ci_certification_steps": cert,
         "verdict": "PASS"
-        if suites and all(s.get("junit") and not s["failed"] for s in suites.values())
+        if suites
+        and all(s.get("junit") and not s["failed"] for s in suites.values())
+        and cert is not None
+        and cert["ok"]
         else "FAIL",
     }
     (out / "lab_evidence.json").write_text(
@@ -158,6 +166,7 @@ def main(out_dir: str) -> int:
                     }
                     for k, v in suites.items()
                 },
+                "certification_steps_ok": bool(cert and cert["ok"]),
             },
             ensure_ascii=False,
         )
