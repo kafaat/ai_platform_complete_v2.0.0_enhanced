@@ -225,6 +225,16 @@ def _service_networks(spec: dict) -> set[str]:
     return {str(n) for n in nets}
 
 
+def _shared_namespace(spec: dict) -> str | None:
+    """The service or container whose network namespace ``network_mode`` borrows, if any.
+    ``service:X`` / ``container:X`` inherit every network X joins, so they count as joining them."""
+    mode = str(spec.get("network_mode") or "")
+    for prefix in ("service:", "container:"):
+        if mode.startswith(prefix):
+            return mode[len(prefix) :].strip()
+    return None
+
+
 def _network_aliases(networks: dict, target: str) -> set[str]:
     """Keys in one file that name ``target``: the key itself, or an external/declared ``name``
     ending in it (a companion file joining ``<project>_sahool-object-storage``)."""
@@ -282,6 +292,13 @@ def storage_network_errors(doc: object, filename: str, *, base: bool) -> list[st
 
     storage_keys = _network_aliases(networks, STORAGE_NETWORK)
     loopback_keys = _network_aliases(networks, LOOPBACK_NETWORK)
+    # Services whose namespace reaches MinIO: MinIO itself, every allowed client (an overlay may
+    # borrow one declared only in the base file), and whatever joins the storage network here.
+    storage_members = {MINIO_SERVICE, *STORAGE_CLIENTS} | {
+        name
+        for name, spec in services.items()
+        if isinstance(spec, dict) and "networks" in spec and _service_networks(spec) & storage_keys
+    }
     for name, spec in services.items():
         spec = spec or {}
         if not isinstance(spec, dict):
@@ -293,6 +310,9 @@ def storage_network_errors(doc: object, filename: str, *, base: bool) -> list[st
                     f"{filename}: {MINIO_SERVICE} sets network_mode={spec['network_mode']!r}; "
                     f"it may only join {sorted(MINIO_NETWORKS)}"
                 )
+            if not base and "networks" not in spec:
+                # An overlay that leaves `networks` out keeps the base file's membership.
+                joined = set(MINIO_NETWORKS)
             extra = joined - MINIO_NETWORKS
             if extra:
                 errors.append(
@@ -302,6 +322,23 @@ def storage_network_errors(doc: object, filename: str, *, base: bool) -> list[st
             if base and STORAGE_NETWORK not in joined:
                 errors.append(f"{filename}: {MINIO_SERVICE} is not on {STORAGE_NETWORK}")
             continue
+        borrowed = _shared_namespace(spec)
+        if borrowed == MINIO_SERVICE:
+            errors.append(
+                f"{filename}: {name} sets network_mode={spec['network_mode']!r}; sharing "
+                f"{MINIO_SERVICE}'s namespace reaches it with no network boundary at all"
+            )
+        elif borrowed in storage_members and name not in STORAGE_CLIENTS:
+            errors.append(
+                f"{filename}: {name} sets network_mode={spec['network_mode']!r} and so joins "
+                f"{STORAGE_NETWORK} through {borrowed}, but is not an allowed S3 client "
+                f"{sorted(STORAGE_CLIENTS)}"
+            )
+        if str(spec.get("network_mode") or "") == "host":
+            errors.append(
+                f"{filename}: {name} sets network_mode='host'; the host namespace reaches "
+                f"{MINIO_SERVICE} on {LOOPBACK_HOST}:9000 around the internal storage network"
+            )
         if joined & storage_keys and name not in STORAGE_CLIENTS:
             errors.append(
                 f"{filename}: {name} joins {STORAGE_NETWORK} but is not an allowed S3 client "

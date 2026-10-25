@@ -186,6 +186,22 @@ def _unclassified_s3_endpoint(doc):
     doc["services"]["sahool-redis"]["environment"]["S3_ENDPOINT"] = "http://sahool-minio:9000"
 
 
+def _redis_shares_minio_namespace(doc):
+    doc["services"]["sahool-redis"]["network_mode"] = "service:sahool-minio"
+
+
+def _redis_shares_a_container_namespace(doc):
+    doc["services"]["sahool-redis"]["network_mode"] = "container:sahool-minio"
+
+
+def _redis_shares_a_client_namespace(doc):
+    doc["services"]["sahool-redis"]["network_mode"] = "service:sahool-raster-service"
+
+
+def _redis_on_the_host_network(doc):
+    doc["services"]["sahool-redis"]["network_mode"] = "host"
+
+
 RULES = {
     "storage internal: false": (_set_internal(False), "must be internal: true"),
     "storage internal: 'true' (a string)": (_set_internal("true"), "must be internal: true"),
@@ -206,6 +222,19 @@ RULES = {
     "a client joins loopback": (_client_on_loopback, f"sahool-raster-service joins {LOOPBACK}"),
     "a client loses storage": (_client_off_storage, "S3 client sahool-scout-ingest is not on"),
     "minio-init loses storage": (_init_off_storage, "S3 client sahool-minio-init is not on"),
+    "a service shares minio's namespace": (
+        _redis_shares_minio_namespace,
+        "sharing sahool-minio's namespace",
+    ),
+    "a service shares minio's container namespace": (
+        _redis_shares_a_container_namespace,
+        "sharing sahool-minio's namespace",
+    ),
+    "a service borrows a client's namespace": (
+        _redis_shares_a_client_namespace,
+        "joins sahool-object-storage through sahool-raster-service",
+    ),
+    "a service on the host network": (_redis_on_the_host_network, "network_mode='host'"),
     "unclassified sahool-minio endpoint": (
         _unclassified_s3_endpoint,
         "sahool-redis points at sahool-minio",
@@ -277,6 +306,28 @@ def test_an_overlay_cannot_widen_minio():
     overlay = {"services": {"sahool-minio": {"networks": ["sahool-internal"]}}}
     errors = GATE.storage_network_errors(overlay, "docker-compose.extra.yml", base=False)
     assert any("sahool-minio joins ['sahool-internal']" in e for e in errors), errors
+
+
+def test_an_overlay_that_leaves_minio_networks_alone_keeps_the_base_membership():
+    """A -f overlay without `networks:` inherits the base networks; it is not `default`."""
+    overlay = {"services": {"sahool-minio": {"environment": {"MINIO_BROWSER": "off"}}}}
+    assert GATE.storage_network_errors(overlay, "docker-compose.extra.yml", base=False) == []
+
+
+def test_an_overlay_cannot_borrow_a_client_namespace_declared_only_in_the_base():
+    overlay = {"services": {"erp-worker": {"image": "x", "network_mode": "service:sahool-titiler"}}}
+    errors = GATE.storage_network_errors(overlay, "docker-compose.erp.yml", base=False)
+    assert any("erp-worker sets network_mode" in e for e in errors), errors
+
+
+def test_an_allowed_client_may_share_another_clients_namespace():
+    """Only non-clients are refused: a client already has storage reach by design."""
+
+    def mutate(doc):
+        doc["services"]["sahool-titiler"].pop("networks")
+        doc["services"]["sahool-titiler"]["network_mode"] = "service:sahool-raster-service"
+
+    assert not [e for e in _errors(mutate) if "network_mode" in e]
 
 
 def test_a_companion_file_cannot_join_the_storage_network_by_its_project_name():
