@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6350,
+    "files_scanned": 6358,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
-      "other": 2112,
-      "tests": 2035,
+      "other": 2118,
+      "tests": 2037,
       "web": 479
     },
-    "unmapped_artifacts": 2422,
+    "unmapped_artifacts": 2423,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -27128,6 +27128,30 @@
           "score": 15
         },
         {
+          "value": "cert04_1_test_h51_field_source_binding_pg.junit.xml @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:75",
+          "score": 15
+        },
+        {
+          "value": "cert04_1_test_h51_field_source_binding_pg.log @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:76",
+          "score": 15
+        },
+        {
+          "value": "cert04_h5_1_field_source_binding_certification_real_pg.step.log @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:831",
+          "score": 15
+        },
+        {
+          "value": "cert06_1_test_imagery_automation_rls_live_pg.junit.xml @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:98",
+          "score": 15
+        },
+        {
+          "value": "cert06_1_test_imagery_automation_rls_live_pg.log @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:99",
+          "score": 15
+        },
+        {
+          "value": "cert06_imagery_automation_rls_certification_migrated_po.step.log @ certification/evidence/local_lab_20261025_certification/lab_evidence.json:879",
+          "score": 15
+        },
+        {
           "value": "field.canonical_state_computed @ tests_v9/test_roadmap_phase23.py:4037",
           "score": 15
         },
@@ -27194,6 +27218,14 @@
         {
           "value": "sahool.element84-legacy-inventory.v1 @ scripts/diagnostics/element84_legacy_inventory.py:196",
           "score": 13
+        },
+        {
+          "value": "cert04_h5_1_field_source_binding_certification_real_pg.step.log @ certification/evidence/local_lab_20261025_certification/certification_steps.json:97",
+          "score": 12
+        },
+        {
+          "value": "cert06_imagery_automation_rls_certification_migrated_po.step.log @ certification/evidence/local_lab_20261025_certification/certification_steps.json:145",
+          "score": 12
         },
         {
           "value": "v148_field_evidence_snapshots.sql @ tests_v9/test_evidence_snapshots_migration_v148.py:20",
@@ -27895,6 +27927,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_lab_ci_certification_steps.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_live_pg_evidence_guard.py",
           "score": 9,
           "signals": [
@@ -28089,6 +28129,24 @@
           ]
         },
         {
+          "path": "certification/evidence/local_lab_20261025/lab_evidence.json",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "certification/evidence/local_lab_20261025_certification/lab_evidence.json",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/specs/SCOUT-INGEST-01_B1.2b_ingress_odk_spec.md",
           "score": 15,
           "signals": [
@@ -28163,6 +28221,14 @@
           "score": 13,
           "signals": [
             "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "certification/evidence/local_lab_20261025_certification/certification_steps.json",
+          "score": 12,
+          "signals": [
             "content:rls",
             "content:tenant isolation"
           ]
@@ -28531,6 +28597,14 @@
           ]
         },
         {
+          "path": "scripts/lab/README.md",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "shared/db_role_guard.py",
           "score": 9,
           "signals": [
@@ -28686,12 +28760,12 @@
         "backend": 14,
         "routes": 31,
         "database": 100,
-        "events": 57,
+        "events": 65,
         "web": 0,
         "mobile": 0,
-        "tests": 75,
+        "tests": 76,
         "governance": 0,
-        "other_evidence": 83
+        "other_evidence": 87
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47340,6 +47414,10 @@
     },
     {
       "path": "tests_v9/test_guardrails_crypto_dependency.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrails_pool_live_pg.py",
       "kind": "tests"
     },
     {
