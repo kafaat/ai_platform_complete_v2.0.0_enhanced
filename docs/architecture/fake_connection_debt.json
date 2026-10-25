@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "0891cf3ee7168bcda15b0d9061eaee235fe5f08c",
+  "measured_on": "02e636b9a1790c8cc1918efec6fe52b5600d4f6c",
   "fake_connection_tests": [
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
@@ -88,6 +88,7 @@
     "tests_v9/test_outbox_idempotent_consumption.py",
     "tests_v9/test_outbox_requires_jetstream_ack.py",
     "tests_v9/test_platform_runtime_db_contract.py",
+    "tests_v9/test_pool_single_owner_audit.py",
     "tests_v9/test_raster_asset_date_binding.py",
     "tests_v9/test_raster_db_persist_uuid_hardening_20260626.py",
     "tests_v9/test_readiness_followup_fixes_20260916.py",

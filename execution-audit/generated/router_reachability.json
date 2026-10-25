@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 123,
+      "line": 127,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 72,
@@ -2278,7 +2278,7 @@
     },
     {
       "kind": "app",
-      "line": 130,
+      "line": 135,
       "module": "services.vegetation-analysis-service.main",
       "node_id": "services.vegetation-analysis-service.main:app",
       "route_count": 0,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "8cc4d925c18d767890339bed09c6c0a973d1ce057bccb20c67652a9eb59cac6f",
+  "inventory_sha256": "69c0c577ee4407c53faac8bc82fabeaa4012b9e9debafd7a955123c45bde67b9",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
