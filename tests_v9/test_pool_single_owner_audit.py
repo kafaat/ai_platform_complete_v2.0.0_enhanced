@@ -277,7 +277,8 @@ def test_platform_shutdown_terminates_a_hung_pool_and_still_closes_the_other(
     app_pool, jobs_pool = FakePool(), FakePool(close_hangs=True)
     monkeypatch.setattr(platform_main, "_DB_POOL", app_pool)
     monkeypatch.setattr(platform_main, "_JOBS_POOL", jobs_pool)
-    monkeypatch.setattr(platform_main, "_POOL_CLOSE_TIMEOUT_SECONDS", 0.01, raising=False)
+    shutdown = sys.modules["shared.pool_shutdown"]  # the bounded close lives outside main.py
+    monkeypatch.setattr(shutdown, "POOL_CLOSE_TIMEOUT_SECONDS", 0.01)
 
     asyncio.run(asyncio.wait_for(platform_main._close_db_pool(), timeout=5))
     assert jobs_pool.terminated and not jobs_pool.closed

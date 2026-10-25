@@ -75,6 +75,7 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from shared.pool_shutdown import close_pools_bounded
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 from shared.startup_retry import retry_startup_connect
@@ -608,34 +609,11 @@ async def _stop_scheduler():
     await scheduler.stop()
 
 
-_POOL_CLOSE_TIMEOUT_SECONDS = 5.0
-
-
-async def _close_pool_bounded(pool, label: str) -> None:
-    """Close one pool within a bound; on timeout, error or cancel terminate it instead."""
-    try:
-        await asyncio.wait_for(pool.close(), timeout=_POOL_CLOSE_TIMEOUT_SECONDS)
-    except asyncio.CancelledError:
-        pool.terminate()
-        raise
-    except Exception as exc:  # noqa: BLE001 — timeout or close failure: never leave backends open
-        logging.warning("%s pool close failed (%s); terminating", label, type(exc).__name__)
-        pool.terminate()
-
-
 async def _close_db_pool():
-    """Close both pools at shutdown (the jobs pool too, which used to stay open)."""
     global _DB_POOL, _JOBS_POOL
-    pools = [(p, label) for p, label in ((_JOBS_POOL, "jobs"), (_DB_POOL, "app")) if p is not None]
-    _DB_POOL = _JOBS_POOL = None
+    pools, _DB_POOL, _JOBS_POOL = [(_JOBS_POOL, "jobs"), (_DB_POOL, "app")], None, None
     app.state.db_pool = None
-    for index, (pool, label) in enumerate(pools):
-        try:
-            await _close_pool_bounded(pool, label)
-        except asyncio.CancelledError:
-            for rest, _ in pools[index + 1 :]:  # cancelled mid-shutdown: drop the rest too
-                rest.terminate()
-            raise
+    await close_pools_bounded(pools)  # the jobs pool too, which used to stay open
 
 
 def get_pool():
