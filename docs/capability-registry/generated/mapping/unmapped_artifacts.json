@@ -8516,6 +8516,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mobile_release_build_requires_endpoint_defines.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_modbus_decoder_20260703.py",
     "kind": "tests"
   },

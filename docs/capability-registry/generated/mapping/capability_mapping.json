@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6359,
+    "files_scanned": 6360,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
       "other": 2118,
-      "tests": 2038,
+      "tests": 2039,
       "web": 479
     },
-    "unmapped_artifacts": 2424,
+    "unmapped_artifacts": 2425,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -47714,6 +47714,10 @@
     },
     {
       "path": "tests_v9/test_mobile_dashboard_reads_no_unproduced_water_fields.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_mobile_release_build_requires_endpoint_defines.py",
       "kind": "tests"
     },
     {
