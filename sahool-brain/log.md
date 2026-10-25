@@ -9971,3 +9971,13 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 
 2026-10-25 — استعادة إصلاح #1264 فوق main `d8f650a7` بعد إزالة مساحة العمل السابقة: يحتفظ `_require_service_token` بالمقارنة ثابتة الزمن للتوكن الصحيح، ويرفض غير ASCII بـ401، ويعامل الإعداد غير ASCII كغير متاح503. المصدر: `services/guardrails-engine/main.py` و`tests_v9/test_guardrails_service_token_ascii.py`. أعيد التنسيق والتوليد والمصالحة؛ لا تورث نتائج المرشح المحلي المفقود. فجوة GUARDRAILS-NON-ASCII-SERVICE-TOKEN-RETURNS-500-01 مفتوحة حتى الدمج.
+
+### 2026-10-20 — حساب قراءة فقط لـTiTiler القديم (بلا نشر)
+
+بتكليف المالك، الفرع `claude/titiler-readonly-key-20261020` من `main` عند `b7d765236` (بعد دمج #1248). يعالج `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`: كان `sahool-titiler` يأخذ `S3_ACCESS_KEY` المشترك، وقالبُه مفتاحُ إدارة MinIO.
+
+صار له حسابٌ اختياريّ بسياسة `deploy/minio/policies/legacy-titiler.json` (عرض الدلو وقراءة كائناته فقط على `sahool-rasters`)، يُنشئه `sahool-minio-init` إن ضُبط نصفاه معاً ويتحقّق بنفسه من الرفض. وتُثبت شريحة S3 من compose السماحَ والرفض بالحساب نفسه، وأنّ TiTiler بلا حساب لا يقرأ S3. لا تغيير في Railway ولا في الإنتاج: لا خدمة TiTiler هناك ولا متغيّر `S3_*`.
+
+### 2026-10-25 — حساب TiTiler للقراءة فقط مقبول في CI (#1268)
+
+خطوة شريحة S3 على رأس #1268 (`35db62f20`) أثبتت السماح والرفض بالحساب نفسه، وأنّ TiTiler بلا حساب لا يقرأ S3، فانتقلت `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01` إلى fixed عند الدمج. لا نشر: لا خدمة TiTiler على Railway.
