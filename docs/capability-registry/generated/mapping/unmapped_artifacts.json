@@ -9096,6 +9096,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_run_all_minio_health_probe.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_run_outcome_guard.py",
     "kind": "tests"
   },

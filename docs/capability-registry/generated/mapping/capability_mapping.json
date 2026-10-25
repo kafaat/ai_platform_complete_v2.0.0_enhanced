@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6359,
+    "files_scanned": 6360,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
       "other": 2118,
-      "tests": 2038,
+      "tests": 2039,
       "web": 479
     },
-    "unmapped_artifacts": 2424,
-    "ambiguous_artifacts": 471
+    "unmapped_artifacts": 2425,
+    "ambiguous_artifacts": 472
   },
   "capabilities": [
     {
@@ -6017,6 +6017,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
@@ -6054,7 +6062,7 @@
         "mobile": 2,
         "tests": 28,
         "governance": 0,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -16717,6 +16725,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -16786,7 +16802,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 9
+        "other_evidence": 10
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -29697,6 +29713,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md",
           "score": 10,
           "signals": [
@@ -29758,7 +29782,7 @@
         "mobile": 4,
         "tests": 19,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 25
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -48297,6 +48321,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_run_all_minio_health_probe.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_run_outcome_guard.py",
       "kind": "tests"
     },
@@ -50167,6 +50195,36 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/WEB_MOBILE_PARITY.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
+          "capability_id": "FM-002",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         }
       ]
