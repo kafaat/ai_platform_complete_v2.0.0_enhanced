@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6348,
+    "files_scanned": 6354,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
-      "other": 2111,
-      "tests": 2034,
+      "other": 2115,
+      "tests": 2036,
       "web": 479
     },
-    "unmapped_artifacts": 2420,
+    "unmapped_artifacts": 2423,
     "ambiguous_artifacts": 471
   },
   "capabilities": [
@@ -12365,27 +12365,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:840",
+          "value": "/health @ agents/notification/agent.py:823",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:841",
+          "value": "/healthz @ agents/notification/agent.py:824",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:891",
+          "value": "/metrics @ agents/notification/agent.py:874",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:904",
+          "value": "/notification/test @ agents/notification/agent.py:887",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:826",
+          "value": "/notifications/test @ agents/notification/agent.py:809",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:846",
+          "value": "/readyz @ agents/notification/agent.py:829",
           "score": 12
         },
         {
@@ -12753,7 +12753,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:617",
+          "value": "sahool.> @ agents/notification/agent.py:600",
           "score": 12
         },
         {
@@ -12938,14 +12938,6 @@
           "score": 12,
           "signals": [
             "content:event bus",
-            "content:nats"
-          ]
-        },
-        {
-          "path": "tests_v9/test_notification_delivery_reliability.py",
-          "score": 11,
-          "signals": [
-            "content:jetstream",
             "content:nats"
           ]
         },
@@ -13282,7 +13274,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 30
+        "events": 24
       },
       "evidence_counts": {
         "backend": 6,
@@ -13291,7 +13283,7 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 19,
+        "tests": 18,
         "governance": 2,
         "other_evidence": 31
       },
@@ -28097,6 +28089,15 @@
           ]
         },
         {
+          "path": "certification/evidence/local_lab_20261025/lab_evidence.json",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/specs/SCOUT-INGEST-01_B1.2b_ingress_odk_spec.md",
           "score": 15,
           "signals": [
@@ -28699,7 +28700,7 @@
         "mobile": 0,
         "tests": 75,
         "governance": 0,
-        "other_evidence": 83
+        "other_evidence": 84
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -47243,6 +47244,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_frontend_lock_advisory_floor.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
       "kind": "tests"
     },
@@ -47344,6 +47349,10 @@
     },
     {
       "path": "tests_v9/test_guardrails_crypto_dependency.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrails_pool_live_pg.py",
       "kind": "tests"
     },
     {
@@ -47704,6 +47713,10 @@
     },
     {
       "path": "tests_v9/test_notification_channel_selection.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_notification_delivery_reliability.py",
       "kind": "tests"
     },
     {

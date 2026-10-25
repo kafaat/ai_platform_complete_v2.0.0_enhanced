@@ -8108,6 +8108,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_frontend_lock_advisory_floor.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
     "kind": "tests"
   },
@@ -8209,6 +8213,10 @@
   },
   {
     "path": "tests_v9/test_guardrails_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guardrails_pool_live_pg.py",
     "kind": "tests"
   },
   {
