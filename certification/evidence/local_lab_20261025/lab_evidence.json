@@ -1,0 +1,668 @@
+{
+  "$comment": "DEV evidence from scripts/lab/run.sh; independence none. It measures this container only; it is not a CI, staging or production result.",
+  "schema_version": "1.0.0",
+  "written_at": "2026-10-25T12:57:12+00:00",
+  "binding": {
+    "commit": "9be3ab7a219ccd5788d38d8b528c5ec69eeac343",
+    "tree": "7b9c2c9f307d8f1f7c058fbf343b001bd4a85839",
+    "worktree_dirty": false
+  },
+  "pinned": {
+    "postgres": "postgis/postgis@sha256:6f4773bfeae08b357ec781bbb9a83e67fcb7ab5e444b5e0e32e93f6f7798c222",
+    "redis": "library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+    "ci_difference": "CI builds postgres@sha256:d4a8e1f8... plus apt postgresql-15-postgis-3; the lab runs postgis/postgis:15-3.6 by digest (see scripts/lab/lab.env)."
+  },
+  "containers": {
+    "postgres": {
+      "container": "sahool-lab-pg",
+      "image_id": "sha256:6f4773bfeae08b357ec781bbb9a83e67fcb7ab5e444b5e0e32e93f6f7798c222",
+      "repo_digests": [
+        "mirror.gcr.io/postgis/postgis@sha256:6f4773bfeae08b357ec781bbb9a83e67fcb7ab5e444b5e0e32e93f6f7798c222"
+      ],
+      "version": "PostgreSQL 15.19 (Debian 15.19-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit | postgis 3.6.4"
+    },
+    "redis": {
+      "container": "sahool-lab-redis",
+      "image_id": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "repo_digests": [
+        "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+        "public.ecr.aws/docker/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+      ],
+      "version": "Redis server v=7.4.11 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=40ff01a501d8e4b6"
+    }
+  },
+  "python": {
+    "version": "3.12.3",
+    "packages": {
+      "asyncpg": "0.31.0",
+      "fastapi": "0.136.3",
+      "opentelemetry-api": "1.45.1",
+      "opentelemetry-sdk": "1.45.1",
+      "pytest": "9.1.1",
+      "redis": "8.1.0"
+    },
+    "pip_freeze_sha256": "68a8c08377698d5681d53625e55aee66dd0f607173337e74f681b896a5c5edff"
+  },
+  "suites": {
+    "integration": {
+      "junit": "integration.junit.xml",
+      "log": "integration.log",
+      "tests": 347,
+      "passed": 197,
+      "failed": [],
+      "skipped": [
+        {
+          "test": "::tests_v9.test_realtime_webhooks",
+          "reason": "collection skipped"
+        },
+        {
+          "test": "tests_v9.test_auth_e2e::test_auth_e2e",
+          "reason": "DATABASE_URL غير متاح — اختبار تكامل"
+        },
+        {
+          "test": "tests_v9.test_auth_service.TestAuthEndpoints::test_health_endpoint",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8120/healthz): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_crop_root_policy_rls_integration::test_rls_two_tenants_same_crop_variety_resolve_their_own_policy",
+          "reason": "DATABASE_URL on the NOBYPASSRLS sahool_app role is required"
+        },
+        {
+          "test": "tests_v9.test_d1_raster_queue_rls_live_pg::test_migrated_policy_isolates_the_owner_queue_and_is_blind_without_context",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_farmer_daily_checkup",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_irrigation_decision_with_guardrails",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_pest_alert_workflow",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_optimization_workflow",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/optimize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_market_and_contract_workflow",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestEndToEndWorkflow::test_full_pipeline_performance",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/optimize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestSystemResilience::test_service_unavailable_graceful",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_end_to_end.TestSystemResilience::test_invalid_field_id_handling",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_guardrails.TestGuardrailsEndpoints::test_validate_endpoint",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8201/v1/validate): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_h51_field_source_binding_pg::test_h51_field_source_binding_live_pg",
+          "reason": "app role is not NOSUPERUSER/NOBYPASSRLS (RLS would not be exercised): <Record rolsuper=True rolbypassrls=True>"
+        },
+        {
+          "test": "tests_v9.test_imagery_automation_rls_live_pg::test_migrated_policy_isolates_and_returns_zero_without_context",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_concurrent_replay_and_payload_conflict",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_real_role_rls_read_write_and_missing_context[False]",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_real_role_rls_read_write_and_missing_context[True]",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_no_early_claim_and_expiry_are_persistent",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_only_one_concurrent_claim_and_stale_worker_cannot_finish",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_progress_survives_retry_and_worker_loss",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_cancellation_and_budget_are_honest_terminal_states",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_authoritative_receipt_query_uses_matching_accepted_tenant_rows",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_imagery_follow_up_pg16::test_schema_rejects_orphaned_lease",
+          "reason": "requires dedicated disposable loopback PG16"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_reservation_live_pg::test_gate_a_reservation_over_live_postgres",
+          "reason": "connect as a NOSUPERUSER/NOBYPASSRLS app role to certify RLS"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_reservation_live_pg::test_gate_a_two_connection_advisory_lock_serializes",
+          "reason": "connect as a NOSUPERUSER/NOBYPASSRLS app role to certify RLS"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_reservation_live_pg::test_gate_a_concurrent_overcommit_serialized_rejection",
+          "reason": "connect as a NOSUPERUSER/NOBYPASSRLS app role to certify RLS"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_reservation_live_pg::test_gate_a_idempotent_replay_is_rejected_no_duplicate",
+          "reason": "connect as a NOSUPERUSER/NOBYPASSRLS app role to certify RLS"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_reservation_live_pg::test_gate_b1_dispatch_intent_emitted_to_outbox_atomically",
+          "reason": "connect as a NOSUPERUSER/NOBYPASSRLS app role to certify RLS"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_upgrade_gate_u1_pg::test_u1_upgrade_left_the_v195_v196_surface_present",
+          "reason": "IRR_F01_UPGRADE_DATABASE_URL unset — run scripts/irr_f01/upgrade_gate_u1.sh"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_upgrade_gate_u1_pg::test_u1_legacy_capability_survived_and_is_tenant_visible",
+          "reason": "IRR_F01_UPGRADE_DATABASE_URL unset — run scripts/irr_f01/upgrade_gate_u1.sh"
+        },
+        {
+          "test": "tests_v9.test_irr_f01_upgrade_gate_u1_pg::test_u1_reservation_binds_v195_composite_fk_over_legacy_capability",
+          "reason": "IRR_F01_UPGRADE_DATABASE_URL unset — run scripts/irr_f01/upgrade_gate_u1.sh"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_app_role_is_provably_restricted",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_upsert_target_is_a_real_constraint_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_a_wrong_conflict_target_is_refused_by_the_database_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_primary_key_is_the_upsert_target_measured_on_the_database",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_rls_isolates_the_ledger_under_the_restricted_role",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_row_level_security_is_enabled_and_forced_in_the_catalog",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_writing_under_another_tenant_is_refused_by_with_check",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_active_field_coalescing_is_a_real_partial_index_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_dropping_the_predicate_is_refused_because_the_index_is_partial_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_a_completed_job_does_not_block_new_work_because_the_index_is_partial",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_job_status_domain_is_enforced_by_the_database_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_offline_queue_insert_is_idempotent_on_the_database_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_a_conflict_target_without_a_unique_constraint_is_refused_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_offline_queue_status_domain_is_enforced_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_scouting_pin_persistence_is_idempotent_on_the_database_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_a_scouting_pin_conflict_target_that_is_not_unique_is_refused_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_workflow_updated_at_trigger_fires_on_the_database_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_trigger_is_registered_before_update_for_each_row",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_event_source_domain_is_enforced_by_the_database",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_events_command_fk_is_enforced_by_the_database",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_events_table_is_append_only_by_trigger_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_jsonb_is_validated_by_the_database_not_by_the_writer_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_asyncpg_really_returns_jsonb_as_str_without_a_codec",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_nutrient_ledger_conflict_target_is_a_real_unique_constraint_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_nutrient_ledger_rejects_a_duplicate_without_a_conflict_clause_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_ledger_digest_shape_is_enforced_by_the_database_reject",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_the_phenology_state_conflict_target_is_the_primary_key_measured",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_prescription_insert_is_idempotent_on_the_database_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_prescription_zones_round_trip_as_jsonb_not_as_text_accept",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_live_pg_fake_connection_debt::test_prescription_zones_reject_invalid_json",
+          "reason": "تخطٍّ مُعلَن (ليس نجاحاً): psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory\n\tIs the server running locally and accepting connections on that socket?"
+        },
+        {
+          "test": "tests_v9.test_m4_bootstrap_pg16::test_real_store_concurrency_rls_lease_and_retry_window",
+          "reason": "BLOCKED_BY_ENVIRONMENT: no disposable PG16 configured"
+        },
+        {
+          "test": "tests_v9.test_mcp_functional::test_shared_helpers_servers_import_or_skip[sentinel_hub_server]",
+          "reason": "sentinel_hub_server not importable in dev layout (merges with repo-root shared/ only in-container): missing shared.field_change_summary"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_health_check",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/healthz): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_list_tools",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_compute_ndvi_tool",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_idempotency",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_unauthorized_no_token",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestSentinelHubMCP::test_unauthorized_invalid_scope",
+          "reason": "خدمة غير مشغّلة (http://localhost:8091/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWeatherMCP::test_list_tools",
+          "reason": "خدمة غير مشغّلة (http://localhost:8092/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWeatherMCP::test_get_forecast",
+          "reason": "خدمة غير مشغّلة (http://localhost:8092/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWeatherMCP::test_calculate_et0",
+          "reason": "خدمة غير مشغّلة (http://localhost:8092/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWOFOSTMCP::test_list_tools",
+          "reason": "خدمة غير مشغّلة (http://localhost:8093/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWOFOSTMCP::test_run_simulation",
+          "reason": "خدمة غير مشغّلة (http://localhost:8093/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestWOFOSTMCP::test_get_crop_parameters",
+          "reason": "خدمة غير مشغّلة (http://localhost:8093/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestMarketMCP::test_list_tools",
+          "reason": "خدمة غير مشغّلة (http://localhost:8094/v1/mcp/tools): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestMarketMCP::test_get_price",
+          "reason": "خدمة غير مشغّلة (http://localhost:8094/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestMarketMCP::test_create_contract_honestly_not_implemented",
+          "reason": "خدمة غير مشغّلة (http://localhost:8094/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mcp_servers.TestMarketMCP::test_price_trend",
+          "reason": "خدمة غير مشغّلة (http://localhost:8094/v1/mcp/tools/call): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_mfa_hardening_integration_v29_5::test_mfa_end_to_end_via_app",
+          "reason": "AUTH-E2E-UNDER-RESTRICTED-ROLE (فرع CI): خدمة auth ترفض الإقلاع لأنّ قاعدة اختبار CI تتّصل بـsahool_test وهو superuser، وحارس تجاوز RLS يفشل مغلقاً — وهو السلوك الصحيح. ci.yml:601 يُنشئ القاعدة بهذا الدور. الإصلاح دور مقيَّد (NOSUPERUSER NOBYPASSRLS) لقاعدة الاختبار، **لا** SAHOOL_ALLOW_RLS_BYPASS_R"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_unauthenticated_and_wrong_password_are_refused",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_plaintext_is_refused_before_any_credential_is_accepted",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_a_client_that_does_not_trust_the_broker_ca_refuses_to_connect",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_each_identity_publishes_its_own_subjects_and_is_refused_everyone_elses",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_subscriptions_are_confined_and_inboxes_are_private",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_jetstream_path_works_end_to_end_with_the_real_client_code",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_learning_worker_takes_over_durables_created_before_identities",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_nobody_can_destroy_or_read_around_the_stream",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_frozen_phase_worker_publishes_its_subject_and_a_refusal_is_silent",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_queue_v1_provisioning_and_binding_work_under_the_scoped_identity",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_numeric_looking_password_authenticates",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_least_privilege::test_live_monitoring_shows_tls_and_the_authenticated_identity",
+          "reason": "LIVE PROOF SKIPPED: لا nats-server (NATS_SERVER_BIN/NOTIFICATION_TEST_NATS_SERVER) — العقدُ الساكن وحدَه قِيس في هذا التشغيل"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[exponent-hex]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[leading-zero-hex]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[numeric]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[true-scalar]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[false-scalar]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_nats_password_expansion::test_real_broker_preserves_password_as_string[url-safe]",
+          "reason": "Real NATS binary unavailable"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_overlap_replays_unacked_floor_without_changing_legacy",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_queue_worker_loss_redelivers_to_survivor",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_two_queue_workers_share_one_delivery",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_recreated_legacy_and_missing_history_rejected_before_writes",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_create_race_never_updates_existing_consumer",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_expiring_retention_is_not_a_migration_proof[change0]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_expiring_retention_is_not_a_migration_proof[change1]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_expiring_retention_is_not_a_migration_proof[change2]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_ready_requires_all_provisioned_bindings_and_rejects_drift",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_real_postgres_serializes_old_and_new_stream_receipts",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_live_dead_letter_failure_preserves_source_until_persisted[broker_rejects_dlq]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_live_dead_letter_failure_preserves_source_until_persisted[puback_lost]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_notification_queue_rollout::test_live_dead_letter_failure_preserves_source_until_persisted[worker_lost_before_term]",
+          "reason": "Set NOTIFICATION_TEST_NATS_SERVER to run real-service notification certification"
+        },
+        {
+          "test": "tests_v9.test_rag.TestRAGAuth::test_query_with_valid_auth",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8203/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_redis_acl_per_service::test_live_scripts_are_held_to_the_callers_acl[sahool-redis-state]",
+          "reason": "لا مستخدمَ يملك EVAL على هذا الخادم"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_restricted_role_sees_its_own_rows_and_none_of_the_other_tenants",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_the_isolation_assertion_is_not_vacuous_when_rls_is_off",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_drawing_migration_reapplies_and_isolates_runtime_dml",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_each_guc_family_isolates_its_migrated_table_only_inside_the_transaction[app.current_tenant:text-nullif:water_ledger]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_each_guc_family_isolates_its_migrated_table_only_inside_the_transaction[app.current_tenant:bare-uuid-cast:signal_anomalies]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_each_guc_family_isolates_its_migrated_table_only_inside_the_transaction[app.tenant_id:model_versions_runtime]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_each_guc_family_isolates_its_migrated_table_only_inside_the_transaction[app.current_tenant_id:soil_spatial_products]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_tx_local_tenant_set_outside_any_transaction_reaches_no_later_statement[app.current_tenant:text-nullif:water_ledger]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_tx_local_tenant_set_outside_any_transaction_reaches_no_later_statement[app.current_tenant:bare-uuid-cast:signal_anomalies]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_tx_local_tenant_set_outside_any_transaction_reaches_no_later_statement[app.tenant_id:model_versions_runtime]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_tx_local_tenant_set_outside_any_transaction_reaches_no_later_statement[app.current_tenant_id:soil_spatial_products]",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_a_session_level_tenant_outlives_its_transaction_unless_the_pool_resets_it",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_the_real_soil_p1_writer_sets_the_name_its_policy_reads",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rls_tenant_isolation_live_pg::test_phase_runtime_store_persists_under_the_restricted_app_role",
+          "reason": "يحتاج TEST_DATABASE_ADMIN_URL وTEST_DATABASE_URL — قاعدةً حيّة ودوراً مقيَّداً"
+        },
+        {
+          "test": "tests_v9.test_rs_anomaly_pg_isolation_integration::test_cross_tenant_read_and_transition_are_blocked_by_rls",
+          "reason": "DATABASE_URL on the NOBYPASSRLS sahool_app role is required"
+        },
+        {
+          "test": "tests_v9.test_services_functional::test_services_functional",
+          "reason": "AUTH-E2E-UNDER-RESTRICTED-ROLE (فرع CI) — **الحالة الثالثة** لنفس العيب، وهذه في soil-service لا auth: قاعدة اختبار CI تتّصل بـsahool_test وهو superuser، فيرفض `assert_db_role_rls_safe` الإقلاع مغلقاً — وهو السلوك الصحيح، لا عطب في الخدمة. الإصلاح دور مقيَّد (NOSUPERUSER NOBYPASSRLS) للتشغيلة المشتر"
+        },
+        {
+          "test": "tests_v9.test_smoke_e2e::test_smoke_e2e_against_live_stack",
+          "reason": "لا مكدّس حيّ (اضبط BASE_URL/AUTH_BASE ووجّهه لمكدّس unified) — تخطٍّ."
+        },
+        {
+          "test": "tests_v9.test_spatial_e2e_smoke::test_spatial_flows_against_live_stack",
+          "reason": "SAHOOL_E2E_BASE_URL غير مضبوط — لا مكدّس حيّ؛ تخطٍّ (لا يُشغَّل في -m unit)."
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_health_check",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/healthz): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_ndvi_query",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_irrigation_advice_query",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_market_price_query",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_pest_identification_query",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_unknown_query_fallback",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_optimize_farm",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/optimize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_optimize_max_yield",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/optimize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_optimize_min_water",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/optimize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_arabic_response_format",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorAgent::test_processing_time_under_5s",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorRouter::test_intent_classification_ndvi",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_supervisor_agent.TestSupervisorRouter::test_intent_classification_irrigation",
+          "reason": "خدمة غير مشغّلة (http://localhost:8096/v1/agent/query): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_telegram_bot::test_bot_module_imports_in_container_layout",
+          "reason": "bot dependency missing in dev layout (works in-container): bot_readiness"
+        },
+        {
+          "test": "tests_v9.test_tts.TestTTSEndpoints::test_health_endpoint",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8210/healthz): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_tts.TestTTSEndpoints::test_synthesize_with_auth",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8210/v1/tts/synthesize): ConnectError"
+        },
+        {
+          "test": "tests_v9.test_vegetation.TestVegetationEndpoints::test_health_endpoint",
+          "reason": "خدمة غير مشغّلة (http://127.0.0.1:8202/healthz): ConnectError"
+        }
+      ],
+      "seconds": 99.858
+    },
+    "otel_pinned": {
+      "junit": "otel_pinned.junit.xml",
+      "log": "otel_pinned.log",
+      "tests": 9,
+      "passed": 9,
+      "failed": [],
+      "skipped": [],
+      "seconds": 1.407
+    }
+  },
+  "verdict": "PASS"
+}
