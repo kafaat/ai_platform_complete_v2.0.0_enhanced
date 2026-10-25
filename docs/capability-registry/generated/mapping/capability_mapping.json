@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6360,
+    "files_scanned": 6366,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 90,
-      "other": 2118,
-      "tests": 2039,
+      "other": 2120,
+      "tests": 2043,
       "web": 479
     },
-    "unmapped_artifacts": 2425,
-    "ambiguous_artifacts": 471
+    "unmapped_artifacts": 2428,
+    "ambiguous_artifacts": 472
   },
   "capabilities": [
     {
@@ -6017,6 +6017,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
@@ -6054,7 +6062,7 @@
         "mobile": 2,
         "tests": 28,
         "governance": 0,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -12365,27 +12373,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:823",
+          "value": "/health @ agents/notification/agent.py:840",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:824",
+          "value": "/healthz @ agents/notification/agent.py:841",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:874",
+          "value": "/metrics @ agents/notification/agent.py:891",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:887",
+          "value": "/notification/test @ agents/notification/agent.py:904",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:809",
+          "value": "/notifications/test @ agents/notification/agent.py:826",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:829",
+          "value": "/readyz @ agents/notification/agent.py:846",
           "score": 12
         },
         {
@@ -12753,7 +12761,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:600",
+          "value": "sahool.> @ agents/notification/agent.py:617",
           "score": 12
         },
         {
@@ -12938,6 +12946,14 @@
           "score": 12,
           "signals": [
             "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_notification_delivery_reliability.py",
+          "score": 11,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -13274,7 +13290,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "events": 24
+        "events": 30
       },
       "evidence_counts": {
         "backend": 6,
@@ -13283,7 +13299,7 @@
         "events": 100,
         "web": 0,
         "mobile": 0,
-        "tests": 18,
+        "tests": 19,
         "governance": 2,
         "other_evidence": 31
       },
@@ -16717,6 +16733,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 12,
           "signals": [
@@ -16786,7 +16810,7 @@
         "mobile": 12,
         "tests": 21,
         "governance": 1,
-        "other_evidence": 9
+        "other_evidence": 10
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -29697,6 +29721,14 @@
           ]
         },
         {
+          "path": "docs/WEB_MOBILE_PARITY.md",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md",
           "score": 10,
           "signals": [
@@ -29758,7 +29790,7 @@
         "mobile": 4,
         "tests": 19,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 25
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -47345,6 +47377,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gateway_real_ip_access_log.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_tls_init.py",
       "kind": "tests"
     },
@@ -47793,10 +47829,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_notification_delivery_reliability.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_notification_subjects_prefix.py",
       "kind": "tests"
     },
@@ -48145,6 +48177,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rate_limit_real_ip_probe.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_raw_data_processing_contract_guard.py",
       "kind": "tests"
     },
@@ -48302,6 +48338,10 @@
     },
     {
       "path": "tests_v9/test_route_residual_classification_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_run_all_minio_health_probe.py",
       "kind": "tests"
     },
     {
@@ -50175,6 +50215,36 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/WEB_MOBILE_PARITY.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
+          "capability_id": "FM-002",
+          "score": 11,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         }
       ]
