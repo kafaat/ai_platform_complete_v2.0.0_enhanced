@@ -190,7 +190,7 @@
     },
     {
       "kind": "app",
-      "line": 123,
+      "line": 127,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
       "route_count": 72,
@@ -532,7 +532,7 @@
     },
     {
       "kind": "app",
-      "line": 196,
+      "line": 197,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2278,7 +2278,7 @@
     },
     {
       "kind": "app",
-      "line": 130,
+      "line": 135,
       "module": "services.vegetation-analysis-service.main",
       "node_id": "services.vegetation-analysis-service.main:app",
       "route_count": 0,
@@ -2721,7 +2721,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "d967a065e66c67d426ffa199acd867b20ecd2f9277dcbf70fbb446a5217b4d4c",
+  "inventory_sha256": "42c8e766ef8be2de5750984bf8c0d3180cf0b6b90e93a1e9bf722233ffcc6b88",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
