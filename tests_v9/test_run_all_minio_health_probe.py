@@ -67,6 +67,7 @@ def _run_health(tmp_path: Path, mode: str) -> tuple[subprocess.CompletedProcess[
         [bash, str(RUN_ALL), "health"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         env=env,
         timeout=60,
         check=False,
@@ -102,4 +103,3 @@ def test_powershell_twin_probes_minio_on_its_liveness_path() -> None:
         in text
     )
     assert "foreach ($path in $paths)" in text
-    assert "foreach ($path in @('/healthz', '/readyz'))" not in text

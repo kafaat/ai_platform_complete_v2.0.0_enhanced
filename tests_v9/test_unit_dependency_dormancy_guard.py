@@ -56,6 +56,12 @@ DECLARED_DORMANT: dict[str, str] = {
     "aiomqtt": "عميلُ وسيطٍ يستورده مدخل actuator/video عند التحميل — مُعلَن في requirements الخدمتين",
     "edge_tts": "غير مُعلَنة في أيّ ملفّ متطلّبات في الشجرة — تبعيّةٌ اختياريّة لمزوّد TTS واحد",
     "api.irrigation_models": "وحدةٌ داخليّة لا حزمة: التخطّي يقع حين لا تكون شجرة المنصّة على المسار",
+    "boto3": (
+        "حالةٌ واحدة تُوقِّع SigV4 بـbotocore حقيقيّ في test_blob_store_presign_public_endpoint "
+        "(والخمس والعشرون الباقية تعمل بلا boto3). إضافتُها إلى requirements-test تحتاج pip-audit "
+        "ومزامنةَ إصدار scout-ingest — مؤجَّلة أثناء التجميد؛ مُعلَنة في requirements الخدمة"
+    ),
+    "botocore": "مع boto3 أعلاه: الحالةُ نفسها، وتُثبَّت معه إن أُضيف",
 }
 
 
