@@ -9,7 +9,11 @@
 # raster-service, a season-logbook object written / found / fetched by scout-ingest's
 # blob_store, the legacy TiTiler reading that COG through the gate with its own read-only
 # account (write and scout bucket denied; no account ⇒ no S3 read), external plaintext
-# refused, per-service bucket scoping, no secret in any output.
+# refused, per-service bucket scoping, no secret in any output. And MinIO's network isolation
+# (MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01): sahool-minio only on the internal
+# storage network and its loopback-publish network; a container on sahool-internal cannot resolve
+# or reach it (with a control on the storage network); 127.0.0.1:9000/9001 still served;
+# anonymous and wrong-secret requests refused. Isolation does not patch MinIO.
 #
 # Not covered (blocked by the freeze, reported not bypassed): the logbook HTTP endpoint
 # reads and writes season_records, which exists only after migrations.
@@ -208,6 +212,121 @@ printf '%s\n' "$scope_out" >>"$EVIDENCE"
 grep -q '^SCOPE_DENIED AccessDenied$' <<<"$scope_out" || fail 'S3_SLICE_SCOPE_NOT_ENFORCED' "$scope_out"
 echo 'raster service account denied on the scout bucket: AccessDenied'
 
+# 5b) Network isolation (MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01). It reduces who
+# can reach MinIO; it does not patch MinIO. sahool-minio must sit on the internal storage network
+# and its loopback-publish network only; a container on sahool-internal but not on the storage
+# network must neither resolve sahool-minio nor connect to any of its addresses on :9000. The
+# same probe, same image, on the storage network must reach it — otherwise a refusal proves nothing.
+minio_cid="$(dc ps -q sahool-minio)"
+raster_image="$(docker inspect --format '{{.Image}}' "$(dc ps -q sahool-raster-service)")"
+STORAGE_NET="${PROJECT}_sahool-object-storage"
+LOOPBACK_NET="${PROJECT}_sahool-object-storage-loopback"
+INTERNAL_NET="${PROJECT}_sahool-internal"
+minio_nets="$(docker inspect --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' "$minio_cid" | sed '/^$/d' | sort | paste -sd' ' -)"
+[[ "$minio_nets" == "$STORAGE_NET $LOOPBACK_NET" ]] ||
+  fail "S3_SLICE_STORAGE_NETWORK_NOT_ISOLATED: sahool-minio is attached to: ${minio_nets}"
+[[ "$(docker network inspect --format '{{.Internal}}' "$STORAGE_NET")" == "true" ]] ||
+  fail 'S3_SLICE_STORAGE_NETWORK_NOT_ISOLATED: the storage network is not internal'
+[[ "$(docker network inspect --format '{{.Internal}}' "$INTERNAL_NET")" == "false" ]] ||
+  fail 'S3_SLICE_STORAGE_NETWORK_PROBE_FAILED: sahool-internal missing or changed; the probe would prove nothing'
+minio_ips="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{"\n"}}{{end}}' "$minio_cid" | sed '/^$/d' | paste -sd' ' -)"
+minio_storage_ip="$(docker inspect --format "{{(index .NetworkSettings.Networks \"$STORAGE_NET\").IPAddress}}" "$minio_cid")"
+[[ -n "$minio_storage_ip" && "$(wc -w <<<"$minio_ips")" == 2 ]] ||
+  fail "S3_SLICE_STORAGE_NETWORK_PROBE_FAILED: MinIO addresses not measurable (${minio_ips})"
+isolation_probe='
+import socket
+import sys
+
+try:
+    socket.getaddrinfo("sahool-minio", 9000)
+except socket.gaierror:
+    print("ISOLATION resolve REFUSED")
+else:
+    print("ISOLATION resolve OPEN")
+for ip in sys.argv[1:]:
+    sock = socket.socket()
+    sock.settimeout(3)
+    try:
+        sock.connect((ip, 9000))
+    except OSError as exc:
+        print("ISOLATION connect", ip, "REFUSED", type(exc).__name__)
+    else:
+        print("ISOLATION connect", ip, "OPEN")
+    finally:
+        sock.close()
+'
+# shellcheck disable=SC2086 # one argument per MinIO address
+isolated="$(docker run --rm --pull never --network "$INTERNAL_NET" --entrypoint "" "$raster_image" python -c "$isolation_probe" $minio_ips 2>&1)" ||
+  fail 'S3_SLICE_STORAGE_NETWORK_PROBE_FAILED: probe container on sahool-internal did not run' "$isolated"
+printf '%s\n' "$isolated" >>"$EVIDENCE"
+[[ "$(grep -c '^ISOLATION .* REFUSED' <<<"$isolated")" == 3 ]] && ! grep -q ' OPEN$' <<<"$isolated" ||
+  fail 'S3_SLICE_STORAGE_NETWORK_NOT_ISOLATED: a container on sahool-internal reached sahool-minio' "$isolated"
+control="$(docker run --rm --pull never --network "$STORAGE_NET" --entrypoint "" "$raster_image" python -c "$isolation_probe" "$minio_storage_ip" 2>&1)" ||
+  fail 'S3_SLICE_STORAGE_NETWORK_CONTROL_FAILED: probe container on the storage network did not run' "$control"
+printf '%s\n' "$control" >>"$EVIDENCE"
+[[ "$control" == "ISOLATION resolve OPEN
+ISOLATION connect ${minio_storage_ip} OPEN" ]] ||
+  fail 'S3_SLICE_STORAGE_NETWORK_CONTROL_FAILED: the same probe on the storage network did not reach MinIO' "$control"
+echo "sahool-minio only on the internal storage network and its loopback network; from sahool-internal: name unresolved, ${minio_ips// /, } :9000 unreachable; the same probe on the storage network reaches it"
+
+# 5c) Unauthorized access refused, and the loopback API/console still published on the host:
+# anonymous requests (no signature) and a wrong secret get no object and no listing.
+loopback_out="$(python3 - <<'PY' 2>&1
+import urllib.error
+import urllib.request
+
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def status(url):
+    try:
+        with opener.open(url, timeout=10) as resp:
+            return resp.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+
+
+print("LOOPBACK api", status("http://127.0.0.1:9000/minio/health/live"))
+print("LOOPBACK console", status("http://127.0.0.1:9001/"))
+for path in (
+    "/sahool-rasters/fields/s3-slice/ndvi.tif",
+    "/sahool-rasters?list-type=2",
+    "/sahool-scout-ingest?list-type=2",
+    "/",
+):
+    print("ANONYMOUS", path, status("http://127.0.0.1:9000" + path))
+PY
+)" || fail 'S3_SLICE_LOOPBACK_PORT_UNAVAILABLE: host-side probe failed' "$loopback_out"
+printf '%s\n' "$loopback_out" >>"$EVIDENCE"
+grep -qx 'LOOPBACK api 200' <<<"$loopback_out" && grep -qx 'LOOPBACK console 200' <<<"$loopback_out" ||
+  fail 'S3_SLICE_LOOPBACK_PORT_UNAVAILABLE: 127.0.0.1:9000/9001 not served after isolation' "$loopback_out"
+[[ "$(grep -c '^ANONYMOUS .* 403$' <<<"$loopback_out")" == 4 ]] ||
+  fail 'S3_SLICE_ANONYMOUS_ACCESS_NOT_REFUSED' "$loopback_out"
+wrong_secret="$(dc exec -T sahool-raster-service python - <<'PY' 2>&1
+import os
+
+import boto3
+from botocore.client import Config
+from botocore.exceptions import ClientError
+
+client = boto3.client(
+    "s3", endpoint_url="http://sahool-minio:9000",
+    aws_access_key_id=os.environ["S3_ACCESS_KEY"], aws_secret_access_key="not-the-secret-" + "0" * 24,
+    region_name="us-east-1", config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+)
+try:
+    client.get_object(Bucket="sahool-rasters", Key="fields/s3-slice/ndvi.tif")["Body"].read()
+except ClientError as exc:
+    print("WRONG_SECRET DENIED", exc.response["Error"]["Code"])
+else:
+    print("WRONG_SECRET ALLOWED")
+PY
+)" || true
+printf '%s\n' "$wrong_secret" >>"$EVIDENCE"
+grep -qx 'WRONG_SECRET DENIED SignatureDoesNotMatch' <<<"$wrong_secret" ||
+  fail 'S3_SLICE_WRONG_SECRET_NOT_REFUSED' "$wrong_secret"
+echo 'loopback API 200 and console 200 on 127.0.0.1; anonymous object/list requests 403; wrong secret SignatureDoesNotMatch'
+
 # 6) Legacy TiTiler (profile) reads the COG through the gate; without the opt-in it exits 78.
 dc --profile legacy-tiler up -d --no-deps --wait --wait-timeout 120 sahool-titiler >>"$EVIDENCE" 2>&1 ||
   fail 'S3_SLICE_TITILER_NOT_HEALTHY' "$(dc --profile legacy-tiler logs --no-color sahool-titiler 2>&1 | tail -30)"
@@ -359,6 +478,11 @@ json.dump(
             "raster_cog": "s3://sahool-rasters/fields/s3-slice/ndvi.tif written and read pixel-exact",
             "scout_logbook_object": "season-logbooks/ written, found, fetched by presigned URL",
             "service_scoping": "raster key AccessDenied on scout bucket",
+            "storage_network_isolation": "sahool-minio only on sahool-object-storage (internal) "
+            "and sahool-object-storage-loopback; from sahool-internal: name unresolved, every "
+            "MinIO address unreachable on :9000; control on the storage network reaches it",
+            "unauthorized_access": "anonymous object/list/bucket-list 403; wrong secret "
+            "SignatureDoesNotMatch; 127.0.0.1:9000 health 200 and :9001 console 200",
             "legacy_titiler": "cog/info 128x128 uint16; without opt-in exit 78",
             "legacy_titiler_account": "read-only on sahool-rasters: list/get allowed; put, "
             "overwrite, delete, scout bucket, bucket creation AccessDenied; no account => no S3 read",
