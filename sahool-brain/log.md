@@ -10011,3 +10011,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-25 — توحيد الفروع المفتوحة في PR واحد، وفجوتان من قياس التطابق
 
 بطلب المالك جُمعت الفروع الستّة المفتوحة (قياس مفتاح حدّ المعدّل #1278، تشخيص وكيل الإشعارات #1279، الموافقة المتخصّصة #1280، الرابط الموقَّع، حارس إصدار الهاتف، فحص صحّة MinIO في `run_all` ووثيقة التطابق) في فرعٍ واحد لتفادي التعارضات المتكرّرة مع main. ولأنّه يمسّ مسارات نشر (البوّابة، الوكيل، guardrails، `shared/**`) لا يُدمج أثناء التجميد إلّا بكلمة المالك. وأُصلح الخلل نفسه في `scripts_v9/run_all.ps1`، وسُجّلت فجوتان وجدهما قياس التطابق: MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وWEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 ([`gaps/registry.md`](gaps/registry.md)).
+
+### 2026-10-25 — تحقّق المالك من خطأ MinIO المحليّ
+
+شغّل المالك `docker compose … up` على جهازه في `v26` فطلب compose `minio/mc:RELEASE.2025-04-16T18-13-26Z` و`minio/minio:RELEASE.2025-04-22T22-12-26Z`، وهما قيمتا القالب قبل #1139 (`.env.example:474-475` عند `172cb4505^`). وأكّد تحقّقُه أنّ `.env.example` في `v26:517-518` يحمل القيم الجديدة (`coollabsio/minio…@sha256:a4938f37…`)، فالكود عنده بعد الإصلاح، والقيمة القديمة تأتي من خارجه: `.env` المحليّ أو متغيّر بيئة في الجلسة. فصار فخّ `.env` الموصوف في MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 مقيساً على آلة المالك في نصفه، والنصف الباقي (أيّ المصدرين) ينتظر ناتج `Select-String -Path .env -Pattern '^MINIO_(MC_)?IMAGE='`.
