@@ -9977,3 +9977,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 بتكليف المالك، الفرع `claude/titiler-readonly-key-20261020` من `main` عند `b7d765236` (بعد دمج #1248). يعالج `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01`: كان `sahool-titiler` يأخذ `S3_ACCESS_KEY` المشترك، وقالبُه مفتاحُ إدارة MinIO.
 
 صار له حسابٌ اختياريّ بسياسة `deploy/minio/policies/legacy-titiler.json` (عرض الدلو وقراءة كائناته فقط على `sahool-rasters`)، يُنشئه `sahool-minio-init` إن ضُبط نصفاه معاً ويتحقّق بنفسه من الرفض. وتُثبت شريحة S3 من compose السماحَ والرفض بالحساب نفسه، وأنّ TiTiler بلا حساب لا يقرأ S3. لا تغيير في Railway ولا في الإنتاج: لا خدمة TiTiler هناك ولا متغيّر `S3_*`.
+
+### 2026-10-25 — حساب TiTiler للقراءة فقط مقبول في CI (#1268)
+
+خطوة شريحة S3 على رأس #1268 (`35db62f20`) أثبتت السماح والرفض بالحساب نفسه، وأنّ TiTiler بلا حساب لا يقرأ S3، فانتقلت `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01` إلى fixed عند الدمج. لا نشر: لا خدمة TiTiler على Railway.
