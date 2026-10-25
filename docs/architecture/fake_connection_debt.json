@@ -407,6 +407,16 @@
         "tests_v9/test_vegetation_sqlite_startup.py"
       ],
       "justification": "One explicit fault-injection site for the SQLite WAL startup race observed in CI job 117775774224. BusyOnce subclasses a real sqlite3.Connection and injects SQLITE_BUSY at the first WAL pragma to measure fresh-connection retry, connection cleanup and deadline exhaustion deterministically. Separate connections exercise a real SQLite file concurrently. This injection does not establish the real lock frequency, PostgreSQL enforcement or Railway persistence; the unchanged two-worker container command and its strict missing-module mutation remain independent CI witnesses. No proven_live exemption is added."
+    },
+    {
+      "kind": "pool_single_owner_fake_pool",
+      "date": "2026-10-25",
+      "before": 105,
+      "after": 106,
+      "sites": [
+        "tests_v9/test_pool_single_owner_audit.py"
+      ],
+      "justification": "One explicit admission for the create_pool audit. FakePool stands in for asyncpg.create_pool to interleave concurrent cold callers deterministically and to make close() hang, which measures only the lock ordering, the bounded close and the terminate fallback in decision-service persistence, the vegetation PostgresAnomalyStore and the platform _close_db_pool. It claims no PostgreSQL enforcement: tests_v9/test_pool_single_owner_live_pg.py counts real backends in pg_stat_activity by application_name for the same three owners. No proven_live exemption is added."
     }
   ]
 }
