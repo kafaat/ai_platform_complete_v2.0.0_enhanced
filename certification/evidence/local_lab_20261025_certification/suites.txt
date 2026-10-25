@@ -1,0 +1,11 @@
+integration rc=0 seconds=143
+otel_pinned rc=0 seconds=3
+certification steps (from .github/workflows/ci.yml)
+cert01 rc=0 seconds=0.2 Create restricted application role for RLS certification
+cert02 rc=0 seconds=4.8 IRR-F01 fresh-schema certification (Gate A + Gate B1)
+cert03 rc=0 seconds=22.5 IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)
+cert04 rc=0 seconds=1.2 H5.1 field↔source binding certification (real-PG, restricted role)
+cert05 rc=0 seconds=3.0 RLS tenant isolation certification (real-PG, restricted role)
+cert06 rc=0 seconds=1.4 Imagery automation RLS certification (migrated policy, restricted role)
+cert07 rc=0 seconds=1.2 D1 raster invalidation queue RLS certification (migrated v96 policy, restricted role)
+role sahool_app_test: {'role': 'sahool_app_test', 'exists': True, 'rolsuper': False, 'rolbypassrls': False, 'rolinherit': False, 'rolcanlogin': True, 'ok': True}
