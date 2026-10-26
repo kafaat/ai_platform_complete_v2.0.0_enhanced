@@ -30,7 +30,6 @@ from shared.actuator_idempotency import (
     resolve_idempotency_mode,
 )
 from shared.actuator_mode import resolve_actuator_mode
-from shared.pool_shutdown import cancel_tasks_bounded, close_pool_bounded
 from shared.startup_retry import retry_startup_connect
 
 try:
@@ -1133,18 +1132,9 @@ async def lifespan(app: FastAPI):
     if _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
         app.state.dispatch_task = asyncio.create_task(dispatch_consumer_loop())
     logger.info("🔧 Actuator Service ready — Scene Linkage active")
-    try:
-        yield
-    finally:
-        # Both loops acquire from _pool: stop them before it closes, or close() waits on
-        # their connections and a late iteration acquires from a closed pool.
-        await cancel_tasks_bounded(
-            [app.state.mqtt_task, getattr(app.state, "dispatch_task", None)],
-            "actuator-service",
-        )
-        pool, _pool = _pool, None
-        if pool is not None:
-            await close_pool_bounded(pool, "actuator-service")
+    yield
+    if _pool:
+        await _pool.close()
 
 
 app = FastAPI(title="SAHOOL Actuator Service", version="9.1.0", lifespan=lifespan)

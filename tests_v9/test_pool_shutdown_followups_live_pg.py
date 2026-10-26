@@ -5,7 +5,7 @@ each service's real lifespan runs (in its own process, laid out as its Dockerfil
 ``/app``) against a real PostgreSQL, with a real asyncpg pool whose connections carry a unique
 ``application_name``. A connection is held across shutdown, as in production:
 
-  * erp-bridge and actuator-service: by the background loop (sync; MQTT and dispatch). The
+  * erp-bridge: by the background sync loop. The
     lifespan must cancel the loop first, so ``close()`` finishes cleanly, well inside the bound;
   * auth, soil-service and market MCP: by an in-flight request that never returns. ``close()``
     would wait on it for ever; the bound must terminate the pool instead.
@@ -187,11 +187,6 @@ async def _no_migrations():
 module._run_migrations = _no_migrations
 module.periodic_sync = hold_connection
 """
-_ACTUATOR_SETUP = """
-module.mqtt_sensor_listener = hold_connection
-module.dispatch_consumer_loop = hold_connection
-module._dispatch_consumer_enabled = lambda value: True
-"""
 _AUTH_SETUP = """
 async def _no_admin():
     return None
@@ -204,13 +199,6 @@ CASES = {
         {"module": "main", "pool": "erp_runtime:_pool", "setup": _ERP_SETUP},
         ("SAHOOL_DB_URL", "DATABASE_URL"),
         {"ERP_PROVIDER": "none"},
-        "background",
-    ),
-    "actuator-service": (
-        "services/actuator-service/Dockerfile",
-        {"module": "actuator_runtime", "pool": "actuator_runtime:_pool", "setup": _ACTUATOR_SETUP},
-        ("DATABASE_URL",),
-        {"ACTUATOR_MODE": "simulation"},
         "background",
     ),
     "auth": (

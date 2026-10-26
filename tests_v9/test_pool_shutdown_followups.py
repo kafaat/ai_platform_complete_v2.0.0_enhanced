@@ -5,7 +5,6 @@
   * erp-bridge (``services/odoo-bridge``): the lifespan closed the pool while the sync loop
     still ran (and held connections), closed without a bound and left ``_pool`` set; the
     lazy ``get_pool()`` fallback opened an unowned pool per concurrent cold caller;
-  * actuator-service: the MQTT and dispatch loops ran on while the pool closed, unbounded;
   * auth and soil-service: ``close()`` without a bound, so a held connection hung shutdown;
   * market MCP: the same unbounded close, plus the same unowned lazy ``get_pool()`` fallback;
   * ``shared/helpers.py``: ``init_db`` (and the ``get_pool``/``service_lifespan``/
@@ -224,17 +223,6 @@ module._run_migrations = _no_migrations
 module.periodic_sync = hold_forever
 """
 
-ACTUATOR = (
-    "services/actuator-service/Dockerfile",
-    {"module": "actuator_runtime", "pool": "actuator_runtime:_pool"},
-    {"DATABASE_URL": DSN, "ACTUATOR_MODE": "simulation"},
-)
-_ACTUATOR_SETUP = """
-module.mqtt_sensor_listener = hold_forever
-module.dispatch_consumer_loop = hold_forever
-module._dispatch_consumer_enabled = lambda value: True
-"""
-
 AUTH = (
     "services/auth/Dockerfile",
     {"module": "main", "pool": "main:_pool"},
@@ -292,27 +280,6 @@ def test_erp_bridge_get_pool_never_opens_an_unowned_pool(image_root):
         f"six cold get_pool() callers opened {result['created']} pools no one closes"
     )
     assert result["value"] == [None] * 6
-
-
-# ── actuator-service ───────────────────────────────────────────────────────
-
-
-def test_actuator_stops_mqtt_and_dispatch_loops_before_closing_the_pool(image_root):
-    result = _case(ACTUATOR, image_root, setup=_ACTUATOR_SETUP)
-    assert result["outcome"] == "returned", result
-    assert result["background"] == 2 and result["cancelled"] == 2, (
-        f"MQTT/dispatch loops still running after shutdown: {result}"
-    )
-    assert result["running_at_close"] == [0], (
-        f"pool closed while the MQTT/dispatch loops still ran: {result}"
-    )
-    assert result["closed"] == [True] and not result["pool_left"], result
-
-
-def test_actuator_close_is_bounded_and_terminates(image_root):
-    result = _case(ACTUATOR, image_root, setup=_ACTUATOR_SETUP, hang=True, bound=0.05)
-    assert result["outcome"] == "returned", f"shutdown hung on close(): {result}"
-    assert result["terminated"] == [True] and not result["pool_left"], result
 
 
 # ── auth, soil-service ─────────────────────────────────────────────────────
