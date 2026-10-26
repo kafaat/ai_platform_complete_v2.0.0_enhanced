@@ -92,6 +92,39 @@ void main() {
       expect(calls.last.headers['Authorization'], 'Bearer $fresh');
     });
 
+    test('401 on a multipart upload: the retry sends a fresh FormData', () async {
+      final fresh = fakeJwt(const Duration(hours: 1), sub: 'fresh');
+      final tokens = MemoryTokenStore(
+          accessToken: fakeJwt(const Duration(hours: 1)), refreshToken: 'r1');
+      var firstCall = true;
+      final adapter = FakeAdapter((o) async {
+        if (o.path == '/auth/refresh') {
+          return FakeReply(200, {'access_token': fresh});
+        }
+        if (firstCall) {
+          firstCall = false;
+          return const FakeReply(401, {'detail': 'expired'});
+        }
+        return const FakeReply(200, {'ok': 1});
+      });
+      final client = testClient(adapter, tokens);
+      final form = FormData.fromMap({
+        'field_id': 'f1',
+        'file': MultipartFile.fromBytes([1, 2, 3], filename: 'leaf.jpg'),
+      });
+
+      // قبل الإصلاح: الإعادة ترسل FormData نفسها المُستهلَكة ⇒ StateError
+      // («already been finalized») يُرمى ApiException بدل النجاح.
+      expect(await client.post('/api/v1/pest/detect', data: form), {'ok': 1});
+      final calls = adapter.to('/api/v1/pest/detect');
+      expect(calls, hasLength(2));
+      expect(calls.last.headers['Authorization'], 'Bearer $fresh');
+      final retried = calls.last.data as FormData;
+      expect(identical(retried, form), isFalse);
+      expect(retried.fields, form.fields);
+      expect(retried.files.single.value.filename, 'leaf.jpg');
+    });
+
     test('a second 401 after the retry is surfaced, not looped', () async {
       final tokens = MemoryTokenStore(
           accessToken: fakeJwt(const Duration(hours: 1)), refreshToken: 'r1');

@@ -17,7 +17,8 @@
 //
 // إعادة المحاولة: 502/503/504 فقط، بحدّ 3 وbackoff أُسّيّ + jitter. القراءات
 // (GET/HEAD/OPTIONS) تُعاد دائماً؛ الكتابات **فقط** إن حملت Idempotency-Key
-// (انظر idempotency.dart). multipart (FormData) لا يُعاد لأنّ جسمه يُستهلَك.
+// (انظر idempotency.dart). multipart (FormData) لا يُعاد لأنّ جسمه يُستهلَك؛
+// استثناء وحيد: إعادة بعد تحديث التوكن (401) ترسل نسخة FormData.clone().
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -235,6 +236,9 @@ class ApiClient {
       if (token != null) {
         options.extra['auth_retried'] = true;
         options.headers['Authorization'] = 'Bearer $token';
+        // جسم multipart يُستهلَك عند الإرسال الأوّل؛ الإعادة بعد 401 تحتاج نسخة.
+        final body = options.data;
+        if (body is FormData) options.data = body.clone();
         try {
           return handler.resolve(await _dio.fetch<dynamic>(options));
         } on DioException catch (retryError) {
