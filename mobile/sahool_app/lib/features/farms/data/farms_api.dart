@@ -28,4 +28,22 @@ class FarmsApi {
       idempotencyKey: idempotencyKey,
     ),
   );
+
+  /// حقول مزرعة (GET /api/v1/farms/{id}/fields): [{field_id, name, area_ha,
+  /// crop, soil_type}]. 404 = مزرعة ليست ضمن المستأجِر (لا «بلا حقول»).
+  Future<List<Map<String, dynamic>>> listFarmFields(String farmId) async =>
+      asJsonList(await _client.get('/api/v1/farms/$farmId/fields'));
+
+  /// أولويّات المزرعة التشغيليّة (GET /api/v1/farms/{id}/priority-queue):
+  /// {items:[{id, type, field_id, title_ar, severity, ...}], degraded,
+  /// warning_ar}. العناصر من التنبيهات والمهام المخزّنة فقط.
+  Future<Map<String, dynamic>> getFarmPriorityQueue(
+    String farmId, {
+    int limit = 100,
+  }) async => asJsonMap(
+    await _client.get(
+      '/api/v1/farms/$farmId/priority-queue',
+      query: {'limit': limit},
+    ),
+  );
 }

@@ -342,4 +342,24 @@ class FieldsApi {
     );
     return asJsonMap(r);
   }
+
+  /// تفاصيل حقل واحد (GET /api/v1/fields/{id}) — FieldDetail: ملخّص الحقل
+  /// (field_id, farm_id, name_ar, crop, area_ha, quality_grade, ...) + أعمدة
+  /// التربة/الريّ المتقدّمة (soil_ph, soil_ec, soil_om, soil_n/p/k,
+  /// irrigation_type, water_source...). 404 إن لم يكن الحقل ضمن المستأجِر.
+  Future<Map<String, dynamic>> getField(String fieldId) async =>
+      asJsonMap(await _client.get('/api/v1/fields/$fieldId'));
+
+  /// أولويّات الحقل التشغيليّة (GET /api/v1/fields/{id}/priority-queue):
+  /// {items:[{id, type(alert/task), title_ar, severity, due_at, ...}],
+  /// degraded, warning_ar, note_ar}. العناصر من جداول alerts/field_tasks فقط.
+  Future<Map<String, dynamic>> fetchFieldPriorityQueue(
+    String fieldId, {
+    int limit = 20,
+  }) async => asJsonMap(
+    await _client.get(
+      '/api/v1/fields/$fieldId/priority-queue',
+      query: {'limit': limit},
+    ),
+  );
 }
