@@ -23,6 +23,7 @@ import 'package:sahool_app/core/theme/theme_controller.dart';
 import 'package:sahool_app/core/widgets/app_error_widget.dart';
 import 'package:sahool_app/core/widgets/app_states.dart';
 import 'package:sahool_app/core/widgets/offline_banner.dart';
+import 'package:sahool_app/features/advisor/data/chat_history_store.dart';
 import 'package:sahool_app/features/auth/presentation/login_screen.dart';
 import 'package:sahool_app/features/field_forms/data/field_forms_coordinator.dart';
 import 'package:sahool_app/services/auth_service.dart';
@@ -49,8 +50,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
-  await Hive.openBox('chat_history');
   await Hive.openBox('settings');
+  // سجلّ المستشار القديم بنصّ صريح مشترك بين المستخدمين: لا يقرؤه شيء ⇒ يُحذَف.
+  unawaited(purgeLegacyAdvisorChat());
   ThemeController.instance.load();
 
   // تنظيفات الميزات عند الخروج (FeatureModule.onSessionEnd).

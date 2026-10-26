@@ -21,7 +21,7 @@ abstract final class AdvisorRoutes {
   static const pestEscalation = AdvisorPaths.pestEscalation;
 }
 
-/// صندوق السجلّ القديم غير المنطَّق (يُفتح في main.dart، يُفرَّغ عند أوّل فتح
+/// صندوق السجلّ القديم غير المنطَّق (يُحذَف من القرص عند الإقلاع وعند أوّل فتح
 /// للمستشار وعند الخروج). السجلّ الحاليّ مشفّر لكلّ مستخدم: chat_history_store.dart.
 const String kAdvisorChatBox = kLegacyAdvisorChatBox;
 

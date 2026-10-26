@@ -8,8 +8,8 @@
 // - المفتاح يُولَّد عند أوّل فتح ويُحذَف مع الصندوق عند الخروج ([endSession]).
 // - إن تعذّر المفتاح الآمن أو هويّة المستخدم: سجلّ في الذاكرة فقط — لا نكتب نصّاً
 //   صريحاً أبداً.
-// - الصندوق القديم غير المنطَّق (`chat_history`، يفتحه main.dart) يُفرَّغ عند أوّل
-//   فتح: لا يمكن نسبته إلى مستخدم، فلا يُعرَض لأحد.
+// - الصندوق القديم غير المنطَّق (`chat_history`) يُحذَف من القرص عند الإقلاع وعند
+//   أوّل فتح: لا يمكن نسبته إلى مستخدم، فلا يُعرَض لأحد.
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -19,8 +19,23 @@ import 'package:sahool_app/core/session/session_scope.dart';
 
 import 'advisor_models.dart';
 
-/// الصندوق القديم بنصّ صريح المشترك بين المستخدمين (يُفتح في main.dart).
+/// الصندوق القديم بنصّ صريح المشترك بين المستخدمين (لم يعد يُفتح؛ يُحذَف فقط).
 const String kLegacyAdvisorChatBox = 'chat_history';
+
+/// يحذف الصندوق القديم بنصّ صريح من القرص (مفتوحاً أو لا). لا شيء يقرؤه بعد
+/// الآن؛ يُستدعى عند الإقلاع وعند فتح المستشار وعند الخروج. الفشل يُسجَّل فقط.
+Future<void> purgeLegacyAdvisorChat([HiveInterface? hive]) async {
+  final h = hive ?? Hive;
+  try {
+    if (h.isBoxOpen(kLegacyAdvisorChatBox)) {
+      await h.box<dynamic>(kLegacyAdvisorChatBox).deleteFromDisk();
+    } else if (await h.boxExists(kLegacyAdvisorChatBox)) {
+      await h.deleteBoxFromDisk(kLegacyAdvisorChatBox);
+    }
+  } catch (e) {
+    debugPrint('advisor chat: legacy purge failed ($e)');
+  }
+}
 
 /// أقصى عدد رسائل محفوظة لكلّ مستخدم (الأقدم يُحذَف أوّلاً).
 const int kAdvisorHistoryCap = 200;
@@ -172,16 +187,7 @@ class AdvisorChatStore {
     return fresh;
   }
 
-  Future<void> _wipeLegacy() async {
-    try {
-      if (_hive.isBoxOpen(kLegacyAdvisorChatBox)) {
-        final legacy = _hive.box<dynamic>(kLegacyAdvisorChatBox);
-        if (legacy.isNotEmpty) await legacy.clear();
-      }
-    } catch (e) {
-      debugPrint('advisor chat: legacy wipe failed ($e)');
-    }
-  }
+  Future<void> _wipeLegacy() => purgeLegacyAdvisorChat(_hive);
 
   /// تنظيف الخروج (FeatureModule.onSessionEnd): يحذف صندوق المستخدم المنتهية
   /// جلسته ومفتاحه، وكلّ صندوق فُتح في هذه العمليّة، ويفرّغ الصندوق القديم.

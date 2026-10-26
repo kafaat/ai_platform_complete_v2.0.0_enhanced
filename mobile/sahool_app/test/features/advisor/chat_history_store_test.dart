@@ -90,8 +90,22 @@ void main() {
     final store = AdvisorChatStore(vault: MemoryChatKeyVault());
     final h = await store.openFor(tenantId: 't1', userId: 'bob');
     expect(await h.load(), isEmpty);
-    expect(legacy.isEmpty, isTrue);
+    expect(await Hive.boxExists(kLegacyAdvisorChatBox), isFalse);
   });
+
+  test(
+    'a stale legacy box on disk is deleted even when nothing opened it',
+    () async {
+      final legacy = await Hive.openBox<dynamic>(kLegacyAdvisorChatBox);
+      await legacy.add({'role': 'user', 'text': 'محادثة مستخدم سابق'});
+      await legacy.close();
+      expect(await Hive.boxExists(kLegacyAdvisorChatBox), isTrue);
+      await purgeLegacyAdvisorChat();
+      expect(await Hive.boxExists(kLegacyAdvisorChatBox), isFalse);
+      // لا صندوق ⇒ لا خطأ.
+      await purgeLegacyAdvisorChat();
+    },
+  );
 
   test('without a user id the chat is memory-only (never plaintext)', () async {
     final store = AdvisorChatStore(vault: MemoryChatKeyVault());
