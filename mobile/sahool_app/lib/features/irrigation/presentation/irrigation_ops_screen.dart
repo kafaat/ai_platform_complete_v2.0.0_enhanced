@@ -5,9 +5,9 @@
 // لا fallback وهميّ. تطابق IrrigationOpsPage في الويب.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/irrigation/data/irrigation_api.dart';
 
 class IrrigationOpsScreen extends StatefulWidget {
   const IrrigationOpsScreen({super.key});
@@ -42,8 +42,8 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
       _error = null;
     });
     try {
-      final valves = await ApiService.instance.listValves();
-      final schedules = await ApiService.instance.listSchedules();
+      final valves = await IrrigationApi.instance.listValves();
+      final schedules = await IrrigationApi.instance.listSchedules();
       if (!mounted) return;
       setState(() {
         _valves = valves;
@@ -61,7 +61,7 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
 
   Future<void> _setState(Map<String, dynamic> valve, String status) async {
     try {
-      await ApiService.instance.setValveState(
+      await IrrigationApi.instance.setValveState(
           valve['valve_id'].toString(), status);
       if (mounted) {
         showSnack(context, 'سُجّلت النيّة — بانتظار موافقة بشريّة (HIL)');
@@ -74,7 +74,7 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
 
   Future<void> _deleteSchedule(Map<String, dynamic> s) async {
     try {
-      await ApiService.instance.deleteSchedule(s['schedule_id'].toString());
+      await IrrigationApi.instance.deleteSchedule(s['schedule_id'].toString());
       await _load();
     } catch (e) {
       if (mounted) showSnack(context, apiErrorMessage(e), error: true);
@@ -326,7 +326,7 @@ class _AddValveSheetState extends State<_AddValveSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createValve({
+      await IrrigationApi.instance.createValve({
         'name': _name.text.trim(),
         'valve_type': _type,
         if (_flow.text.trim().isNotEmpty)
@@ -397,7 +397,7 @@ class _AddScheduleSheetState extends State<_AddScheduleSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createSchedule({
+      await IrrigationApi.instance.createSchedule({
         'name': _name.text.trim(),
         'start_time': start,
         'duration_min': duration,

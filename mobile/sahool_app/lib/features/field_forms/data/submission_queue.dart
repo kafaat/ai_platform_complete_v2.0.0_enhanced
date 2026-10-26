@@ -155,13 +155,17 @@ class SubmissionQueue {
 
   Future<void> remove(String instanceId) => _box.delete(instanceId);
 
-  List<QueuedSubmission> pending() {
+  /// العناصر المعلّقة، الأقدم أوّلاً. مع [tenantId] تُعاد عناصر ذلك المستأجِر
+  /// فقط: الخادم يأخذ المستأجِر من الـJWT، فإرسال عنصرٍ لمستأجِر آخر تحت توكن
+  /// الجلسة الحاليّة يُسقطه في حجر مستأجِرٍ خاطئ.
+  List<QueuedSubmission> pending({String? tenantId}) {
     final result = <QueuedSubmission>[];
     for (final key in _box.keys) {
       final raw = _box.get(key);
       if (raw is Map) {
-        result.add(
-            QueuedSubmission.fromJson(Map<String, Object?>.from(raw)));
+        final item =
+            QueuedSubmission.fromJson(Map<String, Object?>.from(raw));
+        if (tenantId == null || item.tenantId == tenantId) result.add(item);
       }
     }
     result.sort((a, b) => a.localCreatedAt.compareTo(b.localCreatedAt));

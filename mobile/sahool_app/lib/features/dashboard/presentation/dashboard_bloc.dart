@@ -1,7 +1,8 @@
-// SAHOOL v9.0 — lib/bloc/dashboard_bloc.dart (FIXED)
+// SAHOOL — features/dashboard/presentation/dashboard_bloc.dart
 // Real BLoC implementation — not just re-exports
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 
 // ── Events ──────────────────────────────────────────────────
 abstract class DashboardEvent {}
@@ -28,7 +29,7 @@ class DashboardError extends DashboardState {
 
 // ── BLoC ────────────────────────────────────────────────────
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
-  final ApiService _api;
+  final DashboardApi _api;
 
   DashboardBloc(this._api) : super(DashboardInitial()) {
     on<LoadDashboard>   (_onLoad);
@@ -55,7 +56,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       final data = await _api.getDashboard();
       emit(DashboardLoaded(data));
     } catch (e) {
-      emit(DashboardError(e.toString()));
+      emit(DashboardError(ApiException.from(e).messageAr));
     }
   }
 }

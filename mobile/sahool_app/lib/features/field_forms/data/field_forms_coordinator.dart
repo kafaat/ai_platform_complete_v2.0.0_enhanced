@@ -22,9 +22,15 @@ class FieldFormsCoordinator {
     FormPackageStore? packages,
     SubmissionQueue? queue,
     FieldFormsApi? api,
+    String? Function()? currentTenantId,
   })  : _packages = packages,
         _queue = queue,
-        _api = api;
+        _api = api,
+        _currentTenantId =
+            currentTenantId ?? (() => AuthService.instance.tenantId);
+
+  /// مصدر المستأجِر الحاليّ (الجلسة افتراضيّاً؛ قابل للحقن في الاختبارات).
+  final String? Function() _currentTenantId;
 
   static final FieldFormsCoordinator instance = FieldFormsCoordinator();
 
@@ -73,6 +79,15 @@ class FieldFormsCoordinator {
     _connectivitySubscription = null;
   }
 
+  /// نهاية جلسة (خروج صريح): أوقف التصريف وأسقط العميل المرتبط بالتوكن.
+  /// عناصر الطابور **لا تُحذف**: هي عمل ميدانيّ لم يُرسَل بعد، وتُصرَّف فقط حين
+  /// يعود مستأجِرها (pending(tenantId:)). حذفها هنا كان سيُضيّع بيانات جُمعت
+  /// دون اتّصال.
+  Future<void> onSessionEnd() async {
+    await dispose();
+    _api = null;
+  }
+
   Future<void> syncField(String fieldId) async {
     final api = _api;
     final store = _packages;
@@ -105,13 +120,15 @@ class FieldFormsCoordinator {
     if (_draining) return 0;
     final api = _api;
     final queue = _queue;
-    if (api == null || queue == null) return 0;
+    final tenantId = _currentTenantId();
+    // بلا مستأجِر معروف لا نعرف لمن تُنسَب العناصر — لا نُرسل شيئاً.
+    if (api == null || queue == null || tenantId == null) return 0;
 
     _draining = true;
     var settled = 0;
     try {
       final deviceId = await DeviceIdService.instance.deviceId();
-      for (final item in queue.pending()) {
+      for (final item in queue.pending(tenantId: tenantId)) {
         try {
           await api.submit(
             item.buildEnvelope(

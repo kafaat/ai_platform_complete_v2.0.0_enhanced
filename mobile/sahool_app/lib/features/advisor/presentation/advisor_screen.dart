@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/features/advisor/data/advisor_api.dart';
 
 class AdvisorScreen extends StatefulWidget {
   const AdvisorScreen({super.key});
@@ -44,7 +44,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
     try {
       // F06: Real API call
-      final response = await ApiService.instance.askAgent(text);
+      final response = await AdvisorApi.instance.askAgent(text);
       final answer = response['response_ar']
           ?? response['response']
           ?? 'لم أتمكن من معالجة السؤال.';
@@ -89,7 +89,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
     try {
       final result =
-          await ApiService.instance.analyzePestImage(File(image.path));
+          await AdvisorApi.instance.analyzePestImage(File(image.path));
       await _chatBox.add({
         'role': 'assistant',
         'text': _formatPestResult(result),

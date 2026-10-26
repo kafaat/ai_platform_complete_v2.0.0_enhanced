@@ -4,8 +4,9 @@
 // دفاعيّ (خريطة indices أو قائمة indicators أو مفاتيح رقميّة). زرّ تحديث صور
 // Sentinel-2 (imagery/refresh) يُطلق المعالجة الحقيقيّة ويُبلِغ بالنتيجة بصدق.
 import 'package:flutter/material.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
+import 'package:sahool_app/features/satellite/data/satellite_api.dart';
 
 class SatelliteScreen extends StatefulWidget {
   const SatelliteScreen({super.key});
@@ -35,7 +36,7 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getDashboard();
+      final data = await DashboardApi.instance.getDashboard();
       final raw =
           data['fields'] ?? data['fields_summary'] ?? data['field_list'];
       final fields = raw is List
@@ -65,7 +66,7 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getFieldIndicators(fieldId);
+      final data = await SatelliteApi.instance.getFieldIndicators(fieldId);
       setState(() {
         _indicators = _parseIndicators(data);
         _loadingIndicators = false;
@@ -86,7 +87,7 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
     if (id == null || id.isEmpty || _refreshingImagery) return;
     setState(() => _refreshingImagery = true);
     try {
-      final result = await ApiService.instance.refreshFieldImagery(id);
+      final result = await SatelliteApi.instance.refreshFieldImagery(id);
       if (!mounted) return;
       final queued = result['queued'] == true;
       final status = (result['status'] ?? '').toString();

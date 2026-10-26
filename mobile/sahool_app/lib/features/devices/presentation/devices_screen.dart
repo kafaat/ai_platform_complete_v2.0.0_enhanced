@@ -5,9 +5,9 @@
 // تُعرَض القياسات الحقيقيّة فقط. تطابق DevicesPage في الويب.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/devices/data/devices_api.dart';
 
 class DevicesScreen extends StatefulWidget {
   const DevicesScreen({super.key});
@@ -41,7 +41,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.listDevices();
+      final data = await DevicesApi.instance.listDevices();
       if (!mounted) return;
       setState(() {
         _devices = data;
@@ -191,7 +191,7 @@ class _RegisterDeviceSheetState extends State<_RegisterDeviceSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.registerDevice({
+      await DevicesApi.instance.registerDevice({
         'name': _name.text.trim(),
         'type': _type,
         if (_firmware.text.trim().isNotEmpty)
@@ -258,7 +258,7 @@ class _TelemetryScreenState extends State<_TelemetryScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getDeviceTelemetry(_deviceId);
+      final data = await DevicesApi.instance.getDeviceTelemetry(_deviceId);
       if (!mounted) return;
       setState(() {
         _points = data;

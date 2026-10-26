@@ -4,9 +4,9 @@
 // لا بيانات مُلفَّقة — حالات صادقة (تحميل/خطأ/فارغ). تطابق InventoryPage في الويب.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -32,8 +32,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _error = null;
     });
     try {
-      final items = await ApiService.instance.getInventoryItems();
-      final expiring = await ApiService.instance.getExpiringBatches();
+      final items = await InventoryApi.instance.getInventoryItems();
+      final expiring = await InventoryApi.instance.getExpiringBatches();
       if (!mounted) return;
       setState(() {
         _items = items;
@@ -241,7 +241,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createInventoryItem({
+      await InventoryApi.instance.createInventoryItem({
         'category': _category,
         'name': _name.text.trim(),
         if (_unit.text.trim().isNotEmpty) 'unit': _unit.text.trim(),
@@ -317,7 +317,7 @@ class _AddBatchSheetState extends State<_AddBatchSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.addInventoryBatch(
+      await InventoryApi.instance.addInventoryBatch(
         widget.item['item_id'].toString(),
         {
           'quantity': qty,

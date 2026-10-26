@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sahool_app/main.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/services/auth_service.dart';
+import 'package:sahool_app/features/auth/data/auth_api.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -43,8 +43,7 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
     if (confirm != true) return;
-    await ApiService.instance.logout(
-        refreshToken: AuthService.instance.refreshToken);
+    await AuthApi.instance.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthGate()),

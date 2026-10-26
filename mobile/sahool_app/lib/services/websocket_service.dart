@@ -5,9 +5,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:sahool_app/config/app_config.dart';
+import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/utils/ids.dart';
-import '../config/app_config.dart';
 import 'auth_service.dart';
+
+/// حدث وارد من قناة الإشعارات، مُنمَّط بنوعه. الميزات تشترك بـ
+/// `WebSocketService.instance.on('alert')` مثلاً بدل فكّ JSON بنفسها.
+class WsEvent {
+  final String type;
+  final Map<String, dynamic> data;
+  const WsEvent(this.type, this.data);
+
+  factory WsEvent.fromJson(Map<String, dynamic> json) =>
+      WsEvent((json['type'] ?? json['event'] ?? '').toString(), json);
+}
 
 /// نتيجة [WebSocketService.send] — تُخبر المستدعي بالمآل الفعليّ للرسالة بدل
 /// `bool` غامض، كي لا يَظنّ أمراً مُغيِّراً للحالة (تشغيل ريّ/صمّام) نُفِّذ بينما
@@ -37,7 +49,16 @@ class WebSocketService {
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get messages => _controller.stream;
 
+  /// الأحداث الواردة مُنمَّطة (ping/pong مُستبعَدة).
+  Stream<WsEvent> get events => _controller.stream.map(WsEvent.fromJson);
+
+  /// أحداث نوعٍ واحد (مثل 'alert' أو 'task_assigned').
+  Stream<WsEvent> on(String type) => events.where((e) => e.type == type);
+
+  bool get isConnected => _socket?.readyState == WebSocket.open;
+
   bool _intentionalClose = false;
+  bool _disposedForLogout = false;
   int _reconnectAttempts = 0;
   static const _maxReconnects = 10;  // F02: max attempts
   static const _maxQueueSize  = 100; // F05: message queue
@@ -55,12 +76,26 @@ class WebSocketService {
 
   Future<void> connect() async {
     if (_socket != null) return;
+    // رمز وصول منتهٍ مع رمز تحديث محفوظ ⇒ جدّده أوّلاً (تحديث موحّد مع Dio،
+    // فلا يُستهلَك رمز التحديث أحاديّ الاستعمال مرّتين). كان الاتّصال يتوقّف
+    // نهائيّاً بعد أوّل انتهاء للتوكن.
+    if (!AuthService.instance.isAuthenticated &&
+        AuthService.instance.refreshToken != null) {
+      await ApiClient.instance.validAccessToken();
+    }
     if (!AuthService.instance.isAuthenticated) {
+      if (AuthService.instance.refreshToken != null) {
+        // تعذّر التحديث مؤقّتاً (شبكة) — الجلسة باقية: أعِد المحاولة لاحقاً.
+        _logger.w('WS connect deferred: token refresh failed, will retry');
+        _scheduleReconnect();
+        return;
+      }
       _logger.w('WS connect skipped: missing or expired auth token');
       _intentionalClose = true;
       return;
     }
     _intentionalClose = false;
+    _disposedForLogout = false;
 
     try {
       final url = _wsUrl;
@@ -136,11 +171,13 @@ class WebSocketService {
   }
 
   void _scheduleReconnect() {
-    // F02: Max reconnect attempts
+    // F02: Max reconnect attempts — بعدها نتوقّف عن المؤقّت ذاتيّاً، ويستأنف
+    // [ensureConnected] عند عودة الشبكة أو التطبيق إلى المقدّمة.
     if (_reconnectAttempts >= _maxReconnects) {
-      _logger.e('WS: max reconnect attempts reached');
+      _logger.e('WS: max reconnect attempts reached — waiting for resume/connectivity');
       return;
     }
+    _reconnectTimer?.cancel();
     // F03: Exponential backoff
     final delay = Duration(
       seconds: (2 * (_reconnectAttempts + 1)).clamp(2, 60),
@@ -199,6 +236,7 @@ class WebSocketService {
   // F04: Proper dispose
   Future<void> dispose() async {
     _intentionalClose = true;
+    _disposedForLogout = true;
     _pingTimer?.cancel();
     _reconnectTimer?.cancel();
     await _socket?.close(WebSocketStatus.normalClosure);
@@ -206,6 +244,18 @@ class WebSocketService {
     _messageQueue.clear();
     _reconnectAttempts = 0;
     _logger.d('WS disposed');
+  }
+
+  /// يستأنف الاتّصال إن لم يكن قائماً وكانت الجلسة قابلة للاستئناف. يُستدعى من
+  /// غلاف التطبيق عند العودة إلى المقدّمة وعند عودة الشبكة. لا يفعل شيئاً بعد
+  /// خروج صريح (dispose) حتّى يُستدعى [connect] من جديد بعد الدخول.
+  Future<void> ensureConnected() async {
+    if (_socket != null || _disposedForLogout) return;
+    if (!AuthService.instance.canResumeSession) return;
+    _reconnectTimer?.cancel();
+    _reconnectAttempts = 0;
+    _intentionalClose = false;
+    await connect();
   }
 
   Future<void> reconnect() async {

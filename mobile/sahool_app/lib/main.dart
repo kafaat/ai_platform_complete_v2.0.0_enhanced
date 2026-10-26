@@ -15,11 +15,11 @@ import 'package:sahool_app/features/satellite/presentation/satellite_screen.dart
 import 'package:sahool_app/features/more/presentation/more_screen.dart';
 import 'package:sahool_app/features/auth/presentation/onboarding_screen.dart';
 import 'screens/field_workspace_screen.dart';
-import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/push_service.dart';
 import 'services/websocket_service.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 
 // ملاحظة بيئة التشغيل المحليّة (dart-define): مرّر عنوان الـAPI/الـWS عند التشغيل
 // دون تثبيتهما في الشيفرة (انظر String.fromEnvironment في api/websocket service؛
@@ -176,7 +176,7 @@ class _AuthGateState extends State<AuthGate> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<DashboardBloc>(
-          create: (_) => DashboardBloc(ApiService.instance)..add(LoadDashboard()),
+          create: (_) => DashboardBloc(DashboardApi.instance)..add(LoadDashboard()),
         ),
       ],
       child: const MainNavigation(),
@@ -212,7 +212,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Future<void> _checkFields() async {
     try {
-      final data = await ApiService.instance.getDashboard();
+      final data = await DashboardApi.instance.getDashboard();
       final zero = _isZeroFields(data);
       if (mounted) {
         setState(() {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import '../services/api_service.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
 import '../widgets/water_usage_card.dart';
 import '../widgets/carbon_not_measured_card.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 
 class DashboardScreen extends StatefulWidget {
   // يُستدعى من حالة «لا حقول» للانتقال إلى تبويب الحقول لإنشاء أوّل حقل.
@@ -35,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // النتيجة الحيّة من /indicators/v1/overview تُستعمَل مباشرةً (لا نموذج وهميّ).
       // (كان هنا map معلّق بعد الفاصلة المنقوطة يكسر التصريف — أُزيل.)
-      _dashboardData = await ApiService.instance.getDashboard();
+      _dashboardData = await DashboardApi.instance.getDashboard();
 
       setState(() {
         _isLoading = false;

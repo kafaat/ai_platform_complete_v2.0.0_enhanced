@@ -4,9 +4,11 @@
 // السمات الداكنة وRTL العربيّ. صدق: الأقسام التي لا تتوفّر لها واجهة برمجيّة بعد
 // تُعرَض كـ«غير متاح بعد» بدل اختلاق بيانات. لا تستدعي إلّا دوال ApiService القائمة.
 import 'package:flutter/material.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/fields/data/fields_api.dart';
+import 'package:sahool_app/features/irrigation/data/irrigation_api.dart';
+import 'package:sahool_app/features/satellite/data/satellite_api.dart';
 
 // ── أدوات تنسيق دفاعيّة مشتركة ──────────────────────────────────────
 double? wNum(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
@@ -205,7 +207,7 @@ class _WFieldStateSectionState extends State<WFieldStateSection> {
   }
 
   Future<Map<String, dynamic>> _load() =>
-      ApiService.instance.getFieldState(widget.fieldId);
+      FieldsApi.instance.getFieldState(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -324,7 +326,7 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
   }
 
   Future<Map<String, dynamic>> _load() =>
-      ApiService.instance.getFieldIndicators(widget.fieldId);
+      SatelliteApi.instance.getFieldIndicators(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -442,7 +444,7 @@ class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
   }
 
   Future<List<Map<String, dynamic>>> _load() =>
-      ApiService.instance.getFieldNdviTimeseries(widget.fieldId);
+      SatelliteApi.instance.getFieldNdviTimeseries(widget.fieldId);
 
   void _retry() => setState(() {
         _selected = -1;
@@ -692,7 +694,7 @@ class _WIrrigationSectionState extends State<WIrrigationSection> {
   }
 
   Future<List<Map<String, dynamic>>> _load() =>
-      ApiService.instance.listSchedules(fieldId: widget.fieldId);
+      IrrigationApi.instance.listSchedules(fieldId: widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -894,7 +896,7 @@ class _WSeasonSectionState extends State<WSeasonSection> {
   }
 
   Future<List<Map<String, dynamic>>> _load() =>
-      ApiService.instance.fetchFieldSeasons(widget.fieldId);
+      FieldsApi.instance.fetchFieldSeasons(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -1031,7 +1033,7 @@ class _WAddActivityFormState extends State<WAddActivityForm> {
     if (_saving) return;
     setState(() { _saving = true; _error = null; });
     try {
-      await ApiService.instance.createFieldActivity(
+      await FieldsApi.instance.createFieldActivity(
         widget.fieldId,
         activityType: _type,
         titleAr: _title.text,
@@ -1124,7 +1126,7 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
   }
 
   Future<List<Map<String, dynamic>>> _load() =>
-      ApiService.instance.fetchFieldActivities(widget.fieldId);
+      FieldsApi.instance.fetchFieldActivities(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -1270,9 +1272,9 @@ class _WWeatherSectionState extends State<WWeatherSection> {
   }
 
   Future<Map<String, dynamic>> _loadIrrigation() =>
-      ApiService.instance.fetchIrrigationAdvice(widget.fieldId);
+      FieldsApi.instance.fetchIrrigationAdvice(widget.fieldId);
   Future<Map<String, dynamic>> _loadDisease() =>
-      ApiService.instance.fetchDiseaseRisk(widget.fieldId);
+      FieldsApi.instance.fetchDiseaseRisk(widget.fieldId);
 
   void _retryIrrigation() =>
       setState(() => _irrigation = _loadIrrigation());
@@ -1472,7 +1474,7 @@ class _WTimelineSectionState extends State<WTimelineSection> {
   }
 
   Future<Map<String, dynamic>> _load() =>
-      ApiService.instance.fetchUnifiedTimeline(widget.fieldId);
+      FieldsApi.instance.fetchUnifiedTimeline(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 
@@ -1626,7 +1628,7 @@ class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
   }
 
   Future<Map<String, dynamic>> _load() =>
-      ApiService.instance.fetchSeasonWorkspace(widget.fieldId);
+      FieldsApi.instance.fetchSeasonWorkspace(widget.fieldId);
 
   void _retry() => setState(() => _future = _load());
 

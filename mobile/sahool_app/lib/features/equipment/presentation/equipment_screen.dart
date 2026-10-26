@@ -4,9 +4,9 @@
 // حالة المعدّة وتكلفة الصيانة قرارات تشغيليّة، فالخطأ يُعلَن. تطابق EquipmentPage.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/equipment/data/equipment_api.dart';
 
 class EquipmentScreen extends StatefulWidget {
   const EquipmentScreen({super.key});
@@ -39,7 +39,7 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getEquipment();
+      final data = await EquipmentApi.instance.getEquipment();
       if (!mounted) return;
       setState(() {
         _equipment = data;
@@ -213,7 +213,7 @@ class _AddEquipmentSheetState extends State<_AddEquipmentSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createEquipment({
+      await EquipmentApi.instance.createEquipment({
         'name': _name.text.trim(),
         'type': _type,
         if (hours != null) 'operating_hours': hours,
@@ -287,7 +287,7 @@ class _MaintenanceScreenState extends State<_MaintenanceScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getMaintenance(_equipmentId);
+      final data = await EquipmentApi.instance.getMaintenance(_equipmentId);
       if (!mounted) return;
       setState(() {
         _records = data;
@@ -432,7 +432,7 @@ class _LogMaintenanceSheetState extends State<_LogMaintenanceSheet> {
   Future<void> _submit() async {
     setState(() => _saving = true);
     try {
-      await ApiService.instance.logMaintenance(widget.equipmentId, {
+      await EquipmentApi.instance.logMaintenance(widget.equipmentId, {
         'kind': _kind,
         'status': _status,
         if (_performed.text.trim().isNotEmpty)

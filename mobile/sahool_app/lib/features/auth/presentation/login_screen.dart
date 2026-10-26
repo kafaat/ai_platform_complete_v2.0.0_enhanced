@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:sahool_app/main.dart';
-import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/features/auth/data/auth_api.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await ApiService.instance.login(_email.text.trim(), _password.text);
+      await AuthApi.instance.login(_email.text.trim(), _password.text);
       _onLoginSuccess();
     } on MfaRequiredException {
       // كلمة المرور صحّت لكن يلزم رمز TOTP ⇒ اكشف الحقل بدل إعلان فشل.
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await ApiService.instance
+      await AuthApi.instance
           .login(_email.text.trim(), _password.text, mfaCode: code);
       _onLoginSuccess();
     } on MfaRequiredException {
@@ -82,7 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _error =
-            e.toString().contains('401') ? 'رمز MFA غير صحيح' : _humanize(e));
+            ApiException.from(e).statusCode == 401
+                ? 'رمز MFA غير صحيح'
+                : _humanize(e));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -99,13 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _humanize(Object e) {
-    final s = e.toString();
-    if (s.contains('401') || s.contains('403')) {
+    final err = ApiException.from(e);
+    if (err.statusCode == 401 || err.statusCode == 403) {
       return 'بيانات الدخول غير صحيحة';
     }
-    if (s.contains('SocketException') || s.contains('connection')) {
-      return 'تعذّر الاتّصال بالخادم — تحقّق من الشبكة';
-    }
+    if (err.isConnectivity) return err.messageAr;
+    if (err.statusCode == 503 || err.statusCode == 429) return err.messageAr;
     return 'تعذّر تسجيل الدخول، حاول مجدّداً';
   }
 

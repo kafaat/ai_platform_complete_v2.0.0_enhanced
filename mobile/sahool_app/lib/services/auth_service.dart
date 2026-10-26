@@ -40,9 +40,12 @@ class AuthService {
         _userProfile = json.decode(profile) as Map<String, dynamic>;
       }
 
-      // F13: Validate token expiry on load
-      if (_token != null && _isTokenExpired(_token!)) {
-        debugPrint('Token expired on load — clearing auth');
+      // F13: Validate token expiry on load. رمز وصول منتهٍ (عمره 60 دقيقة) لا
+      // يُنهي الجلسة ما دام رمز التحديث (30 يوماً) محفوظاً: AuthGate يجدّده عبر
+      // ApiClient.refreshAccessToken. كان المسح هنا يحذف رمز تحديث صالحاً فيُجبَر
+      // المستخدم على الدخول كلّ ساعة. نمسح فقط حين لا يبقى ما يُجدِّد الجلسة.
+      if (_token != null && _isTokenExpired(_token!) && _refreshToken == null) {
+        debugPrint('Token expired on load and no refresh token — clearing auth');
         await clearAuth();
       }
     } catch (e) {
@@ -84,6 +87,9 @@ class AuthService {
   bool _isTokenExpired(String token) => isJwtExpired(token);
 
   bool get isAuthenticated => _token != null && !_isTokenExpired(_token!);
+
+  /// جلسة قابلة للاستئناف: رمز وصول صالح، أو رمز تحديث يمكن تجديده به.
+  bool get canResumeSession => isAuthenticated || _refreshToken != null;
   String? get userRole => _userProfile?['role'] as String?;
   String? get tenantId => _userProfile?['tenant_id'] as String?;
 

@@ -26,11 +26,11 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/widgets/offline_field_map.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
 import 'package:sahool_app/screens/field_workspace_screen.dart';
+import 'package:sahool_app/features/fields/data/fields_api.dart';
 
 /// مرحلة المعالج: إنشاء الحقل (الخطوات الأصليّة) ثمّ سلسلة الإعداد بعد الحفظ.
 enum _WizardPhase { create, postCreate }
@@ -460,7 +460,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       Map<String, dynamic> created;
       final manager = _manager.text.trim().isEmpty ? null : _manager.text.trim();
       if (_method == 'geojson') {
-        created = await ApiService.instance.importFieldGeoJson(
+        created = await FieldsApi.instance.importFieldGeoJson(
           _geojsonText.text.trim(),
           name: name,
           crop: _crop,
@@ -469,7 +469,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           manager: manager,
         );
       } else if (_method == 'kml') {
-        created = await ApiService.instance.importFieldKml(
+        created = await FieldsApi.instance.importFieldKml(
           _geojsonText.text.trim(),
           name: name,
           crop: _crop,
@@ -478,7 +478,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
           manager: manager,
         );
       } else {
-        created = await ApiService.instance.createField(
+        created = await FieldsApi.instance.createField(
           name: name,
           geometry: _geometryFromPoints(),
           crop: _crop,
@@ -492,7 +492,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       final fieldId = created['field_id']?.toString();
       if (_irrigationType != null && fieldId != null && fieldId.isNotEmpty) {
         try {
-          await ApiService.instance
+          await FieldsApi.instance
               .updateField(fieldId, {'irrigation_type': _irrigationType});
         } catch (e) {
           // عدم حفظ نوع الريّ لا يبطل إنشاء الحقل — نُكمل بنجاح جزئيّ، لكن لا
@@ -603,7 +603,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     final crop = _seasonCrop;
     if (fid == null || crop == null) return false;
     final notes = _seasonNotes.text.trim();
-    await ApiService.instance.createSeason(
+    await FieldsApi.instance.createSeason(
       fid,
       crop: crop,
       cultivar: _cultivar.text.trim().isEmpty ? null : _cultivar.text.trim(),
@@ -629,7 +629,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   Future<bool> _submitSoilTest() async {
     final fid = _createdFieldId;
     if (fid == null) return false;
-    await ApiService.instance.submitSoilLabTest(
+    await FieldsApi.instance.submitSoilLabTest(
       fid,
       labName:
           _soilLabName.text.trim().isEmpty ? null : _soilLabName.text.trim(),
@@ -647,7 +647,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     final fid = _createdFieldId;
     final crop = _seasonCrop;
     if (fid == null || crop == null) return false;
-    final res = await ApiService.instance.requestYieldEstimate(
+    final res = await FieldsApi.instance.requestYieldEstimate(
       fid,
       crop: crop,
       daysInGrowing: _parseNum(_daysInGrowing.text)?.toInt(),

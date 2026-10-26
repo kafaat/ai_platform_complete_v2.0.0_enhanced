@@ -5,9 +5,9 @@
 // بحالة قابلة للفعل. تطابق FarmsPage في الويب (farmsApi). نمط شاشات العمليّات.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/farms/data/farms_api.dart';
 
 class FarmsScreen extends StatefulWidget {
   const FarmsScreen({super.key});
@@ -32,7 +32,7 @@ class _FarmsScreenState extends State<FarmsScreen> {
       _error = null;
     });
     try {
-      final farms = await ApiService.instance.listFarms();
+      final farms = await FarmsApi.instance.listFarms();
       if (!mounted) return;
       setState(() {
         _farms = farms;
@@ -177,7 +177,7 @@ class _AddFarmSheetState extends State<_AddFarmSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createFarm({
+      await FarmsApi.instance.createFarm({
         'name': _name.text.trim(),
         if (_region.text.trim().isNotEmpty) 'region': _region.text.trim(),
         if (_area.text.trim().isNotEmpty)

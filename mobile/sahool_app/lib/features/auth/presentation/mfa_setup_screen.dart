@@ -13,8 +13,8 @@ import 'package:flutter/services.dart'
     show Clipboard, ClipboardData, FilteringTextInputFormatter;
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/auth/data/auth_api.dart';
 
 const _kField = Color(0xFF1A1D29);
 const _kBorder = Color(0xFF334155);
@@ -60,7 +60,7 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       _disabledOk = false;
     });
     try {
-      final data = await ApiService.instance.mfaSetup();
+      final data = await AuthApi.instance.mfaSetup();
       final secret = data['secret'] as String?;
       final uri = data['provisioning_uri'] as String?;
       if (secret == null || uri == null) {
@@ -93,7 +93,7 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       _error = null;
     });
     try {
-      await ApiService.instance.mfaActivate(code);
+      await AuthApi.instance.mfaActivate(code);
       if (mounted) {
         setState(() {
           _activated = true;
@@ -125,7 +125,7 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       _disableError = null;
     });
     try {
-      await ApiService.instance.mfaDisable(code);
+      await AuthApi.instance.mfaDisable(code);
       if (mounted) {
         setState(() {
           _disabledOk = true;

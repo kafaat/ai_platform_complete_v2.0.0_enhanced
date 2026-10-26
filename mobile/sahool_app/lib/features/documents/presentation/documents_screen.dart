@@ -5,9 +5,9 @@
 // مسار/رابط له؛ النموذج يُسجّل مرجعاً ولا يرفع ملفّاً. تطابق DocumentsPage.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/documents/data/documents_api.dart';
 
 const Map<String, String> kDocCategories = {
   'contract': 'عقد',
@@ -42,7 +42,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.listDocuments(category: _filter);
+      final data = await DocumentsApi.instance.listDocuments(category: _filter);
       if (!mounted) return;
       setState(() {
         _docs = data;
@@ -220,7 +220,7 @@ class _RegisterDocSheetState extends State<_RegisterDocSheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createDocument({
+      await DocumentsApi.instance.createDocument({
         'category': _category,
         'title': _title.text.trim(),
         if (_storageRef.text.trim().isNotEmpty)

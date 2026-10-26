@@ -3,8 +3,8 @@
 // لا fallback وهمي: الخطأ يظهر صريحاً. أزرار البدء/الإنجاز مخفية عن viewer.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/tasks/data/tasks_api.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -23,13 +23,13 @@ class _TasksScreenState extends State<TasksScreen> {
     _future = _load();
   }
 
-  Future<List<Map<String, dynamic>>> _load() => ApiService.instance.fetchTasks();
+  Future<List<Map<String, dynamic>>> _load() => TasksApi.instance.fetchTasks();
   void _retry() => setState(() => _future = _load());
 
   Future<void> _setStatus(String taskId, String status) async {
     setState(() => _busyTaskId = taskId);
     try {
-      await ApiService.instance.updateTaskStatus(taskId, status);
+      await TasksApi.instance.updateTaskStatus(taskId, status);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(status == 'completed' ? 'تم إنجاز المهمة' : 'تم بدء المهمة')),

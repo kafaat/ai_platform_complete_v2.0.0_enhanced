@@ -5,9 +5,9 @@
 // لا بيانات مُلفَّقة. تطابق MasterDataPage في الويب.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/services/api_service.dart';
 import 'package:sahool_app/core/widgets/form_kit.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/master_data/data/master_data_api.dart';
 
 const Map<String, String> kMasterCategories = {
   'crop': 'المحاصيل',
@@ -43,7 +43,7 @@ class _MasterDataScreenState extends State<MasterDataScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getMasterData(_category);
+      final data = await MasterDataApi.instance.getMasterData(_category);
       if (!mounted) return;
       setState(() {
         _entries = data;
@@ -198,7 +198,7 @@ class _AddEntrySheetState extends State<_AddEntrySheet> {
     }
     setState(() => _saving = true);
     try {
-      await ApiService.instance.createMasterDataEntry({
+      await MasterDataApi.instance.createMasterDataEntry({
         'category': widget.category,
         'code': _code.text.trim(),
         'name_ar': _nameAr.text.trim(),

@@ -60,7 +60,8 @@ void main() {
   ) {
     final dio = Dio(BaseOptions(baseUrl: 'http://test.invalid'));
     dio.httpClientAdapter = adapter;
-    return FieldFormsCoordinator(queue: queue, api: FieldFormsApi(dio));
+    return FieldFormsCoordinator(
+        queue: queue, api: FieldFormsApi(dio), currentTenantId: () => 't');
   }
 
   test('201 settles FIFO item and sends device identity header', () async {
@@ -132,5 +133,55 @@ void main() {
     expect(pending[0].attempts, 1);
     expect(pending[1].instanceId, second.instanceId);
     expect(pending[1].attempts, 0);
+  });
+
+  test('drain sends only the current tenant items, keeps the others', () async {
+    final queue = await _openQueue('q4');
+    final mine = await queue.enqueue(
+      tenantId: 't',
+      fieldId: 'f',
+      assignmentId: 'a',
+      assignmentRevision: 1,
+      formVersionId: 'v',
+      schemaHash: 'h',
+      answers: const {'n': 1},
+    );
+    final other = await queue.enqueue(
+      tenantId: 'other-tenant',
+      fieldId: 'f',
+      assignmentId: 'a',
+      assignmentRevision: 1,
+      formVersionId: 'v',
+      schemaHash: 'h',
+      answers: const {'n': 2},
+    );
+    final adapter = _FakeAdapter([201, 201]);
+    expect(await coordinator(queue, adapter).drain(), 1);
+    expect(adapter.calls, 1);
+    final left = queue.pending();
+    expect(left.single.instanceId, other.instanceId);
+    expect(queue.pending(tenantId: 't'), isEmpty);
+    expect(left.single.instanceId, isNot(mine.instanceId));
+  });
+
+  test('no known tenant means nothing is sent', () async {
+    final queue = await _openQueue('q5');
+    await queue.enqueue(
+      tenantId: 't',
+      fieldId: 'f',
+      assignmentId: 'a',
+      assignmentRevision: 1,
+      formVersionId: 'v',
+      schemaHash: 'h',
+      answers: const {'n': 1},
+    );
+    final dio = Dio(BaseOptions(baseUrl: 'http://test.invalid'));
+    final adapter = _FakeAdapter([201]);
+    dio.httpClientAdapter = adapter;
+    final c = FieldFormsCoordinator(
+        queue: queue, api: FieldFormsApi(dio), currentTenantId: () => null);
+    expect(await c.drain(), 0);
+    expect(adapter.calls, 0);
+    expect(queue.pending(), hasLength(1));
   });
 }
