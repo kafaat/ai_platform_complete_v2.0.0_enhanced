@@ -28,15 +28,15 @@ void main() {
   });
 
   Future<QueuedSubmission> enqueueOne() => queue.enqueue(
-        tenantId: 'tenant-1',
-        fieldId: 'field-9',
-        assignmentId: 'assign-7',
-        assignmentRevision: 3,
-        formVersionId: 'v1',
-        schemaHash: 'hash-v1',
-        definitionSyncToken: 'sync-token-abc',
-        answers: const {'crop': 'wheat'},
-      );
+    tenantId: 'tenant-1',
+    fieldId: 'field-9',
+    assignmentId: 'assign-7',
+    assignmentRevision: 3,
+    formVersionId: 'v1',
+    schemaHash: 'hash-v1',
+    definitionSyncToken: 'sync-token-abc',
+    answers: const {'crop': 'wheat'},
+  );
 
   test('retry يبقي instance_id ثابتًا عبر محاولات متعدّدة', () async {
     final item = await enqueueOne();
@@ -45,8 +45,11 @@ void main() {
     var current = item;
     for (var i = 0; i < 3; i++) {
       current = await queue.markRetry(current);
-      expect(current.instanceId, originalId,
-          reason: 'retry رقم ${i + 1} غيّر instance_id — ممنوع');
+      expect(
+        current.instanceId,
+        originalId,
+        reason: 'retry رقم ${i + 1} غيّر instance_id — ممنوع',
+      );
     }
     expect(current.attempts, 3);
 
@@ -66,12 +69,20 @@ void main() {
   });
 
   test('envelope يحمل حقول العقد كاملة', () async {
-    final item = await enqueueOne();
-    final envelope = item.buildEnvelope(
-      provider: 'sahool-flutter',
+    // submitted_at وserver يُجمَّدان عند الإدراج (الجسم ثابت عبر المحاولات).
+    final item = await queue.enqueue(
+      tenantId: 'tenant-1',
+      fieldId: 'field-9',
+      assignmentId: 'assign-7',
+      assignmentRevision: 3,
+      formVersionId: 'v1',
+      schemaHash: 'hash-v1',
+      definitionSyncToken: 'sync-token-abc',
+      answers: const {'crop': 'wheat'},
       server: 'https://api.example.test',
-      submittedAt: DateTime.utc(2025, 1, 15, 12),
+      now: DateTime.utc(2025, 1, 15, 12),
     );
+    final envelope = item.buildEnvelope();
     expect(envelope['provider'], 'sahool-flutter');
     expect(envelope['server'], 'https://api.example.test');
     expect(envelope['instance_id'], item.instanceId);

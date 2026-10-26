@@ -8,6 +8,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/widgets/primary_button.dart';
 
 import '../contract/form_schema.dart';
 import 'field_widget_registry.dart';
@@ -38,6 +40,9 @@ class SchemaFormRenderer extends StatefulWidget {
   /// زرّ إرسال مضمَّن (يمكن إخفاؤه إن أدارت الشاشة الإرسال بنفسها).
   final bool showSubmitButton;
 
+  /// true ⇒ الزرّ في حالة «جارٍ» ولا يقبل ضغطة ثانية.
+  final bool submitting;
+
   const SchemaFormRenderer({
     super.key,
     required this.schema,
@@ -47,6 +52,7 @@ class SchemaFormRenderer extends StatefulWidget {
     this.onValidSubmit,
     this.onAnswersChanged,
     this.showSubmitButton = true,
+    this.submitting = false,
   });
 
   @override
@@ -111,6 +117,7 @@ class SchemaFormRendererState extends State<SchemaFormRenderer> {
   }
 
   void _submit() {
+    if (widget.submitting) return;
     final result = validateAndBuild();
     if (result.isValid) widget.onValidSubmit?.call(result.answers!);
   }
@@ -125,7 +132,7 @@ class SchemaFormRendererState extends State<SchemaFormRenderer> {
       if (builder == null) continue; // لا يحدث: العقد يرفض الأنواع المجهولة
       children.add(
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: SahoolSpacing.sm),
           child: builder(
             context,
             def,
@@ -139,17 +146,19 @@ class SchemaFormRendererState extends State<SchemaFormRenderer> {
     if (widget.showSubmitButton) {
       children.add(
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: FilledButton(
+          padding: const EdgeInsets.symmetric(vertical: SahoolSpacing.lg),
+          child: PrimaryButton(
             key: const ValueKey('schema_form_submit'),
+            label: 'إرسال',
+            icon: Icons.send_rounded,
+            loading: widget.submitting,
             onPressed: _submit,
-            child: const Text('إرسال'),
           ),
         ),
       );
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(SahoolSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,

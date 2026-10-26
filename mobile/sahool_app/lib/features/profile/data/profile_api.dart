@@ -10,6 +10,12 @@ class ProfileApi {
   static final ProfileApi instance = ProfileApi();
   final ApiClient _client;
 
+  /// هويّة المستخدم الحاليّ من الخادم (GET /api/v1/me، routers/me.py):
+  /// `user_id`، `tenant_id`، `role`، `name_ar`، `ai_policy_envelope`. لا نقطة
+  /// لتعديل الملفّ الشخصيّ في الخادم بعد — القراءة فقط.
+  Future<Map<String, dynamic>> getMe() async =>
+      asJsonMap(await _client.get('/api/v1/me'));
+
   /// تفضيلات الإشعار الحاليّة (لا صفّ ⇒ الخادم يردّ افتراضيّات: كلّ القنوات معطّلة).
   Future<Map<String, dynamic>> getNotificationPreferences() async =>
       asJsonMap(await _client.get('/api/v1/notifications/preferences'));

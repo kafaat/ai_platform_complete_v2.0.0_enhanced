@@ -1,14 +1,22 @@
-// SAHOOL — lib/screens/documents_screen.dart
+// SAHOOL — features/documents/presentation/documents_screen.dart
 // الوثائق: سجلّ بيانات وصفيّة (عقود/تقارير/صور/خرائط/نتائج مخبريّة) عبر
-// /api/v1/documents. إدارة فقط (owner/manager): التسجيل محكوم بـcanManage.
-// صدق مهمّ: هذا سجلّ metadata فقط — الملفّ الفعليّ في تخزين الكائنات وstorage_ref
-// مسار/رابط له؛ النموذج يُسجّل مرجعاً ولا يرفع ملفّاً. تطابق DocumentsPage.
+// /api/v1/documents. صدق: سجلّ metadata فقط — الملفّ الفعليّ في تخزين الكائنات
+// وstorage_ref مرجعه؛ التسجيل لا يرفع ملفّاً. القراءة لمن يصل الشاشة، والتسجيل
+// لأدوار الإدارة (canManage = document:manage في الويب)؛ الخادم يفرض RBAC.
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
+import 'package:sahool_app/core/network/idempotency.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/form_kit.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/documents/data/documents_api.dart';
 
+import 'documents_cubit.dart';
+
+/// الفئات كما يقبلها الخادم (DocumentRequest.category).
 const Map<String, String> kDocCategories = {
   'contract': 'عقد',
   'report': 'تقرير',
@@ -18,197 +26,286 @@ const Map<String, String> kDocCategories = {
   'other': 'أخرى',
 };
 
-class DocumentsScreen extends StatefulWidget {
-  const DocumentsScreen({super.key});
-  @override
-  State<DocumentsScreen> createState() => _DocumentsScreenState();
+IconData docCategoryIcon(String cat) {
+  switch (cat) {
+    case 'contract':
+      return Icons.description_outlined;
+    case 'report':
+      return Icons.bar_chart_rounded;
+    case 'image':
+      return Icons.image_outlined;
+    case 'map':
+      return Icons.map_outlined;
+    case 'lab_result':
+      return Icons.science_outlined;
+    default:
+      return Icons.insert_drive_file_outlined;
+  }
 }
 
-class _DocumentsScreenState extends State<DocumentsScreen> {
-  bool _loading = true;
-  String? _error;
-  String? _filter; // null = الكلّ
-  List<Map<String, dynamic>> _docs = const [];
+/// حجم ملفّ مقروء (بايت ⇒ ك.ب/م.ب)؛ null ⇒ «غير مقيس».
+String fmtBytes(Object? raw) {
+  final n = raw is num ? raw : num.tryParse('${raw ?? ''}');
+  if (n == null) return kNotMeasured;
+  if (n < 1024) return '${fmtNumber(n, decimals: 0)} بايت';
+  if (n < 1024 * 1024) return '${fmtNumber(n / 1024)} ك.ب';
+  return '${fmtNumber(n / (1024 * 1024))} م.ب';
+}
+
+class DocumentsScreen extends StatelessWidget {
+  const DocumentsScreen({super.key, this.api, this.role});
+
+  /// للاختبارات؛ الافتراضيّ DocumentsApi.instance والدور الحاليّ.
+  final DocumentsApi? api;
+  final String? role;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  Widget build(BuildContext context) {
+    final docsApi = api ?? DocumentsApi.instance;
+    return BlocProvider(
+      create: (_) => DocumentsCubit(docsApi)..load(),
+      child: _DocumentsView(
+        api: docsApi,
+        canWrite: canManage(role ?? currentRole()),
+      ),
+    );
   }
+}
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final data = await DocumentsApi.instance.listDocuments(category: _filter);
-      if (!mounted) return;
-      setState(() {
-        _docs = data;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
-  }
+class _DocumentsView extends StatelessWidget {
+  const _DocumentsView({required this.api, required this.canWrite});
+  final DocumentsApi api;
+  final bool canWrite;
 
-  IconData _icon(String cat) {
-    switch (cat) {
-      case 'contract':
-        return Icons.description_outlined;
-      case 'report':
-        return Icons.bar_chart;
-      case 'image':
-        return Icons.image_outlined;
-      case 'map':
-        return Icons.map_outlined;
-      case 'lab_result':
-        return Icons.science_outlined;
-      default:
-        return Icons.insert_drive_file_outlined;
+  Future<void> _openRegister(BuildContext context) async {
+    final cubit = context.read<DocumentsCubit>();
+    final created = await showAppBottomSheet<bool>(
+      context,
+      builder: (_) => RegisterDocumentSheet(api: api),
+    );
+    if (created == true) {
+      await cubit.load();
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('سُجّلت الوثيقة')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final manageable = canManage(currentRole());
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('الوثائق'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      floatingActionButton: manageable
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: _openRegister,
-              icon: const Icon(Icons.add),
-              label: const Text('تسجيل وثيقة'),
+    final cubit = context.read<DocumentsCubit>();
+    return AppScaffold(
+      title: 'الوثائق',
+      actions: [
+        AppIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'تحديث',
+          onPressed: cubit.load,
+        ),
+      ],
+      floatingActionButton: canWrite
+          ? AppFab(
+              heroKey: '/documents',
+              label: 'تسجيل وثيقة',
+              icon: Icons.add_rounded,
+              onPressed: () => _openRegister(context),
             )
           : null,
-      body: Column(
-        children: [
-          const InfoBanner(
-            text:
-                'سجلّ بيانات وصفيّة فقط — الملفّ الفعليّ في تخزين الكائنات، وهذا النموذج يسجّل مرجعاً (storage_ref) لا يرفع ملفّاً.',
-            color: kSecondary,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: DropdownButtonFormField<String?>(
-              value: _filter,
-              dropdownColor: kSurface,
-              decoration: kDec('التصفية بالفئة'),
-              style: const TextStyle(color: Colors.white),
-              items: [
-                const DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text('الكلّ'),
-                ),
-                ...kDocCategories.entries.map(
-                  (e) => DropdownMenuItem<String?>(
-                    value: e.key,
-                    child: Text(e.value),
-                  ),
-                ),
-              ],
-              onChanged: (v) {
-                setState(() => _filter = v);
-                _load();
-              },
+      body: BlocBuilder<DocumentsCubit, DocumentsState>(
+        builder: (context, state) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CategoryChips(
+              selected: state.category,
+              onSelected: cubit.setCategory,
             ),
-          ),
-          Expanded(
-            child: _loading
-                ? const LoadingView()
-                : _error != null
-                ? ErrorView(message: _error!, onRetry: _load)
-                : _docs.isEmpty
-                ? const EmptyView(message: 'لا وثائق مسجّلة')
-                : RefreshIndicator(
-                    onRefresh: _load,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _docs.length,
-                      itemBuilder: (_, i) {
-                        final d = _docs[i];
-                        final cat = (d['category'] ?? 'other').toString();
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: kSurface,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(_icon(cat), color: kSecondary, size: 22),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${d['title'] ?? '—'}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${kDocCategories[cat] ?? cat} · إصدار ${d['version'] ?? 1}',
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-          ),
-        ],
+            Expanded(child: _body(context, state)),
+          ],
+        ),
       ),
     );
   }
 
-  void _openRegister() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: kSurface,
-      isScrollControlled: true,
-      builder: (_) => _RegisterDocSheet(onDone: _load),
+  Widget _body(BuildContext context, DocumentsState state) {
+    final cubit = context.read<DocumentsCubit>();
+    switch (state.status) {
+      case DocumentsStatus.loading:
+        return const LoadingState(message: 'جارٍ تحميل الوثائق…');
+      case DocumentsStatus.failed:
+        return ErrorState(error: state.error!, onRetry: cubit.load);
+      case DocumentsStatus.loaded:
+        if (state.items.isEmpty) {
+          final cat = state.category;
+          return EmptyState(
+            icon: Icons.folder_open_outlined,
+            message: cat == null
+                ? 'لا وثائق مسجّلة بعد.'
+                : 'لا وثائق في فئة «${kDocCategories[cat] ?? cat}».',
+            actionLabel: cat == null ? null : 'عرض كلّ الفئات',
+            onAction: cat == null ? null : () => cubit.setCategory(null),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: cubit.load,
+          child: ListView(
+            padding: const EdgeInsetsDirectional.only(
+              bottom: SahoolSpacing.xxl * 3,
+            ),
+            children: [
+              const _MetadataNote(),
+              for (final d in state.items)
+                _DocumentTile(key: ValueKey('doc:${d['doc_id']}'), doc: d),
+            ],
+          ),
+        );
+    }
+  }
+}
+
+class _CategoryChips extends StatelessWidget {
+  const _CategoryChips({required this.selected, required this.onSelected});
+  final String? selected;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.symmetric(
+      horizontal: SahoolSpacing.lg,
+      vertical: SahoolSpacing.sm,
+    ),
+    child: Row(
+      children: [
+        for (final e in <String?, String>{
+          null: 'الكلّ',
+          ...kDocCategories,
+        }.entries)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: SahoolSpacing.sm),
+            child: ChoiceChip(
+              key: ValueKey('doc_cat:${e.key ?? 'all'}'),
+              label: Text(e.value),
+              selected: selected == e.key,
+              onSelected: (_) => onSelected(e.key),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+class _MetadataNote extends StatelessWidget {
+  const _MetadataNote();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.fromSTEB(
+      SahoolSpacing.lg,
+      SahoolSpacing.sm,
+      SahoolSpacing.lg,
+      SahoolSpacing.sm,
+    ),
+    child: Text(
+      'سجلّ بيانات وصفيّة: الملفّ نفسه محفوظ في تخزين المنشأة، وهنا مرجعه فقط. '
+      'رفع الملفّات من التطبيق غير متاح بعد.',
+      style: context.textStyles.bodySmall?.copyWith(
+        color: context.tokens.muted,
+      ),
+    ),
+  );
+}
+
+class _DocumentTile extends StatelessWidget {
+  const _DocumentTile({super.key, required this.doc});
+  final Map<String, dynamic> doc;
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = (doc['category'] ?? 'other').toString();
+    final title = (doc['title'] ?? '').toString().trim();
+    final version = doc['version'];
+    return AppListTile(
+      icon: docCategoryIcon(cat),
+      iconColor: context.colors.primary,
+      title: title.isEmpty ? 'وثيقة بلا عنوان' : title,
+      subtitle: [
+        kDocCategories[cat] ?? cat,
+        if (version != null) 'الإصدار $version',
+      ].join(' · '),
+      onTap: () => showAppBottomSheet<void>(
+        context,
+        builder: (_) => _DocumentDetails(doc: doc),
+      ),
     );
   }
 }
 
-class _RegisterDocSheet extends StatefulWidget {
-  final Future<void> Function() onDone;
-  const _RegisterDocSheet({required this.onDone});
+class _DocumentDetails extends StatelessWidget {
+  const _DocumentDetails({required this.doc});
+  final Map<String, dynamic> doc;
+
   @override
-  State<_RegisterDocSheet> createState() => _RegisterDocSheetState();
+  Widget build(BuildContext context) {
+    String v(String k) {
+      final s = doc[k]?.toString().trim();
+      return (s == null || s.isEmpty) ? 'غير متاح' : s;
+    }
+
+    final cat = (doc['category'] ?? 'other').toString();
+    Widget row(String label, String value, {bool ltr = false}) => Padding(
+      padding: const EdgeInsets.only(top: SahoolSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: context.tokens.muted,
+            ),
+          ),
+          SelectableText(
+            value,
+            textDirection: ltr ? TextDirection.ltr : null,
+            style: context.textStyles.bodyLarge,
+          ),
+        ],
+      ),
+    );
+    return AppSheet(
+      title: v('title'),
+      children: [
+        row('الفئة', kDocCategories[cat] ?? cat),
+        row('الإصدار', v('version')),
+        row('نوع المحتوى', v('content_type'), ltr: true),
+        row('الحجم', fmtBytes(doc['size_bytes'])),
+        row('الحقل', v('field_id'), ltr: true),
+        row('مرجع التخزين', v('storage_ref'), ltr: true),
+        const SizedBox(height: SahoolSpacing.lg),
+      ],
+    );
+  }
 }
 
-class _RegisterDocSheetState extends State<_RegisterDocSheet> {
+/// ورقة تسجيل وثيقة (مرجع). مفتاح idempotency واحد لكلّ فتح للورقة: إعادة
+/// الضغط بعد انقطاع لا تسجّل الوثيقة مرّتين (الخادم يحترمه: command_store).
+class RegisterDocumentSheet extends StatefulWidget {
+  const RegisterDocumentSheet({super.key, required this.api});
+  final DocumentsApi api;
+
+  @override
+  State<RegisterDocumentSheet> createState() => _RegisterDocumentSheetState();
+}
+
+class _RegisterDocumentSheetState extends State<RegisterDocumentSheet> {
   final _title = TextEditingController();
   final _storageRef = TextEditingController();
   final _contentType = TextEditingController();
+  final _key = IdempotencyKey.generate();
   String _category = 'report';
   bool _saving = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -219,52 +316,66 @@ class _RegisterDocSheetState extends State<_RegisterDocSheet> {
   }
 
   Future<void> _submit() async {
-    if (_title.text.trim().isEmpty) {
-      showSnack(context, 'العنوان مطلوب', error: true);
+    if (_saving) return;
+    final title = _title.text.trim();
+    if (title.isEmpty) {
+      setState(() => _error = 'العنوان مطلوب.');
       return;
     }
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
-      await DocumentsApi.instance.createDocument({
+      await widget.api.createDocument({
         'category': _category,
-        'title': _title.text.trim(),
+        'title': title,
         if (_storageRef.text.trim().isNotEmpty)
           'storage_ref': _storageRef.text.trim(),
         if (_contentType.text.trim().isNotEmpty)
           'content_type': _contentType.text.trim(),
-      });
-      if (!mounted) return;
-      Navigator.pop(context);
-      await widget.onDone();
+      }, idempotencyKey: _key);
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        setState(() => _saving = false);
-        showSnack(context, apiErrorMessage(e), error: true);
+        setState(() {
+          _saving = false;
+          _error = ApiException.from(e).messageAr;
+        });
       }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SheetScaffold(
-      title: 'تسجيل وثيقة (مرجع)',
-      saving: _saving,
-      onSubmit: _submit,
-      children: [
-        DropdownButtonFormField<String>(
-          value: _category,
-          dropdownColor: kSurface,
-          decoration: kDec('الفئة'),
-          style: const TextStyle(color: Colors.white),
-          items: kDocCategories.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-              .toList(),
-          onChanged: (v) => setState(() => _category = v ?? 'other'),
-        ),
-        kField(_title, 'العنوان'),
-        kField(_storageRef, 'مرجع التخزين storage_ref (مسار/رابط)'),
-        kField(_contentType, 'نوع المحتوى مثل application/pdf (اختياري)'),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => AppSheet(
+    title: 'تسجيل وثيقة (مرجع)',
+    submitLabel: 'تسجيل',
+    submitting: _saving,
+    errorText: _error,
+    onSubmit: _submit,
+    children: [
+      const SizedBox(height: SahoolSpacing.md),
+      AppDropdown<String>(
+        label: 'الفئة',
+        items: kDocCategories,
+        value: _category,
+        onChanged: (v) => setState(() => _category = v ?? 'other'),
+      ),
+      AppTextField(
+        label: 'العنوان',
+        controller: _title,
+        textInputAction: TextInputAction.next,
+      ),
+      AppTextField(
+        label: 'مرجع التخزين (مسار أو رابط)',
+        controller: _storageRef,
+        keyboardType: TextInputType.url,
+      ),
+      AppTextField(
+        label: 'نوع المحتوى (اختياريّ)',
+        hint: 'application/pdf',
+        controller: _contentType,
+      ),
+    ],
+  );
 }
