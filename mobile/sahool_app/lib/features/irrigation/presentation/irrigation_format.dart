@@ -5,20 +5,19 @@ import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 
+// fmtM3/fmtM3PerHa/fmtMinutes/fmtClock صارت في core وتُعاد تصديرها هنا.
 export 'package:sahool_app/core/utils/formatters.dart'
-    show fmtMm, fmtNumber, fmtPct, fmtDate, fmtDateTime, kNotMeasured;
-
-/// حجم بالمتر المكعّب: «120 م³». null ⇒ «غير مقيس».
-String fmtM3(num? m3, {int decimals = 1}) =>
-    m3 == null ? kNotMeasured : '${fmtNumber(m3, decimals: decimals)} م³';
-
-/// م³ للهكتار: «450 م³/هـ».
-String fmtM3PerHa(num? v) =>
-    v == null ? kNotMeasured : '${fmtNumber(v, decimals: 0)} م³/هـ';
-
-/// مدّة بالدقائق: «45 دقيقة».
-String fmtMinutes(num? minutes) =>
-    minutes == null ? kNotMeasured : '${fmtNumber(minutes, decimals: 0)} دقيقة';
+    show
+        fmtClock,
+        fmtDate,
+        fmtDateTime,
+        fmtM3,
+        fmtM3PerHa,
+        fmtMinutes,
+        fmtMm,
+        fmtNumber,
+        fmtPct,
+        kNotMeasured;
 
 /// 1 مم على 1 هكتار = 10 م³ (تحويل حسابيّ، لا تقدير).
 num? mmToM3(num? mm, num? areaHa) =>
@@ -26,14 +25,6 @@ num? mmToM3(num? mm, num? areaHa) =>
 
 num? m3ToMm(num? m3, num? areaHa) =>
     (m3 == null || areaHa == null || areaHa <= 0) ? null : m3 / (areaHa * 10);
-
-/// «06:00:00» ⇒ «06:00». نصّ غير متوقَّع يُعاد كما هو (لا اختلاق).
-String fmtClock(String? hhmmss) {
-  if (hhmmss == null || hhmmss.isEmpty) return '—';
-  final m = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(hhmmss);
-  if (m == null) return hhmmss;
-  return '${m.group(1)!.padLeft(2, '0')}:${m.group(2)}';
-}
 
 /// تاريخ اليوم المحلّيّ بصيغة YYYY-MM-DD (مفتاح قيد الدفتر).
 String isoDay(DateTime d) =>

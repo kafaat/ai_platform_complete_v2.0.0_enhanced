@@ -64,7 +64,9 @@ class LocalizedDigitsFormatter extends TextInputFormatter {
 
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     var text = normalizeDigits(newValue.text);
     if (digitsOnly) text = text.replaceAll(RegExp(r'[^0-9]'), '');
     if (text == newValue.text) return newValue;
@@ -89,8 +91,9 @@ String fmtNumber(num? value, {int decimals = 1}) {
   return f.format(value);
 }
 
-String _withUnit(num? value, String unit, int decimals) =>
-    value == null ? kNotMeasured : '${fmtNumber(value, decimals: decimals)} $unit';
+String _withUnit(num? value, String unit, int decimals) => value == null
+    ? kNotMeasured
+    : '${fmtNumber(value, decimals: decimals)} $unit';
 
 /// مساحة بالهكتار: «1.5 هـ».
 String fmtArea(num? hectares, {int decimals = 1}) =>
@@ -120,8 +123,18 @@ String fmtPct(num? value, {bool fraction = false, int decimals = 0}) {
 }
 
 const _monthsAr = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+  'يناير',
+  'فبراير',
+  'مارس',
+  'أبريل',
+  'مايو',
+  'يونيو',
+  'يوليو',
+  'أغسطس',
+  'سبتمبر',
+  'أكتوبر',
+  'نوفمبر',
+  'ديسمبر',
 ];
 
 /// تاريخ بالتوقيت المحلّيّ: «5 مارس 2026». null ⇒ «—».
@@ -155,4 +168,59 @@ String fmtAge(DateTime? at, {DateTime? now}) {
   if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
   if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
   return 'منذ ${diff.inDays} يوم';
+}
+
+// ── وحدات الريّ والطقس (نُقلت من ميزتي irrigation وweather بلا تغيير سلوك) ──
+
+/// حجم بالمتر المكعّب: «120 م³». null ⇒ «غير مقيس».
+String fmtM3(num? m3, {int decimals = 1}) =>
+    m3 == null ? kNotMeasured : '${fmtNumber(m3, decimals: decimals)} م³';
+
+/// م³ للهكتار: «450 م³/هـ».
+String fmtM3PerHa(num? v) =>
+    v == null ? kNotMeasured : '${fmtNumber(v, decimals: 0)} م³/هـ';
+
+/// مدّة بالدقائق: «45 دقيقة».
+String fmtMinutes(num? minutes) =>
+    minutes == null ? kNotMeasured : '${fmtNumber(minutes, decimals: 0)} دقيقة';
+
+/// «06:00:00» ⇒ «06:00». نصّ غير متوقَّع يُعاد كما هو (لا اختلاق).
+String fmtClock(String? hhmmss) {
+  if (hhmmss == null || hhmmss.isEmpty) return '—';
+  final m = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(hhmmss);
+  if (m == null) return hhmmss;
+  return '${m.group(1)!.padLeft(2, '0')}:${m.group(2)}';
+}
+
+/// سرعة رياح: «12 كم/س».
+String fmtKmh(num? kmh) =>
+    kmh == null ? kNotMeasured : '${fmtNumber(kmh, decimals: 0)} كم/س';
+
+/// مدّة بالساعات: «6 س».
+String fmtHoursShort(num? h) =>
+    h == null ? kNotMeasured : '${fmtNumber(h, decimals: 0)} س';
+
+/// DateTime.weekday: 1=الاثنين … 7=الأحد.
+const _weekdaysAr = [
+  'الاثنين',
+  'الثلاثاء',
+  'الأربعاء',
+  'الخميس',
+  'الجمعة',
+  'السبت',
+  'الأحد',
+];
+
+String arabicWeekday(DateTime d) => _weekdaysAr[d.weekday - 1];
+
+/// «اليوم» / «غداً» / اسم اليوم. null ⇒ «—».
+String fmtDayName(DateTime? d, {DateTime? now}) {
+  if (d == null) return '—';
+  final n = now ?? DateTime.now();
+  final today = DateTime(n.year, n.month, n.day);
+  final day = DateTime(d.year, d.month, d.day);
+  final diff = day.difference(today).inDays;
+  if (diff == 0) return 'اليوم';
+  if (diff == 1) return 'غداً';
+  return arabicWeekday(d);
 }

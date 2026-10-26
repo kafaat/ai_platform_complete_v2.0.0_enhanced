@@ -62,4 +62,31 @@ void main() {
           'منذ 5 دقيقة');
     });
   });
+
+  group('irrigation and weather units (moved from the features)', () {
+    test('volume, rate, minutes and clock', () {
+      expect(fmtM3(120), '120 م³');
+      expect(fmtM3(12.34), '12.3 م³');
+      expect(fmtM3(null), kNotMeasured);
+      expect(fmtM3PerHa(450.4), '450 م³/هـ');
+      expect(fmtMinutes(45), '45 دقيقة');
+      expect(fmtMinutes(null), kNotMeasured);
+      expect(fmtClock('06:00:00'), '06:00');
+      expect(fmtClock('6:05'), '06:05');
+      expect(fmtClock('soon'), 'soon');
+      expect(fmtClock(null), '—');
+    });
+
+    test('wind, hours and day names', () {
+      final now = DateTime(2026, 10, 26, 9);
+      expect(fmtKmh(14.4), '14 كم/س');
+      expect(fmtHoursShort(6), '6 س');
+      expect(fmtKmh(null), kNotMeasured);
+      expect(arabicWeekday(DateTime(2026, 11, 1)), 'الأحد');
+      expect(fmtDayName(DateTime(2026, 10, 26), now: now), 'اليوم');
+      expect(fmtDayName(DateTime(2026, 10, 27), now: now), 'غداً');
+      expect(fmtDayName(DateTime(2026, 10, 30), now: now), 'الجمعة');
+      expect(fmtDayName(null), '—');
+    });
+  });
 }

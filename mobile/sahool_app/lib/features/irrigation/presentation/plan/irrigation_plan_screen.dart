@@ -12,7 +12,6 @@ import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/irrigation/data/irrigation_api.dart';
-import 'package:sahool_app/features/irrigation/presentation/irrigation_format.dart';
 
 sealed class IrrigationPlanState {
   const IrrigationPlanState();

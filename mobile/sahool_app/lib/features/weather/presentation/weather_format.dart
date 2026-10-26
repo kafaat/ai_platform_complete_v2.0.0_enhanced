@@ -1,42 +1,11 @@
 // SAHOOL — features/weather/presentation/weather_format.dart
 // تسميات الطقس ووحداته فوق core/utils/formatters.dart (الأرقام نفسها، والوحدات
-// °م/مم/٪ من هناك). ما ليس في core بعدُ (كم/س، ساعات، أسماء الأيّام) يُعرَّف هنا
-// بالأسلوب نفسه — مرشّح للنقل إلى formatters.dart.
+// °م/مم/٪ وكم/س والساعات وأسماء الأيّام من هناك؛ تُعاد تصديرها هنا).
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 
-/// DateTime.weekday: 1=الاثنين … 7=الأحد.
-const _weekdaysAr = [
-  'الاثنين',
-  'الثلاثاء',
-  'الأربعاء',
-  'الخميس',
-  'الجمعة',
-  'السبت',
-  'الأحد',
-];
-
-String arabicWeekday(DateTime d) => _weekdaysAr[d.weekday - 1];
-
-/// «اليوم» / «غداً» / اسم اليوم. null ⇒ «—».
-String fmtDayName(DateTime? d, {DateTime? now}) {
-  if (d == null) return '—';
-  final n = now ?? DateTime.now();
-  final today = DateTime(n.year, n.month, n.day);
-  final day = DateTime(d.year, d.month, d.day);
-  final diff = day.difference(today).inDays;
-  if (diff == 0) return 'اليوم';
-  if (diff == 1) return 'غداً';
-  return arabicWeekday(d);
-}
-
-/// سرعة رياح: «12 كم/س».
-String fmtKmh(num? kmh) =>
-    kmh == null ? kNotMeasured : '${fmtNumber(kmh, decimals: 0)} كم/س';
-
-/// مدّة بالساعات: «6 س».
-String fmtHoursShort(num? h) =>
-    h == null ? kNotMeasured : '${fmtNumber(h, decimals: 0)} س';
+export 'package:sahool_app/core/utils/formatters.dart'
+    show arabicWeekday, fmtDayName, fmtHoursShort, fmtKmh;
 
 /// موعد نافذة: طابع زمنيّ حقيقيّ إن وُجد، وإلّا الإزاحة بالساعات.
 String fmtWindowStart(DateTime? at, int? offsetHours) {
