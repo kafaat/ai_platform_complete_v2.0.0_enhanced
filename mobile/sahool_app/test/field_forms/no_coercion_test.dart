@@ -19,8 +19,11 @@ void main() {
       visibleKeys: visible,
       answers: const {'area': '3'}, // String — يجب أن يبقى مرفوضًا
     );
-    expect(errors.containsKey('area'), isTrue,
-        reason: 'لا coercion من String إلى number');
+    expect(
+      errors.containsKey('area'),
+      isTrue,
+      reason: 'لا coercion من String إلى number',
+    );
   });
 
   test('number يقبل int وdouble ويخزّنهما كما هما', () {
@@ -44,18 +47,27 @@ void main() {
 
     expect(
       validateAnswers(
-          schema: schema, visibleKeys: visible, answers: const {'count': 3}),
+        schema: schema,
+        visibleKeys: visible,
+        answers: const {'count': 3},
+      ),
       isEmpty,
     );
     expect(
       validateAnswers(
-          schema: schema, visibleKeys: visible, answers: const {'count': 3.5}),
+        schema: schema,
+        visibleKeys: visible,
+        answers: const {'count': 3.5},
+      ),
       contains('count'),
       reason: 'double 3.5 لا يُقتطع إلى int',
     );
     expect(
       validateAnswers(
-          schema: schema, visibleKeys: visible, answers: const {'count': '3'}),
+        schema: schema,
+        visibleKeys: visible,
+        answers: const {'count': '3'},
+      ),
       contains('count'),
       reason: 'السلسلة "3" لا تُحوَّل إلى integer',
     );
@@ -67,9 +79,10 @@ void main() {
     ]);
     expect(
       validateAnswers(
-          schema: schema,
-          visibleKeys: const {'flag_num'},
-          answers: const {'flag_num': true}),
+        schema: schema,
+        visibleKeys: const {'flag_num'},
+        answers: const {'flag_num': true},
+      ),
       contains('flag_num'),
     );
   });
@@ -84,16 +97,18 @@ void main() {
     ]);
     expect(
       validateAnswers(
-          schema: schema,
-          visibleKeys: const {'crop'},
-          answers: const {'crop': 'wheat'}),
+        schema: schema,
+        visibleKeys: const {'crop'},
+        answers: const {'crop': 'wheat'},
+      ),
       isEmpty,
     );
     expect(
       validateAnswers(
-          schema: schema,
-          visibleKeys: const {'crop'},
-          answers: const {'crop': 'rice'}),
+        schema: schema,
+        visibleKeys: const {'crop'},
+        answers: const {'crop': 'rice'},
+      ),
       contains('crop'),
     );
   });

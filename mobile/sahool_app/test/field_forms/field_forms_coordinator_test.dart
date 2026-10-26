@@ -26,7 +26,14 @@ class _FakeAdapter implements HttpClientAdapter {
     final outcome = outcomes[calls++];
     if (outcome is DioException) throw outcome;
     return ResponseBody.fromString(
-      jsonEncode({'status': 'accepted', 'submission_id': 'ff-x'}),
+      jsonEncode({
+        'idempotent': false,
+        'envelope_id': 1,
+        'field_submission_id': 'fs-x',
+        'trust_status': 'accepted',
+        'form_validation_status': 'valid',
+        'version_resolution_status': 'current',
+      }),
       outcome as int,
       headers: {
         Headers.contentTypeHeader: ['application/json'],
@@ -61,7 +68,10 @@ void main() {
     final dio = Dio(BaseOptions(baseUrl: 'http://test.invalid'));
     dio.httpClientAdapter = adapter;
     return FieldFormsCoordinator(
-        queue: queue, api: FieldFormsApi(dio), currentTenantId: () => 't');
+      queue: queue,
+      api: FieldFormsApi(dio),
+      currentTenantId: () => 't',
+    );
   }
 
   test('201 settles FIFO item and sends device identity header', () async {
@@ -179,7 +189,10 @@ void main() {
     final adapter = _FakeAdapter([201]);
     dio.httpClientAdapter = adapter;
     final c = FieldFormsCoordinator(
-        queue: queue, api: FieldFormsApi(dio), currentTenantId: () => null);
+      queue: queue,
+      api: FieldFormsApi(dio),
+      currentTenantId: () => null,
+    );
     expect(await c.drain(), 0);
     expect(adapter.calls, 0);
     expect(queue.pending(), hasLength(1));
