@@ -4,15 +4,15 @@
 //   • المخزون/المعدّات/الأجهزة/الري التشغيلي: متاحة لكلّ الأدوار (عرض).
 //   • البيانات المرجعيّة/الوثائق: إدارة فقط (owner/manager) — لا تظهر لغيرهم.
 import 'package:flutter/material.dart';
-import '../permissions.dart';
-import '../widgets/state_views.dart';
-import 'devices_screen.dart';
-import 'documents_screen.dart';
-import 'equipment_screen.dart';
-import 'inventory_screen.dart';
-import 'irrigation_ops_screen.dart';
-import 'master_data_screen.dart';
-import 'tasks_screen.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/devices/presentation/devices_screen.dart';
+import 'package:sahool_app/features/documents/presentation/documents_screen.dart';
+import 'package:sahool_app/features/equipment/presentation/equipment_screen.dart';
+import 'package:sahool_app/features/inventory/presentation/inventory_screen.dart';
+import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_screen.dart';
+import 'package:sahool_app/features/master_data/presentation/master_data_screen.dart';
+import 'package:sahool_app/features/tasks/presentation/tasks_screen.dart';
 
 class _Module {
   final String label;

@@ -4,9 +4,9 @@
 // السمات الداكنة وRTL العربيّ. صدق: الأقسام التي لا تتوفّر لها واجهة برمجيّة بعد
 // تُعرَض كـ«غير متاح بعد» بدل اختلاق بيانات. لا تستدعي إلّا دوال ApiService القائمة.
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import '../../permissions.dart';
-import '../state_views.dart';
+import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 
 // ── أدوات تنسيق دفاعيّة مشتركة ──────────────────────────────────────
 double? wNum(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');

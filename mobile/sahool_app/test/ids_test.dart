@@ -5,7 +5,7 @@
 // مكثّف، وثبات صيغة generateOperationId (^op_<hex>_<6hex>$) لئلّا تنكسر الخلفيّة.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sahool_app/utils/ids.dart';
+import 'package:sahool_app/core/utils/ids.dart';
 
 void main() {
   group('generateRequestId — UUIDv7 صالح', () {

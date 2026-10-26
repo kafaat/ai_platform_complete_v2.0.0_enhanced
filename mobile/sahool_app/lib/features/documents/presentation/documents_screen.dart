@@ -4,10 +4,10 @@
 // صدق مهمّ: هذا سجلّ metadata فقط — الملفّ الفعليّ في تخزين الكائنات وstorage_ref
 // مسار/رابط له؛ النموذج يُسجّل مرجعاً ولا يرفع ملفّاً. تطابق DocumentsPage.
 import 'package:flutter/material.dart';
-import '../permissions.dart';
-import '../services/api_service.dart';
-import '../widgets/form_kit.dart';
-import '../widgets/state_views.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/core/widgets/form_kit.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 
 const Map<String, String> kDocCategories = {
   'contract': 'عقد',

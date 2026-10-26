@@ -4,9 +4,9 @@
 // ثمّ مسح الجلسة وإعادة AuthGate). الأدوار تُترجَم للعربيّة.
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../main.dart';
-import '../services/api_service.dart';
-import '../services/auth_service.dart';
+import 'package:sahool_app/main.dart';
+import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

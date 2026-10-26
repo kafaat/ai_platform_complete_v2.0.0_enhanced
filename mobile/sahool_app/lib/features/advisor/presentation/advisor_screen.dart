@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/api_service.dart';
+import 'package:sahool_app/services/api_service.dart';
 
 class AdvisorScreen extends StatefulWidget {
   const AdvisorScreen({super.key});

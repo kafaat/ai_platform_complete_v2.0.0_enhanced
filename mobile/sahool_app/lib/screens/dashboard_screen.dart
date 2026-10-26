@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../services/api_service.dart';
-import '../widgets/state_views.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 import '../widgets/water_usage_card.dart';
 import '../widgets/carbon_not_measured_card.dart';
 

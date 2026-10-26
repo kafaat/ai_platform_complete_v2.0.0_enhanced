@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import '../utils/ids.dart';
+import 'package:sahool_app/core/utils/ids.dart';
 import '../config/app_config.dart';
 import 'auth_service.dart';
 

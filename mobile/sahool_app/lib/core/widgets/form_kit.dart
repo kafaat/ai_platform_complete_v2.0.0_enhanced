@@ -3,7 +3,7 @@
 // بين شاشات العمليّات الستّ لضمان اتّساق مظهر/سلوك واحد. عامّة (public) ليُعاد
 // استخدامها عبر الملفّات (الخاصّ بـ_ محصور بمكتبته).
 import 'package:flutter/material.dart';
-import 'state_views.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 
 InputDecoration kDec(String label) => InputDecoration(
       labelText: label,

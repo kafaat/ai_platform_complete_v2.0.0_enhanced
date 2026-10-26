@@ -11,8 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../services/auth_service.dart';
 import '../services/websocket_service.dart';
-import '../utils/ids.dart';
-import '../utils/jwt.dart';
+import 'package:sahool_app/core/utils/ids.dart';
+import 'package:sahool_app/core/utils/jwt.dart';
 import '../config/app_config.dart';
 
 /// يُرمى من [ApiService.login] حين تكون كلمة المرور صحيحة لكن الحساب يتطلّب رمز

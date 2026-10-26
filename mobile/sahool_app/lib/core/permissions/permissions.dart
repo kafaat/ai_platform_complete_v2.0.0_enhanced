@@ -2,7 +2,7 @@
 // تطبيق الأدوار (RBAC) في تطبيق الموبايل، موازٍ لـfrontend/src/lib/permissions.ts.
 // مصدر واحد للحقيقة: الدور يُقرأ من الجلسة (AuthService). fail-closed: الدور
 // المجهول يُعامَل كـviewer (أقلّ صلاحيّة) لا كمالك.
-import 'services/auth_service.dart';
+import 'package:sahool_app/services/auth_service.dart';
 
 enum AppRole { owner, manager, agronomist, worker, viewer }
 

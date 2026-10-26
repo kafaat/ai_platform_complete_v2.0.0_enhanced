@@ -4,19 +4,19 @@
 // القائمة كما هي (لا منطق جديد) وتفتحها بـMaterialPageRoute. البيانات المرجعيّة
 // والوثائق تُرشَّح بصلاحيّة الدور (RBAC فعليّ — تطابق canManage) كما في مركز العمليّات.
 import 'package:flutter/material.dart';
-import '../permissions.dart';
-import '../widgets/state_views.dart';
-import 'devices_screen.dart';
-import 'documents_screen.dart';
-import 'equipment_screen.dart';
-import 'farms_screen.dart';
-import 'inventory_screen.dart';
-import 'master_data_screen.dart';
-import 'mfa_setup_screen.dart';
-import 'operations_hub_screen.dart';
-import 'profile_screen.dart';
-import 'satellite_screen.dart';
-import 'tasks_screen.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/devices/presentation/devices_screen.dart';
+import 'package:sahool_app/features/documents/presentation/documents_screen.dart';
+import 'package:sahool_app/features/equipment/presentation/equipment_screen.dart';
+import 'package:sahool_app/features/farms/presentation/farms_screen.dart';
+import 'package:sahool_app/features/inventory/presentation/inventory_screen.dart';
+import 'package:sahool_app/features/master_data/presentation/master_data_screen.dart';
+import 'package:sahool_app/features/auth/presentation/mfa_setup_screen.dart';
+import 'package:sahool_app/features/operations_hub/presentation/operations_hub_screen.dart';
+import 'package:sahool_app/features/profile/presentation/profile_screen.dart';
+import 'package:sahool_app/features/satellite/presentation/satellite_screen.dart';
+import 'package:sahool_app/features/tasks/presentation/tasks_screen.dart';
 
 class _MoreItem {
   final String label;

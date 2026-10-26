@@ -4,10 +4,10 @@
 // عرض، device:manage تسجيل، observation:record رفع قياس). لا قياسات مُلفَّقة —
 // تُعرَض القياسات الحقيقيّة فقط. تطابق DevicesPage في الويب.
 import 'package:flutter/material.dart';
-import '../permissions.dart';
-import '../services/api_service.dart';
-import '../widgets/form_kit.dart';
-import '../widgets/state_views.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/core/widgets/form_kit.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 
 class DevicesScreen extends StatefulWidget {
   const DevicesScreen({super.key});

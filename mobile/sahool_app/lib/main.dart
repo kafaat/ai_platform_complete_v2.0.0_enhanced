@@ -5,21 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'bloc/dashboard_bloc.dart';
+import 'package:sahool_app/features/dashboard/presentation/dashboard_bloc.dart';
 import 'features/field_forms/data/field_forms_coordinator.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/advisor_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/fields_screen.dart';
-import 'screens/satellite_screen.dart';
-import 'screens/more_screen.dart';
-import 'screens/onboarding_screen.dart';
+import 'package:sahool_app/features/advisor/presentation/advisor_screen.dart';
+import 'package:sahool_app/features/auth/presentation/login_screen.dart';
+import 'package:sahool_app/features/fields/presentation/fields_screen.dart';
+import 'package:sahool_app/features/satellite/presentation/satellite_screen.dart';
+import 'package:sahool_app/features/more/presentation/more_screen.dart';
+import 'package:sahool_app/features/auth/presentation/onboarding_screen.dart';
 import 'screens/field_workspace_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/push_service.dart';
 import 'services/websocket_service.dart';
-import 'theme/app_theme.dart';
+import 'package:sahool_app/core/theme/app_theme.dart';
 
 // ملاحظة بيئة التشغيل المحليّة (dart-define): مرّر عنوان الـAPI/الـWS عند التشغيل
 // دون تثبيتهما في الشيفرة (انظر String.fromEnvironment في api/websocket service؛

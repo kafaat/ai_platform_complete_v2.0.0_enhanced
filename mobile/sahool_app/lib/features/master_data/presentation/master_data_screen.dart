@@ -4,10 +4,10 @@
 // لكن الإضافة محكومة بـcanManage. 409 عند تكرار (المستأجِر،الفئة،الرمز).
 // لا بيانات مُلفَّقة. تطابق MasterDataPage في الويب.
 import 'package:flutter/material.dart';
-import '../permissions.dart';
-import '../services/api_service.dart';
-import '../widgets/form_kit.dart';
-import '../widgets/state_views.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/services/api_service.dart';
+import 'package:sahool_app/core/widgets/form_kit.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
 
 const Map<String, String> kMasterCategories = {
   'crop': 'المحاصيل',

@@ -4,8 +4,8 @@
 // الواجهة). صدق: الفشل يُعرَض للمستخدم بالعربيّة، لا جلسة زائفة.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
-import '../main.dart';
-import '../services/api_service.dart';
+import 'package:sahool_app/main.dart';
+import 'package:sahool_app/services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

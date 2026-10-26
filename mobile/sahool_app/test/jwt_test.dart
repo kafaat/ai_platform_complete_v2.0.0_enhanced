@@ -7,7 +7,7 @@
 
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sahool_app/utils/jwt.dart';
+import 'package:sahool_app/core/utils/jwt.dart';
 
 String _makeToken(Map<String, dynamic> payload) {
   final header = base64Url.encode(utf8.encode(json.encode({'alg': 'HS256'})));

@@ -1,7 +1,7 @@
 // SAHOOL v9.0 — lib/bloc/dashboard_bloc.dart (FIXED)
 // Real BLoC implementation — not just re-exports
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../services/api_service.dart';
+import 'package:sahool_app/services/api_service.dart';
 
 // ── Events ──────────────────────────────────────────────────
 abstract class DashboardEvent {}
