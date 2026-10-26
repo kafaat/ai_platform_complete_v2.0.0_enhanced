@@ -109,7 +109,7 @@ def idempotency_key(user: dict, request_id: str | None, name: str, arguments: di
 
 
 # Idempotency results are kept per process. Without eviction every distinct
-# request_id stays in memory for the life of the process, so the cache is bounded
+# request_id stays cached for the life of the process, so the cache is bounded
 # by age (an expired entry is dropped when read and on every insert) and by size
 # (the oldest entries go first once the cap is reached).
 IDEMPOTENCY_CACHE_MAX_ENTRIES = 1024

@@ -80,7 +80,7 @@ _SPARSE_PAYLOAD_REVALIDATE_SECONDS = 30.0
 _SPARSE_REVALIDATE_SECONDS = float(os.getenv("RAG_SPARSE_REVALIDATE_SECONDS", "30"))
 # Blocking Ollama/Qdrant I/O runs in FastAPI's threadpool so one slow upstream call
 # (20 s timeouts, full scrolls) cannot stall the single-worker event loop. The
-# sparse-index globals and the retriever's in-memory BM25/chunk maps are then
+# sparse-index globals and the retriever's process-local BM25/chunk maps are then
 # reachable from several threads, so every path that rebuilds, reads or invalidates
 # them holds this lock.
 _RETRIEVAL_LOCK = threading.Lock()

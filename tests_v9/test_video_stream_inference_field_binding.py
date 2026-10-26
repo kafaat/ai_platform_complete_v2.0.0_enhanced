@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import importlib
 import sys
 import types
 from pathlib import Path
@@ -30,8 +29,9 @@ def vp(monkeypatch):
     cv2 = types.ModuleType("cv2")
     cv2.imencode = lambda ext, frame: (True, np.frombuffer(b"\xff\xd8jpeg", dtype=np.uint8))
     monkeypatch.setitem(sys.modules, "cv2", cv2)
-    module = importlib.import_module("main")
-    assert hasattr(module, "run_inference") and hasattr(module, "StreamConfig")
+    from tests_v9.service_module import load_service_main
+
+    module = load_service_main(str(VIDEO), required_attrs=("run_inference", "StreamConfig"))
     try:
         yield module
     finally:
