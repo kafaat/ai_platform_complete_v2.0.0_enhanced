@@ -12305,7 +12305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da0dac94ccbe79b140dc2b0c148baa61246b1ecc4024ff3c7ea30c5d8ede4c16"
+          "content": "eec0efa7dc7d8e6b1e36edbb53ec45cb9afa782c1aba34278e5662e5b9fa184f"
         }
       ],
       "name": "services/auth/main.py",
@@ -14705,7 +14705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df872724889070b077df67832b0bc14c22c08a2e3f970f4d8f8c43f314259c4e"
+          "content": "a11fb0107e9ce31a196d293015cd71bd85d065dc6240c7eb15c29711a2e3a3d4"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -14905,7 +14905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77a4060b94e342efd30aad834672009c0f3c91545a01c89fcd52f132e9f10b00"
+          "content": "d2b88d5e24eb79bb7cc8ed3323595c84446fa5d9f483f831a6f5aa28c8980d34"
         }
       ],
       "name": "services/odoo-bridge/erp_runtime.py",
@@ -14915,7 +14915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df0842d5675b715507ff6cfd5ddce2b3cc5721ceadabb38b61778df6c75dae6e"
+          "content": "bea7b9eba3ce663627ff822c63af0686db569335e71b14250921ead469da5e7b"
         }
       ],
       "name": "services/odoo-bridge/main.py",
@@ -30595,7 +30595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08961fc7f82f8fbe5d1cb165a77640a8f0845c7ef596a53eb18d68812457313f"
+          "content": "87afe8bfa4fe1eeee6e505ea7eb56240ed928e674c2c9f71c0f812699d9114c6"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -33735,7 +33735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "699912857185519945e53af605fcb34d1a21eee7702c47166f2144877e9a9c55"
+          "content": "0284ed49f28153d102b5a9268a3e08513abdf0ceded100c7bf53dafe0e815273"
         }
       ],
       "name": "shared/helpers.py",
@@ -33975,7 +33975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9552ac49983d2e03d4dc0b872cad3ff85b2bbffc3658231e50eba86dbdf62c89"
+          "content": "61fc985824962207cda118eb58a9ccc51cb2fd626a89745a2f1d0231356cdf6d"
         }
       ],
       "name": "shared/pool_shutdown.py",

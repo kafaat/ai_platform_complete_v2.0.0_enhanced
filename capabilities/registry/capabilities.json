@@ -26,8 +26,8 @@
         "GET /healthz @ services/auth/routers/ops.py:27",
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
-        "GET /runtime-identity @ services/auth/main.py:401",
-        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:745",
+        "GET /runtime-identity @ services/auth/main.py:402",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:768",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:85",
         "GET /v1/auth/me @ services/auth/routers/session.py:230",
@@ -91,9 +91,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -731,10 +731,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:893",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90",
-        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:708",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:731",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121",
-        "POST /v1/procurement @ services/mcp_servers/market_server.py:700"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:723"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4214,9 +4214,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -4258,7 +4258,7 @@
         "GET /runtime-identity @ services/agriai-engine/main.py:100",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24",
-        "GET /runtime-identity @ services/soil-service/main.py:218",
+        "GET /runtime-identity @ services/soil-service/main.py:222",
         "GET /runtime-identity @ services/weather-service/main.py:56",
         "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1153",
         "POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:284",
@@ -5224,9 +5224,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -5292,9 +5292,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -5375,9 +5375,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -5442,9 +5442,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],
@@ -5572,9 +5572,9 @@
       ],
       "runtime": {
         "metrics": [
-          "metric:sahool_auth_logins_total@services/auth/main.py:264",
-          "metric:sahool_auth_register_total@services/auth/main.py:265",
-          "metric:sahool_auth_resets_total@services/auth/main.py:266"
+          "metric:sahool_auth_logins_total@services/auth/main.py:265",
+          "metric:sahool_auth_register_total@services/auth/main.py:266",
+          "metric:sahool_auth_resets_total@services/auth/main.py:267"
         ],
         "traces": [],
         "receipts": [],

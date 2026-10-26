@@ -1850,7 +1850,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 164,
+      "evidence_count": 163,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -2037,7 +2037,6 @@
         "shared/ai/tool_audit.py",
         "shared/fcm.py",
         "shared/governance/chemical_lineage.py",
-        "shared/helpers.py",
         "shared/iot_execution_runtime.py",
         "shared/security/cors_policy.py",
         "shared/security/decision_service_auth.py",
@@ -2972,7 +2971,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 44,
-      "target_evidence_count": 164,
+      "target_evidence_count": 163,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -3007,7 +3006,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 164,
+      "source_evidence_count": 163,
       "target_evidence_count": 38,
       "static_supported": true,
       "runtime_verified": false
@@ -3114,5 +3113,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "0a4e885032efd1805ce25af01d3eaa57cd41bd40c4b7f822945a869e96d44654"
+  "content_sha256": "b36875e63356047a8a3434b1e562f4dec5ba82b52c8c2c0245ec1c24f6bd539f"
 }
