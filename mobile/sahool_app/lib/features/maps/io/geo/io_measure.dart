@@ -3,58 +3,23 @@
 // (services/sahool-platform/api/geospatial_integrity.py: polygon_area_m2 بنصف قطر
 // 6371008.8) كي لا يرى المزارع رقمين مختلفين للحقل نفسه.
 //
-// للدمج لاحقاً: حزمة الرسم (W2-08) تملك geo/measure.dart وgeo/validation.dart.
-// هذه نسخة خاصّة بمجلّد io/ لأنّها لم تكن في الشجرة؛ تُستبدَل عند الدمج.
+// توحيد: المسافة والمساحة والطول من maps/geo/geo_measure.dart (الصيغة نفسها
+// حرفيّاً)؛ تُعاد تصديرها هنا كي لا يتغيّر استيراد ملفّات io/.
 import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../../geo/geo_measure.dart';
 import 'io_geometry.dart';
 
-const double kEarthRadiusM = 6371008.8;
+export '../../geo/geo_measure.dart'
+    show haversineM, kEarthRadiusM, lineLengthM, ringAreaM2;
 
 /// حدود الخادم (field_geometry_save_guard.py: ≤2000 رأس، ≥0.001 هـ).
 const int kMaxServerVertices = 2000;
 const double kMinFieldAreaHa = 0.001;
 
-double _rad(double d) => d * math.pi / 180;
-
-/// مسافة بالأمتار (haversine، مطابقة لـhaversine_m في الخادم).
-double haversineM(LatLng a, LatLng b) {
-  final p1 = _rad(a.latitude), p2 = _rad(b.latitude);
-  final dp = _rad(b.latitude - a.latitude);
-  final dl = _rad(b.longitude - a.longitude);
-  final h =
-      math.pow(math.sin(dp / 2), 2) +
-      math.cos(p1) * math.cos(p2) * math.pow(math.sin(dl / 2), 2);
-  return 2 * kEarthRadiusM * math.asin(math.sqrt(h.toDouble()));
-}
-
-/// طول مسار مفتوح بالأمتار.
-double pathLengthM(List<LatLng> points) {
-  var total = 0.0;
-  for (var i = 1; i < points.length; i++) {
-    total += haversineM(points[i - 1], points[i]);
-  }
-  return total;
-}
-
-/// مساحة حلقة بالمتر المربّع (الإفراط الكرويّ، كما في الخادم).
-double ringAreaM2(List<LatLng> ring) {
-  final r = openRing(ring);
-  if (r.length < 3) return 0;
-  var total = 0.0;
-  for (var i = 0; i < r.length; i++) {
-    final a = r[i];
-    final b = r[(i + 1) % r.length];
-    total +=
-        _rad(b.longitude - a.longitude) *
-        (2 + math.sin(_rad(a.latitude)) + math.sin(_rad(b.latitude)));
-  }
-  return (total * kEarthRadiusM * kEarthRadiusM / 2).abs();
-}
-
-/// مساحة مضلّع بالهكتار (الخارجيّة ناقص الثقوب).
+/// مساحة مضلّع بالهكتار (الخارجيّة ناقص الثقوب) — netAreaHa في geo لكن على IoPolygon.
 double polygonAreaHa(IoPolygon p) {
   var m2 = ringAreaM2(p.outer);
   for (final h in p.holes) {

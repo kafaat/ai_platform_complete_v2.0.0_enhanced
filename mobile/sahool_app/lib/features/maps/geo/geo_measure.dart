@@ -31,15 +31,16 @@ const int kServerCoordinatePrecision = 7;
 double _rad(double deg) => deg * math.pi / 180.0;
 double _deg(double rad) => rad * 180.0 / math.pi;
 
-/// المسافة بالمتر بين نقطتين (haversine_m في الخادم).
-double haversineM(LatLng a, LatLng b) {
+/// المسافة بالمتر بين نقطتين (haversine_m في الخادم). [earthRadiusM] يُغيَّر
+/// فقط لقياس مضلّع المحور الذي يولّده الخادم بنصف القطر الاستوائيّ.
+double haversineM(LatLng a, LatLng b, {double earthRadiusM = kEarthRadiusM}) {
   final phi1 = _rad(a.latitude), phi2 = _rad(b.latitude);
   final dphi = _rad(b.latitude - a.latitude);
   final dlam = _rad(b.longitude - a.longitude);
   final h =
       math.pow(math.sin(dphi / 2), 2) +
       math.cos(phi1) * math.cos(phi2) * math.pow(math.sin(dlam / 2), 2);
-  return 2 * kEarthRadiusM * math.asin(math.sqrt(h));
+  return 2 * earthRadiusM * math.asin(math.sqrt(h));
 }
 
 /// مساحة حلقة واحدة بالمتر² (polygon_area_m2 في الخادم). الحلقة مفتوحة أو

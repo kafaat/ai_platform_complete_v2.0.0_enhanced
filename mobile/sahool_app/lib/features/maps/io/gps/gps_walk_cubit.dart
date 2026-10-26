@@ -123,7 +123,7 @@ class GpsWalkState {
   bool get isActive =>
       phase == GpsWalkPhase.recording || phase == GpsWalkPhase.paused;
 
-  double get distanceM => pathLengthM(track);
+  double get distanceM => lineLengthM(track);
 
   /// مساحة الحلقة المغلقة ضمنيّاً؛ null قبل ثلاث نقاط (لا رقم مختلَق).
   double? get areaHa =>

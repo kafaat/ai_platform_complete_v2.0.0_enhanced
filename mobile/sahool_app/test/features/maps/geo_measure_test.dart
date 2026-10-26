@@ -7,8 +7,11 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sahool_app/features/maps/draw/geo_measure.dart' as draw;
 import 'package:sahool_app/features/maps/geo/geo_json.dart';
 import 'package:sahool_app/features/maps/geo/geo_measure.dart';
+import 'package:sahool_app/features/maps/io/geo/io_geometry.dart';
+import 'package:sahool_app/features/maps/io/geo/io_measure.dart' as io;
 
 const _fixtures = <String, (Map<String, Object>, double)>{
   'sanaa_small': (
@@ -175,5 +178,48 @@ void main() {
       lineLengthM(const [LatLng(0, 0), LatLng(0, 1)]),
       closeTo(haversineM(const LatLng(0, 0), const LatLng(0, 1)), 1e-9),
     );
+  });
+
+  group('kept variants agree with the shared formula', () {
+    // الرسم والاستيراد يحتفظان بمتغيّرات لدلالات مختلفة (أزواج [lon,lat] خامّ،
+    // IoPolygon)؛ صيغة المساحة نفسها يجب أن تبقى متطابقة مع geo.
+    final rng = math.Random(11);
+    final rings = [
+      for (var k = 0; k < 200; k++)
+        [
+          for (var i = 0; i < 3 + rng.nextInt(10); i++)
+            LatLng(15 + rng.nextDouble() * 0.02, 44 + rng.nextDouble() * 0.02),
+        ],
+    ];
+
+    test('draw.serverPolygonAreaM2 == ringAreaM2 on the same ring', () {
+      for (final r in rings) {
+        final coords = [
+          for (final p in closeRing(r)) [p.longitude, p.latitude],
+        ];
+        expect(draw.serverPolygonAreaM2(coords), ringAreaM2(r));
+      }
+    });
+
+    test('io.polygonAreaHa == netAreaHa for outer + hole', () {
+      for (var i = 0; i + 1 < rings.length; i += 2) {
+        final outer = openRing(rings[i]), hole = openRing(rings[i + 1]);
+        if (outer.length < 3 || hole.length < 3) continue;
+        expect(
+          io.polygonAreaHa(IoPolygon([outer, hole])),
+          netAreaHa(
+            FieldGeometry([
+              GeoPolygon(outer, [hole]),
+            ]),
+          ),
+        );
+      }
+    });
+
+    test('io and draw re-export the one haversineM', () {
+      const a = LatLng(15, 44), b = LatLng(15.01, 44.02);
+      expect(io.haversineM(a, b), haversineM(a, b));
+      expect(draw.haversineM(a, b), haversineM(a, b));
+    });
   });
 }

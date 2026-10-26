@@ -2,10 +2,13 @@
 // نموذج هندسة صغير خاصّ بحزمة الاستيراد/التصدير/مشي GPS: مضلّع = حلقات LatLng
 // (الأولى خارجيّة، والبقيّة ثقوب)، كلّ حلقة **مفتوحة** (بلا تكرار نقطة الإغلاق).
 //
-// للدمج لاحقاً: حزمة الخرائط الأساسيّة (W2-07) تملك geo/geojson_codec.dart
-// (FieldGeometry). لم يكن في هذه الشجرة حين كُتب هذا الملفّ، فهذا محوّل أدنى
-// خاصّ بمجلّد io/ يُستبدَل به عند الدمج دون تغيير سلوك.
+// openRing والاتّجاه من maps/geo/geo_json.dart (المصدر الوحيد). يبقى هنا نموذج
+// IoPolygon ومحوّل أدنى لأنّ دلالاتهما تختلف عن FieldGeometry (موضّحة عند كلّ دالّة).
 import 'package:latlong2/latlong.dart';
+
+import '../../geo/geo_json.dart' show openRing, ringSignedArea;
+
+export '../../geo/geo_json.dart' show openRing;
 
 /// مضلّع واحد: [rings].first خارجيّة، والباقي ثقوب. الحلقات مفتوحة.
 class IoPolygon {
@@ -44,38 +47,12 @@ class IoBounds {
   }
 }
 
-/// يزيل نقطة الإغلاق المكرّرة والتكرارات المتتالية. لا يمسّ الترتيب.
-List<LatLng> openRing(Iterable<LatLng> points) {
-  final out = <LatLng>[];
-  for (final p in points) {
-    if (out.isNotEmpty && _same(out.last, p)) continue;
-    out.add(p);
-  }
-  while (out.length > 1 && _same(out.first, out.last)) {
-    out.removeLast();
-  }
-  return out;
-}
-
-bool _same(LatLng a, LatLng b) =>
-    a.latitude == b.latitude && a.longitude == b.longitude;
-
-/// مساحة مستوية موقَّعة على (lon,lat) — للاتّجاه فقط (موجب = عكس عقارب الساعة).
-double signedPlanarArea(List<LatLng> ring) {
-  var sum = 0.0;
-  for (var i = 0; i < ring.length; i++) {
-    final a = ring[i];
-    final b = ring[(i + 1) % ring.length];
-    sum += a.longitude * b.latitude - b.longitude * a.latitude;
-  }
-  return sum / 2;
-}
-
+/// يختلف عن FieldGeometry.toGeoJson: يعكس الحلقة كلّها (لا يُبقي الرأس الأوّل أوّلاً).
 /// حلقة GeoJSON مُغلقة `[[lon,lat],...]` باتّجاه مطلوب (RFC 7946: الخارجيّة
 /// عكس عقارب الساعة، والثقوب معها).
 List<List<double>> ringToGeoJson(List<LatLng> ring, {required bool ccw}) {
   final open = openRing(ring);
-  final isCcw = signedPlanarArea(open) > 0;
+  final isCcw = ringSignedArea(open) > 0;
   final ordered = isCcw == ccw ? open : open.reversed.toList();
   return [
     for (final p in ordered) [p.longitude, p.latitude],
@@ -95,6 +72,7 @@ Map<String, dynamic> polygonToGeoJson(IoPolygon polygon) => {
   'coordinates': polygonCoordinates(polygon),
 };
 
+/// يختلف عن FieldGeometry.tryParse: جزء MultiPolygon تالف يُسقَط وحده لا الهندسة كلّها.
 /// يقرأ هندسة حقل من الخادم (Polygon أو MultiPolygon) إلى مضلّعات. شكل غير
 /// معروف ⇒ قائمة فارغة (لا مضلّع مختلَق).
 List<IoPolygon> polygonsFromGeoJson(Object? geometry) {

@@ -13,14 +13,18 @@
 //   • المحور: `pivot_geometry.generate_pivot_polygon` (96 رأساً جيوديسيّاً،
 //     R = 6378137، الزاوية 0 = الشمال).
 //
-// ملاحظة دمج: خطّة الخرائط سمّت `geo_measure.dart` لحزمة الخرائط (W2-07)، ولم يكن
-// في هذه الشجرة؛ فهو هنا داخل draw/. إن أضاف W2-07 نسخته، تُوحَّد على هذه الصيغ.
+// توحيد مع maps/geo/geo_measure.dart: haversineM مشترك من هناك (الصيغة نفسها
+// حرفيّاً). ما بقي هنا يختلف دلاليّاً، وسبب كلّ اختلاف مكتوب عند الدالّة.
 import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../geo/geo_measure.dart' show haversineM, kEarthRadiusM;
+
+export '../geo/geo_measure.dart' show haversineM;
+
 /// نصف قطر الأرض الوسطيّ الذي يستعمله الخادم للمساحة والمسافة (WGS84 mean).
-const double kServerEarthRadiusM = 6371008.8;
+const double kServerEarthRadiusM = kEarthRadiusM;
 
 /// نصف القطر الاستوائيّ الذي يولّد به الخادم مضلّع المحور (pivot).
 const double kPivotEarthRadiusM = 6378137.0;
@@ -49,6 +53,7 @@ double pyRound(double x, int n) {
   return x.isNegative ? -t : t;
 }
 
+/// يختلف عن geo/serverNormalizedRing: تقريب Python (التعادل إلى الزوجيّ) وحلقة [lon,lat] مغلقة.
 /// يطبّع الحلقة كما يطبّعها الخادم: [lon,lat] مقرّبة إلى 7 منازل، بلا تكرار
 /// متتالٍ، ومغلقة (الأوّل = الأخير). المدخل حلقة مفتوحة أو مغلقة من [LatLng].
 List<List<double>> serverNormalizedRing(List<LatLng> ring) {
@@ -69,6 +74,7 @@ List<List<double>> serverNormalizedRing(List<LatLng> ring) {
   return out;
 }
 
+/// صيغة geo/ringAreaM2 نفسها، لكن على أزواج [lon,lat] خامّ قد تقع خارج مدى LatLng.
 /// `polygon_area_m2` من الخادم حرفيّاً. [coords] أزواج [lon,lat].
 double serverPolygonAreaM2(List<List<double>> coords) {
   if (coords.length < 3) return 0;
@@ -100,21 +106,7 @@ double? serverStoredAreaHa(List<LatLng> ring) {
   return a == null ? null : pyRound(a, 2);
 }
 
-/// `haversine_m` من الخادم (R = 6371008.8 افتراضاً).
-double haversineM(
-  LatLng a,
-  LatLng b, {
-  double earthRadiusM = kServerEarthRadiusM,
-}) {
-  final phi1 = _rad(a.latitude), phi2 = _rad(b.latitude);
-  final dphi = _rad(b.latitude - a.latitude);
-  final dlam = _rad(b.longitude - a.longitude);
-  final h =
-      math.pow(math.sin(dphi / 2), 2) +
-      math.cos(phi1) * math.cos(phi2) * math.pow(math.sin(dlam / 2), 2);
-  return 2 * earthRadiusM * math.asin(math.sqrt(h.toDouble()));
-}
-
+/// يختلف عن geo/ringPerimeterM: رأسان ⇒ طول الخطّ لا ذهاباً وإياباً.
 /// محيط الحلقة بالأمتار (مغلقة عند ≥3 رؤوس، وإلّا طول الخطّ).
 double perimeterM(List<LatLng> ring) {
   if (ring.length < 2) return 0;
@@ -128,6 +120,7 @@ double perimeterM(List<LatLng> ring) {
   return total;
 }
 
+/// يختلف عن geo/destinationPoint: نصف القطر الاستوائيّ للمحور والزاوية بالراديان.
 /// نقطة الوصول الجيوديسيّة (`_destination_point` في الخادم). [bearingRad]: 0 = الشمال.
 LatLng destinationPoint(LatLng from, double distanceM, double bearingRad) {
   final lat1 = _rad(from.latitude);
