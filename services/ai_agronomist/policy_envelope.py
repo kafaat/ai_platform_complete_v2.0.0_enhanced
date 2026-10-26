@@ -8,6 +8,9 @@ and **never opens the database for tenant policy**.
 Fail-closed contract:
   • A request whose pack carries no valid envelope is *refused* — a structured decision,
     never a raw exception (``enforce_request``).
+  • Generation by *any* provider, local included, requires ``ai_generation_allowed`` to be
+    exactly ``True`` (decision reason ``ai_generation_not_allowed``). An envelope minted
+    before that key existed still validates, but authorizes no generation.
   • ``local_only`` blocks any external-LLM/provider call
     (decision reason ``local_only_blocks_external_provider``).
   • ``redacted_external`` permits an external call *only after redaction*.
@@ -47,6 +50,7 @@ REASON_EXTERNAL_LLM_NOT_ALLOWED = "external_llm_not_allowed"
 REASON_REDACTED_REQUIRES_REDACTION = "redacted_external_requires_redaction"
 REASON_FULL_EXTERNAL_ALLOWED = "full_external_allowed"
 REASON_TOOL_NOT_ALLOWED = "tool_not_in_allowed_tools"
+REASON_AI_GENERATION_NOT_ALLOWED = "ai_generation_not_allowed"
 
 _REQUIRED_KEYS = ("policy_mode", "allowed_tools", "external_llm_allowed", "version")
 
@@ -69,6 +73,12 @@ def validate_envelope(envelope: Any) -> tuple[bool, str | None]:
     if envelope.get("policy_mode") not in POLICY_MODES:
         return False, REASON_INVALID_POLICY_MODE
     if not isinstance(envelope.get("external_llm_allowed"), bool):
+        return False, REASON_ENVELOPE_MALFORMED
+    # Optional for older envelopes (absence ⇒ no generation, see gate_generation), but a
+    # present value must be a real boolean.
+    if "ai_generation_allowed" in envelope and not isinstance(
+        envelope["ai_generation_allowed"], bool
+    ):
         return False, REASON_ENVELOPE_MALFORMED
     if not isinstance(envelope.get("allowed_tools"), list):
         return False, REASON_ENVELOPE_MALFORMED
@@ -114,8 +124,9 @@ def gate_generation(envelope: dict[str, Any] | None, *, external: bool) -> dict[
     """Decide whether a generation call may proceed and how.
 
     ``external`` is True when the resolved provider ships context outside the tenant
-    boundary. Local providers are never blocked by data-sharing mode (the data does not
-    leave); external providers are gated by ``policy_mode`` + ``external_llm_allowed``.
+    boundary. Every provider first needs ``ai_generation_allowed is True`` (the tenant's
+    AI opt-out). Local providers are then never blocked by data-sharing mode (the data does
+    not leave); external providers are gated by ``policy_mode`` + ``external_llm_allowed``.
     ``redacted_external`` ⇒ allowed with ``requires_redaction=True``.
     """
     # Missing/malformed envelopes cannot authorize *any* generation, including local.
@@ -125,6 +136,8 @@ def gate_generation(envelope: dict[str, Any] | None, *, external: bool) -> dict[
         return refusal(reason or REASON_ENVELOPE_MISSING, envelope, requires_redaction=False)
 
     assert envelope is not None  # validated above
+    if envelope.get("ai_generation_allowed") is not True:
+        return refusal(REASON_AI_GENERATION_NOT_ALLOWED, envelope, requires_redaction=False)
     if not external:
         return _decision(
             DECISION_ALLOWED, REASON_LOCAL_PROVIDER, envelope, requires_redaction=False
