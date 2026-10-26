@@ -4472,3 +4472,9 @@ PR #1202 exposed a stale ISSUED grant inherited from merged #1201. Re-read GitHu
 **القرار:** دُمج #1289 على `ba1978cc2` ⇒ `775e63bff` بعد قول المالك «دمج #1289 على ba1978cc2»، لا بتفويض «قوم بعمل ما يلزم» العامّ.
 **السبب:** الدمج يُعيد نشر أربع خدمات إنتاج، وقاعدة المالك أنّ كلّ دمجٍ فعليّ يتطلّب موافقةً صريحة مستقلّة على الرأس النهائيّ. شجرة الدمج تساوي الشجرة المختبَرة.
 **المرجع:** #1289؛ `775e63bff`.
+
+### 2026-10-26 — مرآة Alibaba افتراضيّةً لبناءات docker compose وحدها
+
+**القرار:** كلّ بناء compose يُشغّل `pip install` (56 بناءً في `docker-compose.v9.yml` و`docker-compose.rag-kg-mcp.yml` و`docker-compose.v9.gpu.yml`) يُمرّر `PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}`، و`.env.example` على القيمة نفسها. الـDockerfiles تبقى على `ARG PIP_INDEX_URL=https://pypi.org/simple`.
+**السبب:** طلب المالك إضافة مرآة Alibaba للحاويات، واختار «Default in compose only» من ثلاثة خيارات. القياس: كلّ Dockerfile يُشغّل pip كان يُعلن الـARG أصلاً، لكنّ compose لا يُمرّر إلّا الـARG المذكور في `build.args`، فكان 54 من 56 بناءً يتجاهل `PIP_INDEX_URL` حتى لو ضُبط. وبناءات CI وRailway تبني الـDockerfiles مباشرةً (لا workflow يبني عبر compose)، فلا يتغيّر مصدر حزمها.
+**المرجع:** فرع `claude/pip-mirror-20261026`؛ [`docs/runbooks/ALIBABA_PYPI_MIRROR.md`](../../docs/runbooks/ALIBABA_PYPI_MIRROR.md).

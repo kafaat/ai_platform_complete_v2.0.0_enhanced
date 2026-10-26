@@ -10093,3 +10093,11 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 
 - **قبل الدمج:** تحرّك `main` مرّتين (#1288 ثمّ #1290) فتعارض الـPR في مصنوعات مشتقّة وحدها؛ حُلّت بجانب الفرع ثمّ أُعيد التوليد. أساس `tenant_guc_scope_baseline.json` تزحزح سطراً لموضعٍ قائم (`services/auth/main.py:994` ⇒ `:993`). وأضاف الاشتقاق `WX-008` إلى `Capability-Impact` بعد #1290.
 - **النشر (Railway `list-deployments`، قراءةٌ فقط، 16:32Z–16:35Z):** production: decision-service وfrontend وguardrails-engine وnotification-agent نجحت؛ staging: الأربعة وai-agronomist نجحت؛ `sahool-migrate-main` SKIPPED في البيئتين. يطابق سطر `Deploy-Effect` المشتقّ تماماً، وأُضيف حالةً مقيسة في [`docs/architecture/railway_deploy_measurements.json`](../docs/architecture/railway_deploy_measurements.json).
+
+### 2026-10-26 — مرآة pip لبناءات docker compose
+
+طلب المالك التحقّق من الحاويات التي بلا مرآة وإضافة `https://mirrors.aliyun.com/pypi/simple/`. المقيس على 37 ملفّ حاوية: كلّ ما يُشغّل `pip install` يُعلن `ARG PIP_INDEX_URL` (PyPI افتراضيّاً، Alibaba موثَّقة) ويفرضه `tests_v9/test_dockerfile_pip_mirror_guard.py`؛ و`model-registry-adapter` وواجهتا nginx تستعمل Python بلا pip. الفجوة الفعليّة في compose: بناءان فقط من 56 يُمرّران الـARG. اختار المالك أن تكون Alibaba الافتراضيّ في compose وحده.
+
+- **التغيير:** `build.args.PIP_INDEX_URL` بافتراض Alibaba في 56 بناءً؛ `.env.example`؛ قسمٌ في دليل المرآة.
+- **الحارس:** `test_every_compose_pip_build_forwards_the_alibaba_default_index` — يفشل على `main` بـ56 مخالفاً ويمرّ بعد التغيير.
+- **أثر النشر:** لا شيء؛ CI وRailway يبنيان الـDockerfiles مباشرةً وهي باقية على PyPI.

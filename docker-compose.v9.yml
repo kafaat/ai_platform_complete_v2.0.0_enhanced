@@ -15,6 +15,7 @@ services:
       context: .
       dockerfile: services/raster-tiler-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -161,6 +162,8 @@ services:
     build:
       context: .
       dockerfile: services/video-processor/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 768m
     security_opt:
     - no-new-privileges:true
@@ -207,6 +210,7 @@ services:
       context: .
       dockerfile: services/agriai-engine/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -263,6 +267,8 @@ services:
     build:
       context: .
       dockerfile: services/tts-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -769,6 +775,7 @@ services:
       context: .
       dockerfile: services/auth/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -849,6 +856,7 @@ services:
       context: .
       dockerfile: services/sahool-platform/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -971,6 +979,8 @@ services:
     build:
       context: .
       dockerfile: services/weather-signal-engine/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     security_opt:
     - no-new-privileges:true
     restart: unless-stopped
@@ -1007,6 +1017,7 @@ services:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1056,6 +1067,7 @@ services:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1100,6 +1112,8 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1129,6 +1143,8 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1158,6 +1174,8 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1185,6 +1203,8 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1223,6 +1243,8 @@ services:
     build:
       context: .
       dockerfile: services/vegetation-analysis-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 768m
     security_opt:
     - no-new-privileges:true
@@ -1287,6 +1309,8 @@ services:
     build:
       context: .
       dockerfile: services/field-management-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 256m
     security_opt:
     - no-new-privileges:true
@@ -1332,6 +1356,8 @@ services:
     build:
       context: .
       dockerfile: services/scout-ingest-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 256m
     security_opt:
     - no-new-privileges:true
@@ -1398,6 +1424,8 @@ services:
     build:
       context: .
       dockerfile: services/scout-ingest-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 256m
     security_opt:
     - no-new-privileges:true
@@ -1435,6 +1463,8 @@ services:
     build:
       context: .
       dockerfile: services/remote-sensing-workspace-bff/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 256m
     security_opt:
     - no-new-privileges:true
@@ -1472,6 +1502,7 @@ services:
       context: .
       dockerfile: services/raster-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1570,6 +1601,7 @@ services:
       context: .
       dockerfile: services/raster-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1627,6 +1659,7 @@ services:
       context: .
       dockerfile: services/raster-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1749,6 +1782,8 @@ services:
     build:
       context: .
       dockerfile: services/indicators-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1778,6 +1813,7 @@ services:
       context: .
       dockerfile: services/weather-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1825,6 +1861,7 @@ services:
       context: .
       dockerfile: services/decision-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -1945,6 +1982,8 @@ services:
     build:
       context: .
       dockerfile: services/actuator-service/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2034,6 +2073,8 @@ services:
     build:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 1536m
     security_opt:
     - no-new-privileges:true
@@ -2072,6 +2113,8 @@ services:
     build:
       context: .
       dockerfile: services/local-ai-rag/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 2g
     security_opt:
     - no-new-privileges:true
@@ -2118,7 +2161,7 @@ services:
       context: .
       dockerfile: services/rag-retrieval/Dockerfile
       args:
-        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         PIP_EXTRA_INDEX_URL: ${PIP_EXTRA_INDEX_URL:-}
     mem_limit: 768m
     security_opt:
@@ -2160,7 +2203,7 @@ services:
       context: .
       dockerfile: services/knowledge-graph/Dockerfile
       args:
-        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         PIP_EXTRA_INDEX_URL: ${PIP_EXTRA_INDEX_URL:-}
     mem_limit: 512m
     security_opt:
@@ -2188,6 +2231,8 @@ services:
     build:
       context: .
       dockerfile: services/ai_agronomist/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 768m
     security_opt:
     - no-new-privileges:true
@@ -2244,6 +2289,8 @@ services:
     build:
       context: .
       dockerfile: services/qdrant-seed/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2278,6 +2325,8 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     # ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 (قرار المالك §3.4، 2026-09-30):
     # «خدمةٌ لا تعمل بلا تبعيّتها لا تُشغَّل بلا تبعيّتها» — الجسر بلا ERP لا يفعل شيئاً، فهو خلف
     # profile odoo نفسه الذي يحمل sahool-odoo (يُرفَعان معاً: --profile odoo). ومن يعتمد عليه
@@ -2376,6 +2425,8 @@ services:
     build:
       context: .
       dockerfile: bots/telegram/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2417,6 +2468,8 @@ services:
     build:
       context: .
       dockerfile: agents/notification/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2613,6 +2666,7 @@ services:
       context: .
       dockerfile: services/soil-service/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
         SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
         SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
@@ -2654,6 +2708,8 @@ services:
     build:
       context: .
       dockerfile: services/field-segmentation/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     container_name: sahool-v9-field-segmentation
     mem_limit: 512m
     security_opt:
@@ -2685,6 +2741,8 @@ services:
     build:
       context: .
       dockerfile: services/sam2-inference/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     container_name: sahool-v9-sam2-inference
     profiles:
     - gpu
@@ -3289,6 +3347,8 @@ services:
     build:
       context: .
       dockerfile: services/realtime-session/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     environment:
       SAHOOL_REALTIME_ENABLED: '0'
       REALTIME_SQLITE_PATH: /data/realtime.sqlite3
@@ -3319,6 +3379,8 @@ services:
     build:
       context: .
       dockerfile: services/realtime-agent/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
     environment:
       SAHOOL_REALTIME_VOICE_ENABLED: '0'
       HF_HUB_OFFLINE: '1'
