@@ -984,7 +984,9 @@ async def generate(
                     text = _extract_text(cfg, data)
                     break
 
-                loop_out = tool_loop.run_tool_calls(
+                # Off the event loop: read tools can be CPU-bound (zoning k-means).
+                loop_out = await asyncio.to_thread(
+                    tool_loop.run_tool_calls,
                     provider_calls,
                     allowed_capabilities=allowed_capabilities,
                     fetcher=tool_fetcher,

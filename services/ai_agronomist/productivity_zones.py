@@ -139,6 +139,7 @@ def propose_productivity_zones(
     from .productivity_zones_clustering import (
         extract_aux_grids,
         extract_ndvi_grid,
+        ndvi_grid_exceeds_cap,
         zones_from_ndvi_grid,
     )
 
@@ -212,7 +213,12 @@ def propose_productivity_zones(
         "basis": basis,
         "method": "insufficient_data",
         "status": "insufficient_data",
-        "reason_codes": ["usable_indicator_grid_required"],
+        "reason_codes": ["usable_indicator_grid_required"]
+        + (
+            ["indicator_grid_exceeds_size_cap"]
+            if ndvi_grid_exceeds_cap(params, evidence_context)
+            else []
+        ),
         "source_evidence_dates": total_dates,
         "productivity_zones": [],
         "confidence": None,
