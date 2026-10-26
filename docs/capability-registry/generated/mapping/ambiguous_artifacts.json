@@ -1590,6 +1590,14 @@
           "content:Scouting",
           "content:scouting"
         ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 9,
+        "signals": [
+          "content:inventory",
+          "content:procurement"
+        ]
       }
     ]
   },
