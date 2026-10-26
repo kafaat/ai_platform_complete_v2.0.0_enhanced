@@ -39,6 +39,11 @@ def loaded_main():
     """يُحمَّل مرّةً للوحدة: الراوترات تلتقط كائنَ `main` عند أوّل استيراد، فتحميلٌ لكلّ
     اختبارٍ يجعل الرقعَ تقع على كائنٍ غيرِ الذي تنظر إليه الراوترات (قِيس: 503 توكن)."""
     os.environ["SAHOOL_AGENT_TOKEN"] = "review-agent-token"
+    # وحداتُ `routers.*` المُخبَّأة من ملفّ اختبارٍ سابق في العمليّة نفسها تحمل كائنَ `main`
+    # القديم (توكنه فارغ) ⇒ 503 بدل 422 عند تشغيل دليل الخدمة كاملاً (قِيس). تُطرَد هنا
+    # كي يُعيد `register_routers` استيرادَها مربوطةً بهذا الكائن.
+    for name in [m for m in sys.modules if m == "routers" or m.startswith("routers.")]:
+        del sys.modules[name]
     spec = importlib.util.spec_from_file_location("main", HERE / "main.py")
     main = importlib.util.module_from_spec(spec)
     sys.modules["main"] = main

@@ -33,9 +33,13 @@ def _client_with_open_circuit(monkeypatch) -> TestClient:
 
     monkeypatch.setattr(main.router, "classify_intent", fake_classify)
     monkeypatch.setitem(main.skill_libraries, "crop_model", _OpenCircuitSkill())
+    # المستخدم كما يُنتجه `_get_current_user` الحقيقيّ (main.py يضع `_mcp_bearer` من
+    # التوكن المُتحقَّق). بدونه يرفض `mcp_client.bind_credentials` قبل المهارة بـ
+    # MCPAuthenticationError، فيُقاس فشلُ المصادقة لا القاطعُ المفتوح.
     main.app.dependency_overrides[main._get_current_user] = lambda: {
         "sub": "u1",
         "tenant_id": "t1",
+        "_mcp_bearer": "verified-caller",
     }
     return TestClient(main.app)
 
