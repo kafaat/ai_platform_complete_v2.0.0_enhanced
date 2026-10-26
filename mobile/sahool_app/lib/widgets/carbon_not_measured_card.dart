@@ -1,6 +1,9 @@
+// SAHOOL — lib/widgets/carbon_not_measured_card.dart
 // No carbon sequestration producer exists in /api/v1/indicators/dashboard.
 // Never render an invented mass or financial credit value.
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
 
 const String kCarbonNotMeasuredValue = 'غير مقيس';
 
@@ -9,23 +12,26 @@ class CarbonNotMeasuredCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final muted = context.tokens.muted;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsetsDirectional.all(SahoolSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.eco, color: Colors.grey, size: 28),
-            const SizedBox(height: 12),
+            Icon(Icons.eco, color: muted, size: SahoolSizes.iconLg),
+            const SizedBox(height: SahoolSpacing.md),
             Text(
               kCarbonNotMeasuredValue,
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 22),
+              style: context.textStyles.titleLarge?.copyWith(color: muted),
             ),
-            const SizedBox(height: 4),
-            Text('الكربون المخزّن', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            const Text('لا يوجد مصدر قياس للكربون المخزّن أو قيمة اعتماده بعد.',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: SahoolSpacing.xs),
+            Text('الكربون المخزّن', style: context.textStyles.bodyMedium),
+            const SizedBox(height: SahoolSpacing.sm),
+            Text(
+              'لا يوجد مصدر قياس للكربون المخزّن أو قيمة اعتماده بعد.',
+              style: context.textStyles.bodySmall?.copyWith(color: muted),
+            ),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:sahool_app/core/routing/app_navigator.dart';
 import 'package:sahool_app/core/routing/app_route.dart';
 import 'package:sahool_app/core/routing/shell_scope.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_snapshot_store.dart';
 import 'package:sahool_app/screens/dashboard_screen.dart';
 
 abstract final class DashboardRoutes {
@@ -33,4 +34,7 @@ final FeatureModule dashboardFeature = FeatureModule(
       ),
     ),
   ],
+  // لقطة «اليوم» المحفوظة تخصّ الحساب: تُمسَح عند الخروج (المفتاح مُنطَّق
+  // بالمستأجِر+المستخدم أصلاً، والمسح يمنع بقاءها على جهاز مشترك).
+  onSessionEnd: (_) => HiveDashboardSnapshotStore.instance.clear(),
 );
