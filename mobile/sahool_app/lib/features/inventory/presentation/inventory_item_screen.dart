@@ -20,10 +20,11 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_tile.dart';
 
 import 'inventory_screen.dart' show expiryChip, inventoryCategoryIcon;
 import 'inventory_sheets.dart';
-import 'widgets/inventory_tile.dart';
 
 /// أقصى نافذة يقبلها الخادم لـ/inventory/expiring (le=3650).
 const int kAllBatchesWindowDays = 3650;
@@ -52,8 +53,15 @@ class InventoryItemFailed extends InventoryItemState {
 }
 
 class InventoryItemLoaded extends InventoryItemState {
-  const InventoryItemLoaded({required this.item, required this.batches});
+  const InventoryItemLoaded({
+    required this.item,
+    required this.batches,
+    this.refreshError,
+  });
   final InventoryItem item;
+
+  /// فشل آخر تحديث؛ المعروض من التحميل السابق.
+  final ApiException? refreshError;
 
   /// دفعات هذا العنصر ذات تاريخ انتهاء، الأقرب انتهاءً أوّلاً.
   final List<ExpiringBatch> batches;
@@ -97,7 +105,17 @@ class InventoryItemCubit extends Cubit<InventoryItemState> {
       emit(InventoryItemLoaded(item: item, batches: batches));
     } catch (e) {
       if (isClosed) return;
-      emit(InventoryItemFailed(ApiException.from(e)));
+      final err = ApiException.from(e);
+      final prev = state;
+      emit(
+        prev is InventoryItemLoaded
+            ? InventoryItemLoaded(
+                item: prev.item,
+                batches: prev.batches,
+                refreshError: err,
+              )
+            : InventoryItemFailed(err),
+      );
     }
   }
 }
@@ -225,6 +243,10 @@ class _ItemViewState extends State<_ItemView> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(SahoolSpacing.lg),
       children: [
+        if (s.refreshError != null) ...[
+          OpsRefreshBanner(error: s.refreshError!),
+          const SizedBox(height: SahoolSpacing.md),
+        ],
         SectionCard(
           title: item.categoryLabel,
           icon: inventoryCategoryIcon(item.category),
@@ -308,7 +330,7 @@ class _ItemViewState extends State<_ItemView> {
               : Column(
                   children: [
                     for (final b in s.batches)
-                      InventoryTile(
+                      OpsTile(
                         key: ValueKey('batch:${b.batchId}'),
                         title: b.quantity == null
                             ? kNotMeasured

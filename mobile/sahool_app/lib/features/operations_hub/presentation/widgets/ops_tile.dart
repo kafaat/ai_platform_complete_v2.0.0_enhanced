@@ -1,4 +1,6 @@
-// SAHOOL — features/inventory/presentation/widgets/inventory_tile.dart
+// SAHOOL — features/operations_hub/presentation/widgets/ops_tile.dart
+// مشترك بين وحدات العمليّات (المخزون، المعدّات، الأجهزة) — مرشّح للنقل إلى
+// core/widgets.
 // عنصر قائمة برقاقات حالة تحت النصّ لا في الذيل: ListTile يرمي «Trailing widget
 // consumes the entire tile width» حين تكبر الرقاقة (خطّ 1.3× على شاشة 360dp)،
 // وهنا يلتفّ النصّ والرقاقات بدل أن يفيضا. هدف لمس ≥56dp وسهم يعكس اتّجاهه في RTL.
@@ -6,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 
-class InventoryTile extends StatelessWidget {
-  const InventoryTile({
+class OpsTile extends StatelessWidget {
+  const OpsTile({
     super.key,
     required this.title,
     this.subtitle,

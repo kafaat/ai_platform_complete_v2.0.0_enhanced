@@ -1,6 +1,8 @@
-// أدوات اختبار ميزة المخزون: عميل حقيقيّ فوق محوّل مزيّف، ومضيف MaterialApp
-// عربيّ بالسمة الفاتحة ومندوبي التعريب (بدونهم يرمي كلّ TextField).
+// أدوات اختبار وحدات العمليّات (المخزون، المعدّات، الأجهزة، المركز): عميل
+// حقيقيّ فوق محوّل مزيّف، ومضيف MaterialApp عربيّ بالسمة الفاتحة ومندوبي
+// التعريب (بدونهم يرمي كلّ TextField).
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -66,3 +68,19 @@ class FakeOutbox implements OfflineOutbox {
   @override
   Stream<int> get pendingCount => Stream<int>.value(ops.length);
 }
+
+/// شاشة طويلة: القوائم كسولة والعناصر خارج العرض لا تُبنى.
+void useTallView(WidgetTester t, {double height = 2000}) {
+  t.view.physicalSize = Size(800, height);
+  t.view.devicePixelRatio = 1;
+  addTearDown(t.view.reset);
+}
+
+/// جسم طلب كتابة مُرسَل كما التقطه المحوّل.
+Map<String, dynamic> requestBody(RecordedRequest r) => r.data is String
+    ? jsonDecode(r.data! as String) as Map<String, dynamic>
+    : Map<String, dynamic>.from(r.data! as Map);
+
+/// يبحث داخل الورقة السفليّة المفتوحة فقط.
+Finder inBottomSheet(Finder f) =>
+    find.descendant(of: find.byType(BottomSheet), matching: f);

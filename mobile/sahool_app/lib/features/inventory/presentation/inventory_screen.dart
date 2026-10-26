@@ -14,11 +14,12 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_tile.dart';
 
 import 'inventory_cubit.dart';
 import 'inventory_item_screen.dart';
 import 'inventory_sheets.dart';
-import 'widgets/inventory_tile.dart';
 
 IconData inventoryCategoryIcon(String category) => switch (category) {
   'fertilizer' => Icons.grass_outlined,
@@ -195,7 +196,11 @@ class _InventoryViewState extends State<_InventoryView> {
         slivers: [
           if (s.refreshError != null)
             SliverToBoxAdapter(
-              child: _RefreshErrorCard(state: s, now: now),
+              child: OpsRefreshBanner(
+                error: s.refreshError!,
+                fetchedAt: s.fetchedAt,
+                now: now,
+              ),
             ),
           SliverFillRemaining(
             child: EmptyState(
@@ -218,7 +223,12 @@ class _InventoryViewState extends State<_InventoryView> {
       // حشوة سفليّة كي لا يغطّي الزرّ العائم آخر عنصر.
       padding: const EdgeInsetsDirectional.only(bottom: 96),
       children: [
-        if (s.refreshError != null) _RefreshErrorCard(state: s, now: now),
+        if (s.refreshError != null)
+          OpsRefreshBanner(
+            error: s.refreshError!,
+            fetchedAt: s.fetchedAt,
+            now: now,
+          ),
         _Summary(state: s),
         if (s.expiring.isNotEmpty) ...[
           const ListSectionHeader(
@@ -279,50 +289,6 @@ class _InventoryViewState extends State<_InventoryView> {
       if (i.id == id) return i;
     }
     return null;
-  }
-}
-
-class _RefreshErrorCard extends StatelessWidget {
-  const _RefreshErrorCard({required this.state, required this.now});
-  final InventoryLoaded state;
-  final DateTime now;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        SahoolSpacing.lg,
-        SahoolSpacing.md,
-        SahoolSpacing.lg,
-        0,
-      ),
-      child: Semantics(
-        liveRegion: true,
-        child: Container(
-          padding: const EdgeInsets.all(SahoolSpacing.md),
-          decoration: BoxDecoration(
-            color: t.warning.withValues(alpha: 0.12),
-            borderRadius: SahoolRadius.mdAll,
-            border: Border.all(color: t.warning.withValues(alpha: 0.45)),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.sync_problem_rounded, color: t.warning),
-              const SizedBox(width: SahoolSpacing.sm),
-              Expanded(
-                child: Text(
-                  'تعذّر التحديث: ${state.refreshError!.messageAr}\n'
-                  'المعروض من آخر تحميل ناجح '
-                  '(${fmtAge(state.fetchedAt, now: now)}).',
-                  style: context.textStyles.bodySmall,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -466,7 +432,7 @@ class _ExpiringTile extends StatelessWidget {
         horizontal: SahoolSpacing.lg,
         vertical: SahoolSpacing.xs,
       ),
-      child: InventoryTile(
+      child: OpsTile(
         key: ValueKey('expiring:${batch.batchId}'),
         title: batch.name.isEmpty ? '—' : batch.name,
         subtitle: 'الكمّيّة: $qty · الانتهاء: ${fmtDate(batch.expiryDate)}',
@@ -498,7 +464,7 @@ class _ItemTile extends StatelessWidget {
         horizontal: SahoolSpacing.lg,
         vertical: SahoolSpacing.xs,
       ),
-      child: InventoryTile(
+      child: OpsTile(
         key: ValueKey('item:${item.id}'),
         title: item.name.isEmpty ? '—' : item.name,
         subtitle: '${item.categoryLabel} · المتوفّر: $qty$reorder',

@@ -9,7 +9,7 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/presentation/inventory_screen.dart';
 
-import 'inventory_test_host.dart';
+import '../operations_hub/ops_test_host.dart';
 
 final now = DateTime(2026, 10, 26, 9);
 

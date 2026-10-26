@@ -15,8 +15,7 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
-
-import 'widgets/inventory_date_field.dart';
+import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_date_field.dart';
 
 /// نتيجة ورقة كتابة: حُفظت على الخادم، أو أُودعت للإرسال لاحقاً.
 enum InventoryWriteResult { saved, queued }
@@ -267,7 +266,7 @@ class _StockInSheetState extends State<StockInSheet> {
             controller: _unit,
             helper: 'وحدة العنصر افتراضيّاً',
           ),
-          InventoryDateField(
+          OpsDateField(
             label: 'تاريخ الاستلام',
             value: _received,
             firstDate: DateTime(today.year - 5),
@@ -277,7 +276,7 @@ class _StockInSheetState extends State<StockInSheet> {
                   _received = d ?? DateTime(today.year, today.month, today.day),
             ),
           ),
-          InventoryDateField(
+          OpsDateField(
             label: 'تاريخ انتهاء الصلاحيّة (اختياري)',
             value: _expiry,
             firstDate: DateTime(today.year - 1),

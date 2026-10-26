@@ -1,4 +1,5 @@
-// SAHOOL — features/inventory/presentation/widgets/inventory_date_field.dart
+// SAHOOL — features/operations_hub/presentation/widgets/ops_date_field.dart
+// مشترك بين وحدات العمليّات — مرشّح للنقل إلى core/widgets.
 // حقل تاريخ بمنتقٍ (لا كتابة YYYY-MM-DD يدويّاً): يعرض التاريخ بالعربيّة، ويُمسَح
 // بزرّ واضح، وهدف لمسه ≥48dp.
 import 'package:flutter/material.dart';
@@ -6,8 +7,8 @@ import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 
-class InventoryDateField extends StatelessWidget {
-  const InventoryDateField({
+class OpsDateField extends StatelessWidget {
+  const OpsDateField({
     super.key,
     required this.label,
     required this.value,
