@@ -10050,3 +10050,12 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-26 — الإصلاحات كلّها في PR واحد، ووصلُ 76 اختباراً لم يشغّلها CI
 
 بأمر المالك «تنفيذ جميع الإصلاحات في pr واحد» ضُمّ إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 (كان ممسوكاً لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة) إلى الفرع الموحَّد، ومعه نتيجةُ مسح الاختبارات غير المُشغَّلة: SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 مسجَّلةٌ، وخمسةُ اختباراتٍ قديمة أُصلحت، واستثناءٌ دقيق لـ`/runtime-identity` في حارسي auth وsoil، و`p2_main_decomposition_guard` يقرأ الاستيراد الحقيقيّ بالـAST بعد أن كان يمرّ بنصّ docstring، و76 ملفّاً تُشغَّل الآن في وظيفة Unit Tests المطلوبة.
+
+### 2026-10-26 — بعد دمج #1285: النشر المقيس، وتصحيحُ ادّعاء أثر النشر
+
+#1285 دُمج ⇒ `73355f509` (squash على `2b4a74b23`؛ شجرة الدمج `6013f756` = شجرة الرأس المختبَر `00ec67d35`).
+
+- **النشر (Railway `list-deployments`، قراءةٌ فقط، 02:52Z):** production: `sahool-frontend` و`sahool-auth-main` و`sahool-vegetation-analysis` نجحت؛ staging: `sahool-soil-service` و`sahool-frontend` و`sahool-vegetation-analysis` نجحت، و`sahool-auth-main` نجح 03:11Z. الباقي SKIPPED، والمهاجر لم يُطلَق.
+- **تصحيح:** وصفُ #1285 قال إنّ الدمج يُعيد نشر البوّابة وحدها. أُعيد نشرُ ثلاث خدماتٍ أخرى لأنّ ملفّات اختبارٍ في مجلّداتها تطابق أنماط المراقبة (`services/auth/tests/test_router_decomposition_guard.py` · `services/soil-service/test_soil_ingest_entrypoint_parity.py` و`test_soil_router_decomposition_guard.py` · `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py`). سُجّلت PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01.
+- **CI على `main`:** خطوةُ الاختبارات المحلّيّة في الخدمات (76 ملفّاً) خضراء في وظيفة Unit Tests (`40260916782`/`121372907914`).
+- **صفّا الفجوتين المُصلَحتين يبقيان open:** MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وSERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 أُلحق بكلٍّ منهما سطرُ الدمج. ترقيتُه إلى `fixed` من الدماغ وحده يرفضها `brain_state_transition_guard` (قاعدة #1136: `fixed` في الـPR الذي يحمل الإصلاح)، و#1285 لم يرقِّ الصفّ — خطئي؛ فالترقيةُ في أوّل PR يمسّ كوداً.
