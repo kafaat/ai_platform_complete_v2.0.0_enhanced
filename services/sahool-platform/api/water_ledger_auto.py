@@ -67,6 +67,7 @@ _BIASING_ASSUMPTIONS = frozenset(
         "irrigation_unobserved",
         "et0_reference_unavailable",
         "root_zone_texture_fallback",
+        "irrigation_unknown_inherited",
     }
 )
 
@@ -86,18 +87,95 @@ _BIASING_ASSUMPTIONS = frozenset(
 #: **ولا يُخترَع تمييزٌ لا تسنده البيانات:** الحقلُ المطريّ والمرويُّ من بئرٍ بلا تسجيل
 #: كلاهما ``unrecorded`` — والتمييزُ بينهما شرطُ الإغلاق (إعدادُ مصادر الماء لكلّ حقلٍ
 #: وموسم)، لا استنتاجٌ من غياب الصفوف.
+#: ``inherited_unknown`` ريُّ اليوم مقيس، لكنّ الاستنزافَ **الموروث** من قيدٍ سابقٍ ريُّه مجهول.
+#:
+#: **العطلُ الذي بقي بعد الخطوة الجزئيّة:** العلَمُ يوميٌّ لا يرث — يومٌ له ريّةٌ مسجّلة فوق
+#: أيّامٍ بلا سجلّ كان يعود ``recorded`` واستنزافُه ``prev + …`` مبنيٌّ على ريٍّ مجهول.
+#: **والحدُّ الأعلى رياضيٌّ لا تقدير:** الريُّ المجهول لا يُنقِص إلّا ``raw_depletion``،
+#: والقصُّ إلى ``[0, TAW]`` رتيب، فالاستنزافُ المحسوبُ **حدٌّ أعلى** للحقيقيّ ما دام في
+#: السلسلة ريٌّ مجهول. ولذا ينقطع الإرث عند استنزافٍ محسوبٍ **صفر**: حدٌّ أعلى صفرٌ ⇒ الحقيقيّ
+#: صفرٌ بالضبط، والماضي لا يُحيّز ما بعده. وينقطع عند التهيئة وعند القيد اليدويّ (بدايةُ سلسلة).
 APPLIED_WATER_RECORDED = "recorded"
 APPLIED_WATER_UNRECORDED = "unrecorded"
 APPLIED_WATER_VOLUME_UNTRACKED = "volume_untracked"
+APPLIED_WATER_INHERITED_UNKNOWN = "inherited_unknown"
+
+#: كلُّ حالةٍ لا يكون فيها حدُّ الريّ في الميزان مقيساً (اليومَ أو موروثاً).
+_APPLIED_WATER_UNKNOWN = frozenset(
+    {APPLIED_WATER_UNRECORDED, APPLIED_WATER_VOLUME_UNTRACKED, APPLIED_WATER_INHERITED_UNKNOWN}
+)
+
+#: نافذةُ السلسلة التي يمشيها المستهلك بحثاً عن مرساة (> موسمٍ كامل من القيود اليوميّة).
+LEDGER_CHAIN_WINDOW = 400
+
+_BOOTSTRAP_NOTE = "bootstrap_assumed_field_capacity"
 
 
 def applied_water_status(notes) -> str:
-    """حالةُ الماء المضاف من أعلام القيد — مشتقّةٌ من ``notes`` لا من قائمةٍ ثانية."""
+    """حالةُ الماء المضاف من أعلام القيد — مشتقّةٌ من ``notes`` لا من قائمةٍ ثانية.
+
+    حالةُ اليوم نفسِه تتقدّم على الموروثة: ريٌّ مجهولٌ اليوم يُسمّى باسمه.
+    """
     if "irrigation_unobserved" in notes:
         return APPLIED_WATER_UNRECORDED
     if "irrigation_volume_untracked" in notes:
         return APPLIED_WATER_VOLUME_UNTRACKED
+    if "irrigation_unknown_inherited" in notes:
+        return APPLIED_WATER_INHERITED_UNKNOWN
     return APPLIED_WATER_RECORDED
+
+
+def irrigation_known(status: str | None) -> bool | None:
+    """هل حدُّ الريّ في الميزان مقيس؟ ``None`` = القيد لم يُعلِن (يدويّ/قديم) — لا يُفترَض."""
+    if status is None:
+        return None
+    return status == APPLIED_WATER_RECORDED
+
+
+def depletion_is_upper_bound(status: str | None, depletion_mm) -> bool:
+    """الاستنزافُ حدٌّ أعلى لا تقدير: ريٌّ مجهولٌ في السلسلة واستنزافٌ محسوبٌ فوق الصفر.
+
+    حدٌّ أعلى صفرٌ ليس حدّاً بل قيمةٌ مضبوطة (الحقيقيّ ∈ [0, 0]) — فلا يُسقَط.
+    """
+    if status not in _APPLIED_WATER_UNKNOWN or depletion_mm is None:
+        return False
+    return float(depletion_mm) > 0.0
+
+
+def _carries_unknown_applied_water(prev_status: str | None, prev_depletion_mm: float) -> bool:
+    """هل يُحيّز ريٌّ مجهولٌ في قيد الأمس استنزافَ اليوم؟ (المرساةُ الصفريّة تقطع الإرث)."""
+    return prev_status in _APPLIED_WATER_UNKNOWN and prev_depletion_mm > 0.0
+
+
+def ledger_chain_applied_water_status(rows) -> str | None:
+    """حالةُ الماء المضاف **للسلسلة** التي يقوم عليها أحدثُ قيد — لا ليومه وحدَه.
+
+    ``rows``: قيودُ الدفتر للحقل، الأحدثُ أوّلاً، كلٌّ بمفتاحَي ``decision`` و``depletion_mm``.
+    يمشي إلى الخلف حتّى مرساة: قيدٌ يدويّ (الإنسان سيّد الدفتر) · استنزافٌ صفر (مضبوط) ·
+    تهيئةٌ بريٍّ مقيس. قيدٌ ريُّه مجهولٌ قبل المرساة ⇒ ``inherited_unknown``. **ونفادُ النافذة
+    بلا مرساة ⇒ ``inherited_unknown``**: لا دليلَ أنّ السلسلة بدأت من حالةٍ معلومة، والغيابُ
+    لا يُقرأ «مُسجَّلاً».
+
+    ``None`` حين لا قيد أو حين أحدثُ قيدٍ يدويّ/قديم — لا يُدَّعى عنه ما لم يُعلِنه.
+    """
+    if not rows:
+        return None
+    head = ledger_notes_from_decision(rows[0].get("decision"))
+    if head is None:
+        return None
+    own = applied_water_status(head)
+    if own != APPLIED_WATER_RECORDED:
+        return own
+    for row in rows:
+        notes = ledger_notes_from_decision(row.get("decision"))
+        depletion = row.get("depletion_mm")
+        if notes is None or (depletion is not None and float(depletion) <= 0.0):
+            return APPLIED_WATER_RECORDED
+        if applied_water_status(notes) != APPLIED_WATER_RECORDED:
+            return APPLIED_WATER_INHERITED_UNKNOWN
+        if _BOOTSTRAP_NOTE in notes:
+            return APPLIED_WATER_RECORDED
+    return APPLIED_WATER_INHERITED_UNKNOWN
 
 
 def ledger_notes_from_decision(decision: str | None) -> list[str] | None:
@@ -128,11 +206,16 @@ def compute_daily_ledger_entry(
     et0_reference_unavailable: bool = False,
     root_zone_texture_fallback: bool = False,
     depletion_fraction_default: bool = False,
+    prev_applied_water_status: str | None = None,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
 
     Returns dict بمفاتيح أعمدة ``water_ledger`` الحسابيّة + ``notes`` (قائمة أعلام
-    الافتراضات) و``bootstrap`` و``confidence``.
+    الافتراضات) و``bootstrap`` و``confidence``، و``irrigation_known`` و
+    ``depletion_is_upper_bound`` صريحَين: صفرُ صفوفِ ريٍّ «مجهول» لا «صفر».
+
+    ``prev_applied_water_status``: حالةُ الماء المضاف في قيد الأمس. ريٌّ مجهولٌ هناك يُورَّث
+    (``irrigation_unknown_inherited``) ما لم يكن استنزافُ الأمس صفراً. ``None`` = لم يُعلَن.
     """
     # D08 — **التناهي قبل أيّ مقارنة.**
     #
@@ -208,6 +291,9 @@ def compute_daily_ledger_entry(
         # لا صفَّ ريٍّ لهذا اليوم: «لم يُرصَد سجلٌّ» لا «لم يُروَ». يبقى `irrigation_mm`
         # صفراً (لا بيانات تُضاف) والقيدُ أدنى تقدير — والثقةُ تهبط بإعلان.
         notes.append("irrigation_unobserved")
+    if not bootstrap and _carries_unknown_applied_water(prev_applied_water_status, prev):
+        # الاستنزافُ الموروث حدٌّ أعلى بُنِي على ريٍّ مجهول — يُسمّى ولا يُغسَل بريّةِ اليوم.
+        notes.append("irrigation_unknown_inherited")
 
     raw_depletion = prev + etc_mm - p_eff - irrigation_mm
     depletion_mm = round(min(max(raw_depletion, 0.0), taw_mm), 2)
@@ -236,6 +322,11 @@ def compute_daily_ledger_entry(
         # إضافيّ: يُسمّي سببَ انخفاض الثقة حين يكون الريُّ نفسُه مجهولاً — يقرؤه الجسرُ
         # المحكوم فلا يُنفِّذ آليّاً عجزاً بُنِي على ريٍّ مجهول (``water_decision_bridge``).
         "applied_water_status": applied_water_status(notes),
+        # صريحان لا مُستنتَجان: الريُّ مجهولٌ ≠ صفر، والاستنزافُ عندئذٍ حدٌّ أعلى لا قياس.
+        "irrigation_known": irrigation_known(applied_water_status(notes)),
+        "depletion_is_upper_bound": depletion_is_upper_bound(
+            applied_water_status(notes), depletion_mm
+        ),
         "decision": ("auto:" + (";".join(notes) if notes else "daily_balance")),
     }
 

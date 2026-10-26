@@ -38,8 +38,16 @@ class _FakeConn:
         soil_texture=None,
         spectral=None,
         decision=None,
+        history=None,
     ):
         self._decision = decision  # عمود ``water_ledger.decision`` كما يكتبه العامل
+        # القيودُ الأقدم (الأحدثُ أوّلاً) بعد قيد اليوم. الافتراضيّ: تهيئةٌ بريٍّ مقيس — سلسلةٌ
+        # مرساتُها معلومة، فلا يتغيّر ما تقيسه الاختباراتُ التي لا تعني السلسلة.
+        self._history = (
+            history
+            if history is not None
+            else [{"depletion_mm": 20.0, "decision": "auto:bootstrap_assumed_field_capacity"}]
+        )
         self._depletion = depletion_mm
         self._age = age_hours
         self._conf = confidence
@@ -48,6 +56,12 @@ class _FakeConn:
 
     def transaction(self):
         return _Tx()
+
+    async def fetch(self, sql, *a):
+        if "FROM water_ledger" in sql and self._depletion is not None:
+            head = {"depletion_mm": self._depletion, "decision": self._decision}
+            return [head, *self._history]
+        return []
 
     async def fetchrow(self, sql, *a):
         if "FROM seasons" in sql:
@@ -829,7 +843,73 @@ async def test_recorded_irrigation_has_no_applied_water_limitation(monkeypatch):
         _FakeConn(depletion_mm=60.0, confidence=0.4, decision="auto:irrigation_unobserved"),
     )
     unrecorded = await field_irrigation_recommendation("fld_1", _REQ, user=object())
-    assert unrecorded["confidence"] == recorded["confidence"]
+    # استنزافٌ فوق الصفر على ريٍّ مجهول حدٌّ أعلى ⇒ لا توصية (أدناه). أمّا الصفرُ فمضبوط
+    # (الحقيقيّ ∈ [0, 0]) فتُنتَج التوصية — بالثقة نفسِها.
+    assert unrecorded["recommendation"] is None
+    _patch(monkeypatch, _FakeConn(depletion_mm=0.0, confidence=0.4, decision="auto:daily_balance"))
+    recorded_zero = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=0.0, confidence=0.4, decision="auto:irrigation_unobserved"),
+    )
+    unrecorded_zero = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert unrecorded_zero["status"] == "recommendation_ready"
+    assert unrecorded_zero["inputs"]["depletion_mm"] == 0.0
+    assert unrecorded_zero["confidence"] == recorded_zero["confidence"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_unknown_applied_water_declares_absence_not_a_forward_depletion(monkeypatch):
+    """شرطُ الإغلاق (أ): صفرُ صفوفِ ريّ ⇒ مجهول ⇒ لا ``depletion_mm`` ولا كمّيّةُ ريّ.
+
+    كان القيدُ الآليّ بلا صفِّ ريّ يُنتِج توصيةً بكمّيّةٍ مبنيّةٍ على استنزافٍ هو **حدٌّ أعلى**
+    (الريُّ قُرِئ صفراً) — إفراطٌ في الريّ بالاتّجاه المعروف. الآن: غيابٌ مُعلَن.
+    """
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0, confidence=0.4, decision="auto:irrigation_unobserved"),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "insufficient_data"
+    assert out["recommendation"] is None and out["confidence"] is None
+    assert out["inputs"]["depletion_mm"] is None
+    assert out["inputs"]["depletion_upper_bound_mm"] == 60.0
+    assert out["inputs"]["irrigation_known"] is False
+    assert "applied_water_unknown_depletion_is_upper_bound" in out["limitations"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_recorded_day_over_unrecorded_days_inherits_the_unknown(monkeypatch):
+    """العلَمُ يوميٌّ لا يرث — يومٌ مُسجَّلٌ فوق أيّامٍ بلا سجلّ يبقى استنزافُه حدّاً أعلى."""
+    _patch(
+        monkeypatch,
+        _FakeConn(
+            depletion_mm=55.0,
+            decision="auto:daily_balance",
+            history=[
+                {"depletion_mm": 58.0, "decision": "auto:irrigation_unobserved"},
+                {"depletion_mm": 10.0, "decision": "auto:bootstrap_assumed_field_capacity"},
+            ],
+        ),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["inputs"]["applied_water_status"] == "inherited_unknown"
+    assert out["inputs"]["irrigation_known"] is False
+    assert out["recommendation"] is None
+    assert any(lim.startswith("applied_water_inherited_unknown") for lim in out["limitations"])
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_recorded_chain_to_its_anchor_still_recommends(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0, decision="auto:daily_balance"))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "recommendation_ready"
+    assert out["inputs"]["irrigation_known"] is True
+    assert out["inputs"]["depletion_mm"] == 60.0
+    assert out["inputs"]["depletion_upper_bound_mm"] is None
 
 
 @pytest.mark.unit
