@@ -28,6 +28,7 @@ from fastapi import FastAPI, Header, HTTPException
 from jwt import PyJWTError as _JE
 from pydantic import BaseModel, Field
 
+from shared.pool_shutdown import cancel_tasks_bounded, close_pool_bounded
 from shared.security.access_tokens import decode_access_token
 from shared.startup_retry import retry_startup_connect
 
@@ -103,11 +104,17 @@ async def lifespan(app: FastAPI):
         logger.info("ERP_PROVIDER != odoo → تخطّي تهيئة Odoo (اختياري؛ الأساسي erpnext)")
     # Start background sync (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.sync_task = asyncio.create_task(periodic_sync())
-    yield
-    if _erp_runtime._odoo:
-        await _erp_runtime._odoo.close()
-    if _erp_runtime._pool:
-        await _erp_runtime._pool.close()
+    try:
+        yield
+    finally:
+        # The sync loop holds pool connections: stop it before the pool closes, or close()
+        # waits on it and a later cycle acquires from a closed pool.
+        await cancel_tasks_bounded([app.state.sync_task], "erp-bridge sync")
+        if _erp_runtime._odoo:
+            await _erp_runtime._odoo.close()
+        pool, _erp_runtime._pool = _erp_runtime._pool, None
+        if pool is not None:
+            await close_pool_bounded(pool, "erp-bridge")
 
 
 # C-08 FIX: JWT verification with audience
