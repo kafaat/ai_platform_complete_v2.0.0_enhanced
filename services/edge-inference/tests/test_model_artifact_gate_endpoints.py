@@ -149,3 +149,44 @@ def test_yield_without_a_model_interval_publishes_none_and_the_limitation(monkey
     assert payload["estimated_yield_kg_ha"] == 2500.0
     assert payload["confidence_interval"] is None
     assert payload["limitations"] == ["yield_uncertainty_not_calibrated"]
+
+
+def _queued(tmp_path) -> list[Path]:
+    return sorted((tmp_path / "sync").glob("*.json"))
+
+
+def test_pest_detect_without_a_field_detects_but_never_queues_a_sync(monkeypatch, tmp_path):
+    """إطارُ بثٍّ غير مربوط بحقل: كان video-processor يُرسِل field_id="stream" فتُزامَن
+    نتيجةٌ تردّ عليها المنصّة 404 وتُعاد محاولتها بلا نهاية. بلا field_id ⇒ لا مزامنة."""
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        files={"file": ("frame.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["sync_status"] == "not_synced_no_field"
+    assert payload["field_id"] is None
+    assert payload["crop"] is None
+    assert payload["detections"][0]["class_name"] == "aphid"
+    assert _queued(tmp_path) == []
+
+
+def test_pest_detect_does_not_invent_a_crop_for_a_bound_field(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    client = TestClient(module.app)
+    response = client.post(
+        "/v1/inference/pest-detect",
+        data={"field_id": "field-unit"},
+        files={"file": ("frame.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
+        headers=_HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json()["crop"] is None
+    assert response.json()["sync_status"] == "queued"
+    [queued] = _queued(tmp_path)
+    assert '"field_id": "field-unit"' in queued.read_text(encoding="utf-8")

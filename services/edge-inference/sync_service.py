@@ -14,14 +14,57 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+# ردودٌ لا تُصلحها إعادةُ المحاولة: الطلب نفسه مرفوض (حقل غير موجود، مخطّط غير صالح،
+# تعارض مفتاح). إعادتها كلّ دورة تُنمّي الطابور بلا نهاية وتحجب ما خلفها عن المراقبة،
+# فتُنقَل إلى dead-letter للفحص اليدويّ. 5xx/المهلات/أخطاء الشبكة تبقى في الطابور.
+PERMANENT_REJECTION_STATUSES = frozenset({400, 404, 409, 422})
+
+
+def _permanent_rejection_status(exc: BaseException) -> int | None:
+    if isinstance(exc, httpx.HTTPStatusError):
+        status = exc.response.status_code
+        if status in PERMANENT_REJECTION_STATUSES:
+            return status
+    return None
+
 
 class CloudSyncService:
-    def __init__(self, cloud_url: str, token: str, sync_dir: str = "/data/sync_queue"):
+    def __init__(
+        self,
+        cloud_url: str,
+        token: str,
+        sync_dir: str = "/data/sync_queue",
+        dead_letter_dir: str | None = None,
+    ):
         self.cloud_url = cloud_url.rstrip("/")
         self.token = token
         self.sync_dir = sync_dir
+        # دليلٌ فرعيّ: queue_size/process_queue يقرآن *.json في المستوى الأعلى فقط.
+        self.dead_letter_dir = dead_letter_dir or str(Path(sync_dir) / "dead_letter")
         self.last_sync: datetime | None = None
         Path(sync_dir).mkdir(parents=True, exist_ok=True)
+
+    def dead_letter_size(self) -> int:
+        path = Path(self.dead_letter_dir)
+        return len(list(path.glob("*.json"))) if path.is_dir() else 0
+
+    def _dead_letter(self, path: Path, status: int) -> Path:
+        target_dir = Path(self.dead_letter_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / path.name
+        os.replace(path, target)
+        for directory in (self.sync_dir, str(target_dir)):
+            descriptor = os.open(directory, os.O_RDONLY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+        logger.warning(
+            "Edge result rejected permanently (HTTP %s) — moved to dead-letter: %s",
+            status,
+            target.name,
+        )
+        return target
 
     def queue_size(self) -> int:
         return len(list(Path(self.sync_dir).glob("*.json")))
@@ -103,6 +146,10 @@ class CloudSyncService:
                 await self._send(client, item)
             path.unlink(missing_ok=True)
         except Exception as exc:
+            status = _permanent_rejection_status(exc)
+            if status is not None:
+                self._dead_letter(path, status)
+                return False
             logger.info("Edge result retained for retry: %s", type(exc).__name__)
             return False
         self.last_sync = datetime.now(UTC)
@@ -137,6 +184,10 @@ class CloudSyncService:
                     path.unlink(missing_ok=True)
                     synced += 1
                 except Exception as exc:
+                    status = _permanent_rejection_status(exc)
+                    if status is not None:
+                        self._dead_letter(path, status)
+                        continue
                     logger.info("Edge queue item retained: %s (%s)", path.name, type(exc).__name__)
                     # Retain a bad item without blocking unrelated observations.
                     continue

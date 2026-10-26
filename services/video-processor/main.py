@@ -203,7 +203,18 @@ class StreamConfig(BaseModel):
     tenant_id: str = "default"
     ai_enabled: bool = True
     ai_model: str = "pest_yolov8"
+    # محصول الحقل إن عُرِف؛ None ⇒ لا يُرسَل (لا «wheat» مُفترَض).
+    crop: str | None = None
     detection_interval_sec: int = 5
+
+
+# قيمٌ تعني «البثّ غير مربوط بحقل»: لا تُرسَل field_id للحافة فلا تُزامَن النتيجة.
+_UNBOUND_FIELD_IDS = frozenset({"", "unknown", "stream"})
+
+
+def _bound_field_id(field_id: str | None) -> str | None:
+    value = (field_id or "").strip()
+    return None if value.lower() in _UNBOUND_FIELD_IDS else value
 
 
 class StreamState:
@@ -247,8 +258,8 @@ async def async_capture(source: str) -> np.ndarray | None:
 # ══════════════════════════════════════════════════════════════
 # Edge Inference Call
 # ══════════════════════════════════════════════════════════════
-async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
-    """Send frame to edge-inference service."""
+async def run_inference(frame: np.ndarray, cfg: StreamConfig) -> dict:
+    """Send frame to edge-inference service, tagged with the stream's own field/crop."""
     import cv2
 
     success, encoded = cv2.imencode(".jpg", frame)  # MED-VIDEO-01
@@ -256,13 +267,19 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
         return {"error": "encode_failed"}
 
     files = {"file": ("frame.jpg", encoded.tobytes(), "image/jpeg")}
-    # edge /v1/inference/pest-detect يتوقّع حقول Form مسطّحة (لا json متداخل) + توكن الخدمة
+    # edge /v1/inference/pest-detect يتوقّع حقول Form مسطّحة (لا json متداخل) + توكن الخدمة.
+    # field_id/crop من إعداد البثّ نفسه: كان يُرسَل field_id="stream" وcrop="wheat" ثابتَين
+    # فتردّ المنصّة 404 على الحقل وتُعيد الحافة المحاولة بلا نهاية. بثّ بلا حقل ⇒ لا
+    # field_id ⇒ الحافة تكشف ولا تُزامِن؛ ومحصولٌ غير معروف لا يُرسَل.
     data = {
-        "field_id": "stream",
-        "crop": "wheat",
         "confidence_threshold": "0.6",
         "return_image": "false",
     }
+    field_id = _bound_field_id(cfg.field_id)
+    if field_id is not None:
+        data["field_id"] = field_id
+    if cfg.crop:
+        data["crop"] = cfg.crop
     headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
 
     try:
@@ -338,7 +355,7 @@ async def process_stream_loop(stream_id: str):
 
             now = time.time()
             if cfg.ai_enabled and (now - last_detection_time) >= cfg.detection_interval_sec:
-                result = await run_inference(frame, cfg.ai_model)
+                result = await run_inference(frame, cfg)
                 state.last_detection = result
                 last_detection_time = now
 
@@ -480,6 +497,9 @@ class CreateStreamRequest(BaseModel):
     tenant_id: str = "default"
     ai_enabled: bool = True
     ai_model: str = "pest_yolov8"
+    crop: str | None = Field(
+        default=None, pattern="^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
+    )
     detection_interval_sec: int = 5
 
     @field_validator("rtsp_url", "http_url")
