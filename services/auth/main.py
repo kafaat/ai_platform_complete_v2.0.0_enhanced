@@ -34,7 +34,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from shared.pool_shutdown import close_pools_bounded
+from shared.pool_shutdown import close_client_bounded, close_pools_bounded
 from shared.runtime_identity import load_build_identity
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
@@ -391,8 +391,7 @@ async def lifespan(app: FastAPI):
     yield
     pool, _pool = _pool, None
     await close_pools_bounded([(pool, "auth")])  # bounded close; None is skipped
-    if _redis:
-        await _redis.close()
+    await close_client_bounded(_redis, "auth redis")
 
 
 app = FastAPI(title="SAHOOL Auth Service", version="9.1.0", lifespan=lifespan)
