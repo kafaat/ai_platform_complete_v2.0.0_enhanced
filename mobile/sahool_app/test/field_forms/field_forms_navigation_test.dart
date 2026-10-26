@@ -58,28 +58,32 @@ void main() {
   });
 
   Widget listScreen() => FieldFormsListScreen(
-        fieldId: _field,
-        packages: packages,
-        queue: queue,
-        tenantId: _tenant,
-        server: 'https://example.invalid',
-        openDraftStore: () async => drafts,
-      );
+    fieldId: _field,
+    packages: packages,
+    queue: queue,
+    tenantId: _tenant,
+    server: 'https://example.invalid',
+    openDraftStore: () async => drafts,
+  );
 
   Widget workspaceShell() => MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(actions: [
-            FieldFormsEntryButton(
-              fieldId: _field,
-              listBuilder: (_) => listScreen(),
-            ),
-          ]),
-        ),
-      );
+    home: Scaffold(
+      appBar: AppBar(
+        actions: [
+          FieldFormsEntryButton(
+            fieldId: _field,
+            listBuilder: (_) => listScreen(),
+          ),
+        ],
+      ),
+    ),
+  );
 
   testWidgets('الزرّ ← القائمة ← FieldFormScreen جاهز', (tester) async {
-    await tester.runAsync(() => packages.save(
-        tenantId: _tenant, fieldId: _field, package: _package));
+    await tester.runAsync(
+      () =>
+          packages.save(tenantId: _tenant, fieldId: _field, package: _package),
+    );
 
     await tester.pumpWidget(workspaceShell());
     await tester.tap(find.byKey(const ValueKey('open_field_forms')));
@@ -97,8 +101,9 @@ void main() {
     expect(find.byKey(const ValueKey('field_notes')), findsOneWidget);
   });
 
-  testWidgets('لا حزم للحقل ⇒ رسالة صادقة لا قائمة فارغة صامتة',
-      (tester) async {
+  testWidgets('لا حزم للحقل ⇒ رسالة صادقة لا قائمة فارغة صامتة', (
+    tester,
+  ) async {
     await tester.pumpWidget(MaterialApp(home: listScreen()));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('field_forms_empty')), findsOneWidget);
@@ -106,30 +111,44 @@ void main() {
   });
 
   testWidgets('حزم حقلٍ آخر لا تظهر', (tester) async {
-    await tester.runAsync(() => packages.save(
-        tenantId: _tenant, fieldId: 'other-field', package: _package));
+    await tester.runAsync(
+      () => packages.save(
+        tenantId: _tenant,
+        fieldId: 'other-field',
+        package: _package,
+      ),
+    );
     await tester.pumpWidget(MaterialApp(home: listScreen()));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('field_forms_empty')), findsOneWidget);
   });
 
   testWidgets('المخازن غير مهيّأة ⇒ «غير جاهز» بلا انهيار', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-        home: FieldFormsListScreen(fieldId: _field)));
+    await tester.pumpWidget(
+      const MaterialApp(home: FieldFormsListScreen(fieldId: _field)),
+    );
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('field_forms_store_unavailable')),
-        findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('field_forms_store_unavailable')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('مساحة عمل الحقل الحقيقيّة تحمل زرّ النماذج', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: FieldWorkspaceScreen(field: {'field_id': _field, 'name': 'حقل'}),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FieldWorkspaceScreen(field: {'field_id': _field, 'name': 'حقل'}),
+      ),
+    );
     await tester.pump();
     final button = find.byKey(const ValueKey('open_field_forms'));
     expect(button, findsOneWidget);
-    expect(tester.widget<FieldFormsEntryButton>(find.byType(FieldFormsEntryButton)).fieldId,
-        _field);
+    expect(
+      tester
+          .widget<FieldFormsEntryButton>(find.byType(FieldFormsEntryButton))
+          .fieldId,
+      _field,
+    );
     // أقسام المساحة تبدأ جلباً شبكيّاً بمؤقّتات؛ نفكّ الشجرة ونقدّم الوقت
     // الوهميّ حتّى تنتهي، فلا يبقى مؤقّت معلّق.
     await tester.pumpWidget(const SizedBox.shrink());

@@ -70,7 +70,12 @@ class FormValidationRules {
   final int? minLength;
   final int? maxLength;
 
-  const FormValidationRules({this.min, this.max, this.minLength, this.maxLength});
+  const FormValidationRules({
+    this.min,
+    this.max,
+    this.minLength,
+    this.maxLength,
+  });
 
   factory FormValidationRules.fromJson(Object? json) {
     if (json == null) return const FormValidationRules();
@@ -114,6 +119,13 @@ class FormFieldDef {
   final FormValidationRules rules;
   final String? presentationHint; // استشاريّ فقط — لا يُلزم
 
+  /// تسمية بشريّة من المخطّط (`label_ar` ثمّ `label`) — عرض فقط، لا تدخل
+  /// الإجابات ولا التحقّق. الخادم يقبل المفاتيح الإضافيّة في تعريف الحقل.
+  final String? label;
+
+  /// تسميات الخيارات (`option_labels`: قيمة ← نصّ). القيمة المرسلة تبقى القيمة.
+  final Map<String, String> optionLabels;
+
   const FormFieldDef({
     required this.key,
     required this.fieldType,
@@ -121,7 +133,21 @@ class FormFieldDef {
     this.options = const [],
     this.rules = const FormValidationRules(),
     this.presentationHint,
+    this.label,
+    this.optionLabels = const {},
   });
+
+  /// ما يُعرض للمزارع: التسمية إن وُجدت، وإلّا المفتاح بمسافات بدل «_».
+  String get displayLabel {
+    final l = label?.trim();
+    if (l != null && l.isNotEmpty) return l;
+    return key.replaceAll('_', ' ');
+  }
+
+  String optionLabel(String option) {
+    final l = optionLabels[option]?.trim();
+    return (l == null || l.isEmpty) ? option : l;
+  }
 
   bool get isChoice =>
       fieldType == FormFieldType.select ||
@@ -137,7 +163,9 @@ class FormFieldDef {
     if (rawType is! String) {
       throw const FormSchemaException('field_type_missing');
     }
-    final type = _parseType(rawType); // unknown ⇒ UnsupportedFormSchemaException
+    final type = _parseType(
+      rawType,
+    ); // unknown ⇒ UnsupportedFormSchemaException
     final required = json['required'] == true;
 
     final options = <String>[];
@@ -168,8 +196,28 @@ class FormFieldDef {
       presentationHint: json['presentation_hint'] is String
           ? json['presentation_hint'] as String
           : null,
+      label: _readLabel(json),
+      optionLabels: _readOptionLabels(json['option_labels']),
     );
   }
+}
+
+String? _readLabel(Map<Object?, Object?> json) {
+  for (final k in const ['label_ar', 'label']) {
+    final v = json[k];
+    if (v is String && v.trim().isNotEmpty) return v.trim();
+  }
+  return null;
+}
+
+/// تسميات الخيارات اختياريّة وعرضيّة: شكل غير متوقّع ⇒ تُتجاهل (لا تُفشل نموذجاً).
+Map<String, String> _readOptionLabels(Object? raw) {
+  if (raw is! Map) return const {};
+  return {
+    for (final e in raw.entries)
+      if (e.key is String && e.value is String)
+        e.key as String: e.value as String,
+  };
 }
 
 /// مخطّط النموذج الكامل (fields مرتّبة كما في schema_json).
@@ -235,7 +283,9 @@ String? validateFieldValue(FormFieldDef def, Object? value) {
       return null;
     case FormFieldType.integer:
       // integer يبقى int — 3.5 مرفوض و"3" مرفوض.
-      if (value is! int || value is bool) return 'القيمة يجب أن تكون عددًا صحيحًا';
+      if (value is! int || value is bool) {
+        return 'القيمة يجب أن تكون عددًا صحيحًا';
+      }
       final v = value;
       if (def.rules.min != null && v < def.rules.min!) {
         return 'القيمة أقلّ من الحدّ الأدنى (${def.rules.min})';
@@ -246,7 +296,9 @@ String? validateFieldValue(FormFieldDef def, Object? value) {
       return null;
     case FormFieldType.select:
       if (value is! String) return 'القيمة يجب أن تكون نصًّا من الخيارات';
-      if (!def.options.contains(value)) return 'القيمة ليست من الخيارات المعتمدة';
+      if (!def.options.contains(value)) {
+        return 'القيمة ليست من الخيارات المعتمدة';
+      }
       return null;
     case FormFieldType.multiSelect:
       if (value is! List) return 'القيمة يجب أن تكون قائمة نصوص';

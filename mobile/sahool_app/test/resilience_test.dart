@@ -5,7 +5,7 @@
 // لكنّ اختبارات idempotency للـoperation_id تعمل مباشرةً.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sahool_app/utils/ids.dart';
+import 'package:sahool_app/core/utils/ids.dart';
 
 void main() {
   group('P1: idempotency للـoffline queue', () {

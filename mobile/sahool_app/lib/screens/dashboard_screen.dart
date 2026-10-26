@@ -1,651 +1,338 @@
+// SAHOOL — lib/screens/dashboard_screen.dart (مسار مُثبَّت: تقرؤه اختبارات CI)
+// شاشة «اليوم» — الرئيسية. ما يحتاج المزارع أوّلاً: التنبيهات، مهامّ اليوم،
+// الطقس الآن، ثمّ حقوله مرتّبةً بالأولويّة، ثمّ ما لم يُقَس بعد.
+//
+// المصدر الحقيقيّ فقط: GET /api/v1/indicators/dashboard {kpis, alerts,
+// fields_summary, note_ar} + GET /api/v1/tasks + GET /api/v1/farms، وبحسب المزرعة
+// المختارة حقولها وطابور أولويّاتها وطقس مركزها. لا NDVI ولا إنتاجيّة ولا أسعار
+// سوق ولا «صحّة جيدة» ثابتة: لا مُنتِج لها في هذه الحمولات.
+// المنطق في DashboardCubit (features/dashboard/presentation)؛ هنا العرض فقط.
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/routing/app_router.dart';
+import 'package:sahool_app/core/routing/shell_scope.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/alerts/alerts_paths.dart';
+import 'package:sahool_app/features/alerts/data/alert_live_events.dart';
+import 'package:sahool_app/features/alerts/data/alerts_unread.dart';
+import 'package:sahool_app/features/alerts/presentation/alerts_badge.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_snapshot_store.dart';
+import 'package:sahool_app/features/dashboard/data/today_models.dart';
+import 'package:sahool_app/features/dashboard/presentation/dashboard_cubit.dart';
+import 'package:sahool_app/features/dashboard/presentation/dashboard_state.dart';
+import 'package:sahool_app/features/dashboard/presentation/widgets/today_sections.dart';
+import 'package:sahool_app/features/farms/data/farms_api.dart';
+import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/offline_sync/offline_sync_routes.dart';
+import 'package:sahool_app/features/offline_sync/presentation/pending_sync_badge.dart';
+import 'package:sahool_app/features/tasks/data/tasks_api.dart';
+import 'package:sahool_app/services/auth_service.dart';
+import 'package:sahool_app/services/websocket_service.dart';
 
-import '../services/api_service.dart';
-import '../widgets/state_views.dart';
-import '../widgets/water_usage_card.dart';
 import '../widgets/carbon_not_measured_card.dart';
+import '../widgets/water_usage_card.dart';
 
-class DashboardScreen extends StatefulWidget {
-  // يُستدعى من حالة «لا حقول» للانتقال إلى تبويب الحقول لإنشاء أوّل حقل.
-  // اختياريّ (غير كاسر): إن لم يُمرَّر، يُخفى زرّ الإجراء فقط.
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({
+    super.key,
+    this.onCreateField,
+    this.createCubit,
+    this.clock,
+    this.role,
+    this.userName,
+    this.routeExists,
+    this.alertsCounter,
+    this.syncOutbox,
+  });
+
+  /// «أنشئ أوّل حقل» في حالة صفر حقول. إن لم يُمرَّر يُخفى الزرّ.
   final VoidCallback? onCreateField;
-  const DashboardScreen({super.key, this.onCreateField});
+
+  /// للاختبارات: cubit بواجهات مزيّفة. الافتراضيّ الواجهات الحقيقيّة.
+  final DashboardCubit Function()? createCubit;
+  final DateTime Function()? clock;
+
+  /// الدور (الافتراضيّ من الجلسة). viewer لا يرى «تمّ الاطّلاع» ولا «إنشاء حقل».
+  final String? role;
+  final String? userName;
+
+  /// هل يوجد مسار مسجَّل (مثل '/alerts')؟ الافتراضيّ AppRouter.
+  final bool Function(String path)? routeExists;
+
+  /// للاختبارات: عدّاد جرس التنبيهات وصندوق المزامنة. الافتراضيّ نسخ الميزتين.
+  final AlertsUnreadCounter? alertsCounter;
+  final OfflineOutbox? syncOutbox;
+
+  static DashboardCubit _defaultCubit() => DashboardCubit(
+    api: DashboardApi.instance,
+    tasksApi: TasksApi.instance,
+    farmsApi: FarmsApi.instance,
+    snapshots: HiveDashboardSnapshotStore.instance,
+    // كلّ أنواع إطارات التنبيه (alert, alert.created, weather_*…) لا 'alert' وحده.
+    alertEvents: liveAlertSignals(WebSocketService.instance.events),
+  );
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  Widget build(BuildContext context) => BlocProvider<DashboardCubit>(
+    create: (_) => (createCubit ?? _defaultCubit)()..load(),
+    child: _TodayView(
+      onCreateField: onCreateField,
+      clock: clock ?? DateTime.now,
+      role: role ?? currentRole(),
+      userName:
+          userName ??
+          AuthService.instance.userProfile?['full_name']?.toString(),
+      routeExists: routeExists ?? (p) => AppRouter.instance.match(p) != null,
+      alertsCounter: alertsCounter,
+      syncOutbox: syncOutbox,
+    ),
+  );
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  bool _isLoading = true;
-  Map<String, dynamic>? _dashboardData;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDashboard();
-  }
-
-  Future<void> _loadDashboard() async {
-    try {
-      setState(() => _isLoading = true);
-
-      // ✅ FIXED: Real API call via ApiService
-
-      // النتيجة الحيّة من /indicators/v1/overview تُستعمَل مباشرةً (لا نموذج وهميّ).
-      // (كان هنا map معلّق بعد الفاصلة المنقوطة يكسر التصريف — أُزيل.)
-      _dashboardData = await ApiService.instance.getDashboard();
-
-      setState(() {
-        _isLoading = false;
-        _error = null;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _error = e.toString();
-      });
-    }
-  }
-
-  // كشف «صفر حقول» دفاعيّاً (نفس منطق fields_screen): عدّاد صريح fields_count أو
-  // قائمة حقول بأيّ مفتاح محتمل. أيّ غموض ⇒ «ليس صفراً» (لا نُخفي اللوحة بالغلط).
-  bool _isZeroFields(Map<String, dynamic> data) {
-    final count = data['fields_count'];
-    if (count is num) return count == 0;
-    final raw = data['fields'] ?? data['fields_summary'] ?? data['field_list'];
-    if (raw is List) return raw.isEmpty;
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // H04: SafeArea in parent MainNavigation
-    if (_isLoading) {
-      return const SafeArea(child: Center(child: CircularProgressIndicator()));
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text('خطأ في تحميل البيانات', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(_error!, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadDashboard,
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final data = _dashboardData!;
-
-    // حالة «صفر حقول»: نعرض ترحيباً قابلاً للتنفيذ بدل بطاقات NDVI/الإنتاجيّة/السوق/
-    // الكربون (التي تفترض وجود حقول). نسمح بالسحب للتحديث ليُعاد الفحص بعد الإنشاء.
-    if (_isZeroFields(data)) {
-      return SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadDashboard,
-          child: ListView(
-            // physics دائم التمرير ليعمل السحب للتحديث رغم قلّة المحتوى.
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: EmptyView(
-                  icon: Icons.terrain,
-                  title: 'لا توجد حقول بعد',
-                  message:
-                      'أنشئ أوّل حقل لتبدأ بمتابعة صحّة المحاصيل والمؤشّرات والتنبيهات.',
-                  actionLabel: widget.onCreateField != null
-                      ? 'إنشاء أوّل حقل'
-                      : null,
-                  onAction: widget.onCreateField,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return SafeArea(
-      child: RefreshIndicator(
-      onRefresh: _loadDashboard,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // ─── Header Stats ─────────────────────────────────
-          _buildStatsRow(data),
-          const SizedBox(height: 20),
-
-          // ─── NDVI Chart ─────────────────────────────────── (حُرّاس: حقل ناقص ⇒ افتراضيّ لا انهيار)
-          _buildNDVIChart((data['ndvi_history'] as List<dynamic>?) ?? const []),
-          const SizedBox(height: 20),
-
-          // ─── Weather Card ─────────────────────────────────
-          _buildWeatherCard((data['weather_today'] as Map<String, dynamic>?) ?? const {}),
-          const SizedBox(height: 20),
-
-          // ─── Alerts ───────────────────────────────────────
-          _buildAlertsSection((data['alerts'] as List<dynamic>?) ?? const []),
-          const SizedBox(height: 20),
-
-          // ─── Yield Forecast ───────────────────────────────
-          _buildYieldForecast((data['yield_forecast'] as Map<String, dynamic>?) ?? const {}),
-          const SizedBox(height: 20),
-
-          // ─── Market Prices ────────────────────────────────
-          _buildMarketPrices((data['market_prices'] as Map<String, dynamic>?) ?? const {}),
-          const SizedBox(height: 20),
-
-          // ─── Water & Carbon ───────────────────────────────
-          _buildResourceCards(data),
-        ],
-      ),
-    ));
-  }
-
-  Widget _buildStatsRow(Map<String, dynamic> data) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.agriculture,
-            label: 'الحقول',
-            value: '${(data['fields_count'] ?? 0)}',
-            subtitle: '${data['total_area_ha']} هكتار',
-            color: const Color(0xFF10B981),
-          ),
-        ),
-        // «توفير المياه هذا الشهر» أُزيل: لا مُنتِج خلفيّ لـwater_usage.savings_pct
-        // (MOBILE-DASHBOARD-SAVINGS-PCT-HAS-NO-PRODUCER-01) — كان يقرأ مفتاحاً غائباً
-        // بلا حارس فينهار البناء، ويعرض ادّعاءَ توفيرٍ بلا قياس.
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.eco,
-            label: 'الكربون',
-            value: kCarbonNotMeasuredValue,
-            subtitle: 'الكربون غير مقيس',
-            color: const Color(0xFF22C55E),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNDVIChart(List<dynamic> history) {
-    // حُرّاس: عنصر بلا قيمة عدديّة لا يُسقِط الرسم (كان e.value['value'] as num ينهار).
-    final spots = history.asMap().entries.map((e) {
-      final v = e.value is Map ? (e.value as Map)['value'] : null;
-      return FlSpot(e.key.toDouble(), v is num ? v.toDouble() : 0.0);
-    }).toList();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'مؤشر NDVI',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'صحة جيدة',
-                    style: TextStyle(
-                      color: const Color(0xFF10B981),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'متوسط 30 يوم: ${history.isNotEmpty && history.last is Map ? ((history.last as Map)['value'] ?? '—') : '—'}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 40),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final idx = value.toInt();
-                          if (idx >= 0 && idx < history.length) {
-                            final date = history[idx]['date'] as String;
-                            return Text(
-                              date.substring(5), // MM-DD
-                              style: const TextStyle(fontSize: 10, color: Colors.grey),
-                            );
-                          }
-                          return const Text('');
-                        },
-                        reservedSize: 30,
-                      ),
-                    ),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  minY: 0,
-                  maxY: 1,
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: spots,
-                      isCurved: true,
-                      color: const Color(0xFF10B981),
-                      barWidth: 3,
-                      isStrokeCapRound: true,
-                      dotData: const FlDotData(show: true),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeatherCard(Map<String, dynamic> weather) {
-    final iconMap = {
-      'sunny': Icons.wb_sunny,
-      'cloudy': Icons.wb_cloudy,
-      'rainy': Icons.water_drop,
-      'storm': Icons.thunderstorm,
-    };
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'الطقس اليوم',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Icon(
-                  iconMap[weather['condition']] ?? Icons.wb_sunny,
-                  color: const Color(0xFFF59E0B),
-                  size: 32,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _WeatherItem(
-                  icon: Icons.thermostat,
-                  label: 'الحرارة',
-                  value: '${weather['temp_max']}° / ${weather['temp_min']}°',
-                ),
-                _WeatherItem(
-                  icon: Icons.water_drop_outlined,
-                  label: 'الرطوبة',
-                  value: '${weather['humidity']}%',
-                ),
-                _WeatherItem(
-                  icon: Icons.air,
-                  label: 'الرياح',
-                  value: '${weather['wind_speed']} كم/س',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAlertsSection(List<dynamic> alerts) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'التنبيهات',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 12),
-        ...alerts.whereType<Map<String, dynamic>>().map((alert) => _AlertCard(alert: alert)),
-      ],
-    );
-  }
-
-  Widget _buildYieldForecast(Map<String, dynamic> forecast) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'توقعات الإنتاجية',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            ...forecast.entries.map((entry) {
-              final crop = entry.key;
-              final data = entry.value is Map<String, dynamic>
-                  ? entry.value as Map<String, dynamic>
-                  : const <String, dynamic>{};
-              final current = (data['current_kg_ha'] as num?)?.toDouble() ?? 0;
-              final predicted = (data['predicted_kg_ha'] as num?)?.toDouble() ?? 0;
-              final confidence = (data['confidence'] as num?)?.toDouble() ?? 0;
-              final progress = predicted != 0 ? current / predicted : 0.0; // حارس قسمة على صفر
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _cropName(crop),
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          '${predicted.toStringAsFixed(0)} كجم/هكتار',
-                          style: TextStyle(
-                            color: const Color(0xFF10B981),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    LinearProgressIndicator(
-                      value: progress.clamp(0.0, 1.0),
-                      backgroundColor: Colors.grey[800],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        confidence > 0.8 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ثقة: ${(confidence * 100).toStringAsFixed(0)}% | الحالي: ${current.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMarketPrices(Map<String, dynamic> prices) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'أسعار السوق',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('الكل'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...prices.entries.map((entry) {
-              final crop = entry.key;
-              final data = entry.value is Map<String, dynamic>
-                  ? entry.value as Map<String, dynamic>
-                  : const <String, dynamic>{};
-              final price = (data['price_yer_kg'] as num?)?.toInt() ?? 0;
-              final trend = (data['trend'] as String?) ?? 'stable';
-
-              IconData trendIcon;
-              Color trendColor;
-              if (trend == 'up') {
-                trendIcon = Icons.trending_up;
-                trendColor = const Color(0xFF10B981);
-              } else if (trend == 'down') {
-                trendIcon = Icons.trending_down;
-                trendColor = const Color(0xFFEF4444);
-              } else {
-                trendIcon = Icons.trending_flat;
-                trendColor = Colors.grey;
-              }
-
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1A1D29),
-                  child: Text(
-                    _cropEmoji(crop),
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ),
-                title: Text(_cropName(crop)),
-                subtitle: Text('صنعاء — اليوم'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$price ر.ي',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(trendIcon, color: trendColor, size: 20),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResourceCards(Map<String, dynamic> data) {
-    return const Row(
-      children: [
-        Expanded(child: WaterUsageNotMeasuredCard()),
-        SizedBox(width: 12),
-        Expanded(child: CarbonNotMeasuredCard()),
-      ],
-    );
-  }
-
-  String _cropName(String crop) {
-    final names = {
-      'wheat': 'قمح',
-      'barley': 'شعير',
-      'maize': 'ذرة',
-      'millet': 'ذرة بيضاء',
-      'rice': 'أرز',
-      'tomato': 'طماطم',
-      'potato': 'بطاطس',
-      'coffee': 'قهوة',
-      'qat': 'قات',
-    };
-    return names[crop] ?? crop;
-  }
-
-  String _cropEmoji(String crop) {
-    final emojis = {
-      'wheat': '🌾',
-      'barley': '🌾',
-      'maize': '🌽',
-      'millet': '🌾',
-      'rice': '🍚',
-      'tomato': '🍅',
-      'potato': '🥔',
-      'coffee': '☕',
-      'qat': '🌿',
-    };
-    return emojis[crop] ?? '🌱';
-  }
-}
-
-// ─── Sub-Widgets ───────────────────────────────────────────
-
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String subtitle;
-  final Color color;
-
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.subtitle,
-    required this.color,
+class _TodayView extends StatelessWidget {
+  const _TodayView({
+    required this.onCreateField,
+    required this.clock,
+    required this.role,
+    required this.userName,
+    required this.routeExists,
+    this.alertsCounter,
+    this.syncOutbox,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 20),
-            ),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
+  final VoidCallback? onCreateField;
+  final DateTime Function() clock;
+  final String? role;
+  final String? userName;
+  final bool Function(String path) routeExists;
+  final AlertsUnreadCounter? alertsCounter;
+  final OfflineOutbox? syncOutbox;
+
+  void _openField(BuildContext context, String fieldId) =>
+      context.openRoute<void>(
+        '/fields/workspace?field_id=${Uri.encodeQueryComponent(fieldId)}',
+      );
+
+  void _openTab(BuildContext context, String tab, String path) {
+    final shell = ShellScope.maybeOf(context);
+    if (shell == null || !shell.select(tab)) context.openRoute<void>(path);
   }
-}
 
-class _WeatherItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _WeatherItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: const Color(0xFF3B82F6), size: 28),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ],
-    );
-  }
-}
-
-class _AlertCard extends StatelessWidget {
-  final Map<String, dynamic> alert;
-
-  const _AlertCard({required this.alert});
-
-  @override
-  Widget build(BuildContext context) {
-    final severity = (alert['severity'] as String?) ?? 'info';
-    final Color severityColor;
-    final IconData severityIcon;
-
-    switch (severity) {
-      case 'high':
-        severityColor = const Color(0xFFEF4444);
-        severityIcon = Icons.error;
-        break;
-      case 'medium':
-        severityColor = const Color(0xFFF59E0B);
-        severityIcon = Icons.warning;
-        break;
-      default:
-        severityColor = const Color(0xFF3B82F6);
-        severityIcon = Icons.info;
+  /// وجهة التنبيه: تفاصيله في ميزة التنبيهات إن سُجِّلت، وإلّا حقل التنبيه، وإلّا
+  /// لا شيء. (الصندوق /alerts لا يقرأ alert_id؛ التفاصيل /alerts/detail تقرؤه.)
+  VoidCallback? _alertTarget(BuildContext context, TodayAlert a) {
+    if (routeExists(AlertsPaths.detail)) {
+      return () => context.openRoute<void>(
+        '${AlertsPaths.detail}?alert_id=${Uri.encodeQueryComponent(a.id)}',
+      );
     }
+    final fid = a.fieldId;
+    if (fid != null) return () => _openField(context, fid);
+    return null;
+  }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(severityIcon, color: severityColor),
-        title: Text((alert['message'] as String?) ?? '—'),
-        subtitle: Text(
-          '${alert['field']} — ${alert['action']}',
-          style: const TextStyle(fontSize: 12),
-        ),
-        trailing: const Icon(Icons.chevron_left),
-        onTap: () {
-          // Navigate to alert detail
+  Future<void> _acknowledge(BuildContext context, TodayAlert a) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final err = await context.read<DashboardCubit>().acknowledge(a.id);
+    messenger?.showSnackBar(
+      SnackBar(content: Text(err?.messageAr ?? 'سُجِّل الاطّلاع على التنبيه')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<DashboardCubit, DashboardState>(
+        builder: (context, s) {
+          final cubit = context.read<DashboardCubit>();
+          final now = clock();
+          final children = <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TodayHeader(
+                    now: now,
+                    userName: userName,
+                    fetchedAt: s.fetchedAt,
+                    refreshing: s.refreshing,
+                  ),
+                ),
+                // يظهر فقط حين توجد عمليّات بانتظار الإرسال أو مرفوضة.
+                if (routeExists(OfflineSyncRoutes.status))
+                  PendingSyncBadge(outbox: syncOutbox),
+                if (routeExists(AlertsPaths.inbox))
+                  AlertsBellButton(counter: alertsCounter),
+              ],
+            ),
+            const SizedBox(height: SahoolSpacing.md),
+          ];
+
+          if (!s.hasData && s.status != DashboardStatus.failed) {
+            children.add(const TodaySkeleton());
+          } else if (!s.hasData) {
+            children.add(
+              ErrorState(
+                error: s.error!,
+                title: 'تعذّر تحميل اليوم',
+                onRetry: cubit.refresh,
+              ),
+            );
+          } else if (s.fields.isEmpty) {
+            if (s.isStale) children.add(_stale(s, now, cubit));
+            children.add(
+              EmptyState(
+                icon: Icons.terrain,
+                title: 'لا توجد حقول بعد',
+                message:
+                    'أنشئ أوّل حقل لتبدأ بمتابعة التنبيهات والمهامّ والطقس.',
+                actionLabel: (onCreateField != null && canMutate(role))
+                    ? 'إنشاء أوّل حقل'
+                    : null,
+                onAction: onCreateField,
+              ),
+            );
+          } else {
+            children.addAll(_sections(context, s, now, cubit));
+          }
+
+          return SafeArea(
+            child: RefreshIndicator(
+              onRefresh: cubit.refresh,
+              child: ListView(
+                key: const ValueKey('today-list'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsetsDirectional.all(SahoolSpacing.page),
+                children: children,
+              ),
+            ),
+          );
         },
+      );
+
+  Widget _stale(DashboardState s, DateTime now, DashboardCubit cubit) =>
+      Padding(
+        padding: const EdgeInsetsDirectional.only(bottom: SahoolSpacing.md),
+        child: StaleBanner(
+          fetchedAt: s.fetchedAt!,
+          now: now,
+          error: s.refreshError,
+          fromSnapshot: s.fromSnapshot,
+          onRetry: cubit.refresh,
+        ),
+      );
+
+  List<Widget> _sections(
+    BuildContext context,
+    DashboardState s,
+    DateTime now,
+    DashboardCubit cubit,
+  ) {
+    const gap = SizedBox(height: SahoolSpacing.md);
+    return [
+      if (s.isStale) _stale(s, now, cubit),
+      FarmSelector(
+        farms: s.farms,
+        selectedId: s.selectedFarmId,
+        onSelect: cubit.selectFarm,
       ),
-    );
+      gap,
+      KpiGrid(kpis: s.kpis),
+      gap,
+      AlertsSection(
+        alerts: s.visibleAlerts,
+        now: now,
+        fieldName: s.fieldName,
+        canAcknowledge: canMutate(role) && !s.fromSnapshot,
+        busy: s.ackBusy,
+        onOpen: (a) => _alertTarget(context, a),
+        onAcknowledge: (a) => _acknowledge(context, a),
+        onSeeAll: routeExists(AlertsPaths.inbox)
+            ? () => context.openRoute<void>(AlertsPaths.inbox)
+            : null,
+      ),
+      gap,
+      TasksSection(
+        tasks: s.tasks,
+        today: s.todayTasks(now),
+        now: now,
+        fieldName: s.fieldName,
+        onSeeAll: () => _openTab(context, 'tasks', '/tasks'),
+        onRetry: cubit.refresh,
+      ),
+      gap,
+      WeatherStrip(weather: s.weather, onRetry: cubit.refresh),
+      gap,
+      FieldPrioritySection(
+        rows: s.fieldsByPriority,
+        priority: s.priority,
+        onOpenField: (id) => _openField(context, id),
+        onSeeAll: () => _openTab(context, 'fields', '/fields'),
+      ),
+      if (s.noteAr != null) ...[
+        const SizedBox(height: SahoolSpacing.sm),
+        Text(s.noteAr!, style: context.textStyles.bodySmall),
+      ],
+      gap,
+      const _NotMeasuredSection(),
+    ];
   }
+}
+
+/// ما لا يحسبه الخادم بعد. يُعرض صراحةً «غير مقيس» بدل أن يختفي أو يُخترَع.
+class _NotMeasuredSection extends StatelessWidget {
+  const _NotMeasuredSection();
+
+  @override
+  // ليس بطاقةً حاوية: البطاقتان تُعرضان مباشرةً (لا Card داخل Card).
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    child: Column(
+      key: const ValueKey('today-not-measured'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.help_outline_rounded, color: context.tokens.muted),
+            const SizedBox(width: SahoolSpacing.sm),
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  'لم يُقَس بعد',
+                  style: context.textStyles.titleMedium,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: SahoolSpacing.sm),
+        const Wrap(
+          spacing: SahoolSpacing.sm,
+          runSpacing: SahoolSpacing.xs,
+          children: [
+            StatusChip(
+              label: 'المياه غير مقيسة',
+              icon: Icons.water_drop_outlined,
+            ),
+            StatusChip(label: 'الكربون غير مقيس', icon: Icons.eco_outlined),
+          ],
+        ),
+        const SizedBox(height: SahoolSpacing.sm),
+        Text(
+          'لا يُصدر الخادم هذه القياسات بعد، فلا نعرض لها أرقاماً.',
+          style: context.textStyles.bodySmall?.copyWith(
+            color: context.tokens.muted,
+          ),
+        ),
+        const SizedBox(height: SahoolSpacing.sm),
+        const WaterUsageNotMeasuredCard(),
+        const CarbonNotMeasuredCard(),
+      ],
+    ),
+  );
 }

@@ -1,0 +1,27 @@
+# SAHOOL mobile — analyzer configuration.
+#
+# flutter_lints is the standard Flutter rule set. CI runs
+# `flutter analyze --no-fatal-infos --no-fatal-warnings`, so only errors block a
+# merge. Lints report as infos; fix them in the files you touch.
+#
+# packages/pmtiles is a vendored package with its own analysis_options.yaml and
+# its own `dart pub get` in CI. Excluding it here stops this app's analyzer from
+# reporting the vendored package's unresolved test dependencies as app errors.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - packages/**
+    - build/**
+    - "**/*.g.dart"
+  errors:
+    # A Future that is dropped silently hides failed writes.
+    unawaited_futures: info
+
+linter:
+  rules:
+    # Arabic UI: user-facing text is in the source, so no line-length rule.
+    - unawaited_futures
+    - prefer_final_locals
+    - directives_ordering
+    - use_build_context_synchronously

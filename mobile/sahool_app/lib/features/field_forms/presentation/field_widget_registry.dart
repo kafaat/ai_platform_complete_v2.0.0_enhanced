@@ -5,29 +5,41 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
 
 import '../contract/form_schema.dart';
 
 /// سياق تمرير القيمة من الـrenderer إلى بنّاء الحقل.
 typedef FieldChanged = void Function(Object? value);
 
-typedef FieldWidgetBuilder = Widget Function(
-  BuildContext context,
-  FormFieldDef def,
-  Object? value,
-  String? errorText,
-  FieldChanged onChanged,
-);
+typedef FieldWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      FormFieldDef def,
+      Object? value,
+      String? errorText,
+      FieldChanged onChanged,
+    );
 
 /// مُلتقط صور قابل للحقن (الافتراضيّ image_picker في الشاشة) —
 /// يعيد مرجع ملفّ (path) لا Base64.
 typedef PhotoPicker = Future<String?> Function();
 
+/// قارئ موقع الجهاز (الافتراضيّ geolocator في الشاشة). null ⇒ تعذّر القراءة.
+typedef LocationPicker = Future<({double lat, double lng})?> Function();
+
+/// التسمية المعروضة: «*» للحقل الإلزاميّ (لا يُكتفى باللون).
+String _label(FormFieldDef def) =>
+    def.required ? '${def.displayLabel} *' : def.displayLabel;
+
 /// السجلّ المغلق: نوع من الثمانية ← بنّاء. لا امتداد وقت التشغيل.
 class FieldWidgetRegistry {
   final PhotoPicker? photoPicker;
+  final LocationPicker? locationPicker;
 
-  const FieldWidgetRegistry({this.photoPicker});
+  const FieldWidgetRegistry({this.photoPicker, this.locationPicker});
 
   /// يعيد البنّاء أو null لنوع خارج السجلّ (لا يحدث — contract يرفض قبلها).
   /// سجلّ مغلق: switch شامل على الأنواع الثمانية فقط.
@@ -52,67 +64,100 @@ class FieldWidgetRegistry {
     }
   }
 
-  Widget _buildText(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildText(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is String ? value : '',
-      decoration: InputDecoration(labelText: def.key, errorText: errorText),
+      maxLines: null,
+      decoration: InputDecoration(labelText: _label(def), errorText: errorText),
       onChanged: (v) => onChanged(v.isEmpty ? null : v),
     );
   }
 
-  Widget _buildNumber(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildNumber(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is num ? value.toString() : '',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(labelText: def.key, errorText: errorText),
+      decoration: InputDecoration(labelText: _label(def), errorText: errorText),
       // نحوّل إدخال المستخدم إلى double؛ القيمة المخزَّنة JSON number فقط.
-      // نصّ غير قابل للتحويل يبقى نصًّا فيرفضه التحقّق (لا coercion صامت).
+      // الأرقام العربيّة-الهنديّة (٢٫٥) تُقرأ كأرقام — لوحة المفاتيح العربيّة
+      // تكتبها افتراضيّاً. نصّ غير قابل للتحويل يبقى نصًّا فيرفضه التحقّق.
       onChanged: (v) {
-        if (v.isEmpty) return onChanged(null);
-        final parsed = double.tryParse(v);
+        if (v.trim().isEmpty) return onChanged(null);
+        final parsed = parseLocalizedNum(v);
         onChanged(parsed ?? v);
       },
     );
   }
 
-  Widget _buildInteger(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildInteger(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     return TextFormField(
       key: ValueKey('field_${def.key}'),
       initialValue: value is int ? value.toString() : '',
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: def.key, errorText: errorText),
+      decoration: InputDecoration(labelText: _label(def), errorText: errorText),
       // integer يبقى int: "3.5" لا يُقبل ولا يُقتطع؛ يبقى نصًّا فيرفضه التحقّق.
       onChanged: (v) {
-        if (v.isEmpty) return onChanged(null);
-        final parsed = int.tryParse(v);
+        if (v.trim().isEmpty) return onChanged(null);
+        final parsed = parseLocalizedInt(v);
         onChanged(parsed ?? v);
       },
     );
   }
 
-  Widget _buildSelect(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildSelect(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final current = value is String && def.options.contains(value)
         ? value
         : null;
     return DropdownButtonFormField<String>(
       key: ValueKey('field_${def.key}'),
-      value: current,
-      decoration: InputDecoration(labelText: def.key, errorText: errorText),
+      initialValue: current,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: _label(def), errorText: errorText),
       items: def.options
-          .map((o) => DropdownMenuItem<String>(value: o, child: Text(o)))
+          .map(
+            (o) => DropdownMenuItem<String>(
+              value: o,
+              child: Text(def.optionLabel(o)),
+            ),
+          )
           .toList(),
       onChanged: (v) => onChanged(v),
     );
   }
 
-  Widget _buildMultiSelect(BuildContext context, FormFieldDef def,
-      Object? value, String? errorText, FieldChanged onChanged) {
+  Widget _buildMultiSelect(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final selected = <String>{
       if (value is List)
         ...value.whereType<String>().where(def.options.contains),
@@ -121,14 +166,16 @@ class FieldWidgetRegistry {
       key: ValueKey('field_${def.key}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
+        Text(_label(def), style: context.textStyles.bodyLarge),
         if (errorText != null)
-          Text(errorText,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            errorText,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         for (final option in def.options)
           CheckboxListTile(
             key: ValueKey('field_${def.key}_opt_$option'),
-            title: Text(option),
+            title: Text(def.optionLabel(option)),
             value: selected.contains(option),
             onChanged: (checked) {
               final next = <String>[...selected];
@@ -138,9 +185,10 @@ class FieldWidgetRegistry {
                 next.remove(option);
               }
               // الترتيب حسب ترتيب options للاستقرار.
-              next.sort((a, b) => def.options
-                  .indexOf(a)
-                  .compareTo(def.options.indexOf(b)));
+              next.sort(
+                (a, b) =>
+                    def.options.indexOf(a).compareTo(def.options.indexOf(b)),
+              );
               onChanged(next.isEmpty ? null : next);
             },
           ),
@@ -148,86 +196,178 @@ class FieldWidgetRegistry {
     );
   }
 
-  Widget _buildDate(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
-    final controller = TextEditingController(
-        text: value is String ? value : '');
-    return TextFormField(
-      key: ValueKey('field_${def.key}'),
-      controller: controller,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: def.key,
-        hintText: 'YYYY-MM-DD',
-        errorText: errorText,
-        suffixIcon: const Icon(Icons.calendar_today),
-      ),
-      onTap: () async {
-        final now = DateTime.now();
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: now,
-          firstDate: DateTime(now.year - 20),
-          lastDate: DateTime(now.year + 20),
-        );
-        if (picked != null) {
-          // التخزين String بصيغة YYYY-MM-DD فقط.
-          final iso = picked.toIso8601String().substring(0, 10);
-          controller.text = iso;
-          onChanged(iso);
-        }
-      },
+  Widget _buildDate(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
+    return _DateField(
+      def: def,
+      value: value,
+      errorText: errorText,
+      onChanged: onChanged,
     );
   }
 
-  Widget _buildGps(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
-    return _GpsField(def: def, value: value, errorText: errorText,
-        onChanged: onChanged);
+  Widget _buildGps(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
+    return _GpsField(
+      def: def,
+      value: value,
+      errorText: errorText,
+      onChanged: onChanged,
+      locationPicker: locationPicker,
+    );
   }
 
-  Widget _buildPhoto(BuildContext context, FormFieldDef def, Object? value,
-      String? errorText, FieldChanged onChanged) {
+  Widget _buildPhoto(
+    BuildContext context,
+    FormFieldDef def,
+    Object? value,
+    String? errorText,
+    FieldChanged onChanged,
+  ) {
     final reference = value is String && value.isNotEmpty ? value : null;
+    final t = context.tokens;
     return Column(
       key: ValueKey('field_${def.key}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OutlinedButton.icon(
-          key: ValueKey('field_${def.key}_pick'),
-          icon: const Icon(Icons.photo_camera),
-          label: Text(reference == null ? 'التقاط صورة' : 'صورة مرفقة'),
-          onPressed: photoPicker == null
-              ? null
-              : () async {
-                  final path = await photoPicker!();
-                  if (path != null && path.isNotEmpty) {
-                    // مرجع ملفّ فقط — لا Base64 داخل answers.
-                    onChanged(path);
-                  }
-                },
+        Text(_label(def), style: context.textStyles.bodyLarge),
+        const SizedBox(height: SahoolSpacing.sm),
+        SizedBox(
+          height: SahoolSizes.minTouchTarget,
+          child: OutlinedButton.icon(
+            key: ValueKey('field_${def.key}_pick'),
+            icon: const Icon(Icons.photo_camera_outlined),
+            label: Text(
+              reference == null ? 'التقاط صورة' : 'استبدال الصورة المرفقة',
+            ),
+            onPressed: photoPicker == null
+                ? null
+                : () async {
+                    final path = await photoPicker!();
+                    if (path != null && path.isNotEmpty) {
+                      // مرجع ملفّ فقط — لا Base64 داخل answers.
+                      onChanged(path);
+                    }
+                  },
+          ),
         ),
         if (reference != null)
-          Text(reference,
-              key: ValueKey('field_${def.key}_ref'),
-              style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            'صورة محفوظة على الجهاز: ${reference.split('/').last}',
+            key: ValueKey('field_${def.key}_ref'),
+            style: context.textStyles.bodySmall,
+          ),
+        Text(
+          'رفع الصور غير متاح بعد في الخادم: يُرسل مرجع الصورة على الجهاز فقط.',
+          style: context.textStyles.bodySmall?.copyWith(color: t.muted),
+        ),
         if (errorText != null)
-          Text(errorText,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            errorText,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
       ],
     );
   }
 }
 
-/// حقل gps بحالة داخليّة: lat/lng مستقلّان ولا يضيعان عند إعادة البناء.
-class _GpsField extends StatefulWidget {
+/// حقل تاريخ: المتحكّم يعيش في الحالة ويُتلَف معها (كان يُنشأ في كلّ build ولا
+/// يُتلَف). القيمة المخزَّنة String بصيغة YYYY-MM-DD فقط.
+class _DateField extends StatefulWidget {
+  const _DateField({
+    required this.def,
+    required this.value,
+    required this.errorText,
+    required this.onChanged,
+  });
+
   final FormFieldDef def;
   final Object? value;
   final String? errorText;
   final FieldChanged onChanged;
 
-  const _GpsField({required this.def, this.value, this.errorText,
-      required this.onChanged});
+  @override
+  State<_DateField> createState() => _DateFieldState();
+}
+
+class _DateFieldState extends State<_DateField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.value is String ? widget.value! as String : '',
+  );
+
+  @override
+  void didUpdateWidget(covariant _DateField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final next = widget.value is String ? widget.value! as String : '';
+    if (next != _controller.text) _controller.text = next;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pick() async {
+    final now = DateTime.now();
+    final current = DateTime.tryParse(_controller.text);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current ?? now,
+      firstDate: DateTime(now.year - 20),
+      lastDate: DateTime(now.year + 20),
+    );
+    if (picked != null && mounted) {
+      final iso = picked.toIso8601String().substring(0, 10);
+      _controller.text = iso;
+      widget.onChanged(iso);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      key: ValueKey('field_${widget.def.key}'),
+      controller: _controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: _label(widget.def),
+        hintText: 'اختر التاريخ',
+        errorText: widget.errorText,
+        suffixIcon: const Icon(Icons.calendar_today_outlined),
+      ),
+      onTap: _pick,
+    );
+  }
+}
+
+/// حقل gps بحالة داخليّة: lat/lng مستقلّان ولا يضيعان عند إعادة البناء.
+/// «موقعي الحاليّ» يملأ الإحداثيّين بلمسة؛ الإدخال اليدويّ يبقى متاحاً ويقبل
+/// الأرقام العربيّة-الهنديّة.
+class _GpsField extends StatefulWidget {
+  final FormFieldDef def;
+  final Object? value;
+  final String? errorText;
+  final FieldChanged onChanged;
+  final LocationPicker? locationPicker;
+
+  const _GpsField({
+    required this.def,
+    this.value,
+    this.errorText,
+    required this.onChanged,
+    this.locationPicker,
+  });
 
   @override
   State<_GpsField> createState() => _GpsFieldState();
@@ -236,6 +376,10 @@ class _GpsField extends StatefulWidget {
 class _GpsFieldState extends State<_GpsField> {
   double? _lat;
   double? _lng;
+  late final TextEditingController _latCtrl;
+  late final TextEditingController _lngCtrl;
+  bool _locating = false;
+  String? _locateError;
 
   @override
   void initState() {
@@ -245,6 +389,15 @@ class _GpsFieldState extends State<_GpsField> {
       if (v['lat'] is num) _lat = (v['lat'] as num).toDouble();
       if (v['lng'] is num) _lng = (v['lng'] as num).toDouble();
     }
+    _latCtrl = TextEditingController(text: _lat?.toString() ?? '');
+    _lngCtrl = TextEditingController(text: _lng?.toString() ?? '');
+  }
+
+  @override
+  void dispose() {
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    super.dispose();
   }
 
   void _emit() {
@@ -257,36 +410,95 @@ class _GpsFieldState extends State<_GpsField> {
     }
   }
 
+  Future<void> _useCurrent() async {
+    final picker = widget.locationPicker;
+    if (picker == null || _locating) return;
+    setState(() {
+      _locating = true;
+      _locateError = null;
+    });
+    ({double lat, double lng})? fix;
+    try {
+      fix = await picker();
+    } catch (_) {
+      fix = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      _locating = false;
+      if (fix == null) {
+        _locateError =
+            'تعذّر تحديد الموقع. فعّل الموقع أو أدخل الإحداثيّات يدويّاً.';
+      } else {
+        _lat = fix.lat;
+        _lng = fix.lng;
+        _latCtrl.text = fix.lat.toStringAsFixed(6);
+        _lngCtrl.text = fix.lng.toStringAsFixed(6);
+      }
+    });
+    if (fix != null) _emit();
+  }
+
   @override
   Widget build(BuildContext context) {
     final def = widget.def;
+    const coordKeyboard = TextInputType.numberWithOptions(
+      decimal: true,
+      signed: true,
+    );
     return Column(
       key: ValueKey('field_${def.key}'),
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
+        Text(_label(def), style: context.textStyles.bodyLarge),
         if (widget.errorText != null)
-          Text(widget.errorText!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            widget.errorText!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        if (widget.locationPicker != null) ...[
+          const SizedBox(height: SahoolSpacing.sm),
+          SizedBox(
+            height: SahoolSizes.minTouchTarget,
+            child: OutlinedButton.icon(
+              key: ValueKey('field_${def.key}_locate'),
+              onPressed: _locating ? null : _useCurrent,
+              icon: _locating
+                  ? const SizedBox.square(
+                      dimension: SahoolSizes.iconSm,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location_outlined),
+              label: Text(_locating ? 'جارٍ تحديد الموقع…' : 'موقعي الحاليّ'),
+            ),
+          ),
+          if (_locateError != null)
+            Text(
+              _locateError!,
+              style: TextStyle(color: context.tokens.warning),
+            ),
+        ],
+        const SizedBox(height: SahoolSpacing.sm),
         TextFormField(
           key: ValueKey('field_${def.key}_lat'),
-          initialValue: _lat?.toString() ?? '',
-          keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
-          decoration: const InputDecoration(labelText: 'lat'),
+          controller: _latCtrl,
+          keyboardType: coordKeyboard,
+          textDirection: TextDirection.ltr,
+          decoration: const InputDecoration(labelText: 'خطّ العرض'),
           onChanged: (v) {
-            _lat = double.tryParse(v);
+            _lat = parseLocalizedNum(v);
             _emit();
           },
         ),
+        const SizedBox(height: SahoolSpacing.sm),
         TextFormField(
           key: ValueKey('field_${def.key}_lng'),
-          initialValue: _lng?.toString() ?? '',
-          keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
-          decoration: const InputDecoration(labelText: 'lng'),
+          controller: _lngCtrl,
+          keyboardType: coordKeyboard,
+          textDirection: TextDirection.ltr,
+          decoration: const InputDecoration(labelText: 'خطّ الطول'),
           onChanged: (v) {
-            _lng = double.tryParse(v);
+            _lng = parseLocalizedNum(v);
             _emit();
           },
         ),

@@ -24,8 +24,7 @@ class FormPackageStore {
     required String tenantId,
     required String fieldId,
     required String assignmentId,
-  }) =>
-      '$tenantId|$fieldId|$assignmentId';
+  }) => '$tenantId|$fieldId|$assignmentId';
 
   Future<void> save({
     required String tenantId,
@@ -34,7 +33,10 @@ class FormPackageStore {
   }) async {
     await _box.put(
       storageKey(
-          tenantId: tenantId, fieldId: fieldId, assignmentId: package.assignmentId),
+        tenantId: tenantId,
+        fieldId: fieldId,
+        assignmentId: package.assignmentId,
+      ),
       package.toJson(),
     );
   }
@@ -50,8 +52,9 @@ class FormPackageStore {
       if (key is String && key.startsWith(prefix)) {
         final raw = _box.get(key);
         if (raw is Map) {
-          result.add(DownloadedFormPackage.fromJson(
-              Map<String, Object?>.from(raw)));
+          result.add(
+            DownloadedFormPackage.fromJson(Map<String, Object?>.from(raw)),
+          );
         }
       }
     }
@@ -63,8 +66,13 @@ class FormPackageStore {
     required String fieldId,
     required String assignmentId,
   }) {
-    final raw = _box.get(storageKey(
-        tenantId: tenantId, fieldId: fieldId, assignmentId: assignmentId));
+    final raw = _box.get(
+      storageKey(
+        tenantId: tenantId,
+        fieldId: fieldId,
+        assignmentId: assignmentId,
+      ),
+    );
     if (raw is! Map) return null;
     return DownloadedFormPackage.fromJson(Map<String, Object?>.from(raw));
   }

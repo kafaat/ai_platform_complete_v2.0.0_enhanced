@@ -8,6 +8,8 @@
 // لا تأخذ حمولةً أصلاً، فلا تقرأ مفتاحاً غائباً ولا تعرض نسبةَ توفيرٍ أو حجماً.
 // تُستبدَل بعرضٍ مقيس فقط حين يوجد مُنتِجٌ خلفيّ يحسب الحجمَ بوحداته وأساسه.
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
 
 const String kWaterNotMeasuredValue = 'غير مقيس';
 const String kWaterNotMeasuredNote = 'لا يوجد مصدر قياس لاستهلاك المياه بعد.';
@@ -17,30 +19,25 @@ class WaterUsageNotMeasuredCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final muted = context.tokens.muted;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsetsDirectional.all(SahoolSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.water_drop, color: Colors.grey, size: 28),
-            const SizedBox(height: 12),
+            Icon(Icons.water_drop, color: muted, size: SahoolSizes.iconLg),
+            const SizedBox(height: SahoolSpacing.md),
             Text(
               kWaterNotMeasuredValue,
-              style: Theme.of(context)
-                  .textTheme
-                  .displayMedium
-                  ?.copyWith(fontSize: 22),
+              style: context.textStyles.titleLarge?.copyWith(color: muted),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: SahoolSpacing.xs),
+            Text('استهلاك المياه', style: context.textStyles.bodyMedium),
+            const SizedBox(height: SahoolSpacing.sm),
             Text(
-              'استهلاك المياه',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
               kWaterNotMeasuredNote,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: context.textStyles.bodySmall?.copyWith(color: muted),
             ),
           ],
         ),

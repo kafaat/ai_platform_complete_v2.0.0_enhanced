@@ -47,6 +47,8 @@ _NOT_GAP_IDS = {
     "SAHOOL-ALLOW-RLS-BYPASS-ROLE",
     "NOSUPERUSER-NOBYPASSRLS",
     "CO-AUTHORED-BY",
+    # عنصرُ صيغة تاريخ (`YYYY-MM-DD`) يُذكر في وصف حقول الإدخال؛ ليس معرّفاً.
+    "YYYY-MM-DD",
 }
 
 # معرّفات استشارات أمنيّة (CVE-…/GHSA-…/PYSEC-…/OSV-…). تُطابِق نمط المعرّف شكلاً

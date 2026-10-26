@@ -16,7 +16,12 @@ class _RecordedRequest {
   final Object? body;
   final Map<String, dynamic> headers;
   const _RecordedRequest(
-      this.method, this.path, this.query, this.body, this.headers);
+    this.method,
+    this.path,
+    this.query,
+    this.body,
+    this.headers,
+  );
 }
 
 /// MockAdapter: يسجّل الطلب ويعيد ردًّا مبرمجًا.
@@ -27,21 +32,28 @@ class _MockAdapter implements HttpClientAdapter {
   int submitStatus = 201;
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options,
-      Stream<List<int>>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     Object? body;
     if (requestStream != null) {
-      final bytes =
-          await requestStream.fold<List<int>>([], (acc, c) => acc..addAll(c));
+      final bytes = await requestStream.fold<List<int>>(
+        [],
+        (acc, c) => acc..addAll(c),
+      );
       body = jsonDecode(utf8.decode(bytes));
     }
-    requests.add(_RecordedRequest(
-      options.method,
-      options.path,
-      options.queryParameters,
-      body,
-      Map<String, dynamic>.from(options.headers),
-    ));
+    requests.add(
+      _RecordedRequest(
+        options.method,
+        options.path,
+        options.queryParameters,
+        body,
+        Map<String, dynamic>.from(options.headers),
+      ),
+    );
 
     if (options.path == '/api/field-forms/submissions') {
       return ResponseBody.fromString(
@@ -100,7 +112,10 @@ void main() {
     };
 
     final result = await api.download(
-        fieldId: 'field-9', actorId: 'actor-1', deviceId: 'device-1');
+      fieldId: 'field-9',
+      actorId: 'actor-1',
+      deviceId: 'device-1',
+    );
 
     final request = adapter.requests.single;
     expect(request.method, 'GET');
@@ -118,11 +133,16 @@ void main() {
   });
 
   test('POST /api/field-forms/submissions بالـenvelope الكامل', () async {
+    // الشكل الحقيقيّ من scout-ingest-service/field_forms_api.py (submit_form).
     adapter.submitResponse = {
-      'status': 'accepted',
-      'submission_id': 'srv-1',
-      'version_resolution_status': 'current',
+      'idempotent': false,
+      'envelope_id': 41,
+      'field_submission_id': 'fs-uuid-1',
+      'trust_status': 'accepted',
       'form_validation_status': 'valid',
+      'version_resolution_status': 'current',
+      'stale_version': false,
+      'answers_hash': 'abc',
     };
 
     final envelope = {
@@ -147,21 +167,29 @@ void main() {
     expect(request.headers['X-Device-Id'], 'device-1');
 
     expect(result.status, 'accepted');
+    expect(result.isAccepted, isTrue);
+    expect(result.submissionId, 'fs-uuid-1');
     expect(result.versionResolutionStatus, 'current');
     expect(result.formValidationStatus, 'valid');
   });
 
   test('استجابة quarantined تُعرض كما هي (لا نجاح كاذب)', () async {
+    // _quarantined_response في الخادم.
     adapter.submitResponse = {
-      'status': 'quarantined',
+      'idempotent': false,
+      'envelope_id': 42,
+      'field_submission_id': 'fs-uuid-2',
+      'trust_status': 'quarantined',
+      'quarantine_reason': 'form_validation_failed',
       'version_resolution_status': 'stale_proven',
-      'form_validation_status': 'valid',
+      'validation_errors': ['required_missing: crop'],
     };
-    final result = await api.submit(
-      const {'answers': {}},
-      deviceId: 'device-1',
-    );
+    final result = await api.submit(const {
+      'answers': {},
+    }, deviceId: 'device-1');
     expect(result.status, 'quarantined');
+    expect(result.quarantineReason, 'form_validation_failed');
+    expect(result.validationErrors, ['required_missing: crop']);
     expect(result.versionResolutionStatus, 'stale_proven');
   });
 }

@@ -1584,6 +1584,21 @@
       "runtime_verified": false,
       "title": "Farm registry",
       "unit_test_paths": [
+        "mobile/sahool_app/test/core/api_client_test.dart",
+        "mobile/sahool_app/test/dashboard_carbon_not_measured_test.dart",
+        "mobile/sahool_app/test/features/dashboard/dashboard_cubit_test.dart",
+        "mobile/sahool_app/test/features/dashboard/dashboard_screen_test.dart",
+        "mobile/sahool_app/test/features/farm_book/farm_book_api_test.dart",
+        "mobile/sahool_app/test/features/farm_book/farm_book_cubit_test.dart",
+        "mobile/sahool_app/test/features/farm_book/farm_book_route_test.dart",
+        "mobile/sahool_app/test/features/farm_book/farm_book_screen_test.dart",
+        "mobile/sahool_app/test/features/farm_book/farm_book_text_test.dart",
+        "mobile/sahool_app/test/features/farms/farms_screen_test.dart",
+        "mobile/sahool_app/test/features/fields/fields_list_refresh_test.dart",
+        "mobile/sahool_app/test/features/fields/fields_screen_test.dart",
+        "mobile/sahool_app/test/features/fields/wizard/field_create_wizard_test.dart",
+        "mobile/sahool_app/test/features/maps/farm_map_screen_test.dart",
+        "mobile/sahool_app/test/features/more/more_screen_test.dart",
         "services/sahool-platform/tests/test_authorization.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_district_baseline.py",
@@ -1738,6 +1753,7 @@
       "runtime_verified": false,
       "title": "Field registry and boundaries",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/fields/field_workspace_test.dart",
         "services/sahool-platform/tests/test_field_boundary_graph.py",
         "services/sahool-platform/tests/test_field_boundary_pipeline.py",
         "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
@@ -1874,6 +1890,9 @@
       "runtime_verified": false,
       "title": "Season lifecycle",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/crop_season/crop_season_screen_test.dart",
+        "mobile/sahool_app/test/features/crop_season/season_form_logic_test.dart",
+        "mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart",
         "scripts/simulation/test_export_season_runs_for_golden.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_crop_rotation_intelligence.py",
@@ -2280,6 +2299,10 @@
       "runtime_verified": false,
       "title": "Inventory and procurement",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/inventory/inventory_api_test.dart",
+        "mobile/sahool_app/test/features/inventory/inventory_item_screen_test.dart",
+        "mobile/sahool_app/test/features/inventory/inventory_screen_test.dart",
+        "mobile/sahool_app/test/features/inventory/inventory_sheets_test.dart",
         "services/decision-service/tests/test_element84_inventory_pg16.py",
         "services/sahool-platform/tests/test_data_inventory.py",
         "tests_v9/test_api_versioning_policy_guard.py",
@@ -2714,7 +2737,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -2753,7 +2776,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -2783,7 +2806,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -2801,6 +2824,7 @@
       "runtime_verified": false,
       "title": "Terrain and DEM",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/maps/sahool_map_test.dart",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_no_leakage_certification.py",
@@ -3891,7 +3915,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -3930,7 +3954,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -3960,7 +3984,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -4025,7 +4049,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": true,
@@ -4064,7 +4088,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -4094,7 +4118,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -4110,6 +4134,7 @@
       "runtime_verified": false,
       "title": "Irrigation recommendation",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/irrigation/recommendation_test.dart",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
@@ -5124,6 +5149,14 @@
       "runtime_verified": false,
       "title": "Scouting",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart",
+        "mobile/sahool_app/test/features/maps/layers_test.dart",
+        "mobile/sahool_app/test/features/scouting/new_observation_cubit_test.dart",
+        "mobile/sahool_app/test/features/scouting/new_observation_screen_test.dart",
+        "mobile/sahool_app/test/features/scouting/pest_detect_test.dart",
+        "mobile/sahool_app/test/features/scouting/scouting_api_test.dart",
+        "mobile/sahool_app/test/features/scouting/scouting_routes_test.dart",
+        "mobile/sahool_app/test/features/scouting/scouting_screen_test.dart",
         "services/sahool-platform/tests/test_activities_endpoint.py",
         "services/sahool-platform/tests/test_districts.py",
         "services/sahool-platform/tests/test_event_replay.py",
@@ -5256,6 +5289,7 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
+        "mobile/sahool_app/test/features/field_forms/submission_contract_test.dart",
         "tests_v9/test_field_forms_api_integration.py"
       ],
       "learning_linked": false,
@@ -5266,6 +5300,7 @@
       "runtime_verified": false,
       "title": "Field forms",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/field_forms/field_form_screen_test.dart",
         "mobile/sahool_app/test/field_forms/condition_v1_test.dart",
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
@@ -5411,6 +5446,9 @@
       "runtime_verified": false,
       "title": "Offline mobile",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/offline_sync/durable_offline_outbox_test.dart",
+        "mobile/sahool_app/test/features/offline_sync/outbox_store_test.dart",
+        "mobile/sahool_app/test/features/offline_sync/sync_status_screen_test.dart",
         "tests/mobile/test_phase11_mobile_offline_sync_runtime.py"
       ]
     },
@@ -5573,7 +5611,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -5612,7 +5650,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -5642,7 +5680,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 5,
+      "evidence_score": 6,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -6848,6 +6886,10 @@
       "runtime_verified": false,
       "title": "NDVI",
       "unit_test_paths": [
+        "mobile/sahool_app/test/core/theme_tokens_test.dart",
+        "mobile/sahool_app/test/features/maps/layers_test.dart",
+        "mobile/sahool_app/test/features/satellite/field_indicators_cubit_test.dart",
+        "mobile/sahool_app/test/features/satellite/satellite_screen_test.dart",
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_eligibility_assessment_policy.py",
         "services/raster-service/test_backfill_processing_version_preflight.py",
@@ -6924,10 +6966,6 @@
         "tests_v9/test_advisor_context_binding.py",
         "tests_v9/test_agronomic_replay_shape.py",
         "tests_v9/test_cache_invalidation_worker_v30_0.py",
-        "tests_v9/test_cdse_evalscript.py",
-        "tests_v9/test_cdse_latest_selection_semantics.py",
-        "tests_v9/test_confidence_failures.py",
-        "tests_v9/test_cropwise_evidence_quality.py",
         "tests_v9/test_etc_dual_fresh_ndvi.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",
@@ -6976,7 +7014,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -7015,7 +7053,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -7045,7 +7083,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -7645,7 +7683,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -7684,7 +7722,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -7714,7 +7752,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -7733,6 +7771,7 @@
       "runtime_verified": false,
       "title": "COG persistence and tiling",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/maps/maps_api_test.dart",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_cloud_native_catalog.py",
         "services/raster-service/test_cog_writer_internal_mask.py",
@@ -8336,6 +8375,9 @@
       "runtime_verified": false,
       "title": "MFA",
       "unit_test_paths": [
+        "mobile/sahool_app/test/core/formatters_test.dart",
+        "mobile/sahool_app/test/features/auth/login_screen_test.dart",
+        "mobile/sahool_app/test/features/auth/mfa_setup_screen_test.dart",
         "services/sahool-platform/tests/test_break_glass.py",
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
@@ -9056,7 +9098,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -9095,7 +9137,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -9125,7 +9167,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9141,6 +9183,7 @@
       "runtime_verified": false,
       "title": "Soil sampling",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/lab_sampling/lab_screens_test.dart",
         "services/decision-service/tests/test_migration_034_pg16.py",
         "services/raster-service/test_router_query_direct_call.py",
         "services/raster-service/test_soil_zones.py",
@@ -9189,7 +9232,7 @@
         "documentation": true,
         "events": false,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -9228,7 +9271,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -9258,7 +9301,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9690,7 +9733,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -9729,7 +9772,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -9759,7 +9802,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 8,
+      "evidence_score": 9,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9782,6 +9825,7 @@
       "title": "Weather forecast",
       "unit_test_paths": [
         "frontend/tests/test_nginx_runtime.py",
+        "mobile/sahool_app/test/features/weather/weather_test.dart",
         "services/sahool-platform/tests/_public_read_allowlist.json",
         "services/sahool-platform/tests/_public_read_taxonomy.json",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
@@ -9978,7 +10022,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": true,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -10017,7 +10061,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -10047,7 +10091,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 7,
+      "evidence_score": 8,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -10068,6 +10112,8 @@
       "runtime_verified": false,
       "title": "ET0",
       "unit_test_paths": [
+        "mobile/sahool_app/test/features/irrigation/irrigation_plan_test.dart",
+        "mobile/sahool_app/test/features/irrigation/water_ledger_test.dart",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
         "services/sahool-platform/tests/test_agronomic_decision.py",
         "services/sahool-platform/tests/test_confidence_aggregation.py",
@@ -10168,7 +10214,7 @@
         "documentation": true,
         "events": true,
         "integration_tests": false,
-        "mobile": false,
+        "mobile": true,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
@@ -10207,7 +10253,7 @@
           "type": "integration_tests"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "mobile"
         },
@@ -10237,7 +10283,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",

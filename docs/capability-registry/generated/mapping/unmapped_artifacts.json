@@ -2172,6 +2172,10 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/analysis_options.yaml",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
     "kind": "mobile"
   },
@@ -2184,11 +2188,743 @@
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/bloc/dashboard_bloc.dart",
+    "path": "mobile/sahool_app/lib/config/app_config.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/config/app_config.dart",
+    "path": "mobile/sahool_app/lib/core/network/api_client.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/api_exception.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/connectivity_status.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/in_flight.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/response_cache.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/network/response_shape.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/permissions/permissions.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/app_navigator.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/app_route.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/app_shell.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/route_pages.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/shell_destinations.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/shell_scope.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/session/auth_state.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/session/session_scope.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/theme/app_theme.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/theme/sahool_tokens.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/theme/theme_controller.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/utils/formatters.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/utils/ids.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/utils/jwt.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/app_error_widget.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/app_scaffold.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/app_states.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/bottom_sheets.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/confirm_dialog.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/form_fields.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/form_kit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/list_tiles.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/metric_tile.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/offline_banner.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/ops_date_field.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/ops_refresh_banner.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/ops_tile.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/primary_button.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/section_card.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/state_views.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/status_chip.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/widgets/widgets.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/activities_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/data/activities_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/data/activity_writer.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/data/field_activity.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/presentation/activity_log_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/presentation/activity_tile.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/presentation/field_activities_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/activities/presentation/field_activities_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/advisor_permissions.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/advisor_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/data/advisor_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/data/advisor_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/data/chat_history_store.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/advisor_chat_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/pest_escalation_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/recommendation_detail_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/recommendations_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/recommendations_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/widgets/chat_bubbles.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/widgets/field_picker.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/advisor/presentation/widgets/recommendation_widgets.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/alerts_paths.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/alerts_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/data/alert_live_events.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/data/alert_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/data/alerts_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/data/alerts_unread.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/data/notification_prefs.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alert_detail_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alert_tile.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alert_visuals.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alerts_badge.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alerts_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/alerts_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/field_alerts_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/notification_prefs_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/alerts/presentation/notification_prefs_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/auth/presentation/onboarding_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/auth/presentation/widgets/otp_code_field.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/dashboard/dashboard_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/dashboard/data/dashboard_snapshot_store.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/data/devices_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/data/devices_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/devices_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/presentation/device_detail_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/presentation/devices_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/presentation/devices_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/presentation/register_device_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/devices/presentation/widgets/sensor_chart.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/documents/data/documents_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/documents/documents_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/documents/presentation/documents_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/documents/presentation/documents_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/data/equipment_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/data/equipment_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/equipment_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_detail_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/equipment/presentation/equipment_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/data/soil_workspace_model.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/fields_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/common/field_labels.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/common/load_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/activity_form_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/monitoring_section.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/operations_section.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/soil_section.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/workspace_deps.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/workspace_sections.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/workspace/workspace_widgets.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/irrigation_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/irrigation_fields_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/irrigation_format.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/irrigation_ops_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/irrigation_ops_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/ledger/log_water_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/ledger/water_ledger_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/ledger/water_ledger_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/today/irrigation_today_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/today/recommendation_card.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/presentation/today/recommendation_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/data/lab_models.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/lab_sampling_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/gps_reader.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/lab_samples_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/lab_samples_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/protocol_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/sample_create_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/lab_sampling/presentation/sample_create_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/data/device_location.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/data/offline_pack_store.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/data/offline_tiles.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/boundary_import.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/boundary_step.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/boundary_validation.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/draw_controller.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/draw_map.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/field_create_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/field_create_errors.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/field_created_events.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/geo_measure.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/draw/snapping.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/geo/geo_json.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/geo/geo_measure.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/geo/geojson_codec.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/data/maps_io_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/boundary_writer.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/douglas_peucker.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/geojson_reader.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/import_model.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/io_geometry.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/io_measure.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/geo/kml_reader.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/gps/gps_save_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/gps/gps_walk_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/gps/location_source.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/maps_io_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/export_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/field_ops_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/field_ops_screens.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/gps_walk_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/import_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/import_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/io_errors.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/io/presentation/io_map.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/maps_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/presentation/layers/drawings_layer.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/presentation/offline_packs_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/presentation/offline_packs_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/presentation/widgets/map_attribution.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/presentation/widgets/sahool_map_controller.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/master_data/data/master_data_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/master_data/master_data_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/master_data/presentation/master_data_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/master_data/presentation/master_data_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/more/data/more_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/more/more_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/more/presentation/more_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/operations_hub/data/operations_hub_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/operations_hub/operations_hub_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/operations_hub/presentation/operations_hub_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/profile/data/profile_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/profile/presentation/profile_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/profile/profile_routes.dart",
     "kind": "mobile"
   },
   {
@@ -2204,27 +2940,87 @@
     "kind": "mobile"
   },
   {
+    "path": "mobile/sahool_app/lib/features/realtime/realtime_routes.dart",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/features/realtime/realtime_screen.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
+    "path": "mobile/sahool_app/lib/features/satellite/presentation/field_indicators_cubit.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/permissions.dart",
+    "path": "mobile/sahool_app/lib/features/satellite/presentation/satellite_screen.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/advisor_screen.dart",
+    "path": "mobile/sahool_app/lib/features/satellite/satellite_routes.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/devices_screen.dart",
+    "path": "mobile/sahool_app/lib/features/tasks/data/offline_write.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/documents_screen.dart",
+    "path": "mobile/sahool_app/lib/features/tasks/data/task_photo_store.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/data/tasks_api.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/complete_task_sheet.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/task_card.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/task_detail_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/task_grouping.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/tasks_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/tasks_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/tasks_state.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/tasks_routes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/weather/presentation/weather_cubit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/weather/presentation/weather_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/weather/presentation/weather_strip.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/weather/weather_paths.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/weather/weather_routes.dart",
     "kind": "mobile"
   },
   {
@@ -2232,23 +3028,23 @@
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/irrigation_ops_screen.dart",
+    "path": "mobile/sahool_app/lib/screens/field_create_wizard.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/master_data_screen.dart",
+    "path": "mobile/sahool_app/lib/screens/fields_screen.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/onboarding_screen.dart",
+    "path": "mobile/sahool_app/lib/screens/satellite_screen.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/operations_hub_screen.dart",
+    "path": "mobile/sahool_app/lib/screens/tasks_screen.dart",
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/screens/profile_screen.dart",
+    "path": "mobile/sahool_app/lib/services/api_service.dart",
     "kind": "mobile"
   },
   {
@@ -2268,14 +3064,6 @@
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/theme/app_theme.dart",
-    "kind": "mobile"
-  },
-  {
-    "path": "mobile/sahool_app/lib/utils/ids.dart",
-    "kind": "mobile"
-  },
-  {
     "path": "mobile/sahool_app/lib/utils/jwt.dart",
     "kind": "mobile"
   },
@@ -2284,15 +3072,7 @@
     "kind": "mobile"
   },
   {
-    "path": "mobile/sahool_app/lib/widgets/form_kit.dart",
-    "kind": "mobile"
-  },
-  {
     "path": "mobile/sahool_app/lib/widgets/offline_field_map.dart",
-    "kind": "mobile"
-  },
-  {
-    "path": "mobile/sahool_app/lib/widgets/state_views.dart",
     "kind": "mobile"
   },
   {
@@ -2448,11 +3228,255 @@
     "kind": "tests"
   },
   {
-    "path": "mobile/sahool_app/test/dashboard_carbon_not_measured_test.dart",
+    "path": "mobile/sahool_app/test/core/app_root_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/app_router_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/app_shell_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/core_widgets_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/fake_http.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/core/ws_event_test.dart",
     "kind": "tests"
   },
   {
     "path": "mobile/sahool_app/test/dashboard_water_not_measured_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/activities/activities_fakes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/activities/activities_screens_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/activities/activity_form_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/advisor_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/advisor_models_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/advisor_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/advisor_test_helpers.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/chat_history_store_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/advisor/recommendations_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/alerts/alerts_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/alerts/alerts_cubit_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/alerts/alerts_fakes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/alerts/alerts_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/auth/auth_test_app.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/auth/onboarding_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/dashboard/dashboard_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/dashboard/today_models_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/devices/devices_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/documents/documents_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/equipment/equipment_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/fields/field_list_query_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/fields/harness.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/irrigation/irrigation_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/irrigation/irrigation_ops_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/irrigation/irrigation_test_helpers.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/lab_sampling/fake_outbox.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/lab_sampling/lab_logic_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/canonical_geometry_bridge_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/boundary_import_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/boundary_validation_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/draw_controller_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/draw_map_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/field_save_cubit_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/draw/geo_measure_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/geo_json_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/geo_measure_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/boundary_parsers_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/fixtures.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/geometry_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/gps_walk_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/import_cubit_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/io_screens_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/io/maps_io_api_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/map_test_harness.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/offline_field_map_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/offline_packs_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/master_data/master_data_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/operations_hub/operations_hub_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/operations_hub/ops_test_host.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/profile/profile_screen_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/realtime/realtime_screen_layout_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/task_detail_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/task_grouping_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/tasks_cubit_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/tasks_fakes.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/features/tasks/tasks_screen_test.dart",
     "kind": "tests"
   },
   {
@@ -7549,6 +8573,10 @@
   },
   {
     "path": "tests_v9/test_brain_append_only_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_brain_commit_claim_guard_placeholders.py",
     "kind": "tests"
   },
   {

@@ -7,7 +7,6 @@ library;
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../services/api_service.dart';
@@ -16,19 +15,32 @@ import '../../../services/device_id_service.dart';
 import 'field_forms_api.dart';
 import 'form_package_store.dart';
 import 'submission_queue.dart';
+import 'submission_sender.dart';
 
 class FieldFormsCoordinator {
   FieldFormsCoordinator({
     FormPackageStore? packages,
     SubmissionQueue? queue,
     FieldFormsApi? api,
-  })  : _packages = packages,
-        _queue = queue,
-        _api = api;
+    String? Function()? currentTenantId,
+    String? Function()? currentActorId,
+  }) : _packages = packages,
+       _queue = queue,
+       _api = api,
+       _currentTenantId =
+           currentTenantId ?? (() => AuthService.instance.tenantId),
+       _currentActorId = currentActorId ?? (() => AuthService.instance.userId);
+
+  /// مصدر المستأجِر الحاليّ (الجلسة افتراضيّاً؛ قابل للحقن في الاختبارات).
+  final String? Function() _currentTenantId;
+  final String? Function() _currentActorId;
+
+  /// يُبلَّغ بعد كلّ تصريف أرسل شيئاً (تحديث قائمة النماذج المفتوحة).
+  final ValueNotifier<int> drainTick = ValueNotifier<int>(0);
 
   static final FieldFormsCoordinator instance = FieldFormsCoordinator();
 
-  static const int maxPoisonAttempts = 10;
+  static const int maxPoisonAttempts = SubmissionSender.maxRejectedAttempts;
 
   FormPackageStore? _packages;
   SubmissionQueue? _queue;
@@ -48,8 +60,9 @@ class FieldFormsCoordinator {
       unawaited(drain());
 
       await _connectivitySubscription?.cancel();
-      _connectivitySubscription =
-          Connectivity().onConnectivityChanged.listen((results) {
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+        results,
+      ) {
         if (results.any((result) => result != ConnectivityResult.none)) {
           unawaited(drain());
         }
@@ -71,6 +84,15 @@ class FieldFormsCoordinator {
   Future<void> dispose() async {
     await _connectivitySubscription?.cancel();
     _connectivitySubscription = null;
+  }
+
+  /// نهاية جلسة (خروج صريح): أوقف التصريف وأسقط العميل المرتبط بالتوكن.
+  /// عناصر الطابور **لا تُحذف**: هي عمل ميدانيّ لم يُرسَل بعد، وتُصرَّف فقط حين
+  /// يعود مستأجِرها (pending(tenantId:)). حذفها هنا كان سيُضيّع بيانات جُمعت
+  /// دون اتّصال.
+  Future<void> onSessionEnd() async {
+    await dispose();
+    _api = null;
   }
 
   Future<void> syncField(String fieldId) async {
@@ -105,38 +127,34 @@ class FieldFormsCoordinator {
     if (_draining) return 0;
     final api = _api;
     final queue = _queue;
-    if (api == null || queue == null) return 0;
+    final tenantId = _currentTenantId();
+    // بلا مستأجِر معروف لا نعرف لمن تُنسَب العناصر — لا نُرسل شيئاً.
+    if (api == null || queue == null || tenantId == null) return 0;
 
     _draining = true;
     var settled = 0;
+    var touched = false;
     try {
       final deviceId = await DeviceIdService.instance.deviceId();
-      for (final item in queue.pending()) {
-        try {
-          await api.submit(
-            item.buildEnvelope(
-              provider: 'sahool-flutter',
-              server: ApiService.instance.dio.options.baseUrl,
-            ),
-            deviceId: deviceId,
-          );
-          await queue.remove(item.instanceId);
-          settled++;
-        } on DioException catch (error) {
-          final statusCode = error.response?.statusCode ?? 0;
-          final updated = await queue.markRetry(item);
-          if (statusCode == 401 || statusCode == 403) break;
-          if (statusCode >= 400 &&
-              statusCode < 500 &&
-              updated.attempts >= maxPoisonAttempts) {
-            await queue.remove(item.instanceId);
-          }
-        } catch (_) {
-          await queue.markRetry(item);
-        }
+      final server = ApiService.instance.dio.options.baseUrl;
+      for (final item in queue.pending(
+        tenantId: tenantId,
+        actorId: _currentActorId(),
+      )) {
+        touched = true;
+        final outcome = await SubmissionSender.send(
+          item: item,
+          queue: queue,
+          api: api,
+          deviceId: deviceId,
+          server: server,
+        );
+        if (outcome.kind == SendOutcomeKind.settled) settled++;
+        if (outcome.kind == SendOutcomeKind.authRejected) break;
       }
     } finally {
       _draining = false;
+      if (touched) drainTick.value++;
     }
     return settled;
   }
