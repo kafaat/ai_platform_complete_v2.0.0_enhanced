@@ -96,7 +96,7 @@ class EnvironmentalSafetyTier:
         suggestions = []
         passed = True
 
-        crop = farm_context.get("crop", "wheat")
+        crop = str(farm_context.get("crop", "wheat")).strip().lower()
         field_area_ha = farm_context.get("field_area_ha", 1.0)
         water_source = farm_context.get("water_source", "groundwater")
 
