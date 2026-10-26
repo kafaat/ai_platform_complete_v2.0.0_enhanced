@@ -4,6 +4,19 @@
 // على الجهاز كأساس offline، مع بلاطات الشبكة كـfallback عند توفّرها.
 // هذا يضمن أنّ المزارع في منطقة بلا تغطيّة لا يفقد الخريطة كاملةً.
 //
+// ودجت توافق: الخريطة الكاملة الجديدة هي SahoolMap
+// (lib/features/maps/presentation/widgets/sahool_map.dart). هذا الملفّ يبقى بمساره
+// لأنّ بوّابات CI (mobile_contract_gate.py، test_roadmap_phase23.py) تقرؤه، ولأنّ
+// شاشة الحقول ومعالج الإنشاء ما زالا يستعملانه. إصلاحات هذه النسخة:
+//   • نسبة المصادر ظاهرة (كانت صور Esri تُعرض بلا نسبة).
+//   • الكاميرا تتبع center/zoom/bounds عند تغيّرها (MapController؛ كانت ثابتة على
+//     القيمة الأولى فتبقى نقاط GPS خارج الشاشة).
+//   • التدوير معطّل (كانت إيماءة بإصبعين تميل الخريطة بلا بوصلة ولا رجعة).
+//   • الحزمة تُعاد قراءتها حين يتغيّر مسارها، ولا setState بعد الإزالة، وتُغلق.
+//   • الشارات بمواضع اتّجاهيّة (RTL) وتلميح محدود العرض.
+//   • طبقة الطقس لا ترسم قيماً افتراضيّة مُختلَقة (كانت 30°م ورياح 315°).
+//   • الدائرة جيوديسيّة على كرة الخادم (كان 111320 م/درجة ⇒ 399.55 م لنصف قطر 400).
+//
 // الاستخدام (عرض فقط — الافتراضيّ، يبقى متوافقاً مع المستدعين القدامى):
 //   OfflineFieldMap(
 //     center: LatLng(16.79, 44.33),   // الجوف
@@ -22,7 +35,6 @@
 //     الشاشة المضيفة عبر onCenterTap كي تطلب نصف القطر بالأمتار (م) وتُولّد
 //     مضلّعاً دائريّاً (حقل محوريّ/center-pivot). وحدة الطول دائماً الأمتار.
 
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -31,7 +43,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
 import 'package:flutter_map_pmtiles/flutter_map_pmtiles.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:mbtiles/mbtiles.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/features/maps/data/basemaps.dart';
+import 'package:sahool_app/features/maps/data/offline_tiles.dart';
+import 'package:sahool_app/features/maps/geo/geo_measure.dart';
+import 'package:sahool_app/features/maps/presentation/widgets/map_attribution.dart';
 
 // نوع حزمة offline: PMTiles (مفضّل — ملفّ واحد، HTTP-range، hybrid) أو
 // MBTiles (SQLite، ناضج). PMTiles أقرب لاتّجاه geospatial-first.
@@ -52,14 +69,11 @@ class OfflineFieldMap extends StatefulWidget {
   // رابط بلاطات الشبكة (fallback عند توفّر اتّصال).
   final String networkTileUrl;
   final List<Polygon> fieldPolygons;
-  // إطار اختياريّ لتأطير حقل المستخدم (fitBounds): إن وُجد، تفتح الخريطة مُؤطِّرةً
-  // حقله بدل مركز/تكبير ثابتين — «التركيز على حقل المستخدم». بلا قيمة ⇒ center/zoom.
+  // إطار اختياريّ لتأطير حقل المستخدم (fitBounds): إن وُجد، تُؤطِّر الخريطة حقله
+  // بدل مركز/تكبير ثابتين — ويُعاد التأطير كلّما تغيّر الإطار.
   final LatLngBounds? bounds;
 
   // ── وضع الرسم (اختياريّ — لمعالج إنشاء الحقل) ──
-  // عند true: النقر على الخريطة يضيف رأساً إلى المضلّع الجاري رسمه، وتُرسَم
-  // الرؤوس + الخطّ + ملء المضلّع المغلق فوق الأساس. العرض-فقط (الافتراضيّ false)
-  // لا يتأثّر إطلاقاً.
   final bool drawingEnabled;
   // النقاط الحاليّة للمضلّع الجاري رسمه (مصدر الحقيقة تملكه الشاشة المضيفة).
   final List<LatLng> drawingPoints;
@@ -78,6 +92,7 @@ class OfflineFieldMap extends StatefulWidget {
 
   // طبقة طقس/رياح اختيارية فوق الخريطة، شبيهة بأسلوب Windy:
   // تظليل حراري/رطوبي + خطوط اتجاه الرياح. تُرسم فوق البلاطات والحقول ولا تلتقط اللمس.
+  // صدق: ما لم يُقَس لا يُرسَم (لا قيم افتراضيّة).
   final bool showWeatherOverlay;
   final double? weatherTempC;
   final double? weatherHumidityPct;
@@ -112,37 +127,24 @@ class OfflineFieldMap extends StatefulWidget {
     this.weatherOverlayOpacity = 0.72,
   });
 
-  // تقريب جيوديسيّ بسيط: 1 درجة خطّ عرض ≈ 111320 م، وخطّ الطول يُقاس بـcos(lat).
-  // مضلّع دائريّ (~48 رأساً) حول مركز بنصف قطر بالأمتار — تستعمله الشاشة المضيفة لإنتاج
-  // حدّ الحقل، وتُعيد استعماله المعاينة الداخليّة. static على الودجت ليصل إليه المضيف.
+  // مضلّع دائريّ ([segments] رأساً، عكس عقارب الساعة بدءاً من الشرق) حول مركز بنصف
+  // قطر بالأمتار — تستعمله الشاشة المضيفة لإنتاج حدّ الحقل وتُعيد استعماله المعاينة.
+  // كلّ رأس على بعد [radiusMeters] تماماً على كرة الخادم (R = 6371008.8 م).
   static List<LatLng> circlePolygon(
     LatLng center,
     double radiusMeters, {
     int segments = 48,
   }) {
     if (radiusMeters <= 0 || segments < 3) return const [];
-    const metersPerDegLat = 111320.0;
-    final cosLat = math.cos(center.latitude * math.pi / 180.0);
-    // حارس: قرب القطبين cos→0؛ نمنع القسمة على صفر.
-    final safeCos = cosLat.abs() < 1e-6 ? 1e-6 : cosLat;
-    final dLat = radiusMeters / metersPerDegLat;
-    final dLon = radiusMeters / (metersPerDegLat * safeCos);
-    final pts = <LatLng>[];
-    for (var i = 0; i < segments; i++) {
-      final theta = 2 * math.pi * i / segments;
-      pts.add(LatLng(
-        center.latitude + dLat * math.sin(theta),
-        center.longitude + dLon * math.cos(theta),
-      ));
-    }
-    return pts;
+    return [
+      for (var i = 0; i < segments; i++)
+        destinationPoint(center, radiusMeters, 90.0 - 360.0 * i / segments),
+    ];
   }
 
   @override
   State<OfflineFieldMap> createState() => _OfflineFieldMapState();
 }
-
-
 
 class _WeatherWindOverlayPainter extends CustomPainter {
   final double? tempC;
@@ -150,6 +152,11 @@ class _WeatherWindOverlayPainter extends CustomPainter {
   final double? windSpeedKmh;
   final double? windDirectionDeg;
   final double opacity;
+  final Color hot;
+  final Color warm;
+  final Color humid;
+  final Color mild;
+  final Color stroke;
 
   const _WeatherWindOverlayPainter({
     this.tempC,
@@ -157,26 +164,40 @@ class _WeatherWindOverlayPainter extends CustomPainter {
     this.windSpeedKmh,
     this.windDirectionDeg,
     required this.opacity,
+    required this.hot,
+    required this.warm,
+    required this.humid,
+    required this.mild,
+    required this.stroke,
   });
 
-  Color _heatColor() {
-    final t = tempC ?? 30.0;
-    final h = humidityPct ?? 45.0;
-    if (t >= 38) return const Color(0xFFEF4444).withValues(alpha: 0.34 * opacity);
-    if (t >= 32) return const Color(0xFFF97316).withValues(alpha: 0.30 * opacity);
-    if (h >= 75) return const Color(0xFF0EA5E9).withValues(alpha: 0.24 * opacity);
-    return const Color(0xFFF59E0B).withValues(alpha: 0.22 * opacity);
+  // null ⇒ لا تظليل (لا حرارة/رطوبة مُختلَقة).
+  Color? _heatColor() {
+    final t = tempC;
+    final h = humidityPct;
+    if (t == null && h == null) return null;
+    if (t != null && t >= 38) return hot.withValues(alpha: 0.34 * opacity);
+    if (t != null && t >= 32) return warm.withValues(alpha: 0.30 * opacity);
+    if (h != null && h >= 75) return humid.withValues(alpha: 0.24 * opacity);
+    return mild.withValues(alpha: 0.22 * opacity);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = _heatColor());
-    final dir = (windDirectionDeg ?? 315.0) * math.pi / 180.0;
-    final speed = windSpeedKmh ?? 12.0;
-    final stroke = (1.4 + speed / 18.0).clamp(1.4, 5.0).toDouble();
+    final heat = _heatColor();
+    if (heat != null) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = heat);
+    }
+    final dirDeg = windDirectionDeg;
+    if (dirDeg == null) return; // اتّجاه غير مقيس ⇒ لا خطوط رياح
+    final dir = dirDeg * math.pi / 180.0;
+    final speed = windSpeedKmh;
+    final width = speed == null
+        ? 1.4
+        : (1.4 + speed / 18.0).clamp(1.4, 5.0).toDouble();
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: (windDirectionDeg == null ? 0.38 : 0.62) * opacity)
-      ..strokeWidth = stroke
+      ..color = stroke.withValues(alpha: 0.62 * opacity)
+      ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
     final spacingY = size.height / 9;
@@ -202,15 +223,18 @@ class _WeatherWindOverlayPainter extends CustomPainter {
         oldDelegate.humidityPct != humidityPct ||
         oldDelegate.windSpeedKmh != windSpeedKmh ||
         oldDelegate.windDirectionDeg != windDirectionDeg ||
-        oldDelegate.opacity != opacity;
+        oldDelegate.opacity != opacity ||
+        oldDelegate.stroke != stroke;
   }
 }
 
 class _OfflineFieldMapState extends State<OfflineFieldMap> {
-  MbTiles? _mbtiles;
-  PmTilesTileProvider? _pmtiles;
+  final MapController _mapController = MapController();
+  bool _mapReady = false;
+  OpenedOfflinePack? _pack;
   OfflinePackType _packType = OfflinePackType.none;
   String _source = 'network';
+  int _packGeneration = 0;
 
   @override
   void initState() {
@@ -218,52 +242,108 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
     _initOffline();
   }
 
-  Future<void> _initOffline() async {
-    final path = widget.offlinePackFilePath ?? widget.offlinePackPath;
-    if (path == null) return;
-    try {
-      final file = File(path);
-      if (!await file.exists()) return;
-      if (path.endsWith('.pmtiles')) {
-        // PMTiles: ملفّ واحد cloud-optimized (مفضّل). يعمل offline + online.
-        _pmtiles = await PmTilesTileProvider.fromSource(path);
-        setState(() {
-          _packType = OfflinePackType.pmtiles;
-          _source = 'offline-pmtiles';
-        });
-      } else if (path.endsWith('.mbtiles')) {
-        // MBTiles: SQLite (ناضج، fallback).
-        _mbtiles = MbTiles(mbtilesPath: path);
-        setState(() {
-          _packType = OfflinePackType.mbtiles;
-          _source = 'offline-mbtiles';
-        });
-      }
-    } catch (_) {
-      // فشل فتح offline → نبقى على الشبكة (fail-safe، لا تعطّل الخريطة).
-      _packType = OfflinePackType.none;
+  @override
+  void didUpdateWidget(OfflineFieldMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldPath = oldWidget.offlinePackFilePath ?? oldWidget.offlinePackPath;
+    final newPath = widget.offlinePackFilePath ?? widget.offlinePackPath;
+    if (oldPath != newPath) _initOffline();
+    // الكاميرا تتبع الحالة: إطار جديد ⇒ أطّر؛ مركز/تكبير جديد ⇒ انتقل.
+    if (!_mapReady) return;
+    final b = widget.bounds;
+    if (b != null && b != oldWidget.bounds) {
+      _fit(b);
+    } else if (b == null &&
+        (widget.center != oldWidget.center || widget.zoom != oldWidget.zoom)) {
+      _mapController.move(widget.center, widget.zoom);
     }
+  }
+
+  void _fit(LatLngBounds b) {
+    if (b.south == b.north && b.east == b.west) {
+      _mapController.move(b.center, math.max(widget.zoom, 15));
+      return;
+    }
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: b, padding: const EdgeInsets.all(40)),
+    );
+  }
+
+  Future<void> _initOffline() async {
+    final gen = ++_packGeneration;
+    final old = _pack;
+    final path = widget.offlinePackFilePath ?? widget.offlinePackPath;
+    if (path == null) {
+      if (old != null) {
+        setState(_resetToNetwork);
+        await old.dispose();
+      }
+      return;
+    }
+    // فتح الحزمة (يتحقّق من وجود الملفّ ويرفض الحزم المتّجهة) — fail-safe:
+    // أيّ فشل ⇒ نبقى على الشبكة، لا تعطّل الخريطة.
+    final result = await openOfflinePack(path);
+    if (!mounted || gen != _packGeneration) {
+      await result.pack?.dispose();
+      return;
+    }
+    final pack = result.pack;
+    setState(() {
+      _pack = pack;
+      if (pack == null) {
+        _resetToNetwork();
+      } else if (pack.format == OfflinePackFormat.pmtiles) {
+        // PMTiles: ملفّ واحد cloud-optimized (مفضّل). يعمل offline + online.
+        _packType = OfflinePackType.pmtiles;
+        _source = 'offline-pmtiles';
+      } else {
+        // MBTiles: SQLite (ناضج، fallback).
+        _packType = OfflinePackType.mbtiles;
+        _source = 'offline-mbtiles';
+      }
+    });
+    if (old != null && !identical(old, pack)) await old.dispose();
+  }
+
+  void _resetToNetwork() {
+    _pack = null;
+    _packType = OfflinePackType.none;
+    _source = 'network';
   }
 
   @override
   void dispose() {
-    _mbtiles?.dispose();
-    _pmtiles?.dispose();
+    _packGeneration++;
+    _pack?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
-  TileLayer _baseLayer() {
-    // أولويّة: PMTiles → MBTiles → الشبكة (fallback).
-    if (_packType == OfflinePackType.pmtiles && _pmtiles != null) {
-      return TileLayer(tileProvider: _pmtiles!);
+  // طبقة الأساس: الشبكة دائماً (fallback لما خارج الحزمة)، وفوقها الحزمة إن فُتحت.
+  // أولويّة: PMTiles → MBTiles → الشبكة.
+  // مزوّد واحد يُحفظ عبر عمليّات البناء (مزوّد جديد في كلّ بناء يسرّب عميل HTTP)،
+  // ويُسكت فشل البلاطات: بلا شبكة تظهر بلاطة شفّافة لا سيل استثناءات.
+  late final NetworkTileProvider _networkTiles = NetworkTileProvider(
+    silenceExceptions: true,
+  );
+
+  TileLayer _networkLayer() => TileLayer(
+    urlTemplate: widget.networkTileUrl,
+    userAgentPackageName: 'ye.sahool.app',
+    tileProvider: _networkTiles,
+  );
+
+  TileLayer? _baseLayer() {
+    final provider = _pack?.tileProvider;
+    if (_packType == OfflinePackType.pmtiles &&
+        provider is PmTilesTileProvider) {
+      return TileLayer(tileProvider: provider, tileBounds: _pack!.bounds);
     }
-    if (_packType == OfflinePackType.mbtiles && _mbtiles != null) {
-      return TileLayer(tileProvider: MbTilesTileProvider(mbtiles: _mbtiles!));
+    if (_packType == OfflinePackType.mbtiles &&
+        provider is MbTilesTileProvider) {
+      return TileLayer(tileProvider: provider, tileBounds: _pack!.bounds);
     }
-    return TileLayer(
-      urlTemplate: widget.networkTileUrl,
-      userAgentPackageName: 'ye.sahool.app',
-    );
+    return null;
   }
 
   // النقر على الخريطة في وضع الرسم.
@@ -279,9 +359,8 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
     widget.onPolygonChanged?.call(updated);
   }
 
-  // توليد رؤوس مضلّع دائريّ حول [center] بنصف قطر [radiusMeters] (بالأمتار).
   // معاينة الدائرة: حلقة + مركز مميّز (وضع الدائرة فقط، عند توفّر مركز ونصف قطر).
-  List<Widget> _circlePreviewLayers() {
+  List<Widget> _circlePreviewLayers(Color draw, Color accent, Color surface) {
     final center = widget.circlePreviewCenter;
     final r = widget.circlePreviewRadiusMeters;
     if (center == null || r == null || r <= 0) return const [];
@@ -292,8 +371,8 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
         polygons: [
           Polygon(
             points: ring,
-            color: const Color(0xFF10B981).withValues(alpha: 0.18),
-            borderColor: const Color(0xFF10B981),
+            color: draw.withValues(alpha: 0.18),
+            borderColor: draw,
             borderStrokeWidth: 2,
           ),
         ],
@@ -304,21 +383,23 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
             point: center,
             width: 18,
             height: 18,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-            ),
+            child: _dot(accent, surface),
           ),
         ],
       ),
     ];
   }
 
+  Widget _dot(Color fill, Color border) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: fill,
+      shape: BoxShape.circle,
+      border: Border.all(color: border, width: 2),
+    ),
+  );
+
   // طبقة الرسم: ملء المضلّع المغلق (≥3 نقاط) + خطّ الحدّ + علامات الرؤوس.
-  List<Widget> _drawingLayers() {
+  List<Widget> _drawingLayers(Color draw, Color accent, Color surface) {
     final pts = widget.drawingPoints;
     if (pts.isEmpty) return const [];
     return [
@@ -327,21 +408,15 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
           polygons: [
             Polygon(
               points: pts,
-              color: const Color(0xFF10B981).withValues(alpha: 0.18),
-              borderColor: const Color(0xFF10B981),
+              color: draw.withValues(alpha: 0.18),
+              borderColor: draw,
               borderStrokeWidth: 2,
             ),
           ],
         ),
       if (pts.length >= 2)
         PolylineLayer(
-          polylines: [
-            Polyline(
-              points: pts,
-              color: const Color(0xFF10B981),
-              strokeWidth: 2,
-            ),
-          ],
+          polylines: [Polyline(points: pts, color: draw, strokeWidth: 2)],
         ),
       MarkerLayer(
         markers: [
@@ -350,49 +425,79 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
               point: pts[i],
               width: 18,
               height: 18,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: i == 0
-                      ? const Color(0xFFF59E0B) // الرأس الأوّل مميّز (نقطة الإغلاق)
-                      : const Color(0xFF10B981),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-              ),
+              // الرأس الأوّل مميّز (نقطة الإغلاق).
+              child: _dot(i == 0 ? accent : draw, surface),
             ),
         ],
       ),
     ];
   }
 
+  Widget _badge(BuildContext context, String text, {Key? key}) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.88),
+        borderRadius: SahoolRadius.smAll,
+      ),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: SahoolSpacing.sm,
+          vertical: SahoolSpacing.xs,
+        ),
+        child: Text(
+          text,
+          key: key,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: SahoolType.caption,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final t = context.tokens;
+    final draw = scheme.primary;
+    final accent = t.accent;
+    final surface = scheme.surface;
+    final b = widget.bounds;
+    final degenerate = b != null && b.south == b.north && b.east == b.west;
+    final base = _baseLayer();
     return Stack(
       children: [
         FlutterMap(
+          mapController: _mapController,
           options: MapOptions(
             // إن توفّر إطار حقل المستخدم نُؤطّره (fitBounds مع حاشية)؛ وإلّا
             // مركز/تكبير ثابتان. flutter_map يُفضّل initialCameraFit إن وُجد.
-            initialCameraFit: widget.bounds != null
-                ? CameraFit.bounds(
-                    bounds: widget.bounds!,
-                    padding: const EdgeInsets.all(40),
-                  )
+            initialCameraFit: (b != null && !degenerate)
+                ? CameraFit.bounds(bounds: b, padding: const EdgeInsets.all(40))
                 : null,
-            initialCenter: widget.center,
+            initialCenter: degenerate ? b.center : widget.center,
             initialZoom: widget.zoom,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            ),
+            onMapReady: () => _mapReady = true,
             onTap: widget.drawingEnabled ? _onMapTap : null,
           ),
           children: [
-            // طبقة الأساس: PMTiles → MBTiles → الشبكة (انظر _baseLayer).
-            _baseLayer(),
+            _networkLayer(),
+            // الحزمة المحفوظة فوق الشبكة: PMTiles → MBTiles (انظر _baseLayer).
+            if (base != null) base,
             // طبقة الحقول (polygons) فوق الأساس.
             if (widget.fieldPolygons.isNotEmpty)
               PolygonLayer(polygons: widget.fieldPolygons),
             // طبقة الرسم (وضع المعالج فقط — فارغة في العرض-فقط).
-            ..._drawingLayers(),
+            ..._drawingLayers(draw, accent, surface),
             // معاينة الدائرة (وضع الدائرة فقط — فارغة ما لم يوجد مركز ونصف قطر).
-            ..._circlePreviewLayers(),
+            ..._circlePreviewLayers(draw, accent, surface),
           ],
         ),
         if (widget.showWeatherOverlay)
@@ -405,44 +510,46 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
                   windSpeedKmh: widget.windSpeedKmh,
                   windDirectionDeg: widget.windDirectionDeg,
                   opacity: widget.weatherOverlayOpacity,
+                  hot: SahoolColors.statusCritical,
+                  warm: SahoolColors.statusPoor,
+                  humid: t.info,
+                  mild: SahoolColors.statusFair,
+                  stroke: surface,
                 ),
               ),
             ),
           ),
-        // مؤشّر المصدر (شفّافيّة: المستخدم يعرف offline أم online).
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              _source.startsWith('offline') ? 'خريطة محفوظة' : 'خريطة الشبكة',
-              style: const TextStyle(color: Colors.white, fontSize: 11),
-            ),
+        // مؤشّر المصدر (شفّافيّة: المستخدم يعرف offline أم online) — أعلى البداية.
+        PositionedDirectional(
+          top: SahoolSpacing.sm,
+          start: SahoolSpacing.sm,
+          child: _badge(
+            context,
+            _source.startsWith('offline') ? 'خريطة محفوظة' : 'خريطة الشبكة',
+            key: const ValueKey('offline-map-source'),
           ),
         ),
-        // تلميح الرسم (وضع المعالج فقط).
+        // تلميح الرسم (وضع المعالج فقط) — أعلى النهاية، بعرض محدود كي لا يغطّي الشارة.
         if (widget.drawingEnabled)
-          Positioned(
-            top: 8,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                // نصّ تعليمات الشاشة المضيفة إن توفّر، وإلّا تلميح افتراضيّ.
-                widget.instruction ?? 'انقر لإضافة نقطة',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
-              ),
+          PositionedDirectional(
+            top: SahoolSpacing.sm,
+            end: SahoolSpacing.sm,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              // نصّ تعليمات الشاشة المضيفة إن توفّر، وإلّا تلميح افتراضيّ.
+              child: _badge(context, widget.instruction ?? 'انقر لإضافة نقطة'),
             ),
           ),
+        PositionedDirectional(
+          bottom: SahoolSpacing.xs,
+          start: SahoolSpacing.xs,
+          child: MapAttribution(
+            sources: [
+              Basemaps.attributionForUrl(widget.networkTileUrl),
+              if (_pack != null) 'خريطة محفوظة على الجهاز',
+            ],
+          ),
+        ),
       ],
     );
   }
