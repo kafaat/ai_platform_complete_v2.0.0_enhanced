@@ -25,6 +25,16 @@ from typing import Any
 _IRRIGATION_TOLERANCE = 0.15
 # عتبة بلوغ الإنتاج المستهدف (نسبة من المتوقّع). تقديريّ.
 _YIELD_MET_FRACTION = 0.90
+# كلّ علم نجاح يُنسَب إلى مقياسه: n_success يعدّ المقاييس الناجحة لا الأعلام، فلا
+# يتجاوز n_evaluated. «stress_avoided» علمٌ إعلاميّ يرافق نجاح مقياس الإجهاد نفسه
+# (مرصود صفر مع متنبَّأ أعلى كان يُحتسَب نجاحين لمقياس واحد ⇒ نسبة نجاح ٢٫٠).
+_FLAG_METRIC = {
+    "irrigation_followed": "irrigation",
+    "stress_better": "stress",
+    "stress_avoided": "stress",
+    "yield_met": "yield",
+    "water_within_budget": "water_budget",
+}
 
 
 def _delta(actual: float | None, planned: float | None) -> float | None:
@@ -172,7 +182,7 @@ def measure_outcome(planned: dict, actual: dict) -> dict:
         "metrics": metrics,
         "success_flags": success_flags,
         "n_evaluated": len(evaluated),
-        "n_success": len(success_flags),
+        "n_success": len({_FLAG_METRIC[flag] for flag in success_flags}),
         "data_completeness": data_completeness,
         "calibrated": False,
         "warnings_ar": warnings_ar,
