@@ -3,6 +3,7 @@
 // بين شاشات العمليّات الستّ لضمان اتّساق مظهر/سلوك واحد. عامّة (public) ليُعاد
 // استخدامها عبر الملفّات (الخاصّ بـ_ محصور بمكتبته).
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
 
 InputDecoration kDec(String label) => InputDecoration(
@@ -24,6 +25,10 @@ Widget kField(TextEditingController c, String label, {bool number = false}) =>
         keyboardType: number
             ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
+        // الأرقام العربيّة-الهنديّة و«٫» تُحوَّل أثناء الكتابة، فيعمل tryParse
+        // في الشاشات بدل إرسال null بصمت.
+        inputFormatters:
+            number ? const [LocalizedDigitsFormatter()] : null,
         style: const TextStyle(color: Colors.white),
         decoration: kDec(label),
       ),

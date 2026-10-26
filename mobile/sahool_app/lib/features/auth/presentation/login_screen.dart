@@ -3,10 +3,10 @@
 // تحفظ التوكن في التخزين الآمن، ثمّ تعيد بناء AuthGate (يوصِل WebSocket ويعرض
 // الواجهة). صدق: الفشل يُعرَض للمستخدم بالعربيّة، لا جلسة زائفة.
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:sahool_app/main.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -181,7 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       maxLength: 6,
                       textAlign: TextAlign.center,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
+                        // يقبل ٠-٩ العربيّة ويحوّلها (كان digitsOnly يحذفها).
+                        LocalizedDigitsFormatter(digitsOnly: true),
                       ],
                       style: const TextStyle(
                           color: Colors.white,

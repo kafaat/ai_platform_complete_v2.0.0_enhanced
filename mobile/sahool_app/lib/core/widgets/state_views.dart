@@ -4,12 +4,16 @@
 // 403 ⇒ لا صلاحيّة، 401 ⇒ انتهت الجلسة. تُعرَض الحالة كما هي بلا اختلاق.
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
 
-const kBg = Color(0xFF0F1117);
-const kSurface = Color(0xFF1A1D29);
-const kPrimary = Color(0xFF10B981);
-const kSecondary = Color(0xFF3B82F6);
-const kWarn = Color(0xFFF59E0B);
+// ثوابت الألوان القديمة — الشاشات المنقولة ما زالت تستعملها مباشرةً. صارت أسماءً
+// لرموز السمة الداكنة (tokens.dart) بدل قيم مستقلّة (كان kPrimary #10B981 لا
+// يطابق أيّ لون في رموز الويب). كود جديد: Theme.of(context)/context.tokens.
+const kBg = SahoolColors.darkBackground;
+const kSurface = SahoolColors.darkSurface;
+const kPrimary = SahoolColors.brandGreen;
+const kSecondary = SahoolColors.darkInfo;
+const kWarn = SahoolColors.darkWarning;
 
 /// رسالة خطأ صادقة حسب رمز الحالة من الخادم (يطابق منطق الواجهة). تقبل
 /// ApiException (من ApiClient) وDioException (Dio خامّ: field_forms/realtime)
