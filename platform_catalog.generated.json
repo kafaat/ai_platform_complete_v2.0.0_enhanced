@@ -16714,7 +16714,7 @@
         "activated": null,
         "built": true,
         "configured": null,
-        "tested": false,
+        "tested": true,
         "wired": true
       },
       "type": "service"
@@ -17211,7 +17211,7 @@
         "activated": null,
         "built": true,
         "configured": null,
-        "tested": false,
+        "tested": true,
         "wired": true
       },
       "type": "service"
@@ -18035,7 +18035,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52",
+  "fingerprint": "6fd7c780a6771bc319d83bd6dbfc7b198731d56ae848577d552662b88b97a309",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18085,14 +18085,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 878,
+      "edge_count": 879,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 47,
         "CONSUMES": 3,
         "EMITS": 1,
-        "READS": 448,
+        "READS": 449,
         "ROUTES_TO": 72,
         "WRITES": 307
       }

@@ -16,7 +16,7 @@
 
 | المقياس | الويب | الموبايل |
 |---|---:|---:|
-| شاشات مسجَّلة بعد الدخول | **79** مساراً في `NAV_SECTIONS` (عشرة أقسام) — `frontend/src/lib/routes.ts:66`، مُسطَّحة في `ALL_ROUTES` عند `frontend/src/lib/routes.ts:203` | **22** ودجة شاشة: 20 ملفّاً في `mobile/sahool_app/lib/screens/` + `features/realtime/realtime_screen.dart` + `features/field_forms/presentation/field_form_screen.dart` |
+| شاشات مسجَّلة بعد الدخول | **79** مساراً في `NAV_SECTIONS` (عشرة أقسام) — `frontend/src/lib/routes.ts:66`، مُسطَّحة في `ALL_ROUTES` عند `frontend/src/lib/routes.ts:203` | **23** ودجة شاشة: 20 ملفّاً في `mobile/sahool_app/lib/screens/` + `features/realtime/realtime_screen.dart` + `features/field_forms/presentation/field_form_screen.dart` + `features/field_forms/presentation/field_forms_list_screen.dart` (أُضيفت 2026-10-25) |
 | نضج الشاشات | 30 `stable` · 32 `beta` · 17 `alpha` (حقل `maturity` في `frontend/src/lib/routes.ts:72-197`) | لا حقل نضج |
 | شاشات ما قبل الدخول | 3: `LoginPage`/`SignupPage`/`AcceptInvitationPage` تُعرَض شرطيّاً لا كمسارات — `frontend/src/App.tsx:235-238` | 2: `LoginScreen` (`mobile/sahool_app/lib/main.dart:172`) و`OnboardingScreen` (`mobile/sahool_app/lib/main.dart:263`) — من ضمن الـ22 |
 | مسارات إضافيّة | 35 اسماً مستعاراً (alias) + مساران بمعامل `/:fieldId/workspace` + `*` → `/` — `frontend/src/App.tsx:425-465` | — |
@@ -117,8 +117,8 @@
 | الفجوة | الدليل | شرط الإغلاق |
 |---|---|---|
 | مضيف الموبايل الافتراضيّ بلا DNS — `MOBILE-DEFAULT-API-HOST-HAS-NO-DNS-01` | `mobile/sahool_app/lib/config/app_config.dart:7-8` | مضيف قائم افتراضيّاً، أو رفض البناء بلا `API_URL` |
-| شاشة نماذج الحقل غير موصولة بالتنقّل | `FieldFormScreen` معرَّفة في `mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart:243` ولا يبنيها أيّ ملفّ آخر في `mobile/sahool_app/lib/` | ربطها من مساحة عمل الحقل، أو إزالتها |
-| 13 ثابت مسار ويب بلا مُزخرِف خادم ولا نداء | سبعة `phase8` في `frontend/src/lib/globalScaleRuntime.ts:20-26` (الكائن غير مستورَد خارج ملفّه)؛ ستّة في `frontend/src/lib/enterpriseGisPhase7.ts:41-50` (collaboration sessions/events، distributed plan/jobs، `digital-twin/scenarios/simulate`، `readiness/planet-scale`) والمستعمَل منه `collaborationSocket` وحده (`:54`) | بناء المسارات أو حذف الثوابت — لا تُعرَض كقدرة |
+| ~~شاشة نماذج الحقل غير موصولة بالتنقّل~~ — **أُغلقت 2026-10-25** | زرّ «النماذج الميدانيّة» في شريط مساحة عمل الحقل (`mobile/sahool_app/lib/screens/field_workspace_screen.dart`) يفتح `FieldFormsListScreen` ومنها `FieldFormScreen`؛ يثبته `mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart` | — |
+| ~~14 ثابت مسار ويب بلا مُزخرِف خادم ولا نداء~~ — **مُغلَقة** (`WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01`) | حُذفت الثوابت الأربعة عشر (سبعة `phase8` من `frontend/src/lib/globalScaleRuntime.ts`، وسبعة من `frontend/src/lib/enterpriseGisPhase7.ts` منها `recommendations/autonomous`) وبقي `collaborationSocket` | حارس: `tests_v9/test_frontend_api_v1_literal_has_server_route.py` يرفض أيّ حرفيّة `/api/v1` في الواجهة بلا مسار مطابق بالطريقة والمسار في `route_inventory.generated.json` |
 | شاشة حوكمة للموبايل | الويب فقط (`routes.ts:193`) | جلسة بناء Flutter |
 | طبقة القدرات الدقيقة في الموبايل | `can()` في الويب فقط (`frontend/src/lib/permissions.ts:151`) | نقل `can()` إلى `permissions.dart` |
 | تحقّق بناء الموبايل | لا Flutter SDK في بيئة القياس | `flutter analyze` في بيئة فيها SDK |

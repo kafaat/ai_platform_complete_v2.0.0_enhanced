@@ -16,15 +16,9 @@ export type LoadMatrixRequest = {
 
 export type DisasterRecoveryTier = 'standard' | 'enterprise' | 'mission_critical';
 
-export const globalScaleRuntimeEndpoints = {
-  topology: '/api/v1/gis/cloud-native/phase8/global/topology',
-  loadMatrix: '/api/v1/gis/cloud-native/phase8/load/matrix',
-  loadResults: '/api/v1/gis/cloud-native/phase8/load/results',
-  disasterRecovery: '/api/v1/gis/cloud-native/phase8/disaster-recovery/plan',
-  errorBudget: '/api/v1/gis/cloud-native/phase8/slo/error-budget',
-  costGuardrails: '/api/v1/gis/cloud-native/phase8/cost/guardrails',
-  releaseGate: '/api/v1/gis/cloud-native/phase8/release-gate',
-} as const;
+// The phase8 endpoint constants were removed: no server route serves them
+// (services/sahool-platform/api/gis_phase8_global_scale.py has functions, no decorators)
+// and nothing called them (WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01).
 
 export function releaseGateBadge(ready: boolean, blockers: string[]): 'ready' | 'blocked' | 'needs-review' {
   if (ready) return 'ready';

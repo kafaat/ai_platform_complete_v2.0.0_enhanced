@@ -209,6 +209,18 @@ async def metrics():
     return Response(content=body, media_type="text/plain; version=0.0.4")
 
 
+def _embedding_space_identity() -> dict[str, Any]:
+    if _profile is None:
+        return {"basis": "dimension_only"}
+    manifest = _profile.manifest
+    return {
+        "basis": "profile_bound",
+        "retrieval_profile": manifest["retrieval_profile"],
+        "reindex_revision": manifest["revision"],
+        "embedding_model_digest": manifest["model_digest"],
+    }
+
+
 @app.get("/readyz")
 async def readyz():
     # **المرحلةُ تُسمّى في الـ503** (تدقيقُ التشغيل الحيّ 2026-09-29): نموذجُ تضمينٍ لم يُسحَب
@@ -217,9 +229,9 @@ async def readyz():
     # والمجموعةُ الغائبة أو الفارغة كانت 503 صادقةً أصلاً؛ تُوسَم مرحلتُها للتمييز فقط.
     stage = f"embedding[{EMBEDDING_MODEL}]"
     try:
-        # Readiness proves the embedding contract against the *live* Qdrant schema.
-        # A reachable Qdrant alone is insufficient: a different vector space makes
-        # retrieval operationally wrong while all HTTP probes remain green.
+        # Readiness checks the embedding dimension against the *live* Qdrant schema.
+        # A reachable Qdrant alone is insufficient, and a matching dimension alone does
+        # not prove the same vector space: ``embedding_space_identity`` says which was shown.
         vector = _embedding_provider.embed("SAHOOL retrieval readiness probe")
         stage = "collection"
         collection_dim = _qdrant.collection_vector_size()
@@ -240,6 +252,11 @@ async def readyz():
         "embedding_model": EMBEDDING_MODEL,
         "vector_size": collection_dim,
         "embedding_contract_parity": True,
+        # **ما أثبته هذا الفحصُ لفضاء التضمين، باسمه** (REPORT3-RAG-05-01): بلا profile لم يُقَس
+        # إلّا تطابقُ البُعد — لا digest نموذجٍ ولا بادئةٌ ولا مراجعةُ corpus. ومع profile يُتحقَّق
+        # الـdigest الحيّ والبادئة والمراجعة عند البناء وفي كلّ استرجاع (production_qdrant).
+        # حقلٌ إضافيّ: لا يُغيّر مفتاحاً تقرؤه الشهادةُ الحيّة.
+        "embedding_space_identity": _embedding_space_identity(),
         # **الفصلُ يمرّ إلى المستهلكين، لا يقف عند الحارس.** كان `readyz` يُعيد
         # `collection_schema_parity: True` بلا شرط — فيقرأ كلُّ مستهلكٍ تكافؤَ الـpayload
         # أخضرَ لمجرّد نجاح إعادة البناء. وفصلُ الاسمين في حارس القبول وحده كان يترك

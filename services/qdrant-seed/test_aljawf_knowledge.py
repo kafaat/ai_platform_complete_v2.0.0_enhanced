@@ -222,4 +222,8 @@ def test_compose_passes_canonical_seed_contract():
     assert "COLLECTION_NAME: ${QDRANT_COLLECTION:-sahool_agri_kb}" in section
     assert "OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}" in section
     assert "EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}" in section
-    assert "QDRANT_API_KEY: ${QDRANT_API_KEY}" in section
+    # المفتاح يُمرَّر **إلزاميّاً** (`:?`، منذ #887): compose يرفض الإقلاع بلا مفتاح بدل
+    # تمرير قيمةٍ فارغة يتّصل بها البذّار بلا اعتماد. الصيغة الاختياريّة القديمة
+    # `${QDRANT_API_KEY}` أو أيّ افتراضيّ `:-` انحدارٌ إلى الاتّصال المجهول.
+    assert "QDRANT_API_KEY: ${QDRANT_API_KEY:?" in section
+    assert "${QDRANT_API_KEY:-" not in section, "مفتاح Qdrant لا يحمل قيمةً افتراضيّة"

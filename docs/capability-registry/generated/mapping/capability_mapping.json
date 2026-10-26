@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6369,
+    "files_scanned": 6382,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
-      "mobile": 90,
-      "other": 2121,
-      "tests": 2045,
+      "mobile": 91,
+      "other": 2124,
+      "tests": 2054,
       "web": 479
     },
-    "unmapped_artifacts": 2430,
-    "ambiguous_artifacts": 472
+    "unmapped_artifacts": 2434,
+    "ambiguous_artifacts": 474
   },
   "capabilities": [
     {
@@ -1033,16 +1033,7 @@
           ]
         }
       ],
-      "governance": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        }
-      ],
+      "governance": [],
       "other_evidence": [
         {
           "path": "scripts/ci/execution_request_boundary_gate.py",
@@ -1205,7 +1196,7 @@
         "web": 0,
         "mobile": 0,
         "tests": 20,
-        "governance": 1,
+        "governance": 0,
         "other_evidence": 18
       },
       "coverage_dimensions": 5,
@@ -3719,6 +3710,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 15,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
+          ]
+        },
+        {
           "path": "WX11_4_MODEL_ACTIVATION_REQUEST_REPORT_20260711.md",
           "score": 14,
           "signals": [
@@ -3780,7 +3780,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 9
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -10200,6 +10200,14 @@
           ]
         },
         {
+          "path": "scripts/ci/db_writer_ownership_guard.py",
+          "score": 11,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
           "path": "scripts/ci/service_port_gate.py",
           "score": 11,
           "signals": [
@@ -10217,14 +10225,6 @@
         },
         {
           "path": "config/platform_catalog_overrides.yml",
-          "score": 10,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
-          "path": "scripts/ci/db_writer_ownership_guard.py",
           "score": 10,
           "signals": [
             "content:erp bridge",
@@ -13906,7 +13906,17 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "score": 12,
+          "signals": [
+            "content:Field water-source binding",
+            "content:field water source",
+            "content:source binding"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "certification/evidence/chatgpt_unification_20261016/ghcr-current/pr1198.json",
@@ -13950,7 +13960,7 @@
         "web": 0,
         "mobile": 0,
         "tests": 2,
-        "governance": 0,
+        "governance": 1,
         "other_evidence": 4
       },
       "coverage_dimensions": 3,
@@ -16341,6 +16351,10 @@
       ],
       "events": [
         {
+          "value": "field_form_screen.dart @ mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart:18",
+          "score": 28
+        },
+        {
           "value": "v204_field_forms.sql @ tests_v9/test_v204_field_forms_static.py:117",
           "score": 27
         },
@@ -16377,6 +16391,16 @@
       "mobile": [
         {
           "path": "mobile/sahool_app/lib/features/field_forms/data/field_forms_api.dart",
+          "score": 28,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart",
           "score": 28,
           "signals": [
             "path:Field forms",
@@ -16484,6 +16508,14 @@
           ]
         },
         {
+          "path": "mobile/sahool_app/lib/screens/field_workspace_screen.dart",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "mobile/sahool_app/lib/main.dart",
           "score": 8,
           "signals": [
@@ -16505,6 +16537,16 @@
         },
         {
           "path": "mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart",
+          "score": 28,
+          "signals": [
+            "path:Field forms",
+            "content:Field forms",
+            "path:field form",
+            "content:field form"
+          ]
+        },
+        {
+          "path": "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart",
           "score": 28,
           "signals": [
             "path:Field forms",
@@ -16805,10 +16847,10 @@
         "backend": 3,
         "routes": 12,
         "database": 14,
-        "events": 8,
+        "events": 9,
         "web": 0,
-        "mobile": 12,
-        "tests": 21,
+        "mobile": 14,
+        "tests": 22,
         "governance": 1,
         "other_evidence": 10
       },
@@ -25732,6 +25774,10 @@
           "score": 22
         },
         {
+          "value": "sahool-build-metadata.json @ services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py:113",
+          "score": 18
+        },
+        {
           "value": "fields.geoparquet @ services/sahool-platform/api/routers/gis_cloud_native.py:701",
           "score": 15
         },
@@ -25814,6 +25860,15 @@
           "signals": [
             "path:raster tile",
             "path:tilejson",
+            "content:tilejson"
+          ]
+        },
+        {
+          "path": "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py",
+          "score": 18,
+          "signals": [
+            "path:raster tile",
+            "content:raster tile",
             "content:tilejson"
           ]
         },
@@ -26344,10 +26399,10 @@
         "backend": 14,
         "routes": 70,
         "database": 0,
-        "events": 17,
+        "events": 18,
         "web": 1,
         "mobile": 0,
-        "tests": 23,
+        "tests": 24,
         "governance": 0,
         "other_evidence": 41
       },
@@ -28812,6 +28867,15 @@
             "path:tenant assertion",
             "content:tenant assertion"
           ]
+        },
+        {
+          "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
+          "score": 12,
+          "signals": [
+            "content:Signed tenant assertion",
+            "content:signed tenant",
+            "content:tenant assertion"
+          ]
         }
       ],
       "governance": [],
@@ -28844,7 +28908,7 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 2
       },
@@ -29610,6 +29674,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 16,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "docs/architecture/db_writer_ownership_triage.json",
           "score": 16,
           "signals": [
@@ -29638,15 +29711,6 @@
         },
         {
           "path": "docs/architecture/db_ownership.yml",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code"
-          ]
-        },
-        {
-          "path": "docs/architecture/db_writer_ownership_baseline.json",
           "score": 15,
           "signals": [
             "content:MFA",
@@ -32246,6 +32310,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
+          "score": 9,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
           "path": "tests_v9/test_vra_prescription_engine_v62.py",
           "score": 9,
           "signals": [
@@ -32473,7 +32546,7 @@
         "events": 9,
         "web": 5,
         "mobile": 0,
-        "tests": 12,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 21
       },
@@ -33150,6 +33223,15 @@
         },
         {
           "path": "services/sahool-platform/api/weather_automation.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "services/weather-signal-engine/src/main.py",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -34313,7 +34395,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 20,
+        "backend": 21,
         "routes": 63,
         "database": 12,
         "events": 65,
@@ -45825,6 +45907,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/scout-ingest-service/tests/test_projection_live.py",
       "kind": "tests"
     },
@@ -46129,10 +46215,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/vegetation-analysis-service/test_rs_final_hardening.py",
       "kind": "tests"
     },
@@ -46250,10 +46332,6 @@
     },
     {
       "path": "services/weather-service/thermal_stress.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/weather-signal-engine/src/main.py",
       "kind": "backend"
     },
     {
@@ -46902,6 +46980,10 @@
     },
     {
       "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ci_path_membership_portability.py",
       "kind": "tests"
     },
     {
@@ -48077,6 +48159,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_embedding_space_identity.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_rag_live_corpus_audit.py",
       "kind": "tests"
     },
@@ -48110,6 +48196,10 @@
     },
     {
       "path": "tests_v9/test_rag_relevance_experiment_measurement.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_served_ranking_decomposition.py",
       "kind": "tests"
     },
     {
@@ -48741,6 +48831,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_uwrp_learning_scripts_candidate.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_v05_certification_guards.py",
       "kind": "tests"
     },
@@ -48854,6 +48948,10 @@
     },
     {
       "path": "tests_v9/test_weather_engine.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_weather_overlay_reader_states.py",
       "kind": "tests"
     },
     {
@@ -48975,19 +49073,20 @@
           ]
         },
         {
+          "capability_id": "IRR-003",
+          "score": 12,
+          "signals": [
+            "content:Field water-source binding",
+            "content:field water source",
+            "content:source binding"
+          ]
+        },
+        {
           "capability_id": "DEC-008",
           "score": 12,
           "signals": [
             "content:Learning attribution",
             "content:learning attribution"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
           ]
         }
       ]
@@ -50497,6 +50596,30 @@
           "signals": [
             "content:Field forms",
             "content:field form"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/db_writer_ownership_baseline.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 16,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "DEC-010",
+          "score": 15,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
           ]
         }
       ]
@@ -53558,6 +53681,28 @@
           "signals": [
             "content:crop season",
             "content:season"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mobile/sahool_app/lib/screens/field_workspace_screen.dart",
+      "kind": "mobile",
+      "candidates": [
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
+          "capability_id": "FM-003",
+          "score": 12,
+          "signals": [
+            "path:field workspace",
+            "content:field workspace"
           ]
         }
       ]

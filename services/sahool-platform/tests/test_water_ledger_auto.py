@@ -296,6 +296,7 @@ def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
         "irrigation_unobserved",
         "et0_reference_unavailable",
         "root_zone_texture_fallback",
+        "irrigation_unknown_inherited",
     }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
 
 
@@ -563,3 +564,156 @@ def test_stored_decision_round_trips_to_the_same_applied_water_status():
     # قيدٌ يدويٌّ/قديم لا يُدَّعى عنه ما لم يُعلِنه.
     assert ledger_notes_from_decision("manual: farmer log") is None
     assert ledger_notes_from_decision(None) is None
+
+
+# ── شرطُ الإغلاق (أ): المجهولُ ≠ الصفر، صريحاً ومورَّثاً ────────────────────────────
+#
+# الخطوةُ الجزئيّة سمّت حالةَ الماء المضاف ليومٍ واحد. وبقي: (١) لا علَمَ صريحٌ يقول إنّ
+# الاستنزافَ **حدٌّ أعلى** لا تقدير؛ (٢) العلَمُ يوميٌّ لا يرث — يومٌ مُسجَّلٌ فوق أيّامٍ بلا
+# سجلّ يعود «مُسجَّلاً» واستنزافُه الموروث مبنيٌّ على ريٍّ مجهول.
+
+_SOUND = dict(taw_mm=120.0, raw_mm=60.0, et0_mm=5.0, kc=1.0, rain_mm=0.0)
+
+
+@pytest.mark.unit
+def test_unobserved_irrigation_is_explicitly_unknown_and_depletion_an_upper_bound():
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0, irrigation_mm=0.0, irrigation_unobserved=True, **_SOUND
+    )
+    assert entry["irrigation_known"] is False
+    assert entry["depletion_is_upper_bound"] is True
+    recorded = compute_daily_ledger_entry(prev_depletion_mm=30.0, irrigation_mm=12.0, **_SOUND)
+    assert recorded["irrigation_known"] is True
+    assert recorded["depletion_is_upper_bound"] is False
+
+
+@pytest.mark.unit
+def test_a_zero_upper_bound_is_exact_not_a_bound():
+    """حدٌّ أعلى صفر ⇒ الحقيقيّ ∈ [0, 0]: مضبوطٌ ولو جُهِل الريّ."""
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_unobserved=True,
+        **{**_SOUND, "rain_mm": 40.0},
+    )
+    assert entry["depletion_mm"] == 0.0
+    assert entry["irrigation_known"] is False
+    assert entry["depletion_is_upper_bound"] is False
+
+
+@pytest.mark.unit
+def test_a_recorded_day_inherits_unknown_applied_water_from_yesterday():
+    """ريّةٌ مسجّلةٌ اليوم لا تغسل استنزافاً موروثاً بُنِي على ريٍّ مجهول."""
+    from api.water_ledger_auto import APPLIED_WATER_INHERITED_UNKNOWN
+
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        irrigation_mm=12.0,
+        prev_applied_water_status="unrecorded",
+        **_SOUND,
+    )
+    assert entry["depletion_mm"] == 23.0  # الحسابُ نفسُه — الإعلانُ هو ما تغيّر
+    assert "irrigation_unknown_inherited" in entry["notes"]
+    assert entry["applied_water_status"] == APPLIED_WATER_INHERITED_UNKNOWN
+    assert entry["irrigation_known"] is False
+    assert entry["depletion_is_upper_bound"] is True
+    assert entry["confidence"] == CONFIDENCE_BOOTSTRAP
+
+
+@pytest.mark.unit
+def test_the_inheritance_breaks_at_an_exact_zero_and_at_an_undeclared_caller():
+    after_zero = compute_daily_ledger_entry(
+        prev_depletion_mm=0.0,
+        irrigation_mm=12.0,
+        prev_applied_water_status="unrecorded",
+        **_SOUND,
+    )
+    assert after_zero["applied_water_status"] == "recorded"
+    assert after_zero["confidence"] == CONFIDENCE_AUTO
+    # المُستدعي الذي لا يُعلِن حالةَ الأمس (العاملُ المجمَّد اليوم) لا يتغيّر مخرَجُه.
+    undeclared = compute_daily_ledger_entry(prev_depletion_mm=30.0, irrigation_mm=12.0, **_SOUND)
+    assert undeclared["notes"] == []
+    assert undeclared["confidence"] == CONFIDENCE_AUTO
+    # والتهيئةُ بدايةُ سلسلة: لا أمسَ يُورَّث منه.
+    boot = compute_daily_ledger_entry(
+        prev_depletion_mm=None,
+        irrigation_mm=12.0,
+        prev_applied_water_status="unrecorded",
+        **_SOUND,
+    )
+    assert "irrigation_unknown_inherited" not in boot["notes"]
+
+
+@pytest.mark.unit
+def test_the_inherited_flag_round_trips_through_the_stored_decision():
+    from api.water_ledger_auto import applied_water_status, ledger_notes_from_decision
+
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        irrigation_mm=12.0,
+        prev_applied_water_status="volume_untracked",
+        **_SOUND,
+    )
+    notes = ledger_notes_from_decision(entry["decision"])
+    assert applied_water_status(notes) == "inherited_unknown"
+
+
+def _row(depletion, decision):
+    return {"depletion_mm": depletion, "decision": decision}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "rows,expected",
+    [
+        ([], None),
+        ([_row(40.0, "manual: farmer")], None),
+        ([_row(40.0, "auto:irrigation_unobserved")], "unrecorded"),
+        # مُسجَّلٌ حتّى التهيئة بريٍّ مقيس ⇒ مُسجَّل.
+        (
+            [_row(40.0, "auto:daily_balance"), _row(30.0, "auto:bootstrap_assumed_field_capacity")],
+            "recorded",
+        ),
+        # مُسجَّلٌ فوق يومٍ بلا سجلّ ⇒ موروث.
+        (
+            [
+                _row(40.0, "auto:daily_balance"),
+                _row(45.0, "auto:irrigation_unobserved"),
+                _row(30.0, "auto:bootstrap_assumed_field_capacity"),
+            ],
+            "inherited_unknown",
+        ),
+        # تهيئةٌ ريُّها نفسُه مجهول ⇒ موروث.
+        (
+            [
+                _row(40.0, "auto:daily_balance"),
+                _row(30.0, "auto:bootstrap_assumed_field_capacity;irrigation_unobserved"),
+            ],
+            "inherited_unknown",
+        ),
+        # استنزافٌ صفرٌ بين اليومين ⇒ مرساةٌ مضبوطة تقطع الإرث.
+        (
+            [
+                _row(40.0, "auto:daily_balance"),
+                _row(0.0, "auto:irrigation_unobserved"),
+                _row(50.0, "auto:irrigation_unobserved"),
+            ],
+            "recorded",
+        ),
+        # قيدٌ يدويٌّ بينهما ⇒ بدايةُ سلسلة (الإنسانُ سيّد الدفتر).
+        (
+            [
+                _row(40.0, "auto:daily_balance"),
+                _row(35.0, "manual: probe"),
+                _row(50.0, "auto:irrigation_unobserved"),
+            ],
+            "recorded",
+        ),
+        # نفادُ النافذة بلا مرساة ⇒ لا دليلَ على بدايةٍ معلومة.
+        ([_row(40.0, "auto:daily_balance"), _row(35.0, "auto:daily_balance")], "inherited_unknown"),
+    ],
+)
+def test_the_ledger_chain_status_walks_back_to_an_anchor(rows, expected):
+    from api.water_ledger_auto import ledger_chain_applied_water_status
+
+    assert ledger_chain_applied_water_status(rows) == expected

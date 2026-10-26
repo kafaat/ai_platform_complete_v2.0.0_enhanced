@@ -10035,3 +10035,18 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 فالمصدران المشتبه بهما في MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 لا يحملان القيمة القديمة في الحالة الحاليّة. يبقى تفسيران غير مقيسين: أنّ `.env` صُحّح بعد ظهور الخطأ، أو أنّ `docker compose up` الذي فشل شُغّل من نسخةٍ أو مجلّدٍ غير `v26`. **الخطوة الحاسمة:** `docker compose -f docker-compose.v9.yml pull sahool-minio sahool-minio-init` من `v26` نفسه؛ نجاحها يثبت أنّ الفخّ لا يتكرّر على هذا الجهاز. ويُنقل ذلك إلى صفّ الفجوة مع أوّل تغييرٍ يمسّ كوداً أو دليلاً لها، لأنّ تحرير الصفّ من ملفّات الدماغ وحدها يرفضه `brain_state_transition_guard`.
 
 وعلى جهاز المالك أيضاً: `main` المحليّ دُمج فيه `origin/main` (لا إعادة تأسيس)، فبقيت 13 commit محليّة تحمل أدلّة تدقيق غير موجودة على `origin`. لا أثر لذلك على المستودع.
+
+### 2026-10-26 — أسطول إصلاح من 26 وكيلاً على الفجوات المفتوحة
+
+بتفويض المالك («بعدد أكثر من 20 وكيل… وإغلاق أيّ فجوة»، ثمّ «تجاوز العوائق»): وكيلٌ لكلّ فجوةٍ قابلةٍ للإصلاح بالكود، كلٌّ في شجرة عملٍ معزولة، تحت التجميد (لا Railway ولا قاعدة بيانات ولا هجرات). راجعتُ كلَّ التزامٍ بنفسي قبل دمجه في فرع `claude/review-portability-tests-mobile-20261025`.
+
+- **أُصلِح:** مدخلُ شاشة نماذج الحقل في الهاتف (`dc397ec9f`)؛ ثلاثةُ سكربتات CI تقرّر عضويّة المسار بالمكوّنات لا بسلسلة POSIX (`generate_service_inventory` · `health_readiness_schema_guard` · `tenant_guc_scope_guard`)؛ عقودُ HTTP لـ`sam2-inference` (43) و`raster-tiler-service` (8) في وظيفة Unit Tests؛ و`sam2-inference` يتحقّق من الرمز قبل التحقّق من الجسم.
+- **تقدّمٌ جزئيّ (تبقى open):** UWRP-V43-LEARNING-SCRIPTS-UNSAFE-01 · OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01 · FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01 · UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01 · REPORT3-RAG-05-01 · REPORT3-RAG-06-01 · REPORT3-RAG-08-01 · GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01.
+- **مُصلَحٌ سلفاً على main وصُحِّح صفُّه:** DEP-OTEL-API-CVE-2026-114603-01 وDEP-TITILER-CERTIFI-PYSEC-2026-4320-01 (#1254)، RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01 (#1234). وتبيّن أنّ ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 وGUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01 مُغلَقتان في مدخلهما الحاليّ، وأنّ ما بدا مفتوحاً لقطةٌ تاريخيّة موسومة — خطأٌ في مسحي الأوّل لا في السجلّ.
+- **قرارات للمالك:** خمسة عشر بنداً في [`reports/owner_decisions_20261026.md`](reports/owner_decisions_20261026.md)؛ لم يتّخذ الوكيل قراراً زراعيّاً ولا تفويضَ GATE-01.
+- **فجواتٌ جديدة:** RAILWAY-RESOURCEFUL-COMMITMENT-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 · FRONTEND-NON-API-CONSTANTS-POINT-AT-NO-HANDLER-01 · LEGACY-TITILER-IMAGE-PACKAGES-NOT-AUDITED-01.
+- **ممسوكٌ للمالك:** إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 في فرعٍ منفصل لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة.
+
+### 2026-10-26 — الإصلاحات كلّها في PR واحد، ووصلُ 76 اختباراً لم يشغّلها CI
+
+بأمر المالك «تنفيذ جميع الإصلاحات في pr واحد» ضُمّ إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 (كان ممسوكاً لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة) إلى الفرع الموحَّد، ومعه نتيجةُ مسح الاختبارات غير المُشغَّلة: SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 مسجَّلةٌ، وخمسةُ اختباراتٍ قديمة أُصلحت، واستثناءٌ دقيق لـ`/runtime-identity` في حارسي auth وsoil، و`p2_main_decomposition_guard` يقرأ الاستيراد الحقيقيّ بالـAST بعد أن كان يمرّ بنصّ docstring، و76 ملفّاً تُشغَّل الآن في وظيفة Unit Tests المطلوبة.

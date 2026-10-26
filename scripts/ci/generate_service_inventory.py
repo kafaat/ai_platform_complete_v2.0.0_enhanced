@@ -21,7 +21,7 @@ import csv
 import json
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICES = ROOT / "services"
@@ -284,6 +284,21 @@ def risk_for(service: str, routes: int, tests: int, loc: int) -> str:
     return "normal"
 
 
+def is_test_file(path: PurePath, service_dir: PurePath) -> bool:
+    """A service file is a test if it is named ``test_*`` or lives under a ``tests/`` dir.
+
+    Decided on path *components*, never on ``"/tests/" in str(path)``: on Windows
+    ``str(path)`` uses backslashes, so the substring never matched there and a local
+    ``--check`` counted fewer tests than Linux CI (measured: auth 1 vs 2) — the same
+    tree gave two answers. Only directories *inside the service* are consulted
+    (``relative_to(service_dir)``, filename excluded), so a checkout that happens to
+    sit under a directory named ``tests`` no longer turns every file into a test.
+    """
+    if path.name.startswith("test_"):
+        return True
+    return "tests" in path.relative_to(service_dir).parts[:-1]
+
+
 def discover() -> tuple[list[ServiceRow], list[RouteRow]]:
     service_rows: list[ServiceRow] = []
     route_rows: list[RouteRow] = []
@@ -291,7 +306,7 @@ def discover() -> tuple[list[ServiceRow], list[RouteRow]]:
         # فرز صريح: ترتيب rglob يعتمد نظام الملفّات/إصدار بايثون (اختلف فعليّاً بين
         # 3.11 محليّاً و3.12 في CI ⇒ انجراف كاذب في route_inventory) — الحتميّة إلزاميّة.
         py_files = sorted(p for p in svc_dir.rglob("*.py") if "__pycache__" not in p.parts)
-        test_files = [p for p in py_files if p.name.startswith("test_") or "/tests/" in str(p)]
+        test_files = [p for p in py_files if is_test_file(p, svc_dir)]
         svc_routes: list[RouteRow] = []
         for py in py_files:
             svc_routes.extend(routes_for_file(svc_dir.name, py))

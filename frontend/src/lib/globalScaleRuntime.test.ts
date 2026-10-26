@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { errorBudgetColor, globalScaleRuntimeEndpoints, releaseGateBadge } from './globalScaleRuntime';
+import { errorBudgetColor, releaseGateBadge } from './globalScaleRuntime';
 
 describe('globalScaleRuntime contracts', () => {
-  it('exposes phase8 endpoints', () => {
-    expect(globalScaleRuntimeEndpoints.topology).toContain('/phase8/');
-    expect(globalScaleRuntimeEndpoints.releaseGate).toContain('release-gate');
-  });
-
   it('classifies release gates', () => {
     expect(releaseGateBadge(true, [])).toBe('ready');
     expect(releaseGateBadge(false, ['dr'])).toBe('blocked');

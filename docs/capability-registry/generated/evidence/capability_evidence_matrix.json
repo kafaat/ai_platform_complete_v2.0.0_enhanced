@@ -5265,6 +5265,7 @@
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart",
+        "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart",
         "mobile/sahool_app/test/field_forms/no_coercion_test.dart",
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart",
@@ -7732,6 +7733,7 @@
         "services/raster-service/test_raster_map_deep_hardening_static.py",
         "services/raster-service/test_rgba_cog_photometric.py",
         "services/raster-service/test_tiles.py",
+        "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py",
         "shared/gis/test_cloud_native_runtime.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_connectivity_tile_transport.py",
@@ -8068,6 +8070,7 @@
       "runtime_verified": false,
       "title": "Signed tenant assertion",
       "unit_test_paths": [
+        "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
         "tests_v9/test_service_tenant_assertion.py"
       ]
     },
@@ -9135,6 +9138,7 @@
         "services/raster-service/test_soil_zones.py",
         "services/sahool-platform/tests/_public_read_allowlist.json",
         "tests_v9/test_endpoint_auth_coverage.py",
+        "tests_v9/test_frontend_api_v1_literal_has_server_route.py",
         "tests_v9/test_soil_layer_v31_7.py",
         "tests_v9/test_soil_sampling_planner_v61.py",
         "tests_v9/test_soil_sampling_strategies_v61_1.py",

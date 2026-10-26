@@ -6592,6 +6592,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/scout-ingest-service/tests/test_projection_live.py",
     "kind": "tests"
   },
@@ -6896,10 +6900,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/vegetation-analysis-service/test_rs_final_hardening.py",
     "kind": "tests"
   },
@@ -7017,10 +7017,6 @@
   },
   {
     "path": "services/weather-service/thermal_stress.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/weather-signal-engine/src/main.py",
     "kind": "backend"
   },
   {
@@ -7669,6 +7665,10 @@
   },
   {
     "path": "tests_v9/test_ci_invoked_locale_preamble_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ci_path_membership_portability.py",
     "kind": "tests"
   },
   {
@@ -8844,6 +8844,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_embedding_space_identity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_live_corpus_audit.py",
     "kind": "tests"
   },
@@ -8877,6 +8881,10 @@
   },
   {
     "path": "tests_v9/test_rag_relevance_experiment_measurement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_served_ranking_decomposition.py",
     "kind": "tests"
   },
   {
@@ -9508,6 +9516,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_uwrp_learning_scripts_candidate.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_v05_certification_guards.py",
     "kind": "tests"
   },
@@ -9621,6 +9633,10 @@
   },
   {
     "path": "tests_v9/test_weather_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_overlay_reader_states.py",
     "kind": "tests"
   },
   {

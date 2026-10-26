@@ -166,7 +166,9 @@ def test_predict_metadata_surfaces_verified_artifact_digest(monkeypatch):
     )
 
     req = main.rt.PredictRequest(mode="auto")
-    body = asyncio.run(main.predict(req, x_agent_token="token"))
+    # المصادقة تبعيّة FastAPI (`_require_service_token`) لا معامِل للمعالج؛ النداء المباشر
+    # يختبر المعالج وحده، والمصادقة يغطّيها عقد HTTP في services/sam2-inference/tests.
+    body = asyncio.run(main.predict(req))
 
     assert body["metadata"]["artifact_digest"] == digest
     assert body["metadata"]["model"] == "sam2"

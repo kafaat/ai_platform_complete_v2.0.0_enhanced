@@ -77,11 +77,19 @@ def test_no_duplicate_route_registrations():
 
 
 def test_no_app_route_decorators_in_main():
-    """لا مُزخرِف ``@app.<method>`` متبقٍّ في main.py (التفكيك مكتمل، المُعالِجات في routers/)."""
-    src = (_HERE / "main.py").read_text(encoding="utf-8")
-    leftover = re.findall(r"@app\.(get|post|put|delete|patch|websocket)\b", src)
-    assert not leftover, f"مُزخرِفات @app متبقّية في main.py (تفكيك ناقص): {leftover}"
-    assert "register_routers(app)" in src, "register_routers(app) غير موصول في main.py"
+    """لا مُزخرِف ``@app.<method>`` في main.py ولا في actuator_runtime.py (المُعالِجات في routers/).
+
+    تفكيك P2 نقل بناء ``app`` وتسجيل الراوترات إلى ``actuator_runtime.py``؛ و``main.py``
+    صَدَفة توافق تُعيد التصدير. فالتسجيل يُطلَب حيث يُبنى ``app``، والمُزخرِفات ممنوعة في الملفّين.
+    """
+    for name in ("main.py", "actuator_runtime.py"):
+        src = (_HERE / name).read_text(encoding="utf-8")
+        leftover = re.findall(r"@app\.(get|post|put|delete|patch|websocket)\b", src)
+        assert not leftover, f"مُزخرِفات @app متبقّية في {name} (تفكيك ناقص): {leftover}"
+    runtime_src = (_HERE / "actuator_runtime.py").read_text(encoding="utf-8")
+    assert re.search(r"^register_routers\(app\)$", runtime_src, re.M), (
+        "register_routers(app) غير موصول في actuator_runtime.py"
+    )
 
 
 if __name__ == "__main__":

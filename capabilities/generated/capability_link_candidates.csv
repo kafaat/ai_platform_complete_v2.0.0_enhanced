@@ -68,6 +68,7 @@ DEC-002,service,services/decision-service/main.py,10,applied
 DEC-002,test,services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py,3,applied
 DEC-002,test,services/sahool-platform/tests/test_candidate_generator.py,3,applied
 DEC-002,test,services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py,3,applied
+DEC-002,test,tests_v9/test_uwrp_learning_scripts_candidate.py,3,applied
 DEC-003,api,GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:51,2,applied
 DEC-003,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:83,2,applied
 DEC-003,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:576,2,applied
@@ -644,6 +645,7 @@ FM-003,mobile,mobile/sahool_app/lib/features/field_forms/data/field_forms_coordi
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart,2,applied
+FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/models/canonical_field_geometry.dart,2,applied
@@ -658,6 +660,7 @@ FM-003,test,mobile/sahool_app/test/field_forms/condition_v1_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/draft_store_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/field_forms_api_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart,3,applied
+FM-003,test,mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/no_coercion_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart,3,applied
@@ -1313,6 +1316,7 @@ OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/data/field_forms_coord
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart,6,applied
+OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart,6,applied
 OPS-004,mobile,mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart,6,applied
 OPS-004,service,services/field-management-service/main.py,10,applied
@@ -1321,6 +1325,7 @@ OPS-004,test,mobile/sahool_app/test/field_forms/condition_v1_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/draft_store_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/field_forms_api_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart,7,applied
+OPS-004,test,mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/no_coercion_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,7,applied
 OPS-004,test,mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart,7,applied
@@ -1771,6 +1776,7 @@ SAT-009,test,services/raster-service/test_tile_tenant_query.py,5,applied
 SAT-009,test,services/raster-service/test_tiles.py,3,applied
 SAT-009,test,services/raster-service/test_truecolor_render.py,3,applied
 SAT-009,test,services/raster-service/test_wapor_worldcereal.py,3,applied
+SAT-009,test,services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py,3,applied
 SAT-009,test,services/sahool-platform/tests/test_bivariate_raster.py,3,applied
 SAT-009,test,services/sahool-platform/tests/test_d1_raster_owner_write_commands.py,3,applied
 SAT-009,test,services/sahool-platform/tests/test_gis_tile_math.py,3,applied
