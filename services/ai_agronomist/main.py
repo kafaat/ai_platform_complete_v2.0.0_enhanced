@@ -192,9 +192,7 @@ class AdvisorQuery(BaseModel):
     model: str | None = Field(default=None, max_length=128)
     # V57: طلبات أدوات اختياريّة ينتجها النموذج/الواجهة وتُنفّذ عبر حلقة Harness محوكَمة.
     # لا تُنفَّذ أداة مجهولة أو بلا قدرة؛ الأفعال المُعدِّلة تُحوَّل إلى طلب موافقة.
-    # The loop executes at most tool_loop.MAX_TOOL_CALLS (8) and reports the rest as
-    # truncated; the request itself is bounded so an oversized list is refused up front.
-    tool_calls: list[dict[str, Any]] | None = Field(default=None, max_length=32)
+    tool_calls: list[dict[str, Any]] | None = Field(default=None, max_length=32)  # loop runs ≤8
 
 
 class ApprovalDecisionRequest(BaseModel):
