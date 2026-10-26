@@ -16,6 +16,7 @@ import json
 import logging
 import math
 import os
+import re
 import weakref
 from datetime import UTC, datetime
 from typing import Any
@@ -2817,7 +2818,7 @@ def _promotion_decision_hash(payload: Any) -> str:
             "min_improvement": payload.min_improvement,
             "lower_is_better": payload.lower_is_better,
             "max_regression": payload.max_regression,
-            "guardrail_metrics": sorted(set(payload.guardrail_metrics)),
+            "guardrail_metrics": _guardrail_hash_repr(payload.guardrail_metrics),
             "metadata": payload.metadata,
         },
         sort_keys=True,
@@ -2825,6 +2826,77 @@ def _promotion_decision_hash(payload: Any) -> str:
         default=str,
     )
     return hashlib.sha256(blob.encode()).hexdigest()
+
+
+# Guardrail metrics named only by string get their direction from the name: any of these
+# tokens (split on non-alphanumerics, e.g. "yield_rmse") marks an error metric where lower is
+# better. Every other plain name is higher-is-better. A spec entry
+# {"metric": ..., "lower_is_better": bool} states the direction explicitly.
+_LOWER_IS_BETTER_METRIC_TOKENS = frozenset(
+    {
+        "mae",
+        "mse",
+        "rmse",
+        "msle",
+        "rmsle",
+        "mape",
+        "smape",
+        "fnr",
+        "fpr",
+        "error",
+        "loss",
+        "logloss",
+        "brier",
+    }
+)
+
+
+def _metric_lower_is_better_by_name(name: str) -> bool:
+    tokens = re.split(r"[^a-z0-9]+", name.lower())
+    return any(token in _LOWER_IS_BETTER_METRIC_TOKENS for token in tokens)
+
+
+def _normalize_guardrails(entries: Any) -> dict[str, bool] | None:
+    """Map each guardrail metric to its lower_is_better direction.
+
+    Returns None (fail closed) for a malformed entry, a non-boolean direction, or the same
+    metric listed with two different directions.
+    """
+    if entries is None:
+        return {}
+    if isinstance(entries, (str, bytes, dict)) or not isinstance(entries, (list, tuple, set)):
+        return None
+    out: dict[str, bool] = {}
+    for entry in entries:
+        if isinstance(entry, str):
+            name: Any = entry
+            lower_is_better: Any = None
+        else:
+            spec = entry.model_dump() if hasattr(entry, "model_dump") else entry
+            if not isinstance(spec, dict):
+                return None
+            name = spec.get("metric")
+            lower_is_better = spec.get("lower_is_better")
+        if not isinstance(name, str) or not name.strip():
+            return None
+        if lower_is_better is None:
+            lower_is_better = _metric_lower_is_better_by_name(name)
+        if not isinstance(lower_is_better, bool):
+            return None
+        if out.get(name, lower_is_better) is not lower_is_better:
+            return None
+        out[name] = lower_is_better
+    return out
+
+
+def _guardrail_hash_repr(entries: Any) -> Any:
+    # Plain-name lists keep their historical hash input so existing idempotency keys replay.
+    if isinstance(entries, (list, tuple, set)) and all(isinstance(e, str) for e in entries):
+        return sorted(set(entries))
+    normalized = _normalize_guardrails(entries)
+    if normalized is None:
+        return None
+    return [{"metric": k, "lower_is_better": v} for k, v in sorted(normalized.items())]
 
 
 def _metric_number(metrics: dict[str, Any], name: str) -> float | None:
@@ -2864,6 +2936,25 @@ async def create_model_promotion_decision(
     *, tenant_id: str, decided_by: str, payload: Any
 ) -> dict[str, Any]:
     """WX-11.3: deterministic policy evaluation; no active-model mutation."""
+    min_improvement = payload.min_improvement
+    if (
+        isinstance(min_improvement, bool)
+        or not isinstance(min_improvement, (int, float))
+        or not math.isfinite(min_improvement)
+        or min_improvement < 0
+    ):
+        return {"status": "conflict", "reason": "min_improvement_must_be_non_negative"}
+    max_regression = payload.max_regression
+    if (
+        isinstance(max_regression, bool)
+        or not isinstance(max_regression, (int, float))
+        or not math.isfinite(max_regression)
+        or max_regression < 0
+    ):
+        return {"status": "conflict", "reason": "max_regression_must_be_non_negative"}
+    guardrails = _normalize_guardrails(payload.guardrail_metrics)
+    if guardrails is None:
+        return {"status": "conflict", "reason": "guardrail_metrics_invalid"}
     request_hash = _promotion_decision_hash(payload)
     conn = await _connect()
     try:
@@ -2898,13 +2989,14 @@ async def create_model_promotion_decision(
             )
             deltas: dict[str, float] = {payload.primary_metric: signed_delta}
             failed_guardrails: list[str] = []
-            for metric in sorted(set(payload.guardrail_metrics)):
+            for metric, guardrail_lower_is_better in sorted(guardrails.items()):
                 base = _metric_number(baseline, metric)
                 cand = _metric_number(candidate, metric)
                 if base is None or cand is None:
                     failed_guardrails.append(f"{metric}:missing")
                     continue
-                delta = cand - base
+                # Signed so that a worse candidate is always negative, whatever the direction.
+                delta = (base - cand) if guardrail_lower_is_better else (cand - base)
                 deltas[metric] = delta
                 if delta < -payload.max_regression:
                     failed_guardrails.append(metric)
@@ -2924,7 +3016,8 @@ async def create_model_promotion_decision(
                 "min_improvement": payload.min_improvement,
                 "lower_is_better": payload.lower_is_better,
                 "max_regression": payload.max_regression,
-                "guardrail_metrics": sorted(set(payload.guardrail_metrics)),
+                "guardrail_metrics": sorted(guardrails),
+                "guardrail_directions": dict(sorted(guardrails.items())),
                 "failed_guardrails": failed_guardrails,
             }
             decision_id = (
