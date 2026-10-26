@@ -4,7 +4,7 @@
 // أين توضع الحزم: مجلّد `maps/` داخل مستندات التطبيق، وعلى أندرويد أيضاً مجلّد
 // `maps/` في تخزين التطبيق الخارجيّ (Android/data/<pkg>/files/maps) الذي يمكن
 // النسخ إليه عبر USB أو مدير الملفّات. لا مُنتقي ملفّات في الاعتماديّات اليوم
-// (image_picker لا يفتح ‎.mbtiles) — الاستيراد من داخل التطبيق مطلوب كاعتماديّة.
+// (image_picker لا يفتح .mbtiles) — الاستيراد من داخل التطبيق مطلوب كاعتماديّة.
 // تنزيل الحزم من الخادم غير متاح: GET /api/raster/v1/offline/packs يتطلّب رمز
 // خدمة (X-Agent-Token) لا جلسة مستخدم.
 //
@@ -67,7 +67,7 @@ class OfflinePackStore {
     for (final d in await _roots()) d.path,
   ];
 
-  /// كلّ الحزم (‎.pmtiles/‎.mbtiles) في المجلّدات، الأحدث أوّلاً.
+  /// كلّ الحزم (.pmtiles/.mbtiles) في المجلّدات، الأحدث أوّلاً.
   Future<List<OfflinePackFile>> list() async {
     final out = <OfflinePackFile>[];
     for (final dir in await _roots()) {

@@ -74,7 +74,7 @@ class SahoolMap extends StatefulWidget {
   final LocateFn locate;
   final void Function(LatLng point)? onTap;
 
-  /// مسار حزمة ‎.pmtiles/‎.mbtiles على الجهاز (نظام الملفّات لا assets).
+  /// مسار حزمة .pmtiles/.mbtiles على الجهاز (نظام الملفّات لا assets).
   final String? offlinePackPath;
 
   /// نسب طبقات إضافيّة (مثل بيانات Sentinel لطبقة المؤشّر).

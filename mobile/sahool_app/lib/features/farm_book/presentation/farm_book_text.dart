@@ -67,7 +67,7 @@ String currencyUnitAr(String? currency) => switch (currency?.toUpperCase()) {
 String fmtMoney(num? amount, String? currency) {
   if (amount == null) return kNotMeasured;
   final n = fmtNumber(amount, decimals: 2);
-  return '${amount < 0 ? '‎' : ''}$n ${currencyUnitAr(currency)}';
+  return '${amount < 0 ? '\u200E' : ''}$n ${currencyUnitAr(currency)}';
 }
 
 final RegExp _amountPattern = RegExp(r'^\d{1,16}(\.\d{1,2})?$');

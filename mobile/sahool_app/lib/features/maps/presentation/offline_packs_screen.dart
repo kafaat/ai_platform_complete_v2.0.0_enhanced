@@ -3,7 +3,7 @@
 //
 // صدق حول ما لا يتوفّر بعد:
 //   • الاستيراد بمنتقي الملفّات يحتاج اعتماديّة (file_picker) غير موجودة —
-//     image_picker لا يفتح ‎.mbtiles. نعرض المجلّد الذي تُنسخ إليه الحزم بدلاً منه.
+//     image_picker لا يفتح .mbtiles. نعرض المجلّد الذي تُنسخ إليه الحزم بدلاً منه.
 //   • التنزيل من الخادم غير متاح: نقطة الحزم في خدمة الراستر تتطلّب رمز خدمة.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,7 +92,7 @@ class _OfflinePacksView extends StatelessWidget {
                       icon: Icons.map_outlined,
                       title: 'لا حزم على الجهاز',
                       message:
-                          'انسخ ملفّ ‎.pmtiles أو ‎.mbtiles إلى المجلّد أعلاه ثمّ اسحب للتحديث.',
+                          'انسخ ملفّ \u200E.pmtiles أو \u200E.mbtiles إلى المجلّد أعلاه ثمّ اسحب للتحديث.',
                     ),
                   for (final p in s.packs)
                     _PackTile(
@@ -135,7 +135,7 @@ class _HowTo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'الحزمة ملفّ صور خرائط (‎.pmtiles أو ‎.mbtiles) لمنطقتك يعمل بلا شبكة. '
+            'الحزمة ملفّ صور خرائط (\u200E.pmtiles أو \u200E.mbtiles) لمنطقتك يعمل بلا شبكة. '
             'انسخه إلى أحد المجلّدات التالية ثمّ اسحب الشاشة للتحديث:',
             style: context.textStyles.bodyMedium,
           ),

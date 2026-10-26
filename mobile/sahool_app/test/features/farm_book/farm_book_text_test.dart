@@ -31,7 +31,7 @@ void main() {
     expect(fmtMoney(12500.5, 'YER'), '12,500.5 ر.ي');
     expect(fmtMoney(1000, 'usd'), '1,000 دولار');
     expect(fmtMoney(null, 'YER'), 'غير مقيس');
-    expect(fmtMoney(-120, 'YER'), '‎-120 ر.ي');
+    expect(fmtMoney(-120, 'YER'), '\u200E-120 ر.ي');
   });
 
   test('server detail codes map to Arabic; status contracts are kept', () {

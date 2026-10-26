@@ -75,7 +75,7 @@ Future<OfflinePackOpenResult> openOfflinePack(String path) async {
   final format = offlinePackFormatOf(path);
   if (format == null) {
     return const OfflinePackOpenResult.failed(
-      'صيغة غير مدعومة: الحزمة يجب أن تكون ‎.pmtiles أو ‎.mbtiles',
+      'صيغة غير مدعومة: الحزمة يجب أن تكون \u200E.pmtiles أو \u200E.mbtiles',
     );
   }
   try {
