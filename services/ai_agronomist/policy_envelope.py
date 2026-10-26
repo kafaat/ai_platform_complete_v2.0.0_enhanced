@@ -8,9 +8,13 @@ and **never opens the database for tenant policy**.
 Fail-closed contract:
   • A request whose pack carries no valid envelope is *refused* — a structured decision,
     never a raw exception (``enforce_request``).
-  • Generation by *any* provider, local included, requires ``ai_generation_allowed`` to be
-    exactly ``True`` (decision reason ``ai_generation_not_allowed``). An envelope minted
-    before that key existed still validates, but authorizes no generation.
+  • When the envelope carries ``ai_generation_allowed``, generation by *any* provider,
+    local included, requires it to be exactly ``True`` (decision reason
+    ``ai_generation_not_allowed``). An envelope minted before that key existed is judged
+    as before: the platform deploys from its own branch, so this service can run ahead of
+    it, and refusing every legacy envelope would switch AI off for all tenants until the
+    platform ships. Such envelopes still carry the opt-out for external providers, which
+    the platform folds into ``external_llm_allowed``.
   • ``local_only`` blocks any external-LLM/provider call
     (decision reason ``local_only_blocks_external_provider``).
   • ``redacted_external`` permits an external call *only after redaction*.
@@ -124,8 +128,8 @@ def gate_generation(envelope: dict[str, Any] | None, *, external: bool) -> dict[
     """Decide whether a generation call may proceed and how.
 
     ``external`` is True when the resolved provider ships context outside the tenant
-    boundary. Every provider first needs ``ai_generation_allowed is True`` (the tenant's
-    AI opt-out). Local providers are then never blocked by data-sharing mode (the data does
+    boundary. When the envelope carries ``ai_generation_allowed``, every provider first needs
+    it to be ``True`` (the tenant's AI opt-out). Local providers are then never blocked by data-sharing mode (the data does
     not leave); external providers are gated by ``policy_mode`` + ``external_llm_allowed``.
     ``redacted_external`` ⇒ allowed with ``requires_redaction=True``.
     """
@@ -136,7 +140,7 @@ def gate_generation(envelope: dict[str, Any] | None, *, external: bool) -> dict[
         return refusal(reason or REASON_ENVELOPE_MISSING, envelope, requires_redaction=False)
 
     assert envelope is not None  # validated above
-    if envelope.get("ai_generation_allowed") is not True:
+    if "ai_generation_allowed" in envelope and envelope["ai_generation_allowed"] is not True:
         return refusal(REASON_AI_GENERATION_NOT_ALLOWED, envelope, requires_redaction=False)
     if not external:
         return _decision(

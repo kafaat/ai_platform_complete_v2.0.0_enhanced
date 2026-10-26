@@ -58,18 +58,41 @@ def test_row_without_the_flag_is_not_an_opt_in():
     assert PE.gate_generation(env, external=False)["decision"] == PE.DECISION_BLOCKED
 
 
-def test_envelope_minted_before_the_flag_authorizes_no_generation():
+def test_envelope_minted_before_the_flag_is_judged_as_before():
+    """The platform deploys from its own branch, so ai_agronomist can run ahead of it.
+    An envelope without the key keeps the old behaviour instead of switching AI off for
+    every tenant: local generation proceeds, external stays behind the mode and
+    ``external_llm_allowed`` (into which the old platform already folds the opt-out)."""
     env = BUILDER.build_ai_policy_envelope(
         _TENANT, {"ai_generation_allowed": True, "external_data_sharing_level": "local_only"}
     )
     del env["ai_generation_allowed"]
-    # Still a parseable envelope (tool allow-list etc. keep working) ...
     assert PE.validate_envelope(env) == (True, None)
-    # ... but it grants no generation, local or external.
-    for external in (False, True):
-        gate = PE.gate_generation(env, external=external)
-        assert gate["decision"] == PE.DECISION_BLOCKED
-        assert gate["reason"] == PE.REASON_AI_GENERATION_NOT_ALLOWED
+    assert PE.gate_generation(env, external=False)["decision"] == PE.DECISION_ALLOWED
+    external = PE.gate_generation(env, external=True)
+    assert external["decision"] == PE.DECISION_BLOCKED
+    assert external["reason"] == PE.REASON_LOCAL_ONLY_BLOCKS_EXTERNAL
+
+
+def test_legacy_envelope_of_an_opted_out_tenant_still_blocks_external():
+    env = BUILDER.build_ai_policy_envelope(
+        _TENANT, {"ai_generation_allowed": False, "external_data_sharing_level": "full_external"}
+    )
+    del env["ai_generation_allowed"]
+    assert env["external_llm_allowed"] is False
+    gate = PE.gate_generation(env, external=True)
+    assert gate["decision"] == PE.DECISION_BLOCKED
+    assert gate["reason"] == PE.REASON_EXTERNAL_LLM_NOT_ALLOWED
+
+
+def test_flag_false_blocks_local_generation_too():
+    env = BUILDER.build_ai_policy_envelope(
+        _TENANT, {"ai_generation_allowed": False, "external_data_sharing_level": "local_only"}
+    )
+    assert env["ai_generation_allowed"] is False
+    gate = PE.gate_generation(env, external=False)
+    assert gate["decision"] == PE.DECISION_BLOCKED
+    assert gate["reason"] == PE.REASON_AI_GENERATION_NOT_ALLOWED
 
 
 @pytest.mark.parametrize("value", ["true", 1, None])
