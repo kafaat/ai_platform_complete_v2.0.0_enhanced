@@ -382,12 +382,48 @@ def zones_from_ndvi_grid(
     return result
 
 
+# Upper bound on either side of an indicator grid. Clustering here is pure Python and
+# auto zone-count selection runs fuzzy c-means for several k, so cost grows with cells;
+# anything larger is refused (insufficient_data) rather than clustered.
+MAX_GRID_SIDE = 128
+
+
+def _grid_candidate(src: Any) -> list[Any] | None:
+    grid = src.get("ndvi_grid") if isinstance(src, dict) else None
+    if isinstance(grid, list) and grid and all(isinstance(r, list) for r in grid):
+        return grid
+    return None
+
+
+def grid_within_cap(grid: Any) -> bool:
+    """True when ``grid`` has at most ``MAX_GRID_SIDE`` rows and columns."""
+    return (
+        isinstance(grid, list)
+        and len(grid) <= MAX_GRID_SIDE
+        and all(isinstance(r, list) and len(r) <= MAX_GRID_SIDE for r in grid)
+    )
+
+
+def ndvi_grid_exceeds_cap(params: dict[str, Any], evidence: dict[str, Any] | None) -> bool:
+    """True when the grid :func:`extract_ndvi_grid` would pick was refused for its size."""
+    for src in (evidence or {}, params or {}):
+        grid = _grid_candidate(src)
+        if grid is not None:
+            return not grid_within_cap(grid)
+    return False
+
+
 def extract_ndvi_grid(params: dict[str, Any], evidence: dict[str, Any] | None) -> NdviGrid | None:
-    """Pull an NDVI grid from params or evidence; None if absent/malformed."""
-    for src in (params or {}, evidence or {}):
-        grid = src.get("ndvi_grid") if isinstance(src, dict) else None
-        if isinstance(grid, list) and grid and all(isinstance(r, list) for r in grid):
-            return grid  # type: ignore[return-value]
+    """Pull an NDVI grid, evidence first; None if absent, malformed or oversized.
+
+    A grid in the evidence context (from the raster pipeline) always wins: caller- or
+    model-supplied ``params["ndvi_grid"]`` is only used when the evidence has none, so a
+    tool call cannot override the field's real imagery. A grid larger than
+    ``MAX_GRID_SIDE`` on either side is refused without falling back to the other source."""
+    for src in (evidence or {}, params or {}):
+        grid = _grid_candidate(src)
+        if grid is not None:
+            return grid if grid_within_cap(grid) else None  # type: ignore[return-value]
     return None
 
 
@@ -399,7 +435,8 @@ def extract_aux_grids(
 ) -> dict[str, NdviGrid] | None:
     """Pull co-registered auxiliary feature grids (ndmi/reci/msavi/slope) for V60.3.
 
-    Only grids whose dimensions match the NDVI master are returned; anything malformed
+    Evidence grids win over params (same rule as the NDVI master). Only grids whose
+    dimensions match the NDVI master are returned; anything malformed
     or mis-sized is silently skipped (fail-safe → NDVI-only clustering). None when no
     aligned aux grid is available, so the caller stays on the pure-NDVI path unchanged.
     """
@@ -411,7 +448,7 @@ def extract_aux_grids(
         return None
     out: dict[str, NdviGrid] = {}
     for name, key in _AUX_FEATURE_KEYS:
-        for src in (params or {}, evidence or {}):
+        for src in (evidence or {}, params or {}):
             grid = src.get(key) if isinstance(src, dict) else None
             if (
                 isinstance(grid, list)

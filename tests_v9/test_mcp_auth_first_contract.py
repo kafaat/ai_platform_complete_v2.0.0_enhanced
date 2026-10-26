@@ -185,7 +185,9 @@ def test_mcp_http200_tool_error_is_failure(live_mcp_contract):
         ]
         import circuit_breaker
 
-        assert circuit_breaker.mcp_breakers.get("market").status()["failures"] == 1
+        # A tool's isError reply is the server answering (often about the caller's own
+        # arguments): it must not count toward opening the breaker shared by all tenants.
+        assert circuit_breaker.mcp_breakers.get("market").status()["failures"] == 0
         await client.close()
 
     asyncio.run(scenario())
@@ -524,10 +526,10 @@ def test_mcp_authenticated_real_tools_keep_validation_and_results(
         },
         headers=crop_headers,
     )
-    assert response.status_code == 200, response.text
-    payload = json.loads(response.json()["content"][0]["text"])
-    assert payload["crop"] == "wheat" and payload["parameters"]["tsum1"] == 200
-    assert len(wofost.IDEMPOTENCY_CACHE) == 1
+    # Crop parameters are owned by agriai-engine's PCSE files; this server declines
+    # (501) instead of serving a hand-written table, and a refusal is never cached.
+    assert response.status_code == 501, response.text
+    assert len(wofost.IDEMPOTENCY_CACHE) == 0
     response = client.post(
         "/v1/mcp/tools/call",
         json={
@@ -537,7 +539,7 @@ def test_mcp_authenticated_real_tools_keep_validation_and_results(
         headers=crop_headers,
     )
     assert response.status_code == 501, response.text
-    assert len(wofost.IDEMPOTENCY_CACHE) == 1
+    assert len(wofost.IDEMPOTENCY_CACHE) == 0
 
 
 def test_compose_starts_each_distinct_mcp_module():

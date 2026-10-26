@@ -72,6 +72,18 @@ def _normalize_provider(raw: str | None) -> str:
     return "local"
 
 
+def _catalog_id_belongs(provider: str, model_id: str) -> bool:
+    """`AI_MODELS` is one global variable, so a catalog left over from another provider
+    must not cross the provider boundary (same rule as the stale `AI_MODEL` in
+    `_resolve_model`). OpenRouter ids are always `vendor/model`; Anthropic Messages ids
+    never contain `/`. Ollama and vLLM accept both shapes, so they keep every entry."""
+    if provider == "openrouter":
+        return "/" in model_id
+    if provider == "anthropic":
+        return "/" not in model_id
+    return True
+
+
 def _parse_catalog(provider: str) -> list[dict[str, str]]:
     """يحلّ كتالوج النماذج القابلة للاختيار من البيئة `AI_MODELS`.
 
@@ -88,7 +100,7 @@ def _parse_catalog(provider: str) -> list[dict[str, str]]:
                 continue
             mid, _, label = entry.partition("|")
             mid = mid.strip()
-            if not mid:
+            if not mid or not _catalog_id_belongs(provider, mid):
                 continue
             items.append({"id": mid, "label": (label.strip() or mid)})
     if not items:

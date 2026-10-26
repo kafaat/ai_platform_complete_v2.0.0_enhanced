@@ -31,14 +31,16 @@ class MarketSkill:
         if intent not in tools:
             return {"type": "error", "response": f"نوعية استعلام السوق غير معروفة: {intent}"}
         context = context or {}
-        crop = context.get("crop")
+        # Context is caller-supplied JSON: only plain strings reach the market tool.
+        crop = _text(context.get("crop"))
         if not crop:
             return _unavailable("crop_required")
         arguments = {"crop": crop}
         if intent == "price_current":
-            if not context.get("market"):
+            market = _text(context.get("market"))
+            if not market:
                 return _unavailable("market_required")
-            arguments["market"] = context["market"]
+            arguments["market"] = market
         envelope = await self.mcp.call_tool(self.server, tools[intent], arguments)
         try:
             if envelope.get("isError"):
@@ -69,6 +71,12 @@ class MarketSkill:
             "actionable": False,
             "sources": ["SAHOOL market price observations"],
         }
+
+
+def _text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    return value.strip() or None
 
 
 def _unavailable(reason: str) -> dict:

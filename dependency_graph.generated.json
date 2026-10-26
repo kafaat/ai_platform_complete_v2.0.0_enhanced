@@ -1,5 +1,5 @@
 {
-  "edge_count": 879,
+  "edge_count": 881,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -843,6 +843,16 @@
     },
     {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6112,6 +6122,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -8810,9 +8830,9 @@
     "CALLS": 47,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 449,
+    "READS": 450,
     "ROUTES_TO": 72,
-    "WRITES": 307
+    "WRITES": 308
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8827,8 +8847,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 757,
-      "resolved": 756,
+      "observed": 759,
+      "resolved": 758,
       "unresolved_component_paths": 0
     }
   }

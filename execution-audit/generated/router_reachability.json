@@ -226,7 +226,7 @@
     },
     {
       "kind": "app",
-      "line": 361,
+      "line": 375,
       "module": "services.guardrails-engine.main",
       "node_id": "services.guardrails-engine.main:app",
       "route_count": 0,
@@ -262,7 +262,7 @@
     },
     {
       "kind": "app",
-      "line": 20,
+      "line": 21,
       "module": "services.knowledge-graph.main",
       "node_id": "services.knowledge-graph.main:app",
       "route_count": 7,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 611,
+      "line": 647,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -298,7 +298,7 @@
     },
     {
       "kind": "app",
-      "line": 22,
+      "line": 28,
       "module": "services.mcp_servers.sentinel_hub_server",
       "node_id": "services.mcp_servers.sentinel_hub_server:app",
       "route_count": 5,
@@ -307,7 +307,7 @@
     },
     {
       "kind": "app",
-      "line": 22,
+      "line": 27,
       "module": "services.mcp_servers.weather_server",
       "node_id": "services.mcp_servers.weather_server:app",
       "route_count": 5,
@@ -316,7 +316,7 @@
     },
     {
       "kind": "app",
-      "line": 18,
+      "line": 22,
       "module": "services.mcp_servers.wofost_server",
       "node_id": "services.mcp_servers.wofost_server:app",
       "route_count": 5,
@@ -370,7 +370,7 @@
     },
     {
       "kind": "app",
-      "line": 50,
+      "line": 52,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -1864,7 +1864,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -2224,7 +2224,7 @@
     },
     {
       "kind": "app",
-      "line": 52,
+      "line": 54,
       "module": "services.supervisor-agent.main",
       "node_id": "services.supervisor-agent.main:app",
       "route_count": 0,
@@ -2350,7 +2350,7 @@
     },
     {
       "kind": "app",
-      "line": 466,
+      "line": 483,
       "module": "services.video-processor.main",
       "node_id": "services.video-processor.main:app",
       "route_count": 0,
@@ -2385,7 +2385,7 @@
       "symbol": "app"
     }
   ],
-  "include_edge_count": 37,
+  "include_edge_count": 38,
   "include_edges": [
     {
       "expression": "_tmp",
@@ -2520,6 +2520,15 @@
       "prefix": null,
       "resolved": false,
       "source": "services.sahool-platform.tests.test_drawing_features_v38_static:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "service_proxy.router",
+      "line": 49,
+      "module": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_edge_segmentation_proxy_authorization:<dynamic-source>",
       "target": null
     },
     {
@@ -2721,7 +2730,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "979f9c7b2006bcfa04523c5156a819a25b1ffe935ef9bdc2f04641befb31d669",
+  "inventory_sha256": "15e47ac00d0bf63a7e5a80f26bc8b9ea92182b01a42f1a5c9eb7b4cd2b996eb5",
   "orphan_candidate_count": 229,
   "orphan_candidates": [
     {
@@ -4547,7 +4556,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 27,
       "module": "services.sahool-platform.api.routers.service_proxy",
       "node_id": "services.sahool-platform.api.routers.service_proxy:router",
       "route_count": 4,
@@ -5022,7 +5031,7 @@
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,
-  "unresolved_include_count": 35,
+  "unresolved_include_count": 36,
   "unresolved_includes": [
     {
       "classification": "review_only_dynamic_or_unresolved_include",
@@ -5143,6 +5152,14 @@
       "module": "services.sahool-platform.tests.test_drawing_features_v38_static",
       "source": null,
       "target_expression": "drawing.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+      "line": 49,
+      "module": "services.sahool-platform.tests.test_edge_segmentation_proxy_authorization",
+      "source": null,
+      "target_expression": "service_proxy.router"
     },
     {
       "classification": "review_only_dynamic_or_unresolved_include",

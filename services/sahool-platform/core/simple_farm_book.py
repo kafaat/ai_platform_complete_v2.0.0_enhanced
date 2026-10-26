@@ -9,15 +9,25 @@ from typing import Any
 
 
 def _drop_reversed(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Exclude append-only corrections from totals: a reversing entry and the
-    original it cancels both net to zero, so neither should count. Everything else
-    passes through unchanged (order preserved)."""
+    """Net append-only corrections inside the given window (order preserved).
+
+    A reversing entry mirrors its original. When both are in the window they cancel,
+    so neither counts. When the original lies outside the window (an earlier month,
+    or an as-of cut-off before the reversal), the reversal is kept with its amount
+    negated: it is the entry that cancels the original in its own window. Otherwise
+    a March expense reversed in April stays in March while April shows nothing, and
+    the months no longer add up to the all-time balance."""
+    present = {str(e.get("entry_id") or "") for e in entries}
     reversed_ids = {str(e["reverses_entry_id"]) for e in entries if e.get("reverses_entry_id")}
-    return [
-        e
-        for e in entries
-        if not e.get("reverses_entry_id") and str(e.get("entry_id") or "") not in reversed_ids
-    ]
+    netted: list[dict[str, Any]] = []
+    for e in entries:
+        target = e.get("reverses_entry_id")
+        if target:
+            if str(target) not in present:
+                netted.append({**e, "amount": -float(e["amount"])})
+        elif str(e.get("entry_id") or "") not in reversed_ids:
+            netted.append(e)
+    return netted
 
 
 def summarize_entries(entries: list[dict[str, Any]], *, area_ha: float | None = None) -> dict:

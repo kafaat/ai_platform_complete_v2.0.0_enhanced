@@ -16,9 +16,11 @@ provider/model/outcome/timestamp for forensic replay.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
+from collections import deque
 from typing import Any, Protocol, runtime_checkable
 
 logger = logging.getLogger("ai_agronomist.agent_stores")
@@ -27,6 +29,49 @@ _APPROVAL_KEY = "sahool:agent:approval:"
 _APPROVAL_PENDING_SET = "sahool:agent:approvals:pending"
 _AUDIT_LIST = "sahool:agent:audit"
 _DEFAULT_TTL_S = 7 * 24 * 3600  # pending approvals expire after a week if never decided.
+
+# The audit trail is a rolling window: only the newest records are kept (both backends),
+# and bulky ``result``/``params`` values are replaced by a digest summary.
+_DEFAULT_AUDIT_MAX_RECORDS = 10_000
+AUDIT_FIELD_MAX_BYTES = 2048
+_AUDIT_BOUNDED_FIELDS = ("result", "params")
+
+
+def _audit_max_records(explicit: int | None = None) -> int:
+    if explicit is not None and explicit > 0:
+        return int(explicit)
+    try:
+        value = int(os.getenv("SAHOOL_AGENT_AUDIT_MAX_RECORDS", ""))
+    except ValueError:
+        return _DEFAULT_AUDIT_MAX_RECORDS
+    return value if value > 0 else _DEFAULT_AUDIT_MAX_RECORDS
+
+
+def _bounded_value(value: Any) -> Any:
+    """``value`` itself when small; otherwise a fixed-size summary with its digest."""
+    try:
+        raw = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+    except (TypeError, ValueError):  # circular/unsortable keys — keep a marker, not the value
+        return {"truncated": True, "unserializable": True}
+    if len(raw) <= AUDIT_FIELD_MAX_BYTES:
+        return value
+    summary: dict[str, Any] = {
+        "truncated": True,
+        "bytes": len(raw),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+    if isinstance(value, dict):
+        summary["keys"] = sorted(str(k)[:64] for k in value)[:32]
+    return summary
+
+
+def summarize_audit_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Copy of ``record`` with bulky tool ``result``/``params`` reduced to a summary."""
+    out = dict(record)
+    for key in _AUDIT_BOUNDED_FIELDS:
+        if key in out:
+            out[key] = _bounded_value(out[key])
+    return out
 
 
 @runtime_checkable
@@ -63,14 +108,15 @@ class InMemoryApprovalStore:
 
 
 class InMemoryAuditStore:
-    def __init__(self) -> None:
-        self._l: list[dict[str, Any]] = []
+    def __init__(self, max_records: int | None = None) -> None:
+        self._max = _audit_max_records(max_records)
+        self._l: deque[dict[str, Any]] = deque(maxlen=self._max)
 
     def append(self, record: dict[str, Any]) -> None:
-        self._l.append(dict(record))
+        self._l.append(summarize_audit_record(record))
 
     def recent(self, limit: int = 100) -> list[dict[str, Any]]:
-        return [dict(r) for r in self._l[-max(0, limit) :]]
+        return [dict(r) for r in list(self._l)[-max(0, limit) :]]
 
 
 # ── redis (gated scaffold; fail-safe) ───────────────────────────────────────
@@ -103,11 +149,14 @@ class RedisApprovalStore:
 
 
 class RedisAuditStore:
-    def __init__(self, client: Any) -> None:
+    def __init__(self, client: Any, max_records: int | None = None) -> None:
         self._c = client
+        self._max = _audit_max_records(max_records)
 
     def append(self, record: dict[str, Any]) -> None:
-        self._c.rpush(_AUDIT_LIST, json.dumps(record, ensure_ascii=False))
+        payload = json.dumps(summarize_audit_record(record), ensure_ascii=False, default=str)
+        self._c.rpush(_AUDIT_LIST, payload)
+        self._c.ltrim(_AUDIT_LIST, -self._max, -1)
 
     def recent(self, limit: int = 100) -> list[dict[str, Any]]:
         raw = self._c.lrange(_AUDIT_LIST, -max(0, limit), -1) or []

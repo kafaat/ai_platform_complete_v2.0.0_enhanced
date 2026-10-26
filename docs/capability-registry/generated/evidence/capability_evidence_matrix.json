@@ -383,7 +383,8 @@
       "runtime_verified": false,
       "title": "Human approval",
       "unit_test_paths": [
-        "tests_v9/test_b6m4_structured_advisory.py"
+        "tests_v9/test_b6m4_structured_advisory.py",
+        "tests_v9/test_guardrails.py"
       ]
     },
     {
@@ -514,6 +515,7 @@
       "title": "Execution request",
       "unit_test_paths": [
         "services/actuator-service/test_dispatch_bridge.py",
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
@@ -658,6 +660,7 @@
       "title": "Dispatch authorization",
       "unit_test_paths": [
         "services/decision-service/tests/decision_chain_fixture.py",
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/sahool-platform/tests/test_decision_correlation_http_projection.py",
@@ -1300,6 +1303,7 @@
       "title": "Model lifecycle and activation",
       "unit_test_paths": [
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
         "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py"
@@ -5905,6 +5909,7 @@
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_management_zone_count_v60_2.py",
         "tests_v9/test_productivity_zones_clustering_v60_1.py",
+        "tests_v9/test_productivity_zones_grid_bounds.py",
         "tests_v9/test_productivity_zones_multiindex_v60_3.py",
         "tests_v9/test_productivity_zones_v60.py"
       ]
@@ -6524,6 +6529,7 @@
         "services/gis-workflow-service/tests/test_map_layout.py",
         "services/raster-service/test_cdse_poly_contract.py",
         "services/raster-service/test_landsat_thermal_unique_contract.py",
+        "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
         "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
@@ -7071,6 +7077,7 @@
         "tests_v9/test_imagery_automation_item_id_and_bands_20261015.py",
         "tests_v9/test_imagery_batch_wait_before_read.py",
         "tests_v9/test_imagery_follow_up.py",
+        "tests_v9/test_productivity_zones_grid_bounds.py",
         "tests_v9/test_sahool_brain_forensic.py",
         "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
         "tests_v9/test_tool_loop_budget_v58_2c.py"
@@ -9929,6 +9936,7 @@
         "services/ai_agronomist/test_ai_field_memory_v49.py",
         "tests_v9/test_ai_policy_envelope_v52.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
+        "tests_v9/test_ai_tool_result_redaction.py",
         "tests_v9/test_b6m4_field_bootstrap.py"
       ]
     },

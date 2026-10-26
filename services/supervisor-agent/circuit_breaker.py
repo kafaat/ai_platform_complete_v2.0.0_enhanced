@@ -81,6 +81,9 @@ class CircuitBreaker:
     _failures: int = 0
     _successes: int = 0
     _opened_at: float = 0.0
+    # HALF_OPEN admits one probe at a time; the slot frees on a verdict or release().
+    _probe_in_flight: bool = False
+    _probe_started_at: float = 0.0
 
     def _now(self) -> float:
         return time.monotonic()
@@ -111,16 +114,37 @@ class CircuitBreaker:
             if self._now() - self._opened_at >= self.recovery_timeout:
                 self._transition(CircuitState.HALF_OPEN)
                 self._successes = 0
-                return True  # طلب اختباري واحد
+                return self._take_probe()  # طلب اختباري واحد
             # ما زال مفتوحاً → fail-fast (يُعدّ كرفض تشغيليّ مرئيّ)
-            if _CIRCUIT_REJECTIONS is not None:
-                _CIRCUIT_REJECTIONS.labels(service=self.name).inc()
+            self._count_rejection()
             return False
-        # HALF_OPEN: نسمح بطلبات الاختبار
+        # HALF_OPEN: طلب اختباري واحد في كلّ مرّة. فتحةٌ عالقة أطول من مهلة التعافي
+        # (طلب أُلغي قبل أن يُسجَّل حكمه) لا تُبقي القاطع مغلقاً أمام كلّ طلب للأبد.
+        if self._probe_in_flight and self._now() - self._probe_started_at < self.recovery_timeout:
+            self._count_rejection()
+            return False
+        return self._take_probe()
+
+    def _take_probe(self) -> bool:
+        self._probe_in_flight = True
+        self._probe_started_at = self._now()
         return True
+
+    def _count_rejection(self) -> None:
+        if _CIRCUIT_REJECTIONS is not None:
+            _CIRCUIT_REJECTIONS.labels(service=self.name).inc()
+
+    def release(self) -> None:
+        """Free the half-open probe slot when a call ended without a service verdict.
+
+        Used for outcomes that say nothing about the service's health (a caller's
+        bad arguments, a tool's own error reply), so they neither trip nor heal it.
+        """
+        self._probe_in_flight = False
 
     def record_success(self) -> None:
         """يُسجّل نجاحاً (يُعيد الإغلاق التدريجي في HALF_OPEN)."""
+        self._probe_in_flight = False
         if self.state == CircuitState.HALF_OPEN:
             self._successes += 1
             if self._successes >= self.success_threshold:
@@ -131,6 +155,7 @@ class CircuitBreaker:
 
     def record_failure(self) -> None:
         """يُسجّل فشلاً (يفتح القاطع عند تجاوز العتبة)."""
+        self._probe_in_flight = False
         if self.state == CircuitState.HALF_OPEN:
             # فشل أثناء الاختبار → ارجع لـOPEN فوراً
             self._opened_at = self._now()

@@ -671,6 +671,17 @@ def tokenize(text: str) -> list[str]:
     return [t.lower() for t in _TOKEN_RE.findall(text or "") if t.strip()]
 
 
+# سقفُ مصطلحاتِ الاستعلام في BM25: كلفةُ الترتيب ``O(وثائق × مصطلحات)``، فاستعلامٌ
+# بلا حدٍّ يُحوِّل طلباً واحداً إلى حملٍ غيرِ محدود. والسقفُ أعلى بكثيرٍ من أيّ سؤالٍ
+# بشريّ، فلا يمسّ ترتيبَ الاستعلامات العاديّة.
+MAX_BM25_QUERY_TERMS = 128
+
+
+def query_terms(query: str) -> list[str]:
+    """مصطلحاتُ استعلام BM25 — ``tokenize`` مقصوصةً عند ``MAX_BM25_QUERY_TERMS``."""
+    return tokenize(query)[:MAX_BM25_QUERY_TERMS]
+
+
 class EmbeddingProvider(Protocol):
     def embed(self, text: str) -> list[float]: ...
 
@@ -954,12 +965,27 @@ class BM25Index:
         chunk = self.docs.get(chunk_id)
         if chunk is None or chunk.tenant_id not in self.visible_scope(tenant_id):
             return 0.0
-        n_docs, doc_freq, avg_len = self.corpus_stats(tenant_id)
+        return self._score_terms(query_terms(query), chunk_id, self.corpus_stats(tenant_id))
+
+    def _score_terms(
+        self,
+        terms: list[str],
+        chunk_id: str,
+        stats: tuple[int, dict[str, int], float],
+    ) -> float:
+        """BM25 لوثيقةٍ واحدة بإحصاءاتٍ **محسوبةٍ مسبقاً** لمجموعةِ السائل.
+
+        كان ``search`` يستدعي ``score`` لكلّ وثيقةٍ مرئيّة، و``score`` يُعيد دمجَ
+        ``doc_freq`` للمجموعة كلّها في كلّ استدعاء — فاستعلامٌ واحد كلفتُه
+        ``O(وثائق × مفردات)``. فتُحسَب الإحصاءاتُ مرّةً في ``search`` وتُمرَّر هنا،
+        والمعادلةُ واحدةٌ للطريقين فلا تنحرف درجةُ ``search`` عن ``score``.
+        """
+        n_docs, doc_freq, avg_len = stats
         if n_docs == 0:
             return 0.0
         length = self.doc_len.get(chunk_id, 0) or 1
         score = 0.0
-        for term in tokenize(query):
+        for term in terms:
             tf = self.term_freqs.get(chunk_id, {}).get(term, 0)
             if tf == 0:
                 continue
@@ -974,12 +1000,15 @@ class BM25Index:
     ) -> list[tuple[KnowledgeChunk, float]]:
         filters = filters or {}
         rows: list[tuple[KnowledgeChunk, float]] = []
+        visible = self.visible_scope(tenant_id)
+        terms = query_terms(query)
+        stats = self.corpus_stats(tenant_id)
         for cid, chunk in self.docs.items():
-            if chunk.tenant_id not in self.visible_scope(tenant_id):
+            if chunk.tenant_id not in visible:
                 continue
             if not matches_scope_filters(chunk, filters):
                 continue
-            s = self.score(query, cid, tenant_id=tenant_id)
+            s = self._score_terms(terms, cid, stats)
             if s > 0:
                 rows.append((chunk, s))
         return sorted(rows, key=lambda x: x[1], reverse=True)[:limit]

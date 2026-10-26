@@ -8,13 +8,18 @@ import email.message
 import json
 import logging
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
-from shared.oauth_middleware import idempotency_key, require_scope
+from shared.oauth_middleware import (
+    idempotency_cache_get,
+    idempotency_cache_put,
+    idempotency_key,
+    require_scope,
+)
 from shared.streamable_http import StreamableHTTPTransport
 
 from shared.helpers import retry_request
@@ -190,21 +195,16 @@ async def call_tool(request: Request, user: dict = Depends(require_scope("weathe
     args = call.arguments
     req_id = idempotency_key(user, call.request_id, name, args)
 
-    if req_id and req_id in IDEMPOTENCY_CACHE:
-        cached = IDEMPOTENCY_CACHE[req_id]
-        if datetime.now(UTC) < cached["expires"]:
-            return cached["result"]
+    cached = idempotency_cache_get(IDEMPOTENCY_CACHE, req_id)
+    if cached is not None:
+        return cached
 
     try:
         result = await _execute(name, args)
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=exc.errors(include_input=False)) from exc
 
-    if req_id:
-        IDEMPOTENCY_CACHE[req_id] = {
-            "result": result,
-            "expires": datetime.now(UTC) + timedelta(seconds=CACHE_TTL),
-        }
+    idempotency_cache_put(IDEMPOTENCY_CACHE, req_id, result, ttl_seconds=CACHE_TTL)
 
     return result
 

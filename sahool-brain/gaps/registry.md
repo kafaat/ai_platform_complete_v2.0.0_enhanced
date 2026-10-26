@@ -6457,7 +6457,7 @@ Post-merge follow-up (2026-09-09, PR #974): GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE
 | REPORT3-RAG-02-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): إعادةُ البذر الافتراضيّة تحافظ على الحجر (`__seed_quarantine__`)؛ إصلاحُ البادئات لا يغيّر أهليّة الرؤية. | rag | `services/qdrant-seed/seed.py:42` | **open** (2026-10-18): `BLOCKED_BY_ENVIRONMENT`، ناتج `docker info` في `certification/evidence/codex_rag_live_20261018/docker-info.txt`؛ رمز 127. لا قياس حي أو parity probe؛ `NOT_YET_AUTHORITATIVE`. الحالة السابقة للتأريخ: **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. **W5 `fbb20444`:** [تقييم عربي يمني v1.0.0 وخط الأساس](../../certification/evidence/chatgpt_w5_20261017/rag/README.md): 32 سؤالاً، القياس الحالي BLOCKED لغياب Qdrant/Ollama؛ BM25 على لقطة تاريخية منفصل صراحةً. لا بادئات ولا بذر ولا نموذج تغيّر، ولا استنتاج تحسين؛ open. |
 | REPORT3-RAG-03-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): مرشّحات crop/region/field_id تستبعد بذوراً عالميّة بلا هذه الحقول (`topic` فقط) — مقيس بالمسبار. | rag | `services/sahool-platform/core/rag/production_qdrant.py` (`matches_scope_filters`) · `services/qdrant-seed/seed.py:330` | **fixed** (2026-10-16، إصلاح مصدر في فرع التكامل المحلي؛ غير مدموج وغير verified) — مرجع عالمي عام يجتاز غياب نطاق crop/region/field مع حفظ عزل المستأجر ورفض التعارض الصريح؛ ثلاثة شهود حمراء ثم 11 خضراء. لا تغيير بادئات ولا إعادة بذر ولا ادعاء قبول جودة حي. [`دليل التكامل`](../../certification/evidence/chatgpt_unification_20261016/d/verification.json)؛ **الحالة السابقة للتأريخ:** **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. |
 | REPORT3-RAG-04-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): إعادةُ البذر خارج الخدمة لا تجدّد BM25: `_ensure_sparse_index` يعيد التقرير المحفوظ عند `_sparse_ready` — مقيس بالمسبار. | rag | `services/rag-retrieval/main.py:37` | **fixed** (2026-10-16، إصلاح مصدر في فرع التكامل المحلي؛ غير مدموج وغير verified) — بصمة المحتوى تكشف تبديل المحتوى والنطاق مع ثبات العدد؛ أربعة شهود حمراء ثم خضراء. نافذة التقادم 30 ثانية؛ لا لقطة ذرية أثناء كتابة متزامنة. [`دليل التكامل`](../../certification/evidence/chatgpt_unification_20261016/d/verification.json)؛ **الحالة السابقة للتأريخ:** **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. |
-| REPORT3-RAG-05-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): توافقُ الأبعاد لا يثبت توافق فضاء التضمين (لا digest نموذج/بادئات/corpus revision). | rag | `services/qdrant-seed/seed.py` · `services/rag-retrieval/main.py` (readiness) | **open** (2026-10-18): `BLOCKED_BY_ENVIRONMENT`، ناتج `docker info` في `certification/evidence/codex_rag_live_20261018/docker-info.txt`؛ رمز 127. لا قياس حي أو parity probe؛ `NOT_YET_AUTHORITATIVE`. الحالة السابقة للتأريخ: **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. **W5 `fbb20444`:** [تقييم عربي يمني v1.0.0 وخط الأساس](../../certification/evidence/chatgpt_w5_20261017/rag/README.md): 32 سؤالاً، القياس الحالي BLOCKED لغياب Qdrant/Ollama؛ BM25 على لقطة تاريخية منفصل صراحةً. لا بادئات ولا بذر ولا نموذج تغيّر، ولا استنتاج تحسين؛ open. **تقدّم (2026-10-26، فرع `claude/review-portability-tests-mobile-20261025`، `7c2333e74`):** `qdrant-seed` يرفض الكتابة في مجموعةٍ `sahool_rag_reindex_*` أو تحمل `document_embedding_prefix` (`QDRANT_ENCODING_PROFILE_MISMATCH`) قبل أيّ تضمين، و`/readyz` في `rag-retrieval` يُضيف `embedding_space_identity`. **تبقى open:** ربطُ المسار الافتراضيّ بالنموذج والبادئة يحتاج قياساً حيّاً وقرارَ قطع. |
+| REPORT3-RAG-05-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): توافقُ الأبعاد لا يثبت توافق فضاء التضمين (لا digest نموذج/بادئات/corpus revision). | rag | `services/qdrant-seed/seed.py` · `services/rag-retrieval/main.py` (readiness) | **open** (2026-10-18): `BLOCKED_BY_ENVIRONMENT`، ناتج `docker info` في `certification/evidence/codex_rag_live_20261018/docker-info.txt`؛ رمز 127. لا قياس حي أو parity probe؛ `NOT_YET_AUTHORITATIVE`. الحالة السابقة للتأريخ: **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. **W5 `fbb20444`:** [تقييم عربي يمني v1.0.0 وخط الأساس](../../certification/evidence/chatgpt_w5_20261017/rag/README.md): 32 سؤالاً، القياس الحالي BLOCKED لغياب Qdrant/Ollama؛ BM25 على لقطة تاريخية منفصل صراحةً. لا بادئات ولا بذر ولا نموذج تغيّر، ولا استنتاج تحسين؛ open. **تقدّم (2026-10-26، فرع `claude/review-portability-tests-mobile-20261025`، `7c2333e74`):** `qdrant-seed` يرفض الكتابة في مجموعةٍ `sahool_rag_reindex_*` أو تحمل `document_embedding_prefix` (`QDRANT_ENCODING_PROFILE_MISMATCH`) قبل أيّ تضمين، و`/readyz` في `rag-retrieval` يُضيف `embedding_space_identity`. **تبقى open:** ربطُ المسار الافتراضيّ بالنموذج والبادئة يحتاج قياساً حيّاً وقرارَ قطع. **تقدّم (2026-10-26، مراجعة الذكاء الاصطناعيّ، فرع `claude/ai-review-fixes-20261026`):** `/readyz` في `rag-retrieval` كان يُعلن `embedding_contract_parity: True` بلا شرط؛ صار `basis == "profile_bound"`، فالنشرُ بأبعادٍ فقط لا يجتاز `ai_rag_live_certification.py` (اختبار `tests_v9/test_rag_embedding_space_identity.py`). تبقى open. |
 | REPORT3-RAG-06-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): `local-ai-rag` مسارٌ مستقلّ (`OllamaEmbeddings` + `QdrantVectorStore`) لا يغطّيه إصلاحُ مزوّد واحد. | rag | `services/local-ai-rag/main.py:150` | **open** (2026-10-18): `BLOCKED_BY_ENVIRONMENT`، ناتج `docker info` في `certification/evidence/codex_rag_live_20261018/docker-info.txt`؛ رمز 127. لا قياس حي أو parity probe؛ `NOT_YET_AUTHORITATIVE`. الحالة السابقة للتأريخ: **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. **W5 `fbb20444`:** [تقييم عربي يمني v1.0.0 وخط الأساس](../../certification/evidence/chatgpt_w5_20261017/rag/README.md): 32 سؤالاً، القياس الحالي BLOCKED لغياب Qdrant/Ollama؛ BM25 على لقطة تاريخية منفصل صراحةً. لا بادئات ولا بذر ولا نموذج تغيّر، ولا استنتاج تحسين؛ open. **2026-10-25:** إصلاح جزئيّ (شريحة غير متّصلة): قارئ local-ai-rag المستقلّ صار يفشل مغلقاً أمام عقد ترميز لا يستطيع الوفاء به. الدالّة النقيّة assert_legacy_encoder_collection في services/local-ai-rag/init_retry.py:55 ترفع InitNotReady بالسبب encoding_profile_unsupported حين تبدأ المجموعة بالبادئة sahool_rag_reindex_ (init_retry.py:52، وهي البادئة نفسها في services/sahool-platform/core/rag/production_qdrant.py:1295-1300) أو حين يُضبَط RAG_REINDEX_PROFILE_MANIFEST (services/local-ai-rag/main.py:68). تُستدعى في أوّل init_vectorstore قبل بناء OllamaEmbeddings وQdrantClient (main.py:192)، ورمز السبب مذكور في توثيق /readyz (main.py:735). مُثبَت بـtests_v9/test_local_ai_rag_init_retry.py (٩ اختبارات تفشل على main وتنجح على الفرع، منها اختبار سلوكيّ لا يلمس فيه init_vectorstore المُضمِّن ولا Qdrant). يبقى مفتوحاً: قياس تكافؤ هذا القارئ حيّاً على حدة، وما زال BLOCKED_BY_ENVIRONMENT. لم تُغيَّر البادئات ولا البذر ولا سلطة الاستجابة. الفرع `claude/gap-sweep-20261025` (الالتزام `8f9a7973e`)، تفرز ٢٠٢٦-١٠-٢٥. **تقدّم (2026-10-26، فرع `claude/review-portability-tests-mobile-20261025`، `6e1e12dc7`):** `local-ai-rag` يرفض (503) أيَّ نتيجةٍ مُبادَأة قبل أن يجيب النموذج، بالقاعدة نفسها التي يطبّقها المسترجِع الرئيس. **تبقى open:** قياسُ تكافئه الحيّ. |
 | REPORT3-RAG-07-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): البذرُ ليس إعادة فهرسة شاملة: يُضمّن `KNOWLEDGE_BASE` فقط بمعرّفات `seed:<id>` بلا SEED_REVISION/tenant. | rag | `services/qdrant-seed/seed.py` | **fixed** — إصلاح مصدري على فرع التكامل عند `e99aa9a3e813fe67b687f6e8dae3843fdd05d2d8`؛ ليس verified ولا ادعاء وصول إلى main أو نشر. أضيف إعداد إعادة فهرسة كاملة إلى مجموعة ظل مستقلة، يقرأ كل الوثائق المخزنة ويثبت revision/model digest وبصمة المصدر ويحفظ tenant/quarantine/المعرفات والنسب، ويتحقق من كل حمولة ومتجه. على Qdrant/Ollama أصليين أعاد seed القديم تضمين صفر وثائق مرفوعة؛ الأداة أعادت الوثائق الثلاث في التجربة وقرأتها مستقلاً، ورفضت المصدر المتغير والهدف الموجود. أُصلح النقل الرافض للتحويلات وحمولة المستأجر غير القانونية؛15 حالة متابعة ناجحة. لا يتغير alias أو مرجع المستهلك؛ هذا إغلاق قدرة الإعداد المصدرية فقط، والتحويل الخدمي وقبول المرمز والتشغيل الإنتاجي منفصلة. [الدليل](../../certification/evidence/chatgpt_closure_nine_20261016/rag/native-reindex-witness.json) و[الحدود](../../certification/evidence/chatgpt_closure_nine_20261016/rag/README.md). **السجل السابق قبل هذا الإصلاح (محفوظ للتأريخ):** **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. |
 | REPORT3-RAG-08-01 | تدقيق RAG (2026-09-13، ثُبِّت على `9c4e372a` والملفّات لم تتغيّر حتّى `d786d18b`؛ المسبار الستّيّ أُعيد إنتاجه هنا): درجاتُ dense لا تمثّل ترتيب الخدمة (RRF + جوار + تداخل لفظيّ + توسيع KG). | rag | `services/rag-retrieval/main.py` (`HybridQdrantRetriever`) | **open** (2026-10-18): `BLOCKED_BY_ENVIRONMENT`، ناتج `docker info` في `certification/evidence/codex_rag_live_20261018/docker-info.txt`؛ رمز 127. لا قياس حي أو parity probe؛ `NOT_YET_AUTHORITATIVE`. الحالة السابقة للتأريخ: **open — قرارُ مالك:** لا إصلاحَ بادئاتٍ ولا إعادةَ بذرٍ بلا مجموعة تجريبيّة ذات إصدار وقياس قبل/بعد عربيّ (dense/sparse/fusion/expansion) — خطّة التقرير 1→9؛ RAG-10 عولج جزئيّاً في REPORT3-CHAT-GENERATED-GROUNDED-WITHOUT-RAG-HITS-01. **W5 `fbb20444`:** [تقييم عربي يمني v1.0.0 وخط الأساس](../../certification/evidence/chatgpt_w5_20261017/rag/README.md): 32 سؤالاً، القياس الحالي BLOCKED لغياب Qdrant/Ollama؛ BM25 على لقطة تاريخية منفصل صراحةً. لا بادئات ولا بذر ولا نموذج تغيّر، ولا استنتاج تحسين؛ open. **تقدّم (2026-10-26، فرع `claude/review-portability-tests-mobile-20261025`، `534bd7321`):** الجار المضاف بعد الاسترجاع يحمل `dense_score`/`bm25_score` = `None` لا 0.0 مقيسةً كاذبة، وترتيبُ التقديم مثبَّتٌ باختبار. **تبقى open:** تشغيل `baseline_readonly.py` على مكدّسٍ حيّ. |
@@ -7927,3 +7927,487 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `/api/v1/sync` يعامل `observation_create` و`water_applied` كقياس (`observable_id/value`)؛ التطبيق يعيد العمليّات عبر HTTP بطريقتها ومسارها (اختبار `durable_offline_outbox_test.dart`).
 - **شرط الإغلاق:** توثيق أنّ `/sync` للقياسات وحدها أو دعم أنواع العمليّات صراحةً.
 - **التقرير:** [`reports/mobile_overhaul_20261026.md`](../reports/mobile_overhaul_20261026.md).
+## GUARDRAILS-CROP-CASE-BYPASSES-CROP-BAN-01 — حظرُ مبيدٍ لمحصولٍ يسقط بحالة الأحرف
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): المحصول يُطبَّع (strip/lower) ويُؤخذ من `farm_context` عند غيابه، ومادّةٌ لها قيودُ محصولٍ بلا محصول ⇒ HIGH `crop_unspecified`. الاختبار: [`tests_v9/test_guardrails.py`](../../tests_v9/test_guardrails.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/guardrails-engine/tiers/chemical_tier.py:102` — `crop` يُقرأ خاماً من `action_data` ولا يُطبَّع؛ chlorpyrifos على "Tomato" أو بمحصولٍ في `farm_context` وحده ⇒ allowed LOW (قِيس).
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## GUARDRAILS-BANNED-SUBSTANCE-BECOMES-APPROVABLE-WORKFLOW-01 — المادّة المحظورة دوليّاً تصير طلبَ موافقة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): نتيجةٌ CRITICAL بقاعدة `banned_substance` أو `banned_for_crop` ⇒ رفضٌ بلا سير موافقة مع الفرق والشرح؛ المقيّدة (glyphosate MEDIUM، atrazine HIGH) تبقى للمراجعة البشريّة. الاختبار: [`tests_v9/test_guardrails.py`](../../tests_v9/test_guardrails.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/guardrails-engine/main.py:201-215` — `requires_human = not allowed` يجعل مسار الرفض غير قابلٍ للبلوغ؛ DDT/paraquat ⇒ سير موافقةٍ بشريّة CRITICAL.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## GUARDRAILS-READYZ-READY-WITHOUT-SERVICE-TOKEN-01 — جاهزيّة guardrails تكذب بلا رمز الخدمة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `/readyz` 503 (`service_token`) حين يكون الرمز فارغاً أو غير ASCII. الاختبار: [`tests_v9/test_guardrails.py`](../../tests_v9/test_guardrails.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/guardrails-engine/routers/health.py:122-138` — `/readyz` 200 بينما `/v1/validate` و`/v1/evaluate` 503 دائماً بلا `SAHOOL_AGENT_TOKEN`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## GUARDRAILS-UNIT-TESTS-TAUTOLOGICAL-01 — اختبارات guardrails الأربعة لا تستورد المحرّك
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): اختباراتٌ على الطبقات والمحرّك والتطبيق الحقيقيّة. الاختبار: [`tests_v9/test_guardrails.py`](../../tests_v9/test_guardrails.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `tests_v9/test_guardrails.py:8-39` — أربع حالات `unit` تحسب على ثوابتها لا على المحرّك.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-TOOL-RESULTS-BYPASS-EXTERNAL-REDACTION-01 — نتائج الأدوات تصل المزوّد الخارجيّ بلا تنقيح
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `redact_structured_for_external` على كلّ نتيجة أداةٍ في المسارات الثلاثة (رسائل الأدوات، كتل Anthropic، النصّ الاحتياطيّ)، ويشمل مفاتيح الموقع والأزواج العشريّة. الاختبار: [`tests_v9/test_ai_tool_result_redaction.py`](../../tests_v9/test_ai_tool_result_redaction.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/ai_agronomist/ai_generation.py:870-878` و`:575-660` — في `redacted_external` يُنقَّح `context_text` وحده؛ قِيس وصولُ بريدٍ وهاتفٍ وUUID و`location {lat, lon}` بستّ خانات إلى OpenRouter.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-CLIENT-GRID-BLOCKS-EVENT-LOOP-01 — شبكةٌ من العميل تتغلّب على الدليل وتجمّد الخدمة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): شبكةُ الدليل أوّلاً، سقفٌ 128×128 ⇒ `insufficient_data`، حلقةُ الأدوات في خيطٍ عامل، و`tool_calls` ≤ 32. الاختبار: [`tests_v9/test_productivity_zones_grid_bounds.py`](../../tests_v9/test_productivity_zones_grid_bounds.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/ai_agronomist/productivity_zones_clustering.py:385-391` — `params["ndvi_grid"]` مقدَّمٌ على شبكة الدليل بلا حدّ، وk-means على حلقة الأحداث (200×200 ⇒ 33 ث).
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-AUDIT-STORE-UNBOUNDED-01 — سجلّ تدقيق الوكيل ينمو بلا حدّ
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): آخر 10000 سجلّ (`SAHOOL_AGENT_AUDIT_MAX_RECORDS`) وملخّصٌ للقيم فوق 2 KiB. الاختبار: [`tests_v9/test_agent_audit_store_bounds.py`](../../tests_v9/test_agent_audit_store_bounds.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/ai_agronomist/agent_stores.py:66-70` و`:108-109` — قائمةٌ في الذاكرة و`RPUSH` بلا `LTRIM`، ويخزّن النتيجة الخام.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## VRA-UNIT-CLASS-AND-LAB-EVIDENCE-FABRICATED-01 — وصفة VRA بوحدةٍ وفئةٍ ودليلٍ مختلَقة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): وحدةٌ واحدة لكلّ منتج (عدمُ التطابق ⇒ محجوب)، منطقةٌ بلا فئة ⇒ محجوب، ودليلُ المختبر قيمُ تحاليل رقميّة لكلّ منطقة. الاختبار: [`tests_v9/test_vra_prescription_engine_v62.py`](../../tests_v9/test_vra_prescription_engine_v62.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/ai_agronomist/vra_prescription_engine.py:73-77` و`:109-131` و`:199` — وحدةٌ من المعاملات (الجير بـkg_ha ⇒ 1000× أقلّ)، فئةُ إنتاجيّةٍ بالفهرس، وأيُّ `lab_results` ⇒ `lab_supported` بثقة 0.88.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## VRA-SAMPLING-USES-BBOX-NOT-POLYGON-01 — المساحة ونقاطُ العيّنات من مستطيل الإحاطة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): مساحةٌ بصيغة shoelace بمقياسٍ عند متوسّط العرض، ونقاطٌ داخل المضلّع. الاختبار: [`tests_v9/test_soil_sampling_planner_v61.py`](../../tests_v9/test_soil_sampling_planner_v61.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/ai_agronomist/soil_sampling_planner.py:38-55` و`vra_prescription_engine.py:80-87` — مثلّثٌ 59 هكتاراً يُحسب 118.9، ونقطةُ عيّنةٍ خارج المنطقة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-SENTINEL-TENANT-FROM-LLM-ARGUMENTS-01 — خادم Sentinel يقرأ مستأجراً آخر من وسائط النموذج
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): المستأجر من الرمز (403 عند الاختلاف) و`field_id` بنمطٍ مقيَّد. الاختبار: [`tests_v9/test_mcp_tool_hardening.py`](../../tests_v9/test_mcp_tool_hardening.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/mcp_servers/sentinel_hub_server.py:414-426` و`:450-463` — `tenant_id` من الوسائط إلى `X-Tenant-Id` لخدمة الراستر، و`field_id` غيرُ مرمَّزٍ في المسار.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-MARKET-PROCUREMENT-SELF-APPROVAL-01 — طلب الشراء يعتمد نفسه
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): السقفُ من `MARKET_AUTO_APPROVE_BELOW_USD` وحده، وأيُّ بندٍ بلا سعرٍ موجب ⇒ `pending_approval`، و`market:write` على مسارات الكتابة. الاختبار: [`tests_v9/test_mcp_tool_hardening.py`](../../tests_v9/test_mcp_tool_hardening.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/mcp_servers/market_server.py:217` و`:230-233` و`:264-270` و`:666-669` — سقفُ الاعتماد من الوسائط، والسعرُ الغائب صفر، وREST بلا `market:write`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-GENERIC-CONTEXT-ECHO-MARKED-VERIFIED-01 — الخادم العامّ يختم صدى الوسائط «verified»
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `verified: False` و`governing: False` والمستأجر من الرمز. الاختبار: [`tests_v9/test_mcp_tool_hardening.py`](../../tests_v9/test_mcp_tool_hardening.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/mcp_servers/generic_context_server.py:44-53` و`:76-87`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-IDEMPOTENCY-CACHES-UNBOUNDED-01 — ذواكر idempotency في MCP بلا إخلاء
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): إخلاءُ المنتهي وسقفُ 1024 مدخلاً (`shared/oauth_middleware.py`). الاختبار: [`tests_v9/test_mcp_tool_hardening.py`](../../tests_v9/test_mcp_tool_hardening.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `weather_server.py:30` و`wofost_server.py:26` و`sentinel_hub_server.py:31`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-WOFOST-CROP-PARAMETERS-FABRICATED-01 — معاملات محاصيل WOFOST مختلَقة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `get_crop_parameters` يُرجع 501 كما `run_wofost_simulation`. الاختبار: [`tests_v9/test_mcp_auth_first_contract.py`](../../tests_v9/test_mcp_auth_first_contract.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/mcp_servers/wofost_server.py:188-263` — جدولٌ ثابت (TSUM1 للقمح 200 مقابل 543 في بيانات PCSE المضمَّنة) ومحاصيلُ يرفضها المحاكي.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MODEL-REGISTRY-EMPTY-CHECKS-VERIFIED-HEALTHY-01 — تحقّقُ النموذج «سليم» بلا فحوص
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): الفحوص الأربعة حاضرةٌ و`True` تماماً وإلّا `verification_failed`. الاختبار: [`services/model-registry-adapter/tests/test_runtime.py`](../../services/model-registry-adapter/tests/test_runtime.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/model-registry-adapter/runtime.py:195-200` — `checks` فارغة ⇒ `verified_healthy`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MODEL-REGISTRY-MISSING-DRIFT-METRICS-STABLE-01 — مقاييس الانجراف الغائبة تُقرأ «مستقرّ»
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): مقياسٌ غائب أو غير منتهٍ ⇒ `warning` (المفردة التي تقبلها decision-service). الاختبار: [`services/model-registry-adapter/tests/test_runtime.py`](../../services/model-registry-adapter/tests/test_runtime.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/model-registry-adapter/runtime.py:269` — `metrics.get(k, 0) or 0`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRIAI-UNCOSTED-CANDIDATE-RANKED-FIRST-01 — مرشّحٌ بلا تكاليف يتصدّر خطّة الربح
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): مرشّحٌ بلا سعرٍ أو تكاليف ⇒ `insufficient` خارج الترتيب، ونطاقُ الربح يُمرَّر. الاختبار: [`tests_v9/test_agriai_engine_features_20260702.py`](../../tests_v9/test_agriai_engine_features_20260702.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/agriai-engine/main.py:233-241` و`profit_planner.py:19-26` — التكلفة الغائبة صفر، ونطاقُ الغلّة لا يصل `/v1/plan`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRIAI-PLAN-SIMULATION-ERRORS-BARE-500-01 — أخطاء المحاكاة في الخطّة 500 عارية
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): تعيينُ `/v1/simulate` (422/503) على المسارات الثلاثة، والمحصولُ المطلوب في المرشّح الافتراضيّ. الاختبار: [`tests_v9/test_agriai_engine_features_20260702.py`](../../tests_v9/test_agriai_engine_features_20260702.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/agriai-engine/main.py:232` و`:265`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## RAG-BM25-SEARCH-RECOMPUTES-CORPUS-STATS-PER-DOC-01 — بحثُ BM25 يعيد حساب إحصاءات المدوّنة لكلّ مقطع
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): إحصاءاتٌ مرّةً لكلّ بحث وسقفُ 128 مصطلحاً (0.02 ث)، بنتائج مطابقة. الاختبار: [`tests_v9/test_rag_bm25_search_cost.py`](../../tests_v9/test_rag_bm25_search_cost.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/core/rag/production_qdrant.py:957-982` — 5.8 ث لاستعلامٍ واحد عند 2000 مقطع (ارتدادٌ من إصلاح RAG-BM25-CROSS-TENANT-CORPUS-STATS-01).
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## RAG-RETRIEVAL-BLOCKING-IO-ON-EVENT-LOOP-01 — rag-retrieval يحجب حلقة الأحداث
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): العمل الحاجب في threadpool مع قفلٍ على الحالة المشتركة. الاختبار: [`tests_v9/test_rag_retrieval_event_loop.py`](../../tests_v9/test_rag_retrieval_event_loop.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/rag-retrieval/main.py:224` و`:348` — urllib متزامن (embed وQdrant والمسح) داخل `async def`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## LOCAL-AI-RAG-REFUSAL-CITES-SOURCES-AND-LEAKS-UPLOADS-01 — الرفض يستشهد بمصادر، والملفّات المؤقّتة تبقى
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `sources=[]` للرفض، واستشهادٌ بـ`source_uri`/`publisher`، وتنظيفٌ في `finally`. الاختبار: [`tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py`](../../tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/local-ai-rag/main.py:449-477` و`:704-708`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## KG-EDGE-UPSERT-KEEPS-OLD-ENDPOINTS-01 — إعادة نشر حافّة KG تُبقي طرفيها القديمين
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): حافّةٌ بطرفين مختلفين ⇒ 409. الاختبار: [`tests_v9/test_kg_edge_upsert_conflict.py`](../../tests_v9/test_kg_edge_upsert_conflict.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/knowledge-graph/kg_store.py:133`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## PLATFORM-EDGE-SEGMENTATION-PROXY-UNAUTHORISED-01 — وكيلا edge وsegmentation بلا صلاحيّة ولا قائمة مسارات
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): قائمةُ (طريقة، مسار) بصلاحيّاتٍ كوكيل التربة، وفحصُ ملكيّة `field_id`، و`sync/trigger` غير ممرَّر. الاختبار: [`services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py`](../../services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/api/routers/service_proxy.py:171-183` و`:204-218` — أيُّ مستخدمٍ يحقن `X-Agent-Token` لأيّ مسار؛ نتائجُ edge بـ`field_id` المستدعي تُكتب تحت مستأجر رمز المزامنة، و`sync/trigger` مفتوح.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## OUTCOME-STRESS-SUCCESS-COUNTED-TWICE-01 — نتيجةُ إجهادٍ واحدة تُعدّ نجاحين
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): نجاحٌ واحد على الأكثر لكلّ مقياسٍ مقيَّم. الاختبار: [`tests_v9/test_outcome_measurement.py`](../../tests_v9/test_outcome_measurement.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/api/outcome_measurement.py` — `stress_better` و`stress_avoided` معاً ⇒ success_rate 2.0 في `evidence_registry.py:66-68`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## FARM-BOOK-CROSS-MONTH-REVERSAL-NOT-NETTED-01 — عكسُ قيدٍ في شهرٍ لاحق لا يظهر في أيّ تقرير
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): العكسُ داخل النافذة وأصله خارجها يُحتسب سالباً؛ مجموعُ الأشهر = الرصيد. الاختبار: [`services/sahool-platform/tests/test_simple_farm_book.py`](../../services/sahool-platform/tests/test_simple_farm_book.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/core/simple_farm_book.py:11-20`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AI-PROVIDER-CATALOG-LEAKS-ACROSS-PROVIDERS-01 — كتالوج النماذج يتسرّب بين المزوّدين
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): معرّفاتٌ لا تخصّ المزوّد النشط تُسقَط. الاختبار: [`services/sahool-platform/tests/test_ai_provider_config.py`](../../services/sahool-platform/tests/test_ai_provider_config.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/api/ai_provider_config.py:75-97`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SAM2-IMAGE-REF-SSRF-AND-LOCAL-READ-01 — SAM2 يفتح أيّ رابطٍ أو مسارٍ محلّيّ
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): https من مضيفين في `SAM2_IMAGE_HOST_ALLOWLIST` وحدهم، ومهلاتُ GDAL HTTP. الاختبار: [`services/sam2-inference/tests/test_sam2_inference_http_contract.py`](../../services/sam2-inference/tests/test_sam2_inference_http_contract.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sam2-inference/sam2_runtime.py:231-234` و`:310-314` — http/vsicurl/s3/مسارات محلّيّة إلى GDAL.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## VIDEO-STREAM-SYNC-HARDCODED-FIELD-RETRIED-FOREVER-01 — نتائج البثّ تُزامَن تحت حقل "stream" وتُعاد للأبد
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): حقلُ البثّ ومحصوله الحقيقيّان، والرفضُ الدائم (4xx) إلى `dead_letter/`. الاختبار: [`tests_v9/test_video_stream_inference_field_binding.py`](../../tests_v9/test_video_stream_inference_field_binding.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/video-processor/main.py:260-265` و`services/edge-inference/sync_service.py:98-137`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## EDGE-IMAGE-DECOMPRESSION-BOMB-01 — قنبلة فكّ ضغطٍ تحت سقف 10 MB
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): سقفُ بكسلات قبل الفكّ (40 MP) ⇒ 413، وقراءةٌ محدودة. الاختبار: [`tests_v9/test_edge_inference_image_pixel_cap.py`](../../tests_v9/test_edge_inference_image_pixel_cap.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/edge-inference/models/pest_detector.py:194` و`yield_estimator.py:133`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## EDGE-PEST-DETECTOR-NO-NMS-01 — كاشف الآفات بلا NMS
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): NMS لكلّ فئة عند IoU 0.45. الاختبار: [`tests_v9/test_edge_pest_detector_nms.py`](../../tests_v9/test_edge_pest_detector_nms.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/edge-inference/models/pest_detector.py:252-280`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## NOTIFICATION-NATS-GIVES-UP-RECONNECTING-01 — وكيل الإشعارات يصمّ للأبد بعد دقيقتين بلا NATS
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `max_reconnect_attempts=-1` و`/healthz` 503 عند انغلاق العميل. الاختبار: [`tests_v9/test_notification_delivery_reliability.py`](../../tests_v9/test_notification_delivery_reliability.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `agents/notification/agent.py:659` — افتراضيّ 60 محاولة، و`/healthz` سليمٌ دائماً.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## NOTIFICATION-POOL-RACE-AND-UNESCAPED-HTML-01 — سباقُ مجمّع الاتّصالات ونصٌّ غير مُهرَّب
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): قفلٌ على إنشاء المجمّع و`html.escape`. الاختبار: [`tests_v9/test_notification_delivery_reliability.py`](../../tests_v9/test_notification_delivery_reliability.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `agents/notification/agent.py:288-300` وبناءُ Telegram/البريد.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-CALLER-ERRORS-OPEN-GLOBAL-BREAKER-01 — أخطاء المستدعي تفتح قاطع السوق لكلّ المستأجرين
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): أخطاءُ الأداة لا تُحتسب على القاطع، والسياقُ نصوصٌ، ونصف المفتوح يقبل مسباراً واحداً. الاختبار: [`services/supervisor-agent/test_ai_orchestration_forensic.py`](../../services/supervisor-agent/test_ai_orchestration_forensic.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/supervisor-agent/mcp_client.py:207-208` و`skills/market_skill.py:34-41` و`circuit_breaker.py:119-120`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-OPTIMIZE-UNWIRED-AND-CONSTANT-PRICE-01 — optimize بلا سياقٍ وبسعرٍ ثابت
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): ربطُ السياق كـ`/query`، وبلا سعرٍ مرصود ⇒ متدهور `market_price_unavailable`. الاختبار: [`services/supervisor-agent/test_ai_orchestration_forensic.py`](../../services/supervisor-agent/test_ai_orchestration_forensic.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/supervisor-agent/routers/agent.py:128-136` و`main.py:404` (`price_yer_kg` 300).
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-GENERAL-ADVICE-UNGOVERNED-DOSE-AND-500-01 — النصيحة العامّة: جرعةُ نيتروجين بلا حوكمة و500 مع المصادر
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): لا جرعة رقميّة في القوالب، `calibrated: False` و`ai_generated: True`، ومصادرُ نصّيّة. الاختبار: [`services/supervisor-agent/test_ai_orchestration_forensic.py`](../../services/supervisor-agent/test_ai_orchestration_forensic.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/supervisor-agent/skills/advisory_skill.py:203-223` — «80kg N/ha + 40kg»، وإجابة RAG `calibrated: True`، ومصادرُ قواميس ⇒ ValidationError.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-FIELD-ID-PATH-TRAVERSAL-01 — `field_id` يعبر مسارات المنصّة برمز الخدمة
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `quote(field_id, safe="")`. الاختبار: [`services/supervisor-agent/test_ai_orchestration_forensic.py`](../../services/supervisor-agent/test_ai_orchestration_forensic.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/supervisor-agent/main.py:98`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-VERIFIED-SUCCESS-ON-FAILED-RECEIPT-01 — تنفيذٌ فاشل يُوسَم نجاحاً ويدخل التعلّم
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): `verified_success` يشترط إيصالاً `accepted` وإلّا 409 `receipt_not_accepted`. الاختبار: [`services/decision-service/tests/test_execution_outcome_receipt_gate.py`](../../services/decision-service/tests/test_execution_outcome_receipt_gate.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/decision-service/persistence.py:2191-2213`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-PROMOTION-GUARDRAIL-DIRECTION-01 — حواجزُ ترقية النموذج تقيس مقاييس الخطأ بالاتّجاه المعكوس
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): اتّجاهٌ لكلّ حاجز وفرقٌ موقَّع، و`min_improvement` ≥ 0. الاختبار: [`services/decision-service/tests/test_model_promotion_guardrail_direction.py`](../../services/decision-service/tests/test_model_promotion_guardrail_direction.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/decision-service/persistence.py:2905-2913` — mae 2→9 يمرّ.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## REALTIME-AGENT-PLAINTEXT-ORIGINS-01 — عامل الصوت يرسل رمزه ورموز المستخدمين عبر http لأيّ مضيف
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): http للحلقة المحلّيّة وأسماء الخدمات و`*.railway.internal` وحدها. الاختبار: [`services/realtime-agent/tests/test_origin_transport.py`](../../services/realtime-agent/tests/test_origin_transport.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/realtime-agent/realtime_agent/config.py:26-39` و`providers.py:21-38`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AI-OPT-OUT-IGNORED-FOR-LOCAL-GENERATION-01 — انسحابُ المستأجر من الذكاء الاصطناعيّ لا يوقف التوليد المحلّيّ
+
+- **الحالة:** fixed (2026-10-26) — مراجعة الذكاء الاصطناعيّ الكاملة (فرع `claude/ai-review-fixes-20261026`): الظرف يحمل `ai_generation_allowed`، وقيمتُه غير `True` ترفض كلّ مزوّد. ظرفٌ بلا المفتاح يُحكم كما كان (المنصّة تُنشر من فرعها)، فيسري الانسحابُ المحلّيّ مع نشر المنصّة. الاختبار: [`tests_v9/test_ai_generation_opt_out_envelope.py`](../../tests_v9/test_ai_generation_opt_out_envelope.py) أحمرُ على الكود القديم وأخضرُ بعد الإصلاح.
+- **المصدر:** `services/sahool-platform/core/ai_policy_envelope.py:175-177` و`services/ai_agronomist/policy_envelope.py:128-131`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-EXECUTION-REQUEST-NOT-BOUND-TO-PLAN-01 — أمرُ التنفيذ لا يُقارن بالخطّة المعتمدة (GATE-01)
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/decision-service/persistence.py:1734-1820` و`services/sahool-platform/api/routers/decision_review.py:379-402` و`actuator-service/actuator_runtime.py:199-209,356-360` — `operation_type` و`target_id` و`command_payload` من المستدعي؛ غيابُ `risk_level`/`field_id` يتخطّى الفحص. كامنٌ حتّى ترقية decision-service نظامَ سجلّ وتفعيل الإرسال.
+- **شرط الإغلاق:** قرارُ المالك (GATE-01): ربطُ العمليّة والهدف والكمّيّة بالخطّة على الخادم، وغيابُ المخاطرة/الحقل ⇒ رفض.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-DISPATCH-CLIENT-ASSERTED-RISK-AND-APPROVALS-01 — المخاطرة والموافقات وPHI من جسم الطلب
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/api/routers/decision_dispatch.py:186-196,276-292` و`core/decision_dispatch.py:134-141` — `risk_level:"LOW"` أو `approvals_collected:99` ⇒ أمرُ مشغّلٍ في الطابور (حين `SAHOOL_DECISION_DISPATCH` مفعّل).
+- **شرط الإغلاق:** قرارُ المالك (GATE-01): اشتقاقُها على الخادم من التوصية المخزّنة وسجلّات الموافقة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## GUARDRAILS-HARVEST-AUTO-APPROVED-WITHOUT-PHI-01 — الحصاد يُعتمد آليّاً بلا فحص فترة الأمان
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/guardrails-engine/main.py:153-176` و`contracts.py`؛ `tests_v9/test_guardrails_contract.py:107` يثبّت `harvest {}` ⇒ لا متطلّبات.
+- **شرط الإغلاق:** قرارُ المالك: مراجعةٌ بشريّة للحصاد أو دليلُ `pesticide_phi_satisfied` في العقد.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## GUARDRAILS-YEARLY-FERTILISER-LIMITS-UNENFORCED-01 — حدود التسميد السنويّة معرَّفة ولا تُفرض
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/guardrails-engine/tiers/chemical_tier.py:88-92,187-256` — `max_kg_ha_year` لـN/P/K لا يُفحص.
+- **شرط الإغلاق:** فحصُ `annual + dose > max` HIGH وسياقُ P/K السنويّ في العقد.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## PONYTAIL-WEATHER-CONTEXT-KEY-NOT-VALUE-01 — مرشّح Ponytail يفحص وجود المفتاح لا القيمة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/core/guardrails.py:237-241` مع `core/internal_orchestrator.py:121` — `et0=None` ⇒ PROCEED، وثقةُ NaN تتخطّى بوّابة التبسيط (العلمُ معطَّلٌ افتراضيّاً).
+- **شرط الإغلاق:** قيمةٌ منتهيةٌ غير None، والثقة غير المنتهية = 0.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## PONYTAIL-DEAD-MODULE-TESTED-INSTEAD-OF-RUNTIME-01 — اختبارات Ponytail تفحص نسخةً ميّتة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/core/recommendation_ponytail.py` (UNREACHABLE) و`tests/test_ponytail_guardrails.py`.
+- **شرط الإغلاق:** حذفُ النسخة الميّتة وتوجيهُ الاختبارات إلى `core.guardrails`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-ISOXML-PDV-WRONG-DDI-UNITS-01 — ملفّ ISOXML بوحدة DDI خاطئة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/prescription_export_adapters.py:95-98` — DDI 0006 (mg/m²) لكلّ منتج وقيمةٌ بـkg/ha.
+- **شرط الإغلاق:** DDI لكلّ منتج وتحويلٌ إلى وحداته الصحيحة، أو تسميةٌ لا تدّعي ISOXML.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-READYZ-PROBES-WRONG-DEPENDENCIES-01 — جاهزيّة المهندس الزراعيّ تفحص الخدمة الخطأ
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/main.py:432-455` — تشترط guardrails (لا يستدعيها مسار النصيحة) ولا تفحص المنصّة.
+- **شرط الإغلاق:** فحصُ `/readyz` للمنصّة بدل guardrails.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-NO-END-TO-END-GENERATION-DEADLINE-01 — لا مهلةَ شاملة للتوليد
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/ai_generation.py:851-940` — حتّى 7 طلبات مزوّدٍ متتالية (~8 دقائق) بعد مهلة البوّابة 120 ث.
+- **شرط الإغلاق:** `asyncio.timeout` أقلّ من مهلة البوّابة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-APPROVAL-ID-CALLER-CHOSEN-GLOBAL-KEY-01 — معرّف الموافقة يختاره المستدعي ومفتاحه عامّ
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/tool_loop.py:174-183` و`agent_stores.py:84-91` (كامن: الأدوات المغيِّرة محجوبة بالظرف).
+- **شرط الإغلاق:** معرّفٌ يولّده الخادم أو مفتاحٌ (مستأجر، معرّف).
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AGRONOMIST-ZONE-COUNT-CPU-COST-AT-GRID-CAP-01 — تقدير عدد المناطق مكلفٌ عند سقف الشبكة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist` `management_zone_count.fuzzy_cmeans_1d` — 35 ث CPU لشبكة 128×128 عشوائيّة (في خيطٍ عامل بعد هذا الإصلاح).
+- **شرط الإغلاق:** سقفٌ أصغر أو عيّنةٌ قبل اختيار العدد.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MODEL-REGISTRY-DRY-RUN-FLAG-NEVER-HONOURED-01 — علم `MODEL_REGISTRY_DRY_RUN` لا يُحترم
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/model-registry-adapter/adapter.py:107-111` و`worker.py:323-332`؛ و`sahool-brain/log.md:2893` يدّعي احترامه.
+- **شرط الإغلاق:** تخطّي CAS مع إيصالٍ تجريبيّ، أو إزالةُ العلم والادّعاء.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MODEL-REGISTRY-RECEIPT-FAILURE-AFTER-SWAP-RECORDED-FAILED-01 — تبديلٌ ناجح يُسجَّل فاشلاً
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/model-registry-adapter/worker.py:333-360,384-411`.
+- **شرط الإغلاق:** فصلُ فشل التبديل عن تعذّر تسليم الإيصال وإعادةُ إرساله بنفس المفتاح.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## MCP-STREAMABLE-HTTP-TRANSPORT-BROKEN-ON-HTTPX-028-01 — نقلُ MCP المتدفّق معطَّل
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/mcp_servers/shared/streamable_http.py:83,98` — `AsyncClient(app=)` أُزيل في httpx 0.28، ويقرأ الجسم قبل المصادقة.
+- **شرط الإغلاق:** `httpx.ASGITransport` ومصادقةٌ مسبقة، أو حذفُ النقل.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## RAG-PROFILE-MODE-FULL-SCAN-PER-QUERY-01 — وضعُ الملفّ يمسح المجموعة كاملةً مع كلّ استعلام
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/core/rag/production_qdrant.py:1414-1417` و`retrieval_profile.py:72-120` (اختياريّ).
+- **شرط الإغلاق:** تحقّقٌ كامل عند البناء/الجاهزيّة، وتحقّقُ المشفِّر والحمولة وحدهما عند الاستعلام.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## LOCAL-AI-RAG-PROMPT-UNDELIMITED-UNBOUNDED-NO-TIMEOUT-01 — مطالبة local-ai-rag بلا فواصل ولا سقف ولا مهلة ولا عتبة صلة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/local-ai-rag/main.py:193,232,428,459-460`.
+- **شرط الإغلاق:** فواصلُ موسومة، وسقفُ سياق، ومهلةُ عميل Ollama، وعتبةُ تشابه.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## CHAT-PROXY-REFERENCE-CLIENT-SYSTEM-PROMPT-01 — مرجع وكيل الدردشة يأخذ مطالبة النظام من العميل
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/api/chat_proxy_reference.py:57-63,130` (غير مركَّب).
+- **شرط الإغلاق:** سياقٌ من الخادم وأدوارٌ مقيَّدة، أو حذفُ الملفّ.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-SOIL-GATE-RUNS-ON-MIRROR-ONLY-01 — بوّابة دليل التربة تعمل على المرآة وحدها
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/decision-service/main.py:899-940` — في الإنتاج المرآة؛ 422 يُسقط صفّ المرآة، و`soil_use` من المستدعي يتخطّاها.
+- **شرط الإغلاق:** البوّابة في مسار إرسال المنصّة، والمرآة لا ترفض.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-DISPATCH-DIGEST-NULL-AND-OUTCOME-FIELD-MISSING-01 — بصمة الإرسال فارغة ونتائج التنفيذ بلا حقل
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/decision-service/persistence.py:283-293` و`:2196-2201`.
+- **شرط الإغلاق:** قبولُ `decision_id` المصدر، ونسخُ الحقل والموسم إلى `outcome_record`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## DECISION-NO-POOL-OR-LOCK-TIMEOUTS-01 — لا مهلاتٍ للمجمّع ولا للأقفال
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/decision-service/persistence.py:79-87` و`migration_runner.py:72-77`.
+- **شرط الإغلاق:** `command_timeout` ومهلةُ acquire و`SET LOCAL lock_timeout`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## FIELD-SEGMENTATION-EXG-AND-PROMPTS-NEVER-REACH-SAM2-01 — صورة ExG والإيحاءات لا تصل SAM2 والاستجابة تدّعيها
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/field-segmentation/main.py:240-271` مقابل `services/sam2-inference/sam2_runtime.py:132-138`؛ وExG في بايثون خالصة على حلقة الأحداث (`exg_preprocess.py:140-233`، 12 ث).
+- **شرط الإغلاق:** دعمُ الصورة والإيحاءات في SAM2 أو الكفّ عن إرسالها وادّعائها، و`extra="forbid"`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SAM2-BLOCKING-WORK-ON-EVENT-LOOP-01 — SAM2 يحجب حلقة الأحداث
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sam2-inference/main.py:24`.
+- **شرط الإغلاق:** `def` مع قفلٍ حول `set_image`+`predict`.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SAM2-MALFORMED-JSON-UNAUTH-GETS-422-01 — JSON معطوب بلا مصادقة يأخذ 422 لا 401
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sam2-inference/main.py` — FastAPI يحلّل قبل الاعتماديّات؛ ولا اختبارَ على GeoTIFF بإحداثيّات UTM.
+- **شرط الإغلاق:** وسيطٌ للمصادقة قبل التحليل واختبارُ UTM.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## EDGE-YIELD-PLANT-COUNT-SUMMED-OVER-IMAGES-01 — عدد النباتات يُجمع عبر الصور
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/edge-inference/models/yield_estimator.py:216,252`.
+- **شرط الإغلاق:** متوسّطٌ أو عددُ صورٍ ثابت في عقد النموذج.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## VIDEO-SSRF-GUARD-BYPASS-BY-REDIRECT-01 — حارس SSRF للكاميرات يتخطّاه التحويل وإعادة الحلّ
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/video-processor/main.py:40-65`.
+- **شرط الإغلاق:** الاتّصال بالعنوان المحلول أو تعطيلُ التحويلات.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## VIDEO-STREAM-SLOTS-GLOBAL-NOT-PER-TENANT-01 — خانات البثّ عامّةٌ لا لكلّ مستأجر
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/video-processor/routers/streams.py:51` و`main.py:328-331`.
+- **شرط الإغلاق:** سقفٌ لكلّ مستأجر وإخلاءُ البثّ المتعطّل.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## TTS-XTTS-PROVIDER-CANNOT-PRODUCE-AUDIO-01 — مزوّد XTTS لا يُنتج صوتاً ويجمّد الخدمة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/tts-service/providers.py:422-452`.
+- **شرط الإغلاق:** تحميلٌ واحد في خيط، ومتحدّث، وترميز WAV، أو وسمُه غير متاح.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## REALTIME-VOICE-STAGE-TIMEOUTS-SHORTER-THAN-WORK-01 — مهلاتُ مراحل الصوت أقصر من العمل
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/realtime-agent/realtime_agent/providers.py:133` و`context.py:157` و`services/realtime-session/realtime_session/voice_jobs.py:97-133`.
+- **شرط الإغلاق:** مهلاتٌ من ميزانيّة الدور (45 ث)، وإلغاءٌ على نتائج التفويض وحدها.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## REALTIME-VOICE-ANSWER-EXCEEDS-TTS-LIMIT-01 — إجابة الصوت تتجاوز حدّ TTS
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/realtime-agent/realtime_agent/providers.py:102,168` مقابل `tts-service/main.py:73,200` (1000 حرف).
+- **شرط الإغلاق:** تقطيعٌ بحسب الأسطر أو سقفٌ للإجابة الصوتيّة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## REALTIME-SESSION-GLOBAL-LOCK-ACROSS-RPCS-01 — قفلٌ عامّ عبر نداءات إنشاء الجلسة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/realtime-session/realtime_session/engine.py:91-113,172-183`.
+- **شرط الإغلاق:** القفل حول انتقالات المخزن وحدها أو مهلةٌ أقلّ من مهلة الوكيل.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AI-REDACTION-STRIPS-FIELD-ID-VALIDATION-IMPOSSIBLE-01 — التنقيح يمحو معرّف الحقل فيستحيل القبول
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/ai_evidence_runtime.py:944-952,1012-1018`.
+- **شرط الإغلاق:** اسمٌ مستعار للحقل لكلّ طلب، أو تخطّي التوليد الخارجيّ في الوضع المنقَّح.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AI-PROVIDER-INTERNAL-BY-NAME-NOT-HOST-01 — الداخليّ يُحكم باسم المزوّد لا بالمضيف
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/ai_agronomist/ai_generation.py:116-117,289-307,351-358` — `vllm`/`local` داخليّان أيّاً كان `VLLM_BASE_URL`.
+- **شرط الإغلاق:** مضيفٌ خارج قائمةٍ داخليّة ⇒ خارجيّ.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## AI-OPT-OUT-NOT-ENFORCED-ON-POLICY-READ-FAILURE-01 — فشلُ قراءة السياسة يُقرأ كغياب صفّ
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/sahool-platform/core/ai_policy_envelope.py` — المحمِّل يُرجع `None` للحالتين، فمستأجرٌ منسحب يُولَّد له محلّيّاً أثناء انقطاع القاعدة.
+- **شرط الإغلاق:** تمييزُ «لا صفّ» عن «تعذّر القراءة» في المحمِّل ومستدعيه.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-TOOL-REGISTRY-AUDIT-ALWAYS-EMPTY-01 — سجلّ أدوات المشرف وتدقيقه فارغان دائماً
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/supervisor-agent/tool_contracts.py:455-554` و`routers/agent.py:182-250` — `actuator.pump.start` معلنٌ بتنفيذٍ صوريّ.
+- **شرط الإغلاق:** حذفُ الأدوات الصوريّة أو وسمُ النقاط غيرَ موصولة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## SUPERVISOR-TEMPLATES-UNGOVERNED-THRESHOLDS-01 — قوالب المشرف تحمل عتباتٍ وادّعاءاتٍ بلا حوكمة
+
+- **الحالة:** open (2026-10-26) — وجدتها مراجعة الذكاء الاصطناعيّ الكاملة ولم تُصلَح في فرع `claude/ai-review-fixes-20261026`.
+- **المصدر:** `services/supervisor-agent/skills/advisory_skill.py` — «ري عند 30% رطوبة»، «توفير 40%»، «3–4 ريّات».
+- **شرط الإغلاق:** إزالتها أو توجيهها عبر الحوكمة.
+- **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).

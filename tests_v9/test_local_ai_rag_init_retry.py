@@ -651,8 +651,11 @@ def _run_query_rag(retry, monkeypatch, metas, llm_calls):
         "datetime": dt.datetime,
         "UTC": dt.UTC,
         "logger": logging.getLogger("test-local-ai-rag"),
+        "Document": object,
     }
-    query_rag = _exec_main_functions({"query_rag"}, namespace)["query_rag"]
+    query_rag = _exec_main_functions(
+        {"query_rag", "_is_refusal_answer", "_source_citation"}, namespace
+    )["query_rag"]
     return asyncio.run(query_rag("كيف أسمّد القمح؟", "t1"))
 
 

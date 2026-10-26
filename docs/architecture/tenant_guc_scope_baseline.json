@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "dad5671619bfbf8fd4484835ea49ae43a796ebd8",
+  "measured_on": "6f503ed25cfd3a5c00d34f93504835fca6a3b4fd",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "c762caafffb861a2ba74d0c4b0a2ffbce01fdf2c12294af42094ed18899e0d74",
+  "measurement_input_digest": "c8d196e9ef257ccd3ab0c288c70516db90a0a49509b7e7a8c503a661fecf9190",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "f83dd6bd72e55ffb0ca05814a3680105d7564fc1432ac773c6212dacc16c3cb4",
+  "measurement_basis_digest": "eac3c826cff210aae703f2dfe05e797a4fe8eb9b3e444e0c7267ed667bfd3f5b",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -12,7 +12,7 @@
     },
     {
       "path": "agents/notification/agent.py",
-      "sha256": "736f9c66e8dcd3b7d29326494e6f6a72fc910d6d8f35fc95881fa3056c5e547d"
+      "sha256": "be272d2b1f34e9a26601f036d324c06a0616fc0545ec62628e63e02608cfdcee"
     },
     {
       "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
@@ -60,7 +60,7 @@
     },
     {
       "path": "services/decision-service/persistence.py",
-      "sha256": "1a8abde881e6e06c117ab492fa23cf7d3ae06a1accd494baa6757df706f348f3"
+      "sha256": "8b18c5aa555db38f5e2f66c55aad7d7c68906b873e6766e527b912918b8bf338"
     },
     {
       "path": "services/field-management-service/main.py",
@@ -76,11 +76,11 @@
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "dd2906ce111650d01adfb674a18cce877c2e49aea846156a2d666314638595cb"
+      "sha256": "a11fb0107e9ce31a196d293015cd71bd85d065dc6240c7eb15c29711a2e3a3d4"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
-      "sha256": "e9c9acd868c46a8faa3d5b5bf79575041fcd448343c38259faaa65a8dda7f85b"
+      "sha256": "276843ffaf237ae55e8ec8db52f70d27a8fe8ecd48636efa57e1604b74042c2b"
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",

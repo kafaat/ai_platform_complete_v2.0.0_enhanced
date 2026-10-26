@@ -95,7 +95,10 @@ async def test_general_advice_uses_llm_rag_when_available(adv_mod, monkeypatch):
     monkeypatch.setattr(adv_mod, "_query_local_rag", _fake_rag)
     out = await _skill(adv_mod).execute(intent="general_advice", query="أيّ صنف قمح؟")
     assert out["source"] == "llm-rag"
-    assert out["calibrated"] is True
+    # Model output is labelled unvalidated, never calibrated; sources become strings.
+    assert out["calibrated"] is False
+    assert out["ai_generated"] is True
+    assert out["sources"] == ["kb.pdf"]
     assert out["response"] == "إجابة مُؤرَّضة من النموذج المحليّ"
     assert out["model"] == "qwen3:32b"
 

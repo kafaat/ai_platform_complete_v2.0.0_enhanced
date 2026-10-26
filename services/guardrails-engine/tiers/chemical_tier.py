@@ -99,7 +99,16 @@ class ChemicalSafetyTier:
         if action_type == "pesticide":
             chemical = action_data.get("chemical", "").lower().strip()
             dosage_kg_ha = action_data.get("dosage_kg_ha", 0)
-            crop = action_data.get("crop", "")
+            # Crop keys in MAX_DOSAGES are lowercase; the crop may arrive on the action
+            # or only in the farm context. Normalise so "Tomato" still hits the ban.
+            crop = next(
+                (
+                    str(c).strip().lower()
+                    for c in (action_data.get("crop"), farm_context.get("crop"))
+                    if c and str(c).strip()
+                ),
+                "",
+            )
 
             # Check banned substances
             if chemical in self.BANNED_CHEMICALS:
@@ -118,6 +127,19 @@ class ChemicalSafetyTier:
             if chemical in self.MAX_DOSAGES:
                 limits = self.MAX_DOSAGES[chemical]
                 crop_limit = limits["crops"].get(crop, limits["max_kg_ha"])
+
+                # Fail closed: without a crop the crop-specific ban and dose limit
+                # cannot be evaluated, so this must go to human review, never LOW.
+                if not crop and (limits.get("crops") or limits.get("banned_crops")):
+                    findings.append(
+                        {
+                            "severity": "HIGH",
+                            "message": f"Crop not specified; crop-specific limits for {chemical} cannot be checked",
+                            "message_ar": f"المحصول غير محدّد — تعذّر فحص قيود مادة {chemical} الخاصة بالمحصول؛ يتطلب مراجعة خبير",
+                            "rule": "crop_unspecified",
+                        }
+                    )
+                    passed = False
 
                 if dosage_kg_ha > limits["max_kg_ha"]:
                     findings.append(

@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 
 import model_artifact_gate as artifact_gate
 from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
-from models.errors import ModelNotProvisioned
+from models.errors import ImageTooLarge, ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
@@ -156,9 +156,11 @@ def capabilities_payload() -> dict[str, object]:
 
 
 class PestDetectionRequest(BaseModel):
-    field_id: str = Field(min_length=1, max_length=50)
-    crop: str = Field(
-        default="wheat", pattern="^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
+    # field_id/crop اختياريّان: إطارُ بثٍّ غير مربوط بحقل يُكشَف ولا يُزامَن (المنصّة
+    # تردّ 404 على حقلٍ غير موجود)، ومحصولٌ مجهول يبقى None لا «wheat» مُفترَضاً.
+    field_id: str | None = Field(default=None, min_length=1, max_length=50)
+    crop: str | None = Field(
+        default=None, pattern="^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
     )
     confidence_threshold: float = Field(default=0.6, ge=0.1, le=1.0)
     return_image: bool = False
@@ -222,8 +224,8 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
 @app.post("/v1/inference/pest-detect")
 async def detect_pest(
     file: UploadFile = File(...),
-    field_id: str = Form(...),
-    crop: str = Form("wheat"),
+    field_id: str | None = Form(None),
+    crop: str | None = Form(None),
     confidence_threshold: float = Form(0.6),
     return_image: bool = Form(False),
     x_agent_token: str = Header(None),
@@ -237,9 +239,10 @@ async def detect_pest(
     )
     _require_approved_model("pest_detector_int8.onnx")
     detector = get_pest_detector()
-    image_bytes = await file.read()
-    # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ
+    # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ. القراءة نفسها محدودة بالسقف+1
+    # كي لا يُحمَّل رفعٌ ضخم كاملاً في الذاكرة قبل رفضه.
     MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10MB كافٍ لصور المحاصيل
+    image_bytes = await file.read(MAX_IMAGE_BYTES + 1)
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(413, "حجم الصورة يتجاوز 10MB")
     if file.content_type and not file.content_type.startswith("image/"):
@@ -256,6 +259,8 @@ async def detect_pest(
             "نموذج كشف الآفات غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
             "حتّى توفير نموذج ONNX (لا تُرجَع كشوف مُختلَقة).",
         ) from e
+    except ImageTooLarge as e:
+        raise HTTPException(413, "أبعاد الصورة تتجاوز سقف البكسلات المسموح") from e
     except Exception as e:
         # صورة تالفة/غير صالحة → 400 واضح بدل 500
         raise HTTPException(400, "تعذّر معالجة الصورة — تأكّد أنّها صورة صالحة") from e
@@ -269,6 +274,11 @@ async def detect_pest(
         "timestamp": datetime.now(UTC).isoformat(),
         "model_version": detector.version,
     }
+    alert = artifact_gate.high_confidence_alert(detections)
+    if request.field_id is None:
+        # لا حقل ⇒ لا مزامنة: المنصّة لا تقبل نتيجةً بلا حقلٍ موجود، وإعادة محاولتها
+        # بلا نهاية كانت تُنمّي طابور المزامنة. الكشف نفسه يُرجَع للمستدعي.
+        return {**result, "alert_ar": alert, "sync_status": "not_synced_no_field"}
     sync = get_sync_service()
     synced = False
     try:
@@ -278,7 +288,6 @@ async def detect_pest(
             sync.queue_result("pest_detection", result)
     except (OSError, ValueError) as exc:
         raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
-    alert = artifact_gate.high_confidence_alert(detections)
     return {**result, "alert_ar": alert, "sync_status": "synced" if synced else "queued"}
 
 
@@ -304,11 +313,13 @@ async def estimate_yield(
     all_features = []
     MAX_IMAGE_BYTES = 10 * 1024 * 1024
     for file in files[: request.image_count]:
-        image_bytes = await file.read()
+        image_bytes = await file.read(MAX_IMAGE_BYTES + 1)
         if len(image_bytes) > MAX_IMAGE_BYTES:
             raise HTTPException(413, "حجم إحدى الصور يتجاوز 10MB")
         try:
             features = estimator.extract_features(image_bytes)
+        except ImageTooLarge as e:
+            raise HTTPException(413, "أبعاد إحدى الصور تتجاوز سقف البكسلات المسموح") from e
         except Exception as e:
             raise HTTPException(400, "تعذّر معالجة إحدى الصور — تأكّد أنّها صور صالحة") from e
         all_features.append(features)

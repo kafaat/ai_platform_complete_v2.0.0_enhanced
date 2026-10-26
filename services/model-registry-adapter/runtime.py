@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import random
 import time
@@ -167,6 +168,23 @@ class HttpTrafficController:
         return result
 
 
+# Every check requested from the inference verifier. Each one must come back present and exactly
+# ``True``; an absent, null or merely truthy result is not evidence that the check passed.
+REQUIRED_VERIFICATION_CHECKS: tuple[str, ...] = (
+    "artifact_digest",
+    "schema",
+    "feature_set",
+    "smoke_inference",
+)
+
+
+def verification_failures(checks: dict[str, Any]) -> list[str]:
+    """Names of checks that did not prove success: missing requested ones, then failed ones."""
+    missing = [f"missing:{name}" for name in REQUIRED_VERIFICATION_CHECKS if name not in checks]
+    failed = [str(name) for name, ok in checks.items() if ok is not True]
+    return missing + failed
+
+
 class HttpInferenceVerifier:
     def __init__(self) -> None:
         self.base = _env("MODEL_INFERENCE_VERIFY_URL", required_prod=True).rstrip("/")
@@ -186,14 +204,15 @@ class HttpInferenceVerifier:
                 "environment": receipt["target_environment"],
                 "artifact_uri": receipt["active_artifact_uri"],
                 "artifact_digest": receipt["active_artifact_digest"],
-                "checks": ["artifact_digest", "schema", "feature_set", "smoke_inference"],
+                "checks": list(REQUIRED_VERIFICATION_CHECKS),
             },
         )
         elapsed_ms = (time.monotonic() - started) * 1000
         if result.get("artifact_digest") != receipt["active_artifact_digest"]:
             raise RuntimeContractError("verification target digest mismatch")
-        checks = result.get("checks") or {}
-        failures = [name for name, ok in checks.items() if not bool(ok)]
+        raw_checks = result.get("checks")
+        checks = raw_checks if isinstance(raw_checks, dict) else {}
+        failures = verification_failures(checks)
         max_latency = float(_env("MODEL_VERIFY_MAX_LATENCY_MS", "1500"))
         state = "verified_healthy"
         if failures:
@@ -258,6 +277,22 @@ class HttpTrainingBackend:
         return result
 
 
+# A window whose threshold metrics are absent or non-finite proves nothing about drift. It takes
+# the same state as a window below the minimum sample count: ``warning``, the only non-``stable``
+# value the decision-service accepts that does not assert measured drift.
+INSUFFICIENT_EVIDENCE_DRIFT_STATE = "warning"
+
+
+def _finite_metric(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float | str):
+        return None
+    try:
+        out = float(value)
+    except ValueError:
+        return None
+    return out if math.isfinite(out) else None
+
+
 def classify_drift(metrics: dict[str, Any]) -> str:
     thresholds = {
         "feature_drift": float(_env("MODEL_DRIFT_FEATURE_WARNING", "0.15")),
@@ -266,7 +301,10 @@ def classify_drift(metrics: dict[str, Any]) -> str:
         "error_rate": float(_env("MODEL_DRIFT_ERROR_WARNING", "0.05")),
     }
     critical_multiplier = float(_env("MODEL_DRIFT_CRITICAL_MULTIPLIER", "2"))
-    values = {k: float(metrics.get(k, 0) or 0) for k in thresholds}
+    parsed = {k: _finite_metric(metrics.get(k)) for k in thresholds}
+    if any(v is None for v in parsed.values()):
+        return INSUFFICIENT_EVIDENCE_DRIFT_STATE
+    values = {k: float(v) for k, v in parsed.items() if v is not None}
     if any(values[k] >= thresholds[k] * critical_multiplier for k in thresholds):
         return "critical"
     if any(values[k] >= thresholds[k] for k in thresholds):

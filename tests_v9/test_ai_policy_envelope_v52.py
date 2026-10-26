@@ -201,10 +201,15 @@ def test_full_external_gated_on_explicit_flag():
     allowed = PE.gate_generation(_env("full_external", True), external=True)
     assert allowed["decision"] == PE.DECISION_ALLOWED
     assert allowed["reason"] == PE.REASON_FULL_EXTERNAL_ALLOWED
-    # Same mode but generation not granted ⇒ external_llm_allowed False ⇒ blocked.
+    # Same mode but generation not granted ⇒ the tenant opted out of AI ⇒ blocked outright.
     denied = PE.gate_generation(_env("full_external", False), external=True)
     assert denied["decision"] == PE.DECISION_BLOCKED
-    assert denied["reason"] == PE.REASON_EXTERNAL_LLM_NOT_ALLOWED
+    assert denied["reason"] == PE.REASON_AI_GENERATION_NOT_ALLOWED
+    # Generation granted but the external flag withheld ⇒ external call still blocked.
+    no_external = dict(_env("full_external", True), external_llm_allowed=False)
+    gate = PE.gate_generation(no_external, external=True)
+    assert gate["decision"] == PE.DECISION_BLOCKED
+    assert gate["reason"] == PE.REASON_EXTERNAL_LLM_NOT_ALLOWED
 
 
 # ── Consumer: tool allow-list gate (composes with capability governance) ─────

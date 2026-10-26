@@ -25,6 +25,7 @@ from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape as _escape_html
 
 import asyncpg
 import httpx
@@ -283,11 +284,18 @@ def push_decision(*, flag_on: bool, push_enabled: bool, has_token: bool, fcm_act
 
 # ── DB helpers ────────────────────────────────────────────────
 _pool: asyncpg.Pool | None = None
+# Serialises pool creation: without it every concurrent caller that saw _pool unset
+# awaited create_pool and all but the last pool were orphaned (never closed).
+_pool_lock = asyncio.Lock()
 
 
 async def get_pool() -> asyncpg.Pool | None:
     global _pool
-    if not _pool and DB_URL:
+    if _pool or not DB_URL:
+        return _pool
+    async with _pool_lock:
+        if _pool:
+            return _pool
         try:
             # statement_cache_size معامل عميل asyncpg (لا server_settings): وضعه في
             # server_settings يجعل asyncpg يرسل «SET statement_cache_size» للخادم فيفشل
@@ -420,12 +428,15 @@ EVENT_EMOJI = {
 
 
 def make_html(title: str, message: str, data: dict) -> str:
+    # Event fields are publisher-supplied text, never markup.
     rows = "".join(
-        f"<tr><td style='color:#666'>{k}</td><td><b>{v}</b></td></tr>" for k, v in data.items()
+        f"<tr><td style='color:#666'>{_escape_html(str(k))}</td>"
+        f"<td><b>{_escape_html(str(v))}</b></td></tr>"
+        for k, v in data.items()
     )
     return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial;direction:rtl;padding:20px">
-<h2 style="color:#16a34a">{title}</h2><p>{message}</p>
+<h2 style="color:#16a34a">{_escape_html(str(title))}</h2><p>{_escape_html(str(message))}</p>
 {"<table border='0'>" + rows + "</table>" if rows else ""}
 <hr><p style="color:#9ca3af;font-size:12px">إشعار آلي — SAHOOL v9.0</p>
 </body></html>"""
@@ -481,9 +492,14 @@ async def dispatch(data: dict):
         )
 
     if prefs.get("telegram_enabled") and prefs.get("telegram_chat_id"):
-        text = f"<b>{title}</b>\n{message}"
+        # send_telegram uses parse_mode=HTML: escape event text so it cannot inject markup.
+        safe_title = _escape_html(str(title), quote=False)
+        text = f"<b>{safe_title}</b>\n{_escape_html(str(message), quote=False)}"
         if extra:
-            text += "\n" + "\n".join(f"• {k}: {v}" for k, v in extra.items())
+            text += "\n" + "\n".join(
+                f"• {_escape_html(str(k), quote=False)}: {_escape_html(str(v), quote=False)}"
+                for k, v in extra.items()
+            )
         planned.append(
             (
                 "telegram",
@@ -656,7 +672,10 @@ async def lifespan(app: FastAPI):
     access_token_verification_key()
     _subscriptions.clear()
     _nc = NATS()
-    await _nc.connect(NATS_URL)
+    # nats-py defaults to 60 reconnect attempts and then closes the client for good,
+    # leaving a deaf agent; keep reconnecting (as the platform does) and let /healthz
+    # report a closed client so the container is restarted.
+    await _nc.connect(NATS_URL, max_reconnect_attempts=-1)
     _js = _nc.jetstream()
     task = asyncio.create_task(_subscription_loop())
     try:
@@ -840,6 +859,8 @@ async def test_notification(payload: dict, _: None = Depends(_require_agent_toke
 @app.get("/health")
 @app.get("/healthz")
 async def health():
+    if _nc is not None and _nc.is_closed:
+        raise HTTPException(503, {"status": "unhealthy", "reason": "nats_closed"})
     return {"status": "ok", "ws_connections": manager.total_connections}
 
 

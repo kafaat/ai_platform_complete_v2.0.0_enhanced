@@ -128,3 +128,92 @@ def test_provider_schema_exposes_vra_inputs():
     assert props["soil_sampling_plan"]["type"] == "object"
     assert props["lab_results"]["type"] == "array"
     assert props["product_type"]["enum"] == ["fertilizer", "lime", "seed", "irrigation"]
+
+
+# ── units: one canonical unit per product ───────────────────────────────────
+def test_vra_rejects_unit_that_differs_from_product_unit():
+    out = generate_vra_prescription(
+        {"zones": _zones(), "product_type": "lime", "unit": "kg_ha", "allow_estimated": True}
+    )
+    assert out["vra_prescription"] is None
+    assert out["prescription_zones"] == []
+    assert out["readiness_gate"]["status"] == "blocked"
+    assert out["readiness_gate"]["reason"] == "unit_mismatch_for_product"
+    assert out["readiness_gate"]["expected_unit"] == "t_ha"
+
+
+def test_vra_accepts_the_product_unit_and_its_spelling_variants():
+    for unit in (None, "t_ha", "t/ha", " T_HA "):
+        params = {"zones": _zones(), "product_type": "lime", "allow_estimated": True}
+        if unit is not None:
+            params["unit"] = unit
+        out = generate_vra_prescription(params)
+        assert out["vra_prescription"]["unit"] == "t_ha"
+        assert {z["unit"] for z in out["prescription_zones"]} == {"t_ha"}
+
+
+# ── no invented productivity class ──────────────────────────────────────────
+def test_vra_blocks_zone_without_productivity_class():
+    zones = _zones()
+    del zones[1]["productivity_class"]
+    out = generate_vra_prescription({"zones": zones, "allow_estimated": True})
+    assert out["vra_prescription"] is None
+    assert out["prescription_zones"] == []
+    assert out["readiness_gate"]["status"] == "blocked"
+    assert out["readiness_gate"]["reason"] == "unclassified_productivity_zones"
+    assert out["readiness_gate"]["unclassified_zone_ids"] == ["pz-2"]
+
+
+# ── lab evidence must be structured analyte data ────────────────────────────
+def test_vra_unstructured_lab_results_are_not_lab_evidence():
+    blocked = generate_vra_prescription({"zones": _zones(), "lab_results": ["n/a"]})
+    assert blocked["vra_prescription"] is None
+    assert blocked["readiness_gate"]["reason"] == "missing_lab_results_or_estimation_consent"
+
+    estimated = generate_vra_prescription({"zones": _zones(), "allow_estimated": True})
+    junk = generate_vra_prescription(
+        {"zones": _zones(), "lab_results": ["n/a", {"note": "pending"}], "allow_estimated": True}
+    )
+    assert junk["data_completeness"]["lab_results"] is False
+    assert {z["evidence_level"] for z in junk["prescription_zones"]} == {
+        "estimated_requires_agronomist_review"
+    }
+    assert junk["vra_prescription"]["confidence"] == estimated["vra_prescription"]["confidence"]
+    assert [z["rate"] for z in junk["prescription_zones"]] == [
+        z["rate"] for z in estimated["prescription_zones"]
+    ]
+
+
+def test_vra_zone_lab_record_supports_only_its_own_zone():
+    out = generate_vra_prescription(
+        {"zones": _zones(), "lab_results": [{"zone_id": "pz-1", "p": 12}], "allow_estimated": True}
+    )
+    levels = {z["zone_id"]: z["evidence_level"] for z in out["prescription_zones"]}
+    assert levels == {
+        "pz-1": "lab_supported",
+        "pz-2": "estimated_requires_agronomist_review",
+        "pz-3": "estimated_requires_agronomist_review",
+    }
+    # The low zone has no lab record of its own, so its estimated cap still applies.
+    estimated = generate_vra_prescription({"zones": _zones(), "allow_estimated": True})
+    assert out["prescription_zones"][2]["rate"] == estimated["prescription_zones"][2]["rate"]
+    assert out["readiness_gate"]["reason"] == "partial_lab_support"
+
+
+def test_vra_zone_area_uses_polygon_not_bbox():
+    from services.ai_agronomist.field_boundary_ai import area_ha_for_bbox
+
+    triangle = {
+        "type": "Polygon",
+        "coordinates": [[[44.18, 16.16], [44.19, 16.16], [44.18, 16.17], [44.18, 16.16]]],
+    }
+    bbox_area = area_ha_for_bbox([44.18, 16.16, 44.19, 16.17])
+    out = generate_vra_prescription(
+        {
+            "zones": [{"zone_id": "tri", "productivity_class": "high", "geometry": triangle}],
+            "allow_estimated": True,
+        }
+    )
+    area = out["prescription_zones"][0]["area_ha"]
+    assert abs(area - bbox_area / 2) < 0.5, (area, bbox_area)
+    assert out["vra_prescription"]["total_area_ha"] == area

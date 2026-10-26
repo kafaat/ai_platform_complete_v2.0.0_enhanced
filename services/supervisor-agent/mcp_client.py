@@ -167,15 +167,6 @@ class MCPClient:
         Call an MCP tool with idempotency + circuit breaker support.
         """
         headers, tenant_id = self._request_identity()
-        # قاطع الدائرة: عزل الخدمات الفاشلة (fail-fast بدل إغراقها)
-        from circuit_breaker import CircuitOpenError, mcp_breakers
-
-        breaker = mcp_breakers.get(server_name)
-        if not breaker.allow_request():
-            raise CircuitOpenError(f"خدمة {server_name} متعطّلة (القاطع مفتوح) — تخطٍّ سريع")
-
-        client = await self._get_client(server_name)
-
         bound_arguments = dict(arguments)
         if bound_arguments.get("tenant_id") not in (None, tenant_id):
             raise MCPAuthenticationError("MCP argument tenant does not match caller")
@@ -185,7 +176,15 @@ class MCPClient:
         if request_id:
             payload["request_id"] = request_id
 
+        # قاطع الدائرة: عزل الخدمات الفاشلة (fail-fast بدل إغراقها)
+        from circuit_breaker import CircuitOpenError, mcp_breakers
+
+        breaker = mcp_breakers.get(server_name)
+        if not breaker.allow_request():
+            raise CircuitOpenError(f"خدمة {server_name} متعطّلة (القاطع مفتوح) — تخطٍّ سريع")
+
         try:
+            client = await self._get_client(server_name)
             resp = await retry_request(
                 client.post,
                 "/v1/mcp/tools/call",
@@ -204,10 +203,20 @@ class MCPClient:
             if exc.response.status_code >= 500:
                 breaker.record_failure()
             raise
-        except Exception:
-            breaker.record_failure()  # سجّل الفشل (قد يفتح القاطع)
+        except (MCPToolError, MCPProtocolError):
+            # The server answered: a tool's isError reply (often the caller's own
+            # arguments) or a malformed envelope is not a transport failure, and one
+            # tenant's bad calls must not open the shared breaker for all tenants.
             raise
-        breaker.record_success()  # نجاح → يُعافي القاطع تدريجيّاً
+        except Exception:
+            breaker.record_failure()  # transport error/timeout: may open the breaker
+            raise
+        else:
+            breaker.record_success()  # نجاح → يُعافي القاطع تدريجيّاً
+        finally:
+            # Outcomes without a verdict (4xx, caller errors, cancellation) free the
+            # half-open probe slot instead of holding it.
+            breaker.release()
         return result
 
     async def call_tools_parallel(self, calls: list[dict[str, Any]]) -> list[dict[str, Any]]:

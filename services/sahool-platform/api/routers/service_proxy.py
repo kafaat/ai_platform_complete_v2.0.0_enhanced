@@ -14,7 +14,15 @@ from collections.abc import Iterable
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
-from api.main import Permission, UserSchema, get_current_user, require_permission
+from api.main import (
+    Permission,
+    UserSchema,
+    _assert_field_in_tenant,
+    _db_unavailable,
+    get_current_user,
+    require_permission,
+    tenant_connection,
+)
 
 router = APIRouter()
 
@@ -48,17 +56,33 @@ _SOIL_ROUTES = (
 )
 
 
-def _authorize_soil_path(path: str, method: str, user: UserSchema) -> str:
+# edge-inference: only the two inference calls the apps make, plus read-only
+# probes. v1/sync/trigger (flushes the shared EDGE_SYNC_TOKEN queue) and /metrics
+# stay internal; anything not listed is 404 before a service token is attached.
+_EDGE_ROUTES = (
+    (r"(?:healthz|readyz|capabilities)", "GET", Permission.SETTINGS_VIEW),
+    (r"v1/inference/(?:pest-detect|yield-estimate)", "POST", Permission.OBSERVATION_RECORD),
+)
+# Inference results are synced to the platform under the caller-supplied field_id.
+_EDGE_FIELD_BOUND_ROUTES = frozenset({"v1/inference/pest-detect", "v1/inference/yield-estimate"})
+
+# field-segmentation: the boundary suggestion used while creating a field.
+_SEGMENTATION_ROUTES = (
+    (r"(?:health|healthz|readyz)", "GET", Permission.SETTINGS_VIEW),
+    (r"v1/segment", "POST", Permission.FIELD_CREATE),
+)
+
+
+def _authorize_path(path: str, method: str, user: UserSchema, routes, label: str) -> str:
     path = path.removesuffix("/")
+    not_exposed = f"مسار {label} غير مكشوف عبر BFF"
     if any(segment in {".", ".."} for segment in path.split("/")):
-        raise HTTPException(404, "مسار التربة غير مكشوف عبر BFF")
+        raise HTTPException(404, not_exposed)
     matched = [
-        (verb, permission)
-        for pattern, verb, permission in _SOIL_ROUTES
-        if re.fullmatch(pattern, path)
+        (verb, permission) for pattern, verb, permission in routes if re.fullmatch(pattern, path)
     ]
     if not matched:
-        raise HTTPException(404, "مسار التربة غير مكشوف عبر BFF")
+        raise HTTPException(404, not_exposed)
     for verb, permission in matched:
         if method.upper() == verb:
             # Reuse the platform's denial audit and RBAC; user was authenticated
@@ -70,6 +94,30 @@ def _authorize_soil_path(path: str, method: str, user: UserSchema) -> str:
         "method not allowed",
         headers={"Allow": ", ".join(sorted({verb for verb, _ in matched}))},
     )
+
+
+def _authorize_soil_path(path: str, method: str, user: UserSchema) -> str:
+    return _authorize_path(path, method, user, _SOIL_ROUTES, "التربة")
+
+
+async def _assert_form_field_in_tenant(request: Request, user: UserSchema) -> None:
+    """The edge writes results under the form's field_id; refuse a field outside
+    the caller's tenant before the shared service token is attached."""
+    await request.body()  # cache the raw bytes so _proxy forwards exactly what was checked
+    form = await request.form()
+    try:
+        values = form.getlist("field_id")
+    finally:
+        await form.close()
+    if len(values) != 1 or not isinstance(values[0], str) or not values[0]:
+        raise HTTPException(422, "field_id مطلوب مرّةً واحدة")
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, values[0])
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — cannot prove ownership ⇒ fail closed
+        raise _db_unavailable("إثبات ملكيّة الحقل", e) from e
 
 
 def _service_token() -> str:
@@ -179,6 +227,9 @@ async def proxy_edge(
     user: UserSchema = Depends(get_current_user),
 ) -> Response:
     """واجهة الويب/Flutter → JWT → platform → X-Agent-Token → edge-inference."""
+    path = _authorize_path(path, request.method, user, _EDGE_ROUTES, "الحافة")
+    if path in _EDGE_FIELD_BOUND_ROUTES:
+        await _assert_form_field_in_tenant(request, user)
     base = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8100")
     return await _proxy(request=request, user=user, base_url=base, path=path, timeout=120.0)
 
@@ -214,6 +265,7 @@ async def proxy_segmentation(
     """واجهة تقطيع الحقل → JWT → platform → X-Agent-Token + X-Tenant-Id →
     field-segmentation. الهدف ثابت (لا SSRF). المسار اليدويّ حقيقيّ؛ auto/hybrid
     يردّ 503 صادق إن لم يُهيّأ نموذج (SAM2/GeoSAM)."""
+    path = _authorize_path(path, request.method, user, _SEGMENTATION_ROUTES, "التقطيع")
     base = os.getenv("SEGMENTATION_URL", "http://sahool-field-segmentation:8000")
     return await _proxy(request=request, user=user, base_url=base, path=path, timeout=120.0)
 

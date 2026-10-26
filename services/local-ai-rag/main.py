@@ -358,6 +358,49 @@ _GROUNDED_PROMPT = (
 )
 
 
+def _is_refusal_answer(answer: str) -> bool:
+    """Did the model return the grounded refusal (possibly quoted or without diacritics)?
+
+    A refusal means the retrieved context did not support an answer, so citing those
+    chunks as its sources would present them as evidence for nothing.
+    """
+
+    def _norm(text: str) -> str:
+        return "".join(
+            ch
+            for ch in (text or "")
+            if not ch.isspace()
+            and ch not in "«»\"'“”.,،:؛!"
+            and not ("\u064b" <= ch <= "\u0652")
+            and ch != "\u0640"
+        )
+
+    refusal = _norm(_NO_KNOWLEDGE_AR)
+    return bool(refusal) and refusal in _norm(answer)
+
+
+def _source_citation(doc: Document) -> dict:
+    """Cite a retrieved chunk by what it actually carries.
+
+    Uploaded files carry ``source_file``; curated ``__global__`` reference chunks carry
+    ``source_uri``/``publisher`` instead and were cited as "unknown", page 0.
+    """
+    meta = doc.metadata or {}
+    citation = {
+        "source": meta.get("source_file")
+        or meta.get("source_uri")
+        or meta.get("publisher")
+        or "unknown",
+        "page": meta.get("page"),
+        # "..." فقط عند الاقتطاع الفعليّ (لا نوحي باقتطاع لم يحدث).
+        "snippet": doc.page_content[:200] + ("..." if len(doc.page_content) > 200 else ""),
+    }
+    for key in ("source_uri", "publisher"):
+        if meta.get(key):
+            citation[key] = meta[key]
+    return citation
+
+
 def _retrieval_fingerprint(text: str) -> str:
     normalized = " ".join((text or "").split()).encode("utf-8")
     return hashlib.sha256(normalized).hexdigest()
@@ -465,15 +508,8 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر التوليد)") from e
 
     answer = getattr(resp, "content", None) or str(resp)
-    sources = [
-        {
-            "source": d.metadata.get("source_file", "unknown"),
-            "page": d.metadata.get("page", 0),
-            # "..." فقط عند الاقتطاع الفعليّ (لا نوحي باقتطاع لم يحدث).
-            "snippet": d.page_content[:200] + ("..." if len(d.page_content) > 200 else ""),
-        }
-        for d in docs
-    ]
+    # The refusal is not grounded in the retrieved chunks, so it cites none of them.
+    sources = [] if _is_refusal_answer(answer) else [_source_citation(d) for d in docs]
 
     return {
         "question": question,
@@ -670,42 +706,42 @@ async def ingest_endpoint(
     tenant_id = _validate_tenant_id(tenant_id)
     paths: list[Path] = []
     source_names: dict[str, str] = {}
-    for upload in files:
-        suffix = Path(upload.filename).suffix.lower()
-        if suffix not in (".pdf", ".txt", ".md", ".csv"):
-            raise HTTPException(400, f"Unsupported: {suffix}")
+    # Every temp file is removed whatever happens: a later unsupported or oversized
+    # file, a failed read, or a failed ingest used to leave the earlier ones on disk.
+    try:
+        for upload in files:
+            suffix = Path(upload.filename).suffix.lower()
+            if suffix not in (".pdf", ".txt", ".md", ".csv"):
+                raise HTTPException(400, f"Unsupported: {suffix}")
 
-        # قراءة متدفّقة مع عدّ البايتات والإيقاف عند تجاوز الحدّ — لا نُحمّل الملفّ
-        # كاملاً في الذاكرة (يمنع DoS عبر ملفّ ضخم).
-        limit = MAX_UPLOAD_MB * 1024 * 1024
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-        total = 0
-        try:
-            while True:
-                chunk = await upload.read(1024 * 1024)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > limit:
+            # قراءة متدفّقة مع عدّ البايتات والإيقاف عند تجاوز الحدّ — لا نُحمّل الملفّ
+            # كاملاً في الذاكرة (يمنع DoS عبر ملفّ ضخم).
+            limit = MAX_UPLOAD_MB * 1024 * 1024
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            tmp_path = Path(tmp.name)
+            paths.append(tmp_path)
+            total = 0
+            try:
+                while True:
+                    chunk = await upload.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > limit:
+                        raise HTTPException(
+                            413,
+                            f"الملفّ {upload.filename} يتجاوز الحدّ الأقصى ({MAX_UPLOAD_MB}MB)",
+                        )
+                    tmp.write(chunk)
+            finally:
+                if not tmp.closed:
                     tmp.close()
-                    Path(tmp.name).unlink(missing_ok=True)
-                    raise HTTPException(
-                        413,
-                        f"الملفّ {upload.filename} يتجاوز الحدّ الأقصى ({MAX_UPLOAD_MB}MB)",
-                    )
-                tmp.write(chunk)
-        finally:
-            if not tmp.closed:
-                tmp.close()
-        tmp_path = Path(tmp.name)
-        paths.append(tmp_path)
-        source_names[str(tmp_path)] = Path(upload.filename).name
+            source_names[str(tmp_path)] = Path(upload.filename).name
 
-    result = await ingest_documents(paths, tenant_id, source_names=source_names)
-
-    # cleanup
-    for p in paths:
-        p.unlink(missing_ok=True)
+        result = await ingest_documents(paths, tenant_id, source_names=source_names)
+    finally:
+        for p in paths:
+            p.unlink(missing_ok=True)
 
     return {"status": "ingested", **result}
 

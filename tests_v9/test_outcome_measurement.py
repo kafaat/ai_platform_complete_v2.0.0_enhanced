@@ -92,3 +92,36 @@ def test_empty_warns():
     out = measure_outcome({}, {})
     assert out["n_evaluated"] == 0
     assert any("قياسات ميدانيّة" in w for w in out["warnings_ar"])
+
+
+def test_one_metric_counts_at_most_one_success():
+    """مرصود صفر مع متنبَّأ أعلى يرفع «stress_better» و«stress_avoided» معاً؛ هذا
+    مقياس واحد ناجح لا نجاحان، وإلّا بلغت نسبة النجاح في سجلّ الأدلّة ٢٫٠."""
+    out = measure_outcome({"predicted_stress_days": 3}, {"observed_stress_days": 0})
+    assert {"stress_better", "stress_avoided"} <= set(out["success_flags"])
+    assert out["n_evaluated"] == 1
+    assert out["n_success"] == 1
+
+
+@pytest.mark.parametrize("pred", [0, 1, 3])
+@pytest.mark.parametrize("obs", [0, 1, 4])
+def test_success_never_exceeds_evaluated_metrics(pred, obs):
+    from api.evidence_registry import aggregate_evidence
+
+    out = measure_outcome(
+        {
+            "recommended_irrigation_mm": 100.0,
+            "predicted_stress_days": pred,
+            "expected_yield_t_ha": 4.0,
+            "season_budget_mm": 500.0,
+        },
+        {
+            "actual_irrigation_mm": 100.0,
+            "observed_stress_days": obs,
+            "actual_yield_t_ha": 4.5,
+            "actual_water_used_mm": 400.0,
+        },
+    )
+    assert out["n_success"] <= out["n_evaluated"]
+    rate = aggregate_evidence("r1", [out])["success_rate"]
+    assert rate is not None and 0.0 <= rate <= 1.0

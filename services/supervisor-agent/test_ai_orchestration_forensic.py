@@ -556,3 +556,249 @@ def test_optimize_degrades_instead_of_inventing_scenarios_without_crop_simulatio
         "domain": "optimization",
     }
     assert body["confidence"] == 0.0
+
+
+def test_mcp_caller_errors_do_not_open_the_shared_breaker(monkeypatch):
+    """A tool's isError reply (bad caller arguments) must not trip the breaker for all tenants."""
+    import circuit_breaker
+    import pytest
+    from mcp_client import MCPProtocolError, MCPToolError
+
+    registry = circuit_breaker.CircuitBreakerRegistry(
+        failure_threshold=5, recovery_timeout=30.0, success_threshold=2
+    )
+    monkeypatch.setattr(circuit_breaker, "mcp_breakers", registry)
+    replies = []
+
+    def handler(request):
+        reply = replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+    client = MCPClient({"market": "http://market.invalid"})
+
+    async def scenario():
+        client._clients["market"] = httpx.AsyncClient(
+            base_url="http://market.invalid", transport=httpx.MockTransport(handler)
+        )
+        breaker = registry.get("market")
+        with client.bind_credentials("verified", "tenant-a"):
+            for _ in range(6):
+                replies.append(
+                    httpx.Response(200, json={"isError": True, "content": [{"text": "bad"}]})
+                )
+                with pytest.raises(MCPToolError):
+                    await client.call_tool("market", "get_market_price", {"crop": "x"})
+            for _ in range(6):
+                replies.append(httpx.Response(200, content=b"not json"))
+                with pytest.raises(MCPProtocolError):
+                    await client.call_tool("market", "get_market_price", {"crop": "x"})
+            assert breaker.state == circuit_breaker.CircuitState.CLOSED
+            assert breaker.status()["failures"] == 0
+            # Transport failures still open it.
+            for _ in range(5):
+                replies.append(httpx.ConnectError("down"))
+                with pytest.raises(httpx.ConnectError):
+                    await client.call_tool("market", "get_market_price", {"crop": "x"})
+            assert breaker.state == circuit_breaker.CircuitState.OPEN
+            # A caller error during the half-open probe frees the probe slot.
+            breaker._opened_at -= 31.0
+            replies.append(httpx.Response(200, json={"isError": True, "content": [{"text": "b"}]}))
+            with pytest.raises(MCPToolError):
+                await client.call_tool("market", "get_market_price", {"crop": "x"})
+            replies.append(httpx.Response(200, json={"content": [{"text": "{}"}]}))
+            await client.call_tool("market", "get_market_price", {"crop": "x"})
+        await client.close()
+
+    _run(scenario())
+
+
+def test_market_context_values_must_be_strings():
+    from skills.market_skill import MarketSkill
+
+    class NoCall:
+        async def call_tool(self, *args, **kwargs):
+            raise AssertionError("non-string context reached the market tool")
+
+    skill = MarketSkill(NoCall())
+    for context, reason in (
+        ({"crop": {"$ne": ""}, "market": "sanaa"}, "crop_required"),
+        ({"crop": ["wheat"], "market": "sanaa"}, "crop_required"),
+        ({"crop": 7, "market": "sanaa"}, "crop_required"),
+        ({"crop": "   ", "market": "sanaa"}, "crop_required"),
+        ({"crop": "wheat", "market": {"$gt": ""}}, "market_required"),
+        ({"crop": "wheat", "market": 3}, "market_required"),
+    ):
+        result = _run(skill.execute("price_current", context=context))
+        assert result["type"] == "unavailable"
+        assert result["structured"]["reason"] == reason
+
+
+def _optimize_http(monkeypatch, skills, body=None, governance=None):
+    from fastapi.testclient import TestClient
+
+    calls = []
+
+    class Recorder:
+        def __init__(self, name, result):
+            self.name, self.result = name, result
+
+        async def execute(self, **kwargs):
+            calls.append((self.name, kwargs))
+            return self.result
+
+    for name, result in skills.items():
+        monkeypatch.setitem(main.skill_libraries, name, Recorder(name, result))
+
+    async def field_state(client, field_id, tenant_id):
+        calls.append(("field_state", (field_id, tenant_id)))
+        return {"validity": "valid", "inputs": {"weather_age_hours": 2}}
+
+    async def validate(*args, **kwargs):
+        calls.append(("governance", args))
+        return governance or {"allowed": False}
+
+    monkeypatch.setattr(main, "_fetch_field_state", field_state)
+    monkeypatch.setattr(main, "_validate_via_guardrails", validate)
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    try:
+        response = TestClient(main.app).post(
+            "/v1/agent/optimize",
+            json=body
+            or {
+                "query": "حسّن الحقل",
+                "field_id": "field-1",
+                "user_id": "forged",
+                "tenant_id": "forged",
+                "context": {"crop": "wheat", "_platform_bearer": "forged"},
+            },
+        )
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    return response.json(), calls
+
+
+def test_optimize_binds_field_state_context_and_bearer_like_query(monkeypatch):
+    unavailable = {"type": "unavailable", "structured": {"reason": "x"}}
+    _, calls = _optimize_http(
+        monkeypatch,
+        {"remote_sensing": unavailable, "crop_model": unavailable, "market": unavailable},
+    )
+    assert ("field_state", ("field-1", "trusted-tenant")) in calls
+    skill_calls = {name: kwargs for name, kwargs in calls if name in main.skill_libraries}
+    assert set(skill_calls) == {"remote_sensing", "crop_model", "market"}
+    for kwargs in skill_calls.values():
+        context = kwargs["context"]
+        assert context["crop"] == "wheat"
+        assert context["field_state"]["validity"] == "valid"
+        assert context["_platform_bearer"] == "verified-caller"
+        assert kwargs["tenant_id"] == "trusted-tenant"
+        assert kwargs["user_id"] == "42"
+
+
+def test_optimize_without_observed_price_degrades_instead_of_pricing_a_constant(monkeypatch):
+    simulation = {"type": "crop_simulation", "yield_kg_ha": 3000.0, "total_water_mm": 350.0}
+    for market in (
+        {"type": "unavailable", "structured": {"reason": "market_observations_unavailable"}},
+        {"type": "price_history", "structured": {"current_price_usd": 17.5}},
+        {"type": "price_history", "price_yer_kg": True},
+        {"type": "price_history", "price_yer_kg": float("nan")},
+        {"type": "price_history", "price_yer_kg": 0},
+    ):
+        body, calls = _optimize_http(
+            monkeypatch,
+            {"remote_sensing": {"type": "ok"}, "crop_model": simulation, "market": market},
+        )
+        assert body["structured_data"] == {
+            "status": "degraded",
+            "reason": "market_price_unavailable",
+            "domain": "optimization",
+        }
+        assert "governance" not in [name for name, _ in calls]
+    assert main._generate_scenarios({}, simulation, {}) == []
+    priced = main._generate_scenarios({}, simulation, {"price_yer_kg": 250.0})
+    assert len(priced) == 25
+    neutral = next(s for s in priced if s["irrigation_mult"] == 1.0 and s["fertilizer_mult"] == 1.0)
+    assert neutral["profit_yer_ha"] == round(3000.0 * 250.0 / 1000 - (350.0 * 0.5 + 300.0), 2)
+
+
+def test_general_advice_templates_carry_no_numeric_doses():
+    import re
+
+    skill = AdvisorySkill(SimpleNamespace(token=None))
+    for query in ("زراعة قمح", "ري ذكي", "تسميد", "حصاد"):
+        out = _run(skill.execute(intent="general_advice", query=query))
+        assert out["source"] == "template"
+        assert not re.search(r"\d\s*(kg|كغ|كجم|g/|N/ha)", out["response"], re.IGNORECASE), query
+
+
+def test_rag_general_advice_is_uncalibrated_ai_output_with_string_sources(monkeypatch):
+    import skills.advisory_skill as advisory
+    from fastapi.testclient import TestClient
+
+    async def classify(query):
+        return "advisory", "general_advice", 0.8
+
+    async def rag(question, token):
+        return {
+            "answer": "إجابة من النموذج",
+            "model": "local-llm",
+            "sources": [
+                {"source": "kb.pdf", "page": 3, "snippet": "..."},
+                {"title": "FAO note"},
+                {"source_uri": "s3://kb/doc.md"},
+                "plain.txt",
+                {"page": 1},
+                None,
+            ],
+        }
+
+    monkeypatch.setattr(advisory, "LOCAL_AI_RAG_URL", "http://local-ai-rag.invalid")
+    monkeypatch.setattr(advisory, "_query_local_rag", rag)
+    out = _run(AdvisorySkill(SimpleNamespace(token=None)).execute("general_advice", query="سؤال"))
+    assert out["source"] == "llm-rag"
+    assert out["calibrated"] is False
+    assert out["ai_generated"] is True
+    assert out["sources"] == ["kb.pdf", "FAO note", "s3://kb/doc.md", "plain.txt"]
+
+    monkeypatch.setattr(main.router, "classify_intent", classify)
+    monkeypatch.setitem(main.skill_libraries, "advisory", AdvisorySkill(main.mcp_client))
+    main.app.dependency_overrides[main._get_current_user] = lambda: {
+        "sub": "42",
+        "tenant_id": "trusted-tenant",
+        "_mcp_bearer": "verified-caller",
+    }
+    try:
+        response = TestClient(main.app).post(
+            "/v1/agent/query", json={"query": "سؤال عام", "user_id": "x", "tenant_id": "x"}
+        )
+    finally:
+        main.app.dependency_overrides.clear()
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["sources"] == ["kb.pdf", "FAO note", "s3://kb/doc.md", "plain.txt"]
+    assert body["ai_generated"] is True
+    assert body["response_ar"] == "إجابة من النموذج"
+
+
+def test_field_state_fetch_cannot_traverse_platform_paths(monkeypatch):
+    seen = []
+
+    def handler(request):
+        seen.append(request.url.raw_path)
+        return httpx.Response(404)
+
+    async def fetch():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            await main._fetch_field_state(client, "../../admin/users?x=1#", "tenant-a")
+
+    _run(fetch())
+    assert len(seen) == 1
+    path = seen[0].split(b"?")[0]
+    assert path == b"/internal/fields/..%2F..%2Fadmin%2Fusers%3Fx%3D1%23/state"
