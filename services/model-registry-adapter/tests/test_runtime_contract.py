@@ -80,7 +80,12 @@ def _capturing(method, url, *, token="", body=None, headers=None, timeout=15.0):
         return {"alias": "a", "artifact_uri": "s3://x", "artifact_digest": "d" * 64, "version": "1"}
     resp = {
         "verification_state": "verified_healthy",
-        "checks": {},
+        "checks": {
+            "artifact_digest": True,
+            "schema": True,
+            "feature_set": True,
+            "smoke_inference": True,
+        },
         "latency_ms": 1.0,
         "failure_reason": None,
         "artifact_digest": "d" * 64,
@@ -89,6 +94,9 @@ def _capturing(method, url, *, token="", body=None, headers=None, timeout=15.0):
         "version": "1",
         "sample_count": 500,
         "feature_drift": 0.0,
+        "prediction_drift": 0.0,
+        "calibration_error": 0.0,
+        "error_rate": 0.0,
         "job_id": "job-1",
         "state": "submitted",
         "backend_version": "b1",
@@ -161,6 +169,61 @@ def test_runtime_verification_and_rollout_and_retraining_satisfy_contract():
     assert len(calls) == 4
     for c in calls:
         _replay(c["method"], c["url"], c["headers"], c["body"])
+
+
+_RECEIPT = {
+    "activation_receipt_id": "ar1",
+    "model_id": "m1",
+    "feature_set_id": "f1",
+    "target_environment": "staging",
+    "active_artifact_uri": "s3://a",
+    "active_artifact_digest": "d" * 64,
+}
+
+
+def test_verification_reports_healthy_only_with_every_check_passing():
+    rt.LifecycleRuntime().verify_activation("00000000-0000-0000-0000-000000001111", _RECEIPT)
+    body = _emitted()[-1]["body"]
+    assert body["verification_state"] == "verified_healthy"
+    assert body["failure_reason"] is None
+
+
+def test_verifier_returning_no_checks_is_recorded_as_failed(monkeypatch):
+    # An empty checks dict used to post verified_healthy; now it is a named failure the
+    # decision-service accepts (replayed to its 503 mirror gate, not rejected at 422).
+    def _empty_checks(method, url, **kw):
+        resp = _capturing(method, url, **kw)
+        if "inference.local" in url:
+            resp["checks"] = {}
+        return resp
+
+    monkeypatch.setattr(rt, "_json_request", _empty_checks)
+    rt.LifecycleRuntime().verify_activation("00000000-0000-0000-0000-000000001111", _RECEIPT)
+    call = _emitted()[-1]
+    assert call["body"]["verification_state"] == "verification_failed"
+    assert "missing:smoke_inference" in call["body"]["failure_reason"]
+    _replay(call["method"], call["url"], call["headers"], call["body"])
+
+
+def test_monitoring_window_without_drift_metrics_is_not_stable(monkeypatch):
+    def _no_metrics(method, url, **kw):
+        resp = _capturing(method, url, **kw)
+        if "metrics.local" in url:
+            for k in ("feature_drift", "prediction_drift", "calibration_error", "error_rate"):
+                resp.pop(k, None)
+        return resp
+
+    monkeypatch.setattr(rt, "_json_request", _no_metrics)
+    rt.LifecycleRuntime().record_monitoring(
+        "00000000-0000-0000-0000-000000001111",
+        {"model_id": "m1", "feature_set_id": "f1", "target_environment": "staging"},
+        "2026-01-01T00:00:00Z",
+        "2026-01-02T00:00:00Z",
+    )
+    call = _emitted()[-1]
+    assert call["body"]["sample_count"] == 500
+    assert call["body"]["drift_state"] != "stable"
+    _replay(call["method"], call["url"], call["headers"], call["body"])
 
 
 def test_active_state_uses_target_environment_param():
