@@ -8411,3 +8411,9 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `services/supervisor-agent/skills/advisory_skill.py` — «ري عند 30% رطوبة»، «توفير 40%»، «3–4 ريّات».
 - **شرط الإغلاق:** إزالتها أو توجيهها عبر الحوكمة.
 - **التقرير:** [`reports/ai_review_20261026.md`](../reports/ai_review_20261026.md).
+
+## RAILWAY-STRAY-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 — مشروع Railway غير مُهيَّأ يُسقِط حالة كلّ التزام على main
+
+- **الحالة:** open (2026-10-26) — يحتاج إجراء المالك في Railway (التجميد: Railway قراءةٌ فقط للوكيل).
+- **المصدر:** مشروع Railway `resourceful-commitment` (أُنشئ 2026-10-22) بخدمةٍ واحدة `ai_platform_complete_v2.0.0_enhanced` مربوطة بفرع `main` بلا Dockerfile ولا مجلّد جذر ولا أنماط مراقبة ولا متغيّرات (`get-service-config`، قراءةً). يحاول Railpack بناء جذر المستودع فيفشل (`railpack process exited with an error`، سجلّ البناء للنشر `08e0751a`)، فتُعلَّم كلّ التزامات main بحالة `failure` في GitHub رغم نجاح الحالات الأربع عشرة الأخرى وكلّ تشغيلات Actions (مقيس على آخر 25 التزاماً حتى `84f29f2fa`). لا نطاق ولا خدمة تعتمد عليه.
+- **شرط الإغلاق:** حذف المشروع، أو فصل مصدره، أو تهيئته ببناءٍ حقيقيّ لخدمة واحدة — ثمّ التزامٌ على main بحالةٍ مجمَّعة `success`.
