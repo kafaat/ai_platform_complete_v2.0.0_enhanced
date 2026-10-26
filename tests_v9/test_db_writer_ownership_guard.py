@@ -446,3 +446,218 @@ def test_the_directory_identity_map_is_backed_by_compose():
         assert dockerfile == f"services/{directory}/Dockerfile", (
             f"`sahool-{identity}` لا يُبنى من `services/{directory}/` بل من {dockerfile!r}"
         )
+
+
+# ── جهةُ القراءة: `readers` المُعلَنون مقابل القراءة المقيسة ──────────────────────
+#
+# العقدُ يعلن القرّاءَ أيضاً، وكان الحارسُ يقيس الكتابةَ وحدها. وشقُّ M-03 الأوّل قراءةٌ:
+# `actuator_command_outbox` يُكتَب ولا قارئ له، و`sahool-platform` مُعلَنٌ قارئَه وهو كاتبُه.
+
+_NO_READERS = _contract(ledger="owner: other-service\nwriters: [other-service]\nreaders: []")
+
+
+def _reads(tmp_path, monkeypatch, *, contract: str, source: str) -> dict:
+    _sandbox(tmp_path, monkeypatch, contract=contract, source=source)
+    return MOD.read_survey()
+
+
+def test_a_read_the_contract_does_not_permit_is_caught(tmp_path, monkeypatch):
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=_NO_READERS,
+        source='SQL = "SELECT a FROM ledger WHERE b = $1"\n',
+    )
+    assert survey["undeclared"] == {"ledger::probe-service": ["services/probe-service/store.py"]}
+
+
+@pytest.mark.parametrize(
+    "declaration",
+    [
+        "owner: probe-service\nwriters: [probe-service]\nreaders: []",
+        "owner: other-service\nwriters: [other-service, probe-service]\nreaders: []",
+        "owner: other-service\nwriters: [other-service]\nreaders: [probe-service]",
+        'owner: other-service\nwriters: [other-service]\nreaders: ["*"]',
+        "owner: other-service\nwriters: [other-service]\nmirror: probe-service\nreaders: []",
+    ],
+    ids=["owner", "writer", "reader", "wildcard", "mirror"],
+)
+def test_every_declared_permission_to_read_is_honoured(tmp_path, monkeypatch, declaration):
+    """قراءةٌ أذن بها العقدُ بأيّ وجهٍ ليست مخالفة — وإلّا أنذر الحارسُ كذباً على كلّ قارئٍ مُعلَن."""
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=_contract(ledger=declaration),
+        source='SQL = "SELECT a FROM ledger WHERE b = $1"\n',
+    )
+    assert survey["undeclared"] == {}
+
+
+def test_a_declared_reader_that_only_writes_is_the_m03_shape(tmp_path, monkeypatch):
+    """الشكلُ الذي كشفه فحصٌ يدويّ: قارئٌ مُعلَنٌ يكتب ولا يقرأ، والجدولُ بلا قارئٍ أصلاً."""
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='SQL = "INSERT INTO ledger (a) VALUES ($1)"\n',
+    )
+    assert "ledger::probe-service" in survey["declared_reader_unobserved"]
+    assert survey["written_never_read"] == {
+        "ledger": {"measured_writers": ["probe-service"], "table_name_value_sites": []}
+    }
+
+
+def test_a_reader_declared_by_directory_name_is_measured_under_its_compose_identity(
+    tmp_path, monkeypatch
+):
+    """العقدُ يسمّي قارئاً `odoo-bridge` (اسمَ المجلّد) والماسحُ يقيسه `erp-bridge` — هويّةٌ واحدة."""
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_contract(
+            ledger="owner: other-service\nwriters: [other-service]\nreaders: [odoo-bridge]"
+        ),
+        source="x = 1\n",
+    )
+    target = tmp_path / "services" / "odoo-bridge" / "reader.py"
+    target.parent.mkdir(parents=True)
+    target.write_text('SQL = "SELECT a FROM ledger WHERE b = $1"\n', encoding="utf-8")
+    survey = MOD.read_survey()
+    assert survey["undeclared"] == {}
+    assert survey["declared_reader_unobserved"] == []
+
+
+#: صياغاتُ القراءة التي يقبلها PostgreSQL — كلُّها يجب أن تبقى مرصودة.
+_READ_FORMS = {
+    "select": "SELECT a FROM ledger WHERE b = $1",
+    "join": "SELECT o.a FROM other o JOIN ledger l ON l.id = o.id",
+    "left_join_only_alias": "SELECT 1 FROM other o\n LEFT JOIN ONLY ledger AS l ON true",
+    "schema_qualified": "SELECT a FROM public.ledger",
+    "quoted": 'SELECT a FROM "ledger"',
+    "update_from": "UPDATE other SET a = l.a FROM ledger l WHERE l.id = other.id",
+    "insert_select": "INSERT INTO other (a) SELECT a FROM ledger",
+    "locking_read": "SELECT id FROM ledger ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED",
+}
+
+
+@pytest.mark.parametrize("statement", _READ_FORMS.values(), ids=_READ_FORMS.keys())
+def test_every_real_read_form_is_captured(tmp_path, monkeypatch, statement):
+    """الشاهدُ الإيجابيّ: قراءةٌ يقبلها PostgreSQL ولا يراها الماسح تُقرأ «لا قارئ» كاذبة."""
+    survey = _reads(
+        # `'''` لا `"""`: صياغةُ `"ledger"` تُغلِق `"""` قبل أوانها فيسقط الملفُّ خطأَ صياغة.
+        tmp_path,
+        monkeypatch,
+        contract=_NO_READERS,
+        source=f"SQL = '''{statement}'''\n",
+    )
+    assert "ledger::probe-service" in survey["undeclared"], statement
+
+
+def test_a_select_split_by_an_fstring_is_still_one_read(tmp_path, monkeypatch):
+    """`f"SELECT {cols} FROM ledger"` تنقسم في شجرة البناء: `SELECT ` و` FROM ledger`.
+
+    قراءةُ الأجزاء وحدَها تفصل `FROM ledger` عن رأس عبارته فتُسقِطها — قِيس على الشجرة:
+    `custody_chain_events` يُقرأ هكذا في `harvest_traceability.py`.
+    """
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=_NO_READERS,
+        source='COLS = "a, b"\nSQL = f"SELECT {COLS} FROM ledger WHERE b = $1"\n',
+    )
+    assert "ledger::probe-service" in survey["undeclared"]
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'SQL = "DELETE FROM ledger WHERE a = 1 RETURNING id"\n',
+        'SQL = "SELECT a IS DISTINCT FROM ledger FROM other"\n',
+        '"""Rows from ledger are reconciled nightly by the owner service."""\n',
+        'SQL = "SELECT a FROM ledger_history(1)"\n',
+    ],
+    ids=["delete_is_a_write", "distinct_from", "prose", "function_call"],
+)
+def test_what_only_looks_like_a_read_is_not_one(tmp_path, monkeypatch, source):
+    contract = _contract(
+        ledger="owner: other-service\nwriters: [other-service]\nreaders: []",
+        ledger_history="owner: other-service\nwriters: [other-service]\nreaders: []",
+    )
+    survey = _reads(tmp_path, monkeypatch, contract=contract, source=source)
+    assert survey["undeclared"] == {}, source
+
+
+def test_a_runtime_table_name_is_counted_blind_not_read(tmp_path, monkeypatch):
+    """حدُّ العمى مقيسٌ لا مذكور: جدولٌ يُركَّب وقتَ التشغيل لا يُدَّعى مقروءاً ولا يُبتلَع.
+
+    واسمُ الجدول قيمةً في شيفرة الخدمة يُرفَق بصفّ «يُكتَب ولا يُقرأ» — فهو «لم يُرصَد»
+    لا «لا قارئ» (هكذا يُطالَب `iot_command_dispatch` على الشجرة). ورسالةُ السجلّ بحروفٍ
+    صغيرة ليست SQL فلا تُعدّ.
+    """
+    survey = _reads(
+        tmp_path,
+        monkeypatch,
+        contract=_NO_READERS,
+        source=(
+            'W = "INSERT INTO ledger (a) VALUES ($1)"\n'
+            'TABLE = "ledger"\n'
+            "def q(t):\n"
+            '    return f"SELECT a FROM {t} WHERE b = $1"\n'
+            'LOG = f"failed to read from {TABLE}"\n'
+        ),
+    )
+    assert survey["dynamic_table_sql_sites"] == {"services/probe-service/store.py": 1}
+    assert survey["undeclared"] == {}
+    assert survey["written_never_read"]["ledger"]["table_name_value_sites"] == [
+        "services/probe-service/store.py"
+    ]
+
+
+def test_the_read_ratchet_fails_in_both_directions(tmp_path, monkeypatch):
+    """كلُّ مجموعةٍ تُحمِّر بمدخلٍ جديد **وبمدخلٍ بائت** — وحدُّ العمى بأيّ تغيّر."""
+    root = _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='SQL = "INSERT INTO ledger (a) VALUES ($1)"\n',
+    )
+    base = root / "baseline.json"
+    empty = {
+        "undeclared": {},
+        "declared_reader_unobserved": [],
+        "written_never_read": {},
+        "dynamic_table_sql_sites": {},
+    }
+    base.write_text(json.dumps({"violations": {}, "reads": empty}), encoding="utf-8")
+    grew = MOD.read_findings()
+    assert any(f.endswith(": ledger::probe-service") for f in grew), grew
+    assert any(f.endswith(": ledger") for f in grew), grew
+
+    ghosts = {
+        "undeclared": {"ghost::gone": ["x"]},
+        "declared_reader_unobserved": ["ledger::probe-service", "ghost::gone"],
+        "written_never_read": {"ledger": {}, "ghost": {}},
+        "dynamic_table_sql_sites": {"gone.py": 1},
+    }
+    base.write_text(json.dumps({"violations": {}, "reads": ghosts}), encoding="utf-8")
+    shrank = MOD.read_findings()
+    assert sum(f.endswith(("ghost::gone", ": ghost")) for f in shrank) == 3, shrank
+    assert any("حدُّ العمى" in f for f in shrank), shrank
+
+    base.write_text(json.dumps({"violations": {}}), encoding="utf-8")
+    assert MOD.read_findings() == ["قياسُ القراءة غائبٌ عن الأساس (`reads`) — أعِد --generate"]
+
+
+def test_the_live_m03_zero_reader_defect_is_measured_and_the_blind_spot_named():
+    """على الشجرة الحيّة: `actuator_command_outbox` بلا قارئٍ ولا قرينةِ قراءة، و`sahool-platform`
+    قارئُه المُعلَن غيرُ مرصود — بينما `iot_command_dispatch` يُقرأ عبر مُساعدٍ يأخذ اسمَه قيمةً،
+    فيحمل صفُّه تلك القرينة بدل أن يُدَّعى بلا قارئ.
+    """
+    reads = json.loads(MOD.BASELINE.read_text(encoding="utf-8"))["reads"]
+    assert "actuator_command_outbox::sahool-platform" in reads["declared_reader_unobserved"]
+    outbox = reads["written_never_read"]["actuator_command_outbox"]
+    assert outbox == {"measured_writers": ["sahool-platform"], "table_name_value_sites": []}
+    workers = "services/sahool-platform/api/phase_runtime_workers.py"
+    dispatch = reads["written_never_read"]["iot_command_dispatch"]
+    assert workers in dispatch["table_name_value_sites"]
+    assert workers in reads["dynamic_table_sql_sites"]

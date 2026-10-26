@@ -536,8 +536,16 @@ services:
     command: server /data --console-address ":9001"
     volumes:
     - minio-data:/data
+    # MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01 (owner decision 2026-10-25): isolation
+    # reduces exposure, it does not patch MinIO — that gap stays open. MinIO is NOT on
+    # sahool-internal: only the S3 clients that join sahool-object-storage (internal: true) can
+    # resolve or reach it. Docker publishes no port for a container whose only networks are
+    # internal (measured on Engine 29.8.2), so the loopback ports above need one non-internal
+    # network: sahool-object-storage-loopback, joined by sahool-minio alone. Every membership and
+    # the 127.0.0.1 binding are enforced by scripts/ci/minio_s3_contract_gate.py.
     networks:
-    - sahool-internal
+    - sahool-object-storage
+    - sahool-object-storage-loopback
     healthcheck:
       # الصورة (ubi9-micro) بلا curl ولا wget — مقيسٌ من طبقاتها؛ `mc ready local` هو فحصُ
       # MinIO الموثَّق ويعمل بالثنائيّ المُضمَّن في الصورة نفسها.
@@ -576,8 +584,9 @@ services:
     depends_on:
       sahool-minio:
         condition: service_healthy
+    # Talks to MinIO and nothing else (scripts/minio/provision.sh), so the storage network only.
     networks:
-    - sahool-internal
+    - sahool-object-storage
   sahool-qdrant:
     image: qdrant/qdrant:v1.17.1
     mem_limit: 2g
@@ -1374,6 +1383,7 @@ services:
     - ./postgres/tls/ca:/etc/sahool/postgres-ca:ro
     networks:
     - sahool-internal
+    - sahool-object-storage
     healthcheck:
       test:
       - CMD
@@ -1544,6 +1554,7 @@ services:
         condition: service_healthy
     networks:
     - sahool-internal
+    - sahool-object-storage
     healthcheck:
       test:
       - CMD
@@ -1670,6 +1681,7 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+    - sahool-object-storage
     healthcheck:
       # CT-06 §2.2: نبضة قدرة-واعية. تشغيلة backfill واحدة قد تطول (مسح STAC شهريّ + معالجة
       # مشاهد)، والنبضة تُحدَّث بين دورات run_once فقط؛ لذا max-age يتجاوز مهلة الإيجار
@@ -1722,6 +1734,7 @@ services:
     - ./shared/storage/s3_endpoint_security.py:/opt/sahool/storage/s3_endpoint_security.py:ro
     networks:
     - sahool-internal
+    - sahool-object-storage
     healthcheck:
       test:
       - CMD
@@ -3327,6 +3340,16 @@ networks:
   sahool-public:
     driver: bridge
   sahool-internal:
+    driver: bridge
+    internal: false
+  # Object storage (MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01): sahool-minio and the
+  # services that actually call S3 — no route out, and invisible from sahool-internal.
+  sahool-object-storage:
+    driver: bridge
+    internal: true
+  # Only so Docker can publish sahool-minio's 127.0.0.1 ports (no port is published for a container
+  # on internal networks alone). sahool-minio is its only member; no other service may join it.
+  sahool-object-storage-loopback:
     driver: bridge
     internal: false
 

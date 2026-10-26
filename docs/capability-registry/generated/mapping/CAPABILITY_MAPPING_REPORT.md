@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **51**
-- Files scanned: **6348**
-- Ambiguous artifacts queued: **471**
-- Unmapped artifacts queued: **2421**
+- Files scanned: **6382**
+- Ambiguous artifacts queued: **474**
+- Unmapped artifacts queued: **2434**
 
 ## Capability coverage
 
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 28 | 100 | 10 | 51 | 12 | 0 | 39 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 18 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 100 | 0 | 0 | 19 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
@@ -59,7 +59,7 @@
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-002 | operations | 3 | 7 | 6 | 3 | 1 | 0 | 6 | 6 |
 | OPS-003 | operations | 10 | 7 | 7 | 45 | 22 | 1 | 20 | 7 |
-| OPS-004 | operations | 3 | 12 | 14 | 8 | 0 | 12 | 21 | 6 |
+| OPS-004 | operations | 3 | 12 | 14 | 9 | 0 | 14 | 22 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
 | OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 0 | 2 | 3 |
@@ -77,9 +77,9 @@
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
-| SAT-009 | satellite | 14 | 70 | 0 | 17 | 1 | 0 | 23 | 5 |
-| SEC-001 | security | 14 | 31 | 100 | 57 | 0 | 0 | 75 | 5 |
-| SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
+| SAT-009 | satellite | 14 | 70 | 0 | 18 | 1 | 0 | 24 | 5 |
+| SEC-001 | security | 14 | 31 | 100 | 65 | 0 | 0 | 76 | 5 |
+| SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 8 | 24 | 23 | 5 | 7 | 4 | 19 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
@@ -87,12 +87,12 @@
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 4 | 2 | 0 | 0 | 7 | 3 |
 | SOIL-001 | soil | 13 | 97 | 14 | 45 | 1 | 0 | 21 | 6 |
-| SOIL-002 | soil | 13 | 35 | 11 | 9 | 5 | 0 | 12 | 6 |
+| SOIL-002 | soil | 13 | 35 | 11 | 9 | 5 | 0 | 13 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 6 | 0 | 0 | 20 | 0 | 0 | 3 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
-| WX-002 | weather | 20 | 63 | 12 | 65 | 9 | 0 | 31 | 6 |
+| WX-002 | weather | 21 | 63 | 12 | 65 | 9 | 0 | 31 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 4 | 0 | 0 | 5 | 5 |
 | WX-004 | weather | 61 | 48 | 0 | 94 | 18 | 0 | 66 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |

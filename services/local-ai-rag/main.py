@@ -64,6 +64,8 @@ EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or None
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sahool_agri_kb")
+# REPORT3-RAG-06-01: يُقرأ ليُرفَض لا ليُطبَّق — هذا القارئُ لا ينفّذ profiles الترميز (init_vectorstore).
+RAG_REINDEX_PROFILE_MANIFEST = os.getenv("RAG_REINDEX_PROFILE_MANIFEST")
 # ARCH-S3 Expand: rag-retrieval is the intended retrieval authority.  Direct Qdrant
 # remains primary only during measured shadow parity; SHADOW is OFF by default and
 # never changes the response path.  Cutover/revoke is blocked by the S3 guard until
@@ -185,6 +187,9 @@ def init_vectorstore() -> QdrantVectorStore:
     if _vectorstore:
         return _vectorstore
 
+    # عقدُ الترميز قبل أيّ مُضمِّن أو Qdrant: مجموعةُ إعادة فهرسة أو profile مضبوط ⇒ رفضٌ مُسمّى
+    # بدل مقارنة متّجه استعلامٍ خام بمتّجهات ``search_document:`` بصمت (REPORT3-RAG-06-01).
+    init_retry.assert_legacy_encoder_collection(COLLECTION_NAME, RAG_REINDEX_PROFILE_MANIFEST)
     embeddings = OllamaEmbeddings(model=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
 
     # نتحقّق صراحةً من وجود المجموعة (لا نلتقط Exception عامّاً يُخفي أعطال شبكة/
@@ -427,6 +432,14 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
     except Exception as e:  # noqa: BLE001 — تعطّل Qdrant/Ollama ⇒ 503 صادق
         logger.warning("فشل استرجاع المعرفة: %s", type(e).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاسترجاع)") from e
+
+    # عقدُ الترميز على كلّ نتيجة، كالمسترجِع القانونيّ: متّجهاتُ ``search_document:`` لا تُرتَّب
+    # باستعلامٍ خام — رفضٌ صريح قبل أن يُجيب النموذجُ منها (REPORT3-RAG-06-01).
+    try:
+        init_retry.assert_legacy_encoder_hits((d.metadata for d in docs), COLLECTION_NAME)
+    except init_retry.InitNotReady as exc:
+        logger.error("رُفِض استرجاعٌ بعقد ترميزٍ غير مدعوم: %s", exc.detail)
+        raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (عقد ترميز غير مدعوم)") from exc
 
     # ARCH-S3 EXPAND: compare canonical retrieval out-of-band. The direct path is
     # still the declared primary until live parity is accepted; no response data
@@ -726,7 +739,8 @@ async def readyz():
     (مع تمييز الحالتين وذكر آخر خطأ وعدد المحاولات — لا «قيد التحميل» أبديّة).
 
     ``reason`` رمزُ التبعيّة الغائبة (``model_missing`` · ``collection_missing`` ·
-    ``ollama_unreachable`` · ``qdrant_unavailable`` · ``model_pull_failed`` · ``unclassified``)
+    ``ollama_unreachable`` · ``qdrant_unavailable`` · ``model_pull_failed`` ·
+    ``encoding_profile_unsupported`` · ``unclassified``)
     و``next_retry_s`` موعدُ المحاولة التالية: بعد الاستنفاد لا تتوقّف الإعادة (تدقيق 2026-09-29)."""
     if _llm is None or _vectorstore is None:
         failed = _init_state.get("status") == "failed"

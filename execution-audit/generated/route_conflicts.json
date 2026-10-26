@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 570,
+          "line": 574,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 719,
+          "line": 732,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 517,
+          "line": 521,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 701,
+          "line": 714,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -651,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 522,
+          "line": 526,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 724,
+          "line": 737,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -763,7 +763,7 @@
         },
         {
           "function": "readyz",
-          "line": 213,
+          "line": 225,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 511,
+          "line": 515,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1085,7 +1085,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 646,
+          "line": 659,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1093,7 +1093,7 @@
         },
         {
           "function": "ingest",
-          "line": 257,
+          "line": 274,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1163,7 +1163,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 636,
+          "line": 649,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "e8025be2c0c541ceca6258ed134aa15d91beba3d45485259c12bb86603010964",
+  "route_inventory_sha256": "147d668b47bbbdc605362a8d3f179aed0f00fad30ce4a2451159c37413a8f170",
   "runtime_verified": false,
   "schema_version": 1
 }

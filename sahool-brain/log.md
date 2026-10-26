@@ -9981,3 +9981,81 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 ### 2026-10-25 — حساب TiTiler للقراءة فقط مقبول في CI (#1268)
 
 خطوة شريحة S3 على رأس #1268 (`35db62f20`) أثبتت السماح والرفض بالحساب نفسه، وأنّ TiTiler بلا حساب لا يقرأ S3، فانتقلت `TITILER-LEGACY-USES-SHARED-ADMIN-S3-KEY-01` إلى fixed عند الدمج. لا نشر: لا خدمة TiTiler على Railway.
+
+### 2026-10-25 — فرز السبعين فجوة المفتوحة بخمسة عشر وكيلاً
+
+بطلب المالك، فرزٌ للفجوات المفتوحة على `main@3e08bda5a`: ٣٠ تحتاج قرار المالك، ٢٢ محجوبة بالتجميد، ١٤ تحتاج بيئة حيّة، ٢ قابلتان للإصلاح الآن، ١ مُصلَحة على main، ١ قاعدة دائمة لا عيب. التفصيل بأدلّته في [`reports/gap_triage_20261025.md`](reports/gap_triage_20261025.md).
+
+نُفِّذ الإصلاحان في شجرتين معزولتين وروجعا مراجعةً معاكسة: دخل `REPORT3-RAG-06-01` (شريحة غير متّصلة) هذا الفرع مع إعادة توليد ما ينجرف، وبقي إصلاح وكيل الإشعارات فرعاً محلّيّاً لأنّ دمجه يطلق نشراً على Railway. ونُقلت `GITLEAKS-PR-SCAN-SKIPS-CONTENT-INTRODUCED-BY-A-MERGE-01` إلى fixed بعد نجاح خطوتها في CI (run 40145542840).
+
+### 2026-10-25 — استشارات npm العالية في قفل الواجهة
+
+`npm audit --package-lock-only` على قفل الواجهة في `main@3e08bda5a` كشف ثلاث استشارات عالية لم يسجّلها السجلّ، منها `follow-redirects` الإنتاجيّ. سُجّلت `DEP-FRONTEND-NPM-HIGH-ADVISORIES-20261025-01`، والإصلاح على الفرع `claude/frontend-npm-advisories-20261025`: `npm ci` والأنواع وlint (٠ أخطاء، ٣٨ تحذيراً كما في main) وvitest و`vite build` ناجحة محلّيّاً. يحلّ محلّ #1253.
+
+### 2026-10-25 — نهاية جلسة 25 أكتوبر: ثلاثة دمجات وفرز السبعين
+
+دُمج #1268 (حساب TiTiler للقراءة فقط) ⇒ `c492ee12a`، و#1270 (فرز الفجوات وشريحة RAG-06 وإغلاق فجوة Gitleaks) ⇒ `2890baf22`، كلاهما بتفويض المالك وشجرة الدمج = الشجرة المختبَرة. ودمج المالك بنفسه #1271 (استشارات npm) ⇒ `eb0be3977` لأنّه يطلق نشر الواجهة، فانتقلت `DEP-FRONTEND-NPM-HIGH-ADVISORIES-20261025-01` إلى fixed. بقي إصلاح تشخيص وكيل الإشعارات فرعاً محلّيّاً لأنّ دمجه يعيد نشر الوكيل.
+
+### 2026-10-25 — مذكّرات قرار المالك الثلاثون، وأربعة قرارات
+
+أعدّ خمسة عشر وكيلاً مذكّرةً لكلّ فجوة من الثلاثين التي تحتاج قرار المالك: [`reports/owner_decisions_20261025.md`](reports/owner_decisions_20261025.md). فُحصت استشهاداتها آليّاً على main: 403 من 412 مباشرة، والتسع الباقية راجعتُها (سبعٌ عند `3559ae024` عمداً، وواحدة مدى مزدوج، وواحدة صُحّحت). أجاب المالك عن أربع منها، وسُجّلت في دفتر القرارات، وأُضيف دليل تمرين الاستعادة.
+
+### 2026-10-25 — فجوتان من تحقّقَين عاجلين طلبهما المالك
+
+سُجّلت SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01 (مضيف `sahool-minio:9000` داخل توقيع SigV4، مقيسٌ دون اتّصال؛ لا مستهلك في الواجهة اليوم) وMOBILE-DEFAULT-API-HOST-HAS-NO-DNS-01 (`api.sahool.ye` افتراضيّ التطبيق لا يُحلّ؛ لا إصدار منشور)، كلتاهما open بمصادرها في [`gaps/registry.md`](gaps/registry.md). وصُحّحت قاعدة «ما يُطلق نشراً من main»: ليست `frontend/**` و`agents/notification/**` وnginx البوّابة وحدها؛ قراءة Railway في [`certification/evidence/railway_reconciliation_readonly_20261014.json`](../certification/evidence/railway_reconciliation_readonly_20261014.json) تضيف `services/field-management-service/**` و`services/raster-service/**` و`services/ai_agronomist/**` و`shared/**` و`migrations/**`، وأنماطُ المنصّة غير مقيسة فيها؛ فكلّ دمجٍ يمسّ مسار خدمة أو `shared/**` أو `migrations/**` يُعدّ ناشراً حتّى تثبت قراءةٌ حيّة خلافه.
+
+### 2026-10-25 — دمج عزل MinIO (#1275)
+
+دُمج #1275 ⇒ `93d59b7a` بتفويض المالك، وشجرة الدمج `2a1c07e8` = شجرة الرأس المختبَر `8764aae2`. أثبت CI شروط المالك الثلاثة حيّةً (منع الوصول غير المصرّح، الرفع والتنزيل، مسار صور الأقمار)، وبقيت فجوة صيانة MinIO open في [`gaps/registry.md`](gaps/registry.md)، والقرار في [`decisions/ledger.md`](decisions/ledger.md).
+
+### 2026-10-25 — توحيد الفروع المفتوحة في PR واحد، وفجوتان من قياس التطابق
+
+بطلب المالك جُمعت الفروع الستّة المفتوحة (قياس مفتاح حدّ المعدّل #1278، تشخيص وكيل الإشعارات #1279، الموافقة المتخصّصة #1280، الرابط الموقَّع، حارس إصدار الهاتف، فحص صحّة MinIO في `run_all` ووثيقة التطابق) في فرعٍ واحد لتفادي التعارضات المتكرّرة مع main. ولأنّه يمسّ مسارات نشر (البوّابة، الوكيل، guardrails، `shared/**`) لا يُدمج أثناء التجميد إلّا بكلمة المالك. وأُصلح الخلل نفسه في `scripts_v9/run_all.ps1`، وسُجّلت فجوتان وجدهما قياس التطابق: MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وWEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 ([`gaps/registry.md`](gaps/registry.md)).
+
+### 2026-10-25 — تحقّق المالك من خطأ MinIO المحليّ
+
+شغّل المالك `docker compose … up` على جهازه في `v26` فطلب compose `minio/mc:RELEASE.2025-04-16T18-13-26Z` و`minio/minio:RELEASE.2025-04-22T22-12-26Z`، وهما قيمتا القالب قبل #1139 (`.env.example:474-475` عند `172cb4505^`). وأكّد تحقّقُه أنّ `.env.example` في `v26:517-518` يحمل القيم الجديدة (`coollabsio/minio…@sha256:a4938f37…`)، فالكود عنده بعد الإصلاح، والقيمة القديمة تأتي من خارجه: `.env` المحليّ أو متغيّر بيئة في الجلسة. فصار فخّ `.env` الموصوف في MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 مقيساً على آلة المالك في نصفه، والنصف الباقي (أيّ المصدرين) ينتظر ناتج `Select-String -Path .env -Pattern '^MINIO_(MC_)?IMAGE='`.
+
+### 2026-10-25 — دمج الـPR الموحَّد (#1281)
+
+دُمج #1281 ⇒ `ad25eba0b` بأمر المالك الصريح (الدمج الكامل رغم مسارات النشر، والخيار (ب) لـROLE-DICTIONARY-DOES-NOT-CARRY-SPECIALIST-AUTHORITY-01؛ [`decisions/ledger.md`](decisions/ledger.md)). الشروط المسجَّلة استُوفيت: CI أخضر على الرأس النهائيّ `f95bdda65` (83 ناجح + 1 متخطّى، ومنها *Raster Service Tests* بعد إصلاح الـslice runner ليوقّع للمضيف العامّ)، وشجرة الدمج = شجرة الرأس المختبَر (`d5722012`). أُلحق سطر «الشريحة مدموجة ⇒ SHA» بصفوف الفجوات الستّ التي مسّتها الشرائح (RATE-LIMIT-KEY-IS-A-RAILWAY-NODE-NOT-THE-CLIENT-01 · NOTIFICATION-AGENT-LEGACY-PUSH-CONSUMERS-BLOCK-ZERO-DOWNTIME-REDEPLOY-01 · ROLE-DICTIONARY-DOES-NOT-CARRY-SPECIALIST-AUTHORITY-01 · SEASON-LOGBOOK-PRESIGNED-URL-SIGNED-FOR-INTERNAL-MINIO-HOST-01 · MOBILE-DEFAULT-API-HOST-HAS-NO-DNS-01 · MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01) — **كلّها تبقى open**، فكلٌّ منها شريحةٌ لا إغلاق. والدمج يُطلق نشر البوّابة ووكيل الإشعارات وguardrails-engine وخدمات `shared/**`؛ التحقّق من النشر قراءةٌ فقط ويحتاج إعادة تفويض Railway MCP. ويبقى على المالك: ناتج `Select-String` لتحديد مصدر قيمة MinIO القديمة (`.env` أم متغيّر الجلسة).
+
+### 2026-10-25 — تصحيح: فحص `run_all` لـMinIO ليس `mc ready local`
+
+سطرُ الدمج الذي أضافه #1282 إلى صفّ MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 يقول إنّ فحص الصحّة في `scripts_v9/run_all` صار `mc ready local` في الشلّين. **وهذا غير صحيح:** `run_all` يفحص MinIO بطلب HTTP على `/minio/health/live` ([`scripts_v9/run_all.sh:89`](../scripts_v9/run_all.sh)، [`scripts_v9/run_all.ps1:112`](../scripts_v9/run_all.ps1))، وهو ما أدخله #1281. أمّا `mc ready local` ففحصُ صحّة الحاوية في Compose ([`docker-compose.v9.yml:550`](../docker-compose.v9.yml))، وهو قائم منذ #1139.
+
+الصفّ نفسه لم يُصحَّح هنا: تحريرُه من ملفّات الدماغ وحدها يرفضه `brain_state_transition_guard`، لأنّ الصفّ يحمل سجلّ دمجٍ قانونيّاً. فالتصحيحُ المرجعيّ هذا المدخل، ويُنقل إلى الصفّ مع أوّل تغييرٍ يمسّ كوداً أو دليلاً لهذه الفجوة.
+
+### 2026-10-25 — مصدر قيمة MinIO القديمة على جهاز المالك: لا `.env` ولا متغيّر الجلسة اليوم
+
+قاس المالك على جهازه في `v26` (أبلغ به في الجلسة 2026-10-25، بالمعادل لـ`Select-String -Path .env -Pattern '^MINIO_(MC_)?IMAGE='`):
+- `.env` يحمل `MINIO_IMAGE` و`MINIO_MC_IMAGE` بقيم المرآة الجديدة (`coollabsio/…`)، لا القيم المحذوفة.
+- متغيّرات الجلسة: لا شيء يبدأ بـ`MINIO_`.
+
+فالمصدران المشتبه بهما في MINIO-IMAGES-DELETED-FROM-DOCKER-HUB-01 لا يحملان القيمة القديمة في الحالة الحاليّة. يبقى تفسيران غير مقيسين: أنّ `.env` صُحّح بعد ظهور الخطأ، أو أنّ `docker compose up` الذي فشل شُغّل من نسخةٍ أو مجلّدٍ غير `v26`. **الخطوة الحاسمة:** `docker compose -f docker-compose.v9.yml pull sahool-minio sahool-minio-init` من `v26` نفسه؛ نجاحها يثبت أنّ الفخّ لا يتكرّر على هذا الجهاز. ويُنقل ذلك إلى صفّ الفجوة مع أوّل تغييرٍ يمسّ كوداً أو دليلاً لها، لأنّ تحرير الصفّ من ملفّات الدماغ وحدها يرفضه `brain_state_transition_guard`.
+
+وعلى جهاز المالك أيضاً: `main` المحليّ دُمج فيه `origin/main` (لا إعادة تأسيس)، فبقيت 13 commit محليّة تحمل أدلّة تدقيق غير موجودة على `origin`. لا أثر لذلك على المستودع.
+
+### 2026-10-26 — أسطول إصلاح من 26 وكيلاً على الفجوات المفتوحة
+
+بتفويض المالك («بعدد أكثر من 20 وكيل… وإغلاق أيّ فجوة»، ثمّ «تجاوز العوائق»): وكيلٌ لكلّ فجوةٍ قابلةٍ للإصلاح بالكود، كلٌّ في شجرة عملٍ معزولة، تحت التجميد (لا Railway ولا قاعدة بيانات ولا هجرات). راجعتُ كلَّ التزامٍ بنفسي قبل دمجه في فرع `claude/review-portability-tests-mobile-20261025`.
+
+- **أُصلِح:** مدخلُ شاشة نماذج الحقل في الهاتف (`dc397ec9f`)؛ ثلاثةُ سكربتات CI تقرّر عضويّة المسار بالمكوّنات لا بسلسلة POSIX (`generate_service_inventory` · `health_readiness_schema_guard` · `tenant_guc_scope_guard`)؛ عقودُ HTTP لـ`sam2-inference` (43) و`raster-tiler-service` (8) في وظيفة Unit Tests؛ و`sam2-inference` يتحقّق من الرمز قبل التحقّق من الجسم.
+- **تقدّمٌ جزئيّ (تبقى open):** UWRP-V43-LEARNING-SCRIPTS-UNSAFE-01 · OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01 · FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01 · UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01 · REPORT3-RAG-05-01 · REPORT3-RAG-06-01 · REPORT3-RAG-08-01 · GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01.
+- **مُصلَحٌ سلفاً على main وصُحِّح صفُّه:** DEP-OTEL-API-CVE-2026-114603-01 وDEP-TITILER-CERTIFI-PYSEC-2026-4320-01 (#1254)، RESTART-POLICY-BYPASSES-DEPENDS-ON-HEALTH-01 (#1234). وتبيّن أنّ ERP-BRIDGE-RUNS-WITHOUT-ODOO-AND-READYZ-SAYS-READY-01 وGUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01 مُغلَقتان في مدخلهما الحاليّ، وأنّ ما بدا مفتوحاً لقطةٌ تاريخيّة موسومة — خطأٌ في مسحي الأوّل لا في السجلّ.
+- **قرارات للمالك:** خمسة عشر بنداً في [`reports/owner_decisions_20261026.md`](reports/owner_decisions_20261026.md)؛ لم يتّخذ الوكيل قراراً زراعيّاً ولا تفويضَ GATE-01.
+- **فجواتٌ جديدة:** RAILWAY-RESOURCEFUL-COMMITMENT-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 · FRONTEND-NON-API-CONSTANTS-POINT-AT-NO-HANDLER-01 · LEGACY-TITILER-IMAGE-PACKAGES-NOT-AUDITED-01.
+- **ممسوكٌ للمالك:** إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 في فرعٍ منفصل لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة.
+
+### 2026-10-26 — الإصلاحات كلّها في PR واحد، ووصلُ 76 اختباراً لم يشغّلها CI
+
+بأمر المالك «تنفيذ جميع الإصلاحات في pr واحد» ضُمّ إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 (كان ممسوكاً لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة) إلى الفرع الموحَّد، ومعه نتيجةُ مسح الاختبارات غير المُشغَّلة: SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 مسجَّلةٌ، وخمسةُ اختباراتٍ قديمة أُصلحت، واستثناءٌ دقيق لـ`/runtime-identity` في حارسي auth وsoil، و`p2_main_decomposition_guard` يقرأ الاستيراد الحقيقيّ بالـAST بعد أن كان يمرّ بنصّ docstring، و76 ملفّاً تُشغَّل الآن في وظيفة Unit Tests المطلوبة.
+
+### 2026-10-26 — بعد دمج #1285: النشر المقيس، وتصحيحُ ادّعاء أثر النشر
+
+#1285 دُمج ⇒ `73355f509` (squash على `2b4a74b23`؛ شجرة الدمج `6013f756` = شجرة الرأس المختبَر `00ec67d35`).
+
+- **النشر (Railway `list-deployments`، قراءةٌ فقط، 02:52Z):** production: `sahool-frontend` و`sahool-auth-main` و`sahool-vegetation-analysis` نجحت؛ staging: `sahool-soil-service` و`sahool-frontend` و`sahool-vegetation-analysis` نجحت، و`sahool-auth-main` نجح 03:11Z. الباقي SKIPPED، والمهاجر لم يُطلَق.
+- **تصحيح:** وصفُ #1285 قال إنّ الدمج يُعيد نشر البوّابة وحدها. أُعيد نشرُ ثلاث خدماتٍ أخرى لأنّ ملفّات اختبارٍ في مجلّداتها تطابق أنماط المراقبة (`services/auth/tests/test_router_decomposition_guard.py` · `services/soil-service/test_soil_ingest_entrypoint_parity.py` و`test_soil_router_decomposition_guard.py` · `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py`). سُجّلت PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01.
+- **CI على `main`:** خطوةُ الاختبارات المحلّيّة في الخدمات (76 ملفّاً) خضراء في وظيفة Unit Tests (`40260916782`/`121372907914`).
+- **صفّا الفجوتين المُصلَحتين يبقيان open:** MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وSERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 أُلحق بكلٍّ منهما سطرُ الدمج. ترقيتُه إلى `fixed` من الدماغ وحده يرفضها `brain_state_transition_guard` (قاعدة #1136: `fixed` في الـPR الذي يحمل الإصلاح)، و#1285 لم يرقِّ الصفّ — خطئي؛ فالترقيةُ في أوّل PR يمسّ كوداً.

@@ -120,11 +120,16 @@ async def lifespan(app: FastAPI):
         "vegetation-service v9.2 starting — raster_contract=%s direct_provider_access=disabled",
         "ready" if raster_configured else "fail-closed",
     )
-    yield
-    if _vegetation_runtime._nc:
-        await _vegetation_runtime._nc.close()
-        _vegetation_runtime._nc = None
-        logger.info("NATS connection closed")
+    try:
+        yield
+    finally:
+        from anomaly_runtime import store as _anomaly_store
+
+        await _anomaly_store.close()  # the postgres anomaly pool, when that backend is active
+        if _vegetation_runtime._nc:
+            await _vegetation_runtime._nc.close()
+            _vegetation_runtime._nc = None
+            logger.info("NATS connection closed")
 
 
 app = FastAPI(title="SAHOOL Vegetation Analysis", version="9.2.0", lifespan=lifespan)

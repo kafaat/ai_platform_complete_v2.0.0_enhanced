@@ -23,7 +23,7 @@ import asyncio
 import inspect
 import logging
 import math
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from typing import Any
 
 _log = logging.getLogger("local-ai-rag")
@@ -45,6 +45,53 @@ class InitNotReady(RuntimeError):
 def reason_of(exc: BaseException) -> str:
     """الرمزُ من ``InitNotReady`` وحدَه — ``URLError.reason`` وأشباهُه نصٌّ حرّ لا رمز."""
     return exc.reason if isinstance(exc, InitNotReady) else "unclassified"
+
+
+#: بادئةُ مجموعات إعادة الفهرسة المُصدَّرة؛ المسترجِعُ القانونيّ يرفض عندها المُرمِّزَ القديم بلا
+#: manifest (``services/sahool-platform/core/rag/production_qdrant.py`` ``HybridQdrantRetriever``).
+REINDEX_COLLECTION_PREFIX = "sahool_rag_reindex_"
+
+
+def assert_legacy_encoder_collection(
+    collection_name: str, profile_manifest_env: str | None
+) -> None:
+    """يفشل مغلقاً حين يُطلَب من هذا القارئ عقدُ ترميزٍ لا يستطيع الوفاءَ به (REPORT3-RAG-06-01).
+
+    ``init_vectorstore`` يُضمِّن **النصَّ الخام** بـ``OllamaEmbeddings`` بلا ``search_query: `` ولا
+    تحقّقٍ من الـprofile؛ أمام مجموعةٍ ``sahool_rag_reindex_*`` (متّجهاتُها ``search_document:``) أو
+    ``RAG_REINDEX_PROFILE_MANIFEST`` مضبوط كان سيقارن متّجهاتٍ غيرَ متكافئة **بصمت**. القارئُ القديم
+    يخدم المجموعةَ القديمة وحدَها؛ ما سواها ``encoding_profile_unsupported`` يقرؤه ``/readyz``.
+    """
+    if str(collection_name).startswith(REINDEX_COLLECTION_PREFIX):
+        raise InitNotReady(
+            "encoding_profile_unsupported",
+            f"collection {collection_name!r} is a versioned reindex collection; the legacy "
+            "OllamaEmbeddings reader cannot honour its encoding profile",
+        )
+    if profile_manifest_env is not None and str(profile_manifest_env).strip():
+        raise InitNotReady(
+            "encoding_profile_unsupported",
+            f"RAG_REINDEX_PROFILE_MANIFEST is set for collection {collection_name!r}; the legacy "
+            "OllamaEmbeddings reader does not apply serving profiles",
+        )
+
+
+def assert_legacy_encoder_hits(metadatas: Iterable[Any], collection_name: str) -> None:
+    """العقدُ نفسُه على **النتائج**: نتيجةٌ مُبادَأة ⇒ رفض، مهما كان اسمُ المجموعة (REPORT3-RAG-06-01).
+
+    حارسُ الاسم يرى ``sahool_rag_reindex_*`` وحدَه؛ ومجموعةٌ متّجهاتُها ``search_document:`` تحت
+    اسمٍ آخر (اسمٌ مستعار أو نسخةٌ أُعيدت تسميتُها) كانت تمرّ فيُجيب النموذجُ من متّجهاتٍ غيرِ
+    متكافئة. القاعدةُ مرآةُ المسترجِع القانونيّ لكلّ نتيجة (``production_qdrant.py``: «prefixed
+    collection cannot use the legacy query encoder»)، لا اختراعٌ ثانٍ.
+    """
+    for meta in metadatas:
+        prefix = meta.get("document_embedding_prefix") if isinstance(meta, Mapping) else None
+        if prefix:
+            raise InitNotReady(
+                "encoding_profile_unsupported",
+                f"collection {collection_name!r} returned a chunk encoded with document prefix "
+                f"{prefix!r}; the legacy raw-query OllamaEmbeddings reader cannot rank it",
+            )
 
 
 def new_state() -> dict[str, Any]:

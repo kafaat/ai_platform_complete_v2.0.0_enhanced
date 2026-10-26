@@ -322,7 +322,7 @@ vri_machine_translation_artifacts,v180_governed_vri_prescription.sql,185,True,Tr
 vri_prescription_zones,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 vri_prescriptions,v180_governed_vri_prescription.sql,185,True,True,True,1,True,False,0,0
 water_lab_result_sets,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,1,1
-water_ledger,v98_water_ledger.sql,103,True,True,True,1,True,False,13,5
+water_ledger,v98_water_ledger.sql,103,True,True,True,1,True,False,14,5
 weather_alerts,v74_weather_intelligence.sql,79,True,False,False,0,False,True,0,0
 weather_automation_cache,v9_automation_persistence.sql,7,False,True,True,1,True,False,3,1
 weather_automation_locations,v9_automation_persistence.sql,7,False,True,True,1,True,False,3,1

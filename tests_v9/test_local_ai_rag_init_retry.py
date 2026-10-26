@@ -467,6 +467,7 @@ def test_init_vectorstore_names_a_missing_or_unreachable_collection(
         "QDRANT_URL": "http://sahool-qdrant:6333",
         "QDRANT_API_KEY": None,
         "COLLECTION_NAME": "sahool_agri_kb",
+        "RAG_REINDEX_PROFILE_MANIFEST": None,
         "init_retry": retry,
         "logger": None,
     }
@@ -474,3 +475,199 @@ def test_init_vectorstore_names_a_missing_or_unreachable_collection(
     with pytest.raises(retry.InitNotReady) as info:
         init_vectorstore()
     assert info.value.reason == reason
+
+
+# ── REPORT3-RAG-06-01: عقدُ الترميز على قارئ local-ai-rag المستقلّ ─────────────────────────
+# المسترجِعُ القانونيّ يرفض مُرمِّزاً قديماً أمام مجموعة ``sahool_rag_reindex_*`` (production_qdrant)
+# ويسبق الاستعلامَ بـ``search_query: ``؛ هذا القارئُ يُضمِّن النصَّ الخامَ بـOllamaEmbeddings فلا يستطيع
+# الوفاءَ بذلك العقد — فيجب أن يرفض مغلقاً بسببٍ مُسمّى بدل أن يقارن متّجهاتٍ غيرَ متكافئة بصمت.
+PRODUCTION_QDRANT = ROOT / "services" / "sahool-platform" / "core" / "rag" / "production_qdrant.py"
+
+
+@pytest.mark.parametrize(
+    "collection, manifest",
+    [
+        ("sahool_rag_reindex_v1", None),
+        ("sahool_rag_reindex_nomic_768", ""),
+        ("sahool_agri_kb", "/etc/sahool/rag_profile.json"),
+    ],
+)
+def test_encoding_guard_refuses_a_contract_this_reader_cannot_honour(retry, collection, manifest):
+    with pytest.raises(retry.InitNotReady) as info:
+        retry.assert_legacy_encoder_collection(collection, manifest)
+    assert info.value.reason == "encoding_profile_unsupported"
+    assert collection in info.value.detail
+
+
+@pytest.mark.parametrize("manifest", [None, "", "   "])
+def test_encoding_guard_admits_a_legacy_collection_without_a_profile(retry, manifest):
+    assert retry.assert_legacy_encoder_collection("sahool_agri_kb", manifest) is None
+
+
+def test_encoding_guard_prefix_matches_the_canonical_retriever(retry):
+    """البادئةُ نفسُها التي يرفض عندها المسترجِعُ القانونيّ المُرمِّزَ القديم — لا نسخةٌ تنجرف."""
+    assert retry.REINDEX_COLLECTION_PREFIX == "sahool_rag_reindex_"
+    assert f'"{retry.REINDEX_COLLECTION_PREFIX}"' in PRODUCTION_QDRANT.read_text(encoding="utf-8")
+
+
+def test_init_vectorstore_calls_the_encoding_guard_before_building_embeddings():
+    import ast
+
+    src = MAIN.read_text(encoding="utf-8")
+    fn = next(
+        n
+        for n in ast.parse(src).body
+        if isinstance(n, ast.FunctionDef) and n.name == "init_vectorstore"
+    )
+    first_call: dict[str, int] = {}
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+            first_call[name] = min(node.lineno, first_call.get(name, node.lineno))
+    assert "assert_legacy_encoder_collection" in first_call, "القارئُ المستقلّ يخدم بلا عقد ترميز"
+    assert first_call["assert_legacy_encoder_collection"] < first_call["OllamaEmbeddings"]
+    readyz_doc = src.split("async def readyz(", 1)[1].split('"""', 2)[1]
+    assert "encoding_profile_unsupported" in readyz_doc
+
+
+def test_init_vectorstore_refuses_a_reindex_collection_before_any_io(retry, monkeypatch):
+    """سلوكيّاً على الدالّة الحقيقيّة: لا مُضمِّنٌ يُبنى ولا Qdrant يُسأل حين يُرفَض العقد."""
+    import types
+
+    touched: list[str] = []
+
+    def _qdrant(**_kw):
+        touched.append("qdrant")
+        raise AssertionError("Qdrant contacted before the encoding contract was checked")
+
+    def _embeddings(**_kw):
+        touched.append("embeddings")
+        raise AssertionError("OllamaEmbeddings built before the encoding contract was checked")
+
+    monkeypatch.setitem(sys.modules, "qdrant_client", types.SimpleNamespace(QdrantClient=_qdrant))
+    namespace = {
+        "_vectorstore": None,
+        "OllamaEmbeddings": _embeddings,
+        "QdrantVectorStore": None,
+        "EMBED_MODEL": "nomic-embed-text",
+        "OLLAMA_BASE_URL": "http://sahool-ollama:11434",
+        "QDRANT_URL": "http://sahool-qdrant:6333",
+        "QDRANT_API_KEY": None,
+        "COLLECTION_NAME": "sahool_rag_reindex_v1",
+        "RAG_REINDEX_PROFILE_MANIFEST": None,
+        "init_retry": retry,
+        "logger": None,
+    }
+    init_vectorstore = _exec_main_functions({"init_vectorstore"}, namespace)["init_vectorstore"]
+    with pytest.raises(retry.InitNotReady) as info:
+        init_vectorstore()
+    assert info.value.reason == "encoding_profile_unsupported"
+    assert touched == []
+
+
+# ── REPORT3-RAG-06-01 (بقيّة الشريحة): العقدُ على النتيجة لا على الاسم وحده ─────────────────
+# حارسُ الاسم أعلاه يرفض ``sahool_rag_reindex_*`` قبل أيّ I/O، لكنّ المسترجِعَ القانونيّ يرفض
+# أيضاً **كلَّ نتيجةٍ** تحمل ``metadata.document_embedding_prefix`` مهما كان اسمُ المجموعة
+# (production_qdrant.py: «prefixed collection cannot use the legacy query encoder»). فمجموعةٌ
+# مُبادَأةٌ باسمٍ آخر (اسمٌ مستعار، أو نسخةٌ أُعيدت تسميتُها) كانت تمرّ هنا فيُجيب النموذجُ من
+# متّجهاتٍ غيرِ متكافئة بصمت.
+_PREFIXED = {"tenant_id": "t1", "document_embedding_prefix": "search_document: "}
+_LEGACY = {"tenant_id": "t1", "source_file": "wheat.pdf"}
+
+
+def test_hit_guard_mirrors_the_canonical_per_hit_rule(retry):
+    canonical = PRODUCTION_QDRANT.read_text(encoding="utf-8")
+    assert 'get("metadata", {}).get("document_embedding_prefix")' in canonical
+    with pytest.raises(retry.InitNotReady) as info:
+        retry.assert_legacy_encoder_hits([_LEGACY, _PREFIXED], "sahool_agri_kb")
+    assert info.value.reason == "encoding_profile_unsupported"
+    assert "search_document: " in info.value.detail
+    assert "sahool_agri_kb" in info.value.detail
+
+
+@pytest.mark.parametrize(
+    "metas", [[], [_LEGACY], [None, {}, {"document_embedding_prefix": ""}, _LEGACY]]
+)
+def test_hit_guard_admits_legacy_hits(retry, metas):
+    assert retry.assert_legacy_encoder_hits(metas, "sahool_agri_kb") is None
+
+
+class _HTTPError(Exception):
+    def __init__(self, status_code, detail=None):
+        super().__init__(status_code, detail)
+        self.status_code = status_code
+        self.detail = detail
+
+
+def _run_query_rag(retry, monkeypatch, metas, llm_calls):
+    """``query_rag`` الحقيقيّة من main.py بمُضاعَفاتٍ محقونة — بلا LangChain ولا Qdrant ولا Ollama."""
+    import datetime as dt
+    import logging
+    import types
+
+    class _Doc:
+        def __init__(self, meta):
+            self.page_content = "سياق"
+            self.metadata = meta
+
+    class _Retriever:
+        def invoke(self, _q):
+            return [_Doc(m) for m in metas]
+
+    class _VS:
+        def as_retriever(self, **_kw):
+            return _Retriever()
+
+    class _LLM:
+        def invoke(self, prompt):
+            llm_calls.append(prompt)
+            return types.SimpleNamespace(content="جواب")
+
+    async def _shadow(*_a):
+        return None
+
+    models = types.ModuleType("qdrant_client.http.models")
+    models.FieldCondition = models.Filter = models.MatchAny = lambda **kw: kw
+    http = types.ModuleType("qdrant_client.http")
+    http.models = models
+    root = types.ModuleType("qdrant_client")
+    root.http = http
+    monkeypatch.setitem(sys.modules, "qdrant_client", root)
+    monkeypatch.setitem(sys.modules, "qdrant_client.http", http)
+    monkeypatch.setitem(sys.modules, "qdrant_client.http.models", models)
+    namespace = {
+        "asyncio": asyncio,
+        "init_vectorstore": _VS,
+        "init_llm": _LLM,
+        "init_retry": retry,
+        "HTTPException": _HTTPError,
+        "_shadow_canonical_retrieval": _shadow,
+        "_GLOBAL_REFERENCE_TENANT": "__global__",
+        "_NO_KNOWLEDGE_AR": "لا",
+        "_GROUNDED_PROMPT": "{context}\n{question}",
+        "LLM_MODEL": "m",
+        "COLLECTION_NAME": "sahool_agri_kb",
+        "datetime": dt.datetime,
+        "UTC": dt.UTC,
+        "logger": logging.getLogger("test-local-ai-rag"),
+    }
+    query_rag = _exec_main_functions({"query_rag"}, namespace)["query_rag"]
+    return asyncio.run(query_rag("كيف أسمّد القمح؟", "t1"))
+
+
+def test_query_rag_refuses_prefixed_hits_before_the_llm_answers(retry, monkeypatch):
+    """نتيجةٌ مُبادَأة تحت اسمٍ قديم ⇒ 503 صريح، والنموذجُ لا يُستدعى ليُجيب منها."""
+    llm_calls: list[str] = []
+    with pytest.raises(_HTTPError) as info:
+        _run_query_rag(retry, monkeypatch, [_LEGACY, _PREFIXED], llm_calls)
+    assert info.value.status_code == 503
+    assert llm_calls == []
+
+
+def test_query_rag_still_answers_from_legacy_hits(retry, monkeypatch):
+    llm_calls: list[str] = []
+    out = _run_query_rag(retry, monkeypatch, [_LEGACY], llm_calls)
+    assert out["answer"] == "جواب"
+    assert len(llm_calls) == 1
+    assert out["sources"][0]["source"] == "wheat.pdf"

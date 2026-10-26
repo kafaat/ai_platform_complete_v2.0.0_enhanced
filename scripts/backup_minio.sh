@@ -27,6 +27,8 @@ set -euo pipefail
 # ─── Config (env vars) ─────────────────────────────────────────
 MINIO_ALIAS="${MINIO_ALIAS:-sahool-minio}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://sahool-minio:9000}"
+# الاسم sahool-minio يُحَلّ فقط على الشبكة الداخليّة sahool-object-storage (عزل MinIO، 2026-10-25):
+#   من المضيف: MINIO_ENDPOINT=http://127.0.0.1:9000 · من حاوية: يجب أن تنضمّ إلى sahool-object-storage.
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-}"
 BACKUP_DIR="${MINIO_BACKUP_DIR:-/var/backups/sahool/minio}"

@@ -248,6 +248,17 @@ async def field_irrigation_recommendation(
             "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
             field_id,
         )
+        # UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: علَمُ القيد يوميٌّ لا يرث —
+        # يومٌ مُسجَّلٌ فوق أيّامٍ بلا سجلّ استنزافُه الموروث مبنيٌّ على ريٍّ مجهول. فحين يقول
+        # أحدثُ قيدٍ «مُسجَّل» تُمشى السلسلةُ إلى مرساتها (لا يُقرأ يومُه وحدَه).
+        from api.water_ledger_auto import (
+            applied_water_limitation_notes,
+            depletion_is_upper_bound,
+            irrigation_known,
+            resolve_applied_water_status,
+        )
+
+        applied_status = await resolve_applied_water_status(conn, field_id, lrow)
         # WS-D.2b: أحدث فحص تربة معتمَد ⇒ نسيج مقيس مخبريّاً (+ عمره) لتحسين TAW.
         # النسيج لا عمود مُصنَّف له اليوم (جرد المصادر) — من JSONB. غيابه ⇒ fallback عامّ.
         soil_row = await conn.fetchrow(
@@ -281,27 +292,7 @@ async def field_irrigation_recommendation(
     # UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: ثقةُ القيد المنخفضة لا تقول
     # **لماذا**. قيدٌ آليٌّ بلا صفِّ ريّ استنزافُه حدٌّ أعلى (الريُّ قُرِئ صفراً لأنّه
     # مجهول) — يُسمّى في المخرَج ولا يُخصَم مرّةً ثانية من الثقة (القيدُ خصمه أصلاً).
-    from api.water_ledger_auto import (
-        APPLIED_WATER_UNRECORDED,
-        APPLIED_WATER_VOLUME_UNTRACKED,
-        applied_water_status,
-        ledger_notes_from_decision,
-    )
-
-    ledger_notes = ledger_notes_from_decision(lrow.get("decision")) if lrow else None
-    applied_status = applied_water_status(ledger_notes) if ledger_notes is not None else None
-    applied_water_limitations: list[str] = []
-    if applied_status == APPLIED_WATER_UNRECORDED:
-        applied_water_limitations.append(
-            "applied_water_unrecorded — لا سجلَّ ريٍّ لهذا الحقل في يوم القيد: الريُّ في "
-            "الميزان مجهولٌ لا صفر، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى. "
-            "سجّل الريّات أو أعلِن مصدرَ الماء قبل الاعتماد."
-        )
-    elif applied_status == APPLIED_WATER_VOLUME_UNTRACKED:
-        applied_water_limitations.append(
-            "applied_water_volume_untracked — رُصدت ريّةٌ بلا حجم: الماءُ المضاف أدنى "
-            "تقدير، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى."
-        )
+    applied_water_limitations = applied_water_limitation_notes(applied_status)
 
     # WS-D.2b: نسيج مخبريّ حقيقيّ ⇒ TAW أدقّ + نَسَب مصدر صريح + خفض ثقة عند fallback.
     texture_lab = extract_texture(soil_row["result"]) if soil_row else None
@@ -343,12 +334,30 @@ async def field_irrigation_recommendation(
             "canonical_evidence": canonical["evidence"],
         }
 
-    state = assess_irrigation_state(
-        depletion_mm=depletion_mm,
-        taw_mm=taw_mm,
-        ledger_age_hours=ledger_age_hours,
-        taw_source=taw_source,
-    )
+    # شرطُ الإغلاق (أ): ريٌّ مجهولٌ في السلسلة ⇒ الاستنزافُ **حدٌّ أعلى** لا قياس، فلا يُقدَّم
+    # استنزافاً ولا تُبنى عليه كمّيّةُ ريّ (الاتّجاهُ معروف: إفراطٌ في الريّ). غيابٌ مُعلَن:
+    # ``insufficient_data`` والحدُّ الأعلى باسمه. (المسارُ اليدويّ يرفض قبل هذا بـ409.)
+    depletion_upper_bound_mm = None
+    if canonical is None and depletion_is_upper_bound(applied_status, depletion_mm):
+        depletion_upper_bound_mm = round(float(depletion_mm), 2)
+        depletion_mm = None
+        state = {
+            "status": "insufficient_data",
+            "available": False,
+            "limitations": [
+                "applied_water_unknown_depletion_is_upper_bound",
+                *applied_water_limitations,
+            ],
+            "depletion_fraction": None,
+            "taw_source": taw_source,
+        }
+    else:
+        state = assess_irrigation_state(
+            depletion_mm=depletion_mm,
+            taw_mm=taw_mm,
+            ledger_age_hours=ledger_age_hours,
+            taw_source=taw_source,
+        )
     if stage is None:
         state = {
             **state,
@@ -367,6 +376,9 @@ async def field_irrigation_recommendation(
         "ledger_age_hours": round(ledger_age_hours, 1) if ledger_age_hours is not None else None,
         # None = القيدُ لم يُعلِن (يدويّ/قديم) — لا يُفترَض «مُسجَّلاً».
         "applied_water_status": applied_status,
+        "irrigation_known": irrigation_known(applied_status),
+        # الريُّ مجهول ⇒ ``depletion_mm=None`` وهذا الحدُّ الأعلى باسمه (لا يُقرأ استنزافاً).
+        "depletion_upper_bound_mm": depletion_upper_bound_mm,
         "crop": crop,
         "stage": stage,
     }

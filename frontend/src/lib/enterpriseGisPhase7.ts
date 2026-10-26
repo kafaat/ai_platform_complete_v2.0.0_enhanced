@@ -37,17 +37,14 @@ export interface AutonomousRecommendation {
   evidence: Record<string, unknown>;
 }
 
+// No `/api/v1` paths here: every one of them had no server handler and no caller
+// (WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01). A new `/api/v1` constant must
+// match a route in route_inventory.generated.json; see
+// tests_v9/test_frontend_api_v1_literal_has_server_route.py.
 export const enterpriseGisPhase7Endpoints = {
-  collaborationSession: '/api/v1/gis/collaboration/sessions',
-  collaborationEvents: (sessionId: string) => `/api/v1/gis/collaboration/sessions/${sessionId}/events`,
   collaborationSocket: (sessionId: string) => `/ws/gis/collaboration/${sessionId}`,
   ogcLanding: '/ogc',
   ogcConformance: '/ogc/conformance',
-  distributedRasterPlan: '/api/v1/gis/raster/distributed/plan',
-  distributedRasterJobs: '/api/v1/gis/raster/distributed/jobs',
-  digitalTwinScenario: '/api/v1/digital-twin/scenarios/simulate',
-  autonomousRecommendations: '/api/v1/recommendations/autonomous',
-  planetScaleReadiness: '/api/v1/gis/readiness/planet-scale',
 };
 
 export function buildCollaborationWsUrl(baseWsUrl: string, sessionId: string, token?: string): string {

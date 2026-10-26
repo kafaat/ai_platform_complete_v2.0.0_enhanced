@@ -95,12 +95,18 @@ def test_no_duplicate_route_registrations():
     assert not dups, f"مسارات مُكرَّرة: {dups}"
 
 
+_PROVENANCE_ROUTE = re.compile(r"@app\.get\(\s*[\"']/runtime-identity[\"']")
+
+
 def test_main_has_no_app_route_decorators():
     """التفكيك مكتمل: لا @app.(get|post|put|patch|delete) في main.py (المسارات في routers/).
 
     يُسمح بـ@app.middleware و@app.on_event فقط (ليست مسارات HTTP).
     """
     src = (_AUTH_DIR / "main.py").read_text(encoding="utf-8")
+    # استثناءٌ واحدٌ مُسمّى: مسارُ هويّة البناء `/runtime-identity` مسارُ بنيةٍ لا نطاق
+    # (كما في raster وweather وdecision وagriai)، فيبقى في main.py. أيُّ مسارٍ آخر يُرفَض.
+    src = _PROVENANCE_ROUTE.sub("", src)
     offenders = re.findall(r"@app\.(get|post|put|patch|delete|head|options)\b", src)
     assert not offenders, f"مسارات ما تزال في main.py (لم تُفكَّك): @app.{offenders}"
 

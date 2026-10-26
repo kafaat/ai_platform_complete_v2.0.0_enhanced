@@ -1,5 +1,5 @@
 {
-  "edge_count": 878,
+  "edge_count": 879,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4502,6 +4502,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/water_ledger_auto.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://water_ledger",
+      "to": "db://water_ledger",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8800,7 +8810,7 @@
     "CALLS": 47,
     "CONSUMES": 3,
     "EMITS": 1,
-    "READS": 448,
+    "READS": 449,
     "ROUTES_TO": 72,
     "WRITES": 307
   },
@@ -8817,8 +8827,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 756,
-      "resolved": 755,
+      "observed": 757,
+      "resolved": 756,
       "unresolved_component_paths": 0
     }
   }

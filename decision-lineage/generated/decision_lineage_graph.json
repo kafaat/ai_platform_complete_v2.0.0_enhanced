@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 644,
+      "evidence_count": 645,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -25,6 +25,7 @@
         "qdrant-seed",
         "rag-retrieval",
         "raster-service",
+        "raster-tiler-service",
         "remote-sensing-workspace-bff",
         "sahool-platform",
         "scout-ingest-service",
@@ -223,6 +224,7 @@
         "services/raster-service/test_stac_c1_processing.py",
         "services/raster-service/tile_render.py",
         "services/raster-service/trial_zonal_outcomes.py",
+        "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/adaptive_calibration.py",
@@ -2674,7 +2676,7 @@
         "services/sahool-platform/api/routers/evidence_map.py",
         "services/sahool-platform/api/routers/field_ai_context.py"
       ],
-      "source_evidence_count": 644,
+      "source_evidence_count": 645,
       "target_evidence_count": 530,
       "static_supported": true,
       "runtime_verified": false
@@ -3092,5 +3094,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "767254c118ee13af78f00140fbaf3ebfc1171af39709110a6454a9bade8178f3"
+  "content_sha256": "22e9b49e61ef5654d806ffd295ca9651ff264426466829eecc4096046a0d6674"
 }

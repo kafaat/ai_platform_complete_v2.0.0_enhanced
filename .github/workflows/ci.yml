@@ -944,6 +944,10 @@ jobs:
           --cov-fail-under=43
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v4.6.0
         with: {files: coverage.xml}
+      # raster-tiler-service: in-service tests sit outside `testpaths = tests_v9`, so
+      # `-m unit` never collects them; TiTiler is stubbed, deps come from requirements-test.
+      - name: raster-tiler-service wrapper route contracts
+        run: pytest -v -p no:cacheprovider services/raster-tiler-service/tests
       # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل
       # صراحةً بالمسار. لم تعد تحتاج تثبيتاً معزولاً: fastapi صارت في البيئة
       # المشتركة مثبَّتة على إصدار الإنتاج (UNIT-TEST-DORMANCY-01).
@@ -956,6 +960,53 @@ jobs:
             tests_v9/test_field_forms_sync_binding_p02.py \
             tests_v9/test_field_forms_device_rotation_grace.py \
             tests_v9/test_erp_bridge_fail_closed.py
+      # عقد HTTP لـsam2-inference (`/v1/predict` · `/healthz` · `/health` · `/readyz` + خطّاف
+      # الإقلاع). الاختبارات داخل الخدمة لأنّ `generate_service_inventory` لا يعدّ غيرها، و
+      # `testpaths = tests_v9` يجعل `-m unit` أعمى عنها — فتُشغَّل هنا بالمسار، وإلّا كانت
+      # زينةً تُسقِط علامة `high-zero-test-routes` ولا يُنفِّذها شيء (صنف
+      # RASTER-SERVICE-TESTS-UNWIRED-TO-CI-01). torch/sam2 (CUDA) يُستبدَلان داخل الاختبار؛
+      # fastapi · numpy · rasterio · shapely من `tests_v9/requirements-test.txt` أعلاه ⇒ لا تخطّي.
+      - name: SAM2 inference HTTP contract (in-service tests, explicit path)
+        run: pytest -v -p no:cacheprovider services/sam2-inference/tests
+      # SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01: ٨٣ ملفّ اختبارٍ داخل الخدمات و`shared/` لم
+      # تُشغّلها أيُّ وظيفة (`testpaths = tests_v9`)، وخمسةٌ منها كانت حمراء ولا يراها أحد.
+      # تُشغَّل هنا في الوظيفة المطلوبة، **عمليّةَ pytest واحدةً لكلّ خدمة** لأنّ اسمي
+      # `main` و`routers` يتصادمان بين الخدمات (مقيس: actuator ثمّ tts في عمليّةٍ واحدة
+      # يكسر tts). والتخطّي يُفشِل الخطوة: حارسا actuator وtts يتخطّيان الملفّ كلّه إن
+      # فشل استيراد `main`، فيُقرأ أخضرُهما شهادةً على ما لم يُقَس. المستثنى بسببه:
+      # اختباراتُ PG الحيّ (تتخطّى بلا قاعدة) و`local-ai-rag` (تبعيّاتٌ ثقيلة) و
+      # `sahool-platform/smoke_e2e_test.py` (سكربتٌ حيّ لا اختبار).
+      - name: Service-local tests outside tests_v9 (one process per service, skips fail)
+        run: |
+          pip install "aiomqtt>=2.0.0" "edge-tts>=6.1.12"
+          run_group() {
+            out=$(python -m pytest -q -rs -p no:cacheprovider "$@" 2>&1); rc=$?
+            printf '%s\n' "$out"
+            [ "$rc" -eq 0 ] || exit "$rc"
+            if printf '%s\n' "$out" | tail -n 1 | grep -q 'skipped'; then
+              echo "::error::skipped tests in a service-local group: $1"; exit 1
+            fi
+          }
+            run_group services/actuator-service/test_actuator_router_decomposition_guard.py services/actuator-service/test_actuator_safety.py services/actuator-service/test_dedup_compensation.py
+            run_group services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py
+            run_group services/ai_agronomist/test_ai_field_memory_v49.py
+            run_group services/auth/tests/test_router_decomposition_guard.py
+            run_group services/decision-service/tests/test_correlation_http_projection.py services/decision-service/tests/test_eligibility_assessment_policy.py services/decision-service/tests/test_manual_irrigation_source_binding.py services/decision-service/tests/test_migration_runner_readonly.py services/decision-service/tests/test_outcome_reconcile.py services/decision-service/tests/test_tenant_boundary_migration_static.py
+            run_group services/field-management-service/tests/test_field_management_service_contract.py
+            run_group services/field-segmentation/test_exg_preprocess.py services/field-segmentation/test_segmentation.py
+            run_group services/guardrails-engine/test_guardrails_router_decomposition_guard.py
+            run_group services/indicators-service/tests/test_indicators_service_honest_boundary.py services/indicators-service/tests/test_indicators_service_static_route_smoke.py services/indicators-service/tests/test_observation_runtime.py services/indicators-service/tests/test_observation_timeline.py
+            run_group services/knowledge-graph/tests/test_knowledge_graph_static_route_smoke.py
+            run_group services/mcp_servers/tests/test_mcp_servers_static_route_smoke.py
+            run_group services/odoo-bridge/test_erp_readiness_granular.py services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py
+            run_group services/qdrant-seed/test_aljawf_knowledge.py
+            run_group services/rag-retrieval/tests/test_rag_retrieval_static_route_smoke.py
+            run_group services/soil-service/test_canonical_soil_profile.py services/soil-service/test_soil_cutover_readiness.py services/soil-service/test_soil_evidence_adapters_and_policy.py services/soil-service/test_soil_ingest_entrypoint_parity.py services/soil-service/test_soil_lab_supersession_adapter.py services/soil-service/test_soil_p1_products.py services/soil-service/test_soil_p2_products.py services/soil-service/test_soil_p3_products.py services/soil-service/test_soil_p4_governance.py services/soil-service/test_soil_p5_certification.py services/soil-service/test_soil_p6_certification.py services/soil-service/test_soil_projection_jobs.py services/soil-service/test_soil_projection_observability.py services/soil-service/test_soil_router_decomposition_guard.py services/soil-service/test_soil_snapshot_identity.py services/soil-service/test_soil_supersession_current_pointer.py services/soil-service/test_soil_validation.py
+            run_group services/supervisor-agent/test_ai_orchestration_forensic.py services/supervisor-agent/test_chaos_resilience.py services/supervisor-agent/test_circuit_breaker.py services/supervisor-agent/test_circuit_observability.py services/supervisor-agent/test_graceful_degradation.py services/supervisor-agent/test_router.py services/supervisor-agent/test_supervisor_router_decomposition_guard.py
+            run_group services/tts-service/test_tts_router_decomposition_guard.py
+            run_group services/vegetation-analysis-service/test_anomaly_engine.py services/vegetation-analysis-service/test_anomaly_store.py services/vegetation-analysis-service/test_baseline_engine.py services/vegetation-analysis-service/test_diagnosis_engine.py services/vegetation-analysis-service/test_ground_verification_bridge.py services/vegetation-analysis-service/test_platform_field_catalog_boundary.py services/vegetation-analysis-service/test_raster_bundle_boundary.py services/vegetation-analysis-service/test_rs_final_hardening.py services/vegetation-analysis-service/test_rs_review_hardening.py services/vegetation-analysis-service/test_vegetation_logic.py services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py
+            run_group services/video-processor/test_video_processor_router_decomposition_guard.py
+            run_group shared/enterprise_gis/test_phase7_enterprise.py shared/enterprise_gis/test_phase8_global_scale.py shared/gis/test_cloud_native_gis.py shared/gis/test_cloud_native_runtime.py shared/gis/test_phase5_runtime.py shared/precision_agriculture/test_phase6_intelligence.py shared/test_autonomous_farm_os_phase9.py shared/test_continuous_learning_phase10.py shared/test_federated_agent_runtime.py shared/test_federated_agents_phase11.py shared/test_field_runtime_cohesion.py shared/test_marketplace_ecosystem_phase12.py shared/test_marketplace_plugin_runtime.py
 
   repository-tests:
     name: Repository Tests (tests/)

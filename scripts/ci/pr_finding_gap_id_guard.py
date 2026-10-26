@@ -30,16 +30,33 @@ registered IDs. Calibrated on main's history before it was tightened (the eviden
 ``docs/evidence/pr_finding_gap_id_calibration_20261017.md``): no labelled review paragraph
 in 2395 commits carried more than one label, so the counting rule adds no flag there.
 
+**An ID is bound to its finding, not counted.** Where several labelled findings share a
+text, each finding's *segment* runs from the start of its label's line (or from the label
+itself when the previous label sits on the same line) to the next finding's segment; the
+ID that answers a finding must stand in that segment, and no ID answers two findings
+(a bipartite matching, so the order IDs are written in does not matter). ``- High: A →
+X-01`` / ``- Medium: B → Y-01`` passes; ``Registered X-01, Y-01:`` above the same two
+findings does not, because nothing says which answers which. A text with one finding is
+one segment — the rule calibrated on history is unchanged there.
+
 **Review comments on GitHub** (``--review-comments-file``). GitHub state does not enter
-this tool directly — the workflow job fetches the PR's inline review comments and review
-bodies (every page) into a JSON envelope, and this guard judges the envelope. Every
-review comment is review context by definition, and every author counts: review bots
-(Copilot, Codex, Claude) are exactly who emits severity labels. The unit there is the
-**thread**, because the remedy is a reply: the labelled findings of a thread's root (an
-inline comment, or a review body) need as many distinct registered IDs, named in the root,
-in a reply in that thread (``in_reply_to_id``), or in a PR-body/commit paragraph that links
-the thread (``#discussion_r<id>`` / ``#pullrequestreview-<id>`` — a review body has no
-reply button). Replies supply IDs only; a finding first stated in a reply is not counted.
+this tool directly — the workflow job fetches the PR's inline review comments, review
+bodies and Conversation-tab comments (every page) into a JSON envelope, and this guard
+judges the envelope. Every inline comment and review body is review context by
+definition, and every author counts: review bots (Copilot, Codex, Claude) are exactly who
+emits severity labels. The unit there is the **thread**, because the remedy is a reply:
+the labelled findings of a thread's root (an inline comment, or a review body) need as
+many distinct registered IDs — bound by segment when named in the root itself, or
+supplied by a reply in that thread (``in_reply_to_id``) or by a PR-body/commit/
+Conversation paragraph that links the thread (``#discussion_r<id>`` /
+``#pullrequestreview-<id>`` — a review body has no reply button). Replies supply IDs
+only; a finding first stated in a reply is not counted.
+
+**Conversation-tab comments** (``/issues/<n>/comments``) are threads of their own, but
+not review context by definition — a bot posting a deploy or an advisory table there is
+not reviewing. A labelled paragraph counts when it, or the comment's first line, is in
+review context (as for a commit's subject line). The remedy is an ID beside the finding,
+or a paragraph elsewhere that links ``#issuecomment-<id>`` and names it.
 
 The envelope is judged before its content: a page that is not HTTP 200 is a **fetch
 failure**, which fails closed — except on a PR from a fork, whose token may not read the
@@ -56,11 +73,12 @@ blocked substance ``(CRITICAL)`` (8722ea99), water-stress levels ``WATCH · CRIT
 without review context (an owner's or ChatGPT's PR describing alert levels) is not a
 finding.
 
-**Honesty limits:** IDs are counted, not bound — a paragraph naming N registered IDs passes
-N findings without proving which ID answers which. A finding stated without any severity
-label is invisible here. Conversation-tab comments (``/issues/<n>/comments``) are not read.
-The workflow runs on push/edit of the PR, so a review posted after the last run is read on
-the next one, not before a merge that follows it without a push.
+**Honesty limits:** binding is positional, so it holds where the ID and the finding share
+a text; IDs that arrive from a reply or a linking paragraph have no position in the
+finding's text and are still counted against the thread's findings, not bound to one.
+A finding stated without any severity label is invisible here. The workflow runs on
+push/edit of the PR, so a review or Conversation comment posted after the last run is read
+on the next one, not before a merge that follows it without a push.
 
     python scripts/ci/pr_finding_gap_id_guard.py --base origin/main --head HEAD
     python scripts/ci/pr_finding_gap_id_guard.py --pr-body-file body.md \\
@@ -100,11 +118,14 @@ _SEVERITY_WORD = re.compile(rf"{_TITLE}|{_CAPS}")
 REVIEW_CONTEXT = re.compile(
     r"(?i:\b(?:review|reviewer|copilot|codex|finding|findings|audit)\b)|مراجعة|ملاحظة|تدقيق"
 )
-# The anchors GitHub gives an inline comment and a review in their html_url.
-THREAD_LINK = re.compile(r"(discussion_r|pullrequestreview-)(\d+)")
+# The anchors GitHub gives an inline comment, a review and a Conversation comment in
+# their html_url.
+THREAD_LINK = re.compile(r"(discussion_r|pullrequestreview-|issuecomment-)(\d+)")
 
-ENVELOPE_SCHEMA = "sahool.pr-review-bodies.v1"
-REVIEW_KINDS = ("comments", "reviews")
+ENVELOPE_SCHEMA = "sahool.pr-review-bodies.v2"
+# ``comments``/``reviews`` come from ``/pulls/<n>/…``; ``issue_comments`` is the
+# Conversation tab, ``/issues/<n>/comments``.
+REVIEW_KINDS = ("comments", "reviews", "issue_comments")
 PR_EVENTS = {"pull_request", "pull_request_target"}
 
 
@@ -122,20 +143,51 @@ def paragraphs(text: str) -> list[str]:
     return [p for p in re.split(r"\n\s*\n", text) if p.strip()]
 
 
-def severity_labels(paragraph: str) -> list[str]:
-    """Each labelled finding once, in order: label forms sharing a severity word are one."""
-    by_word: dict[int, str] = {}
+def _label_spans(paragraph: str) -> list[tuple[int, str]]:
+    """``(start, label)`` per labelled finding, in order of its severity word.
+
+    Label forms sharing a severity word are one finding; it keeps the first form's text and
+    starts where the earliest of them starts (``Finding 3 (High)`` starts at ``Finding``).
+    """
+    by_word: dict[int, tuple[int, str]] = {}
     for pattern in SEVERITY_LABELS:
         for match in pattern.finditer(paragraph):
             word = _SEVERITY_WORD.search(paragraph, match.start(), match.end())
             assert word is not None  # every label pattern contains a severity word
-            by_word.setdefault(word.start(), match.group(0).strip())
+            start, label = by_word.get(word.start(), (match.start(), match.group(0).strip()))
+            by_word[word.start()] = (min(start, match.start()), label)
     return [by_word[position] for position in sorted(by_word)]
+
+
+def severity_labels(paragraph: str) -> list[str]:
+    """Each labelled finding once, in order: label forms sharing a severity word are one."""
+    return [label for _, label in _label_spans(paragraph)]
 
 
 def severity_label(paragraph: str) -> str | None:
     labels = severity_labels(paragraph)
     return labels[0] if labels else None
+
+
+def finding_segments(paragraph: str) -> list[tuple[str, str]]:
+    """``(label, segment)`` per finding: the text an ID must stand in to answer it.
+
+    One finding: the whole paragraph. Several: each segment opens at the start of its
+    label's line — or at the label, when the previous label shares that line — and runs
+    to where the next one opens. Text above the first label's line answers none of them.
+    """
+    spans = _label_spans(paragraph)
+    if not spans:
+        return []
+    if len(spans) == 1:
+        return [(spans[0][1], paragraph)]
+    opens: list[int] = []
+    for k, (start, _) in enumerate(spans):
+        line_start = paragraph.rfind("\n", 0, start) + 1
+        shares_line = k > 0 and spans[k - 1][0] >= line_start
+        opens.append(start if shares_line else line_start)
+    closes = opens[1:] + [len(paragraph)]
+    return [(label, paragraph[a:b]) for (_, label), a, b in zip(spans, opens, closes, strict=True)]
 
 
 def registered_ids(paragraph: str, known: set[str], gap_id: re.Pattern) -> set[str]:
@@ -146,35 +198,58 @@ def _first_line(text: str) -> str:
     return next(line.strip() for line in text.splitlines() if line.strip())[:100]
 
 
-def _shortfall(labels: list[str], ids: set[str]) -> str | None:
-    """The first labelled finding left without an ID of its own, counting in order."""
-    return labels[len(ids)] if len(ids) < len(labels) else None
+def _shortfall(
+    findings: list[tuple[str, set[str]]], pool: frozenset[str] = frozenset()
+) -> str | None:
+    """The first finding left without a distinct ID bound to it, or ``None``.
+
+    Finding *k* may take an ID from its own segment or from ``pool`` (IDs a reply or a
+    linking paragraph supplied, which have no position to bind by); no ID answers two
+    findings. Augmenting paths (Kuhn), so the order IDs are written in does not matter.
+    """
+    holder: dict[str, int] = {}
+
+    def bind(k: int, seen: set[str]) -> bool:
+        for candidate in sorted(findings[k][1] | pool):
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            if candidate not in holder or bind(holder[candidate], seen):
+                holder[candidate] = k
+                return True
+        return False
+
+    for k, (label, _) in enumerate(findings):
+        if not bind(k, set()):
+            return label
+    return None
 
 
-def _tally(labels: list[str], ids: set[str]) -> str:
-    return (
-        f"[{len(labels)} labelled findings, {len(ids)} registered ID(s)] "
-        if len(labels) > 1
-        else ""
-    )
+def _tally(findings: list[tuple[str, set[str]]], named: set[str]) -> str:
+    """``named``: every registered ID the unit names, beside a finding or not."""
+    if len(findings) < 2:
+        return ""
+    unbound = ", not one beside each" if len(named) >= len(findings) else ""
+    return f"[{len(findings)} labelled findings, {len(named)} registered ID(s){unbound}] "
 
 
 def unanchored_findings(
     text: str, known: set[str], gap_id: re.Pattern, subject: str = ""
 ) -> list[tuple[str, str]]:
-    """``(label, first line)`` for each finding paragraph with fewer IDs than findings."""
+    """``(label, first line)`` for each finding paragraph with a finding no ID answers."""
     found: list[tuple[str, str]] = []
     subject_is_review = bool(REVIEW_CONTEXT.search(subject))
     for paragraph in paragraphs(text):
-        labels = severity_labels(paragraph)
-        if not labels:
+        segments = finding_segments(paragraph)
+        if not segments:
             continue
         if not (subject_is_review or REVIEW_CONTEXT.search(paragraph)):
             continue
-        ids = registered_ids(paragraph, known, gap_id)
-        label = _shortfall(labels, ids)
+        findings = [(label, registered_ids(seg, known, gap_id)) for label, seg in segments]
+        label = _shortfall(findings)
         if label is not None:
-            found.append((label, _tally(labels, ids) + _first_line(paragraph)))
+            named = registered_ids(paragraph, known, gap_id)
+            found.append((label, _tally(findings, named) + _first_line(paragraph)))
     return found
 
 
@@ -188,10 +263,12 @@ class ReviewReadError(ValueError):
 class Thread(NamedTuple):
     """One reply unit: a NamedTuple, not a dataclass — guards load without ``sys.modules``."""
 
-    key: tuple[str, int]  # ("discussion_r" | "pullrequestreview-", id)
+    key: tuple[str, int]  # ("discussion_r" | "pullrequestreview-" | "issuecomment-", id)
     where: str
     root: str
     replies: list[str]
+    # A Conversation comment is not review context by definition (a deploy bot posts there).
+    needs_context: bool = False
 
 
 def _author(item: dict) -> str:
@@ -241,7 +318,8 @@ def _items(envelope: object) -> tuple[dict[str, list[dict]], list[str]]:
 
 
 def review_threads(items: dict[str, list[dict]]) -> list[Thread]:
-    """Inline threads (root + ``in_reply_to_id`` replies) and review bodies, each one unit."""
+    """Inline threads (root + ``in_reply_to_id`` replies), review bodies and Conversation
+    comments, each one unit."""
     threads: dict[tuple[str, int], Thread] = {}
     comments = items["comments"]
     roots = {c["id"] for c in comments if c.get("in_reply_to_id") is None}
@@ -261,6 +339,11 @@ def review_threads(items: dict[str, list[dict]]) -> list[Thread]:
             threads[key] = Thread(
                 key, f"review {review['id']} by {_author(review)}", review["body"], []
             )
+    for comment in items["issue_comments"]:
+        if (comment["body"] or "").strip():
+            key = ("issuecomment-", comment["id"])
+            where = f"Conversation comment {comment['id']} by {_author(comment)}"
+            threads[key] = Thread(key, where, comment["body"], [], needs_context=True)
     return list(threads.values())
 
 
@@ -283,14 +366,29 @@ def unanchored_review_findings(
         labels = [label for p in paragraphs(thread.root) for label in severity_labels(p)]
         if not labels:
             continue
-        ids = registered_ids(thread.root, known, gap_id).union(
-            *(registered_ids(reply, known, gap_id) for reply in thread.replies),
-            anchors.get(thread.key, set()),
+        opening_is_review = bool(REVIEW_CONTEXT.search(_first_line(thread.root)))
+        judged = [
+            p
+            for p in paragraphs(thread.root)
+            if not thread.needs_context or opening_is_review or REVIEW_CONTEXT.search(p)
+        ]
+        # One finding in the whole root: the root is its segment (an ID in another
+        # paragraph of it still answers). Several: each is bound inside its paragraph.
+        segments = [s for p in judged for s in finding_segments(p)]
+        if len(segments) == 1:
+            segments = [(segments[0][0], thread.root)]
+        findings = [(label, registered_ids(text, known, gap_id)) for label, text in segments]
+        pool = frozenset(anchors.get(thread.key, set())).union(
+            *(registered_ids(reply, known, gap_id) for reply in thread.replies)
         )
-        label = _shortfall(labels, ids)
+        label = _shortfall(findings, pool)
         if label is not None:
             found.append(
-                (f"{thread.where}: `{label}`", _tally(labels, ids) + _first_line(thread.root))
+                (
+                    f"{thread.where}: `{label}`",
+                    _tally(findings, pool | registered_ids(thread.root, known, gap_id))
+                    + _first_line(thread.root),
+                )
             )
     return found
 
@@ -313,8 +411,8 @@ def read_review_envelope(path: Path) -> tuple[list[Thread] | None, str]:
         raise ReviewReadError(f"fetch failed on a same-repository PR: {'; '.join(failures)}")
     threads = review_threads(items)
     return threads, (
-        f"{len(items['comments'])} review comment(s) + {len(items['reviews'])} review(s) "
-        f"in {len(threads)} thread(s)"
+        f"{len(items['comments'])} review comment(s) + {len(items['reviews'])} review(s) + "
+        f"{len(items['issue_comments'])} Conversation comment(s) in {len(threads)} thread(s)"
     )
 
 
@@ -351,6 +449,8 @@ def evaluate(
             violations.append(f"PR body: `{label}` — {first}")
     if threads:
         texts = [message for _, message in commits] + ([body] if body is not None else [])
+        # A Conversation comment that links a thread is a reply to it in all but placement.
+        texts += [t.root for t in threads if t.key[0] == "issuecomment-"]
         anchors = thread_anchors(texts, known, gap_id)
         for where, first in unanchored_review_findings(threads, anchors, known, gap_id):
             violations.append(f"{where} — {first}")
@@ -416,9 +516,11 @@ def main(argv: list[str] | None = None) -> int:
             "\nA review finding labelled Critical/High/Medium was fixed or reported without "
             "its own gap ID. Register each finding in sahool-brain/gaps/registry.md (a '## <ID>' "
             "section or a table row starting with the ID) and name one ID per labelled finding "
-            "in the same paragraph — for a GitHub review comment, in a reply in its thread or "
-            "in a PR-body paragraph that links it — otherwise the defect leaves no trace once "
-            "the PR is merged (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)."
+            "beside it — on the finding's own line, before the next labelled finding; a list "
+            "of IDs above or below several findings does not say which answers which. For a "
+            "GitHub review or Conversation comment, name it in a reply in its thread or in a "
+            "PR-body/Conversation paragraph that links it — otherwise the defect leaves no "
+            "trace once the PR is merged (GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01)."
         )
         return 1
     if not (args.base or read_body or threads is not None):
@@ -426,7 +528,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     read = [f"{len(commits)} commit(s)"] if args.base else []
     read += ["PR body"] if body is not None else []
-    read += ["review comments"] if threads is not None else []
+    read += ["review + Conversation comments"] if threads is not None else []
     read += ["review comments NOT MEASURED (fork)"] if read_reviews and threads is None else []
     print(
         f"pr_finding_gap_id_guard_ok ({' + '.join(read)}; "

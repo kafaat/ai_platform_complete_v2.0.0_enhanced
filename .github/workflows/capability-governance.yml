@@ -55,10 +55,11 @@ jobs:
 
   capability-registry:
     runs-on: ubuntu-latest
-    # الرمزُ يقرأ متنَ الـPR وتعليقاتِ مراجعتها ولا يكتب شيئاً.
+    # الرمزُ يقرأ متنَ الـPR وتعليقاتِ مراجعتها ومحادثتها ولا يكتب شيئاً.
     permissions:
       contents: read
       pull-requests: read
+      issues: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -228,6 +229,10 @@ jobs:
       # fork** (رمزُه قد لا يقرأ المستودع الأساسيّ) ويطبع ذلك باسمه «غيرَ مقيس».
       # الترقيم: صفحاتٌ بـ100 حتّى صفحةٍ أقلَّ من 100؛ وآخرُ صفحةٍ ممتلئة عند السقف
       # (30 صفحة) خطأُ قراءةٍ لا نجاح.
+      # وتبويبُ المحادثة (`/issues/<n>/comments`) يُجلَب نوعاً ثالثاً `issue_comments`:
+      # كان حدَّ صدقٍ مكتوباً («لا يُقرأ»)، وملاحظةٌ موسومة تُكتَب هناك لم تكن تُرى.
+      # و`issues: read` صراحةً كي لا يتوقّف الجلبُ — وهو مغلقُ الفشل — على أنّ
+      # `pull-requests: read` يكفي هذا المسار.
       - name: Fetch the PR's review comments and review bodies
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         env:
@@ -239,16 +244,20 @@ jobs:
           set -uo pipefail
           PER_PAGE=100
           MAX_PAGES=30
-          API="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/pulls/${PR_NUMBER}"
+          REPO_API="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}"
           : > /tmp/pr-review-pages.jsonl
-          for KIND in comments reviews; do
+          for KIND in comments reviews issue_comments; do
+            case "$KIND" in
+              issue_comments) URL="${REPO_API}/issues/${PR_NUMBER}/comments" ;;
+              *) URL="${REPO_API}/pulls/${PR_NUMBER}/${KIND}" ;;
+            esac
             for PAGE in $(seq 1 "$MAX_PAGES"); do
               rm -f /tmp/pr-review-page.json
               STATUS=$(curl -sS --max-time 30 -o /tmp/pr-review-page.json -w '%{http_code}' \
                 -H "Authorization: Bearer $GH_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
                 -H "X-GitHub-Api-Version: 2022-11-28" \
-                "${API}/${KIND}?per_page=${PER_PAGE}&page=${PAGE}" || true)
+                "${URL}?per_page=${PER_PAGE}&page=${PAGE}" || true)
               STATUS=$((10#${STATUS:-0}))  # curl prints 000 when it never got an answer
               echo "HTTP ${STATUS} ← ${KIND} page ${PAGE}"
               ITEMS=$(jq -c . /tmp/pr-review-page.json 2>/dev/null || echo null)
@@ -260,7 +269,7 @@ jobs:
               [ "$(jq 'if type == "array" then length else 0 end' /tmp/pr-review-page.json 2>/dev/null || echo 0)" -ge "$PER_PAGE" ] || break
             done
           done
-          jq -s --arg schema 'sahool.pr-review-bodies.v1' --arg repo "$REPO" \
+          jq -s --arg schema 'sahool.pr-review-bodies.v2' --arg repo "$REPO" \
             --arg head_repo "$HEAD_REPO" --argjson pr "$PR_NUMBER" --argjson per_page "$PER_PAGE" \
             '{schema_version: $schema, repository: $repo, head_repository: $head_repo,
               pr_number: $pr, per_page: $per_page,

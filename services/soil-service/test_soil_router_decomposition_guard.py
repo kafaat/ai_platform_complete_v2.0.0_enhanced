@@ -100,9 +100,15 @@ def test_route_count_floor():
     assert n >= 10, f"عدد المسارات هبط تحت الأرضيّة: {n} < 10 (مسارات ضائعة)"
 
 
+_PROVENANCE_ROUTE = re.compile(r"@app\.get\(\s*[\"']/runtime-identity[\"']")
+
+
 def test_no_app_route_decorators_in_main():
     """لا @app.<method> في main.py (التفكيك مكتمل — كلّ المسارات في routers/)."""
     src = (_HERE / "main.py").read_text(encoding="utf-8")
+    # استثناءٌ واحدٌ مُسمّى: مسارُ هويّة البناء `/runtime-identity` مسارُ بنيةٍ لا نطاق
+    # (كما في raster وweather وdecision وagriai)، فيبقى في main.py. أيُّ مسارٍ آخر يُرفَض.
+    src = _PROVENANCE_ROUTE.sub("", src)
     hits = re.findall(r"@app\.(get|post|put|delete|patch|websocket)\b", src)
     assert not hits, f"بقي مُزخرِف @app مسار في main.py (التفكيك ناقص): {hits}"
 

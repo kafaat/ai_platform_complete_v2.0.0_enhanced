@@ -13,11 +13,14 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import math
 import os
+import weakref
 from datetime import UTC, datetime
 from typing import Any
 
+logger = logging.getLogger(__name__)
 _TRUTHY = {"1", "true", "yes", "on"}
 
 
@@ -42,6 +45,12 @@ def now_iso() -> str:
 
 
 _POOLS: dict[int, Any] = {}
+# One owner per loop: concurrent cold callers share one creation instead of each opening a
+# pool and leaking all but the last. Weak keys so a dead loop's lock never reaches a new one.
+_POOL_LOCKS: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = (
+    weakref.WeakKeyDictionary()
+)
+_POOL_CLOSE_TIMEOUT_SECONDS = 5.0
 
 
 class _PooledConnection:
@@ -63,17 +72,40 @@ async def acquire_connection():
         import asyncpg  # type: ignore
     except ImportError as exc:  # pragma: no cover
         raise RuntimeError("asyncpg is required when DECISION_SERVICE_SOR_ENABLED=true") from exc
-    loop_id = id(asyncio.get_running_loop())
+    loop = asyncio.get_running_loop()
+    loop_id = id(loop)
     pool = _POOLS.get(loop_id)
     if pool is None:
-        pool = await asyncpg.create_pool(
-            database_url(),
-            min_size=1,
-            max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
-            statement_cache_size=0,
-        )
-        _POOLS[loop_id] = pool
+        lock = _POOL_LOCKS.setdefault(loop, asyncio.Lock())
+        async with lock:
+            pool = _POOLS.get(loop_id)
+            if pool is None:
+                pool = await asyncpg.create_pool(
+                    database_url(),
+                    min_size=1,
+                    max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
+                    statement_cache_size=0,
+                )
+                _POOLS[loop_id] = pool
     return _PooledConnection(pool, await pool.acquire())
+
+
+async def close_pools() -> None:
+    """Close this loop's pool at shutdown within a bound; a restart then creates a fresh one."""
+    loop = asyncio.get_running_loop()
+    lock = _POOL_LOCKS.setdefault(loop, asyncio.Lock())
+    async with lock:  # wait out an in-flight creation so its pool is closed here, not leaked
+        pool = _POOLS.pop(id(loop), None)
+    if pool is None:
+        return
+    try:
+        await asyncio.wait_for(pool.close(), timeout=_POOL_CLOSE_TIMEOUT_SECONDS)
+    except asyncio.CancelledError:
+        pool.terminate()
+        raise
+    except Exception as exc:  # timeout or close failure: never leave backends open
+        logger.warning("Decision pool close failed (%s); terminating", type(exc).__name__)
+        pool.terminate()
 
 
 async def _connect():

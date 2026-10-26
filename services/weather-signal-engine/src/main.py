@@ -10,6 +10,18 @@
 للمستأجرين بالتصميم (تقرأ تراكب كلّ مستأجِر، تكتب إشاراته). لا دور خارق (كي لا يلتفّ على
 RLS). asyncpg (لا محرّك SQL مُجرّد) مطابقةً للمنصّة. تُستعمَل ANY مع cast نصّيّ لقوائم IN
 وتحويل JSONB صريح للحمولة مطابقةً لأنماط المنصّة المُلزَمة بالحُرّاس.
+
+**القارئ صادقٌ عن مصدره (FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01).**
+لا شيء في الشجرة يكتب field_weather_overlay منذ حذف weather-polygon-worker (#1205)،
+ولا شيء يكتب weather_forecasts التي كان سيُبنى منها التراكب. فكانت كلُّ دورةٍ تقرأ
+صفراً من الصفوف وتُسجّل «أُدرِجَت 0 إشارة» بمستوى INFO — وهو سطرٌ يُقرَأ «لا خطر
+طقسيّ» وحقيقتُه «لا بيانات». والكاتبُ لا يُضاف هنا: لا منتِجَ لتنبّؤ الخلايا، ومخطّط
+v74 لا يحمل مقامات التقييم (hours_evaluated · frost/heat_evaluable_hours) التي بدونها
+تُرجِع النواة صفرَ إشارات لأيّ صفّ — أي أنّ كاتباً بلا هجرة يُنتج صفوفاً لا تُولِّد
+شيئاً. والقرارُ بين المنتِج الحقيقيّ وإزالة القارئ معلّقٌ لدى المالك
+(docs/architecture/decisions_pending/FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01.md).
+لذلك تُعيد الدورةُ **حالةً مُسمّاة** (CycleReport) لا عدداً: لا بيانات · بيانات بائتة ·
+تراكب بلا أساس تقييم · عُولِج — وتُعلَن غيرُ «عُولِج» بتحذيرٍ يُسمّي سببها.
 """
 
 from __future__ import annotations
@@ -19,7 +31,9 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 from pathlib import Path
+from typing import NamedTuple
 
 import asyncpg
 from core.weather_overlay_pipeline import build_signal_records
@@ -51,6 +65,8 @@ _RECENT_OVERLAYS_SQL = (
     "WHERE time > NOW() - INTERVAL '1 hour' "
     "ORDER BY tenant_id, field_id, time DESC"
 )
+# يُستعلَم فقط حين لا تراكب طازجاً: يُفرِّق «لا صفّ قطّ» (لا منتِج) عن «منتِجٌ توقّف».
+_NEWEST_OVERLAY_SQL = "SELECT max(time) FROM field_weather_overlay"
 # حتميّة: نحذف الإشارات السارية الحاليّة لهذا الحقل (نفس الأنواع المُولَّدة) قبل الإدراج.
 # ANY($2::text[]) لقائمة الأنواع (نمط المنصّة المُلزَم) — لا نمسّ إشارات نوع آخر.
 _DELETE_CURRENT_SQL = (
@@ -63,6 +79,92 @@ _INSERT_SIGNAL_SQL = (
     "time, valid_until, payload) VALUES ($1,$2,$3,$4,NOW(), "
     "NOW() + ($5 || ' hours')::interval, CAST($6 AS jsonb))"
 )
+
+
+GAP_ID = "FIELD-WEATHER-OVERLAY-HAS-A-READER-AND-NO-WRITER-01"
+
+# حالاتُ الدورة — كلٌّ منها جوابٌ مختلف عن «لماذا لا إشارات؟»، فلا تُدمَج في عددٍ صفريّ.
+STATE_NO_OVERLAY_DATA = "no_overlay_data"  # الجدول بلا أيّ صفّ: لا منتِج يكتبه
+STATE_STALE_OVERLAY_DATA = "stale_overlay_data"  # صفوفٌ قديمة، لا شيء خلال الساعة
+STATE_OVERLAY_NOT_EVALUABLE = "overlay_not_evaluable"  # صفوفٌ طازجة بلا ساعاتٍ مُقيَّمة
+STATE_PROCESSED = "processed"
+
+
+class CycleReport(NamedTuple):
+    """نتيجةُ دورةٍ واحدة بحالتها المُسمّاة، لا عددُ إشاراتٍ وحده.
+
+    «0 إشارة» وحدها لا تُفرِّق بين «رُصِد طقسٌ لا يستدعي إشارة» و«لا شيء رُصِد» —
+    والثاني هو الواقع اليوم. الحالةُ تقول أيّهما."""
+
+    state: str
+    overlays: int = 0
+    signals: int = 0
+    failed: int = 0
+    unevaluable: int = 0
+    newest_overlay_at: datetime | None = None
+
+
+def is_evaluable(overlay) -> bool:
+    """صفٌّ بلا ساعاتٍ مُقيَّمة لا يُولِّد إشارةً أبداً (generate_signals يُرجِع [] عند 0).
+
+    ومخطّط v74 لا يحمل العمود، فالاستعلامُ لا يُعيده — أي أنّ كلَّ صفٍّ يُقرَأ اليوم غيرُ
+    قابلٍ للتقييم. يُعَدّ ويُعلَن بدل أن يذوب في «0 إشارة»."""
+    try:
+        return (overlay.get("hours_evaluated") or 0) > 0
+    except AttributeError:
+        return False
+
+
+def classify_cycle(
+    *,
+    overlays: int,
+    signals: int,
+    failed: int = 0,
+    unevaluable: int = 0,
+    newest_overlay_at: datetime | None = None,
+) -> CycleReport:
+    """يُسمّي حالةَ الدورة من مقاييسها (نقيّ)."""
+    if overlays == 0:
+        state = STATE_NO_OVERLAY_DATA if newest_overlay_at is None else STATE_STALE_OVERLAY_DATA
+    elif signals == 0 and unevaluable == overlays:
+        state = STATE_OVERLAY_NOT_EVALUABLE
+    else:
+        state = STATE_PROCESSED
+    return CycleReport(
+        state=state,
+        overlays=overlays,
+        signals=signals,
+        failed=failed,
+        unevaluable=unevaluable,
+        newest_overlay_at=newest_overlay_at,
+    )
+
+
+def describe_cycle(report: CycleReport, previous_state: str | None = None) -> tuple[int, str]:
+    """(مستوى السجلّ، الرسالة). غيرُ «عُولِج» تحذيرٌ عند الانتقال إليه، ثمّ INFO ما دام قائماً
+    — يُرى أوّلَ مرّة ولا يُغرِق السجلّ كلَّ خمس دقائق. والرسالةُ تُسمّي الحالة دائماً."""
+    if report.state == STATE_PROCESSED:
+        return logging.INFO, (
+            f"دورة الإشارات [{report.state}]: أُدرِجَت {report.signals} إشارة "
+            f"من {report.overlays} تراكب"
+        )
+    if report.state == STATE_NO_OVERLAY_DATA:
+        msg = (
+            f"دورة الإشارات [{report.state}]: field_weather_overlay بلا أيّ صفّ — لا منتِج "
+            f"يكتبه ({GAP_ID}). لا إشارات طقس من هذا المصدر، وغيابُها ليس «لا خطر»."
+        )
+    elif report.state == STATE_STALE_OVERLAY_DATA:
+        msg = (
+            f"دورة الإشارات [{report.state}]: أحدثُ تراكب {report.newest_overlay_at} أقدمُ من "
+            f"ساعة — لا إشارات؛ المنتِجُ متوقّف ({GAP_ID})."
+        )
+    else:
+        msg = (
+            f"دورة الإشارات [{report.state}]: {report.unevaluable} تراكباً طازجاً بلا ساعاتٍ "
+            f"مُقيَّمة (hours_evaluated لا يحمله مخطّط v74) — لا إشارة تُحسَب ({GAP_ID})."
+        )
+    level = logging.WARNING if report.state != previous_state else logging.INFO
+    return level, msg
 
 
 async def process_overlay(conn, overlay: dict) -> int:
@@ -92,8 +194,11 @@ async def process_overlay(conn, overlay: dict) -> int:
     return len(signals)
 
 
-async def run_cycle(pool) -> int:
-    """دورة واحدة: يجلب أحدث التراكبات الطازجة ويولّد إشاراتها. يُرجِع عدد الإشارات.
+async def run_cycle(pool) -> CycleReport:
+    """دورة واحدة: يجلب أحدث التراكبات الطازجة ويولّد إشاراتها. يُرجِع حالتها المُسمّاة.
+
+    **لا تراكب طازجاً ≠ لا خطر.** حين يعود الاستعلامُ فارغاً يُسأل الجدولُ عن أحدث صفٍّ
+    فيه، فتُفرَّق «لا بيانات قطّ» عن «بيانات بائتة» — ولا تخرج الدورةُ عدداً صفريّاً صامتاً.
 
     **الحراسةُ لكلّ صفٍّ لا للدورة:** حقلٌ واحدٌ ببياناتٍ فاسدة كان يرفع استثناءً
     يخرج من الحلقة كلِّها، فتبقى **بقيّةُ الحقول بلا إشارات** حتّى الدورة التالية —
@@ -105,9 +210,15 @@ async def run_cycle(pool) -> int:
     """
     total = 0
     failed = 0
+    unevaluable = 0
+    newest = None
     async with pool.acquire() as conn:
         overlays = await conn.fetch(_RECENT_OVERLAYS_SQL)
+        if not overlays:
+            newest = await conn.fetchval(_NEWEST_OVERLAY_SQL)
         for ov in overlays:
+            if not is_evaluable(ov):
+                unevaluable += 1
             try:
                 total += await process_overlay(conn, ov)
             except Exception as exc:  # noqa: BLE001 — صفٌّ واحدٌ لا يُسقِط الدفعة
@@ -120,7 +231,13 @@ async def run_cycle(pool) -> int:
                 )
     if failed:
         log.warning("دورة الإشارات: %s حقلاً أخفق من %s", failed, len(overlays))
-    return total
+    return classify_cycle(
+        overlays=len(overlays),
+        signals=total,
+        failed=failed,
+        unevaluable=unevaluable,
+        newest_overlay_at=newest,
+    )
 
 
 async def run() -> None:
@@ -134,12 +251,16 @@ async def run() -> None:
     _touch_worker_file(READY_FILE)
     _touch_worker_file(HEARTBEAT_FILE)
     log.info("✓ weather-signal-engine بدأ — دورة كلّ %ss", INTERVAL_SEC)
+    previous_state: str | None = None
     try:
         while True:
             try:
-                count = await run_cycle(pool)
+                report = await run_cycle(pool)
+                # النبضةُ تشهد لحياة العامل لا لوجود بيانات؛ الحالةُ في السجلّ تقول الثاني.
                 _touch_worker_file(HEARTBEAT_FILE)
-                log.info("دورة الإشارات: أُدرِجَت %s إشارة", count)
+                level, msg = describe_cycle(report, previous_state)
+                log.log(level, msg)
+                previous_state = report.state
             except Exception as e:  # noqa: BLE001 — فشل دورة واحدة لا يُسقِط الحلقة
                 log.warning("تعذّرت دورة توليد الإشارات: %s", e)
             await asyncio.sleep(INTERVAL_SEC)

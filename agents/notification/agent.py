@@ -586,6 +586,23 @@ async def handle_msg(msg):
         await msg.ack()
 
 
+def _nats_error_detail(exc: Exception) -> str:
+    """Name plus NATS rejection reason; other exception messages stay redacted."""
+    import nats.errors
+
+    detail = type(exc).__name__
+    if not isinstance(exc, nats.errors.Error):
+        return detail
+    # nats.js.errors.Error is named just "Error"; the server's reason lives in description.
+    for field in ("code", "err_code"):
+        if getattr(exc, field, None) is not None:
+            detail += f" {field}={getattr(exc, field)}"
+    description = getattr(exc, "description", None)
+    if description:
+        detail += ": " + " ".join(str(description).split())[:200]
+    return detail
+
+
 async def _ensure_subscriptions():
     from nats.js.api import ConsumerConfig, StreamConfig
     from nats.js.errors import NotFoundError
@@ -621,7 +638,7 @@ async def _ensure_subscriptions():
                 config=ConsumerConfig(ack_wait=120, max_deliver=-1),
             )
         except Exception as exc:
-            logger.warning("Subscription unavailable: %s (%s)", durable, type(exc).__name__)
+            logger.warning("Subscription unavailable: %s (%s)", durable, _nats_error_detail(exc))
 
 
 async def _subscription_loop():
@@ -629,7 +646,7 @@ async def _subscription_loop():
         try:
             await _ensure_subscriptions()
         except Exception as exc:
-            logger.warning("Subscription initialization retry: %s", type(exc).__name__)
+            logger.warning("Subscription initialization retry: %s", _nats_error_detail(exc))
         await asyncio.sleep(5)
 
 

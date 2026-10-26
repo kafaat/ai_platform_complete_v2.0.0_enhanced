@@ -4,11 +4,11 @@
 
 ## Summary
 
-- Python files parsed: **2003**
+- Python files parsed: **2006**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **88764**
+- Static function-call edges: **89242**
 - Dead-code candidates: **650**
-- Duplicate function groups: **57**
+- Duplicate function groups: **56**
 - Automatic deletions: **0**
 
 ## Highest-confidence dead-code candidates
@@ -17,7 +17,7 @@
 |---|---|---|---|---:|
 | `ai-agronomist` | `_zone_polygon` | function | `services/ai_agronomist/productivity_zones.py` | 61 |
 | `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
-| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 153 |
+| `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 157 |
 | `raster-service` | `_endpoint_host` | function | `services/raster-service/object_store.py` | 66 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
@@ -63,7 +63,6 @@
 | Fingerprint | Occurrences |
 |---|---:|
 | `01e55555d0073910` | 2 |
-| `0670f96a6ce12326` | 2 |
 | `0791c0d18167f804` | 5 |
 | `10b234ebb823fb73` | 2 |
 | `1652c685e5ed27fa` | 4 |
@@ -112,6 +111,7 @@
 | `c830f52a910d32a5` | 2 |
 | `c92554a020167fed` | 2 |
 | `daa44aded5a16e85` | 2 |
+| `dbaed230242c5876` | 2 |
 
 ## Interpretation
 

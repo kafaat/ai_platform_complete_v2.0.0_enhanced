@@ -67,9 +67,68 @@ def test_runner_is_fail_closed_and_keeps_secrets_out():
         "S3_SLICE_RASTER_EXTERNAL_NOT_REFUSED",
         "S3_SLICE_REFUSAL_ECHOED_INPUT",
         "S3_SLICE_SECRET_IN_EVIDENCE",
+        "S3_SLICE_STORAGE_NETWORK_NOT_ISOLATED",
+        "S3_SLICE_STORAGE_NETWORK_PROBE_FAILED",
+        "S3_SLICE_STORAGE_NETWORK_CONTROL_FAILED",
+        "S3_SLICE_LOOPBACK_PORT_UNAVAILABLE",
+        "S3_SLICE_ANONYMOUS_ACCESS_NOT_REFUSED",
+        "S3_SLICE_WRONG_SECRET_NOT_REFUSED",
         '"tested_sha": sha',
     ):
         assert needle in text, needle
+
+
+def _step(text: str, start: str, end: str) -> str:
+    assert start in text and end in text, (start, end)
+    return text.split(start, 1)[1].split(end, 1)[0]
+
+
+def test_isolation_probe_runs_off_the_storage_network_with_a_control_on_it():
+    """MINIO-COMMUNITY-EDITION-RECEIVES-NO-SECURITY-FIXES-01: the negative probe sits on
+    sahool-internal only; the same probe on the storage network is the control, so a refusal
+    caused by anything other than isolation cannot pass."""
+    block = _step(_text(), "# 5b) Network isolation", "# 5c)")
+    probes = re.findall(r"docker run ([^\n]*)", block)
+    assert len(probes) == 2, probes
+    negative, control = probes
+    for probe in probes:
+        # The slice's own raster image, never a pull, and nothing kept afterwards.
+        assert "--rm" in probe and "--pull never" in probe and '"$raster_image"' in probe
+    assert '--network "$INTERNAL_NET"' in negative and "STORAGE_NET" not in negative
+    assert '--network "$STORAGE_NET"' in control
+    assert 'INTERNAL_NET="${PROJECT}_sahool-internal"' in block
+    assert 'STORAGE_NET="${PROJECT}_sahool-object-storage"' in block
+    # MinIO's attachments are measured, not assumed: exactly the storage and loopback networks,
+    # the storage network internal, and every MinIO address (not only the name) probed.
+    assert '[[ "$minio_nets" == "$STORAGE_NET $LOOPBACK_NET" ]]' in block
+    assert "{{.Internal}}" in block and '"$STORAGE_NET")" == "true"' in block
+    assert "$minio_ips" in negative
+    assert 'getaddrinfo("sahool-minio", 9000)' in block
+    assert "! grep -q ' OPEN$'" in block
+
+
+def test_unauthorized_access_and_loopback_ports_are_measured():
+    block = _step(_text(), "# 5c)", "# 6)")
+    assert "http://127.0.0.1:9000/minio/health/live" in block
+    assert "http://127.0.0.1:9001/" in block
+    # Host-side requests never go through a proxy that could answer for MinIO.
+    assert "ProxyHandler({})" in block
+    assert "grep -c '^ANONYMOUS .* 403$'" in block and "== 4 ]]" in block
+    assert "WRONG_SECRET DENIED SignatureDoesNotMatch" in block
+
+
+def test_the_slice_is_compose_s_own_isolated_topology():
+    doc = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    services = doc["services"]
+    assert doc["networks"]["sahool-object-storage"]["internal"] is True
+    assert services["sahool-minio"]["networks"] == [
+        "sahool-object-storage",
+        "sahool-object-storage-loopback",
+    ]
+    for name in SLICE - {"sahool-minio"}:
+        assert "sahool-object-storage" in services[name]["networks"], name
+    # The probe needs sahool-internal to exist in the slice: raster-service creates it.
+    assert "sahool-internal" in services["sahool-raster-service"]["networks"]
 
 
 def test_slice_services_exist_with_the_internal_opt_in_defaulting_off():

@@ -1096,6 +1096,7 @@
         "RAG_INIT_BACKOFF_BASE_S",
         "RAG_INIT_BACKOFF_CAP_S",
         "RAG_INIT_MAX_ATTEMPTS",
+        "RAG_REINDEX_PROFILE_MANIFEST",
         "RAG_RETRIEVAL_SHADOW",
         "RAG_RETRIEVAL_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
@@ -1681,15 +1682,19 @@
       "evidence_paths": {
         "configuration": [],
         "metrics": [
-          "services/raster-tiler-service/main.py"
+          "services/raster-tiler-service/main.py",
+          "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py"
         ],
         "routes": [
-          "services/raster-tiler-service/main.py"
+          "services/raster-tiler-service/main.py",
+          "services/raster-tiler-service/tests/test_raster_tiler_wrapper_routes.py"
         ],
         "tracing": []
       },
       "observability": {
-        "metric_names": [],
+        "metric_names": [
+          "sahool_raster_tiler_contract_probe"
+        ],
         "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
@@ -2450,7 +2455,8 @@
         ],
         "metrics": [],
         "routes": [
-          "services/sam2-inference/main.py"
+          "services/sam2-inference/main.py",
+          "services/sam2-inference/tests/test_sam2_inference_http_contract.py"
         ],
         "tracing": []
       },

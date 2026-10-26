@@ -26,6 +26,12 @@ class AnomalyStoreFacade:
     def __init__(self, backend: Any) -> None:
         self._backend = backend
 
+    async def close(self) -> None:
+        """Release backend resources at shutdown (the postgres pool; sqlite has none)."""
+        close = getattr(self._backend, "close", None)
+        if close is not None:
+            await _maybe(close())
+
     async def upsert_detected(self, payload: dict[str, Any]) -> dict[str, Any]:
         return await _maybe(self._backend.upsert_detected(payload))
 

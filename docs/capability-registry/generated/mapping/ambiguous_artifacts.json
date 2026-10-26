@@ -20,19 +20,20 @@
         ]
       },
       {
+        "capability_id": "IRR-003",
+        "score": 12,
+        "signals": [
+          "content:Field water-source binding",
+          "content:field water source",
+          "content:source binding"
+        ]
+      },
+      {
         "capability_id": "DEC-008",
         "score": 12,
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"
-        ]
-      },
-      {
-        "capability_id": "DEC-004",
-        "score": 12,
-        "signals": [
-          "content:Execution request",
-          "content:execution request"
         ]
       }
     ]
@@ -1273,6 +1274,36 @@
     ]
   },
   {
+    "path": "docs/WEB_MOBILE_PARITY.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 10,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
     "kind": "other",
     "candidates": [
@@ -1512,6 +1543,30 @@
         "signals": [
           "content:Field forms",
           "content:field form"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/db_writer_ownership_baseline.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 16,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "DEC-010",
+        "score": 15,
+        "signals": [
+          "content:model activation",
+          "content:model promotion",
+          "content:model rollback"
         ]
       }
     ]
@@ -4573,6 +4628,28 @@
         "signals": [
           "content:crop season",
           "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/field_workspace_screen.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "FM-003",
+        "score": 12,
+        "signals": [
+          "path:field workspace",
+          "content:field workspace"
         ]
       }
     ]

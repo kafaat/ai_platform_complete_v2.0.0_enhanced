@@ -75,6 +75,7 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
+from shared.pool_shutdown import close_pools_bounded
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 from shared.startup_retry import retry_startup_connect
@@ -609,11 +610,10 @@ async def _stop_scheduler():
 
 
 async def _close_db_pool():
-    global _DB_POOL
-    if _DB_POOL is not None:
-        await _DB_POOL.close()
-        _DB_POOL = None
+    global _DB_POOL, _JOBS_POOL
+    pools, _DB_POOL, _JOBS_POOL = [(_JOBS_POOL, "jobs"), (_DB_POOL, "app")], None, None
     app.state.db_pool = None
+    await close_pools_bounded(pools)  # the jobs pool too, which used to stay open
 
 
 def get_pool():

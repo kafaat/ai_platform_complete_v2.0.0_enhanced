@@ -1511,8 +1511,12 @@ class HybridQdrantRetriever:
                 if not matches_scope_filters(neighbor, filters):
                     continue
                 seen.add(neighbor.chunk_id)
+                # REPORT3-RAG-08-01: neither leg scored the neighbour, so its
+                # dense/BM25 scores are absent (None), not a measured 0.0.
                 out.append(
-                    RetrievedAnnotation(neighbor, 0.0, 0.0, hit.fused_score * 0.65, role="neighbor")
+                    RetrievedAnnotation(
+                        neighbor, None, None, hit.fused_score * 0.65, role="neighbor"
+                    )
                 )
         return out
 

@@ -95,3 +95,40 @@ Honesty limits:
 * A review posted after the last workflow run is read only on the next push or edit of the
   PR.
 * A fork whose token cannot read the comments is reported as not measured, not judged.
+
+## 2026-10-26 — binding, and the Conversation tab
+
+Two of the honesty limits above are now code (base `ae30a0fcf`):
+
+* **IDs are bound, not counted.** When a text holds several labelled findings, each finding
+  has a segment: from the start of its label's line (or from the label, when the previous
+  label shares the line) to where the next one opens. The ID that answers a finding must
+  stand in its segment, and no ID answers two (a bipartite matching). A text with one
+  finding is still one segment. IDs that come from a thread reply or from a linking
+  paragraph have no position in the finding's text; they are still counted against the
+  thread, not bound.
+* **The Conversation tab is read.** The fetch step adds `/issues/<n>/comments` as the
+  `issue_comments` kind (envelope `sahool.pr-review-bodies.v2`; the job also gets
+  `issues: read`). A Conversation comment is not review context by definition. A
+  labelled paragraph counts when it, or the comment's first line, is in review context.
+  `#issuecomment-<id>` links anchor like the other thread links.
+
+Measurement, with the guard at `ae30a0fcf` against the new guard and the same registry:
+
+| Corpus | Commits / comments | Flags before | Flags after | New flags |
+|---|---|---|---|---|
+| `git log --no-merges HEAD` (`ae30a0fcf`) | 2451 commits | 7 | 7 | 0 |
+| `git log --no-merges --remotes=origin` | 3950 commits | 9 | 9 | 0 |
+| Conversation comments, `GET /repos/…/issues/comments` (all pages, 2026-10-26) | 350 (owner 287, dependabot 48, Copilot 13, others 2) | not read | 0 | 0 |
+| Inline review comments, `GET /repos/…/pulls/comments` (all pages, 2026-10-26) | 1191 (Copilot 806, owner 385), 809 roots | — | 0 | 0 |
+
+No Conversation comment and no inline root in this repository carries a severity label
+form, so this is evidence of no false positives. It is not evidence that the rule catches
+anything live. The binding and Conversation witnesses in
+`tests_v9/test_pr_finding_gap_id_guard.py` are synthetic.
+
+Still open after this change:
+
+* No real labelled comment has been judged live yet.
+* Conversation comments start no PR-attached run, so one posted after the last run is
+  read on the next run.
