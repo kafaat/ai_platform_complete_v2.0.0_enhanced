@@ -5,13 +5,12 @@ ONNX Runtime with INT8 quantization for ARM64
 Supports: YOLOv8-World / MobileViT / Custom quantized models
 """
 
-import io
 import logging
 import os
 
 import numpy as np
 from models.errors import ModelNotProvisioned
-from PIL import Image
+from models.image_decode import decode_rgb
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +23,43 @@ PEST_MODEL_ENV = "PEST_MODEL_PATH"
 
 # Cache of loaded ONNX sessions keyed by resolved model path (one session per file).
 _ONNX_SESSION_CACHE: dict[str, object] = {}
+
+# YOLOv8 heads emit one candidate per anchor; a single insect lights up many
+# neighbouring anchors. Overlapping boxes of the same class are collapsed to
+# the highest-scoring one (standard YOLOv8 IoU threshold).
+NMS_IOU_THRESHOLD = 0.45
+
+
+def _box_area(boxes_xyxy: np.ndarray) -> np.ndarray:
+    return np.clip(boxes_xyxy[..., 2] - boxes_xyxy[..., 0], 0, None) * np.clip(
+        boxes_xyxy[..., 3] - boxes_xyxy[..., 1], 0, None
+    )
+
+
+def _nms_per_class(
+    boxes_xyxy: np.ndarray, scores: np.ndarray, class_ids: np.ndarray, iou_threshold: float
+) -> list[int]:
+    """Greedy non-maximum suppression within each class. Returns kept indices,
+    highest score first. Boxes of different classes never suppress each other."""
+    keep: list[int] = []
+    for cls in np.unique(class_ids):
+        idx = np.flatnonzero(class_ids == cls)
+        idx = idx[np.argsort(-scores[idx], kind="stable")]
+        while idx.size:
+            best, rest = idx[0], idx[1:]
+            keep.append(int(best))
+            if not rest.size:
+                break
+            x1 = np.maximum(boxes_xyxy[best, 0], boxes_xyxy[rest, 0])
+            y1 = np.maximum(boxes_xyxy[best, 1], boxes_xyxy[rest, 1])
+            x2 = np.minimum(boxes_xyxy[best, 2], boxes_xyxy[rest, 2])
+            y2 = np.minimum(boxes_xyxy[best, 3], boxes_xyxy[rest, 3])
+            inter = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+            union = _box_area(boxes_xyxy[best]) + _box_area(boxes_xyxy[rest]) - inter
+            iou = np.where(union > 0, inter / np.where(union > 0, union, 1), 0.0)
+            idx = rest[iou <= iou_threshold]
+    keep.sort(key=lambda i: -float(scores[i]))
+    return keep
 
 
 def _ml_pest_model_path(fallback_path: str | None = None) -> str | None:
@@ -191,7 +227,7 @@ class EdgePestDetector:
         tag detections "source": "ml_onnx". Otherwise fail closed with ModelNotProvisioned; no synthetic detections are returned.
         """
         # Preprocess (shared by both paths — image features are computed here).
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = decode_rgb(image_bytes)  # يرفض ما فوق سقف البكسلات قبل الفكّ
         original_size = image.size
 
         # Resize
@@ -249,12 +285,23 @@ class EdgePestDetector:
         if float(np.nanmax(np.abs(boxes))) > 1.5:
             boxes = boxes / scale
 
+        class_ids = np.argmax(scores[:, :n_classes], axis=1)
+        confidences = scores[np.arange(scores.shape[0]), class_ids].astype(np.float64)
+        candidates = np.flatnonzero(confidences >= threshold)
+        cx, cy, bw, bh = (boxes[candidates, k].astype(np.float64) for k in range(4))
+        xyxy = np.stack([cx - bw / 2.0, cy - bh / 2.0, cx + bw / 2.0, cy + bh / 2.0], axis=1)
+        kept = _nms_per_class(
+            xyxy.reshape(-1, 4),
+            confidences[candidates],
+            class_ids[candidates],
+            NMS_IOU_THRESHOLD,
+        )
+
         detections = []
-        for i in range(preds.shape[0]):
-            class_id = int(np.argmax(scores[i, :n_classes]))
-            confidence = float(scores[i, class_id])
-            if confidence < threshold:
-                continue
+        for k in kept:
+            i = int(candidates[k])
+            class_id = int(class_ids[i])
+            confidence = float(confidences[i])
             pest_key = pest_keys[class_id]
             pest_info = self.PEST_DB[pest_key]
             cx, cy, w, h = (float(v) for v in boxes[i, :4])

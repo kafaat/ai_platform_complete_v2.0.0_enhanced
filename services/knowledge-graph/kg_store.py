@@ -47,6 +47,16 @@ class GraphEdge:
             raise ValueError("Use reference relation names such as historically_used_for")
 
 
+class EdgeConflictError(Exception):
+    """An existing ``edge_id`` was re-posted with different endpoints.
+
+    The upsert used to update only ``relation``/``properties_json`` and keep the old
+    ``subject_id``/``object_id`` while reporting success, so the caller believed an edge
+    existed that the graph did not hold. Endpoints are the edge's identity: changing them
+    needs a new ``edge_id``, and the conflicting write is refused instead.
+    """
+
+
 class SQLiteAgGraphStore:
     def __init__(self, db_path: str | Path) -> None:
         self.db_path = Path(db_path)
@@ -128,9 +138,12 @@ class SQLiteAgGraphStore:
         import json
 
         with self._connect() as conn:
-            conn.execute(
+            # The WHERE makes the conflict path a no-op when the stored endpoints differ;
+            # rowcount 0 then means the edge_id is taken by another (subject, object).
+            cursor = conn.execute(
                 "INSERT INTO kg_edges(edge_id,subject_id,relation,object_id,confidence,prescriptive,properties_json) "
-                "VALUES(?,?,?,?,?,?,?) ON CONFLICT(edge_id) DO UPDATE SET relation=excluded.relation,properties_json=excluded.properties_json",
+                "VALUES(?,?,?,?,?,?,?) ON CONFLICT(edge_id) DO UPDATE SET relation=excluded.relation,properties_json=excluded.properties_json "
+                "WHERE kg_edges.subject_id=excluded.subject_id AND kg_edges.object_id=excluded.object_id",
                 (
                     edge.edge_id,
                     edge.subject_id,
@@ -141,6 +154,11 @@ class SQLiteAgGraphStore:
                     json.dumps(edge.properties or {}, ensure_ascii=False),
                 ),
             )
+            if cursor.rowcount == 0:
+                raise EdgeConflictError(
+                    f"edge_id {edge.edge_id!r} already links different endpoints; "
+                    "use a new edge_id to connect other nodes"
+                )
 
     def count_edges(self) -> int:
         with self._connect() as conn:

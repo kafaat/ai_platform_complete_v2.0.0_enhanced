@@ -4,6 +4,7 @@ import csv
 import io
 from pathlib import Path
 
+import pytest
 from core.simple_farm_book import entries_csv, summarize_entries
 
 
@@ -190,3 +191,25 @@ def test_router_guards_scope_offline_conflict_and_exports() -> None:
     ):
         assert token in body
     compile(body, "simple_farm_book.py", "exec")
+
+
+@pytest.mark.unit
+def test_reversal_in_a_later_month_cancels_in_its_own_month() -> None:
+    # A March expense reversed in April: March keeps it, April carries the negation,
+    # and the months add up to the all-time balance (where both cancel).
+    march = [
+        _entry(entry_id="exp-1", amount=100, occurred_on="2026-03-10"),
+        _entry(entry_id="exp-2", amount=40, occurred_on="2026-03-20"),
+    ]
+    april = [
+        _entry(
+            entry_id="rev-of-1", amount=100, reverses_entry_id="exp-1", occurred_on="2026-04-02"
+        ),
+    ]
+    all_time = summarize_entries(march + april)
+    months = [summarize_entries(march), summarize_entries(april)]
+    assert months[0]["total_expenses"] == 140
+    assert months[1]["total_expenses"] == -100
+    for key in ("total_expenses", "total_income", "net", "cash_balance_effect"):
+        assert sum(m[key] for m in months) == all_time[key], key
+    assert all_time["total_expenses"] == 40

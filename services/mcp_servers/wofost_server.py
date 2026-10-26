@@ -5,14 +5,18 @@ Crop simulation via WOFOST-RUE with MCP interface
 """
 
 import email.message
-import json
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
-from shared.oauth_middleware import idempotency_key, require_scope
+from shared.oauth_middleware import (
+    idempotency_cache_get,
+    idempotency_cache_put,
+    idempotency_key,
+    require_scope,
+)
 from shared.streamable_http import StreamableHTTPTransport
 
 app = FastAPI(title="SAHOOL WOFOST MCP Server", version="2026.1")
@@ -93,7 +97,7 @@ async def list_tools():
             },
             {
                 "name": "get_crop_parameters",
-                "description": "احصل على معاملات WOFOST للمحصول المحدد",
+                "description": "غير مُنفَّذة هنا (501) — معاملات المحاصيل يملكها agriai-engine (ملفّات PCSE)",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -146,18 +150,13 @@ async def call_tool(request: Request, user: dict = Depends(require_scope("crop:r
     args = call.arguments
     req_id = idempotency_key(user, call.request_id, name, args)
 
-    if req_id and req_id in IDEMPOTENCY_CACHE:
-        cached = IDEMPOTENCY_CACHE[req_id]
-        if datetime.now(UTC) < cached["expires"]:
-            return cached["result"]
+    cached = idempotency_cache_get(IDEMPOTENCY_CACHE, req_id)
+    if cached is not None:
+        return cached
 
     result = await _execute(name, args)
 
-    if req_id:
-        IDEMPOTENCY_CACHE[req_id] = {
-            "result": result,
-            "expires": datetime.now(UTC) + timedelta(seconds=CACHE_TTL),
-        }
+    idempotency_cache_put(IDEMPOTENCY_CACHE, req_id, result, ttl_seconds=CACHE_TTL)
 
     return result
 
@@ -186,81 +185,19 @@ async def _execute(name: str, args: dict) -> dict:
         )
 
     elif name == "get_crop_parameters":
-        crop = args["crop"]
-        params = {
-            "wheat": {
-                "tsum1": 200,
-                "tsum2": 600,
-                "tdwi": 50,
-                "rgrlai": 0.012,
-                "span": 30,
-                "wlv": 0.5,
-            },
-            "barley": {
-                "tsum1": 180,
-                "tsum2": 550,
-                "tdwi": 45,
-                "rgrlai": 0.014,
-                "span": 28,
-                "wlv": 0.45,
-            },
-            "maize": {
-                "tsum1": 300,
-                "tsum2": 800,
-                "tdwi": 70,
-                "rgrlai": 0.010,
-                "span": 35,
-                "wlv": 0.6,
-            },
-            "sorghum": {
-                "tsum1": 250,
-                "tsum2": 700,
-                "tdwi": 60,
-                "rgrlai": 0.011,
-                "span": 32,
-                "wlv": 0.55,
-            },
-            "millet": {
-                "tsum1": 220,
-                "tsum2": 650,
-                "tdwi": 40,
-                "rgrlai": 0.013,
-                "span": 25,
-                "wlv": 0.4,
-            },
-            "rice": {
-                "tsum1": 350,
-                "tsum2": 900,
-                "tdwi": 80,
-                "rgrlai": 0.009,
-                "span": 40,
-                "wlv": 0.7,
-            },
-            "potato": {
-                "tsum1": 150,
-                "tsum2": 400,
-                "tdwi": 100,
-                "rgrlai": 0.015,
-                "span": 20,
-                "wlv": 0.8,
-            },
-        }
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps(
-                        {
-                            "crop": crop,
-                            "parameters": params.get(crop, {}),
-                            "source": "WOFOST Parameter Library SAHOOL v9",
-                        },
-                        ensure_ascii=False,
-                    ),
-                }
-            ]
-        }
+        # The table that used to be returned here was hand-written and labelled as a
+        # WOFOST parameter library, yet it contradicted the vendored PCSE crop files
+        # (wheat TSUM1 200 here vs 543 in agriai-engine pcse_data/wofost72_crop/
+        # wheat.yaml) and listed crops the simulator refuses. Crop parameters belong
+        # to the same owner as the simulation (agriai-engine), so this tool declines
+        # in the same way run_wofost_simulation does instead of serving invented values.
+        raise HTTPException(
+            status_code=501,
+            detail=(
+                "معاملات محاصيل WOFOST غير مُنفَّذة على خادم MCP هذا — مصدرها ملفّات PCSE "
+                "المُضمَّنة في agriai-engine مالك المحاكاة؛ لا تُقدَّم قيمٌ مكتوبة يدويّاً."
+            ),
+        )
 
     else:
         raise HTTPException(status_code=400, detail=f"Unknown tool: {name}")

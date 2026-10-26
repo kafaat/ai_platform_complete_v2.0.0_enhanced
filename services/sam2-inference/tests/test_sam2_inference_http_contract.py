@@ -521,6 +521,121 @@ def test_predict_returns_422_when_there_is_no_image_and_no_bbox(svc, client, mon
     assert calls.read == [] and calls.predictor.prompts == []
 
 
+# ═══ image_ref: لا يبلغ GDAL إلّا https إلى مضيف COG مسموح ═══════════════════
+ALLOWED_COG = (
+    "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/38/P/LB/2026/9/"
+    "S2B_38PLB_20260901_0_L2A/TCI.tif"
+)
+HOSTILE_REFS = [
+    "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+    "http://127.0.0.1:8080/internal",
+    "http://sentinel-cogs.s3.us-west-2.amazonaws.com/x/TCI.tif",  # http لا https
+    "https://169.254.169.254/latest/meta-data/",
+    "https://attacker.example.com/TCI.tif",
+    "https://sentinel-cogs.s3.us-west-2.amazonaws.com.attacker.example/TCI.tif",
+    "https://user@sentinel-cogs.s3.us-west-2.amazonaws.com/TCI.tif",
+    "https://sentinel-cogs.s3.us-west-2.amazonaws.com:8443/TCI.tif",
+    "/etc/passwd",
+    "/vsizip//tmp/x.zip/a.tif",
+    "/vsicurl/http://127.0.0.1:8080/x",
+    "/vsis3/bucket/key.tif",
+    "s3://bucket/key.tif",
+    "file:///etc/passwd",
+    "ftp://example.com/a.tif",
+]
+
+
+@pytest.mark.parametrize("ref", HOSTILE_REFS)
+def test_resolve_image_url_rejects_local_vsi_and_non_allowlisted_refs_with_422(svc, ref):
+    # field_bbox=None: الرفض يجب أن يأتي من الحارس، لا من غياب bbox ولا من STAC.
+    with pytest.raises(svc.rt.HTTPException) as exc:
+        svc.rt._resolve_image_url(ref, None)
+    assert exc.value.status_code == 422
+    assert exc.value.detail["error"] == "image_ref_not_allowed"
+
+
+@pytest.mark.parametrize("ref", HOSTILE_REFS)
+def test_read_rgb_never_hands_a_disallowed_ref_to_gdal(svc, monkeypatch, ref):
+    import rasterio
+
+    opened: list[str] = []
+    monkeypatch.setattr(rasterio, "open", lambda path, *a, **k: opened.append(path))
+    with pytest.raises(svc.rt.HTTPException) as exc:
+        svc.rt._read_rgb(ref, BBOX)
+    assert exc.value.status_code == 422
+    assert opened == []
+
+
+def test_stac_href_outside_the_allowlist_is_refused_before_gdal(svc, client, monkeypatch):
+    """مرجع مشهد يسقط إلى STAC؛ href غير مسموح منه لا يُفتح أيضاً."""
+    import rasterio
+
+    opened: list[str] = []
+    monkeypatch.setattr(rasterio, "open", lambda path, *a, **k: opened.append(path))
+    real_resolve, real_read = svc.rt._resolve_image_url, svc.rt._read_rgb
+    calls = _arm(svc, monkeypatch)
+    monkeypatch.setattr(svc.rt, "_resolve_image_url", real_resolve)
+    monkeypatch.setattr(svc.rt, "_read_rgb", real_read)
+    monkeypatch.setattr(
+        svc.rt, "_stac_latest_visual", lambda bbox: "http://169.254.169.254/latest/meta-data/"
+    )
+
+    r = _predict(client, {"mode": "auto", "image_ref": "S2B_38PLB_20260901", "field_bbox": BBOX})
+
+    assert r.status_code == 422
+    assert r.json()["detail"]["error"] == "image_ref_not_allowed"
+    assert opened == [] and calls.predictor.prompts == []
+
+
+def test_allowlisted_https_cog_is_read_through_vsicurl(svc, monkeypatch):
+    import rasterio
+
+    opened: list[str] = []
+
+    def _open(path, *a, **k):
+        opened.append(path)
+        raise rasterio.errors.RasterioIOError("no network in tests")
+
+    monkeypatch.setattr(rasterio, "open", _open)
+    assert svc.rt._resolve_image_url(ALLOWED_COG, None) == ALLOWED_COG
+    with pytest.raises(svc.rt.HTTPException):
+        svc.rt._read_rgb(ALLOWED_COG, BBOX)
+    assert opened == [f"/vsicurl/{ALLOWED_COG}"]
+
+
+def test_image_host_allowlist_is_env_overridable(make_svc, monkeypatch):
+    monkeypatch.setenv("SAM2_IMAGE_HOST_ALLOWLIST", "cogs.example.org, Other.Example.org")
+    rt = make_svc().rt
+    assert rt._resolve_image_url("https://cogs.example.org/a.tif", None) == (
+        "https://cogs.example.org/a.tif"
+    )
+    assert rt._resolve_image_url("https://other.example.org/b.tif", None)
+    with pytest.raises(rt.HTTPException) as exc:
+        rt._resolve_image_url(ALLOWED_COG, None)
+    assert exc.value.status_code == 422
+
+
+def test_gdal_http_timeouts_are_set_at_import_unless_the_operator_set_them(make_svc, monkeypatch):
+    import os
+
+    for key in ("GDAL_HTTP_TIMEOUT", "GDAL_HTTP_CONNECTTIMEOUT"):
+        monkeypatch.setenv(key, "placeholder")  # يُسجَّل للاستعادة ثمّ يُحذف
+        monkeypatch.delenv(key)
+    make_svc()
+    assert int(os.environ["GDAL_HTTP_TIMEOUT"]) > 0
+    assert int(os.environ["GDAL_HTTP_CONNECTTIMEOUT"]) > 0
+
+    monkeypatch.setenv("GDAL_HTTP_TIMEOUT", "7")
+    make_svc()
+    assert os.environ["GDAL_HTTP_TIMEOUT"] == "7"
+
+
+def test_dockerfile_pins_gdal_http_timeouts():
+    dockerfile = (SVC_DIR / "Dockerfile").read_text(encoding="utf-8")
+    assert "GDAL_HTTP_TIMEOUT=" in dockerfile
+    assert "GDAL_HTTP_CONNECTTIMEOUT=" in dockerfile
+
+
 # ═══ الحياة والجاهزيّة ════════════════════════════════════════════════════════
 def test_healthz_is_alive_even_while_the_model_is_not_loaded(svc, client):
     assert client.get("/readyz").status_code == 503  # متدهور فعلاً

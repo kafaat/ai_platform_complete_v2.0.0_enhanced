@@ -1,8 +1,10 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "02e636b9a1790c8cc1918efec6fe52b5600d4f6c",
+  "measured_on": "dbd2e3cbe1683fcee27ff9eb1a923aa0add6e323",
   "fake_connection_tests": [
+    "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
     "services/decision-service/tests/test_migration_runner_readonly.py",
+    "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
     "services/raster-service/test_backfill_processing_version_preflight.py",
     "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
@@ -18,6 +20,7 @@
     "services/sahool-platform/tests/test_decision_impact_endpoint.py",
     "services/sahool-platform/tests/test_decision_interim_bridge.py",
     "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+    "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
     "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py",
     "services/sahool-platform/tests/test_farm_operations_ledger.py",
     "services/sahool-platform/tests/test_field_aggregate_ports.py",
@@ -78,6 +81,7 @@
     "tests_v9/test_manual_command_killswitch_scope.py",
     "tests_v9/test_market_resource_authz.py",
     "tests_v9/test_mcp_auth_first_contract.py",
+    "tests_v9/test_mcp_tool_hardening.py",
     "tests_v9/test_notification_delivery_reliability.py",
     "tests_v9/test_notification_queue_rollout.py",
     "tests_v9/test_odoo_bridge_tenant_honesty.py",
@@ -118,6 +122,9 @@
     ],
     "services/sahool-platform/tests/test_drawing_features_v38_static.py": [
       "CHECK"
+    ],
+    "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py": [
+      "TRIGGER"
     ],
     "services/sahool-platform/tests/test_geometry_history_decodes_jsonb.py": [
       "jsonb"
@@ -418,6 +425,19 @@
         "tests_v9/test_pool_single_owner_audit.py"
       ],
       "justification": "One explicit admission for the create_pool audit. FakePool stands in for asyncpg.create_pool to interleave concurrent cold callers deterministically and to make close() hang, which measures only the lock ordering, the bounded close and the terminate fallback in decision-service persistence, the vegetation PostgresAnomalyStore and the platform _close_db_pool. It claims no PostgreSQL enforcement: tests_v9/test_pool_single_owner_live_pg.py counts real backends in pg_stat_activity by application_name for the same three owners. No proven_live exemption is added."
+    },
+    {
+      "kind": "ai_review_20261026_decision_proxy_mcp_fakes",
+      "date": "2026-10-26",
+      "before": 106,
+      "after": 110,
+      "sites": [
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+        "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
+        "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+        "tests_v9/test_mcp_tool_hardening.py"
+      ],
+      "justification": "Four admissions from the 2026-10-26 AI review fixes, each a fake connection that answers only the rows the code under test reads, to pin a refusal path before any database work: the decision-service receipt gate (verified_success refused unless the receipt is accepted) and the promotion guardrail direction (signed deltas, non-negative thresholds) read one decision/receipt row through _FakeConn; the platform edge/segmentation proxy test answers the tenant field-ownership fetchval to show a foreign field_id is refused before the service token is attached; the MCP market/sentinel test answers procurement fetchval calls to show the server-side approval ceiling and the token tenant are used. None claims PostgreSQL enforcement (RLS, constraints or locks); no proven_live exemption is added."
     }
   ]
 }

@@ -194,6 +194,7 @@
         "PLATFORM_URL",
         "RAG_BASE_URL",
         "REDIS_URL",
+        "SAHOOL_AGENT_AUDIT_MAX_RECORDS",
         "SAHOOL_AGENT_REDIS_URL",
         "SAHOOL_AGENT_STORE_BACKEND",
         "SAHOOL_BOUNDARY_CONTOUR_TRACING",
@@ -539,6 +540,7 @@
       "configuration": [
         "EDGE_DEVICE",
         "EDGE_DEVICE_ID",
+        "EDGE_MAX_IMAGE_PIXELS",
         "EDGE_PRODUCTION_REQUIRED",
         "EDGE_READINESS_MODE",
         "EDGE_SYNC_DIR",
@@ -575,6 +577,7 @@
         "configuration": [
           "services/edge-inference/download_models.py",
           "services/edge-inference/main.py",
+          "services/edge-inference/models/image_decode.py",
           "services/edge-inference/models/pest_detector.py",
           "services/edge-inference/models/yield_estimator.py",
           "services/edge-inference/sync_service.py"
@@ -1165,6 +1168,7 @@
         "DATABASE_URL",
         "ERP_BRIDGE_URL",
         "JWT_PUBLIC_KEY",
+        "MARKET_AUTO_APPROVE_BELOW_USD",
         "MCP_SERVICE",
         "ODOO_BRIDGE_URL",
         "OPEN_METEO_ARCHIVE_URL",
@@ -2421,10 +2425,13 @@
       },
       "configuration": [
         "EARTH_SEARCH_URL",
+        "GDAL_HTTP_CONNECTTIMEOUT",
+        "GDAL_HTTP_TIMEOUT",
         "HTTP_TIMEOUT",
         "MAX_IMAGE_DIM",
         "SAM2_CHECKPOINT",
         "SAM2_CHECKPOINT_SHA256",
+        "SAM2_IMAGE_HOST_ALLOWLIST",
         "SAM2_MODEL_CFG",
         "SAM2_POLYGON_DEDUP_TOLERANCE_M",
         "SAM2_POLYGON_SIMPLIFY_TOLERANCE_M",
@@ -2451,7 +2458,8 @@
       "entrypoint": "services/sam2-inference/main.py",
       "evidence_paths": {
         "configuration": [
-          "services/sam2-inference/sam2_runtime.py"
+          "services/sam2-inference/sam2_runtime.py",
+          "services/sam2-inference/tests/test_sam2_inference_http_contract.py"
         ],
         "metrics": [],
         "routes": [

@@ -47,8 +47,7 @@ async def process_query(
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
     trusted_user_id = user.get("sub") or user.get("user_id")
     trusted_tenant_id = user.get("tenant_id")
-    # Bind only server-fetched field state. Missing evidence is explicit to
-    # quantitative skills; client context cannot forge the canonical state.
+    # Bind only server-fetched field state; client context cannot forge canonical state.
     if not trusted_user_id or not trusted_tenant_id:
         raise HTTPException(401, "Token missing user or tenant identity")
     agro_context = main.bind_field_context(query.context, None)
@@ -112,6 +111,7 @@ async def process_query(
         if result.get("type") in {"unavailable", "governance_pending"}
         else confidence,
         sources=result.get("sources", []),
+        ai_generated=result.get("ai_generated") is True,
         processing_time_ms=elapsed,
     )
 
@@ -125,24 +125,24 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     trusted_tenant_id = user.get("tenant_id")
     if not trusted_tenant_id or not user.get("sub"):
         raise HTTPException(401, "Token missing user or tenant identity")
-    rs_task = main.skill_libraries["remote_sensing"].execute(
-        intent="full_analysis", field_id=query.field_id, tenant_id=trusted_tenant_id
-    )
-    cm_task = main.skill_libraries["crop_model"].execute(
-        intent="simulate_current", field_id=query.field_id, tenant_id=trusted_tenant_id
-    )
-    mk_task = main.skill_libraries["market"].execute(
-        intent="price_forecast", field_id=query.field_id, tenant_id=trusted_tenant_id
-    )
+    # Same evidence binding as /v1/agent/query: server-fetched canonical field state and
+    # the caller's verified bearer. Without them CropModelSkill never saw the crop and
+    # always answered crop_required.
+    skill_kwargs = await main._bound_skill_kwargs(query, user, trusted_tenant_id)
+    rs_task = main.skill_libraries["remote_sensing"].execute(intent="full_analysis", **skill_kwargs)
+    cm_task = main.skill_libraries["crop_model"].execute(intent="simulate_current", **skill_kwargs)
+    mk_task = main.skill_libraries["market"].execute(intent="price_forecast", **skill_kwargs)
     try:
         with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
             rs_result, cm_result, mk_result = await asyncio.gather(rs_task, cm_task, mk_task)
     except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
         return main._degraded_response(start_time, "optimization", classify_mcp_error(exc))
-    if cm_result.get("type") != "crop_simulation":
-        # _generate_scenarios يملأ الغائب بثوابت (yield=2000، water=400): محاكاة غير متاحة
-        # (بلا محصول/طقس، أو فشل agriai المُغلَق) تُصبح سيناريوهات مُختلَقة. تدهور صريح بدلها.
-        reason = (cm_result.get("structured") or {}).get("reason") or "crop_model_unavailable"
+    # _generate_scenarios يملأ الغائب بثوابت (yield=2000، water=400): محاكاة غير متاحة
+    # (بلا محصول/طقس، أو فشل agriai المُغلَق) تُصبح سيناريوهات مُختلَقة. تدهور صريح بدلها.
+    # Profit-ranked scenarios also need an observed market price; none is assumed (the
+    # market skill reports USD for an unrecorded unit, never YER/kg).
+    reason = main._optimization_inputs_gap(cm_result, mk_result)
+    if reason:
         return main._degraded_response(start_time, "optimization", reason)
     scenarios = main._generate_scenarios(rs_result, cm_result, mk_result)
     pareto_front = main._pareto_optimal(scenarios, query.preferred_objectives)

@@ -63,6 +63,32 @@ def test_half_open_failure_reopens():
     assert cb.state == CircuitState.OPEN
 
 
+def test_half_open_admits_one_probe_at_a_time():
+    cb = CircuitBreaker(name="t", failure_threshold=2, recovery_timeout=0.05, success_threshold=2)
+    cb.record_failure()
+    cb.record_failure()
+    time.sleep(0.06)
+    assert cb.allow_request() is True  # the single probe
+    assert cb.allow_request() is False  # concurrent callers keep failing fast
+    cb.record_success()
+    assert cb.state == CircuitState.HALF_OPEN
+    assert cb.allow_request() is True  # next probe once the first settled
+    assert cb.allow_request() is False
+    cb.record_success()
+    assert cb.state == CircuitState.CLOSED
+    assert cb.allow_request() is True and cb.allow_request() is True
+
+
+def test_half_open_probe_released_without_verdict():
+    cb = CircuitBreaker(name="t", failure_threshold=1, recovery_timeout=0.05)
+    cb.record_failure()
+    time.sleep(0.06)
+    assert cb.allow_request() is True
+    cb.release()  # the call ended without a transport verdict (e.g. caller error)
+    assert cb.state == CircuitState.HALF_OPEN
+    assert cb.allow_request() is True
+
+
 def test_registry_isolates_services():
     reg = CircuitBreakerRegistry(failure_threshold=2)
     weather = reg.get("weather")

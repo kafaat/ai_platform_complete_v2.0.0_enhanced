@@ -146,6 +146,64 @@ async def test_legacy_queue_file_with_stored_device_identity_replays_that_identi
     assert sync.queue_size() == 0
 
 
+def _dead_letter_files(sync) -> list[Path]:
+    return sorted((Path(sync.sync_dir) / "dead_letter").glob("*.json"))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [400, 404, 409, 422])
+async def test_permanent_rejection_moves_the_item_to_dead_letter_not_the_retry_queue(
+    sync, respx_mock, status
+):
+    """حقلٌ غير موجود (404) أو جسمٌ مرفوض لا تُصلحه إعادة المحاولة: كان يبقى في الطابور
+    ويُعاد إرساله كلّ دورة إلى الأبد فيُنمّي /data/sync_queue."""
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync").mock(
+        return_value=httpx.Response(status, json={"detail": "field_not_found"})
+    )
+    assert await sync.sync_result("pest_detection", observation()) is False
+    assert sync.queue_size() == 0
+    [moved] = _dead_letter_files(sync)
+    assert json.loads(moved.read_text(encoding="utf-8")) == json.loads(
+        route.calls[0].request.content
+    )
+
+    assert await sync.process_queue() == 0
+    assert route.call_count == 1  # لا إعادة إرسال
+
+
+@pytest.mark.asyncio
+async def test_queued_item_rejected_permanently_on_replay_is_dead_lettered(sync, respx_mock):
+    sync.queue_result("pest_detection", observation())
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync").mock(
+        return_value=httpx.Response(404, json={"detail": "field_not_found"})
+    )
+    assert await sync.process_queue() == 0
+    assert sync.queue_size() == 0
+    assert len(_dead_letter_files(sync)) == 1
+    assert await sync.process_queue() == 0
+    assert route.call_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "outcome",
+    [
+        httpx.Response(500, json={}),
+        httpx.Response(503, json={}),
+        httpx.Response(429, json={}),
+        httpx.ReadTimeout("synthetic timeout"),
+        httpx.ConnectError("synthetic refused"),
+    ],
+)
+async def test_transient_failures_stay_in_the_retry_queue(sync, respx_mock, outcome):
+    respx_mock.post("https://edge.example.test/v1/edge/sync").mock(side_effect=[outcome, outcome])
+    assert await sync.sync_result("pest_detection", observation()) is False
+    assert sync.queue_size() == 1
+    assert await sync.process_queue() == 0
+    assert sync.queue_size() == 1
+    assert _dead_letter_files(sync) == []
+
+
 def test_ingress_rejects_missing_top_level_identity():
     model = load(
         "edge_ingress_validation", "services/sahool-platform/api/edge_models.py"

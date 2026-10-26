@@ -159,6 +159,34 @@ async def _get_current_user(request: Request):
     return verify_token(auth[7:])
 
 
+def _require_market_write(user: dict) -> None:
+    """Writes and spending need ``market:write`` (or ``admin``) on every surface."""
+    scope = user.get("scope")
+    scopes = scope.split() if isinstance(scope, str) else []
+    if not ("market:write" in scopes or "admin" in scopes):
+        raise HTTPException(403, "scope 'market:write' required for write operations")
+
+
+def _auto_approve_threshold_usd() -> float:
+    """Auto-approval ceiling from server configuration only, never from the caller.
+
+    An unparsable, negative or non-finite value disables auto-approval.
+    """
+    try:
+        value = float(os.getenv("MARKET_AUTO_APPROVE_BELOW_USD", "500"))
+    except ValueError:
+        return 0.0
+    return value if math.isfinite(value) and value >= 0 else 0.0
+
+
+def _positive_finite(value) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) and number > 0 else None
+
+
 # ── Tool Implementations ───────────────────────────────────────
 
 
@@ -237,7 +265,9 @@ async def tool_create_procurement(args: dict) -> dict:
     items = args["items"]
     delivery_date = args.get("delivery_date")
     notes = args.get("notes", "")
-    auto_approve = args.get("auto_approve_below_usd", 500)
+    # The threshold is server policy. A caller-supplied auto_approve_below_usd is
+    # ignored: it let the requester approve its own order of any size.
+    auto_approve = _auto_approve_threshold_usd()
     # FIX(أمان IDOR): إن مُرِّر field_id، أثبت أنّه يخصّ مستأجِر الأمر قبل ربطه.
     # المصدر الموثوق: دالّة SECURITY DEFINER sahool_field_owner_tenant (تتجاوز RLS
     # على fields). fail-closed: قاعدة مُهيّأة وتعذّر الإثبات ⇒ 503؛ مالك ≠ مستأجِر
@@ -249,11 +279,19 @@ async def tool_create_procurement(args: dict) -> dict:
             raise HTTPException(503, "تعذّر إثبات ملكيّة الحقل — أعد المحاولة لاحقاً") from e
         if owner is not None and owner != str(tenant_id):
             raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
+    # An item without a positive, finite quantity and price has no known cost, so
+    # the order total is not known either: such an order always waits for approval
+    # (a missing price used to count as 0 and let the order auto-approve).
     total_estimated = 0.0
+    fully_priced = bool(items)
     for it in items:
-        qty = float(it.get("quantity", 0))
-        price = float(it.get("max_unit_price_usd", 0))
+        qty = _positive_finite(it.get("quantity"))
+        price = _positive_finite(it.get("max_unit_price_usd"))
+        if qty is None or price is None:
+            fully_priced = False
+            continue
         total_estimated += qty * price
+    auto_approved = fully_priced and total_estimated <= auto_approve
     async with tenant_connection(tenant_id) as conn:
         order_id = await conn.fetchval(
             """INSERT INTO market_procurement_orders
@@ -283,8 +321,7 @@ async def tool_create_procurement(args: dict) -> dict:
                 float(it.get("max_unit_price_usd", 0)),
                 it.get("notes", ""),
             )
-        new_status = "draft"
-        if total_estimated <= auto_approve:
+        if auto_approved:
             new_status = "approved"
             await conn.execute(
                 "UPDATE market_procurement_orders SET status=$1, approved_at=NOW() WHERE order_id=$2",
@@ -292,9 +329,10 @@ async def tool_create_procurement(args: dict) -> dict:
                 order_id,
             )
         else:
+            new_status = "pending_approval"
             await conn.execute(
                 "UPDATE market_procurement_orders SET status=$1 WHERE order_id=$2",
-                "pending_approval",
+                new_status,
                 order_id,
             )
     return {
@@ -302,13 +340,9 @@ async def tool_create_procurement(args: dict) -> dict:
         "status": new_status,
         "total_estimated_usd": round(total_estimated, 2),
         "item_count": len(items),
-        "auto_approved": total_estimated <= auto_approve,
+        "auto_approved": auto_approved,
         "message": "Order created."
-        + (
-            " Auto-approved (below threshold)."
-            if total_estimated <= auto_approve
-            else " Awaiting approval."
-        ),
+        + (" Auto-approved (below threshold)." if auto_approved else " Awaiting approval."),
     }
 
 
@@ -642,9 +676,8 @@ async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope
     args = dict(req.arguments or {})
     args["tenant_id"] = trusted_tenant
     # أدوات الكتابة/الصرف تتطلّب market:write (كانت بـmarket:read فقط ⇒ توكن قراءة يشتري).
-    scopes = (user.get("scope", "") or "").split()
-    if req.name in _MARKET_WRITE_TOOLS and not ("market:write" in scopes or "admin" in scopes):
-        raise HTTPException(403, "scope 'market:write' required for write operations")
+    if req.name in _MARKET_WRITE_TOOLS:
+        _require_market_write(user)
     try:
         result = await handler(args)
         return {
@@ -688,6 +721,8 @@ async def api_get_supplier(supplier_id: str, user: dict = Depends(_get_current_u
 
 @app.post("/v1/procurement")
 async def api_create_procurement(body: dict, user: dict = Depends(_get_current_user)):
+    # Same write scope as the MCP tool: a read-only token must not create orders here.
+    _require_market_write(user)
     # tenant من التوكن لا من الجسم (منع كتابة عابرة المستأجرين).
     return await tool_create_procurement({**(body or {}), "tenant_id": user.get("tenant_id")})
 
@@ -701,6 +736,7 @@ async def api_get_procurement(order_id: str, user: dict = Depends(_get_current_u
 
 @app.post("/v1/sales")
 async def api_create_sales(body: dict, user: dict = Depends(_get_current_user)):
+    _require_market_write(user)
     return await tool_create_sales_listing({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 

@@ -41,6 +41,11 @@ from tiers.environmental_tier import EnvironmentalSafetyTier
 from shared.security.access_tokens import decode_access_token
 from shared.security.cors_policy import parse_cors_origins
 
+# CRITICAL findings that reject an action outright (no human approval path).
+# BANNED_CHEMICALS also lists merely restricted substances under the same rule at
+# HIGH/MEDIUM severity (atrazine, glyphosate); those stay on the human-review path.
+PROHIBITED_RULES = frozenset({"banned_substance", "banned_for_crop"})
+
 
 class GuardrailsRequest(BaseModel):
     action_type: Literal[
@@ -198,7 +203,16 @@ class SAHOOLGuardrailsEngine:
             and overall_risk == "LOW"
             and all(check["passed"] for check in checks)
         )
-        requires_human = not allowed
+        # A banned substance (international or crop-specific) is rejected outright:
+        # it must not become an approvable human workflow.
+        prohibited = any(
+            finding.get("rule") in PROHIBITED_RULES and finding.get("severity") == "CRITICAL"
+            for check in checks
+            for finding in check.get("findings", [])
+        )
+        if prohibited:
+            allowed = False
+        requires_human = not allowed and not prohibited
 
         # If not allowed and human required, create approval workflow
         workflow_id = None

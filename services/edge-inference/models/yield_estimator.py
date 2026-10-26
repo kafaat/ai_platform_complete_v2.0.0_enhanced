@@ -5,13 +5,12 @@ MobileViT / EfficientNet-Lite quantized for ARM64
 Extracts phenotypic features from field images
 """
 
-import io
 import logging
 import os
 
 import numpy as np
 from models.errors import ModelNotProvisioned
-from PIL import Image
+from models.image_decode import decode_rgb
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class EdgeYieldEstimator:
 
     def extract_features(self, image_bytes: bytes) -> dict[str, float]:
         """Extract visual features from a single image."""
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = decode_rgb(image_bytes)  # يرفض ما فوق سقف البكسلات قبل الفكّ
         image_resized = image.resize(self.input_size)
         img_array = np.array(image_resized).astype(np.float32) / 255.0
 

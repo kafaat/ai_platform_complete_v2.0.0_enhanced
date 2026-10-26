@@ -3020,6 +3020,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/edge-inference/models/image_decode.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/edge-inference/models/pest_detector.py",
     "kind": "backend"
   },
@@ -3593,6 +3597,10 @@
   },
   {
     "path": "services/realtime-agent/tests/test_context.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/realtime-agent/tests/test_origin_transport.py",
     "kind": "tests"
   },
   {
@@ -5844,6 +5852,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_emit_event_names.py",
     "kind": "tests"
   },
@@ -6590,10 +6602,6 @@
   {
     "path": "services/sam2-inference/main.py",
     "kind": "backend"
-  },
-  {
-    "path": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
-    "kind": "tests"
   },
   {
     "path": "services/scout-ingest-service/tests/test_projection_live.py",
@@ -7360,6 +7368,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_generation_opt_out_envelope.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_generation_status_label_v58.py",
     "kind": "tests"
   },
@@ -7944,11 +7956,19 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_inference_image_pixel_cap.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_edge_model_artifact_integrity.py",
     "kind": "tests"
   },
   {
     "path": "tests_v9/test_edge_model_digest_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_edge_pest_detector_nms.py",
     "kind": "tests"
   },
   {
@@ -8216,10 +8236,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_guardrails.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_guardrails_crypto_dependency.py",
     "kind": "tests"
   },
@@ -8388,6 +8404,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_kg_edge_upsert_conflict.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_knowledge_provenance_guard.py",
     "kind": "tests"
   },
@@ -8425,6 +8445,10 @@
   },
   {
     "path": "tests_v9/test_local_ai_rag_init_retry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_local_ai_rag_sources_and_upload_cleanup.py",
     "kind": "tests"
   },
   {
@@ -8481,6 +8505,10 @@
   },
   {
     "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_tool_hardening.py",
     "kind": "tests"
   },
   {
@@ -8820,6 +8848,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_bm25_search_cost.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_complete_reindex_manifest.py",
     "kind": "tests"
   },
@@ -8885,6 +8917,10 @@
   },
   {
     "path": "tests_v9/test_rag_relevance_experiment_measurement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_retrieval_event_loop.py",
     "kind": "tests"
   },
   {
@@ -9601,6 +9637,10 @@
   },
   {
     "path": "tests_v9/test_video_processor_features_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_video_stream_inference_field_binding.py",
     "kind": "tests"
   },
   {

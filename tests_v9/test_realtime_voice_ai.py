@@ -28,6 +28,7 @@ def policy():
         "allowed_tools": ["get_field_state", "submit_to_decision"],
         "external_llm_allowed": False,
         "external_tts_allowed": False,
+        "ai_generation_allowed": True,
     }
 
 

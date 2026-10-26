@@ -4,10 +4,12 @@ SAHOOL Supervisor Agent — Hybrid Skills + Hierarchical Routing
 """
 
 import logging
+import math
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any, Optional
+from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPBearer
@@ -95,7 +97,9 @@ async def _fetch_field_state(client, field_id, tenant_id):
         return None
     try:
         r = await client.get(
-            f"{PLATFORM_URL}/internal/fields/{field_id}/state",
+            # field_id comes from the request body: encode it as one path segment so
+            # "../" cannot reach other platform paths with the agent token.
+            f"{PLATFORM_URL}/internal/fields/{quote(str(field_id), safe='')}/state",
             params={"tenant_id": str(tenant_id)},
             headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
         )
@@ -150,6 +154,9 @@ class AgentResponse(BaseModel):
     actions_triggered: list[str] = Field(default_factory=list)
     governance: dict[str, Any] | None = None  # قرار البوّابة لو الإجراء قابل للتنفيذ
     confidence: float = Field(..., ge=0, le=1)
+    # True when response_ar is unvalidated model output (local LLM + RAG), not a
+    # governed recommendation or a curated template.
+    ai_generated: bool = False
     sources: list[str] = Field(default_factory=list)
     processing_time_ms: int
 
@@ -392,7 +399,52 @@ def _format_arabic_response(result: dict) -> str:
         return result.get("response", "تمت المعالجة بنجاح.")
 
 
+async def _bound_skill_kwargs(query, user: dict, tenant_id: str) -> dict[str, Any]:
+    """Skill arguments bound as /v1/agent/query binds them: verified identity, the
+    server-fetched canonical field state and the caller's verified bearer. Body-supplied
+    trust/credential keys are stripped by bind_field_context."""
+    import httpx
+
+    field_state = None
+    if query.field_id:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            field_state = await _fetch_field_state(client, query.field_id, tenant_id)
+    context = bind_field_context(query.context, field_state)
+    context["_platform_bearer"] = user.get("_mcp_bearer", "")
+    return {
+        "query": query.query,
+        "field_id": query.field_id,
+        "user_id": user.get("sub"),
+        "tenant_id": tenant_id,
+        "context": context,
+        "objectives": query.preferred_objectives,
+    }
+
+
+def _optimization_inputs_gap(cm: dict, mk: dict) -> str | None:
+    """Why optimization cannot run (no crop simulation, no observed price), or None."""
+    if cm.get("type") != "crop_simulation":
+        return (cm.get("structured") or {}).get("reason") or "crop_model_unavailable"
+    if _observed_price_yer_kg(mk) is None:
+        return "market_price_unavailable"
+    return None
+
+
+def _observed_price_yer_kg(mk: dict) -> float | None:
+    """The market's observed YER/kg price, or None; a missing price is never assumed."""
+    price = mk.get("price_yer_kg") if isinstance(mk, dict) else None
+    if isinstance(price, bool) or not isinstance(price, (int, float)):
+        return None
+    if not math.isfinite(price) or price <= 0:
+        return None
+    return float(price)
+
+
 def _generate_scenarios(rs: dict, cm: dict, mk: dict) -> list[dict]:
+    price_yer_kg = _observed_price_yer_kg(mk)
+    if price_yer_kg is None:
+        # Profit scenarios need an observed price; none is substituted.
+        return []
     base_yield = cm.get("yield_kg_ha", 2000)
     base_water = cm.get("total_water_mm", 400)
     scenarios = []
@@ -401,7 +453,7 @@ def _generate_scenarios(rs: dict, cm: dict, mk: dict) -> list[dict]:
             yield_est = base_yield * (0.7 + 0.3 * irr_mult) * (0.8 + 0.2 * fert_mult)
             water_use = base_water * irr_mult
             cost = water_use * 0.5 + base_yield * fert_mult * 0.1
-            profit = yield_est * mk.get("price_yer_kg", 300) / 1000 - cost
+            profit = yield_est * price_yer_kg / 1000 - cost
             carbon = water_use * 0.1
             scenarios.append(
                 {

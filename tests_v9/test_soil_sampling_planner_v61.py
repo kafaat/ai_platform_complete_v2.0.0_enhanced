@@ -106,3 +106,58 @@ def test_provider_schema_exposes_soil_sampling_inputs():
     assert props["bbox"]["type"] == "array"
     assert props["boundary"]["type"] == "object"
     assert props["samples_per_zone"]["type"] == "integer"
+
+
+# ── polygon geometry, not its bounding box ──────────────────────────────────
+# Right triangle with legs along the axes: its bbox is ~118 ha, the zone itself ~59 ha.
+_TRIANGLE = {
+    "type": "Polygon",
+    "coordinates": [[[44.18, 16.16], [44.19, 16.16], [44.18, 16.17], [44.18, 16.16]]],
+}
+
+
+def _inside_triangle(lon: float, lat: float) -> bool:
+    # Independent of the planner: below the hypotenuse lat = 16.17 - (lon - 44.18).
+    return lon > 44.18 and lat > 16.16 and lat < 16.17 - (lon - 44.18)
+
+
+def test_zone_area_uses_polygon_not_bbox():
+    from services.ai_agronomist.field_boundary_ai import area_ha_for_bbox
+
+    bbox_area = area_ha_for_bbox([44.18, 16.16, 44.19, 16.17])
+    out = plan_soil_sampling(
+        {"zones": [{"zone_id": "tri", "productivity_class": "low", "geometry": _TRIANGLE}]}
+    )
+    area = out["soil_sampling_plan"]["strata"][0]["area_ha"]
+    assert abs(area - bbox_area / 2) < 0.5, (area, bbox_area)
+
+
+def test_zone_sample_points_stay_inside_the_polygon():
+    for samples in (1, 2, 3, 5, 8):
+        out = plan_soil_sampling(
+            {
+                "zones": [
+                    {
+                        "zone_id": "tri",
+                        "productivity_class": "high",
+                        "geometry": _TRIANGLE,
+                        "samples": samples,
+                    }
+                ]
+            }
+        )
+        points = [p["point"]["coordinates"] for p in out["sample_points"]]
+        assert len(points) == samples
+        assert len({tuple(p) for p in points}) == samples
+        outside = [p for p in points if not _inside_triangle(*p)]
+        assert outside == [], (samples, outside)
+
+
+def test_boundary_fallback_strata_follow_the_boundary_polygon():
+    out = plan_soil_sampling({"boundary": _TRIANGLE, "samples_per_zone": 2})
+    assert out["method"] == "geometry_seeded_sampling_fallback"
+    points = [p["point"]["coordinates"] for p in out["sample_points"]]
+    assert points
+    assert [p for p in points if not _inside_triangle(*p)] == []
+    total = sum(s["area_ha"] for s in out["soil_sampling_plan"]["strata"])
+    assert 58.0 < total < 60.0, total

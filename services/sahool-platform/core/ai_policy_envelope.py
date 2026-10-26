@@ -21,7 +21,15 @@ Envelope shape (a plain, JSON-serialisable dict — a data contract, not a class
       "contract_version":     2,
       "external_tts_allowed": bool,  # may the raw text be sent to an *external* TTS?
       "external_tts_providers": [...external TTS provider names the tenant listed...],
+      "ai_generation_allowed": bool, # may *any* provider (local or external) generate?
     }
+
+**Generation itself is its own permission.** ``tenant_ai_policies.ai_generation_allowed``
+is the tenant's AI opt-out. It is carried explicitly as ``ai_generation_allowed`` (not only
+folded into ``external_llm_allowed``) so the consumer can refuse *local* generation too.
+The key is additive under contract v2: an envelope without it parses, but a consumer must
+read its absence as "not allowed". A tenant with **no** policy row gets the column default
+(``true``, migration v124) for local generation; data sharing stays ``local_only``.
 
 **External TTS is its own permission (contract v2).** ``external_llm_allowed`` speaks for
 an external *language model*; TTS sends the tenant's raw text to a *speech* provider, which
@@ -135,8 +143,18 @@ def normalize_policy_mode(raw: Any) -> str:
     return mode if mode in POLICY_MODES else POLICY_MODE_LOCAL_ONLY
 
 
-def most_restrictive_envelope(tenant_id: Any) -> dict[str, Any]:
-    """The fail-closed default: local-only, no external LLM, read-only tools."""
+#: v124 column default for ``ai_generation_allowed``. A tenant without a policy row has not
+#: opted out, so local generation stays available; nothing leaves the tenant boundary.
+NO_ROW_AI_GENERATION_ALLOWED = True
+
+
+def most_restrictive_envelope(
+    tenant_id: Any, *, ai_generation_allowed: bool = False
+) -> dict[str, Any]:
+    """The fail-closed default: local-only, no external LLM, read-only tools.
+
+    ``ai_generation_allowed`` is False unless the caller passes exactly ``True``.
+    """
     return {
         "policy_mode": POLICY_MODE_LOCAL_ONLY,
         "allowed_tools": list(_READ_ONLY_TOOLS),
@@ -150,6 +168,7 @@ def most_restrictive_envelope(tenant_id: Any) -> dict[str, Any]:
         "contract_version": ENVELOPE_CONTRACT_VERSION,
         "external_tts_allowed": False,
         "external_tts_providers": [],
+        "ai_generation_allowed": ai_generation_allowed is True,
     }
 
 
@@ -163,7 +182,9 @@ def build_ai_policy_envelope(
     permissive envelope is only ever produced from an explicit, legal policy row.
     """
     if not isinstance(policy_row, dict) or not policy_row:
-        return most_restrictive_envelope(tenant_id)
+        return most_restrictive_envelope(
+            tenant_id, ai_generation_allowed=NO_ROW_AI_GENERATION_ALLOWED
+        )
 
     mode = normalize_policy_mode(
         policy_row.get("external_data_sharing_level")
@@ -199,6 +220,7 @@ def build_ai_policy_envelope(
         "contract_version": ENVELOPE_CONTRACT_VERSION,
         "external_tts_allowed": bool(tts_providers),
         "external_tts_providers": tts_providers,
+        "ai_generation_allowed": generation_allowed,
     }
 
 

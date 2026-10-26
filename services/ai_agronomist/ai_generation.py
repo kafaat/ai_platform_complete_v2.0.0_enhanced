@@ -129,7 +129,11 @@ def redact_context_for_external(context_text: str) -> str:
     طبقة أمان إضافيّة (لا بديل عن السياسة) للمستأجرين الذين يسمحون صراحةً بالتوليد
     الخارجيّ المُنقَّح: يُخفي البريد/المعرّفات الكونيّة/الأرقام الطويلة/الإحداثيّات،
     ويحدّ طول الإرسال."""
-    text = context_text or ""
+    return _redact_text(context_text or "")[:6000]
+
+
+def _redact_text(text: str) -> str:
+    """Regex redaction shared by the evidence context and every tool-result string."""
     text = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[redacted-email]", text)
     text = re.sub(
         r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
@@ -142,7 +146,83 @@ def redact_context_for_external(context_text: str) -> str:
         "[redacted-coordinates]",
         text,
     )
-    return text[:6000]
+    return text
+
+
+# Keys whose value is a location (scalar, pair, ring or GeoJSON) — redacted whole.
+_COORDINATE_KEYS = frozenset(
+    {
+        "lat",
+        "lon",
+        "lng",
+        "long",
+        "latitude",
+        "longitude",
+        "coordinates",
+        "coords",
+        "coord",
+        "bbox",
+        "geometry",
+        "geojson",
+        "centroid",
+        "boundary",
+        "polygon",
+        "wkt",
+    }
+)
+_COORDINATE_KEY_SUFFIXES = ("_lat", "_lon", "_lng", "_latitude", "_longitude", "_bbox", "_geometry")
+_COORDINATE_KEY_PREFIXES = ("lat_", "lon_", "lng_", "latitude_", "longitude_")
+
+
+def _is_coordinate_key(key: Any) -> bool:
+    k = str(key).strip().lower()
+    return (
+        k in _COORDINATE_KEYS
+        or k.endswith(_COORDINATE_KEY_SUFFIXES)
+        or k.startswith(_COORDINATE_KEY_PREFIXES)
+    )
+
+
+def _is_precise_float(v: Any) -> bool:
+    if isinstance(v, bool) or not isinstance(v, float) or abs(v) > 180:
+        return False
+    _, _, frac = repr(v).partition(".")
+    return len(frac.rstrip("0")) >= 4
+
+
+def redact_structured_for_external(value: Any, _depth: int = 0) -> Any:
+    """Structured counterpart of :func:`redact_context_for_external` for tool results.
+
+    Walks dicts/lists before serialisation: values under coordinate keys (lat/lon/lng/
+    latitude/longitude/bbox/geometry/coordinates …) and bare ``[lon, lat]`` pairs of
+    precise floats become ``[redacted-coordinates]``; every string (keys included) goes
+    through the same e-mail/UUID/number/coordinate regexes; long integers (phone-like)
+    become ``[redacted-number]``. Agronomic numbers (NDVI, mm, ha …) pass unchanged."""
+    if _depth > 32:
+        return "[redacted-depth]"
+    if isinstance(value, dict):
+        out: dict[str, Any] = {}
+        for k, v in value.items():
+            key = _redact_text(str(k))
+            out[key] = (
+                "[redacted-coordinates]"
+                if _is_coordinate_key(k) and v is not None
+                else redact_structured_for_external(v, _depth + 1)
+            )
+        return out
+    if isinstance(value, (list, tuple)):
+        if 2 <= len(value) <= 3 and all(_is_precise_float(x) for x in value[:2]):
+            return "[redacted-coordinates]"
+        return [redact_structured_for_external(v, _depth + 1) for v in value]
+    if isinstance(value, str):
+        return _redact_text(value)
+    if isinstance(value, bool) or value is None:
+        return value
+    if isinstance(value, int):
+        return "[redacted-number]" if abs(value) >= 10**8 else value
+    if isinstance(value, float):
+        return value
+    return _redact_text(str(value))
 
 
 def prepare_context_for_provider(
@@ -579,8 +659,14 @@ def _compact_tool_result(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _tool_result_text(results: list[dict[str, Any]] | None) -> str:
-    compact = [_compact_tool_result(r) for r in (results or [])[:8] if isinstance(r, dict)]
+def _outbound_tool_result(item: dict[str, Any], redact: bool) -> dict[str, Any]:
+    """The compact tool result as it may leave for the provider (redacted when required)."""
+    compact = _compact_tool_result(item)
+    return redact_structured_for_external(compact) if redact else compact
+
+
+def _tool_result_text(results: list[dict[str, Any]] | None, redact: bool = False) -> str:
+    compact = [_outbound_tool_result(r, redact) for r in (results or [])[:8] if isinstance(r, dict)]
     return json.dumps(compact, ensure_ascii=False, sort_keys=True, default=str)
 
 
@@ -596,6 +682,7 @@ def _build_payload(
     *,
     tools: list[dict[str, Any]] | None = None,
     tool_results: list[dict[str, Any]] | None = None,
+    redact_tool_results: bool = False,
 ) -> dict:
     """يبني الحمولة الأولى أو حمولة fallback نصيّة لنتائج الأدوات.
 
@@ -603,7 +690,9 @@ def _build_payload(
     باقية للحراس القديمة وللسقوط الآمن إن لم تقبل صيغة مزوّد ما."""
     tool_tail = ""
     if tool_results:
-        tool_tail = f"\n\nنتائج أدوات الـHarness:\n{_tool_result_text(tool_results)}"
+        tool_tail = (
+            f"\n\nنتائج أدوات الـHarness:\n{_tool_result_text(tool_results, redact_tool_results)}"
+        )
     user = f"الأدلّة:\n{context_text}{tool_tail}\n\nالسؤال: {question}"
     if cfg.wire_format == "openai_chat":
         payload = {
@@ -648,6 +737,7 @@ def _build_native_tool_result_payload(
     provider_calls: list[dict[str, Any]],
     tool_results: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None,
+    redact_tool_results: bool = False,
 ) -> dict[str, Any]:
     """يرجع نتائج الأدوات للمزوّد بصيغته الأصلية: OpenAI tool messages أو Anthropic tool_result."""
     if cfg.wire_format == "openai_chat":
@@ -683,7 +773,7 @@ def _build_native_tool_result_payload(
                     ),
                     "name": str(result.get("tool") or "tool"),
                     "content": json.dumps(
-                        _compact_tool_result(result),
+                        _outbound_tool_result(result, redact_tool_results),
                         ensure_ascii=False,
                         sort_keys=True,
                         default=str,
@@ -715,7 +805,10 @@ def _build_native_tool_result_payload(
             "type": "tool_result",
             "tool_use_id": str(r.get("tool_call_id") or r.get("id") or f"toolu-{i}"),
             "content": json.dumps(
-                _compact_tool_result(r), ensure_ascii=False, sort_keys=True, default=str
+                _outbound_tool_result(r, redact_tool_results),
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
             ),
             "is_error": r.get("outcome") not in {"executed", "pending_approval"},
         }
@@ -855,6 +948,9 @@ async def generate(
         )
         return None
     context_text = prepared
+    # Tool results leave for the same provider as the context, so they get the same
+    # redaction; otherwise redacted_external would only cover the first message.
+    redact_tools = provider_is_external(cfg.provider) and _policy_mode(policy) != "full_external"
     tool_results: list[dict[str, Any]] = []
     pending_approvals: list[dict[str, Any]] = []
     truncated = False
@@ -888,7 +984,9 @@ async def generate(
                     text = _extract_text(cfg, data)
                     break
 
-                loop_out = tool_loop.run_tool_calls(
+                # Off the event loop: read tools can be CPU-bound (zoning k-means).
+                loop_out = await asyncio.to_thread(
+                    tool_loop.run_tool_calls,
                     provider_calls,
                     allowed_capabilities=allowed_capabilities,
                     fetcher=tool_fetcher,
@@ -927,6 +1025,7 @@ async def generate(
                     provider_calls=provider_calls,
                     tool_results=batch_results,
                     tools=next_tools,
+                    redact_tool_results=redact_tools,
                 )
                 resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
                 if resp.status_code >= 400:
@@ -941,6 +1040,7 @@ async def generate(
                         max_tokens,
                         tools=None,
                         tool_results=tool_results,
+                        redact_tool_results=redact_tools,
                     )
                     resp = await client.post(
                         cfg.endpoint, headers=cfg.headers, json=fallback_payload

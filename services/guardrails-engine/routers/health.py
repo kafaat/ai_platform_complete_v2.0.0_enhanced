@@ -25,10 +25,10 @@ async def healthz():
 
 @router.get("/readyz")
 async def readyz():
-    # جاهزيّة حقيقيّة: guardrails يُديم قرارات الموافقة البشريّة (HIL) في القاعدة
-    # — إنشاء/اعتماد/رفض workflow و/validate حين يولّد workflow كلّها تكتب فيها
-    # عبر تجمّع human_in_loop. حين تُضبط DATABASE_URL نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503
-    # لا «جاهز» كاذب. حين لا DATABASE_URL (وضع متدرّج معلَن) ⇒ جاهز بصدق.
+    # جاهزيّة حقيقيّة: بلا توكن خدمة ⇒ 503 (انظر _require_service_token_ready). وguardrails
+    # يُديم قرارات HIL في القاعدة عبر تجمّع human_in_loop: حين تُضبط DATABASE_URL نتحقّق
+    # بـSELECT 1؛ تعذُّره ⇒ 503 لا «جاهز» كاذب. حين لا DATABASE_URL (وضع متدرّج معلَن) ⇒ جاهز.
+    _require_service_token_ready()
     if os.getenv("DATABASE_URL", ""):
         from human_in_loop import _get_pool
 
@@ -56,3 +56,15 @@ async def runtime_identity():
     from shared.runtime_identity import load_build_identity
 
     return load_build_identity("guardrails-engine")
+
+
+def _require_service_token_ready() -> None:
+    """بلا توكن خدمة صالح تردّ /v1/validate و/v1/evaluate بـ503 دائماً، فلا «جاهز» كاذب.
+
+    الشرطُ نفسُه الذي يفرضه ``main._require_service_token`` (فارغ أو غير ASCII ⇒ معطّل).
+    """
+    import main
+
+    token = main._GR_AGENT_TOKEN
+    if not token or not token.isascii():
+        raise HTTPException(503, {"status": "not_ready", "reason": "service_token"})

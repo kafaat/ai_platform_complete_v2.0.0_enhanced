@@ -1087,7 +1087,10 @@ async def build_evidence_response(
     # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
     # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
     # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
-    tool_result = tool_loop.run_tool_calls(
+    # Read tools may run CPU-bound work (k-means zoning, sampling plans), so the loop runs
+    # in a worker thread and never blocks the event loop serving other requests.
+    tool_result = await asyncio.to_thread(
+        tool_loop.run_tool_calls,
         req.tool_calls,
         allowed_capabilities=_policy.get("allowed_capabilities"),
         fetcher=_build_agent_tool_fetcher(

@@ -53,6 +53,11 @@ RUN pip install --timeout 300 --retries 10 --no-cache-dir --upgrade "setuptools>
 COPY shared/ /app/shared/
 COPY services/sam2-inference/ /app/
 
+# مهلات GDAL الشبكيّة لقراءة COG عبر /vsicurl/: بلاها يعلّق مصدرٌ بطيء عاملَ الاستدلال
+# الوحيد بلا حدّ. sam2_runtime يضبط القيم نفسها افتراضيّاً إن غابت (تشغيل خارج الصورة).
+ENV GDAL_HTTP_TIMEOUT=30 \
+    GDAL_HTTP_CONNECTTIMEOUT=10
+
 # مستخدم غير جذر (تصلّب) — يكتب فقط لـ/app؛ /models تُركَّب للقراءة فقط.
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool

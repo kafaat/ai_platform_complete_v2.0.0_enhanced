@@ -5650,6 +5650,7 @@
     {
       "code_readers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
@@ -5664,6 +5665,7 @@
       ],
       "code_writers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/tests/test_decision_interim_bridge.py",

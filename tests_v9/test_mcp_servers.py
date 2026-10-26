@@ -219,7 +219,10 @@ class TestWOFOSTMCP:
         assert results["yield_kg_ha"] > 0
 
     async def test_get_crop_parameters(self, http_client: AsyncClient, mock_jwt_token: str):
-        """TC-MCP-012: Crop parameters return expected structure."""
+        """TC-MCP-012: Crop parameters are declined (501), never a hand-written table.
+
+        The parameters are owned by agriai-engine's vendored PCSE crop files.
+        """
         for crop in ["wheat", "barley", "maize", "sorghum", "millet", "rice", "potato"]:
             payload = {"name": "get_crop_parameters", "arguments": {"crop": crop}}
             response = await http_client.post(
@@ -227,10 +230,8 @@ class TestWOFOSTMCP:
                 json=payload,
                 headers={"Authorization": f"Bearer {mock_jwt_token}"},
             )
-            assert response.status_code == 200
-            data = response.json()
-            content = json.loads(data["content"][0]["text"])
-            assert "parameters" in content
+            assert response.status_code == 501
+            assert "parameters" not in response.text
 
 
 @pytest.mark.mcp

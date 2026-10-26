@@ -2,9 +2,34 @@
 
 from __future__ import annotations
 
+import ipaddress
 import os
+import re
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
+
+_SERVICE_NAME = re.compile(r"[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?")
+
+
+def plaintext_host_allowed(hostname: str | None) -> bool:
+    """Plaintext transport is only trusted inside the deployment network.
+
+    Same rule as realtime-session's platform origin: loopback, single-label internal service
+    names (``sahool-platform``, ``livekit``) and ``*.railway.internal``. These origins receive
+    the worker secret and users' bearer JWTs, so every other host requires TLS.
+    """
+    host = (hostname or "").lower().rstrip(".")
+    if not host:
+        return False
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        pass
+    return (
+        host == "localhost"
+        or _SERVICE_NAME.fullmatch(host) is not None
+        or (host.endswith(".railway.internal") and host != ".railway.internal")
+    )
 
 
 def origin(value: str, *, websocket: bool = False) -> str:
@@ -13,6 +38,7 @@ def origin(value: str, *, websocket: bool = False) -> str:
     if (
         parsed.scheme not in schemes
         or not parsed.hostname
+        or (parsed.scheme in ("http", "ws") and not plaintext_host_allowed(parsed.hostname))
         or parsed.username is not None
         or parsed.password is not None
         or parsed.path not in ("", "/")

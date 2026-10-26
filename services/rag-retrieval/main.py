@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 import time
 import urllib.error
 from pathlib import Path
@@ -19,6 +20,7 @@ from core.rag.production_qdrant import (
     visible_corpus_count,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
@@ -76,6 +78,12 @@ _sparse_payload_checked_at: float = 0.0
 # Count checks cannot detect external in-place updates or tenant/scope changes.
 _SPARSE_PAYLOAD_REVALIDATE_SECONDS = 30.0
 _SPARSE_REVALIDATE_SECONDS = float(os.getenv("RAG_SPARSE_REVALIDATE_SECONDS", "30"))
+# Blocking Ollama/Qdrant I/O runs in FastAPI's threadpool so one slow upstream call
+# (20 s timeouts, full scrolls) cannot stall the single-worker event loop. The
+# sparse-index globals and the retriever's process-local BM25/chunk maps are then
+# reachable from several threads, so every path that rebuilds, reads or invalidates
+# them holds this lock.
+_RETRIEVAL_LOCK = threading.Lock()
 
 
 def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
@@ -221,8 +229,7 @@ def _embedding_space_identity() -> dict[str, Any]:
     }
 
 
-@app.get("/readyz")
-async def readyz():
+def _readiness_probe() -> tuple[int, dict[str, Any]]:
     # **المرحلةُ تُسمّى في الـ503** (تدقيقُ التشغيل الحيّ 2026-09-29): نموذجُ تضمينٍ لم يُسحَب
     # كان يُعيد `rag retrieval not ready: HTTP Error 404: Not Found` عارياً — لا يُسمّي Ollama ولا
     # النموذج (مقيسٌ على Ollama بلا نماذج)، ومالكُه sahool-ollama-models لا sahool-qdrant-seed.
@@ -240,9 +247,17 @@ async def readyz():
                 f"embedding/Qdrant dimension mismatch: embedding={len(vector)} collection={collection_dim}"
             )
         stage = "corpus"
-        sparse = _ensure_sparse_index()
+        with _RETRIEVAL_LOCK:
+            sparse = _ensure_sparse_index()
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"rag retrieval not ready: {stage}: {exc}") from exc
+    return collection_dim, sparse
+
+
+@app.get("/readyz")
+async def readyz():
+    collection_dim, sparse = await run_in_threadpool(_readiness_probe)
+    identity = _embedding_space_identity()
     return {
         "status": "ready",
         "service": "rag-retrieval",
@@ -251,12 +266,15 @@ async def readyz():
         "embedding_provider": "ollama",
         "embedding_model": EMBEDDING_MODEL,
         "vector_size": collection_dim,
-        "embedding_contract_parity": True,
+        # Only a bound profile proves the embedding contract (model digest, prefix and
+        # reindex revision). A matching dimension alone does not, so the dimension-only
+        # basis reports False and the live certification refuses it.
+        "embedding_contract_parity": identity["basis"] == "profile_bound",
         # **ما أثبته هذا الفحصُ لفضاء التضمين، باسمه** (REPORT3-RAG-05-01): بلا profile لم يُقَس
         # إلّا تطابقُ البُعد — لا digest نموذجٍ ولا بادئةٌ ولا مراجعةُ corpus. ومع profile يُتحقَّق
         # الـdigest الحيّ والبادئة والمراجعة عند البناء وفي كلّ استرجاع (production_qdrant).
         # حقلٌ إضافيّ: لا يُغيّر مفتاحاً تقرؤه الشهادةُ الحيّة.
-        "embedding_space_identity": _embedding_space_identity(),
+        "embedding_space_identity": identity,
         # **الفصلُ يمرّ إلى المستهلكين، لا يقف عند الحارس.** كان `readyz` يُعيد
         # `collection_schema_parity: True` بلا شرط — فيقرأ كلُّ مستهلكٍ تكافؤَ الـpayload
         # أخضرَ لمجرّد نجاح إعادة البناء. وفصلُ الاسمين في حارس القبول وحده كان يترك
@@ -303,14 +321,20 @@ async def ingest(
                 detail={"code": "INVALID_RAG_PROVENANCE", "message": str(exc)},
             ) from exc
     try:
-        ingested = _retriever.ingest(chunks)
-        # Qdrant has changed; force the next read/readiness to reconstruct the complete
-        # sparse corpus instead of assuming this process saw every historical ingest.
-        global _sparse_ready
-        _sparse_ready = False
+        ingested = await run_in_threadpool(_ingest_blocking, chunks)
         return {"ingested": ingested}
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, str(exc)) from exc
+
+
+def _ingest_blocking(chunks: list[KnowledgeChunk]) -> int:
+    global _sparse_ready
+    with _RETRIEVAL_LOCK:
+        ingested = _retriever.ingest(chunks)
+        # Qdrant has changed; force the next read/readiness to reconstruct the complete
+        # sparse corpus instead of assuming this process saw every historical ingest.
+        _sparse_ready = False
+    return ingested
 
 
 def _verify_search_user(authorization: str) -> str:
@@ -356,26 +380,31 @@ async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity
         raise HTTPException(status_code=403, detail="GLOBAL_REFERENCE_TENANT_RESERVED")
     if tenant_id == "__seed_quarantine__":
         raise HTTPException(status_code=403, detail="SEED_QUARANTINE_TENANT_RESERVED")
-    try:
-        sparse = _ensure_sparse_index()
-        if visible_corpus_count(sparse, tenant_id) == 0:
-            raise ValueError("tenant has no active readable corpus")
-    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
-        raise HTTPException(503, "rag_retrieval_unavailable") from exc
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
-    filters = {
-        "crop": req.crop,
-        "field_id": req.field_id,
-        "region": req.region,
-        "source_type": req.source_type,
-    }
-    try:
-        rows = _retriever.retrieve(
-            req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k
-        )
-    except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
-        # Warm-index admission is rechecked inside retrieve. Never expose upstream
-        # URLs, response bodies or credentials, and never fall back to legacy.
-        raise HTTPException(503, "rag_retrieval_unavailable") from exc
+    return await run_in_threadpool(_search_blocking, req, tenant_id)
+
+
+def _search_blocking(req: SearchRequest, tenant_id: str) -> dict[str, Any]:
+    with _RETRIEVAL_LOCK:
+        try:
+            sparse = _ensure_sparse_index()
+            if visible_corpus_count(sparse, tenant_id) == 0:
+                raise ValueError("tenant has no active readable corpus")
+        except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+            raise HTTPException(503, "rag_retrieval_unavailable") from exc
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
+        filters = {
+            "crop": req.crop,
+            "field_id": req.field_id,
+            "region": req.region,
+            "source_type": req.source_type,
+        }
+        try:
+            rows = _retriever.retrieve(
+                req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k
+            )
+        except _RETRIEVAL_UNAVAILABLE_ERRORS as exc:
+            # Warm-index admission is rechecked inside retrieve. Never expose upstream
+            # URLs, response bodies or credentials, and never fall back to legacy.
+            raise HTTPException(503, "rag_retrieval_unavailable") from exc
     return {"annotations": [r.as_annotation() for r in rows]}

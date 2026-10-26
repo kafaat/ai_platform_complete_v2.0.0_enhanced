@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 387,
+          "line": 398,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 732,
+          "line": 768,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 739,
+          "line": 775,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -158,7 +158,7 @@
         },
         {
           "function": "healthz",
-          "line": 488,
+          "line": 510,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/health",
@@ -174,7 +174,7 @@
         },
         {
           "function": "healthz",
-          "line": 319,
+          "line": 256,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/health",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 191,
+          "line": 193,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 116,
+          "line": 117,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 714,
+          "line": 750,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -341,7 +341,7 @@
         },
         {
           "function": "healthz",
-          "line": 144,
+          "line": 150,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/healthz",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 739,
+          "line": 775,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -357,7 +357,7 @@
         },
         {
           "function": "healthz",
-          "line": 488,
+          "line": 510,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/healthz",
@@ -373,7 +373,7 @@
         },
         {
           "function": "healthz",
-          "line": 319,
+          "line": 256,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 195,
+          "line": 203,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 392,
+          "line": 403,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/metrics",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 121,
+          "line": 122,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -548,7 +548,7 @@
         },
         {
           "function": "metrics",
-          "line": 200,
+          "line": 208,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 402,
+          "line": 413,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 138,
+          "line": 139,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 737,
+          "line": 773,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 149,
+          "line": 155,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/readyz",
@@ -723,7 +723,7 @@
         },
         {
           "function": "readyz",
-          "line": 752,
+          "line": 788,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -731,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 493,
+          "line": 515,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/readyz",
@@ -747,7 +747,7 @@
         },
         {
           "function": "readyz",
-          "line": 324,
+          "line": 261,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/readyz",
@@ -763,7 +763,7 @@
         },
         {
           "function": "readyz",
-          "line": 225,
+          "line": 258,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -953,7 +953,7 @@
       "registrations": [
         {
           "function": "list_tools",
-          "line": 156,
+          "line": 162,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools",
@@ -961,7 +961,7 @@
         },
         {
           "function": "mcp_tools_list",
-          "line": 587,
+          "line": 621,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools",
@@ -969,7 +969,7 @@
         },
         {
           "function": "list_tools",
-          "line": 199,
+          "line": 226,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/v1/mcp/tools",
@@ -977,7 +977,7 @@
         },
         {
           "function": "list_tools",
-          "line": 102,
+          "line": 107,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools",
@@ -985,7 +985,7 @@
         },
         {
           "function": "list_tools",
-          "line": 58,
+          "line": 62,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools",
@@ -1000,7 +1000,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 673,
+          "line": 706,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1085,7 +1085,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 659,
+          "line": 695,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1093,7 +1093,7 @@
         },
         {
           "function": "ingest",
-          "line": 274,
+          "line": 292,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1108,7 +1108,7 @@
       "registrations": [
         {
           "function": "call_tool",
-          "line": 173,
+          "line": 179,
           "method": "POST",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1116,7 +1116,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 619,
+          "line": 653,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1124,7 +1124,7 @@
         },
         {
           "function": "call_tool",
-          "line": 286,
+          "line": 319,
           "method": "POST",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1132,7 +1132,7 @@
         },
         {
           "function": "call_tool",
-          "line": 174,
+          "line": 179,
           "method": "POST",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1140,7 +1140,7 @@
         },
         {
           "function": "call_tool",
-          "line": 130,
+          "line": 134,
           "method": "POST",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1163,7 +1163,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 649,
+          "line": 685,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1178,7 +1178,7 @@
       "registrations": [
         {
           "function": "recommend",
-          "line": 246,
+          "line": 274,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
           "path": "/v1/recommend",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "bdef8180c6b087f4136f4016694b63d37c75b016833b6ebc1a0f20aa14cf1f76",
+  "route_inventory_sha256": "6e43eaf7c9780f5d50c23158b9073be7e11b931c0664a0dcbb66fc498ea901d9",
   "runtime_verified": false,
   "schema_version": 1
 }
