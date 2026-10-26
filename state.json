@@ -4,10 +4,10 @@
  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
  "owner": "kafaat",
  "main": {
-  "head": "bc764f760",
-  "tree": "97af90cf2357405f26b72e440d77cecff4b823e0",
-  "pr": "#1293",
-  "note": "pip mirror (compose default Alibaba); merge tree == tested 05fdd57f7; 70 pass + 2 skipped; Deploy-Effect NONE"
+  "head": "5c7e1cb83",
+  "tree": "64a9bcf370ba2413b906f3e0739d9fe6179ab360",
+  "pr": "#1292",
+  "note": "idempotency (lab samples POST, tasks PATCH); owner-approved merge of a75ba1968; frontend redeployed prod+staging SUCCESS; API fix awaits deploy-branch promotion"
  },
  "done_verified": [
   {
@@ -81,15 +81,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "fb858dffb91ae104c30b7e30506b40e9d9e7b6aa",
-  "tree": "825c41c54610f5c7fcd6fcac7dabbb938bfe3829",
+  "commit": "25d9c3b830b38457ac6edf53396187c47915370c",
+  "tree": "c5567bca66e73b524a91a184f37a8575acc5df83",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-26T22:48:03Z",
+ "updated": "2026-10-26T23:02:11Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
