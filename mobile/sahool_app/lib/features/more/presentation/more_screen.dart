@@ -1,113 +1,59 @@
-// SAHOOL — lib/screens/more_screen.dart
-// «المزيد»: شبكة وصول للوحدات الثانويّة التي خرجت من شريط التنقّل السفليّ بعد
-// إعادة الترتيب لصالح المزارع (لوحة/حقول/عمليّات/مستشار). تُعيد استعمال الشاشات
-// القائمة كما هي (لا منطق جديد) وتفتحها بـMaterialPageRoute. البيانات المرجعيّة
-// والوثائق تُرشَّح بصلاحيّة الدور (RBAC فعليّ — تطابق canManage) كما في مركز العمليّات.
+// SAHOOL — features/more/presentation/more_screen.dart
+// «المزيد»: كلّ الوحدات التي ليست في شريط التنقّل، مجمّعة بأقسام. القائمة لا
+// تُكتب هنا: تُبنى من مداخل MenuEntry في ملفّات مسارات الميزات وتُرشَّح بالدور
+// (AppRoute.allowedRoles — مثل البيانات المرجعيّة والوثائق للإدارة فقط). ميزة
+// جديدة تظهر هنا بإضافة `menu:` إلى مسارها، دون تعديل هذا الملفّ.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
-import 'package:sahool_app/features/devices/presentation/devices_screen.dart';
-import 'package:sahool_app/features/documents/presentation/documents_screen.dart';
-import 'package:sahool_app/features/equipment/presentation/equipment_screen.dart';
-import 'package:sahool_app/features/farms/presentation/farms_screen.dart';
-import 'package:sahool_app/features/inventory/presentation/inventory_screen.dart';
-import 'package:sahool_app/features/master_data/presentation/master_data_screen.dart';
-import 'package:sahool_app/features/auth/presentation/mfa_setup_screen.dart';
-import 'package:sahool_app/features/operations_hub/presentation/operations_hub_screen.dart';
-import 'package:sahool_app/features/profile/presentation/profile_screen.dart';
-import 'package:sahool_app/features/satellite/presentation/satellite_screen.dart';
-import 'package:sahool_app/features/tasks/presentation/tasks_screen.dart';
-
-class _MoreItem {
-  final String label;
-  final IconData icon;
-  final Widget Function() build;
-  final bool managementOnly;
-  const _MoreItem(this.label, this.icon, this.build,
-      {this.managementOnly = false});
-}
+import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/routing/app_route.dart';
+import 'package:sahool_app/core/routing/app_router.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/widgets/list_tiles.dart';
 
 class MoreScreen extends StatelessWidget {
-  const MoreScreen({super.key});
+  const MoreScreen({super.key, this.router, this.role});
 
-  static final List<_MoreItem> _items = [
-    // مركز العمليّات (تجميعة الوحدات التشغيليّة) — خرج من شريط FieldView لكنّه
-    // يبقى مُتاحاً هنا بالكامل (لم يُحذَف).
-    _MoreItem('مركز العمليّات', Icons.grid_view,
-        () => const OperationsHubScreen()),
-    _MoreItem('المهام اليومية', Icons.task_alt_outlined, () => const TasksScreen()),
-    // المزارع (أب الحقول) — قائمة/إنشاء عبر /api/v1/farms (تكافؤ مع الويب).
-    _MoreItem('المزارع', Icons.agriculture_outlined, () => const FarmsScreen()),
-    _MoreItem('الأقمار', Icons.satellite_alt, () => const SatelliteScreen()),
-    _MoreItem('المخزون', Icons.inventory_2_outlined,
-        () => const InventoryScreen()),
-    _MoreItem('المعدّات', Icons.agriculture_outlined,
-        () => const EquipmentScreen()),
-    _MoreItem('أجهزة IoT', Icons.sensors, () => const DevicesScreen()),
-    _MoreItem('البيانات المرجعيّة', Icons.storage_outlined,
-        () => const MasterDataScreen(),
-        managementOnly: true),
-    _MoreItem('الوثائق', Icons.folder_outlined, () => const DocumentsScreen(),
-        managementOnly: true),
-    _MoreItem('الحساب والإعدادات', Icons.settings_outlined,
-        () => const ProfileScreen()),
-    _MoreItem('تفعيل المصادقة الثنائيّة (MFA)', Icons.shield_outlined,
-        () => const MfaSetupScreen()),
-  ];
+  /// للاختبارات؛ الافتراضيّ الموجِّه والدور الحاليّان.
+  final AppRouter? router;
+  final AppRole? role;
 
   @override
   Widget build(BuildContext context) {
-    final manageable = canManage(currentRole());
-    final visible =
-        _items.where((m) => !m.managementOnly || manageable).toList();
-
+    final r = router ?? AppRouter.instance;
+    final menu = r.menuFor(role ?? normalizeRole(currentRole()));
     return Scaffold(
-      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurface,
         title: const Text('المزيد'),
         automaticallyImplyLeading: false,
       ),
-      body: SafeArea(
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.1,
-          ),
-          itemCount: visible.length,
-          itemBuilder: (_, i) {
-            final m = visible[i];
-            return InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => m.build()),
+      body: ListView(
+        padding: const EdgeInsetsDirectional.only(bottom: 24),
+        children: [
+          for (final section in menu.entries) ...[
+            ListSectionHeader(section.key.labelAr),
+            Card(
+              margin: const EdgeInsetsDirectional.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  for (final route in section.value)
+                    AppListTile(
+                      key: ValueKey('more:${route.path}'),
+                      title: route.titleAr,
+                      icon: route.icon,
+                      iconColor: context.tokens.colors.primary,
+                      onTap: () => context.openRoute<void>(route.path),
+                    ),
+                ],
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: kSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(m.icon, color: kPrimary, size: 36),
-                    const SizedBox(height: 12),
-                    Text(m.label,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+            ),
+          ],
+        ],
       ),
     );
   }
 }
+
+/// للاختبارات والتشخيص: المسارات الظاهرة في «المزيد» لدور.
+List<AppRoute> moreRoutesFor(AppRouter router, AppRole role) =>
+    router.menuFor(role).values.expand((e) => e).toList();

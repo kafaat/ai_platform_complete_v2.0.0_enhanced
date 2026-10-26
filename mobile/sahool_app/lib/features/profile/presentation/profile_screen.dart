@@ -4,7 +4,8 @@
 // ثمّ مسح الجلسة وإعادة AuthGate). الأدوار تُترجَم للعربيّة.
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sahool_app/main.dart';
+import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/session/auth_state.dart';
 import 'package:sahool_app/services/auth_service.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 
@@ -44,11 +45,10 @@ class ProfileScreen extends StatelessWidget {
     );
     if (confirm != true) return;
     await AuthApi.instance.logout();
+    // AuthGate يستمع إلى AuthState فيعرض شاشة الدخول؛ نُغلق المكدّس فوقه.
+    AuthState.instance.signedOut();
     if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthGate()),
-      (route) => false,
-    );
+    context.popToRoot();
   }
 
   @override

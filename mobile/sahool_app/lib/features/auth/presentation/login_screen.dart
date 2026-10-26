@@ -1,9 +1,10 @@
-// SAHOOL — lib/screens/login_screen.dart
+// SAHOOL — features/auth/presentation/login_screen.dart
 // شاشة دخول حقيقيّة (كانت placeholder). تنادي POST /auth/login عبر ApiService،
-// تحفظ التوكن في التخزين الآمن، ثمّ تعيد بناء AuthGate (يوصِل WebSocket ويعرض
+// تحفظ التوكن في التخزين الآمن، ثمّ تُعلِم AuthGate عبر AuthState (يوصِل WebSocket ويعرض
 // الواجهة). صدق: الفشل يُعرَض للمستخدم بالعربيّة، لا جلسة زائفة.
 import 'package:flutter/material.dart';
-import 'package:sahool_app/main.dart';
+import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/session/auth_state.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
@@ -94,11 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onLoginSuccess() {
     if (!mounted) return;
-    // إعادة بناء AuthGate: التوكن محفوظ ⇒ يوصِل WebSocket ويعرض MainNavigation.
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthGate()),
-      (route) => false,
-    );
+    // AuthGate يستمع إلى AuthState: التوكن محفوظ ⇒ يوصِل WebSocket ويعرض الغلاف.
+    // إن فُتحت الشاشة مدفوعةً (/login بعد انتهاء الجلسة) نعود إلى الجذر.
+    AuthState.instance.signedIn();
+    context.popToRoot();
   }
 
   String _humanize(Object e) {

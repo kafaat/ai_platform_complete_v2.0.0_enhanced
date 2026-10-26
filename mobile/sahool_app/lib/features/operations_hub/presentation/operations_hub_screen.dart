@@ -1,98 +1,70 @@
-// SAHOOL — lib/screens/operations_hub_screen.dart
-// مركز العمليّات: شبكة وحدات تشغيليّة (مخزون/معدّات/أجهزة/ريّ تشغيلي/بيانات
-// مرجعيّة/وثائق) مُرشَّحة بصلاحيّة الدور (RBAC فعليّ — تطابق canAccess في الواجهة):
-//   • المخزون/المعدّات/الأجهزة/الري التشغيلي: متاحة لكلّ الأدوار (عرض).
-//   • البيانات المرجعيّة/الوثائق: إدارة فقط (owner/manager) — لا تظهر لغيرهم.
+// SAHOOL — features/operations_hub/presentation/operations_hub_screen.dart
+// مركز العمليّات: شبكة الوحدات التشغيليّة (مهام، ريّ، مخزون، معدّات، أجهزة)
+// مبنيّة من مداخل قسم MenuSection.operations في ملفّات مسارات الميزات، مُرشَّحة
+// بالدور. لا يُكتب هنا أيّ مسار.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
-import 'package:sahool_app/features/devices/presentation/devices_screen.dart';
-import 'package:sahool_app/features/documents/presentation/documents_screen.dart';
-import 'package:sahool_app/features/equipment/presentation/equipment_screen.dart';
-import 'package:sahool_app/features/inventory/presentation/inventory_screen.dart';
-import 'package:sahool_app/features/irrigation/presentation/irrigation_ops_screen.dart';
-import 'package:sahool_app/features/master_data/presentation/master_data_screen.dart';
-import 'package:sahool_app/features/tasks/presentation/tasks_screen.dart';
+import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/routing/app_route.dart';
+import 'package:sahool_app/core/routing/app_router.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/widgets/app_states.dart';
 
-class _Module {
-  final String label;
-  final IconData icon;
-  final Widget Function() build;
-  final bool managementOnly;
-  const _Module(this.label, this.icon, this.build, {this.managementOnly = false});
-}
+import '../operations_hub_routes.dart';
 
 class OperationsHubScreen extends StatelessWidget {
-  const OperationsHubScreen({super.key});
+  const OperationsHubScreen({super.key, this.router, this.role});
 
-  static final List<_Module> _modules = [
-    _Module('المخزون', Icons.inventory_2_outlined, () => const InventoryScreen()),
-    _Module('المهام اليومية', Icons.task_alt_outlined, () => const TasksScreen()),
-    _Module('المعدّات', Icons.agriculture_outlined, () => const EquipmentScreen()),
-    _Module('أجهزة IoT', Icons.sensors, () => const DevicesScreen()),
-    _Module('الري التشغيلي', Icons.water_drop_outlined,
-        () => const IrrigationOpsScreen()),
-    _Module('البيانات المرجعيّة', Icons.storage_outlined,
-        () => const MasterDataScreen(),
-        managementOnly: true),
-    _Module('الوثائق', Icons.folder_outlined, () => const DocumentsScreen(),
-        managementOnly: true),
-  ];
+  final AppRouter? router;
+  final AppRole? role;
 
   @override
   Widget build(BuildContext context) {
-    final manageable = canManage(currentRole());
-    final visible =
-        _modules.where((m) => !m.managementOnly || manageable).toList();
-
+    final r = router ?? AppRouter.instance;
+    final modules = (r.menuFor(role ?? normalizeRole(currentRole()),
+                sections: {MenuSection.operations})[MenuSection.operations] ??
+            const <AppRoute>[])
+        .where((m) => m.path != OperationsHubRoutes.hub)
+        .toList();
     return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('العمليّات'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.1,
-          ),
-          itemCount: visible.length,
-          itemBuilder: (_, i) {
-            final m = visible[i];
-            return InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => m.build()),
+      appBar: AppBar(title: const Text('مركز العمليّات')),
+      body: modules.isEmpty
+          ? const EmptyState(message: 'لا وحدات تشغيليّة متاحة لدورك.')
+          : GridView.builder(
+              padding: const EdgeInsets.all(SahoolSpacing.lg),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 220,
+                mainAxisSpacing: SahoolSpacing.md,
+                crossAxisSpacing: SahoolSpacing.md,
+                childAspectRatio: 1.1,
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: kSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(m.icon, color: kPrimary, size: 36),
-                    const SizedBox(height: 12),
-                    Text(m.label,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+              itemCount: modules.length,
+              itemBuilder: (context, i) {
+                final m = modules[i];
+                return Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => context.openRoute<void>(m.path),
+                    child: Padding(
+                      padding: const EdgeInsets.all(SahoolSpacing.md),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(m.icon,
+                              size: SahoolSizes.iconLg,
+                              color: context.tokens.colors.primary),
+                          const SizedBox(height: SahoolSpacing.md),
+                          Text(m.titleAr,
+                              textAlign: TextAlign.center,
+                              style: context.textStyles.titleSmall),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
