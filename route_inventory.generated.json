@@ -226,7 +226,7 @@
   {
     "service": "auth",
     "file": "services/auth/main.py",
-    "line": 401,
+    "line": 405,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_identity"
@@ -1474,7 +1474,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 564,
+    "line": 587,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "function": "mcp_tools_list"
@@ -1482,7 +1482,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 564,
+    "line": 587,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "function": "mcp_tools_list"
@@ -1490,7 +1490,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 596,
+    "line": 619,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "function": "mcp_tools_call"
@@ -1498,7 +1498,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 650,
+    "line": 673,
     "method": "GET",
     "path": "/v1/products",
     "function": "api_search_products"
@@ -1506,7 +1506,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 662,
+    "line": 685,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "function": "api_get_supplier"
@@ -1514,7 +1514,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 667,
+    "line": 690,
     "method": "POST",
     "path": "/v1/procurement",
     "function": "api_create_procurement"
@@ -1522,7 +1522,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 673,
+    "line": 696,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "function": "api_get_procurement"
@@ -1530,7 +1530,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 680,
+    "line": 703,
     "method": "POST",
     "path": "/v1/sales",
     "function": "api_create_sales"
@@ -1538,7 +1538,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 685,
+    "line": 708,
     "method": "GET",
     "path": "/v1/sales",
     "function": "api_search_sales"
@@ -1546,7 +1546,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 702,
+    "line": 725,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "function": "api_price_history"
@@ -1554,7 +1554,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 709,
+    "line": 732,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "function": "api_analytics"
@@ -1562,7 +1562,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 716,
+    "line": 739,
     "method": "GET",
     "path": "/healthz",
     "function": "health"
@@ -1570,7 +1570,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 716,
+    "line": 739,
     "method": "GET",
     "path": "/health",
     "function": "health"
@@ -1578,7 +1578,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 729,
+    "line": 752,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7946,7 +7946,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 218,
+    "line": 222,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_evidence_identity"
