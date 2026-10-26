@@ -178,6 +178,7 @@ DEC-007,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decis
 DEC-007,api,POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:87,2,applied
 DEC-007,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:1000,3,applied
 DEC-007,service,services/decision-service/main.py,10,applied
+DEC-007,test,services/decision-service/tests/test_execution_outcome_receipt_gate.py,3,applied
 DEC-007,test,services/decision-service/tests/test_outcome_reconcile.py,3,applied
 DEC-007,test,services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py,5,applied
 DEC-007,test,services/decision-service/tests/test_wx10_12_execution_outcome.py,3,applied
@@ -241,6 +242,7 @@ DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ 
 DEC-010,api,POST /v1/phase10/learning/models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162,2,applied
 DEC-010,api,POST /v1/phase10/learning/models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291,2,applied
 DEC-010,service,services/decision-service/main.py,10,applied
+DEC-010,test,services/decision-service/tests/test_model_promotion_guardrail_direction.py,3,applied
 DEC-010,test,services/decision-service/tests/test_wx11_3_model_promotion_decision.py,3,applied
 DEC-010,test,services/decision-service/tests/test_wx11_4_model_activation_request.py,5,applied
 DEC-010,test,services/decision-service/tests/test_wx11_5_model_activation_approval.py,5,applied
@@ -255,7 +257,7 @@ FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /metrics @ services/auth/routers/ops.py:21,3,applied
 FM-001,api,GET /readyz @ services/auth/routers/ops.py:32,3,applied
 FM-001,api,GET /runtime-identity @ services/auth/main.py:401,3,applied
-FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:709,2,applied
+FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:745,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:85,3,applied
 FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:230,3,applied
@@ -392,7 +394,7 @@ FM-002,test,services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py
 FM-002,test,services/sahool-platform/tests/test_simple_farm_book.py,3,applied
 FM-002,test,shared/test_autonomous_farm_os_phase9.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
-FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226,2,applied
+FM-003,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,2,applied
 FM-003,api,DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1678,4,applied
 FM-003,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666,2,applied
 FM-003,api,GET / @ services/field-management-service/main.py:273,3,applied
@@ -785,6 +787,7 @@ FM-003,test,tests_v9/test_soil_lab_field_state_emit.py,3,applied
 FM-003,test,tests_v9/test_telegram_voice_audio_boundary.py,3,applied
 FM-003,test,tests_v9/test_tts_network_boundary.py,3,applied
 FM-003,test,tests_v9/test_v204_field_forms_static.py,3,applied
+FM-003,test,tests_v9/test_video_stream_inference_field_binding.py,3,applied
 FM-003,test,tests_v9/test_weather_solar_fields.py,3,applied
 FM-003,test,tests_v9/test_yield_field_state_feed.py,3,applied
 FM-003,ui,frontend/e2e/field-context-flows.spec.ts,2,applied
@@ -935,14 +938,15 @@ FM-006,test,tests/architecture/test_platform_route_budget_guard.py,3,applied
 FM-006,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
 FM-006,test,tests_v9/test_ci_suite_invocation_budget.py,3,applied
 FM-006,test,tests_v9/test_cost_analytics.py,3,applied
+FM-006,test,tests_v9/test_rag_bm25_search_cost.py,3,applied
 FM-006,test,tests_v9/test_tool_loop_budget_v58_2c.py,3,applied
 FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:893,2,applied
 FM-007,api,GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184,2,applied
 FM-007,api,GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90,2,applied
-FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:673,2,applied
+FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:708,2,applied
 FM-007,api,POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40,2,applied
 FM-007,api,POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121,2,applied
-FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:667,2,applied
+FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:700,2,applied
 FM-007,mobile,mobile/sahool_app/lib/screens/inventory_screen.dart,2,applied
 FM-007,test,services/decision-service/tests/test_element84_inventory_pg16.py,3,applied
 FM-007,test,services/sahool-platform/tests/test_data_inventory.py,3,applied
@@ -1300,7 +1304,7 @@ OPS-003,test,services/scout-ingest-service/tests/test_projection_live.py,3,appli
 OPS-003,test,services/scout-ingest-service/tests/test_season_live.py,3,applied
 OPS-003,test,tests_v9/test_scout_ingest_service_ownership.py,3,applied
 OPS-003,test,tests_v9/test_scouting_pins_persistence.py,3,applied
-OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226,6,applied
+OPS-004,api,ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278,6,applied
 OPS-004,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,6,applied
 OPS-004,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,6,applied
 OPS-004,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,6,applied
@@ -1379,6 +1383,7 @@ PA-001,service,services/vegetation-analysis-service/main.py,10,applied
 PA-001,test,services/sahool-platform/tests/test_productivity_zones_ai_brief.py,5,applied
 PA-001,test,tests_v9/test_management_zone_count_v60_2.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_clustering_v60_1.py,5,applied
+PA-001,test,tests_v9/test_productivity_zones_grid_bounds.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_multiindex_v60_3.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_v60.py,5,applied
 PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377,2,applied
@@ -1884,6 +1889,7 @@ SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3
 SEC-005,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied
 SEC-005,test,tests/architecture/test_execution_dependency_audit.py,3,applied
 SEC-005,test,tests/ci/test_security_audit_tls_exception_is_narrow.py,3,applied
+SEC-005,test,tests_v9/test_agent_audit_store_bounds.py,3,applied
 SEC-005,test,tests_v9/test_ai_approval_audit_v55.py,3,applied
 SEC-005,test,tests_v9/test_ai_provider_native_multiround_audit_v58.py,3,applied
 SEC-005,test,tests_v9/test_calibration_audit_events.py,3,applied

@@ -4,9 +4,9 @@
 
 ## Summary
 
-- Python files parsed: **2006**
+- Python files parsed: **2011**
 - FastAPI-style route handlers: **1062**
-- Static function-call edges: **89242**
+- Static function-call edges: **90141**
 - Dead-code candidates: **650**
 - Duplicate function groups: **56**
 - Automatic deletions: **0**
@@ -64,7 +64,6 @@
 |---|---:|
 | `01e55555d0073910` | 2 |
 | `0791c0d18167f804` | 5 |
-| `10b234ebb823fb73` | 2 |
 | `1652c685e5ed27fa` | 4 |
 | `18a46eb263382a99` | 2 |
 | `27213e0b8be4077c` | 4 |
@@ -112,6 +111,7 @@
 | `c92554a020167fed` | 2 |
 | `daa44aded5a16e85` | 2 |
 | `dbaed230242c5876` | 2 |
+| `e03fabb0c845d8b4` | 2 |
 
 ## Interpretation
 

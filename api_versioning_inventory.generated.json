@@ -101,7 +101,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 246,
+    "line": 274,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -110,7 +110,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 310,
+    "line": 339,
     "method": "POST",
     "path": "/v1/simulate",
     "handler": "simulate",
@@ -119,7 +119,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 337,
+    "line": 352,
     "method": "POST",
     "path": "/v1/plan",
     "handler": "plan",
@@ -128,7 +128,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 353,
+    "line": 368,
     "method": "POST",
     "path": "/v1/replay/verify",
     "handler": "replay_verify",
@@ -1163,7 +1163,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 191,
+    "line": 193,
     "method": "GET",
     "path": "/healthz",
     "handler": "health_check",
@@ -1172,7 +1172,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 223,
+    "line": 225,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "handler": "detect_pest",
@@ -1181,7 +1181,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 286,
+    "line": 295,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "handler": "estimate_yield",
@@ -1190,7 +1190,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 355,
+    "line": 366,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "handler": "trigger_sync",
@@ -1199,7 +1199,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 387,
+    "line": 398,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1208,7 +1208,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 392,
+    "line": 403,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1217,7 +1217,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 402,
+    "line": 413,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1514,7 +1514,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 116,
+    "line": 117,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1523,7 +1523,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 121,
+    "line": 122,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1532,7 +1532,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 138,
+    "line": 139,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1541,7 +1541,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 152,
+    "line": 153,
     "method": "POST",
     "path": "/v1/nodes",
     "handler": "upsert_node",
@@ -1550,7 +1550,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 160,
+    "line": 161,
     "method": "POST",
     "path": "/v1/edges",
     "handler": "upsert_edge",
@@ -1559,7 +1559,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 169,
+    "line": 172,
     "method": "GET",
     "path": "/v1/edges",
     "handler": "edges",
@@ -1568,7 +1568,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 183,
+    "line": 186,
     "method": "POST",
     "path": "/graphql",
     "handler": "graphql",
@@ -1577,7 +1577,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 649,
+    "line": 685,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query_endpoint",
@@ -1586,7 +1586,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 659,
+    "line": 695,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest_endpoint",
@@ -1595,7 +1595,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 714,
+    "line": 750,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1604,7 +1604,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 732,
+    "line": 768,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1613,7 +1613,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 737,
+    "line": 773,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1622,7 +1622,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 144,
+    "line": 150,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1631,7 +1631,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 149,
+    "line": 155,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1640,7 +1640,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 156,
+    "line": 162,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1649,7 +1649,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 173,
+    "line": 179,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1658,7 +1658,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 564,
+    "line": 598,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "mcp_tools_list",
@@ -1667,7 +1667,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 564,
+    "line": 598,
     "method": "GET",
     "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
@@ -1676,7 +1676,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 596,
+    "line": 630,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
@@ -1685,7 +1685,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 650,
+    "line": 683,
     "method": "GET",
     "path": "/v1/products",
     "handler": "api_search_products",
@@ -1694,7 +1694,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 662,
+    "line": 695,
     "method": "GET",
     "path": "/v1/suppliers/{supplier_id}",
     "handler": "api_get_supplier",
@@ -1703,7 +1703,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 667,
+    "line": 700,
     "method": "POST",
     "path": "/v1/procurement",
     "handler": "api_create_procurement",
@@ -1712,7 +1712,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 673,
+    "line": 708,
     "method": "GET",
     "path": "/v1/procurement/{order_id}",
     "handler": "api_get_procurement",
@@ -1721,7 +1721,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 680,
+    "line": 715,
     "method": "POST",
     "path": "/v1/sales",
     "handler": "api_create_sales",
@@ -1730,7 +1730,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 685,
+    "line": 721,
     "method": "GET",
     "path": "/v1/sales",
     "handler": "api_search_sales",
@@ -1739,7 +1739,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 702,
+    "line": 738,
     "method": "GET",
     "path": "/v1/price-history/{category}",
     "handler": "api_price_history",
@@ -1748,7 +1748,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 709,
+    "line": 745,
     "method": "GET",
     "path": "/v1/analytics/{tenant_id}",
     "handler": "api_analytics",
@@ -1757,7 +1757,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 716,
+    "line": 752,
     "method": "GET",
     "path": "/healthz",
     "handler": "health",
@@ -1766,7 +1766,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 716,
+    "line": 752,
     "method": "GET",
     "path": "/health",
     "handler": "health",
@@ -1775,7 +1775,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
-    "line": 729,
+    "line": 765,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1784,7 +1784,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 199,
+    "line": 226,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1793,7 +1793,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 286,
+    "line": 319,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1802,7 +1802,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 488,
+    "line": 510,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1811,7 +1811,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 488,
+    "line": 510,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -1820,7 +1820,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 493,
+    "line": 515,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1829,7 +1829,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 102,
+    "line": 107,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1838,7 +1838,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 174,
+    "line": 179,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1874,7 +1874,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 58,
+    "line": 62,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1883,7 +1883,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 130,
+    "line": 134,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
@@ -1892,7 +1892,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 319,
+    "line": 256,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1901,7 +1901,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 319,
+    "line": 256,
     "method": "GET",
     "path": "/health",
     "handler": "healthz",
@@ -1910,7 +1910,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 324,
+    "line": 261,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -2018,7 +2018,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 195,
+    "line": 203,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -2027,7 +2027,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 200,
+    "line": 208,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -2036,7 +2036,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 225,
+    "line": 258,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -2045,7 +2045,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 274,
+    "line": 292,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest",
@@ -2054,7 +2054,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 349,
+    "line": 373,
     "method": "POST",
     "path": "/v1/search",
     "handler": "search",

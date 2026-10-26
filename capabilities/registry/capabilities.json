@@ -27,7 +27,7 @@
         "GET /metrics @ services/auth/routers/ops.py:21",
         "GET /readyz @ services/auth/routers/ops.py:32",
         "GET /runtime-identity @ services/auth/main.py:401",
-        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:709",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:745",
         "GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
         "GET /v1/auth/invitations @ services/auth/routers/invitations.py:85",
         "GET /v1/auth/me @ services/auth/routers/session.py:230",
@@ -258,7 +258,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
         "DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1678",
         "DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:666",
         "GET / @ services/field-management-service/main.py:273",
@@ -389,7 +389,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 108
+        "tests": 109
       }
     },
     {
@@ -674,6 +674,7 @@
         "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
         "tests_v9/test_ci_suite_invocation_budget.py",
         "tests_v9/test_cost_analytics.py",
+        "tests_v9/test_rag_bm25_search_cost.py",
         "tests_v9/test_tool_loop_budget_v58_2c.py"
       ],
       "runtime": {
@@ -704,7 +705,7 @@
           "path": "services/sahool-platform/api/routers/economics.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=14, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=14, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -730,10 +731,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:893",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90",
-        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:673",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:708",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121",
-        "POST /v1/procurement @ services/mcp_servers/market_server.py:667"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:700"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -3428,6 +3429,7 @@
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "tests_v9/test_management_zone_count_v60_2.py",
         "tests_v9/test_productivity_zones_clustering_v60_1.py",
+        "tests_v9/test_productivity_zones_grid_bounds.py",
         "tests_v9/test_productivity_zones_multiindex_v60_3.py",
         "tests_v9/test_productivity_zones_v60.py"
       ],
@@ -3459,7 +3461,7 @@
           "path": "services/sahool-platform/core/productivity_zones.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -3921,7 +3923,7 @@
         "services/field-management-service/main.py"
       ],
       "apis": [
-        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:226",
+        "ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:278",
         "GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393",
         "POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361",
         "POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195",
@@ -4752,6 +4754,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
         "services/decision-service/tests/test_outcome_reconcile.py",
         "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
@@ -4779,6 +4782,7 @@
           "receipt:api:POST_/v1/outcomes/{outcome_id}/learning-attribution",
           "receipt:api:POST_/v1/outcomes/{outcome_id}/remote-sensing-attribution",
           "receipt:api:POST_/v1/recommendation-outcomes",
+          "receipt:test:services/decision-service/tests/test_execution_outcome_receipt_gate.py",
           "receipt:test:services/decision-service/tests/test_outcome_reconcile.py",
           "receipt:test:services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
           "receipt:test:services/decision-service/tests/test_wx10_12_execution_outcome.py",
@@ -4814,7 +4818,7 @@
           "path": "services/sahool-platform/api/outcome_measurement.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5004,6 +5008,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
         "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
@@ -5044,7 +5049,7 @@
           "path": "services/decision-service/production_promotion.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5353,6 +5358,7 @@
         "services/sahool-platform/tests/test_tenant_audit.py",
         "tests/architecture/test_execution_dependency_audit.py",
         "tests/ci/test_security_audit_tls_exception_is_narrow.py",
+        "tests_v9/test_agent_audit_store_bounds.py",
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
         "tests_v9/test_calibration_audit_events.py",
@@ -5399,7 +5405,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=18, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

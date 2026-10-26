@@ -79,7 +79,7 @@
       "dynamic_expr": "topic",
       "file": "services/video-processor/main.py",
       "kind": "producer",
-      "line": 383,
+      "line": 400,
       "queue": null,
       "resolution": "dynamic",
       "subject": null
@@ -270,7 +270,7 @@
     "consumer_only_subjects": 3,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 14,
-    "files_scanned": 1257,
+    "files_scanned": 1258,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

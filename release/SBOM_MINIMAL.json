@@ -4475,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca8714dc0ddbb8982cfd2dde8d255ad50d6793b056bd5636a5578f814b9fbfe7"
+          "content": "f7b2357c613798a70257662604f01178f8cdae7c037dea04ac9aea6a268e20a7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -11555,7 +11555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da05e2db4d1911af5945d8e77d975571df7b356bc6d5bc60bb4674e084764c78"
+          "content": "36d96e5aaacebe4d0b96d15f9caf25b1f14043a99a63b0b43589e37fddd67525"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -11665,7 +11665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2da5147015ba67659781329e9d1eb49e0dde502bfb56c621f15a53b8fd08e66f"
+          "content": "48f4df71911dfabab75574377ff6252d3d180e0cef9f040891c4513486718d09"
         }
       ],
       "name": "services/agriai-engine/profit_planner.py",
@@ -11825,7 +11825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c754e454b444da8a84f471bb3c5a9b9f4ea9c44d42b619e2b05f7cda5dab78f"
+          "content": "4d64f1bbdcdec23095963d708812fe98db641682f7dc3c5fbbf436803ecf2042"
         }
       ],
       "name": "services/ai_agronomist/agent_stores.py",
@@ -11835,7 +11835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06437ec3e48a08ef72aecec2ace9cd0e256031b95405c7620704b658382e3a4e"
+          "content": "b10cb70bb799c5aaf439b10b26d6973e385a928ab0885d587531d5f466c5994d"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -11845,7 +11845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f336c44780afbe8d0f71cc35dfe6944a87b18f25bffc389e41e71022ca1e6e3f"
+          "content": "040bdd07848347f0813bf120a6aa802be66318d5a03317be7eb902bfcb99dd08"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -12005,7 +12005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9242c74c16c7d3a900e0b1c53a82b75ec1666b0c30a26c38bf11294cbe08fcf2"
+          "content": "96cdc048be33e8907dd3dcb9f15ab277265d7f5f7fc3892b47a6a7ef2be15b10"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -12055,7 +12055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9bbac5e7eac7214523c871ceb85c379136c9fc296bdf21aba9abd1801529cb7"
+          "content": "1de92441c8610c3ba43239dde76d9be53097d72a65a83fcf405e5d547ea2ef7f"
         }
       ],
       "name": "services/ai_agronomist/policy_envelope.py",
@@ -12075,7 +12075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e5517f51dfa259adbfe7fe6b704177e82f003263d0ddc5fcbdc8134fa89b64d"
+          "content": "5d9753944f7083777e53c1cac50dbca3a5bb4e186b6dc58571e2f060bb497887"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -12085,7 +12085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "115ab881e38fd7599abd9ce2b72e91758119bb41ca2e91830f27a3b35032538e"
+          "content": "40e69f8050056cb9cd97204720c8a1c43771e58e1791bceb3e477aded1876a64"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones_clustering.py",
@@ -12185,7 +12185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "67f83a9ed33fae6e0fe9d413116518e0ffbba766e8144d4ab16fdd04c6dc0ffc"
+          "content": "a840eea8edc965d8a40e837b5821b24559e93325a418dadf0a03cc05f13132a1"
         }
       ],
       "name": "services/ai_agronomist/soil_sampling_planner.py",
@@ -12255,7 +12255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "036ec05fb802ecc226005228258a2372e33aec60532f2fa6ba74ca7dbbc5c3be"
+          "content": "14c0674f52e65d373fb718b05a1d0f3adbc646b4e40c053c46fafe4ae6e27975"
         }
       ],
       "name": "services/ai_agronomist/vra_prescription_engine.py",
@@ -13025,7 +13025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a8abde881e6e06c117ab492fa23cf7d3ae06a1accd494baa6757df706f348f3"
+          "content": "8b18c5aa555db38f5e2f66c55aad7d7c68906b873e6766e527b912918b8bf338"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -13305,6 +13305,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6a6e267a7e2a114c5e7f36916ed3af5f797836addadc71597c6f93c0ff7ca486"
+        }
+      ],
+      "name": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "585bfe6dcf09829832bc612bc0fe48f46e3bcfcc6e5e01e54db6e1f6d18fde76"
         }
       ],
@@ -13399,6 +13409,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_migration_runner_readonly.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "528ff947cfb866eac3a7ea782af7ad19cf11f2f00c7f99f05b36123ef93b7edd"
+        }
+      ],
+      "name": "services/decision-service/tests/test_model_promotion_guardrail_direction.py",
       "type": "file"
     },
     {
@@ -13785,7 +13805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a522cedc44faf81e7866fcfc8488fdc76d4f78027727f392bf764ddfdd8c545"
+          "content": "b6fc30a5d66ac38943f4de4870202a3503b010b440513c7c0df2e87e2d13b7bf"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -13815,7 +13835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf632cdd72a0f49cc87369d6ac5bbb1d26513289c59e452855f386f4fcb7b95e"
+          "content": "84228f12b270e8d8d4ac7d13dfcef539db53a3856ebf1e5266f286fe76ca67e3"
         }
       ],
       "name": "services/edge-inference/models/errors.py",
@@ -13825,7 +13845,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb58ad80bb6cc8af59a8c42f965495bbe3ed82397e9970a68d14dc862d26114c"
+          "content": "126359f1e28204fbf1c1cbddc68940ebbed0e28a322e05d21c0797f0b0118418"
+        }
+      ],
+      "name": "services/edge-inference/models/image_decode.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30654ed951b1fd072aa265618d395c4b5cd0eea26ffa9fe687378e9f5cb521c9"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
@@ -13835,7 +13865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b2c263bc79d19b0418e77125891c6398132bcfe6fba4f96436eb65832cc3e0d"
+          "content": "5b3765b0c48bcfadfa1b39c23285f27ff6ea65d23a2163ab6bef1479021e8732"
         }
       ],
       "name": "services/edge-inference/models/yield_estimator.py",
@@ -13865,7 +13895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1abd9c34d46fa6e2fde1c4e934211a584a92fc926ad82166ce89d1de7c167a3c"
+          "content": "a67f35e889646cfe796179388090ba8f0c600ebcb2d38591158878a2ff2a1190"
         }
       ],
       "name": "services/edge-inference/sync_service.py",
@@ -13885,7 +13915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1423d27cd6f57568b71fefe5a488b60e3f2ffeccaef2db1e0f6bbd617a51f9cf"
+          "content": "8e71aa33fe362acbe13c9b71b952a34db2689b44db06b3a1a3b8f7c2ffa54fb1"
         }
       ],
       "name": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
@@ -14305,7 +14335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b566e2a847b15ccb698f7a868fceb29501e0f86e77ab1d7bee3aef033a9fde9d"
+          "content": "a3b5cf3f839b3350593b852ee5ca77d3feffd020b8ab2f77bc130a399944fdbc"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -14345,7 +14375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2b2f9d039f4f602dc4518b4ccee207ba4aeb9389b36ef663647e40dc89e83b5"
+          "content": "6deff25ff267bfa583dc1ad7d1f799b59401940cfa07d1d2a08dedd23a507e3a"
         }
       ],
       "name": "services/guardrails-engine/routers/health.py",
@@ -14385,7 +14415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81e0347d5275d2780c1c5a0df31be763af1e579a155441ebfd37af89faef1187"
+          "content": "686b3209467c53b8796cff70f51b4eb3e58562e9ae319bb5c9e69aadc042b97d"
         }
       ],
       "name": "services/guardrails-engine/tiers/chemical_tier.py",
@@ -14405,7 +14435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c8710ccbe842689811eb9a47b2c269d5b4065a792f8bb843c74357da1cdef54"
+          "content": "10767ed500b8a651dc2f9506a42c7a8e32f2f62e738c8edfeb7ee8be037ff076"
         }
       ],
       "name": "services/guardrails-engine/tiers/environmental_tier.py",
@@ -14535,7 +14565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df2a732234ebddf3c35ace34da6f3c23776b62c9b02624872b578b87a82f96f8"
+          "content": "e5372b3a4c2692598729350bd065949b249d41eac424f03cf925481a98bfeca6"
         }
       ],
       "name": "services/knowledge-graph/kg_store.py",
@@ -14545,7 +14575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccc7455e17e0ff3e6be5bec661d10f20c11ff84a1396b2882ccf619b19a8bbc8"
+          "content": "e9038ee293e3916ff590054d5e11a2ca70dad77a97f9026f525c58db2db1fd26"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -14595,7 +14625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "259898046f189e0c61fd878980973a4fffaa16b2d9091b75ffbe763a60b0ffde"
+          "content": "928babeb1364ad03d319092a08028100ab9f55b355aa97420256dddddcdf889c"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -14655,7 +14685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d223cfceafb142f0915d1fd8b6c7e710c37f590520f7a051bf4b44e15dd0156"
+          "content": "9be7ebb17c4558077a8833fb5ab5ef65a564d4564cb99d9b5b68de17e6c652bb"
         }
       ],
       "name": "services/mcp_servers/generic_context_server.py",
@@ -14675,7 +14705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eacf6999531372042820fb2fafc27fffeb10a51e2f18d5008e347d52465fa519"
+          "content": "df872724889070b077df67832b0bc14c22c08a2e3f970f4d8f8c43f314259c4e"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -14695,7 +14725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef64bcd7ab2b05eb11eab55d8e5b02aa9182010a1b981ce3c44c8d078fdbaac8"
+          "content": "2cd0d680f6f2e721f0cd3dc123b4540950ae8627546eb4805e6a98336ad635ee"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -14715,7 +14745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9c9acd868c46a8faa3d5b5bf79575041fcd448343c38259faaa65a8dda7f85b"
+          "content": "6b38bd20423c6ec482050105348e3b150897d0caf5f0032b89289f4a95b2bf88"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",
@@ -14755,7 +14785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "262edcc036bb868cfe4936dd630e10f10699b7e9b2ad72d20768b1010f1e7ca4"
+          "content": "9d603a5c5d8084ce82c58176e2d7eddb9fb972f588a08261deb6583e572b2b79"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -14765,7 +14795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "609fefa0d46d8b8252594baf327960765ee0ca3563280f4690afe3dddd89ceab"
+          "content": "3d6c9050f66df85a8d872ab7522f646557339d3b14200332e3fc0b9f0d088cce"
         }
       ],
       "name": "services/mcp_servers/wofost_server.py",
@@ -14795,7 +14825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18084992e99b3c4a28f31111a3413a03b3abd5f5a9e5d4b7934884ed3a71d5d0"
+          "content": "f82d7a8b3ee0333147b104014e7a573e3b11ee0224b0f2c4ce172c200fffc30c"
         }
       ],
       "name": "services/model-registry-adapter/runtime.py",
@@ -14815,7 +14845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43249133a69fb59132022541dfd641c3927673d6550754ed63cbcf83bb1d7ca6"
+          "content": "c9a87a114b88f657da0603bf0c7cd128cfd7d243d3698d3d884104bec4d1e808"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime.py",
@@ -14825,7 +14855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18279a470f4d8ca56d45ea6ca2072afb6807a68c7dd8059740da2b695b8a8589"
+          "content": "aa902639d15eb91a234bbd555693bf3f9d78f832ea3c3aaf171a6b6bae8944e1"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -15075,7 +15105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cf4158bc0c0a8131a85348e23c40ab294f628be295039c9195d4307959ecdfb"
+          "content": "bd52f4445e4d743df0629d6772365c8c76afee79ea0a954b1991059431f8fd58"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -17075,7 +17105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9df8b77c7c5af040cbf4c85673637f69a32d874ec0ac44129aa7327b7301633d"
+          "content": "7c8646ba85a70dc5d93da5796898991a7c298724286573bbb76339ac2e94c66f"
         }
       ],
       "name": "services/realtime-agent/realtime_agent/config.py",
@@ -17105,7 +17135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe6f2f809fa0294de646420c135eb2b2866f67ae5ff48c63c24602ab74a2b822"
+          "content": "1af06bb1fb6cc516d4f3dd6dbac53be949e127772f66ebb796e2948981901d0a"
         }
       ],
       "name": "services/realtime-agent/realtime_agent/providers.py",
@@ -17169,6 +17199,16 @@
         }
       ],
       "name": "services/realtime-agent/tests/test_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b572c3c5b11a1d852034003e4769000f8320749599f3ea5ce60549897814d247"
+        }
+      ],
+      "name": "services/realtime-agent/tests/test_origin_transport.py",
       "type": "file"
     },
     {
@@ -17515,7 +17555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd1d13209a13fff920af381a5ce7196f2a4782e1a177f2a86c3580c348042e3d"
+          "content": "4df645bf8390f641ea7a9246c570dd72a6424226ce806f0e76902ebcd84b0fd6"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -19315,7 +19355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9224b4733caa7d89e3fc56a5bca706c17e311927a095f67985adc8aab7aa5449"
+          "content": "2a608a7eca67f7171d800d42384f9f94d8d38b4e5214856625a9a620074d2099"
         }
       ],
       "name": "services/sahool-platform/api/outcome_measurement.py",
@@ -20995,7 +21035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "add432f7083db29bd0f59308c4a2056363558e9dd6ef15e3caaab117479bd056"
+          "content": "91b188b40a4893fee22c093523b70c0c3fc1a213dc34623d10fc288cb6692e53"
         }
       ],
       "name": "services/sahool-platform/api/routers/service_proxy.py",
@@ -21945,7 +21985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad1e89285304b038852138d8c7a991e63063f05b63c54e88b39eb9915442d4ce"
+          "content": "ec5e52ccd8a92b406ae0fe2fa7954ae28507429f2638bd9c62bccd2dc5c02d62"
         }
       ],
       "name": "services/sahool-platform/core/ai_policy_envelope.py",
@@ -24505,7 +24545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f37606c8b0076ac20b494259f13b5428dbf9cd7f55574200afe6b329c83296b"
+          "content": "ee6ffec2f04327ec0ee679961d59aa79cf1f620e31a567e62a5530b8db124f88"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -24675,7 +24715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4aaa063b75bca62f1049baed4b8544adeba7c609677b42fd387762b4e5c156e9"
+          "content": "91f39a4cffe2a883f17a868ed33c15f20d7fd93ceb31bd692545f25925d477c7"
         }
       ],
       "name": "services/sahool-platform/core/simple_farm_book.py",
@@ -25785,7 +25825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dee5b50bb2f0b3de81a1947eb6027b6a2a0ce621c48f9ce4c278021ae5a17d1d"
+          "content": "22caba48fecd9e5deaa36fac5a33752bedb36780294188b566ed1bc53d63db2c"
         }
       ],
       "name": "services/sahool-platform/tests/test_ai_provider_config.py",
@@ -26919,6 +26959,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f85c3fdef5bcf1ccb8d09f39447099a1b529a9d93b28efba9b6ed862abb7a501"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_edge_segmentation_proxy_authorization.py",
       "type": "file"
     },
     {
@@ -29455,7 +29505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "122557e9347a1ad09740b600dfec038e919e7a6020db5b85b182acac23c2a573"
+          "content": "08f044c982da48ab67890cf02086ddf0ae7ddd2d0460f27616848ec6df4e6f4f"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",
@@ -30355,7 +30405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e48d6c32e085d808ec11f552a4f37430b46f8fdd7d95cfc15bdc893faffc6bb"
+          "content": "a1eac2dbf08971010a4ad8c4757d23495b44556577d9ffa41c2e5a15ad5707f3"
         }
       ],
       "name": "services/sam2-inference/Dockerfile",
@@ -30395,7 +30445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "827b92f70842f4cfea926b5661a99a4b77d26dc6e86717e2ad56df5d1fd3816e"
+          "content": "a2e77a5e22ec647dadb40ef7adb5506ef77ed061757cd38860eb0add0b6dc4a2"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",
@@ -30405,7 +30455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d5b4eea2ace5b0a2e533ae49ad2e9a9923d52f3175e52ecb0762ee7d921cb24"
+          "content": "f8de0bdc3d472515660edea8163f884ed87ed1042cd2fedadb10fff363e62a36"
         }
       ],
       "name": "services/sam2-inference/tests/test_sam2_inference_http_contract.py",
@@ -31075,7 +31125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13362aef31ddbca8bf376c29574c6fa443c0f0bf29a12ab55b855000df47d8a8"
+          "content": "f6260f16b1e3dd5f3cf3e7610099c39c74b28b92d4194bf2032dbd8b57348e71"
         }
       ],
       "name": "services/supervisor-agent/circuit_breaker.py",
@@ -31085,7 +31135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5ec9c18f929ca507530468f8239f913de06d84fd2f2db0dd9962340160fa045"
+          "content": "c6af33fcd60f13301a99fbfd14bf1eb26253cfb9efd638dbcebe190f5991aadc"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -31095,7 +31145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95792cf78d7e352219b2d554b76692b16d18376573e2b2be469a4b22e969c496"
+          "content": "24b4d5f37dd09989e220ee73346b865e20b728c92ecb4dc665431d4d04d094e1"
         }
       ],
       "name": "services/supervisor-agent/mcp_client.py",
@@ -31145,7 +31195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c49a1b65712f0bf7d6eebbc8bf413fb2a91889ce13e4b2098294692a05c4301"
+          "content": "7beb3349f401a66bd85bf0d72f1467e3e965183716184a32902db9a628c8fcdf"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -31175,7 +31225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2146b32e79153424bbd7b093ab79c4a00e2ea1dfcdeb12a7b73b2aa5a9e0e193"
+          "content": "d3af8146fb53b3f5356030e672c434a1a4078280e9b8a9b48172965157aee6df"
         }
       ],
       "name": "services/supervisor-agent/skills/advisory_skill.py",
@@ -31195,7 +31245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6158549cc72e8740c1988b48c64c2c08b44090b5e3481c6deefb12025add6fa5"
+          "content": "ac2147881bcddc53ddd8a79299c3179557104991669e3fcf03a16198e7075aa7"
         }
       ],
       "name": "services/supervisor-agent/skills/market_skill.py",
@@ -31215,7 +31265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f2c9f214ed48aba03d65cd7aa4e146de1425ae664c78f6f5812e228892ea62d"
+          "content": "603def7d0333e9640eb720b8ec2a5bb217a1fc9b5880bfed5c40adbe691fbf6d"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",
@@ -31235,7 +31285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aca3565d0fab04015b68f5b5edc872158547e44bc4467a6fc6d0e4ce4bc72e42"
+          "content": "776303d6fc3cc3bf1fff1140b5204e823feb1977035da6665fdf060f397d10df"
         }
       ],
       "name": "services/supervisor-agent/test_circuit_breaker.py",
@@ -31905,7 +31955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca7f2ad96b313bf6c9ed9c5461780af0663de1b24799b1e0b969b7d5cd547849"
+          "content": "84d37896d791ab468b9936ac7ee99f54453a3ff55ebbcac39ebed698d0594bd5"
         }
       ],
       "name": "services/video-processor/main.py",

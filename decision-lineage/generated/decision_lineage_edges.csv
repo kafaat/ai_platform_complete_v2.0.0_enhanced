@@ -3,8 +3,8 @@ edge:evidence:candidate,stage:evidence,stage:candidate,candidate_from_evidence,t
 edge:candidate:decision,stage:candidate,stage:decision,decision_from_candidate,true,100,false
 edge:decision:review,stage:decision,stage:review,review_of_decision,true,70,false
 edge:review:plan,stage:review,stage:plan,plan_from_review,true,29,false
-edge:plan:authorization,stage:plan,stage:authorization,authorization_for_plan,true,31,false
-edge:authorization:request,stage:authorization,stage:request,request_from_authorization,true,23,false
-edge:request:receipt,stage:request,stage:receipt,receipt_for_request,true,19,false
-edge:receipt:outcome,stage:receipt,stage:outcome,outcome_from_receipt,true,10,false
+edge:plan:authorization,stage:plan,stage:authorization,authorization_for_plan,true,32,false
+edge:authorization:request,stage:authorization,stage:request,request_from_authorization,true,24,false
+edge:request:receipt,stage:request,stage:receipt,receipt_for_request,true,20,false
+edge:receipt:outcome,stage:receipt,stage:outcome,outcome_from_receipt,true,11,false
 edge:outcome:learning,stage:outcome,stage:learning,learning_from_outcome,true,29,false

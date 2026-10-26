@@ -5202,45 +5202,6 @@
     ]
   },
   {
-    "path": "services/ai_agronomist/ai_evidence_runtime.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SOIL-002",
-        "score": 15,
-        "signals": [
-          "content:Soil sampling",
-          "content:sampling plan",
-          "content:soil sampling"
-        ]
-      },
-      {
-        "capability_id": "WX-008",
-        "score": 12,
-        "signals": [
-          "content:Operation windows",
-          "content:operation window"
-        ]
-      },
-      {
-        "capability_id": "WX-003",
-        "score": 12,
-        "signals": [
-          "content:Weather history",
-          "content:weather history"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/ai_agronomist/provider_tooling.py",
     "kind": "backend",
     "candidates": [
@@ -5537,6 +5498,28 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_execution_outcome_receipt_gate.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-005",
+        "score": 10,
+        "signals": [
+          "content:Dispatch authorization",
+          "content:dispatch authorization"
         ]
       }
     ]
@@ -11449,6 +11432,36 @@
         "signals": [
           "path:productivity zone",
           "content:productivity zone"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_productivity_zones_grid_bounds.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "PA-001",
+        "score": 14,
+        "signals": [
+          "path:productivity zone",
+          "content:productivity zone"
+        ]
+      },
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
         ]
       },
       {
