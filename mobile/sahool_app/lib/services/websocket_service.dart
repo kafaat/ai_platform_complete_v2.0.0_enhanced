@@ -17,8 +17,13 @@ class WsEvent {
   final Map<String, dynamic> data;
   const WsEvent(this.type, this.data);
 
-  factory WsEvent.fromJson(Map<String, dynamic> json) =>
-      WsEvent((json['type'] ?? json['event'] ?? '').toString(), json);
+  /// النوع من `event_type` أوّلاً (إطار وكيل الإشعارات `{event_type, title,
+  /// message, data, tenant_id}` وغلاف ناقل الأحداث في الخادم)، ثمّ `type`
+  /// (إطارات التحكّم: auth_ok/subscribed/pong) ثمّ `event`.
+  factory WsEvent.fromJson(Map<String, dynamic> json) => WsEvent(
+    (json['event_type'] ?? json['type'] ?? json['event'] ?? '').toString(),
+    json,
+  );
 }
 
 /// نتيجة [WebSocketService.send] — تُخبر المستدعي بالمآل الفعليّ للرسالة بدل

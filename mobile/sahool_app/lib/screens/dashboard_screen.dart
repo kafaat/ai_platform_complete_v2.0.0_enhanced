@@ -16,6 +16,7 @@ import 'package:sahool_app/core/routing/shell_scope.dart';
 import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/alerts/data/alert_live_events.dart';
 import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 import 'package:sahool_app/features/dashboard/data/dashboard_snapshot_store.dart';
 import 'package:sahool_app/features/dashboard/data/today_models.dart';
@@ -60,7 +61,8 @@ class DashboardScreen extends StatelessWidget {
     tasksApi: TasksApi.instance,
     farmsApi: FarmsApi.instance,
     snapshots: HiveDashboardSnapshotStore.instance,
-    alertEvents: WebSocketService.instance.on('alert'),
+    // كلّ أنواع إطارات التنبيه (alert, alert.created, weather_*…) لا 'alert' وحده.
+    alertEvents: liveAlertSignals(WebSocketService.instance.events),
   );
 
   @override

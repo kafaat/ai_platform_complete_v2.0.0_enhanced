@@ -4,9 +4,8 @@
 //
 // شكل الإطار كما يبثّه الخادم فعلاً (agents/notification/agent.py dispatch):
 //   {event_type, title, message, data: {...}, tenant_id, user_id}
-// أي أنّ النوع في `event_type` لا في `type` — و`WsEvent.fromJson` في core يقرأ
-// `type`/`event` فقط، فـ`on('alert')` لا يطابق شيئاً من هذا المنتِج. لذا نشترك في
-// `events` كلّها ونقرأ النوع من الحقلين هنا.
+// أي أنّ النوع في `event_type` (يقرؤه `WsEvent.fromJson` أوّلاً). نشترك في
+// `events` كلّها لأنّ أنواع التنبيه متعدّدة (alert, alert.created, weather_*…).
 //
 // صدق: لا نبني تنبيهاً في القائمة إلّا إن حمل الإطار `alert_id` حقيقيّاً. إطار
 // تنبيهٍ بلا معرّف ⇒ إشارة «أعِد التحميل» فقط (لا صفّ مُختلَق).
