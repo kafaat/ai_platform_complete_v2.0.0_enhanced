@@ -1,4 +1,4 @@
-// SAHOOL — lib/screens/mfa_setup_screen.dart
+// SAHOOL — features/auth/presentation/mfa_setup_screen.dart
 // شاشة تفعيل/تعطيل المصادقة الثنائيّة (MFA / TOTP — RFC 6238).
 // تدفّق التفعيل (يطابق frontend/src SettingsPage.AccountSecurity والعقد في
 // services/auth/main.py):
@@ -6,34 +6,37 @@
 //   2) نعرض رمز QR (otpauth://) + السرّ نصّاً للإدخال اليدويّ. يُعرَض مرّة واحدة.
 //   3) المستخدم يُدخل الرمز من تطبيق المصادقة ⇒ POST /auth/mfa/activate ⇒ تفعيل.
 //   4) تعطيل: POST /auth/mfa/disable برمز صحيح حاليّاً.
-// صدق تامّ: لا نجاح زائف — كلّ فشل يُعرَض بالعربيّة عبر apiErrorMessage. السرّ
-// يُعرَض مرّة واحدة فقط (لا نُعيد جلبه ولا نخزّنه). RTL عالميّ مضمون من main.dart.
+// صدق تامّ: لا نجاح زائف — كلّ فشل يُعرَض بالعربيّة. السرّ يُعرَض مرّة واحدة فقط
+// (لا نُعيد جلبه ولا نخزّنه). الرمز يقبل الأرقام العربيّة-الهنديّة (كان
+// digitsOnly يحذفها فلا يُكتب الرمز من لوحة عربيّة)، والتعطيل يُؤكَّد صراحةً.
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'
-    show Clipboard, ClipboardData, FilteringTextInputFormatter;
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:qr_flutter/qr_flutter.dart';
-
-import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 
-const _kField = Color(0xFF1A1D29);
-const _kBorder = Color(0xFF334155);
-const _kDanger = Color(0xFFF87171);
-const _kMuted = Color(0xFF94A3B8);
+import 'widgets/otp_code_field.dart';
 
 class MfaSetupScreen extends StatefulWidget {
-  const MfaSetupScreen({super.key});
+  const MfaSetupScreen({super.key, this.api});
+
+  /// للاختبارات؛ الافتراضيّ AuthApi.instance.
+  final AuthApi? api;
 
   @override
   State<MfaSetupScreen> createState() => _MfaSetupScreenState();
 }
 
 class _MfaSetupScreenState extends State<MfaSetupScreen> {
-  // setupData != null ⇒ بدأ الاقتران (نعرض السرّ + QR) بانتظار التفعيل.
+  AuthApi get _api => widget.api ?? AuthApi.instance;
+
+  // _secret != null ⇒ بدأ الاقتران (نعرض السرّ + QR) بانتظار التفعيل.
   String? _secret;
   String? _provisioningUri;
-  bool _activated =
-      false; // فُعِّل MFA في هذه الجلسة ⇒ نخفي السرّ ونعرض نجاحاً.
+  bool _activated = false; // فُعِّل في هذه الجلسة ⇒ نخفي السرّ ونعرض نجاحاً.
   bool _disabledOk = false;
 
   final _activateCode = TextEditingController();
@@ -53,7 +56,18 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
     super.dispose();
   }
 
+  /// رسالة صادقة: تفصيل الخادم (400 «رمز غير صحيح»/«مفعّل سلفاً») إن وُجد.
+  String _humanize(Object e, String fallback) {
+    final err = ApiException.from(e);
+    if (err.kind == ApiErrorKind.badRequest) {
+      final d = err.detail;
+      return d is String && d.isNotEmpty ? d : fallback;
+    }
+    return err.messageAr.isNotEmpty ? err.messageAr : fallback;
+  }
+
   Future<void> _startSetup() async {
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -61,7 +75,7 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       _disabledOk = false;
     });
     try {
-      final data = await AuthApi.instance.mfaSetup();
+      final data = await _api.mfaSetup();
       final secret = data['secret'] as String?;
       final uri = data['provisioning_uri'] as String?;
       if (secret == null || uri == null) {
@@ -85,8 +99,9 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
   }
 
   Future<void> _activate() async {
-    final code = _activateCode.text.trim();
-    if (code.length != 6) {
+    if (_busy) return;
+    final code = normalizeOtp(_activateCode.text);
+    if (code == null) {
       setState(
         () => _error = 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة',
       );
@@ -97,7 +112,7 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       _error = null;
     });
     try {
-      await AuthApi.instance.mfaActivate(code);
+      await _api.mfaActivate(code);
       if (mounted) {
         setState(() {
           _activated = true;
@@ -119,19 +134,30 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
   }
 
   Future<void> _disable() async {
-    final code = _disableCode.text.trim();
-    if (code.length != 6) {
+    if (_disableBusy) return;
+    final code = normalizeOtp(_disableCode.text);
+    if (code == null) {
       setState(
         () => _disableError = 'أدخل الرمز الحاليّ (6 أرقام) لتأكيد التعطيل',
       );
       return;
     }
+    final ok = await showConfirmDialog(
+      context,
+      title: 'تعطيل المصادقة الثنائيّة؟',
+      message:
+          'سيصبح الدخول إلى حسابك بكلمة المرور وحدها. يمكنك تفعيلها من جديد '
+          'في أيّ وقت.',
+      confirmLabel: 'تعطيل',
+      destructive: true,
+    );
+    if (!ok || !mounted) return;
     setState(() {
       _disableBusy = true;
       _disableError = null;
     });
     try {
-      await AuthApi.instance.mfaDisable(code);
+      await _api.mfaDisable(code);
       if (mounted) {
         setState(() {
           _disabledOk = true;
@@ -150,12 +176,6 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
     }
   }
 
-  // رسالة صادقة: نُفضّل تفصيل الخادم (`detail`) إن وُجد، وإلّا apiErrorMessage.
-  String _humanize(Object e, String fallback) {
-    final msg = apiErrorMessage(e);
-    return msg.isNotEmpty ? msg : fallback;
-  }
-
   Future<void> _copySecret() async {
     final s = _secret;
     if (s == null) return;
@@ -169,220 +189,171 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('المصادقة الثنائيّة (MFA)'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'طبقة حماية إضافيّة: عند الدخول يُطلَب رمز مؤقّت من تطبيق مصادقة '
-                '(Google Authenticator / Authy).',
-                style: TextStyle(color: _kMuted, fontSize: 13, height: 1.5),
-              ),
-              const SizedBox(height: 20),
-
-              if (_activated) _okBox('تم تفعيل المصادقة الثنائيّة بنجاح'),
-              if (_disabledOk) _okBox('تم تعطيل المصادقة الثنائيّة'),
-
-              // ── بدء الاقتران ──────────────────────────────────────
-              if (_secret == null && !_activated)
-                ElevatedButton.icon(
-                  onPressed: _busy ? null : _startSetup,
-                  icon: _busy
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.shield_outlined),
-                  label: const Text('بدء تفعيل المصادقة الثنائيّة'),
-                  style: _btnStyle(kPrimary),
-                ),
-
-              // ── عرض السرّ + QR + رمز التفعيل ──────────────────────
-              if (_secret != null) ...[
-                _setupCard(),
-                const SizedBox(height: 16),
-                const Text(
-                  'رمز التأكيد (من تطبيق المصادقة)',
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                _codeField(
-                  controller: _activateCode,
-                  onSubmitted: () {
-                    if (!_busy) _activate();
-                  },
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _busy ? null : _activate,
-                  icon: _busy
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.check_circle_outline),
-                  label: const Text('تفعيل'),
-                  style: _btnStyle(kPrimary),
-                ),
-              ],
-
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                Text(
-                  _error!,
-                  style: const TextStyle(color: _kDanger, fontSize: 13),
-                ),
-              ],
-
-              // ── تعطيل MFA ────────────────────────────────────────
-              const SizedBox(height: 28),
-              const Divider(color: _kBorder),
-              const SizedBox(height: 12),
-              if (!_showDisable)
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    onPressed: () => setState(() {
-                      _showDisable = true;
-                      _disableError = null;
-                      _disabledOk = false;
-                    }),
-                    child: const Text(
-                      'تعطيل المصادقة الثنائيّة (إن كانت مفعّلة)',
-                      style: TextStyle(color: _kMuted, fontSize: 13),
-                    ),
-                  ),
-                )
-              else ...[
-                const Text(
-                  'أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.',
-                  style: TextStyle(color: _kMuted, fontSize: 13),
-                ),
-                const SizedBox(height: 10),
-                _codeField(
-                  controller: _disableCode,
-                  onSubmitted: () {
-                    if (!_disableBusy) _disable();
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _disableBusy ? null : _disable,
-                        style: _btnStyle(const Color(0xFFDC2626)),
-                        child: _disableBusy
-                            ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('تعطيل'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    TextButton(
-                      onPressed: _disableBusy
-                          ? null
-                          : () => setState(() => _showDisable = false),
-                      child: const Text(
-                        'إلغاء',
-                        style: TextStyle(color: _kMuted),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_disableError != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _disableError!,
-                    style: const TextStyle(color: _kDanger, fontSize: 13),
-                  ),
-                ],
-              ],
-            ],
+    final t = context.tokens;
+    final styles = context.textStyles;
+    return AppScaffold(
+      title: 'المصادقة الثنائيّة',
+      body: ListView(
+        padding: const EdgeInsets.all(SahoolSpacing.lg),
+        children: [
+          Text(
+            'طبقة حماية إضافيّة: عند الدخول يُطلَب رمز مؤقّت من تطبيق مصادقة '
+            '(Google Authenticator أو Authy).',
+            style: styles.bodyMedium?.copyWith(color: t.muted),
           ),
-        ),
+          const SizedBox(height: SahoolSpacing.lg),
+          if (_activated)
+            const _Note(
+              key: ValueKey('mfa_activated'),
+              message:
+                  'فُعّلت المصادقة الثنائيّة. سيُطلب الرمز في الدخول القادم.',
+            ),
+          if (_disabledOk)
+            const _Note(
+              key: ValueKey('mfa_disabled'),
+              message: 'عُطّلت المصادقة الثنائيّة.',
+            ),
+
+          // ── بدء الاقتران ──────────────────────────────────────
+          if (_secret == null && !_activated)
+            PrimaryButton(
+              key: const ValueKey('mfa_start'),
+              label: 'بدء تفعيل المصادقة الثنائيّة',
+              icon: Icons.shield_outlined,
+              loading: _busy,
+              onPressed: _startSetup,
+            ),
+
+          // ── عرض السرّ + QR + رمز التفعيل ──────────────────────
+          if (_secret != null) ...[
+            _setupCard(context),
+            const SizedBox(height: SahoolSpacing.lg),
+            OtpCodeField(
+              key: const ValueKey('mfa_activate_code'),
+              controller: _activateCode,
+              enabled: !_busy,
+              label: 'الرمز من تطبيق المصادقة',
+              onSubmitted: _activate,
+            ),
+            const SizedBox(height: SahoolSpacing.lg),
+            PrimaryButton(
+              key: const ValueKey('mfa_activate'),
+              label: 'تفعيل',
+              icon: Icons.check_circle_outline,
+              loading: _busy,
+              onPressed: _activate,
+            ),
+          ],
+
+          if (_error != null) ...[
+            const SizedBox(height: SahoolSpacing.md),
+            _InlineError(message: _error!),
+          ],
+
+          // ── تعطيل MFA ────────────────────────────────────────
+          const SizedBox(height: SahoolSpacing.xl),
+          const Divider(),
+          const SizedBox(height: SahoolSpacing.sm),
+          if (!_showDisable)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                key: const ValueKey('mfa_show_disable'),
+                onPressed: () => setState(() {
+                  _showDisable = true;
+                  _disableError = null;
+                  _disabledOk = false;
+                }),
+                child: const Text('تعطيل المصادقة الثنائيّة (إن كانت مفعّلة)'),
+              ),
+            )
+          else ...[
+            Text(
+              'أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.',
+              style: styles.bodyMedium?.copyWith(color: t.muted),
+            ),
+            const SizedBox(height: SahoolSpacing.sm),
+            OtpCodeField(
+              key: const ValueKey('mfa_disable_code'),
+              controller: _disableCode,
+              enabled: !_disableBusy,
+              onSubmitted: _disable,
+            ),
+            const SizedBox(height: SahoolSpacing.md),
+            PrimaryButton(
+              key: const ValueKey('mfa_disable'),
+              label: 'تعطيل',
+              tone: ButtonTone.danger,
+              loading: _disableBusy,
+              onPressed: _disable,
+            ),
+            const SizedBox(height: SahoolSpacing.sm),
+            SecondaryButton(
+              label: 'إلغاء',
+              onPressed: _disableBusy
+                  ? null
+                  : () => setState(() => _showDisable = false),
+            ),
+            if (_disableError != null) ...[
+              const SizedBox(height: SahoolSpacing.md),
+              _InlineError(message: _disableError!),
+            ],
+          ],
+        ],
       ),
     );
   }
 
   // بطاقة الاقتران: QR (otpauth://) + السرّ نصّاً للإدخال اليدويّ.
-  Widget _setupCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _kBorder),
-      ),
+  Widget _setupCard(BuildContext context) {
+    final t = context.tokens;
+    final styles = context.textStyles;
+    return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'امسح رمز QR في تطبيق المصادقة، أو أدخل السرّ يدويّاً. '
             'يُعرَض مرّة واحدة فقط.',
-            style: TextStyle(color: _kMuted, fontSize: 12, height: 1.5),
+            style: styles.bodySmall?.copyWith(color: t.muted),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SahoolSpacing.lg),
           Center(
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: QrImageView(
-                data: _provisioningUri!,
-                size: 200,
-                backgroundColor: Colors.white,
+            // رمز QR يحتاج خلفيّة بيضاء وحواف داكنة ليُقرأ في كلّ سمة.
+            child: ColoredBox(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(SahoolSpacing.sm),
+                child: QrImageView(
+                  data: _provisioningUri!,
+                  size: 200,
+                  backgroundColor: Colors.white,
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          const SizedBox(height: SahoolSpacing.lg),
+          Text(
             'السرّ (للإدخال اليدويّ):',
-            style: TextStyle(color: _kMuted, fontSize: 12),
+            style: styles.bodySmall?.copyWith(color: t.muted),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SahoolSpacing.xs),
           Row(
             children: [
               Expanded(
                 child: SelectableText(
                   _secret!,
                   textDirection: TextDirection.ltr,
-                  style: const TextStyle(
-                    color: kPrimary,
-                    fontSize: 14,
+                  style: styles.bodyLarge?.copyWith(
                     fontFamily: 'monospace',
                     letterSpacing: 1.2,
                   ),
                 ),
               ),
-              IconButton(
+              AppIconButton(
+                icon: Icons.copy_rounded,
+                tooltip: 'نسخ السرّ',
                 onPressed: _copySecret,
-                icon: const Icon(Icons.copy, color: _kMuted, size: 20),
-                tooltip: 'نسخ',
               ),
             ],
           ),
@@ -390,70 +361,51 @@ class _MfaSetupScreenState extends State<MfaSetupScreen> {
       ),
     );
   }
+}
 
-  // حقل رمز TOTP موحّد: 6 أرقام، لوحة أرقام، مُتمركز بتباعد واضح.
-  Widget _codeField({
-    required TextEditingController controller,
-    required VoidCallback onSubmitted,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      maxLength: 6,
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 22,
-        letterSpacing: 8,
-      ),
-      onSubmitted: (_) => onSubmitted(),
-      decoration: InputDecoration(
-        counterText: '',
-        hintText: '______',
-        hintStyle: const TextStyle(color: _kMuted, letterSpacing: 8),
-        prefixIcon: const Icon(Icons.shield_outlined, color: _kMuted),
-        filled: true,
-        fillColor: _kField,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _kBorder),
+class _Note extends StatelessWidget {
+  const _Note({super.key, required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = context.tokens.success;
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: SahoolSpacing.lg),
+        padding: const EdgeInsets.all(SahoolSpacing.md),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: SahoolRadius.mdAll,
+          border: Border.all(color: color),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kPrimary),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: color),
+            const SizedBox(width: SahoolSpacing.sm),
+            Expanded(
+              child: Text(message, style: context.textStyles.bodyMedium),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _okBox(String msg) => Container(
-    margin: const EdgeInsets.only(bottom: 16),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: kPrimary.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: kPrimary),
-    ),
-    child: Row(
-      children: [
-        const Icon(Icons.check_circle_outline, color: kPrimary, size: 20),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            msg,
-            style: const TextStyle(color: kPrimary, fontSize: 13),
-          ),
-        ),
-      ],
-    ),
-  );
+class _InlineError extends StatelessWidget {
+  const _InlineError({required this.message});
+  final String message;
 
-  ButtonStyle _btnStyle(Color bg) => ElevatedButton.styleFrom(
-    backgroundColor: bg,
-    foregroundColor: Colors.white,
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Text(
+      message,
+      style: context.textStyles.bodyMedium?.copyWith(
+        color: context.tokens.danger,
+      ),
+    ),
   );
 }
