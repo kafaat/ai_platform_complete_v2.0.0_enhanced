@@ -31,6 +31,10 @@ nats/tls/
 postgres/tls/
 volumes/
 data/
+# Flutter feature folders keep their API classes in data/ (lib/features/<x>/data/<x>_api.dart);
+# the runtime-data ignore above must not swallow source code.
+!mobile/sahool_app/lib/**/data/
+!mobile/sahool_app/test/**/data/
 backups/
 .coverage
 htmlcov/
