@@ -5,13 +5,12 @@ ONNX Runtime with INT8 quantization for ARM64
 Supports: YOLOv8-World / MobileViT / Custom quantized models
 """
 
-import io
 import logging
 import os
 
 import numpy as np
 from models.errors import ModelNotProvisioned
-from PIL import Image
+from models.image_decode import decode_rgb
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +190,7 @@ class EdgePestDetector:
         tag detections "source": "ml_onnx". Otherwise fail closed with ModelNotProvisioned; no synthetic detections are returned.
         """
         # Preprocess (shared by both paths — image features are computed here).
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = decode_rgb(image_bytes)  # يرفض ما فوق سقف البكسلات قبل الفكّ
         original_size = image.size
 
         # Resize

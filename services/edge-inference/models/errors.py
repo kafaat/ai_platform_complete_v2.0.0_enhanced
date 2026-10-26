@@ -10,3 +10,7 @@ ModelNotProvisioned: يُرفع حين لا يتوفّر نموذج ONNX حقي�
 
 class ModelNotProvisioned(RuntimeError):
     """نموذج الاستدلال غير مُجهَّز (لا ملفّ ONNX/لا onnxruntime) — لا اختلاق."""
+
+
+class ImageTooLarge(ValueError):
+    """صورة إدخال تتجاوز سقف البكسلات (أو قنبلة فكّ ضغط) — تُرفض قبل فكّها."""

@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 
 import model_artifact_gate as artifact_gate
 from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
-from models.errors import ModelNotProvisioned
+from models.errors import ImageTooLarge, ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
@@ -239,9 +239,10 @@ async def detect_pest(
     )
     _require_approved_model("pest_detector_int8.onnx")
     detector = get_pest_detector()
-    image_bytes = await file.read()
-    # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ
+    # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ. القراءة نفسها محدودة بالسقف+1
+    # كي لا يُحمَّل رفعٌ ضخم كاملاً في الذاكرة قبل رفضه.
     MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10MB كافٍ لصور المحاصيل
+    image_bytes = await file.read(MAX_IMAGE_BYTES + 1)
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(413, "حجم الصورة يتجاوز 10MB")
     if file.content_type and not file.content_type.startswith("image/"):
@@ -258,6 +259,8 @@ async def detect_pest(
             "نموذج كشف الآفات غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
             "حتّى توفير نموذج ONNX (لا تُرجَع كشوف مُختلَقة).",
         ) from e
+    except ImageTooLarge as e:
+        raise HTTPException(413, "أبعاد الصورة تتجاوز سقف البكسلات المسموح") from e
     except Exception as e:
         # صورة تالفة/غير صالحة → 400 واضح بدل 500
         raise HTTPException(400, "تعذّر معالجة الصورة — تأكّد أنّها صورة صالحة") from e
@@ -310,11 +313,13 @@ async def estimate_yield(
     all_features = []
     MAX_IMAGE_BYTES = 10 * 1024 * 1024
     for file in files[: request.image_count]:
-        image_bytes = await file.read()
+        image_bytes = await file.read(MAX_IMAGE_BYTES + 1)
         if len(image_bytes) > MAX_IMAGE_BYTES:
             raise HTTPException(413, "حجم إحدى الصور يتجاوز 10MB")
         try:
             features = estimator.extract_features(image_bytes)
+        except ImageTooLarge as e:
+            raise HTTPException(413, "أبعاد إحدى الصور تتجاوز سقف البكسلات المسموح") from e
         except Exception as e:
             raise HTTPException(400, "تعذّر معالجة إحدى الصور — تأكّد أنّها صور صالحة") from e
         all_features.append(features)

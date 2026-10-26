@@ -190,3 +190,89 @@ def test_pest_detect_does_not_invent_a_crop_for_a_bound_field(monkeypatch, tmp_p
     assert response.json()["sync_status"] == "queued"
     [queued] = _queued(tmp_path)
     assert '"field_id": "field-unit"' in queued.read_text(encoding="utf-8")
+
+
+def _png(width: int, height: int) -> bytes:
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("1", (width, height), 0).save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+class _DecodingDetector(_StubDetector):
+    """يفكّ الصورة بالمسار الحقيقيّ للكاشف قبل الكشف الوهميّ."""
+
+    def predict(self, image_bytes, confidence_threshold=0.6):
+        from models.pest_detector import decode_rgb
+
+        decode_rgb(image_bytes)
+        return super().predict(image_bytes, confidence_threshold)
+
+
+class _DecodingEstimator(_StubEstimator):
+    def extract_features(self, image_bytes):
+        from models.yield_estimator import decode_rgb
+
+        decode_rgb(image_bytes)
+        return super().extract_features(image_bytes)
+
+
+def test_pixel_cap_is_a_413_on_both_inference_endpoints(monkeypatch, tmp_path):
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setenv("EDGE_MAX_IMAGE_PIXELS", "10000")
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _DecodingDetector())
+    monkeypatch.setattr(
+        module,
+        "get_yield_estimator",
+        lambda: _DecodingEstimator(prediction={"yield_kg_ha": 1.0}),
+    )
+    client = TestClient(module.app)
+    big = _png(200, 100)  # 20 000 px
+    pest = client.post(
+        "/v1/inference/pest-detect",
+        data={"field_id": "field-unit"},
+        files={"file": ("a.png", io.BytesIO(big), "image/png")},
+        headers=_HEADERS,
+    )
+    yld = client.post(
+        "/v1/inference/yield-estimate",
+        files=[("files", ("a.png", io.BytesIO(big), "image/png"))],
+        data={"image_count": "1", "field_id": "field-unit"},
+        headers=_HEADERS,
+    )
+    assert pest.status_code == 413
+    assert yld.status_code == 413
+
+
+def test_uploads_are_read_with_a_size_bound_not_whole(monkeypatch, tmp_path):
+    from starlette.datastructures import UploadFile
+
+    module = _load_edge(monkeypatch, tmp_path, approve=True)
+    monkeypatch.setattr(module, "get_pest_detector", lambda: _StubDetector())
+    monkeypatch.setattr(
+        module, "get_yield_estimator", lambda: _StubEstimator(prediction={"yield_kg_ha": 1.0})
+    )
+    sizes: list[int] = []
+    original = UploadFile.read
+
+    async def _recording_read(self, size: int = -1):
+        sizes.append(size)
+        return await original(self, size)
+
+    monkeypatch.setattr(UploadFile, "read", _recording_read)
+    client = TestClient(module.app)
+    client.post(
+        "/v1/inference/pest-detect",
+        data={"field_id": "field-unit"},
+        files={"file": ("a.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
+        headers=_HEADERS,
+    )
+    client.post(
+        "/v1/inference/yield-estimate",
+        files=[("files", ("a.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg"))],
+        data={"image_count": "1", "field_id": "field-unit"},
+        headers=_HEADERS,
+    )
+    assert len(sizes) == 2
+    assert all(0 < size <= 10 * 1024 * 1024 + 1 for size in sizes)
