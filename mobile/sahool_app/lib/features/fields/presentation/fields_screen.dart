@@ -1,423 +1,476 @@
-// SAHOOL — lib/screens/fields_screen.dart
-// شاشة «حقولي» (كان placeholder). يدمج OfflineFieldMap الجاهز (كان مبنيّاً وغير
-// مستعمَل) + قائمة الحقول الحيّة من نظرة عامّة /indicators/v1/overview. تحليل
-// دفاعيّ للشكل (قد تنقص الإحداثيّات ⇒ خريطة بلا مضلّعات، لا تعطّل). صدق: عند
-// التعذّر يُعرَض خطأ بإعادة محاولة — لا بيانات مخترَعة.
+// SAHOOL — features/fields/presentation/fields_screen.dart
+// «حقولي» (تبويب الحقول): بحث، تصفية بالمزرعة/المحصول/الحالة، ترتيب بالأولويّة
+// أو الحالة أو الاسم أو المساحة، وحالة فارغة تدعو لإضافة حقل. الخريطة ملك ميزة
+// الخرائط: زرّ «الخريطة» يفتح مسارها إن سُجِّل. صدق: القائمة من GET /api/v1/fields
+// فقط؛ المساحة الغائبة «غير مقيس» والأولويّة غير المقيسة لا تُعرَض كصفر.
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/farms/data/farms_api.dart';
+import 'package:sahool_app/features/fields/data/field_list_query.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
-import 'package:sahool_app/features/fields/presentation/field_create_wizard.dart';
-import 'package:sahool_app/widgets/offline_field_map.dart';
 
-class FieldsScreen extends StatefulWidget {
-  const FieldsScreen({super.key});
+import '../fields_routes.dart';
+import 'common/cross_feature_routes.dart';
+import 'common/field_labels.dart';
+import 'common/load_cubit.dart';
+import 'fields_list_cubit.dart';
+
+class FieldsScreen extends StatelessWidget {
+  const FieldsScreen({super.key, this.fieldsApi, this.farmsApi, this.role});
+
+  final FieldsApi? fieldsApi;
+  final FarmsApi? farmsApi;
+
+  /// الدور (للاختبار)؛ افتراضيّاً من الجلسة.
+  final AppRole Function()? role;
 
   @override
-  State<FieldsScreen> createState() => _FieldsScreenState();
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => FieldsListCubit(
+      fieldsApi ?? FieldsApi.instance,
+      farmsApi ?? FarmsApi.instance,
+    )..load(),
+    child: _FieldsView(role: (role ?? () => normalizeRole(currentRole()))()),
+  );
 }
 
-class _FieldsScreenState extends State<FieldsScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _fields = const [];
-
-  // مركز افتراضيّ (اليمن) حين لا تتوفّر إحداثيّات من الخادم.
-  static const _defaultCenter = LatLng(15.55, 47.5);
+class _FieldsView extends StatefulWidget {
+  const _FieldsView({required this.role});
+  final AppRole role;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  State<_FieldsView> createState() => _FieldsViewState();
+}
+
+class _FieldsViewState extends State<_FieldsView> {
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final fields = await FieldsApi.instance.listFields();
-      setState(() {
-        _fields = fields;
-        _loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
+  bool get _canCreate => canMutate(widget.role.name);
+
+  Future<void> _openCreate() async {
+    final cubit = context.read<FieldsListCubit>();
+    await Navigator.of(context).pushNamed<Object?>(FieldsRoutes.create);
+    if (!mounted) return;
+    // المعالج قد يُنشئ حقلاً ثمّ يُغلق بلا نتيجة ⇒ نُحدّث دائماً بصمت.
+    await cubit.load(silent: true);
   }
 
-  // فتح معالج إنشاء الحقل (route: 'field_create'). يُعاد تحميل القائمة عند النجاح
-  // (يردّ true). نستخدم MaterialPageRoute مباشرةً كي تعمل الشاشة حتّى لو لم يُسجّل
-  // المسار في main.dart بعد (تسجيل المسارات مهمّة وكيل آخر — انظر ملاحظات الـPR).
-  Future<void> _openCreateWizard() async {
-    final created = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        settings: const RouteSettings(name: 'field_create'),
-        builder: (_) => const FieldCreateWizard(),
-      ),
-    );
-    if (created == true) await _load();
-  }
-
-  // الانتقال إلى مساحة عمل الحقل (route: 'field_workspace' — يبنيه وكيل آخر).
-  // نمرّر معرّف الحقل كوسيط. pushNamed كي يربطه main.dart حين يُسجَّل المسار؛
-  // نلتقط الفشل بهدوء (المسار غير مسجّل بعد) كي لا تتعطّل الشاشة.
-  void _openWorkspace(String fieldId) {
-    try {
-      Navigator.of(context).pushNamed('field_workspace', arguments: fieldId);
-    } catch (_) {
-      // المسار غير مسجَّل بعد (وكيل آخر يبنيه) — أبلغ بهدوء بدل تعطّل.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('مساحة عمل الحقل غير متاحة بعد')),
-      );
-    }
-  }
-
-  String _fieldId(Map<String, dynamic> f, int i) =>
-      (f['field_id'] ?? f['id'] ?? f['fieldId'] ?? '$i').toString();
-
-  double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
-
-  LatLng? _centroidOf(Map<String, dynamic> f) {
-    final lat = _num(f['lat'] ?? f['latitude'] ?? f['centroid_lat']);
-    final lon = _num(
-      f['lon'] ?? f['lng'] ?? f['longitude'] ?? f['centroid_lon'],
-    );
-    return (lat != null && lon != null) ? LatLng(lat, lon) : null;
-  }
-
-  // رؤوس مضلّع الحقل من GeoJSON Polygon {coordinates:[[[lon,lat],...]]} — دفاعيّ
-  // (يُعيد [] إن غابت/تشوّهت الهندسة، فلا تعطّل).
-  List<LatLng> _polyPoints(dynamic geometry) {
-    if (geometry is! Map) return const [];
-    final coords = geometry['coordinates'];
-    if (coords is! List || coords.isEmpty) return const [];
-    final ring = coords.first;
-    if (ring is! List) return const [];
-    final out = <LatLng>[];
-    for (final p in ring) {
-      if (p is List && p.length >= 2) {
-        final lon = _num(p[0]);
-        final lat = _num(p[1]);
-        if (lat != null && lon != null) out.add(LatLng(lat, lon));
-      }
-    }
-    return out;
-  }
-
-  // مضلّعات حقول المستخدم للرسم على الخريطة (إن توفّرت geometry).
-  List<Polygon> _fieldPolygons() {
-    final polys = <Polygon>[];
-    for (final f in _fields) {
-      final pts = _polyPoints(f['geometry']);
-      if (pts.length >= 3) {
-        polys.add(
-          Polygon(
-            points: pts,
-            color: const Color(0x3310B981),
-            borderColor: const Color(0xFF10B981),
-            borderStrokeWidth: 2,
-          ),
-        );
-      }
-    }
-    return polys;
-  }
-
-  // «التركيز على حقل المستخدم»: نُجمّع كلّ النقاط (رؤوس المضلّعات إن وُجدت، وإلّا
-  // المراكز) ونُؤطّرها. نقطة واحدة ⇒ تكبير أقرب؛ لا نقاط ⇒ الافتراضيّ (اليمن).
-  ({LatLng center, double zoom, LatLngBounds? bounds}) _mapView() {
-    final pts = <LatLng>[];
-    for (final f in _fields) {
-      final poly = _polyPoints(f['geometry']);
-      if (poly.isNotEmpty) {
-        pts.addAll(poly);
-      } else {
-        final c = _centroidOf(f);
-        if (c != null) pts.add(c);
-      }
-    }
-    if (pts.isEmpty) return (center: _defaultCenter, zoom: 13, bounds: null);
-    final b = LatLngBounds.fromPoints(pts);
-    final degenerate = b.south == b.north && b.east == b.west;
-    if (pts.length == 1 || degenerate) {
-      return (center: pts.first, zoom: 15, bounds: null); // حقل واحد ⇒ أقرب
-    }
-    return (center: pts.first, zoom: 13, bounds: b); // عدّة حقول ⇒ تأطيرها
-  }
-
-  Color _ndviColor(double? ndvi) {
-    if (ndvi == null) return Colors.grey;
-    if (ndvi >= 0.70) return const Color(0xFF16A34A);
-    if (ndvi >= 0.50) return const Color(0xFF65A30D);
-    if (ndvi >= 0.30) return const Color(0xFFCA8A04);
-    return const Color(0xFFF97316);
-  }
+  void _openWorkspace(Map<String, dynamic> field) => Navigator.of(
+    context,
+  ).pushNamed<void>(FieldsRoutes.workspace, arguments: field);
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<FieldsListCubit>().state;
+    final loaded = state.fields is LoadLoaded;
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      // CTA واضح لإنشاء حقل (يفتح المعالج). يظهر دائماً ما لم نكن في حالة خطأ.
-      floatingActionButton: (_loading || _error != null)
-          ? null
-          : FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF10B981),
-              onPressed: _openCreateWizard,
-              icon: const Icon(Icons.add),
-              label: const Text('إضافة حقل'),
-            ),
-      body: SafeArea(child: _body()),
+      appBar: AppBar(
+        title: const Text('حقولي'),
+        actions: [
+          AppIconButton(
+            key: const ValueKey('fields_map_toggle'),
+            icon: Icons.map_outlined,
+            tooltip: 'عرض الحقول على الخريطة',
+            onPressed: () =>
+                openFeatureRoute<void>(context, CrossFeatureRoutes.maps),
+          ),
+          AppIconButton(
+            icon: Icons.refresh_rounded,
+            tooltip: 'تحديث',
+            onPressed: () => context.read<FieldsListCubit>().load(),
+          ),
+        ],
+      ),
+      floatingActionButton: (_canCreate && loaded && state.all.isNotEmpty)
+          ? AppFab(
+              heroKey: 'fields',
+              label: 'إضافة حقل',
+              icon: Icons.add_location_alt_outlined,
+              onPressed: _openCreate,
+            )
+          : null,
+      body: switch (state.fields) {
+        LoadLoading() => const LoadingState(message: 'جارٍ تحميل الحقول'),
+        LoadFailed(:final error) => ErrorState(
+          error: error,
+          title: 'تعذّر تحميل الحقول',
+          onRetry: () => context.read<FieldsListCubit>().load(),
+        ),
+        LoadLoaded(:final data) when data.isEmpty => RefreshIndicator(
+          onRefresh: () => context.read<FieldsListCubit>().load(silent: true),
+          child: ListView(
+            children: [
+              EmptyState(
+                key: const ValueKey('fields_empty'),
+                icon: Icons.terrain_outlined,
+                title: 'لا حقول بعد',
+                message: _canCreate
+                    ? 'أضف حقلك الأوّل برسم حدوده على الخريطة أو المشي حوله.'
+                    : 'لم يُضَف أيّ حقل لحسابك بعد.',
+                actionLabel: _canCreate ? 'إضافة حقل' : null,
+                onAction: _canCreate ? _openCreate : null,
+              ),
+            ],
+          ),
+        ),
+        LoadLoaded() => _list(context, state),
+      },
     );
   }
 
-  Widget _body() {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF10B981)),
-      );
-    }
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 44),
-            const SizedBox(height: 12),
-            const Text(
-              'تعذّر تحميل الحقول',
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _load,
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
+  Widget _list(BuildContext context, FieldsListState state) {
+    final cubit = context.read<FieldsListCubit>();
+    final visible = state.visible;
+    final priorityState = state.priority;
+    final byField = switch (priorityState) {
+      LoadLoaded(:final data) => data.byField,
+      _ => const <String, FieldPriority>{},
+    };
+    final showPriority = state.query.sort == FieldSort.priority;
+    return RefreshIndicator(
+      onRefresh: () => cubit.load(silent: true),
+      child: ListView(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          SahoolSpacing.page,
+          SahoolSpacing.md,
+          SahoolSpacing.page,
+          96,
         ),
-      );
-    }
-
-    return Column(
-      children: [
-        _header(),
-        // خريطة الحقول (offline-أوّلاً) — مُؤطَّرة على حقول المستخدم وتَرسمها.
-        SizedBox(
-          height: 220,
-          child: Builder(
-            builder: (_) {
-              final v = _mapView();
-              return OfflineFieldMap(
-                center: v.center,
-                zoom: v.zoom,
-                bounds: v.bounds,
-                fieldPolygons: _fieldPolygons(),
-              );
-            },
+        children: [
+          TextField(
+            key: const ValueKey('fields_search'),
+            controller: _search,
+            onChanged: cubit.setText,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search_rounded),
+              hintText: 'ابحث بالاسم أو المحصول أو الرمز',
+              suffixIcon: _search.text.isEmpty
+                  ? null
+                  : AppIconButton(
+                      icon: Icons.close_rounded,
+                      tooltip: 'مسح البحث',
+                      onPressed: () {
+                        _search.clear();
+                        cubit.setText('');
+                      },
+                    ),
+            ),
           ),
+          const SizedBox(height: SahoolSpacing.sm),
+          _FilterBar(state: state),
+          const SizedBox(height: SahoolSpacing.sm),
+          _Summary(state: state, visible: visible),
+          if (showPriority) _PriorityNote(state: priorityState),
+          if (visible.isEmpty)
+            EmptyState(
+              key: const ValueKey('fields_no_match'),
+              icon: Icons.filter_alt_off_outlined,
+              message: 'لا حقول تطابق البحث أو التصفية.',
+              actionLabel: 'مسح الفلاتر',
+              onAction: () {
+                _search.clear();
+                cubit.clearFilters();
+              },
+            )
+          else
+            for (final f in visible)
+              FieldListCard(
+                field: f,
+                farmName: state.farmNames['${f['farm_id'] ?? ''}'],
+                priority: showPriority ? byField[fieldIdOf(f)] : null,
+                showPriority: showPriority,
+                onTap: () => _openWorkspace(f),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Summary extends StatelessWidget {
+  const _Summary({required this.state, required this.visible});
+  final FieldsListState state;
+  final List<Map<String, dynamic>> visible;
+
+  @override
+  Widget build(BuildContext context) {
+    final areas = visible.map(fieldListArea);
+    final known = areas.whereType<double>();
+    final unknown = areas.length - known.length;
+    final total = known.fold<double>(0, (a, b) => a + b);
+    final parts = [
+      '${visible.length} من ${state.all.length} حقل',
+      if (known.isNotEmpty) 'المساحة ${fmtArea(total)}',
+      if (unknown > 0) '$unknown بلا مساحة مقيسة',
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: SahoolSpacing.xs),
+      child: Text(
+        parts.join(' · '),
+        key: const ValueKey('fields_summary'),
+        style: context.textStyles.bodySmall,
+      ),
+    );
+  }
+}
+
+class _PriorityNote extends StatelessWidget {
+  const _PriorityNote({required this.state});
+  final LoadState<PriorityData>? state;
+
+  @override
+  Widget build(BuildContext context) => switch (state) {
+    LoadLoading() || null => const Padding(
+      padding: EdgeInsets.symmetric(vertical: SahoolSpacing.sm),
+      child: LinearProgressIndicator(),
+    ),
+    LoadFailed(:final error) => InlineError(
+      error: error,
+      onRetry: context.read<FieldsListCubit>().loadPriority,
+    ),
+    LoadLoaded(:final data) =>
+      data.partial
+          ? Text(
+              'الأولويّة جزئيّة: تعذّر بعض المصادر — الحقول غير المقيسة في آخر القائمة.',
+              style: context.textStyles.bodySmall,
+            )
+          : const SizedBox.shrink(),
+  };
+}
+
+/// شريط التصفية والترتيب: أزرار كبيرة تفتح قوائم اختيار (لا كتابة).
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({required this.state});
+  final FieldsListState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<FieldsListCubit>();
+    final q = state.query;
+    String farmLabel(String id) =>
+        id.isEmpty ? 'بلا مزرعة' : (state.farmNames[id] ?? 'مزرعة $id');
+    String cropLabel(String c) => c.isEmpty ? 'بلا محصول' : c;
+    String statusLabel(String s) => kQualityGradeAr[s] ?? s;
+    return Wrap(
+      spacing: SahoolSpacing.sm,
+      runSpacing: SahoolSpacing.sm,
+      children: [
+        _ChoiceButton<FieldSort>(
+          key: const ValueKey('fields_sort'),
+          icon: Icons.sort_rounded,
+          title: 'ترتيب حسب',
+          label: q.sort.labelAr,
+          active: true,
+          options: {for (final s in FieldSort.values) s: s.labelAr},
+          selected: q.sort,
+          onSelected: (v) {
+            if (v != null) cubit.setSort(v);
+          },
         ),
-        Expanded(
-          child: _fields.isEmpty
-              ? _emptyState()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-                    itemCount: _fields.length,
-                    itemBuilder: (ctx, i) => _fieldCard(_fields[i], i),
-                  ),
-                ),
-        ),
+        if (state.farmIds.length > 1)
+          _ChoiceButton<String>(
+            key: const ValueKey('fields_filter_farm'),
+            icon: Icons.agriculture_outlined,
+            title: 'المزرعة',
+            label: q.farmId == null ? 'كلّ المزارع' : farmLabel(q.farmId!),
+            active: q.farmId != null,
+            options: {for (final id in state.farmIds) id: farmLabel(id)},
+            selected: q.farmId,
+            allLabel: 'كلّ المزارع',
+            onSelected: cubit.setFarm,
+          ),
+        if (state.crops.length > 1)
+          _ChoiceButton<String>(
+            key: const ValueKey('fields_filter_crop'),
+            icon: Icons.grass_outlined,
+            title: 'المحصول',
+            label: q.crop == null ? 'كلّ المحاصيل' : cropLabel(q.crop!),
+            active: q.crop != null,
+            options: {for (final c in state.crops) c: cropLabel(c)},
+            selected: q.crop,
+            allLabel: 'كلّ المحاصيل',
+            onSelected: cubit.setCrop,
+          ),
+        if (state.statuses.isNotEmpty)
+          _ChoiceButton<String>(
+            key: const ValueKey('fields_filter_status'),
+            icon: Icons.verified_outlined,
+            title: 'الحالة',
+            label: q.status == null ? 'كلّ الحالات' : statusLabel(q.status!),
+            active: q.status != null,
+            options: {for (final s in state.statuses) s: statusLabel(s)},
+            selected: q.status,
+            allLabel: 'كلّ الحالات',
+            onSelected: cubit.setStatus,
+          ),
       ],
     );
   }
+}
 
-  Widget _header() {
-    final totalArea = _fields.fold<double>(
-      0,
-      (sum, f) => sum + (_num(f['area_ha'] ?? f['area']) ?? 0),
-    );
-    final crops = _fields
-        .map((f) => (f['crop'] ?? f['crop_ar'] ?? '').toString().trim())
-        .where((c) => c.isNotEmpty)
-        .toSet()
-        .length;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      decoration: const BoxDecoration(color: Color(0xFF101623)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+/// زرّ يفتح ورقة اختيار. [allLabel] يضيف خيار «الكلّ» (null).
+class _ChoiceButton<T> extends StatelessWidget {
+  const _ChoiceButton({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.label,
+    required this.active,
+    required this.options,
+    required this.selected,
+    required this.onSelected,
+    this.allLabel,
+  });
+
+  final IconData icon;
+  final String title;
+  final String label;
+  final bool active;
+  final Map<T, String> options;
+  final T? selected;
+  final ValueChanged<T?> onSelected;
+  final String? allLabel;
+
+  Future<void> _open(BuildContext context) async {
+    final picked = await showAppBottomSheet<_Pick<T>>(
+      context,
+      builder: (ctx) => AppSheet(
+        title: title,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.layers_outlined, color: Color(0xFF10B981)),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'حقولي',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'تحديث',
-                onPressed: _load,
-                icon: const Icon(Icons.refresh, color: Colors.white70),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _statChip('عدد الحقول', _fields.length.toString()),
-              const SizedBox(width: 8),
-              _statChip('المساحة', '${totalArea.toStringAsFixed(1)} هـ'),
-              const SizedBox(width: 8),
-              _statChip('محاصيل', crops.toString()),
-            ],
-          ),
+          if (allLabel != null)
+            _tile(ctx, allLabel!, selected == null, const _Pick(null)),
+          for (final e in options.entries)
+            _tile(ctx, e.value, e.key == selected, _Pick(e.key)),
         ],
       ),
     );
+    if (picked != null) onSelected(picked.value);
   }
 
-  Widget _statChip(String label, String value) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1D29),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0x2234D399)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    ),
+  Widget _tile(BuildContext ctx, String text, bool on, _Pick<T> value) =>
+      ListTile(
+        minTileHeight: SahoolSizes.minTouchTarget,
+        title: Text(text),
+        trailing: on ? const Icon(Icons.check_rounded) : null,
+        selected: on,
+        onTap: () => Navigator.of(ctx).pop(value),
+      );
+
+  @override
+  Widget build(BuildContext context) => FilterChip(
+    avatar: Icon(icon, size: SahoolSizes.iconSm),
+    label: Text(label, overflow: TextOverflow.ellipsis),
+    selected: active,
+    showCheckmark: false,
+    materialTapTargetSize: MaterialTapTargetSize.padded,
+    tooltip: title,
+    onSelected: (_) => _open(context),
   );
+}
 
-  // حالة فارغة قابلة للفعل: أيقونة + نصّ + زرّ يفتح المعالج (بدل نصّ خامل).
-  Widget _emptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.terrain, color: Colors.grey, size: 56),
-            const SizedBox(height: 14),
-            const Text(
-              'لا توجد حقول مسجّلة بعد',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'أنشئ حقلك الأوّل بالرسم على الخريطة أو استيراد حدوده.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            const SizedBox(height: 18),
-            ElevatedButton.icon(
-              onPressed: _openCreateWizard,
-              icon: const Icon(Icons.add),
-              label: const Text('إنشاء حقل'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+class _Pick<T> {
+  const _Pick(this.value);
+  final T? value;
+}
 
-  Widget _fieldCard(Map<String, dynamic> f, int i) {
-    final name = (f['field_name'] ?? f['name'] ?? 'حقل ${i + 1}').toString();
-    final ndvi = _num(f['ndvi']);
-    final area = _num(f['area_ha'] ?? f['area']);
-    final crop = (f['crop'] ?? f['crop_ar'] ?? '').toString();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1D29),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          // البطاقة قابلة للنقر → مساحة عمل الحقل (يبنيها وكيل آخر).
-          onTap: () => _openWorkspace(_fieldId(f, i)),
+/// بطاقة حقل في القائمة: الاسم (يلتفّ ولا يفيض)، المحصول · المساحة · المزرعة،
+/// حالة البيانات، وشارة الأولويّة حين الترتيب بها.
+class FieldListCard extends StatelessWidget {
+  const FieldListCard({
+    super.key,
+    required this.field,
+    required this.onTap,
+    this.farmName,
+    this.priority,
+    this.showPriority = false,
+  });
+
+  final Map<String, dynamic> field;
+  final VoidCallback onTap;
+  final String? farmName;
+  final FieldPriority? priority;
+  final bool showPriority;
+
+  @override
+  Widget build(BuildContext context) {
+    final grade = wText(field['quality_grade'], '');
+    final crop = cropOf(field);
+    final p = priority;
+    return Card(
+      key: ValueKey('field_${fieldIdOf(field)}'),
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: SahoolSizes.minTouchTarget,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(SahoolSpacing.lg),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: _ndviColor(ndvi).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Text(
-                      ndvi != null ? ndvi.toStringAsFixed(2) : '—',
-                      style: TextStyle(
-                        color: _ndviColor(ndvi),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        fieldNameOf(field),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textStyles.titleMedium,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: SahoolSpacing.xs),
                       Text(
                         [
-                          if (crop.isNotEmpty) crop,
-                          if (area != null) '${area.toStringAsFixed(1)} هـ',
+                          crop ?? 'بلا محصول',
+                          fmtArea(areaOf(field)),
+                          ?farmName,
                         ].join(' · '),
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          color: context.tokens.muted,
                         ),
+                      ),
+                      const SizedBox(height: SahoolSpacing.sm),
+                      Wrap(
+                        spacing: SahoolSpacing.sm,
+                        runSpacing: SahoolSpacing.xs,
+                        children: [
+                          if (grade.isNotEmpty)
+                            StatusChip(
+                              label: kQualityGradeAr[grade] ?? grade,
+                              tone: qualityTone(grade),
+                            ),
+                          if (showPriority)
+                            StatusChip(
+                              key: ValueKey('priority_${fieldIdOf(field)}'),
+                              label: p == null
+                                  ? 'الأولويّة غير مقيسة'
+                                  : (p.count == 0
+                                        ? 'لا تنبيهات أو مهامّ مفتوحة'
+                                        : '${p.count} بنود مفتوحة · ${kSeverityAr[p.worstSeverity] ?? ''}'),
+                              tone: p == null
+                                  ? StatusTone.neutral
+                                  : (p.count == 0
+                                        ? StatusTone.success
+                                        : severityTone(p.worstSeverity)),
+                            ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_left, color: Colors.grey),
+                Icon(Icons.chevron_right_rounded, color: context.tokens.muted),
               ],
             ),
           ),

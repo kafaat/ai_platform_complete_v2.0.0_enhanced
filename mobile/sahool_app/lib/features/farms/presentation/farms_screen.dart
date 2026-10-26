@@ -1,215 +1,336 @@
-// SAHOOL — lib/screens/farms_screen.dart
-// إدارة المزارع (أب الحقول — هرميّة المزرعة→الحقل)، عبر /api/v1/farms (قائمة +
-// إنشاء). مُقيَّد بالدور (farm:create للإنشاء — viewer قراءة فقط). صدق: لا مزارع
-// مُلفَّقة — القائمة من الخادم، والتعذّر يُعرَض بحالة خطأ بإعادة محاولة، والفارغ
-// بحالة قابلة للفعل. تطابق FarmsPage في الويب (farmsApi). نمط شاشات العمليّات.
+// SAHOOL — features/farms/presentation/farms_screen.dart
+// المزارع (أب الحقول): قائمة بعدد حقول كلّ مزرعة، وتفاصيل المزرعة بحقولها.
+// الإنشاء للمالك فقط (مطابق للويب والخلفيّة). صدق: المزارع من الخادم فقط،
+// التعذّر بحالة خطأ صادقة، والعدد الغائب «غير متاح» لا صفر.
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
-import 'package:sahool_app/core/widgets/form_kit.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/core/theme/sahool_tokens.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
+import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/farms/data/farms_api.dart';
+import 'package:sahool_app/features/fields/data/fields_api.dart';
+import 'package:sahool_app/features/fields/fields_routes.dart';
+import 'package:sahool_app/features/fields/presentation/common/field_labels.dart';
 
-class FarmsScreen extends StatefulWidget {
-  const FarmsScreen({super.key});
-  @override
-  State<FarmsScreen> createState() => _FarmsScreenState();
-}
+import 'farm_form_sheet.dart';
+import 'farm_permissions.dart';
+import 'farms_cubit.dart';
 
-class _FarmsScreenState extends State<FarmsScreen> {
-  bool _loading = true;
-  String? _error;
-  List<Map<String, dynamic>> _farms = const [];
+/// «3 حقول» بصيغة العدد العربيّ.
+String fieldsCountAr(int n) => switch (n) {
+  0 => 'لا حقول بعد',
+  1 => 'حقل واحد',
+  2 => 'حقلان',
+  <= 10 => '$n حقول',
+  _ => '$n حقلاً',
+};
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+class FarmsScreen extends StatelessWidget {
+  const FarmsScreen({super.key, this.api, this.fieldsApi, this.role});
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final farms = await FarmsApi.instance.listFarms();
-      if (!mounted) return;
-      setState(() {
-        _farms = farms;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = apiErrorMessage(e);
-        _loading = false;
-      });
-    }
-  }
+  final FarmsApi? api;
+  final FieldsApi? fieldsApi;
 
-  void _openCreate() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: kSurface,
-      isScrollControlled: true,
-      builder: (_) => _AddFarmSheet(onDone: _load),
-    );
-  }
-
-  double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
+  /// الدور (للاختبار)؛ افتراضيّاً من الجلسة.
+  final AppRole Function()? role;
 
   @override
   Widget build(BuildContext context) {
-    final mutable = canMutate(currentRole());
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kSurface,
-        title: const Text('المزارع'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
+    final farmsApi = api ?? FarmsApi.instance;
+    return BlocProvider(
+      create: (_) =>
+          FarmsCubit(farmsApi, fieldsApi ?? FieldsApi.instance)..load(),
+      child: _FarmsView(
+        api: farmsApi,
+        role: (role ?? () => normalizeRole(currentRole()))(),
       ),
-      floatingActionButton: (mutable && !_loading && _error == null)
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: _openCreate,
-              icon: const Icon(Icons.add),
-              label: const Text('مزرعة'),
-            )
-          : null,
-      body: _loading
-          ? const LoadingView()
-          : _error != null
-          ? ErrorView(message: _error!, onRetry: _load)
-          : _farms.isEmpty
-          ? EmptyView(
-              message: 'لا مزارع بعد — أنشئ مزرعتك الأولى',
-              icon: Icons.agriculture_outlined,
-              actionLabel: mutable ? 'إنشاء مزرعة' : null,
-              onAction: mutable ? _openCreate : null,
-            )
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-                itemCount: _farms.length,
-                itemBuilder: (_, i) => _farmCard(_farms[i]),
-              ),
-            ),
     );
   }
+}
 
-  Widget _farmCard(Map<String, dynamic> f) {
-    final name = (f['name'] ?? '—').toString();
-    final region = (f['region'] ?? f['location'] ?? '').toString();
-    final area = _num(f['area_ha']);
-    final subtitle = [
-      if (region.isNotEmpty) region,
-      if (area != null) '${area.toStringAsFixed(1)} هـ',
-    ].join(' · ');
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: kPrimary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.agriculture_outlined, color: kPrimary),
+class _FarmsView extends StatelessWidget {
+  const _FarmsView({required this.api, required this.role});
+
+  final FarmsApi api;
+  final AppRole role;
+
+  Future<void> _create(BuildContext context) async {
+    final cubit = context.read<FarmsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final created = await showCreateFarmSheet(context, api);
+    if (!created) return;
+    messenger.showSnackBar(const SnackBar(content: Text('أُنشئت المزرعة')));
+    await cubit.load(silent: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mayCreate = canCreateFarm(role);
+    final state = context.watch<FarmsCubit>().state;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('المزارع'),
+        actions: [
+          AppIconButton(
+            icon: Icons.refresh_rounded,
+            tooltip: 'تحديث',
+            onPressed: () => context.read<FarmsCubit>().load(),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+        ],
+      ),
+      floatingActionButton: (mayCreate && state is FarmsLoaded)
+          ? AppFab(
+              key: const ValueKey('create_farm_fab'),
+              heroKey: 'farms',
+              label: 'مزرعة جديدة',
+              icon: Icons.add_rounded,
+              onPressed: () => _create(context),
+            )
+          : null,
+      body: switch (state) {
+        FarmsLoading() => const LoadingState(message: 'جارٍ تحميل المزارع'),
+        FarmsFailed(:final error) => ErrorState(
+          error: error,
+          onRetry: () => context.read<FarmsCubit>().load(),
+        ),
+        FarmsLoaded(:final farms) when farms.isEmpty => EmptyState(
+          icon: Icons.agriculture_outlined,
+          title: 'لا مزارع بعد',
+          message: mayCreate
+              ? 'أنشئ مزرعتك الأولى لتجمع حقولها تحتها.'
+              : 'إنشاء المزارع متاح لمالك الحساب فقط.',
+          actionLabel: mayCreate ? 'إنشاء مزرعة' : null,
+          onAction: mayCreate ? () => _create(context) : null,
+        ),
+        FarmsLoaded() => RefreshIndicator(
+          onRefresh: () => context.read<FarmsCubit>().load(silent: true),
+          child: ListView(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              SahoolSpacing.page,
+              SahoolSpacing.md,
+              SahoolSpacing.page,
+              96,
+            ),
+            children: [
+              if (state.countsError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: SahoolSpacing.sm),
+                  child: Text(
+                    'عدد الحقول غير متاح: ${state.countsError!.messageAr}',
+                    style: context.textStyles.bodySmall,
+                  ),
+                ),
+              for (final f in state.farms)
+                _FarmCard(
+                  farm: f,
+                  count: state.countFor(wText(f['farm_id'], '')),
+                  role: role,
+                ),
+            ],
+          ),
+        ),
+      },
+    );
+  }
+}
+
+class _FarmCard extends StatelessWidget {
+  const _FarmCard({
+    required this.farm,
+    required this.count,
+    required this.role,
+  });
+
+  final Map<String, dynamic> farm;
+  final int? count;
+  final AppRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    final region = wText(farm['region'] ?? farm['location'], '');
+    final area = wNum(farm['area_ha']);
+    final id = wText(farm['farm_id'], '');
+    return Card(
+      key: ValueKey('farm_$id'),
+      child: InkWell(
+        onTap: id.isEmpty
+            ? null
+            : () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => FarmDetailScreen(farm: farm, role: role),
+                ),
+              ),
+        child: Padding(
+          padding: const EdgeInsets.all(SahoolSpacing.lg),
+          child: Row(
+            children: [
+              Icon(Icons.agriculture_outlined, color: context.tokens.muted),
+              const SizedBox(width: SahoolSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      wText(farm['name']),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textStyles.titleMedium,
+                    ),
+                    const SizedBox(height: SahoolSpacing.xs),
+                    Text(
+                      [
+                        if (region.isNotEmpty) region,
+                        fmtArea(area),
+                        count == null
+                            ? 'عدد الحقول غير متاح'
+                            : fieldsCountAr(count!),
+                      ].join(' · '),
+                      style: context.textStyles.bodyMedium?.copyWith(
+                        color: context.tokens.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: context.tokens.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// تفاصيل مزرعة: بياناتها + حقولها (GET /api/v1/farms/{id}/fields).
+class FarmDetailScreen extends StatefulWidget {
+  const FarmDetailScreen({
+    super.key,
+    required this.farm,
+    required this.role,
+    this.api,
+  });
+
+  final Map<String, dynamic> farm;
+  final AppRole role;
+  final FarmsApi? api;
+
+  @override
+  State<FarmDetailScreen> createState() => _FarmDetailScreenState();
+}
+
+class _FarmDetailScreenState extends State<FarmDetailScreen> {
+  late Future<List<Map<String, dynamic>>> _fields = _load();
+
+  Future<List<Map<String, dynamic>>> _load() =>
+      (widget.api ?? FarmsApi.instance).listFarmFields(
+        wText(widget.farm['farm_id'], ''),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final f = widget.farm;
+    final created = parseDate(f['created_at']);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          wText(f['name'], 'المزرعة'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(SahoolSpacing.page),
+        children: [
+          SectionCard(
+            title: 'بيانات المزرعة',
+            icon: Icons.info_outline_rounded,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                _row(context, 'المنطقة', wText(f['region'])),
+                _row(context, 'الموقع', wText(f['location'])),
+                _row(context, 'المساحة', fmtArea(wNum(f['area_ha']))),
+                _row(context, 'تاريخ الإنشاء', fmtDate(created)),
+                if (wText(f['description'], '').isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: SahoolSpacing.sm),
+                    child: Text(wText(f['description'])),
                   ),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                if (canManage(widget.role.name)) ...[
+                  const SizedBox(height: SahoolSpacing.md),
                   Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    'تعديل بيانات المزرعة غير متاح بعد — الخادم لا يوفّر نقطة تعديل للمزارع.',
+                    key: const ValueKey('farm_edit_unavailable'),
+                    style: context.textStyles.bodySmall,
                   ),
                 ],
               ],
             ),
           ),
+          const SizedBox(height: SahoolSpacing.md),
+          SectionCard(
+            title: 'حقول المزرعة',
+            icon: Icons.layers_outlined,
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fields,
+              builder: (context, snap) {
+                if (snap.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snap.hasError) {
+                  return ErrorState(
+                    error: snap.error!,
+                    onRetry: () => setState(() => _fields = _load()),
+                  );
+                }
+                final fields = snap.data!;
+                if (fields.isEmpty) {
+                  return Text(
+                    'لا حقول مرتبطة بهذه المزرعة بعد.',
+                    style: context.textStyles.bodyMedium,
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final fld in fields)
+                      AppListTile(
+                        icon: Icons.grass_outlined,
+                        title: fieldNameOf(fld),
+                        subtitle: [
+                          ?cropOf(fld),
+                          fmtArea(areaOf(fld)),
+                        ].join(' · '),
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pushNamed(FieldsRoutes.workspace, arguments: fld),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-class _AddFarmSheet extends StatefulWidget {
-  final Future<void> Function() onDone;
-  const _AddFarmSheet({required this.onDone});
-  @override
-  State<_AddFarmSheet> createState() => _AddFarmSheetState();
-}
-
-class _AddFarmSheetState extends State<_AddFarmSheet> {
-  final _name = TextEditingController();
-  final _region = TextEditingController();
-  final _area = TextEditingController();
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _region.dispose();
-    _area.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_name.text.trim().isEmpty) {
-      showSnack(context, 'الاسم مطلوب', error: true);
-      return;
-    }
-    setState(() => _saving = true);
-    try {
-      await FarmsApi.instance.createFarm({
-        'name': _name.text.trim(),
-        if (_region.text.trim().isNotEmpty) 'region': _region.text.trim(),
-        if (_area.text.trim().isNotEmpty)
-          'area_ha': double.tryParse(_area.text.trim()),
-      });
-      if (!mounted) return;
-      Navigator.pop(context);
-      await widget.onDone();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _saving = false);
-        showSnack(context, apiErrorMessage(e), error: true);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SheetScaffold(
-      title: 'مزرعة جديدة',
-      saving: _saving,
-      onSubmit: _submit,
+  Widget _row(BuildContext context, String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: SahoolSpacing.xs),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        kField(_name, 'الاسم'),
-        kField(_region, 'المنطقة (اختياري)'),
-        kField(_area, 'المساحة (هكتار) اختياري', number: true),
+        Expanded(child: Text(label, style: context.textStyles.bodyMedium)),
+        const SizedBox(width: SahoolSpacing.md),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: context.textStyles.titleSmall,
+          ),
+        ),
       ],
-    );
-  }
+    ),
+  );
 }

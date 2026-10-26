@@ -5,6 +5,8 @@
 import 'package:sahool_app/core/network/api_client.dart';
 import 'package:sahool_app/core/network/response_shape.dart';
 
+import 'satellite_models.dart';
+
 class SatelliteApi {
   SatelliteApi([ApiClient? client]) : _client = client ?? ApiClient.instance;
   static final SatelliteApi instance = SatelliteApi();
@@ -62,9 +64,50 @@ class SatelliteApi {
       out.add({
         'datetime': m['datetime'] ?? m['date'],
         'mean': m['mean'],
-        if (m.containsKey('cloudy_pct')) 'cloudy_pct': m['cloudy_pct'],
+        // raster-service يُرسل cloud_pct؛ المفتاح القديم cloudy_pct يبقى مقبولاً.
+        if (m['cloudy_pct'] != null || m['cloud_pct'] != null)
+          'cloudy_pct': m['cloudy_pct'] ?? m['cloud_pct'],
       });
     }
     return out;
   }
+
+  /// كتالوج المؤشّرات المُنفَّذة فعلاً (GET /api/v1/indicators/catalog):
+  /// {indicators:[{id, name_ar, category, unit, renderable, source}]}.
+  /// المؤشّرات renderable=true هي ما يملك سلسلة/شبكة مكانيّة في raster-service.
+  Future<List<IndexOption>> getIndicatorCatalog() async {
+    final data = asJsonMap(await _client.get('/api/v1/indicators/catalog'));
+    final raw = data['indicators'];
+    if (raw is! List) {
+      throw const FormatException(
+        'indicators catalog: indicators is not a list',
+      );
+    }
+    return [
+      for (final e in raw.whereType<Map>())
+        if (e['renderable'] == true && e['id'] is String)
+          IndexOption.fromJson(e.cast<String, dynamic>()),
+    ];
+  }
+
+  /// السلسلة الزمنيّة الحقيقيّة لأيّ مؤشّر قابل للرسم (ndvi/ndwi/ndmi/evi...) —
+  /// GET /api/raster/v1/fields/{id}/timeseries?index={index}. الخادم يردّ
+  /// {available, points:[{datetime, mean, cloud_pct, valid_pixel_ratio}], note}.
+  /// صدق: available=false ⇒ سلسلة فارغة مع ملاحظة الخادم (لا نقاط مختلقة).
+  Future<IndexSeries> getFieldIndexTimeseries(
+    String fieldId,
+    String index,
+  ) async {
+    final data = asJsonMap(
+      await _client.get(
+        '/api/raster/v1/fields/$fieldId/timeseries',
+        query: {'index': index},
+      ),
+    );
+    return IndexSeries.fromJson(fieldId, index, data);
+  }
+
+  /// نفس [getFieldIndicators] مُحلَّلةً إلى [IndicatorSnapshot] (قراءات + صحّة).
+  Future<IndicatorSnapshot> getIndicatorSnapshot(String fieldId) async =>
+      IndicatorSnapshot.fromJson(fieldId, await getFieldIndicators(fieldId));
 }
