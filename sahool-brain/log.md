@@ -10086,3 +10086,10 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **السجلّ:** 12 صفّاً `fixed` (بادئة `MOBILE-`) و16 `open` لِما ينقص الخادم (بادئة `PLATFORM-` و`RASTER-`)؛ التطبيق يعرض لكلٍّ منها «غير متاح بعد» صادقة بدل اختلاقها.
 - **أثر النشر:** لا خدمة Railway تراقب `mobile/**` ⇒ `Deploy-Effect: NONE`.
 - **التقرير:** [`reports/mobile_overhaul_20261026.md`](reports/mobile_overhaul_20261026.md).
+
+### 2026-10-26 — #1289 مدموج بموافقة المالك، والنشر المقيس
+
+المالك: «دمج #1289 على ba1978cc2». دُمج ⇒ `775e63bff` (squash على `a44e9152a`؛ شجرة الدمج `b8f49cdb` = شجرة الرأس المختبَر `ba1978cc2`). CI على الرأس أخضر كلّه (الأربعة الملغاة من تشغيل تعديل المتن، وأُعيد تشغيلها خضراء).
+
+- **قبل الدمج:** تحرّك `main` مرّتين (#1288 ثمّ #1290) فتعارض الـPR في مصنوعات مشتقّة وحدها؛ حُلّت بجانب الفرع ثمّ أُعيد التوليد. أساس `tenant_guc_scope_baseline.json` تزحزح سطراً لموضعٍ قائم (`services/auth/main.py:994` ⇒ `:993`). وأضاف الاشتقاق `WX-008` إلى `Capability-Impact` بعد #1290.
+- **النشر (Railway `list-deployments`، قراءةٌ فقط، 16:32Z–16:35Z):** production: decision-service وfrontend وguardrails-engine وnotification-agent نجحت؛ staging: الأربعة وai-agronomist نجحت؛ `sahool-migrate-main` SKIPPED في البيئتين. يطابق سطر `Deploy-Effect` المشتقّ تماماً، وأُضيف حالةً مقيسة في [`docs/architecture/railway_deploy_measurements.json`](../docs/architecture/railway_deploy_measurements.json).
