@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب. `fake_connection_tests` يُكشَف بنيويّاً (صنفُ البديل لا اسمه)، ولا ينمو إلّا بقيدٍ في `admissions` يُسمّي مواقعه ويُبرّرها — وهو لا يُشتقّ: `--generate` يحمله ولا يكتبه، فإعادةُ التوليد لا تقبل ديناً.",
-  "measured_on": "0891cf3ee7168bcda15b0d9061eaee235fe5f08c",
+  "measured_on": "02e636b9a1790c8cc1918efec6fe52b5600d4f6c",
   "fake_connection_tests": [
     "services/decision-service/tests/test_migration_runner_readonly.py",
     "services/decision-service/tests/test_wx10_8_review_queue.py",
@@ -88,6 +88,7 @@
     "tests_v9/test_outbox_idempotent_consumption.py",
     "tests_v9/test_outbox_requires_jetstream_ack.py",
     "tests_v9/test_platform_runtime_db_contract.py",
+    "tests_v9/test_pool_single_owner_audit.py",
     "tests_v9/test_raster_asset_date_binding.py",
     "tests_v9/test_raster_db_persist_uuid_hardening_20260626.py",
     "tests_v9/test_readiness_followup_fixes_20260916.py",
@@ -407,6 +408,16 @@
         "tests_v9/test_vegetation_sqlite_startup.py"
       ],
       "justification": "One explicit fault-injection site for the SQLite WAL startup race observed in CI job 117775774224. BusyOnce subclasses a real sqlite3.Connection and injects SQLITE_BUSY at the first WAL pragma to measure fresh-connection retry, connection cleanup and deadline exhaustion deterministically. Separate connections exercise a real SQLite file concurrently. This injection does not establish the real lock frequency, PostgreSQL enforcement or Railway persistence; the unchanged two-worker container command and its strict missing-module mutation remain independent CI witnesses. No proven_live exemption is added."
+    },
+    {
+      "kind": "pool_single_owner_fake_pool",
+      "date": "2026-10-25",
+      "before": 105,
+      "after": 106,
+      "sites": [
+        "tests_v9/test_pool_single_owner_audit.py"
+      ],
+      "justification": "One explicit admission for the create_pool audit. FakePool stands in for asyncpg.create_pool to interleave concurrent cold callers deterministically and to make close() hang, which measures only the lock ordering, the bounded close and the terminate fallback in decision-service persistence, the vegetation PostgresAnomalyStore and the platform _close_db_pool. It claims no PostgreSQL enforcement: tests_v9/test_pool_single_owner_live_pg.py counts real backends in pg_stat_activity by application_name for the same three owners. No proven_live exemption is added."
     }
   ]
 }

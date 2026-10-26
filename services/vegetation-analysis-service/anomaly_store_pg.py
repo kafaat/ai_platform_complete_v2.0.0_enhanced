@@ -9,13 +9,18 @@ connections never leak a tenant across requests.
 
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
 from anomaly_store import AnomalyNotFound, InvalidTransition, validate_transition
+
+logger = logging.getLogger(__name__)
+_POOL_CLOSE_TIMEOUT_SECONDS = 5.0
 
 
 def _database_url() -> str:
@@ -31,11 +36,31 @@ class PostgresAnomalyStore:
     def __init__(self, dsn: str | None = None) -> None:
         self._dsn = dsn or _database_url()
         self._pool: asyncpg.Pool | None = None
+        # One owner for the pool: concurrent cold callers share one creation.
+        self._pool_lock = asyncio.Lock()
 
     async def _get_pool(self) -> asyncpg.Pool:
         if self._pool is None:
-            self._pool = await asyncpg.create_pool(self._dsn, min_size=1, max_size=8)
+            async with self._pool_lock:
+                if self._pool is None:
+                    self._pool = await asyncpg.create_pool(self._dsn, min_size=1, max_size=8)
         return self._pool
+
+    async def close(self) -> None:
+        """Close the pool at shutdown within a bound; a restart then creates a fresh one."""
+        async with self._pool_lock:  # wait out an in-flight creation so it is closed, not leaked
+            pool, self._pool = self._pool, None
+        self._pool_lock = asyncio.Lock()
+        if pool is None:
+            return
+        try:
+            await asyncio.wait_for(pool.close(), timeout=_POOL_CLOSE_TIMEOUT_SECONDS)
+        except asyncio.CancelledError:
+            pool.terminate()
+            raise
+        except Exception as exc:  # timeout or close failure: never leave backends open
+            logger.warning("Anomaly pool close failed (%s); terminating", type(exc).__name__)
+            pool.terminate()
 
     async def _tenant_conn(self, conn: asyncpg.Connection, tenant_id: str) -> None:
         # Transaction-local so a pooled connection cannot carry a tenant across ops.

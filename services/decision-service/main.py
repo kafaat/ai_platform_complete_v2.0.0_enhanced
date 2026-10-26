@@ -44,6 +44,7 @@ from persistence import (
     claim_execution_request,
     claim_model_registry_activation_command,
     claim_model_registry_rollback_command,
+    close_pools,
     compose_agronomic_context,
     create_execution_plan,
     create_execution_request,
@@ -117,7 +118,10 @@ async def lifespan(app: FastAPI):
     message = sor_misconfig_message()
     if message:
         logger.error(message)
-    yield
+    try:
+        yield
+    finally:
+        await close_pools()
 
 
 app = FastAPI(
