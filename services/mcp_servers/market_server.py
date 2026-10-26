@@ -5,6 +5,7 @@ SAHOOL v9.1 — Market MCP Server (FIXED)
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
@@ -55,9 +56,9 @@ def verify_token(token: str) -> dict:
 
 
 async def get_pool() -> asyncpg.Pool:
-    global _pool
-    if _pool is None and DATABASE_URL:
-        _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
+    # The lifespan is the only owner: it creates the pool whenever DATABASE_URL is set (and
+    # refuses to start otherwise) and closes it on shutdown. No lazy fallback, so a caller
+    # racing shutdown gets 503 instead of opening a second pool that nothing closes.
     if _pool is None:
         raise HTTPException(503, "Database not configured")
     return _pool
@@ -95,9 +96,31 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("DATABASE_URL not set — running in demo mode")
     logger.info("📦 Market MCP ready")
-    yield
-    if _pool:
-        await _pool.close()
+    try:
+        yield
+    finally:
+        pool, _pool = _pool, None
+        if pool is not None:
+            await _close_pool_bounded(pool)
+
+
+_POOL_CLOSE_TIMEOUT_SECONDS = 5.0
+
+
+async def _close_pool_bounded(pool) -> None:
+    """Close within a bound; on timeout, error or cancel terminate so no backend stays open.
+
+    Local rather than shared.pool_shutdown: outside the merged image services/mcp_servers/shared
+    shadows the repo-root shared package, so the shutdown path would only import in the image.
+    """
+    try:
+        await asyncio.wait_for(pool.close(), timeout=_POOL_CLOSE_TIMEOUT_SECONDS)
+    except asyncio.CancelledError:
+        pool.terminate()
+        raise
+    except Exception as exc:  # noqa: BLE001 — timeout or close failure
+        logger.warning("Market MCP pool close failed (%s); terminating", type(exc).__name__)
+        pool.terminate()
 
 
 app = FastAPI(title="SAHOOL Market MCP", version="9.1.0", lifespan=lifespan)
