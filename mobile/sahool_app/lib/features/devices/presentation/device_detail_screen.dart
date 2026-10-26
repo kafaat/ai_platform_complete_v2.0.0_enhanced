@@ -11,7 +11,6 @@ import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/devices/data/devices_api.dart';
 import 'package:sahool_app/features/devices/data/devices_models.dart';
-import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
 
 import 'devices_cubit.dart';
 import 'devices_screen.dart'

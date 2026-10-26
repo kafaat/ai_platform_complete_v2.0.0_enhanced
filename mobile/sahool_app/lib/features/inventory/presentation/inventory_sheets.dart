@@ -15,7 +15,6 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
-import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_date_field.dart';
 
 /// نتيجة ورقة كتابة: حُفظت على الخادم، أو أُودعت للإرسال لاحقاً.
 enum InventoryWriteResult { saved, queued }

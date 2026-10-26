@@ -211,7 +211,9 @@ AppRoute(
   alone), `LoadingState`, `ErrorState(error:, onRetry:)`, `EmptyState`,
   `PrimaryButton` (52 dp, `loading` blocks a second submit), `SecondaryButton`,
   `AppIconButton` (requires a tooltip), `AppTextField`, `AppNumberField`,
-  `AppDropdown`, `AppListTile`, `ListSectionHeader`, `showAppBottomSheet`
+  `AppDropdown`, `AppListTile`, `ListSectionHeader`, `OpsTile` (list row with
+  status chips under the text), `OpsDateField` (date picker field),
+  `OpsRefreshBanner` ("refresh failed" over the last data), `showAppBottomSheet`
   with `AppSheet` (inline `errorText`; a SnackBar raised from a sheet is drawn
   under it), `showConfirmDialog`, and the app-wide offline banner (already
   mounted in `MaterialApp.builder`).

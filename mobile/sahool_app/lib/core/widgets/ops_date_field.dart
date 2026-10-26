@@ -1,11 +1,11 @@
-// SAHOOL — features/operations_hub/presentation/widgets/ops_date_field.dart
-// مشترك بين وحدات العمليّات — مرشّح للنقل إلى core/widgets.
+// SAHOOL — lib/core/widgets/ops_date_field.dart
+// مشترك بين وحدات العمليّات (المخزون، المعدّات، الأجهزة).
 // حقل تاريخ بمنتقٍ (لا كتابة YYYY-MM-DD يدويّاً): يعرض التاريخ بالعربيّة، ويُمسَح
 // بزرّ واضح، وهدف لمسه ≥48dp.
 import 'package:flutter/material.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
-import 'package:sahool_app/core/widgets/widgets.dart';
+import 'primary_button.dart';
 
 class OpsDateField extends StatelessWidget {
   const OpsDateField({

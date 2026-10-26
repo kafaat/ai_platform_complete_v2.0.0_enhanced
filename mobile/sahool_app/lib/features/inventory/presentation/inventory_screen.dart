@@ -14,8 +14,6 @@ import 'package:sahool_app/core/widgets/widgets.dart';
 import 'package:sahool_app/features/inventory/data/inventory_api.dart';
 import 'package:sahool_app/features/inventory/data/inventory_models.dart';
 import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
-import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_refresh_banner.dart';
-import 'package:sahool_app/features/operations_hub/presentation/widgets/ops_tile.dart';
 
 import 'inventory_cubit.dart';
 import 'inventory_item_screen.dart';

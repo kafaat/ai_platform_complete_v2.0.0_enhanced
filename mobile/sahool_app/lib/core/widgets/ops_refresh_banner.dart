@@ -1,4 +1,4 @@
-// SAHOOL — features/operations_hub/presentation/widgets/ops_refresh_banner.dart
+// SAHOOL — lib/core/widgets/ops_refresh_banner.dart
 // لافتة «تعذّر التحديث» فوق بيانات سابقة: لا تُعرض بيانات قديمة كأنّها حاليّة،
 // ولا تُمسح بشاشة خطأ كاملة لمجرّد فشل تحديث. مشتركة بين وحدات العمليّات.
 import 'package:flutter/material.dart';
