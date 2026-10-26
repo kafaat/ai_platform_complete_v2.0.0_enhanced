@@ -6948,6 +6948,7 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/water_ledger.py",
         "services/sahool-platform/api/routers/water_twin.py",
+        "services/sahool-platform/api/water_ledger_auto.py",
         "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
         "services/sahool-platform/tests/test_manual_irrigation_source_boundary.py"
       ],

@@ -4475,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75bdff8eb74780c1dbdb1ec3c481195ea4ed6e2deaee923442b370ddbac5c6a7"
+          "content": "ca8714dc0ddbb8982cfd2dde8d255ad50d6793b056bd5636a5578f814b9fbfe7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -20485,7 +20485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c5a64298ba6980e90e85ece3df618d07c38d36e1a21531c2f3d2b4dcc7a88d0"
+          "content": "ac6f7c73fe59eb0e686aa0142fe647ab014c0a24f6620a1de633090b5179b646"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -21615,7 +21615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5b89e4d38fad7cc73b8062bfbac12027c666aa59f1d4b6ae6cafcf258f57ab8"
+          "content": "7c6afe4f66f29602364e347de0c3528e4807ba51256c1aabf0849a3490ba997b"
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_auto.py",
