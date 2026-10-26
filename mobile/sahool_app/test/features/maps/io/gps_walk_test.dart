@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sahool_app/features/maps/draw/field_created_events.dart';
 import 'package:sahool_app/features/maps/io/data/maps_io_api.dart';
 import 'package:sahool_app/features/maps/io/gps/gps_save_cubit.dart';
 import 'package:sahool_app/features/maps/io/gps/gps_walk_cubit.dart';
@@ -228,6 +229,9 @@ void main() {
                 })
               : const FakeReply(201, {'field_id': 'fld_gps'}),
         );
+        final announced = <Map<String, dynamic>>[];
+        final sub = FieldCreatedEvents.instance.stream.listen(announced.add);
+        addTearDown(sub.cancel);
         final save = GpsSaveCubit(
           MapsIoApi(
             testClient(
@@ -257,6 +261,8 @@ void main() {
         );
         expect(save.state.phase, SavePhase.saved);
         expect(save.state.fieldId, 'fld_gps');
+        await Future<void>.delayed(Duration.zero);
+        expect(announced.single['field_id'], 'fld_gps');
         final keys = adapter.requests
             .map((r) => r.headers['Idempotency-Key'])
             .toList();

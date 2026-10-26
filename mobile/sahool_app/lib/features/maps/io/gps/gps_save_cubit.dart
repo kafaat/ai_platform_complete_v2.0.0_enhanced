@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sahool_app/core/network/idempotency.dart';
 
+import '../../draw/field_created_events.dart';
 import '../data/maps_io_api.dart';
 import '../presentation/io_errors.dart';
 
@@ -20,10 +21,13 @@ class GpsSaveState {
 }
 
 class GpsSaveCubit extends Cubit<GpsSaveState> {
-  GpsSaveCubit(this._api, {this.farmId}) : super(const GpsSaveState());
+  GpsSaveCubit(this._api, {this.farmId, FieldCreatedEvents? events})
+    : _events = events ?? FieldCreatedEvents.instance,
+      super(const GpsSaveState());
 
   final MapsIoApi _api;
   final String? farmId;
+  final FieldCreatedEvents _events;
   IdempotencyKey? _key;
   String? _signature;
 
@@ -64,6 +68,7 @@ class GpsSaveCubit extends Cubit<GpsSaveState> {
           'vertices_after': ring.length,
         },
       );
+      _events.notifyCreated(created);
       if (isClosed) return;
       emit(
         GpsSaveState(

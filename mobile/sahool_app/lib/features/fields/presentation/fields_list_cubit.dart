@@ -2,11 +2,14 @@
 // حالة قائمة «حقولي»: الحقول (GET /api/v1/fields) + أسماء المزارع للتصفية
 // (GET /api/v1/farms، اختياريّ) + الاستعلام (بحث/تصفية/ترتيب) + الأولويّات
 // (تُجلب عند اختيار ترتيب «الأولويّة» فقط، من طوابير المزارع والحقول).
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/features/farms/data/farms_api.dart';
 import 'package:sahool_app/features/fields/data/field_list_query.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
+import 'package:sahool_app/features/maps/draw/field_created_events.dart';
 
 import 'common/load_cubit.dart';
 
@@ -68,7 +71,24 @@ class FieldsListState {
 }
 
 class FieldsListCubit extends Cubit<FieldsListState> {
-  FieldsListCubit(this._fields, this._farms) : super(const FieldsListState());
+  /// [fieldCreated]: إشارة «أُنشئ حقل» من مكان آخر (المعالج، الاستيراد، مشي GPS).
+  /// التبويب يبقى حيّاً في الغلاف، فيعيد التحميل بصمت عندها. الافتراضيّ
+  /// [FieldCreatedEvents.instance].
+  FieldsListCubit(this._fields, this._farms, {Stream<Object?>? fieldCreated})
+    : super(const FieldsListState()) {
+    _createdSub = (fieldCreated ?? FieldCreatedEvents.instance.stream).listen(
+      (_) => load(silent: true),
+    );
+  }
+
+  StreamSubscription<Object?>? _createdSub;
+
+  @override
+  Future<void> close() async {
+    await _createdSub?.cancel();
+    _createdSub = null;
+    return super.close();
+  }
 
   final FieldsApi _fields;
   final FarmsApi _farms;

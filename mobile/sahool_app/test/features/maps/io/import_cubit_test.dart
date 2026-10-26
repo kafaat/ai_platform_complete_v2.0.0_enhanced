@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sahool_app/features/maps/draw/field_created_events.dart';
 import 'package:sahool_app/features/maps/io/data/maps_io_api.dart';
 import 'package:sahool_app/features/maps/io/presentation/import_cubit.dart';
 
@@ -59,6 +60,21 @@ void main() {
       expect((sent['coordinates'] as List), hasLength(1)); // outer ring only
       expect(cubit.state.createdCount, 2);
       expect(cubit.state.allDone, isTrue);
+    },
+  );
+
+  test(
+    'each created field is announced so a kept-alive list reloads',
+    () async {
+      final announced = <Map<String, dynamic>>[];
+      final sub = FieldCreatedEvents.instance.stream.listen(announced.add);
+      addTearDown(sub.cancel);
+      cubit.parse(featureCollection());
+      cubit.toggle(2, false);
+      await cubit.submit();
+      await Future<void>.delayed(Duration.zero);
+      expect(announced, hasLength(2));
+      expect(announced.first['field_id'], 'fld');
     },
   );
 
