@@ -16,7 +16,10 @@ import 'package:sahool_app/core/routing/shell_scope.dart';
 import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/alerts/alerts_paths.dart';
 import 'package:sahool_app/features/alerts/data/alert_live_events.dart';
+import 'package:sahool_app/features/alerts/data/alerts_unread.dart';
+import 'package:sahool_app/features/alerts/presentation/alerts_badge.dart';
 import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 import 'package:sahool_app/features/dashboard/data/dashboard_snapshot_store.dart';
 import 'package:sahool_app/features/dashboard/data/today_models.dart';
@@ -24,6 +27,9 @@ import 'package:sahool_app/features/dashboard/presentation/dashboard_cubit.dart'
 import 'package:sahool_app/features/dashboard/presentation/dashboard_state.dart';
 import 'package:sahool_app/features/dashboard/presentation/widgets/today_sections.dart';
 import 'package:sahool_app/features/farms/data/farms_api.dart';
+import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
+import 'package:sahool_app/features/offline_sync/offline_sync_routes.dart';
+import 'package:sahool_app/features/offline_sync/presentation/pending_sync_badge.dart';
 import 'package:sahool_app/features/tasks/data/tasks_api.dart';
 import 'package:sahool_app/services/auth_service.dart';
 import 'package:sahool_app/services/websocket_service.dart';
@@ -40,6 +46,8 @@ class DashboardScreen extends StatelessWidget {
     this.role,
     this.userName,
     this.routeExists,
+    this.alertsCounter,
+    this.syncOutbox,
   });
 
   /// «أنشئ أوّل حقل» في حالة صفر حقول. إن لم يُمرَّر يُخفى الزرّ.
@@ -55,6 +63,10 @@ class DashboardScreen extends StatelessWidget {
 
   /// هل يوجد مسار مسجَّل (مثل '/alerts')؟ الافتراضيّ AppRouter.
   final bool Function(String path)? routeExists;
+
+  /// للاختبارات: عدّاد جرس التنبيهات وصندوق المزامنة. الافتراضيّ نسخ الميزتين.
+  final AlertsUnreadCounter? alertsCounter;
+  final OfflineOutbox? syncOutbox;
 
   static DashboardCubit _defaultCubit() => DashboardCubit(
     api: DashboardApi.instance,
@@ -76,6 +88,8 @@ class DashboardScreen extends StatelessWidget {
           userName ??
           AuthService.instance.userProfile?['full_name']?.toString(),
       routeExists: routeExists ?? (p) => AppRouter.instance.match(p) != null,
+      alertsCounter: alertsCounter,
+      syncOutbox: syncOutbox,
     ),
   );
 }
@@ -87,6 +101,8 @@ class _TodayView extends StatelessWidget {
     required this.role,
     required this.userName,
     required this.routeExists,
+    this.alertsCounter,
+    this.syncOutbox,
   });
 
   final VoidCallback? onCreateField;
@@ -94,6 +110,8 @@ class _TodayView extends StatelessWidget {
   final String? role;
   final String? userName;
   final bool Function(String path) routeExists;
+  final AlertsUnreadCounter? alertsCounter;
+  final OfflineOutbox? syncOutbox;
 
   void _openField(BuildContext context, String fieldId) =>
       context.openRoute<void>(
@@ -105,11 +123,12 @@ class _TodayView extends StatelessWidget {
     if (shell == null || !shell.select(tab)) context.openRoute<void>(path);
   }
 
-  /// وجهة التنبيه: ميزة التنبيهات إن سُجِّلت، وإلّا حقل التنبيه، وإلّا لا شيء.
+  /// وجهة التنبيه: تفاصيله في ميزة التنبيهات إن سُجِّلت، وإلّا حقل التنبيه، وإلّا
+  /// لا شيء. (الصندوق /alerts لا يقرأ alert_id؛ التفاصيل /alerts/detail تقرؤه.)
   VoidCallback? _alertTarget(BuildContext context, TodayAlert a) {
-    if (routeExists('/alerts')) {
+    if (routeExists(AlertsPaths.detail)) {
       return () => context.openRoute<void>(
-        '/alerts?alert_id=${Uri.encodeQueryComponent(a.id)}',
+        '${AlertsPaths.detail}?alert_id=${Uri.encodeQueryComponent(a.id)}',
       );
     }
     final fid = a.fieldId;
@@ -132,11 +151,23 @@ class _TodayView extends StatelessWidget {
           final cubit = context.read<DashboardCubit>();
           final now = clock();
           final children = <Widget>[
-            TodayHeader(
-              now: now,
-              userName: userName,
-              fetchedAt: s.fetchedAt,
-              refreshing: s.refreshing,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TodayHeader(
+                    now: now,
+                    userName: userName,
+                    fetchedAt: s.fetchedAt,
+                    refreshing: s.refreshing,
+                  ),
+                ),
+                // يظهر فقط حين توجد عمليّات بانتظار الإرسال أو مرفوضة.
+                if (routeExists(OfflineSyncRoutes.status))
+                  PendingSyncBadge(outbox: syncOutbox),
+                if (routeExists(AlertsPaths.inbox))
+                  AlertsBellButton(counter: alertsCounter),
+              ],
             ),
             const SizedBox(height: SahoolSpacing.md),
           ];
@@ -220,8 +251,8 @@ class _TodayView extends StatelessWidget {
         busy: s.ackBusy,
         onOpen: (a) => _alertTarget(context, a),
         onAcknowledge: (a) => _acknowledge(context, a),
-        onSeeAll: routeExists('/alerts')
-            ? () => context.openRoute<void>('/alerts')
+        onSeeAll: routeExists(AlertsPaths.inbox)
+            ? () => context.openRoute<void>(AlertsPaths.inbox)
             : null,
       ),
       gap,

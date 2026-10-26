@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
+import 'package:sahool_app/features/alerts/data/alerts_api.dart';
+import 'package:sahool_app/features/alerts/data/alerts_unread.dart';
 import 'package:sahool_app/features/dashboard/data/dashboard_snapshot_store.dart';
+import 'package:sahool_app/features/offline_sync/offline_outbox.dart';
 import 'package:sahool_app/screens/dashboard_screen.dart';
 
 import '../../core/fake_http.dart';
@@ -17,6 +20,10 @@ Future<void> pumpToday(
   double height = 4000,
   double textScale = 1,
   String role = 'owner',
+  bool Function(String path)? routeExists,
+  AlertsUnreadCounter? alertsCounter,
+  OfflineOutbox? syncOutbox,
+  List<String>? opened,
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
@@ -28,6 +35,13 @@ Future<void> pumpToday(
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      onGenerateRoute: (settings) {
+        opened?.add(settings.name!);
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const Scaffold(body: Text('target')),
+        );
+      },
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(
           context,
@@ -40,7 +54,9 @@ Future<void> pumpToday(
           clock: () => kNow,
           role: role,
           userName: 'أحمد',
-          routeExists: (_) => false,
+          routeExists: routeExists ?? (_) => false,
+          alertsCounter: alertsCounter,
+          syncOutbox: syncOutbox,
         ),
       ),
     ),
@@ -70,7 +86,62 @@ void expectNoNullOrFakes(WidgetTester tester) {
   }
 }
 
+class _PendingOutbox implements OfflineOutbox {
+  _PendingOutbox(this.count);
+  final int count;
+  @override
+  Future<OutboxReceipt> enqueue(OutboxOp op) => throw UnimplementedError();
+  @override
+  Stream<int> get pendingCount => Stream<int>.value(count);
+}
+
 void main() {
+  testWidgets('header embeds the alerts bell and the pending-sync badge; '
+      'an alert opens its detail route', (tester) async {
+    final adapter = fakeBackend(
+      overrides: {
+        '/api/v1/alerts': () => const FakeReply(200, [
+          {'alert_id': 'a1', 'status': 'active', 'title_ar': 'صقيع'},
+          {'alert_id': 'a2', 'status': 'active', 'title_ar': 'رياح'},
+        ]),
+      },
+    );
+    final h = TodayHarness(adapter);
+    final client = testClient(
+      adapter,
+      MemoryTokenStore(accessToken: fakeJwt(const Duration(hours: 1))),
+    );
+    final opened = <String>[];
+    await pumpToday(
+      tester,
+      h,
+      routeExists: (_) => true,
+      alertsCounter: AlertsUnreadCounter(
+        api: AlertsApi(client),
+        events: const Stream.empty(),
+      ),
+      syncOutbox: _PendingOutbox(2),
+      opened: opened,
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip('التنبيهات'), findsOneWidget);
+    expect(find.byKey(const ValueKey('pending-sync-badge')), findsOneWidget);
+    expect(find.byTooltip('المزامنة: 2 بانتظار الإرسال'), findsOneWidget);
+    final bell = find.byTooltip('التنبيهات');
+    expect(find.descendant(of: bell, matching: find.text('2')), findsOneWidget);
+    await tester.tap(find.text('فتح').first);
+    await tester.pumpAndSettle();
+    expect(opened.single, startsWith('/alerts/detail?alert_id='));
+  });
+
+  testWidgets('no bell or sync badge when those routes are not registered', (
+    tester,
+  ) async {
+    await pumpToday(tester, TodayHarness(fakeBackend()));
+    expect(find.byTooltip('التنبيهات'), findsNothing);
+    expect(find.byKey(const ValueKey('pending-sync-badge')), findsNothing);
+  });
+
   testWidgets('real producer payload renders measured numbers', (tester) async {
     final h = TodayHarness(fakeBackend());
     await pumpToday(tester, h);
