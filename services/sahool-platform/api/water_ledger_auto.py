@@ -191,6 +191,49 @@ def ledger_notes_from_decision(decision: str | None) -> list[str] | None:
     return [note for note in body.split(";") if note]
 
 
+async def resolve_applied_water_status(conn, field_id, latest_row) -> str | None:
+    """حالةُ الماء المضاف لأحدث قيد، **موروثةً** عبر السلسلة حين يقول اليومُ «مُسجَّل».
+
+    علَمُ القيد يوميٌّ لا يرث: يومٌ مُسجَّلٌ فوق أيّامٍ بلا سجلّ استنزافُه الموروث مبنيٌّ على
+    ريٍّ مجهول (UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01)، فتُمشى السلسلةُ إلى
+    مرساتها. ``None`` لقيدٍ لم يكتبه العامل (يدويّ/قديم): لا يُفترَض «مُسجَّلاً».
+    """
+    notes = ledger_notes_from_decision(latest_row.get("decision")) if latest_row else None
+    status = applied_water_status(notes) if notes is not None else None
+    if status == APPLIED_WATER_RECORDED:
+        chain = await conn.fetch(
+            "SELECT ledger_date, depletion_mm, decision FROM water_ledger "
+            "WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT $2",
+            field_id,
+            LEDGER_CHAIN_WINDOW,
+        )
+        status = ledger_chain_applied_water_status([dict(r) for r in chain])
+    return status
+
+
+_APPLIED_WATER_LIMITATION = {
+    APPLIED_WATER_UNRECORDED: (
+        "applied_water_unrecorded — لا سجلَّ ريٍّ لهذا الحقل في يوم القيد: الريُّ في "
+        "الميزان مجهولٌ لا صفر، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى. "
+        "سجّل الريّات أو أعلِن مصدرَ الماء قبل الاعتماد."
+    ),
+    APPLIED_WATER_VOLUME_UNTRACKED: (
+        "applied_water_volume_untracked — رُصدت ريّةٌ بلا حجم: الماءُ المضاف أدنى "
+        "تقدير، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى."
+    ),
+    APPLIED_WATER_INHERITED_UNKNOWN: (
+        "applied_water_inherited_unknown — ريُّ يوم القيد مُسجَّل، لكنّ الاستنزافَ موروثٌ من "
+        "أيّامٍ بلا سجلّ ريّ: الريُّ فيها مجهولٌ لا صفر، فالاستنزافُ حدٌّ أعلى."
+    ),
+}
+
+
+def applied_water_limitation_notes(status: str | None) -> list[str]:
+    """قيدُ المخرَج الذي يُسمّي **لماذا** الاستنزافُ حدٌّ أعلى (لا خصمَ ثانٍ من الثقة)."""
+    note = _APPLIED_WATER_LIMITATION.get(status)
+    return [note] if note else []
+
+
 def compute_daily_ledger_entry(
     *,
     prev_depletion_mm: float | None,

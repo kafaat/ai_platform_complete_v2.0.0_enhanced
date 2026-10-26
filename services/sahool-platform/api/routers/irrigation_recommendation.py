@@ -252,28 +252,13 @@ async def field_irrigation_recommendation(
         # يومٌ مُسجَّلٌ فوق أيّامٍ بلا سجلّ استنزافُه الموروث مبنيٌّ على ريٍّ مجهول. فحين يقول
         # أحدثُ قيدٍ «مُسجَّل» تُمشى السلسلةُ إلى مرساتها (لا يُقرأ يومُه وحدَه).
         from api.water_ledger_auto import (
-            APPLIED_WATER_INHERITED_UNKNOWN,
-            APPLIED_WATER_RECORDED,
-            APPLIED_WATER_UNRECORDED,
-            APPLIED_WATER_VOLUME_UNTRACKED,
-            LEDGER_CHAIN_WINDOW,
-            applied_water_status,
+            applied_water_limitation_notes,
             depletion_is_upper_bound,
             irrigation_known,
-            ledger_chain_applied_water_status,
-            ledger_notes_from_decision,
+            resolve_applied_water_status,
         )
 
-        ledger_notes = ledger_notes_from_decision(lrow.get("decision")) if lrow else None
-        applied_status = applied_water_status(ledger_notes) if ledger_notes is not None else None
-        if applied_status == APPLIED_WATER_RECORDED:
-            chain = await conn.fetch(
-                "SELECT ledger_date, depletion_mm, decision FROM water_ledger "
-                "WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT $2",
-                field_id,
-                LEDGER_CHAIN_WINDOW,
-            )
-            applied_status = ledger_chain_applied_water_status([dict(r) for r in chain])
+        applied_status = await resolve_applied_water_status(conn, field_id, lrow)
         # WS-D.2b: أحدث فحص تربة معتمَد ⇒ نسيج مقيس مخبريّاً (+ عمره) لتحسين TAW.
         # النسيج لا عمود مُصنَّف له اليوم (جرد المصادر) — من JSONB. غيابه ⇒ fallback عامّ.
         soil_row = await conn.fetchrow(
@@ -307,23 +292,7 @@ async def field_irrigation_recommendation(
     # UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: ثقةُ القيد المنخفضة لا تقول
     # **لماذا**. قيدٌ آليٌّ بلا صفِّ ريّ استنزافُه حدٌّ أعلى (الريُّ قُرِئ صفراً لأنّه
     # مجهول) — يُسمّى في المخرَج ولا يُخصَم مرّةً ثانية من الثقة (القيدُ خصمه أصلاً).
-    applied_water_limitations: list[str] = []
-    if applied_status == APPLIED_WATER_UNRECORDED:
-        applied_water_limitations.append(
-            "applied_water_unrecorded — لا سجلَّ ريٍّ لهذا الحقل في يوم القيد: الريُّ في "
-            "الميزان مجهولٌ لا صفر، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى. "
-            "سجّل الريّات أو أعلِن مصدرَ الماء قبل الاعتماد."
-        )
-    elif applied_status == APPLIED_WATER_VOLUME_UNTRACKED:
-        applied_water_limitations.append(
-            "applied_water_volume_untracked — رُصدت ريّةٌ بلا حجم: الماءُ المضاف أدنى "
-            "تقدير، فالاستنزافُ وكمّيّةُ الريّ الموصى بها حدٌّ أعلى."
-        )
-    elif applied_status == APPLIED_WATER_INHERITED_UNKNOWN:
-        applied_water_limitations.append(
-            "applied_water_inherited_unknown — ريُّ يوم القيد مُسجَّل، لكنّ الاستنزافَ موروثٌ من "
-            "أيّامٍ بلا سجلّ ريّ: الريُّ فيها مجهولٌ لا صفر، فالاستنزافُ حدٌّ أعلى."
-        )
+    applied_water_limitations = applied_water_limitation_notes(applied_status)
 
     # WS-D.2b: نسيج مخبريّ حقيقيّ ⇒ TAW أدقّ + نَسَب مصدر صريح + خفض ثقة عند fallback.
     texture_lab = extract_texture(soil_row["result"]) if soil_row else None
