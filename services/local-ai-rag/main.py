@@ -433,6 +433,14 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
         logger.warning("فشل استرجاع المعرفة: %s", type(e).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاسترجاع)") from e
 
+    # عقدُ الترميز على كلّ نتيجة، كالمسترجِع القانونيّ: متّجهاتُ ``search_document:`` لا تُرتَّب
+    # باستعلامٍ خام — رفضٌ صريح قبل أن يُجيب النموذجُ منها (REPORT3-RAG-06-01).
+    try:
+        init_retry.assert_legacy_encoder_hits((d.metadata for d in docs), COLLECTION_NAME)
+    except init_retry.InitNotReady as exc:
+        logger.error("رُفِض استرجاعٌ بعقد ترميزٍ غير مدعوم: %s", exc.detail)
+        raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (عقد ترميز غير مدعوم)") from exc
+
     # ARCH-S3 EXPAND: compare canonical retrieval out-of-band. The direct path is
     # still the declared primary until live parity is accepted; no response data
     # comes from shadow and no canonical failure is silently used as a fallback.
