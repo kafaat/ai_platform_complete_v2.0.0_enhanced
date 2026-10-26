@@ -10046,3 +10046,7 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **قرارات للمالك:** خمسة عشر بنداً في [`reports/owner_decisions_20261026.md`](reports/owner_decisions_20261026.md)؛ لم يتّخذ الوكيل قراراً زراعيّاً ولا تفويضَ GATE-01.
 - **فجواتٌ جديدة:** RAILWAY-RESOURCEFUL-COMMITMENT-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 · FRONTEND-NON-API-CONSTANTS-POINT-AT-NO-HANDLER-01 · LEGACY-TITILER-IMAGE-PACKAGES-NOT-AUDITED-01.
 - **ممسوكٌ للمالك:** إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 في فرعٍ منفصل لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة.
+
+### 2026-10-26 — الإصلاحات كلّها في PR واحد، ووصلُ 76 اختباراً لم يشغّلها CI
+
+بأمر المالك «تنفيذ جميع الإصلاحات في pr واحد» ضُمّ إصلاحُ WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 (كان ممسوكاً لأنّ دمجه يُعيد نشر البوّابة الإنتاجيّة) إلى الفرع الموحَّد، ومعه نتيجةُ مسح الاختبارات غير المُشغَّلة: SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 مسجَّلةٌ، وخمسةُ اختباراتٍ قديمة أُصلحت، واستثناءٌ دقيق لـ`/runtime-identity` في حارسي auth وsoil، و`p2_main_decomposition_guard` يقرأ الاستيراد الحقيقيّ بالـAST بعد أن كان يمرّ بنصّ docstring، و76 ملفّاً تُشغَّل الآن في وظيفة Unit Tests المطلوبة.

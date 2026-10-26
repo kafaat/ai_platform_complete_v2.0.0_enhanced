@@ -16,6 +16,6 @@
 | 10 | UWRP-V43-LEARNING-SCRIPTS-UNSAFE-01 | إعادة تثبيت السكربتات المُصلَحة (أ–د)؟ ومشاركةُ إعادة إنتاج ثغرة `compare_trials`؟ وحدودٌ دنيا للسياسة؟ | — | `owner_decisions_20261025.md` |
 | 11 | GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01 | التشغيل عند `pull_request_review`: (أ) الـworkflow كاملاً · (ب) workflow صغير منفصل · (ج) قبولُ الحكم عند الدفعة التالية | — | `.github/workflows/capability-governance.yml` |
 | 12 | OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01 | لكلّ صفٍّ معدود (67 كتابة + 46 قراءة غير مُعلَنة + 102 قارئٍ غير مرصود): الكود أم `db_ownership.yml`؟ | (ب) قبولُ التلميحات المشتقّة دفعةً | `owner_decisions_20261025.md` |
-| 13 | WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 | دمجُ فرع `claude/web-endpoint-constants-guard-20261026` يُعيد نشر البوّابة الإنتاجيّة (حذفُ ثوابت ميّتة فقط) | — | الفرع `b8a573e2e` |
+| 13 | WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 | ~~دمجُ الإصلاح يُعيد نشر البوّابة~~ — **حسمه المالك:** «تنفيذ جميع الإصلاحات في pr واحد»، فضُمَّ إلى الـPR الموحَّد | — | — |
 | 14 | RAILWAY-RESOURCEFUL-COMMITMENT-PROJECT-FAILS-EVERY-MAIN-COMMIT-01 | فكُّ ربط مشروع `resourceful-commitment` أم إصلاحُه؟ | — | `registry.md` (هذا الفرع) |
 | 15 | REPORT3-RAG-12-01 | هل تكفي تجربة 2026-10-16 الحقيقيّة (24 استعلاماً، أحكامُ وكيل) للحكم بأنّ البادئة وحدها ليست السبب؟ | — | `certification/evidence/chatgpt_closure_nine_20261016/rag/` |

@@ -7703,7 +7703,7 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 ## WEB-ENDPOINT-CONSTANTS-WITHOUT-SERVER-HANDLER-01 — ثوابت مسارات ويب بلا معالِج خادم
 
 - **الحالة:** open (2026-10-25) — وُجدت أثناء إعادة قياس [`docs/WEB_MOBILE_PARITY.md`](../../docs/WEB_MOBILE_PARITY.md).
-- **تقدّم (2026-10-26):** الإصلاحُ جاهز في فرع `claude/web-endpoint-constants-guard-20261026` (`b8a573e2e`): حذفُ **14** ثابتاً (لا 13؛ `/api/v1/recommendations/autonomous` بدا مخدوماً لأنّ `{rec_id}` يقرؤه معرّفاً) وحارسٌ يقابل كلَّ حرفيّ `/api/v1` بجرد المسارات. ينتظر موافقةَ المالك لأنّ `frontend/**` يُعيد نشرَ البوّابة الإنتاجيّة.
+- **تقدّم (2026-10-26، فرع `claude/review-portability-tests-mobile-20261025`، `b8a573e2e`):** حذفُ **14** ثابتاً (لا 13؛ `/api/v1/recommendations/autonomous` بدا مخدوماً لأنّ `{rec_id}` يقرؤه معرّفاً) وحارسٌ `tests_v9/test_frontend_api_v1_literal_has_server_route.py` يقابل كلَّ حرفيّ `/api/v1` بجرد المسارات. ضُمَّ إلى الـPR الموحَّد بأمر المالك («جميع الإصلاحات في pr واحد»)، ودمجُه يُعيد نشرَ البوّابة الإنتاجيّة.
 - **المصدر:** سبعة ثوابت `phase8` في [`frontend/src/lib/globalScaleRuntime.ts:19-27`](../../frontend/src/lib/globalScaleRuntime.ts) لا يستوردها غير ملفّ اختبارها؛ وستّة في [`frontend/src/lib/enterpriseGisPhase7.ts:41-52`](../../frontend/src/lib/enterpriseGisPhase7.ts) (`collaboration/sessions` وأحداثها، `raster/distributed/plan` و`jobs`، `digital-twin/scenarios/simulate`، `readiness/planet-scale`) والمستعمَل من الكائن `collaborationSocket` وحده. ولا مُزخرِف خادم لأيٍّ منها. وقالت المراجعة المستقلّة إنّ العدد 14 لا 13: `/api/v1/recommendations/autonomous` يطابق ظاهريّاً `GET /api/v1/recommendations/{rec_id}` فيُقرأ `autonomous` معرّفاً، ولا مسار يخدمه فعلاً.
 - **الأثر:** لا شاشة تستدعيها اليوم، فلا عطل مرئيّ؛ لكنّها تُوهم بقدرةٍ غير موجودة لمن يبني عليها.
 - **شرط الإغلاق:** بناء المسارات بمعالِجاتها واختبارات عقدها، أو حذف الثوابت، مع حارسٍ يرفض ثابت `/api/v1` في الواجهة بلا معالِج مطابق بالطريقة والمسار.
@@ -7726,3 +7726,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **الحالة:** open (2026-10-26).
 - **المصدر:** `docker-compose.v9.yml:1698` يشغّل `ghcr.io/developmentseed/titiler:0.18.6`؛ حزمُها (ومنها `certifi`) لا يضبطها ملفّ متطلّباتٍ في المستودع، فلا يراها `pip-audit -r`.
 - **شرط الإغلاق:** فحصُ الصورة نفسها (مثل Trivy/Grype) في CI، أو استبدالُها بغلافنا `raster-tiler-service`.
+
+## SERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 — اختبارات داخل الخدمات لا تُشغّلها أيّ وظيفة
+
+- **الحالة:** open (2026-10-26) — يُغلَق بدمج الفرع `claude/review-portability-tests-mobile-20261025`.
+- **المصدر:** `pytest.ini` يحدّد `testpaths = tests_v9`، فلا يجمع `pytest -m unit` ما تحت `services/` و`shared/`. مسحُ كلّ `.github/workflows/*.yml` (أدلّة العمل، استدعاءات pytest، السكربتات الأربعة): 748 ملفّاً منها 83 لا تُشغّلها أيّ خطوة، وخمسةٌ منها حمراء (`qdrant-seed/test_aljawf_knowledge.py` و`supervisor-agent/test_graceful_degradation.py` و`vegetation-analysis-service/test_platform_field_catalog_boundary.py` و`actuator-service/test_actuator_router_decomposition_guard.py` و`soil-service/test_soil_ingest_entrypoint_parity.py`)، واثنان حمراوان لمسار `/runtime-identity` في `main.py` (auth وsoil).
+- **العلاج في الفرع:** إصلاحُ الخمسة (الاختبار لا المنتج)، واستثناءٌ دقيق لـ`@app.get("/runtime-identity")` كما في raster وweather وdecision وagriai، وخطوةٌ في وظيفة Unit Tests المطلوبة تُشغّل 76 ملفّاً بعمليّةٍ لكلّ خدمة وتُفشِل على أيّ تخطٍّ.
+- **المستثنى:** ملفّات PG الحيّ (تتخطّى بلا قاعدة)، و`local-ai-rag/test_rag_offline_guards.py` (تبعيّات langchain)، و`sahool-platform/smoke_e2e_test.py` (سكربتٌ حيّ).
+- **شرط الإغلاق:** الدمج، ثمّ خطوة Unit Tests خضراء على `main` بلا تخطٍّ؛ ووظيفةٌ بقاعدةٍ لملفّات PG الحيّ تبقى عملاً لاحقاً.
