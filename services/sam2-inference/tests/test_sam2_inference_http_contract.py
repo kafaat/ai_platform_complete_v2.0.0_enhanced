@@ -4,7 +4,8 @@
 `GET /readyz`) وخطّاف إقلاع يحمّل النموذج. هذه الاختبارات تُثبّت ما يراه المستدعي:
 
 * **المصادقة** على `/v1/predict`: توكن غير مضبوط ⇒ 503 فشلٌ آمن؛ ترويسة غائبة/خاطئة
-  ⇒ 401؛ والمصادقة تسبق كشف حالة النموذج ولا يبلغ أيّ طلب مرفوض المُتنبِّئ.
+  ⇒ 401؛ والمصادقة تسبق كشف حالة النموذج **وتسبق التحقّق من الجسم** (المجهول لا يرى
+  422 بتفاصيل المخطّط) ولا يبلغ أيّ طلب مرفوض المُتنبِّئ.
 * **التحقّق من المدخلات** (`mode` ∈ {auto, hybrid} · `field_bbox` أرقام · `user_polygon`
   قائمة أو GeoJSON) ⇒ 422.
 * **المسار السعيد** بمُتنبِّئ وهميّ: أعلى درجة تختار القناع، والثقة والبيانات الوصفيّة
@@ -239,6 +240,57 @@ def test_predict_fails_closed_with_503_when_service_token_is_unset(make_svc, mon
     assert r.status_code == 503
     assert "SAHOOL_AGENT_TOKEN" in r.json()["detail"]
     assert calls.predictor.prompts == [], "خدمةٌ بلا توكن لا تقبل مجهولاً ولا تستدلّ"
+
+
+# ═══ ترتيب المصادقة والتحقّق ═══════════════════════════════════════════════════
+# المصادقة تبعيّة FastAPI تُحَلّ قبل التحقّق من الجسم: المجهول لا يرى 422 بتفاصيل
+# المخطّط (نمط `mode` ونوع الحقول)؛ يرى 401 (أو 503 إن لم يُضبط التوكن) أيّاً كان جسمه.
+_INVALID_BODIES = [
+    {"mode": "manual"},  # خارج ^(auto|hybrid)$
+    {},  # mode مطلوب
+    {"mode": "auto", "field_bbox": ["west", 15.0, 44.01, 15.01]},
+    {"mode": "hybrid", "user_polygon": "not-a-polygon"},
+]
+
+
+@pytest.mark.parametrize("token", [None, "wrong-token"])
+@pytest.mark.parametrize("body", _INVALID_BODIES)
+def test_unauthenticated_invalid_body_gets_401_not_422(svc, client, monkeypatch, token, body):
+    calls = _arm(svc, monkeypatch)
+
+    r = _predict(client, body, token=token)
+
+    assert r.status_code == 401, r.text
+    assert r.json() == {"detail": "توكن خدمة غير صالح"}
+    assert "auto|hybrid" not in r.text, "المجهول لا يرى نمط mode"
+    assert calls.resolve == [] and calls.predictor.prompts == []
+
+
+def test_unset_service_token_with_invalid_body_fails_closed_503_not_422(make_svc, monkeypatch):
+    svc = make_svc(token="")
+    with TestClient(svc.main.app) as c:
+        r = _predict(c, {"mode": "manual"}, token=None)
+
+    assert r.status_code == 503, r.text
+    assert "SAHOOL_AGENT_TOKEN" in r.json()["detail"]
+
+
+def test_authenticated_invalid_body_still_gets_422_with_schema_detail(svc, client, monkeypatch):
+    calls = _arm(svc, monkeypatch)
+
+    r = _predict(client, {"mode": "manual"})
+
+    assert r.status_code == 422, r.text
+    (err,) = r.json()["detail"]
+    assert err["loc"] == ["body", "mode"]
+    assert err["ctx"]["pattern"] == "^(auto|hybrid)$"
+    assert calls.predictor.prompts == []
+
+
+def test_predict_still_documents_the_agent_token_header_in_openapi(client):
+    params = client.app.openapi()["paths"]["/v1/predict"]["post"]["parameters"]
+
+    assert [(p["name"], p["in"]) for p in params] == [("x-agent-token", "header")]
 
 
 # ═══ التحقّق من المدخلات ═══════════════════════════════════════════════════════

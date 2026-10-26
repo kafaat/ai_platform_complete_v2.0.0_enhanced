@@ -10,7 +10,7 @@ import os
 import time
 
 import sam2_runtime as rt
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 
 app = FastAPI(title="SAHOOL SAM2 Inference", version=rt.VERSION)
 
@@ -20,11 +20,11 @@ async def _startup() -> None:
     rt._load_model()
 
 
-@app.post("/v1/predict")
-async def predict(req: rt.PredictRequest, x_agent_token: str = Header(None)):
+@app.post("/v1/predict", dependencies=[Depends(rt._require_service_token)])
+async def predict(req: rt.PredictRequest):
     """يشغّل SAM2 لإنتاج مضلّع الحقل. يطابق عقد field-segmentation تماماً."""
     started = time.perf_counter()
-    rt._require_service_token(x_agent_token)
+    # المصادقة تبعيّةُ المسار أعلاه: تُحَلّ قبل التحقّق من الجسم فلا يرى المجهولُ 422 بالمخطّط.
 
     if rt._PREDICTOR is None:
         raise HTTPException(

@@ -120,8 +120,8 @@ def _verify_checkpoint_artifact(path: str, expected: str) -> tuple[bool, str | N
 
 
 # ─── المصادقة ────────────────────────────────────────────────────────────
-def _require_service_token(x_agent_token: str | None) -> None:
-    """يمنع الاستدعاء المجهول. فشل آمن لو التوكن غير مضبوط."""
+def _require_service_token(x_agent_token: str | None = Header(None)) -> None:
+    """يمنع المجهول؛ تبعيّة مسار تسبق التحقّق من الجسم. فشل آمن لو التوكن غير مضبوط."""
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الخدمة معطّلة بأمان")
     if not service_token_ok(x_agent_token, AGENT_TOKEN):
