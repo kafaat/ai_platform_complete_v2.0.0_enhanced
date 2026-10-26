@@ -356,6 +356,7 @@ def findings() -> list[str]:
     for key in sorted(set(base) - set(current)):
         out.append(f"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}")
     out.extend(triage_drift())
+    out.extend(read_findings())
     return out
 
 
@@ -626,6 +627,224 @@ def generate_triage() -> None:
     )
 
 
+# ── جهةُ القراءة: `readers` المُعلَنون مقابل القراءة المقيسة ────────────────────────
+#
+# العقدُ يعلن لكلّ جدولٍ مالكاً وكُتّاباً **وقُرّاءً**، وكان الحارسُ يقيس الكتابةَ وحدها —
+# فبقي حقلُ ``readers`` وثيقةَ نيّة. وشقُّ M-03 الأوّل قراءةٌ لا كتابة: ``actuator_command_outbox``
+# يُكتَب و**لا قارئ له** في كامل الشجرة، و``sahool-platform`` مُعلَنٌ قارئَه وهو كاتبُه.
+# ذلك كشفه فحصٌ يدويّ لأنّ قياسَ القراءة لم يكن موجوداً. فصار يُقاس هنا ثلاثُ مجموعات،
+# كلٌّ منها راتشِتٌ يفشل في الاتّجاهين، مخزّنةً تحت ``reads`` في الأساس نفسِه:
+#
+# - ``undeclared``: خدمةٌ تقرأ جدولاً وليست مالكَه ولا من كُتّابه ولا قُرّائه ولا ``mirror``ـه،
+#   والجدولُ لا يعلن ``readers: ["*"]``.
+# - ``declared_reader_unobserved``: قارئٌ مُعلَنٌ لم يُرصَد له موضعُ قراءة.
+# - ``written_never_read``: جدولٌ في العقد له موضعُ كتابةٍ مرصود وصفرُ موضعِ قراءةٍ من أيّ خدمة.
+#
+# **وحدُّ العمى مقيسٌ لا مذكور:** موضعُ SQL يُركَّب اسمُ جدوله وقتَ التشغيل
+# (``f"… FROM {table}"`` · ``"… FROM %s"`` · ``.format``) لا يُرى جدولُه ساكناً، فيُعدّ في
+# ``dynamic_table_sql_sites`` بالملفّ والعدد — ويتغيّر فيفشل الفحصُ كي لا يتّسع العمى صامتاً.
+# والعدُّ يشمل ``INSERT INTO {table}`` و``UPDATE {table}``: هو عمى ماسح الكتابة أيضاً.
+# واسمُ جدولٍ يُمرَّر قيمةً (``table="iot_command_dispatch"``) إلى مُساعدٍ يبني SQL يُرفَق بصفّ
+# ``written_never_read`` في ``table_name_value_sites`` — فـ«صفرُ قارئ» هناك «لم يُرصَد» لا «لا قارئ».
+# ولا ORM في الشجرة (صفرُ ``__tablename__``)، ولا تُقرأ ``.sql`` ولا دوالُّ PL/pgSQL والمشغِّلات.
+#
+# **والقراءةُ يُعرِّفها النحوُ لا الكلمة** كما الكتابة: ``FROM``/``JOIN`` يليها اسمٌ ليس استدعاءَ
+# دالّة (``FROM unnest(``)، في نصٍّ فيه رأسُ عبارة SQL (``SELECT`` أو كتابةٌ يعرفها ``_WRITE``)،
+# وليس ``DELETE FROM`` (كتابة) ولا ``IS DISTINCT FROM`` (مقارنة). ويُقصَر على جداول العقد: لا
+# قرّاءَ مُعلَنين لجدولٍ خارجه يُقارَن بهم — فلا تُسجَّل ``the`` من «rows from the ledger».
+# و**نصُّ f-string يُقرأ كاملاً** بثقبٍ مكانَ كلّ قيمةٍ مُدرَجة: ``f"SELECT {cols} FROM t"``
+# تنقسم في شجرة البناء أجزاءً، فقراءةُ الأجزاء وحدَها تفصل ``FROM t`` عن رأس عبارته.
+_READ = re.compile(
+    r"""\b(?:FROM|JOIN)\s+(?:ONLY\s+)?(?:(?:public|core)\.)?"?(?P<read>[a-z_][a-z0-9_]*)"?
+        (?![a-z0-9_.(]|\s*\()""",
+    re.IGNORECASE | re.VERBOSE,
+)
+_NOT_A_READ_BEFORE = re.compile(r"\b(?:DELETE|DISTINCT)\s+$", re.IGNORECASE)
+_SELECT_HEAD = re.compile(r"\bSELECT\b", re.IGNORECASE)
+# حسّاسٌ لحالة الأحرف عمداً: «failed to read from {path}» رسالةُ سجلّ لا SQL.
+_DYNAMIC_TABLE = re.compile(
+    r"\b(?:FROM|JOIN|INTO|UPDATE)\s+(?:ONLY\s+)?(?:\{[^{}]*\}|%s\b|%\(\w+\)s)"
+)
+_DYNAMIC_HEAD = re.compile(r"\b(?:SELECT|INSERT|UPDATE|DELETE)\b")
+_HOLE = "{…}"
+# حيث يُعدّ تمريرُ اسم الجدول قيمةً قرينةَ قراءةٍ ديناميكيّة — شيفرةُ الخدمات لا أدواتُ الحراسة.
+_RUNTIME_ROOTS = ("services", "shared", "agents", "bots")
+
+
+def _sql_texts(tree: ast.AST):
+    """كلُّ نصٍّ ≥ ``_MIN_SQL_LEN``: الحرفيّاتُ كما هي، وكلُّ f-string نصّاً واحداً بثقوب."""
+    inside: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.JoinedStr):
+            inside.update(id(part) for value in node.values for part in ast.walk(value))
+    for node in ast.walk(tree):
+        if id(node) in inside:
+            continue
+        if isinstance(node, ast.JoinedStr):
+            text = "".join(
+                v.value if isinstance(v, ast.Constant) and isinstance(v.value, str) else _HOLE
+                for v in node.values
+            )
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            text = node.value
+        else:
+            continue
+        if len(text) >= _MIN_SQL_LEN:
+            yield text
+
+
+def _read_tables(sql: str):
+    """أسماءُ الجداول المقروءة في نصٍّ واحد — بشرط رأسِ العبارة وبلا ``DELETE FROM``."""
+    if not (_SELECT_HEAD.search(sql) or _WRITE.search(sql)):
+        return
+    for match in _READ.finditer(sql):
+        if _NOT_A_READ_BEFORE.search(sql, max(0, match.start() - 16), match.start()):
+            continue
+        yield match.group("read").lower()
+
+
+def _identity(name: str) -> str:
+    """الاسمُ المُعلَن بهويّة compose — العقدُ يسمّي بعضَ القرّاء باسم المجلّد (``odoo-bridge``)."""
+    return _DIRECTORY_IDENTITY.get(name, name)
+
+
+def read_scan(
+    root: Path | None = None, contract: dict[str, Any] | None = None
+) -> tuple[dict[str, list[str]], dict[str, int], dict[str, list[str]]]:
+    """(قراءاتٌ ``{"<جدول>::<خدمة>": [ملفّات]}``، مواضعُ SQL بجدولٍ ديناميكيّ ``{ملفّ: عدد}``،
+    ملفّاتُ الخدمات التي تحمل اسمَ جدولٍ قيمةً ``{جدول: [ملفّات]}``) — مسحٌ واحد.
+
+    نطاقُه نطاقُ ``write_sites()`` بعينه (``_python_sources`` + استبعادُ SQLite-only)، فلا يرى
+    أحدُهما ملفّاً لا يراه الآخر.
+    """
+    base = ROOT if root is None else root
+    contract = load_contract() if contract is None else contract
+    reads: dict[str, set[str]] = {}
+    dynamic: dict[str, int] = {}
+    named: dict[str, set[str]] = {}
+    for rel, tree in _python_sources(base):
+        if _db_backend(tree) == "sqlite":
+            continue
+        service, path = _service_of(rel), rel.as_posix()
+        for text in _sql_texts(tree):
+            if _DYNAMIC_HEAD.search(text):
+                hits = len(_DYNAMIC_TABLE.findall(text))
+                if hits:
+                    dynamic[path] = dynamic.get(path, 0) + hits
+            for table in _read_tables(text):
+                if isinstance(contract.get(table), dict):
+                    reads.setdefault(f"{table}::{service}", set()).add(path)
+        if rel.parts[0] in _RUNTIME_ROOTS:
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    if isinstance(contract.get(node.value), dict):
+                        named.setdefault(node.value, set()).add(path)
+    return (
+        {key: sorted(files) for key, files in sorted(reads.items())},
+        dict(sorted(dynamic.items())),
+        {table: sorted(files) for table, files in sorted(named.items())},
+    )
+
+
+def _read_allowed(table: str, service: str, contract: dict[str, Any]) -> bool:
+    meta = contract.get(table)
+    if not isinstance(meta, dict):
+        return True  # جدولٌ خارج العقد — لا قرّاءَ مُعلَنين يُقارَن بهم
+    declared = {meta.get("owner"), meta.get("mirror")}
+    declared.update(meta.get("writers") or [])
+    declared.update(meta.get("readers") or [])
+    return "*" in declared or service in {_identity(str(n)) for n in declared if n}
+
+
+def read_survey(
+    root: Path | None = None,
+    contract: dict[str, Any] | None = None,
+    sites: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
+    """جهةُ القراءة كاملةً: المجموعاتُ الثلاث المحروسة + حدُّ العمى المقيس."""
+    contract = load_contract() if contract is None else contract
+    sites = write_sites(root) if sites is None else sites
+    reads, dynamic, named = read_scan(root, contract)
+    readers_seen: dict[str, set[str]] = {}
+    for key in reads:
+        table, service = key.split("::", 1)
+        readers_seen.setdefault(table, set()).add(service)
+    writers_seen: dict[str, set[str]] = {}
+    for key in sites:
+        table, service = key.split("::", 1)
+        if isinstance(contract.get(table), dict):
+            writers_seen.setdefault(table, set()).add(service)
+    unobserved = sorted(
+        f"{table}::{_identity(str(reader))}"
+        for table, meta in contract.items()
+        if isinstance(meta, dict)
+        for reader in meta.get("readers") or []
+        if reader != "*" and _identity(str(reader)) not in readers_seen.get(table, set())
+    )
+    return {
+        "undeclared": {
+            key: files
+            for key, files in reads.items()
+            if not _read_allowed(key.split("::", 1)[0], key.split("::", 1)[1], contract)
+        },
+        "declared_reader_unobserved": unobserved,
+        "written_never_read": {
+            table: {
+                "measured_writers": sorted(writers),
+                "table_name_value_sites": named.get(table, []),
+            }
+            for table, writers in sorted(writers_seen.items())
+            if table not in readers_seen
+        },
+        "dynamic_table_sql_sites": dynamic,
+    }
+
+
+def read_coverage(survey_doc: dict[str, Any], contract: dict[str, Any]) -> str:
+    """سطرٌ يقول كم من العقد يراه الماسح — يُطبَع ولا يُخزَّن، فلا يبيت."""
+    tables = [t for t, m in contract.items() if isinstance(m, dict)]
+    edges = sum(1 for t in tables for r in contract[t].get("readers") or [] if r != "*")
+    unseen = len(survey_doc["declared_reader_unobserved"])
+    dynamic = survey_doc["dynamic_table_sql_sites"]
+    return (
+        f"reads: undeclared={len(survey_doc['undeclared'])} "
+        f"declared_reader_edges={edges} unobserved={unseen} "
+        f"written_never_read={len(survey_doc['written_never_read'])} "
+        f"blind_dynamic_sql_sites={sum(dynamic.values())} in {len(dynamic)} files"
+    )
+
+
+def read_findings(current: dict[str, Any] | None = None) -> list[str]:
+    """الراتشِتُ على جهة القراءة — كلُّ مجموعةٍ تُقارَن بمفاتيحها في الاتّجاهين، والعمى بقيمه."""
+    stored_doc = json.loads(BASELINE.read_text(encoding="utf-8")) if BASELINE.is_file() else {}
+    stored = stored_doc.get("reads")
+    if not isinstance(stored, dict):
+        return ["قياسُ القراءة غائبٌ عن الأساس (`reads`) — أعِد --generate"]
+    current = read_survey() if current is None else current
+    out: list[str] = []
+    labels = {
+        "undeclared": ("قراءةٌ جديدةٌ لم يأذن بها العقد", "قراءةٌ في الأساس لم تعد مخالفة — احذفها"),
+        "declared_reader_unobserved": (
+            "قارئٌ مُعلَنٌ جديدٌ لا موضعَ قراءةٍ له",
+            "قارئٌ مُعلَنٌ صار مرصوداً — احذفه من الأساس",
+        ),
+        "written_never_read": (
+            "جدولٌ جديدٌ يُكتَب ولا يُقرأ",
+            "جدولٌ في الأساس صار مقروءاً أو لم يعد يُكتَب — احذفه",
+        ),
+    }
+    for section, (grew, shrank) in labels.items():
+        now, then = set(current[section]), set(stored.get(section) or [])
+        out.extend(f"{grew}: {key}" for key in sorted(now - then))
+        out.extend(f"{shrank}: {key}" for key in sorted(then - now))
+    if current["dynamic_table_sql_sites"] != (stored.get("dynamic_table_sql_sites") or {}):
+        out.append(
+            "حدُّ العمى تغيّر (مواضعُ SQL بجدولٍ ديناميكيّ) — راجِع ثمّ أعِد --generate: "
+            f"{current['dynamic_table_sql_sites']}"
+        )
+    return out
+
+
 def generate() -> None:
     current = survey()
     BASELINE.write_text(
@@ -642,6 +861,15 @@ def generate() -> None:
                     "measured_on": _head_sha(),
                     "violation_count": len(current),
                     "violations": current,
+                    "reads": {
+                        "$comment": (
+                            "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، "
+                            "f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا "
+                            "محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ "
+                            "ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد."
+                        ),
+                        **read_survey(sites=write_sites()),
+                    },
                 },
                 path=BASELINE,
             ),
@@ -677,6 +905,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
     print(f"db_writer_ownership_guard_ok baseline={len(_baseline())}")
+    # الفحصُ مرّ، فالمخزَّنُ يطابق الشجرةَ مفتاحاً بمفتاح — يُطبَع منه بلا مسحٍ ثانٍ.
+    stored = json.loads(BASELINE.read_text(encoding="utf-8"))["reads"]
+    print(read_coverage(stored, load_contract()))
     return 0
 
 

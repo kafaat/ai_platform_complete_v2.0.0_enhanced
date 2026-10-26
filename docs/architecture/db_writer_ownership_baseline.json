@@ -1,7 +1,697 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "7ac49ee444ba3d8562382d931aba483eac001e8b",
+  "measured_on": "ae30a0fcfcfe1251a0a02cda7274a3236aa5a9dc",
+  "reads": {
+    "$comment": "جهةُ القراءة: readers المُعلَنون مقابل حرفيّات SQL المقيسة (بايثون، f-string نصّاً واحداً). ثلاثُ مجموعاتٍ راتشِتٌ في الاتّجاهين، مَعدودةٌ لا محكومٌ عليها. 'لم يُرصَد' ليس 'لا يقرأ': dynamic_table_sql_sites يعدّ ما لا يُرى جدولُه ساكناً، وtable_name_value_sites قرينةُ قراءةٍ عبر مُساعد.",
+    "declared_reader_unobserved": [
+      "actuator_command_dedup::sahool-platform",
+      "actuator_command_outbox::sahool-platform",
+      "approval_workflows::sahool-platform",
+      "autonomous_recommendations::sahool-platform",
+      "boundary_extraction_jobs::sahool-platform",
+      "connector_registry::sahool-platform",
+      "device_commands_log::sahool-platform",
+      "digital_twin_scenarios::sahool-platform",
+      "dispatch_decisions::decision-service",
+      "distributed_raster_jobs::sahool-platform",
+      "equipment_telemetry_frames::sahool-platform",
+      "erp_reconciliation_ledger::erp-bridge",
+      "experiment_evaluations::sahool-platform",
+      "farm_business_units::sahool-platform",
+      "farm_digital_twin_snapshots::sahool-platform",
+      "farm_indirect_cost_pools::sahool-platform",
+      "farm_ledger_economic_snapshots::sahool-platform",
+      "farm_ledger_entries::erp-bridge",
+      "farm_ledger_inventory_projections::sahool-platform",
+      "farm_ledger_parties::erp-bridge",
+      "farmer_knowledge::sahool-platform",
+      "feature_set_specs::sahool-platform",
+      "feature_set_versions_runtime::sahool-platform",
+      "federated_policy_experiments::sahool-platform",
+      "field_feature_store_candidate::sahool-platform",
+      "field_geometry_versions::sahool-platform",
+      "field_weather_overlay::sahool-platform",
+      "geometry_locks::sahool-platform",
+      "governed_model_promotion_candidates::sahool-platform",
+      "guardrails_log::sahool-platform",
+      "historical_weather_daily::agriai-engine",
+      "historical_weather_daily::decision-service",
+      "iot_command_dispatch::sahool-platform",
+      "irrigation_water_profiles::sahool-platform",
+      "irrigation_water_samples::sahool-platform",
+      "knowledge_snippets::sahool-platform",
+      "learning_drift_reports::sahool-platform",
+      "management_zone_sets::sahool-platform",
+      "management_zones::sahool-platform",
+      "marketplace_installations::sahool-platform",
+      "marketplace_plugin_execution_runs::sahool-platform",
+      "marketplace_plugin_output_validations::sahool-platform",
+      "marketplace_plugin_quota_ledger::sahool-platform",
+      "marketplace_plugin_runtime_events::sahool-platform",
+      "model_experiment_assignment::sahool-platform",
+      "model_lifecycle_decisions::sahool-platform",
+      "model_promotion_history_runtime::sahool-platform",
+      "model_registry_version::sahool-platform",
+      "model_rollback_history_runtime::sahool-platform",
+      "model_serving_aliases_runtime::sahool-platform",
+      "odoo_sync_log::sahool-platform",
+      "odoo_sync_state::sahool-platform",
+      "online_learning_updates::decision-service",
+      "point_in_time_snapshots_runtime::sahool-platform",
+      "raster_cache_invalidations::sahool-platform",
+      "raster_snapshots::sahool-platform",
+      "recommendation_feedback::sahool-platform",
+      "recommendation_reviews::sahool-platform",
+      "retraining_jobs::sahool-platform",
+      "review_decisions::sahool-platform",
+      "scenario_runs::sahool-platform",
+      "season_crop::agriai-engine",
+      "season_events::agriai-engine",
+      "season_harvest::agriai-engine",
+      "season_records::agriai-engine",
+      "soil_analog_products::sahool-platform",
+      "soil_bare_composites::sahool-platform",
+      "soil_drainage_assessments::sahool-platform",
+      "soil_execution_records::sahool-platform",
+      "soil_field_validations::sahool-platform",
+      "soil_hydraulic_profiles::sahool-platform",
+      "soil_lab_results::soil-service",
+      "soil_learning_attributions::sahool-platform",
+      "soil_learning_datasets::sahool-platform",
+      "soil_outcome_records::sahool-platform",
+      "soil_production_certifications::sahool-platform",
+      "soil_profile_current::sahool-platform",
+      "soil_profile_snapshots::sahool-platform",
+      "soil_readings::sahool-platform",
+      "soil_reclamation_assessments::sahool-platform",
+      "soil_reclamation_economics::sahool-platform",
+      "soil_regional_calibrations::sahool-platform",
+      "soil_runtime_certification_evidence::sahool-platform",
+      "soil_runtime_certification_runs::sahool-platform",
+      "soil_salinity_products::sahool-platform",
+      "soil_sampling_plans::sahool-platform",
+      "soil_spatial_products::sahool-platform",
+      "soil_terrain_products::sahool-platform",
+      "soil_texture_products::sahool-platform",
+      "soil_verification_records::sahool-platform",
+      "soil_visual_observations::sahool-platform",
+      "training_datasets::sahool-platform",
+      "usage_metering_records::sahool-platform",
+      "weather_alerts::sahool-platform",
+      "weather_forecasts::sahool-platform",
+      "weather_grid::sahool-platform",
+      "weather_observations::sahool-platform",
+      "weather_signals::sahool-platform",
+      "webhook_deliveries::sahool-platform",
+      "webhook_subscriptions::sahool-platform",
+      "workflow_states::sahool-platform",
+      "workflow_transitions::sahool-platform"
+    ],
+    "dynamic_table_sql_sites": {
+      "scripts/migrations/report_not_valid_constraint_violations.py": 2,
+      "scripts/release/production_readiness_orchestrator.py": 1,
+      "services/decision-service/activation_gate_core.py": 12,
+      "services/decision-service/backfill.py": 1,
+      "services/decision-service/migration_runner.py": 2,
+      "services/decision-service/persistence.py": 1,
+      "services/sahool-platform/api/phase_runtime_workers.py": 4,
+      "services/sahool-platform/api/routers/decision_confidence.py": 1,
+      "services/soil-service/p1_store.py": 1,
+      "services/soil-service/p2_store.py": 2,
+      "services/soil-service/p3_store.py": 2,
+      "services/soil-service/p4_store.py": 3,
+      "shared/dependency_readiness.py": 1,
+      "tools/eo_acceptance/spatial.py": 1,
+      "tools/sahool_qa/sahool_qa/sources/postgis.py": 3
+    },
+    "undeclared": {
+      "actuation_killswitch::shared": [
+        "shared/actuation_killswitch.py"
+      ],
+      "automation_rules::actuator-service": [
+        "services/actuator-service/actuator_runtime.py"
+      ],
+      "backfill_run_items::raster-service": [
+        "services/raster-service/backfill_scan_worker.py",
+        "services/raster-service/db_persist.py"
+      ],
+      "backfill_run_items::scripts": [
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "backfill_runs::raster-service": [
+        "services/raster-service/backfill_scan_worker.py",
+        "services/raster-service/db_persist.py"
+      ],
+      "backfill_runs::scripts": [
+        "scripts/diagnose_backfill_stuck.py",
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "canonical_projection_requests::scripts": [
+        "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+      ],
+      "canonical_salinity_states::scripts": [
+        "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+      ],
+      "decision_model_activation_requests::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_activation_reviews::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_monitoring_snapshots::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_post_activation_verifications::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_promotion_decisions::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_registry_activation_claims::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_registry_activation_commands::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_registry_activation_receipts::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_rollout_plans::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "decision_model_rollout_receipts::scripts": [
+        "scripts/staging/c12_live_activation_receipt.py"
+      ],
+      "device_telemetry::scripts": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "distributed_raster_jobs::scripts": [
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "event_outbox::scripts": [
+        "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+      ],
+      "events::scripts": [
+        "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+      ],
+      "field_geometry_history::raster-service": [
+        "services/raster-service/follow_up_runtime.py"
+      ],
+      "field_weather_overlay::weather-signal-engine": [
+        "services/weather-signal-engine/src/main.py"
+      ],
+      "fields::raster-service": [
+        "services/raster-service/db_persist.py",
+        "services/raster-service/follow_up_runtime.py",
+        "services/raster-service/routers/follow_up.py"
+      ],
+      "fields::scout-ingest-service": [
+        "services/scout-ingest-service/main.py"
+      ],
+      "fields::scripts": [
+        "scripts/ci/backfill_ui_sync_gate.py"
+      ],
+      "inventory_batches::mcp_servers": [
+        "services/mcp_servers/market_db_authz.py"
+      ],
+      "invitations::auth": [
+        "services/auth/routers/invitations.py"
+      ],
+      "iot_devices::scripts": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "market_sales_listings::mcp_servers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "notification_delivery::agents": [
+        "agents/notification/agent.py"
+      ],
+      "notification_preferences::agents": [
+        "agents/notification/agent.py"
+      ],
+      "raster_assets::scripts": [
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "raster_batch_jobs::scripts": [
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "raster_registry::scripts": [
+        "scripts/diagnostics/element84_legacy_inventory.py"
+      ],
+      "season_crop::sahool-platform": [
+        "services/sahool-platform/api/routers/seasons.py"
+      ],
+      "season_events::sahool-platform": [
+        "services/sahool-platform/api/routers/agronomic_replay.py",
+        "services/sahool-platform/api/routers/seasons.py"
+      ],
+      "season_harvest::sahool-platform": [
+        "services/sahool-platform/api/routers/agronomic_replay.py",
+        "services/sahool-platform/api/routers/seasons.py"
+      ],
+      "season_records::sahool-platform": [
+        "services/sahool-platform/api/routers/agronomic_replay.py",
+        "services/sahool-platform/api/routers/seasons.py"
+      ],
+      "soil_profile_projection_jobs::scripts": [
+        "scripts/soil/run_production_certification.py"
+      ],
+      "soil_readings::scripts": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "soil_reconciliation_checkpoints::scripts": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "soil_reconciliation_deferrals::scripts": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "stac_item_registry::raster-service": [
+        "services/raster-service/db_persist.py"
+      ],
+      "users::auth": [
+        "services/auth/mfa_runtime.py",
+        "services/auth/routers/email_verify.py",
+        "services/auth/routers/mfa.py",
+        "services/auth/routers/password_reset.py",
+        "services/auth/routers/registration.py",
+        "services/auth/routers/session.py",
+        "services/auth/routers/users.py"
+      ]
+    },
+    "written_never_read": {
+      "actuator_command_dedup": {
+        "measured_writers": [
+          "actuator-service"
+        ],
+        "table_name_value_sites": []
+      },
+      "actuator_command_outbox": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "agent_authority_envelopes": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "agent_conflict_resolutions": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "agent_federation_cycles": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "agent_proposals": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "audit_log": {
+        "measured_writers": [
+          "auth",
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "autonomous_execution_plan": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/phase9_autonomous_farm_os.py"
+        ]
+      },
+      "canonical_as_applied_irrigation_truths": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "canonical_root_zone_profiles": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "crop_stress_memory_snapshots": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "decision_consumer_heartbeats": {
+        "measured_writers": [
+          "decision-service"
+        ],
+        "table_name_value_sites": []
+      },
+      "decision_model_runtime_work_claims": {
+        "measured_writers": [
+          "decision-service"
+        ],
+        "table_name_value_sites": [
+          "services/decision-service/main.py"
+        ]
+      },
+      "decision_outbox_events": {
+        "measured_writers": [
+          "decision-service"
+        ],
+        "table_name_value_sites": [
+          "services/decision-service/cutover.py",
+          "services/decision-service/main.py",
+          "services/decision-service/migration_runner.py",
+          "services/sahool-platform/api/decision_sor_mode.py"
+        ]
+      },
+      "execution_verification_event": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "feature_definitions_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "feature_set_specs": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "feature_set_versions_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "field_feature_store_candidate": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "field_geometry_versions": {
+        "measured_writers": [
+          "raster-service"
+        ],
+        "table_name_value_sites": [
+          "services/raster-service/routers/imagery.py"
+        ]
+      },
+      "geometry_locks": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "governed_model_promotion_candidates": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+        ]
+      },
+      "hourly_irrigation_mpc_actions": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "hourly_irrigation_mpc_schedules": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "hydraulic_capacity_evaluations": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "iot_command_dispatch": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/phase_runtime_workers.py"
+        ]
+      },
+      "irrigation_learning_proposals": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_outcome_evidence": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_resource_reservation_events": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_system_specifications": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "irrigation_water_profiles": {
+        "measured_writers": [
+          "soil-service"
+        ],
+        "table_name_value_sites": [
+          "services/soil-service/p1_store.py",
+          "services/soil-service/routers/p1_products.py"
+        ]
+      },
+      "irrigation_water_samples": {
+        "measured_writers": [
+          "soil-service"
+        ],
+        "table_name_value_sites": []
+      },
+      "lab_sample_custody_events": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "lifecycle_temporal_rejections": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "marketplace_installations": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "mfa_audit_events": {
+        "measured_writers": [
+          "auth"
+        ],
+        "table_name_value_sites": []
+      },
+      "mfa_recovery_codes": {
+        "measured_writers": [
+          "auth"
+        ],
+        "table_name_value_sites": []
+      },
+      "model_lifecycle_decisions": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "model_promotion_history_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/phase_runtime_workers.py"
+        ]
+      },
+      "model_registry_version": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "model_rollback_history_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/phase_runtime_workers.py"
+        ]
+      },
+      "model_serving_aliases_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "nl_gis_audit": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "nutrient_evidence_observations": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "offline_dataset_versions_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "online_feature_values": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "online_learning_updates": {
+        "measured_writers": [
+          "decision-service",
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/decision-service/backfill.py",
+          "services/decision-service/cutover.py",
+          "services/decision-service/decision_sor_role_certify.py",
+          "services/decision-service/main.py",
+          "services/decision-service/persistence.py",
+          "services/decision-service/platform_sor_revoke.py",
+          "services/sahool-platform/api/decision_sor_mode.py",
+          "services/sahool-platform/api/phase_runtime_store.py"
+        ]
+      },
+      "outbox_delivery_attempts": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "phenology_observations": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "point_in_time_snapshots_runtime": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "runtime_event_outbox": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": [
+          "services/sahool-platform/api/phase_runtime_workers.py"
+        ]
+      },
+      "salinity_evidence_observations": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "scenario_runs": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "soil_hydraulic_profiles": {
+        "measured_writers": [
+          "soil-service"
+        ],
+        "table_name_value_sites": [
+          "services/soil-service/p1_store.py",
+          "services/soil-service/routers/p1_products.py"
+        ]
+      },
+      "soil_sampling_plans": {
+        "measured_writers": [
+          "soil-service"
+        ],
+        "table_name_value_sites": [
+          "services/soil-service/p1_store.py",
+          "services/soil-service/routers/p1_products.py"
+        ]
+      },
+      "soil_spatial_products": {
+        "measured_writers": [
+          "soil-service"
+        ],
+        "table_name_value_sites": [
+          "services/soil-service/p1_store.py",
+          "services/soil-service/routers/p1_products.py"
+        ]
+      },
+      "training_datasets": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "usage_metering_records": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "weather_signals": {
+        "measured_writers": [
+          "weather-signal-engine"
+        ],
+        "table_name_value_sites": []
+      },
+      "webhook_subscriptions": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      },
+      "work_orders": {
+        "measured_writers": [
+          "sahool-platform"
+        ],
+        "table_name_value_sites": []
+      }
+    }
+  },
   "violation_count": 67,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
