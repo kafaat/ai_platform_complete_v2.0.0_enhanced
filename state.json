@@ -5,9 +5,9 @@
  "owner": "kafaat",
  "main": {
   "head": "bc764f760",
-  "tree": "414b362b0f11f5c63fcdeb7b0df5cd04218c1963",
-  "pr": "#1291",
-  "note": "mobile rebuild; merge tree == tested 31da4bc6e; 73 checks green; Deploy-Effect NONE"
+  "tree": "97af90cf2357405f26b72e440d77cecff4b823e0",
+  "pr": "#1293",
+  "note": "pip mirror (compose default Alibaba); merge tree == tested 05fdd57f7; 70 pass + 2 skipped; Deploy-Effect NONE"
  },
  "done_verified": [
   {
@@ -81,15 +81,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "d38687c407d7dd702b884f1216055ee086c1c204",
-  "tree": "793872150712b5af166939307468d7d1f0fee86d",
+  "commit": "fb858dffb91ae104c30b7e30506b40e9d9e7b6aa",
+  "tree": "825c41c54610f5c7fcd6fcac7dabbb938bfe3829",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-26T22:47:56Z",
+ "updated": "2026-10-26T22:48:03Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
