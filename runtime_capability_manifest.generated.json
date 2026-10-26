@@ -316,7 +316,7 @@
         "activated": null,
         "built": true,
         "configured": null,
-        "tested": false,
+        "tested": true,
         "wired": true
       },
       "type": "service",
@@ -386,7 +386,7 @@
         "activated": null,
         "built": true,
         "configured": null,
-        "tested": false,
+        "tested": true,
         "wired": true
       },
       "type": "service",
@@ -519,7 +519,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52",
+  "fingerprint": "16e88bdb346418f7389706d9025cd06e741578fc0c0950c93c4933fe8b81f080",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

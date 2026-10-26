@@ -315,6 +315,7 @@
         "mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart",
         "mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart",
+        "mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart",
         "mobile/sahool_app/lib/models/canonical_field_geometry.dart",
@@ -330,6 +331,7 @@
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart",
+        "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart",
         "mobile/sahool_app/test/field_forms/no_coercion_test.dart",
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart",
@@ -347,8 +349,7 @@
         "services/raster-service/test_raster_assets_text_field_id.py",
         "services/sahool-platform/tests/test_boundary_confidence.py",
         "services/sahool-platform/tests/test_canonical_field_state_eligibility.py",
-        "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-        "services/sahool-platform/tests/test_farm_fields_tenant_ownership.py"
+        "services/sahool-platform/tests/test_canonical_field_state_wiring.py"
       ],
       "runtime": {
         "metrics": [],
@@ -378,7 +379,7 @@
           "path": "migrations/v139_field_geometry_history_append_only.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=5, mobile=15. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=5, mobile=16. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -388,7 +389,7 @@
       },
       "evidence_truncated": {
         "apis": 205,
-        "tests": 107
+        "tests": 108
       }
     },
     {
@@ -1982,7 +1983,7 @@
       },
       "evidence_truncated": {
         "apis": 63,
-        "tests": 112
+        "tests": 113
       }
     },
     {
@@ -3942,6 +3943,7 @@
         "mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart",
         "mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart",
+        "mobile/sahool_app/lib/features/field_forms/presentation/field_forms_list_screen.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart",
         "mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart"
       ],
@@ -3951,6 +3953,7 @@
         "mobile/sahool_app/test/field_forms/draft_store_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_api_test.dart",
         "mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart",
+        "mobile/sahool_app/test/field_forms/field_forms_navigation_test.dart",
         "mobile/sahool_app/test/field_forms/no_coercion_test.dart",
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart",
@@ -3996,7 +3999,7 @@
           "path": "shared/contracts/forms/schema_v1.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=8, tests=21, ui=2, mobile=10. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=8, tests=22, ui=2, mobile=11. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4367,7 +4370,8 @@
       "tests": [
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
         "services/sahool-platform/tests/test_candidate_generator.py",
-        "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py"
+        "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
+        "tests_v9/test_uwrp_learning_scripts_candidate.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4381,7 +4385,7 @@
           "path": "services/sahool-platform/core/engines/candidate_generator.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

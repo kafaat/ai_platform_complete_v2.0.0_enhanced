@@ -14,7 +14,7 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'dfa16571fe07bc709b7a8da0d50535cfebc24355d5f6ea0a42bfd0a1f01dbb52';
+export const PLATFORM_CATALOG_FINGERPRINT = '16e88bdb346418f7389706d9025cd06e741578fc0c0950c93c4933fe8b81f080';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 33,
@@ -237,7 +237,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "capabilityCount": 1,
     "domain": "remote-sensing-truth",
     "id": "raster-tiler-service",
-    "tested": false,
+    "tested": true,
     "type": "service",
     "wired": true,
     "wiringDisposition": "consumed"
@@ -282,7 +282,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "capabilityCount": 1,
     "domain": "fields-boundary",
     "id": "sam2-inference",
-    "tested": false,
+    "tested": true,
     "type": "service",
     "wired": true,
     "wiringDisposition": "consumed"
