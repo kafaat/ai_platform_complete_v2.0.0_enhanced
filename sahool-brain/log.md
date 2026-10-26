@@ -10059,3 +10059,13 @@ PR-BODY-IS-FETCHED-ONLY-WHEN-EVERY-EARLIER-STEP-PASSED-01 (جديدة) ⇒ `fixe
 - **تصحيح:** وصفُ #1285 قال إنّ الدمج يُعيد نشر البوّابة وحدها. أُعيد نشرُ ثلاث خدماتٍ أخرى لأنّ ملفّات اختبارٍ في مجلّداتها تطابق أنماط المراقبة (`services/auth/tests/test_router_decomposition_guard.py` · `services/soil-service/test_soil_ingest_entrypoint_parity.py` و`test_soil_router_decomposition_guard.py` · `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py`). سُجّلت PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01.
 - **CI على `main`:** خطوةُ الاختبارات المحلّيّة في الخدمات (76 ملفّاً) خضراء في وظيفة Unit Tests (`40260916782`/`121372907914`).
 - **صفّا الفجوتين المُصلَحتين يبقيان open:** MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وSERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 أُلحق بكلٍّ منهما سطرُ الدمج. ترقيتُه إلى `fixed` من الدماغ وحده يرفضها `brain_state_transition_guard` (قاعدة #1136: `fixed` في الـPR الذي يحمل الإصلاح)، و#1285 لم يرقِّ الصفّ — خطئي؛ فالترقيةُ في أوّل PR يمسّ كوداً.
+
+### 2026-10-26 — اشتقاقُ أثر النشر من أنماط مراقبة Railway
+
+إصلاحُ PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01 بتفويض المالك («قوم بعمل ما يلزم»)، تحت التجميد: Railway قراءةٌ فقط (`describe-environment` و`get-service-config` و`list-deployments` و`list-services`؛ لا `list-variables` ولا `railway-agent`؛ 0 تغييرات).
+
+- **اللقطة:** [`docs/architecture/railway_watch_patterns.json`](../docs/architecture/railway_watch_patterns.json) — 28 خدمة/بيئة من المستودع. soil وweather وai-agronomist في staging قُرئت بـ`get-service-config` مباشرةً لأنّ `describe-environment` يُرجع لها `source: null` وهي تُنشَر من `main`.
+- **الأداة:** `scripts/ci/railway_deploy_impact.py` تطابق المسارات بدلالة gitignore وتطبع سطر `Deploy-Effect`، وتنبّه إن كان المهاجر سيُعاد بناؤه، و`--compare` يكشف انجراف اللقطة. يطبعها `preflight.sh` في القسم ١١د، ولا تحجب.
+- **المقيس:** خمسة دمجات قُرئ ما بناه Railway لكلٍّ منها ([`docs/architecture/railway_deploy_measurements.json`](../docs/architecture/railway_deploy_measurements.json))، والمشتقّ يساويه في البيئتين. القياسُ كشف أنّ `sahool-tts-service` في staging مثبَّتٌ على `d301c136` ولم يُبنَ منذ 2026-10-17، فصُحّحت الأداة لئلّا تعدّ الخدمةَ المثبَّتة متأثّرة.
+- **التكذيب:** افتراضُ «ملفّات الاختبار لا تُطلق نشراً» يُسقط 3 اختبارات منها إعادةُ #1285، وعدُّ المثبَّتة متأثّرةً يُسقط #1277 و#1281.
+- **ترقياتٌ في هذا الـPR:** PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01 إلى `fixed`، ومعها MOBILE-FIELD-FORM-SCREEN-UNREACHABLE-FROM-NAVIGATION-01 وSERVICE-LOCAL-TESTS-UNRUN-BY-CI-01 اللتان أصلحهما #1285 ولم يرقِّ صفّيهما؛ شواهدُهما مقيسةٌ على `main` (انظر [`decisions/ledger.md`](decisions/ledger.md)).
