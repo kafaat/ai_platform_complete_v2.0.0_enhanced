@@ -141,13 +141,18 @@ class InfoBanner extends StatelessWidget {
       );
 }
 
-/// SnackBar موحّد للنجاح/الخطأ بعد الطفرات.
+/// SnackBar موحّد للنجاح/الخطأ بعد الطفرات. ألوانه من السمة (error/primary مع
+/// onError/onPrimary) فيبقى التباين ≥4.5:1 في السمتين الفاتحة والداكنة.
 void showSnack(BuildContext context, String message, {bool error = false}) {
   if (!context.mounted) return;
+  final scheme = Theme.of(context).colorScheme;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(message),
-      backgroundColor: error ? Colors.red.shade700 : kPrimary,
+      content: Text(
+        message,
+        style: TextStyle(color: error ? scheme.onError : scheme.onPrimary),
+      ),
+      backgroundColor: error ? scheme.error : scheme.primary,
       behavior: SnackBarBehavior.floating,
     ),
   );

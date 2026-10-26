@@ -115,4 +115,36 @@ void main() {
     await t.pumpAndSettle();
     expect(result, isTrue);
   });
+
+  for (final entry in {'light': AppTheme.light, 'dark': AppTheme.dark}.entries) {
+    testWidgets('showSnack uses theme colours (${entry.key})', (t) async {
+      final theme = entry.value;
+      await t.pumpWidget(host(
+        Builder(
+          builder: (context) => Column(children: [
+            TextButton(
+                onPressed: () => showSnack(context, 'تمّ'),
+                child: const Text('ok')),
+            TextButton(
+                onPressed: () => showSnack(context, 'فشل', error: true),
+                child: const Text('err')),
+          ]),
+        ),
+        theme: theme,
+      ));
+      final scheme = theme.colorScheme;
+      await t.tap(find.text('ok'));
+      await t.pump();
+      var bar = t.widget<SnackBar>(find.byType(SnackBar));
+      expect(bar.backgroundColor, scheme.primary);
+      expect(t.widget<Text>(find.text('تمّ')).style?.color, scheme.onPrimary);
+      ScaffoldMessenger.of(t.element(find.text('ok'))).removeCurrentSnackBar();
+      await t.pump();
+      await t.tap(find.text('err'));
+      await t.pump();
+      bar = t.widget<SnackBar>(find.byType(SnackBar));
+      expect(bar.backgroundColor, scheme.error);
+      expect(t.widget<Text>(find.text('فشل')).style?.color, scheme.onError);
+    });
+  }
 }
