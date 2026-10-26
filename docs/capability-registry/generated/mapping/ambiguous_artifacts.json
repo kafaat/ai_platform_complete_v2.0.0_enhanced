@@ -1676,6 +1676,29 @@
     ]
   },
   {
+    "path": "docs/architecture/railway_deploy_measurements.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 12,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/raster_boundary_allowlist.json",
     "kind": "other",
     "candidates": [
@@ -4589,15 +4612,53 @@
     ]
   },
   {
-    "path": "mobile/sahool_app/lib/main.dart",
+    "path": "mobile/sahool_app/ARCHITECTURE.md",
     "kind": "mobile",
     "candidates": [
       {
-        "capability_id": "SAT-003",
-        "score": 8,
+        "capability_id": "OPS-004",
+        "score": 12,
         "signals": [
-          "content:NDVI",
-          "content:ndvi"
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 12,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/core/routing/app_router.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "FM-002",
+        "score": 11,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 10,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      },
+      {
+        "capability_id": "FM-004",
+        "score": 9,
+        "signals": [
+          "content:crop season",
+          "content:season"
         ]
       },
       {
@@ -4611,7 +4672,7 @@
     ]
   },
   {
-    "path": "mobile/sahool_app/lib/screens/field_create_wizard.dart",
+    "path": "mobile/sahool_app/lib/features/fields/data/fields_api.dart",
     "kind": "mobile",
     "candidates": [
       {
@@ -4629,13 +4690,145 @@
           "content:cultivar",
           "content:variety"
         ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/fields/presentation/common/cross_feature_routes.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
       },
       {
         "capability_id": "FM-004",
-        "score": 11,
+        "score": 9,
         "signals": [
           "content:crop season",
           "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/inventory/presentation/inventory_item_screen.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "FM-007",
+        "score": 14,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/irrigation/data/irrigation_models.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 10,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 8,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 8,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/maps/data/maps_api.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 12,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:hillshade",
+          "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/satellite/data/satellite_models.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/lib/features/tasks/presentation/task_labels.dart",
+    "kind": "mobile",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 8,
+        "signals": [
+          "content:Soil sampling",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 8,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
         ]
       }
     ]
@@ -4663,23 +4856,67 @@
     ]
   },
   {
-    "path": "mobile/sahool_app/lib/screens/more_screen.dart",
-    "kind": "mobile",
+    "path": "mobile/sahool_app/test/features/fields/cross_feature_routes_test.dart",
+    "kind": "tests",
     "candidates": [
       {
-        "capability_id": "SEC-004",
-        "score": 10,
+        "capability_id": "OPS-003",
+        "score": 12,
         "signals": [
-          "content:MFA",
-          "content:mfa"
+          "content:Scouting",
+          "content:scouting"
         ]
       },
       {
-        "capability_id": "FM-002",
+        "capability_id": "FM-004",
         "score": 10,
         "signals": [
-          "content:farm",
-          "content:farms"
+          "content:crop season",
+          "content:season"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/layers_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "mobile/sahool_app/test/features/maps/maps_api_test.dart",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 10,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]
