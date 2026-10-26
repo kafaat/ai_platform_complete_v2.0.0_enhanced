@@ -7,15 +7,37 @@ cache retention; it is not a promise that the entire platform retains no data.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import re
 from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
 
+_SERVICE_NAME = re.compile(r"[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?")
+
 
 class VoiceProviderError(RuntimeError):
     """Stable errors never echo transcripts, credentials or provider payloads."""
+
+
+def _plaintext_host_allowed(hostname: str | None) -> bool:
+    # Mirrors realtime_agent.config.plaintext_host_allowed; this module is also loaded
+    # standalone (outside the package), so it cannot import it. These origins receive users'
+    # bearer JWTs: http is trusted only for loopback, single-label internal service names
+    # and *.railway.internal.
+    host = (hostname or "").lower().rstrip(".")
+    if not host:
+        return False
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        pass
+    return (
+        host == "localhost"
+        or _SERVICE_NAME.fullmatch(host) is not None
+        or (host.endswith(".railway.internal") and host != ".railway.internal")
+    )
 
 
 def _origin(raw: str) -> str:
@@ -24,6 +46,7 @@ def _origin(raw: str) -> str:
         valid = (
             parsed.scheme in {"http", "https"}
             and parsed.hostname
+            and (parsed.scheme == "https" or _plaintext_host_allowed(parsed.hostname))
             and not parsed.username
             and not parsed.password
             and parsed.path in {"", "/"}
