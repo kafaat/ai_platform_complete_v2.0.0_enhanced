@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "measured_on": "1e125a7b9 — main at capture time; the patterns are Railway state read at captured_at, not a scan of the tree",
   "purpose": "Railway build watch patterns per service, so a PR's deploy effect is derived (scripts/ci/railway_deploy_impact.py), not written by hand. PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01.",
   "captured_at": "2026-10-26T09:39:58Z",
   "project": {

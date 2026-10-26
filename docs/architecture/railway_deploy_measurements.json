@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "measured_on": "1e125a7b9 — main at measurement time; each merge carries its own commit and the builds Railway recorded for it",
   "purpose": "Merges whose Railway deploys were read back read-only after the merge; tests_v9/test_railway_deploy_impact.py replays each against railway_watch_patterns.json. built = services with a deployment record for the merge commit that is not SKIPPED.",
   "merges": [
     {

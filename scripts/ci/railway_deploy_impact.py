@@ -169,6 +169,7 @@ def changed_paths(base: str, head: str) -> list[str]:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     return [line for line in out.stdout.splitlines() if line]

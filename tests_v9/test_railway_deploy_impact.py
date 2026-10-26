@@ -175,7 +175,8 @@ def test_snapshot_without_watch_patterns_is_rejected(tmp_path):
                     }
                 ]
             }
-        )
+        ),
+        encoding="utf-8",
     )
     with pytest.raises(ValueError):
         rdi.load_snapshot(bad)
