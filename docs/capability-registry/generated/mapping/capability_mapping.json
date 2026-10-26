@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 51,
-    "files_scanned": 6382,
+    "files_scanned": 6386,
     "files_by_kind": {
       "backend": 1259,
       "database": 289,
       "governance": 86,
       "mobile": 91,
-      "other": 2124,
-      "tests": 2054,
+      "other": 2127,
+      "tests": 2055,
       "web": 479
     },
-    "unmapped_artifacts": 2434,
+    "unmapped_artifacts": 2435,
     "ambiguous_artifacts": 474
   },
   "capabilities": [
@@ -16799,6 +16799,14 @@
           ]
         },
         {
+          "path": "docs/architecture/railway_deploy_measurements.json",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "docs/audits/branch_archive_20261012/deletion_manifest_20261012.md",
           "score": 12,
           "signals": [
@@ -16852,7 +16860,7 @@
         "mobile": 14,
         "tests": 22,
         "governance": 1,
-        "other_evidence": 10
+        "other_evidence": 11
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -48216,6 +48224,10 @@
     },
     {
       "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_railway_deploy_impact.py",
       "kind": "tests"
     },
     {
