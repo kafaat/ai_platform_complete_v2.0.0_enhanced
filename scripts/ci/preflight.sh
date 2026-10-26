@@ -759,6 +759,17 @@ else
   skipped=$((skipped + 1))
 fi
 
+# PR-DEPLOY-EFFECT-CLAIM-NOT-DERIVED-FROM-WATCH-PATTERNS-01: #1285 wrote «gateway only»
+# by hand and Railway rebuilt three more services. Derived from the captured watch
+# patterns instead; informational, never a failure.
+echo "── ١١د) Deploy-Effect المقترح لمتن الـPR (من أنماط المراقبة الملتقَطة من Railway)"
+if [ -n "$changed" ]; then
+  # shellcheck disable=SC2086
+  python3 scripts/ci/railway_deploy_impact.py $changed 2>&1 | sed 's/^/   /'
+else
+  echo "   لا فرق مقابل $BASE — لم يُشتقّ شيء (التزِم أوّلاً)."
+fi
+
 echo
 if [ "$skipped" -gt 0 ]; then
   echo "⚠ $skipped بوّابة لم تُقَس — «لم أنظر» ليس «لا يوجد»."

@@ -9,7 +9,7 @@ DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sah
 DEC-001,api,GET /runtime-identity @ services/agriai-engine/main.py:100,2,applied
 DEC-001,api,GET /runtime-identity @ services/raster-service/main.py:64,2,applied
 DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24,2,applied
-DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:218,2,applied
+DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:222,2,applied
 DEC-001,api,GET /runtime-identity @ services/weather-service/main.py:56,2,applied
 DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1153,3,applied
 DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:284,2,applied
@@ -254,8 +254,8 @@ FM-001,api,GET /health @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /metrics @ services/auth/routers/ops.py:21,3,applied
 FM-001,api,GET /readyz @ services/auth/routers/ops.py:32,3,applied
-FM-001,api,GET /runtime-identity @ services/auth/main.py:401,3,applied
-FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:709,2,applied
+FM-001,api,GET /runtime-identity @ services/auth/main.py:402,3,applied
+FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:732,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:85,3,applied
 FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:230,3,applied
@@ -939,10 +939,10 @@ FM-006,test,tests_v9/test_tool_loop_budget_v58_2c.py,3,applied
 FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:893,2,applied
 FM-007,api,GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184,2,applied
 FM-007,api,GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90,2,applied
-FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:673,2,applied
+FM-007,api,GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:696,2,applied
 FM-007,api,POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40,2,applied
 FM-007,api,POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121,2,applied
-FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:667,2,applied
+FM-007,api,POST /v1/procurement @ services/mcp_servers/market_server.py:690,2,applied
 FM-007,mobile,mobile/sahool_app/lib/screens/inventory_screen.dart,2,applied
 FM-007,test,services/decision-service/tests/test_element84_inventory_pg16.py,3,applied
 FM-007,test,services/sahool-platform/tests/test_data_inventory.py,3,applied

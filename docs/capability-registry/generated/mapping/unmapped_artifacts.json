@@ -8712,6 +8712,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_pool_shutdown_followups_live_pg.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_pool_single_owner_audit.py",
     "kind": "tests"
   },
@@ -8901,6 +8905,10 @@
   },
   {
     "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_railway_deploy_impact.py",
     "kind": "tests"
   },
   {

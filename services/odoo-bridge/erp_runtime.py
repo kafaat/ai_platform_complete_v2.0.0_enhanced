@@ -190,10 +190,10 @@ def get_odoo() -> OdooClient:
 # ══════════════════════════════════════════════════════════════
 # Sync State Manager (DB)
 # ══════════════════════════════════════════════════════════════
-async def get_pool() -> asyncpg.Pool:
-    global _pool
-    if _pool is None and SAHOOL_DB_URL:
-        _pool = await asyncpg.create_pool(SAHOOL_DB_URL, min_size=1, max_size=5)
+async def get_pool() -> asyncpg.Pool | None:
+    # The lifespan is the only owner: it creates the pool whenever SAHOOL_DB_URL is set (and
+    # refuses to start otherwise) and closes it on shutdown. No lazy fallback, so a caller
+    # racing shutdown gets None instead of opening a second pool that nothing closes.
     return _pool
 
 
