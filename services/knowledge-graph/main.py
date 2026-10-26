@@ -7,6 +7,7 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from kg_store import (
+    EdgeConflictError,
     GraphEdge,
     GraphNode,
     SQLiteAgGraphStore,
@@ -160,6 +161,8 @@ async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token
 async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token)):
     try:
         store.upsert_edge(GraphEdge(**edge.model_dump()))
+    except EdgeConflictError as exc:
+        raise HTTPException(409, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"ok": True}
