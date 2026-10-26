@@ -12,6 +12,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import UTC, date, datetime
 from typing import Literal
 from uuid import UUID
@@ -28,8 +30,12 @@ from pydantic import BaseModel, Field
 
 from api import lab_store
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -165,25 +171,51 @@ async def list_lab_samples(
         return await lab_store.list_samples(conn, tenant_id=str(user.tenant_id), field_id=field_id)
 
 
+def _sample_request_digest(payload: LabSampleIn) -> str:
+    """بصمة الحمولة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
+    canonical = json.dumps(payload.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 @router.post("/api/v1/lab/samples")
 async def create_lab_sample(
     payload: LabSampleIn,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
+    """ينشئ عيّنة مختبر. idempotent عند وجود Idempotency-Key (UUID): صندوق الإرسال
+    دون اتّصال في الموبايل يُعيد الطلب نفسه بعد انقطاع، وبلا مفتاح كانت كلّ إعادة
+    عيّنةً جديدة بمعرّف جديد. الإعادة الصادقة تُعيد العيّنة الأولى؛ والمفتاح نفسه بحمولة
+    مختلفة ⇒ 409."""
     data = payload.model_dump(mode="python")
     data["status"] = _COMPAT_STATUS[payload.status]
     async with tenant_connection(user) as conn:
-        row = await lab_store.create_sample(
-            conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
-        )
-        await lab_store.add_custody_event(
-            conn,
-            tenant_id=str(user.tenant_id),
-            sample_id=row["sample_id"],
-            actor_id=str(user.user_id),
-            event_type="sample_created",
-        )
-        return row
+
+        async def _work():
+            row = await lab_store.create_sample(
+                conn, tenant_id=str(user.tenant_id), created_by=str(user.user_id), payload=data
+            )
+            await lab_store.add_custody_event(
+                conn,
+                tenant_id=str(user.tenant_id),
+                sample_id=row["sample_id"],
+                actor_id=str(user.user_id),
+                event_type="sample_created",
+            )
+            # تُخزَّن نتيجةَ أمرٍ وتُعاد حرفيّاً عند الإعادة ⇒ قيم قابلة للتسلسل.
+            return json.loads(json.dumps(dict(row), default=str))
+
+        if idem:
+            return await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="lab_sample.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"request_digest": _sample_request_digest(payload)},
+            )
+        return await _work()
 
 
 @router.post("/api/v1/lab/soil-results")
