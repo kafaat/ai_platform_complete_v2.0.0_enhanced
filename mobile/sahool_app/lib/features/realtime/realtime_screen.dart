@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/theme/tokens.dart';
 
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
@@ -19,8 +20,12 @@ bool get nativeRealtimeCallsEnabled =>
         defaultTargetPlatform == TargetPlatform.iOS);
 
 class RealtimeScreen extends StatefulWidget {
-  const RealtimeScreen({required this.fieldId, super.key});
+  const RealtimeScreen({required this.fieldId, super.key, this.controller});
   final String fieldId;
+
+  /// للاختبارات: متحكّم جاهز بنقل وهميّ (المكالمات الحقيقيّة خلف علم بناء).
+  @visibleForTesting
+  final RealtimeController? controller;
 
   @override
   State<RealtimeScreen> createState() => _RealtimeScreenState();
@@ -35,7 +40,10 @@ class _RealtimeScreenState extends State<RealtimeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (nativeRealtimeCallsEnabled &&
+    final injected = widget.controller;
+    if (injected != null) {
+      _controller = injected..addListener(_refresh);
+    } else if (nativeRealtimeCallsEnabled &&
         AuthService.instance.isAuthenticated &&
         widget.fieldId.isNotEmpty) {
       _controller = RealtimeController(
@@ -71,19 +79,28 @@ class _RealtimeScreenState extends State<RealtimeScreen>
     final controller = _controller;
     return Scaffold(
       appBar: AppBar(title: const Text('استشارة صوتية للحقل')),
+      // قابل للتمرير: نصّ الموافقة طويل، فكان العمود يفيض على الهواتف الصغيرة
+      // أو مع تكبير الخطّ فتختفي الموافقة وزرّ الاتصال.
       body: controller == null
           ? const Center(
-              child: Text('المكالمات غير مفعّلة أو تتطلب تسجيل الدخول.'),
+              child: Padding(
+                padding: EdgeInsets.all(SahoolSpacing.xl),
+                child: Text(
+                  'المكالمات غير مفعّلة أو تتطلب تسجيل الدخول.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
             )
-          : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          : SafeArea(
+              top: false,
+              child: ListView(
+                key: const ValueKey('realtime_body'),
+                padding: const EdgeInsets.all(SahoolSpacing.lg),
                 children: [
                   const Text(
                     'استشارة صوتية للقراءة فقط. لا تُنفّذ أوامر الري أو المعدات.',
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: SahoolSpacing.lg),
                   const Text(
                     'يُرسل صوتك إلى خدمة التفريغ الصوتي. قد تُحفظ الأسئلة والنصائح ضمن سجل تدقيق الذكاء الاصطناعي الحالي في سهول. لا تُفعّل الكاميرا. تنتهي الجلسة عند مغادرة التطبيق أو هذه الصفحة.',
                   ),
