@@ -158,6 +158,9 @@ def test_readyz_says_a_legacy_collection_is_matched_by_dimension_only(rag):
     body = asyncio.run(rag.readyz())
     assert body["status"] == "ready"
     assert body["embedding_space_identity"] == {"basis": "dimension_only"}
+    # A matching dimension is not the embedding contract: no digest, prefix or revision
+    # was shown, so parity must not be claimed (the live certification reads this key).
+    assert body["embedding_contract_parity"] is False
 
 
 def test_readyz_names_the_bound_profile_when_one_is_served(rag):
