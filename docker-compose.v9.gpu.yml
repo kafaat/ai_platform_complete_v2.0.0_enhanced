@@ -23,6 +23,7 @@ services:
       context: .
       dockerfile: services/sam2-inference/Dockerfile
       args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
         PYTORCH_CUDA_IMAGE: ${PYTORCH_CUDA_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
     # يُعرَض على loopback المضيف فقط (GPU-profile) كي تصله بوّابة sam2_live_gpu_gate.py
     # من المضيف. الخدمة داخليّة أصلاً؛ هذا المنفذ للاختبار/التطوير المحلّيّ لا للإنتاج.

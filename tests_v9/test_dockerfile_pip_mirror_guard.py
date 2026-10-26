@@ -77,3 +77,41 @@ def test_pip_dockerfiles_default_to_pypi_with_alibaba_override_and_bounded_insta
         "Dockerfiles must default PIP_INDEX_URL to official PyPI, document Alibaba override, "
         "and bound pip install with retry/timeout controls:\n  " + "\n  ".join(offenders)
     )
+
+
+# Compose builds default to the Alibaba mirror (owner decision 2026-10-26: official PyPI is
+# slow/blocked from the operator network). Dockerfiles keep the PyPI default above, so CI and
+# Railway — which build the Dockerfiles directly — are unaffected. Compose only forwards an
+# ARG listed under ``build.args``, so a build without it silently ignores PIP_INDEX_URL.
+_COMPOSE_FILES = [
+    "docker-compose.v9.yml",
+    "docker-compose.rag-kg-mcp.yml",
+    "docker-compose.v9.gpu.yml",
+]
+_COMPOSE_PIP_ARG = "${PIP_INDEX_URL:-" + _ALIBABA + "}"
+_MIN_COMPOSE_PIP_BUILDS = 50
+
+
+def test_every_compose_pip_build_forwards_the_alibaba_default_index():
+    import yaml
+
+    seen = 0
+    offenders: list[str] = []
+    for name in _COMPOSE_FILES:
+        doc = yaml.safe_load((_ROOT / name).read_text(encoding="utf-8")) or {}
+        for svc, spec in (doc.get("services") or {}).items():
+            build = (spec or {}).get("build")
+            if not isinstance(build, dict):
+                continue
+            df = _ROOT / build.get("context", ".") / build.get("dockerfile", "Dockerfile")
+            if not df.is_file() or "pip install" not in df.read_text(encoding="utf-8"):
+                continue
+            seen += 1
+            got = (build.get("args") or {}).get("PIP_INDEX_URL")
+            if got != _COMPOSE_PIP_ARG:
+                offenders.append(f"{name}:{svc}: build.args.PIP_INDEX_URL={got!r}")
+    assert seen >= _MIN_COMPOSE_PIP_BUILDS, f"only {seen} compose pip builds found"
+    assert not offenders, (
+        f"compose pip builds must forward PIP_INDEX_URL as {_COMPOSE_PIP_ARG!r}:\n  "
+        + "\n  ".join(offenders)
+    )

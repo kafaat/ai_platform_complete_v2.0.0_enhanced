@@ -51,6 +51,31 @@ docker build \
 
 The Dockerfiles still default to official PyPI, but every pip install is guarded with explicit `--timeout` and `--retries`.
 
+## docker compose builds default to Alibaba (2026-10-26)
+
+`docker compose build` uses the Alibaba mirror by default. Every compose build whose
+Dockerfile runs `pip install` forwards:
+
+```yaml
+args:
+  PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+```
+
+in `docker-compose.v9.yml`, `docker-compose.rag-kg-mcp.yml` and `docker-compose.v9.gpu.yml`,
+and `.env.example` sets the same value. Compose only forwards ARGs listed under `build.args`;
+before this, 54 of the 56 pip builds ignored `PIP_INDEX_URL` even when it was set.
+
+To build from official PyPI with compose instead:
+
+```bash
+PIP_INDEX_URL=https://pypi.org/simple docker compose -f docker-compose.v9.yml build
+```
+
+Scope is deliberate: the Dockerfiles keep `ARG PIP_INDEX_URL=https://pypi.org/simple`, so
+GitHub CI and Railway — which build the Dockerfiles directly, never through compose — are
+unchanged. Enforced by
+`tests_v9/test_dockerfile_pip_mirror_guard.py::test_every_compose_pip_build_forwards_the_alibaba_default_index`.
+
 ## Compile transitive service locks
 
 ```bash
