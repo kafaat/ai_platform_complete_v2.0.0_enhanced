@@ -6452,8 +6452,8 @@
         },
         {
           "expect": "test_two_findings_in_one_paragraph_need_two_ids",
-          "find": "    return labels[len(ids)] if len(ids) < len(labels) else None",
-          "replace": "    return labels[0] if not ids else None",
+          "find": "        findings = [(label, registered_ids(seg, known, gap_id)) for label, seg in segments]",
+          "replace": "        findings = [(segments[0][0], registered_ids(paragraph, known, gap_id))]",
           "why": "عودةُ الفقرة وحدةً بدل الملاحظة ⇒ فقرةٌ تسرد ملاحظتين موسومتين تمرّ بمعرّفٍ واحد، فتبقى الثانية بلا أثرٍ في السجلّ بعد الدمج — الشطرُ الأوّل من «الباقي» في GAP-REGISTRY-DOES-NOT-REQUIRE-IDS-FOR-PR-FINDINGS-01"
         },
         {
