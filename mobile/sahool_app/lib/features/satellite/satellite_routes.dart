@@ -19,7 +19,7 @@ final FeatureModule satelliteFeature = FeatureModule(
       icon: Icons.satellite_alt_outlined,
       
       menu: const MenuEntry(MenuSection.cropHealth, order: 10),
-      builder: (_, __) => const SatelliteScreen(),
+      builder: (_, _) => const SatelliteScreen(),
     ),
   ],
 );

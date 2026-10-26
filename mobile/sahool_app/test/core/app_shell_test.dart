@@ -48,7 +48,7 @@ AppRouter testRouter(AppRole role) => AppRouter(role: () => role, features: [
         AppRoute(
             path: '/detail',
             titleAr: 'detail',
-            builder: (_, __) => const Scaffold(body: Text('detail'))),
+            builder: (_, _) => const Scaffold(body: Text('detail'))),
       ]),
     ]);
 

@@ -25,12 +25,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-
 import 'package:sahool_app/core/widgets/form_kit.dart';
-import 'package:sahool_app/widgets/offline_field_map.dart';
 import 'package:sahool_app/core/widgets/state_views.dart';
-import 'package:sahool_app/screens/field_workspace_screen.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
+import 'package:sahool_app/screens/field_workspace_screen.dart';
+import 'package:sahool_app/widgets/offline_field_map.dart';
 
 /// مرحلة المعالج: إنشاء الحقل (الخطوات الأصليّة) ثمّ سلسلة الإعداد بعد الحفظ.
 enum _WizardPhase { create, postCreate }

@@ -103,7 +103,7 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
       floatingActionButton: mutable
           ? AnimatedBuilder(
               animation: _tabs,
-              builder: (_, __) => FloatingActionButton.extended(
+              builder: (_, _) => FloatingActionButton.extended(
                 backgroundColor: kPrimary,
                 onPressed: () =>
                     _tabs.index == 0 ? _openAddValve() : _openAddSchedule(),

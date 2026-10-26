@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sahool_app/core/routing/app_navigator.dart';
 import 'package:sahool_app/core/session/auth_state.dart';
-import 'package:sahool_app/services/auth_service.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
+import 'package:sahool_app/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

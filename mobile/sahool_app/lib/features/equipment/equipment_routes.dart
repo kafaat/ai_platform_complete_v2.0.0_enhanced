@@ -19,7 +19,7 @@ final FeatureModule equipmentFeature = FeatureModule(
       icon: Icons.precision_manufacturing_outlined,
       
       menu: const MenuEntry(MenuSection.operations, order: 50),
-      builder: (_, __) => const EquipmentScreen(),
+      builder: (_, _) => const EquipmentScreen(),
     ),
   ],
 );

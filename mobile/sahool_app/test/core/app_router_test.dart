@@ -1,5 +1,7 @@
 // الموجِّه: تجميع مسارات كلّ الميزات، تفرّد المسارات، الروابط العميقة، الأدوار،
 // وقائمة «المزيد» المبنيّة من ملفّات المسارات.
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -121,7 +123,7 @@ void main() {
       onUnknownRoute: router.onUnknownRoute,
       home: const Text('root'),
     ));
-    t.state<NavigatorState>(find.byType(Navigator)).pushNamed('/nope');
+    unawaited(t.state<NavigatorState>(find.byType(Navigator)).pushNamed('/nope'));
     await t.pumpAndSettle();
     expect(find.byType(RouteNotFoundPage), findsOneWidget);
   });

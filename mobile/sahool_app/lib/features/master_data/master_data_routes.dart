@@ -19,7 +19,7 @@ final FeatureModule masterDataFeature = FeatureModule(
       icon: Icons.storage_outlined,
       allowedRoles: RouteRoles.management,
       menu: const MenuEntry(MenuSection.records, order: 10),
-      builder: (_, __) => const MasterDataScreen(),
+      builder: (_, _) => const MasterDataScreen(),
     ),
   ],
 );

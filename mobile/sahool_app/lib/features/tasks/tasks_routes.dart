@@ -18,7 +18,7 @@ final FeatureModule tasksFeature = FeatureModule(
       titleAr: 'المهام',
       icon: Icons.task_alt_outlined,
       menu: const MenuEntry(MenuSection.operations, order: 10),
-      builder: (_, __) => const TasksScreen(),
+      builder: (_, _) => const TasksScreen(),
     ),
   ],
 );

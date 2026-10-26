@@ -19,7 +19,7 @@ final FeatureModule documentsFeature = FeatureModule(
       icon: Icons.folder_outlined,
       allowedRoles: RouteRoles.management,
       menu: const MenuEntry(MenuSection.records, order: 20),
-      builder: (_, __) => const DocumentsScreen(),
+      builder: (_, _) => const DocumentsScreen(),
     ),
   ],
 );

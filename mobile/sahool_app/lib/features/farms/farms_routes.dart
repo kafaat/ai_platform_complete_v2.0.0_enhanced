@@ -19,7 +19,7 @@ final FeatureModule farmsFeature = FeatureModule(
       icon: Icons.agriculture_outlined,
       
       menu: const MenuEntry(MenuSection.farm, order: 10),
-      builder: (_, __) => const FarmsScreen(),
+      builder: (_, _) => const FarmsScreen(),
     ),
   ],
 );

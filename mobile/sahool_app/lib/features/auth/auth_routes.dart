@@ -3,8 +3,8 @@
 // app_router.dart. (شاشة الدخول نفسها يعرضها AuthGate عند غياب الجلسة؛ المسار
 // /login موجود للروابط العميقة ولإعادة الدخول من شاشة مدفوعة.)
 import 'package:flutter/material.dart';
-import 'package:sahool_app/core/routing/app_route.dart';
 import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/routing/app_route.dart';
 
 import 'presentation/login_screen.dart';
 import 'presentation/mfa_setup_screen.dart';
@@ -24,14 +24,14 @@ final FeatureModule authFeature = FeatureModule(
       titleAr: 'تسجيل الدخول',
       icon: Icons.login_rounded,
       public: true,
-      builder: (_, __) => const LoginScreen(),
+      builder: (_, _) => const LoginScreen(),
     ),
     AppRoute(
       path: AuthRoutes.mfa,
       titleAr: 'المصادقة الثنائيّة (MFA)',
       icon: Icons.shield_outlined,
       menu: const MenuEntry(MenuSection.account, order: 20),
-      builder: (_, __) => const MfaSetupScreen(),
+      builder: (_, _) => const MfaSetupScreen(),
     ),
     AppRoute(
       path: AuthRoutes.onboarding,

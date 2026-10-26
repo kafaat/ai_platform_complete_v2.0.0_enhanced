@@ -16,7 +16,7 @@ abstract final class FieldsRoutes {
   static const fields = '/fields';
   static const create = '/fields/new';
 
-  /// الرابط العميق: /fields/workspace?field_id=<id>
+  /// الرابط العميق: `/fields/workspace?field_id=<id>`
   static const workspace = '/fields/workspace';
 }
 
@@ -27,14 +27,14 @@ final FeatureModule fieldsFeature = FeatureModule(
       path: FieldsRoutes.fields,
       titleAr: 'الحقول',
       icon: Icons.layers_outlined,
-      builder: (_, __) => const FieldsScreen(),
+      builder: (_, _) => const FieldsScreen(),
     ),
     AppRoute(
       path: FieldsRoutes.create,
       titleAr: 'إضافة حقل',
       icon: Icons.add_location_alt_outlined,
       allowedRoles: RouteRoles.editors,
-      builder: (_, __) => const FieldCreateWizard(),
+      builder: (_, _) => const FieldCreateWizard(),
     ),
     AppRoute(
       path: FieldsRoutes.workspace,

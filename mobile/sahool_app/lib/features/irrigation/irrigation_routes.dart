@@ -19,7 +19,7 @@ final FeatureModule irrigationFeature = FeatureModule(
       icon: Icons.water_drop_outlined,
       
       menu: const MenuEntry(MenuSection.operations, order: 30),
-      builder: (_, __) => const IrrigationOpsScreen(),
+      builder: (_, _) => const IrrigationOpsScreen(),
     ),
   ],
 );

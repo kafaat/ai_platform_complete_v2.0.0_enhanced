@@ -19,7 +19,7 @@ final FeatureModule devicesFeature = FeatureModule(
       icon: Icons.sensors,
       
       menu: const MenuEntry(MenuSection.operations, order: 60),
-      builder: (_, __) => const DevicesScreen(),
+      builder: (_, _) => const DevicesScreen(),
     ),
   ],
 );

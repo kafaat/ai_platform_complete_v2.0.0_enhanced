@@ -6,9 +6,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sahool_app/widgets/offline_field_map.dart';
-import 'package:sahool_app/features/fields/presentation/field_create_wizard.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
+import 'package:sahool_app/features/fields/presentation/field_create_wizard.dart';
+import 'package:sahool_app/widgets/offline_field_map.dart';
 
 class FieldsScreen extends StatefulWidget {
   const FieldsScreen({super.key});

@@ -17,7 +17,7 @@ final FeatureModule moreFeature = FeatureModule(
       path: MoreRoutes.more,
       titleAr: 'المزيد',
       icon: Icons.menu_rounded,
-      builder: (_, __) => const MoreScreen(),
+      builder: (_, _) => const MoreScreen(),
     ),
   ],
 );

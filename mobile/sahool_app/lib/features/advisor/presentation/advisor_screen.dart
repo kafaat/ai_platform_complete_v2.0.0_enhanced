@@ -200,7 +200,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: _chatBox.listenable(),
-              builder: (_, box, __) {
+              builder: (_, box, _) {
                 if (box.isEmpty) return _buildWelcome();
                 return ListView.builder(
                   controller: _scrollController,

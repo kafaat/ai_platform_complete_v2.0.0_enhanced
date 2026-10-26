@@ -17,7 +17,7 @@ final FeatureModule operationsHubFeature = FeatureModule(
       titleAr: 'مركز العمليّات',
       icon: Icons.grid_view_rounded,
       menu: const MenuEntry(MenuSection.operations, order: 0),
-      builder: (_, __) => const OperationsHubScreen(),
+      builder: (_, _) => const OperationsHubScreen(),
     ),
   ],
 );

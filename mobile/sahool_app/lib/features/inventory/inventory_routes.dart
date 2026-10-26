@@ -19,7 +19,7 @@ final FeatureModule inventoryFeature = FeatureModule(
       icon: Icons.inventory_2_outlined,
       
       menu: const MenuEntry(MenuSection.operations, order: 40),
-      builder: (_, __) => const InventoryScreen(),
+      builder: (_, _) => const InventoryScreen(),
     ),
   ],
 );

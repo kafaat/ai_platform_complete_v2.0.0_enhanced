@@ -1,5 +1,7 @@
 // جذر التطبيق الحقيقيّ (SAHOOLApp): مندوبات اللغة موجودة فيعمل TextField وزرّ
 // الرجوع (كان كلّ TextField يرمي «No MaterialLocalizations found»)، والاتّجاه RTL.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/main.dart';
@@ -23,7 +25,7 @@ void main() {
     await t.pumpWidget(const SAHOOLApp(home: Scaffold(body: Text('root'))));
     await t.pumpAndSettle();
     final nav = t.state<NavigatorState>(find.byType(Navigator).first);
-    nav.pushNamed('/does-not-exist');
+    unawaited(nav.pushNamed('/does-not-exist'));
     await t.pumpAndSettle();
     expect(find.text('الصفحة غير موجودة'), findsOneWidget);
   });

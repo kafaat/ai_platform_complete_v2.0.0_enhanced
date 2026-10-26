@@ -4,8 +4,8 @@
 // الشاشة نفسها في lib/screens/dashboard_screen.dart — مسار مُثبَّت تقرؤه اختبارات
 // CI خارج التطبيق بالمسار (انظر ARCHITECTURE.md «المسارات المُثبَّتة»).
 import 'package:flutter/material.dart';
-import 'package:sahool_app/core/routing/app_route.dart';
 import 'package:sahool_app/core/routing/app_navigator.dart';
+import 'package:sahool_app/core/routing/app_route.dart';
 import 'package:sahool_app/core/routing/shell_scope.dart';
 import 'package:sahool_app/screens/dashboard_screen.dart';
 

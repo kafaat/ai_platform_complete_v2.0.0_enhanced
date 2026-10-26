@@ -117,7 +117,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   itemCount: tasks.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (_, i) {
                     final t = tasks[i];
                     final id = _text(t['task_id'] ?? t['id'], '');

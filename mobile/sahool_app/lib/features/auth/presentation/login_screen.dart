@@ -3,11 +3,11 @@
 // تحفظ التوكن في التخزين الآمن، ثمّ تُعلِم AuthGate عبر AuthState (يوصِل WebSocket ويعرض
 // الواجهة). صدق: الفشل يُعرَض للمستخدم بالعربيّة، لا جلسة زائفة.
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/routing/app_navigator.dart';
 import 'package:sahool_app/core/session/auth_state.dart';
-import 'package:sahool_app/features/auth/data/auth_api.dart';
-import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
+import 'package:sahool_app/features/auth/data/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

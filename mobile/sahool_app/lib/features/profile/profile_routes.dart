@@ -19,7 +19,7 @@ final FeatureModule profileFeature = FeatureModule(
       icon: Icons.person_outline,
       
       menu: const MenuEntry(MenuSection.account, order: 10),
-      builder: (_, __) => const ProfileScreen(),
+      builder: (_, _) => const ProfileScreen(),
     ),
   ],
 );

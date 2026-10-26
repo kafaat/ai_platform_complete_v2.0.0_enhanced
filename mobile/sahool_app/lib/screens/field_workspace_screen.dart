@@ -8,12 +8,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/widgets/state_views.dart';
+import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
+import 'package:sahool_app/features/fields/presentation/workspace/workspace_sections.dart';
+
 import '../features/field_forms/data/field_forms_coordinator.dart';
 import '../features/field_forms/presentation/field_forms_list_screen.dart';
 import '../features/realtime/realtime_screen.dart';
-import 'package:sahool_app/core/widgets/state_views.dart';
-import 'package:sahool_app/features/fields/presentation/workspace/workspace_sections.dart';
-import 'package:sahool_app/features/dashboard/data/dashboard_api.dart';
 
 /// وسيط الانتقال إلى مساحة عمل الحقل: يقبل كائن الحقل أو معرّفه.
 class FieldWorkspaceArgs {

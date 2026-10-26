@@ -2,8 +2,8 @@
 // حالات موحّدة (تحميل/خطأ/فارغ) + ترجمة رمز خطأ الخادم لرسالة عربيّة صادقة،
 // موازية لـfrontend StateViews. لا بيانات مُلفَّقة: 503 ⇒ قاعدة البيانات معطّلة،
 // 403 ⇒ لا صلاحيّة، 401 ⇒ انتهت الجلسة. تُعرَض الحالة كما هي بلا اختلاق.
-import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
+import 'package:sahool_app/core/network/api_exception.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 
 // ثوابت الألوان القديمة — الشاشات المنقولة ما زالت تستعملها مباشرةً. صارت أسماءً
