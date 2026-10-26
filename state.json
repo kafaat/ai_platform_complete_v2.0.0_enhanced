@@ -4,7 +4,7 @@
  "repo": "kafaat/ai_platform_complete_v2.0.0_enhanced",
  "owner": "kafaat",
  "main": {
-  "head": "84f29f2fa416ef8ce7a3a8930bcec49d1bd004d3",
+  "head": "bc764f760",
   "tree": "414b362b0f11f5c63fcdeb7b0df5cd04218c1963",
   "pr": "#1291",
   "note": "mobile rebuild; merge tree == tested 31da4bc6e; 73 checks green; Deploy-Effect NONE"
@@ -81,15 +81,15 @@
  "backup": {
   "status": "DONE_VERIFIED",
   "branch": "claude/backup-work-state-20261019",
-  "commit": "8ad047a0b0dd8b3788b2eb5bb5a4cc1dd8cc9d95",
-  "tree": "09bc8ff437de061402f1cd1d8e9b1935f4c1f14a",
+  "commit": "d38687c407d7dd702b884f1216055ee086c1c204",
+  "tree": "793872150712b5af166939307468d7d1f0fee86d",
   "contents": [
    "state.json",
    "HANDOFF.md"
   ],
   "verified": "remote ref == pushed commit"
  },
- "updated": "2026-10-26T19:27:47Z",
+ "updated": "2026-10-26T22:47:56Z",
  "location": "/home/user/.work-state/sahool-pr-stewardship-20261019",
  "protocol": {
   "version": "v2",
