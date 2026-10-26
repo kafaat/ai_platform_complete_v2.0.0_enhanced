@@ -27,7 +27,7 @@ ai_agronomist,services/ai_agronomist/main.py,477,POST,/v1/query,query
 ai_agronomist,services/ai_agronomist/main.py,488,POST,/v1/chat,chat
 ai_agronomist,services/ai_agronomist/main.py,499,POST,/v1/explain,explain
 ai_agronomist,services/ai_agronomist/main.py,510,POST,/v1/recommend,recommend
-auth,services/auth/main.py,405,GET,/runtime-identity,runtime_identity
+auth,services/auth/main.py,402,GET,/runtime-identity,runtime_identity
 auth,services/auth/routers/email_verify.py,23,POST,/v1/auth/verify/request,verify_request
 auth,services/auth/routers/email_verify.py,56,POST,/v1/auth/verify/confirm,verify_confirm
 auth,services/auth/routers/email_verify.py,98,GET,/v1/auth/verify,verify

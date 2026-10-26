@@ -62,7 +62,7 @@ medium,ai-agronomist,function,tool_allowed,services/ai_agronomist/policy_envelop
 medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provider_tooling.py,153,0,review_before_delete,False
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,422,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,419,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,43,0,review_before_delete,False

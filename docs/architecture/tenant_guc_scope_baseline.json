@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "a8e06749bdd47ff697bfc7f74362bce1b6d4cf23",
+  "measured_on": "f8014bf2758a5f4184dff9f5aa2d6726ba2e3c9c",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "c756797c5d695a11383c28ea803ed184cd5f2f885c107aa7d968824bfa6832ef",
+  "measurement_input_digest": "3201c77a32cff98b40bea2949a42715a57bb74a13b004871d0fe5a2d938143a4",
   "measurement_algorithm_digest": "d1d1e2eb315cbeb9d22db8cdfa43a674d10816300592312aa2333e02abcc1aba",
-  "measurement_basis_digest": "086a496bc69fa4bf43a3e6b84bc68ad1e59b138516d0a70e4d9dadf32ee7321d",
+  "measurement_basis_digest": "8985ce48c4a10e28f60120a26029d93505e6a6da535b7ba5b8a1440558fba7bb",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -48,11 +48,11 @@
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
-      "sha256": "6e24243fb794fd5367b65a24a77cb08d1cd86f472ee5062aad61ea72fe8d5dd8"
+      "sha256": "2cb2613bab95632811d468f9086dee82cbb7145e7fb4d2c6a416c03d6c2130de"
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "19ba47f0e776b494d98badc5f788d3d2b0530585f8e089dad60c7d2fb55ca5f4"
+      "sha256": "eec0efa7dc7d8e6b1e36edbb53ec45cb9afa782c1aba34278e5662e5b9fa184f"
     },
     {
       "path": "services/decision-service/observation_context.py",
@@ -193,7 +193,7 @@
   ],
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
-    "services/auth/main.py:997",
+    "services/auth/main.py:994",
     "services/raster-service/backfill_scan_worker.py:170",
     "services/raster-service/cache_invalidation_worker.py:90",
     "services/sahool-platform/api/imagery_automation.py:185",
