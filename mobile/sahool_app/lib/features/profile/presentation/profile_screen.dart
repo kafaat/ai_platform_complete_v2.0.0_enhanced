@@ -13,6 +13,7 @@ import 'package:sahool_app/core/theme/sahool_tokens.dart';
 import 'package:sahool_app/core/theme/theme_controller.dart';
 import 'package:sahool_app/core/theme/tokens.dart';
 import 'package:sahool_app/core/widgets/widgets.dart';
+import 'package:sahool_app/features/alerts/alerts_paths.dart';
 import 'package:sahool_app/features/auth/auth_routes.dart';
 import 'package:sahool_app/features/auth/data/auth_api.dart';
 import 'package:sahool_app/features/profile/data/profile_api.dart';
@@ -22,7 +23,7 @@ import 'profile_cubit.dart';
 
 /// مسار شاشة تفضيلات الإشعار في ميزة التنبيهات (تملكها ميزة alerts). يظهر
 /// الرابط فعّالاً فقط حين يكون المسار مسجَّلاً في الموجِّه.
-const String kNotificationPreferencesPath = '/alerts/preferences';
+const String kNotificationPreferencesPath = AlertsPaths.preferences;
 
 const Map<String, String> kRoleAr = {
   'owner': 'مالك',

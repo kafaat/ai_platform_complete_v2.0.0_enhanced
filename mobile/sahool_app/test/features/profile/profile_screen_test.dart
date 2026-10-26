@@ -172,6 +172,29 @@ void main() {
     expect(find.text('prefs-page'), findsOneWidget);
   });
 
+  testWidgets('with the real router the preferences link is enabled', (
+    tester,
+  ) async {
+    // المسار تسجّله ميزة التنبيهات فعلاً ⇒ الرابط فعّال في التطبيق الحقيقيّ.
+    expect(AppRouter.instance.match(kNotificationPreferencesPath), isNotNull);
+    expect(AppRouter.instance.ownerOf(kNotificationPreferencesPath), 'alerts');
+    await tester.pumpWidget(
+      app(
+        screen(
+          me: (_) async => const FakeReply(200, {}),
+          router: AppRouter.instance,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('profile_notification_prefs')),
+      200,
+    );
+    expect(find.text('القنوات وأنواع التنبيهات'), findsOneWidget);
+    expect(find.text('غير متاحة بعد في هذا الإصدار.'), findsNothing);
+  });
+
   testWidgets('الإصدار والخروج بتأكيد', (tester) async {
     var loggedOut = 0;
     await tester.pumpWidget(
