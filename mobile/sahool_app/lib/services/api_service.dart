@@ -37,19 +37,32 @@ class ApiService {
 
   // ── المستشار (مسار مُثبَّت؛ يملكه وكيل المستشار) ──────────────────
 
-  /// Runtime AI Advisor الحقيقيّ عبر ai_agronomist المرتبط بـCanonicalFieldState
-  /// وRAG/KG/Guardrails. الخادم يشترط `question` (AdvisorQuery.question،
-  /// min_length=1)؛ `message`/`query` يبقيان للتوافق مع الإصدارات السابقة. مهلة
-  /// الاستقبال 120ث لأنّ التوليد بطيء على شبكة ضعيفة.
-  Future<Map<String, dynamic>> askAgent(String query, {String? fieldId}) async {
-    final r = await _client.send('POST', '/api/ai-agronomist/chat',
-        data: {
-          'question': query,
-          'message': query,
-          'query': query,
-          if (fieldId != null) 'field_id': fieldId,
-        },
-        receiveTimeout: const Duration(seconds: 120));
+  /// Runtime AI Advisor الحقيقيّ عبر ai_agronomist (البوّابة: /api/ai-agronomist/chat
+  /// ← /v1/chat). العقد من services/ai_agronomist/main.py (AdvisorQuery): `question`
+  /// إلزاميّ (min_length=1، max_length=4000)، و`field_id` اختياريّ يربط الإجابة
+  /// بحالة الحقل القانونيّة. لا يُرسَل tenant_id: البوّابة تحقنه من JWT. كان العميل
+  /// يرسل `message`/`query` فيُرفَض بـ422 دائماً؛ أُزيلا. الاستجابة تُقرأ من
+  /// `answer_ar` (انظر features/advisor/data/advisor_models.dart).
+  ///
+  /// مهلة الاستقبال 120ث (= مهلة البوّابة) لأنّ التوليد بطيء على شبكة ضعيفة. بلا
+  /// مفتاح منع تكرار: النداء يسجّل حدث تدقيق خادميّاً، فلا يُعاد تلقائيّاً.
+  /// [client] للاختبار فقط (عميل بمحوّل مزيّف)؛ الافتراضيّ العميل المشترك.
+  Future<Map<String, dynamic>> askAgent(
+    String query, {
+    String? fieldId,
+    ApiClient? client,
+  }) async {
+    final r = await (client ?? _client).send(
+      'POST',
+      '/api/ai-agronomist/chat',
+      data: {
+        'question': query,
+        if (fieldId != null && fieldId.isNotEmpty) 'field_id': fieldId,
+        'language': 'ar',
+        'final_k': 5,
+      },
+      receiveTimeout: const Duration(seconds: 120),
+    );
     return asJsonMap(r);
   }
 
@@ -91,15 +104,17 @@ class ApiService {
   Future<void> unregisterPushToken() =>
       _updatePushPreferences(enabled: false, token: null);
 
-  Future<void> _updatePushPreferences(
-      {required bool enabled, required String? token}) async {
-    final prefs =
-        asJsonMap(await _client.get('/api/v1/notifications/preferences'));
-    await _client.put('/api/v1/notifications/preferences', data: {
-      ...prefs,
-      'push_enabled': enabled,
-      'push_token': token,
-    });
+  Future<void> _updatePushPreferences({
+    required bool enabled,
+    required String? token,
+  }) async {
+    final prefs = asJsonMap(
+      await _client.get('/api/v1/notifications/preferences'),
+    );
+    await _client.put(
+      '/api/v1/notifications/preferences',
+      data: {...prefs, 'push_enabled': enabled, 'push_token': token},
+    );
   }
 
   // ── الخروج ───────────────────────────────────────────────────────
@@ -120,8 +135,10 @@ class ApiService {
         } catch (_) {
           // لا رمز مسجَّل/لا شبكة — لا يمنع الخروج.
         }
-        await _client.post('/auth/logout',
-            data: refreshToken != null ? {'refresh_token': refreshToken} : {});
+        await _client.post(
+          '/auth/logout',
+          data: refreshToken != null ? {'refresh_token': refreshToken} : {},
+        );
       }).timeout(const Duration(seconds: 10));
     } catch (_) {
       // Logout must remain local fail-closed even when the server is unreachable.
