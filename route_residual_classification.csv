@@ -21,7 +21,7 @@ ai_agronomist,services/ai_agronomist/main.py,477,POST,/v1/query,query,business_e
 ai_agronomist,services/ai_agronomist/main.py,488,POST,/v1/chat,chat,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,499,POST,/v1/explain,explain,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,510,POST,/v1/recommend,recommend,business_endpoint
-auth,services/auth/main.py,401,GET,/runtime-identity,runtime_identity,business_endpoint
+auth,services/auth/main.py,402,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,515,GET,/runtime-identity,runtime_identity,business_endpoint
 decision-service,services/decision-service/main.py,521,GET,/healthz,healthz,health
 decision-service,services/decision-service/main.py,526,GET,/readyz,readyz,readiness
@@ -156,5 +156,5 @@ scout-ingest-service,services/scout-ingest-service/main.py,205,GET,/readyz,ready
 scout-ingest-service,services/scout-ingest-service/main.py,242,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,361,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,370,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
-soil-service,services/soil-service/main.py,218,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
+soil-service,services/soil-service/main.py,222,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 weather-service,services/weather-service/main.py,56,GET,/runtime-identity,runtime_evidence_identity,business_endpoint

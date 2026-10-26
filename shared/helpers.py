@@ -2,13 +2,12 @@
 SAHOOL v9.0 — shared/helpers.py (v8 + v9 مدمج)
 ════════════════════════════════════════════════
 v8 foundation + v9 security improvements:
-  - init_db, get_pool, close_pool
   - init_redis, get_redis, close_redis
   - init_nats, get_nats, close_nats
   - tenant_context, query_with_tenant, execute_with_tenant (FIXED: no SQL injection)
-  - service_lifespan, add_probes, setup_prometheus
+  - add_probes, setup_prometheus
   - cached, publish_event, dispatch, wrapped_send, get_data
-  - validate_role (Literal), check_rate_limit, create_app
+  - validate_role (Literal), check_rate_limit
 """
 
 from __future__ import annotations
@@ -30,11 +29,8 @@ from typing import Literal
 
 import asyncpg
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.middleware.base import BaseHTTPMiddleware as _BaseHTTPMiddleware
-
-from shared.security.cors_policy import parse_cors_origins
 
 
 # ── Logging ────────────────────────────────────────────────────
@@ -44,63 +40,6 @@ def setup_logging(service_name: str, level: str = "INFO") -> logging.Logger:
         format=f'{{"time":"%(asctime)s","svc":"{service_name}","level":"%(levelname)s","msg":"%(message)s"}}',
     )
     return logging.getLogger(service_name)
-
-
-# ── Database ───────────────────────────────────────────────────
-_db_pool: asyncpg.Pool | None = None
-
-
-async def init_db(dsn: str | None = None, min_size: int = 2, max_size: int = 10) -> asyncpg.Pool:
-    global _db_pool
-    if _db_pool is not None:
-        return _db_pool
-    url = dsn or os.getenv("DATABASE_URL", "")
-    if not url:
-        raise RuntimeError("DATABASE_URL not set")
-    # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم؛ تمريره في
-    # server_settings يجعل asyncpg ينفّذ SET statement_cache_size فيفشل الاتصال
-    # بـ"unrecognized configuration parameter" ضد أي Postgres. (=0 لتوافق pgbouncer.)
-    # FIX (تسابق الإقلاع المتزامن): حزام أمان فوق depends_on:service_healthy —
-    # عند تشغيل كل الحاويات معاً قد تتأخّر Postgres لحظةً؛ أعد المحاولة بتراجع
-    # أسّي بدل تعطّل الخدمة فوراً. (URL خطأ/مرفوض دائماً ⇒ يرمي بعد المحاولات.)
-    last_err: Exception | None = None
-    for attempt in range(6):
-        try:
-            _db_pool = await asyncpg.create_pool(
-                url,
-                min_size=min_size,
-                max_size=max_size,
-                command_timeout=30,
-                statement_cache_size=0,
-            )
-            return _db_pool
-        except (OSError, asyncpg.PostgresError) as e:
-            last_err = e
-            delay = min(2**attempt, 20)
-            logging.warning(
-                "init_db: Postgres غير جاهز (محاولة %d/6): %s — إعادة بعد %ds",
-                attempt + 1,
-                e,
-                delay,
-            )
-            await asyncio.sleep(delay)
-    raise RuntimeError(f"init_db: تعذّر الاتصال بـPostgres بعد 6 محاولات: {last_err}")
-
-
-async def get_pool() -> asyncpg.Pool:
-    if _db_pool is None:
-        return await init_db()
-    return _db_pool
-
-
-get_db_pool = get_pool
-
-
-async def close_pool():
-    global _db_pool
-    if _db_pool:
-        await _db_pool.close()
-        _db_pool = None
 
 
 # ── Redis ──────────────────────────────────────────────────────
@@ -291,34 +230,6 @@ def add_probes(app: FastAPI, pool_getter=None, service_name: str = "service"):
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
-# ── Lifespan ───────────────────────────────────────────────────
-def service_lifespan(
-    app_or_db=None,
-    *args,
-    with_db: bool = True,
-    with_redis: bool = True,
-    with_nats: bool = False,
-    **kwargs,
-):
-    @asynccontextmanager
-    async def lifespan(_app_inner=None):
-        if with_db:
-            await init_db()
-        if with_redis:
-            await init_redis()
-        if with_nats:
-            await init_nats()
-        yield
-        if with_db:
-            await close_pool()
-        if with_redis:
-            await close_redis()
-        if with_nats:
-            await close_nats()
-
-    return lifespan
-
-
 # ── NATS Events ────────────────────────────────────────────────
 async def publish_event(subject: str, data: dict, service: str = "unknown") -> bool:
     nc = get_nats()
@@ -412,56 +323,6 @@ def check_rate_limit(key: str, max_requests: int = 5, window_seconds: int = 60) 
         return False
     _rate_store[key].append(now)
     return True
-
-
-# ── App factory ────────────────────────────────────────────────
-def create_app(
-    service_name: str,
-    version: str = "9.0.0",
-    with_db: bool = True,
-    with_redis: bool = True,
-    with_nats: bool = False,
-) -> FastAPI:
-    cors_origins = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
-    app = FastAPI(
-        title=f"SAHOOL {service_name}",
-        version=version,
-        lifespan=service_lifespan(with_db=with_db, with_redis=with_redis, with_nats=with_nats),
-    )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=cors_origins,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Tenant-ID"],
-        allow_credentials=True,
-    )
-    setup_prometheus(service_name)
-    from fastapi.middleware.gzip import GZipMiddleware
-    from fastapi.middleware.trustedhost import TrustedHostMiddleware
-    from starlette.middleware.base import BaseHTTPMiddleware
-
-    # ✅ Middleware stack (order: outermost first)
-    app.add_middleware(GlobalExceptionMiddleware)
-    app.add_middleware(RequestIDMiddleware)
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-    allowed_hosts = os.getenv("ALLOWED_HOSTS", "*").split(",")
-    if allowed_hosts != ["*"]:
-        app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
-
-    app.add_middleware(BaseHTTPMiddleware, dispatch=metrics(service_name))
-    add_probes(app, pool_getter=get_pool if with_db else None, service_name=service_name)
-
-    # ✅ OpenTelemetry auto-instrumentation
-    try:
-        from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
-        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-        FastAPIInstrumentor.instrument_app(app)
-        AsyncPGInstrumentor().instrument()
-    except ImportError:
-        pass  # opentelemetry optional — install opentelemetry-instrumentation-fastapi
-    return app
 
 
 # ── HTTP Retry (circuit breaker pattern) ──────────────────────

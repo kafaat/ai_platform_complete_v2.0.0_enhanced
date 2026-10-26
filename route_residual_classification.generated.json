@@ -215,7 +215,7 @@
     {
       "service": "auth",
       "file": "services/auth/main.py",
-      "line": 401,
+      "line": 402,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_identity",
@@ -1430,7 +1430,7 @@
     {
       "service": "soil-service",
       "file": "services/soil-service/main.py",
-      "line": 218,
+      "line": 222,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity",

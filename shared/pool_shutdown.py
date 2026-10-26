@@ -1,8 +1,9 @@
-"""Bounded shutdown of asyncpg pools (used by sahool-platform's ``api/main.py``).
+"""Bounded shutdown of asyncpg pools (sahool-platform's ``api/main.py`` and other services).
 
 Kept out of that file, whose size the P1 decomposition guard caps. Stdlib only. Each pool is
 closed within a bound; on timeout or close failure it is terminated, and if shutdown is
 cancelled partway the pools not yet closed are terminated too, so no backend stays open.
+Background tasks that use a pool are cancelled and awaited first, so none races the close.
 """
 
 from __future__ import annotations
@@ -36,3 +37,22 @@ async def close_pools_bounded(pools: list[tuple[Any, str]]) -> None:
             for rest, _ in live[index + 1 :]:  # cancelled mid-shutdown
                 rest.terminate()
             raise
+
+
+async def cancel_tasks_bounded(tasks: list[Any], label: str) -> None:
+    """Cancel background tasks and wait (within the bound) until they stop, skipping None.
+
+    Called before a pool is closed: a task still running would hold a connection that
+    ``close()`` waits for, or acquire from a pool that is going away.
+    """
+    live = [task for task in tasks if task is not None]
+    for task in live:
+        task.cancel()
+    if not live:
+        return
+    _, pending = await asyncio.wait(live, timeout=POOL_CLOSE_TIMEOUT_SECONDS)
+    if pending:
+        logging.warning("%s: %d background task(s) ignored cancel", label, len(pending))
+    for task in live:
+        if task.done() and not task.cancelled():
+            task.exception()  # mark a task that failed on its own as retrieved

@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field, field_validator
 
 # بلا try/except قصداً: الوحدة stdlib-only وتُنسخ إلى الصورة، فغيابُها عطلُ توصيلٍ
 # يجب أن يُرى لا أن يُبتلَع إلى بديلٍ أضعف (درسُ GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01).
+from shared.pool_shutdown import close_pool_bounded
 from shared.security.trusted_tenant import service_token_ok
 from shared.startup_retry import retry_startup_connect
 
@@ -85,13 +86,16 @@ async def lifespan(app: FastAPI):
                 )
             )
     logger.info("✅ soil-service started")
-    yield
-    if _projection_stop:
-        _projection_stop.set()
-    if _projection_task:
-        await _projection_task
-    if _pool:
-        await _pool.close()
+    try:
+        yield
+    finally:
+        if _projection_stop:
+            _projection_stop.set()
+        if _projection_task:
+            await _projection_task
+        pool, _pool = _pool, None
+        if pool is not None:
+            await close_pool_bounded(pool, "soil-service")
 
 
 app = FastAPI(title="SAHOOL Soil Service", version=VERSION, lifespan=lifespan)
