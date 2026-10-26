@@ -874,7 +874,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 402,
+          "line": 401,
           "method": "GET",
           "module": "services/auth/main.py",
           "path": "/runtime-identity",
@@ -922,7 +922,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 222,
+          "line": 221,
           "method": "GET",
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
@@ -1199,7 +1199,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1117,
-  "route_inventory_sha256": "54273c9e023e5f2b61d09fb92285390bba4860300b0a855fc3cbe300084c96ee",
+  "route_inventory_sha256": "bdef8180c6b087f4136f4016694b63d37c75b016833b6ebc1a0f20aa14cf1f76",
   "runtime_verified": false,
   "schema_version": 1
 }
