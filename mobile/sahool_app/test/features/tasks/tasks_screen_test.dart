@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/theme/app_theme.dart';
 import 'package:sahool_app/features/tasks/data/task_photo_store.dart';
+import 'package:sahool_app/features/tasks/presentation/task_grouping.dart';
 import 'package:sahool_app/features/tasks/presentation/tasks_cubit.dart';
 import 'package:sahool_app/features/tasks/presentation/tasks_screen.dart';
 
@@ -86,6 +87,31 @@ void main() {
     await t.tap(find.text('المنجزة والملغاة (1)'));
     await t.pump();
     expect(find.text('حقل البنّ'), findsOneWidget);
+  });
+
+  testWidgets('initialFieldId (/tasks?field_id=) pre-filters to that field', (
+    t,
+  ) async {
+    final cubit = FakeTasksServer(sample()).cubit();
+    await t.runAsync(cubit.load);
+    await t.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        supportedLocales: const [Locale('ar'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        home: TasksScreen(
+          cubit: cubit,
+          role: 'worker',
+          photos: noPhotos(),
+          initialFieldId: 'f2',
+        ),
+      ),
+    );
+    await t.pump();
+    expect(cubit.state.fieldFilter, 'f2');
+    cubit.setStatusFilter(StatusFilter.all);
+    expect(cubit.state.visible(null).map((x) => x.fieldId).toSet(), {'f2'});
   });
 
   testWidgets('group by field shows field names as headers', (t) async {

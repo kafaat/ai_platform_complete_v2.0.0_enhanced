@@ -51,17 +51,31 @@ class TaskPhotoTools {
 }
 
 class TasksScreen extends StatelessWidget {
-  const TasksScreen({super.key, this.cubit, this.role, this.photos});
+  const TasksScreen({
+    super.key,
+    this.cubit,
+    this.role,
+    this.photos,
+    this.initialFieldId,
+  });
 
   /// للاختبارات: cubit بواجهات مزيّفة. الافتراضيّ يُنشأ ويُحمَّل هنا.
   final TasksCubit? cubit;
   final String? role;
   final TaskPhotoTools? photos;
 
+  /// `/tasks?field_id=<id>` (من مساحة عمل الحقل): مرشِّح الحقل الأوّليّ.
+  final String? initialFieldId;
+
   @override
   Widget build(BuildContext context) => BlocProvider<TasksCubit>(
-    create: (_) =>
-        cubit ?? (TasksCubit(userId: AuthService.instance.userId)..load()),
+    create: (_) {
+      final c = cubit ?? TasksCubit(userId: AuthService.instance.userId);
+      final id = initialFieldId;
+      if (id != null && id.isNotEmpty) c.setFieldFilter(id);
+      if (cubit == null) c.load();
+      return c;
+    },
     child: TasksView(
       canEdit: canMutate(role ?? currentRole()),
       photos: photos ?? TaskPhotoTools.standard,

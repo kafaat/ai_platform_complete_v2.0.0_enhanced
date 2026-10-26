@@ -2,8 +2,10 @@
 // بلا فيض (كان 722px)، أوقات السجلّ محلّيّة لا UTC، «غير مقيس» بدل 0/0٪ مختلقة،
 // والجلب بالمعرّف عبر GET /api/v1/fields/{id} لا لوحة المؤشّرات.
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sahool_app/core/permissions/permissions.dart';
+import 'package:sahool_app/core/theme/app_theme.dart';
 import 'package:sahool_app/core/utils/formatters.dart';
 import 'package:sahool_app/features/fields/data/fields_api.dart';
 import 'package:sahool_app/features/fields/presentation/common/cross_feature_routes.dart';
@@ -242,6 +244,66 @@ void main() {
     await settle(t);
     expect(find.text('تسجيل نشاط'), findsWidgets);
     expect(find.text('حفظ في السجلّ'), findsOneWidget);
+  });
+
+  testWidgets('quick actions open the registered paths with field_id', (
+    t,
+  ) async {
+    routeExists = (p) => true;
+    final opened = <String>[];
+    await t.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        supportedLocales: const [Locale('ar'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        onGenerateRoute: (s) {
+          opened.add(s.name!);
+          return MaterialPageRoute<void>(
+            settings: s,
+            builder: (_) =>
+                Scaffold(appBar: AppBar(), body: const Text('target')),
+          );
+        },
+        home: FieldWorkspaceScreen(
+          field: _field,
+          deps: deps(backend()),
+          role: AppRole.worker,
+        ),
+      ),
+    );
+    await settle(t);
+    Future<void> tapAndBack(String key) async {
+      await t.scrollUntilVisible(
+        find.byKey(ValueKey(key)),
+        200,
+        scrollable: overviewList,
+      );
+      await t.tap(find.byKey(ValueKey(key)));
+      await settle(t);
+      expect(find.text('target'), findsOneWidget, reason: '$key opened');
+      Navigator.of(t.element(find.text('target'))).pop();
+      await settle(t);
+    }
+
+    for (final k in [
+      'qa_scout',
+      'qa_activity',
+      'qa_irrigate',
+      'qa_advisor',
+      'qa_alerts',
+      'qa_weather',
+    ]) {
+      await tapAndBack(k);
+    }
+    expect(opened, [
+      '/scouting/capture?field_id=$_id',
+      '/activities/log?field_id=$_id&field_name=${Uri.encodeQueryComponent('حقل البنّ')}',
+      '/irrigation/today?field_id=$_id',
+      '/advisor?field_id=$_id&field_name=${Uri.encodeQueryComponent('حقل البنّ')}',
+      '/alerts/field?field_id=$_id',
+      '/weather?field_id=$_id',
+    ]);
   });
 
   testWidgets('viewer gets no write quick actions', (t) async {

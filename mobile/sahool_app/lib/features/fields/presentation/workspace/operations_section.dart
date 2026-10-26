@@ -304,11 +304,8 @@ class _WOperationsSectionState extends State<WOperationsSection> {
     SecondaryButton(
       icon: Icons.tune_rounded,
       label: 'الريّ التشغيليّ (الصمّامات والجداول)',
-      onPressed: () => openFeatureRoute<void>(
-        context,
-        CrossFeatureRoutes.irrigation,
-        query: {'field_id': widget.fieldId},
-      ),
+      onPressed: () =>
+          openFeatureRoute<void>(context, CrossFeatureRoutes.irrigationOps),
     ),
   ];
 

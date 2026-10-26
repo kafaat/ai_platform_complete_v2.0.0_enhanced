@@ -1,6 +1,6 @@
 // SAHOOL — features/fields/presentation/workspace/overview_section.dart
 // تبويب «نظرة عامّة»: رأس الحقل، المقاييس الأساسيّة، آخر NDVI، شريط الطقس،
-// الإجراءات السريعة (كشف · نشاط · ريّ · المستشار)، ما يجب فعله الآن، والحالة
+// الإجراءات السريعة (كشف · نشاط · ريّ اليوم · المستشار · التنبيهات · الطقس)، ما يجب فعله الآن، والحالة
 // الموحّدة. صدق: كلّ رقم من الخادم أو «غير مقيس» — لا 0 تنبيهات ولا 0٪ جاهزيّة
 // افتراضيّة، ولا «بيانات ناقصة» تُنسب للخادم حين لم يرسل شيئاً.
 import 'package:flutter/material.dart';
@@ -88,12 +88,18 @@ class _WOverviewSectionState extends State<WOverviewSection> {
     _advice.refresh(),
   ]);
 
+  /// اسم الحقل للشاشة المستهدفة إن كان معروفاً (لا «حقل» افتراضيّ مُرسَل).
+  Map<String, String> get _nameQuery {
+    final name = fieldNameOf(widget.field, '');
+    return name.isEmpty ? const {} : {'field_name': name};
+  }
+
   Future<void> _logActivity() async {
     if (routeExists(CrossFeatureRoutes.activityNew)) {
       await openFeatureRoute<void>(
         context,
         CrossFeatureRoutes.activityNew,
-        query: {'field_id': widget.fieldId},
+        query: {'field_id': widget.fieldId, ..._nameQuery},
       );
       return;
     }
@@ -114,6 +120,7 @@ class _WOverviewSectionState extends State<WOverviewSection> {
   Widget build(BuildContext context) {
     final editor = canMutate(_role.name);
     final q = {'field_id': widget.fieldId};
+    final qNamed = {...q, ..._nameQuery};
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView(
@@ -152,10 +159,10 @@ class _WOverviewSectionState extends State<WOverviewSection> {
                   QuickActionButton(
                     key: const ValueKey('qa_irrigate'),
                     icon: Icons.water_drop_outlined,
-                    label: 'الريّ',
+                    label: 'هل أروي اليوم؟',
                     onPressed: () => openFeatureRoute<void>(
                       context,
-                      CrossFeatureRoutes.irrigation,
+                      CrossFeatureRoutes.irrigationToday,
                       query: q,
                     ),
                   ),
@@ -166,6 +173,26 @@ class _WOverviewSectionState extends State<WOverviewSection> {
                   onPressed: () => openFeatureRoute<void>(
                     context,
                     CrossFeatureRoutes.advisor,
+                    query: qNamed,
+                  ),
+                ),
+                QuickActionButton(
+                  key: const ValueKey('qa_alerts'),
+                  icon: Icons.notification_important_outlined,
+                  label: 'تنبيهات الحقل',
+                  onPressed: () => openFeatureRoute<void>(
+                    context,
+                    CrossFeatureRoutes.alertsField,
+                    query: q,
+                  ),
+                ),
+                QuickActionButton(
+                  key: const ValueKey('qa_weather'),
+                  icon: Icons.cloud_outlined,
+                  label: 'الطقس',
+                  onPressed: () => openFeatureRoute<void>(
+                    context,
+                    CrossFeatureRoutes.weather,
                     query: q,
                   ),
                 ),

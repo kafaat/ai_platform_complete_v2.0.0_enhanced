@@ -6,32 +6,59 @@ import 'package:flutter/material.dart';
 import 'package:sahool_app/core/routing/app_router.dart';
 
 abstract final class CrossFeatureRoutes {
-  /// خريطة «حقولي» (ميزة maps).
-  static const maps = '/maps';
+  /// خريطة «حقولي» (ميزة maps: `MapsRoutes.farmMap`).
+  static const maps = '/maps/farm';
 
-  /// تسجيل كشف ميدانيّ جديد (ميزة scouting) — يأخذ field_id.
-  static const scoutingNew = '/scouting/new';
+  /// التقاط مشاهدة ميدانيّة (ميزة scouting: `ScoutingRoutes.capture`) — يأخذ field_id.
+  static const scoutingNew = '/scouting/capture';
 
-  /// تسجيل نشاط سريع (ميزة activities) — يأخذ field_id.
-  static const activityNew = '/activities/new';
+  /// تسجيل نشاط سريع (ميزة activities: `ActivitiesRoutes.log`) — يأخذ
+  /// field_id و field_name.
+  static const activityNew = '/activities/log';
 
-  /// الريّ التشغيليّ (ميزة irrigation).
-  static const irrigation = '/irrigation/ops';
+  /// «هل أروي اليوم؟» لحقل (ميزة irrigation: `IrrigationRoutes.today`) — يأخذ field_id.
+  static const irrigationToday = '/irrigation/today';
 
-  /// المستشار (ميزة advisor) — يأخذ field_id.
+  /// الريّ التشغيليّ: الصمّامات والجداول على مستوى المزرعة
+  /// (`IrrigationRoutes.ops`) — لا يأخذ field_id.
+  static const irrigationOps = '/irrigation/ops';
+
+  /// المستشار (ميزة advisor) — يأخذ field_id و field_name.
   static const advisor = '/advisor';
 
-  /// المهامّ (ميزة tasks) — يأخذ field_id.
+  /// المهامّ (ميزة tasks) — يأخذ field_id مرشِّحاً أوّليّاً.
   static const tasks = '/tasks';
 
-  /// المواسم والمراحل (ميزة crop_season) — يأخذ field_id.
-  static const cropSeason = '/crop-season';
+  /// المواسم والأطوار (ميزة crop_season: `CropSeasonRoutes.seasons`) — يأخذ field_id.
+  static const cropSeason = '/seasons';
 
-  /// أخذ العيّنات (ميزة lab_sampling) — يأخذ field_id.
-  static const labSampling = '/lab-sampling';
+  /// عيّنات المختبر (ميزة lab_sampling: `LabSamplingRoutes.samples`) — يأخذ field_id.
+  static const labSampling = '/lab-samples';
 
   /// شاشة الأقمار (ميزة satellite) — تأخذ field_id.
   static const satellite = '/satellite';
+
+  /// تنبيهات حقل (ميزة alerts: `AlertsPaths.fieldAlerts`) — يأخذ field_id.
+  static const alertsField = '/alerts/field';
+
+  /// الطقس ونوافذ العمليّات (ميزة weather: `WeatherPaths.weather`) — يأخذ field_id.
+  static const weather = '/weather';
+
+  /// كلّ المسارات أعلاه (يتحقّق الاختبار أنّ كلّاً منها مسجَّل في الموجِّه).
+  static const all = <String>[
+    maps,
+    scoutingNew,
+    activityNew,
+    irrigationToday,
+    irrigationOps,
+    advisor,
+    tasks,
+    cropSeason,
+    labSampling,
+    satellite,
+    alertsField,
+    weather,
+  ];
 }
 
 /// هل المسار مسجَّل في الموجِّه؟ قابل للاستبدال في الاختبارات.
