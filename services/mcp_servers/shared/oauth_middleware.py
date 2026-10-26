@@ -10,6 +10,7 @@ import json
 import os
 import re
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -105,6 +106,48 @@ def idempotency_key(user: dict, request_id: str | None, name: str, arguments: di
     return hashlib.sha256(
         json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
+
+
+# Idempotency results are kept per process. Without eviction every distinct
+# request_id stays in memory for the life of the process, so the cache is bounded
+# by age (an expired entry is dropped when read and on every insert) and by size
+# (the oldest entries go first once the cap is reached).
+IDEMPOTENCY_CACHE_MAX_ENTRIES = 1024
+
+
+def idempotency_cache_get(cache: dict, key: str | None, *, now: datetime | None = None):
+    """Return the cached, unexpired result for ``key``, or ``None``."""
+    if not key:
+        return None
+    entry = cache.get(key)
+    if entry is None:
+        return None
+    if (now or datetime.now(UTC)) >= entry["expires_at"]:
+        cache.pop(key, None)
+        return None
+    return entry["result"]
+
+
+def idempotency_cache_put(
+    cache: dict,
+    key: str | None,
+    result,
+    *,
+    ttl_seconds: float,
+    max_entries: int | None = None,
+    now: datetime | None = None,
+) -> None:
+    """Store ``result`` under ``key``, evicting expired entries, then the oldest."""
+    if not key:
+        return
+    now = now or datetime.now(UTC)
+    cap = max(1, IDEMPOTENCY_CACHE_MAX_ENTRIES if max_entries is None else max_entries)
+    for stale in [k for k, entry in cache.items() if now >= entry["expires_at"]]:
+        del cache[stale]
+    cache.pop(key, None)  # re-inserted below as the newest entry
+    while len(cache) >= cap:
+        del cache[next(iter(cache))]
+    cache[key] = {"result": result, "expires_at": now + timedelta(seconds=ttl_seconds)}
 
 
 def _bearer_from_header(value: str | None) -> str:

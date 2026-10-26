@@ -7,13 +7,19 @@ OAuth 2.1 + Streamable HTTP + Idempotent Tools
 import json
 import logging
 import os
-from datetime import UTC, datetime, timedelta
+import re
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import idempotency_key, require_scope
+from shared.oauth_middleware import (
+    idempotency_cache_get,
+    idempotency_cache_put,
+    idempotency_key,
+    require_scope,
+)
 from shared.streamable_http import StreamableHTTPTransport
 
 from shared.field_change_summary import InsufficientObservations, summarize_field_change
@@ -58,6 +64,27 @@ def _relay_raster_status(resp: httpx.Response) -> None:
     if 400 <= code < 500:
         raise HTTPException(422, detail=f"raster-service rejected request (upstream {code})")
     raise HTTPException(502, detail="raster-service upstream error")
+
+
+# raster-service trusts X-Tenant-Id, so the tenant sent there must be the one the
+# caller's token was issued for. The tool arguments come from the model, not from the
+# caller's identity: a tenant_id argument is accepted only if it repeats the token's.
+# field_id is placed in the raster URL path, so only a plain identifier is accepted.
+_FIELD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def _raster_scope(args: dict[str, Any], user: dict[str, Any]) -> tuple[str, str]:
+    """Return ``(field_id, tenant_id)`` for a raster read, failing closed."""
+    token_tenant = str((user or {}).get("tenant_id") or "").strip()
+    if not token_tenant:
+        raise HTTPException(401, detail="Token missing tenant_id")
+    claimed = args.get("tenant_id")
+    if claimed not in (None, "") and str(claimed).strip() != token_tenant:
+        raise HTTPException(403, detail="tenant_id does not match the caller's token")
+    field_id = args.get("field_id")
+    if not isinstance(field_id, str) or not _FIELD_ID_RE.fullmatch(field_id):
+        raise HTTPException(422, detail="field_id must match ^[A-Za-z0-9_-]{1,64}$")
+    return field_id, token_tenant
 
 
 FIELD_REGISTRY = {
@@ -251,9 +278,12 @@ async def list_tools() -> dict[str, Any]:
                         "field_id": {"type": "string"},
                         "date": {"type": "string", "format": "date"},
                         "index": {"type": "string", "default": "ndvi"},
-                        "tenant_id": {"type": "string"},
+                        "tenant_id": {
+                            "type": "string",
+                            "description": "Optional; must equal the caller token's tenant.",
+                        },
                     },
-                    "required": ["field_id", "tenant_id"],
+                    "required": ["field_id"],
                 },
             },
             {
@@ -267,7 +297,10 @@ async def list_tools() -> dict[str, Any]:
                     "type": "object",
                     "properties": {
                         "field_id": {"type": "string"},
-                        "tenant_id": {"type": "string"},
+                        "tenant_id": {
+                            "type": "string",
+                            "description": "Optional; must equal the caller token's tenant.",
+                        },
                         "index": {"type": "string", "default": "ndvi"},
                         "since": {
                             "type": "string",
@@ -275,7 +308,7 @@ async def list_tools() -> dict[str, Any]:
                             "description": "YYYY-MM-DD — يقارن المشاهدات من هذا التاريخ فأحدث.",
                         },
                     },
-                    "required": ["field_id", "tenant_id"],
+                    "required": ["field_id"],
                 },
             },
         ]
@@ -287,20 +320,15 @@ async def call_tool(request: Request, user: dict = Depends(require_scope("satell
     body = await request.json()
     tool_input = ToolInput(**body)
     cache_key = idempotency_key(user, tool_input.request_id, tool_input.name, tool_input.arguments)
-    if cache_key:
-        cached = IDEMPOTENCY_CACHE.get(cache_key)
-        if cached and datetime.now(UTC) < cached["expires_at"]:
-            return cached["result"]
-    result = await _execute_tool(tool_input)
-    if cache_key:
-        IDEMPOTENCY_CACHE[cache_key] = {
-            "result": result,
-            "expires_at": datetime.now(UTC) + timedelta(seconds=CACHE_TTL_SECONDS),
-        }
+    cached = idempotency_cache_get(IDEMPOTENCY_CACHE, cache_key)
+    if cached is not None:
+        return cached
+    result = await _execute_tool(tool_input, user)
+    idempotency_cache_put(IDEMPOTENCY_CACHE, cache_key, result, ttl_seconds=CACHE_TTL_SECONDS)
     return result
 
 
-async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
+async def _execute_tool(tool_input: ToolInput, user: dict[str, Any]) -> dict[str, Any]:
     name = tool_input.name
     args = tool_input.arguments
     if name == "fetch_sentinel2_l2a":
@@ -411,12 +439,9 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
     elif name in {"read_indicator_observation", "compute_ndvi"}:
         # ``compute_ndvi`` is a compatibility alias only. The MCP/brain never performs
         # spectral computation; it reads the authoritative Raster product.
-        field_id = str(args.get("field_id") or "").strip()
-        tenant_id = str(args.get("tenant_id") or "").strip()
+        field_id, tenant_id = _raster_scope(args, user)
         index = str(args.get("index") or "ndvi").strip().lower()
         date = str(args.get("date") or "latest").strip()
-        if not field_id or not tenant_id:
-            raise HTTPException(422, detail="field_id and tenant_id are required")
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
                 client.get,
@@ -447,13 +472,10 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
         # المسار 1 (MCP فوق CDSE): أداة مركَّبة قراءة-فقط. تقرأ السلسلة الزمنيّة
         # القانونيّة من raster-service وتُلخّص التغيّر عبر منطق نقيّ مشترك — لا حساب
         # طيفيّ في MCP، ولا كتابة (satellite:read)، ولا تفسير زراعيّ.
-        field_id = str(args.get("field_id") or "").strip()
-        tenant_id = str(args.get("tenant_id") or "").strip()
+        field_id, tenant_id = _raster_scope(args, user)
         index = str(args.get("index") or "ndvi").strip().lower()
         since = args.get("since")
         since = str(since).strip() if since else None
-        if not field_id or not tenant_id:
-            raise HTTPException(422, detail="field_id and tenant_id are required")
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await retry_request(
                 client.get,

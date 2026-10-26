@@ -27,6 +27,9 @@ SERVICE = os.getenv("MCP_SERVICE", "field")
 # (عميل المشرف الوحيد يستهدف الأربعة المحروسة)، فلا حاجة إلى فترة سماح — والافتراضيّ
 # الآمن أصدق من علم مؤقّت يصير دائماً بالصمت.
 MCP_CONTEXT_SCOPE = "mcp:context:read"
+# One dependency object for both the route guard and the handler parameter, so
+# FastAPI authenticates once per request and the handler sees the same claims.
+_require_context_scope = require_scope(MCP_CONTEXT_SCOPE)
 
 # Auth-first: this ASGI layer runs before request-body decoding/validation.
 app.add_middleware(
@@ -42,13 +45,16 @@ class ToolCall(BaseModel):
 
 
 def _base(kind: str, args: dict[str, Any]) -> dict[str, Any]:
+    # Every value below is the caller's own argument echoed back; nothing here was
+    # read from a lab, weather or field source. It is therefore never "verified" and
+    # never "governing". tenant_id is overwritten from the token by call_tool.
     return {
         "type": kind,
         "service": SERVICE,
         "field_id": args.get("field_id"),
         "tenant_id": args.get("tenant_id"),
         "observed_at": datetime.now(UTC).isoformat(),
-        "verified": kind == "signal" and SERVICE in {"lab", "weather"},
+        "verified": False,
         "decision_authority": "none",
     }
 
@@ -83,7 +89,7 @@ def _lab(args: dict[str, Any]) -> dict[str, Any]:
             "water_ec": args.get("water_ec"),
             "sar": args.get("sar"),
         },
-        "governing": True,
+        "governing": False,
     }
 
 
@@ -152,7 +158,7 @@ async def readyz() -> dict[str, str]:
     return {"status": "ready", "service": SERVICE}
 
 
-@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope(MCP_CONTEXT_SCOPE))])
+@app.get("/v1/mcp/tools", dependencies=[Depends(_require_context_scope)])
 async def list_tools() -> dict[str, Any]:
     if SERVICE not in TOOLSETS:
         raise HTTPException(503, f"Unsupported MCP_SERVICE={SERVICE}")
@@ -169,12 +175,15 @@ async def list_tools() -> dict[str, Any]:
     }
 
 
-@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope(MCP_CONTEXT_SCOPE))])
-async def call_tool(call: ToolCall) -> dict[str, Any]:
+@app.post("/v1/mcp/tools/call", dependencies=[Depends(_require_context_scope)])
+async def call_tool(
+    call: ToolCall, user: dict[str, Any] = Depends(_require_context_scope)
+) -> dict[str, Any]:
     tools = TOOLSETS.get(SERVICE)
     if not tools or call.name not in tools:
         raise HTTPException(404, "Unknown tool")
-    result = tools[call.name](call.arguments)
+    # The tenant is the token's, never the one in the (model-written) arguments.
+    result = tools[call.name]({**call.arguments, "tenant_id": user["tenant_id"]})
     if result.get("type") not in {"observation", "signal", "annotation"}:
         raise HTTPException(500, "MCP output contract violation")
     if "recommendation" in result or "prescription" in result:
